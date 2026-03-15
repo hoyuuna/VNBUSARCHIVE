@@ -1,4 +1,4 @@
-# 🚌 QUY CHUẨN VÀ HƯỚNG DẪN ĐĂNG TẢI ẢNH (TIÊU CHUẨN CHUYÊN NGHIỆP)
+# 🚌 QUY CHUẨN VÀ HƯỚNG DẪN ĐĂNG TẢI ẢNH
 
 Tài liệu này quy định các tiêu chuẩn khắt khe về nhiếp ảnh và cách thức điền thông tin nhằm xây dựng một cơ sở dữ liệu hình ảnh xe buýt/xe khách chất lượng cao. Vui lòng đọc kỹ trước khi đóng góp.
 
