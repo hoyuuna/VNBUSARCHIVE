@@ -68,8 +68,8 @@ Phân loại rõ ràng giữa **Xe buýt** và **Xe khách**.
 * **Nếu xe đã dừng hoạt động:** Ghi `Dừng hoạt động`.
 
 ### 6. Dòng xe
-Ưu tiên chọn từ gợi ý có sẵn. Nếu không có, vui lòng nhập tên chi tiết của dòng xe (khung gầm + thân vỏ nếu biết).
-* *Ví dụ: `THACO Garden` hoặc `THACO Garden TB79CT`.*
+Ưu tiên chọn từ gợi ý có sẵn. Nếu không có, vui lòng nhập tên chi tiết của dòng xe .
+* *Ví dụ: `THACO Garden` -> `THACO Garden TB79CT`.*
 
 ### 7. Vị trí chụp
 Nhập **địa chỉ đoạn đường mà xe đang di chuyển qua** trong khung hình (KHÔNG phải vị trí nơi người chụp đang đứng bấm máy).
