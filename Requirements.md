@@ -30,6 +30,19 @@ Chúng tôi tìm kiếm những bức ảnh **có chủ đích nhiếp ảnh rõ
 * **Không Watermark:** Vui lòng không chèn logo/chữ ký cá nhân, hệ thống sẽ tự động đóng dấu bản quyền khi xuất bản.
 * **Quyền riêng tư:** Nếu ảnh chụp cận cảnh và nhận diện rõ khuôn mặt người (hành khách, tài xế), bạn cần đảm bảo sự cho phép của họ hoặc dùng tính năng che vật thể có sẵn để làm mờ.
 
+### 5. Bảng ví dụ trực quan về Bố cục ảnh
+Dưới đây là một số ví dụ để bạn dễ dàng đối chiếu xem bức ảnh của mình có đạt chuẩn về bố cục hay không:
+
+| Hình ảnh minh họa | Trạng thái | Nhận xét chi tiết |
+| :--- | :---: | :--- |
+| <img src="https://i.postimg.cc/Pf1Hd8n3/IMG_20260321_174305.jpg" width="300"> | ✅ **HỢP LỆ** | **Tốt:** Toàn bộ xe nằm trọn trong khung hình, áp dụng tốt bố cục tỉ lệ 1/3 tạo không gian thoáng đãng. |
+| <img src="https://i.postimg.cc/yNr1SqfC/IMG_20260321_145006.jpg" width="300"> | ✅ **HỢP LỆ** | **Tốt:** Toàn bộ xe nằm trọn trong khung hình, chủ thể được đặt ngay ngắn ở chính giữa. |
+| <img src="https://i.postimg.cc/vBVsg4gm/IMG_20260321_150406.jpg" width="300"> | ❌ **TỪ CHỐI** | **Không ổn:** Xe bị lệch quá nhiều lên bên trên, mép ảnh xém cắt mất phần cục nóng máy lạnh trên nóc xe. |
+| <img src="https://i.postimg.cc/gkPYhHHN/IMG_20260321_144308.jpg" width="300"> | ❌ **TỪ CHỐI** | **Không ổn:** Xe bị lệch quá sát sang mép trái, xém cắt mất phần gương chiếu hậu bên phụ của xe. |
+| <img src="https://i.postimg.cc/pVcSbWpS/photo-2026-03-20-17-13-18.jpg" width="300"> | ❌ **TỪ CHỐI** | **Không ổn:** Xe bị motion blur (mờ do chuyển động), nhòe do phản chiếu kính và BKS không thể được nhìn thấy. |
+| <img src="https://i.postimg.cc/tRFzD9FZ/IMG_7959.jpg" width="300"> | ❌ **TỪ CHỐI** | **Không ổn:** Xe bị che khuất nghiêm trọng và BKS không thể được nhìn thấy. |
+| <img src="https://i.postimg.cc/SQcGVmcz/IMG_8022.jpg" width="300"> | ❌ **TỪ CHỐI** | **Không ổn:** Xe quá xa không thể nhìn rõ. |
+| <img src="https://i.postimg.cc/7PSNXqSC/IMG_8131.jpg" width="300"> | ❌ **TỪ CHỐI** | **Không ổn:** Ảnh bị lóa sáng nghiêm trọng. |
 ---
 
 ## PHẦN 2: QUY CHUẨN ĐIỀN THÔNG TIN
