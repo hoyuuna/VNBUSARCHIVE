@@ -71,6 +71,8 @@ Vui lòng chọn tên đơn vị từ **Gợi ý có sẵn**. Nếu phải nhậ
 
 *💡 **Ví dụ:** `Xí nghiệp Bus Hà Nội` -> `XN Xe buýt Hà Nội`*
 
+ **⚠️ LƯU Ý: Phải ghi thông tin tại _thời điểm chụp ảnh_**
+
 ### 4. Loại xe
 Phân loại rõ ràng giữa **Xe buýt** và **Xe khách**.
 > **Lưu ý:** Xe tư nhân vận chuyển hành khách nhưng **KHÔNG có 2 cửa lên/xuống** thì không được coi là Xe buýt (phải chọn là Xe khách).
@@ -79,6 +81,9 @@ Phân loại rõ ràng giữa **Xe buýt** và **Xe khách**.
 * **Xe buýt:** Chỉ nhập số tuyến. *Ví dụ: `01`*. (Lộ trình chi tiết ghi tại phần **Ghi chú**).
 * **Xe khách:** Ghi Điểm đầu - Điểm cuối. *Ví dụ: `Hà Nội - Cẩm Phả`*.
 * **Nếu xe đã dừng hoạt động:** Ghi `Dừng hoạt động`.
+* **Nếu xe chưa đi vào hoạt động:** Ghi `Chưa hoạt động`.
+
+ **⚠️ LƯU Ý: Phải ghi thông tin tại _thời điểm chụp ảnh_**
 
 ### 6. Dòng xe
 Ưu tiên chọn từ gợi ý có sẵn. Nếu không có, vui lòng nhập tên chi tiết của dòng xe .
