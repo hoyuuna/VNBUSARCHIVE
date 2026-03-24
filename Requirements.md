@@ -43,6 +43,8 @@ Dưới đây là một số ví dụ để bạn dễ dàng đối chiếu xem 
 | <img src="https://i.postimg.cc/tRFzD9FZ/IMG_7959.jpg" width="300"> | ❌ **TỪ CHỐI** | **Không ổn:** Xe bị che khuất nghiêm trọng và BKS không thể được nhìn thấy. |
 | <img src="https://i.postimg.cc/SQcGVmcz/IMG_8022.jpg" width="300"> | ❌ **TỪ CHỐI** | **Không ổn:** Xe quá xa không thể nhìn rõ. |
 | <img src="https://i.postimg.cc/7PSNXqSC/IMG_8131.jpg" width="300"> | ❌ **TỪ CHỐI** | **Không ổn:** Ảnh bị lóa sáng nghiêm trọng. |
+| <img src="https://i.postimg.cc/rmm3qgbw/IMG-20260323-125800.jpg" width="300"> | ❌ **TỪ CHỐI** | **Không ổn:** Xe bị người đi đường che khuất một phần. |
+
 ---
 
 ## PHẦN 2: QUY CHUẨN ĐIỀN THÔNG TIN
