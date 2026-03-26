@@ -84,6 +84,8 @@ Phân loại rõ ràng giữa **Xe buýt** và **Xe khách**.
 * **Xe khách:** Ghi Điểm đầu - Điểm cuối. *Ví dụ: `Hà Nội - Cẩm Phả`*.
 * **Nếu xe đã dừng hoạt động:** Ghi `Dừng hoạt động`.
 * **Nếu xe chưa đi vào hoạt động:** Ghi `Chưa hoạt động`.
+* **Xe về gara/ngoài giờ hoạt động:** Ghi số tuyến xe hiện đang hoạt động cho.
+* **Xe chạy hợp đồng:** Ghi `Hợp đồng`.
 
  **⚠️ LƯU Ý: Phải ghi thông tin tại _thời điểm chụp ảnh_**
 
