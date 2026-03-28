@@ -13,7 +13,7 @@ Chúng tôi tìm kiếm những bức ảnh **có chủ đích nhiếp ảnh rõ
 * **KHÔNG chấp nhận ảnh "Snapshot":** Tuyệt đối từ chối các bức ảnh chụp vội vã, chụp ngẫu nhiên/tiện tay khi đang đi đường, góc máy méo mó hoặc ảnh thiếu sự chuẩn bị.
 * **Đúng chủ thể & Trọn vẹn:** Xe phải là đối tượng chính của bức ảnh. Khung hình phải lấy trọn vẹn chiếc xe, **không bị cắt xén** các bộ phận quan trọng (đầu, đuôi, nóc, bánh xe) hoặc quá sát. Trừ khi nó tạo nên chất riêng cho bức ảnh.
 * **Không bị che khuất:** Chủ thể không bị che lấp đáng kể bởi các phương tiện khác, người đi đường, cột điện, biển báo hay cây cối.
-* **Khung hình ngay ngắn:** Ảnh không bị nghiêng lệch. Tỉ lệ khung hình bắt buộc là ảnh ngang: `16:9`, `3:2`, hoặc `4:3`.
+* **Khung hình ngay ngắn:** Ảnh không bị quá nghiêng lệch. Tỉ lệ khung hình bắt buộc là ảnh ngang: `16:9`, `3:2`, hoặc `4:3`.
 
 ### 2. Yêu cầu nhận diện (Bắt buộc)
 * **Biển kiểm soát (BKS) phải có thể đọc được (Visible):** Khung hình bắt buộc phải thể hiện rõ biển số của phương tiện để phục vụ việc tra cứu dữ liệu.
