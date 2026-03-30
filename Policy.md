@@ -44,6 +44,8 @@ Là một dự án lưu trữ chất lượng cao, VNBUSARCHIVE áp dụng các 
 ### 7. Miễn trừ Trách nhiệm
 * **Tính chính xác của Dữ liệu:** Vì dữ liệu (thông tin tuyến, đơn vị, mẫu xe, lịch sử luân chuyển biển số) là do cộng đồng đóng góp và cập nhật, VNBUSARCHIVE không đảm bảo tính chính xác tuyệt đối 100% của các thông tin này ở mọi thời điểm. Dữ liệu chỉ mang tính chất tham khảo.
 * **Lưu trữ và Rủi ro Kỹ thuật:** Chúng tôi nỗ lực duy trì máy chủ hoạt động ổn định (thông qua dịch vụ đám mây). Tuy nhiên, do là dự án phi lợi nhuận, chúng tôi không chịu trách nhiệm nếu xảy ra sự cố gián đoạn dịch vụ, hoặc mất mát dữ liệu do thiên tai, lỗi hệ thống bất khả kháng. Người dùng nên tự lưu trữ lại ảnh gốc của mình.
+* **Không có giá trị làm Cơ sở pháp lý:** VNBUSARCHIVE là nền tảng lưu trữ với mục đích phi thương mại và nghiên cứu. Mọi hình ảnh, thời gian, địa điểm và dữ liệu trên hệ thống **tuyệt đối không được phép** sử dụng làm cơ sở pháp lý, bằng chứng hay căn cứ để xác định lỗi vi phạm giao thông, vi phạm nội quy của tài xế, đơn vị vận hành hoặc người chụp ảnh; trừ trường hợp được Ban quản trị VNBUSARCHIVE ủy quyền, cho phép bằng văn bản, hoặc khi có yêu cầu từ cơ quan chức năng có thẩm quyền.
+* **Trách nhiệm phát sinh từ người dùng:** Người dùng phải hoàn toàn chịu trách nhiệm về nội dung và hình ảnh mình đăng tải. VNBUSARCHIVE được miễn trừ mọi trách nhiệm pháp lý, đền bù đối với các vấn đề phát sinh do sự bất cẩn của người dùng (bao gồm nhưng không giới hạn ở việc: quên không làm mờ/che mặt tài xế hoặc hành khách dẫn đến khiếu nại về quyền riêng tư), cũng như các mâu thuẫn hay tranh chấp diễn ra bên ngoài nền tảng hoặc trên các mạng xã hội khác bắt nguồn từ hình ảnh/thông tin được đăng trên website.
 
 ---
 
