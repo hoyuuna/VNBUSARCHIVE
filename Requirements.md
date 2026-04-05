@@ -28,7 +28,7 @@ Chúng tôi tìm kiếm những bức ảnh **có chủ đích nhiếp ảnh rõ
 * Chấp nhận biển số kim loại (biển cứng) ở đầu/đuôi xe hoặc phần biển số được dán decal (in chữ) trên thân xe/kính xe, miễn là có thể đọc rõ bằng mắt thường.
 
 ### 3. Chất lượng kỹ thuật (Technical Quality)
-* Ảnh phải sắc nét, đủ sáng và có độ tương phản tốt.
+* Ảnh phải sắc nét, đủ sáng và **có độ tương phản tốt**.
 * **Không mờ nhòe (Blurry):** Không chấp nhận ảnh bị mờ do rung tay, out-net, hoặc xe di chuyển quá nhanh gây nhòe mờ không mong muốn.
 * **Ảnh nguyên bản:** Giữ nguyên tính chân thực của ảnh chụp. Tuyệt đối **KHÔNG** sử dụng các công cụ Upscale AI để làm nét hoặc can thiệp thay đổi chi tiết xe.
 
