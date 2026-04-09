@@ -1,14 +1,3 @@
-Chào bạn, để văn bản trở nên chuyên nghiệp, đồng bộ và dễ đọc hơn, tôi đã thực hiện các thay đổi sau:
-
-1. **Chuẩn hóa Icon & Định dạng:** Sử dụng duy nhất ⚠️ cho **Quy định bắt buộc/Quan trọng** và 📌 cho **Lưu ý/Mẹo**. Việc này giúp người đọc không bị rối mắt bởi quá nhiều biểu tượng lộn xộn.
-2. **Lược bỏ tiếng Anh không cần thiết:** Chuyển đổi các từ như *Intention & Composition, Snapshot, Visible, Blurry, Watermark* sang tiếng Việt chuẩn mực trong nhiếp ảnh. Chỉ giữ lại thuật ngữ chuyên ngành bất đắc dĩ như *EXIF* hay *AI*.
-3. **Gộp các lưu ý lặp lại:** Gộp câu *"Phải ghi thông tin tại thời điểm chụp ảnh"* lên đầu Phần 2 để tránh việc lặp đi lặp lại nhiều lần.
-4. **Văn phong:** Chỉnh sửa lại câu chữ cho rành mạch, dứt khoát và mang tính quy chuẩn của một hệ thống cơ sở dữ liệu.
-
-Dưới đây là bản hoàn thiện dành cho bạn:
-
----
-
 # 🚌 QUY CHUẨN VÀ HƯỚNG DẪN ĐĂNG TẢI ẢNH
 
 Tài liệu này quy định các tiêu chuẩn khắt khe về nhiếp ảnh và cách thức điền thông tin nhằm xây dựng một cơ sở dữ liệu hình ảnh xe buýt chất lượng cao. Vui lòng đọc kỹ trước khi đóng góp.
