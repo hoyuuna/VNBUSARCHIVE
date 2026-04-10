@@ -89,7 +89,7 @@ Phân loại rõ ràng giữa **Xe buýt** và **Xe khách**.
 * **Xe khách:** Dừng hỗ trợ nhập liệu kể từ 15/03/2026.
 * **Xe đã dừng hoạt động:** Ghi `Dừng hoạt động`.
 * **Xe chưa hoạt động:** Ghi `Chưa hoạt động`.
-* **Xe về gara / Ngoài giờ hoạt động:** Ghi `Tạm thời dừng hoạt động`.
+* **Xe về gara / Ngoài giờ hoạt động:** Ghi `Ngoài giờ hoạt động`.
 * **Xe chạy hợp đồng:** Ghi `Hợp đồng`.
 
 ### 6. Dòng xe
