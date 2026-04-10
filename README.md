@@ -131,6 +131,6 @@ API sử dụng các mã trạng thái HTTP tiêu chuẩn để thông báo kế
 Vì đây là dự án phi lợi nhuận, mọi sự đóng góp về hình ảnh, dữ liệu lịch sử hay mã nguồn đều được hoan nghênh. 
 
 - **Tác giả / Quản trị viên:** Hoyuuna/nhanday
-- **Liên hệ:** [https://vnbusarchive.qzz.io/report](https://vnbusarchive.qzz.io/report) hoặc nghoanganhtuann@gmail.com
+- **Liên hệ:** [https://vnbusarchive.qzz.io/report](https://vnbusarchive.qzz.io/contact) hoặc nghoanganhtuann@gmail.com
 
 Cảm ơn bạn đã quan tâm và đồng hành cùng VNBUSARCHIVE! ❤️
