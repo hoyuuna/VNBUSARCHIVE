@@ -3888,6 +3888,7 @@
 
                     if (id === 'upload' && !app.user) {
                         app.utils.navigate('/auth');
+                        return;
                     }
 
                     document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
@@ -7703,8 +7704,9 @@
                         await window.sb.auth.signOut();
                         await app.setUser(null);
                         app.ui.toggleUserMenu(false);
-                        app.ui.showAlert("Đã đăng xuất thành công!");
-                        app.utils.navigate('/');
+                        app.ui.showAlert("Đã đăng xuất thành công!", () => {
+                            app.utils.navigate('/');
+                        });
                     } catch (err) {
                         console.error("Lỗi đăng xuất:", err);
                         app.ui.showAlert("Có lỗi xảy ra khi đăng xuất.");
