@@ -7699,8 +7699,16 @@
                 },
 
                 logout: async () => {
-                    await window.sb.auth.signOut();
-                    app.utils.navigate('/');
+                    try {
+                        await window.sb.auth.signOut();
+                        await app.setUser(null);
+                        app.ui.toggleUserMenu(false);
+                        app.ui.showAlert("Đã đăng xuất thành công!");
+                        app.utils.navigate('/');
+                    } catch (err) {
+                        console.error("Lỗi đăng xuất:", err);
+                        app.ui.showAlert("Có lỗi xảy ra khi đăng xuất.");
+                    }
                 },
                 changePassword: async () => {
                     const oldPass = document.getElementById('set-cp-old').value;
