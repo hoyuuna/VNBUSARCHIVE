@@ -81,7 +81,8 @@
 
     <main class="flex-1 w-full max-w-3xl mx-auto px-4 pb-12">
         
-        <div class="text-center mb-10">
+        <!-- Tổng quan -->
+        <div class="text-center mb-8">
             <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 border border-gray-200 text-3xl mb-4">
                 <i class="fa-solid fa-server text-black"></i>
             </div>
@@ -92,45 +93,105 @@
             </div>
         </div>
 
-        <div class="space-y-4">
-            
-            <div class="status-card bg-white border border-vbs-border p-5 rounded-xl shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <!-- NHÓM 1: MÁY CHỦ WEB -->
+        <h2 class="text-lg font-bold text-gray-800 mb-3 mt-8 border-b border-gray-200 pb-2 uppercase tracking-wide text-sm">Máy chủ Web</h2>
+        <div class="space-y-3">
+            <!-- Vercel -->
+            <div class="status-card bg-white border border-vbs-border p-4 rounded-xl shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div class="flex items-start gap-4">
-                    <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xl shrink-0 mt-0.5">
+                    <div class="w-10 h-10 rounded-lg bg-gray-100 text-gray-800 flex items-center justify-center text-xl shrink-0">
+                        <i class="fa-solid fa-server"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-black text-base md:text-lg">Vercel</h3>
+                        <p class="text-xs text-gray-500 mt-0.5">Máy chủ website</p>
+                    </div>
+                </div>
+                <div id="status-vercel" class="flex items-center sm:justify-end gap-2 bg-gray-50 px-4 py-2 rounded-lg border border-gray-100 min-w-[140px] justify-center">
+                    <i class="fa-solid fa-circle-notch fa-spin text-gray-400"></i>
+                    <span class="text-sm font-bold text-gray-600">Đang test...</span>
+                </div>
+            </div>
+
+            <!-- Cloudflare -->
+            <div class="status-card bg-white border border-vbs-border p-4 rounded-xl shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 rounded-lg bg-orange-50 text-orange-500 flex items-center justify-center text-xl shrink-0">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-black text-base md:text-lg">Cloudflare</h3>
+                        <p class="text-xs text-gray-500 mt-0.5">Tường lửa website</p>
+                    </div>
+                </div>
+                <div id="status-cloudflare" class="flex items-center sm:justify-end gap-2 bg-gray-50 px-4 py-2 rounded-lg border border-gray-100 min-w-[140px] justify-center">
+                    <i class="fa-solid fa-circle-notch fa-spin text-gray-400"></i>
+                    <span class="text-sm font-bold text-gray-600">Đang test...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- NHÓM 2: MÁY CHỦ HÌNH ẢNH -->
+        <h2 class="text-lg font-bold text-gray-800 mb-3 mt-8 border-b border-gray-200 pb-2 uppercase tracking-wide text-sm">Máy chủ Hình ảnh</h2>
+        <div class="space-y-3">
+            <!-- Catbox -->
+            <div class="status-card bg-white border border-vbs-border p-4 rounded-xl shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xl shrink-0">
                         <i class="fa-solid fa-cloud"></i>
                     </div>
                     <div>
-                        <h3 class="font-bold text-black text-lg">Catbox CDN</h3>
+                        <h3 class="font-bold text-black text-base md:text-lg">Catbox CDN</h3>
                         <p class="text-xs text-gray-500 mt-0.5">Máy chủ phân phối hình ảnh chính</p>
                     </div>
                 </div>
-                
-                <div id="status-catbox" class="flex items-center sm:justify-end gap-2 bg-gray-50 px-4 py-2.5 rounded-lg border border-gray-100 min-w-[140px] justify-center">
+                <div id="status-catbox" class="flex items-center sm:justify-end gap-2 bg-gray-50 px-4 py-2 rounded-lg border border-gray-100 min-w-[140px] justify-center">
                     <i class="fa-solid fa-circle-notch fa-spin text-gray-400"></i>
                     <span class="text-sm font-bold text-gray-600">Đang test...</span>
                 </div>
             </div>
 
-            <div class="status-card bg-white border border-vbs-border p-5 rounded-xl shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <!-- Supabase Storage -->
+            <div class="status-card bg-white border border-vbs-border p-4 rounded-xl shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div class="flex items-start gap-4">
-                    <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shrink-0 mt-0.5">
-                        <i class="fa-solid fa-database"></i>
+                    <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shrink-0">
+                        <i class="fa-solid fa-images"></i>
                     </div>
                     <div>
-                        <h3 class="font-bold text-black text-lg">Supabase Storage</h3>
+                        <h3 class="font-bold text-black text-base md:text-lg">Supabase Storage</h3>
                         <p class="text-xs text-gray-500 mt-0.5">Máy chủ phân phối hình ảnh dự phòng</p>
                     </div>
                 </div>
-                
-                <div id="status-supabase" class="flex items-center sm:justify-end gap-2 bg-gray-50 px-4 py-2.5 rounded-lg border border-gray-100 min-w-[140px] justify-center">
+                <div id="status-supabase-storage" class="flex items-center sm:justify-end gap-2 bg-gray-50 px-4 py-2 rounded-lg border border-gray-100 min-w-[140px] justify-center">
                     <i class="fa-solid fa-circle-notch fa-spin text-gray-400"></i>
                     <span class="text-sm font-bold text-gray-600">Đang test...</span>
                 </div>
             </div>
-
         </div>
 
-        <div class="text-center mt-8">
+        <!-- NHÓM 3: MÁY CHỦ CƠ SỞ DỮ LIỆU -->
+        <h2 class="text-lg font-bold text-gray-800 mb-3 mt-8 border-b border-gray-200 pb-2 uppercase tracking-wide text-sm">Máy chủ Cơ sở dữ liệu</h2>
+        <div class="space-y-3">
+            <!-- Supabase Database -->
+            <div class="status-card bg-white border border-vbs-border p-4 rounded-xl shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 rounded-lg bg-green-50 text-green-600 flex items-center justify-center text-xl shrink-0">
+                        <i class="fa-solid fa-database"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-black text-base md:text-lg">Supabase</h3>
+                        <p class="text-xs text-gray-500 mt-0.5">Máy chủ cơ sở dữ liệu</p>
+                    </div>
+                </div>
+                <div id="status-supabase-db" class="flex items-center sm:justify-end gap-2 bg-gray-50 px-4 py-2 rounded-lg border border-gray-100 min-w-[140px] justify-center">
+                    <i class="fa-solid fa-circle-notch fa-spin text-gray-400"></i>
+                    <span class="text-sm font-bold text-gray-600">Đang test...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nút Test -->
+        <div class="text-center mt-10">
             <button onclick="runTests()" class="bg-black text-white px-6 py-2.5 rounded-md font-bold text-xs hover:bg-gray-800 transition shadow-sm uppercase tracking-wide">
                 <i class="fa-solid fa-rotate-right mr-1"></i> Kiểm tra lại
             </button>
@@ -140,8 +201,11 @@
 
     <script>
         const endpoints = {
-            supabase: 'https://wsrv.nl/?url=https%3A%2F%2Fodhbctmncpvftxhqgfri.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fimages%2Fvehicles%2F1775993962349-612376139.jpg&we',
-            catbox: 'https://wsrv.nl/?url=https%3A%2F%2Ffiles.catbox.moe%2Fjaun05.jpg&we'
+            vercel: 'https://vercel.com/api/www/avatar?s=36&teamId=team_6Xa5iP94yAcwSWa6D3h2hcXZ&dpl=dpl_7McmAmojbv18X3BM5DpzgDVCLN7F',
+            cloudflare: 'https://cf-assets.www.cloudflare.com/dzlvafdwdttg/69wNwfiY5mFmgpd9eQFW6j/d5131c08085a977aa70f19e7aada3fa9/1pixel-down__1_.svg',
+            catbox: 'https://wsrv.nl/?url=https%3A%2F%2Ffiles.catbox.moe%2Fjaun05.jpg&we',
+            supabase_storage: 'https://wsrv.nl/?url=https%3A%2F%2Fodhbctmncpvftxhqgfri.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fimages%2Fvehicles%2F1775993962349-612376139.jpg&we',
+            supabase_db: 'https://supabase.com/dashboard/img/supabase-logo.svg'
         };
 
         function pingImage(url) {
@@ -192,33 +256,44 @@
         }
 
         async function runTests() {
-            setUIState('supabase', 'loading');
-            setUIState('catbox', 'loading');
+            const services = ['vercel', 'cloudflare', 'catbox', 'supabase-storage', 'supabase-db'];
+            
+            // Set all to loading
+            services.forEach(id => setUIState(id, 'loading'));
             
             const overallEl = document.getElementById('overall-status');
             overallEl.className = "inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 border border-gray-200 text-sm font-bold text-gray-600 mt-2";
             overallEl.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin text-gray-500"></i> Đang kiểm tra kết nối...`;
 
-            const [supaRes, catboxRes] = await Promise.all([
-                pingImage(endpoints.supabase),
-                pingImage(endpoints.catbox)
+            // Fetch all at once
+            const results = await Promise.all([
+                pingImage(endpoints.vercel),
+                pingImage(endpoints.cloudflare),
+                pingImage(endpoints.catbox),
+                pingImage(endpoints.supabase_storage),
+                pingImage(endpoints.supabase_db)
             ]);
 
-            if (supaRes.success) setUIState('supabase', 'ok', supaRes.ms);
-            else setUIState('supabase', 'error');
+            // Update UI for each service
+            setUIState('vercel', results[0].success ? 'ok' : 'error', results[0].ms);
+            setUIState('cloudflare', results[1].success ? 'ok' : 'error', results[1].ms);
+            setUIState('catbox', results[2].success ? 'ok' : 'error', results[2].ms);
+            setUIState('supabase-storage', results[3].success ? 'ok' : 'error', results[3].ms);
+            setUIState('supabase-db', results[4].success ? 'ok' : 'error', results[4].ms);
 
-            if (catboxRes.success) setUIState('catbox', 'ok', catboxRes.ms);
-            else setUIState('catbox', 'error');
+            // Calculate overall status
+            const successCount = results.filter(r => r.success).length;
+            const totalCount = results.length;
 
-            if (supaRes.success && catboxRes.success) {
+            if (successCount === totalCount) {
                 overallEl.className = "inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-50 border border-green-200 text-sm font-bold text-green-700 mt-2";
                 overallEl.innerHTML = `<div class="w-2.5 h-2.5 rounded-full bg-green-500 pulse-dot"></div> Tất cả hệ thống hoạt động bình thường`;
-            } else if (!supaRes.success && !catboxRes.success) {
+            } else if (successCount === 0) {
                 overallEl.className = "inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-50 border border-red-200 text-sm font-bold text-red-700 mt-2";
-                overallEl.innerHTML = `<div class="w-2.5 h-2.5 rounded-full bg-red-500 pulse-dot"></div> Máy chủ hình ảnh đang gặp sự cố`;
+                overallEl.innerHTML = `<div class="w-2.5 h-2.5 rounded-full bg-red-500 pulse-dot"></div> Toàn bộ hệ thống đang gặp sự cố`;
             } else {
                 overallEl.className = "inline-flex items-center gap-2 px-4 py-2 rounded-full bg-yellow-50 border border-yellow-200 text-sm font-bold text-yellow-700 mt-2";
-                overallEl.innerHTML = `<div class="w-2.5 h-2.5 rounded-full bg-yellow-500 pulse-dot"></div> Máy chủ hình ảnh đang gặp sự cố một phần`;
+                overallEl.innerHTML = `<div class="w-2.5 h-2.5 rounded-full bg-yellow-500 pulse-dot"></div> Hệ thống đang gặp sự cố một phần`;
             }
         }
 
