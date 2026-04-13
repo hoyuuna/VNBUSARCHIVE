@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh sách xe buýt | VNBUSARCHIVE</title>
+    <link rel="icon" href="https://files.catbox.moe/8clypc.png">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=League+Spartan:wght@700;800&family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS & FontAwesome -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Tailwind Custom Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Be Vietnam Pro"', 'sans-serif'],
+                    },
+                    colors: {
+                        'vbs-dark': '#09090b',
+                    },
+                    boxShadow: {
+                        'island': '0 4px 20px -2px rgba(0, 0, 0, 0.1)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #fafafa;
+            color: #09090b;
+        }
+    </style>
+</head>
+
+<body class="antialiased flex flex-col min-h-screen">
+
+    <!-- HEADER TỐI GIẢN -->
+    <header class="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4 px-4 pointer-events-none">
+        <div class="w-full max-w-7xl bg-white/80 backdrop-blur-md border border-white/20 shadow-island rounded-2xl pointer-events-auto transition-all duration-300">
+            <div class="flex justify-between items-center px-4 py-2 md:h-16">
+                <!-- Logo -->
+                <a href="/" class="flex items-center gap-2 cursor-pointer no-underline shrink-0">
+                    <img src="https://wsrv.nl/?url=https://files.catbox.moe/crxvn6.png&we" alt="VNBUSARCHIVE" class="h-8 md:h-10 w-auto object-contain" decoding="async">
+                </a>
+
+                <!-- Nút Trang Chủ -->
+                <a href="/" class="text-white bg-black px-4 py-2 rounded-md hover:bg-gray-800 transition shadow-sm text-xs md:text-sm font-bold flex items-center">
+                    <i class="fa-solid fa-house md:mr-2"></i> <span class="hidden md:inline">Trang chủ</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Khoảng trống bù cho Header Fixed -->
+    <div class="h-28 md:h-32"></div>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 flex items-start justify-center px-4 pt-10">
+        
+        <!-- Box chứa 2 nút bấm -->
+        <div class="bg-white rounded-xl shadow-2xl max-w-sm w-full border border-gray-200 p-6 space-y-4">
+            
+            <a href="https://vi.wikipedia.org/wiki/Danh_s%C3%A1ch_tuy%E1%BA%BFn_xe_bu%C3%BDt_H%C3%A0_N%E1%BB%99i" target="_blank" 
+               class="block w-full bg-black text-white p-3.5 text-center font-bold text-sm rounded-lg shadow-sm transition border border-black hover:bg-gray-800 hover:shadow-md">
+                Tuyến xe buýt Hà Nội
+            </a>
+
+            <a href="https://vi.wikipedia.org/wiki/Danh_s%C3%A1ch_tuy%E1%BA%BFn_xe_bu%C3%BDt_Th%C3%A0nh_ph%E1%BB%91_H%E1%BB%93_Ch%C3%AD_Minh" target="_blank" 
+               class="block w-full bg-black text-white p-3.5 text-center font-bold text-sm rounded-lg shadow-sm transition border border-black hover:bg-gray-800 hover:shadow-md">
+                Tuyến xe buýt TP.HCM
+            </a>
+
+        </div>
+
+    </main>
+
+</body>
+</html>

@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="vi" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dashboard | VNBUSARCHIVE</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons & Supabase -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Tailwind Config for Shadcn UI -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans:['Inter', 'sans-serif'] },
+                    colors: {
+                        background: "hsl(240 10% 3.9%)",
+                        foreground: "hsl(0 0% 98%)",
+                        card: "hsl(240 10% 3.9%)",
+                        "card-foreground": "hsl(0 0% 98%)",
+                        popover: "hsl(240 10% 3.9%)",
+                        "popover-foreground": "hsl(0 0% 98%)",
+                        primary: "hsl(0 0% 98%)",
+                        "primary-foreground": "hsl(240 5.9% 10%)",
+                        secondary: "hsl(240 3.7% 15.9%)",
+                        "secondary-foreground": "hsl(0 0% 98%)",
+                        muted: "hsl(240 3.7% 15.9%)",
+                        "muted-foreground": "hsl(240 5% 64.9%)",
+                        accent: "hsl(240 3.7% 15.9%)",
+                        "accent-foreground": "hsl(0 0% 98%)",
+                        destructive: "hsl(0 62.8% 30.6%)",
+                        "destructive-foreground": "hsl(0 0% 98%)",
+                        border: "hsl(240 3.7% 15.9%)",
+                        input: "hsl(240 3.7% 15.9%)",
+                        ring: "hsl(240 4.9% 83.9%)",
+                    },
+                    borderRadius: { lg: "0.5rem", md: "calc(0.5rem - 2px)", sm: "calc(0.5rem - 4px)" }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { 
+            background-color: hsl(240 10% 3.9%); 
+            color: hsl(0 0% 98%); 
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Shadcn Input */
+        .input-shadcn {
+            display: flex; height: 2.5rem; width: 100%; border-radius: 0.375rem;
+            border: 1px solid hsl(240 3.7% 15.9%); background-color: transparent;
+            padding: 0.5rem 0.75rem; font-size: 0.875rem;
+            transition: border-color 0.15s, box-shadow 0.15s; outline: none;
+        }
+        .input-shadcn:focus-visible {
+            outline: none; ring: 2px;
+            box-shadow: 0 0 0 2px hsl(240 4.9% 83.9%), 0 0 0 4px hsl(240 10% 3.9%);
+        }
+        .input-shadcn::placeholder { color: hsl(240 5% 64.9%); }
+
+        /* Shadcn Buttons */
+        .btn-shadcn {
+            display: inline-flex; align-items: center; justify-content: center;
+            border-radius: 0.375rem; font-size: 0.875rem; font-weight: 500;
+            height: 2.5rem; padding: 0.5rem 1rem; transition: all 0.2s; cursor: pointer;
+            background-color: hsl(0 0% 98%); color: hsl(240 5.9% 10%); border: none;
+        }
+        .btn-shadcn:hover { background-color: hsl(0 0% 98% / 0.9); }
+        .btn-shadcn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .btn-shadcn-outline {
+            display: inline-flex; align-items: center; justify-content: center;
+            border-radius: 0.375rem; font-size: 0.875rem; font-weight: 500;
+            height: 2.5rem; padding: 0.5rem 1rem; transition: all 0.2s; cursor: pointer;
+            border: 1px solid hsl(240 3.7% 15.9%); background-color: transparent; color: hsl(0 0% 98%);
+        }
+        .btn-shadcn-outline:hover { background-color: hsl(240 3.7% 15.9%); }
+
+        /* Shadcn Table */
+        .table-container { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .table-shadcn { width: 100%; caption-side: bottom; font-size: 0.875rem; text-align: left; }
+        .table-shadcn th { height: 3rem; padding: 0 1rem; align-items: center; color: hsl(240 5% 64.9%); font-weight: 500; border-bottom: 1px solid hsl(240 3.7% 15.9%); white-space: nowrap; }
+        .table-shadcn td { padding: 1rem; align-items: center; border-bottom: 1px solid hsl(240 3.7% 15.9%); }
+        .table-shadcn tr:hover { background-color: hsl(240 3.7% 15.9% / 0.5); }
+        .table-shadcn tr:last-child td { border-bottom: 0; }
+
+        /* Modal Animation */
+        #user-modal { opacity: 0; pointer-events: none; transition: opacity 0.2s ease-out; }
+        #user-modal.active { opacity: 1; pointer-events: auto; }
+        #user-modal .modal-content { transform: scale(0.95); transition: transform 0.2s ease-out; }
+        #user-modal.active .modal-content { transform: scale(1); }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: hsl(240 10% 3.9%); }
+        ::-webkit-scrollbar-thumb { background: hsl(240 3.7% 15.9%); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: hsl(240 5% 64.9%); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-background text-foreground">
+
+    <!-- Loading Overlay -->
+    <div id="global-loader" class="fixed inset-0 bg-background/80 backdrop-blur-sm z-[9999] flex items-center justify-center flex-col gap-4">
+        <i class="fa-solid fa-circle-notch fa-spin text-4xl text-primary"></i>
+        <p class="text-sm font-medium text-muted-foreground animate-pulse">Đang xác thực bảo mật...</p>
+    </div>
+
+    <!-- Login UI -->
+    <div id="login-screen" class="hidden flex-1 flex items-center justify-center p-4">
+        <div class="bg-card border border-border p-8 rounded-xl w-full max-w-sm shadow-sm">
+            <div class="flex flex-col items-center mb-6 gap-2">
+                <img src="https://files.catbox.moe/crxvn6.png" alt="Logo" class="h-10 object-contain">
+                <h1 class="text-xl font-semibold tracking-tight">Manager Login</h1>
+                <p class="text-sm text-muted-foreground text-center">Đăng nhập tài khoản cấp quản lý</p>
+            </div>
+            <form onsubmit="app.login(event)" class="space-y-4">
+                <div class="space-y-1.5">
+                    <label class="text-sm font-medium leading-none">Email</label>
+                    <input type="email" id="login-email" required class="input-shadcn" placeholder="manager@vnbusarchive.com">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-sm font-medium leading-none">Mật khẩu</label>
+                    <input type="password" id="login-password" required class="input-shadcn" placeholder="••••••••">
+                </div>
+                <button type="submit" id="btn-login" class="btn-shadcn w-full mt-4">Đăng nhập hệ thống</button>
+            </form>
+            <div id="login-error" class="bg-destructive/15 text-destructive text-sm p-3 rounded-md mt-4 hidden border border-destructive/20 text-center font-medium"></div>
+            <p class="text-sm text-center mt-6 text-muted-foreground"><a href="/" class="hover:text-primary transition-colors hover:underline underline-offset-4">Quay lại trang chủ</a></p>
+        </div>
+    </div>
+
+    <!-- Dashboard UI -->
+    <div id="dashboard-screen" class="hidden flex-1 flex flex-col md:flex-row">
+        
+        <!-- Sidebar (PC) / Top Nav (Mobile) -->
+        <aside class="w-full md:w-64 border-b md:border-b-0 md:border-r border-border bg-card flex flex-col shrink-0 md:h-screen md:sticky md:top-0">
+            <!-- Header/Logo Area -->
+            <div class="p-4 md:p-6 flex items-center gap-3 border-b border-border md:border-0">
+                <img src="https://files.catbox.moe/crxvn6.png" alt="VNBUSARCHIVE" class="h-7 w-auto object-contain">
+                <span class="font-semibold text-lg tracking-tight hidden md:block">Dashboard</span>
+            </div>
+            
+            <!-- Navigation -->
+            <nav class="flex flex-row md:flex-col p-2 md:p-4 gap-1 overflow-x-auto md:overflow-visible no-scrollbar">
+                <button onclick="app.switchTab('logs')" id="nav-logs" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium w-max md:w-full text-left bg-secondary text-secondary-foreground transition-colors shrink-0">
+                    <i class="fa-solid fa-list-check w-4"></i> Nhật ký Admin
+                </button>
+                <button onclick="app.switchTab('users')" id="nav-users" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium w-max md:w-full text-left text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-colors shrink-0">
+                    <i class="fa-solid fa-users w-4"></i> Quản lý Thành viên
+                </button>
+            </nav>
+
+            <!-- User Info (Hidden on mobile, moved to bottom on PC) -->
+            <div class="hidden md:flex mt-auto p-4 border-t border-border flex-col gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold uppercase" id="my-avatar">M</div>
+                    <div class="overflow-hidden">
+                        <p class="text-sm font-medium truncate" id="my-name">User</p>
+                        <p class="text-[11px] text-muted-foreground uppercase font-semibold tracking-wider">Manager</p>
+                    </div>
+                </div>
+                <button onclick="app.logout()" class="text-sm text-destructive hover:text-destructive/80 text-left mt-2 flex items-center transition-colors"><i class="fa-solid fa-arrow-right-from-bracket mr-2"></i> Đăng xuất</button>
+                <a href="/" class="text-sm text-muted-foreground hover:text-foreground text-left flex items-center transition-colors"><i class="fa-solid fa-house mr-2"></i> Về trang chủ</a>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 overflow-y-auto bg-background p-4 md:p-8">
+            <div class="max-w-6xl mx-auto">
+                
+                <!-- Tab Logs -->
+                <div id="tab-logs" class="view-tab hidden animate-in fade-in duration-300">
+                    <div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-2xl font-bold tracking-tight mb-1">Nhật ký hoạt động</h2>
+                            <p class="text-sm text-muted-foreground">Theo dõi thay đổi của Admin/Manager trên toàn hệ thống.</p>
+                        </div>
+                        <!-- Mobile User Action (since Sidebar bottom is hidden on mobile) -->
+                        <div class="flex items-center gap-3 md:hidden">
+                            <span class="text-sm font-medium border border-border px-3 py-1 rounded-full text-muted-foreground"><i class="fa-solid fa-user-shield mr-1"></i> <span id="mobile-name">Manager</span></span>
+                            <button onclick="app.logout()" class="text-destructive text-sm"><i class="fa-solid fa-power-off"></i></button>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
+                        <div class="p-4 border-b border-border">
+                            <div class="relative w-full sm:max-w-sm">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm"></i>
+                                <input type="text" id="log-search" placeholder="Tìm kiếm hành động, ID, chi tiết..." class="input-shadcn pl-9" oninput="app.filterLogs(this.value)">
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table class="table-shadcn">
+                                <thead>
+                                    <tr>
+                                        <th class="w-32">Thời gian</th>
+                                        <th class="w-32">Quản trị viên</th>
+                                        <th class="w-32">Hành động</th>
+                                        <th class="w-32">Mục tiêu (ID)</th>
+                                        <th class="min-w-[300px]">Chi tiết</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="logs-tbody">
+                                    <tr><td colspan="5" class="text-center text-muted-foreground py-8"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Đang tải dữ liệu...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div id="logs-pagination" class="p-4 border-t border-border flex items-center justify-center">
+                            <!-- Pagination controls will be rendered here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Users -->
+                <div id="tab-users" class="view-tab hidden animate-in fade-in duration-300">
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-bold tracking-tight mb-1">Quản lý Thành viên</h2>
+                        <p class="text-sm text-muted-foreground">Quản lý phân quyền và thông tin. <span class="text-amber-500 font-medium ml-1"><i class="fa-solid fa-triangle-exclamation"></i> Chức năng Auth yêu cầu Service Role Key.</span></p>
+                    </div>
+
+                    <div class="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
+                        <div class="p-4 border-b border-border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <div class="relative w-full sm:max-w-xs">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm"></i>
+                                <input type="text" id="user-search" placeholder="Tìm kiếm Username..." class="input-shadcn pl-9" oninput="app.filterUsers(this.value)">
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table class="table-shadcn">
+                                <thead>
+                                    <tr>
+                                        <th class="min-w-[150px]">Username</th>
+                                        <th class="w-24">Role</th>
+                                        <th class="w-32">Ngày tham gia</th>
+                                        <th class="w-24 text-right">Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="users-tbody">
+                                    <tr><td colspan="4" class="text-center text-muted-foreground py-8"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Đang tải dữ liệu...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Edit User -->
+    <div id="user-modal" class="fixed inset-0 bg-background/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4 sm:p-0">
+        <div class="modal-content bg-card border border-border rounded-xl shadow-lg w-full max-w-md relative overflow-hidden">
+            <div class="p-6 border-b border-border flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-semibold tracking-tight">Chỉnh sửa thành viên</h3>
+                    <p id="edit-user-uuid" class="text-[11px] text-muted-foreground font-mono mt-1"></p>
+                </div>
+                <button onclick="app.closeModal()" class="text-muted-foreground hover:text-foreground transition-colors w-8 h-8 flex items-center justify-center rounded-md hover:bg-secondary"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <div class="p-6 space-y-4">
+                <input type="hidden" id="edit-id">
+                <div class="space-y-1.5">
+                    <label class="text-sm font-medium text-foreground">Tên hiển thị (Username)</label>
+                    <input type="text" id="edit-username" class="input-shadcn">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-sm font-medium text-foreground">Quyền (Role)</label>
+                    <select id="edit-role" class="input-shadcn appearance-none[&>option]:bg-card [&>option]:text-foreground">
+                        <option value="user">User (Thành viên)</option>
+                        <option value="admin">Admin (Kiểm duyệt viên)</option>
+                        <option value="manager">Manager (Quản lý cấp cao)</option>
+                    </select>
+                </div>
+                
+                <div class="relative my-6">
+                    <div class="absolute inset-0 flex items-center"><span class="w-full border-t border-border"></span></div>
+                    <div class="relative flex justify-center text-xs uppercase"><span class="bg-card px-2 text-muted-foreground font-semibold">Supabase Auth</span></div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-sm font-medium text-foreground">Email</label>
+                    <input type="email" id="edit-email" class="input-shadcn" placeholder="Nhập để đổi Email...">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-sm font-medium text-foreground">Mật khẩu mới</label>
+                    <input type="password" id="edit-password" class="input-shadcn" placeholder="Bỏ trống nếu không đổi">
+                </div>
+            </div>
+            
+            <div class="p-6 pt-0 flex justify-end gap-3">
+                <button onclick="app.closeModal()" class="btn-shadcn-outline">Hủy</button>
+                <button id="btn-save-user" onclick="app.saveUser()" class="btn-shadcn">Lưu thay đổi</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // CONFIG SUPABASE
+        const SUPABASE_URL = 'https://odhbctmncpvftxhqgfri.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9kaGJjdG1uY3B2ZnR4aHFnZnJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc0MjgzNTIsImV4cCI6MjA4MzAwNDM1Mn0.MW9wwTy8mHfllPit-Ed1qOA8wStNTkwjTFrNR-NWmmU'; 
+        const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const app = {
+            currentUser: null,
+            allUsers:[],
+            allLogs: [],
+            filteredLogs: [],
+            currentLogsPage: 1,
+            logsPerPage: 20,
+
+            init: async () => {
+                const { data: { session } } = await sb.auth.getSession();
+                if (session) {
+                    await app.checkManagerRole(session.user);
+                } else {
+                    document.getElementById('global-loader').classList.add('hidden');
+                    document.getElementById('login-screen').classList.remove('hidden');
+                }
+            },
+
+            login: async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('login-email').value;
+                const pass = document.getElementById('login-password').value;
+                const errEl = document.getElementById('login-error');
+                const btn = document.getElementById('btn-login');
+
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Đang xử lý...'; 
+                btn.disabled = true;
+                errEl.classList.add('hidden');
+                
+                const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+                
+                if (error) {
+                    errEl.innerText = error.message;
+                    errEl.classList.remove('hidden');
+                    btn.innerHTML = "Đăng nhập hệ thống";
+                    btn.disabled = false;
+                } else {
+                    await app.checkManagerRole(data.user);
+                }
+            },
+
+            checkManagerRole: async (user) => {
+                const { data: profile } = await sb.from('profiles').select('username, role').eq('id', user.id).single();
+                document.getElementById('global-loader').classList.add('hidden');
+
+                if (profile && profile.role === 'manager') {
+                    app.currentUser = { ...user, ...profile };
+                    document.getElementById('login-screen').classList.add('hidden');
+                    document.getElementById('dashboard-screen').classList.remove('hidden');
+                    
+                    document.getElementById('my-name').innerText = profile.username;
+                    document.getElementById('mobile-name').innerText = profile.username;
+                    document.getElementById('my-avatar').innerText = profile.username.charAt(0);
+                    
+                    app.switchTab('logs');
+                } else {
+                    await sb.auth.signOut();
+                    const errEl = document.getElementById('login-error');
+                    errEl.innerText = "Truy cập bị từ chối: Cần có quyền Manager.";
+                    errEl.classList.remove('hidden');
+                    document.getElementById('login-screen').classList.remove('hidden');
+                    
+                    const btn = document.getElementById('btn-login');
+                    if(btn) { btn.innerHTML = "Đăng nhập hệ thống"; btn.disabled = false; }
+                }
+            },
+
+            logout: async () => {
+                await sb.auth.signOut();
+                window.location.reload();
+            },
+
+            switchTab: (tabId) => {
+                document.querySelectorAll('.view-tab').forEach(el => el.classList.add('hidden'));
+                document.querySelectorAll('.nav-item').forEach(el => {
+                    el.classList.remove('bg-secondary', 'text-secondary-foreground');
+                    el.classList.add('text-muted-foreground');
+                });
+
+                document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+                document.getElementById(`nav-${tabId}`).classList.remove('text-muted-foreground');
+                document.getElementById(`nav-${tabId}`).classList.add('bg-secondary', 'text-secondary-foreground');
+
+                if (tabId === 'logs') app.loadLogs();
+                if (tabId === 'users') app.loadUsers();
+            },
+
+            formatJSONDetails: (details) => {
+                if (!details) return '-';
+                try {
+                    const obj = typeof details === 'string' ? JSON.parse(details) : details;
+                    let html = `<div class="flex flex-col gap-2">`;
+                    for (const [key, value] of Object.entries(obj)) {
+                        html += `<div><span class="text-sm font-medium text-muted-foreground">${key}:</span>`;
+                        if (typeof value === 'object' && value !== null) {
+                            html += `<pre class="mt-1 bg-secondary/30 p-2.5 rounded-md border border-border"><code class="text-xs text-foreground/90 whitespace-pre-wrap break-all">${JSON.stringify(value, null, 2)}</code></pre>`;
+                        } else {
+                            html += ` <span class="font-medium text-sm break-all text-foreground">${value}</span>`;
+                        }
+                        html += `</div>`;
+                    }
+                    html += `</div>`;
+                    return html;
+                } catch(e) {
+                    return `<span class="text-sm text-muted-foreground break-all">${String(details)}</span>`;
+                }
+            },
+
+            loadLogs: async () => {
+                if (app.allLogs.length > 0) {
+                    app.filterLogs(document.getElementById('log-search').value);
+                    return;
+                }
+                const tbody = document.getElementById('logs-tbody');
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted-foreground py-8"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Đang tải dữ liệu...</td></tr>';
+                document.getElementById('logs-pagination').innerHTML = '';
+
+                const { data, error } = await sb
+                    .from('admin_audit_logs')
+                    .select('*, profiles(username)')
+                    .order('created_at', { ascending: false })
+                    .limit(2000);
+
+                if (error) {
+                    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-destructive py-8">Lỗi: ${error.message}</td></tr>`;
+                    return;
+                }
+                
+                app.allLogs = data;
+                app.filterLogs('');
+            },
+            
+            filterLogs: (query) => {
+                const q = query.toLowerCase().trim();
+                if (!q) {
+                    app.filteredLogs = [...app.allLogs];
+                } else {
+                    app.filteredLogs = app.allLogs.filter(log => {
+                        const searchString = `${log.action_type} ${log.target_id || ''} ${log.profiles?.username || ''} ${JSON.stringify(log.details)}`.toLowerCase();
+                        return searchString.includes(q);
+                    });
+                }
+                app.currentLogsPage = 1;
+                app.renderLogs();
+            },
+
+            renderLogs: () => {
+                const tbody = document.getElementById('logs-tbody');
+                
+                if (app.filteredLogs.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted-foreground py-8">Không có dữ liệu nhật ký phù hợp.</td></tr>';
+                    document.getElementById('logs-pagination').innerHTML = '';
+                    return;
+                }
+
+                const totalPages = Math.ceil(app.filteredLogs.length / app.logsPerPage);
+                app.currentLogsPage = Math.max(1, Math.min(app.currentLogsPage, totalPages));
+                const start = (app.currentLogsPage - 1) * app.logsPerPage;
+                const end = start + app.logsPerPage;
+                const pageLogs = app.filteredLogs.slice(start, end);
+
+                tbody.innerHTML = pageLogs.map(log => {
+                    const time = new Date(log.created_at).toLocaleString('vi-VN', {hour: '2-digit', minute:'2-digit', day:'2-digit', month:'2-digit', year:'numeric'});
+                    let actionBadge = '';
+                    switch(log.action_type) {
+                        case 'approve_photo': actionBadge = '<span class="inline-flex items-center rounded-md bg-emerald-500/15 px-2 py-1 text-xs font-medium text-emerald-500 ring-1 ring-inset ring-emerald-500/20">Duyệt ảnh</span>'; break;
+                        case 'deny_photo': actionBadge = '<span class="inline-flex items-center rounded-md bg-destructive/15 px-2 py-1 text-xs font-medium text-destructive ring-1 ring-inset ring-destructive/20">Từ chối ảnh</span>'; break;
+                        case 'approve_edit_req': actionBadge = '<span class="inline-flex items-center rounded-md bg-blue-500/15 px-2 py-1 text-xs font-medium text-blue-400 ring-1 ring-inset ring-blue-500/20">Sửa data</span>'; break;
+                        case 'direct_delete': actionBadge = '<span class="inline-flex items-center rounded-md bg-destructive/15 px-2 py-1 text-xs font-medium text-destructive ring-1 ring-inset ring-destructive/20">Tiêu hủy</span>'; break;
+                        case 'approve_delete_req': actionBadge = '<span class="inline-flex items-center rounded-md bg-orange-500/15 px-2 py-1 text-xs font-medium text-orange-400 ring-1 ring-inset ring-orange-500/20">Duyệt xóa</span>'; break;
+                        default: actionBadge = `<span class="inline-flex items-center rounded-md bg-secondary px-2 py-1 text-xs font-medium text-secondary-foreground ring-1 ring-inset ring-border">${log.action_type}</span>`;
+                    }
+
+                    return `
+                        <tr>
+                            <td class="text-[13px] text-muted-foreground whitespace-nowrap">${time}</td>
+                            <td class="font-medium text-[14px]">${log.profiles?.username || 'Unknown'}</td>
+                            <td>${actionBadge}</td>
+                            <td class="font-mono text-[12px] text-muted-foreground tracking-tight">${log.target_id || '-'}</td>
+                            <td class="min-w-[300px] whitespace-normal">${app.formatJSONDetails(log.details)}</td>
+                        </tr>
+                    `;
+                }).join('');
+
+                app.renderLogsPagination(totalPages);
+            },
+            
+            renderLogsPagination: (totalPages) => {
+                const container = document.getElementById('logs-pagination');
+                if (totalPages <= 1) {
+                    container.innerHTML = '';
+                    return;
+                }
+                
+                let paginationHTML = '<div class="flex items-center justify-between text-sm w-full max-w-sm">';
+                
+                paginationHTML += `<p class="text-muted-foreground">Trang <span class="font-semibold">${app.currentLogsPage}</span> / <span class="font-semibold">${totalPages}</span></p>`;
+
+                paginationHTML += '<div class="flex items-center gap-2">';
+                const prevDisabled = app.currentLogsPage <= 1;
+                paginationHTML += `<button onclick="app.changeLogsPage(${app.currentLogsPage - 1})" class="btn-shadcn-outline h-8 px-3 text-xs" ${prevDisabled ? 'disabled' : ''}>Trước</button>`;
+
+                const nextDisabled = app.currentLogsPage >= totalPages;
+                paginationHTML += `<button onclick="app.changeLogsPage(${app.currentLogsPage + 1})" class="btn-shadcn-outline h-8 px-3 text-xs" ${nextDisabled ? 'disabled' : ''}>Sau</button>`;
+                paginationHTML += '</div></div>';
+
+                container.innerHTML = paginationHTML;
+            },
+
+            changeLogsPage: (page) => {
+                app.currentLogsPage = page;
+                app.renderLogs();
+            },
+
+            loadUsers: async () => {
+                const tbody = document.getElementById('users-tbody');
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted-foreground py-8"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Đang tải dữ liệu...</td></tr>';
+
+                const { data: profiles, error } = await sb.from('profiles').select('*').order('created_at', { ascending: false });
+
+                if (error) {
+                    tbody.innerHTML = `<tr><td colspan="4" class="text-center text-destructive py-8">Lỗi: ${error.message}</td></tr>`;
+                    return;
+                }
+                
+                app.allUsers = profiles;
+                app.renderUsers(profiles);
+            },
+
+            renderUsers: (usersList) => {
+                const tbody = document.getElementById('users-tbody');
+                if (usersList.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted-foreground py-8">Không tìm thấy ai.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = usersList.map(u => {
+                    let roleBadge = '';
+                    if(u.role === 'manager') roleBadge = '<span class="inline-flex items-center rounded-md bg-indigo-500/15 px-2 py-1 text-xs font-bold uppercase text-indigo-400 ring-1 ring-inset ring-indigo-500/20">Manager</span>';
+                    else if(u.role === 'admin') roleBadge = '<span class="inline-flex items-center rounded-md bg-amber-500/15 px-2 py-1 text-xs font-bold uppercase text-amber-400 ring-1 ring-inset ring-amber-500/20">Admin</span>';
+                    else roleBadge = '<span class="inline-flex items-center rounded-md bg-secondary px-2 py-1 text-xs font-bold uppercase text-secondary-foreground ring-1 ring-inset ring-border">User</span>';
+                    
+                    return `
+                        <tr>
+                            <td class="font-medium">${u.username}</td>
+                            <td>${roleBadge}</td>
+                            <td class="text-[13px] text-muted-foreground">${new Date(u.created_at).toLocaleDateString('vi-VN')}</td>
+                            <td class="text-right">
+                                <button onclick="app.openModal('${u.id}')" class="btn-shadcn-outline h-8 px-3 text-xs"><i class="fa-solid fa-pen-to-square mr-1.5"></i> Sửa</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            },
+
+            filterUsers: (val) => {
+                const q = val.toLowerCase();
+                const filtered = app.allUsers.filter(u => u.username.toLowerCase().includes(q));
+                app.renderUsers(filtered);
+            },
+
+            openModal: async (id) => {
+                const user = app.allUsers.find(u => u.id === id);
+                if (!user) return;
+
+                document.getElementById('edit-id').value = user.id;
+                document.getElementById('edit-username').value = user.username;
+                document.getElementById('edit-role').value = user.role;
+                document.getElementById('edit-user-uuid').innerText = "ID: " + user.id;
+                
+                document.getElementById('edit-email').value = '';
+                document.getElementById('edit-password').value = '';
+
+                document.getElementById('user-modal').classList.add('active');
+            },
+
+            closeModal: () => {
+                document.getElementById('user-modal').classList.remove('active');
+            },
+
+            saveUser: async () => {
+                const id = document.getElementById('edit-id').value;
+                const newUsername = document.getElementById('edit-username').value.trim();
+                const newRole = document.getElementById('edit-role').value;
+                const newEmail = document.getElementById('edit-email').value.trim();
+                const newPass = document.getElementById('edit-password').value;
+                const btn = document.getElementById('btn-save-user');
+
+                if (!newUsername) return alert("Username không được để trống!");
+
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Đang lưu...'; 
+                btn.disabled = true;
+
+                try {
+                    const { data: { session } } = await sb.auth.getSession();
+                    if (!session) throw new Error("Bạn chưa đăng nhập!");
+
+                    const response = await fetch('/api/manager', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            targetUserId: id,
+                            newUsername: newUsername,
+                            newRole: newRole,
+                            newEmail: newEmail,
+                            newPass: newPass,
+                            token: session.access_token 
+                        })
+                    });
+
+                    const result = await response.json();
+
+                    if (!result.success) {
+                        throw new Error(result.error || "Lỗi cập nhật từ máy chủ.");
+                    }
+
+                    await sb.from('admin_audit_logs').insert({
+                        admin_id: app.currentUser.id,
+                        action_type: 'update_user_info',
+                        target_id: id,
+                        details: { username: newUsername, role: newRole, hasChangedEmail: !!newEmail, hasChangedPass: !!newPass }
+                    });
+
+                    app.closeModal();
+                    app.loadUsers();
+
+                } catch (err) {
+                    alert("Lỗi: " + err.message);
+                } finally {
+                    btn.innerText = "Lưu thay đổi"; 
+                    btn.disabled = false;
+                }
+            }
+        };
+
+        window.onload = app.init;
+    </script>
+</body>
+</html>
