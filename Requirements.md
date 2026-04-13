@@ -100,3 +100,6 @@ Phân loại rõ ràng giữa **Xe buýt** và **Xe khách**.
 Nhập **địa chỉ đoạn đường mà xe đang di chuyển qua** trong khung hình (KHÔNG phải vị trí nơi người chụp đang đứng bấm máy).
 
 📌 *Lưu ý: Định vị tọa độ (Bản đồ) có thể sai lệch, hệ thống luôn **ưu tiên thông tin địa chỉ bằng chữ** do bạn tự nhập.*
+
+### 8. Ghi chú
+Chỉ ghi ghi chú **liên quan đến ảnh/xe**, không được phép ghi linh tinh, lạc đề v.. v..
