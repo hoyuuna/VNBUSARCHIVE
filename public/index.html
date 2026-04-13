@@ -3799,7 +3799,13 @@
                     }
 
                     app.notifications.fetch();
-                    window.sb.channel('public:notifications')
+                    
+                    if (app.notificationChannel) {
+                        window.sb.removeChannel(app.notificationChannel);
+                        app.notificationChannel = null;
+                    }
+
+                    app.notificationChannel = window.sb.channel('public:notifications')
                         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` }, payload => {
                             app.notifications.fetch();
                         }).subscribe();
@@ -3815,6 +3821,12 @@
                         <a href="/auth" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-user-plus w-5 text-center mr-1"></i> Tạo tài khoản</a>
                         <button onclick="app.docs.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 font-bold"><i class="fa-solid fa-book-open w-5 text-center mr-1"></i> Tài liệu</button>
                     `;
+                    
+                    if (app.notificationChannel) {
+                        window.sb.removeChannel(app.notificationChannel);
+                        app.notificationChannel = null;
+                    }
+                    
                     app.notifications.fetch();
                 }
             },
