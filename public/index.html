@@ -1500,7 +1500,7 @@
                     <div class="space-y-2">
                         <p class="font-bold text-black border-b border-gray-100 pb-1">Biển kiểm soát (Biển định danh)
                         </p>
-                        <p>Chấp nhận các biển số dạng 29A1234, 29A12345 hoặc T1234567 (biển số tạm).</p>
+                        <p>Chấp nhận các biển dạng: <b>29B12345</b> (xe thường), <b>T1234567</b> (biển tạm), <b>HAN1234567</b> (buýt sân bay).</p>
                         <div class="bg-blue-50 p-2 rounded border border-blue-100 mt-1">
                             <p class="text-xs text-blue-800"><i class="fa-solid fa-lightbulb text-yellow-500"></i>
                                 <b>Lưu ý biển định danh:</b> Nếu biển số được gắn sang một chiếc xe khác (Lên đời xe
@@ -1928,7 +1928,7 @@
                         <div id="set-content-links" class="space-y-4 md:space-y-6 hidden">
                             <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm">
                                 <h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Tài khoản liên kết</h3>
-                                <p class="text-[11px] md:text-xs text-gray-500 mb-4 leading-relaxed">Bạn có thể liên kết tài khoản Google hoặc Discord vào tài khoản hiện tại để đăng nhập nhanh hơn. (Bắt buộc phải lấy email từ nền tảng liên kết).</p>
+                                <p class="text-[11px] md:text-xs text-gray-500 mb-4 leading-relaxed">Bạn có thể liên kết tài khoản Google hoặc Discord vào tài khoản hiện tại để đăng nhập nhanh hơn.</p>
                                 
                                 <div class="space-y-3" id="linked-accounts-container">
                                     <p class="text-xs text-gray-500"><i class="fa-solid fa-spinner fa-spin"></i> Đang kiểm tra liên kết...</p>
@@ -6281,13 +6281,21 @@
                 checkPlate: async (val) => {
                     const rawPlate = val.replace(/[^A-Z0-9-]/gi, '').toUpperCase();
 
-                    const regex = /^([0-9]{2}[A-Z]{1,2}[0-9]{4,5}|[0-9]{2}LD[0-9]{4,5}|T[0-9]{7})(-[0-9]+)?$/i;
+                    const regex = /^([0-9]{2}[A-Z]{1,2}[0-9]{4,5}|[0-9]{2}LD[0-9]{4,5}|T[0-9]{7}|[A-Z]{3}[0-9]{4,7})(-[0-9]+)?$/i;
                     const msg = document.getElementById('plate-msg');
 
                     if (!regex.test(rawPlate)) {
-                        msg.innerText = "Định dạng BKS không hợp lệ (VD: 29A12345 hoặc 29A12345-1)";
+                        msg.innerText = "Định dạng BKS không hợp lệ (VD: 29A12345, T1234567, HAN1234567)";
                         msg.className = "text-xs mt-1 text-red-600 font-bold";
                         return;
+                    }
+
+                    const airportMatch = rawPlate.match(/^([A-Z]{3})\d{4,7}/);
+                    if (airportMatch) {
+                        const routeInput = document.getElementById('up-route');
+                        if (routeInput && (!routeInput.value || /^[A-Z]{3}$/.test(routeInput.value))) {
+                            routeInput.value = airportMatch[1];
+                        }
                     }
 
                     msg.innerText = "Đang kiểm tra dữ liệu biển định danh...";
@@ -7159,7 +7167,9 @@
                     } catch (e) { console.warn("Không thể tải licence-no.json", e); }
                 },
                 getProvinceFromPlate: (plate) => {
-                    if (!plate || !app.utils.provinceData.length) return 'Không xác định';
+                    if (!plate) return 'Không xác định';
+                    if (/^[A-Z]{3}\d{4,7}/.test(plate)) return 'Buýt sân bay';
+                    if (!app.utils.provinceData.length) return 'Không xác định';
                     if (plate.startsWith('T')) return 'Biển tạm';
                     if (/^[A-Z]{2}/.test(plate.substring(0, 2))) return 'Biển quân đội / Ngoại giao';
                     const prefix = plate.substring(0, 2);
