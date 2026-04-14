@@ -1692,6 +1692,24 @@
                             <i class="fa-solid fa-arrow-right text-sm"></i>
                         </button>
 
+                        <div class="relative my-5" x-show="mode !== 'forgot'" x-cloak>
+                            <div class="absolute inset-0 flex items-center">
+                                <div class="w-full border-t border-gray-300/60"></div>
+                            </div>
+                            <div class="relative flex justify-center text-sm">
+                                <span class="px-3 bg-white/80 backdrop-blur-md text-gray-500 font-bold rounded-full text-xs">HOẶC</span>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3" x-show="mode !== 'forgot'" x-cloak>
+                            <button type="button" onclick="app.auth.signInWithProvider('google')" class="flex-1 flex items-center justify-center gap-2 bg-white border border-gray-300/80 py-3 rounded-xl hover:bg-gray-50 transition font-bold text-gray-700 shadow-sm backdrop-blur-md">
+                                <i class="fa-brands fa-google text-red-500 text-lg"></i> Google
+                            </button>
+                            <button type="button" onclick="app.auth.signInWithProvider('discord')" class="flex-1 flex items-center justify-center gap-2 bg-[#5865F2] py-3 rounded-xl hover:bg-[#4752C4] transition font-bold text-white shadow-sm">
+                                <i class="fa-brands fa-discord text-lg"></i> Discord
+                            </button>
+                        </div>
+
                         <div class="text-center mt-6 flex flex-col gap-3">
                             <button type="button" x-show="mode === 'forgot'" x-cloak @click="mode = 'login'"
                                 class="text-sm font-bold text-vbs-dark hover:underline transition-colors drop-shadow-sm">&larr;
@@ -1843,6 +1861,7 @@
                         
                         <button onclick="app.settings.switchTab('profile')" id="set-tab-profile" class="text-center md:text-left whitespace-nowrap flex-1 md:flex-none px-4 py-2.5 md:py-3 rounded-md font-bold text-xs md:text-sm transition-colors bg-black text-white shadow-sm border border-black"><i class="fa-solid fa-user-pen md:w-5 text-center mr-1"></i> Tùy chỉnh hồ sơ</button>
                         <button onclick="app.settings.switchTab('security')" id="set-tab-security" class="text-center md:text-left whitespace-nowrap flex-1 md:flex-none px-4 py-2.5 md:py-3 rounded-md font-bold text-xs md:text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"><i class="fa-solid fa-shield-halved md:w-5 text-center mr-1"></i> Bảo mật</button>
+                        <button onclick="app.settings.switchTab('links')" id="set-tab-links" class="text-center md:text-left whitespace-nowrap flex-1 md:flex-none px-4 py-2.5 md:py-3 rounded-md font-bold text-xs md:text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"><i class="fa-solid fa-link md:w-5 text-center mr-1"></i> Liên kết</button>
                     </div>
 
                     
@@ -1910,6 +1929,18 @@
                                     <input type="password" id="set-uuid-input" readonly class="w-full border border-red-200 p-2.5 text-xs rounded-md bg-white font-mono text-center cursor-not-allowed text-red-800 focus:outline-none tracking-widest">
                                     <button onclick="app.auth.revealUUID()" id="set-reveal-uuid" class="bg-white border border-red-200 text-red-600 px-3 py-2.5 text-xs font-bold rounded-md hover:bg-red-50 transition shadow-sm shrink-0" title="Hiển thị mã"><i class="fa-solid fa-eye"></i></button>
                                     <button onclick="app.auth.copyUUID()" id="set-copy-uuid" class="bg-red-600 text-white px-3 py-2.5 text-xs font-bold rounded-md hover:bg-red-700 transition shadow-sm shrink-0" title="Copy mã"><i class="fa-solid fa-copy"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        
+                        <div id="set-content-links" class="space-y-4 md:space-y-6 hidden">
+                            <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm">
+                                <h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Tài khoản liên kết</h3>
+                                <p class="text-[11px] md:text-xs text-gray-500 mb-4 leading-relaxed">Bạn có thể liên kết tài khoản Google hoặc Discord vào tài khoản hiện tại để đăng nhập nhanh hơn. (Bắt buộc phải lấy email từ nền tảng liên kết).</p>
+                                
+                                <div class="space-y-3" id="linked-accounts-container">
+                                    <p class="text-xs text-gray-500"><i class="fa-solid fa-spinner fa-spin"></i> Đang kiểm tra liên kết...</p>
                                 </div>
                             </div>
                         </div>
@@ -3444,6 +3475,7 @@
                     }, 10);
                     
                     app.settings.switchTab('profile');
+                    app.settings.loadIdentities();
 
                     const avatarImg = document.getElementById('set-avatar-img');
                     try {
@@ -3475,8 +3507,10 @@
                 switchTab: (tab) => {
                     const btnProfile = document.getElementById('set-tab-profile');
                     const btnSecurity = document.getElementById('set-tab-security');
+                    const btnLinks = document.getElementById('set-tab-links');
                     const contentProfile = document.getElementById('set-content-profile');
                     const contentSecurity = document.getElementById('set-content-security');
+                    const contentLinks = document.getElementById('set-content-links');
 
                     const activeClasses = ['bg-black', 'text-white', 'border-black', 'shadow-sm'];
                     const inactiveClasses = ['bg-white', 'text-gray-600', 'hover:bg-gray-50', 'border-gray-200'];
@@ -3486,29 +3520,131 @@
                         btnProfile.classList.add(...activeClasses);
                         btnSecurity.classList.remove(...activeClasses);
                         btnSecurity.classList.add(...inactiveClasses);
+                        btnLinks.classList.remove(...activeClasses);
+                        btnLinks.classList.add(...inactiveClasses);
                         
                         contentProfile.classList.remove('hidden');
                         contentProfile.classList.add('block');
                         contentSecurity.classList.add('hidden');
                         contentSecurity.classList.remove('block');
-                    } else {
+                        contentLinks.classList.add('hidden');
+                        contentLinks.classList.remove('block');
+                    } else if(tab === 'security') {
                         btnSecurity.classList.remove(...inactiveClasses);
                         btnSecurity.classList.add(...activeClasses);
                         btnProfile.classList.remove(...activeClasses);
                         btnProfile.classList.add(...inactiveClasses);
+                        btnLinks.classList.remove(...activeClasses);
+                        btnLinks.classList.add(...inactiveClasses);
                         
                         contentSecurity.classList.remove('hidden');
                         contentSecurity.classList.add('block');
                         contentProfile.classList.add('hidden');
                         contentProfile.classList.remove('block');
+                        contentLinks.classList.add('hidden');
+                        contentLinks.classList.remove('block');
+                    } else if(tab === 'links') {
+                        btnLinks.classList.remove(...inactiveClasses);
+                        btnLinks.classList.add(...activeClasses);
+                        btnProfile.classList.remove(...activeClasses);
+                        btnProfile.classList.add(...inactiveClasses);
+                        btnSecurity.classList.remove(...activeClasses);
+                        btnSecurity.classList.add(...inactiveClasses);
+                        
+                        contentLinks.classList.remove('hidden');
+                        contentLinks.classList.add('block');
+                        contentProfile.classList.add('hidden');
+                        contentProfile.classList.remove('block');
+                        contentSecurity.classList.add('hidden');
+                        contentSecurity.classList.remove('block');
+
+                        app.settings.loadIdentities();
                     }
 
-                    const uuidInput = document.getElementById('set-uuid-input');
-                    const revealBtn = document.getElementById('set-reveal-uuid');
-                    uuidInput.type = 'password';
-                    uuidInput.classList.add('tracking-widest');
-                    revealBtn.innerHTML = '<i class="fa-solid fa-eye"></i>';
-                    if (app.auth.uuidTimeout) clearTimeout(app.auth.uuidTimeout);
+                    if (tab === 'profile' || tab === 'links') {
+                        const uuidInput = document.getElementById('set-uuid-input');
+                        const revealBtn = document.getElementById('set-reveal-uuid');
+                        if(uuidInput && revealBtn) {
+                            uuidInput.type = 'password';
+                            uuidInput.classList.add('tracking-widest');
+                            revealBtn.innerHTML = '<i class="fa-solid fa-eye"></i>';
+                            if (app.auth.uuidTimeout) clearTimeout(app.auth.uuidTimeout);
+                        }
+                    }
+                },
+                loadIdentities: async () => {
+                    const container = document.getElementById('linked-accounts-container');
+                    if(!app.user) return;
+                    
+                    try {
+                        const { data: { user }, error } = await window.sb.auth.getUser();
+                        if (error || !user) throw error;
+                        
+                        const identities = user.identities || [];
+                        const providers = identities.map(id => id.provider);
+                        
+                        const renderProvider = (name, iconClass, colorClass, providerKey) => {
+                            const isLinked = providers.includes(providerKey);
+                            const identity = identities.find(id => id.provider === providerKey);
+                            const identityId = identity ? identity.identity_id : null;
+                            
+                            return `
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 border border-gray-200 rounded-md bg-gray-50 gap-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full ${colorClass} text-white flex items-center justify-center text-lg shadow-sm shrink-0">
+                                        <i class="${iconClass}"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-sm text-gray-800">${name}</p>
+                                        <p class="text-[10px] ${isLinked ? 'text-green-600 font-bold' : 'text-gray-500'}">${isLinked ? '<i class="fa-solid fa-check mr-1"></i> Đã liên kết' : 'Chưa liên kết'}</p>
+                                    </div>
+                                </div>
+                                <div>
+                                    ${isLinked 
+                                        ? `<button onclick="app.settings.unlinkIdentity('${identityId}', '${name}')" class="w-full sm:w-auto text-xs font-bold text-red-600 bg-red-50 border border-red-200 px-4 py-2 rounded-md hover:bg-red-100 transition shadow-sm">Hủy liên kết</button>`
+                                        : `<button onclick="app.settings.linkIdentity('${providerKey}')" class="w-full sm:w-auto text-xs font-bold text-black bg-white border border-black px-4 py-2 rounded-md hover:bg-gray-100 transition shadow-sm">Thêm liên kết</button>`
+                                    }
+                                </div>
+                            </div>
+                            `;
+                        };
+
+                        container.innerHTML = 
+                            renderProvider('Google', 'fa-brands fa-google', 'bg-red-500', 'google') +
+                            renderProvider('Discord', 'fa-brands fa-discord', 'bg-[#5865F2]', 'discord');
+
+                    } catch (err) {
+                        container.innerHTML = `<p class="text-xs text-red-500">Lỗi lấy thông tin liên kết: ${err.message}</p>`;
+                    }
+                },
+                linkIdentity: async (provider) => {
+                    try {
+                        const { error } = await window.sb.auth.linkIdentity({
+                            provider: provider,
+                            options: { redirectTo: window.location.origin }
+                        });
+                        if (error) throw error;
+                    } catch (err) {
+                        app.ui.showAlert("Lỗi liên kết: " + err.message);
+                    }
+                },
+                unlinkIdentity: async (identityId, providerName) => {
+                    app.ui.showAlert(
+                        `Bạn có chắc chắn muốn hủy liên kết tài khoản ${providerName}? Bạn sẽ không thể đăng nhập bằng nền tảng này nữa.`, 
+                        async () => {
+                            try {
+                                const { error } = await window.sb.auth.unlinkIdentity({ identity_id: identityId });
+                                if (error) throw error;
+                                
+                                app.ui.showAlert(`Đã hủy liên kết với ${providerName} thành công!`);
+                                app.settings.loadIdentities();
+                            } catch (err) {
+                                app.ui.showAlert("Lỗi hủy liên kết: " + err.message);
+                            }
+                        }, 
+                        () => {}, 
+                        { btnOkText: "Hủy liên kết", btnCancelText: "Đóng", title: "Xác nhận" }
+                    );
                 }
             },
 
@@ -3782,7 +3918,22 @@
                 const dropdown = document.getElementById('user-dropdown');
 
                 if (user) {
-                    const name = user.user_metadata.username;
+                    let name = user.user_metadata?.username;
+                    if (!name && user.email) {
+                        let prefix = user.email.split('@')[0];
+                        name = prefix.substring(0, 20);
+                        
+                        await window.sb.auth.updateUser({ data: { username: name } });
+                        
+                        await window.sb.from('profiles').upsert({
+                            id: user.id,
+                            username: name,
+                            avatar_url: user.user_metadata?.avatar_url || null
+                        }, { onConflict: 'id' });
+                        
+                        user.user_metadata.username = name;
+                    }
+
                     try {
                         const { data: profile } = await window.sb.from('profiles').select('role').eq('id', user.id).maybeSingle();
                         app.role = profile?.role || 'user';
@@ -7607,6 +7758,20 @@
             auth: {
                 mode: 'login',
                 uuidTimeout: null,
+
+                signInWithProvider: async (provider) => {
+                    try {
+                        const { error } = await window.sb.auth.signInWithOAuth({
+                            provider: provider,
+                            options: {
+                                redirectTo: window.location.origin
+                            }
+                        });
+                        if (error) throw error;
+                    } catch (err) {
+                        app.ui.showAlert("Lỗi đăng nhập: " + err.message);
+                    }
+                },
 
                 revealUUID: () => {
                     const uuidInput = document.getElementById('set-uuid-input');
