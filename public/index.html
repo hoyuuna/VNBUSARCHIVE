@@ -1584,7 +1584,7 @@
 
             
             <div
-                class="relative z-10 w-full max-w-[450px] mx-4 h-auto max-h-[90vh] bg-white/70 backdrop-blur-2xl border border-white/60 rounded-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.2)] flex flex-col fade-zoom-in overflow-y-auto">
+                class="relative z-10 w-full max-w-[450px] mx-4 h-auto max-h-[calc(100dvh-110px)] sm:max-h-[85vh] mb-12 sm:mb-0 bg-white/70 backdrop-blur-2xl border border-white/60 rounded-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.2)] flex flex-col fade-zoom-in overflow-y-auto transform-gpu">
 
                 <div class="p-8 md:p-10">
                     
@@ -1705,9 +1705,9 @@
                 </div>
             </div>
 
-            <div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 w-max max-w-[90vw]">
+            <div class="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-[30] w-max max-w-[90vw] transform-gpu backface-visibility-hidden">
                 <div
-                    class="bg-white/60 backdrop-blur-md border border-white/70 px-5 py-2.5 rounded-full shadow-[0_8px_16px_rgba(0,0,0,0.15)] text-xs sm:text-sm font-medium text-vbs-dark flex items-center justify-center flex-wrap gap-1.5 transition-all hover:bg-white/80">
+                    class="bg-white/60 backdrop-blur-md border border-white/70 px-4 sm:px-5 py-2.5 rounded-full shadow-[0_8px_16px_rgba(0,0,0,0.15)] text-xs sm:text-sm font-medium text-vbs-dark flex items-center justify-center flex-wrap gap-1.5 transition-all hover:bg-white/80">
                     <span>Ảnh nền bởi</span>
                     <a :href="currentBg.link" class="font-bold hover:underline decoration-2 underline-offset-2"
                         x-text="currentBg.author"></a>
