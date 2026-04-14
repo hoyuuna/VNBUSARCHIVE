@@ -7751,6 +7751,13 @@
                 uuidTimeout: null,
 
                 signInWithProvider: async (provider) => {
+                    const authTurnstileNode = document.querySelector('#auth [name="cf-turnstile-response"]');
+                    const captchaResponse = authTurnstileNode ? authTurnstileNode.value : '';
+
+                    if (!captchaResponse) {
+                        return app.ui.showAlert("Vui lòng xác nhận 'Tôi không phải là người máy' (Turnstile) trước.");
+                    }
+
                     try {
                         const { error } = await window.sb.auth.signInWithOAuth({
                             provider: provider,
