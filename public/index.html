@@ -1271,8 +1271,8 @@
                     <h3 class="font-bold text-sm md:text-base uppercase text-black"><i class="fa-solid fa-crop-simple mr-2"></i> Cắt ảnh</h3>
                     <button onclick="app.crop.close()" class="text-gray-500 hover:text-red-600 transition"><i class="fa-solid fa-xmark text-lg"></i></button>
                 </div>
-                <div class="w-full bg-[#121212] relative flex items-center justify-center" style="height: 60vh; min-height: 300px;">
-                    <img id="crop-image" src="" style="max-width: 100%; max-height: 100%; display: block;">
+                <div class="w-full bg-[#121212] relative flex items-center justify-center select-none" style="height: 60vh; min-height: 300px; -webkit-touch-callout: none;" oncontextmenu="return false;">
+                    <img id="crop-image" src="" style="max-width: 100%; max-height: 100%; display: block; -webkit-touch-callout: none;" draggable="false">
                 </div>
                 <div class="p-4 bg-white border-t border-gray-200 flex flex-col sm:flex-row gap-4 justify-between items-center">
                     <div id="crop-ratios" class="flex flex-wrap gap-2 w-full sm:w-auto justify-center">
