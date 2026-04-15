@@ -7773,7 +7773,21 @@
                     const filtered = query.length === 0 ? allRoutes : allRoutes.filter(v => v.toLowerCase().includes(query.toLowerCase()));
 
                     if (filtered.length > 0) {
-                        box.innerHTML = filtered.map(v => `<div class="suggestion-item" onmousedown="event.preventDefault(); document.getElementById('${inputId}').value = '${v}'; document.getElementById('${suggestionId}').classList.remove('active');">${v}</div>`).join('');
+                        box.innerHTML = filtered.map(v => {
+                            const safeHTML = app.utils.cleanText(v);
+                            const safeJS = v.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                            
+                            // Highlight (in đậm) phần chữ trùng khớp
+                            let displayHTML = safeHTML;
+                            if (query) {
+                                // Tránh lỗi khi user gõ ký tự đặc biệt như (, ), [, *, v.v.
+                                const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                                const regex = new RegExp(`(${escapedQuery})`, 'gi');
+                                displayHTML = safeHTML.replace(regex, '<strong class="text-black font-extrabold">$1</strong>');
+                            }
+
+                            return `<div class="suggestion-item text-gray-500" onmousedown="event.preventDefault(); document.getElementById('${inputId}').value = '${safeJS}'; document.getElementById('${suggestionId}').classList.remove('active');">${displayHTML}</div>`;
+                        }).join('');
                         box.classList.add('active');
                     } else { box.classList.remove('active'); }
                 },
@@ -7812,7 +7826,16 @@
                                 box.innerHTML = uniqueVals.map(v => {
                                     const safeHTML = app.utils.cleanText(v);
                                     const safeJS = v.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                                    return `<div class="suggestion-item" onmousedown="event.preventDefault(); const inp = document.getElementById('${inputId}'); inp.value = '${safeJS}'; document.getElementById('${suggestionId}').classList.remove('active'); inp.dispatchEvent(new Event('input')); inp.dispatchEvent(new Event('change'));">${safeHTML}</div>`;
+                                    
+                                    // Highlight (in đậm) phần chữ trùng khớp
+                                    let displayHTML = safeHTML;
+                                    if (query) {
+                                        const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                                        const regex = new RegExp(`(${escapedQuery})`, 'gi');
+                                        displayHTML = safeHTML.replace(regex, '<strong class="text-black font-extrabold">$1</strong>');
+                                    }
+
+                                    return `<div class="suggestion-item text-gray-500" onmousedown="event.preventDefault(); const inp = document.getElementById('${inputId}'); inp.value = '${safeJS}'; document.getElementById('${suggestionId}').classList.remove('active'); inp.dispatchEvent(new Event('input')); inp.dispatchEvent(new Event('change'));">${displayHTML}</div>`;
                                 }).join('');
                                 box.classList.add('active');
                             } else { box.classList.remove('active'); }
