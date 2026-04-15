@@ -7780,13 +7780,13 @@
                             // Highlight (in đậm) phần chữ trùng khớp
                             let displayHTML = safeHTML;
                             if (query) {
-                                // Tránh lỗi khi user gõ ký tự đặc biệt như (, ), [, *, v.v.
                                 const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                                 const regex = new RegExp(`(${escapedQuery})`, 'gi');
-                                displayHTML = safeHTML.replace(regex, '<strong class="text-black font-extrabold">$1</strong>');
+                                displayHTML = safeHTML.replace(regex, '<strong class="font-extrabold">$1</strong>');
                             }
 
-                            return `<div class="suggestion-item text-gray-500" onmousedown="event.preventDefault(); document.getElementById('${inputId}').value = '${safeJS}'; document.getElementById('${suggestionId}').classList.remove('active');">${displayHTML}</div>`;
+                            // Đã gỡ bỏ text-gray-500 để chữ trở lại màu đen mặc định
+                            return `<div class="suggestion-item" onmousedown="event.preventDefault(); document.getElementById('${inputId}').value = '${safeJS}'; document.getElementById('${suggestionId}').classList.remove('active');">${displayHTML}</div>`;
                         }).join('');
                         box.classList.add('active');
                     } else { box.classList.remove('active'); }
@@ -7832,10 +7832,11 @@
                                     if (query) {
                                         const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                                         const regex = new RegExp(`(${escapedQuery})`, 'gi');
-                                        displayHTML = safeHTML.replace(regex, '<strong class="text-black font-extrabold">$1</strong>');
+                                        displayHTML = safeHTML.replace(regex, '<strong class="font-extrabold">$1</strong>');
                                     }
 
-                                    return `<div class="suggestion-item text-gray-500" onmousedown="event.preventDefault(); const inp = document.getElementById('${inputId}'); inp.value = '${safeJS}'; document.getElementById('${suggestionId}').classList.remove('active'); inp.dispatchEvent(new Event('input')); inp.dispatchEvent(new Event('change'));">${displayHTML}</div>`;
+                                    // Đã gỡ bỏ text-gray-500 để chữ trở lại màu đen mặc định
+                                    return `<div class="suggestion-item" onmousedown="event.preventDefault(); const inp = document.getElementById('${inputId}'); inp.value = '${safeJS}'; document.getElementById('${suggestionId}').classList.remove('active'); inp.dispatchEvent(new Event('input')); inp.dispatchEvent(new Event('change'));">${displayHTML}</div>`;
                                 }).join('');
                                 box.classList.add('active');
                             } else { box.classList.remove('active'); }
