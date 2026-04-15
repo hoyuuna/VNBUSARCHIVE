@@ -1936,6 +1936,9 @@
                                 <div class="filter-item" onclick="app.search.setFilter('model')" data-filter="model">
                                     <span>Dòng xe (Model)</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
                                 </div>
+                                <div class="filter-item" onclick="app.search.setFilter('location')" data-filter="location">
+                                    <span>Vị trí chụp</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
+                                </div>
                                 <div class="filter-item" onclick="app.search.setFilter('uploader')"
                                     data-filter="uploader">
                                     <span>Người đăng</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
@@ -3985,6 +3988,8 @@
                         photoQuery = photoQuery.ilike('operator', `%${query}%`);
                     } else if (filterType === 'camera') {
                         photoQuery = photoQuery.ilike('camera_model', `%${query}%`);
+                    } else if (filterType === 'location') {
+                        photoQuery = photoQuery.ilike('location', `%${query}%`);
                     } else if (filterType === 'uploader') {
                         photoQuery = photoQuery.ilike('profiles.username', `%${query}%`);
                     } else if (filterType === 'model') {
@@ -3998,7 +4003,7 @@
                         const { data: uData } = await window.sb.from('profiles').select('id').ilike('username', `%${query}%`);
                         const uploaderIds = uData ? uData.map(u => u.id) : [];
 
-                        let orConditions = `license_plate.ilike.%${query}%,operator.ilike.%${query}%,route_no.ilike.%${query}%,camera_model.ilike.%${query}%,note.ilike.%${query}%`;
+                        let orConditions = `license_plate.ilike.%${query}%,operator.ilike.%${query}%,route_no.ilike.%${query}%,camera_model.ilike.%${query}%,location.ilike.%${query}%,note.ilike.%${query}%`;
                         if (plates.length > 0) orConditions += `,license_plate.in.(${plates.join(',')})`;
                         if (uploaderIds.length > 0) orConditions += `,uploader_id.in.(${uploaderIds.join(',')})`;
                         
