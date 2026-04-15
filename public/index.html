@@ -2290,7 +2290,7 @@
                                             <div class="relative w-full h-full">
                                                 <input type="text" id="info-route" autocomplete="off"
                                                     class="info-input clickable-search" readonly
-                                                    onfocus="if(!this.readOnly) app.utils.triggerRouteSuggestion('info-route', 'info-route-suggestions', this.value)"
+                                                    onfocus="if(!this.readOnly) app.utils.triggerRouteSuggestion('info-route', 'info-route-suggestions', '')"
                                                     oninput="app.utils.triggerRouteSuggestion('info-route', 'info-route-suggestions', this.value)">
                                                 <div id="info-route-suggestions" class="suggestion-box"></div>
                                             </div>
@@ -2598,7 +2598,7 @@
                                         id="lbl-route">Số tuyến<span class="text-red-500">*</span></label>
                                     <div class="relative w-full">
                                         <input type="text" id="up-route" autocomplete="off"
-                                            onfocus="app.utils.triggerRouteSuggestion('up-route', 'up-route-suggestions', this.value)"
+                                            onfocus="app.utils.triggerRouteSuggestion('up-route', 'up-route-suggestions', '')"
                                             oninput="app.utils.triggerRouteSuggestion('up-route', 'up-route-suggestions', this.value)"
                                             class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition">
                                         <div id="up-route-suggestions" class="suggestion-box"></div>
@@ -5212,7 +5212,7 @@
                                             <div>
                                                 <label class="text-xs text-gray-500 font-bold block mb-1 uppercase">Tuyến hiện tại</label>
                                                 <div class="relative">
-                                                    <input type="text" id="vehicle-edit-route" value="${currentRouteClientSide}" autocomplete="off" class="info-input p-2 border border-gray-200 rounded-md bg-gray-50 cursor-not-allowed w-full" readonly onfocus="if(!this.readOnly) app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', this.value)" oninput="app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', this.value)">
+                                                    <input type="text" id="vehicle-edit-route" value="${currentRouteClientSide}" autocomplete="off" class="info-input p-2 border border-gray-200 rounded-md bg-gray-50 cursor-not-allowed w-full" readonly onfocus="if(!this.readOnly) app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', '')" oninput="app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', this.value)">
                                                     <div id="veh-sug-route" class="suggestion-box"></div>
                                                 </div>
                                             </div>
@@ -5630,7 +5630,7 @@
                                             <div>
                                                 <span class="admin-label">Tuyến</span>
                                                 <div class="relative">
-                                                    <input type="text" id="adm-p-route-${p.id}" value="${route}" class="admin-input" autocomplete="off" onfocus="app.utils.triggerRouteSuggestion('adm-p-route-${p.id}', 'adm-sug-route-${p.id}', this.value)" oninput="app.utils.triggerRouteSuggestion('adm-p-route-${p.id}', 'adm-sug-route-${p.id}', this.value)">
+                                                    <input type="text" id="adm-p-route-${p.id}" value="${route}" class="admin-input" autocomplete="off" onfocus="app.utils.triggerRouteSuggestion('adm-p-route-${p.id}', 'adm-sug-route-${p.id}', '')" oninput="app.utils.triggerRouteSuggestion('adm-p-route-${p.id}', 'adm-sug-route-${p.id}', this.value)">
                                                     <div id="adm-sug-route-${p.id}" class="suggestion-box"></div>
                                                 </div>
                                             </div>
@@ -5785,7 +5785,7 @@
                                                 <div>
                                                     <span class="admin-label">Tuyến ${d.route !== curP.route_no ? tagNew : ''}</span>
                                                     <div class="relative">
-                                                        <input type="text" id="req-route-${r.id}" value="${app.utils.escapeAttr(d.route || '')}" class="admin-input" autocomplete="off" onfocus="app.utils.triggerRouteSuggestion('req-route-${r.id}', 'req-sug-route-${r.id}', this.value)" oninput="app.utils.triggerRouteSuggestion('req-route-${r.id}', 'req-sug-route-${r.id}', this.value)">
+                                                        <input type="text" id="req-route-${r.id}" value="${app.utils.escapeAttr(d.route || '')}" class="admin-input" autocomplete="off" onfocus="app.utils.triggerRouteSuggestion('req-route-${r.id}', 'req-sug-route-${r.id}', '')" oninput="app.utils.triggerRouteSuggestion('req-route-${r.id}', 'req-sug-route-${r.id}', this.value)">
                                                         <div id="req-sug-route-${r.id}" class="suggestion-box"></div>
                                                     </div>
                                                 </div>
@@ -7754,7 +7754,7 @@
 
 
                     const allRoutes = [...new Set([...staticList, ...dbRoutes])];
-                    const filtered = query.length === 0 ? [] : allRoutes.filter(v => v.toLowerCase().includes(query.toLowerCase()));
+                    const filtered = query.length === 0 ? allRoutes : allRoutes.filter(v => v.toLowerCase().includes(query.toLowerCase()));
 
                     if (filtered.length > 0) {
                         box.innerHTML = filtered.map(v => `<div class="suggestion-item" onmousedown="event.preventDefault(); document.getElementById('${inputId}').value = '${v}'; document.getElementById('${suggestionId}').classList.remove('active');">${v}</div>`).join('');
