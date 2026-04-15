@@ -582,7 +582,7 @@
         }
 
         .filter-menu {
-            display: none;
+            display: block;
             position: absolute;
             top: 100%;
             right: 0;
@@ -593,15 +593,23 @@
             width: 220px;
             z-index: 60;
             margin-top: 8px;
-            padding: 4px;
+            padding: 6px;
+            max-height: 280px;
+            overflow-y: auto;
+            opacity: 0;
+            transform: translateY(-10px);
+            pointer-events: none;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .filter-menu.active {
-            display: block;
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
         }
 
         .filter-item {
-            padding: 8px 12px;
+            padding: 10px 12px;
             cursor: pointer;
             font-size: 0.85rem;
             color: #09090b;
@@ -609,6 +617,8 @@
             justify-content: space-between;
             align-items: center;
             border-radius: 4px;
+            margin-bottom: 2px;
+            transition: all 0.15s ease;
         }
 
         .filter-item:hover {
@@ -617,8 +627,8 @@
 
         .filter-item.selected {
             font-weight: 600;
-            color: #18181b;
-            background-color: #f4f4f5;
+            color: #fff;
+            background-color: #000;
         }
 
         .filter-item i {
