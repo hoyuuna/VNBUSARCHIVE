@@ -635,26 +635,6 @@
             transform: scale(2);
         }
 
-        .suggestion-box {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            width: 100%;
-            background: white;
-            border: 1px solid #e4e4e7;
-            max-height: 150px;
-            overflow-y: auto;
-            z-index: 9999;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            display: none;
-            border-radius: 6px;
-            margin-top: 4px;
-        }
-
-        .suggestion-box.active {
-            display: block;
-        }
-
         .suggestion-item {
             padding: 8px 12px;
             cursor: pointer;
@@ -1179,6 +1159,106 @@
         #auth.active {
             display: flex !important;
         }
+
+        /* ==========================================
+           GLASSMORPHISM: FIX LỖI TRÌNH DUYỆT MẤT BLUR
+        ============================================= */
+
+        /* 1. MỞ KHÓA BLUR CHO DROPDOWN (Xử lý lỗi lồng nhau) */
+        /* Tắt blur trực tiếp trên thanh Header, chuyển nó sang lớp giả (::before) để Dropdown không bị lỗi lồng ghép */
+        header > div.backdrop-blur-md {
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            background-color: transparent !important;
+        }
+
+        header > div.backdrop-blur-md::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: inherit;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* 2. MENU DROPDOWN & TÌM KIẾM (Kính cường lực) */
+        #user-dropdown, .suggestion-box, .filter-menu, .notification-dropdown {
+            background-color: rgba(255, 255, 255, 0.7) !important; 
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.6) !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        /* FIX LỖI ANIMATION: Ép tắt thuộc tính transform khi menu đã mở xong */
+        #user-dropdown.opacity-100, .suggestion-box.active, .filter-menu.active, .notification-dropdown.active {
+            transform: none !important;
+        }
+
+        /* Làm trong suốt các nút bấm bên trong để không che mất kính */
+        #user-dropdown a, #user-dropdown button {
+            background-color: transparent !important;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+            transition: background-color 0.2s ease;
+        }
+
+        #user-dropdown a:hover, #user-dropdown button:hover {
+            background-color: rgba(0, 0, 0, 0.04) !important;
+        }
+
+        /* 3. NỀN BÊN NGOÀI POPUP CẢNH BÁO (Trong suốt hoàn toàn, chỉ giữ Blur) */
+        #custom-alert-modal, #settings-modal, #newsboard-modal, #docs-modal, 
+        #upload-info-modal, #custom-prompt-modal, #deny-prompt-modal, 
+        #upload-progress-modal {
+            background-color: rgba(0, 0, 0, 0) !important;
+            backdrop-filter: blur(8px) !important; 
+            -webkit-backdrop-filter: blur(8px) !important;
+        }
+
+        /* 4. BẢN THÂN CÁC KHUNG POPUP CŨNG LÀ KÍNH - Cùng mức với dropdown */
+        #custom-alert-content, #settings-content, #newsboard-content, #docs-content, 
+        #upload-info-content, #custom-prompt-content, #deny-prompt-content, 
+        #up-progress-content {
+            background-color: rgba(255, 255, 255, 0.7) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.6) !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        /* Bóc các lớp nền trắng/xám dư thừa bên trong Modal để thấy kính xuyên thấu */
+        #custom-alert-content > div, 
+        #custom-prompt-content > div, 
+        #deny-prompt-content > div,
+        #upload-info-content > div,
+        #settings-content > div,
+        #newsboard-content > div,
+        #docs-content > div {
+            background-color: transparent !important;
+            border-color: rgba(0, 0, 0, 0.05) !important;
+        }
+
+        .bg-gray-50\/50, .bg-white\/50 {
+            background-color: transparent !important;
+        }
+
+        /* Nút select đen hoàn toàn trong bảng tin */
+        .news-card {
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+        .news-card:hover:not(.active) {
+            background-color: rgba(0, 0, 0, 0.04);
+        }
+        .news-card.active {
+            background-color: #000 !important;
+            border-color: #000 !important;
+            border-left: none !important;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
     </style>
 </head>
 
@@ -1449,35 +1529,35 @@
         
         <div id="newsboard-modal"
             class="hidden fixed inset-0 z-[4000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 md:p-6">
+            <!-- Đã đổi rounded-xl thành rounded-2xl để đồng bộ -->
             <div id="newsboard-content"
-                class="bg-white rounded-xl shadow-2xl w-full max-w-5xl h-[85vh] md:h-[75vh] flex flex-col overflow-hidden transform transition-all opacity-0 scale-95">
+                class="rounded-2xl shadow-2xl w-full max-w-4xl h-[85vh] md:h-[75vh] min-h-[400px] flex flex-col overflow-hidden transform transition-all opacity-0 scale-95 relative z-50">
 
-                
-                <div class="bg-black text-white p-3 md:p-4 flex justify-between items-center shrink-0">
-                    <h2 class="font-bold text-sm md:text-lg font-logo tracking-widest"><i
-                            class="fa-solid fa-newspaper mr-2 text-yellow-400"></i>BẢNG TIN VNBUSARCHIVE</h2>
-                    <button onclick="app.newsboard.close()"
-                        class="text-gray-400 hover:text-white transition text-xl px-2"><i
-                            class="fa-solid fa-xmark"></i></button>
+                <!-- Header trắng/trong suốt giống Cài đặt, có icon xám -->
+                <div class="border-b border-gray-200/50 p-3 md:p-4 flex justify-between items-center shrink-0 rounded-t-2xl">
+                    <h2 class="font-bold text-base md:text-lg text-black uppercase tracking-tight">
+                        <i class="fa-solid fa-newspaper mr-2 text-gray-500"></i>BẢNG TIN HỆ THỐNG
+                    </h2>
+                    <button onclick="app.newsboard.close()" class="text-gray-400 hover:text-red-500 transition text-xl px-2">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
                 </div>
 
-                
-                <div class="flex flex-col md:flex-row flex-1 overflow-hidden">
+                <!-- Nội dung -->
+                <div class="flex flex-col md:flex-row flex-1 overflow-hidden rounded-b-2xl">
                     
-                    <div class="w-full md:w-1/3 bg-gray-50 border-b md:border-b-0 md:border-r border-gray-200 overflow-y-auto p-3 shrink-0 h-1/3 md:h-full"
-                        id="newsboard-toc">
-                        
+                    <!-- Sidebar mục lục -->
+                    <div class="w-full md:w-1/3 border-b md:border-b-0 md:border-r border-gray-200/50 overflow-y-auto p-3 shrink-0 h-1/3 md:h-full" id="newsboard-toc">
+                        <!-- Javascript sẽ tự động chèn mục lục vào đây -->
                     </div>
 
-                    
-                    <div class="w-full md:w-2/3 bg-white overflow-y-auto p-5 md:p-8 h-2/3 md:h-full relative">
+                    <!-- Khung hiển thị chi tiết -->
+                    <div class="w-full md:w-2/3 overflow-y-auto p-5 md:p-8 h-2/3 md:h-full relative flex-1">
                         <div class="max-w-2xl mx-auto">
-                            <p id="news-date"
-                                class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2"></p>
-                            <h1 id="news-title" class="text-2xl md:text-3xl font-bold text-black mb-6 leading-tight">
-                            </h1>
+                            <p id="news-date" class="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-2"></p>
+                            <h1 id="news-title" class="text-2xl md:text-3xl font-bold text-black mb-6 leading-tight"></h1>
                             <div id="news-body" class="markdown-body">
-                                
+                                <!-- Javascript sẽ tự động chèn nội dung vào đây -->
                             </div>
                         </div>
                     </div>
@@ -1488,8 +1568,8 @@
         <div id="upload-info-modal"
             class="hidden fixed inset-0 z-[3000] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
             <div id="upload-info-content"
-                class="bg-white rounded-lg shadow-2xl max-w-2xl w-full border border-gray-200 overflow-hidden flex flex-col max-h-[90vh]">
-                <div class="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+                class="rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col max-h-[90vh]">
+                <div class="p-4 border-b border-gray-200/50 flex justify-between items-center">
                     <h3 class="font-bold text-lg text-black uppercase tracking-tight"><i
                             class="fa-solid fa-circle-info mr-2"></i>Hướng dẫn nhập liệu</h3>
                     <button onclick="app.ui.closeUploadInfo()"
@@ -1762,7 +1842,7 @@
                                 <i class="fa-solid fa-circle-user md:mr-1"></i>
                                 <span id="nav-username" class="hidden md:inline">Tài khoản</span>
                             </button>
-                            <div id="user-dropdown" class="absolute top-full left-1/2 -translate-x-1/2 md:left-auto md:right-0 md:translate-x-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-xl z-[70] overflow-hidden transform opacity-0 scale-95 pointer-events-none transition-all duration-200 ease-out origin-top-right">
+                            <div id="user-dropdown" class="absolute top-full left-1/2 -translate-x-1/2 md:left-auto md:right-0 md:translate-x-0 mt-2 w-48 border border-white/50 rounded-lg shadow-xl z-[70] overflow-hidden transform opacity-0 scale-95 pointer-events-none transition-all duration-200 ease-out origin-top-right">
                                 
                             </div>
                         </div>
@@ -1836,19 +1916,19 @@
         
         <div id="settings-modal" class="hidden fixed inset-0 z-[4000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 md:p-6">
             
-            <div id="settings-content" class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl h-[85vh] md:h-[60vh] min-h-[400px] border border-gray-200 flex flex-col overflow-hidden transform transition-all opacity-0 scale-95 relative z-50">
+            <div id="settings-content" class="rounded-2xl shadow-2xl w-full max-w-3xl h-[85vh] md:h-[60vh] min-h-[400px] flex flex-col overflow-hidden transform transition-all opacity-0 scale-95 relative z-50">
                 
                 
-                <div class="bg-white border-b border-gray-200 p-3 md:p-4 flex justify-between items-center shrink-0 rounded-t-2xl">
+                <div class="border-b border-gray-200/50 p-3 md:p-4 flex justify-between items-center shrink-0 rounded-t-2xl">
                     <h2 class="font-bold text-base md:text-lg text-black uppercase tracking-tight"><i class="fa-solid fa-user-gear mr-2 text-gray-500"></i>Cài đặt tài khoản</h2>
                     <button onclick="app.settings.close()" class="text-gray-400 hover:text-red-500 transition text-xl px-2"><i class="fa-solid fa-xmark"></i></button>
                 </div>
 
                 
-                <div class="flex flex-col md:flex-row flex-1 overflow-hidden bg-gray-50 rounded-b-2xl">
+                <div class="flex flex-col md:flex-row flex-1 overflow-hidden rounded-b-2xl">
                     
                     
-                    <div class="w-full md:w-1/3 bg-white border-b md:border-b-0 md:border-r border-gray-200 p-2 md:p-3 flex flex-row md:flex-col gap-2 shrink-0 overflow-x-auto">
+                    <div class="w-full md:w-1/3 border-b md:border-b-0 md:border-r border-gray-200/50 p-2 md:p-3 flex flex-row md:flex-col gap-2 shrink-0 overflow-x-auto">
                         
                         <button onclick="app.settings.switchTab('profile')" id="set-tab-profile" class="text-center md:text-left whitespace-nowrap flex-1 md:flex-none px-4 py-2.5 md:py-3 rounded-md font-bold text-xs md:text-sm transition-colors bg-black text-white shadow-sm border border-black"><i class="fa-solid fa-user-pen md:w-5 text-center mr-1"></i> Tùy chỉnh hồ sơ</button>
                         <button onclick="app.settings.switchTab('security')" id="set-tab-security" class="text-center md:text-left whitespace-nowrap flex-1 md:flex-none px-4 py-2.5 md:py-3 rounded-md font-bold text-xs md:text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"><i class="fa-solid fa-shield-halved md:w-5 text-center mr-1"></i> Bảo mật</button>
@@ -1856,7 +1936,7 @@
                     </div>
 
                     
-                    <div class="w-full md:w-2/3 p-4 md:p-8 overflow-y-auto bg-gray-50 relative flex-1">
+                    <div class="w-full md:w-2/3 p-4 md:p-8 overflow-y-auto relative flex-1">
                         
                         
                         <div id="set-content-profile" class="space-y-4 md:space-y-6 block">
@@ -1943,26 +2023,26 @@
 
         
         <div id="docs-modal" class="hidden fixed inset-0 z-[4000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 md:p-6">
-            <div id="docs-content" class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl h-[85vh] md:h-[75vh] min-h-[400px] border border-gray-200 flex flex-col overflow-hidden transform transition-all opacity-0 scale-95 relative z-50">
+            <div id="docs-content" class="rounded-2xl shadow-2xl w-full max-w-4xl h-[85vh] md:h-[75vh] min-h-[400px] flex flex-col overflow-hidden transform transition-all opacity-0 scale-95 relative z-50">
                 
                 
-                <div class="bg-white border-b border-gray-200 p-3 md:p-4 flex justify-between items-center shrink-0 rounded-t-2xl">
+                <div class="border-b border-gray-200/50 p-3 md:p-4 flex justify-between items-center shrink-0 rounded-t-2xl">
                     <h2 class="font-bold text-base md:text-lg text-black uppercase tracking-tight"><i class="fa-solid fa-book-open mr-2 text-gray-500"></i>Tài liệu hệ thống</h2>
                     <button onclick="app.docs.close()" class="text-gray-400 hover:text-red-500 transition text-xl px-2"><i class="fa-solid fa-xmark"></i></button>
                 </div>
 
                 
-                <div class="flex flex-col md:flex-row flex-1 overflow-hidden bg-gray-50 rounded-b-2xl">
+                <div class="flex flex-col md:flex-row flex-1 overflow-hidden rounded-b-2xl">
                     
                     
-                    <div class="w-full md:w-1/4 bg-white border-b md:border-b-0 md:border-r border-gray-200 p-2 md:p-3 flex flex-row md:flex-col gap-2 shrink-0 overflow-x-auto">
+                    <div class="w-full md:w-1/4 border-b md:border-b-0 md:border-r border-gray-200/50 p-2 md:p-3 flex flex-row md:flex-col gap-2 shrink-0 overflow-x-auto">
                         <button onclick="app.docs.switchTab('intro')" id="doc-tab-intro" class="text-center md:text-left whitespace-nowrap px-4 py-2.5 md:py-3 rounded-md font-bold text-xs md:text-sm transition-colors bg-black text-white shadow-sm border border-black shrink-0"><i class="fa-brands fa-markdown md:w-5 text-center mr-1"></i> Giới thiệu</button>
                         <button onclick="app.docs.switchTab('requirements')" id="doc-tab-requirements" class="text-center md:text-left whitespace-nowrap px-4 py-2.5 md:py-3 rounded-md font-bold text-xs md:text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0"><i class="fa-solid fa-list-check md:w-5 text-center mr-1"></i> Kiểm duyệt</button>
                         <button onclick="app.docs.switchTab('policy')" id="doc-tab-policy" class="text-center md:text-left whitespace-nowrap px-4 py-2.5 md:py-3 rounded-md font-bold text-xs md:text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0"><i class="fa-solid fa-shield-halved md:w-5 text-center mr-1"></i> Chính sách</button>
                     </div>
 
                     
-                    <div class="w-full md:w-3/4 p-4 md:p-6 overflow-y-auto bg-white relative flex-1">
+                    <div class="w-full md:w-3/4 p-4 md:p-6 overflow-y-auto relative flex-1">
                         <div id="doc-content-intro" class="markdown-body block" data-url="https://raw.githubusercontent.com/hoyuuna/VNBUSARCHIVE/refs/heads/main/README.md" data-loaded="false">
                             <div class="text-center text-gray-500 py-10"><i class="fa-solid fa-circle-notch fa-spin text-2xl mb-2 text-black"></i><p>Đang tải tài liệu...</p></div>
                         </div>
@@ -3053,13 +3133,16 @@
                 },
                 renderSidebar: () => {
                     const toc = document.getElementById('newsboard-toc');
-                    toc.innerHTML = app.newsboard.data.map((item, index) => `
-                        <div class="news-card p-3 rounded-lg cursor-pointer mb-2 ${index === app.newsboard.activeIndex ? 'active' : ''}" onclick="app.newsboard.renderContent(${index})">
-                            <div class="text-[10px] text-gray-400 font-bold uppercase mb-1">${item.date || 'Hôm nay'}</div>
-                            <div class="text-sm font-bold text-gray-800 line-clamp-2 leading-snug">${item.title || 'Thông báo hệ thống'}</div>
-                            <div class="text-xs text-gray-500 mt-1 line-clamp-1">${item.summary || 'Nhấn để xem chi tiết...'}</div>
+                    toc.innerHTML = app.newsboard.data.map((item, index) => {
+                        const isActive = index === app.newsboard.activeIndex;
+                        return `
+                        <div class="news-card p-3 rounded-lg cursor-pointer mb-2 transition-colors ${isActive ? 'active' : ''}" onclick="app.newsboard.renderContent(${index})">
+                            <div class="text-[10px] ${isActive ? 'text-gray-300' : 'text-gray-400'} font-bold uppercase mb-1">${item.date || 'Hôm nay'}</div>
+                            <div class="text-sm font-bold ${isActive ? 'text-white' : 'text-gray-800'} line-clamp-2 leading-snug">${item.title || 'Thông báo hệ thống'}</div>
+                            <div class="text-xs ${isActive ? 'text-gray-400' : 'text-gray-500'} mt-1 line-clamp-1">${item.summary || 'Nhấn để xem chi tiết...'}</div>
                         </div>
-                    `).join('');
+                        `;
+                    }).join('');
                 },
                 renderContent: (index) => {
                     app.newsboard.activeIndex = index;
