@@ -75,91 +75,37 @@ export default async function handler(req, res) {
         let publicUrl = '';
 
         // ==========================================
-        // 4. ƯU TIÊN 1: UPLOAD LÊN CATBOX & DEEP CHECK
+        // 4. UPLOAD TRỰC TIẾP LÊN SUPABASE STORAGE
         // ==========================================
         try {
-            console.log('[DEBUG] Bắt đầu gọi API Catbox...');
-            const formData = new FormData();
-            formData.append('reqtype', 'fileupload');
-            formData.append('userhash', '3d9a3be664059fa1c68d3d1f2'); // Mã userhash Catbox của bạn
+            // Đặt tên file ngẫu nhiên chống trùng (VD: vehicles/16999999-12345.jpg)
+            const uniqueId = Math.round(Math.random() * 1e9);
+            const folder = isAvatar ? 'avatars' : 'vehicles';
+            const fileName = `${folder}/${Date.now()}-${uniqueId}.jpg`;
 
-            const blob = new Blob([cleanArrayBuffer], { type: 'image/jpeg' });
-            formData.append('fileToUpload', blob, 'image.jpg');
+            console.log(`[DEBUG] Bắt đầu Upload lên Supabase Storage... (${fileName})`);
 
-            const cbRes = await fetch('https://catbox.moe/user/api.php', {
-                method: 'POST',
-                body: formData,
-                headers: { 'Accept': 'text/plain' }
-            });
+            const { data: storageData, error: storageError } = await supabase.storage
+                .from(SUPABASE_BUCKET_NAME)
+                .upload(fileName, cleanArrayBuffer, {
+                    contentType: 'image/jpeg',
+                    upsert: false
+                });
 
-            const responseText = await cbRes.text();
+            if (storageError) throw storageError;
 
-            if (!cbRes.ok) throw new Error(`Catbox HTTP Status: ${cbRes.status}`);
-            if (!responseText || responseText.trim() === '') throw new Error('Catbox trả về chuỗi rỗng');
-            if (!responseText.startsWith('http')) throw new Error(`Lỗi Logic Catbox: ${responseText}`);
+            // Lấy URL Public từ Supabase
+            const { data: publicUrlData } = supabase.storage
+                .from(SUPABASE_BUCKET_NAME)
+                .getPublicUrl(fileName);
 
-            publicUrl = responseText.trim();
-            console.log(`[DEBUG] Catbox đã trả về link: ${publicUrl}. Đang KIỂM TRA SÂU (Deep Check)...`);
+            publicUrl = publicUrlData.publicUrl;
+            console.log(`[DEBUG] Upload Supabase Storage thành công: ${publicUrl}`);
 
-            // ---> DEEP CHECK: Tải ngược ảnh về server để soi nội dung <---
-            const deepCheckRes = await fetch(publicUrl);
-            
-            // 1. Catbox báo lỗi 404/500...
-            if (!deepCheckRes.ok) {
-                throw new Error(`Catbox link chết (HTTP ${deepCheckRes.status})`);
-            }
-
-            // 2. Catbox trả về trang HTML/Text thay vì file ảnh (Lừa đảo)
-            const contentType = deepCheckRes.headers.get('content-type') || '';
-            if (!contentType.includes('image')) {
-                throw new Error(`Catbox trả về file không phải ảnh (Type: ${contentType})`);
-            }
-
-            // 3. Catbox trả về ảnh rỗng hoặc bị hỏng (Dung lượng < 500 bytes)
-            const checkBuffer = await deepCheckRes.arrayBuffer();
-            if (checkBuffer.byteLength < 500) {
-                throw new Error(`Catbox sinh link ảo, file rỗng (Size: ${checkBuffer.byteLength} bytes)`);
-            }
-
-            console.log(`[DEBUG] Link Catbox xịn (Sống 100%, Dung lượng: ${checkBuffer.byteLength} bytes): ${publicUrl}`);
-
-        } catch (catboxError) {
-            console.error('===[CATBOX LỖI / LINK ẢO / FILE RỖNG - CHUYỂN SANG SUPABASE] ===');
-            console.error('Chi tiết lỗi:', catboxError.message);
-
-            // ==========================================
-            // 5. FALLBACK: UPLOAD LÊN SUPABASE STORAGE
-            // ==========================================
-            try {
-                // Đặt tên file ngẫu nhiên chống trùng (VD: vehicles/16999999-12345.jpg)
-                const uniqueId = Math.round(Math.random() * 1e9);
-                const folder = isAvatar ? 'avatars' : 'vehicles';
-                const fileName = `${folder}/${Date.now()}-${uniqueId}.jpg`;
-
-                console.log(`[DEBUG] Bắt đầu Upload lên Supabase Storage... (${fileName})`);
-
-                const { data: storageData, error: storageError } = await supabase.storage
-                    .from(SUPABASE_BUCKET_NAME)
-                    .upload(fileName, cleanArrayBuffer, {
-                        contentType: 'image/jpeg',
-                        upsert: false
-                    });
-
-                if (storageError) throw storageError;
-
-                // Lấy URL Public từ Supabase
-                const { data: publicUrlData } = supabase.storage
-                    .from(SUPABASE_BUCKET_NAME)
-                    .getPublicUrl(fileName);
-
-                publicUrl = publicUrlData.publicUrl;
-                console.log(`[DEBUG] Upload Supabase Storage (Fallback) thành công: ${publicUrl}`);
-
-            } catch (supabaseError) {
-                console.error('=== [SUPABASE STORAGE UPLOAD CŨNG LỖI] ===');
-                console.error(supabaseError);
-                throw new Error('Máy chủ lưu trữ ảnh đang bảo trì. Cả Catbox và hệ thống dự phòng đều không phản hồi.');
-            }
+        } catch (supabaseError) {
+            console.error('===[SUPABASE STORAGE UPLOAD LỖI] ===');
+            console.error(supabaseError);
+            throw new Error('Lỗi khi tải ảnh lên hệ thống lưu trữ Supabase.');
         }
 
         // ==========================================
@@ -216,9 +162,6 @@ export default async function handler(req, res) {
         // 8. THÔNG BÁO DISCORD
         // ==========================================
         if (process.env.DISCORD_PRIVATE_WEBHOOK_URL) {
-            const isFallback = publicUrl.includes('supabase'); 
-            const sourceText = isFallback ? '(Dự phòng Supabase)' : '(Catbox)';
-
             // Bỏ từ khóa 'await' ở đây để Backend trả kết quả ngay, không bắt User phải chờ Discord gửi xong
             fetch(process.env.DISCORD_PRIVATE_WEBHOOK_URL, {
                 method: 'POST',
@@ -226,10 +169,10 @@ export default async function handler(req, res) {
                 body: JSON.stringify({
                     username: "VBS Logger",
                     embeds:[{
-                        title: `📥 ẢNH MỚI CHỜ DUYỆT ${sourceText}`,
+                        title: `📥 ẢNH MỚI CHỜ DUYỆT (Supabase)`,
                         description: `**BKS:** ${metadata.plate}\n**Máy:** ${metadata.camera_model}\n**Ngày chụp:** ${metadata.taken_at || 'Không rõ'}\n**User:** ${metadata.username}\nID: ${photoData.id}`,
                         thumbnail: { url: publicUrl },
-                        color: isFallback ? 15158332 : 16776960 
+                        color: 15158332 
                     }]
                 })
             }).catch(e => console.error('Lỗi gửi Discord:', e));
