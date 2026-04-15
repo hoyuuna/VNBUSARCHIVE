@@ -1199,6 +1199,8 @@
         /* Fix suggestion box position to overlay content */
         .suggestion-box {
             position: absolute !important;
+            width: 100% !important;
+            z-index: 99999 !important;
         }
 
         /* FIX LỖI ANIMATION: Ép tắt thuộc tính transform khi menu đã mở xong */
@@ -7738,7 +7740,7 @@
 
 
                     const allRoutes = [...new Set([...staticList, ...dbRoutes])];
-                    const filtered = query.length === 0 ? allRoutes : allRoutes.filter(v => v.toLowerCase().includes(query.toLowerCase()));
+                    const filtered = query.length === 0 ? [] : allRoutes.filter(v => v.toLowerCase().includes(query.toLowerCase()));
 
                     if (filtered.length > 0) {
                         box.innerHTML = filtered.map(v => `<div class="suggestion-item" onmousedown="event.preventDefault(); document.getElementById('${inputId}').value = '${v}'; document.getElementById('${suggestionId}').classList.remove('active');">${v}</div>`).join('');
