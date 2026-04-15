@@ -1202,7 +1202,8 @@
             width: 100% !important;
             z-index: 99999 !important;
             display: none !important;
-            background-color: rgba(255, 255, 255, 0.95) !important; 
+            /* GIẢM ĐỘ ĐỤC XUỐNG 0.7 ĐỂ THẤY RÕ BLUR KÍNH NHƯ MENU DROPDOWN */
+            background-color: rgba(255, 255, 255, 0.7) !important; 
             backdrop-filter: blur(20px) !important;
             -webkit-backdrop-filter: blur(20px) !important;
             border: 1px solid rgba(255, 255, 255, 0.6) !important;
@@ -1215,11 +1216,26 @@
 
         .suggestion-box.active {
             display: block !important;
+            /* THÊM ANIMATION RƠI XUỐNG CHO GỢI Ý */
+            animation: slideDownFade 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        /* FIX LỖI ANIMATION: Ép tắt thuộc tính transform khi menu đã mở xong */
-        #user-dropdown.opacity-100, .suggestion-box.active, .filter-menu.active, .notification-dropdown.active {
+        @keyframes slideDownFade {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* FIX LỖI ANIMATION: Loại bỏ #user-dropdown khỏi transform:none để không bị lệch tâm */
+        .filter-menu.active, .notification-dropdown.active {
             transform: none !important;
+        }
+
+        /* LUÔN CĂN GIỮA VÀ THÊM ANIMATION RƠI XUỐNG CHO USER DROPDOWN */
+        #user-dropdown.opacity-100 {
+            transform: translateX(-50%) translateY(0) !important;
+        }
+        #user-dropdown.opacity-0 {
+            transform: translateX(-50%) translateY(-16px) !important;
         }
 
         /* Làm trong suốt các nút bấm bên trong để không che mất kính */
@@ -1868,7 +1884,7 @@
                                 <i class="fa-solid fa-circle-user md:mr-1"></i>
                                 <span id="nav-username" class="hidden md:inline">Tài khoản</span>
                             </button>
-                            <div id="user-dropdown" class="absolute top-full left-1/2 -translate-x-1/2 md:left-auto md:right-0 md:translate-x-0 mt-2 w-48 border border-white/50 rounded-lg shadow-xl z-[70] overflow-hidden transform opacity-0 scale-95 pointer-events-none transition-all duration-200 ease-out origin-top">
+                            <div id="user-dropdown" class="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 border border-white/50 rounded-lg shadow-xl z-[70] overflow-hidden transform opacity-0 -translate-y-4 pointer-events-none transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] origin-top">
                                 
                             </div>
                         </div>
@@ -8752,11 +8768,11 @@
                     let willOpen = !isOpen;
                     if (forceOpen === false) willOpen = false;
                     if (willOpen) {
-                        menu.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
-                        menu.classList.add('opacity-100', 'scale-100', 'pointer-events-auto');
+                        menu.classList.remove('opacity-0', '-translate-y-4', 'pointer-events-none');
+                        menu.classList.add('opacity-100', 'translate-y-0', 'pointer-events-auto');
                     } else {
-                        menu.classList.remove('opacity-100', 'scale-100', 'pointer-events-auto');
-                        menu.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
+                        menu.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
+                        menu.classList.add('opacity-0', '-translate-y-4', 'pointer-events-none');
                     }
                 }
             }
