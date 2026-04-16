@@ -133,4 +133,7 @@ Vì đây là dự án phi lợi nhuận, mọi sự đóng góp về hình ản
 - **Tác giả / Quản trị viên:** Hoyuuna/nhanday
 - **Liên hệ:** [https://vnbusarchive.qzz.io/contact](https://vnbusarchive.qzz.io/contact) hoặc nghoanganhtuann@gmail.com
 
-Cảm ơn bạn đã quan tâm và đồng hành cùng VNBUSARCHIVE! ❤️
+**Ủng hộ dự dán một ly cà phê 👇❤️**
+
+<img width="300" alt="photo_2026-04-16_12-45-39" src="https://github.com/user-attachments/assets/c7084939-9af7-43b9-a012-1c0f2261e4d7" />
+
