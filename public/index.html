@@ -5854,6 +5854,29 @@
                                             </div>
                                         </div>
                                     </div>`;
+                                } else if (type === 'update_vehicle_details') {
+                                    const tagNew = '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>';
+                                    return `
+                                    <div class="admin-card overflow-visible">
+                                        <div class="admin-card-header"><span class="font-bold text-xs uppercase text-purple-600">SỬA HỒ SƠ XE: ${r.license_plate}</span><span class="text-xs text-gray-500">${username}</span></div>
+                                        <div class="admin-card-body text-xs">
+                                            <div class="mb-2">
+                                                <span class="admin-label">Model ${d.model !== curV.model ? tagNew : ''}</span>
+                                                <div class="relative">
+                                                    <input type="text" id="req-v-model-${r.id}" value="${app.utils.escapeAttr(d.model || '')}" class="admin-input" oninput="app.utils.triggerSuggestion('req-v-model-${r.id}', 'req-v-sug-model-${r.id}', this.value, 'model')">
+                                                    <div id="req-v-sug-model-${r.id}" class="suggestion-box"></div>
+                                                </div>
+                                            </div>
+                                            <div class="mb-2">
+                                                <span class="admin-label">Ghi chú chung về xe ${d.note !== curV.note ? tagNew : ''}</span>
+                                                <textarea id="req-v-note-${r.id}" class="admin-input" rows="3">${app.utils.escapeAttr(d.note || '')}</textarea>
+                                            </div>
+                                            <div class="flex gap-2 mt-3">
+                                                <button onclick="app.admin.approveReq('${r.id}', this, 'vehicle_details')" class="flex-1 bg-green-600 text-white py-1.5 font-bold rounded hover:bg-green-700">DUYỆT</button>
+                                                <button onclick="app.admin.denyReq('${r.id}', this)" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">HỦY</button>
+                                            </div>
+                                        </div>
+                                    </div>`;
                                 }
                             }).join('');
                         }
@@ -6011,11 +6034,15 @@
                             }
                         }
 
-                        else if (req.new_data.request_type === 'update_vehicle_details') {
-                            const d = req.new_data;
+                        else if (reqType === 'vehicle_details' || req.new_data.request_type === 'update_vehicle_details') {
+                            const inputModel = document.getElementById(`req-v-model-${id}`);
+                            const inputNote = document.getElementById(`req-v-note-${id}`);
+
+                            const finalModel = inputModel ? inputModel.value : req.new_data.model;
+                            const finalNote = inputNote ? inputNote.value : req.new_data.note;
 
                             const { error } = await window.sb.from('vehicles')
-                                .update({ model: d.model, note: d.note })
+                                .update({ model: finalModel, note: finalNote })
                                 .eq('license_plate', req.license_plate);
                             if (error) throw error;
                         }
