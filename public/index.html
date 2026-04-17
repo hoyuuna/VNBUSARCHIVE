@@ -5147,6 +5147,8 @@
                                     currentRouteClientSide = (latestValid.route_no || '').trim();
                                     currentOpClientSide = latestValid.operator || '';
                                 }
+                            } else if (r === 'Dừng hoạt động' || r === 'Chưa hoạt động') {
+                                currentRouteClientSide = r;
                             }
                         }
 
