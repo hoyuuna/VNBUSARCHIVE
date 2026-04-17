@@ -5140,6 +5140,13 @@
                             const r = (latestPhoto.route_no || '').trim();
                             if (r && !specialRoutes.includes(r)) {
                                 currentRouteClientSide = r;
+                            } else if (r === 'Ngoài giờ hoạt động') {
+                                const validPhotos = allPhotos.filter(p => p.route_no && !specialRoutes.includes(p.route_no));
+                                if (validPhotos.length > 0) {
+                                    const latestValid = validPhotos[0];
+                                    currentRouteClientSide = (latestValid.route_no || '').trim();
+                                    currentOpClientSide = latestValid.operator || '';
+                                }
                             }
                         }
 
