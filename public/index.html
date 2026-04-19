@@ -1870,7 +1870,7 @@
 
         <header class="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4 px-4 pointer-events-none">
             <div
-                class="w-full max-w-7xl bg-white/80 backdrop-blur-md border border-white/20 shadow-island rounded-2xl pointer-events-auto transition-all duration-300">
+                class="w-full max-w-7xl bg-white/80 backdrop-blur-md border border-white/20 rounded-2xl pointer-events-auto transition-all duration-300 relative">
                 <div class="flex flex-wrap md:flex-nowrap justify-between items-center px-4 py-2 md:h-16">
                     <a href="/" class="flex items-center gap-2 cursor-pointer md:mb-0 mr-auto no-underline shrink-0">
                         <img src="https://wsrv.nl/?url=https://files.catbox.moe/crxvn6.png&we" alt="VNBUSARCHIVE"
@@ -1911,8 +1911,9 @@
 
                     <div id="header-search-box"
                         class="w-full md:w-auto order-3 md:order-2 mt-3 md:mt-0 flex items-center border border-gray-200 rounded-md bg-gray-50/50 relative focus-within:ring-2 focus-within:ring-black/10 focus-within:bg-white transition-all">
-                        <input type="text" id="search-input" placeholder="Tìm kiếm..."
+                        <input type="text" id="search-input" placeholder="Tìm kiếm..." autocomplete="off"
                             class="px-3 py-2 text-sm outline-none w-full md:w-64 bg-transparent placeholder-gray-400">
+                        <div id="main-search-suggestions" class="suggestion-box" style="top: calc(100% + 4px);"></div>
 
                         <button id="btn-clear-search" onclick="app.views.loadHome()"
                             class="hidden text-gray-400 hover:text-red-500 px-2">
@@ -3357,7 +3358,16 @@
                 });
 
                 document.getElementById('search-input').addEventListener('keypress', function (e) {
-                    if (e.key === 'Enter') app.handleSearch();
+                    if (e.key === 'Enter') {
+                        document.getElementById('main-search-suggestions').classList.remove('active');
+                        app.handleSearch();
+                    }
+                });
+                document.getElementById('search-input').addEventListener('input', function (e) {
+                    app.search.triggerMainSuggestion(e.target.value.trim());
+                });
+                document.getElementById('search-input').addEventListener('focus', function (e) {
+                    if (e.target.value.trim().length > 0) app.search.triggerMainSuggestion(e.target.value.trim());
                 });
 
                 document.getElementById('up-location').addEventListener('input', function () {
@@ -3868,6 +3878,82 @@
                     if (updateUrl && window.location.pathname.includes('/search')) {
                         app.handleSearch();
                     }
+                },
+                triggerMainSuggestion: async (query) => {
+                    const box = document.getElementById('main-search-suggestions');
+                    const inputId = 'search-input';
+                    
+                    if (app.suggestionTimeouts[inputId]) clearTimeout(app.suggestionTimeouts[inputId]);
+                    if (query.length < 1) { box.classList.remove('active'); return; }
+                    
+                    app.suggestionTimeouts[inputId] = setTimeout(async () => {
+                        if (app.suggestionControllers && app.suggestionControllers[inputId]) {
+                            app.suggestionControllers[inputId].abort();
+                        }
+                        
+                        const controller = new AbortController();
+                        if (!app.suggestionControllers) app.suggestionControllers = {};
+                        app.suggestionControllers[inputId] = controller;
+                        
+                        try {
+                            const filter = app.currentFilter;
+                            let results = [];
+                            
+                            const fetchSugs = async (table, col, label) => {
+                                const { data } = await window.sb.from(table).select(col).ilike(col, `%${query}%`).limit(4).abortSignal(controller.signal);
+                                if (data) return [...new Set(data.map(item => item[col]).filter(Boolean))].map(val => ({ text: val, label }));
+                                return [];
+                            };
+
+                            if (filter === 'all') {
+                                const [plates, routes, ops, models] = await Promise.all([
+                                    fetchSugs('vehicles', 'license_plate', 'BKS'),
+                                    fetchSugs('photos', 'route_no', 'Tuyến'),
+                                    fetchSugs('photos', 'operator', 'Đơn vị vận hành'),
+                                    fetchSugs('vehicles', 'model', 'Dòng xe')
+                                ]);
+                                results = [...plates, ...routes, ...ops, ...models];
+                            } else if (filter === 'plate') {
+                                results = await fetchSugs('vehicles', 'license_plate', 'BKS');
+                            } else if (filter === 'route' || filter === 'absolute_route') {
+                                results = await fetchSugs('photos', 'route_no', 'Tuyến');
+                            } else if (filter === 'operator') {
+                                results = await fetchSugs('photos', 'operator', 'Đơn vị vận hành');
+                            } else if (filter === 'model') {
+                                results = await fetchSugs('vehicles', 'model', 'Dòng xe');
+                            } else if (filter === 'location') {
+                                results = await fetchSugs('photos', 'location', 'Vị trí');
+                            } else if (filter === 'camera') {
+                                results = await fetchSugs('photos', 'camera_model', 'Thiết bị');
+                            } else if (filter === 'uploader') {
+                                const { data } = await window.sb.from('profiles').select('username').ilike('username', `%${query}%`).limit(5).abortSignal(controller.signal);
+                                if (data) results = [...new Set(data.map(item => item.username).filter(Boolean))].map(val => ({ text: val, label: 'Người đăng' }));
+                            }
+
+                            if (results.length > 0) {
+                                box.innerHTML = results.slice(0, 10).map(item => {
+                                    const safeText = app.utils.cleanText(item.text);
+                                    const safeJS = item.text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                                    
+                                    const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                                    const regex = new RegExp(`(${escapedQuery})`, 'gi');
+                                    const displayHTML = safeText.replace(regex, '<strong class="font-extrabold">$1</strong>');
+                                    
+                                    const labelHTML = filter === 'all' ? `<div class="text-[10px] text-gray-400 font-normal mt-0.5">${item.label}</div>` : '';
+                                    
+                                    return `<div class="suggestion-item border-b border-gray-100 last:border-0" onmousedown="event.preventDefault(); document.getElementById('${inputId}').value = '${safeJS}'; document.getElementById('main-search-suggestions').classList.remove('active'); app.handleSearch();">
+                                        <div class="text-[13px] text-black font-medium leading-snug">${displayHTML}</div>
+                                        ${labelHTML}
+                                    </div>`;
+                                }).join('');
+                                box.classList.add('active');
+                            } else {
+                                box.classList.remove('active');
+                            }
+                        } catch (e) {
+                            if (e.name !== 'AbortError') console.log("Main search suggestion error:", e);
+                        }
+                    }, 300);
                 }
             },
 
