@@ -4036,11 +4036,11 @@
 
                 try {
                     let cards = [];
-                    const searchWords = query.trim().split(/\s+/).filter(w => w.length > 0);
+                    const searchWords = query.split(/\s+/).filter(w => w.length > 0);
 
                     if (filterType === 'uploader' || filterType === 'all') {
                         let uQuery = window.sb.from('profiles').select('id, username, avatar_url, role');
-                        searchWords.forEach(word => { uQuery = uQuery.ilike('username', `%${word}%`); });
+                        searchWords.forEach(w => { uQuery = uQuery.ilike('username', `%${w}%`); });
                         const { data: usersData } = await uQuery;
 
                         if (usersData && usersData.length > 0) {
@@ -4062,14 +4062,16 @@
                     }
 
                     if (filterType === 'plate' || filterType === 'model' || filterType === 'all') {
-                        const orParts = searchWords.flatMap(word => [
-                            `license_plate.ilike.%${word}%`,
-                            `model.ilike.%${word}%`
-                        ]);
-                        const { data: vData } = await window.sb.from('vehicles')
-                            .select('*')
-                            .or(orParts.join(','))
-                            .limit(999999);
+                        let vQuery = window.sb.from('vehicles').select('*').limit(100);
+                        if (filterType === 'plate') {
+                            searchWords.forEach(w => { vQuery = vQuery.ilike('license_plate', `%${w}%`); });
+                        } else if (filterType === 'model') {
+                            searchWords.forEach(w => { vQuery = vQuery.ilike('model', `%${w}%`); });
+                        } else {
+                            searchWords.forEach(w => { vQuery = vQuery.or(`license_plate.ilike.%${w}%,model.ilike.%${w}%`); });
+                        }
+
+                        const { data: vData } = await vQuery;
 
                         if (vData && vData.length > 0) {
                             for (const v of vData) {
@@ -4098,12 +4100,7 @@
                         .select(`*, ${profileSelect}, vehicles(model)`)
                         .eq('status', 'approved');
 
-                    const applySearchWords = (q, col) => {
-                        searchWords.forEach(word => {
-                            q = q.ilike(col, `%${word}%`);
-                        });
-                        return q;
-                    };
+                    let forceEmptyResult = false;
 
                     if (filterType === 'absolute_route') {
                         const prefix = currentParams.get('prefix') || '';
@@ -4111,47 +4108,48 @@
                         const prefixOrCond = relatedPrefixes.map(p => `license_plate.ilike.${p}%`).join(',');
                         photoQuery = photoQuery.eq('route_no', query).or(prefixOrCond);
                     } else if (filterType === 'plate') {
-                        photoQuery = applySearchWords(photoQuery, 'license_plate');
+                        searchWords.forEach(w => { photoQuery = photoQuery.ilike('license_plate', `%${w}%`); });
                     } else if (filterType === 'route') {
-                        photoQuery = applySearchWords(photoQuery, 'route_no');
+                        searchWords.forEach(w => { photoQuery = photoQuery.ilike('route_no', `%${w}%`); });
                     } else if (filterType === 'operator') {
-                        photoQuery = applySearchWords(photoQuery, 'operator');
+                        searchWords.forEach(w => { photoQuery = photoQuery.ilike('operator', `%${w}%`); });
                     } else if (filterType === 'camera') {
-                        photoQuery = applySearchWords(photoQuery, 'camera_model');
+                        searchWords.forEach(w => { photoQuery = photoQuery.ilike('camera_model', `%${w}%`); });
                     } else if (filterType === 'location') {
-                        photoQuery = applySearchWords(photoQuery, 'location');
+                        searchWords.forEach(w => { photoQuery = photoQuery.ilike('location', `%${w}%`); });
                     } else if (filterType === 'uploader') {
-                        photoQuery = applySearchWords(photoQuery, 'profiles.username');
+                        searchWords.forEach(w => { photoQuery = photoQuery.ilike('profiles.username', `%${w}%`); });
                     } else if (filterType === 'model') {
-                        let vQuery = window.sb.from('vehicles').select('license_plate');
-                        searchWords.forEach(word => { vQuery = vQuery.ilike('model', `%${word}%`); });
-                        const { data: vData } = await vQuery;
-                        const plates = vData ? vData.map(v => v.license_plate) : [];
-                        photoQuery = photoQuery.in('license_plate', plates);
-                    } else {
-                        let vQuery = window.sb.from('vehicles').select('license_plate');
-                        searchWords.forEach(word => { vQuery = vQuery.ilike('model', `%${word}%`); });
-                        const { data: vData } = await vQuery;
+                        let vQ = window.sb.from('vehicles').select('license_plate');
+                        searchWords.forEach(w => { vQ = vQ.ilike('model', `%${w}%`); });
+                        const { data: vData } = await vQ;
                         const plates = vData ? vData.map(v => v.license_plate) : [];
                         
-                        let uQuery = window.sb.from('profiles').select('id');
-                        searchWords.forEach(word => { uQuery = uQuery.ilike('username', `%${word}%`); });
-                        const { data: uData } = await uQuery;
+                        if (plates.length > 0) photoQuery = photoQuery.in('license_plate', plates);
+                        else forceEmptyResult = true;
+                    } else {
+                        let mQ = window.sb.from('vehicles').select('license_plate');
+                        searchWords.forEach(w => { mQ = mQ.ilike('model', `%${w}%`); });
+                        const { data: mData } = await mQ;
+                        const plates = mData ? mData.map(v => v.license_plate) : [];
+                        
+                        let uQ = window.sb.from('profiles').select('id');
+                        searchWords.forEach(w => { uQ = uQ.ilike('username', `%${w}%`); });
+                        const { data: uData } = await uQ;
                         const uploaderIds = uData ? uData.map(u => u.id) : [];
 
-                        const orParts = searchWords.flatMap(word => [
-                            `license_plate.ilike.%${word}%`,
-                            `operator.ilike.%${word}%`,
-                            `route_no.ilike.%${word}%`,
-                            `camera_model.ilike.%${word}%`,
-                            `location.ilike.%${word}%`,
-                            `note.ilike.%${word}%`
-                        ]);
-                        let orConditions = orParts.join(',');
-                        if (plates.length > 0) orConditions += `,license_plate.in.(${plates.join(',')})`;
-                        if (uploaderIds.length > 0) orConditions += `,uploader_id.in.(${uploaderIds.join(',')})`;
-                        
-                        photoQuery = photoQuery.or(orConditions);
+                        searchWords.forEach(w => {
+                            let orConditions = `license_plate.ilike.%${w}%,operator.ilike.%${w}%,route_no.ilike.%${w}%,camera_model.ilike.%${w}%,location.ilike.%${w}%,note.ilike.%${w}%`;
+                            if (plates.length > 0) orConditions += `,license_plate.in.(${plates.join(',')})`;
+                            if (uploaderIds.length > 0) orConditions += `,uploader_id.in.(${uploaderIds.join(',')})`;
+                            photoQuery = photoQuery.or(orConditions);
+                        });
+                    }
+
+                    if (forceEmptyResult) {
+                        grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500">Không tìm thấy ảnh nào trùng khớp.</div>';
+                        app.loadingBar.finish();
+                        return;
                     }
 
                     const { data: results, error } = await photoQuery
