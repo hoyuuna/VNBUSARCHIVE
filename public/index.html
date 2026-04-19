@@ -4026,6 +4026,7 @@
 
                 try {
                     let cards = [];
+                    const searchWords = query.trim().split(/\s+/).filter(w => w.length > 0);
 
                     if (filterType === 'uploader' || filterType === 'all') {
                         let uQuery = window.sb.from('profiles').select('id, username, avatar_url, role');
@@ -4086,8 +4087,6 @@
                         .from('photos')
                         .select(`*, ${profileSelect}, vehicles(model)`)
                         .eq('status', 'approved');
-
-                    const searchWords = query.trim().split(/\s+/).filter(w => w.length > 0);
 
                     const applySearchWords = (q, col) => {
                         searchWords.forEach(word => {
