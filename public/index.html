@@ -3899,8 +3899,16 @@
                             const filter = app.currentFilter;
                             let results = [];
                             
+                            const searchWords = query.trim().split(/\s+/).filter(w => w.length > 0);
+                            
                             const fetchSugs = async (table, col, label) => {
-                                const { data } = await window.sb.from(table).select(col).ilike(col, `%${query}%`).limit(4).abortSignal(controller.signal);
+                                let sbQuery = window.sb.from(table).select(col);
+                                
+                                searchWords.forEach(word => {
+                                    sbQuery = sbQuery.ilike(col, `%${word}%`);
+                                });
+                                
+                                const { data } = await sbQuery.limit(4).abortSignal(controller.signal);
                                 if (data) return [...new Set(data.map(item => item[col]).filter(Boolean))].map(val => ({ text: val, label }));
                                 return [];
                             };
@@ -3926,7 +3934,9 @@
                             } else if (filter === 'camera') {
                                 results = await fetchSugs('photos', 'camera_model', 'Thiết bị');
                             } else if (filter === 'uploader') {
-                                const { data } = await window.sb.from('profiles').select('username').ilike('username', `%${query}%`).limit(5).abortSignal(controller.signal);
+                                let sbQuery = window.sb.from('profiles').select('username');
+                                searchWords.forEach(word => { sbQuery = sbQuery.ilike('username', `%${word}%`); });
+                                const { data } = await sbQuery.limit(5).abortSignal(controller.signal);
                                 if (data) results = [...new Set(data.map(item => item.username).filter(Boolean))].map(val => ({ text: val, label: 'Người đăng' }));
                             }
 
@@ -3935,9 +3945,12 @@
                                     const safeText = app.utils.cleanText(item.text);
                                     const safeJS = item.text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
                                     
-                                    const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                                    const regex = new RegExp(`(${escapedQuery})`, 'gi');
-                                    const displayHTML = safeText.replace(regex, '<strong class="font-extrabold">$1</strong>');
+                                    let displayHTML = safeText;
+                                    if (searchWords.length > 0) {
+                                        const escapedWords = searchWords.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+                                        const regex = new RegExp(`(${escapedWords})`, 'gi');
+                                        displayHTML = safeText.replace(regex, '<strong class="font-extrabold">$1</strong>');
+                                    }
                                     
                                     const labelHTML = filter === 'all' ? `<div class="text-[10px] text-gray-400 font-normal mt-0.5">${item.label}</div>` : '';
                                     
@@ -4015,10 +4028,9 @@
                     let cards = [];
 
                     if (filterType === 'uploader' || filterType === 'all') {
-                        const { data: usersData } = await window.sb
-                            .from('profiles')
-                            .select('id, username, avatar_url, role')
-                            .ilike('username', `%${query}%`);
+                        let uQuery = window.sb.from('profiles').select('id, username, avatar_url, role');
+                        searchWords.forEach(word => { uQuery = uQuery.ilike('username', `%${word}%`); });
+                        const { data: usersData } = await uQuery;
 
                         if (usersData && usersData.length > 0) {
                             for (const user of usersData) {
@@ -4039,9 +4051,13 @@
                     }
 
                     if (filterType === 'plate' || filterType === 'model' || filterType === 'all') {
+                        const orParts = searchWords.flatMap(word => [
+                            `license_plate.ilike.%${word}%`,
+                            `model.ilike.%${word}%`
+                        ]);
                         const { data: vData } = await window.sb.from('vehicles')
                             .select('*')
-                            .or(`license_plate.ilike.%${query}%,model.ilike.%${query}%`)
+                            .or(orParts.join(','))
                             .limit(999999);
 
                         if (vData && vData.length > 0) {
@@ -4071,35 +4087,58 @@
                         .select(`*, ${profileSelect}, vehicles(model)`)
                         .eq('status', 'approved');
 
+                    const searchWords = query.trim().split(/\s+/).filter(w => w.length > 0);
+
+                    const applySearchWords = (q, col) => {
+                        searchWords.forEach(word => {
+                            q = q.ilike(col, `%${word}%`);
+                        });
+                        return q;
+                    };
+
                     if (filterType === 'absolute_route') {
                         const prefix = currentParams.get('prefix') || '';
                         const relatedPrefixes = app.utils.getRelatedPrefixes(prefix);
                         const prefixOrCond = relatedPrefixes.map(p => `license_plate.ilike.${p}%`).join(',');
                         photoQuery = photoQuery.eq('route_no', query).or(prefixOrCond);
                     } else if (filterType === 'plate') {
-                        photoQuery = photoQuery.ilike('license_plate', `%${query}%`);
+                        photoQuery = applySearchWords(photoQuery, 'license_plate');
                     } else if (filterType === 'route') {
-                        photoQuery = photoQuery.ilike('route_no', `%${query}%`);
+                        photoQuery = applySearchWords(photoQuery, 'route_no');
                     } else if (filterType === 'operator') {
-                        photoQuery = photoQuery.ilike('operator', `%${query}%`);
+                        photoQuery = applySearchWords(photoQuery, 'operator');
                     } else if (filterType === 'camera') {
-                        photoQuery = photoQuery.ilike('camera_model', `%${query}%`);
+                        photoQuery = applySearchWords(photoQuery, 'camera_model');
                     } else if (filterType === 'location') {
-                        photoQuery = photoQuery.ilike('location', `%${query}%`);
+                        photoQuery = applySearchWords(photoQuery, 'location');
                     } else if (filterType === 'uploader') {
-                        photoQuery = photoQuery.ilike('profiles.username', `%${query}%`);
+                        photoQuery = applySearchWords(photoQuery, 'profiles.username');
                     } else if (filterType === 'model') {
-                        const { data: vData } = await window.sb.from('vehicles').select('license_plate').ilike('model', `%${query}%`);
+                        let vQuery = window.sb.from('vehicles').select('license_plate');
+                        searchWords.forEach(word => { vQuery = vQuery.ilike('model', `%${word}%`); });
+                        const { data: vData } = await vQuery;
                         const plates = vData ? vData.map(v => v.license_plate) : [];
                         photoQuery = photoQuery.in('license_plate', plates);
                     } else {
-                        const { data: vData } = await window.sb.from('vehicles').select('license_plate').ilike('model', `%${query}%`);
+                        let vQuery = window.sb.from('vehicles').select('license_plate');
+                        searchWords.forEach(word => { vQuery = vQuery.ilike('model', `%${word}%`); });
+                        const { data: vData } = await vQuery;
                         const plates = vData ? vData.map(v => v.license_plate) : [];
                         
-                        const { data: uData } = await window.sb.from('profiles').select('id').ilike('username', `%${query}%`);
+                        let uQuery = window.sb.from('profiles').select('id');
+                        searchWords.forEach(word => { uQuery = uQuery.ilike('username', `%${word}%`); });
+                        const { data: uData } = await uQuery;
                         const uploaderIds = uData ? uData.map(u => u.id) : [];
 
-                        let orConditions = `license_plate.ilike.%${query}%,operator.ilike.%${query}%,route_no.ilike.%${query}%,camera_model.ilike.%${query}%,location.ilike.%${query}%,note.ilike.%${query}%`;
+                        const orParts = searchWords.flatMap(word => [
+                            `license_plate.ilike.%${word}%`,
+                            `operator.ilike.%${word}%`,
+                            `route_no.ilike.%${word}%`,
+                            `camera_model.ilike.%${word}%`,
+                            `location.ilike.%${word}%`,
+                            `note.ilike.%${word}%`
+                        ]);
+                        let orConditions = orParts.join(',');
                         if (plates.length > 0) orConditions += `,license_plate.in.(${plates.join(',')})`;
                         if (uploaderIds.length > 0) orConditions += `,uploader_id.in.(${uploaderIds.join(',')})`;
                         
@@ -7894,11 +7933,10 @@
                     let dbRoutes = [];
                     if (query.length > 0) {
                         try {
-                            const { data } = await window.sb
-                                .from('photos')
-                                .select('route_no')
-                                .ilike('route_no', `%${query}%`)
-                                .limit(10);
+                            const routeWords = query.trim().split(/\s+/).filter(w => w.length > 0);
+                            let rQuery = window.sb.from('photos').select('route_no');
+                            routeWords.forEach(word => { rQuery = rQuery.ilike('route_no', `%${word}%`); });
+                            const { data } = await rQuery.limit(10);
                             if (data) {
                                 dbRoutes = data.map(item => item.route_no).filter(Boolean);
                             }
@@ -7943,17 +7981,19 @@
                     if (!app.suggestionControllers) app.suggestionControllers = {};
                     app.suggestionControllers[inputId] = controller;
 
-
                     const table = field === 'operator' ? 'photos' : 'vehicles';
                     const selectField = field === 'operator' ? 'operator' : field;
+                    
+                    const searchWords = query.trim().split(/\s+/).filter(w => w.length > 0);
 
                     try {
-                        const { data, error } = await window.sb
-                            .from(table)
-                            .select(selectField)
-                            .ilike(selectField, `%${query}%`)
-                            .limit(15)
-                            .abortSignal(controller.signal);
+                        let sbQuery = window.sb.from(table).select(selectField);
+                        
+                        searchWords.forEach(word => {
+                            sbQuery = sbQuery.ilike(selectField, `%${word}%`);
+                        });
+                        
+                        const { data, error } = await sbQuery.limit(15).abortSignal(controller.signal);
 
                         if (error) { if (error.code === 20 || error.name === 'AbortError') return; throw error; }
 
@@ -7964,15 +8004,13 @@
                                     const safeHTML = app.utils.cleanText(v);
                                     const safeJS = v.replace(/'/g, "\\'").replace(/"/g, '&quot;');
                                     
-                                    // Highlight (in đậm) phần chữ trùng khớp
                                     let displayHTML = safeHTML;
-                                    if (query) {
-                                        const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                                        const regex = new RegExp(`(${escapedQuery})`, 'gi');
+                                    if (searchWords.length > 0) {
+                                        const escapedWords = searchWords.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+                                        const regex = new RegExp(`(${escapedWords})`, 'gi');
                                         displayHTML = safeHTML.replace(regex, '<strong class="font-extrabold">$1</strong>');
                                     }
 
-                                    // Đã gỡ bỏ text-gray-500 để chữ trở lại màu đen mặc định
                                     return `<div class="suggestion-item" onmousedown="event.preventDefault(); const inp = document.getElementById('${inputId}'); inp.value = '${safeJS}'; document.getElementById('${suggestionId}').classList.remove('active'); inp.dispatchEvent(new Event('input')); inp.dispatchEvent(new Event('change'));">${displayHTML}</div>`;
                                 }).join('');
                                 box.classList.add('active');
