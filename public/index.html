@@ -3901,6 +3901,8 @@
                             
                             const searchWords = query.trim().split(/\s+/).filter(w => w.length > 0);
                             
+                            const isBasePlate = (plate) => !/-\d+$/.test(plate);
+                            
                             const fetchSugs = async (table, col, label) => {
                                 let sbQuery = window.sb.from(table).select(col);
                                 
@@ -3908,8 +3910,16 @@
                                     sbQuery = sbQuery.ilike(col, `%${word}%`);
                                 });
                                 
-                                const { data } = await sbQuery.limit(4).abortSignal(controller.signal);
-                                if (data) return [...new Set(data.map(item => item[col]).filter(Boolean))].map(val => ({ text: val, label }));
+                                const { data } = await sbQuery.limit(20).abortSignal(controller.signal);
+                                if (data) {
+                                    const plates = [...new Set(data.map(item => item[col]).filter(Boolean))];
+                                    if (col === 'license_plate') {
+                                        const basePlates = plates.filter(p => isBasePlate(p));
+                                        const uniqueBases = [...new Set(basePlates.map(p => p.replace(/-\d+$/, '')))];
+                                        return uniqueBases.map(val => ({ text: val, label }));
+                                    }
+                                    return plates.map(val => ({ text: val, label }));
+                                }
                                 return [];
                             };
 
