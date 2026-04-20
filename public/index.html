@@ -4181,29 +4181,43 @@
                 const dropdown = document.getElementById('user-dropdown');
 
                 if (user) {
-                    let name = user.user_metadata?.username;
-                    if (!name && user.email) {
-                        let prefix = user.email.split('@')[0];
-                        name = prefix.substring(0, 20);
-                        
-                        await window.sb.auth.updateUser({ data: { username: name } });
-                        
-                        await window.sb.from('profiles').upsert({
-                            id: user.id,
-                            username: name,
-                            avatar_url: user.user_metadata?.avatar_url || null
-                        }, { onConflict: 'id' });
-                        
-                        user.user_metadata.username = name;
-                    }
+                    // Lấy tên từ metadata (Hỗ trợ Google, Discord, Email)
+                    let metaName = user.user_metadata?.username || 
+                                   user.user_metadata?.full_name || 
+                                   user.user_metadata?.name || 
+                                   user.user_metadata?.custom_claims?.global_name || 
+                                   (user.email ? user.email.split('@')[0] : 'User');
+                    
+                    let finalName = metaName.substring(0, 20);
+                    let finalAvatar = user.user_metadata?.avatar_url || user.user_metadata?.picture || null;
 
                     try {
-                        const { data: profile } = await window.sb.from('profiles').select('role').eq('id', user.id).maybeSingle();
-                        app.role = profile?.role || 'user';
-                    } catch (e) { app.role = 'user'; }
+                        // Kiểm tra xem user này đã có trong bảng profiles chưa
+                        const { data: profile } = await window.sb.from('profiles').select('username, role').eq('id', user.id).maybeSingle();
 
-                    document.getElementById('nav-username').innerText = name;
+                        if (!profile || !profile.username) {
+                            // Nếu chưa có (OAuth mới đăng nhập) -> Tạo mới vào bảng profiles
+                            await window.sb.from('profiles').upsert({
+                                id: user.id,
+                                username: finalName,
+                                avatar_url: finalAvatar
+                            }, { onConflict: 'id' });
 
+                            // Đồng bộ lại vào auth.users để lần sau gọi cho chuẩn
+                            if (!user.user_metadata?.username) {
+                                await window.sb.auth.updateUser({ data: { username: finalName } });
+                            }
+                            app.role = 'user';
+                        } else {
+                            // Nếu đã có trong bảng profiles rồi thì lấy tên từ DB
+                            finalName = profile.username;
+                            app.role = profile.role || 'user';
+                        }
+                    } catch (e) { 
+                        app.role = 'user'; 
+                    }
+
+                    document.getElementById('nav-username').innerText = finalName;
 
                     dropdown.innerHTML = `
                         <a href="/profile" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-address-card w-5 text-center mr-1"></i> Hồ sơ của tôi</a>
