@@ -5763,7 +5763,7 @@
                     try {
                         if (tab === 'photos') {
 
-                            const { data: photos, error } = await window.sb.from('photos').select('*, profiles(username), vehicles(model)').eq('status', 'pending');
+                            const { data: photos, error } = await window.sb.from('photos').select('*, profiles(username), vehicles(model)').eq('status', 'pending').order('id', { ascending: true });
                             if (error) throw error;
                             if (!photos || photos.length === 0) { content.innerHTML = '<p class="p-4">Không có ảnh nào chờ duyệt.</p>'; return; }
 
