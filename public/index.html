@@ -2851,6 +2851,7 @@
 
         const app = {
             user: null,
+            previousPath: '/',
             role: 'user',
             rawFile: null,
             wmState: { x: 0.5, y: 0.5, color: 'white' },
@@ -4695,6 +4696,7 @@
                     const safePlate = app.utils.displayPlate(app.utils.cleanText(p.license_plate));
                     const safeOp = app.utils.cleanText(p.operator || 'Đã bị xóa');
                     const safeUser = app.utils.cleanText(p.profiles?.username || 'Ẩn danh');
+                    const proxyUrl = app.utils.getProxiedUrl(p.url, `${safePlate}.jpg`);
 
                     return `
                         <div class="bg-white border border-vbs-border hover:shadow-md cursor-pointer rounded-md overflow-hidden transition-all flex flex-col" onclick="app.views.loadDetail(${p.id})">
@@ -4707,7 +4709,7 @@
                                 </div>
                                 
                                 <!-- Ảnh thật (Mặc định ẩn opacity-0) -->
-                                <img loading="lazy" src="${app.utils.getProxiedUrl(p.url)}" 
+                                <img loading="lazy" src="${proxyUrl}" 
                                      onload="app.utils.handleImgLoad(this)"
                                      onerror="app.utils.handleImgError(this)"
                                      alt="Xe buýt ${safePlate}" 
@@ -5030,7 +5032,7 @@
 
 
                     const imgEl = document.getElementById('detail-img');
-                    const proxyUrl = app.utils.getProxiedUrl(photo.url);
+                    const proxyUrl = app.utils.getProxiedUrl(photo.url, `${app.utils.displayPlate(photo.license_plate)}.jpg`);
 
                     // Reset skeleton trạng thái loading trước khi gán SRC
                     imgEl.style.display = 'block';
@@ -7433,6 +7435,7 @@
 
                 navigate: (url) => {
                     if (window.location.pathname + window.location.search === url) return;
+                    app.previousPath = window.location.pathname + window.location.search;
                     window.history.pushState({}, '', url);
                     app.handleRoute();
                 },
@@ -7645,22 +7648,21 @@
                 updateBreadcrumbs: () => {
                     let backName = "Trang chủ";
                     let backUrl = "/";
-                    try {
-                        const referrer = document.referrer;
-                        if (referrer && referrer.startsWith(window.location.origin)) {
-                            const url = new URL(referrer);
-                            const path = url.pathname;
-                            backUrl = referrer;
+                    
+                    const prev = app.previousPath || '/';
+                    const pathParts = prev.split('?')[0];
 
-                            if (path === '/profile') backName = "Hồ sơ";
-                            else if (path.startsWith('/user/')) backName = "Hồ sơ (" + decodeURIComponent(path.split('/')[2]) + ")";
-                            else if (path.startsWith('/search') || path === '/search') backName = "Tìm kiếm";
-                            else if (path === '/upload') backName = "Đăng tải";
-                            else if (path === '/admin') backName = "Quản trị";
-                            else if (path.startsWith('/vehicle/')) backName = "Hồ sơ xe (" + decodeURIComponent(path.split('/')[2]) + ")";
-                            else if (path.startsWith('/photo/')) backName = "Quay lại ảnh";
-                        }
-                    } catch (e) { }
+                    if (pathParts === '/profile') backName = "Hồ sơ của tôi";
+                    else if (pathParts.startsWith('/user/')) backName = "Hồ sơ (" + decodeURIComponent(pathParts.split('/')[2]) + ")";
+                    else if (pathParts.startsWith('/search')) backName = "Kết quả tìm kiếm";
+                    else if (pathParts === '/upload') backName = "Đăng tải";
+                    else if (pathParts === '/admin') backName = "Quản trị hệ thống";
+                    else if (pathParts.startsWith('/vehicle/')) backName = "Hồ sơ xe " + decodeURIComponent(pathParts.split('/')[2]);
+                    else if (pathParts.startsWith('/photo/')) backName = "Quay lại ảnh";
+                    
+                    if (prev !== (window.location.pathname + window.location.search)) {
+                        backUrl = prev;
+                    }
 
                     document.querySelectorAll('.crumb-back').forEach(el => {
                         el.innerText = backName;
@@ -7690,11 +7692,13 @@
 
 
 
-                getProxiedUrl: (url) => {
+                getProxiedUrl: (url, filename = 'image.jpg') => {
                     if (!url) return '';
 
+                    const safeName = filename.replace(/[^a-z0-9A-Z.-]/gi, '_');
+
                     if (url.includes('catbox.moe') || url.includes('postimg.cc') || url.includes('supabase.co')) {
-                        return `https://wsrv.nl/?url=${encodeURIComponent(url)}&we`;
+                        return `https://wsrv.nl/${encodeURIComponent(safeName)}?url=${encodeURIComponent(url)}&we`;
                     }
                     return url;
                 },
