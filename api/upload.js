@@ -1,42 +1,31 @@
 import { createClient } from '@supabase/supabase-js';
+import ImageKit from 'imagekit';
 
-// Tên bucket mặc định trên Supabase
-const SUPABASE_BUCKET_NAME = 'images'; 
+const imagekit = new ImageKit({
+    publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
+    privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
+    urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT
+});
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
 
     try {
-        // ==========================================
-        // 1. XÁC THỰC BẢO MẬT BẰNG TOKEN (RLS - Dùng ANON KEY)
-        // ==========================================
         const authHeader = req.headers.authorization;
         if (!authHeader) {
-            return res.status(401).json({ success: false, error: 'Chưa xác thực. Thiếu Token đăng nhập từ Client.' });
+            return res.status(401).json({ success: false, error: 'Chưa xác thực. Thiếu Token đăng nhập.' });
         }
 
-        // Khởi tạo client BÊN TRONG handler để gán Token của user thực hiện request
         const supabase = createClient(
             process.env.SUPABASE_URL, 
-            process.env.SUPABASE_KEY, // Vẫn là ANON KEY an toàn
-            {
-                global: {
-                    headers: {
-                        Authorization: authHeader // Nhét vé thông hành vào đây
-                    }
-                }
-            }
+            process.env.SUPABASE_KEY,
+            { global: { headers: { Authorization: authHeader } } }
         );
 
         const { imageBase64, metadata, userId, isAvatar, captchaToken } = req.body;
 
-        // ==========================================
-        // 2. XÁC THỰC CLOUDFLARE TURNSTILE (Bỏ qua nếu là đổi Avatar)
-        // ==========================================
         if (!isAvatar) {
-            if (!captchaToken) {
-                return res.status(400).json({ success: false, error: 'Thiếu mã xác thực (Captcha).' });
-            }
+            if (!captchaToken) return res.status(400).json({ success: false, error: 'Thiếu mã xác thực (Captcha).' });
 
             const verifyRes = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
                 method: 'POST',
@@ -45,88 +34,57 @@ export default async function handler(req, res) {
             });
 
             const verifyData = await verifyRes.json();
-
             if (!verifyData.success) {
                 console.error('Turnstile verification failed:', verifyData['error-codes']);
-                return res.status(400).json({ 
-                    success: false, 
-                    error: 'Xác thực Cloudflare Turnstile thất bại! Vui lòng thử lại.' 
-                });
+                return res.status(400).json({ success: false, error: 'Xác thực Cloudflare Turnstile thất bại!' });
             }
         }
 
-        // ==========================================
-        // 3. XỬ LÝ ẢNH BASE64 & SÁT KHUẨN BỘ NHỚ
-        // ==========================================
         const base64Data = imageBase64.includes(',') ? imageBase64.split(',')[1] : imageBase64;
-        const buffer = Buffer.from(base64Data, 'base64');
         
-        console.log(`[DEBUG] Kích thước ảnh gốc: ${buffer.length} bytes`);
-        if (buffer.length === 0) {
-            throw new Error('Ảnh tải lên bị rỗng (0 bytes). Vui lòng thử chọn lại ảnh.');
+        if (!base64Data || base64Data.length === 0) {
+            throw new Error('Ảnh tải lên bị rỗng. Vui lòng thử lại.');
         }
 
-        // Cắt bỏ dữ liệu thừa trong Memory Pool của Node.js
-        const cleanArrayBuffer = buffer.buffer.slice(
-            buffer.byteOffset, 
-            buffer.byteOffset + buffer.byteLength
-        );
+        let finalOptimizedUrl = '';
 
-        let publicUrl = '';
-
-        // ==========================================
-        // 4. UPLOAD TRỰC TIẾP LÊN SUPABASE STORAGE
-        // ==========================================
         try {
-            // Đặt tên file ngẫu nhiên chống trùng (VD: vehicles/16999999-12345.jpg)
-            const uniqueId = Math.round(Math.random() * 1e9);
-            const folder = isAvatar ? 'avatars' : 'vehicles';
-            const fileName = `${folder}/${Date.now()}-${uniqueId}.jpg`;
+            const folder = isAvatar ? '/avatars' : '/vehicles';
+            const fileName = `img_${Date.now()}_${Math.round(Math.random() * 1e4)}.jpg`;
 
-            console.log(`[DEBUG] Bắt đầu Upload lên Supabase Storage... (${fileName})`);
+            console.log(`[DEBUG] Đang Upload lên ImageKit... (${folder})`);
 
-            const { data: storageData, error: storageError } = await supabase.storage
-                .from(SUPABASE_BUCKET_NAME)
-                .upload(fileName, cleanArrayBuffer, {
-                    contentType: 'image/jpeg',
-                    upsert: false
-                });
+            const uploadResponse = await imagekit.upload({
+                file: base64Data,
+                fileName: fileName,
+                folder: folder,
+                useUniqueFileName: true,
+            });
 
-            if (storageError) throw storageError;
+            finalOptimizedUrl = imagekit.url({
+                src: uploadResponse.url,
+                transformation:[
+                    { format: "webp", quality: "80" }
+                ]
+            });
 
-            // Lấy URL Public từ Supabase
-            const { data: publicUrlData } = supabase.storage
-                .from(SUPABASE_BUCKET_NAME)
-                .getPublicUrl(fileName);
+            console.log(`[DEBUG] ImageKit Upload thành công: ${finalOptimizedUrl}`);
 
-            publicUrl = publicUrlData.publicUrl;
-            console.log(`[DEBUG] Upload Supabase Storage thành công: ${publicUrl}`);
-
-        } catch (supabaseError) {
-            console.error('===[SUPABASE STORAGE UPLOAD LỖI] ===');
-            console.error(supabaseError);
-            throw new Error('Lỗi khi tải ảnh lên hệ thống lưu trữ Supabase.');
+        } catch (imageKitError) {
+            console.error('===[IMAGEKIT UPLOAD LỖI] ===', imageKitError);
+            throw new Error('Lỗi khi tải ảnh lên máy chủ ImageKit.');
         }
 
-        // ==========================================
-        // 6. NẾU LÀ UPLOAD AVATAR: Lưu DB và dừng lại
-        // ==========================================
         if (isAvatar) {
             const { error: profileErr } = await supabase
                 .from('profiles')
-                .update({ avatar_url: publicUrl })
+                .update({ avatar_url: finalOptimizedUrl })
                 .eq('id', userId);
             
             if (profileErr) throw profileErr;
-
-            return res.status(200).json({ success: true, url: publicUrl });
+            return res.status(200).json({ success: true, url: finalOptimizedUrl });
         }
 
-        // ==========================================
-        // 7. NẾU LÀ ĐĂNG ẢNH XE: Chạy logic DB Schema
-        // ==========================================
-        
-        // 7.1. Lưu "Xác Xe" vào bảng vehicles (BKS và Model)
         const { error: vError } = await supabase
             .from('vehicles')
             .upsert({
@@ -136,11 +94,10 @@ export default async function handler(req, res) {
 
         if (vError) throw vError;
 
-        // 7.2. Lưu "Lịch sử chuyến/Hình ảnh" vào bảng photos
         const { data: photoData, error: dbError } = await supabase
             .from('photos')
             .insert({
-                url: publicUrl,
+                url: finalOptimizedUrl,
                 uploader_id: userId,
                 license_plate: metadata.plate,
                 location: metadata.location,
@@ -158,28 +115,23 @@ export default async function handler(req, res) {
 
         if (dbError) throw dbError;
 
-        // ==========================================
-        // 8. THÔNG BÁO DISCORD
-        // ==========================================
         if (process.env.DISCORD_PRIVATE_WEBHOOK_URL) {
-            // Bỏ từ khóa 'await' ở đây để Backend trả kết quả ngay, không bắt User phải chờ Discord gửi xong
             fetch(process.env.DISCORD_PRIVATE_WEBHOOK_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     username: "VBS Logger",
                     embeds:[{
-                        title: `📥 ẢNH MỚI CHỜ DUYỆT (Supabase)`,
+                        title: `📥 ẢNH MỚI CHỜ DUYỆT (ImageKit WebP)`,
                         description: `**BKS:** ${metadata.plate}\n**Máy:** ${metadata.camera_model}\n**Ngày chụp:** ${metadata.taken_at || 'Không rõ'}\n**User:** ${metadata.username}\nID: ${photoData.id}`,
-                        thumbnail: { url: publicUrl },
+                        thumbnail: { url: finalOptimizedUrl },
                         color: 15158332 
                     }]
                 })
             }).catch(e => console.error('Lỗi gửi Discord:', e));
         }
 
-        // CHẮC CHẮN publicUrl lúc này là SỐNG VÀ XỊN 100%
-        return res.status(200).json({ success: true, url: publicUrl });
+        return res.status(200).json({ success: true, url: finalOptimizedUrl });
 
     } catch (error) {
         console.error('[System Error Handler]:', error.message);

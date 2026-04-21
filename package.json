@@ -2,6 +2,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.89.0",
     "discord-interactions": "^3.4.0",
+    "imagekit": "^6.0.0",
     "node-fetch": "^3.3.2"
   }
 }
