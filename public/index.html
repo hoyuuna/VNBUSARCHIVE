@@ -4069,7 +4069,10 @@
                         } else if (filterType === 'model') {
                             searchWords.forEach(w => { vQuery = vQuery.ilike('model', `%${w}%`); });
                         } else {
-                            searchWords.forEach(w => { vQuery = vQuery.or(`license_plate.ilike.%${w}%,model.ilike.%${w}%`); });
+                            searchWords.forEach(w => { 
+                                const safeW = w.replace(/"/g, ''); 
+                                vQuery = vQuery.or(`license_plate.ilike."%${safeW}%",model.ilike."%${safeW}%"`); 
+                            });
                         }
 
                         const { data: vData } = await vQuery;
@@ -4140,7 +4143,9 @@
                         const uploaderIds = uData ? uData.map(u => u.id) : [];
 
                         searchWords.forEach(w => {
-                            let orConditions = `license_plate.ilike.%${w}%,operator.ilike.%${w}%,route_no.ilike.%${w}%,camera_model.ilike.%${w}%,location.ilike.%${w}%,note.ilike.%${w}%`;
+                            const safeW = w.replace(/"/g, ''); 
+                            let orConditions = `license_plate.ilike."%${safeW}%",operator.ilike."%${safeW}%",route_no.ilike."%${safeW}%",camera_model.ilike."%${safeW}%",location.ilike."%${safeW}%",note.ilike."%${safeW}%"`;
+                            
                             if (plates.length > 0) orConditions += `,license_plate.in.(${plates.join(',')})`;
                             if (uploaderIds.length > 0) orConditions += `,uploader_id.in.(${uploaderIds.join(',')})`;
                             photoQuery = photoQuery.or(orConditions);
