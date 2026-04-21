@@ -50,7 +50,7 @@ export default async function handler(req, res) {
 
         try {
             const folder = isAvatar ? '/avatars' : '/vehicles';
-            const fileName = `img_${Date.now()}_${Math.round(Math.random() * 1e4)}.jpg`;
+            const fileName = `img_${Date.now()}_${Math.round(Math.random() * 1e4)}.webp`;
 
             console.log(`[DEBUG] Đang Upload lên ImageKit... (${folder})`);
 

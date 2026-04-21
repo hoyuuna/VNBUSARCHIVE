@@ -3035,7 +3035,7 @@
                                 app.crop.close();
                                 btn.innerHTML = originalText;
                                 btn.disabled = false;
-                            }, 'image/jpeg', 0.95);
+                            }, 'image/webp', 0.85);
 
                         } else if (app.crop.mode === 'avatar') {
                             canvas.toBlob(async (blob) => {
@@ -3052,7 +3052,7 @@
 
 
                                 app.auth.uploadAvatarBlob(blob);
-                            }, 'image/jpeg', 0.9);
+                            }, 'image/webp', 0.8);
                         }
                     }, 50);
                 }
@@ -6496,7 +6496,7 @@
                             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                             ctx.restore();
 
-                            const resultDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                            const resultDataUrl = canvas.toDataURL('image/webp', 0.7);
 
 
                             app.ui.showAlert(
@@ -7842,7 +7842,7 @@
                                 canvas.toBlob((blob) => {
                                     if (blob) resolve(blob);
                                     else reject(new Error("Canvas failed to blob"));
-                                }, 'image/jpeg', 0.90);
+                                }, 'image/webp', 0.80);
                             } catch (e) {
                                 reject(e);
                             } finally {
