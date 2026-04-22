@@ -37,6 +37,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
     <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stackblur-canvas/2.7.0/stackblur.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
 
     <script>
@@ -7832,15 +7833,10 @@
                                 const fontSize = barHeight * 0.4;
                                 const fontFace = '"Montserrat", sans-serif';
 
-                                ctx.save();
-                                ctx.beginPath();
-                                ctx.rect(0, barY, width, barHeight);
-                                ctx.clip();
-
-                                const blurAmount = Math.max(5, width * 0.005);
-                                ctx.filter = `blur(${blurAmount}px)`;
                                 ctx.drawImage(img, 0, 0, width, height);
-                                ctx.restore();
+
+                                const blurRadius = Math.floor(Math.max(5, width * 0.005));
+                                StackBlur.canvasRGBA(canvas, 0, barY, width, barHeight, blurRadius);
 
                                 ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
                                 ctx.fillRect(0, barY, width, barHeight);
