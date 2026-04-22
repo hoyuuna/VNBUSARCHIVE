@@ -871,6 +871,12 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.3);
             z-index: 20;
             flex-shrink: 0;
+            transition: left 0.2s, right 0.2s;
+        }
+
+        .blur-panel .delete-blur.right {
+            left: auto;
+            right: -28px;
         }
 
         .blur-panel:hover {
@@ -6545,8 +6551,8 @@
                             let newLeft = initialLeft + dx;
                             let newTop = initialTop + dy;
 
-                            const minLeft = 28;
-                            const minTop = 28;
+                            const minLeft = 0;
+                            const minTop = 0;
                             const maxLeft = container.offsetWidth - panel.offsetWidth;
                             const maxTop = container.offsetHeight - panel.offsetHeight;
 
@@ -6582,7 +6588,15 @@
                     
                     const endAction = () => { 
                         isDragging = false; 
-                        isResizing = false; 
+                        isResizing = false;
+                        
+                        // Auto-reposition delete button if panel is too close to left edge
+                        const deleteBtn = panel.querySelector('.delete-blur');
+                        if (panel.offsetLeft < 28) {
+                            deleteBtn.classList.add('right');
+                        } else {
+                            deleteBtn.classList.remove('right');
+                        }
                     };
 
                     document.addEventListener('mousemove', handleMouseMove);
