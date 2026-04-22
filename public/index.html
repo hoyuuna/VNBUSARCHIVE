@@ -3349,6 +3349,66 @@
                 try {
                     const { data: { session } } = await window.sb.auth.getSession();
                     await app.setUser(session ? session.user : null);
+
+                    window.sb.auth.onAuthStateChange(async (event, session) => {
+                        
+                        if (event === 'PASSWORD_RECOVERY') {
+                            const promptNewPassword = () => {
+                                app.ui.showAlert(
+                                    `<div class="text-left mt-1">
+                                        <p class="text-sm text-gray-700 mb-3">Vui lòng thiết lập mật khẩu mới cho tài khoản của bạn.</p>
+                                        <input type="password" id="recovery-new-password" placeholder="Nhập mật khẩu mới (tối thiểu 6 ký tự)" class="w-full border border-gray-300 p-3 text-sm rounded-md focus:ring-2 focus:ring-black outline-none transition shadow-inner">
+                                    </div>`,
+                                    async () => {
+                                        const newPass = document.getElementById('recovery-new-password').value;
+                                        if (!newPass || newPass.length < 6) {
+                                            setTimeout(() => {
+                                                alert("Mật khẩu phải có ít nhất 6 ký tự. Vui lòng thử lại!");
+                                                promptNewPassword();
+                                            }, 400);
+                                            return;
+                                        }
+                                        
+                                        const { error } = await window.sb.auth.updateUser({ password: newPass });
+                                        if (error) {
+                                            setTimeout(() => {
+                                                alert("Lỗi khi cập nhật: " + error.message);
+                                                promptNewPassword();
+                                            }, 400);
+                                        } else {
+                                            setTimeout(() => {
+                                                app.ui.showAlert("Mật khẩu đã được cập nhật thành công! Bạn có thể sử dụng hệ thống bình thường.");
+                                            }, 400);
+                                        }
+                                    },
+                                    null,
+                                    { title: "Khôi phục mật khẩu", btnOkText: "Lưu mật khẩu mới" }
+                                );
+                            };
+                            promptNewPassword();
+                        } 
+                        
+                        else if (event === 'USER_UPDATED') {
+                            const hash = window.location.hash;
+                            if (hash && hash.includes('type=email_change')) {
+                                setTimeout(() => {
+                                    app.ui.showAlert("Xác nhận đổi địa chỉ Email thành công!");
+                                    window.history.replaceState(null, null, window.location.pathname);
+                                }, 500);
+                            }
+                        }
+                        
+                        else if (event === 'SIGNED_IN') {
+                            const hash = window.location.hash;
+                            if (hash && hash.includes('type=signup')) {
+                                setTimeout(() => {
+                                    app.ui.showAlert("Xác thực Email thành công! Chào mừng bạn đến với hệ thống.");
+                                    window.history.replaceState(null, null, window.location.pathname);
+                                }, 500);
+                            }
+                        }
+                    });
+
                 } catch (e) {
                     await app.setUser(null);
                 }
@@ -8256,6 +8316,15 @@
                             if (!username) throw new Error("Vui lòng nhập tên hiển thị.");
                             if (username.length < 3 || username.length > 20) throw new Error("Tên hiển thị từ 3 đến 20 ký tự.");
 
+                            const { data: existingUser } = await window.sb.from('profiles')
+                                .select('username')
+                                .ilike('username', username)
+                                .maybeSingle();
+
+                            if (existingUser) {
+                                throw new Error("Tên hiển thị này đã tồn tại (không phân biệt viết hoa/thường). Vui lòng chọn tên khác!");
+                            }
+
                             const { data, error } = await window.sb.auth.signUp({
                                 email,
                                 password,
@@ -8264,13 +8333,41 @@
 
                             if (error) throw error;
 
-                            app.ui.showAlert("Đăng ký thành công! Đang chuyển hướng...", () => { app.utils.navigate('/'); });
+                            app.ui.showAlert(
+                                `<div class="text-left mt-1">
+                                    <p class="text-sm text-gray-700 mb-3">Tạo tài khoản thành công! Vui lòng kiểm tra email <b>${email}</b> để xác thực.</p>
+                                    <div class="bg-amber-50 border border-amber-200 rounded-md p-3">
+                                        <p class="text-xs text-amber-800 font-medium leading-relaxed">
+                                            <i class="fa-solid fa-envelope-circle-check mr-1 text-amber-600 text-sm"></i>
+                                            <b>Lưu ý quan trọng:</b> Nếu không thấy thư trong hộp thư chính, vui lòng kiểm tra mục <b>Spam (Thư rác)</b> hoặc <b>Quảng cáo</b>.
+                                        </p>
+                                    </div>
+                                </div>`,
+                                () => { app.auth.mode = 'login'; },
+                                null,
+                                { title: "Xác thực tài khoản", btnOkText: "Đã hiểu" }
+                            );
+
                             if (data.session) await app.setUser(data.user);
 
                         } else if (app.auth.mode === 'forgot') {
                             const { error } = await window.sb.auth.resetPasswordForEmail(email);
                             if (error) throw error;
-                            app.ui.showAlert("Link khôi phục mật khẩu đã được gửi vào email của bạn.");
+                            
+                            app.ui.showAlert(
+                                `<div class="text-left mt-1">
+                                    <p class="text-sm text-gray-700 mb-3">Link khôi phục mật khẩu đã được gửi đến <b>${email}</b>.</p>
+                                    <div class="bg-blue-50 border border-blue-200 rounded-md p-3">
+                                        <p class="text-xs text-blue-800 font-medium leading-relaxed">
+                                            <i class="fa-solid fa-circle-exclamation mr-1 text-blue-600 text-sm"></i>
+                                            <b>Lưu ý:</b> Đừng quên kiểm tra mục <b>Spam (Thư rác)</b> nếu bạn không tìm thấy thư nhé!
+                                        </p>
+                                    </div>
+                                </div>`,
+                                () => { app.auth.mode = 'login'; },
+                                null,
+                                { title: "Kiểm tra hộp thư", btnOkText: "Trở lại đăng nhập" }
+                            );
                         }
                     } catch (err) {
                         let errorMsg = err.message;
@@ -8375,9 +8472,23 @@
                             throw updateError;
                         }
 
-                        app.ui.showAlert(`Thành công! Vui lòng kiểm tra hộp thư của <b>${newEmail}</b> và bấm vào link để xác nhận việc đổi email.`);
-                        document.getElementById('set-ce-new').value = '';
-                        document.getElementById('set-ce-password').value = '';
+                        app.ui.showAlert(
+                            `<div class="text-left mt-1">
+                                <p class="text-sm text-gray-700 mb-3">Vui lòng kiểm tra hộp thư của <b>${newEmail}</b> và bấm vào link xác nhận.</p>
+                                <div class="bg-amber-50 border border-amber-200 rounded-md p-3">
+                                    <p class="text-xs text-amber-800 font-medium leading-relaxed">
+                                        <i class="fa-solid fa-envelope-open-text mr-1 text-amber-600 text-sm"></i>
+                                        <b>Nhắc nhở:</b> Rất có thể thư bị lọt vào danh mục <b>Spam (Thư rác)</b>, vui lòng kiểm tra kỹ nhé!
+                                    </p>
+                                </div>
+                            </div>`,
+                            () => {
+                                document.getElementById('set-ce-new').value = '';
+                                document.getElementById('set-ce-password').value = '';
+                            },
+                            null,
+                            { title: "Yêu cầu đổi Email thành công", btnOkText: "Đã hiểu" }
+                        );
                         
                     } catch (err) {
                         let msg = err.message;
@@ -8499,7 +8610,7 @@
                     }
                 },
 
-                changeUsername: () => {
+                changeUsername: async () => {
                     if (!app.user) return;
                     const newName = document.getElementById('set-new-username').value.trim();
 
@@ -8507,6 +8618,15 @@
                     if (newName.length < 3) return app.ui.showAlert("Username phải dài từ 3 ký tự trở lên.");
                     if (newName.length > 20) return app.ui.showAlert("Username quá dài (Tối đa 20 ký tự).");
 
+                    const { data: existingUser } = await window.sb.from('profiles')
+                        .select('username')
+                        .ilike('username', newName)
+                        .neq('id', app.user.id)
+                        .maybeSingle();
+
+                    if (existingUser) {
+                        return app.ui.showAlert("Tên hiển thị này đã có người sử dụng (không phân biệt viết hoa/thường). Vui lòng chọn tên khác!");
+                    }
 
                     app.ui.showAlert(
                         "DỪNG LẠI ĐÃ! Đổi username có thể sẽ khiến bạn mất quyền bảo hộ bản quyền cho những ảnh đã đăng vì không thể đổi watermark trên ảnh. Bạn chắc chứ?",
@@ -8536,7 +8656,7 @@
                             console.log("Đã hủy đổi username");
                         },
                         {
-                            btnOkText: "OK",
+                            btnOkText: "Vẫn đổi",
                             btnCancelText: "Hủy",
                             title: "Cảnh báo"
                         }
