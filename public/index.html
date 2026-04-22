@@ -8420,21 +8420,25 @@
                         app.ui.showAlert("Có lỗi xảy ra khi đăng xuất.");
                     }
                 },
-                changePassword: async () => {
+changePassword: async () => {
                     const oldPass = document.getElementById('set-cp-old').value;
                     const newPass = document.getElementById('set-cp-new').value;
+                    
                     if (!oldPass) return app.ui.showAlert("Vui lòng nhập mật khẩu hiện tại.");
                     if (!newPass || newPass.length < 6) return app.ui.showAlert("Mật khẩu mới phải ít nhất 6 ký tự.");
                     
+                    const { error } = await window.sb.auth.updateUser({ 
+                        password: newPass,
+                        current_password: oldPass
+                    });
 
-                    const email = app.user.email;
-                    const { error: signInError } = await window.sb.auth.signInWithPassword({ email, password: oldPass });
-                    if (signInError) return app.ui.showAlert("Mật khẩu hiện tại không đúng.");
-                    
-                    const { error } = await window.sb.auth.updateUser({ password: newPass });
-                    if (error) app.ui.showAlert(error.message);
-                    else { 
-                        app.ui.showAlert("Đã đổi mật khẩu!"); 
+                    if (error) {
+                        let msg = error.message;
+                        if (msg.includes('Current password is invalid')) msg = "Mật khẩu hiện tại không đúng.";
+                        if (msg.includes('should be different')) msg = "Mật khẩu mới phải khác mật khẩu hiện tại.";
+                        app.ui.showAlert("Lỗi: " + msg);
+                    } else { 
+                        app.ui.showAlert("Đã đổi mật khẩu thành công!"); 
                         document.getElementById('set-cp-old').value = '';
                         document.getElementById('set-cp-new').value = '';
                     }
