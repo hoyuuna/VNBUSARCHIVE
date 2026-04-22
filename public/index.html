@@ -3037,7 +3037,7 @@
                                 app.crop.close();
                                 btn.innerHTML = originalText;
                                 btn.disabled = false;
-                            }, 'image/webp', 0.85);
+                            }, app.utils.getTargetMimeType(), 0.85);
 
                         } else if (app.crop.mode === 'avatar') {
                             canvas.toBlob(async (blob) => {
@@ -3054,7 +3054,7 @@
 
 
                                 app.auth.uploadAvatarBlob(blob);
-                            }, 'image/webp', 0.8);
+                            }, app.utils.getTargetMimeType(), 0.8);
                         }
                     }, 50);
                 }
@@ -7055,11 +7055,12 @@
                         const username = app.user?.user_metadata?.username || "Guest";
                         const finalBlob = await app.utils.watermark(app.rawFile, username, app.wmState);
 
+                        const targetMime = app.utils.getTargetMimeType();
                         const compressOptions = {
                             maxSizeMB: 0.8,
                             maxWidthOrHeight: 1920,
                             useWebWorker: true,
-                            fileType: 'image/webp',
+                            fileType: targetMime,
                             initialQuality: 0.85
                         };
 
@@ -7073,11 +7074,11 @@
                             return app.ui.showAlert("Lỗi trong quá trình nén ảnh. Vui lòng thử lại!");
                         }
 
-                        if (compressedFile.type !== 'image/webp') {
+                        if (compressedFile.type !== targetMime) {
                             btn.innerHTML = originalText;
                             btn.disabled = false;
                             app.ui.closeUploadProgress();
-                            return app.ui.showAlert("Cảnh báo: Trình duyệt của bạn (hoặc HĐH) không hỗ trợ nén WebP. Để bảo vệ máy chủ, quá trình tải lên đã bị hủy. Vui lòng cập nhật trình duyệt/iOS!");
+                            return app.ui.showAlert(`Cảnh báo: Trình duyệt của bạn không hỗ trợ định dạng ${targetMime}. Vui lòng thử lại!`);
                         }
 
                         if (compressedFile.size > 1.5 * 1024 * 1024) {
@@ -7121,7 +7122,8 @@
                                 imageBase64: base64data,
                                 metadata: metadata,
                                 userId: app.user.id,
-                                captchaToken: captchaResponse
+                                captchaToken: captchaResponse,
+                                fileExtension: app.utils.getTargetExtension()
                             })
                         });
 
@@ -7451,6 +7453,16 @@
             },
 
             utils: {
+                isIOS: () => {
+                    return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+                },
+                getTargetMimeType: () => {
+                    return app.utils.isIOS() ? 'image/jpeg' : 'image/webp';
+                },
+                getTargetExtension: () => {
+                    return app.utils.isIOS() ? 'jpg' : 'webp';
+                },
+
                 handleImgLoad: (img) => {
                     img.style.opacity = '1';
                     const wrapper = img.closest('.img-wrapper');
@@ -7879,7 +7891,7 @@
                                 canvas.toBlob((blob) => {
                                     if (blob) resolve(blob);
                                     else reject(new Error("Canvas failed to blob"));
-                                }, 'image/webp', 0.80);
+                                }, app.utils.getTargetMimeType(), 0.80);
                             } catch (e) {
                                 reject(e);
                             } finally {
@@ -8409,7 +8421,8 @@
                                 body: JSON.stringify({
                                     imageBase64: base64Image,
                                     userId: app.user.id,
-                                    isAvatar: true
+                                    isAvatar: true,
+                                    fileExtension: app.utils.getTargetExtension()
                                 })
                             });
 

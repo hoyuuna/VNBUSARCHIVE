@@ -30,7 +30,7 @@ export default async function handler(req, res) {
             { global: { headers: { Authorization: authHeader } } }
         );
 
-        const { imageBase64, metadata, userId, isAvatar, captchaToken } = req.body;
+        const { imageBase64, metadata, userId, isAvatar, captchaToken, fileExtension } = req.body;
 
         if (!isAvatar) {
             if (!captchaToken) return res.status(400).json({ success: false, error: 'Thiếu mã xác thực (Captcha).' });
@@ -58,7 +58,8 @@ export default async function handler(req, res) {
 
         try {
             const folder = isAvatar ? '/avatars' : '/vehicles';
-            const fileName = `img_${Date.now()}_${Math.round(Math.random() * 1e4)}.webp`;
+            const ext = fileExtension === 'jpg' ? 'jpg' : 'webp';
+            const fileName = `img_${Date.now()}_${Math.round(Math.random() * 1e4)}.${ext}`;
 
             console.log(`[DEBUG] Đang Upload lên ImageKit... (${folder})`);
 
