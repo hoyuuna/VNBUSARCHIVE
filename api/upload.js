@@ -1,6 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
 import ImageKit from 'imagekit';
 
+export const config = {
+    api: {
+        bodyParser: {
+            sizeLimit: '4mb',
+        },
+    },
+};
+
 const imagekit = new ImageKit({
     publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
     privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
@@ -62,10 +70,7 @@ export default async function handler(req, res) {
             });
 
             finalOptimizedUrl = imagekit.url({
-                src: uploadResponse.url,
-                transformation:[
-                    { format: "webp", quality: "80" }
-                ]
+                src: uploadResponse.url
             });
 
             console.log(`[DEBUG] ImageKit Upload thành công: ${finalOptimizedUrl}`);

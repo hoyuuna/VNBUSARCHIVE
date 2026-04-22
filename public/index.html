@@ -36,6 +36,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
 
     <script>
@@ -7053,10 +7054,41 @@
                         const username = app.user?.user_metadata?.username || "Guest";
                         const finalBlob = await app.utils.watermark(app.rawFile, username, app.wmState);
 
+                        const compressOptions = {
+                            maxSizeMB: 0.8,
+                            maxWidthOrHeight: 1920,
+                            useWebWorker: true,
+                            fileType: 'image/webp',
+                            initialQuality: 0.85
+                        };
+
+                        let compressedFile;
+                        try {
+                            compressedFile = await imageCompression(finalBlob, compressOptions);
+                        } catch (compressErr) {
+                            btn.innerHTML = originalText;
+                            btn.disabled = false;
+                            app.ui.closeUploadProgress();
+                            return app.ui.showAlert("Lỗi trong quá trình nén ảnh. Vui lòng thử lại!");
+                        }
+
+                        if (compressedFile.type !== 'image/webp') {
+                            btn.innerHTML = originalText;
+                            btn.disabled = false;
+                            app.ui.closeUploadProgress();
+                            return app.ui.showAlert("Cảnh báo: Trình duyệt của bạn (hoặc HĐH) không hỗ trợ nén WebP. Để bảo vệ máy chủ, quá trình tải lên đã bị hủy. Vui lòng cập nhật trình duyệt/iOS!");
+                        }
+
+                        if (compressedFile.size > 1.5 * 1024 * 1024) {
+                            btn.innerHTML = originalText;
+                            btn.disabled = false;
+                            app.ui.closeUploadProgress();
+                            return app.ui.showAlert("Ảnh quá phức tạp, không thể nén xuống mức an toàn (< 1.5MB). Vui lòng chọn ảnh khác!");
+                        }
 
                         const base64data = await new Promise((resolve) => {
                             const reader = new FileReader();
-                            reader.readAsDataURL(finalBlob);
+                            reader.readAsDataURL(compressedFile);
                             reader.onloadend = () => resolve(reader.result);
                         });
 
@@ -7753,7 +7785,7 @@
 
                                 let width = img.width;
                                 let height = img.height;
-                                const maxDim = 2500;
+                                const maxDim = 1920;
                                 if (width > maxDim || height > maxDim) {
                                     if (width > height) { height = Math.round(height * (maxDim / width)); width = maxDim; }
                                     else { width = Math.round(width * (maxDim / height)); height = maxDim; }
