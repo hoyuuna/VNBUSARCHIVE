@@ -835,22 +835,21 @@
             background: linear-gradient(135deg, #d97706, #78350f);
         }
 
-        .blur-panel {
-            position: absolute;
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 1.5px dashed rgba(255, 255, 255, 0.8);
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-            min-width: 40px;
-            min-height: 40px;
-            width: 100px;
-            height: 60px;
-            z-index: 5;
-            resize: both;
-            overflow: hidden;
-            cursor: move;
-        }
+         .blur-panel {
+             position: absolute;
+             background: rgba(255, 255, 255, 0.05);
+             backdrop-filter: blur(15px);
+             -webkit-backdrop-filter: blur(15px);
+             border: 1.5px dashed rgba(255, 255, 255, 0.8);
+             box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+             min-width: 40px;
+             min-height: 40px;
+             width: 100px;
+             height: 60px;
+             z-index: 5;
+             overflow: hidden;
+             cursor: move;
+         }
 
         .blur-panel:hover {
             border-color: #fff;
@@ -6464,7 +6463,6 @@
                 },
 
                 performAddBlurPanel: () => {
-
                     const container = document.getElementById('preview-container');
                     const id = 'blur-' + Date.now();
                     const panel = document.createElement('div');
@@ -6473,24 +6471,25 @@
 
                     panel.style.left = '40%';
                     panel.style.top = '40%';
+                    panel.style.width = '100px';
+                    panel.style.height = '60px';
 
-                    panel.innerHTML = `<button type="button" class="delete-blur" onclick="app.upload.removeBlurPanel('${id}')" title="Xóa vùng này"><i class="fa-solid fa-xmark"></i></button>`;
+                    panel.innerHTML = `
+                        <button type="button" class="delete-blur" onclick="app.upload.removeBlurPanel('${id}')" title="Xóa vùng này"><i class="fa-solid fa-xmark"></i></button>
+                        <div class="resize-handle" style="position: absolute; bottom: 0; right: 0; width: 25px; height: 25px; cursor: nwse-resize; z-index: 10;"></div>
+                    `;
 
                     let isDragging = false;
-                    let startX, startY, initialLeft, initialTop;
+                    let dragStartX, dragStartY, initialLeft, initialTop;
 
                     const startDrag = (e) => {
-                        if (e.target.closest('.delete-blur')) return;
-                        const rect = panel.getBoundingClientRect();
-                        const clientX = e.clientX || e.touches[0].clientX;
-                        const clientY = e.clientY || e.touches[0].clientY;
-
-                        if (clientX > rect.right - 15 && clientY > rect.bottom - 15) return;
-
+                        if (e.target.closest('.delete-blur') || e.target.closest('.resize-handle')) return;
                         e.stopPropagation();
+                        if (e.type === 'touchstart') e.preventDefault();
+                        
                         isDragging = true;
-                        startX = clientX;
-                        startY = clientY;
+                        dragStartX = e.clientX || e.touches[0].clientX;
+                        dragStartY = e.clientY || e.touches[0].clientY;
                         initialLeft = panel.offsetLeft;
                         initialTop = panel.offsetTop;
                     };
@@ -6498,29 +6497,74 @@
                     panel.addEventListener('mousedown', startDrag);
                     panel.addEventListener('touchstart', startDrag, { passive: false });
 
-                    const onMove = (clientX, clientY) => {
-                        if (!isDragging) return;
-                        const dx = clientX - startX;
-                        const dy = clientY - startY;
+                    let isResizing = false;
+                    let resizeStartX, resizeStartY, initialWidth, initialHeight;
+                    const resizeHandle = panel.querySelector('.resize-handle');
 
-                        let newLeft = initialLeft + dx;
-                        let newTop = initialTop + dy;
-
-                        const maxLeft = container.offsetWidth - panel.offsetWidth;
-                        const maxTop = container.offsetHeight - panel.offsetHeight;
-
-                        panel.style.left = Math.max(0, Math.min(newLeft, maxLeft)) + 'px';
-                        panel.style.top = Math.max(0, Math.min(newTop, maxTop)) + 'px';
+                    const startResize = (e) => {
+                        e.stopPropagation();
+                        if (e.type === 'touchstart') e.preventDefault();
+                        
+                        isResizing = true;
+                        resizeStartX = e.clientX || e.touches[0].clientX;
+                        resizeStartY = e.clientY || e.touches[0].clientY;
+                        initialWidth = panel.offsetWidth;
+                        initialHeight = panel.offsetHeight;
                     };
 
-                    const handleMouseMove = (e) => { if (isDragging) { e.preventDefault(); onMove(e.clientX, e.clientY); } };
-                    const handleTouchMove = (e) => { if (isDragging) { e.preventDefault(); onMove(e.touches[0].clientX, e.touches[0].clientY); } };
-                    const endDrag = () => { isDragging = false; };
+                    resizeHandle.addEventListener('mousedown', startResize);
+                    resizeHandle.addEventListener('touchstart', startResize, { passive: false });
+
+                    const onMove = (clientX, clientY) => {
+                        if (isDragging) {
+                            const dx = clientX - dragStartX;
+                            const dy = clientY - dragStartY;
+
+                            let newLeft = initialLeft + dx;
+                            let newTop = initialTop + dy;
+
+                            const maxLeft = container.offsetWidth - panel.offsetWidth;
+                            const maxTop = container.offsetHeight - panel.offsetHeight;
+
+                            panel.style.left = Math.max(0, Math.min(newLeft, maxLeft)) + 'px';
+                            panel.style.top = Math.max(0, Math.min(newTop, maxTop)) + 'px';
+                        } else if (isResizing) {
+                            const dx = clientX - resizeStartX;
+                            const dy = clientY - resizeStartY;
+
+                            let newWidth = initialWidth + dx;
+                            let newHeight = initialHeight + dy;
+
+                            newWidth = Math.max(40, Math.min(newWidth, container.offsetWidth - panel.offsetLeft));
+                            newHeight = Math.max(40, Math.min(newHeight, container.offsetHeight - panel.offsetTop));
+
+                            panel.style.width = newWidth + 'px';
+                            panel.style.height = newHeight + 'px';
+                        }
+                    };
+
+                    const handleMouseMove = (e) => { 
+                        if (isDragging || isResizing) { 
+                            e.preventDefault(); 
+                            onMove(e.clientX, e.clientY); 
+                        } 
+                    };
+                    const handleTouchMove = (e) => { 
+                        if (isDragging || isResizing) { 
+                            e.preventDefault(); 
+                            onMove(e.touches[0].clientX, e.touches[0].clientY); 
+                        } 
+                    };
+                    
+                    const endAction = () => { 
+                        isDragging = false; 
+                        isResizing = false; 
+                    };
 
                     document.addEventListener('mousemove', handleMouseMove);
                     document.addEventListener('touchmove', handleTouchMove, { passive: false });
-                    document.addEventListener('mouseup', endDrag);
-                    document.addEventListener('touchend', endDrag);
+                    document.addEventListener('mouseup', endAction);
+                    document.addEventListener('touchend', endAction);
 
                     container.appendChild(panel);
                     app.upload.updateBlurBtn();
