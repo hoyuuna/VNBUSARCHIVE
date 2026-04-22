@@ -7834,15 +7834,22 @@
                                 const fontFace = '"Montserrat", sans-serif';
 
                                 const safeBarY = Math.floor(barY);
-                                const safeBarHeight = height - safeBarY;
+                                const safeBarHeight = Math.ceil(barHeight);
 
-                                ctx.drawImage(img, 0, 0, width, height);
+                                const tempCanvas = document.createElement('canvas');
+                                tempCanvas.width = width;
+                                tempCanvas.height = safeBarHeight;
+                                const tempCtx = tempCanvas.getContext('2d');
 
-                                const blurRadius = Math.floor(Math.max(5, width * 0.005));
-                                StackBlur.canvasRGBA(canvas, 0, safeBarY, width, safeBarHeight, blurRadius);
+                                tempCtx.drawImage(ctx.canvas, 0, safeBarY, width, safeBarHeight, 0, 0, width, safeBarHeight);
+
+                                const blurRadius = Math.max(5, Math.floor(width * 0.005));
+                                StackBlur.canvasRGBA(tempCanvas, 0, 0, width, safeBarHeight, blurRadius);
+
+                                ctx.drawImage(tempCanvas, 0, safeBarY);
 
                                 ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
-                                ctx.fillRect(-1, safeBarY, width + 2, safeBarHeight + 2);
+                                ctx.fillRect(0, safeBarY, width, safeBarHeight);
 
                                 ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
                                 ctx.fillRect(0, barY, width, 1.5);
