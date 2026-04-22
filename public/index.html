@@ -6460,84 +6460,7 @@
                         return app.ui.showAlert("Bạn chỉ được thêm tối đa 3 vùng làm mờ cho mỗi ảnh.");
                     }
 
-
-                    const isApple = /Mac|iPod|iPhone|iPad/.test(navigator.platform) || (/Macintosh/.test(navigator.userAgent) && 'ontouchend' in document);
-                    const isSupported = localStorage.getItem('vnbus_blur_supported') === 'true';
-
-
-                    if (isApple && !isSupported) {
-                        app.ui.showAlert(
-                            "TỪ TỪ ĐÃ! Có vẻ thiết bị của bạn là iOS/MacOS, tính năng này có thể không hoạt động. Nếu bạn vẫn tiếp tục mà ảnh đầu ra bị lỗi thì sẽ ngay lập tức bị từ chối.",
-                            () => { app.upload.testBlurCapability(); },
-                            () => { /* Ấn hủy thì không làm gì cả */ },
-                            { btnOkText: "Tiếp tục", btnCancelText: "Hủy", title: "Cảnh báo tương thích" }
-                        );
-                        return;
-                    }
-
-
                     app.upload.performAddBlurPanel();
-                },
-
-                testBlurCapability: () => {
-
-                    app.ui.showAlert("<i class='fa-solid fa-circle-notch fa-spin text-2xl mb-2 text-black'></i><br>Đang render ảnh test...", null, null, { hideButtons: true, title: "Đang kiểm tra..." });
-
-                    const img = new Image();
-                    img.crossOrigin = "Anonymous";
-                    img.onload = () => {
-                        try {
-                            const canvas = document.createElement('canvas');
-                            const ctx = canvas.getContext('2d');
-
-
-                            const scale = 0.4;
-                            canvas.width = img.width * scale;
-                            canvas.height = img.height * scale;
-
-
-                            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-
-                            ctx.save();
-                            ctx.filter = 'blur(20px)';
-                            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                            ctx.restore();
-
-                            const resultDataUrl = canvas.toDataURL('image/webp', 0.7);
-
-
-                            app.ui.showAlert(
-                                "Đã áp dụng blur. Bạn có nhìn rõ chiếc xe buýt không?",
-                                () => {
-
-                                    app.ui.showAlert(
-                                        "Thiết bị của bạn không hỗ trợ blur, có thể test lại nếu bạn muốn!",
-                                        () => { app.upload.testBlurCapability(); },
-                                        () => { /* Đóng */ },
-                                        { btnOkText: "Test lại", btnCancelText: "Ok", title: "Thất bại" }
-                                    );
-                                },
-                                () => {
-
-                                    localStorage.setItem('vnbus_blur_supported', 'true');
-                                    app.upload.performAddBlurPanel();
-                                },
-                                {
-                                    imgSrc: resultDataUrl,
-                                    btnOkText: "Có",
-                                    btnCancelText: "Không",
-                                    title: "Kiểm tra hiển thị"
-                                }
-                            );
-                        } catch (e) {
-                            app.ui.showAlert("Lỗi bảo mật ảnh. Vui lòng bỏ qua tính năng này.", () => { }, null, { btnOkText: "Đóng" });
-                        }
-                    };
-                    img.onerror = () => {
-                        app.ui.showAlert("Lỗi mạng tải ảnh test. Vui lòng thử lại sau.", () => { }, null, { btnOkText: "Đóng" });
-                    };
-                    img.src = "https://i.postimg.cc/yxT5sw0C/IMG-20260313-150906.jpg";
                 },
 
                 performAddBlurPanel: () => {
@@ -7828,21 +7751,24 @@
                                         const relW = panelRect.width / imgRect.width;
                                         const relH = panelRect.height / imgRect.height;
 
-                                        const blurX = width * relX;
-                                        const blurY = height * relY;
-                                        const blurW = width * relW;
-                                        const blurH = height * relH;
+                                        const blurX = Math.floor(width * relX);
+                                        const blurY = Math.floor(height * relY);
+                                        const blurW = Math.ceil(width * relW);
+                                        const blurH = Math.ceil(height * relH);
 
-                                        ctx.save();
-                                        ctx.beginPath();
-                                        ctx.rect(blurX, blurY, blurW, blurH);
-                                        ctx.clip();
+                                        if (blurW > 0 && blurH > 0) {
+                                            const tempPanelCanvas = document.createElement('canvas');
+                                            tempPanelCanvas.width = blurW;
+                                            tempPanelCanvas.height = blurH;
+                                            const tempPanelCtx = tempPanelCanvas.getContext('2d');
 
-                                        const blurAmount = Math.max(15, Math.min(50, width * 0.015));
-                                        ctx.filter = `blur(${blurAmount}px)`;
+                                            tempPanelCtx.drawImage(ctx.canvas, blurX, blurY, blurW, blurH, 0, 0, blurW, blurH);
 
-                                        ctx.drawImage(img, 0, 0, width, height);
-                                        ctx.restore();
+                                            const panelBlurRadius = Math.max(15, Math.floor(width * 0.015));
+                                            StackBlur.canvasRGBA(tempPanelCanvas, 0, 0, blurW, blurH, panelBlurRadius);
+
+                                            ctx.drawImage(tempPanelCanvas, blurX, blurY);
+                                        }
                                     });
                                 }
 
