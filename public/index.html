@@ -835,21 +835,38 @@
             background: linear-gradient(135deg, #d97706, #78350f);
         }
 
-         .blur-panel {
-             position: absolute;
-             background: rgba(255, 255, 255, 0.05);
-             backdrop-filter: blur(15px);
-             -webkit-backdrop-filter: blur(15px);
-             border: 1.5px dashed rgba(255, 255, 255, 0.8);
-             box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-             min-width: 40px;
-             min-height: 40px;
-             width: 100px;
-             height: 60px;
-             z-index: 5;
-             overflow: hidden;
-             cursor: move;
-         }
+        .blur-panel {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1.5px dashed rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            min-width: 20px;
+            min-height: 20px;
+            width: 80px;
+            height: 50px;
+            z-index: 5;
+            overflow: hidden;
+            cursor: move;
+        }
+
+        .blur-panel .delete-blur {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+            border: none;
+            width: 18px;
+            height: 18px;
+            font-size: 9px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom-right-radius: 4px;
+        }
 
         .blur-panel:hover {
             border-color: #fff;
@@ -6471,12 +6488,12 @@
 
                     panel.style.left = '40%';
                     panel.style.top = '40%';
-                    panel.style.width = '100px';
-                    panel.style.height = '60px';
+                    panel.style.width = '80px';
+                    panel.style.height = '50px';
 
                     panel.innerHTML = `
                         <button type="button" class="delete-blur" onclick="app.upload.removeBlurPanel('${id}')" title="Xóa vùng này"><i class="fa-solid fa-xmark"></i></button>
-                        <div class="resize-handle" style="position: absolute; bottom: 0; right: 0; width: 25px; height: 25px; cursor: nwse-resize; z-index: 10;"></div>
+                        <div class="resize-handle" style="position: absolute; bottom: 0; right: 0; width: 20px; height: 20px; cursor: nwse-resize; z-index: 10;"></div>
                     `;
 
                     let isDragging = false;
@@ -6535,8 +6552,8 @@
                             let newWidth = initialWidth + dx;
                             let newHeight = initialHeight + dy;
 
-                            newWidth = Math.max(40, Math.min(newWidth, container.offsetWidth - panel.offsetLeft));
-                            newHeight = Math.max(40, Math.min(newHeight, container.offsetHeight - panel.offsetTop));
+                            newWidth = Math.max(20, Math.min(newWidth, container.offsetWidth - panel.offsetLeft));
+                            newHeight = Math.max(20, Math.min(newHeight, container.offsetHeight - panel.offsetTop));
 
                             panel.style.width = newWidth + 'px';
                             panel.style.height = newHeight + 'px';
