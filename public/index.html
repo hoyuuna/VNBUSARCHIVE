@@ -852,8 +852,8 @@
 
         .blur-panel .delete-blur {
             position: absolute;
-            top: -12px;
-            left: -12px;
+            top: -28px;
+            left: -28px;
             background: #ef4444;
             color: white;
             border: 2px solid white;
@@ -6545,11 +6545,13 @@
                             let newLeft = initialLeft + dx;
                             let newTop = initialTop + dy;
 
+                            const minLeft = 28;
+                            const minTop = 28;
                             const maxLeft = container.offsetWidth - panel.offsetWidth;
                             const maxTop = container.offsetHeight - panel.offsetHeight;
 
-                            panel.style.left = Math.max(0, Math.min(newLeft, maxLeft)) + 'px';
-                            panel.style.top = Math.max(0, Math.min(newTop, maxTop)) + 'px';
+                            panel.style.left = Math.max(minLeft, Math.min(newLeft, maxLeft)) + 'px';
+                            panel.style.top = Math.max(minTop, Math.min(newTop, maxTop)) + 'px';
                         } else if (isResizing) {
                             const dx = clientX - resizeStartX;
                             const dy = clientY - resizeStartY;
