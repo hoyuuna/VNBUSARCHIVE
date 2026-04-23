@@ -1346,8 +1346,8 @@
            CUSTOM IMAGE CONTEXT MENU STYLES
         ============================================= */
 
-        /*_chặn default touch/select behaviors on body for menu */
-        body {
+        /*_chặn default touch/select behaviors for custom image menu only */
+        #custom-image-menu {
             -webkit-touch-callout: none !important;
             -webkit-user-select: none !important;
             user-select: none !important;
@@ -3388,11 +3388,29 @@
                 isLongPress: false,
                 
                 init: () => {
+                    // CÁC MỤC TIÊU CHO PHÉP HIỆN MENU
+                    const validTargets = ['detail-img', 'admin-zoom-img'];
+
                     // 1. PC: Xử lý Chuột phải
-                    document.addEventListener('contextmenu', e => {
+                    window.addEventListener('contextmenu', e => {
+                        // BƯỚC 1: Chặn menu chuột phải mặc định của trình duyệt Ở TOÀN BỘ MỌI NƠI
                         e.preventDefault(); 
-                        // CHỈ mở trên PC (>=768px) VÀ trỏ đúng vào ảnh có ID 'detail-img'
-                        if (window.innerWidth >= 768 && e.target.id === 'detail-img') {
+                        
+                        const menu = document.getElementById('custom-image-menu');
+                        
+                        // BƯỚC 2: Nếu chuột phải ra chỗ khác không phải là ảnh -> Đóng menu của bạn lại
+                        if (!validTargets.includes(e.target.id)) {
+                            if (menu && !menu.classList.contains('hidden')) {
+                                app.imageContext.close();
+                            }
+                            return; // Dừng luôn, không làm gì thêm
+                        }
+
+                        // Nếu đang ở trang quản trị (Admin) thì không làm gì cả (hiện menu mặc định)
+                        if (window.location.pathname.startsWith('/admin')) return;
+
+                        // BƯỚC 3: Nếu click đúng vào ảnh và ở trên PC -> Mở custom menu
+                        if (window.innerWidth >= 768) {
                             const src = e.target.src;
                             if (!src || src.includes('data:image')) return;
                             
@@ -3400,19 +3418,24 @@
                             app.imageContext.currentImgUrl = src;
                             app.imageContext.show(e); 
                         }
-                    });
+                    }, { capture: true }); // <-- QUAN TRỌNG NHẤT: Bắt buộc dùng capture để chặn quyền hiển thị menu của các thẻ khác bên dưới
 
                     // 2. MOBILE: Xử lý Chạm/Nhấn giữ
                     document.addEventListener('touchstart', e => {
+                        // Tự động đóng menu nếu chạm ra ngoài
                         const menu = document.getElementById('custom-image-menu');
                         if (menu && !menu.contains(e.target) && !menu.classList.contains('hidden')) {
                             app.imageContext.close();
                         }
 
+                        // Không áp dụng cho PC
                         if (window.innerWidth >= 768) return; 
+                        
+                        // Không áp dụng trong trang Admin
+                        if (window.location.pathname.startsWith('/admin')) return;
 
-                        // CHỈ mở đếm giờ khi chạm vào ảnh có ID 'detail-img'
-                        if (e.target.id === 'detail-img') {
+                        // CHỈ bắt đầu đếm giờ nếu bấm vào đúng các ảnh cho phép
+                        if (validTargets.includes(e.target.id)) {
                             const src = e.target.src;
                             if (!src || src.includes('data:image')) return;
 
@@ -3422,7 +3445,7 @@
                                 app.imageContext.isLongPress = true;
                                 app.imageContext.currentImgUrl = src;
                                 app.imageContext.show(e);
-                            }, 500); // 0.5s là tính thành nhấn giữ
+                            }, 500); // 0.5s tính là nhấn giữ
                         }
                     }, { passive: true });
 
@@ -3434,14 +3457,14 @@
                         clearTimeout(app.imageContext.longPressTimer);
                     }, { passive: true });
 
-                    // 3. CHẶN GHOST-CLICK (Xung đột sau khi nhấn giữ trên Mobile)
+                    // 3. CHẶN GHOST-CLICK (Xung đột sau khi nhấn giữ ảnh trên Mobile)
                     document.addEventListener('click', e => {
                         const menu = document.getElementById('custom-image-menu');
                         if (menu && !menu.contains(e.target) && !menu.classList.contains('hidden')) {
                             app.imageContext.close();
                         }
 
-                        if (window.innerWidth < 768 && e.target.id === 'detail-img' && app.imageContext.isLongPress) {
+                        if (window.innerWidth < 768 && validTargets.includes(e.target.id) && app.imageContext.isLongPress) {
                             e.preventDefault();
                             e.stopPropagation();
                             app.imageContext.isLongPress = false; 
