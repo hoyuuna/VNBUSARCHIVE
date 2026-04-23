@@ -1340,6 +1340,41 @@
             border-left: none !important;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
         }
+
+        /* ==========================================
+           CUSTOM IMAGE CONTEXT MENU STYLES
+        ============================================= */
+
+        /*_chặn default touch/select behaviors on body for menu */
+        body {
+            -webkit-touch-callout: none !important;
+            -webkit-user-select: none !important;
+            user-select: none !important;
+        }
+
+        /* Glassmorphism style for custom image menu */
+        #custom-image-menu {
+            background-color: rgba(255, 255, 255, 0.7) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.6) !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+            border-radius: 0.5rem !important;
+            z-index: 99999 !important;
+            overflow: hidden;
+            min-width: 200px;
+        }
+        #custom-image-menu button {
+            background-color: transparent !important;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+            transition: background-color 0.2s ease;
+        }
+        #custom-image-menu button:hover {
+            background-color: rgba(0, 0, 0, 0.05) !important;
+        }
+        #custom-image-menu button:last-child {
+            border-bottom: none !important;
+        }
     </style>
 </head>
 
@@ -1359,6 +1394,24 @@
 
     
     <div id="app-container" style="display: none; opacity: 0; transition: opacity 0.5s ease-in-out;">
+
+        <!-- OVERLAY FOR MOBILE MENU BACKGROUND -->
+        <div id="custom-image-menu-overlay" class="fixed inset-0 bg-black/30 backdrop-blur-sm z-[99998] hidden opacity-0 transition-opacity duration-200"></div>
+
+        <!-- CUSTOM IMAGE CONTEXT MENU WITH 3 BUTTONS -->
+        <div id="custom-image-menu" class="fixed hidden opacity-0 transition-all duration-200 transform scale-95">
+            <div class="flex flex-col">
+                <button onclick="app.imageContext.saveImage(event)" class="flex items-center px-4 py-3.5 text-sm text-gray-800 font-bold w-full text-left">
+                    <i class="fa-solid fa-download w-5 text-center mr-2 text-gray-500"></i> Lưu hình ảnh
+                </button>
+                <button onclick="app.imageContext.copyImage(event)" class="flex items-center px-4 py-3.5 text-sm text-gray-800 font-bold w-full text-left">
+                    <i class="fa-solid fa-copy w-5 text-center mr-2 text-gray-500"></i> Sao chép hình ảnh
+                </button>
+                <button onclick="app.imageContext.shareImage(event)" class="flex items-center px-4 py-3.5 text-sm text-gray-800 font-bold w-full text-left">
+                    <i class="fa-solid fa-share-nodes w-5 text-center mr-2 text-gray-500"></i> Chia sẻ hình ảnh
+                </button>
+            </div>
+        </div>
 
         <div id="custom-alert-modal"
             class="hidden fixed inset-0 z-[5000] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
@@ -3328,7 +3381,210 @@
                 }
             },
 
+            imageContext: {
+                currentImgUrl: null,
+                longPressTimer: null,
+                isLongPress: false,
+                
+                init: () => {
+                    // 1. PC: Xử lý Chuột phải
+                    document.addEventListener('contextmenu', e => {
+                        e.preventDefault(); 
+                        // CHỈ mở trên PC (>=768px) VÀ trỏ đúng vào ảnh có ID 'detail-img'
+                        if (window.innerWidth >= 768 && e.target.id === 'detail-img') {
+                            const src = e.target.src;
+                            if (!src || src.includes('data:image')) return;
+                            
+                            e.stopPropagation(); 
+                            app.imageContext.currentImgUrl = src;
+                            app.imageContext.show(e); 
+                        }
+                    });
+
+                    // 2. MOBILE: Xử lý Chạm/Nhấn giữ
+                    document.addEventListener('touchstart', e => {
+                        const menu = document.getElementById('custom-image-menu');
+                        if (menu && !menu.contains(e.target) && !menu.classList.contains('hidden')) {
+                            app.imageContext.close();
+                        }
+
+                        if (window.innerWidth >= 768) return; 
+
+                        // CHỈ mở đếm giờ khi chạm vào ảnh có ID 'detail-img'
+                        if (e.target.id === 'detail-img') {
+                            const src = e.target.src;
+                            if (!src || src.includes('data:image')) return;
+
+                            app.imageContext.isLongPress = false;
+                            
+                            app.imageContext.longPressTimer = setTimeout(() => {
+                                app.imageContext.isLongPress = true;
+                                app.imageContext.currentImgUrl = src;
+                                app.imageContext.show(e);
+                            }, 500); // 0.5s là tính thành nhấn giữ
+                        }
+                    }, { passive: true });
+
+                    document.addEventListener('touchmove', e => {
+                        clearTimeout(app.imageContext.longPressTimer);
+                    }, { passive: true });
+
+                    document.addEventListener('touchend', e => {
+                        clearTimeout(app.imageContext.longPressTimer);
+                    }, { passive: true });
+
+                    // 3. CHẶN GHOST-CLICK (Xung đột sau khi nhấn giữ trên Mobile)
+                    document.addEventListener('click', e => {
+                        const menu = document.getElementById('custom-image-menu');
+                        if (menu && !menu.contains(e.target) && !menu.classList.contains('hidden')) {
+                            app.imageContext.close();
+                        }
+
+                        if (window.innerWidth < 768 && e.target.id === 'detail-img' && app.imageContext.isLongPress) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            app.imageContext.isLongPress = false; 
+                        }
+                    }, true); 
+                },
+                
+                show: (e) => {
+                    const menu = document.getElementById('custom-image-menu');
+                    const overlay = document.getElementById('custom-image-menu-overlay');
+                    const isMobile = window.innerWidth < 768;
+
+                    menu.classList.remove('hidden');
+
+                    if (isMobile) {
+                        // Tọa độ Mobile (Giữa màn hình)
+                        overlay.classList.remove('hidden');
+                        menu.style.left = '50%';
+                        menu.style.top = '50%';
+                        menu.style.transform = 'translate(-50%, -50%) scale(0.95)';
+                        menu.style.transformOrigin = 'center';
+
+                        setTimeout(() => {
+                            overlay.classList.remove('opacity-0');
+                            menu.classList.remove('opacity-0', 'scale-95');
+                            menu.style.transform = 'translate(-50%, -50%) scale(1)';
+                        }, 10);
+                    } else {
+                        // Tọa độ PC (Theo con trỏ chuột, chống tràn viền)
+                        overlay.classList.add('hidden');
+                        let x = e.clientX;
+                        let y = e.clientY;
+                        const menuW = 200, menuH = 150; 
+                        let originY = 'top', originX = 'left';
+
+                        if (x + menuW > window.innerWidth) { x = window.innerWidth - menuW - 10; originX = 'right'; }
+                        if (y + menuH > window.innerHeight) { y = window.innerHeight - menuH - 10; originY = 'bottom'; }
+
+                        menu.style.left = x + 'px';
+                        menu.style.top = y + 'px';
+                        menu.style.transform = 'scale(0.95)';
+                        menu.style.transformOrigin = `${originY} ${originX}`;
+
+                        setTimeout(() => {
+                            menu.classList.remove('opacity-0', 'scale-95');
+                            menu.style.transform = 'scale(1)';
+                        }, 10);
+                    }
+                },
+                
+                close: () => {
+                    const menu = document.getElementById('custom-image-menu');
+                    const overlay = document.getElementById('custom-image-menu-overlay');
+                    if (!menu || menu.classList.contains('hidden')) return;
+
+                    menu.classList.add('opacity-0');
+                    if(window.innerWidth < 768) menu.style.transform = 'translate(-50%, -50%) scale(0.95)';
+                    else menu.style.transform = 'scale(0.95)';
+                    
+                    overlay.classList.add('opacity-0');
+                    setTimeout(() => {
+                        menu.classList.add('hidden');
+                        overlay.classList.add('hidden');
+                    }, 200);
+                },
+
+                saveImage: async (e) => {
+                    const url = app.imageContext.currentImgUrl;
+                    if (!url) return;
+                    
+                    const btn = e.currentTarget;
+                    const origHtml = btn.innerHTML;
+                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin w-5 text-center mr-2 text-gray-500"></i> Đang tải...';
+
+                    try {
+                        const response = await fetch(url);
+                        const blob = await response.blob();
+                        const blobUrl = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = blobUrl;
+                        
+                        // Đặt tên file là biển số xe (VD: 29B12345.jpg)
+                        const crumbEl = document.getElementById('crumb-model');
+                        const plateName = crumbEl ? crumbEl.innerText.trim() : 'VNBUSARCHIVE';
+                        a.download = plateName + '.jpg';
+                        
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        window.URL.revokeObjectURL(blobUrl);
+
+                        app.imageContext.close();
+                    } catch (err) {
+                        app.ui.showAlert('Trình duyệt hoặc máy chủ chặn quyền tải xuống!');
+                    } finally { btn.innerHTML = origHtml; }
+                },
+
+                copyImage: async (e) => {
+                    const url = app.imageContext.currentImgUrl;
+                    if (!url) return;
+                    
+                    const btn = e.currentTarget;
+                    const origHtml = btn.innerHTML;
+                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin w-5 text-center mr-2 text-gray-500"></i> Đang chép...';
+
+                    try {
+                        const response = await fetch(url);
+                        const blob = await response.blob();
+                        await navigator.clipboard.write([ new window.ClipboardItem({[blob.type]: blob}) ]);
+                        
+                        app.imageContext.close();
+                        app.ui.showAlert('<i class="fa-solid fa-check-circle text-green-500 text-3xl mb-2"></i><br>Đã chép hình ảnh!', () => {}, null, { hideButtons: true });
+                        setTimeout(() => app.ui.closeAlert(true), 1500);
+                    } catch (err) {
+                        app.imageContext.close();
+                        app.ui.showAlert('Trình duyệt không hỗ trợ sao chép hình ảnh!');
+                    } finally { btn.innerHTML = origHtml; }
+                },
+
+                shareImage: async () => {
+                    // Chia sẻ link Trang chi tiết (không phải link gốc của file ảnh)
+                    const url = window.location.href; 
+                    app.imageContext.close();
+
+                    if (navigator.share) {
+                        try {
+                            await navigator.share({
+                                title: 'VNBUSARCHIVE',
+                                text: 'Xem ảnh xe này trên VNBUSARCHIVE',
+                                url: url
+                            });
+                        } catch (err) {}
+                    } else {
+                        // Fallback PC: Tự động copy URL vào bộ nhớ tạm
+                        navigator.clipboard.writeText(url);
+                        app.ui.showAlert('<i class="fa-solid fa-link text-blue-500 text-3xl mb-2"></i><br>Đã sao chép liên kết trang!', () => {}, null, { hideButtons: true });
+                        setTimeout(() => app.ui.closeAlert(true), 1500);
+                    }
+                }
+            },
+
             init: async () => {
+                // Khởi tạo Custom Image Context Menu
+                app.imageContext.init();
 
                 setTimeout(() => {
                     document.getElementById('loading-screen').style.display = 'none';
