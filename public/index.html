@@ -1989,7 +1989,7 @@
                             class="px-3 py-2 text-sm outline-none w-full md:w-64 bg-transparent placeholder-gray-400">
                         <div id="main-search-suggestions" class="suggestion-box" style="top: calc(100% + 4px);"></div>
 
-                        <button id="btn-clear-search" onclick="app.views.loadHome()"
+                        <button id="btn-clear-search" onclick="app.utils.navigate('/')"
                             class="hidden text-gray-400 hover:text-red-500 px-2">
                             <i class="fa-solid fa-xmark"></i>
                         </button>
@@ -4796,10 +4796,11 @@
                 },
 
                 loadHome: async (forceRefresh = false) => {
+                    const wasSearch = app.currentViewMode === 'search';
                     app.currentViewMode = 'home';
                     document.title = 'VNBUSARCHIVE';
 
-                    if (app.loadedCount > 0 && !forceRefresh) {
+                    if (app.loadedCount > 0 && !forceRefresh && !wasSearch) {
                         document.getElementById('hero-section').style.display = 'block';
                         document.getElementById('db-stats-section').style.display = 'block';
                         document.getElementById('grid-title').innerText = "Ảnh mới nhất đã được duyệt";
