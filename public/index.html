@@ -3414,6 +3414,15 @@
                 }
 
                 window.onpopstate = () => app.handleRoute();
+                app.scrollPositions = {};
+                app.currentPathForScroll = window.location.pathname + window.location.search;
+                window.addEventListener('scroll', () => {
+                    app.scrollPositions[app.currentPathForScroll] = window.scrollY;
+                }, { passive: true });
+                app.lastSearchQuery = '';
+                app.lastSearchFilter = '';
+                app.lastLoadedUsername = '';
+                app._profilePhotosCache = [];
                 app.utils.updateBreadcrumbs();
                 await app.utils.loadProvinceData();
                 app.handleRoute();
@@ -3504,7 +3513,7 @@
                 app.realtimeChannel = window.sb.channel('global-changes')
                     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'photos', filter: 'status=eq.approved' }, payload => {
                         if (app.currentViewMode === 'home') {
-                            app.views.loadHome();
+                            app.views.loadHome(true);
                         }
                     })
                     .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'photos' }, payload => {
@@ -3608,7 +3617,7 @@
                 const path = window.location.pathname;
                 const searchParams = new URLSearchParams(window.location.search);
 
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                app.currentPathForScroll = path + window.location.search;
 
                 if (path === '/auth') {
                     if (app.user) app.utils.navigate('/');
@@ -4076,7 +4085,7 @@
                 }
             },
 
-            handleSearch: async () => {
+            handleSearch: async (forceRefresh = false) => {
                 const query = document.getElementById('search-input').value.trim();
                 const clearBtn = document.getElementById('btn-clear-search');
                 const filterType = app.currentFilter;
@@ -4100,6 +4109,17 @@
                     app.utils.navigate(url);
                     return;
                 }
+
+                if (app.lastSearchQuery === query && app.lastSearchFilter === filterType && !forceRefresh) {
+                    app.views.switch('home', false);
+                    document.getElementById('hero-section').style.display = 'none';
+                    document.getElementById('db-stats-section').style.display = 'none';
+                    document.getElementById('recommendation-section').classList.add('hidden');
+                    app.loadingBar.finish();
+                    return;
+                }
+                app.lastSearchQuery = query;
+                app.lastSearchFilter = filterType;
 
                 app.views.switch('home', false);
                 app.currentViewMode = 'search';
@@ -4443,7 +4463,13 @@
 
                     document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
                     document.getElementById(id).classList.add('active');
-                    window.scrollTo(0, 0);
+
+                    const targetPath = window.location.pathname + window.location.search;
+                    if (app.scrollPositions && app.scrollPositions[targetPath] !== undefined) {
+                        window.scrollTo({ top: app.scrollPositions[targetPath], behavior: 'instant' });
+                    } else {
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
 
                     if (id === 'home' && window.location.pathname === '/') {
                         app.views.loadHome();
@@ -4463,9 +4489,26 @@
                     app.utils.navigate(`/user/${encodeURIComponent(username)}`);
                 },
 
-                loadHome: async () => {
+                loadHome: async (forceRefresh = false) => {
                     app.currentViewMode = 'home';
                     document.title = 'VNBUSARCHIVE';
+
+                    if (app.loadedCount > 0 && !forceRefresh) {
+                        document.getElementById('hero-section').style.display = 'block';
+                        document.getElementById('db-stats-section').style.display = 'block';
+                        document.getElementById('grid-title').innerText = "Ảnh mới nhất đã được duyệt";
+                        document.getElementById('search-input').value = "";
+                        document.getElementById('btn-clear-search').classList.add('hidden');
+                        document.getElementById('search-profile-cards').classList.add('hidden');
+                        document.getElementById('load-more-cards-container')?.classList.add('hidden');
+
+                        if (app.loadedCount >= 20) document.getElementById('load-more-container').classList.remove('hidden');
+
+                        app.ui.unlockScroll();
+                        app.loadingBar.finish();
+                        return;
+                    }
+
                     document.getElementById('hero-section').style.display = 'block';
                     document.getElementById('db-stats-section').style.display = 'block';
                     document.getElementById('grid-title').innerText = "Ảnh mới nhất đã được duyệt";
@@ -4841,7 +4884,7 @@
                     `;
                 },
 
-                loadAccount: async (usernameStr = null) => {
+                loadAccount: async (usernameStr = null, forceRefresh = false) => {
                     let targetUsername = usernameStr;
                     let isOwnProfile = false;
 
@@ -4864,6 +4907,14 @@
                         isOwnProfile = (app.user && app.user.user_metadata.username === targetUsername);
                     }
                     app._isOwnProfile = isOwnProfile;
+
+                    if (app.lastLoadedUsername === targetUsername && app._profilePhotosCache && app._profilePhotosCache.length > 0 && !forceRefresh) {
+                        app.views.switch('account', false);
+                        document.title = isOwnProfile ? 'Tài khoản của tôi | VNBUSARCHIVE' : `Hồ sơ: ${targetUsername} | VNBUSARCHIVE`;
+                        app.loadingBar.finish();
+                        return;
+                    }
+                    app.lastLoadedUsername = targetUsername;
 
                     app.views.switch('account', false);
                     document.title = isOwnProfile ? 'Tài khoản của tôi | VNBUSARCHIVE' : `Hồ sơ: ${targetUsername} | VNBUSARCHIVE`;
