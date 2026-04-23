@@ -2931,6 +2931,7 @@
 
         const app = {
             user: null,
+            username: 'Guest',
             previousPath: '/',
             role: 'user',
             rawFile: null,
@@ -4630,21 +4631,20 @@
                                 avatar_url: finalAvatar
                             }, { onConflict: 'id' });
 
-                            // Đồng bộ lại vào auth.users để lần sau gọi cho chuẩn
-                            if (!user.user_metadata?.username) {
-                                await window.sb.auth.updateUser({ data: { username: finalName } });
-                            }
+                            app.username = finalName; // Lưu vào biến toàn cục
                             app.role = 'user';
                         } else {
                             // Nếu đã có trong bảng profiles rồi thì lấy tên từ DB
-                            finalName = profile.username;
+                            app.username = profile.username; // Lưu vào biến toàn cục
                             app.role = profile.role || 'user';
                         }
-                    } catch (e) { 
-                        app.role = 'user'; 
+                    } catch (e) {
+                        app.username = finalName;
+                        app.role = 'user';
                     }
 
-                    document.getElementById('nav-username').innerText = finalName;
+                    // Render tên lên UI Header
+                    document.getElementById('nav-username').innerText = app.username;
 
                     dropdown.innerHTML = `
                         <a href="/profile" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-address-card w-5 text-center mr-1"></i> Hồ sơ của tôi</a>
@@ -4677,6 +4677,7 @@
                 } else {
                     document.getElementById('nav-username').innerText = 'Tài khoản';
                     document.getElementById('nav-admin').classList.add('hidden');
+                    app.username = 'Guest';
                     app.role = 'user';
                     
 
@@ -5200,7 +5201,7 @@
                             app.utils.navigate('/auth');
                             return;
                         }
-                        targetUsername = app.user.user_metadata.username;
+                        targetUsername = app.username;
                         isOwnProfile = true;
                         if (window.location.pathname !== '/profile') {
                             app.utils.navigate('/profile');
@@ -5211,7 +5212,7 @@
                             app.utils.navigate(`/user/${encodeURIComponent(targetUsername)}`);
                             return;
                         }
-                        isOwnProfile = (app.user && app.user.user_metadata.username === targetUsername);
+                        isOwnProfile = (app.user && app.username === targetUsername);
                     }
                     app._isOwnProfile = isOwnProfile;
 
@@ -7320,7 +7321,7 @@
                             previewImg.src = url;
                             document.getElementById('preview-box').classList.remove('hidden');
 
-                            const name = app.user?.user_metadata?.username || "Guest";
+                            const name = app.username || "Guest";
                             const wmName = document.getElementById('wm-username');
                             wmName.innerText = name;
 
@@ -7481,7 +7482,7 @@
                     app.ui.showUploadProgress();
 
                     try {
-                        const username = app.user?.user_metadata?.username || "Guest";
+                        const username = app.username || "Guest";
                         const finalBlob = await app.utils.watermark(app.rawFile, username, app.wmState);
 
                         const targetMime = app.utils.getTargetMimeType();
@@ -9016,9 +9017,7 @@ changePassword: async () => {
                                     throw dbError;
                                 }
 
-
-                                await window.sb.auth.updateUser({ data: { username: newName } });
-
+                                app.username = newName; // Cập nhật biến cục bộ sau khi đổi tên thành công
                                 app.ui.showAlert("Đổi Username thành công!");
                                 document.getElementById('set-new-username').value = '';
                                 document.getElementById('nav-username').innerText = newName;
