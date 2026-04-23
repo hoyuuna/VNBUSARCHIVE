@@ -3344,17 +3344,25 @@
                     window.sb.auth.onAuthStateChange(async (event, session) => {
                         
                         if (event === 'PASSWORD_RECOVERY') {
-    // Điều hướng thẳng vào trang Auth nếu người dùng đang ở trang khác
-    if(window.location.pathname !== '/auth') {
-         app.utils.navigate('/auth');
-    }
-
-    // Kích hoạt Event để AlpineJS hiển thị form "Mật khẩu mới" (mode: 'recovery')
-    setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('set-auth-mode', { detail: 'recovery' }));
+    // Chỉ xử lý trên TAB MỚI (Tab được mở từ Link Email sẽ có chứa chữ type=recovery trên URL)
+    if (window.location.hash.includes('type=recovery')) {
         app.auth.mode = 'recovery';
-    }, 100);
-} 
+        
+        // Điều hướnh thẳng vào trang Auth để hiện form
+        if (window.location.pathname !== '/auth') {
+            app.utils.navigate('/auth');
+        } else {
+            app.views.switch('auth', false);
+        }
+        
+        // Bắn event gọi AlpineJS đổi giao diện sang Form Nhập mật khẩu mới
+        setTimeout(() => {
+            window.dispatchEvent(new CustomEvent('set-auth-mode', { detail: 'recovery' }));
+        }, 100);
+    }
+    // Nếu là TAB CŨ (Trang bạn vừa bấm gửi yêu cầu) -> Return, không làm gì cả!
+    return;
+}
                         
                         else if (event === 'USER_UPDATED') {
                             const hash = window.location.hash;
@@ -3588,8 +3596,15 @@
                 app.currentPathForScroll = path + window.location.search;
 
                 if (path === '/auth') {
-                    if (app.user) app.utils.navigate('/');
-                    else app.views.switch('auth', false);
+                    // Kiểm tra xem trên URL có chứa key recovery không
+                    const isRecovery = window.location.hash.includes('type=recovery') || app.auth.mode === 'recovery';
+                    
+                    // Nếu đã đăng nhập VÀ không phải đang đổi mật khẩu -> đuổi về trang chủ
+                    if (app.user && !isRecovery) {
+                        app.utils.navigate('/');
+                    } else {
+                        app.views.switch('auth', false);
+                    }
                 } else if (path === '/profile') {
                     app.views.loadAccount();
                 } else if (path.startsWith('/user/')) {
