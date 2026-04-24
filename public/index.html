@@ -4309,7 +4309,7 @@
                         
                         try {
                             const filter = app.currentFilter;
-                            let results = [];
+                            let results =[];
                             
                             const searchWords = query.trim().split(/\s+/).filter(w => w.length > 0);
                             
@@ -4327,12 +4327,12 @@
                                     const plates = [...new Set(data.map(item => item[col]).filter(Boolean))];
                                     if (col === 'license_plate') {
                                         const basePlates = plates.filter(p => isBasePlate(p));
-                                        const uniqueBases = [...new Set(basePlates.map(p => p.replace(/-\d+$/, '')))];
+                                        const uniqueBases =[...new Set(basePlates.map(p => p.replace(/-\d+$/, '')))];
                                         return uniqueBases.map(val => ({ text: val, label }));
                                     }
                                     return plates.map(val => ({ text: val, label }));
                                 }
-                                return [];
+                                return[];
                             };
 
                             if (filter === 'all') {
@@ -4359,10 +4359,21 @@
                                 let sbQuery = window.sb.from('profiles').select('username');
                                 searchWords.forEach(word => { sbQuery = sbQuery.ilike('username', `%${word}%`); });
                                 const { data } = await sbQuery.limit(5).abortSignal(controller.signal);
-                                if (data) results = [...new Set(data.map(item => item.username).filter(Boolean))].map(val => ({ text: val, label: 'Người đăng' }));
+                                if (data) results =[...new Set(data.map(item => item.username).filter(Boolean))].map(val => ({ text: val, label: 'Người đăng' }));
                             }
 
                             if (results.length > 0) {
+                                // TỪ ĐIỂN ĐỂ ÁNH XẠ LABEL SANG FILTER ID CỦA HỆ THỐNG
+                                const labelToFilter = {
+                                    'BKS': 'plate',
+                                    'Tuyến': 'route',
+                                    'Đơn vị vận hành': 'operator',
+                                    'Dòng xe': 'model',
+                                    'Vị trí': 'location',
+                                    'Thiết bị': 'camera',
+                                    'Người đăng': 'uploader'
+                                };
+
                                 box.innerHTML = results.slice(0, 10).map(item => {
                                     const safeText = app.utils.cleanText(item.text);
                                     const safeJS = item.text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
@@ -4376,7 +4387,11 @@
                                     
                                     const labelHTML = filter === 'all' ? `<div class="text-[10px] text-gray-400 font-normal mt-0.5">${item.label}</div>` : '';
                                     
-                                    return `<div class="suggestion-item border-b border-gray-100 last:border-0" onmousedown="event.preventDefault(); document.getElementById('${inputId}').value = '${safeJS}'; document.getElementById('main-search-suggestions').classList.remove('active'); app.handleSearch();">
+                                    // LẤY FILTER KEY DỰA TRÊN LABEL (NẾU KHÔNG CÓ THÌ GIỮ NGUYÊN FILTER HIỆN TẠI)
+                                    const filterKey = labelToFilter[item.label] || filter;
+                                    
+                                    // NHÚNG LỆNH app.search.setFilter('${filterKey}', false) VÀO ONMOUSEDOWN
+                                    return `<div class="suggestion-item border-b border-gray-100 last:border-0" onmousedown="event.preventDefault(); document.getElementById('${inputId}').value = '${safeJS}'; document.getElementById('main-search-suggestions').classList.remove('active'); app.search.setFilter('${filterKey}', false); app.handleSearch();">
                                         <div class="text-[13px] text-black font-medium leading-snug">${displayHTML}</div>
                                         ${labelHTML}
                                     </div>`;
