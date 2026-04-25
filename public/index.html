@@ -1582,14 +1582,14 @@
                             </label>
                             <label class="flex items-start gap-2 cursor-pointer group">
                                 <input type="checkbox"
-                                    value="Không nhìn thấy hoặc không thể đọc được Biển kiểm soát (BKS) bằng mắt thường."
+                                    value="Không nhìn thấy hoặc không thể đọc được Biển kiểm soát bằng mắt thường."
                                     class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
                                 <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Không
                                     nhìn thấy hoặc không thể đọc được Biển kiểm soát (BKS) bằng mắt thường.</span>
                             </label>
                             <label class="flex items-start gap-2 cursor-pointer group">
                                 <input type="checkbox"
-                                    value="Ảnh bị mờ, nhòe (do rung tay, sai nét, hoặc mờ do chuyển động - motion blur)."
+                                    value="Ảnh bị mờ, nhòe do rung tay, sai nét hoặc chủ thể đang chuyển động."
                                     class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
                                 <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Ảnh
                                     bị mờ, nhòe (do rung tay, sai nét, hoặc mờ do chuyển động - motion blur).</span>
@@ -1713,7 +1713,7 @@
                 </div>
                 <div class="p-6 overflow-y-auto text-sm text-gray-700 space-y-4">
                     <div class="space-y-2">
-                        <p class="font-bold text-black border-b border-gray-100 pb-1">Biển kiểm soát (Biển định danh)
+                        <p class="font-bold text-black border-b border-gray-100 pb-1">Biển kiểm soát
                         </p>
                         <p>Chấp nhận các biển dạng: <b>29B12345</b> (xe thường), <b>T1234567</b> (biển tạm), <b>HAN1234567</b> (buýt sân bay).</p>
                         <div class="bg-blue-50 p-2 rounded border border-blue-100 mt-1">
@@ -2019,7 +2019,7 @@
                                     <span>Đơn vị vận hành</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
                                 </div>
                                 <div class="filter-item" onclick="app.search.setFilter('model')" data-filter="model">
-                                    <span>Dòng xe (Model)</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
+                                    <span>Dòng xe</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
                                 </div>
                                 <div class="filter-item" onclick="app.search.setFilter('location')" data-filter="location">
                                     <span>Vị trí chụp</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
@@ -2087,10 +2087,10 @@
                             
                             
                             <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm">
-                                <h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Đổi Username</h3>
+                                <h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Đổi tên hiển thị</h3>
                                 <p class="text-[11px] md:text-xs text-gray-500 mb-3 leading-relaxed">Tên hiển thị công khai trên hồ sơ của bạn. Tên đăng nhập email vẫn được giữ nguyên.</p>
                                 <div class="flex flex-col sm:flex-row gap-2">
-                                    <input type="text" id="set-new-username" placeholder="Nhập Username mới" maxlength="20" autocomplete="off" class="w-full sm:flex-1 border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none transition">
+                                    <input type="text" id="set-new-username" placeholder="Nhập tên hiển thị mới" maxlength="20" autocomplete="off" class="w-full sm:flex-1 border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none transition">
                                     <button onclick="app.auth.changeUsername()" class="w-full sm:w-auto bg-black text-white px-6 py-2.5 text-xs font-bold rounded-md hover:bg-gray-800 transition shadow-sm shrink-0">Lưu</button>
                                 </div>
                             </div>
@@ -2407,7 +2407,7 @@
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td class="label">Dòng xe (Model)</td>
+                                        <td class="label">Dòng xe</td>
                                         <td class="value-cell" x-data>
                                             <div class="relative w-full h-full">
                                                 <input type="text" id="info-model" class="info-input clickable-search"
@@ -2551,18 +2551,14 @@
                         <h2 class="text-2xl font-bold text-black mb-3 uppercase tracking-tight">Hỗ trợ trực tuyến</h2>
 
                         <p class="text-sm text-gray-600 mb-8 max-w-md leading-relaxed">
-                            Để hỗ trợ bạn nhanh chóng và hiệu quả hơn, VNBUSARCHIVE đã chuyển sang hệ thống <b>Live Chat
-                                (Trò chuyện trực tiếp)</b>. <br><br>
-                            Vui lòng sử dụng biểu tượng tin nhắn ở <b class="text-black">góc dưới cùng bên phải màn
-                                hình</b> hoặc bấm vào nút dưới đây để kết nối trực tiếp với Admin!
+                            Để được hỗ trợ nhanh chóng, vui lòng sử dụng <b>biểu tượng tin nhắn ở góc dưới cùng bên phải màn hình</b> để trò chuyện trực tiếp với Ban Quản Trị.<br><br>
+                            Hoặc bạn cũng có thể liên hệ với chúng tôi qua Facebook/Messenger.
                         </p>
 
-                        
-                        <button
-                            onclick="alert('Vui lòng bấm vào biểu tượng chat màu xanh ở góc dưới cùng bên phải màn hình để bắt đầu nhé!');"
-                            class="bg-black text-white px-8 py-3.5 rounded-md font-bold text-sm hover:bg-gray-800 transition shadow-md flex items-center gap-2 uppercase tracking-wide">
-                            <i class="fa-solid fa-comment-dots text-lg"></i> Bắt đầu trò chuyện ngay
-                        </button>
+                        <a href="https://www.facebook.com/vnbusarchive/" target="_blank"
+                            class="bg-[#1877F2] text-white px-8 py-3.5 rounded-md font-bold text-sm hover:bg-[#166fe5] transition shadow-md flex items-center gap-2 uppercase tracking-wide">
+                            <i class="fa-brands fa-facebook text-lg"></i> Liên hệ qua Facebook
+                        </a>
 
                         <p class="text-[11px] text-gray-400 mt-6 italic">
                             Thời gian phản hồi dự kiến: Vài giờ (Trong giờ hành chính).
@@ -2632,7 +2628,7 @@
                                                     onchange="app.upload.toggleColor(this.checked)"
                                                     class="w-4 h-4 cursor-pointer rounded border-gray-300 text-black focus:ring-black">
                                                 <label for="chk-wm-black"
-                                                    class="text-xs font-bold select-none cursor-pointer text-gray-700">Watermark
+                                                    class="text-xs font-bold select-none cursor-pointer text-gray-700">Đóng dấu bản quyền
                                                     màu đen</label>
                                             </div>
                                             
@@ -6299,7 +6295,7 @@
                                         </div>
                                         <div class="grid grid-cols-2 gap-2 mb-2">
                                             <div>
-                                                <span class="admin-label">Model</span>
+                                                <span class="admin-label">Dòng xe</span>
                                                 <div class="relative">
                                                     <input type="text" id="adm-p-model-${p.id}" value="${model}" class="admin-input" autocomplete="off" oninput="app.utils.triggerSuggestion('adm-p-model-${p.id}', 'adm-sug-model-${p.id}', this.value, 'model')">
                                                     <div id="adm-sug-model-${p.id}" class="suggestion-box"></div>
@@ -6438,7 +6434,7 @@
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <span class="admin-label">Model ${d.model !== curV.model ? tagNew : ''}</span>
+                                                    <span class="admin-label">Dòng xe ${d.model !== curV.model ? tagNew : ''}</span>
                                                     <div class="relative">
                                                         <input type="text" id="req-model-${r.id}" value="${app.utils.escapeAttr(d.model || '')}" class="admin-input" oninput="app.utils.triggerSuggestion('req-model-${r.id}', 'req-sug-model-${r.id}', this.value, 'model')">
                                                         <div id="req-sug-model-${r.id}" class="suggestion-box"></div>
@@ -6454,7 +6450,7 @@
                                             </div>
                                             <div class="mb-2"><span class="admin-label">Loại xe ${d.type !== curP.type ? tagNew : ''}</span><select id="req-type-${r.id}" class="admin-input"><option value="bus" ${d.type === 'bus' ? 'selected' : ''}>Xe buýt</option><option value="coach" ${d.type === 'coach' ? 'selected' : ''}>Xe khách</option></select></div>
                                             <div class="mb-2"><span class="admin-label">Vị trí (Chỉ cập nhật ảnh này)</span><input type="text" id="req-loc-${r.id}" value="${app.utils.escapeAttr(d.location || '')}" class="admin-input"></div>
-                                            <div class="mb-2"><span class="admin-label">Note (Chỉ cập nhật ảnh này)</span><textarea id="req-note-${r.id}" class="admin-input">${app.utils.cleanText(d.note || '')}</textarea></div>
+                                            <div class="mb-2"><span class="admin-label">Ghi chú (Chỉ cập nhật ảnh này)</span><textarea id="req-note-${r.id}" class="admin-input">${app.utils.cleanText(d.note || '')}</textarea></div>
                                             
                                             <div class="flex gap-2 mt-3">
                                                 <button onclick="app.admin.approveReq('${r.id}', this, 'info')" class="flex-1 bg-green-600 text-white py-1.5 font-bold rounded hover:bg-green-700">DUYỆT</button>
@@ -6483,7 +6479,7 @@
                                         <div class="admin-card-header"><span class="font-bold text-xs uppercase text-purple-600">SỬA HỒ SƠ XE: ${r.license_plate}</span><span class="text-xs text-gray-500">${username}</span></div>
                                         <div class="admin-card-body text-xs">
                                             <div class="mb-2">
-                                                <span class="admin-label">Model ${d.model !== curV.model ? tagNew : ''}</span>
+                                                <span class="admin-label">Dòng xe ${d.model !== curV.model ? tagNew : ''}</span>
                                                 <div class="relative">
                                                     <input type="text" id="req-v-model-${r.id}" value="${app.utils.escapeAttr(d.model || '')}" class="admin-input" oninput="app.utils.triggerSuggestion('req-v-model-${r.id}', 'req-v-sug-model-${r.id}', this.value, 'model')">
                                                     <div id="req-v-sug-model-${r.id}" class="suggestion-box"></div>
@@ -7217,7 +7213,7 @@
                 toggleRoute: (val) => {
                     const lbl = document.getElementById('lbl-route');
                     if (val === 'bus') lbl.innerText = "Tuyến";
-                    else lbl.innerText = "Tuyến (Điểm đầu - Cuối)";
+                    else lbl.innerText = "Lộ trình";
                 },
 
                 toggleColor: (isBlack) => {
@@ -9006,9 +9002,9 @@ changePassword: async () => {
                     if (!app.user) return;
                     const newName = document.getElementById('set-new-username').value.trim();
 
-                    if (!newName) return app.ui.showAlert("Vui lòng nhập Username mới.");
-                    if (newName.length < 3) return app.ui.showAlert("Username phải dài từ 3 ký tự trở lên.");
-                    if (newName.length > 20) return app.ui.showAlert("Username quá dài (Tối đa 20 ký tự).");
+                    if (!newName) return app.ui.showAlert("Vui lòng nhập Tên hiển thị mới.");
+                    if (newName.length < 3) return app.ui.showAlert("Tên hiển thị phải dài từ 3 ký tự trở lên.");
+                    if (newName.length > 20) return app.ui.showAlert("Tên hiển thị quá dài (Tối đa 20 ký tự).");
 
                     const { data: existingUser } = await window.sb.from('profiles')
                         .select('username')
@@ -9021,7 +9017,7 @@ changePassword: async () => {
                     }
 
                     app.ui.showAlert(
-                        "DỪNG LẠI ĐÃ! Đổi username có thể sẽ khiến bạn mất quyền bảo hộ bản quyền cho những ảnh đã đăng vì không thể đổi watermark trên ảnh. Bạn chắc chứ?",
+                        "DỪNG LẠI ĐÃ! Đổi tên hiển thị có thể sẽ khiến bạn mất quyền bảo hộ bản quyền cho những ảnh đã đăng do không thể tự động đổi tên trên dấu bản quyền của ảnh cũ. Bạn chắc chứ?",
                         async () => {
 
                             try {
@@ -9033,7 +9029,7 @@ changePassword: async () => {
                                 }
 
                                 app.username = newName; // Cập nhật biến cục bộ sau khi đổi tên thành công
-                                app.ui.showAlert("Đổi Username thành công!");
+                                app.ui.showAlert("Đổi Tên hiển thị thành công!");
                                 document.getElementById('set-new-username').value = '';
                                 document.getElementById('nav-username').innerText = newName;
                                 app.views.loadAccount();
@@ -9043,7 +9039,7 @@ changePassword: async () => {
                         },
                         () => {
 
-                            console.log("Đã hủy đổi username");
+                            console.log("Đã hủy đổi tên hiển thị");
                         },
                         {
                             btnOkText: "Vẫn đổi",
