@@ -2344,13 +2344,24 @@
                         </div>
 
                         
-                        <div id="pending-status-box" class="hidden bg-yellow-50 p-4 rounded-md border border-yellow-200 mt-4 mb-6 shadow-sm">
+                        <div id="pending-status-box" class="hidden bg-yellow-50 p-4 rounded-md border border-yellow-200 mt-4 mb-3 shadow-sm">
                             <div class="flex items-center gap-2 text-yellow-800 font-bold text-sm mb-1">
                                 <i class="fa-solid fa-clock text-lg"></i>
                                 <span>Ảnh đang chờ duyệt</span>
                             </div>
                             <p class="text-xs text-yellow-700 ml-6">
                                 Ảnh của bạn đang trong trạng thái chờ duyệt, thường mất khoảng vài tiếng để có kết quả. Nếu bạn thay đổi ý định có thể xóa ngay lập tức mà không cần yêu cầu qua admin.
+                            </p>
+                        </div>
+
+                        <div id="pending-queue-box" class="hidden bg-yellow-50 p-4 rounded-md border border-yellow-200 mb-6 shadow-sm">
+                            <div class="flex items-center gap-2 text-yellow-800 font-bold text-sm mb-1">
+                                <i class="fa-solid fa-users-line text-lg"></i>
+                                <span>Ảnh chờ duyệt trước bạn: <span id="pending-queue-count">...</span></span>
+                            </div>
+                            <hr class="border-yellow-200 my-2">
+                            <p class="text-xs text-yellow-700 ml-1">
+                                Thời gian chờ có thể tùy thuộc vào chất lượng ảnh, dòng xe...
                             </p>
                         </div>
 
@@ -2967,22 +2978,23 @@
                 cropper: null,
                 mode: 'main',
                 originalFile: null,
+                isMandatory: false, // Thêm cờ đánh dấu bắt buộc cắt
 
-                open: (mode, file = null) => {
+                open: (mode, file = null, isMandatory = false) => {
                     app.crop.mode = mode;
                     app.crop.originalFile = file || app.rawFile;
-                    
+                    app.crop.isMandatory = isMandatory;
+
                     if (!app.crop.originalFile) return;
 
                     const url = URL.createObjectURL(app.crop.originalFile);
                     const img = document.getElementById('crop-image');
-                    
+
                     const modal = document.getElementById('crop-modal');
                     const ratioContainer = document.getElementById('crop-ratios');
-                    
+
                     modal.classList.remove('hidden');
                     app.ui.lockScroll();
-
 
                     img.onload = () => {
                         if (app.crop.cropper) {
@@ -2990,32 +3002,16 @@
                         }
 
                         if (mode === 'main') {
-                            ratioContainer.classList.remove('hidden');
-                            
-
-                            const w = img.naturalWidth;
-                            const h = img.naturalHeight;
-                            const ratio = w / h;
-                            
-                            let targetRatio = 16/9;
-                            let minDiff = Math.abs(ratio - 16/9);
-                            
-                            [3/2, 4/3].forEach(r => {
-                                if (Math.abs(ratio - r) < minDiff) {
-                                    minDiff = Math.abs(ratio - r);
-                                    targetRatio = r;
-                                }
-                            });
+                            // Ẩn nút chọn tỉ lệ vì hệ thống giờ bắt buộc 4:3
+                            if(ratioContainer) ratioContainer.classList.add('hidden');
 
                             app.crop.cropper = new Cropper(img, {
-                                aspectRatio: targetRatio,
+                                aspectRatio: 4/3, // Bắt buộc tỉ lệ 4:3
                                 viewMode: 1,
                                 autoCropArea: 1,
                             });
-                            app.crop.updateRatioButtons(targetRatio);
-
                         } else if (mode === 'avatar') {
-                            ratioContainer.classList.add('hidden');
+                            if(ratioContainer) ratioContainer.classList.add('hidden');
                             app.crop.cropper = new Cropper(img, {
                                 aspectRatio: 1,
                                 viewMode: 1,
@@ -3053,6 +3049,12 @@
                         app.crop.cropper = null;
                     }
                     app.ui.unlockScroll();
+
+                    // Nếu là lần cắt bắt buộc mà user bấm Hủy -> Xóa trắng để chọn ảnh khác
+                    if (app.crop.isMandatory) {
+                        app.upload.removeImage();
+                        app.crop.isMandatory = false;
+                    }
                 },
 
                 apply: () => {
@@ -3073,7 +3075,6 @@
                             const h = canvas.height;
                             const w = canvas.width;
 
-
                             if (h < 1080) {
                                 app.ui.showAlert(`Ảnh sau khi cắt có độ phân giải quá thấp (${w}x${h}). Yêu cầu chiều cao tối thiểu 1080px.`);
                                 btn.innerHTML = originalText;
@@ -3087,29 +3088,37 @@
                                 } else {
                                     blob.name = 'cropped_image.jpg';
                                 }
-                                
-                                app.rawFile = blob;
-                                const url = URL.createObjectURL(blob);
-                                const previewImg = document.getElementById('preview-img');
-                                previewImg.src = url;
 
+                                const wasMandatory = app.crop.isMandatory;
+                                app.crop.isMandatory = false; // Tắt cờ để hàm close() không xóa ảnh
+                                app.crop.close();
 
-                                document.querySelectorAll('.blur-panel').forEach(p => p.remove());
-                                if (app.upload.updateBlurBtn) app.upload.updateBlurBtn();
-                                
-                                app.wmState = { x: 0.5, y: 0.5, color: 'white' };
-                                const chkWmBlack = document.getElementById('chk-wm-black');
-                                if (chkWmBlack) chkWmBlack.checked = false;
-                                if (app.upload.toggleColor) app.upload.toggleColor(false);
-                                
-                                const wmDrag = document.getElementById('draggable-watermark');
-                                if (wmDrag) {
-                                    wmDrag.style.top = '50%';
-                                    wmDrag.style.left = '50%';
-                                    wmDrag.style.transform = 'translate(-50%, -50%)';
+                                if (wasMandatory) {
+                                    // Nếu là bước cắt đầu tiên bắt buộc -> thiết lập preview hoàn chỉnh
+                                    app.upload.setupPreview(blob);
+                                } else {
+                                    // Nếu là cắt thủ công lại sau này -> chỉ thay thế ảnh hiện tại
+                                    app.rawFile = blob;
+                                    const url = URL.createObjectURL(blob);
+                                    const previewImg = document.getElementById('preview-img');
+                                    previewImg.src = url;
+
+                                    document.querySelectorAll('.blur-panel').forEach(p => p.remove());
+                                    if (app.upload.updateBlurBtn) app.upload.updateBlurBtn();
+
+                                    app.wmState = { x: 0.5, y: 0.5, color: 'white' };
+                                    const chkWmBlack = document.getElementById('chk-wm-black');
+                                    if (chkWmBlack) chkWmBlack.checked = false;
+                                    if (app.upload.toggleColor) app.upload.toggleColor(false);
+
+                                    const wmDrag = document.getElementById('draggable-watermark');
+                                    if (wmDrag) {
+                                        wmDrag.style.top = '50%';
+                                        wmDrag.style.left = '50%';
+                                        wmDrag.style.transform = 'translate(-50%, -50%)';
+                                    }
                                 }
 
-                                app.crop.close();
                                 btn.innerHTML = originalText;
                                 btn.disabled = false;
                             }, app.utils.getTargetMimeType(), 0.85);
@@ -3126,7 +3135,6 @@
                                 app.crop.close();
                                 btn.innerHTML = originalText;
                                 btn.disabled = false;
-
 
                                 app.auth.uploadAvatarBlob(blob);
                             }, app.utils.getTargetMimeType(), 0.8);
@@ -5483,8 +5491,26 @@
 
                     if (isPending) {
                         document.getElementById('pending-status-box').classList.remove('hidden');
+
+                        const queueBox = document.getElementById('pending-queue-box');
+                        if (queueBox) {
+                            queueBox.classList.remove('hidden');
+                            document.getElementById('pending-queue-count').innerText = '...';
+
+                            // Gọi hàm RPC an toàn từ Supabase
+                            window.sb.rpc('get_pending_queue_count', { target_time: photo.created_at })
+                                .then(({ data, error }) => {
+                                    if (!error && data !== null) {
+                                        document.getElementById('pending-queue-count').innerText = data;
+                                    } else {
+                                        document.getElementById('pending-queue-count').innerText = '?';
+                                    }
+                                });
+                        }
                     } else {
                         document.getElementById('pending-status-box').classList.add('hidden');
+                        const queueBox = document.getElementById('pending-queue-box');
+                        if (queueBox) queueBox.classList.add('hidden');
                     }
 
                     const views = isDenied ? 0 : ((photo.views || 0) + 1);
@@ -7306,55 +7332,56 @@
                         img.onload = () => {
                             const w = img.width; const h = img.height;
 
-                            if (h > w) {
-                                app.ui.showAlert("Chỉ chấp nhận ảnh ngang (Landscape). Vui lòng chọn ảnh khác.");
+                            // Giữ lại check 1080p cho ảnh thô để tránh up ảnh chất lượng quá kém từ đầu
+                            if (h < 1080 && w < 1080) {
+                                app.ui.showAlert(`Độ phân giải ảnh quá thấp (${w}x${h}). Yêu cầu ảnh gốc phải có chiều cao tối thiểu 1080px.`);
                                 e.target.value = ''; URL.revokeObjectURL(url); return;
                             }
 
-
-                            if (h < 1080) {
-                                app.ui.showAlert(`Độ phân giải ảnh quá thấp (${w}x${h}). Yêu cầu kích thước tối thiểu đạt chuẩn 1080p (Chiều cao ảnh phải ≥ 1080px).`);
-                                e.target.value = ''; URL.revokeObjectURL(url); return;
-                            }
-
-
+                            // Kiểm tra tỉ lệ xem có chuẩn 4:3 chưa
                             const ratio = w / h;
-                            const validRatios =[16 / 9, 3 / 2, 4 / 3];
-                            const isValid = validRatios.some(r => Math.abs(ratio - r) < 0.05);
+                            const isExact4by3 = Math.abs(ratio - (4/3)) < 0.05;
 
-                            if (!isValid) {
-                                app.ui.showAlert(`Tỉ lệ ảnh không đúng quy định (Tỉ lệ hiện tại: ${(w/h).toFixed(2)}). Phải là 16:9, 3:2 hoặc 4:3.`);
-                                e.target.value = ''; URL.revokeObjectURL(url); return;
+                            if (!isExact4by3) {
+                                // Nếu sai tỉ lệ, mở UI Crop BẮT BUỘC
+                                app.crop.open('main', file, true);
+                            } else {
+                                // Nếu chuẩn 4:3, xử lý bình thường
+                                app.upload.setupPreview(file);
                             }
-
-                            app.rawFile = file;
-                            const previewImg = document.getElementById('preview-img');
-                            previewImg.src = url;
-                            document.getElementById('preview-box').classList.remove('hidden');
-
-                            const name = app.username || "Guest";
-                            const wmName = document.getElementById('wm-username');
-                            wmName.innerText = name;
-
-                            document.getElementById('preview-footer-copy').innerText = `Bản quyền bởi ${name}`;
-
-                            const container = document.getElementById('preview-container');
-                            const footerBar = document.getElementById('preview-footer-bar');
-                            const wmDrag = document.getElementById('draggable-watermark');
-
-                            footerBar.style.height = '8%';
-                            wmDrag.classList.remove('hidden');
-                            wmDrag.style.top = '50%';
-                            wmDrag.style.left = '50%';
-                            wmDrag.style.transform = 'translate(-50%, -50%)';
-                            wmDrag.classList.remove('wm-active');
-
-                            document.getElementById('chk-wm-black').checked = false;
-                            app.upload.toggleColor(false);
-                            app.wmState = { x: 0.5, y: 0.5, color: 'white' };
+                            URL.revokeObjectURL(url);
                         }
                         img.src = url;
                     }
+                },
+
+                setupPreview: (file) => {
+                    app.rawFile = file;
+                    const url = URL.createObjectURL(file);
+                    const previewImg = document.getElementById('preview-img');
+                    previewImg.src = url;
+                    document.getElementById('preview-box').classList.remove('hidden');
+
+                    const name = app.username || "Guest";
+                    const wmName = document.getElementById('wm-username');
+                    wmName.innerText = name;
+
+                    document.getElementById('preview-footer-copy').innerText = `Bản quyền bởi ${name}`;
+
+                    const container = document.getElementById('preview-container');
+                    const footerBar = document.getElementById('preview-footer-bar');
+                    const wmDrag = document.getElementById('draggable-watermark');
+
+                    footerBar.style.height = '8%';
+                    wmDrag.classList.remove('hidden');
+                    wmDrag.style.top = '50%';
+                    wmDrag.style.left = '50%';
+                    wmDrag.style.transform = 'translate(-50%, -50%)';
+                    wmDrag.classList.remove('wm-active');
+
+                    document.getElementById('chk-wm-black').checked = false;
+                    app.upload.toggleColor(false);
+                    app.wmState = { x: 0.5, y: 0.5, color: 'white' };
                 },
 
                 initDraggable: () => {
