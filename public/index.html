@@ -537,8 +537,8 @@
 
         .wm-draggable.wm-active {
             border: 1px dashed white;
-            background-color: rgba(0, 0, 0, 0.2);
-            opacity: 1;
+            background-color: transparent;
+            opacity: 0.8;
         }
 
         .wm-draggable.wm-black {
@@ -838,8 +838,8 @@
         .blur-panel {
             position: absolute;
             background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             border: 1.5px dashed rgba(255, 255, 255, 0.8);
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
             min-width: 30px;
@@ -2361,7 +2361,7 @@
                             </div>
                             <hr class="border-yellow-200 my-2">
                             <p class="text-xs text-yellow-700 ml-1">
-                                Thời gian chờ có thể tùy thuộc vào chất lượng ảnh, dòng xe...
+                                Thời gian chờ có thể tùy thuộc vào chất lượng ảnh, dòng xe, trạng thái hoạt động và tâm trạng của admin v.v....
                             </p>
                         </div>
 
@@ -2622,7 +2622,7 @@
                                     <img id="preview-img" class="w-full h-auto block pointer-events-none"
                                         style="max-height: 80vh; object-fit: contain;">
                                     <div id="preview-footer-bar"
-                                        class="absolute bottom-0 left-0 w-full bg-black/60 backdrop-blur-md z-10 pointer-events-none border-t border-white/10">
+                                        class="absolute bottom-0 left-0 w-full bg-black/25 backdrop-blur-[8px] z-10 pointer-events-none border-t border-white/10">
                                         <span class="footer-text-left">VNBUSARCHIVE</span>
                                         <span id="preview-footer-copy" class="footer-text-right"></span>
                                     </div>
