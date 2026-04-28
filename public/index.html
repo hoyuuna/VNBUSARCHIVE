@@ -2936,6 +2936,28 @@
 
         window.sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        // === CODE BẮT LỖI CONSOLE TỰ ĐỘNG ===
+        window._consoleErrors =[];
+        const originalConsoleError = console.error;
+        console.error = function(...args) {
+            try {
+                const logString = args.map(a => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ');
+                window._consoleErrors.push(logString);
+                // Chỉ lưu tối đa 15 lỗi gần nhất để nhẹ RAM
+                if (window._consoleErrors.length > 15) window._consoleErrors.shift();
+            } catch (e) {}
+            originalConsoleError.apply(console, args);
+        };
+
+        // Bắt cả các lỗi Crash hệ thống mà trình duyệt ném ra
+        window.addEventListener('error', function(e) {
+            console.error(`[Global Error] ${e.message} at ${e.filename}:${e.lineno}`);
+        });
+        window.addEventListener('unhandledrejection', function(e) {
+            console.error(`[Unhandled Promise] ${e.reason}`);
+        });
+        // =====================================
+
         const app = {
             user: null,
             username: 'Guest',
@@ -7519,6 +7541,10 @@
                     btn.disabled = true;
                     app.ui.showUploadProgress();
 
+                    // KHỞI TẠO BIẾN ĐỂ TRACK THÔNG TIN BUG REPORT TẠI ĐÂY
+                    let originalSizeKB = (app.rawFile.size / 1024).toFixed(2);
+                    let compressedSizeKB = null;
+
                     try {
                         const username = app.username || "Guest";
                         const finalBlob = await app.utils.watermark(app.rawFile, username, app.wmState);
@@ -7539,21 +7565,24 @@
                             btn.innerHTML = originalText;
                             btn.disabled = false;
                             app.ui.closeUploadProgress();
-                            return app.ui.showAlert("Lỗi trong quá trình nén ảnh. Vui lòng thử lại!");
+                            throw new Error("Lỗi nén ảnh (Image Compression): " + compressErr.message); // Ném lỗi để block catch bắt lấy
                         }
+
+                        // LƯU LẠI KÍCH CỠ SAU KHI NÉN
+                        compressedSizeKB = (compressedFile.size / 1024).toFixed(2);
 
                         if (compressedFile.type !== targetMime) {
                             btn.innerHTML = originalText;
                             btn.disabled = false;
                             app.ui.closeUploadProgress();
-                            return app.ui.showAlert(`Cảnh báo: Trình duyệt của bạn không hỗ trợ định dạng ${targetMime}. Vui lòng thử lại!`);
+                            throw new Error(`Trình duyệt của bạn không hỗ trợ định dạng ${targetMime}.`); // Ném lỗi để catch bắt
                         }
 
                         if (compressedFile.size > 1.5 * 1024 * 1024) {
                             btn.innerHTML = originalText;
                             btn.disabled = false;
                             app.ui.closeUploadProgress();
-                            return app.ui.showAlert("Ảnh quá phức tạp, không thể nén xuống mức an toàn (< 1.5MB). Vui lòng chọn ảnh khác!");
+                            throw new Error("Ảnh quá phức tạp, không thể nén xuống mức an toàn (< 1.5MB). Vui lòng chọn ảnh khác!");
                         }
 
                         const base64data = await new Promise((resolve) => {
@@ -7621,14 +7650,34 @@
                         app.ui.updateUploadSuccess();
 
                     } catch (err) {
-
                         let displayError = err.message;
                         if (displayError === '[object Object]') {
                             displayError = JSON.stringify(err);
                         }
 
-
                         app.ui.updateUploadError(displayError);
+
+                        // === BẮT ĐẦU GỬI BUG REPORT TỰ ĐỘNG VỀ API ===
+                        try {
+                            fetch('/api/bug-report', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    errorMessage: displayError,
+                                    fileInfo: {
+                                        name: app.rawFile ? app.rawFile.name : 'N/A',
+                                        type: app.rawFile ? app.rawFile.type : 'N/A',
+                                        originalSize: originalSizeKB,
+                                        compressedSize: compressedSizeKB
+                                    },
+                                    consoleLogs: window._consoleErrors || [],
+                                    user: app.user ? { username: app.username, id: app.user.id } : null,
+                                    userAgent: navigator.userAgent
+                                })
+                            });
+                        } catch (reportErr) {
+                            console.error("Không thể gửi bug report:", reportErr);
+                        }
                     } finally {
                         btn.innerHTML = originalText;
                         btn.disabled = false;
@@ -9568,7 +9617,7 @@ changePassword: async () => {
 
                     title.innerText = 'Ảnh upload không thành công';
                     title.classList.replace('text-gray-900', 'text-red-600');
-                    desc.innerHTML = 'Vui lòng chụp lại màn hình và báo cáo với Admin tại phần chat CSKH nếu có thể.';
+                    desc.innerHTML = 'Hệ thống đã tự động ghi nhận chi tiết lỗi này và gửi báo cáo đến Ban Quản Trị. Bạn vui lòng thử lại sau nhé!';
 
                     errorBox.innerText = errMsg;
                     errorBox.classList.remove('hidden');
