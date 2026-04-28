@@ -28,6 +28,7 @@ Chúng tôi tìm kiếm những bức ảnh có chủ đích nhiếp ảnh rõ r
 * Ảnh phải sắc nét, đủ sáng và có độ tương phản tốt.
 * **Không mờ nhòe:** Không chấp nhận ảnh bị mờ do rung tay, sai nét, hoặc xe di chuyển quá nhanh gây nhòe không mong muốn.
 * **Ảnh nguyên bản:** Giữ nguyên tính chân thực của ảnh chụp. Tuyệt đối **KHÔNG** sử dụng các công cụ AI (Upscale) để làm nét hoặc can thiệp thay đổi chi tiết xe.
+* **Hạn chế chụp một phía:** Có thể tạm chấp nhận chụp ảnh một phía đối với đầu và chấp nhận chụp ảnh một phía đối với thân xe. Không chấp nhận chụp ảnh một phía đổi với đuôi xe. Luôn ưu tiên chụp ảnh lấy được ít nhất 2 phía của xe
 
 ### 5. Bản quyền & Dữ liệu ảnh
 * **Ảnh chính chủ:** Chỉ đăng tải hình ảnh do **chính tay bạn chụp**. Nghiêm cấm sử dụng ảnh từ các nguồn khác.
