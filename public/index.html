@@ -1473,6 +1473,10 @@
                     class="hidden text-[11px] text-red-700 bg-red-50 p-2.5 rounded-md border border-red-200 mt-4 font-medium break-words text-left">
                 </div>
 
+                <div id="up-progress-info" class="hidden text-[12px] text-yellow-800 bg-yellow-50 p-3 rounded-md border border-yellow-200 mt-4 font-bold text-center shadow-sm">
+                    <i class="fa-solid fa-users-line mr-1 text-lg align-middle"></i> Ảnh chờ duyệt trước bạn: <span id="up-progress-queue-count"><i class="fa-solid fa-spinner fa-spin"></i></span>
+                </div>
+
                 
                 <div id="up-progress-actions" class="hidden mt-6 flex gap-3 justify-center"></div>
             </div>
@@ -9506,6 +9510,7 @@ changePassword: async () => {
                     const title = document.getElementById('up-progress-title');
                     const desc = document.getElementById('up-progress-desc');
                     const errorBox = document.getElementById('up-progress-error');
+                    const infoBox = document.getElementById('up-progress-info'); // Thêm dòng này
                     const actions = document.getElementById('up-progress-actions');
 
 
@@ -9518,7 +9523,10 @@ changePassword: async () => {
                     title.innerText = 'Ảnh đang được upload...';
                     title.className = 'text-lg font-bold text-gray-900 mb-1';
                     desc.innerText = 'Vui lòng không rời khỏi trang';
+                    
+                    // Reset trạng thái ẩn các hộp
                     errorBox.classList.add('hidden');
+                    if (infoBox) infoBox.classList.add('hidden');
                     actions.classList.add('hidden');
                     actions.innerHTML = '';
 
@@ -9556,13 +9564,13 @@ changePassword: async () => {
                     const text = document.getElementById('up-progress-text');
                     const title = document.getElementById('up-progress-title');
                     const desc = document.getElementById('up-progress-desc');
+                    const infoBox = document.getElementById('up-progress-info');
+                    const queueCountSpan = document.getElementById('up-progress-queue-count');
                     const actions = document.getElementById('up-progress-actions');
-
 
                     circle.style.transition = 'stroke-dashoffset 0.8s ease-out, stroke 0.5s ease';
                     circle.setAttribute('stroke-dashoffset', '0');
                     circle.setAttribute('stroke', '#16a34a');
-
 
                     let current = parseInt(text.innerText) || 80;
                     const interval = setInterval(() => {
@@ -9580,6 +9588,24 @@ changePassword: async () => {
                     title.innerText = 'Ảnh đã upload thành công';
                     title.classList.replace('text-gray-900', 'text-green-600');
                     desc.innerText = 'Ảnh sẽ xuất hiện sau khi được admin duyệt!';
+
+                    // Bật ô màu vàng và fetch số lượng hàng đợi
+                    if (infoBox && queueCountSpan) {
+                        infoBox.classList.remove('hidden');
+                        queueCountSpan.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+                        
+                        // Đếm số lượng ảnh đang ở status = pending
+                        window.sb.from('photos').select('*', { count: 'exact', head: true }).eq('status', 'pending')
+                            .then(({ count, error }) => {
+                                if (!error && count !== null) {
+                                    // Trừ 1 vì ảnh của bạn vừa được thêm vào DB
+                                    let ahead = Math.max(0, count - 1);
+                                    queueCountSpan.innerText = ahead;
+                                } else {
+                                    queueCountSpan.innerText = '?';
+                                }
+                            });
+                    }
 
                     actions.innerHTML = `
                         <button onclick="app.utils.cleanupState(); window.scrollTo({ top: 0, behavior: 'smooth' });" class="flex-1 bg-white border border-gray-300 text-gray-700 py-2.5 rounded-md font-bold text-xs hover:bg-gray-50 transition shadow-sm">Upload thêm</button>
