@@ -6333,7 +6333,7 @@
                                 const location = app.utils.cleanText(p.location);
                                 const note = app.utils.cleanText(p.note);
                                 const safeUsername = app.utils.cleanText(p.profiles?.username || 'Ẩn danh');
-                                const safePlate = app.utils.displayPlate(app.utils.cleanText(p.license_plate));
+                                const safePlate = app.utils.cleanText(p.license_plate);
 
                                 return `
                                 <div class="admin-card overflow-visible">
