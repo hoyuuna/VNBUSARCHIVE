@@ -8603,14 +8603,24 @@
                     const box = document.getElementById(suggestionId);
                     if (app.suggestionTimeouts[inputId]) clearTimeout(app.suggestionTimeouts[inputId]);
 
-                    // LOGIC MỚI: Tự động phát hiện Input "Tuyến" tương ứng để gợi ý thông minh
+                    // LOGIC MỚI: Tự động phát hiện Input "Tuyến" và "Biển số" tương ứng
                     let routeVal = '';
+                    let plateVal = '';
                     if (field === 'model') {
-                        // Ánh xạ id (Ví dụ: up-model -> up-route, info-model -> info-route, adm-p-model-1 -> adm-p-route-1)
+                        // Ánh xạ ID của ô Tuyến
                         let routeInputId = inputId.replace('model', 'route');
-                        if (inputId.includes('req-v-model')) routeInputId = inputId.replace('req-v-model', 'req-route');
+                        let plateInputId = inputId.replace('model', 'plate');
+                        
+                        if (inputId.includes('req-v-model')) {
+                            routeInputId = inputId.replace('req-v-model', 'req-route');
+                            plateInputId = inputId.replace('req-v-model', 'req-plate');
+                        }
+                        
                         const routeEl = document.getElementById(routeInputId);
                         if (routeEl) routeVal = routeEl.value.trim();
+
+                        const plateEl = document.getElementById(plateInputId);
+                        if (plateEl) plateVal = plateEl.value.trim();
                     }
 
                     // Nếu Query đang rỗng VÀ (không phải trường model HOẶC trường model mà không có tuyến) -> Ẩn box
@@ -8637,11 +8647,25 @@
 
                         if (query.length < 1 && field === 'model' && routeVal.length > 0) {
                             // TRƯỜNG HỢP 1: Query rỗng nhưng có TUYẾN -> Fetch các dòng xe theo Tuyến từ Database
-                            const res = await window.sb.from('photos')
+                            let sbQuery = window.sb.from('photos')
                                 .select('vehicles!inner(model)')
-                                .eq('route_no', routeVal)
-                                .limit(100)
-                                .abortSignal(controller.signal);
+                                .eq('route_no', routeVal);
+
+                            // Bổ sung: Lọc âm thầm theo Tỉnh (Cụm biển số)
+                            if (plateVal && plateVal.length >= 2) {
+                                const prefix = plateVal.substring(0, 2);
+                                // Chỉ xét nếu 2 ký tự đầu là số (bỏ qua các biển đặc biệt như T1, HAN...)
+                                if (!isNaN(prefix)) {
+                                    const relatedPrefixes = app.utils.getRelatedPrefixes(prefix);
+                                    if (relatedPrefixes && relatedPrefixes.length > 0) {
+                                        // Tạo chuỗi điều kiện OR cho tất cả đầu biển cùng tỉnh
+                                        const prefixOrCond = relatedPrefixes.map(p => `license_plate.ilike.${p}%`).join(',');
+                                        sbQuery = sbQuery.or(prefixOrCond);
+                                    }
+                                }
+                            }
+
+                            const res = await sbQuery.limit(100).abortSignal(controller.signal);
                             
                             error = res.error;
                             if (res.data) {
@@ -8679,7 +8703,7 @@
                                         displayHTML = safeHTML.replace(regex, '<strong class="font-extrabold">$1</strong>');
                                     }
 
-                                    // Hiển thị thêm nhãn "Gợi ý theo tuyến" để người dùng không thắc mắc vì sao hiện dòng xe này
+                                    // Hiển thị thêm nhãn "Dùng ở Tuyến X" (không nhắc gì đến tỉnh)
                                     const labelHtml = (query.length < 1 && field === 'model' && routeVal.length > 0) 
                                         ? `<span class="text-[9px] text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded ml-2 font-bold whitespace-nowrap border border-blue-100">Dùng ở Tuyến ${app.utils.cleanText(routeVal)}</span>` 
                                         : '';
