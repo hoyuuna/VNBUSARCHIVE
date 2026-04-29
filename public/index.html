@@ -1386,7 +1386,7 @@
         <div id="loading-screen">
             <div class="brand-container">
                 <!-- TODO: Change back to previous logo later: https://ik.imagekit.io/hoyuuna/Logo/logo304.png -->
-                <img src="https://ik.imagekit.io/hoyuuna/Logo/logo304-2.png" alt="VNBUSARCHIVE Logo" class="logo" decoding="async">
+                <img src="https://wsrv.nl/?url=https://files.catbox.moe/crxvn6.png&we" alt="VNBUSARCHIVE Logo" class="logo" decoding="async">
                 <div class="text-wrapper">
                     <div class="text-inner"><span>VNBUSARCHIVE</span></div>
                 </div>
@@ -1815,7 +1815,7 @@
                     
                     <div class="flex items-center justify-center gap-3 mb-8">
                         <!-- TODO: Change back to previous logo later: https://ik.imagekit.io/hoyuuna/Logo/logo304.png -->
-                        <img src="https://ik.imagekit.io/hoyuuna/Logo/logo304-2.png" alt="Logo" class="h-10 drop-shadow-sm" loading="lazy" decoding="async">
+                        <img src="https://wsrv.nl/?url=https://files.catbox.moe/crxvn6.png&we" alt="Logo" class="h-10 drop-shadow-sm" loading="lazy" decoding="async">
                         <h1
                             class="font-watermark font-extrabold italic text-2xl tracking-tight text-vbs-dark mt-1 drop-shadow-sm">
                             VNBUSARCHIVE
@@ -1954,7 +1954,7 @@
                 <div class="flex flex-wrap md:flex-nowrap justify-between items-center px-4 py-2 md:h-16">
                     <a href="/" class="flex items-center gap-2 cursor-pointer md:mb-0 mr-auto no-underline shrink-0">
                         <!-- TODO: Change back to previous logo later: https://ik.imagekit.io/hoyuuna/Logo/logo304.png -->
-                        <img src="https://ik.imagekit.io/hoyuuna/Logo/logo304-2.png" alt="VNBUSARCHIVE"
+                        <img src="https://wsrv.nl/?url=https://files.catbox.moe/crxvn6.png&we" alt="VNBUSARCHIVE"
                             class="h-8 md:h-10 w-auto object-contain" decoding="async">
                     </a>
 
@@ -3388,12 +3388,27 @@
 
                     if (isPendingOrDenied) {
                         app.ui.showAlert(
-                            "Bạn có chắc chắn muốn xóa ảnh này? Hành động này không thể hoàn tác.",
+                            "Bạn có chắc chắn muốn xóa ảnh này? Ảnh sẽ bị xóa vĩnh viễn khỏi hệ thống.",
                             async () => {
                                 try {
+                                    // 1. Gọi API Xóa ảnh từ ImageKit trước
+                                    const { data: { session } } = await window.sb.auth.getSession();
+                                    if (session && p.url) {
+                                        await fetch('/api/delete-image', {
+                                            method: 'POST',
+                                            headers: {
+                                                'Content-Type': 'application/json',
+                                                'Authorization': `Bearer ${session.access_token}`
+                                            },
+                                            body: JSON.stringify({ imageUrl: p.url })
+                                        });
+                                    }
+
+                                    // 2. Xóa khỏi Supabase Database
                                     await window.sb.from('photos').delete().eq('id', p.id);
                                     await app.vehicle.cleanupVehicle(p.license_plate);
-                                    app.ui.showAlert("Ảnh đã được xóa thành công.", () => app.views.loadHome());
+                                    
+                                    app.ui.showAlert("Ảnh đã được xóa vĩnh viễn thành công.", () => app.views.loadHome());
                                 } catch (err) { app.ui.showAlert("Lỗi khi xóa ảnh: " + err.message); }
                             },
                             () => { console.log("Hủy xóa"); },
@@ -6784,24 +6799,33 @@
                     btn.classList.add('btn-loading');
 
                     try {
-
-                        const { data: photo } = await window.sb.from('photos').select('license_plate').eq('id', photoId).single();
+                        // CẬP NHẬT TRUY VẤN: Lấy thêm cột 'url' để truyền qua API
+                        const { data: photo } = await window.sb.from('photos').select('license_plate, url').eq('id', photoId).single();
                         const plate = photo ? photo.license_plate : 'đã chọn';
+                        const imgUrl = photo ? photo.url : null;
 
+                        // 1. Gọi API Xóa ảnh khỏi ImageKit
+                        if (imgUrl) {
+                            const { data: { session } } = await window.sb.auth.getSession();
+                            await fetch('/api/delete-image', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${session?.access_token}`
+                                },
+                                body: JSON.stringify({ imageUrl: imgUrl })
+                            });
+                        }
 
+                        // 2. Xóa dữ liệu Database
                         const { error: delError } = await window.sb.from('photos').delete().eq('id', photoId);
                         if (delError) throw delError;
 
                         await app.vehicle.cleanupVehicle(plate);
-
-
                         await window.sb.from('edit_requests').update({ status: 'approved' }).eq('id', reqId);
+                        await app.notifications.add(requesterId, `Yêu cầu xóa ảnh xe ${plate} của bạn đã được Admin duyệt và ảnh đã bị xóa hoàn toàn khỏi hệ thống.`);
 
-
-                        await app.notifications.add(requesterId, `Yêu cầu xóa ảnh xe ${plate} của bạn đã được Admin duyệt và thực thi.`);
-
-
-                        app.ui.showAlert("Đã duyệt yêu cầu và xóa ảnh thành công!");
+                        app.ui.showAlert("Đã duyệt yêu cầu và xóa ảnh vĩnh viễn thành công!");
                         app.admin.logAction('approve_delete_req', photoId, { plate: plate });
                         app.admin.loadTab('delete');
 
