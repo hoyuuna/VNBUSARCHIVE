@@ -5343,7 +5343,7 @@
                     let query = window.sb.from('photos')
                         .select('id, url, status, views, license_plate, created_at, likes')
                         .eq('uploader_id', targetUserId)
-                        .order('created_at', { ascending: false });
+                        .order('id', { ascending: false });
 
                     if (!isOwnProfile) {
                         query = query.eq('status', 'approved');
