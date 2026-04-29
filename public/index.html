@@ -4442,7 +4442,7 @@
                                     
                                     // NHÚNG LỆNH app.search.setFilter('${filterKey}', false) VÀO ONMOUSEDOWN
                                     return `<div class="suggestion-item border-b border-gray-100 last:border-0" onmousedown="event.preventDefault(); document.getElementById('${inputId}').value = '${safeJS}'; document.getElementById('main-search-suggestions').classList.remove('active'); app.search.setFilter('${filterKey}', false); app.handleSearch();">
-                                        <div class="text-[13px] text-black font-medium leading-snug">${displayHTML}</div>
+                                        <div class="text-[13px] text-black font-medium leading-snug break-words whitespace-normal">${displayHTML}</div>
                                         ${labelHTML}
                                     </div>`;
                                 }).join('');
@@ -8708,8 +8708,8 @@
                                         ? `<span class="text-[9px] text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded ml-2 font-bold whitespace-nowrap border border-blue-100">Dùng ở Tuyến ${app.utils.cleanText(routeVal)}</span>` 
                                         : '';
 
-                                    return `<div class="suggestion-item flex justify-between items-center" onmousedown="event.preventDefault(); const inp = document.getElementById('${inputId}'); inp.value = '${safeJS}'; document.getElementById('${suggestionId}').classList.remove('active'); inp.dispatchEvent(new Event('input')); inp.dispatchEvent(new Event('change'));">
-                                                <span class="truncate">${displayHTML}</span>
+                                     return `<div class="suggestion-item flex justify-between items-start gap-2" onmousedown="event.preventDefault(); const inp = document.getElementById('${inputId}'); inp.value = '${safeJS}'; document.getElementById('${suggestionId}').classList.remove('active'); inp.dispatchEvent(new Event('input')); inp.dispatchEvent(new Event('change'));">
+                                                <span class="break-words whitespace-normal leading-snug">${displayHTML}</span>
                                                 ${labelHtml}
                                             </div>`;
                                 }).join('');
