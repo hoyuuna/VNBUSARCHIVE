@@ -2430,6 +2430,7 @@
                                             <div class="relative w-full h-full">
                                                 <input type="text" id="info-model" class="info-input clickable-search"
                                                     readonly autocomplete="off"
+                                                    onfocus="if(!this.readOnly) app.utils.triggerSuggestion('info-model', 'info-model-suggestions', this.value, 'model')"
                                                     x-on:input.debounce.300ms="app.utils.triggerSuggestion('info-model', 'info-model-suggestions', $el.value)">
                                                 <div id="info-model-suggestions" class="suggestion-box"></div>
                                             </div>
@@ -2732,9 +2733,10 @@
                                     <label class="text-xs text-gray-500 font-bold block mb-1.5 uppercase">Dòng xe
                                         (Model) <span class="text-red-500">*</span></label>
                                     <div class="relative w-full">
-                                        <input type="text" id="up-model" placeholder="VD: Thaco Mobihome"
+                                         <input type="text" id="up-model" placeholder="VD: Thaco Mobihome"
                                             class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition"
                                             autocomplete="off"
+                                            onfocus="app.utils.triggerSuggestion('up-model', 'up-model-suggestions', this.value, 'model')"
                                             x-on:input.debounce.300ms="app.utils.triggerSuggestion('up-model', 'up-model-suggestions', $el.value, 'model'); app.upload.checkModelWarning && app.upload.checkModelWarning()">
                                         <div id="up-model-suggestions" class="suggestion-box"></div>
                                     </div>
@@ -8601,7 +8603,21 @@
                     const box = document.getElementById(suggestionId);
                     if (app.suggestionTimeouts[inputId]) clearTimeout(app.suggestionTimeouts[inputId]);
 
-                    if (query.length < 1) { box.classList.remove('active'); return; }
+                    // LOGIC MỚI: Tự động phát hiện Input "Tuyến" tương ứng để gợi ý thông minh
+                    let routeVal = '';
+                    if (field === 'model') {
+                        // Ánh xạ id (Ví dụ: up-model -> up-route, info-model -> info-route, adm-p-model-1 -> adm-p-route-1)
+                        let routeInputId = inputId.replace('model', 'route');
+                        if (inputId.includes('req-v-model')) routeInputId = inputId.replace('req-v-model', 'req-route');
+                        const routeEl = document.getElementById(routeInputId);
+                        if (routeEl) routeVal = routeEl.value.trim();
+                    }
+
+                    // Nếu Query đang rỗng VÀ (không phải trường model HOẶC trường model mà không có tuyến) -> Ẩn box
+                    if (query.length < 1 && !(field === 'model' && routeVal.length > 0)) { 
+                        box.classList.remove('active'); 
+                        return; 
+                    }
 
                     if (app.suggestionControllers && app.suggestionControllers[inputId]) {
                         app.suggestionControllers[inputId].abort();
@@ -8617,13 +8633,35 @@
                     const searchWords = query.trim().split(/\s+/).filter(w => w.length > 0);
 
                     try {
-                        let sbQuery = window.sb.from(table).select(selectField);
-                        
-                        searchWords.forEach(word => {
-                            sbQuery = sbQuery.ilike(selectField, `%${word}%`);
-                        });
-                        
-                        const { data, error } = await sbQuery.limit(15).abortSignal(controller.signal);
+                        let data, error;
+
+                        if (query.length < 1 && field === 'model' && routeVal.length > 0) {
+                            // TRƯỜNG HỢP 1: Query rỗng nhưng có TUYẾN -> Fetch các dòng xe theo Tuyến từ Database
+                            const res = await window.sb.from('photos')
+                                .select('vehicles!inner(model)')
+                                .eq('route_no', routeVal)
+                                .limit(100)
+                                .abortSignal(controller.signal);
+                            
+                            error = res.error;
+                            if (res.data) {
+                                // Trích xuất dữ liệu trả về cho đúng định dạng
+                                data = res.data
+                                    .map(item => ({ [selectField]: item.vehicles?.model }))
+                                    .filter(item => item[selectField]);
+                            }
+                        } else {
+                            // TRƯỜNG HỢP 2: Gợi ý bình thường theo Text nhập vào
+                            let sbQuery = window.sb.from(table).select(selectField);
+                            
+                            searchWords.forEach(word => {
+                                sbQuery = sbQuery.ilike(selectField, `%${word}%`);
+                            });
+                            
+                            const res = await sbQuery.limit(15).abortSignal(controller.signal);
+                            data = res.data;
+                            error = res.error;
+                        }
 
                         if (error) { if (error.code === 20 || error.name === 'AbortError') return; throw error; }
 
@@ -8641,7 +8679,15 @@
                                         displayHTML = safeHTML.replace(regex, '<strong class="font-extrabold">$1</strong>');
                                     }
 
-                                    return `<div class="suggestion-item" onmousedown="event.preventDefault(); const inp = document.getElementById('${inputId}'); inp.value = '${safeJS}'; document.getElementById('${suggestionId}').classList.remove('active'); inp.dispatchEvent(new Event('input')); inp.dispatchEvent(new Event('change'));">${displayHTML}</div>`;
+                                    // Hiển thị thêm nhãn "Gợi ý theo tuyến" để người dùng không thắc mắc vì sao hiện dòng xe này
+                                    const labelHtml = (query.length < 1 && field === 'model' && routeVal.length > 0) 
+                                        ? `<span class="text-[9px] text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded ml-2 font-bold whitespace-nowrap border border-blue-100">Dùng ở Tuyến ${app.utils.cleanText(routeVal)}</span>` 
+                                        : '';
+
+                                    return `<div class="suggestion-item flex justify-between items-center" onmousedown="event.preventDefault(); const inp = document.getElementById('${inputId}'); inp.value = '${safeJS}'; document.getElementById('${suggestionId}').classList.remove('active'); inp.dispatchEvent(new Event('input')); inp.dispatchEvent(new Event('change'));">
+                                                <span class="truncate">${displayHTML}</span>
+                                                ${labelHtml}
+                                            </div>`;
                                 }).join('');
                                 box.classList.add('active');
                             } else { box.classList.remove('active'); }
