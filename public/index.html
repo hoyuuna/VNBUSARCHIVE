@@ -2194,7 +2194,7 @@
             </div>
         </div>
 
-        <div class="h-28 md:h-24"></div>
+        <div id="header-spacer" class="h-28 md:h-24 transition-all duration-300"></div>
 
         <main class="max-w-7xl mx-auto px-4 py-6 min-h-screen">
 
@@ -2276,6 +2276,82 @@
                             <span class="stat-label">Tuyến khác nhau</span>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- CHÈN THÊM ĐOẠN NÀY NGAY DƯỚI THẺ ĐÓNG CỦA <div id="home"> -->
+            <div id="search" class="view-section">
+                <!-- KHUNG SEARCH GIỮA TRANG (Y HỆT HEADER NHƯNG TO HƠN) -->
+                <div class="max-w-2xl mx-auto mb-8 relative z-40">
+                    <div class="w-full flex items-center border border-gray-300 rounded-lg bg-white shadow-sm focus-within:ring-2 focus-within:ring-black focus-within:border-transparent transition-all h-12 md:h-14">
+
+                        <input type="text" id="page-search-input" placeholder="Tìm kiếm..." autocomplete="off" class="px-4 py-2 text-base md:text-lg outline-none w-full bg-transparent placeholder-gray-400 font-medium h-full rounded-l-lg">
+
+                        <!-- Hộp Gợi Ý -->
+                        <div id="page-search-suggestions" class="suggestion-box" style="top: calc(100% + 4px);"></div>
+
+                        <!-- Nút Xóa Chữ (X) -->
+                        <button id="btn-page-clear-search" onclick="app.utils.navigate('/')" class="hidden text-gray-400 hover:text-red-500 px-3 md:px-4 h-full flex items-center justify-center">
+                            <i class="fa-solid fa-xmark text-lg"></i>
+                        </button>
+
+                        <!-- Bộ Lọc -->
+                        <div class="relative border-l border-gray-200 h-full flex items-center">
+                            <button onclick="app.search.toggleFilter('page-search-filter-menu')" class="text-gray-500 hover:text-black px-3 md:px-4 h-full transition-colors" title="Bộ lọc tìm kiếm">
+                                <i class="fa-solid fa-filter text-lg"></i>
+                            </button>
+                            <div id="page-search-filter-menu" class="filter-menu">
+                                <div class="px-3 py-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Tìm kiếm theo:</div>
+                                <div class="filter-item selected" onclick="app.search.setFilter('all')" data-filter="all">
+                                    <span>Tất cả</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
+                                </div>
+                                <div class="filter-item" onclick="app.search.setFilter('plate')" data-filter="plate">
+                                    <span>Biển kiểm soát</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
+                                </div>
+                                <div class="filter-item" onclick="app.search.setFilter('route')" data-filter="route">
+                                    <span>Số tuyến</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
+                                </div>
+                                <div class="filter-item" onclick="app.search.setFilter('operator')" data-filter="operator">
+                                    <span>Đơn vị vận hành</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
+                                </div>
+                                <div class="filter-item" onclick="app.search.setFilter('model')" data-filter="model">
+                                    <span>Dòng xe</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
+                                </div>
+                                <div class="filter-item" onclick="app.search.setFilter('location')" data-filter="location">
+                                    <span>Vị trí chụp</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
+                                </div>
+                                <div class="filter-item" onclick="app.search.setFilter('uploader')" data-filter="uploader">
+                                    <span>Người đăng</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
+                                </div>
+                                <div class="filter-item" onclick="app.search.setFilter('camera')" data-filter="camera">
+                                    <span>Thiết bị chụp</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Nút Tìm Kiếm -->
+                        <button onclick="app.handleSearch(true)" class="text-gray-500 px-4 md:px-5 h-full hover:text-black transition-colors rounded-r-lg">
+                            <i class="fa-solid fa-magnifying-glass text-lg"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="search-profile-cards" class="hidden grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-3"></div>
+
+                <div id="load-more-cards-container" class="text-center mb-6 hidden">
+                    <button onclick="app.views.loadMoreSearchCards()" class="bg-white border border-gray-300 text-gray-700 px-6 py-2.5 text-sm font-bold rounded-md hover:bg-gray-50 hover:border-gray-400 transition shadow-sm">
+                        Xem thêm <i class="fa-solid fa-chevron-down ml-1"></i>
+                    </button>
+                </div>
+
+                <div id="search-photo-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <div class="col-span-full text-center py-10 text-gray-500"><i class="fa-solid fa-magnifying-glass"></i> Nhập từ khóa để tìm kiếm...</div>
+                </div>
+
+                <div id="search-load-more-container" class="text-center mt-10 hidden">
+                    <button onclick="app.views.loadMorePhotos()" class="bg-white border border-gray-300 text-gray-700 px-6 py-2.5 text-sm font-bold rounded-md hover:bg-gray-50 hover:border-gray-400 transition shadow-sm">
+                        Xem thêm <i class="fa-solid fa-chevron-down ml-1"></i>
+                    </button>
                 </div>
             </div>
 
@@ -3812,18 +3888,29 @@
                     });
                 });
 
+                // ---- KÍCH HOẠT SỰ KIỆN CHO CẢ 2 Ô TÌM KIẾM ----
                 document.getElementById('search-input').addEventListener('keypress', function (e) {
-                    if (e.key === 'Enter') {
-                        document.getElementById('main-search-suggestions').classList.remove('active');
-                        app.handleSearch();
-                    }
+                    if (e.key === 'Enter') { document.getElementById('main-search-suggestions').classList.remove('active'); app.handleSearch(); }
                 });
                 document.getElementById('search-input').addEventListener('input', function (e) {
-                    app.search.triggerMainSuggestion(e.target.value.trim());
+                    app.search.triggerMainSuggestion(e.target.value.trim(), 'search-input', 'main-search-suggestions');
                 });
                 document.getElementById('search-input').addEventListener('focus', function (e) {
-                    if (e.target.value.trim().length > 0) app.search.triggerMainSuggestion(e.target.value.trim());
+                    if (e.target.value.trim().length > 0) app.search.triggerMainSuggestion(e.target.value.trim(), 'search-input', 'main-search-suggestions');
                 });
+
+                const pageSearchInput = document.getElementById('page-search-input');
+                if (pageSearchInput) {
+                    pageSearchInput.addEventListener('keypress', function (e) {
+                        if (e.key === 'Enter') { document.getElementById('page-search-suggestions').classList.remove('active'); app.handleSearch(true); }
+                    });
+                    pageSearchInput.addEventListener('input', function (e) {
+                        app.search.triggerMainSuggestion(e.target.value.trim(), 'page-search-input', 'page-search-suggestions');
+                    });
+                    pageSearchInput.addEventListener('focus', function (e) {
+                        if (e.target.value.trim().length > 0) app.search.triggerMainSuggestion(e.target.value.trim(), 'page-search-input', 'page-search-suggestions');
+                    });
+                }
 
                 document.getElementById('up-location').addEventListener('input', function () {
                     clearTimeout(app.searchTimeout);
@@ -3832,12 +3919,14 @@
                     }, 1000);
                 });
 
+                // Sửa logic ẩn menu thả xuống để hỗ trợ nhiều menu Filter
                 document.addEventListener('click', function (e) {
-                    const menu = document.getElementById('search-filter-menu');
-                    const btn = document.getElementById('btn-filter-toggle');
-                    if (!menu.contains(e.target) && !btn.contains(e.target)) {
-                        menu.classList.remove('active');
-                    }
+                    document.querySelectorAll('.filter-menu').forEach(menu => {
+                        const btn = menu.previousElementSibling;
+                        if (!menu.contains(e.target) && btn && !btn.contains(e.target)) {
+                            menu.classList.remove('active');
+                        }
+                    });
 
                     document.querySelectorAll('.suggestion-box').forEach(box => {
                         if (!box.contains(e.target) && !box.previousElementSibling.contains(e.target)) {
@@ -4320,8 +4409,8 @@
             },
 
             search: {
-                toggleFilter: () => {
-                    document.getElementById('search-filter-menu').classList.toggle('active');
+                toggleFilter: (menuId = 'search-filter-menu') => {
+                    document.getElementById(menuId).classList.toggle('active');
                 },
                 setFilter: (type, updateUrl = true) => {
                     app.currentFilter = type;
@@ -4335,16 +4424,15 @@
                         }
                     });
 
-                    document.getElementById('search-filter-menu').classList.remove('active');
+                    document.getElementById('search-filter-menu')?.classList.remove('active');
+                    document.getElementById('page-search-filter-menu')?.classList.remove('active');
 
                     if (updateUrl && window.location.pathname.includes('/search')) {
-                        app.handleSearch();
+                        app.handleSearch(true);
                     }
                 },
-                triggerMainSuggestion: async (query) => {
-                    const box = document.getElementById('main-search-suggestions');
-                    const inputId = 'search-input';
-                    
+                triggerMainSuggestion: async (query, inputId = 'search-input', sugId = 'main-search-suggestions') => {
+                    const box = document.getElementById(sugId);
                     if (app.suggestionTimeouts[inputId]) clearTimeout(app.suggestionTimeouts[inputId]);
                     if (query.length < 1) { box.classList.remove('active'); return; }
                     
@@ -4440,8 +4528,8 @@
                                     // LẤY FILTER KEY DỰA TRÊN LABEL (NẾU KHÔNG CÓ THÌ GIỮ NGUYÊN FILTER HIỆN TẠI)
                                     const filterKey = labelToFilter[item.label] || filter;
                                     
-                                    // NHÚNG LỆNH app.search.setFilter('${filterKey}', false) VÀO ONMOUSEDOWN
-                                    return `<div class="suggestion-item border-b border-gray-100 last:border-0" onmousedown="event.preventDefault(); document.getElementById('${inputId}').value = '${safeJS}'; document.getElementById('main-search-suggestions').classList.remove('active'); app.search.setFilter('${filterKey}', false); app.handleSearch();">
+                                    // Sửa để truyền linh hoạt inputId và sugId
+                                    return `<div class="suggestion-item border-b border-gray-100 last:border-0" onmousedown="event.preventDefault(); document.getElementById('${inputId}').value = '${safeJS}'; document.getElementById('${sugId}').classList.remove('active'); app.search.setFilter('${filterKey}', false); app.handleSearch(true);">
                                         <div class="text-[13px] text-black font-medium leading-snug break-words whitespace-normal">${displayHTML}</div>
                                         ${labelHTML}
                                     </div>`;
@@ -4458,22 +4546,41 @@
             },
 
             handleSearch: async (forceRefresh = false) => {
-                const query = document.getElementById('search-input').value.trim();
+                // Đồng bộ từ khóa giữa 2 ô input (header và page)
+                const headerInput = document.getElementById('search-input');
+                const pageInput = document.getElementById('page-search-input');
+
+                // Ưu tiên ô nào đang có giá trị nhập mới nhất
+                let query = '';
+                if (app.currentViewMode === 'search' && pageInput && document.activeElement === pageInput) {
+                    query = pageInput.value.trim();
+                    headerInput.value = query;
+                } else {
+                    query = headerInput.value.trim();
+                    if(pageInput) pageInput.value = query;
+                }
+
                 const clearBtn = document.getElementById('btn-clear-search');
+                const pageClearBtn = document.getElementById('btn-page-clear-search');
                 const filterType = app.currentFilter;
 
                 if (!query) {
+                    if (clearBtn) clearBtn.classList.add('hidden');
+                    if (pageClearBtn) pageClearBtn.classList.add('hidden');
                     if (window.location.pathname !== '/') app.utils.navigate('/');
                     return app.views.loadHome();
+                } else {
+                    if (clearBtn) clearBtn.classList.remove('hidden');
+                    if (pageClearBtn) pageClearBtn.classList.remove('hidden');
                 }
 
                 const currentParams = new URLSearchParams(window.location.search);
                 let filterFromUrl = currentParams.get('filter') || 'all';
-                
+
                 if (filterFromUrl === 'absolute_route') {
                     app.currentFilter = 'absolute_route';
                 }
-                
+
                 if (!window.location.pathname.includes('/search') || currentParams.get('q') !== query || filterFromUrl !== filterType) {
                     let url = `/search?q=${encodeURIComponent(query)}&filter=${filterType}`;
                     const prefix = currentParams.get('prefix');
@@ -4483,47 +4590,32 @@
                 }
 
                 if (app.lastSearchQuery === query && app.lastSearchFilter === filterType && !forceRefresh) {
-                    app.views.switch('home', false);
-                    document.getElementById('hero-section').style.display = 'none';
-                    document.getElementById('db-stats-section').style.display = 'none';
-                    document.getElementById('recommendation-section').classList.add('hidden');
+                    app.views.switch('search', false);
                     app.loadingBar.finish();
                     return;
                 }
                 app.lastSearchQuery = query;
                 app.lastSearchFilter = filterType;
 
-                app.views.switch('home', false);
+                // Tách biệt hẳn ra tab search
+                app.views.switch('search', false);
                 app.currentViewMode = 'search';
-                document.getElementById('hero-section').style.display = 'none';
-                document.getElementById('load-more-container').classList.add('hidden');
-                document.getElementById('db-stats-section').style.display = 'none';
-                document.getElementById('recommendation-section').classList.add('hidden');
 
                 const profileCardsContainer = document.getElementById('search-profile-cards');
                 profileCardsContainer.innerHTML = '';
                 profileCardsContainer.classList.add('hidden');
                 document.getElementById('load-more-cards-container')?.classList.add('hidden');
-                app.currentSearchCards = [];
+                app.currentSearchCards =[];
                 app.loadedSearchCardsCount = 0;
 
-                let filterName = "Tất cả";
-                if (filterType === 'absolute_route') {
-                    const p = currentParams.get('prefix') || '';
-                    filterName = `Tuyến chính xác (Tỉnh ${p})`;
-                } else {
-                    const filterEl = document.querySelector(`.filter-item[data-filter="${filterType}"] span`);
-                    if (filterEl) filterName = filterEl.innerText;
-                }
+                if (clearBtn) clearBtn.classList.remove('hidden');
+                if (pageClearBtn) pageClearBtn.classList.remove('hidden');
 
-                document.getElementById('grid-title').innerHTML = `Kết quả tìm kiếm: "${app.utils.cleanText(query)}" <span class="text-gray-500 font-normal text-xs ml-2">(Lọc theo: ${filterName})</span>`;
-                clearBtn.classList.remove('hidden');
-
-                const grid = document.getElementById('photo-grid');
+                const grid = document.getElementById('search-photo-grid');
                 grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tìm kiếm...</div>';
 
                 try {
-                    let cards = [];
+                    let cards =[];
                     const searchWords = query.split(/\s+/).filter(w => w.length > 0);
 
                     if (filterType === 'uploader' || filterType === 'all') {
@@ -4556,9 +4648,9 @@
                         } else if (filterType === 'model') {
                             searchWords.forEach(w => { vQuery = vQuery.ilike('model', `%${w}%`); });
                         } else {
-                            searchWords.forEach(w => { 
-                                const safeW = w.replace(/"/g, ''); 
-                                vQuery = vQuery.or(`license_plate.ilike."%${safeW}%",model.ilike."%${safeW}%"`); 
+                            searchWords.forEach(w => {
+                                const safeW = w.replace(/"/g, '');
+                                vQuery = vQuery.or(`license_plate.ilike."%${safeW}%",model.ilike."%${safeW}%"`);
                             });
                         }
 
@@ -4614,25 +4706,25 @@
                         let vQ = window.sb.from('vehicles').select('license_plate');
                         searchWords.forEach(w => { vQ = vQ.ilike('model', `%${w}%`); });
                         const { data: vData } = await vQ;
-                        const plates = vData ? vData.map(v => v.license_plate) : [];
-                        
+                        const plates = vData ? vData.map(v => v.license_plate) :[];
+
                         if (plates.length > 0) photoQuery = photoQuery.in('license_plate', plates);
                         else forceEmptyResult = true;
                     } else {
                         let mQ = window.sb.from('vehicles').select('license_plate');
                         searchWords.forEach(w => { mQ = mQ.ilike('model', `%${w}%`); });
                         const { data: mData } = await mQ;
-                        const plates = mData ? mData.map(v => v.license_plate) : [];
-                        
+                        const plates = mData ? mData.map(v => v.license_plate) :[];
+
                         let uQ = window.sb.from('profiles').select('id');
                         searchWords.forEach(w => { uQ = uQ.ilike('username', `%${w}%`); });
                         const { data: uData } = await uQ;
-                        const uploaderIds = uData ? uData.map(u => u.id) : [];
+                        const uploaderIds = uData ? uData.map(u => u.id) :[];
 
                         searchWords.forEach(w => {
-                            const safeW = w.replace(/"/g, ''); 
+                            const safeW = w.replace(/"/g, '');
                             let orConditions = `license_plate.ilike."%${safeW}%",operator.ilike."%${safeW}%",route_no.ilike."%${safeW}%",camera_model.ilike."%${safeW}%",location.ilike."%${safeW}%",note.ilike."%${safeW}%"`;
-                            
+
                             if (plates.length > 0) orConditions += `,license_plate.in.(${plates.join(',')})`;
                             if (uploaderIds.length > 0) orConditions += `,uploader_id.in.(${uploaderIds.join(',')})`;
                             photoQuery = photoQuery.or(orConditions);
@@ -4640,7 +4732,7 @@
                     }
 
                     if (forceEmptyResult) {
-                        grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500">Không tìm thấy ảnh nào trùng khớp.</div>';
+                        grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500">Không tìm thấy kết quả phù hợp.</div>';
                         app.loadingBar.finish();
                         return;
                     }
@@ -4660,6 +4752,8 @@
                     app.currentSearchResults = results;
                     app.loadedCount = 0;
                     grid.innerHTML = '';
+
+                    // Nó sẽ tự load và append vào đúng `search-photo-grid` do ta đã cấu hình ở phần 4
                     app.views.loadMorePhotos();
 
                 } catch (err) {
@@ -4820,12 +4914,30 @@
                     }
 
                     const searchBox = document.getElementById('header-search-box');
-                    if (id === 'upload') {
+                    const headerSpacer = document.getElementById('header-spacer');
+
+                    // Ẩn thanh tìm kiếm trên header nếu đang ở trang search hoặc upload
+                    if (id === 'upload' || id === 'search') {
                         searchBox.classList.add('hidden');
-                        app.upload.fetchRequirements();
-                        setTimeout(() => app.uploadMap.invalidateSize(), 200);
+
+                        // Thu nhỏ khoảng trống đệm trên mobile từ h-28 xuống h-20 (PC md:h-24 không bị ảnh hưởng)
+                        if (headerSpacer) {
+                            headerSpacer.classList.remove('h-28');
+                            headerSpacer.classList.add('h-20');
+                        }
+
+                        if (id === 'upload') {
+                            app.upload.fetchRequirements();
+                            setTimeout(() => app.uploadMap.invalidateSize(), 200);
+                        }
                     } else {
                         searchBox.classList.remove('hidden');
+
+                        // Trả lại khoảng trống đệm bình thường trên mobile
+                        if (headerSpacer) {
+                            headerSpacer.classList.remove('h-20');
+                            headerSpacer.classList.add('h-28');
+                        }
                     }
 
                     if (id === 'upload' && !app.user) {
@@ -5164,27 +5276,31 @@
                 },
 
                 loadMorePhotos: async () => {
-                    const btn = document.querySelector('#load-more-container button');
+                    const isSearch = app.currentViewMode === 'search';
+                    const btnContainerId = isSearch ? 'search-load-more-container' : 'load-more-container';
+                    const gridId = isSearch ? 'search-photo-grid' : 'photo-grid';
+
+                    const btn = document.querySelector(`#${btnContainerId} button`);
                     const originalText = btn.innerHTML;
                     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tải...';
                     btn.disabled = true;
 
                     const start = app.loadedCount;
                     const end = start + 11;
-                    const grid = document.getElementById('photo-grid');
+                    const grid = document.getElementById(gridId);
 
-                    if (app.currentViewMode === 'search') {
+                    if (isSearch) {
                         const photos = app.currentSearchResults.slice(start, end + 1);
                         if (photos.length > 0) {
                             grid.innerHTML += photos.map(p => app.views.renderPhotoCard(p)).join('');
                             app.loadedCount += photos.length;
                             if (app.loadedCount >= app.currentSearchResults.length) {
-                                document.getElementById('load-more-container').classList.add('hidden');
+                                document.getElementById('search-load-more-container').classList.add('hidden');
                             } else {
-                                document.getElementById('load-more-container').classList.remove('hidden');
+                                document.getElementById('search-load-more-container').classList.remove('hidden');
                             }
                         } else {
-                            document.getElementById('load-more-container').classList.add('hidden');
+                            document.getElementById('search-load-more-container').classList.add('hidden');
                         }
                     } else {
                         const { data: photos } = await window.sb
@@ -5197,7 +5313,6 @@
                         if (photos && photos.length > 0) {
                             grid.innerHTML += photos.map(p => app.views.renderPhotoCard(p)).join('');
                             app.loadedCount += photos.length;
-
                             if (photos.length < 12) document.getElementById('load-more-container').classList.add('hidden');
                         } else {
                             document.getElementById('load-more-container').classList.add('hidden');
@@ -5212,34 +5327,26 @@
                     const safePlate = app.utils.displayPlate(app.utils.cleanText(p.license_plate));
                     const safeOp = app.utils.cleanText(p.operator || 'Đã bị xóa');
                     const safeUser = app.utils.cleanText(p.profiles?.username || 'Ẩn danh');
-                    const proxyUrl = app.utils.getProxiedUrl(p.url, `${safePlate}.jpg`);
+
+                    // Sử dụng mode 'thumb' để tối ưu kích thước ảnh preview
+                    const proxyUrl = app.utils.getProxiedUrl(p.url, `${safePlate}.jpg`, 'thumb');
+
+                    // Lấy Ngày chụp (taken_at) thay vì Ngày đăng
+                    const dateStr = p.taken_at ? p.taken_at.split('T')[0].split('-').reverse().join('/') : new Date(p.created_at).toLocaleDateString('vi-VN');
 
                     return `
                         <div class="bg-white border border-vbs-border hover:shadow-md cursor-pointer rounded-md overflow-hidden transition-all flex flex-col" onclick="app.views.loadDetail(${p.id})">
-                            
-                            <!-- Khung ảnh 4:3 -->
                             <div class="img-wrapper relative w-full aspect-[4/3] bg-gray-100 overflow-hidden shrink-0">
-                                <!-- Vòng tròn Loading -->
                                 <div class="img-spinner absolute inset-0 flex items-center justify-center text-gray-400">
                                     <i class="fa-solid fa-circle-notch fa-spin text-2xl"></i>
                                 </div>
-                                
-                                <!-- Ảnh thật (Mặc định ẩn opacity-0) -->
-                                <img loading="lazy" src="${proxyUrl}" 
+                                <img loading="lazy" src="${proxyUrl}"
                                      onload="app.utils.handleImgLoad(this)"
                                      onerror="app.utils.handleImgError(this)"
-                                     alt="Xe buýt ${safePlate}" 
+                                     alt="Xe buýt ${safePlate}"
                                      class="absolute inset-0 w-full h-full object-cover opacity-0 transition-all duration-500 hover:scale-105">
-                                
-                                <!-- Thông báo Lỗi (Mặc định ẩn) -->
                                 <div class="img-error absolute inset-0 hidden flex-col items-center justify-center p-4 text-center bg-red-50/50">
                                     <i class="fa-solid fa-image-slash text-red-400 text-2xl mb-2"></i>
-                                    <p class="text-[11px] text-gray-700 font-bold mb-1">Ảnh hiện không thể được tải, bạn có thể thử:</p>
-                                    <ul class="text-[10px] text-gray-600 text-left list-disc pl-4 mb-2">
-                                        <li>Báo cáo với bộ phận CSKH</li>
-                                        <li>Thử lại sau ít phút</li>
-                                    </ul>
-                                    <p class="text-[9px] text-gray-400 italic">Bạn có thể truy cập vào <a href="/status" target="_blank" class="text-blue-600 hover:underline font-medium">đây</a> để kiểm tra trạng thái server. Xin cảm ơn sự thấu hiểu của bạn!</p>
                                 </div>
                             </div>
 
@@ -5250,7 +5357,7 @@
                                 </div>
                                 <div class="text-[10px] text-gray-400 mt-2 flex justify-between">
                                     <span>${safeUser}</span>
-                                    <span>${new Date(p.created_at).toLocaleDateString('vi-VN')}</span>
+                                    <span><i class="fa-regular fa-calendar mr-1"></i>${dateStr}</span>
                                 </div>
                             </div>
                         </div>
@@ -7660,10 +7767,25 @@
                         const result = await response.json();
 
                         if (!result.success) {
+                            // [MỚI] LOGIC TỰ ĐỘNG XÓA ẢNH IMAGEKIT NẾU LƯU VÀO DATABASE THẤT BẠI
+                            if (result.url) {
+                                try {
+                                    console.log("Phát hiện lỗi Database, đang tự động thu hồi ảnh trên ImageKit...");
+                                    await fetch('/api/delete-image', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'Authorization': `Bearer ${token}`
+                                        },
+                                        body: JSON.stringify({ imageUrl: result.url })
+                                    });
+                                } catch (delErr) {
+                                    console.error("Lỗi khi rollback xóa ảnh ImageKit:", delErr);
+                                }
+                            }
 
                             let errorDetail = result.error;
                             if (typeof errorDetail === 'object' && errorDetail !== null) {
-
                                 errorDetail = errorDetail.message || JSON.stringify(errorDetail);
                             }
                             throw new Error(errorDetail || 'Máy chủ từ chối yêu cầu Upload.');
@@ -8292,13 +8414,19 @@
 
 
 
-                getProxiedUrl: (url, filename = 'image.jpg') => {
+                getProxiedUrl: (url, filename = 'image.jpg', type = 'full') => {
                     if (!url) return '';
 
                     const safeName = filename.replace(/[^a-z0-9A-Z.-]/gi, '_');
 
                     if (url.includes('catbox.moe') || url.includes('postimg.cc') || url.includes('supabase.co')) {
-                        return `https://wsrv.nl/${encodeURIComponent(safeName)}?url=${encodeURIComponent(url)}&we`;
+                        let wsrvUrl = `https://wsrv.nl/${encodeURIComponent(safeName)}?url=${encodeURIComponent(url)}&we`;
+
+                        // Nếu là ảnh xem trước (grid), bóp độ phân giải xuống để load siêu nhanh
+                        if (type === 'thumb') {
+                            wsrvUrl += '&w=400&h=300&fit=cover';
+                        }
+                        return wsrvUrl;
                     }
                     return url;
                 },
