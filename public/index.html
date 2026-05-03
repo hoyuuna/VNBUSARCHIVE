@@ -5916,7 +5916,8 @@
 
                         const pageTitle = `Hồ sơ xe ${vehicle.license_plate} | VNBUSARCHIVE`;
                         const allPhotos = allPhotosRes.data || [];
-                        const topPhoto = allPhotos.length > 0 ? allPhotos.slice().sort((a, b) => (b.views || 0) - (a.views || 0))[0] : null;
+                        // Lấy ảnh ở đầu danh sách (mới chụp nhất theo taken_at)
+                        const topPhoto = allPhotos.length > 0 ? allPhotos[0] : null;
 
 
                         const specialRoutes = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động'];
@@ -6024,7 +6025,7 @@
                         const html = `
                             <div class="flex flex-col lg:flex-row gap-6">
                                 <div class="w-full lg:w-1/3 space-y-6">
-                                    ${topPhoto ? `<div class="bg-white border border-vbs-border shadow-sm rounded-lg"><img src="${app.utils.getProxiedUrl(topPhoto.url)}" class="w-full h-auto object-cover rounded-t-lg cursor-pointer" onclick="app.views.loadDetail(${topPhoto.id})"><p class="text-[10px] text-center p-1 bg-gray-50 rounded-b-lg font-bold text-gray-500">Ảnh được xem nhiều nhất</p></div>` : '<div class="aspect-video bg-gray-100 flex items-center justify-center text-gray-400 rounded-lg">Chưa có ảnh</div>'}
+                                    ${topPhoto ? `<div class="bg-white border border-vbs-border shadow-sm rounded-lg overflow-hidden relative group"><img src="${app.utils.getProxiedUrl(topPhoto.url)}" class="w-full h-auto object-cover cursor-pointer group-hover:scale-105 transition-transform duration-500" onclick="app.views.loadDetail(${topPhoto.id})"></div>` : '<div class="aspect-video bg-gray-100 flex items-center justify-center text-gray-400 rounded-lg">Chưa có ảnh</div>'}
                                     
                                     <div class="bg-white border border-vbs-border shadow-sm rounded-lg p-4">
                                         <div class="flex justify-between items-start mb-4 pb-3 border-b">
