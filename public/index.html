@@ -4901,6 +4901,7 @@
 
                     if (id === 'auth') {
                         window.dispatchEvent(new CustomEvent('auth-opened'));
+                        app.utils.resetTurnstile('#auth .cf-turnstile'); // <-- Thêm dòng này
                     }
 
                     const searchBox = document.getElementById('header-search-box');
@@ -4919,6 +4920,7 @@
                         if (id === 'upload') {
                             app.upload.fetchRequirements();
                             setTimeout(() => app.uploadMap.invalidateSize(), 200);
+                            app.utils.resetTurnstile('#upload .cf-turnstile'); // <-- Thêm dòng này (Lấy token tươi mới)
                         }
                     } else {
                         searchBox.classList.remove('hidden');
@@ -8135,6 +8137,25 @@
             },
 
             utils: {
+                // Thêm hàm resetTurnstile dùng chung này vào đầu object utils
+                resetTurnstile: (selector) => {
+                    if (window.turnstile) {
+                        const containers = document.querySelectorAll(selector);
+                        containers.forEach(container => {
+                            try {
+                                const input = container.querySelector('input[name="cf-turnstile-response"]');
+                                let realWidgetId = null;
+                                if (input && input.id) {
+                                    const match = input.id.match(/cf-chl-widget-(.*?)_response/);
+                                    if (match) realWidgetId = match[1];
+                                }
+                                if (realWidgetId) window.turnstile.reset(realWidgetId);
+                                else window.turnstile.reset(container);
+                            } catch (e) { console.error("Turnstile reset error:", e); }
+                        });
+                    }
+                },
+
                 isIOS: () => {
                     return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
                 },
@@ -8179,23 +8200,10 @@
                         document.getElementById('locked-msg')?.classList.add('hidden');
                         app.vehicleLocked = false;
                         document.getElementById('plate-msg').innerText = '';
-                        
-                        const uploadTurnstileContainer = document.querySelector('#upload .cf-turnstile');
-                        if (uploadTurnstileContainer && window.turnstile) {
-                            const input = uploadTurnstileContainer.querySelector('input[name="cf-turnstile-response"]');
-                            let realWidgetId = null;
-                            
-                            if (input && input.id) {
-                                const match = input.id.match(/cf-chl-widget-(.*?)_response/);
-                                if (match) realWidgetId = match[1];
-                            }
-                            
-                            if (realWidgetId) {
-                                window.turnstile.reset(realWidgetId);
-                            } else {
-                                window.turnstile.reset(uploadTurnstileContainer);
-                            }
-                        }
+
+                        // Gọi hàm reset mới, cực kỳ gọn gàng
+                        app.utils.resetTurnstile('#upload .cf-turnstile');
+                        app.utils.resetTurnstile('#auth .cf-turnstile');
                     }
 
                     app.ui.closeUploadProgress();
@@ -8205,12 +8213,12 @@
                     if(app.crop && app.crop.close) app.crop.close();
                     if(app.docs && app.docs.close) app.docs.close();
                     if(app.settings && app.settings.close) app.settings.close();
-                    
+
                     document.getElementById('search-filter-menu')?.classList.remove('active');
                     app.ui.toggleUserMenu(false);
 
                     if (app.edit && app.edit.isEditing) app.edit.cancel();
-                    
+
                     app.ui.unlockScroll();
                 },
 
@@ -9076,19 +9084,9 @@
                         msgEl.innerText = errorMsg;
 
 
+                        // Gọi hàm bắt lỗi Turnstile mới
                         if (window.turnstile) {
-                            const authTurnstileContainer = document.querySelector('#auth .cf-turnstile');
-                            if (authTurnstileContainer) {
-                                const input = authTurnstileContainer.querySelector('input[name="cf-turnstile-response"]');
-                                let realWidgetId = null;
-                                if (input && input.id) {
-                                    const match = input.id.match(/cf-chl-widget-(.*?)_response/);
-                                    if (match) realWidgetId = match[1];
-                                }
-                                
-                                if (realWidgetId) window.turnstile.reset(realWidgetId);
-                                else window.turnstile.reset(authTurnstileContainer);
-                            }
+                            app.utils.resetTurnstile('#auth .cf-turnstile');
                         }
                     } finally {
                         btn.disabled = false;
@@ -9883,8 +9881,9 @@ changePassword: async () => {
                     errorBox.innerText = errMsg;
                     errorBox.classList.remove('hidden');
 
+                    // Thay đổi Onclick của nút "Thử lại" dưới đây:
                     actions.innerHTML = `
-                        <button onclick="app.utils.cleanupState(); window.scrollTo({ top: 0, behavior: 'smooth' });" class="flex-1 bg-white border border-gray-300 text-gray-700 py-2.5 rounded-md font-bold text-xs hover:bg-gray-50 transition shadow-sm">Thử lại</button>
+                        <button onclick="app.ui.closeUploadProgress(); app.utils.resetTurnstile('#upload .cf-turnstile');" class="flex-1 bg-white border border-gray-300 text-gray-700 py-2.5 rounded-md font-bold text-xs hover:bg-gray-50 transition shadow-sm">Thử lại</button>
                         <button onclick="app.utils.navigate('/');" class="flex-1 bg-black text-white py-2.5 rounded-md font-bold text-xs hover:bg-gray-800 transition shadow-sm">Trang chủ</button>
                     `;
                     actions.classList.remove('hidden');
