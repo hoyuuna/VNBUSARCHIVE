@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "build": "echo \"const FIREBASE_URL = '$FIREBASE_BUS_URL';\" > public/token.js"
+  },
   "dependencies": {
     "@supabase/supabase-js": "^2.89.0",
     "discord-interactions": "^3.4.0",
