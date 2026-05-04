@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
     <title>HBDS Map</title>
-    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="icon" type="image/png" href="/hbds-map/logo.png">
     
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -289,7 +289,7 @@
         
         <div class="header-branding">
             <div class="logo-title-row">
-                <img src="logo.png" alt="Logo" class="top-logo" draggable="false">
+                <img src="/hbds-map/logo.png" alt="Logo" class="top-logo" draggable="false">
                 <span class="app-title">HBDS Map</span>
             </div>
             <div class="sponsor-text">
@@ -467,7 +467,7 @@
             return [lat, lng];
         }
 
-        const stopIcon = L.icon({ iconUrl: 'stop.png', iconSize:[26, 26], iconAnchor:[13, 13] });
+        const stopIcon = L.icon({ iconUrl: '/hbds-map/stop.png', iconSize:[26, 26], iconAnchor:[13, 13] });
         let renderedStops = {}; 
         const ZOOM_THRESHOLD = 16; 
 
@@ -579,7 +579,7 @@
                         const imgElem = activeBuses[busId].getElement().querySelector('img');
                         if(imgElem) imgElem.style.transform = `rotate(${rotationDeg}deg)`;
                     } else {
-                        const busHtml = `<img src="bus.png" class="bus-marker-img" style="transform: rotate(${rotationDeg}deg);" />`;
+                        const busHtml = `<img src="/hbds-map/bus.png" class="bus-marker-img" style="transform: rotate(${rotationDeg}deg);" />`;
                         // Cập nhật lại iconSize và iconAnchor
                         const icon = L.divIcon({ html: busHtml, className: '', iconSize:[17, 17], iconAnchor:[8.5, 8.5] });
 
