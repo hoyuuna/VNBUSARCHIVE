@@ -324,14 +324,36 @@
         <div class="sheet-content" id="sheetContent"></div>
     </div>
 
-    
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="/token.js"></script>
 
     <script>
-        // FIREBASE_URL is loaded from token.js
-        const STOPS_JSON_URL = "/hbds-map/stops.json"; 
-        
+        let FIREBASE_URL = ""; // Khởi tạo biến trống
+
+        // 1. Hàm khởi tạo ứng dụng sau khi lấy được config
+        async function initApp() {
+            try {
+                const response = await fetch('/api/config'); // Gọi đến serverless function
+                const config = await response.json();
+                FIREBASE_URL = config.FIREBASE_URL;
+
+                if (!FIREBASE_URL) {
+                    console.error("Không tìm thấy FIREBASE_URL trong Environment Variables!");
+                    return;
+                }
+
+                // Sau khi có URL mới bắt đầu chạy các hàm fetch dữ liệu
+                loadStopsData();
+                setInterval(fetchBuses, 10000);
+                fetchBuses();
+
+            } catch (err) {
+                console.error("Lỗi lấy cấu hình từ server:", err);
+            }
+        }
+
+        // 2. Các logic bản đồ giữ nguyên (nhưng lưu ý dời việc gọi hàm vào initApp)
+        const STOPS_JSON_URL = "/hbds-map/stops.json";
         const map = L.map('map', { zoomControl: false }).setView([21.0258210, 105.8020055], 15);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
 
@@ -554,6 +576,7 @@
         // ---------- ĐẾN ĐÂY ----------
 
         async function fetchBuses() {
+            if (!FIREBASE_URL) return; // Nếu chưa có URL thì thoát
             try {
                 const response = await fetch(FIREBASE_URL);
                 const data = await response.json();
@@ -732,9 +755,8 @@
             sheet.classList.add('active');
         }
 
-        loadStopsData();
-        setInterval(fetchBuses, 10000); 
-        fetchBuses();
+        // 3. Cuối cùng, gọi hàm khởi động
+        initApp();
 
     </script>
 </body>
