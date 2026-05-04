@@ -326,11 +326,11 @@
 
     
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="token.js"></script>
+    <script src="/token.js"></script>
 
     <script>
         // FIREBASE_URL is loaded from token.js
-        const STOPS_JSON_URL = "stops.json"; 
+        const STOPS_JSON_URL = "/hbds-map/stops.json"; 
         
         const map = L.map('map', { zoomControl: false }).setView([21.0258210, 105.8020055], 15);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
