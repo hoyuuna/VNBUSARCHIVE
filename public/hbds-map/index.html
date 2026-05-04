@@ -716,19 +716,11 @@
                 let busListHtml = '';
                 
                 if (busesOnRoute.length > 0) {
-                    const uniqueBuses = {};
-
-                    busesOnRoute.forEach(([id, b]) => {
+                    const finalBuses = busesOnRoute.map(([id, b]) => {
                         const distMeters = map.distance([stop.lat, stop.lng], b.latLng);
                         const timeMin = Math.ceil(distMeters / AVG_SPEED_METERS_PER_MIN);
-                        const plate = b.plate || "UNKNOWN";
-                        
-                        if (!uniqueBuses[plate] || distMeters < uniqueBuses[plate].distMeters) {
-                            uniqueBuses[plate] = { id, b, distMeters, timeMin };
-                        }
-                    });
-
-                    const finalBuses = Object.values(uniqueBuses).sort((a, b) => a.timeMin - b.timeMin);
+                        return { id, b, distMeters, timeMin };
+                    }).sort((a, b) => a.timeMin - b.timeMin);
 
                     finalBuses.forEach(item => {
                         const distText = item.distMeters < 1000 ? `${Math.round(item.distMeters)} m` : `${(item.distMeters / 1000).toFixed(1)} km`;
