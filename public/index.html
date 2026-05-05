@@ -3056,14 +3056,17 @@
                         }
 
                         if (mode === 'main') {
-                            // Ẩn nút chọn tỉ lệ vì hệ thống giờ bắt buộc 4:3
-                            if(ratioContainer) ratioContainer.classList.add('hidden');
+                            // Hiện lại thanh chọn tỉ lệ (16:9, 3:2, 4:3)
+                            if(ratioContainer) ratioContainer.classList.remove('hidden');
 
                             app.crop.cropper = new Cropper(img, {
-                                aspectRatio: 4/3, // Bắt buộc tỉ lệ 4:3
+                                aspectRatio: 4/3, // Tỉ lệ mặc định ban đầu là 4:3, nhưng được phép chọn cái khác
                                 viewMode: 1,
                                 autoCropArea: 1,
                             });
+
+                            // Highlight đúng nút 4:3 lúc mới mở
+                            app.crop.updateRatioButtons(4/3);
                         } else if (mode === 'avatar') {
                             if(ratioContainer) ratioContainer.classList.add('hidden');
                             app.crop.cropper = new Cropper(img, {
@@ -7228,9 +7231,13 @@
                             }
 
                             const ratio = w / h;
-                            const isExact4by3 = Math.abs(ratio - (4/3)) < 0.05;
+                            // Cho phép sai số nhỏ do ảnh có thể bị lệch vài pixel
+                            const is4by3 = Math.abs(ratio - (4/3)) < 0.05;
+                            const is3by2 = Math.abs(ratio - (3/2)) < 0.05;
+                            const is16by9 = Math.abs(ratio - (16/9)) < 0.05;
 
-                            if (!isExact4by3) {
+                            // Nếu ảnh không khớp 1 trong 3 tỉ lệ chuẩn thì mới ép mở bảng Cắt
+                            if (!is4by3 && !is3by2 && !is16by9) {
                                 app.crop.open('main', file, true);
                             } else {
                                 app.upload.setupPreview(file);
