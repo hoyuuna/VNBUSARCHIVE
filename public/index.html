@@ -2392,6 +2392,9 @@
                             </p>
                         </div>
 
+                        <!-- KHUNG QUẢNG CÁO TRANG CHI TIẾT ẢNH -->
+                        <div id="detail-ad-container" class="mb-6 empty:hidden"></div>
+
                         <div class="bg-white mb-6 relative rounded-lg border border-vbs-border p-4 shadow-sm">
                             <div class="absolute top-0 right-0 m-4 flex gap-2 z-10">
                                 <button id="btn-toggle-edit" onclick="app.edit.toggleInlineEdit()"
@@ -3051,38 +3054,44 @@
                     const now = Date.now();
                     const validAds = app.ads.data.filter(ad => {
                         if (!ad.start_date) return true;
-
-                        // Đảm bảo parse theo UTC+7 nếu trong json không ghi múi giờ
+                        
                         let startString = ad.start_date;
                         if (!startString.includes('+') && !startString.includes('Z')) {
-                            startString += '+07:00';
+                            startString += '+07:00'; 
                         }
-
+                        
                         const startDate = new Date(startString).getTime();
-                        if (isNaN(startDate)) return false; // Bỏ qua nếu định dạng sai
-                        if (now < startDate) return false; // Chưa đến ngày bắt đầu
+                        if (isNaN(startDate)) return false; 
+                        if (now < startDate) return false; 
 
-                        // Kiểm tra chu kì tự ẩn (nếu có)
                         if (ad.cycle) {
                             const endDate = startDate + (ad.cycle * 24 * 60 * 60 * 1000);
-                            if (now > endDate) return false; // Đã hết hạn
+                            if (now > endDate) return false; 
                         }
                         return true;
                     });
 
                     if (validAds.length === 0) return '';
 
-                    // Lấy ngẫu nhiên 1 quảng cáo (tỉ lệ chia đều)
                     const selectedAd = validAds[Math.floor(Math.random() * validAds.length)];
-                    const imgTag = `<img src="${selectedAd.image_url}" class="w-full aspect-[5/1] object-cover rounded-lg shadow-sm border border-vbs-border transition hover:shadow-md">`;
+                    const imgTag = `<img src="${selectedAd.image_url}" class="w-full aspect-[5/1] object-cover rounded-lg shadow-sm border border-vbs-border transition hover:shadow-md block">`;
+                    
+                    // Nhãn QC nằm ở góc phải bên dưới
+                    const qcLabel = `<div class="absolute bottom-2 right-2 bg-black/80 backdrop-blur-sm text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm pointer-events-none z-10 tracking-widest">QC</div>`;
 
                     if (selectedAd.link) {
-                        return `<a href="${selectedAd.link}" target="_blank" class="block w-full cursor-pointer">${imgTag}</a>`;
+                        return `<a href="${selectedAd.link}" target="_blank" class="block w-full cursor-pointer relative">${imgTag}${qcLabel}</a>`;
                     }
-                    return `<div class="block w-full">${imgTag}</div>`;
+                    return `<div class="block w-full relative">${imgTag}${qcLabel}</div>`;
                 },
                 renderHomeAd: () => {
                     const container = document.getElementById('home-ad-container');
+                    if (container) {
+                        container.innerHTML = app.ads.getAdHtml();
+                    }
+                },
+                renderDetailAd: () => {
+                    const container = document.getElementById('detail-ad-container');
                     if (container) {
                         container.innerHTML = app.ads.getAdHtml();
                     }
@@ -5454,8 +5463,10 @@
                     if (!isDenied) {
                         await window.sb.from('photos').update({ views: views }).eq('id', photoId);
                     }
-
                     document.getElementById('detail-title').innerText = `${app.utils.displayPlate(photo.license_plate)} - ${snapshot.operator || 'Đã bị xóa'}`;
+
+                    app.ads.renderDetailAd(); // <-- HIỆN QUẢNG CÁO Ở ĐÂY
+
                     const pageTitle = `${app.utils.displayPlate(photo.license_plate)} - ${snapshot.operator || 'Đã bị xóa'} | VNBUSARCHIVE`;
                     const pageDesc = `Ảnh chụp chi tiết xe buýt/xe khách ${app.utils.displayPlate(photo.license_plate)} thuộc đơn vị ${snapshot.operator}, dòng xe ${snapshot.model}.`;
                     const pageImg = app.utils.getProxiedUrl(photo.url);
