@@ -18,7 +18,8 @@ Chúng tôi tìm kiếm những bức ảnh có chủ đích nhiếp ảnh rõ r
 * **Không chụp vội:** Tuyệt đối từ chối các bức ảnh chụp vội vã, tiện tay khi đang đi đường, góc máy méo mó hoặc thiếu sự chuẩn bị.
 * **Đúng chủ thể & Trọn vẹn:** Xe phải là đối tượng chính. Khung hình phải lấy trọn vẹn chiếc xe, **không bị cắt xén** các bộ phận quan trọng (đầu, đuôi, nóc, bánh xe) hoặc góc chụp quá sát (trừ trường hợp tạo nên chất nghệ thuật riêng).
 * **Không bị che khuất:** Chủ thể không bị che lấp đáng kể bởi các phương tiện khác, người đi đường, cột điện, biển báo hay cây cối.
-* **Khung hình ngay ngắn:** Ảnh không bị quá nghiêng lệch. Tỉ lệ khung hình bắt buộc là ảnh ngang `4:3`.
+* **Khung hình ngay ngắn:** Ảnh không bị quá nghiêng lệch. Tỉ lệ khung hình bắt buộc là ảnh ngang `4:3`, `3:2` hoặc `16:9`.
+* **Đảm bảo tính thẩm mỹ:** Ảnh chụp phải đảm bảo không xuất hiện rác thải, đồ vật dơ bẩn, vết bẩn lớn trên nền hoặc các chi tiết phản cảm khác.
 
 ### 3. Yêu cầu nhận diện (Bắt buộc)
 * **Biển kiểm soát (BKS) phải đọc được:** Khung hình bắt buộc phải thể hiện rõ biển số của phương tiện để phục vụ việc tra cứu dữ liệu.
