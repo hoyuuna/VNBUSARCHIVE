@@ -2,7 +2,7 @@
 
 **VNBUSARCHIVE** là một dự án cộng đồng phi lợi nhuận nhằm mục đích lưu trữ, bảo tồn hình ảnh và lịch sử của các phương tiện xe buýt tại Việt Nam.
 
-🌐 **Website chính thức:** [https://vnbusarchive.qzz.io/](https://vnbusarchive.qzz.io/)
+🌐 **Website chính thức:** [https://www.vnbusarchive.io.vn/](https://www.vnbusarchive.io.vn/)
 
 ---
 
