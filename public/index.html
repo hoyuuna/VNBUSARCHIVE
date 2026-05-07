@@ -4529,6 +4529,9 @@
                         .order('created_at', { ascending: false })
                         .limit(500);
 
+// BẮT LỖI RACE CONDITION
+                    if (app.currentViewMode !== 'search') return;
+
                     if (error) throw error;
 
                     if (!results || results.length === 0) {
@@ -4804,6 +4807,9 @@
                         .order('views', { ascending: false, nullsFirst: false })
                         .limit(5);
 
+// BẮT LỖI RACE CONDITION
+                    if (app.currentViewMode !== 'home') return;
+
                     const heroMain = document.getElementById('hero-main');
                     const heroSub = document.getElementById('hero-sub');
 
@@ -4843,6 +4849,9 @@
                         .eq('status', 'approved')
                         .order('created_at', { ascending: false })
                         .range(0, 19);
+
+// BẮT LỖI RACE CONDITION
+                    if (app.currentViewMode !== 'home') return;
 
                     if (!photos || photos.length === 0) {
                         grid.innerHTML = '<div class="col-span-full text-center py-10">Chưa có ảnh nào.</div>';
@@ -5192,6 +5201,10 @@
 
                     const { data: profile } = await window.sb.from('profiles').select('id, username, avatar_url, role').eq('username', targetUsername).single();
 
+// BẮT LỖI RACE CONDITION
+                    const expectedPath = isOwnProfile ? '/profile' : `/user/${encodeURIComponent(targetUsername)}`;
+                    if (window.location.pathname !== expectedPath) return;
+
                     if (!profile) {
                         app.ui.showAlert("Không tìm thấy người dùng này.");
                         return app.views.loadHome();
@@ -5384,6 +5397,9 @@
                         .select(`*, profiles(id, username, avatar_url, role), vehicles(model)`)
                         .eq('id', photoId)
                         .single();
+
+// BẮT LỖI RACE CONDITION: Nếu trong lúc chờ API mà user nhấn back đổi URL thì bỏ qua không render
+                    if (window.location.pathname !== `/photo/${photoId}`) return;
 
                     if (!photo) return app.views.loadHome();
 
@@ -5708,6 +5724,9 @@
                                 .order('created_at', { ascending: false }),
                             window.sb.from('vehicle_history').select('*').eq('license_plate', plate).order('display_order', { ascending: true })
                         ]);
+
+// BẮT LỖI RACE CONDITION
+                    if (window.location.pathname !== `/vehicle/${encodeURIComponent(plate)}`) return;
 
                         const vehicle = vehicleRes.data;
                         if (!vehicle) {
