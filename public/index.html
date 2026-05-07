@@ -1872,9 +1872,17 @@
         <button type="button" x-show="mode === 'forgot' || mode === 'recovery'" x-cloak @click="mode = 'login'" class="text-sm font-bold text-vbs-dark hover:underline transition-colors drop-shadow-sm">&larr; Quay lại đăng nhập</button>
         <button type="button" x-show="mode !== 'forgot' && mode !== 'recovery'" onclick="app.utils.navigate('/')" class="text-xs font-semibold text-vbs-dark/70 hover:text-vbs-dark transition-colors drop-shadow-sm">&larr; Quay lại trang chủ</button>
     </div>
-</form>
+                </form>
 
-                    <p class="mt-5 text-[11px] text-gray-500 font-medium leading-relaxed drop-shadow-sm text-center max-w-xs mx-auto">
+                    <!-- Nút liên hệ hỗ trợ thêm mới -->
+                    <p class="mt-6 text-[11px] text-gray-500 font-medium drop-shadow-sm text-center">
+                        <a href="/contact" class="hover:text-black transition-colors underline decoration-gray-400 hover:decoration-black">
+                            <i class="fa-solid fa-headset mr-1"></i> Liên hệ hỗ trợ
+                        </a>
+                    </p>
+
+                    <!-- Text chính sách (Đã chỉnh lại margin-top từ 5 xuống 3 cho đều) -->
+                    <p class="mt-3 text-[11px] text-gray-500 font-medium leading-relaxed drop-shadow-sm text-center max-w-xs mx-auto">
                         Bằng việc sử dụng website, bạn đã mặc định đồng ý với<br>
                         <a href="https://github.com/hoyuuna/VNBUSARCHIVE/blob/main/Policy.md" target="_blank" class="text-gray-600 font-bold underline decoration-gray-400 hover:text-black hover:decoration-black transition-colors">chính sách của chúng tôi</a>.
                     </p>
@@ -2633,7 +2641,7 @@
                                     <h3 class="font-bold text-black text-sm">3. Qua Email</h3>
                                     <p class="text-xs text-gray-600 mt-1 mb-2.5 leading-relaxed">
                                         Gửi email về địa chỉ: <a href="mailto:lienhe@vnbusarchive.io.vn" class="font-bold text-blue-600 hover:underline">lienhe@vnbusarchive.io.vn</a><br>
-                                        Sử dụng cho các trường hợp cần trao đổi thông tin đính kèm tệp tin (khiếu nại, cấp quyền,...).
+                                        Sử dụng cho các trường hợp cần trao đổi thông tin quan trọng (khiếu nại, cấp quyền,...).
                                     </p>
                                     <div class="bg-amber-50 border border-amber-200 p-2.5 rounded-md text-[11px] text-amber-800 leading-relaxed">
                                         <i class="fa-solid fa-triangle-exclamation mr-1 text-amber-600"></i>
