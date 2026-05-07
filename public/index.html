@@ -3334,9 +3334,8 @@
                 app.utils.renderPagination('profile-pagination-container', page, totalPages, (newPage) => {
                     app.profilePage = newPage;
                     app.renderProfilePage(app._currentFilteredProfilePhotos || app._profilePhotosCache, newPage);
-                    
 
-                    document.getElementById('profile-photos-title')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
                 });
             },
             renderLikedPage: (photos, page) => {
@@ -3374,7 +3373,7 @@
                 app.utils.renderPagination('liked-pagination-container', page, totalPages, (newPage) => {
                     app.likedPage = newPage;
                     app.renderLikedPage(app._likedPhotosCache, newPage);
-                    document.getElementById('acc-liked-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
                 });
             },
             newsboard: {
@@ -8099,7 +8098,7 @@
                     if (totalPages <= 1) { container.innerHTML = ''; return; }
 
 
-                    const delta = 2;
+                    const delta = 1;
                     const middle = [];
 
                     for (let i = Math.max(2, currentPage - delta); i <= Math.min(totalPages - 1, currentPage + delta); i++) {
