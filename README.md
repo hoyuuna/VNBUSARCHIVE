@@ -17,7 +17,7 @@ Dự án được tạo ra với mong muốn xây dựng một bách khoa toàn 
 Vì đây là dự án phi lợi nhuận, mọi sự đóng góp về hình ảnh, dữ liệu lịch sử hay mã nguồn đều được hoan nghênh. 
 
 - **Tác giả / Quản trị viên:** Hoyuuna/nhanday
-- **Liên hệ:** [https://vnbusarchive.qzz.io/contact](https://vnbusarchive.qzz.io/contact) hoặc nghoanganhtuann@gmail.com
+- **Liên hệ:** [https://www.vnbusarchive.io.vn/contact](https://www.vnbusarchive.io.vn/contact) hoặc lienhe@vnbusarchive.io.vn
 
 **Ủng hộ dự án một ly cà phê 👇❤️**
 
