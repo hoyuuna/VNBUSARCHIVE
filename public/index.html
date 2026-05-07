@@ -2589,26 +2589,61 @@
                     </div>
 
                     <div
-                        class="bg-white border border-vbs-border rounded-lg shadow-sm overflow-hidden p-8 flex flex-col items-center justify-center min-h-[500px] text-center">
+                        class="bg-white border border-vbs-border rounded-lg shadow-sm overflow-hidden p-6 md:p-8 flex flex-col items-center justify-center min-h-[500px] text-center">
                         
                         <div
-                            class="w-20 h-20 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-4xl mb-5 border border-blue-100 shadow-sm">
+                            class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-3xl mb-4 border border-blue-100 shadow-sm">
                             <i class="fa-solid fa-headset"></i>
                         </div>
 
-                        <h2 class="text-2xl font-bold text-black mb-3 uppercase tracking-tight">Hỗ trợ trực tuyến</h2>
-
-                        <p class="text-sm text-gray-600 mb-8 max-w-md leading-relaxed">
-                            Để được hỗ trợ nhanh chóng, vui lòng sử dụng <b>biểu tượng tin nhắn ở góc dưới cùng bên phải màn hình</b> để trò chuyện trực tiếp với Ban Quản Trị.<br><br>
-                            Hoặc bạn cũng có thể liên hệ với chúng tôi qua Facebook/Messenger.
+                        <h2 class="text-2xl font-bold text-black mb-2 uppercase tracking-tight">Hỗ trợ trực tuyến</h2>
+                        <p class="text-sm text-gray-500 mb-8 max-w-md leading-relaxed">
+                            Vui lòng chọn một trong các phương thức dưới đây để liên hệ với Ban Quản Trị.
                         </p>
 
-                        <a href="https://www.facebook.com/vnbusarchive/" target="_blank"
-                            class="bg-[#1877F2] text-white px-8 py-3.5 rounded-md font-bold text-sm hover:bg-[#166fe5] transition shadow-md flex items-center gap-2 uppercase tracking-wide">
-                            <i class="fa-brands fa-facebook text-lg"></i> Liên hệ qua Facebook
-                        </a>
+                        <div class="w-full max-w-lg flex flex-col gap-4 text-left">
+                            <!-- Giải pháp 1: Intergram -->
+                            <div class="border border-gray-200 rounded-lg p-4 bg-gray-50 flex items-start gap-4">
+                                <div class="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
+                                    <i class="fa-solid fa-message"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-black text-sm">1. Chat trực tiếp (Khuyên dùng)</h3>
+                                    <p class="text-xs text-gray-600 mt-1 leading-relaxed">Sử dụng <b>biểu tượng tin nhắn ở góc dưới cùng bên phải màn hình</b> để trò chuyện trực tiếp với chúng tôi ngay trên website.</p>
+                                </div>
+                            </div>
 
-                        <p class="text-[11px] text-gray-400 mt-6 italic">
+                            <!-- Giải pháp 2: Facebook -->
+                            <a href="https://www.facebook.com/vnbusarchive/" target="_blank" class="border border-blue-200 rounded-lg p-4 bg-blue-50/50 flex items-start gap-4 hover:bg-blue-50 transition group cursor-pointer block">
+                                <div class="w-10 h-10 bg-[#1877F2] text-white rounded-full flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-105 transition-transform shadow-sm">
+                                    <i class="fa-brands fa-facebook-f text-lg"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-black text-sm group-hover:text-[#1877F2] transition-colors">2. Facebook Messenger</h3>
+                                    <p class="text-xs text-gray-600 mt-1 leading-relaxed">Nhắn tin cho Fanpage chính thức của VNBUSARCHIVE.</p>
+                                </div>
+                            </a>
+
+                            <!-- Giải pháp 3: Email -->
+                            <div class="border border-gray-200 rounded-lg p-4 flex items-start gap-4">
+                                <div class="w-10 h-10 bg-white text-gray-600 rounded-full flex items-center justify-center shrink-0 border border-gray-200 mt-0.5 shadow-sm">
+                                    <i class="fa-solid fa-envelope"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-black text-sm">3. Qua Email</h3>
+                                    <p class="text-xs text-gray-600 mt-1 mb-2.5 leading-relaxed">
+                                        Gửi email về địa chỉ: <a href="mailto:lienhe@vnbusarchive.io.vn" class="font-bold text-blue-600 hover:underline">lienhe@vnbusarchive.io.vn</a><br>
+                                        Sử dụng cho các trường hợp cần trao đổi thông tin đính kèm tệp tin (khiếu nại, cấp quyền,...).
+                                    </p>
+                                    <div class="bg-amber-50 border border-amber-200 p-2.5 rounded-md text-[11px] text-amber-800 leading-relaxed">
+                                        <i class="fa-solid fa-triangle-exclamation mr-1 text-amber-600"></i>
+                                        <b>Lưu ý:</b> Khi được admin trả lời, bạn sẽ nhận được thư từ địa chỉ <strong>ng********tuann@gmail.com</strong>. Chúng tôi <b>từ chối tiếp nhận</b> các email gửi trực tiếp vào địa chỉ gmail này ở lần đầu tiên.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p class="text-[11px] text-gray-400 mt-8 italic">
                             Thời gian phản hồi dự kiến: Vài giờ (Trong giờ hành chính).
                         </p>
                     </div>
