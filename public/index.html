@@ -410,14 +410,15 @@
             transition: all 0.15s;
             user-select: none;
         }
-        .page-btn:hover:not(:disabled) {
+        .page-btn:hover:not(:disabled):not(.active) {
             background: #f4f4f5;
             border-color: #a1a1aa;
         }
-        .page-btn.active {
+        .page-btn.active, .page-btn.active:hover {
             background: #09090b;
             color: #fff;
             border-color: #09090b;
+            cursor: default;
         }
         .page-btn:disabled {
             opacity: 0.35;
