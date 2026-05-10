@@ -5881,7 +5881,7 @@
                         const html = `
                             <div class="flex flex-col lg:flex-row gap-6">
                                 <div class="w-full lg:w-1/3 space-y-6">
-                                    ${topPhoto ? `<div class="bg-white border border-vbs-border shadow-sm rounded-lg overflow-hidden relative group"><img src="${app.utils.getProxiedUrl(topPhoto.url, 'vehicle-top.jpg', 'preview')}" class="w-full h-auto object-cover cursor-pointer group-hover:scale-105 transition-transform duration-500" onclick="app.views.loadDetail(${topPhoto.id})"></div>` : '<div class="aspect-video bg-gray-100 flex items-center justify-center text-gray-400 rounded-lg">Chưa có ảnh</div>'}
+                                    ${topPhoto ? `<div class="bg-white border border-vbs-border shadow-sm rounded-lg overflow-hidden relative group"><img src="${app.utils.getProxiedUrl(topPhoto.url, 'vehicle-top.jpg', 'thumb')}" class="w-full h-auto object-cover cursor-pointer group-hover:scale-105 transition-transform duration-500" onclick="app.views.loadDetail(${topPhoto.id})"></div>` : '<div class="aspect-video bg-gray-100 flex items-center justify-center text-gray-400 rounded-lg">Chưa có ảnh</div>'}
 
                                     <!-- THÊM BIẾN LẤY HTML QUẢNG CÁO Ở ĐÂY -->
                                     ${(() => {
@@ -8311,13 +8311,9 @@
                         // q-auto: Tự động tối ưu chất lượng ảnh để giảm dung lượng
                         let transformations = ['f-webp', 'q-auto'];
 
-                        // Nếu là ảnh thumbnail nhỏ (grid)
+                        // Nếu là ảnh thumbnail, thêm các tham số resize
                         if (type === 'thumb') {
                             transformations.push('w-400', 'h-300', 'c-at_max');
-                        }
-                        // [MỚI] Nếu là ảnh preview lớn hơn, giới hạn chiều cao 720px
-                        else if (type === 'preview') {
-                            transformations.push('h-720'); // Giới hạn chiều cao là 720px, chiều rộng sẽ tự động điều chỉnh theo tỷ lệ
                         }
 
                         // Ghép các tham số lại thành chuỗi và nối vào URL
@@ -8331,10 +8327,6 @@
 
                         if (type === 'thumb') {
                             wsrvUrl += '&w=400&h=300&fit=inside';
-                        }
-                        // [MỚI] Thêm xử lý cho preview trên wsrv.nl
-                        else if (type === 'preview') {
-                            wsrvUrl += '&h=720';
                         }
 
                         // Thêm &output=webp để wsrv.nl cũng trả về ảnh WebP
