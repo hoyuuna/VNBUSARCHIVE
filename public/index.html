@@ -8304,15 +8304,30 @@
 
                     const safeName = filename.replace(/[^a-z0-9A-Z.-]/gi, '_');
 
+                    // 1. XỬ LÝ RIÊNG CHO IMAGEKIT (Bỏ qua wsrv.nl để tiết kiệm Bandwidth)
+                    if (url.includes('ik.imagekit.io')) {
+                        if (type === 'thumb') {
+                            // tr=w-400,h-300: Giới hạn khung 400x300
+                            // c-at_max: Thu nhỏ giữ nguyên tỷ lệ, KHÔNG cắt xén (crop) nội dung
+                            const separator = url.includes('?') ? '&' : '?';
+                            return `${url}${separator}tr=w-400,h-300,c-at_max`;
+                        }
+                        // Nếu là ảnh Full (trang chi tiết), trả về link gốc
+                        return url;
+                    }
+
+                    // 2. XỬ LÝ CÁC NGUỒN KHÁC NHƯ CŨ (Catbox, Supabase, Postimg...)
                     if (url.includes('catbox.moe') || url.includes('postimg.cc') || url.includes('supabase.co')) {
                         let wsrvUrl = `https://wsrv.nl/${encodeURIComponent(safeName)}?url=${encodeURIComponent(url)}&we`;
 
                         // Nếu là ảnh xem trước (grid), bóp độ phân giải xuống để load siêu nhanh
                         if (type === 'thumb') {
-                            wsrvUrl += '&w=400&h=300&fit=cover';
+                            // Tôi cũng đổi fit=cover thành fit=inside ở đây để đồng bộ việc "không cắt nội dung"
+                            wsrvUrl += '&w=400&h=300&fit=inside';
                         }
                         return wsrvUrl;
                     }
+                    
                     return url;
                 },
 
