@@ -8,9 +8,7 @@ export default function handler(req, res) {
 
     // Khai báo các domain được phép lấy Key (Thêm domain test của bạn vào nếu cần)
     const allowedDomains =[
-        'vnbusarchive.qzz.io',
-        'localhost',      // Cho phép test dưới máy tính
-        'vercel.app'      // Cho phép các link deploy preview của Vercel
+        'vnbusarchive.io.vn'
     ];
 
     // Kiểm tra xem request có đến từ một trong các domain trên không
