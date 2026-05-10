@@ -3011,12 +3011,7 @@
         </div>
     </div> 
     <script>
-        const SUPABASE_URL = 'https://odhbctmncpvftxhqgfri.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9kaGJjdG1uY3B2ZnR4aHFnZnJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc0MjgzNTIsImV4cCI6MjA4MzAwNDM1Mn0.MW9wwTy8mHfllPit-Ed1qOA8wStNTkwjTFrNR-NWmmU';
-
         const DEFAULT_AVATAR = 'https://wsrv.nl/?url=https://files.catbox.moe/zzh1q1.png&we';
-
-        window.sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         // === CODE BẮT LỖI CONSOLE TỰ ĐỘNG ===
         window._consoleErrors =[];
@@ -9788,8 +9783,23 @@ changePassword: async () => {
             }
         };
 
-        document.addEventListener('DOMContentLoaded', () => {
-            app.init();
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // 1. Gọi API để lấy key cấu hình
+                const response = await fetch('/api/config');
+                if (!response.ok) throw new Error('Không thể tải cấu hình máy chủ');
+
+                const config = await response.json();
+
+                // 2. Khởi tạo Supabase client với key lấy từ API
+                window.sb = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_KEY);
+
+                // 3. Bắt đầu khởi động ứng dụng
+                app.init();
+            } catch (error) {
+                console.error("Lỗi khởi tạo hệ thống:", error);
+                document.getElementById('loading-screen').innerHTML = '<p style="color:red; text-align:center; padding: 20px;">Lỗi kết nối máy chủ. Vui lòng tải lại trang.</p>';
+            }
         });
     </script>
 
