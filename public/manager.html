@@ -307,16 +307,14 @@
     </div>
 
     <script>
-        // CONFIG SUPABASE
-        const SUPABASE_URL = 'https://odhbctmncpvftxhqgfri.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9kaGJjdG1uY3B2ZnR4aHFnZnJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc0MjgzNTIsImV4cCI6MjA4MzAwNDM1Mn0.MW9wwTy8mHfllPit-Ed1qOA8wStNTkwjTFrNR-NWmmU'; 
-        const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // 1. Khai báo biến sb (nhưng chưa khởi tạo ngay)
+        let sb = null;
 
         const app = {
             currentUser: null,
             allUsers:[],
             allLogs: [],
-            filteredLogs: [],
+            filteredLogs:[],
             currentLogsPage: 1,
             logsPerPage: 20,
 
@@ -404,7 +402,7 @@
                 try {
                     const obj = typeof details === 'string' ? JSON.parse(details) : details;
                     let html = `<div class="flex flex-col gap-2">`;
-                    for (const [key, value] of Object.entries(obj)) {
+                    for (const[key, value] of Object.entries(obj)) {
                         html += `<div><span class="text-sm font-medium text-muted-foreground">${key}:</span>`;
                         if (typeof value === 'object' && value !== null) {
                             html += `<pre class="mt-1 bg-secondary/30 p-2.5 rounded-md border border-border"><code class="text-xs text-foreground/90 whitespace-pre-wrap break-all">${JSON.stringify(value, null, 2)}</code></pre>`;
@@ -447,7 +445,7 @@
             filterLogs: (query) => {
                 const q = query.toLowerCase().trim();
                 if (!q) {
-                    app.filteredLogs = [...app.allLogs];
+                    app.filteredLogs =[...app.allLogs];
                 } else {
                     app.filteredLogs = app.allLogs.filter(log => {
                         const searchString = `${log.action_type} ${log.target_id || ''} ${log.profiles?.username || ''} ${JSON.stringify(log.details)}`.toLowerCase();
@@ -647,7 +645,25 @@
             }
         };
 
-        window.onload = app.init;
+        // 2. Tự động fetch API để lấy Key cấu hình khi trang tải xong
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const response = await fetch('/api/config');
+                if (!response.ok) throw new Error('Không thể tải cấu hình máy chủ');
+                
+                const config = await response.json();
+                
+                // 3. Khởi tạo sb
+                sb = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_KEY);
+                
+                // 4. Khởi chạy app
+                app.init();
+            } catch (error) {
+                console.error("Lỗi khởi tạo hệ thống:", error);
+                const loader = document.getElementById('global-loader');
+                loader.innerHTML = '<p class="text-destructive font-medium bg-destructive/10 p-4 rounded-md border border-destructive/20">Lỗi kết nối cấu hình máy chủ. Vui lòng tải lại trang.</p>';
+            }
+        });
     </script>
 </body>
 </html>
