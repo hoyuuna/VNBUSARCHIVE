@@ -1780,8 +1780,7 @@
                         x-transition:enter-start="opacity-0 translate-y-2"
                         x-transition:enter-end="opacity-100 translate-y-0" class="text-center mb-8">
                         <h2 class="text-xl font-bold text-vbs-dark drop-shadow-sm mb-2">Khôi phục mật khẩu</h2>
-                        <p class="text-sm font-medium text-vbs-dark/70 drop-shadow-sm">Nhập email của bạn để nhận liên
-                            kết đặt lại mật khẩu.</p>
+                        <p class="text-sm font-medium text-vbs-dark/70 drop-shadow-sm">Nhập email để nhận liên kết đặt lại mật khẩu.</p>
                     </div>
 
                     
@@ -1834,7 +1833,7 @@
     <div x-show="mode === 'recovery'" x-cloak>
         <div class="text-center mb-6">
             <h2 class="text-xl font-bold text-vbs-dark drop-shadow-sm mb-2">Thiết lập mật khẩu mới</h2>
-            <p class="text-sm font-medium text-vbs-dark/70 drop-shadow-sm">Vui lòng nhập mật khẩu mới cho tài khoản của bạn.</p>
+            <p class="text-sm font-medium text-vbs-dark/70 drop-shadow-sm">Nhập mật khẩu mới cho tài khoản.</p>
         </div>
         <label class="block text-sm font-semibold text-vbs-dark mb-1.5 drop-shadow-sm">Mật khẩu mới</label>
         <div class="relative">
@@ -1855,7 +1854,7 @@
 
     <!-- Nút Submit linh hoạt theo Mode -->
     <button type="submit" id="auth-submit-btn" class="w-full bg-vbs-dark text-white font-bold py-3.5 rounded-xl hover:bg-black transition-colors shadow-xl shadow-black/20 mt-2 flex justify-center items-center gap-2">
-        <span x-text="mode === 'login' ? 'Đăng nhập vào hệ thống' : (mode === 'register' ? 'Tạo tài khoản mới' : (mode === 'forgot' ? 'Gửi link khôi phục' : 'Lưu mật khẩu mới'))"></span>
+        <span x-text="mode === 'login' ? 'Đăng nhập' : (mode === 'register' ? 'Đăng ký' : (mode === 'forgot' ? 'Gửi liên kết' : 'Lưu mật khẩu'))"></span>
         <i class="fa-solid fa-arrow-right text-sm"></i>
     </button>
 
@@ -2070,12 +2069,12 @@
                             <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm">
                                 <h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Đổi Email</h3>
                                 <p class="text-[11px] md:text-xs text-gray-500 mb-3 leading-relaxed">
-                                    Bạn cần xác nhận mật khẩu để đổi email. Sau khi cập nhật, Supabase sẽ gửi 1 link xác nhận đến email mới. Bạn đang dùng: <b id="set-current-email" class="text-black">...</b>
+                                    Yêu cầu xác nhận mật khẩu hiện tại. Hệ thống sẽ gửi liên kết xác thực đến email mới. Email đang sử dụng: <b id="set-current-email" class="text-black">...</b>
                                 </p>
                                 <div class="space-y-3">
                                     <input type="email" id="set-ce-new" placeholder="Nhập địa chỉ email mới" autocomplete="off" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none transition">
                                     <input type="password" id="set-ce-password" placeholder="Nhập mật khẩu hiện tại để xác nhận" autocomplete="off" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none transition">
-                                    <button onclick="app.auth.changeEmail(this)" class="w-full bg-black text-white px-4 py-2.5 text-xs font-bold rounded-md hover:bg-gray-800 transition shadow-sm">Gửi yêu cầu đổi Email</button>
+                                    <button onclick="app.auth.changeEmail(this)" class="w-full bg-black text-white px-4 py-2.5 text-xs font-bold rounded-md hover:bg-gray-800 transition shadow-sm">Cập nhật Email</button>
                                 </div>
                             </div>
 
@@ -2085,14 +2084,14 @@
                                  <div class="space-y-3">
 <input type="password" id="set-cp-old" placeholder="Nhập mật khẩu hiện tại" autocomplete="off" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none transition">
                                       <input type="password" id="set-cp-new" placeholder="Nhập mật khẩu mới (Tối thiểu 6 ký tự)" autocomplete="new-password" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none transition">
-                                     <button onclick="app.auth.changePassword()" class="w-full bg-black text-white px-4 py-2.5 text-xs font-bold rounded-md hover:bg-gray-800 transition shadow-sm">Cập nhật mật khẩu mới</button>
+                                     <button onclick="app.auth.changePassword()" class="w-full bg-black text-white px-4 py-2.5 text-xs font-bold rounded-md hover:bg-gray-800 transition shadow-sm">Đổi mật khẩu</button>
                                  </div>
                              </div>
                             
                             
                             <div class="bg-red-50 p-4 md:p-5 rounded-lg border border-red-200 shadow-sm">
                                 <h3 class="font-bold text-xs md:text-sm text-red-600 mb-2 uppercase tracking-wide"><i class="fa-solid fa-triangle-exclamation mr-1.5"></i>Mã định danh (UUID)</h3>
-                                <p class="text-[10px] md:text-[11px] text-red-700 font-medium mb-3">Mã này dùng để Admin tra cứu hỗ trợ. <b class="text-black">Tuyệt đối không gửi cho người lạ.</b></p>
+                                <p class="text-[10px] md:text-[11px] text-red-700 font-medium mb-3">Mã định danh dùng cho hỗ trợ kỹ thuật. <b class="text-black">Tuyệt đối không chia sẻ cho người khác.</b></p>
                                 <div class="flex gap-2">
                                     <input type="password" id="set-uuid-input" readonly class="w-full border border-red-200 p-2.5 text-xs rounded-md bg-white font-mono text-center cursor-not-allowed text-red-800 focus:outline-none tracking-widest">
                                     <button onclick="app.auth.revealUUID()" id="set-reveal-uuid" class="bg-white border border-red-200 text-red-600 px-3 py-2.5 text-xs font-bold rounded-md hover:bg-red-50 transition shadow-sm shrink-0" title="Hiển thị mã"><i class="fa-solid fa-eye"></i></button>
@@ -2105,7 +2104,7 @@
                         <div id="set-content-links" class="space-y-4 md:space-y-6 hidden">
                             <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm">
                                 <h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Tài khoản liên kết</h3>
-                                <p class="text-[11px] md:text-xs text-gray-500 mb-4 leading-relaxed">Bạn có thể liên kết tài khoản Google hoặc Discord vào tài khoản hiện tại để đăng nhập nhanh hơn.</p>
+                                <p class="text-[11px] md:text-xs text-gray-500 mb-4 leading-relaxed">Liên kết Google hoặc Discord để đăng nhập nhanh hơn.</p>
                                 
                                 <div class="space-y-3" id="linked-accounts-container">
                                     <p class="text-xs text-gray-500"><i class="fa-solid fa-spinner fa-spin"></i> Đang kiểm tra liên kết...</p>
@@ -2366,16 +2365,14 @@
                             
                             <!-- Thêm dòng chữ mới vào đây -->
                             <p class="text-xs font-semibold text-red-700 ml-6 mb-1.5">
-                                Chúng tôi vẫn rất trân trọng sự đóng góp của bạn. Hi vọng bạn có thể thử lại lần sau!
+                                Cảm ơn bạn đã đóng góp. Vui lòng thử lại với hình ảnh khác đạt tiêu chuẩn.
                             </p>
                             
                             <p class="text-xs text-red-600 ml-6">
-                                Vui lòng tham khảo <a
+                                Vui lòng xem lại <a
                                     href="https://github.com/hoyuuna/VNBUSARCHIVE/blob/main/Requirements.md"
-                                    target="_blank" class="font-bold underline hover:text-red-800">yêu cầu</a> vào lần
-                                tới hoặc bấm vào <a href="/contact"
-                                    class="font-bold underline hover:text-red-800">đây</a> nếu bạn nghĩ đây là một sai
-                                lầm.
+                                    target="_blank" class="font-bold underline hover:text-red-800">quy định kiểm duyệt</a> hoặc <a href="/contact"
+                                    class="font-bold underline hover:text-red-800">liên hệ hỗ trợ</a> nếu cần khiếu nại.
                             </p>
                         </div>
 
@@ -2386,7 +2383,7 @@
                                 <span>Ảnh đang chờ duyệt</span>
                             </div>
                             <p class="text-xs text-yellow-700 ml-6">
-                                Ảnh của bạn đang trong trạng thái chờ duyệt, thường mất khoảng vài tiếng để có kết quả. Nếu bạn thay đổi ý định có thể xóa ngay lập tức mà không cần yêu cầu qua admin.
+                                Ảnh đang chờ duyệt. Bạn có thể chủ động xóa ngay lúc này nếu đổi ý.
                             </p>
                         </div>
 
@@ -2397,7 +2394,7 @@
                             </div>
                             <hr class="border-yellow-200 my-2">
                             <p class="text-xs text-yellow-700 ml-1">
-                                Thời gian chờ có thể tùy thuộc vào chất lượng ảnh, dòng xe, trạng thái hoạt động và tâm trạng của admin v.v....
+                                Thời gian duyệt phụ thuộc vào số lượng yêu cầu hiện tại trên hệ thống.
                             </p>
                         </div>
 
@@ -2818,7 +2815,7 @@
                                         Không chắc chắn? Tham khảo tại <a href="https://vnbusarchive.qzz.io/bus-route" target="_blank" class="text-blue-600 font-bold hover:underline">đây</a>.
                                     </p>
 
-                                    <p id="model-warning-msg" class="hidden text-[11px] mt-1 text-red-600 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> TỪ TỪ ĐÃ! Bạn chắc chắc đây là hai xe khác nhau không? Có thể nó chỉ đổi tuyến/đơn vị vận hành.</p>
+                                    <p id="model-warning-msg" class="hidden text-[11px] mt-1 text-red-600 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Cảnh báo: Dòng xe khác với dữ liệu hiện tại. Vui lòng đảm bảo đây không phải xe cũ được thuyên chuyển.</p>
                                 </div>
                                 <div>
                                     <label class="text-xs text-gray-500 font-bold block mb-1.5 uppercase">Vị trí chụp
@@ -5638,7 +5635,7 @@
                                     await window.sb.from('photos').update({ status: 'denied', denial_reason: reason }).eq('id', photo.id);
                                     await app.notifications.add(photo.uploader_id, `Ảnh ${photo.license_plate} của bạn đã bị Admin xóa. Lý do: ${reason}`);
                                     app.admin.logAction('admin_delete_from_detail', photo.id, { plate: photo.license_plate, reason: reason });
-                                    app.ui.showAlert("Đã tiêu hủy ảnh thành công!", () => app.views.loadHome());
+                                    app.ui.showAlert("Đã xóa ảnh thành công.", () => app.views.loadHome());
                                 } catch (e) { app.ui.showAlert("Lỗi: " + e.message); }
                             });
                         };
@@ -7528,7 +7525,7 @@
                     const captchaResponse = formData.get('cf-turnstile-response');
 
                     if (!captchaResponse) {
-                        return app.ui.showAlert("Vui lòng xác nhận Captcha (Tôi không phải là người máy). Nếu đã xác nhận từ quá lâu, hộp thoại đã hết hạn, vui lòng tải lại trang hoặc bấm xác nhận lại!");
+                        return app.ui.showAlert("Phiên xác thực Captcha đã hết hạn. Vui lòng tải lại trang hoặc xác thực lại.");
                     }
 
 
@@ -9200,7 +9197,7 @@ changePassword: async () => {
                     }
 
                     app.ui.showAlert(
-                        "DỪNG LẠI ĐÃ! Đổi tên hiển thị có thể sẽ khiến bạn mất quyền bảo hộ bản quyền cho những ảnh đã đăng do không thể tự động đổi tên trên dấu bản quyền của ảnh cũ. Bạn chắc chứ?",
+                        "Cảnh báo: Đổi tên hiển thị sẽ không làm thay đổi dấu bản quyền trên các ảnh đã duyệt trước đó. Bạn có chắc chắn muốn tiếp tục?",
                         async () => {
 
                             try {
@@ -9278,7 +9275,7 @@ changePassword: async () => {
                             copyBtn.classList.replace('hover:bg-green-700', 'hover:bg-red-700');
                         }, 2000);
                     }).catch(() => {
-                        app.ui.showAlert("Trình duyệt không hỗ trợ copy tự động. Vui lòng bôi đen và copy thủ công.");
+                        app.ui.showAlert("Trình duyệt không hỗ trợ sao chép tự động. Vui lòng sao chép thủ công.");
                         uuidInput.select();
                     });
                 }
@@ -9746,7 +9743,7 @@ changePassword: async () => {
 
                     title.innerText = 'Ảnh upload không thành công';
                     title.classList.replace('text-gray-900', 'text-red-600');
-                    desc.innerHTML = 'Hệ thống đã tự động ghi nhận chi tiết lỗi này và gửi báo cáo đến Ban Quản Trị. Bạn vui lòng thử lại sau nhé!';
+                    desc.innerHTML = 'Đã xảy ra lỗi. Hệ thống đã tự động gửi báo cáo đến Ban Quản Trị. Vui lòng thử lại sau.';
 
                     errorBox.innerText = errMsg;
                     errorBox.classList.remove('hidden');
