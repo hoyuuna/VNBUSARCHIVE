@@ -8304,27 +8304,32 @@
 
                     const safeName = filename.replace(/[^a-z0-9A-Z.-]/gi, '_');
 
-                    // 1. XỬ LÝ RIÊNG CHO IMAGEKIT (Bỏ qua wsrv.nl để tiết kiệm Bandwidth)
+                    // 1. TỐI ƯU TOÀN DIỆN CHO IMAGEKIT
                     if (url.includes('ik.imagekit.io')) {
+                        // Mảng chứa các biến đổi sẽ áp dụng cho ảnh
+                        // f-webp: Ép định dạng sang WebP
+                        // q-auto: Tự động tối ưu chất lượng ảnh để giảm dung lượng
+                        let transformations = ['f-webp', 'q-auto'];
+
+                        // Nếu là ảnh thumbnail, thêm các tham số resize
                         if (type === 'thumb') {
-                            // tr=w-400,h-300: Giới hạn khung 400x300
-                            // c-at_max: Thu nhỏ giữ nguyên tỷ lệ, KHÔNG cắt xén (crop) nội dung
-                            const separator = url.includes('?') ? '&' : '?';
-                            return `${url}${separator}tr=w-400,h-300,c-at_max`;
+                            transformations.push('w-400', 'h-300', 'c-at_max');
                         }
-                        // Nếu là ảnh Full (trang chi tiết), trả về link gốc
-                        return url;
+
+                        // Ghép các tham số lại thành chuỗi và nối vào URL
+                        const separator = url.includes('?') ? '&' : '?';
+                        return `${url}${separator}tr=${transformations.join(',')}`;
                     }
 
                     // 2. XỬ LÝ CÁC NGUỒN KHÁC NHƯ CŨ (Catbox, Supabase, Postimg...)
                     if (url.includes('catbox.moe') || url.includes('postimg.cc') || url.includes('supabase.co')) {
                         let wsrvUrl = `https://wsrv.nl/${encodeURIComponent(safeName)}?url=${encodeURIComponent(url)}&we`;
 
-                        // Nếu là ảnh xem trước (grid), bóp độ phân giải xuống để load siêu nhanh
                         if (type === 'thumb') {
-                            // Tôi cũng đổi fit=cover thành fit=inside ở đây để đồng bộ việc "không cắt nội dung"
                             wsrvUrl += '&w=400&h=300&fit=inside';
                         }
+                        // Thêm &output=webp để wsrv.nl cũng trả về ảnh WebP
+                        wsrvUrl += '&output=webp';
                         return wsrvUrl;
                     }
                     
