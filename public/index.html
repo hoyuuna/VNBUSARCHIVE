@@ -2884,6 +2884,11 @@
                     <button onclick="app.admin.loadTab('delete')" id="adm-tab-delete"
                         class="px-5 py-2 bg-white border border-gray-300 text-gray-600 font-bold rounded-md text-sm hover:bg-gray-50 transition whitespace-nowrap">Quản
                         lý Xóa (<span id="count-delete">0</span>)</button>
+
+                    <!-- THÊM NÚT NÀY VÀO ĐÂY -->
+                    <button onclick="app.admin.loadTab('manager')" id="adm-tab-manager"
+                        class="hidden px-5 py-2 bg-white border border-gray-300 text-gray-600 font-bold rounded-md text-sm hover:bg-gray-50 transition whitespace-nowrap">Quản
+                        lý (Manager)</button>
                 </div>
 
                 <div id="admin-content" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -4648,6 +4653,11 @@
                     if (app.role === 'admin' || app.role === 'manager') {
                         document.getElementById('nav-admin').classList.remove('hidden');
                         app.admin.checkNotification();
+
+                        // [THÊM MỚI] Hiển thị tab Quản lý nếu là Manager
+                        if (app.role === 'manager') {
+                            document.getElementById('adm-tab-manager').classList.remove('hidden');
+                        }
                     } else {
                         document.getElementById('nav-admin').classList.add('hidden');
                     }
@@ -6238,6 +6248,14 @@ if (app.user && app.role === 'manager' && isDenied) {
             admin: {
                 adminInterval: null,
 
+                // --- THÊM STATE CHO TAB MANAGER ---
+                manager: {
+                    activeTab: 'denied',
+                    denied: { data: [], filtered:[], page: 1, denierMap: {} },
+                    logs: { data: [], filtered:[], page: 1 }
+                },
+                // ----------------------------------
+
                 logAction: async (actionType, targetId, details) => {
                     if (!app.user) return;
                     try {
@@ -6326,9 +6344,16 @@ if (app.user && app.role === 'manager' && isDenied) {
                     const content = document.getElementById('admin-content');
                     content.innerHTML = '<p class="text-gray-500 italic p-4">Đang tải...</p>';
 
-                    document.getElementById('adm-tab-photos').className = tab === 'photos' ? "px-5 py-2 bg-black text-white font-bold rounded-md text-sm shadow-sm transition" : "px-5 py-2 bg-white border border-gray-300 text-gray-600 font-bold rounded-md text-sm hover:bg-gray-50 transition";
-                    document.getElementById('adm-tab-requests').className = tab === 'requests' ? "px-5 py-2 bg-black text-white font-bold rounded-md text-sm shadow-sm transition" : "px-5 py-2 bg-white border border-gray-300 text-gray-600 font-bold rounded-md text-sm hover:bg-gray-50 transition";
-                    document.getElementById('adm-tab-delete').className = tab === 'delete' ? "px-5 py-2 bg-black text-white font-bold rounded-md text-sm shadow-sm transition" : "px-5 py-2 bg-white border border-gray-300 text-gray-600 font-bold rounded-md text-sm hover:bg-gray-50 transition";
+                    // Update UI Buttons
+                    ['photos', 'requests', 'delete', 'manager'].forEach(t => {
+                        const btn = document.getElementById(`adm-tab-${t}`);
+                        if(!btn) return;
+                        if(t === tab) {
+                            btn.className = "px-5 py-2 bg-black text-white font-bold rounded-md text-sm shadow-sm transition whitespace-nowrap";
+                        } else {
+                            btn.className = "px-5 py-2 bg-white border border-gray-300 text-gray-600 font-bold rounded-md text-sm hover:bg-gray-50 transition whitespace-nowrap";
+                        }
+                    });
 
                     try {
                         if (tab === 'photos') {
@@ -6477,7 +6502,7 @@ if (app.user && app.role === 'manager' && isDenied) {
                             }).join('');
 
                             content.innerHTML = html;
-                        } else {
+                        } else if (tab === 'requests') {
                             let { data: reqs, error } = await window.sb.from('edit_requests').select('*').eq('status', 'pending');
                             if (error) throw error;
                             if (!reqs || reqs.length === 0) { content.innerHTML = '<p class="p-4">Không có yêu cầu nào.</p>'; return; }
@@ -6582,10 +6607,214 @@ if (app.user && app.role === 'manager' && isDenied) {
                                 }
                             }).join('');
                         }
+
+                        else if (tab === 'manager') {
+                            if (app.role !== 'manager') {
+                                content.innerHTML = '<p class="p-4 text-red-500 font-bold">Bạn không có quyền truy cập khu vực này.</p>';
+                                return;
+                            }
+
+                            content.className = "col-span-full";
+                            content.innerHTML = `
+                                <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-4 md:p-6 mb-6">
+                                    <div class="flex gap-2 mb-6 border-b border-gray-200 pb-3 overflow-x-auto">
+                                        <button onclick="app.admin.switchManagerTab('denied')" id="mgr-tab-denied" class="font-bold text-sm px-4 py-2 bg-black text-white rounded transition whitespace-nowrap">Ảnh bị từ chối</button>
+                                        <button onclick="app.admin.switchManagerTab('logs')" id="mgr-tab-logs" class="font-bold text-sm px-4 py-2 bg-white text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition whitespace-nowrap">Nhật ký hoạt động</button>
+                                    </div>
+
+                                    <!-- TAB: ẢNH BỊ TỪ CHỐI -->
+                                    <div id="mgr-sec-denied" class="block">
+                                        <div class="flex items-center gap-2 mb-4 bg-gray-50 border border-gray-200 rounded-md px-3">
+                                            <i class="fa-solid fa-magnifying-glass text-gray-400"></i>
+                                            <input type="text" placeholder="Tìm kiếm BKS, Lý do, Username..." class="w-full py-2.5 bg-transparent outline-none text-sm" oninput="app.admin.filterManagerData('denied', this.value)">
+                                        </div>
+                                        <div id="mgr-denied-content" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <p class="text-gray-500 italic text-sm py-4"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</p>
+                                        </div>
+                                        <div id="mgr-denied-pager" class="mt-6 w-full flex justify-center"></div>
+                                    </div>
+
+                                    <!-- TAB: NHẬT KÝ HOẠT ĐỘNG -->
+                                    <div id="mgr-sec-logs" class="hidden">
+                                        <div class="flex items-center gap-2 mb-4 bg-gray-50 border border-gray-200 rounded-md px-3">
+                                            <i class="fa-solid fa-magnifying-glass text-gray-400"></i>
+                                            <input type="text" placeholder="Tìm kiếm hành động, Admin, chi tiết..." class="w-full py-2.5 bg-transparent outline-none text-sm" oninput="app.admin.filterManagerData('logs', this.value)">
+                                        </div>
+                                        <div class="overflow-x-auto border border-gray-200 rounded-md">
+                                            <table class="w-full text-left text-sm whitespace-nowrap">
+                                                <thead class="bg-gray-50 border-b border-gray-200 text-gray-600 uppercase text-[11px] tracking-wider">
+                                                    <tr>
+                                                        <th class="p-3">Thời gian</th>
+                                                        <th class="p-3">Admin</th>
+                                                        <th class="p-3">Hành động</th>
+                                                        <th class="p-3">Mục tiêu (ID)</th>
+                                                        <th class="p-3 w-full">Chi tiết</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="mgr-logs-content" class="divide-y divide-gray-200">
+                                                    <tr><td colspan="5" class="p-4 text-center text-gray-500"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải...</td></tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div id="mgr-logs-pager" class="mt-6 w-full flex justify-center"></div>
+                                    </div>
+                                </div>
+                            `;
+
+                            app.admin.fetchManagerData('denied');
+                            app.admin.fetchManagerData('logs');
+                        }
+
                     } catch (err) {
                         content.innerHTML = `<p class="p-4 text-red-500 font-bold">Không thể tải dữ liệu: ${err.message}</p>`;
                     }
                 },
+
+                // --- CÁC HÀM XỬ LÝ RIÊNG CHO TAB MANAGER ---
+                switchManagerTab: (subTab) => {
+                    app.admin.manager.activeTab = subTab;
+
+                    document.getElementById('mgr-tab-denied').className = subTab === 'denied' ? "font-bold text-sm px-4 py-2 bg-black text-white rounded transition whitespace-nowrap" : "font-bold text-sm px-4 py-2 bg-white text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition whitespace-nowrap";
+                    document.getElementById('mgr-tab-logs').className = subTab === 'logs' ? "font-bold text-sm px-4 py-2 bg-black text-white rounded transition whitespace-nowrap" : "font-bold text-sm px-4 py-2 bg-white text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition whitespace-nowrap";
+
+                    document.getElementById('mgr-sec-denied').className = subTab === 'denied' ? "block" : "hidden";
+                    document.getElementById('mgr-sec-logs').className = subTab === 'logs' ? "block" : "hidden";
+                },
+
+                fetchManagerData: async (type) => {
+                    try {
+                        if (type === 'denied') {
+                            const { data: photos } = await window.sb.from('photos').select('*, profiles(username)').eq('status', 'denied').order('created_at', {ascending: false}).limit(500);
+
+                            // Lấy danh sách admin đã từ chối ảnh
+                            const { data: logs } = await window.sb.from('admin_audit_logs').select('target_id, profiles(username)').eq('action_type', 'deny_photo');
+
+                            const denierMap = {};
+                            if(logs) logs.forEach(l => { denierMap[l.target_id] = l.profiles?.username || 'Admin'; });
+
+                            app.admin.manager.denied.data = photos ||[];
+                            app.admin.manager.denied.denierMap = denierMap;
+                            app.admin.filterManagerData('denied', '');
+                        }
+                        else if (type === 'logs') {
+                            const { data: logs } = await window.sb.from('admin_audit_logs').select('*, profiles(username)').order('created_at', {ascending: false}).limit(1000);
+                            app.admin.manager.logs.data = logs ||[];
+                            app.admin.filterManagerData('logs', '');
+                        }
+                    } catch (e) { console.error("Lỗi fetch data manager:", e); }
+                },
+
+                filterManagerData: (type, query) => {
+                    const q = query.toLowerCase().trim();
+                    const state = app.admin.manager[type];
+
+                    if (!q) {
+                        state.filtered =[...state.data];
+                    } else {
+                        if (type === 'denied') {
+                            state.filtered = state.data.filter(p => {
+                                const str = `${p.license_plate} ${p.denial_reason} ${p.profiles?.username}`.toLowerCase();
+                                return str.includes(q);
+                            });
+                        } else {
+                            state.filtered = state.data.filter(l => {
+                                const str = `${l.action_type} ${l.target_id} ${l.profiles?.username} ${JSON.stringify(l.details)}`.toLowerCase();
+                                return str.includes(q);
+                            });
+                        }
+                    }
+                    state.page = 1;
+                    app.admin.renderManagerData(type);
+                },
+
+                renderManagerData: (type) => {
+                    const state = app.admin.manager[type];
+                    const perPage = 12;
+                    const totalPages = Math.ceil(state.filtered.length / perPage) || 1;
+                    const slice = state.filtered.slice((state.page - 1) * perPage, state.page * perPage);
+
+                    const contentEl = document.getElementById(`mgr-${type}-content`);
+                    const pagerElId = `mgr-${type}-pager`;
+
+                    if (slice.length === 0) {
+                        contentEl.innerHTML = `<p class="text-gray-500 col-span-full py-4 text-sm px-4">Không tìm thấy dữ liệu.</p>`;
+                        document.getElementById(pagerElId).innerHTML = '';
+                        return;
+                    }
+
+                    if (type === 'denied') {
+                        contentEl.innerHTML = slice.map(p => {
+                            const proxyUrl = app.utils.getProxiedUrl(p.url, 'thumb.jpg', 'thumb');
+                            const uploader = app.utils.cleanText(p.profiles?.username || 'Ẩn danh');
+                            const denier = app.utils.cleanText(state.denierMap[p.id] || 'Admin');
+                            const time = new Date(p.created_at).toLocaleDateString('vi-VN');
+
+                            return `
+                            <div class="flex gap-4 p-3 bg-white border border-gray-200 rounded-lg hover:shadow-md cursor-pointer transition items-start" onclick="app.views.loadDetail('${p.id}')">
+                                <img src="${proxyUrl}" class="w-24 h-24 object-cover rounded bg-gray-100 shrink-0 border border-gray-200">
+                                <div class="flex flex-col h-24 justify-between overflow-hidden w-full">
+                                    <div>
+                                        <h4 class="font-bold text-sm text-black truncate uppercase">${p.license_plate}</h4>
+                                        <p class="text-xs text-red-600 font-medium line-clamp-2 mt-1" title="${p.denial_reason}"><i class="fa-solid fa-triangle-exclamation mr-1"></i> ${p.denial_reason}</p>
+                                    </div>
+                                    <div class="text-[10px] text-gray-500 truncate bg-gray-50 p-1.5 rounded">
+                                        Đăng: <b class="text-gray-700">${uploader}</b> | Khóa: <b class="text-red-700">${denier}</b> | ${time}
+                                    </div>
+                                </div>
+                            </div>
+                            `;
+                        }).join('');
+                    }
+                    else if (type === 'logs') {
+                        contentEl.innerHTML = slice.map(log => {
+                            const time = new Date(log.created_at).toLocaleString('vi-VN', {hour: '2-digit', minute:'2-digit', day:'2-digit', month:'2-digit', year:'numeric'});
+                            let badge = '';
+                            switch(log.action_type) {
+                                case 'approve_photo': badge = '<span class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-[10px] font-bold">Duyệt ảnh</span>'; break;
+                                case 'deny_photo': badge = '<span class="bg-red-100 text-red-700 px-2 py-0.5 rounded text-[10px] font-bold">Từ chối ảnh</span>'; break;
+                                case 'approve_edit_req': badge = '<span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[10px] font-bold">Sửa data</span>'; break;
+                                case 'direct_delete': badge = '<span class="bg-red-100 text-red-700 px-2 py-0.5 rounded text-[10px] font-bold">Tiêu hủy</span>'; break;
+                                case 'approve_delete_req': badge = '<span class="bg-orange-100 text-orange-700 px-2 py-0.5 rounded text-[10px] font-bold">Duyệt xóa</span>'; break;
+                                default: badge = `<span class="bg-gray-100 text-gray-700 px-2 py-0.5 rounded text-[10px] font-bold border border-gray-200">${log.action_type}</span>`;
+                            }
+
+                            // Chuyển JSON details thành dạng Text đọc được
+                            let detailHtml = '-';
+                            if (log.details) {
+                                try {
+                                    const obj = typeof log.details === 'string' ? JSON.parse(log.details) : log.details;
+                                    detailHtml = `<div class="flex flex-col gap-1 whitespace-normal">`;
+                                    for (const[k, v] of Object.entries(obj)) {
+                                        if (typeof v === 'object' && v !== null) {
+                                            detailHtml += `<div><span class="font-medium text-gray-500">${k}:</span> <code class="bg-gray-100 px-1 rounded text-[10px] break-all border border-gray-200">${JSON.stringify(v)}</code></div>`;
+                                        } else {
+                                            detailHtml += `<div><span class="font-medium text-gray-500">${k}:</span> <span class="text-black font-medium">${v}</span></div>`;
+                                        }
+                                    }
+                                    detailHtml += `</div>`;
+                                } catch(e) { detailHtml = `<span class="text-gray-500 whitespace-normal text-[11px]">${String(log.details)}</span>`; }
+                            }
+
+                            return `
+                                <tr class="hover:bg-gray-50 transition">
+                                    <td class="p-3 text-[11px] text-gray-500">${time}</td>
+                                    <td class="p-3 font-bold text-black text-[12px]">${log.profiles?.username || 'Unknown'}</td>
+                                    <td class="p-3">${badge}</td>
+                                    <td class="p-3 text-[10px] text-gray-500 font-mono">${log.target_id || '-'}</td>
+                                    <td class="p-3 text-[11px]">${detailHtml}</td>
+                                </tr>
+                            `;
+                        }).join('');
+                    }
+
+                    // Render Phân trang bằng hàm Utils có sẵn của hệ thống
+                    app.utils.renderPagination(pagerElId, state.page, totalPages, (newPage) => {
+                        app.admin.manager[type].page = newPage;
+                        app.admin.renderManagerData(type);
+                    });
+                },
+                // ------------------------------------------
+
                 approvePhoto: async (id, uploaderId, btn) => {
                     if (app.user.id === uploaderId && app.role !== 'manager') {
                         return app.ui.showAlert("Bạn không thể tự duyệt ảnh của mình!");
