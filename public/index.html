@@ -2562,6 +2562,11 @@
                                     class="w-full border border-red-500 text-red-600 py-2.5 text-sm font-bold rounded-md hover:bg-red-50 transition shadow-sm hidden">
                                     <i class="fa-solid fa-trash-can mr-1"></i> Yêu cầu xóa ảnh
                                 </button>
+                                <!-- Nút thứ 4 dành riêng cho Manager duyệt lại ảnh -->
+                                <button id="btn-manager-reapprove"
+                                    class="hidden w-full bg-green-600 border border-green-600 text-white py-2.5 text-sm font-bold rounded-md hover:bg-green-700 transition shadow-sm">
+                                    <i class="fa-solid fa-rotate-left mr-1"></i> Manager: Duyệt lại ảnh này
+                                </button>
                             </div>
                         </div>
 
@@ -5624,51 +5629,39 @@
                     }
 
 
-                    deleteBtn.onclick = null;
+const reapproveBtn = document.getElementById('btn-manager-reapprove');
 
-// LOGIC MỚI: NẾU ẢNH BỊ TỪ CHỐI VÀ LÀ MANAGER -> HIỆN NÚT DUYỆT LẠI
-if (app.user && app.role === 'manager' && isDenied) {
-    deleteBtn.classList.remove('hidden');
-    deleteBtn.innerHTML = '<i class="fa-solid fa-rotate-left mr-1"></i> Manager: Duyệt lại ảnh này';
-    
-    // Đổi màu nút sang màu xanh lá
-    deleteBtn.classList.remove('bg-white', 'border-red-500', 'text-red-600', 'hover:bg-red-50', 'bg-red-600', 'border-red-600', 'text-white', 'hover:bg-red-700');
-    deleteBtn.classList.add('bg-green-600', 'border-green-600', 'text-white', 'hover:bg-green-700');
-    
-    deleteBtn.onclick = () => {
-        app.ui.showPrompt("Nhập ghi chú cho việc duyệt lại (Tùy chọn):", "", async (reason) => {
-            try {
-                const originalText = deleteBtn.innerHTML;
-                deleteBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang xử lý...';
-                deleteBtn.disabled = true;
+// Reset trạng thái ban đầu của cả 2 nút
+deleteBtn.onclick = null;
+deleteBtn.classList.add('hidden');
+if (reapproveBtn) {
+    reapproveBtn.onclick = null;
+    reapproveBtn.classList.add('hidden');
+}
 
-                // 1. Update Database chuyển trạng thái về approved và xóa lý do từ chối
-                const { error } = await window.sb.from('photos').update({ status: 'approved', denial_reason: null }).eq('id', photo.id);
-                if (error) throw error;
-
-                // 2. Gửi thông báo cho uploader
-                await app.notifications.add(photo.uploader_id, `Ảnh xe ${photo.license_plate} của bạn đã được Quản lý xét duyệt lại và chấp thuận.${reason ? ' Ghi chú: ' + reason : ''}`);
-                
-                // 3. Ghi log admin
-                app.admin.logAction('manager_reapprove', photo.id, { plate: photo.license_plate, reason: reason });
-
-                app.ui.showAlert("Đã duyệt lại ảnh thành công!", () => {
-                    app.views.loadDetail(photo.id); // Tải lại trang
-                });
-            } catch (e) {
-                app.ui.showAlert("Lỗi: " + e.message);
-                deleteBtn.innerHTML = '<i class="fa-solid fa-rotate-left mr-1"></i> Manager: Duyệt lại ảnh này';
-                deleteBtn.disabled = false;
-            }
-        });
-    };
-} 
-// LOGIC CŨ CỦA MANAGER: NẾU ẢNH BÌNH THƯỜNG -> HIỆN NÚT XÓA TRỰC TIẾP
-else if (app.user && app.role === 'manager' && !isPending && !isDenied && app.user.id !== photo.uploader_id) {
+// ==========================================
+// ƯU TIÊN 1: LOGIC NÚT XÓA CỦA USER (UPLOADER)
+// ==========================================
+if (app.user && app.user.id === photo.uploader_id) {
+    if (!isDenied) { // Uploader chỉ thấy nút xóa nếu ảnh Đang chờ hoặc Đã duyệt
+        deleteBtn.classList.remove('hidden');
+        if (isPending) {
+            deleteBtn.innerHTML = '<i class="fa-solid fa-trash-can mr-1"></i> Xóa ảnh (Đang chờ duyệt)';
+            deleteBtn.className = "w-full border border-gray-500 text-gray-600 py-2.5 text-sm font-bold rounded-md hover:bg-gray-50 transition shadow-sm";
+        } else {
+            deleteBtn.innerHTML = '<i class="fa-solid fa-trash-can mr-1"></i> Yêu cầu xóa ảnh';
+            deleteBtn.className = "w-full border border-red-500 text-red-600 py-2.5 text-sm font-bold rounded-md hover:bg-red-50 transition shadow-sm";
+        }
+        deleteBtn.onclick = () => app.photo.requestDelete();
+    }
+}
+// ==========================================
+// ƯU TIÊN 2: NÚT XÓA DÀNH CHO MANAGER (KHI XEM ẢNH NGƯỜI KHÁC)
+// ==========================================
+else if (app.user && app.role === 'manager' && !isDenied) {
     deleteBtn.classList.remove('hidden');
     deleteBtn.innerHTML = '<i class="fa-solid fa-radiation mr-1"></i> Manager: Xóa ảnh này';
-    deleteBtn.classList.remove('bg-white', 'border-red-500', 'text-red-600', 'hover:bg-red-50');
-    deleteBtn.classList.add('bg-red-600', 'border-red-600', 'text-white', 'hover:bg-red-700');
+    deleteBtn.className = "w-full bg-red-600 border border-red-600 text-white py-2.5 text-sm font-bold rounded-md hover:bg-red-700 transition shadow-sm";
     deleteBtn.onclick = () => {
         app.ui.showDenyPrompt("ADMIN - Xóa ảnh này", async (reason) => {
             try {
@@ -5679,22 +5672,38 @@ else if (app.user && app.role === 'manager' && !isPending && !isDenied && app.us
             } catch (e) { app.ui.showAlert("Lỗi: " + e.message); }
         });
     };
-} else if (app.user && app.user.id === photo.uploader_id) {
-    deleteBtn.classList.remove('hidden');
-    if (isPending) {
-        deleteBtn.innerHTML = '<i class="fa-solid fa-trash-can mr-1"></i> Xóa ảnh (Đang chờ duyệt)';
-        deleteBtn.classList.replace('border-red-500', 'border-gray-500');
-        deleteBtn.classList.replace('text-red-600', 'text-gray-600');
-        deleteBtn.classList.replace('hover:bg-red-50', 'hover:bg-gray-50');
-    } else {
-        deleteBtn.innerHTML = '<i class="fa-solid fa-trash-can mr-1"></i> Yêu cầu xóa ảnh';
-        deleteBtn.classList.replace('border-gray-500', 'border-red-500');
-        deleteBtn.classList.replace('text-gray-600', 'text-red-600');
-        deleteBtn.classList.replace('hover:bg-gray-50', 'hover:bg-red-50');
+}
+
+// ==========================================
+// ƯU TIÊN 3: NÚT THỨ 4 (DUYỆT LẠI) DÀNH CHO MANAGER KHI ẢNH BỊ TỪ CHỐI
+// ==========================================
+if (app.user && app.role === 'manager' && isDenied) {
+    if (reapproveBtn) {
+        reapproveBtn.classList.remove('hidden');
+        reapproveBtn.onclick = () => {
+            app.ui.showPrompt("Nhập ghi chú cho việc duyệt lại (Tùy chọn):", "", async (reason) => {
+                try {
+                    const originalText = reapproveBtn.innerHTML;
+                    reapproveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang xử lý...';
+                    reapproveBtn.disabled = true;
+
+                    const { error } = await window.sb.from('photos').update({ status: 'approved', denial_reason: null }).eq('id', photo.id);
+                    if (error) throw error;
+
+                    await app.notifications.add(photo.uploader_id, `Ảnh xe ${photo.license_plate} của bạn đã được Quản lý xét duyệt lại và chấp thuận.${reason ? ' Ghi chú: ' + reason : ''}`);
+                    app.admin.logAction('manager_reapprove', photo.id, { plate: photo.license_plate, reason: reason });
+
+                    app.ui.showAlert("Đã duyệt lại ảnh thành công!", () => {
+                        app.views.loadDetail(photo.id);
+                    });
+                } catch (e) {
+                    app.ui.showAlert("Lỗi: " + e.message);
+                    reapproveBtn.innerHTML = '<i class="fa-solid fa-rotate-left mr-1"></i> Manager: Duyệt lại ảnh này';
+                    reapproveBtn.disabled = false;
+                }
+            });
+        };
     }
-    deleteBtn.onclick = () => app.photo.requestDelete();
-} else {
-    deleteBtn.classList.add('hidden');
 }
 
                     const historyPlate = v?.license_plate || photo.license_plate;
