@@ -4000,12 +4000,12 @@
                         const { data: profile } = await window.sb.from('profiles').select('avatar_url').eq('id', app.user.id).single();
                         if (profile && profile.avatar_url) {
                             const safeUrl = profile.avatar_url.replace(/"/g, '');
-                            avatarImg.src = app.utils.getProxiedUrl(safeUrl);
+                            avatarImg.src = app.utils.getProxiedUrl(safeUrl, 'avatar.jpg', 'avatar');
                         } else {
                             avatarImg.src = DEFAULT_AVATAR;
                         }
                     } catch (e) {
-                        avatarImg.src = app.user.user_metadata?.avatar_url ? app.utils.getProxiedUrl(app.user.user_metadata.avatar_url) : DEFAULT_AVATAR;
+                        avatarImg.src = app.user.user_metadata?.avatar_url ? app.utils.getProxiedUrl(app.user.user_metadata.avatar_url, 'avatar.jpg', 'avatar') : DEFAULT_AVATAR;
                     }
                     
                     avatarImg.onerror = () => {
@@ -4454,7 +4454,7 @@
                         if (usersData && usersData.length > 0) {
                             for (const user of usersData) {
                                 const { count } = await window.sb.from('photos').select('*', { count: 'exact', head: true }).eq('uploader_id', user.id).eq('status', 'approved');
-                                const avatarSrc = user.avatar_url ? app.utils.getProxiedUrl(user.avatar_url) : DEFAULT_AVATAR;
+                                const avatarSrc = user.avatar_url ? app.utils.getProxiedUrl(user.avatar_url, 'avatar.jpg', 'avatar') : DEFAULT_AVATAR;
                                 const userBadges = app.utils.getBadgesHTML(user.id, user.role);
                                 cards.push(`
                                     <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.views.loadUserProfile('${user.username}')">
@@ -5268,7 +5268,7 @@
                             avatarImg.classList.remove('hidden');
                             avatarIcon.classList.add('hidden');
                         };
-                        avatarImg.src = app.utils.getProxiedUrl(profile.avatar_url);
+                        avatarImg.src = app.utils.getProxiedUrl(profile.avatar_url, 'avatar.jpg', 'avatar');
                         avatarImg.classList.remove('hidden');
                         avatarIcon.classList.add('hidden');
                     } else {
@@ -5591,7 +5591,7 @@
 
                     const badges = app.utils.getBadgesHTML(photo.profiles?.id, photo.profiles?.role);
 
-                    const safeAvatar = photo.profiles?.avatar_url ? app.utils.getProxiedUrl(photo.profiles.avatar_url.replace(/"/g, '&quot;')) : DEFAULT_AVATAR;
+                    const safeAvatar = photo.profiles?.avatar_url ? app.utils.getProxiedUrl(photo.profiles.avatar_url.replace(/"/g, '&quot;'), 'avatar.jpg', 'avatar') : DEFAULT_AVATAR;
 
                     if (photo.profiles?.avatar_url) {
                         statUploaderEl.innerHTML = `<img loading="lazy" decoding="async" src="${safeAvatar}" onerror="this.onerror=null;this.src='${DEFAULT_AVATAR}';" class="w-5 h-5 rounded-full inline-block mr-1 object-cover align-middle"> ${safeUploaderName} ${badges}`;
@@ -8354,32 +8354,29 @@ if (app.user && app.role === 'manager' && isDenied) {
 
                     const safeName = filename.replace(/[^a-z0-9A-Z.-]/gi, '_');
 
-                    // 1. TỐI ƯU TOÀN DIỆN CHO IMAGEKIT
                     if (url.includes('ik.imagekit.io')) {
-                        // Mảng chứa các biến đổi sẽ áp dụng cho ảnh
-                        // f-webp: Ép định dạng sang WebP
-                        // q-auto: Tự động tối ưu chất lượng ảnh để giảm dung lượng
                         let transformations = ['f-webp', 'q-auto'];
 
-                        // Nếu là ảnh thumbnail, thêm các tham số resize
                         if (type === 'thumb') {
                             transformations.push('w-400', 'h-300', 'c-at_max');
+                        } else if (type === 'avatar') {
+                            // Cắt chuẩn 200x200 cho Avatar
+                            transformations.push('w-200', 'h-200', 'c-maintain_ratio');
                         }
 
-                        // Ghép các tham số lại thành chuỗi và nối vào URL
                         const separator = url.includes('?') ? '&' : '?';
                         return `${url}${separator}tr=${transformations.join(',')}`;
                     }
 
-                    // 2. XỬ LÝ CÁC NGUỒN KHÁC NHƯ CŨ (Catbox, Supabase, Postimg...)
                     if (url.includes('catbox.moe') || url.includes('postimg.cc') || url.includes('supabase.co')) {
                         let wsrvUrl = `https://wsrv.nl/${encodeURIComponent(safeName)}?url=${encodeURIComponent(url)}&we`;
 
                         if (type === 'thumb') {
                             wsrvUrl += '&w=400&h=300&fit=inside';
+                        } else if (type === 'avatar') {
+                            wsrvUrl += '&w=200&h=200&fit=cover';
                         }
 
-                        // Thêm &output=webp để wsrv.nl cũng trả về ảnh WebP
                         wsrvUrl += '&output=webp';
                         return wsrvUrl;
                     }
@@ -9205,8 +9202,8 @@ changePassword: async () => {
                                 
                                 app.user.user_metadata = app.user.user_metadata || {};
                                 app.user.user_metadata.avatar_url = data.url;
-                                
-                                const proxiedUrl = app.utils.getProxiedUrl(data.url);
+
+                                const proxiedUrl = app.utils.getProxiedUrl(data.url, 'avatar.jpg', 'avatar');
                                 const avatarImg = document.getElementById('acc-avatar-img');
                                 const avatarIcon = document.getElementById('acc-avatar-icon');
                                 if (avatarImg && avatarIcon) {

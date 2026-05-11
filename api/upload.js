@@ -82,11 +82,35 @@ export default async function handler(req, res) {
         }
 
         if (isAvatar) {
+            // [THÊM MỚI] Lấy avatar cũ từ DB
+            const { data: oldProfile } = await supabase
+                .from('profiles')
+                .select('avatar_url')
+                .eq('id', userId)
+                .single();
+
+            //[THÊM MỚI] Xóa avatar cũ trên ImageKit nếu có
+            if (oldProfile && oldProfile.avatar_url && oldProfile.avatar_url.includes('imagekit')) {
+                try {
+                    const oldUrlObj = new URL(oldProfile.avatar_url);
+                    const oldFileName = oldUrlObj.pathname.split('/').pop();
+
+                    const files = await imagekit.listFiles({ searchQuery: `name="${oldFileName}"` });
+                    if (files && files.length > 0) {
+                        await imagekit.deleteFile(files[0].fileId);
+                        console.log(`[DEBUG] Đã xóa avatar cũ: ${oldFileName}`);
+                    }
+                } catch (delErr) {
+                    console.error('[WARN] Không thể xóa avatar cũ:', delErr.message);
+                }
+            }
+
+            // Cập nhật URL mới vào DB
             const { error: profileErr } = await supabase
                 .from('profiles')
                 .update({ avatar_url: finalOptimizedUrl })
                 .eq('id', userId);
-            
+
             if (profileErr) throw profileErr;
             return res.status(200).json({ success: true, url: finalOptimizedUrl });
         }
