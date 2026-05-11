@@ -5640,23 +5640,23 @@ if (reapproveBtn) {
 }
 
 // ==========================================
-// ƯU TIÊN 1: LOGIC NÚT XÓA CỦA USER (UPLOADER)
+// ƯU TIÊN 1: NÚT XÓA CỦA USER (UPLOADER) - HIỆN Ở MỌI TRẠNG THÁI
 // ==========================================
 if (app.user && app.user.id === photo.uploader_id) {
-    if (!isDenied) { // Uploader chỉ thấy nút xóa nếu ảnh Đang chờ hoặc Đã duyệt
-        deleteBtn.classList.remove('hidden');
-        if (isPending) {
-            deleteBtn.innerHTML = '<i class="fa-solid fa-trash-can mr-1"></i> Xóa ảnh (Đang chờ duyệt)';
-            deleteBtn.className = "w-full border border-gray-500 text-gray-600 py-2.5 text-sm font-bold rounded-md hover:bg-gray-50 transition shadow-sm";
-        } else {
-            deleteBtn.innerHTML = '<i class="fa-solid fa-trash-can mr-1"></i> Yêu cầu xóa ảnh';
-            deleteBtn.className = "w-full border border-red-500 text-red-600 py-2.5 text-sm font-bold rounded-md hover:bg-red-50 transition shadow-sm";
-        }
-        deleteBtn.onclick = () => app.photo.requestDelete();
+    deleteBtn.classList.remove('hidden');
+    if (isPending || isDenied) {
+        // Ảnh pending hoặc denied thì cho phép xóa thẳng
+        deleteBtn.innerHTML = `<i class="fa-solid fa-trash-can mr-1"></i> Xóa ảnh ${isDenied ? '(Bị từ chối)' : '(Đang chờ duyệt)'}`;
+        deleteBtn.className = "w-full border border-gray-500 text-gray-600 py-2.5 text-sm font-bold rounded-md hover:bg-gray-50 transition shadow-sm";
+    } else {
+        // Ảnh đã duyệt thì gửi yêu cầu xóa
+        deleteBtn.innerHTML = '<i class="fa-solid fa-trash-can mr-1"></i> Yêu cầu xóa ảnh';
+        deleteBtn.className = "w-full border border-red-500 text-red-600 py-2.5 text-sm font-bold rounded-md hover:bg-red-50 transition shadow-sm";
     }
+    deleteBtn.onclick = () => app.photo.requestDelete();
 }
 // ==========================================
-// ƯU TIÊN 2: NÚT XÓA DÀNH CHO MANAGER (KHI XEM ẢNH NGƯỜI KHÁC)
+// ƯU TIÊN 2: NÚT XÓA DÀNH CHO MANAGER (KHI XEM ẢNH ĐƯỢC DUYỆT/CHỜ DUYỆT CỦA NGƯỜI KHÁC)
 // ==========================================
 else if (app.user && app.role === 'manager' && !isDenied) {
     deleteBtn.classList.remove('hidden');
@@ -5676,6 +5676,7 @@ else if (app.user && app.role === 'manager' && !isDenied) {
 
 // ==========================================
 // ƯU TIÊN 3: NÚT THỨ 4 (DUYỆT LẠI) DÀNH CHO MANAGER KHI ẢNH BỊ TỪ CHỐI
+// Nút này chạy độc lập, nên Manager sẽ thấy nút này bất kể đó là ảnh của ai
 // ==========================================
 if (app.user && app.role === 'manager' && isDenied) {
     if (reapproveBtn) {
