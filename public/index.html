@@ -2613,35 +2613,49 @@
                         </p>
 
                         <div class="w-full max-w-lg flex flex-col gap-4 text-left">
-                            <!-- Giải pháp 1: Intergram -->
+                            <!-- Giải pháp 1: Discord -->
+                            <div class="border border-indigo-200 rounded-lg p-4 bg-indigo-50 flex items-start gap-4">
+                                <div class="w-10 h-10 bg-[#5865F2] text-white rounded-full flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
+                                    <i class="fa-brands fa-discord text-lg"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-black text-sm">1. Mở Ticket trên Discord (Khuyên dùng)</h3>
+                                    <p class="text-xs text-gray-600 mt-1.5 leading-relaxed">
+                                        <b>Bước 1:</b> Tham gia máy chủ Discord qua <a href="https://discord.com/invite/BNWyqbuvwq" target="_blank" class="font-bold text-[#5865F2] hover:underline">liên kết này</a>.<br>
+                                        <span class="inline-block mt-1"><b>Bước 2:</b> Truy cập <a href="https://discord.com/channels/1456943549546364940/1485596300862029944" target="_blank" class="font-bold text-[#5865F2] hover:underline">kênh Hỗ trợ</a> để tạo Ticket trò chuyện riêng tư với Ban Quản Trị.</span>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Giải pháp 2: Intergram -->
                             <div class="border border-gray-200 rounded-lg p-4 bg-gray-50 flex items-start gap-4">
                                 <div class="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
                                     <i class="fa-solid fa-message"></i>
                                 </div>
                                 <div>
-                                    <h3 class="font-bold text-black text-sm">1. Chat trực tiếp (Khuyên dùng)</h3>
+                                    <h3 class="font-bold text-black text-sm">2. Chat trực tiếp trên web</h3>
                                     <p class="text-xs text-gray-600 mt-1 leading-relaxed">Sử dụng <b>biểu tượng tin nhắn ở góc dưới cùng bên phải màn hình</b> để trò chuyện trực tiếp với chúng tôi ngay trên website.</p>
                                 </div>
                             </div>
 
-                            <!-- Giải pháp 2: Facebook -->
+                            <!-- Giải pháp 3: Facebook -->
                             <a href="https://www.facebook.com/vnbusarchive/" target="_blank" class="border border-blue-200 rounded-lg p-4 bg-blue-50/50 flex items-start gap-4 hover:bg-blue-50 transition group cursor-pointer block">
                                 <div class="w-10 h-10 bg-[#1877F2] text-white rounded-full flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-105 transition-transform shadow-sm">
                                     <i class="fa-brands fa-facebook-f text-lg"></i>
                                 </div>
                                 <div>
-                                    <h3 class="font-bold text-black text-sm group-hover:text-[#1877F2] transition-colors">2. Facebook Messenger</h3>
+                                    <h3 class="font-bold text-black text-sm group-hover:text-[#1877F2] transition-colors">3. Facebook Messenger</h3>
                                     <p class="text-xs text-gray-600 mt-1 leading-relaxed">Nhắn tin cho Fanpage chính thức của VNBUSARCHIVE.</p>
                                 </div>
                             </a>
 
-                            <!-- Giải pháp 3: Email -->
+                            <!-- Giải pháp 4: Email -->
                             <div class="border border-gray-200 rounded-lg p-4 flex items-start gap-4">
                                 <div class="w-10 h-10 bg-white text-gray-600 rounded-full flex items-center justify-center shrink-0 border border-gray-200 mt-0.5 shadow-sm">
                                     <i class="fa-solid fa-envelope"></i>
                                 </div>
                                 <div>
-                                    <h3 class="font-bold text-black text-sm">3. Qua Email</h3>
+                                    <h3 class="font-bold text-black text-sm">4. Qua Email</h3>
                                     <p class="text-xs text-gray-600 mt-1 mb-2.5 leading-relaxed">
                                         Gửi email về địa chỉ: <a href="mailto:lienhe@vnbusarchive.io.vn" class="font-bold text-blue-600 hover:underline">lienhe@vnbusarchive.io.vn</a><br>
                                         Sử dụng cho các trường hợp cần trao đổi thông tin quan trọng (khiếu nại, cấp quyền,...).
@@ -5509,11 +5523,29 @@
                             queueBox.classList.remove('hidden');
                             document.getElementById('pending-queue-count').innerText = '...';
 
-                            // Gọi hàm RPC an toàn từ Supabase
-                            window.sb.rpc('get_pending_queue_count', { target_time: photo.created_at })
+                            // THÊM: Tính toán hàng đợi có ưu tiên Admin/Manager
+                            window.sb.from('photos').select('id, created_at, profiles(role)').eq('status', 'pending')
                                 .then(({ data, error }) => {
-                                    if (!error && data !== null) {
-                                        document.getElementById('pending-queue-count').innerText = data;
+                                    if (!error && data) {
+                                        let ahead = 0;
+                                        const myRole = photo.profiles?.role || 'user';
+                                        const isMePrivileged = (myRole === 'admin' || myRole === 'manager');
+                                        const myTime = new Date(photo.created_at).getTime();
+
+                                        data.forEach(p => {
+                                            if (p.id === photo.id) return;
+                                            const pRole = p.profiles?.role || 'user';
+                                            const pPrivileged = (pRole === 'admin' || pRole === 'manager');
+                                            const pTime = new Date(p.created_at).getTime();
+
+                                            if (isMePrivileged) {
+                                                if (pPrivileged && pTime < myTime) ahead++;
+                                            } else {
+                                                if (pPrivileged) ahead++;
+                                                else if (pTime < myTime) ahead++;
+                                            }
+                                        });
+                                        document.getElementById('pending-queue-count').innerText = ahead;
                                     } else {
                                         document.getElementById('pending-queue-count').innerText = '?';
                                     }
@@ -6357,10 +6389,22 @@ if (app.user && app.role === 'manager' && isDenied) {
 
                     try {
                         if (tab === 'photos') {
-
-                            const { data: photos, error } = await window.sb.from('photos').select('*, profiles(username), vehicles(model)').eq('status', 'pending').order('id', { ascending: true });
+                            const { data: rawPhotos, error } = await window.sb.from('photos').select('*, profiles(username, role), vehicles(model)').eq('status', 'pending').order('id', { ascending: true });
                             if (error) throw error;
-                            if (!photos || photos.length === 0) { content.innerHTML = '<p class="p-4">Không có ảnh nào chờ duyệt.</p>'; return; }
+                            if (!rawPhotos || rawPhotos.length === 0) { content.innerHTML = '<p class="p-4">Không có ảnh nào chờ duyệt.</p>'; return; }
+
+                            // THÊM: Sắp xếp ưu tiên (Admin/Manager lên đầu, theo thứ tự up trước xếp trước)
+                            const photos = rawPhotos.sort((a, b) => {
+                                const roleA = a.profiles?.role || 'user';
+                                const roleB = b.profiles?.role || 'user';
+                                const isPrivilegedA = (roleA === 'admin' || roleA === 'manager') ? 1 : 0;
+                                const isPrivilegedB = (roleB === 'admin' || roleB === 'manager') ? 1 : 0;
+
+                                if (isPrivilegedA !== isPrivilegedB) {
+                                    return isPrivilegedB - isPrivilegedA;
+                                }
+                                return a.id - b.id;
+                            });
 
                             content.innerHTML = photos.map(p => {
                                 const op = app.utils.cleanText(p.operator || '');
@@ -9991,12 +10035,35 @@ changePassword: async () => {
                         infoBox.classList.remove('hidden');
                         queueCountSpan.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
                         
-                        // Đếm số lượng ảnh đang ở status = pending
-                        window.sb.from('photos').select('*', { count: 'exact', head: true }).eq('status', 'pending')
-                            .then(({ count, error }) => {
-                                if (!error && count !== null) {
-                                    // Trừ 1 vì ảnh của bạn vừa được thêm vào DB
-                                    let ahead = Math.max(0, count - 1);
+                        // THÊM: Tính toán hàng đợi có ưu tiên Admin/Manager
+                        window.sb.from('photos').select('id, created_at, uploader_id, profiles(role)').eq('status', 'pending')
+                            .then(({ data, error }) => {
+                                if (!error && data) {
+                                    let ahead = 0;
+                                    const isMePrivileged = (app.role === 'admin' || app.role === 'manager');
+                                    
+                                    // Lấy ảnh mới nhất vừa được thêm
+                                    const myPhotos = data.filter(p => p.uploader_id === app.user.id).sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+                                    if (myPhotos.length === 0) {
+                                        queueCountSpan.innerText = Math.max(0, data.length - 1);
+                                        return;
+                                    }
+                                    const myPhoto = myPhotos[0];
+                                    const myTime = new Date(myPhoto.created_at).getTime();
+
+                                    data.forEach(p => {
+                                        if (p.id === myPhoto.id) return;
+                                        const pRole = p.profiles?.role || 'user';
+                                        const pPrivileged = (pRole === 'admin' || pRole === 'manager');
+                                        const pTime = new Date(p.created_at).getTime();
+
+                                        if (isMePrivileged) {
+                                            if (pPrivileged && pTime < myTime) ahead++;
+                                        } else {
+                                            if (pPrivileged) ahead++;
+                                            else if (pTime < myTime) ahead++;
+                                        }
+                                    });
                                     queueCountSpan.innerText = ahead;
                                 } else {
                                     queueCountSpan.innerText = '?';
