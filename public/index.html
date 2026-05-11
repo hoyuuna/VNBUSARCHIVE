@@ -5474,7 +5474,8 @@
                     }
 
                     if (isDenied) {
-                        if (!app.user || app.user.id !== photo.uploader_id) {
+                        // THÊM: Cho phép manager đi qua vòng kiểm duyệt này (admin sẽ bị chặn ở đây)
+                        if (!app.user || (app.user.id !== photo.uploader_id && app.role !== 'manager')) {
                             app.ui.showAlert("Bạn không có quyền xem ảnh bị từ chối này.");
                             return app.views.loadHome();
                         }
@@ -5624,38 +5625,77 @@
 
 
                     deleteBtn.onclick = null;
-                    if (app.user && app.role === 'manager' && !isPending && app.user.id !== photo.uploader_id) {
-                        deleteBtn.classList.remove('hidden');
-                        deleteBtn.innerHTML = '<i class="fa-solid fa-radiation mr-1"></i> Manager: Xóa ảnh này';
-                        deleteBtn.classList.remove('bg-white', 'border-red-500', 'text-red-600', 'hover:bg-red-50');
-                        deleteBtn.classList.add('bg-red-600', 'border-red-600', 'text-white', 'hover:bg-red-700');
-                        deleteBtn.onclick = () => {
-                            app.ui.showDenyPrompt("ADMIN - Xóa ảnh này", async (reason) => {
-                                try {
-                                    await window.sb.from('photos').update({ status: 'denied', denial_reason: reason }).eq('id', photo.id);
-                                    await app.notifications.add(photo.uploader_id, `Ảnh ${photo.license_plate} của bạn đã bị Admin xóa. Lý do: ${reason}`);
-                                    app.admin.logAction('admin_delete_from_detail', photo.id, { plate: photo.license_plate, reason: reason });
-                                    app.ui.showAlert("Đã xóa ảnh thành công.", () => app.views.loadHome());
-                                } catch (e) { app.ui.showAlert("Lỗi: " + e.message); }
-                            });
-                        };
-                    } else if (app.user && app.user.id === photo.uploader_id) {
-                        deleteBtn.classList.remove('hidden');
-                        if (isPending) {
-                            deleteBtn.innerHTML = '<i class="fa-solid fa-trash-can mr-1"></i> Xóa ảnh (Đang chờ duyệt)';
-                            deleteBtn.classList.replace('border-red-500', 'border-gray-500');
-                            deleteBtn.classList.replace('text-red-600', 'text-gray-600');
-                            deleteBtn.classList.replace('hover:bg-red-50', 'hover:bg-gray-50');
-                        } else {
-                            deleteBtn.innerHTML = '<i class="fa-solid fa-trash-can mr-1"></i> Yêu cầu xóa ảnh';
-                            deleteBtn.classList.replace('border-gray-500', 'border-red-500');
-                            deleteBtn.classList.replace('text-gray-600', 'text-red-600');
-                            deleteBtn.classList.replace('hover:bg-gray-50', 'hover:bg-red-50');
-                        }
-                        deleteBtn.onclick = () => app.photo.requestDelete();
-                    } else {
-                        deleteBtn.classList.add('hidden');
-                    }
+
+// LOGIC MỚI: NẾU ẢNH BỊ TỪ CHỐI VÀ LÀ MANAGER -> HIỆN NÚT DUYỆT LẠI
+if (app.user && app.role === 'manager' && isDenied) {
+    deleteBtn.classList.remove('hidden');
+    deleteBtn.innerHTML = '<i class="fa-solid fa-rotate-left mr-1"></i> Manager: Duyệt lại ảnh này';
+    
+    // Đổi màu nút sang màu xanh lá
+    deleteBtn.classList.remove('bg-white', 'border-red-500', 'text-red-600', 'hover:bg-red-50', 'bg-red-600', 'border-red-600', 'text-white', 'hover:bg-red-700');
+    deleteBtn.classList.add('bg-green-600', 'border-green-600', 'text-white', 'hover:bg-green-700');
+    
+    deleteBtn.onclick = () => {
+        app.ui.showPrompt("Nhập ghi chú cho việc duyệt lại (Tùy chọn):", "", async (reason) => {
+            try {
+                const originalText = deleteBtn.innerHTML;
+                deleteBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang xử lý...';
+                deleteBtn.disabled = true;
+
+                // 1. Update Database chuyển trạng thái về approved và xóa lý do từ chối
+                const { error } = await window.sb.from('photos').update({ status: 'approved', denial_reason: null }).eq('id', photo.id);
+                if (error) throw error;
+
+                // 2. Gửi thông báo cho uploader
+                await app.notifications.add(photo.uploader_id, `Ảnh xe ${photo.license_plate} của bạn đã được Quản lý xét duyệt lại và chấp thuận.${reason ? ' Ghi chú: ' + reason : ''}`);
+                
+                // 3. Ghi log admin
+                app.admin.logAction('manager_reapprove', photo.id, { plate: photo.license_plate, reason: reason });
+
+                app.ui.showAlert("Đã duyệt lại ảnh thành công!", () => {
+                    app.views.loadDetail(photo.id); // Tải lại trang
+                });
+            } catch (e) {
+                app.ui.showAlert("Lỗi: " + e.message);
+                deleteBtn.innerHTML = '<i class="fa-solid fa-rotate-left mr-1"></i> Manager: Duyệt lại ảnh này';
+                deleteBtn.disabled = false;
+            }
+        });
+    };
+} 
+// LOGIC CŨ CỦA MANAGER: NẾU ẢNH BÌNH THƯỜNG -> HIỆN NÚT XÓA TRỰC TIẾP
+else if (app.user && app.role === 'manager' && !isPending && !isDenied && app.user.id !== photo.uploader_id) {
+    deleteBtn.classList.remove('hidden');
+    deleteBtn.innerHTML = '<i class="fa-solid fa-radiation mr-1"></i> Manager: Xóa ảnh này';
+    deleteBtn.classList.remove('bg-white', 'border-red-500', 'text-red-600', 'hover:bg-red-50');
+    deleteBtn.classList.add('bg-red-600', 'border-red-600', 'text-white', 'hover:bg-red-700');
+    deleteBtn.onclick = () => {
+        app.ui.showDenyPrompt("ADMIN - Xóa ảnh này", async (reason) => {
+            try {
+                await window.sb.from('photos').update({ status: 'denied', denial_reason: reason }).eq('id', photo.id);
+                await app.notifications.add(photo.uploader_id, `Ảnh ${photo.license_plate} của bạn đã bị Admin xóa. Lý do: ${reason}`);
+                app.admin.logAction('admin_delete_from_detail', photo.id, { plate: photo.license_plate, reason: reason });
+                app.ui.showAlert("Đã xóa ảnh thành công.", () => app.views.loadHome());
+            } catch (e) { app.ui.showAlert("Lỗi: " + e.message); }
+        });
+    };
+} else if (app.user && app.user.id === photo.uploader_id) {
+    deleteBtn.classList.remove('hidden');
+    if (isPending) {
+        deleteBtn.innerHTML = '<i class="fa-solid fa-trash-can mr-1"></i> Xóa ảnh (Đang chờ duyệt)';
+        deleteBtn.classList.replace('border-red-500', 'border-gray-500');
+        deleteBtn.classList.replace('text-red-600', 'text-gray-600');
+        deleteBtn.classList.replace('hover:bg-red-50', 'hover:bg-gray-50');
+    } else {
+        deleteBtn.innerHTML = '<i class="fa-solid fa-trash-can mr-1"></i> Yêu cầu xóa ảnh';
+        deleteBtn.classList.replace('border-gray-500', 'border-red-500');
+        deleteBtn.classList.replace('text-gray-600', 'text-red-600');
+        deleteBtn.classList.replace('hover:bg-gray-50', 'hover:bg-red-50');
+    }
+    deleteBtn.onclick = () => app.photo.requestDelete();
+} else {
+    deleteBtn.classList.add('hidden');
+}
 
                     const historyPlate = v?.license_plate || photo.license_plate;
                     app.views.loadHistory(historyPlate);
