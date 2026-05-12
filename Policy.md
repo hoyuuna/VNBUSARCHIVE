@@ -37,6 +37,7 @@ Là một dự án lưu trữ chất lượng cao, VNBUSARCHIVE áp dụng các 
 * Toàn bộ hình ảnh và các yêu cầu chỉnh sửa thông tin xe (Đơn vị vận hành, số tuyến, dòng xe, lịch sử) đều được kiểm duyệt thủ công bởi đội ngũ Quản trị viên.
 * Quản trị viên có quyền **chấp nhận**, **từ chối** hoặc **trực tiếp chỉnh sửa** (sửa lỗi chính tả, chuẩn hóa tên gọi) các thông tin bạn cung cấp để đảm bảo tính đồng nhất của Bách khoa toàn thư.
 * Khi ảnh bị từ chối, Quản trị viên sẽ cung cấp lý do cụ thể (hoặc theo danh sách lỗi như: bố cục lệch, mờ nhòe, sai nguồn...). Bạn có quyền khiếu nại thông qua kênh hỗ trợ trực tuyến nếu cho rằng quyết định là sai lầm.
+* Khi ảnh đã bị xoá khỏi hệ thống, VNBUSARCHIVE sẽ **không** chấp nhận yêu cầu khiếu nại hoặc chịu trách nhiệm có bất cứ vấn đề nào liên quan đến ảnh này.
 
 ### 6. Sử dụng API Công khai (Public API)
 * VNBUSARCHIVE cung cấp API miễn phí (`https://vnbusarchive.qzz.io/api`) cho cộng đồng (lấy danh sách ảnh, thông số xe, v.v.).
