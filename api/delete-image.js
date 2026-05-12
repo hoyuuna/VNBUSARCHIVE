@@ -1,11 +1,4 @@
 import { createClient } from '@supabase/supabase-js';
-import ImageKit from 'imagekit';
-
-const imagekit = new ImageKit({
-    publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
-    privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
-    urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT
-});
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
@@ -16,7 +9,6 @@ export default async function handler(req, res) {
             return res.status(401).json({ success: false, error: 'Chưa xác thực.' });
         }
 
-        // Tùy chọn: Xác thực user qua Supabase để đảm bảo an mật
         const supabase = createClient(
             process.env.SUPABASE_URL, 
             process.env.SUPABASE_KEY,
@@ -28,27 +20,32 @@ export default async function handler(req, res) {
         const { imageUrl } = req.body;
         if (!imageUrl) return res.status(400).json({ success: false, error: 'Thiếu URL ảnh.' });
 
-        // Tách tên file từ URL (vd: https://ik.imagekit.io/.../img_1234.webp -> img_1234.webp)
+        // Tách tên file từ URL (vd: https://vnba-imgbed.pages.dev/img_1234.webp -> img_1234.webp)
         const urlObj = new URL(imageUrl);
         const fileName = urlObj.pathname.split('/').pop();
+        const safeFileName = encodeURIComponent(fileName);
 
-        console.log(`[DEBUG] Đang tìm ảnh trên ImageKit để xóa: ${fileName}`);
+        console.log(`[DEBUG] Đang gọi API CF ImgBed để xóa: ${safeFileName}`);
 
-        // Tìm fileId trên ImageKit bằng tên file
-        const files = await imagekit.listFiles({
-            searchQuery: `name="${fileName}"`
+        const deleteUrl = `https://vnba-imgbed.pages.dev/api/manage/delete/${safeFileName}`;
+        
+        const deleteResponse = await fetch(deleteUrl, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${process.env.CF_IMGBED_TOKEN}`
+            }
         });
 
-        if (files && files.length > 0) {
-            const fileId = files[0].fileId;
-            // Xóa file hoàn toàn khỏi ImageKit
-            await imagekit.deleteFile(fileId);
-            console.log(`[DEBUG] Đã xóa vĩnh viễn ảnh: ${fileName} (ID: ${fileId})`);
-        } else {
-            console.log(`[WARN] Không tìm thấy ảnh trên ImageKit: ${fileName}`);
-        }
+        const deleteResult = await deleteResponse.json();
 
-        return res.status(200).json({ success: true });
+        if (deleteResponse.ok && deleteResult) {
+            console.log(`[DEBUG] Đã xóa vĩnh viễn ảnh: ${fileName}`);
+            return res.status(200).json({ success: true });
+        } else {
+            console.log(`[WARN] Lỗi xóa ảnh CF ImgBed:`, deleteResult);
+            // Dù lỗi bên CF (có thể do file đã bị xóa từ trước), ta vẫn trả về success để Frontend đi tiếp
+            return res.status(200).json({ success: true, message: 'File có thể đã bị xóa trước đó.' });
+        }
 
     } catch (error) {
         console.error('[Delete Image Error]:', error.message);

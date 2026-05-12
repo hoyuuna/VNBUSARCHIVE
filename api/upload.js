@@ -1,5 +1,4 @@
 import { createClient } from '@supabase/supabase-js';
-import ImageKit from 'imagekit';
 
 export const config = {
     api: {
@@ -8,12 +7,6 @@ export const config = {
         },
     },
 };
-
-const imagekit = new ImageKit({
-    publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
-    privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
-    urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT
-});
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
@@ -57,49 +50,62 @@ export default async function handler(req, res) {
         let finalOptimizedUrl = '';
 
         try {
-            const folder = isAvatar ? '/avatars' : '/vehicles';
+            const folder = isAvatar ? 'avatars' : 'vehicles';
             const ext = fileExtension === 'jpg' ? 'jpg' : 'webp';
             const fileName = `img_${Date.now()}_${Math.round(Math.random() * 1e4)}.${ext}`;
 
-            console.log(`[DEBUG] Đang Upload lên ImageKit... (${folder})`);
+            console.log(`[DEBUG] Đang Upload lên CF ImgBed...`);
 
-            const uploadResponse = await imagekit.upload({
-                file: base64Data,
-                fileName: fileName,
-                folder: folder,
-                useUniqueFileName: true,
+            // Chuyển đổi Base64 thành Blob để nhét vào FormData
+            const arrayBuffer = Uint8Array.from(Buffer.from(base64Data, 'base64'));
+            const blob = new Blob([arrayBuffer], { type: `image/${ext}` });
+
+            const formData = new FormData();
+            formData.append('file', blob, fileName);
+
+            // GỌI API CLOUDFLARE IMGBED
+            const uploadResponse = await fetch('https://vnba-imgbed.pages.dev/upload', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${process.env.CF_IMGBED_TOKEN}`
+                },
+                body: formData
             });
 
-            finalOptimizedUrl = imagekit.url({
-                src: uploadResponse.url
-            });
+            const uploadResult = await uploadResponse.json();
 
-            console.log(`[DEBUG] ImageKit Upload thành công: ${finalOptimizedUrl}`);
+            if (uploadResult && uploadResult.length > 0 && uploadResult[0].src) {
+                finalOptimizedUrl = uploadResult[0].src;
+                console.log(`[DEBUG] CF ImgBed Upload thành công: ${finalOptimizedUrl}`);
+            } else {
+                console.error('Lỗi từ CF ImgBed:', uploadResult);
+                throw new Error('Lỗi phản hồi từ máy chủ lưu trữ ảnh.');
+            }
 
-        } catch (imageKitError) {
-            console.error('===[IMAGEKIT UPLOAD LỖI] ===', imageKitError);
-            throw new Error('Lỗi khi tải ảnh lên máy chủ ImageKit.');
+        } catch (uploadError) {
+            console.error('===[CF IMGBED UPLOAD LỖI] ===', uploadError);
+            throw new Error('Lỗi khi tải ảnh lên máy chủ CF ImgBed.');
         }
 
         if (isAvatar) {
-            // [THÊM MỚI] Lấy avatar cũ từ DB
+            // Lấy avatar cũ từ DB
             const { data: oldProfile } = await supabase
                 .from('profiles')
                 .select('avatar_url')
                 .eq('id', userId)
                 .single();
 
-            //[THÊM MỚI] Xóa avatar cũ trên ImageKit nếu có
-            if (oldProfile && oldProfile.avatar_url && oldProfile.avatar_url.includes('imagekit')) {
+            // Xóa avatar cũ trên ImgBed nếu có
+            if (oldProfile && oldProfile.avatar_url && oldProfile.avatar_url.includes('vnba-imgbed')) {
                 try {
                     const oldUrlObj = new URL(oldProfile.avatar_url);
-                    const oldFileName = oldUrlObj.pathname.split('/').pop();
-
-                    const files = await imagekit.listFiles({ searchQuery: `name="${oldFileName}"` });
-                    if (files && files.length > 0) {
-                        await imagekit.deleteFile(files[0].fileId);
-                        console.log(`[DEBUG] Đã xóa avatar cũ: ${oldFileName}`);
-                    }
+                    const oldFileName = encodeURIComponent(oldUrlObj.pathname.split('/').pop());
+                    
+                    await fetch(`https://vnba-imgbed.pages.dev/api/manage/delete/${oldFileName}`, {
+                        method: 'GET',
+                        headers: { 'Authorization': `Bearer ${process.env.CF_IMGBED_TOKEN}` }
+                    });
+                    console.log(`[DEBUG] Đã xóa avatar cũ: ${oldFileName}`);
                 } catch (delErr) {
                     console.error('[WARN] Không thể xóa avatar cũ:', delErr.message);
                 }
@@ -152,7 +158,7 @@ export default async function handler(req, res) {
                 body: JSON.stringify({
                     username: "VBS Logger",
                     embeds:[{
-                        title: `📥 ẢNH MỚI CHỜ DUYỆT (ImageKit WebP)`,
+                        title: `📥 ẢNH MỚI CHỜ DUYỆT (CF ImgBed)`,
                         description: `**BKS:** ${metadata.plate}\n**Máy:** ${metadata.camera_model}\n**Ngày chụp:** ${metadata.taken_at || 'Không rõ'}\n**User:** ${metadata.username}\nID: ${photoData.id}`,
                         thumbnail: { url: finalOptimizedUrl },
                         color: 15158332 
