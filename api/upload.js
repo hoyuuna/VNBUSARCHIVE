@@ -75,7 +75,15 @@ export default async function handler(req, res) {
             const uploadResult = await uploadResponse.json();
 
             if (uploadResult && uploadResult.length > 0 && uploadResult[0].src) {
-                finalOptimizedUrl = uploadResult[0].src;
+                let rawSrc = uploadResult[0].src;
+
+                // NẾU TRẢ VỀ ĐƯỜNG DẪN TƯƠNG ĐỐI -> ÉP CHUẨN DOMAIN IMGBED VÀO
+                if (rawSrc.startsWith('/')) {
+                    finalOptimizedUrl = `https://vnba-imgbed.pages.dev${rawSrc}`;
+                } else {
+                    finalOptimizedUrl = rawSrc;
+                }
+
                 console.log(`[DEBUG] CF ImgBed Upload thành công: ${finalOptimizedUrl}`);
             } else {
                 console.error('Lỗi từ CF ImgBed:', uploadResult);
