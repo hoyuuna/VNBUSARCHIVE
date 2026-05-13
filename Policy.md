@@ -28,6 +28,7 @@ Là một dự án lưu trữ chất lượng cao, VNBUSARCHIVE áp dụng các 
 * **Chất lượng kỹ thuật:** Ảnh phải rõ nét, đủ độ sáng. Không chấp nhận ảnh bị rung tay, nhòe mờ (motion blur), hoặc lóa sáng. Đặc biệt, **nghiêm cấm sử dụng AI Upscale** để làm nét hoặc thay đổi chi tiết xe nguyên bản. Độ phân giải ảnh tối thiểu phải đạt chuẩn (ví dụ: chiều cao >= 1080px).
 * **Không chèn chữ ký (Watermark) cá nhân:** Bạn không được phép tự chèn logo hay chữ ký vào ảnh. Hệ thống của chúng tôi sẽ tự động xử lý và đóng dấu watermark mang Tên hiển thị (Username) của bạn để bảo vệ bản quyền.
 * **Quyền riêng tư:** Nếu ảnh chụp cận cảnh lộ rõ khuôn mặt người (hành khách, tài xế, người đi đường), bạn bắt buộc phải xin phép họ hoặc sử dụng tính năng "Che vật thể" (Blur) tích hợp sẵn trong trang Upload của hệ thống để làm mờ khuôn mặt/biển số xe của người khác.
+* **Giới hạn tải lên:** Nhằm đảm bảo tính công bằng và bảo vệ hạ tầng lưu trữ ảnh, mỗi tài khoản được giới hạn tải lên tối đa **20-50 hình ảnh trong vòng 24 giờ**. Giới hạn này có thể được Ban quản trị điều chỉnh tùy theo nhu cầu thực tế của hệ thống.
 
 ### 4. Quyền Sở hữu Trí tuệ và Cấp phép
 * **Đối với người dùng:** Bạn vẫn giữ toàn bộ bản quyền gốc đối với hình ảnh do bạn chụp. Bằng việc tải ảnh lên VNBUSARCHIVE, bạn cấp cho chúng tôi giấy phép không độc quyền, miễn phí, vĩnh viễn và có thể phân phối lại để hiển thị, lưu trữ, tối ưu hóa kích thước và cung cấp hình ảnh của bạn thông qua API cho cộng đồng.
@@ -49,6 +50,11 @@ Là một dự án lưu trữ chất lượng cao, VNBUSARCHIVE áp dụng các 
 * **Không có giá trị làm Cơ sở pháp lý:** VNBUSARCHIVE là nền tảng lưu trữ với mục đích phi thương mại và nghiên cứu. Mọi hình ảnh, thời gian, địa điểm và dữ liệu trên hệ thống **tuyệt đối không được phép** sử dụng làm cơ sở pháp lý, bằng chứng hay căn cứ để xác định lỗi vi phạm giao thông, vi phạm nội quy của tài xế, đơn vị vận hành hoặc người chụp ảnh; trừ trường hợp được Ban quản trị VNBUSARCHIVE ủy quyền, cho phép bằng văn bản, hoặc khi có yêu cầu từ cơ quan chức năng có thẩm quyền.
 * **Trách nhiệm phát sinh từ người dùng:** Người dùng phải hoàn toàn chịu trách nhiệm về nội dung và hình ảnh mình đăng tải. VNBUSARCHIVE được miễn trừ mọi trách nhiệm pháp lý, đền bù đối với các vấn đề phát sinh do sự bất cẩn của người dùng (bao gồm nhưng không giới hạn ở việc: quên không làm mờ/che mặt tài xế hoặc hành khách dẫn đến khiếu nại về quyền riêng tư), cũng như các mâu thuẫn hay tranh chấp diễn ra bên ngoài nền tảng hoặc trên các mạng xã hội khác bắt nguồn từ hình ảnh/thông tin được đăng trên website.
 
+### 8. Kinh phí và Hoạt động Phi lợi nhuận
+VNBUSARCHIVE hoạt động dựa trên tinh thần tình nguyện. Trong trường hợp dự án nhận được sự ủng hộ (donation) từ cộng đồng, chúng tôi cam kết:
+* **Mục đích sử dụng:** Toàn bộ kinh phí được dùng để chi trả cho hạ tầng kỹ thuật (tên miền, máy chủ, vân vân...). Tuyệt đối không sử dụng cho mục đích cá nhân của Ban quản trị.
+* **Kế hoạch tương lai:** Nếu nguồn kinh phí dư so với nhu cầu hiện tại, số tiền đó sẽ được tích lũy để nâng cấp hạ tầng trong tương lai hoặc đóng góp cho các quỹ từ thiện uy tín.
+* **Tính minh bạch:** Mọi khoản thu chi liên quan đến quỹ ủng hộ sẽ được công khai báo cáo định kỳ trên các kênh thông báo chính thức của dự án.
 ---
 
 ## PHẦN 2: CHÍNH SÁCH BẢO MẬT (PRIVACY POLICY)
