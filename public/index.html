@@ -2736,8 +2736,18 @@
 
                     <form id="upload-form" class="space-y-6">
                         <div class="bg-gray-50 border border-gray-200 p-5 rounded-md">
-                            <label class="block font-bold text-sm mb-3 text-black">1. Chọn tệp <span
+                        <div class="flex items-center justify-between mb-3">
+                            <label class="block font-bold text-sm text-black">1. Chọn tệp <span
                                     class="text-red-500">*</span></label>
+                            
+                            <!-- PILL HIỂN THỊ QUOTA -->
+                            <div id="upload-quota-pill" class="hidden flex items-center bg-white border border-gray-200 rounded-full px-3 py-1 shadow-sm">
+                                <span id="upload-quota-text" class="text-xs font-bold text-black transition-colors">Đang kiểm tra...</span>
+                                <button type="button" onclick="app.ui.showQuotaInfo()" class="ml-2 text-gray-400 hover:text-black transition">
+                                    <i class="fa-solid fa-circle-info text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
                             <input type="file" id="up-file" accept="image/jpeg"
                                 class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-black file:text-white hover:file:bg-gray-800 transition cursor-pointer"
                                 required />
@@ -4930,8 +4940,9 @@
 
                         if (id === 'upload') {
                             app.upload.fetchRequirements();
+                            app.upload.checkQuota();
                             setTimeout(() => app.uploadMap.invalidateSize(), 200);
-                            app.utils.resetTurnstile('#upload .cf-turnstile'); // <-- Thêm dòng này (Lấy token tươi mới)
+                            app.utils.resetTurnstile('#upload .cf-turnstile');
                         }
                     } else {
                         searchBox.classList.remove('hidden');
@@ -7008,7 +7019,28 @@ if (app.user && app.role === 'manager' && isDenied) {
                             </div>
                             <div class="mt-4 text-right"><button onclick="app.admin.saveManagerSetting('${cfg.id}', this)" class="bg-black text-white px-5 py-2 text-xs font-bold rounded shadow-sm">Lưu thiết lập</button></div>
                         </div>`;
-                    });
+                     });
+                    
+                    const quotaData = app.maintenance.settings['upload_quota'] || { reason: '' };
+                    
+                    html += `
+                    <div class="border border-blue-200 rounded-lg p-5 bg-blue-50/50 mt-6 relative shadow-sm">
+                        <div class="flex items-center gap-2 mb-3 border-b border-blue-200 pb-3">
+                            <i class="fa-solid fa-cloud-arrow-up text-blue-600 text-lg"></i>
+                            <h3 class="font-bold text-blue-800 uppercase text-sm">Giới hạn Upload hàng ngày (Quota)</h3>
+                        </div>
+                        <p class="text-xs text-blue-700 mb-4 leading-relaxed">Giới hạn số lượng ảnh <b>mỗi người dùng</b> được phép upload trong vòng 24h. Tự động làm mới vào <b>7:00 Sáng giờ Việt Nam</b>.</p>
+                        
+                        <div class="flex items-end gap-3">
+                            <div class="flex-1">
+                                <label class="text-xs font-bold text-blue-900 block mb-1">Số lượng ảnh (Để trống = Không giới hạn, 0 = Tạm dừng nhận)</label>
+                                <input type="number" min="0" id="mt-quota-value" value="${quotaData.reason}" placeholder="Trống = Không giới hạn" class="w-full border border-blue-300 p-2.5 text-sm rounded outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                            </div>
+                            <button onclick="app.admin.saveQuotaSetting(this)" class="bg-blue-600 text-white px-6 py-2.5 text-xs font-bold rounded hover:bg-blue-700 transition shadow-sm h-[42px] whitespace-nowrap"><i class="fa-solid fa-floppy-disk mr-1"></i> Lưu cấu hình</button>
+                        </div>
+                    </div>
+                    `;
+                    
                     container.innerHTML = html;
                 },
 
@@ -7030,6 +7062,35 @@ if (app.user && app.role === 'manager' && isDenied) {
                         app.ui.showAlert(`Đã lưu thiết lập cho ${sysId.toUpperCase()}`);
                     } catch (e) { app.ui.showAlert("Lỗi: " + e.message); }
                     finally { btn.innerHTML = originalHTML; btn.disabled = false; }
+                },
+                saveQuotaSetting: async (btn) => {
+                    if (app.role !== 'manager') return;
+                    
+                    const originalHTML = btn.innerHTML;
+                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...';
+                    btn.disabled = true;
+
+                    const val = document.getElementById('mt-quota-value').value.trim();
+
+                    try {
+                        const { error } = await window.sb.from('system_settings').update({
+                            reason: val,
+                            updated_by: app.user.id,
+                            updated_at: new Date().toISOString()
+                        }).eq('id', 'upload_quota');
+
+                        if (error) throw error;
+                        
+                        await app.maintenance.fetch(); 
+                        app.admin.logAction('update_upload_quota', 'upload_quota', { new_limit: val || 'Không giới hạn' });
+                        app.ui.showAlert(`Đã cập nhật Giới hạn Upload thành: ${val === '' ? 'Không giới hạn' : val + ' ảnh/ngày'}!`);
+                        
+                    } catch (e) {
+                        app.ui.showAlert("Lỗi: " + e.message);
+                    } finally {
+                        btn.innerHTML = originalHTML;
+                        btn.disabled = false;
+                    }
                 },
                 // ------------------------------------------
 
@@ -7319,9 +7380,10 @@ if (app.user && app.role === 'manager' && isDenied) {
                 }
             },
 
-            upload: {
+             upload: {
+                 currentQuota: { limit: null, count: 0 },
 
-                fetchRequirements: async () => {
+                 fetchRequirements: async () => {
                     const container = document.getElementById('upload-rules-content');
                     if (!container || container.dataset.loaded === 'true') return;
 
@@ -8003,6 +8065,12 @@ if (app.user && app.role === 'manager' && isDenied) {
                     e.preventDefault();
                     if (!app.user) return app.auth.check();
                     if (!app.rawFile) return app.ui.showAlert("Vui lòng chọn ảnh!");
+                    
+                    // Check quota trước khi submit
+                    const q = app.upload.currentQuota;
+                    if (q.limit !== null && q.count >= q.limit) {
+                        return app.ui.showAlert(`Bạn đã dùng hết ${q.limit} lượt đăng ảnh của ngày hôm nay. Vui lòng quay lại sau 7:00 sáng mai!`);
+                    }
 
                     const valPlate = document.getElementById('up-plate').value.trim();
                     const valOp = document.getElementById('up-operator').value.trim();
@@ -8212,6 +8280,66 @@ if (app.user && app.role === 'manager' && isDenied) {
                     } finally {
                         btn.innerHTML = originalText;
                         btn.disabled = false;
+                    }
+                },
+                checkQuota: async () => {
+                    if (!app.user) return;
+                    
+                    const pill = document.getElementById('upload-quota-pill');
+                    const textEl = document.getElementById('upload-quota-text');
+                    const fileInput = document.getElementById('up-file');
+                    const btnSubmit = document.getElementById('btn-submit');
+                    
+                    if (!pill) return;
+                    pill.classList.remove('hidden');
+                    textEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-gray-400"></i>';
+
+                    try {
+                        // Lấy cấu hình Limit từ Manager
+                        const limitSetting = app.maintenance.settings['upload_quota']?.reason;
+                        const hasLimit = limitSetting && limitSetting.trim() !== '';
+                        const limitNum = hasLimit ? parseInt(limitSetting) : null;
+
+                        // Query số ảnh user đã up từ 7h sáng gần nhất
+                        const last7AM = app.utils.getLast7AM_UTC7();
+                        const { count } = await window.sb.from('photos')
+                            .select('*', { count: 'exact', head: true })
+                            .eq('uploader_id', app.user.id)
+                            .gte('created_at', last7AM);
+
+                        app.upload.currentQuota = { limit: limitNum, count: count || 0 };
+                        
+                        textEl.classList.remove('text-black', 'text-amber-500', 'text-red-600');
+                        
+                        if (!hasLimit) {
+                            textEl.innerText = `${count} lượt (Không giới hạn)`;
+                            textEl.classList.add('text-black');
+                            fileInput.disabled = false;
+                            fileInput.classList.remove('opacity-50', 'cursor-not-allowed');
+                        } else {
+                            textEl.innerText = `${count}/${limitNum} lượt hôm nay`;
+                            const remaining = limitNum - count;
+                            
+                            if (limitNum === 0 || remaining <= 0) {
+                                textEl.classList.add('text-red-600');
+                                fileInput.disabled = true;
+                                btnSubmit.disabled = true;
+                                fileInput.classList.add('opacity-50', 'cursor-not-allowed');
+                                textEl.innerText = limitNum === 0 ? `Đã tạm dừng nhận ảnh` : `Hết lượt hôm nay (${count}/${limitNum})`;
+                            } else if (remaining <= 3) {
+                                textEl.classList.add('text-amber-500');
+                                fileInput.disabled = false;
+                                fileInput.classList.remove('opacity-50', 'cursor-not-allowed');
+                            } else {
+                                textEl.classList.add('text-black');
+                                fileInput.disabled = false;
+                                fileInput.classList.remove('opacity-50', 'cursor-not-allowed');
+                            }
+                        }
+                    } catch (e) {
+                        console.error("Lỗi đếm Quota:", e);
+                        textEl.innerText = "Lỗi kiểm tra giới hạn";
+                        textEl.classList.add('text-red-500');
                     }
                 }
             },
@@ -9298,15 +9426,34 @@ if (app.user && app.role === 'manager' && isDenied) {
                         html += `<span class="badge-shiny ${badgeClass}" title="${badgeTitle}"><i class="fa-solid fa-shield-halved mr-1 text-[10px]"></i> ${badgeText}</span>`;
                     }
 
-                    if (userId && app.topUploaders[userId]) {
-                        const rank = app.topUploaders[userId];
-                        if (rank === 1) html += `<span class="badge-shiny badge-top1" title="Top 1 Uploader"><i class="fa-solid fa-crown mr-1 text-[10px]"></i> Top 1</span>`;
-                        else if (rank === 2) html += `<span class="badge-shiny badge-top2" title="Top 2 Uploader"><i class="fa-solid fa-medal mr-1 text-[10px]"></i> Top 2</span>`;
-                        else if (rank === 3) html += `<span class="badge-shiny badge-top3" title="Top 3 Uploader"><i class="fa-solid fa-award mr-1 text-[10px]"></i> Top 3</span>`;
-                    }
-                    return html;
-                }
-            },
+                     if (userId && app.topUploaders[userId]) {
+                         const rank = app.topUploaders[userId];
+                         if (rank === 1) html += `<span class="badge-shiny badge-top1" title="Top 1 Uploader"><i class="fa-solid fa-crown mr-1 text-[10px]"></i> Top 1</span>`;
+                         else if (rank === 2) html += `<span class="badge-shiny badge-top2" title="Top 2 Uploader"><i class="fa-solid fa-medal mr-1 text-[10px]"></i> Top 2</span>`;
+                         else if (rank === 3) html += `<span class="badge-shiny badge-top3" title="Top 3 Uploader"><i class="fa-solid fa-award mr-1 text-[10px]"></i> Top 3</span>`;
+                     }
+                     return html;
+                 },
+                 getLast7AM_UTC7: () => {
+                     const now = new Date();
+                     // Đổi giờ hiện tại sang UTC+7
+                     const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+                     const vnTime = new Date(utc + (3600000 * 7));
+
+                     // Thiết lập mốc 7:00:00 AM
+                     let target = new Date(vnTime);
+                     target.setHours(7, 0, 0, 0);
+
+                     // Nếu giờ hiện tại VN < 7h sáng, lùi về 7h sáng hôm qua
+                     if (vnTime.getTime() < target.getTime()) {
+                         target.setDate(target.getDate() - 1);
+                     }
+
+                     // Chuyển ngược lại sang chuẩn UTC để query Supabase
+                     const targetUTC = new Date(target.getTime() - (3600000 * 7));
+                     return targetUTC.toISOString();
+                 }
+             },
 
             auth: {
                 mode: 'login',
@@ -9953,6 +10100,15 @@ changePassword: async () => {
                         app.ui.unlockScroll();
                     }, 200);
                 },
+                showQuotaInfo: () => {
+                    const limitStr = app.maintenance.settings['upload_quota']?.reason;
+                    const limitTxt = (limitStr && limitStr.trim() !== '') ? limitStr : 'không giới hạn';
+                    
+                    app.ui.showAlert(
+                        `Nhằm đảm bảo tính công bằng và bảo vệ hạ tầng lưu trữ ảnh, mỗi người chỉ được upload <b>${limitTxt} ảnh</b> hàng ngày (24h).<br><br>Chu kỳ sẽ được tự động đặt lại vào mỗi <b>7 giờ sáng (Giờ Việt Nam)</b>.`,
+                        null, null, { title: "Chính sách giới hạn đăng tải", btnOkText: "Đã hiểu" }
+                    );
+                },
                 showPrompt: (msg, defaultValue = '', callback) => {
                     const modal = document.getElementById('custom-prompt-modal');
                     const content = document.getElementById('custom-prompt-content');
@@ -10279,11 +10435,17 @@ changePassword: async () => {
                         }
                     }, 10);
 
-                    title.innerText = 'Ảnh upload không thành công';
+                    title.innerText = 'Không thể tải ảnh lên';
                     title.classList.replace('text-gray-900', 'text-red-600');
-                    desc.innerHTML = 'Đã xảy ra lỗi. Hệ thống đã tự động gửi báo cáo đến Ban Quản Trị. Vui lòng thử lại sau.';
-
-                    errorBox.innerText = errMsg;
+                    
+                    // Xử lý thông báo lỗi từ Database (Postgres thường trả về chuỗi có chứa tin nhắn mình set)
+                    let cleanMsg = errMsg;
+                    if (errMsg.includes('EXCEPTION:')) {
+                        cleanMsg = errMsg.split('EXCEPTION:')[1].trim();
+                    }
+                    
+                    desc.innerHTML = `<b class="text-red-700">${cleanMsg}</b>`;
+                    errorBox.innerText = "Mã lỗi: " + errMsg;
                     errorBox.classList.remove('hidden');
 
                     // Thay đổi Onclick của nút "Thử lại" dưới đây:
