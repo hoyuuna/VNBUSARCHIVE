@@ -1365,7 +1365,27 @@
     
     <div id="app-container" style="display: none; opacity: 0; transition: opacity 0.5s ease-in-out;">
 
+<!-- KHUNG BẢO TRÌ HỆ THỐNG -->
+<div id="maintenance-screen" class="hidden fixed inset-0 z-[9999] bg-[#121212] flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white/90 backdrop-blur-2xl border border-white/60 rounded-3xl shadow-2xl max-w-lg w-full p-8 text-center flex flex-col items-center">
+        <div class="w-20 h-20 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-4xl mb-6 shadow-inner border border-amber-200">
+            <i class="fa-solid fa-person-digging"></i>
+        </div>
+        <h1 id="mt-title" class="font-bold text-2xl text-black uppercase tracking-tight mb-2">HỆ THỐNG ĐANG BẢO TRÌ</h1>
+        <p id="mt-reason" class="text-gray-600 text-sm font-medium mb-6 bg-gray-50 p-4 border border-gray-200 rounded-xl w-full">Đang nâng cấp hệ thống...</p>
 
+        <div class="w-full bg-black text-white p-4 rounded-xl flex flex-col gap-1 shadow-lg shadow-black/20">
+            <span class="text-xs text-gray-400 font-bold uppercase tracking-wider">Thời gian dự kiến mở lại</span>
+            <span id="mt-countdown" class="text-xl font-black font-mono tracking-widest text-amber-400">Cập nhật sau</span>
+        </div>
+
+        <button onclick="app.utils.navigate('/')" class="mt-6 text-sm font-bold text-gray-500 hover:text-black transition flex items-center gap-2">
+            <i class="fa-solid fa-house"></i> Quay lại trang chủ
+        </button>
+        <!-- Nút ẩn cho Manager lách luật -->
+        <button id="mt-manager-bypass" onclick="app.maintenance.bypass()" class="hidden mt-4 text-[10px] text-blue-500 hover:underline">Bypass (Manager)</button>
+    </div>
+</div>
 
         <div id="custom-alert-modal"
             class="hidden fixed inset-0 z-[5000] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
@@ -3147,6 +3167,97 @@
                 }
             },
 
+            maintenance: {
+                settings: {},
+                timer: null,
+                isBypassed: false,
+
+                fetch: async () => {
+                    try {
+                        const { data, error } = await window.sb.from('system_settings').select('*');
+                        if (data) {
+                            data.forEach(item => { app.maintenance.settings[item.id] = item; });
+                        }
+                    } catch (e) { console.error("Lỗi lấy thông tin bảo trì", e); }
+                },
+
+                check: (sysId) => {
+                    if (app.maintenance.isBypassed) return false; // Manager bypass
+
+                    // Kiểm tra cầu chì tổng trước, sau đó mới đến module cụ thể
+                    const target = app.maintenance.settings['global']?.is_active === false
+                                 ? app.maintenance.settings['global']
+                                 : app.maintenance.settings[sysId];
+
+                    if (!target) return false;
+
+                    // Nếu is_active = false, kiểm tra xem đã qua giờ tự mở chưa
+                    if (target.is_active === false) {
+                        if (target.auto_reactivate_at) {
+                            const autoTime = new Date(target.auto_reactivate_at).getTime();
+                            if (Date.now() >= autoTime) {
+                                return false; // Đã quá giờ -> Cho phép qua
+                            }
+                        }
+                        return target; // Trả về thông tin bảo trì để show màn hình
+                    }
+                    return false;
+                },
+
+                showScreen: (targetData) => {
+                    const screen = document.getElementById('maintenance-screen');
+                    document.getElementById('mt-reason').innerText = targetData.reason || "Hệ thống đang được bảo trì, vui lòng quay lại sau.";
+                    
+                    // Manager thì cho hiện nút bypass
+                    if (app.role === 'manager') {
+                        document.getElementById('mt-manager-bypass').classList.remove('hidden');
+                    }
+
+                    if (app.maintenance.timer) clearInterval(app.maintenance.timer);
+
+                    if (targetData.auto_reactivate_at) {
+                        const autoTime = new Date(targetData.auto_reactivate_at).getTime();
+                        
+                        app.maintenance.timer = setInterval(() => {
+                            const now = Date.now();
+                            const distance = autoTime - now;
+
+                            if (distance < 0) {
+                                clearInterval(app.maintenance.timer);
+                                window.location.reload(); // Quá giờ thì tự f5
+                                return;
+                            }
+
+                            const d = Math.floor(distance / (1000 * 60 * 60 * 24));
+                            const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                            const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                            const s = Math.floor((distance % (1000 * 60)) / 1000);
+
+                            let timeStr = "";
+                            if(d > 0) timeStr += `${d} ngày `;
+                            timeStr += `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                            
+                            document.getElementById('mt-countdown').innerText = timeStr;
+                        }, 1000);
+                    } else {
+                        document.getElementById('mt-countdown').innerText = "Cập nhật sau";
+                    }
+
+                    screen.classList.remove('hidden');
+                },
+
+                hideScreen: () => {
+                    document.getElementById('maintenance-screen').classList.add('hidden');
+                    if (app.maintenance.timer) clearInterval(app.maintenance.timer);
+                },
+
+                bypass: () => {
+                    app.maintenance.isBypassed = true;
+                    app.maintenance.hideScreen();
+                    app.handleRoute(); // Khởi động lại route
+                }
+            },
+
             crop: {
                 cropper: null,
                 mode: 'main',
@@ -3687,6 +3798,7 @@
                 app.utils.updateBreadcrumbs();
                 await app.utils.loadProvinceData();
                 await app.ads.init(); // <-- THÊM DÒNG NÀY ĐỂ TẢI JSON QUẢNG CÁO
+                await app.maintenance.fetch();
                 app.handleRoute();
 
                 document.getElementById('up-file').addEventListener('change', app.upload.handleFileSelect);
@@ -4752,6 +4864,25 @@
                             return;
                         }
                     }
+
+                    // --- CHECK BẢO TRÌ ---
+                    let mtCheck = false;
+                    if (id === 'home' || id === 'search' || id === 'detail' || id === 'vehicle' || id === 'account') {
+                        mtCheck = app.maintenance.check('global');
+                    } else if (id === 'auth') {
+                        mtCheck = app.maintenance.check('auth');
+                    } else if (id === 'upload') {
+                        mtCheck = app.maintenance.check('upload');
+                    }
+
+                    if (mtCheck) {
+                        app.maintenance.showScreen(mtCheck);
+                        app.loadingBar.finish();
+                        return; // Dừng việc load View
+                    } else {
+                        app.maintenance.hideScreen();
+                    }
+                    // ---------------------
 
                     if (id === 'auth') {
                         window.dispatchEvent(new CustomEvent('auth-opened'));
@@ -6652,7 +6783,8 @@ if (app.user && app.role === 'manager' && isDenied) {
                                 <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-4 md:p-6 mb-6">
                                     <div class="flex gap-2 mb-6 border-b border-gray-200 pb-3 overflow-x-auto">
                                         <button onclick="app.admin.switchManagerTab('denied')" id="mgr-tab-denied" class="font-bold text-sm px-4 py-2 bg-black text-white rounded transition whitespace-nowrap">Ảnh bị từ chối</button>
-                                        <button onclick="app.admin.switchManagerTab('logs')" id="mgr-tab-logs" class="font-bold text-sm px-4 py-2 bg-white text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition whitespace-nowrap">Nhật ký hoạt động</button>
+                                         <button onclick="app.admin.switchManagerTab('logs')" id="mgr-tab-logs" class="font-bold text-sm px-4 py-2 bg-white text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition whitespace-nowrap">Nhật ký hoạt động</button>
+                                        <button onclick="app.admin.switchManagerTab('settings')" id="mgr-tab-settings" class="font-bold text-sm px-4 py-2 bg-white text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition whitespace-nowrap"><i class="fa-solid fa-sliders mr-1"></i> Cài đặt</button>
                                     </div>
 
                                     <!-- TAB: ẢNH BỊ TỪ CHỐI -->
@@ -6689,10 +6821,20 @@ if (app.user && app.role === 'manager' && isDenied) {
                                                 </tbody>
                                             </table>
                                         </div>
-                                        <div id="mgr-logs-pager" class="mt-6 w-full flex justify-center"></div>
+                                         <div id="mgr-logs-pager" class="mt-6 w-full flex justify-center"></div>
+                                     </div>
+
+                                    <!-- TAB: CÀI ĐẶT HỆ THỐNG (MANAGER) -->
+                                    <div id="mgr-sec-settings" class="hidden">
+                                        <div class="mb-4 bg-blue-50 border border-blue-200 p-4 rounded-md">
+                                            <p class="text-xs text-blue-800 font-medium"><i class="fa-solid fa-circle-info mr-1"></i> <b>Lưu ý:</b> Các công tắc dưới đây ảnh hưởng trực tiếp đến người dùng. Nếu "Hẹn giờ tự động" kết thúc, hệ thống sẽ tự mở lại mà không cần bạn bật thủ công.</p>
+                                        </div>
+                                        <div id="mgr-settings-content" class="grid grid-cols-1 gap-6">
+                                            <p class="text-gray-500 italic"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải cấu hình...</p>
+                                        </div>
                                     </div>
-                                </div>
-                            `;
+                                 </div>
+                             `;
 
                             app.admin.fetchManagerData('denied');
                             app.admin.fetchManagerData('logs');
@@ -6707,11 +6849,23 @@ if (app.user && app.role === 'manager' && isDenied) {
                 switchManagerTab: (subTab) => {
                     app.admin.manager.activeTab = subTab;
 
-                    document.getElementById('mgr-tab-denied').className = subTab === 'denied' ? "font-bold text-sm px-4 py-2 bg-black text-white rounded transition whitespace-nowrap" : "font-bold text-sm px-4 py-2 bg-white text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition whitespace-nowrap";
-                    document.getElementById('mgr-tab-logs').className = subTab === 'logs' ? "font-bold text-sm px-4 py-2 bg-black text-white rounded transition whitespace-nowrap" : "font-bold text-sm px-4 py-2 bg-white text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition whitespace-nowrap";
+                    ['denied', 'logs', 'settings'].forEach(t => {
+                        const btn = document.getElementById('mgr-tab-' + t);
+                        const sec = document.getElementById('mgr-sec-' + t);
+                        if (btn && sec) {
+                            if (t === subTab) {
+                                btn.className = "font-bold text-sm px-4 py-2 bg-black text-white rounded transition whitespace-nowrap";
+                                sec.className = "block";
+                            } else {
+                                btn.className = "font-bold text-sm px-4 py-2 bg-white text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition whitespace-nowrap";
+                                sec.className = "hidden";
+                            }
+                        }
+                    });
 
-                    document.getElementById('mgr-sec-denied').className = subTab === 'denied' ? "block" : "hidden";
-                    document.getElementById('mgr-sec-logs').className = subTab === 'logs' ? "block" : "hidden";
+                    if (subTab === 'settings') {
+                        app.admin.renderManagerSettings();
+                    }
                 },
 
                 fetchManagerData: async (type) => {
@@ -9120,6 +9274,117 @@ if (app.user && app.role === 'manager' && isDenied) {
                         else if (rank === 3) html += `<span class="badge-shiny badge-top3" title="Top 3 Uploader"><i class="fa-solid fa-award mr-1 text-[10px]"></i> Top 3</span>`;
                     }
                     return html;
+                },
+
+                renderManagerSettings: async () => {
+                    const container = document.getElementById('mgr-settings-content');
+                    container.innerHTML = '<p class="text-gray-500 italic"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</p>';
+
+                    // Tải mới từ DB cho chắc
+                    await app.maintenance.fetch();
+
+                    const configs =[
+                        { id: 'global', title: 'Cầu chì Tổng (Toàn hệ thống)', icon: 'fa-globe', color: 'red' },
+                        { id: 'auth', title: 'Hệ thống Đăng nhập / Đăng ký', icon: 'fa-user-lock', color: 'blue' },
+                        { id: 'upload', title: 'Hệ thống Upload Ảnh', icon: 'fa-cloud-arrow-up', color: 'green' }
+                    ];
+
+                    let html = '';
+                    configs.forEach(cfg => {
+                        const data = app.maintenance.settings[cfg.id] || { is_active: true, reason: '', auto_reactivate_at: null };
+                        const hasTime = !!data.auto_reactivate_at;
+
+                        // Format datetime-local (YYYY-MM-DDTHH:mm)
+                        let timeVal = '';
+                        if (hasTime) {
+                            const d = new Date(data.auto_reactivate_at);
+                            // Cân bằng bù múi giờ để hiển thị đúng local trên datetime-local
+                            const tzOffset = d.getTimezoneOffset() * 60000;
+                            const localISOTime = (new Date(d.getTime() - tzOffset)).toISOString().slice(0, 16);
+                            timeVal = localISOTime;
+                        }
+
+                        html += `
+                        <div class="border border-gray-200 rounded-lg p-5 bg-white relative">
+                            <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-3">
+                                <h3 class="font-bold text-${cfg.color}-600 uppercase text-sm"><i class="fa-solid ${cfg.icon} mr-2"></i>${cfg.title}</h3>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="mt-active-${cfg.id}" class="sr-only peer" ${data.is_active ? 'checked' : ''} onchange="document.getElementById('mt-status-lbl-${cfg.id}').innerText = this.checked ? 'Đang hoạt động' : 'Bảo trì (Tắt)'">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-${cfg.color}-600"></div>
+                                    <span id="mt-status-lbl-${cfg.id}" class="ml-3 text-xs font-bold ${data.is_active ? 'text-green-600' : 'text-red-600'} w-24 text-right">${data.is_active ? 'Đang hoạt động' : 'Bảo trì (Tắt)'}</span>
+                                </label>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="text-xs text-gray-500 font-bold block mb-1">Lý do bảo trì (Hiện cho người dùng xem)</label>
+                                    <input type="text" id="mt-reason-${cfg.id}" value="${app.utils.escapeAttr(data.reason)}" placeholder="VD: Nâng cấp server..." class="w-full border border-gray-300 p-2.5 text-sm rounded outline-none focus:ring-1 focus:ring-black">
+                                </div>
+                                <div>
+                                    <label class="text-xs text-gray-500 font-bold flex justify-between mb-1 items-center">
+                                        <span>Hẹn giờ tự mở lại</span>
+                                        <div class="flex items-center gap-1">
+                                            <input type="checkbox" id="mt-has-time-${cfg.id}" ${hasTime ? 'checked' : ''} onchange="document.getElementById('mt-time-${cfg.id}').disabled = !this.checked">
+                                            <span>Kích hoạt</span>
+                                        </div>
+                                    </label>
+                                    <input type="datetime-local" id="mt-time-${cfg.id}" value="${timeVal}" ${!hasTime ? 'disabled' : ''} class="w-full border border-gray-300 p-2.5 text-sm rounded outline-none focus:ring-1 focus:ring-black disabled:bg-gray-100 disabled:text-gray-400">
+                                </div>
+                            </div>
+                            <div class="mt-4 text-right">
+                                <button onclick="app.admin.saveManagerSetting('${cfg.id}', this)" class="bg-black text-white px-5 py-2 text-xs font-bold rounded hover:bg-gray-800 transition"><i class="fa-solid fa-floppy-disk mr-1"></i> Lưu thiết lập</button>
+                            </div>
+                        </div>
+                        `;
+                    });
+
+                    container.innerHTML = html;
+                },
+
+                saveManagerSetting: async (sysId, btn) => {
+                    if (app.role !== 'manager') return app.ui.showAlert("Chỉ Manager mới có quyền này!");
+
+                    const originalHTML = btn.innerHTML;
+                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...';
+                    btn.disabled = true;
+
+                    const isActive = document.getElementById(`mt-active-${sysId}`).checked;
+                    const reason = document.getElementById(`mt-reason-${sysId}`).value.trim();
+                    const hasTime = document.getElementById(`mt-has-time-${sysId}`).checked;
+                    const timeVal = document.getElementById(`mt-time-${sysId}`).value;
+
+                    let autoReactivate = null;
+                    if (!isActive && hasTime) {
+                        if (!timeVal) {
+                            btn.innerHTML = originalHTML; btn.disabled = false;
+                            return app.ui.showAlert("Vui lòng chọn ngày giờ hoặc tắt mục 'Kích hoạt hẹn giờ'!");
+                        }
+                        // datetime-local lấy theo múi giờ local của trình duyệt (UTC+7)
+                        // new Date() sẽ tự parse nó về chuẩn ISO
+                        autoReactivate = new Date(timeVal).toISOString();
+                    }
+
+                    try {
+                        const { error } = await window.sb.from('system_settings').update({
+                            is_active: isActive,
+                            reason: reason,
+                            auto_reactivate_at: autoReactivate,
+                            updated_by: app.user.id,
+                            updated_at: new Date().toISOString()
+                        }).eq('id', sysId);
+
+                        if (error) throw error;
+
+                        await app.maintenance.fetch(); // Reload data
+                        app.admin.logAction('update_sys_setting', sysId, { is_active: isActive, reason: reason });
+                        app.ui.showAlert(`Cập nhật cài đặt module "${sysId.toUpperCase()}" thành công!`);
+
+                    } catch (e) {
+                        app.ui.showAlert("Lỗi khi lưu cài đặt: " + e.message);
+                    } finally {
+                        btn.innerHTML = originalHTML;
+                        btn.disabled = false;
+                    }
                 }
             },
 
