@@ -6845,7 +6845,7 @@ if (app.user && app.role === 'manager' && isDenied) {
                     }
                 },
 
-                // --- CÁC HÀM XỬ LÝ RIÊNG CHO TAB MANAGER ---
+                // --- PHẦN QUẢN LÝ TAB MANAGER ---
                 switchManagerTab: (subTab) => {
                     app.admin.manager.activeTab = subTab;
 
@@ -6864,7 +6864,7 @@ if (app.user && app.role === 'manager' && isDenied) {
                     });
 
                     if (subTab === 'settings') {
-                        app.admin.renderManagerSettings();
+                        app.admin.renderManagerSettings(); // Hàm này gây lỗi nếu bạn chưa định nghĩa bên dưới
                     }
                 },
 
@@ -6872,13 +6872,9 @@ if (app.user && app.role === 'manager' && isDenied) {
                     try {
                         if (type === 'denied') {
                             const { data: photos } = await window.sb.from('photos').select('*, profiles(username)').eq('status', 'denied').order('created_at', {ascending: false}).limit(500);
-
-                            // Lấy danh sách admin đã từ chối ảnh
                             const { data: logs } = await window.sb.from('admin_audit_logs').select('target_id, profiles(username)').eq('action_type', 'deny_photo');
-
                             const denierMap = {};
                             if(logs) logs.forEach(l => { denierMap[l.target_id] = l.profiles?.username || 'Admin'; });
-
                             app.admin.manager.denied.data = photos ||[];
                             app.admin.manager.denied.denierMap = denierMap;
                             app.admin.filterManagerData('denied', '');
@@ -6894,20 +6890,12 @@ if (app.user && app.role === 'manager' && isDenied) {
                 filterManagerData: (type, query) => {
                     const q = query.toLowerCase().trim();
                     const state = app.admin.manager[type];
-
-                    if (!q) {
-                        state.filtered =[...state.data];
-                    } else {
+                    if (!q) { state.filtered =[...state.data]; }
+                    else {
                         if (type === 'denied') {
-                            state.filtered = state.data.filter(p => {
-                                const str = `${p.license_plate} ${p.denial_reason} ${p.profiles?.username}`.toLowerCase();
-                                return str.includes(q);
-                            });
+                            state.filtered = state.data.filter(p => `${p.license_plate} ${p.denial_reason} ${p.profiles?.username}`.toLowerCase().includes(q));
                         } else {
-                            state.filtered = state.data.filter(l => {
-                                const str = `${l.action_type} ${l.target_id} ${l.profiles?.username} ${JSON.stringify(l.details)}`.toLowerCase();
-                                return str.includes(q);
-                            });
+                            state.filtered = state.data.filter(l => `${l.action_type} ${l.target_id} ${l.profiles?.username} ${JSON.stringify(l.details)}`.toLowerCase().includes(q));
                         }
                     }
                     state.page = 1;
@@ -6919,7 +6907,6 @@ if (app.user && app.role === 'manager' && isDenied) {
                     const perPage = 12;
                     const totalPages = Math.ceil(state.filtered.length / perPage) || 1;
                     const slice = state.filtered.slice((state.page - 1) * perPage, state.page * perPage);
-
                     const contentEl = document.getElementById(`mgr-${type}-content`);
                     const pagerElId = `mgr-${type}-pager`;
 
@@ -6935,70 +6922,88 @@ if (app.user && app.role === 'manager' && isDenied) {
                             const uploader = app.utils.cleanText(p.profiles?.username || 'Ẩn danh');
                             const denier = app.utils.cleanText(state.denierMap[p.id] || 'Admin');
                             const time = new Date(p.created_at).toLocaleDateString('vi-VN');
-
-                            return `
-                            <div class="flex gap-4 p-3 bg-white border border-gray-200 rounded-lg hover:shadow-md cursor-pointer transition items-start" onclick="app.views.loadDetail('${p.id}')">
+                            return `<div class="flex gap-4 p-3 bg-white border border-gray-200 rounded-lg hover:shadow-md cursor-pointer transition items-start" onclick="app.views.loadDetail('${p.id}')">
                                 <img src="${proxyUrl}" class="w-24 h-24 object-cover rounded bg-gray-100 shrink-0 border border-gray-200">
                                 <div class="flex flex-col h-24 justify-between overflow-hidden w-full">
-                                    <div>
-                                        <h4 class="font-bold text-sm text-black truncate uppercase">${p.license_plate}</h4>
-                                        <p class="text-xs text-red-600 font-medium line-clamp-2 mt-1" title="${p.denial_reason}"><i class="fa-solid fa-triangle-exclamation mr-1"></i> ${p.denial_reason}</p>
-                                    </div>
-                                    <div class="text-[10px] text-gray-500 truncate bg-gray-50 p-1.5 rounded">
-                                        Đăng: <b class="text-gray-700">${uploader}</b> | Khóa: <b class="text-red-700">${denier}</b> | ${time}
-                                    </div>
+                                    <div><h4 class="font-bold text-sm text-black truncate uppercase">${p.license_plate}</h4><p class="text-xs text-red-600 font-medium line-clamp-2 mt-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i> ${p.denial_reason}</p></div>
+                                    <div class="text-[10px] text-gray-500 truncate bg-gray-50 p-1.5 rounded">Đăng: <b class="text-gray-700">${uploader}</b> | Khóa: <b class="text-red-700">${denier}</b> | ${time}</div>
                                 </div>
-                            </div>
-                            `;
+                            </div>`;
                         }).join('');
-                    }
-                    else if (type === 'logs') {
+                    } else {
                         contentEl.innerHTML = slice.map(log => {
-                            const time = new Date(log.created_at).toLocaleString('vi-VN', {hour: '2-digit', minute:'2-digit', day:'2-digit', month:'2-digit', year:'numeric'});
-                            let badge = '';
-                            switch(log.action_type) {
-                                case 'approve_photo': badge = '<span class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-[10px] font-bold">Duyệt ảnh</span>'; break;
-                                case 'deny_photo': badge = '<span class="bg-red-100 text-red-700 px-2 py-0.5 rounded text-[10px] font-bold">Từ chối ảnh</span>'; break;
-                                case 'approve_edit_req': badge = '<span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[10px] font-bold">Sửa data</span>'; break;
-                                case 'direct_delete': badge = '<span class="bg-red-100 text-red-700 px-2 py-0.5 rounded text-[10px] font-bold">Tiêu hủy</span>'; break;
-                                case 'approve_delete_req': badge = '<span class="bg-orange-100 text-orange-700 px-2 py-0.5 rounded text-[10px] font-bold">Duyệt xóa</span>'; break;
-                                default: badge = `<span class="bg-gray-100 text-gray-700 px-2 py-0.5 rounded text-[10px] font-bold border border-gray-200">${log.action_type}</span>`;
-                            }
-
-                            // Chuyển JSON details thành dạng Text đọc được
-                            let detailHtml = '-';
-                            if (log.details) {
-                                try {
-                                    const obj = typeof log.details === 'string' ? JSON.parse(log.details) : log.details;
-                                    detailHtml = `<div class="flex flex-col gap-1 whitespace-normal">`;
-                                    for (const[k, v] of Object.entries(obj)) {
-                                        if (typeof v === 'object' && v !== null) {
-                                            detailHtml += `<div><span class="font-medium text-gray-500">${k}:</span> <code class="bg-gray-100 px-1 rounded text-[10px] break-all border border-gray-200">${JSON.stringify(v)}</code></div>`;
-                                        } else {
-                                            detailHtml += `<div><span class="font-medium text-gray-500">${k}:</span> <span class="text-black font-medium">${v}</span></div>`;
-                                        }
-                                    }
-                                    detailHtml += `</div>`;
-                                } catch(e) { detailHtml = `<span class="text-gray-500 whitespace-normal text-[11px]">${String(log.details)}</span>`; }
-                            }
-
-                            return `
-                                <tr class="hover:bg-gray-50 transition">
-                                    <td class="p-3 text-[11px] text-gray-500">${time}</td>
-                                    <td class="p-3 font-bold text-black text-[12px]">${log.profiles?.username || 'Unknown'}</td>
-                                    <td class="p-3">${badge}</td>
-                                    <td class="p-3 text-[10px] text-gray-500 font-mono">${log.target_id || '-'}</td>
-                                    <td class="p-3 text-[11px]">${detailHtml}</td>
-                                </tr>
-                            `;
+                            const time = new Date(log.created_at).toLocaleString('vi-VN');
+                            return `<tr class="hover:bg-gray-50 transition"><td class="p-3 text-[11px] text-gray-500">${time}</td><td class="p-3 font-bold text-black text-[12px]">${log.profiles?.username || 'Unknown'}</td><td class="p-3">${log.action_type}</td><td class="p-3 text-[10px] font-mono">${log.target_id || '-'}</td><td class="p-3 text-[11px]">${JSON.stringify(log.details)}</td></tr>`;
                         }).join('');
                     }
-
-                    // Render Phân trang bằng hàm Utils có sẵn của hệ thống
                     app.utils.renderPagination(pagerElId, state.page, totalPages, (newPage) => {
                         app.admin.manager[type].page = newPage;
                         app.admin.renderManagerData(type);
                     });
+                },
+
+                // --- ĐÂY LÀ 2 HÀM BẠN ĐANG THIẾU DẪN ĐẾN LỖI ---
+                renderManagerSettings: async () => {
+                    const container = document.getElementById('mgr-settings-content');
+                    container.innerHTML = '<p class="text-gray-500 italic"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</p>';
+                    await app.maintenance.fetch();
+
+                    const configs =[
+                        { id: 'global', title: 'Cầu chì Tổng (Toàn hệ thống)', icon: 'fa-globe', color: 'red' },
+                        { id: 'auth', title: 'Hệ thống Đăng nhập / Đăng ký', icon: 'fa-user-lock', color: 'blue' },
+                        { id: 'upload', title: 'Hệ thống Upload Ảnh', icon: 'fa-cloud-arrow-up', color: 'green' }
+                    ];
+
+                    let html = '';
+                    configs.forEach(cfg => {
+                        const data = app.maintenance.settings[cfg.id] || { is_active: true, reason: '', auto_reactivate_at: null };
+                        const hasTime = !!data.auto_reactivate_at;
+                        let timeVal = '';
+                        if (hasTime) {
+                            const d = new Date(data.auto_reactivate_at);
+                            const tzOffset = d.getTimezoneOffset() * 60000;
+                            timeVal = (new Date(d.getTime() - tzOffset)).toISOString().slice(0, 16);
+                        }
+
+                        html += `<div class="border border-gray-200 rounded-lg p-5 bg-white mb-4">
+                            <div class="flex justify-between items-center mb-4 border-b pb-3">
+                                <h3 class="font-bold text-${cfg.color}-600 uppercase text-sm"><i class="fa-solid ${cfg.icon} mr-2"></i>${cfg.title}</h3>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="mt-active-${cfg.id}" class="sr-only peer" ${data.is_active ? 'checked' : ''}>
+                                    <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-${cfg.color}-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                                </label>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div><label class="text-xs text-gray-500 font-bold block mb-1">Lý do bảo trì</label><input type="text" id="mt-reason-${cfg.id}" value="${app.utils.escapeAttr(data.reason)}" class="w-full border p-2.5 text-sm rounded"></div>
+                                <div>
+                                    <label class="text-xs text-gray-500 font-bold flex justify-between mb-1"><span>Hẹn giờ tự mở lại</span> <input type="checkbox" id="mt-has-time-${cfg.id}" ${hasTime ? 'checked' : ''} onchange="document.getElementById('mt-time-${cfg.id}').disabled = !this.checked"></label>
+                                    <input type="datetime-local" id="mt-time-${cfg.id}" value="${timeVal}" ${!hasTime ? 'disabled' : ''} class="w-full border p-2.5 text-sm rounded disabled:bg-gray-100">
+                                </div>
+                            </div>
+                            <div class="mt-4 text-right"><button onclick="app.admin.saveManagerSetting('${cfg.id}', this)" class="bg-black text-white px-5 py-2 text-xs font-bold rounded shadow-sm">Lưu thiết lập</button></div>
+                        </div>`;
+                    });
+                    container.innerHTML = html;
+                },
+
+                saveManagerSetting: async (sysId, btn) => {
+                    const originalHTML = btn.innerHTML;
+                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>'; btn.disabled = true;
+                    const isActive = document.getElementById(`mt-active-${sysId}`).checked;
+                    const reason = document.getElementById(`mt-reason-${sysId}`).value.trim();
+                    const hasTime = document.getElementById(`mt-has-time-${sysId}`).checked;
+                    const timeVal = document.getElementById(`mt-time-${sysId}`).value;
+                    let autoReactivate = (isActive || !hasTime) ? null : new Date(timeVal).toISOString();
+
+                    try {
+                        const { error } = await window.sb.from('system_settings').update({
+                            is_active: isActive, reason: reason, auto_reactivate_at: autoReactivate, updated_by: app.user.id
+                        }).eq('id', sysId);
+                        if (error) throw error;
+                        await app.maintenance.fetch();
+                        app.ui.showAlert(`Đã lưu thiết lập cho ${sysId.toUpperCase()}`);
+                    } catch (e) { app.ui.showAlert("Lỗi: " + e.message); }
+                    finally { btn.innerHTML = originalHTML; btn.disabled = false; }
                 },
                 // ------------------------------------------
 
@@ -9274,124 +9279,6 @@ if (app.user && app.role === 'manager' && isDenied) {
                         else if (rank === 3) html += `<span class="badge-shiny badge-top3" title="Top 3 Uploader"><i class="fa-solid fa-award mr-1 text-[10px]"></i> Top 3</span>`;
                     }
                     return html;
-                },
-
-                renderManagerSettings: async () => {
-                    console.log('renderManagerSettings called');
-                    const container = document.getElementById('mgr-settings-content');
-                    if (!container) {
-                        console.error('Container mgr-settings-content not found');
-                        return;
-                    }
-                    container.innerHTML = '<p class="text-gray-500 italic"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</p>';
-
-                    // Tải mới từ DB cho chắc
-                    await app.maintenance.fetch();
-
-                    const configs = [
-                        { id: 'global', title: 'Cầu chì Tổng (Toàn hệ thống)', icon: 'fa-globe', color: 'red' },
-                        { id: 'auth', title: 'Hệ thống Đăng nhập / Đăng ký', icon: 'fa-user-lock', color: 'blue' },
-                        { id: 'upload', title: 'Hệ thống Upload Ảnh', icon: 'fa-cloud-arrow-up', color: 'green' }
-                    ];
-
-                    let html = '';
-                    configs.forEach(cfg => {
-                        const data = app.maintenance.settings[cfg.id] || { is_active: true, reason: '', auto_reactivate_at: null };
-                        const hasTime = !!data.auto_reactivate_at;
-
-                        // Format datetime-local (YYYY-MM-DDTHH:mm)
-                        let timeVal = '';
-                        if (hasTime) {
-                            const d = new Date(data.auto_reactivate_at);
-                            // Cân bằng bù múi giờ để hiển thị đúng local trên datetime-local
-                            const tzOffset = d.getTimezoneOffset() * 60000;
-                            const localISOTime = (new Date(d.getTime() - tzOffset)).toISOString().slice(0, 16);
-                            timeVal = localISOTime;
-                        }
-
-                        const reasonValue = data.reason ? data.reason.replace(/"/g, '&quot;') : '';
-                        const checkedAttr = data.is_active ? 'checked' : '';
-                        const hasTimeChecked = hasTime ? 'checked' : '';
-                        const disabledAttr = !hasTime ? 'disabled' : '';
-
-                        html += '<div class="border border-gray-200 rounded-lg p-5 bg-white relative">' +
-                            '<div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-3">' +
-                            '<h3 class="font-bold text-' + cfg.color + '-600 uppercase text-sm"><i class="fa-solid ' + cfg.icon + ' mr-2"></i>' + cfg.title + '</h3>' +
-                            '<label class="relative inline-flex items-center cursor-pointer">' +
-                            '<input type="checkbox" id="mt-active-' + cfg.id + '" class="sr-only peer" ' + checkedAttr + ' onchange="document.getElementById(\'mt-status-lbl-' + cfg.id + '\').innerText = this.checked ? \'Đang hoạt động\' : \'Bảo trì (Tắt)\'">' +
-                            '<div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[\'\'] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-' + cfg.color + '-600"></div>' +
-                            '<span id="mt-status-lbl-' + cfg.id + '" class="ml-3 text-xs font-bold ' + (data.is_active ? 'text-green-600' : 'text-red-600') + ' w-24 text-right">' + (data.is_active ? 'Đang hoạt động' : 'Bảo trì (Tắt)') + '</span>' +
-                            '</label>' +
-                            '</div>' +
-                            '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">' +
-                            '<div>' +
-                            '<label class="text-xs text-gray-500 font-bold block mb-1">Lý do bảo trì (Hiện cho người dùng xem)</label>' +
-                            '<input type="text" id="mt-reason-' + cfg.id + '" value="' + reasonValue + '" placeholder="VD: Nâng cấp server..." class="w-full border border-gray-300 p-2.5 text-sm rounded outline-none focus:ring-1 focus:ring-black">' +
-                            '</div>' +
-                            '<div>' +
-                            '<label class="text-xs text-gray-500 font-bold flex justify-between mb-1 items-center">' +
-                            '<span>Hẹn giờ tự mở lại</span>' +
-                            '<div class="flex items-center gap-1">' +
-                            '<input type="checkbox" id="mt-has-time-' + cfg.id + '" ' + hasTimeChecked + ' onchange="document.getElementById(\'mt-time-' + cfg.id + '\').disabled = !this.checked">' +
-                            '<span>Kích hoạt</span>' +
-                            '</div>' +
-                            '</label>' +
-                            '<input type="datetime-local" id="mt-time-' + cfg.id + '" value="' + timeVal + '" ' + disabledAttr + ' class="w-full border border-gray-300 p-2.5 text-sm rounded outline-none focus:ring-1 focus:ring-black disabled:bg-gray-100 disabled:text-gray-400">' +
-                            '</div>' +
-                            '</div>' +
-                            '<div class="mt-4 text-right">' +
-                            '<button onclick="app.admin.saveManagerSetting(\'' + cfg.id + '\', this)" class="bg-black text-white px-5 py-2 text-xs font-bold rounded hover:bg-gray-800 transition"><i class="fa-solid fa-floppy-disk mr-1"></i> Lưu thiết lập</button>' +
-                            '</div>' +
-                            '</div>';
-                    });
-
-                    container.innerHTML = html;
-                },
-
-                saveManagerSetting: async (sysId, btn) => {
-                    if (app.role !== 'manager') return app.ui.showAlert("Chỉ Manager mới có quyền này!");
-
-                    const originalHTML = btn.innerHTML;
-                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...';
-                    btn.disabled = true;
-
-                    const isActive = document.getElementById(`mt-active-${sysId}`).checked;
-                    const reason = document.getElementById(`mt-reason-${sysId}`).value.trim();
-                    const hasTime = document.getElementById(`mt-has-time-${sysId}`).checked;
-                    const timeVal = document.getElementById(`mt-time-${sysId}`).value;
-
-                    let autoReactivate = null;
-                    if (!isActive && hasTime) {
-                        if (!timeVal) {
-                            btn.innerHTML = originalHTML; btn.disabled = false;
-                            return app.ui.showAlert("Vui lòng chọn ngày giờ hoặc tắt mục 'Kích hoạt hẹn giờ'!");
-                        }
-                        // datetime-local lấy theo múi giờ local của trình duyệt (UTC+7)
-                        // new Date() sẽ tự parse nó về chuẩn ISO
-                        autoReactivate = new Date(timeVal).toISOString();
-                    }
-
-                    try {
-                        const { error } = await window.sb.from('system_settings').update({
-                            is_active: isActive,
-                            reason: reason,
-                            auto_reactivate_at: autoReactivate,
-                            updated_by: app.user.id,
-                            updated_at: new Date().toISOString()
-                        }).eq('id', sysId);
-
-                        if (error) throw error;
-
-                        await app.maintenance.fetch(); // Reload data
-                        app.admin.logAction('update_sys_setting', sysId, { is_active: isActive, reason: reason });
-                        app.ui.showAlert(`Cập nhật cài đặt module "${sysId.toUpperCase()}" thành công!`);
-
-                    } catch (e) {
-                        app.ui.showAlert("Lỗi khi lưu cài đặt: " + e.message);
-                    } finally {
-                        btn.innerHTML = originalHTML;
-                        btn.disabled = false;
-                    }
                 }
             },
 
