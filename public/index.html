@@ -9282,68 +9282,13 @@ if (app.user && app.role === 'manager' && isDenied) {
                 },
 
                 renderManagerSettings: async () => {
+                    console.log('renderManagerSettings called');
                     const container = document.getElementById('mgr-settings-content');
-                    container.innerHTML = '<p class="text-gray-500 italic"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</p>';
-
-                    // Tải mới từ DB cho chắc
-                    await app.maintenance.fetch();
-
-                    const configs =[
-                        { id: 'global', title: 'Cầu chì Tổng (Toàn hệ thống)', icon: 'fa-globe', color: 'red' },
-                        { id: 'auth', title: 'Hệ thống Đăng nhập / Đăng ký', icon: 'fa-user-lock', color: 'blue' },
-                        { id: 'upload', title: 'Hệ thống Upload Ảnh', icon: 'fa-cloud-arrow-up', color: 'green' }
-                    ];
-
-                    let html = '';
-                    configs.forEach(cfg => {
-                        const data = app.maintenance.settings[cfg.id] || { is_active: true, reason: '', auto_reactivate_at: null };
-                        const hasTime = !!data.auto_reactivate_at;
-
-                        // Format datetime-local (YYYY-MM-DDTHH:mm)
-                        let timeVal = '';
-                        if (hasTime) {
-                            const d = new Date(data.auto_reactivate_at);
-                            // Cân bằng bù múi giờ để hiển thị đúng local trên datetime-local
-                            const tzOffset = d.getTimezoneOffset() * 60000;
-                            const localISOTime = (new Date(d.getTime() - tzOffset)).toISOString().slice(0, 16);
-                            timeVal = localISOTime;
-                        }
-
-                        html += `
-                        <div class="border border-gray-200 rounded-lg p-5 bg-white relative">
-                            <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-3">
-                                <h3 class="font-bold text-${cfg.color}-600 uppercase text-sm"><i class="fa-solid ${cfg.icon} mr-2"></i>${cfg.title}</h3>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" id="mt-active-${cfg.id}" class="sr-only peer" ${data.is_active ? 'checked' : ''} onchange="document.getElementById('mt-status-lbl-${cfg.id}').innerText = this.checked ? 'Đang hoạt động' : 'Bảo trì (Tắt)'">
-                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-${cfg.color}-600"></div>
-                                    <span id="mt-status-lbl-${cfg.id}" class="ml-3 text-xs font-bold ${data.is_active ? 'text-green-600' : 'text-red-600'} w-24 text-right">${data.is_active ? 'Đang hoạt động' : 'Bảo trì (Tắt)'}</span>
-                                </label>
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="text-xs text-gray-500 font-bold block mb-1">Lý do bảo trì (Hiện cho người dùng xem)</label>
-                                    <input type="text" id="mt-reason-${cfg.id}" value="${app.utils.escapeAttr(data.reason)}" placeholder="VD: Nâng cấp server..." class="w-full border border-gray-300 p-2.5 text-sm rounded outline-none focus:ring-1 focus:ring-black">
-                                </div>
-                                <div>
-                                    <label class="text-xs text-gray-500 font-bold flex justify-between mb-1 items-center">
-                                        <span>Hẹn giờ tự mở lại</span>
-                                        <div class="flex items-center gap-1">
-                                            <input type="checkbox" id="mt-has-time-${cfg.id}" ${hasTime ? 'checked' : ''} onchange="document.getElementById('mt-time-${cfg.id}').disabled = !this.checked">
-                                            <span>Kích hoạt</span>
-                                        </div>
-                                    </label>
-                                    <input type="datetime-local" id="mt-time-${cfg.id}" value="${timeVal}" ${!hasTime ? 'disabled' : ''} class="w-full border border-gray-300 p-2.5 text-sm rounded outline-none focus:ring-1 focus:ring-black disabled:bg-gray-100 disabled:text-gray-400">
-                                </div>
-                            </div>
-                            <div class="mt-4 text-right">
-                                <button onclick="app.admin.saveManagerSetting('${cfg.id}', this)" class="bg-black text-white px-5 py-2 text-xs font-bold rounded hover:bg-gray-800 transition"><i class="fa-solid fa-floppy-disk mr-1"></i> Lưu thiết lập</button>
-                            </div>
-                        </div>
-                        `;
-                    });
-
-                    container.innerHTML = html;
+                    if (!container) {
+                        console.error('Container mgr-settings-content not found');
+                        return;
+                    }
+                    container.innerHTML = '<p>Test: Settings loaded successfully!</p>';
                 },
 
                 saveManagerSetting: async (sysId, btn) => {
