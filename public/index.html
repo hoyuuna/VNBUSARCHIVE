@@ -2734,20 +2734,28 @@
                     </div>
                     
 
-                    <form id="upload-form" class="space-y-6">
-                        <div class="bg-gray-50 border border-gray-200 p-5 rounded-md">
-                        <div class="flex items-center justify-between mb-3">
-                            <label class="block font-bold text-sm text-black">1. Chọn tệp <span
-                                    class="text-red-500">*</span></label>
-                            
-                            <!-- PILL HIỂN THỊ QUOTA -->
-                            <div id="upload-quota-pill" class="hidden flex items-center bg-white border border-gray-200 rounded-full px-3 py-1 shadow-sm">
-                                <span id="upload-quota-text" class="text-xs font-bold text-black transition-colors">Đang kiểm tra...</span>
-                                <button type="button" onclick="app.ui.showQuotaInfo()" class="ml-2 text-gray-400 hover:text-black transition">
-                                    <i class="fa-solid fa-circle-info text-sm"></i>
-                                </button>
+<form id="upload-form" class="space-y-6">
+
+                        <!-- KHUNG QUOTA MỚI (TÁCH BIỆT HOÀN TOÀN) -->
+                        <div id="upload-quota-pill" class="hidden bg-white border border-gray-200 p-4 rounded-md flex items-center justify-between shadow-sm">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 bg-gray-100 text-black rounded-full flex items-center justify-center shrink-0">
+                                    <i class="fa-solid fa-cloud-arrow-up text-sm"></i>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-0.5">Lượt đăng ảnh hôm nay</p>
+                                    <p id="upload-quota-text" class="text-sm font-black transition-colors">Đang kiểm tra...</p>
+                                </div>
                             </div>
+                            <button type="button" onclick="app.ui.showQuotaInfo()" class="text-gray-400 hover:text-black transition p-2" title="Chính sách đăng tải">
+                                <i class="fa-solid fa-circle-info text-lg"></i>
+                            </button>
                         </div>
+
+                        <!-- MỤC 1. CHỌN TỆP (TRẢ VỀ NGUYÊN BẢN) -->
+                        <div class="bg-gray-50 border border-gray-200 p-5 rounded-md">
+                            <label class="block font-bold text-sm mb-3 text-black">1. Chọn tệp <span class="text-red-500">*</span></label>
+                            
                             <input type="file" id="up-file" accept="image/jpeg"
                                 class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-black file:text-white hover:file:bg-gray-800 transition cursor-pointer"
                                 required />
@@ -2791,8 +2799,8 @@
                                             </button>
                                         </div>
                                         <p class="text-[10px] text-gray-500 italic mt-1">* Nhấn vào chữ <b>&copy;
-                                                Tên</b> hoặc <b>Khung làm mờ</b> để kéo thả vị trí. Ở góc dưới phải
-                                            khung làm mờ có thể kéo để đổi kích thước.</p>
+                                                    Tên</b> hoặc <b>Khung làm mờ</b> để kéo thả vị trí. Ở góc dưới phải
+                                                    khung làm mờ có thể kéo để đổi kích thước.</p>
                                     </div>
                                     <button type="button" onclick="app.upload.removeImage()"
                                         class="text-red-600 text-xs hover:text-red-800 font-bold flex items-center gap-1 transition shrink-0">
