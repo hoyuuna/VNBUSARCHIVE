@@ -1,1 +1,1 @@
-const FIREBASE_URL = "https://hbds-bus-tracker-default-rtdb.firebaseio.com/buses.json";
+"const FIREBASE_URL = '$FIREBASE_BUS_URL';" 
