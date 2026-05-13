@@ -6864,7 +6864,12 @@ if (app.user && app.role === 'manager' && isDenied) {
                     });
 
                     if (subTab === 'settings') {
-                        app.admin.renderManagerSettings();
+                        console.log('Settings tab clicked, renderManagerSettings exists:', typeof app.admin.renderManagerSettings);
+                        if (typeof app.admin.renderManagerSettings === 'function') {
+                            app.admin.renderManagerSettings();
+                        } else {
+                            console.error('renderManagerSettings function not found');
+                        }
                     }
                 },
 
