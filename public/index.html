@@ -1180,6 +1180,18 @@
            GLASSMORPHISM: FIX LỖI TRÌNH DUYỆT MẤT BLUR
         ============================================= */
 
+        /* Fix lỗi Avatar bị lệch và hiện cả 2 */
+        #acc-avatar-icon, #acc-avatar-img {
+            position: absolute;
+            inset: 0;
+            margin: auto;
+        }
+
+        /* Đảm bảo class hidden luôn hoạt động kể cả khi file tailwind.css chưa load xong */
+        .hidden {
+            display: none !important;
+        }
+
         /* 1. MỞ KHÓA BLUR CHO DROPDOWN (Xử lý lỗi lồng nhau) */
         /* Tắt blur trực tiếp trên thanh Header, chuyển nó sang lớp giả (::before) để Dropdown không bị lỗi lồng ghép */
         header > div.backdrop-blur-md {
