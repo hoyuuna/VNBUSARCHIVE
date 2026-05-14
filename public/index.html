@@ -19,12 +19,12 @@
     <meta property="twitter:description" content="Hệ thống database xe buýt/khách">
     <meta property="twitter:image" content="https://files.catbox.moe/ddvw49.png">
     <meta name="theme-color" content="#FFFFFF">
+    <link href="./public/tailwind.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Montserrat:wght@400;700;800;900&display=swap"
         rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
@@ -86,30 +86,6 @@
                 }
             }));
         });
-    </script>
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['"Be Vietnam Pro"', 'sans-serif'],
-                        logo: ['"Montserrat"', 'sans-serif'],
-                        watermark: ['"Montserrat"', 'sans-serif'],
-                    },
-                    colors: {
-                        'vbs-dark': '#09090b',
-                        'vbs-blue': '#18181b',
-                        'vbs-gray': '#f4f4f5',
-                        'vbs-border': '#e4e4e7',
-                        'vbs-hover': '#27272a',
-                    },
-                    boxShadow: {
-                        'island': '0 4px 20px -2px rgba(0, 0, 0, 0.1)',
-                    }
-                }
-            }
-        }
     </script>
 
     <style>
