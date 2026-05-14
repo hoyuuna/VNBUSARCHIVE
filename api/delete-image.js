@@ -20,14 +20,14 @@ export default async function handler(req, res) {
         const { imageUrl } = req.body;
         if (!imageUrl) return res.status(400).json({ success: false, error: 'Thiếu URL ảnh.' });
 
-        // Tách tên file từ URL (vd: https://vnba-imgbed.pages.dev/img_1234.webp -> img_1234.webp)
+        // Tách tên file từ URL (vd: https://cdn.vnbusarchive.io.vn/img_1234.webp -> img_1234.webp)
         const urlObj = new URL(imageUrl);
         const fileName = urlObj.pathname.split('/').pop();
         const safeFileName = encodeURIComponent(fileName);
 
         console.log(`[DEBUG] Đang gọi API CF ImgBed để xóa: ${safeFileName}`);
 
-        const deleteUrl = `https://vnba-imgbed.pages.dev/api/manage/delete/${safeFileName}`;
+        const deleteUrl = `https://cdn.vnbusarchive.io.vn/api/manage/delete/${safeFileName}`;
         
         const deleteResponse = await fetch(deleteUrl, {
             method: 'GET',

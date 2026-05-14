@@ -64,7 +64,7 @@ export default async function handler(req, res) {
             formData.append('file', blob, fileName);
 
             // GỌI API CLOUDFLARE IMGBED
-            const uploadResponse = await fetch('https://vnba-imgbed.pages.dev/upload', {
+            const uploadResponse = await fetch('https://cdn.vnbusarchive.io.vn/upload', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${process.env.CF_IMGBED_TOKEN}`
@@ -79,7 +79,7 @@ export default async function handler(req, res) {
 
                 // NẾU TRẢ VỀ ĐƯỜNG DẪN TƯƠNG ĐỐI -> ÉP CHUẨN DOMAIN IMGBED VÀO
                 if (rawSrc.startsWith('/')) {
-                    finalOptimizedUrl = `https://vnba-imgbed.pages.dev${rawSrc}`;
+                    finalOptimizedUrl = `https://cdn.vnbusarchive.io.vn${rawSrc}`;
                 } else {
                     finalOptimizedUrl = rawSrc;
                 }
@@ -104,12 +104,12 @@ export default async function handler(req, res) {
                 .single();
 
             // Xóa avatar cũ trên ImgBed nếu có
-            if (oldProfile && oldProfile.avatar_url && oldProfile.avatar_url.includes('vnba-imgbed')) {
+            if (oldProfile && oldProfile.avatar_url && oldProfile.avatar_url.includes('vnbusarchive')) {
                 try {
                     const oldUrlObj = new URL(oldProfile.avatar_url);
                     const oldFileName = encodeURIComponent(oldUrlObj.pathname.split('/').pop());
                     
-                    await fetch(`https://vnba-imgbed.pages.dev/api/manage/delete/${oldFileName}`, {
+                    await fetch(`https://cdn.vnbusarchive.io.vn/api/manage/delete/${oldFileName}`, {
                         method: 'GET',
                         headers: { 'Authorization': `Bearer ${process.env.CF_IMGBED_TOKEN}` }
                     });
