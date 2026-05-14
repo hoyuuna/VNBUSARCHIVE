@@ -1187,11 +1187,6 @@
             margin: auto;
         }
 
-        /* Đảm bảo class hidden luôn hoạt động kể cả khi file tailwind.css chưa load xong */
-        .hidden {
-            display: none !important;
-        }
-
         /* 1. MỞ KHÓA BLUR CHO DROPDOWN (Xử lý lỗi lồng nhau) */
         /* Tắt blur trực tiếp trên thanh Header, chuyển nó sang lớp giả (::before) để Dropdown không bị lỗi lồng ghép */
         header > div.backdrop-blur-md {
@@ -5411,11 +5406,22 @@
                             return;
                         }
                     } else {
-                        if (window.location.pathname !== `/user/${encodeURIComponent(targetUsername)}`) {
-                            app.utils.navigate(`/user/${encodeURIComponent(targetUsername)}`);
-                            return;
-                        }
+                        // Kiểm tra xem user đang xem có phải là chính mình không
                         isOwnProfile = (app.user && app.username === targetUsername);
+                        
+                        if (isOwnProfile) {
+                            // Nếu là chính mình, ép URL về /profile
+                            if (window.location.pathname !== '/profile') {
+                                app.utils.navigate('/profile');
+                                return;
+                            }
+                        } else {
+                            // Nếu là người khác, giữ nguyên URL /user/...
+                            if (window.location.pathname !== `/user/${encodeURIComponent(targetUsername)}`) {
+                                app.utils.navigate(`/user/${encodeURIComponent(targetUsername)}`);
+                                return;
+                            }
+                        }
                     }
                     app._isOwnProfile = isOwnProfile;
 
