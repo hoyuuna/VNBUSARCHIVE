@@ -8198,12 +8198,12 @@ if (app.user && app.role === 'manager' && isDenied) {
 
                         const metadata = {
                             plate: valPlate.replace(/[^A-Z0-9-]/gi, '').toUpperCase(),
-                            operator: valOp,
+                            operator: app.utils.fixUnicode(valOp),
                             type: document.getElementById('up-type').value,
-                            route: valRoute,
-                            model: valModel,
-                            location: valLoc,
-                            note: document.getElementById('up-note').value,
+                            route: app.utils.fixUnicode(valRoute),
+                            model: app.utils.fixUnicode(valModel),
+                            location: app.utils.fixUnicode(valLoc),
+                            note: app.utils.fixUnicode(document.getElementById('up-note').value),
                             taken_at: valDate,
                             username: username,
                             camera_model: app.currentExif.camera,
@@ -8733,6 +8733,7 @@ if (app.user && app.role === 'manager' && isDenied) {
                     if (app.edit && app.edit.isEditing) app.edit.cancel();
 
                     app.ui.unlockScroll();
+                    app.upload.checkQuota();
                 },
 
                 provinceData: [],
@@ -8927,6 +8928,10 @@ if (app.user && app.role === 'manager' && isDenied) {
                 cleanText: (str) => {
                     if (!str) return '';
                     return DOMPurify.sanitize(str, { ALLOWED_TAGS: [] });
+                },
+                fixUnicode: (str) => {
+                    if (!str) return '';
+                    return str.normalize('NFC').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g, "");
                 },
                 displayPlate: (plate) => {
                     if (!plate) return '';
