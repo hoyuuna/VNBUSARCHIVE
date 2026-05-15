@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import crypto from 'crypto';
 
 export const config = {
     api: {
@@ -41,7 +42,7 @@ export default async function handler(req, res) {
             }
         }
 
-        const base64Data = imageBase64.includes(',') ? imageBase64.split(',')[1] : imageBase64;
+        const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '');
         
         if (!base64Data || base64Data.length === 0) {
             throw new Error('Ảnh tải lên bị rỗng. Vui lòng thử lại.');
@@ -50,15 +51,14 @@ export default async function handler(req, res) {
         let finalOptimizedUrl = '';
 
         try {
-            const folder = isAvatar ? 'avatars' : 'vehicles';
             const ext = fileExtension === 'jpg' ? 'jpg' : 'webp';
-            const fileName = `img_${Date.now()}_${Math.round(Math.random() * 1e4)}.${ext}`;
+            const safeHash = crypto.randomBytes(6).toString('hex');
+            const fileName = `img_${Date.now()}_${safeHash}.${ext}`;
 
-            console.log(`[DEBUG] Đang Upload lên CF ImgBed...`);
+            console.log(`[DEBUG] Đang Upload lên CF ImgBed: ${fileName}`);
 
-            // Chuyển đổi Base64 thành Blob để nhét vào FormData
-            const arrayBuffer = Uint8Array.from(Buffer.from(base64Data, 'base64'));
-            const blob = new Blob([arrayBuffer], { type: `image/${ext}` });
+            const buffer = Buffer.from(base64Data, 'base64');
+            const blob = new Blob([buffer], { type: `image/${ext}` });
 
             const formData = new FormData();
             formData.append('file', blob, fileName);
