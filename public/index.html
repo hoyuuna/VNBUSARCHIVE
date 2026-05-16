@@ -2154,16 +2154,22 @@
                                 </div>
 
                                 <div id="badge-requirements" class="hidden space-y-3 bg-gray-50 border border-gray-200 p-4 rounded-md">
-                                    <h4 class="font-bold text-sm text-gray-800 mb-2">Yêu cầu bắt buộc:</h4>
-                                    <div id="req-link" class="flex items-center gap-2 text-sm text-red-600 font-medium">
-                                        <i class="fa-solid fa-xmark w-4 text-center"></i> Chưa liên kết tài khoản Discord
+                                    <h4 class="font-bold text-sm text-gray-800">Yêu cầu bắt buộc:</h4>
+                                    
+                                    <!-- Mục 1: Liên kết tài khoản -->
+                                    <div class="flex items-center justify-between p-3 border border-gray-200 rounded-md bg-white">
+                                        <div id="req-link-status" class="flex items-center gap-3 text-sm font-medium">
+                                            <!-- Javascript sẽ render trạng thái vào đây -->
+                                        </div>
+                                        <button id="req-link-action" onclick="app.settings.switchTab('links')" class="text-xs bg-black text-white px-4 py-2 rounded font-bold hover:bg-gray-800 transition">Liên kết</button>
                                     </div>
-                                    <div id="req-server" class="flex items-center gap-2 text-sm text-red-600 font-medium">
-                                        <i class="fa-solid fa-xmark w-4 text-center"></i> Chưa tham gia Server Discord VNBUSARCHIVE
-                                    </div>
-                                    <div class="mt-4 pt-4 border-t border-gray-200 flex gap-2">
-                                        <button onclick="app.settings.switchTab('links')" class="text-xs bg-black text-white px-4 py-2 rounded font-bold hover:bg-gray-800 transition">Đi tới Liên kết</button>
-                                        <a href="https://discord.com/invite/BNWyqbuvwq" target="_blank" class="text-xs bg-[#5865F2] text-white px-4 py-2 rounded font-bold hover:bg-[#4752C4] transition">Tham gia Server</a>
+
+                                    <!-- Mục 2: Tham gia server -->
+                                    <div class="flex items-center justify-between p-3 border border-gray-200 rounded-md bg-white">
+                                        <div id="req-server-status" class="flex items-center gap-3 text-sm font-medium">
+                                            <!-- Javascript sẽ render trạng thái vào đây -->
+                                        </div>
+                                        <a id="req-server-action" href="https://discord.com/invite/BNWyqbuvwq" target="_blank" class="text-xs bg-[#5865F2] text-white px-4 py-2 rounded font-bold hover:bg-[#4752C4] transition">Tham gia</a>
                                     </div>
                                 </div>
 
@@ -4345,19 +4351,29 @@
                             loading.classList.add('hidden');
                             reqBox.classList.remove('hidden');
                             
-                            const reqLink = document.getElementById('req-link');
-                            const reqServer = document.getElementById('req-server');
+                            const reqLinkStatus = document.getElementById('req-link-status');
+                            const reqLinkAction = document.getElementById('req-link-action');
+                            const reqServerStatus = document.getElementById('req-server-status');
+                            const reqServerAction = document.getElementById('req-server-action');
 
                             if (data.linked) {
-                                reqLink.innerHTML = `<i class="fa-solid fa-check w-4 text-center text-green-600"></i> <span class="text-green-600">Đã liên kết Discord</span>`;
+                                reqLinkStatus.className = 'flex items-center gap-3 text-sm font-medium text-green-600';
+                                reqLinkStatus.innerHTML = `<i class="fa-solid fa-check w-5 text-center"></i> <span>Đã liên kết tài khoản Discord</span>`;
+                                reqLinkAction.classList.add('hidden');
                             } else {
-                                reqLink.innerHTML = `<i class="fa-solid fa-xmark w-4 text-center"></i> Chưa liên kết tài khoản Discord`;
+                                reqLinkStatus.className = 'flex items-center gap-3 text-sm font-medium text-red-600';
+                                reqLinkStatus.innerHTML = `<i class="fa-solid fa-xmark w-5 text-center"></i> <span>Chưa liên kết tài khoản Discord</span>`;
+                                reqLinkAction.classList.remove('hidden');
                             }
 
                             if (data.inServer) {
-                                reqServer.innerHTML = `<i class="fa-solid fa-check w-4 text-center text-green-600"></i> <span class="text-green-600">Đã tham gia Server</span>`;
+                                reqServerStatus.className = 'flex items-center gap-3 text-sm font-medium text-green-600';
+                                reqServerStatus.innerHTML = `<i class="fa-solid fa-check w-5 text-center"></i> <span>Đã tham gia Server</span>`;
+                                reqServerAction.classList.add('hidden');
                             } else {
-                                reqServer.innerHTML = `<i class="fa-solid fa-xmark w-4 text-center"></i> Chưa tham gia Server Discord VNBUSARCHIVE`;
+                                reqServerStatus.className = 'flex items-center gap-3 text-sm font-medium text-red-600';
+                                reqServerStatus.innerHTML = `<i class="fa-solid fa-xmark w-5 text-center"></i> <span>Chưa tham gia Server VNBUSARCHIVE</span>`;
+                                reqServerAction.classList.remove('hidden');
                             }
                             return;
                         }
@@ -4395,12 +4411,12 @@
 
                             return `
                             <div class="flex items-center justify-between p-3 border border-gray-200 rounded-md bg-white">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-lg text-[#5865F2]">
+                                <div class="flex items-center gap-3 overflow-hidden">
+                                    <div class="w-10 h-10 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-lg text-[#5865F2] shrink-0">
                                         <i class="fa-solid fa-medal"></i>
                                     </div>
-                                    <div>
-                                        <p class="font-bold text-sm text-gray-800">Cột mốc ${tier} ảnh</p>
+                                    <div class="overflow-hidden">
+                                        <p class="font-bold text-sm text-gray-800 truncate">Cột mốc ${tier} ảnh</p>
                                         <p class="text-[10px] text-gray-500">Yêu cầu: Đóng góp ${tier}+ ảnh được duyệt.</p>
                                     </div>
                                 </div>
