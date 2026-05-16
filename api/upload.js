@@ -64,7 +64,7 @@ export default async function handler(req, res) {
             formData.append('file', blob, fileName);
 
             // GỌI API CLOUDFLARE IMGBED
-            const uploadResponse = await fetch('https://cdn.vnbusarchive.io.vn/upload', {
+            const uploadResponse = await fetch('https://vnba-imgbed.pages.dev/upload', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${process.env.CF_IMGBED_TOKEN}`
