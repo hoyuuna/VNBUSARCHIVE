@@ -8174,7 +8174,7 @@ if (app.user && app.role === 'manager' && isDenied) {
                             btn.innerHTML = originalText;
                             btn.disabled = false;
                             app.ui.closeUploadProgress();
-                            throw new Error(`Trình duyệt của bạn không hỗ trợ định dạng ${targetMime}.`); // Ném lỗi để catch bắt
+                            throw new Error(`Trình duyệt của bạn không hỗ trợ định dạng ${targetMime}.`);
                         }
 
                         if (compressedFile.size > 1.5 * 1024 * 1024) {
@@ -8183,12 +8183,6 @@ if (app.user && app.role === 'manager' && isDenied) {
                             app.ui.closeUploadProgress();
                             throw new Error("Ảnh quá phức tạp, không thể nén xuống mức an toàn (< 1.5MB). Vui lòng chọn ảnh khác!");
                         }
-
-                        const base64data = await new Promise((resolve) => {
-                            const reader = new FileReader();
-                            reader.readAsDataURL(compressedFile);
-                            reader.onloadend = () => resolve(reader.result);
-                        });
 
                         const metadata = {
                             plate: valPlate.replace(/[^A-Z0-9-]/gi, '').toUpperCase(),
@@ -8204,6 +8198,12 @@ if (app.user && app.role === 'manager' && isDenied) {
                             exif_params: app.currentExif.params
                         };
 
+                        const uploadData = new FormData();
+                        uploadData.append('file', compressedFile);
+                        uploadData.append('userId', app.user.id);
+                        uploadData.append('captchaToken', captchaResponse);
+                        uploadData.append('fileExtension', app.utils.getTargetExtension());
+                        uploadData.append('metadata', JSON.stringify(metadata));
 
                         const { data: { session } } = await window.sb.auth.getSession();
                         const token = session?.access_token;
@@ -8211,16 +8211,9 @@ if (app.user && app.role === 'manager' && isDenied) {
                         const response = await fetch('/api/upload', {
                             method: 'POST',
                             headers: { 
-                                'Content-Type': 'application/json',
                                 'Authorization': `Bearer ${token}`
                             },
-                            body: JSON.stringify({
-                                imageBase64: base64data,
-                                metadata: metadata,
-                                userId: app.user.id,
-                                captchaToken: captchaResponse,
-                                fileExtension: app.utils.getTargetExtension()
-                            })
+                            body: uploadData
                         });
 
                         const result = await response.json();
@@ -9776,75 +9769,64 @@ changePassword: async () => {
                         updateAvatarBtn.classList.add('opacity-50', 'cursor-not-allowed');
                     }
 
-                    const reader = new FileReader();
-                    reader.readAsDataURL(blob);
-                    
-                    reader.onload = async () => {
-                        try {
-                            const base64Image = reader.result;
-                            
+                    try {
+                        const avatarData = new FormData();
+                        avatarData.append('file', blob);
+                        avatarData.append('userId', app.user.id);
+                        avatarData.append('isAvatar', 'true');
+                        avatarData.append('fileExtension', app.utils.getTargetExtension());
 
-                            const { data: { session } } = await window.sb.auth.getSession();
-                            const token = session?.access_token;
+                        const { data: { session } } = await window.sb.auth.getSession();
+                        const token = session?.access_token;
 
-                            const res = await fetch('/api/upload', {
-                                method: 'POST',
-                                headers: { 
-                                    'Content-Type': 'application/json',
-                                    'Authorization': `Bearer ${token}`
-                                },
-                                body: JSON.stringify({
-                                    imageBase64: base64Image,
-                                    userId: app.user.id,
-                                    isAvatar: true,
-                                    fileExtension: app.utils.getTargetExtension()
-                                })
-                            });
+                        const res = await fetch('/api/upload', {
+                            method: 'POST',
+                            headers: { 
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: avatarData
+                        });
 
-                            const data = await res.json();
-                            
-                            if (data.success) {
-
-                                if (data.url) {
-                                    try {
-                                        await app.utils.verifyImageLoaded(data.url, 3);
-                                    } catch (verifyErr) {
-
-                                        console.warn('Backend đã lưu thành công, nhưng CDN đang chậm:', verifyErr);
-                                    }
+                        const data = await res.json();
+                        
+                        if (data.success) {
+                            if (data.url) {
+                                try {
+                                    await app.utils.verifyImageLoaded(data.url, 3);
+                                } catch (verifyErr) {
+                                    console.warn('Backend đã lưu thành công, nhưng CDN đang chậm:', verifyErr);
                                 }
-                                
-                                app.user.user_metadata = app.user.user_metadata || {};
-                                app.user.user_metadata.avatar_url = data.url;
-
-                                const proxiedUrl = app.utils.getProxiedUrl(data.url, 'avatar.jpg', 'avatar');
-                                const avatarImg = document.getElementById('acc-avatar-img');
-                                const avatarIcon = document.getElementById('acc-avatar-icon');
-                                if (avatarImg && avatarIcon) {
-                                    avatarImg.src = proxiedUrl;
-                                    avatarImg.classList.remove('hidden');
-                                    avatarIcon.classList.add('hidden');
-                                }
-                                
-
-                                const setAvatarImg = document.getElementById('set-avatar-img');
-                                if(setAvatarImg) setAvatarImg.src = proxiedUrl;
-                                
-                                app.ui.showAlert('Cập nhật ảnh đại diện thành công!');
-                            } else {
-                                throw new Error(data.error || 'Lỗi upload');
                             }
-                        } catch (error) {
-                            console.error('Avatar update error:', error);
-                            app.ui.showAlert('Cập nhật thất bại: ' + error.message);
-                        } finally {
-                            if (updateAvatarBtn) {
-                                updateAvatarBtn.innerHTML = btnOriginalText || '<i class="fa-solid fa-upload mr-1"></i> Tải ảnh lên từ máy';
-                                updateAvatarBtn.disabled = false;
-                                updateAvatarBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                            
+                            app.user.user_metadata = app.user.user_metadata || {};
+                            app.user.user_metadata.avatar_url = data.url;
+
+                            const proxiedUrl = app.utils.getProxiedUrl(data.url, 'avatar.jpg', 'avatar');
+                            const avatarImg = document.getElementById('acc-avatar-img');
+                            const avatarIcon = document.getElementById('acc-avatar-icon');
+                            if (avatarImg && avatarIcon) {
+                                avatarImg.src = proxiedUrl;
+                                avatarImg.classList.remove('hidden');
+                                avatarIcon.classList.add('hidden');
                             }
+
+                            const setAvatarImg = document.getElementById('set-avatar-img');
+                            if(setAvatarImg) setAvatarImg.src = proxiedUrl;
+                            
+                            app.ui.showAlert('Cập nhật ảnh đại diện thành công!');
+                        } else {
+                            throw new Error(data.error || 'Lỗi upload');
                         }
-                    };
+                    } catch (error) {
+                        console.error('Avatar update error:', error);
+                        app.ui.showAlert('Cập nhật thất bại: ' + error.message);
+                    } finally {
+                        if (updateAvatarBtn) {
+                            updateAvatarBtn.innerHTML = btnOriginalText || '<i class="fa-solid fa-upload mr-1"></i> Tải ảnh lên từ máy';
+                            updateAvatarBtn.disabled = false;
+                            updateAvatarBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                        }
+                    }
                 },
 
                 resetAvatar: async () => {
