@@ -2060,6 +2060,7 @@
                         <button onclick="app.settings.switchTab('profile')" id="set-tab-profile" class="text-center md:text-left whitespace-nowrap flex-1 md:flex-none px-4 py-2.5 md:py-3 rounded-md font-bold text-xs md:text-sm transition-colors bg-black text-white shadow-sm border border-black"><i class="fa-solid fa-user-pen md:w-5 text-center mr-1"></i> Tùy chỉnh hồ sơ</button>
                         <button onclick="app.settings.switchTab('security')" id="set-tab-security" class="text-center md:text-left whitespace-nowrap flex-1 md:flex-none px-4 py-2.5 md:py-3 rounded-md font-bold text-xs md:text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"><i class="fa-solid fa-shield-halved md:w-5 text-center mr-1"></i> Bảo mật</button>
                         <button onclick="app.settings.switchTab('links')" id="set-tab-links" class="text-center md:text-left whitespace-nowrap flex-1 md:flex-none px-4 py-2.5 md:py-3 rounded-md font-bold text-xs md:text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"><i class="fa-solid fa-link md:w-5 text-center mr-1"></i> Liên kết</button>
+                        <button onclick="app.settings.switchTab('badges')" id="set-tab-badges" class="text-center md:text-left whitespace-nowrap flex-1 md:flex-none px-4 py-2.5 md:py-3 rounded-md font-bold text-xs md:text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"><i class="fa-brands fa-discord md:w-5 text-center mr-1 text-[#5865F2]"></i> Huy hiệu</button>
                     </div>
 
                     
@@ -2132,13 +2133,47 @@
                         </div>
 
                         
-                        <div id="set-content-links" class="space-y-4 md:space-y-6 hidden">
+<div id="set-content-links" class="space-y-4 md:space-y-6 hidden">
+                             <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm">
+                                 <h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Tài khoản liên kết</h3>
+                                 <p class="text-[11px] md:text-xs text-gray-500 mb-4 leading-relaxed">Liên kết Google hoặc Discord để đăng nhập nhanh hơn.</p>
+                                 
+                                 <div class="space-y-3" id="linked-accounts-container">
+                                     <p class="text-xs text-gray-500"><i class="fa-solid fa-spinner fa-spin"></i> Đang kiểm tra liên kết...</p>
+                                 </div>
+                             </div>
+                         </div>
+
+                        <div id="set-content-badges" class="space-y-4 md:space-y-6 hidden">
                             <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm">
-                                <h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Tài khoản liên kết</h3>
-                                <p class="text-[11px] md:text-xs text-gray-500 mb-4 leading-relaxed">Liên kết Google hoặc Discord để đăng nhập nhanh hơn.</p>
+                                <h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Nhận Huy hiệu Discord</h3>
+                                <p class="text-[11px] md:text-xs text-gray-500 mb-4 leading-relaxed">Kết nối tài khoản với Discord để nhận các Role đặc biệt trên server khi đạt các cột mốc đóng góp ảnh.</p>
                                 
-                                <div class="space-y-3" id="linked-accounts-container">
-                                    <p class="text-xs text-gray-500"><i class="fa-solid fa-spinner fa-spin"></i> Đang kiểm tra liên kết...</p>
+                                <div id="badge-loading" class="py-6 text-center text-gray-500 text-sm">
+                                    <i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang kiểm tra trạng thái...
+                                </div>
+
+                                <div id="badge-requirements" class="hidden space-y-3 bg-gray-50 border border-gray-200 p-4 rounded-md">
+                                    <h4 class="font-bold text-sm text-gray-800 mb-2">Yêu cầu bắt buộc:</h4>
+                                    <div id="req-link" class="flex items-center gap-2 text-sm text-red-600 font-medium">
+                                        <i class="fa-solid fa-xmark w-4 text-center"></i> Chưa liên kết tài khoản Discord
+                                    </div>
+                                    <div id="req-server" class="flex items-center gap-2 text-sm text-red-600 font-medium">
+                                        <i class="fa-solid fa-xmark w-4 text-center"></i> Chưa tham gia Server Discord VNBUSARCHIVE
+                                    </div>
+                                    <div class="mt-4 pt-4 border-t border-gray-200 flex gap-2">
+                                        <button onclick="app.settings.switchTab('links')" class="text-xs bg-black text-white px-4 py-2 rounded font-bold hover:bg-gray-800 transition">Đi tới Liên kết</button>
+                                        <a href="https://discord.com/invite/BNWyqbuvwq" target="_blank" class="text-xs bg-[#5865F2] text-white px-4 py-2 rounded font-bold hover:bg-[#4752C4] transition">Tham gia Server</a>
+                                    </div>
+                                </div>
+
+                                <div id="badge-claim-list" class="hidden space-y-3">
+                                    <div class="bg-blue-50 text-blue-800 text-xs p-3 rounded-md border border-blue-200 mb-4 font-medium flex items-center justify-between">
+                                        <span>Số ảnh đã duyệt của bạn: <b id="badge-photo-count" class="text-lg ml-1">0</b></span>
+                                    </div>
+                                    
+                                    <div id="badges-grid" class="grid grid-cols-1 gap-3">
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -4183,72 +4218,30 @@
                     }, 200);
                 },
                 switchTab: (tab) => {
-                    const btnProfile = document.getElementById('set-tab-profile');
-                    const btnSecurity = document.getElementById('set-tab-security');
-                    const btnLinks = document.getElementById('set-tab-links');
-                    const contentProfile = document.getElementById('set-content-profile');
-                    const contentSecurity = document.getElementById('set-content-security');
-                    const contentLinks = document.getElementById('set-content-links');
-
+                    const tabs = ['profile', 'security', 'links', 'badges'];
                     const activeClasses = ['bg-black', 'text-white', 'border-black', 'shadow-sm'];
                     const inactiveClasses = ['bg-white', 'text-gray-600', 'hover:bg-gray-50', 'border-gray-200'];
 
-                    if(tab === 'profile') {
-                        btnProfile.classList.remove(...inactiveClasses);
-                        btnProfile.classList.add(...activeClasses);
-                        btnSecurity.classList.remove(...activeClasses);
-                        btnSecurity.classList.add(...inactiveClasses);
-                        btnLinks.classList.remove(...activeClasses);
-                        btnLinks.classList.add(...inactiveClasses);
-                        
-                        contentProfile.classList.remove('hidden');
-                        contentProfile.classList.add('block');
-                        contentSecurity.classList.add('hidden');
-                        contentSecurity.classList.remove('block');
-                        contentLinks.classList.add('hidden');
-                        contentLinks.classList.remove('block');
-                    } else if(tab === 'security') {
-                        btnSecurity.classList.remove(...inactiveClasses);
-                        btnSecurity.classList.add(...activeClasses);
-                        btnProfile.classList.remove(...activeClasses);
-                        btnProfile.classList.add(...inactiveClasses);
-                        btnLinks.classList.remove(...activeClasses);
-                        btnLinks.classList.add(...inactiveClasses);
-                        
-                        contentSecurity.classList.remove('hidden');
-                        contentSecurity.classList.add('block');
-                        contentProfile.classList.add('hidden');
-                        contentProfile.classList.remove('block');
-                        contentLinks.classList.add('hidden');
-                        contentLinks.classList.remove('block');
-                    } else if(tab === 'links') {
-                        btnLinks.classList.remove(...inactiveClasses);
-                        btnLinks.classList.add(...activeClasses);
-                        btnProfile.classList.remove(...activeClasses);
-                        btnProfile.classList.add(...inactiveClasses);
-                        btnSecurity.classList.remove(...activeClasses);
-                        btnSecurity.classList.add(...inactiveClasses);
-                        
-                        contentLinks.classList.remove('hidden');
-                        contentLinks.classList.add('block');
-                        contentProfile.classList.add('hidden');
-                        contentProfile.classList.remove('block');
-                        contentSecurity.classList.add('hidden');
-                        contentSecurity.classList.remove('block');
+                    tabs.forEach(t => {
+                        const btn = document.getElementById('set-tab-' + t);
+                        const content = document.getElementById('set-content-' + t);
+                        if(!btn || !content) return;
 
-                        app.settings.loadIdentities();
-                    }
-
-                    if (tab === 'profile' || tab === 'links') {
-                        const uuidInput = document.getElementById('set-uuid-input');
-                        const revealBtn = document.getElementById('set-reveal-uuid');
-                        if(uuidInput && revealBtn) {
-                            uuidInput.type = 'password';
-                            uuidInput.classList.add('tracking-widest');
-                            revealBtn.innerHTML = '<i class="fa-solid fa-eye"></i>';
-                            if (app.auth.uuidTimeout) clearTimeout(app.auth.uuidTimeout);
+                        if(t === tab) {
+                            btn.classList.remove(...inactiveClasses);
+                            btn.classList.add(...activeClasses);
+                            content.classList.remove('hidden');
+                            content.classList.add('block');
+                        } else {
+                            btn.classList.remove(...activeClasses);
+                            btn.classList.add(...inactiveClasses);
+                            content.classList.add('hidden');
+                            content.classList.remove('block');
                         }
-                    }
+                    });
+
+                    if (tab === 'links') app.settings.loadIdentities();
+                    if (tab === 'badges') app.settings.loadBadges();
                 },
                 loadIdentities: async () => {
                     const container = document.getElementById('linked-accounts-container');
@@ -4323,6 +4316,138 @@
                         () => {}, 
                         { btnOkText: "Hủy liên kết", btnCancelText: "Đóng", title: "Xác nhận" }
                     );
+                },
+                loadBadges: async () => {
+                    const loading = document.getElementById('badge-loading');
+                    const reqBox = document.getElementById('badge-requirements');
+                    const claimBox = document.getElementById('badge-claim-list');
+                    
+                    loading.classList.remove('hidden');
+                    reqBox.classList.add('hidden');
+                    claimBox.classList.add('hidden');
+
+                    try {
+                        const { data: { session } } = await window.sb.auth.getSession();
+                        const token = session?.access_token;
+                        if (!token) throw new Error("Chưa đăng nhập");
+
+                        const res = await fetch('/api/discord-role', {
+                            method: 'POST',
+                            headers: { 
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}` 
+                            },
+                            body: JSON.stringify({ action: 'status' })
+                        });
+                        const data = await res.json();
+
+                        if (!data.linked || !data.inServer) {
+                            loading.classList.add('hidden');
+                            reqBox.classList.remove('hidden');
+                            
+                            const reqLink = document.getElementById('req-link');
+                            const reqServer = document.getElementById('req-server');
+
+                            if (data.linked) {
+                                reqLink.innerHTML = `<i class="fa-solid fa-check w-4 text-center text-green-600"></i> <span class="text-green-600">Đã liên kết Discord</span>`;
+                            } else {
+                                reqLink.innerHTML = `<i class="fa-solid fa-xmark w-4 text-center"></i> Chưa liên kết tài khoản Discord`;
+                            }
+
+                            if (data.inServer) {
+                                reqServer.innerHTML = `<i class="fa-solid fa-check w-4 text-center text-green-600"></i> <span class="text-green-600">Đã tham gia Server</span>`;
+                            } else {
+                                reqServer.innerHTML = `<i class="fa-solid fa-xmark w-4 text-center"></i> Chưa tham gia Server Discord VNBUSARCHIVE`;
+                            }
+                            return;
+                        }
+
+                        const { count } = await window.sb.from('photos')
+                            .select('*', { count: 'exact', head: true })
+                            .eq('uploader_id', app.user.id)
+                            .eq('status', 'approved');
+
+                        document.getElementById('badge-photo-count').innerText = count || 0;
+
+                        const ROLE_MAP_FRONTEND = {
+                            100: '1505158627747561482',
+                            200: '1505158752372920320',
+                            500: '1505158986725462078',
+                            1000: '1505159111686488164'
+                        };
+
+                        const tiers = [100, 200, 500, 1000];
+                        const grid = document.getElementById('badges-grid');
+                        
+                        grid.innerHTML = tiers.map(tier => {
+                            const roleId = ROLE_MAP_FRONTEND[tier];
+                            const isClaimed = data.claimedRoles.includes(roleId);
+                            const isEligible = (count || 0) >= tier;
+
+                            let btnHtml = '';
+                            if (isClaimed) {
+                                btnHtml = `<button disabled class="px-4 py-2 bg-gray-100 text-gray-400 text-xs font-bold rounded cursor-not-allowed border border-gray-200"><i class="fa-solid fa-check mr-1"></i> Đã nhận</button>`;
+                            } else if (isEligible) {
+                                btnHtml = `<button id="btn-claim-${tier}" onclick="app.settings.claimBadge(${tier})" class="px-4 py-2 bg-black text-white text-xs font-bold rounded hover:bg-gray-800 transition shadow-sm border border-black">Nhận Role</button>`;
+                            } else {
+                                btnHtml = `<button disabled class="px-4 py-2 bg-gray-50 text-gray-400 text-xs font-bold rounded cursor-not-allowed border border-gray-200"><i class="fa-solid fa-lock mr-1"></i> Chưa đủ điều kiện</button>`;
+                            }
+
+                            return `
+                            <div class="flex items-center justify-between p-3 border border-gray-200 rounded-md bg-white">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-lg text-[#5865F2]">
+                                        <i class="fa-solid fa-medal"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-sm text-gray-800">Cột mốc ${tier} ảnh</p>
+                                        <p class="text-[10px] text-gray-500">Yêu cầu: Đóng góp ${tier}+ ảnh được duyệt.</p>
+                                    </div>
+                                </div>
+                                <div>${btnHtml}</div>
+                            </div>`;
+                        }).join('');
+
+                        loading.classList.add('hidden');
+                        claimBox.classList.remove('hidden');
+
+                    } catch (err) {
+                        loading.innerHTML = `<span class="text-red-500"><i class="fa-solid fa-triangle-exclamation"></i> Lỗi: ${err.message}</span>`;
+                    }
+                },
+
+                claimBadge: async (tier) => {
+                    const btn = document.getElementById(`btn-claim-${tier}`);
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+                    btn.disabled = true;
+
+                    try {
+                        const { data: { session } } = await window.sb.auth.getSession();
+                        const token = session?.access_token;
+
+                        const res = await fetch('/api/discord-role', {
+                            method: 'POST',
+                            headers: { 
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}` 
+                            },
+                            body: JSON.stringify({ action: 'claim', tier: tier })
+                        });
+
+                        const data = await res.json();
+                        
+                        if (!res.ok) throw new Error(data.error || 'Lỗi không xác định');
+
+                        app.ui.showAlert(data.message || "Đã nhận Role thành công!", () => {
+                            app.settings.loadBadges();
+                        });
+
+                    } catch (err) {
+                        app.ui.showAlert("Lỗi: " + err.message);
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                    }
                 }
             },
 
