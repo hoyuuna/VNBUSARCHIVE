@@ -40,7 +40,23 @@ export default async function handler(req, res) {
         const captchaToken = getField(fields.captchaToken);
         const fileExtension = getField(fields.fileExtension) || 'jpg';
         const metadataString = getField(fields.metadata);
-        const metadata = metadataString ? JSON.parse(metadataString) : {};
+        let metadata = {};
+        if (metadataString) {
+            try {
+                metadata = JSON.parse(metadataString);
+            } catch (parseError) {
+                try {
+                    const sanitized = metadataString.replace(/\\(?!["\\/bfnrtu])/g, '\\\\');
+                    metadata = JSON.parse(sanitized);
+                    console.warn('[WARN] metadata cần sanitize:', metadataString);
+                } catch (e) {
+                    return res.status(400).json({
+                        success: false,
+                        error: 'Metadata ảnh chứa ký tự không hợp lệ. Vui lòng kiểm tra ghi chú hoặc thông tin ảnh.'
+                    });
+                }
+            }
+        }
 
         const file = Array.isArray(files.file) ? files.file[0] : files.file;
 
