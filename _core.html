@@ -1349,8 +1349,8 @@
 
 <!-- KHUNG BẢO TRÌ HỆ THỐNG (GIAO DIỆN MỚI) -->
 <div id="maintenance-screen" class="hidden fixed inset-0 z-[9999] bg-white overflow-y-auto block">
-    <!-- Đã bỏ hoàn toàn flex, my-auto, min-h-[100dvh]. Dùng block thường với padding top/bottom khổng lồ -->
-    <div class="max-w-md mx-auto w-full text-center pt-20 pb-32 px-4">
+    <!-- Thay pt-20 pb-32 thành py-32 để lề trên bằng đúng lề dưới (128px) -->
+    <div class="max-w-md mx-auto w-full text-center py-32 px-4">
 
         <!-- LOGO (GIỐNG FOOTER) -->
         <div class="flex items-center justify-center gap-2 mb-10">
@@ -1375,7 +1375,6 @@
 
         <!-- CỤM NÚT CẬP NHẬT THÔNG TIN -->
         <div class="space-y-3">
-            <!-- Đã cố định kích thước GIF ở mức vừa phải (w-48) để không đẩy trang quá dài -->
             <img src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExb3RwdzZlNTZ4OWc4ZXppMmN0c3M2cGNhNzFvd3Z0cjhzejU0OGxvYyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/TJYEwHcXmpiipNdna3/giphy.gif" alt="Maintenance Status" class="w-48 h-48 aspect-square mx-auto mb-5 rounded-2xl shadow-sm object-cover">
             
             <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-4">Cập nhật thông tin tại</p>
