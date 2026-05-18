@@ -2233,9 +2233,6 @@
 
             <div id="home" class="view-section active">
 
-                <!-- KHUNG QUẢNG CÁO TRANG CHỦ -->
-                <div id="home-ad-container" class="mb-6 empty:hidden"></div>
-
                 <div class="bg-white border border-vbs-border mb-8 rounded-lg shadow-sm overflow-hidden"
                     id="hero-section">
                     <div class="bg-white px-4 py-3 border-b border-vbs-border">
@@ -2477,9 +2474,6 @@
                                 Thời gian duyệt phụ thuộc vào số lượng yêu cầu hiện tại trên hệ thống.
                             </p>
                         </div>
-
-                        <!-- KHUNG QUẢNG CÁO TRANG CHI TIẾT ẢNH -->
-                        <div id="detail-ad-container" class="mb-6 empty:hidden"></div>
 
                         <div class="bg-white mb-6 relative rounded-lg border border-vbs-border p-4 shadow-sm">
                             <div class="absolute top-0 right-0 m-4 flex gap-2 z-10">
@@ -3223,69 +3217,6 @@
             _likedPhotosCache: [],
             _isOwnProfile: false,
 
-            // MODULE QUẢNG CÁO
-            ads: {
-                data: null,
-                init: async () => {
-                    try {
-                        const res = await fetch('/ads.json');
-                        if (res.ok) {
-                            app.ads.data = await res.json();
-                        }
-                    } catch (e) {
-                        console.warn("Không tải được ads.json", e);
-                    }
-                },
-                getAdHtml: () => {
-                    if (!app.ads.data || app.ads.data.length === 0) return '';
-
-                    const now = Date.now();
-                    const validAds = app.ads.data.filter(ad => {
-                        if (!ad.start_date) return true;
-                        
-                        let startString = ad.start_date;
-                        if (!startString.includes('+') && !startString.includes('Z')) {
-                            startString += '+07:00'; 
-                        }
-                        
-                        const startDate = new Date(startString).getTime();
-                        if (isNaN(startDate)) return false; 
-                        if (now < startDate) return false; 
-
-                        if (ad.cycle) {
-                            const endDate = startDate + (ad.cycle * 24 * 60 * 60 * 1000);
-                            if (now > endDate) return false; 
-                        }
-                        return true;
-                    });
-
-                    if (validAds.length === 0) return '';
-
-                    const selectedAd = validAds[Math.floor(Math.random() * validAds.length)];
-                    const imgTag = `<img src="${selectedAd.image_url}" class="w-full aspect-[5/1] object-cover rounded-lg shadow-sm border border-vbs-border transition hover:shadow-md block">`;
-                    
-                    // Nhãn QC nằm ở góc phải bên dưới
-                    const qcLabel = `<div class="absolute bottom-2 right-2 bg-black/80 backdrop-blur-sm text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm pointer-events-none z-10 tracking-widest">QC</div>`;
-
-                    if (selectedAd.link) {
-                        return `<a href="${selectedAd.link}" target="_blank" class="block w-full cursor-pointer relative">${imgTag}${qcLabel}</a>`;
-                    }
-                    return `<div class="block w-full relative">${imgTag}${qcLabel}</div>`;
-                },
-                renderHomeAd: () => {
-                    const container = document.getElementById('home-ad-container');
-                    if (container) {
-                        container.innerHTML = app.ads.getAdHtml();
-                    }
-                },
-                renderDetailAd: () => {
-                    const container = document.getElementById('detail-ad-container');
-                    if (container) {
-                        container.innerHTML = app.ads.getAdHtml();
-                    }
-                }
-            },
-
             maintenance: {
                 settings: {},
                 timer: null,
@@ -3931,7 +3862,6 @@
                 app._profilePhotosCache = [];
                 app.utils.updateBreadcrumbs();
                 await app.utils.loadProvinceData();
-                await app.ads.init(); // <-- THÊM DÒNG NÀY ĐỂ TẢI JSON QUẢNG CÁO
                 await app.maintenance.fetch();
                 app.handleRoute();
 
@@ -5206,8 +5136,6 @@
                     app.currentViewMode = 'home';
                     document.title = 'VNBUSARCHIVE';
 
-                    app.ads.renderHomeAd(); // <-- THÊM DÒNG NÀY ĐỂ HIỆN ADS Ở TRANG CHỦ
-
                     if (app.loadedCount > 0 && !forceRefresh && !wasSearch) {
                         document.getElementById('hero-section').style.display = 'block';
                         document.getElementById('db-stats-section').style.display = 'block';
@@ -5946,8 +5874,6 @@
                     }
                     document.getElementById('detail-title').innerText = `${app.utils.displayPlate(photo.license_plate)} - ${snapshot.operator || 'Đã bị xóa'}`;
 
-                    app.ads.renderDetailAd(); // <-- HIỆN QUẢNG CÁO Ở ĐÂY
-
                     const pageTitle = `${app.utils.displayPlate(photo.license_plate)} - ${snapshot.operator || 'Đã bị xóa'} | VNBUSARCHIVE`;
                     const pageDesc = `Ảnh chụp chi tiết xe buýt/xe khách ${app.utils.displayPlate(photo.license_plate)} thuộc đơn vị ${snapshot.operator}, dòng xe ${snapshot.model}.`;
                     const pageImg = app.utils.getProxiedUrl(photo.url);
@@ -6357,13 +6283,7 @@ if (app.user && app.role === 'manager' && isDenied) {
                                 <div class="w-full lg:w-1/3 space-y-6">
                                     ${topPhoto ? `<div class="bg-white border border-vbs-border shadow-sm rounded-lg overflow-hidden relative group"><img src="${app.utils.getProxiedUrl(topPhoto.url, 'vehicle-top.jpg', 'thumb')}" class="w-full h-auto object-cover cursor-pointer group-hover:scale-105 transition-transform duration-500" onclick="app.views.loadDetail(${topPhoto.id})"></div>` : '<div class="aspect-video bg-gray-100 flex items-center justify-center text-gray-400 rounded-lg">Chưa có ảnh</div>'}
 
-                                    <!-- THÊM BIẾN LẤY HTML QUẢNG CÁO Ở ĐÂY -->
-                                    ${(() => {
-                                        const adHtml = app.ads.getAdHtml();
-                                        return adHtml ? `<div>${adHtml}</div>` : '';
-                                    })()}
-
-                                    <div class="bg-white border border-vbs-border shadow-sm rounded-lg p-4">
+                                     <div class="bg-white border border-vbs-border shadow-sm rounded-lg p-4">
                                         <div class="flex justify-between items-start mb-4 pb-3 border-b">
                                             <h2 class="text-2xl font-bold uppercase text-black tracking-tight">${app.utils.displayPlate(vehicle.license_plate)}</h2>
                                             <button id="btn-vehicle-edit" onclick="app.vehicle.toggleVehiclePageEdit('${plate}')" class="text-xs text-black hover:bg-gray-100 bg-white px-3 py-1.5 border border-gray-200 rounded-md transition shadow-sm font-medium">
