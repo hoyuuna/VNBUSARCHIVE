@@ -1349,9 +1349,10 @@
 
 <!-- KHUNG BẢO TRÌ HỆ THỐNG (GIAO DIỆN MỚI) -->
 <div id="maintenance-screen" class="hidden fixed inset-0 z-[9999] bg-white overflow-y-auto">
-    <!-- Đã tăng padding từ py-12 lên py-24 để tạo khoảng thở RẤT TO (96px trên/dưới), đảm bảo không bao giờ sát viền màn hình -->
-    <div class="min-h-[100dvh] flex flex-col items-center justify-center py-24 px-6">
-        <div class="max-w-md w-full text-center flex flex-col justify-center">
+    <!-- Đã xóa justify-center để không bị lẹm lên trên, giữ lại py-16 để chừa khoảng thở 64px ở 2 lề -->
+    <div class="min-h-[100dvh] flex flex-col items-center py-16 px-4">
+        <!-- Đã thêm my-auto để nó tự căn giữa an toàn nếu màn hình đủ to -->
+        <div class="max-w-md w-full text-center my-auto flex flex-col">
 
             <!-- LOGO (GIỐNG FOOTER) -->
             <div class="flex items-center justify-center gap-2 mb-10 shrink-0">
@@ -1376,7 +1377,7 @@
 
             <!-- CỤM NÚT CẬP NHẬT THÔNG TIN -->
             <div class="space-y-3 shrink-0 flex flex-col items-center w-full">
-                <!-- Đã thêm max-h-[20vh] và aspect-square để tự động thu nhỏ lại thành hình vuông khi màn hình bị ngắn -->
+                <!-- Ảnh GIF đã được giới hạn max-h-[20vh] để tự động thu nhỏ (tỉ lệ vuông) khi màn hình bị lùn đi -->
                 <img src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExb3RwdzZlNTZ4OWc4ZXppMmN0c3M2cGNhNzFvd3Z0cjhzejU0OGxvYyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/TJYEwHcXmpiipNdna3/giphy.gif" alt="Maintenance Status" class="w-auto h-auto max-w-[12rem] max-h-[20vh] aspect-square mx-auto mb-5 rounded-2xl shadow-sm object-cover">
                 
                 <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-4 w-full">Cập nhật thông tin tại</p>
