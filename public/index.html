@@ -1349,8 +1349,9 @@
     <div id="app-container" style="display: none; opacity: 0; transition: opacity 0.5s ease-in-out;">
 
 <!-- KHUNG BẢO TRÌ HỆ THỐNG (GIAO DIỆN MỚI) -->
-<div id="maintenance-screen" class="hidden fixed inset-0 z-[9999] bg-white flex items-center justify-center p-4">
-    <div class="max-w-md w-full text-center">
+<div id="maintenance-screen" class="hidden fixed inset-0 z-[9999] bg-white overflow-y-auto">
+    <div class="min-h-[100dvh] flex flex-col items-center justify-center py-12 px-4">
+        <div class="max-w-md w-full text-center">
 
         <!-- LOGO (GIỐNG FOOTER) -->
         <div class="flex items-center justify-center gap-2 mb-10">
@@ -1390,6 +1391,7 @@
 
         <!-- NÚT CHO MANAGER -->
         <button id="mt-manager-bypass" onclick="app.maintenance.bypass()" class="hidden mt-8 text-[10px] font-bold text-blue-500 hover:underline uppercase tracking-widest">Truy cập Quản trị (Manager)</button>
+    </div>
     </div>
 </div>
 
@@ -3325,6 +3327,11 @@
 
                 showScreen: (targetData) => {
                     const screen = document.getElementById('maintenance-screen');
+                    
+                    // Ẩn triệt để giao diện nền phía sau để không bị hở khi cuộn trên Mobile
+                    document.querySelectorAll('header, main, footer, #header-spacer').forEach(el => el.style.display = 'none');
+                    document.body.style.backgroundColor = '#ffffff';
+
                     // Cập nhật text lý do
                     document.getElementById('mt-reason').innerText = targetData.reason || "Hệ thống đang được bảo trì, vui lòng quay lại sau.";
                     
@@ -3372,6 +3379,11 @@
 
                 hideScreen: () => {
                     document.getElementById('maintenance-screen').classList.add('hidden');
+                    
+                    // Trả lại giao diện nền khi tắt bảo trì
+                    document.querySelectorAll('header, main, footer, #header-spacer').forEach(el => el.style.display = '');
+                    document.body.style.backgroundColor = '';
+
                     if (app.maintenance.timer) clearInterval(app.maintenance.timer);
                 },
 
