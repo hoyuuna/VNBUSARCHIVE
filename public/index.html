@@ -5,64 +5,80 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VNBUSARCHIVE</title>
     <link rel="icon" href="/media/icon.png">
+    
+    <!-- Load Font cho chữ VNBUSARCHIVE -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@1,800&display=swap" rel="stylesheet">
+    
     <style>
         body { margin: 0; background: #ffffff; overflow: hidden; }
-        #loading-screen { position: fixed; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
-        .brand-container { display: flex; align-items: center; justify-content: center; margin-bottom: 20px;}
-        .logo { height: 80px; object-fit: contain; }
-        .spinner { width: 40px; height: 40px; border: 4px solid rgba(0, 0, 0, 0.1); border-left-color: #000; border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
+        
+        /* CSS GIAO DIỆN LOADING CHÍNH THỨC */
+        #loading-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #ffffff; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
+        .brand-container { display: flex; align-items: center; justify-content: center; }
+        .logo { height: 80px; object-fit: contain; position: relative; z-index: 2; }
+        
+        /* Hiệu ứng chữ trượt ra */
+        .text-wrapper { display: grid; grid-template-columns: 0fr; opacity: 0; animation: slideOut 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards; }
+        .text-inner { overflow: hidden; white-space: nowrap; }
+        .text-inner span { font-family: 'Montserrat', sans-serif; font-weight: 800; font-style: italic; font-size: 2.5rem; letter-spacing: 2px; padding-left: 15px; display: block; padding-right: 5px; color: #000; }
+        
+        .spinner { position: absolute; bottom: 15%; width: 40px; height: 40px; border: 4px solid rgba(0, 0, 0, 0.1); border-left-color: #000000; border-radius: 50%; animation: spin 1s linear infinite; }
+        
+        @media (max-width: 768px) { .logo { height: 60px; } .text-inner span { font-size: 1.8rem; padding-left: 12px; } }
+        @media (max-width: 480px) { .logo { height: 45px; } .text-inner span { font-size: 1.25rem; letter-spacing: 1px; padding-left: 8px; } .spinner { width: 30px; height: 30px; border-width: 3px; bottom: 12%; } }
+        
+        @keyframes slideOut { 0% { grid-template-columns: 0fr; opacity: 0; } 100% { grid-template-columns: 1fr; opacity: 1; } }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
     <div id="loading-screen">
         <div class="brand-container">
             <img src="https://wsrv.nl/?url=https://files.catbox.moe/crxvn6.png&we" alt="Logo" class="logo">
+            <div class="text-wrapper"><div class="text-inner"><span>VNBUSARCHIVE</span></div></div>
         </div>
         <div class="spinner"></div>
     </div>
 
     <script>
+        // === ANTI DEBUG & BẢO VỆ ===
         (function() {
             document.addEventListener('contextmenu', e => e.preventDefault());
             document.addEventListener('keydown', e => {
-                if (
-                    e.key === 'F12' || 
-                    (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) || 
-                    (e.ctrlKey && e.key === 'U')
-                ) {
-                    e.preventDefault();
-                    return false;
+                if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) || (e.ctrlKey && e.key === 'U')) {
+                    e.preventDefault(); return false;
                 }
             });
             setInterval(function() {
                 const before = new Date().getTime();
                 debugger; 
-                const after = new Date().getTime();
-                if (after - before > 100) {
-                    document.body.innerHTML = "<h1 style='text-align:center; margin-top:20vh; font-family:sans-serif;'>Hanh vi bi cam!</h1>";
+                if (new Date().getTime() - before > 100) {
+                    document.body.innerHTML = "<h1 style='text-align:center; margin-top:20vh; font-family:sans-serif;'>Hành vi bị cấm!</h1>";
                 }
             }, 100);
         })();
 
+        // === FETCH API VÀ INJECT CODE ===
         async function initApp() {
             try {
-                const response = await fetch('/api/get-core', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-                if (!response.ok) throw new Error('Bi tu cho phep truy cap');
+                const response = await fetch('/api/get-core', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+                if (!response.ok) throw new Error('Bị từ chối');
+                
                 const data = await response.json();
                 const decodedHTML = decodeURIComponent(escape(atob(data.payload)));
+
+                // Bơm HTML gốc lên (Sẽ diễn ra siêu nhanh, mắt thường gần như không nhận ra việc thay DOM)
                 document.open();
                 document.write(decodedHTML);
                 document.close();
+
             } catch (error) {
-                console.error("Khoi tao that bai.");
-                document.getElementById('loading-screen').innerHTML = '<p style="color:red;">Loi ket noi may chu. Vui long tai lai trang.</p>';
+                console.error("Lỗi:", error);
+                document.getElementById('loading-screen').innerHTML = '<p style="color:red; text-align:center; margin-top: 40vh; font-weight: bold;">Lỗi kết nối máy chủ an toàn. Vui lòng tải lại trang.</p>';
             }
         }
-
         initApp();
     </script>
 </body>

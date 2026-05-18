@@ -1047,9 +1047,8 @@
 
         .text-wrapper {
             display: grid;
-            grid-template-columns: 0fr;
-            opacity: 0;
-            animation: slideOut 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.6s forwards;
+            grid-template-columns: 1fr;
+            opacity: 1;
         }
 
         .text-inner {
@@ -3867,7 +3866,7 @@
                     const appContainer = document.getElementById('app-container');
                     appContainer.style.display = 'block';
                     setTimeout(() => appContainer.style.opacity = '1', 50);
-                }, 1200);
+                }, 400);
 
                 try {
                     const { data: { session } } = await window.sb.auth.getSession();
