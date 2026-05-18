@@ -1375,6 +1375,8 @@
 
         <!-- CỤM NÚT CẬP NHẬT THÔNG TIN -->
         <div class="space-y-3">
+            <img src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExb3RwdzZlNTZ4OWc4ZXppMmN0c3M2cGNhNzFvd3Z0cjhzejU0OGxvYyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/TJYEwHcXmpiipNdna3/giphy.gif" alt="Maintenance Status" class="w-48 h-auto mx-auto mb-5 rounded-2xl shadow-sm object-cover">
+            
             <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-4">Cập nhật thông tin tại</p>
 
             <button onclick="app.newsboard.open()" class="w-full bg-black text-white py-3.5 rounded-xl font-bold text-sm shadow-lg shadow-black/10 hover:bg-gray-800 transition flex items-center justify-center gap-2">
@@ -3119,26 +3121,67 @@
     <script>
         const DEFAULT_AVATAR = 'https://wsrv.nl/?url=https://files.catbox.moe/zzh1q1.png&we';
 
+        // =====================================
         // === CODE BẮT LỖI CONSOLE TỰ ĐỘNG ===
-        window._consoleErrors =[];
+        // =====================================
+        window._consoleErrors = [];
         const originalConsoleError = console.error;
+        const originalConsoleLog = console.log;
+        const originalConsoleWarn = console.warn;
+        const originalConsoleInfo = console.info;
+
+        // Cơ chế ÉP Cảnh báo pháp lý luôn ở dưới cùng
+        let securityWarningTimeout;
+        const printSecurityWarning = () => {
+            const cssWarning = "color: red; font-size: 24px; font-weight: bold; text-shadow: 1px 1px black;";
+            const cssText = "color: #fff; font-size: 14px; font-weight: 500; line-height: 1.5;";
+            const cssLaw = "color: #ffcc00; font-size: 13px; font-style: italic;";
+
+            originalConsoleLog("%c⚠️ CẢNH BÁO BẢO MẬT & PHÁP LÝ / SECURITY WARNING ⚠️", cssWarning);
+            originalConsoleLog(
+                "%c\n• Dừng lại ngay! Mọi hành vi dò quét lỗ hổng, xâm nhập trái phép, hoặc tự động cào dữ liệu tại hệ thống này đều bị NGHIÊM CẤM.\n",
+                cssText
+            );
+            originalConsoleLog(
+                "%c[HÀNH VI VI PHẠM SẼ BỊ XỬ LÝ THEO PHÁP LUẬT VIỆT NAM]:\n" +
+                "- Điều 287 BLHS: Tội cản trở hoặc gây rối loạn hoạt động của mạng máy tính (Tấn công DoS/DDoS) - Phạt tù lên đến 12 năm.\n" +
+                "- Điều 288 BLHS: Tội đưa hoặc sử dụng trái phép thông tin mạng máy tính (Scrape/Crawl) - Phạt tiền đến 1 tỷ hoặc phạt tù đến 7 năm.\n" +
+                "- Điều 289 BLHS: Tội xâm nhập trái phép vào mạng máy tính của người khác (Hack/Bẻ khóa) - Phạt tù lên đến 12 năm.\n" +
+                "- Nghị định 13/2023/NĐ-CP: Vi phạm bảo vệ dữ liệu cá nhân.\n", 
+                cssLaw
+            );
+        };
+
+        const triggerBottomWarning = () => {
+            clearTimeout(securityWarningTimeout);
+            // Đợi 500ms sau log cuối cùng để chèn cảnh báo xuống đáy
+            securityWarningTimeout = setTimeout(printSecurityWarning, 500);
+        };
+
+        // Ghi đè toàn bộ các hàm log để bắt tín hiệu
         console.error = function(...args) {
             try {
                 const logString = args.map(a => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ');
                 window._consoleErrors.push(logString);
-                // Chỉ lưu tối đa 15 lỗi gần nhất để nhẹ RAM
                 if (window._consoleErrors.length > 15) window._consoleErrors.shift();
             } catch (e) {}
             originalConsoleError.apply(console, args);
+            triggerBottomWarning();
         };
 
-        // Bắt cả các lỗi Crash hệ thống mà trình duyệt ném ra
+        console.log = function(...args) { originalConsoleLog.apply(console, args); triggerBottomWarning(); };
+        console.warn = function(...args) { originalConsoleWarn.apply(console, args); triggerBottomWarning(); };
+        console.info = function(...args) { originalConsoleInfo.apply(console, args); triggerBottomWarning(); };
+
         window.addEventListener('error', function(e) {
             console.error(`[Global Error] ${e.message} at ${e.filename}:${e.lineno}`);
         });
         window.addEventListener('unhandledrejection', function(e) {
             console.error(`[Unhandled Promise] ${e.reason}`);
         });
+
+        // In lần đầu tiên khi trang bắt đầu tải
+        printSecurityWarning();
         // =====================================
 
         const app = {
@@ -4955,6 +4998,7 @@
                         <a href="/profile" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-address-card w-5 text-center mr-1"></i> Hồ sơ của tôi</a>
                         <button onclick="app.settings.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-gear w-5 text-center mr-1"></i> Cài đặt tài khoản</button>
                         <button onclick="app.docs.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-book-open w-5 text-center mr-1"></i> Tài liệu</button>
+                        <a href="/contact" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-headset w-5 text-center mr-1"></i> Liên hệ hỗ trợ</a>
                         <button onclick="app.auth.logout()" class="w-full text-left block px-4 py-3 text-sm text-red-600 hover:bg-red-50 font-bold"><i class="fa-solid fa-right-from-bracket w-5 text-center mr-1"></i> Đăng xuất</button>
                     `;
 
@@ -4994,7 +5038,8 @@
                     dropdown.innerHTML = `
                         <a href="/auth" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-arrow-right-to-bracket w-5 text-center mr-1"></i> Đăng nhập</a>
                         <a href="/auth" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-user-plus w-5 text-center mr-1"></i> Tạo tài khoản</a>
-                        <button onclick="app.docs.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 font-bold"><i class="fa-solid fa-book-open w-5 text-center mr-1"></i> Tài liệu</button>
+                        <button onclick="app.docs.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-book-open w-5 text-center mr-1"></i> Tài liệu</button>
+                        <a href="/contact" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 font-bold"><i class="fa-solid fa-headset w-5 text-center mr-1"></i> Liên hệ hỗ trợ</a>
                     `;
                     
                     if (app.notificationChannel) {
