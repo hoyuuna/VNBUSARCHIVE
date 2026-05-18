@@ -1348,52 +1348,49 @@
     <div id="app-container" style="display: none; opacity: 0; transition: opacity 0.5s ease-in-out;">
 
 <!-- KHUNG BẢO TRÌ HỆ THỐNG (GIAO DIỆN MỚI) -->
-<div id="maintenance-screen" class="hidden fixed inset-0 z-[9999] bg-white overflow-y-auto">
-    <!-- Đã xóa justify-center để không bị lẹm lên trên, giữ lại py-16 để chừa khoảng thở 64px ở 2 lề -->
-    <div class="min-h-[100dvh] flex flex-col items-center py-16 px-4">
-        <!-- Đã thêm my-auto để nó tự căn giữa an toàn nếu màn hình đủ to -->
-        <div class="max-w-md w-full text-center my-auto flex flex-col">
+<div id="maintenance-screen" class="hidden fixed inset-0 z-[9999] bg-white overflow-y-auto block">
+    <!-- Đã bỏ hoàn toàn flex, my-auto, min-h-[100dvh]. Dùng block thường với padding top/bottom khổng lồ -->
+    <div class="max-w-md mx-auto w-full text-center pt-20 pb-32 px-4">
 
-            <!-- LOGO (GIỐNG FOOTER) -->
-            <div class="flex items-center justify-center gap-2 mb-10 shrink-0">
-                <img src="https://wsrv.nl/?url=https://files.catbox.moe/crxvn6.png&we" alt="Logo" class="h-10 w-auto object-contain">
-                <span class="font-extrabold italic text-xl tracking-wider text-black" style="font-family: 'Montserrat', sans-serif;">VNBUSARCHIVE</span>
-            </div>
-
-            <!-- ICON VÀ TIÊU ĐỀ -->
-            <div class="w-16 h-16 bg-gray-50 text-gray-400 rounded-full flex items-center justify-center text-2xl mx-auto mb-4 border border-gray-100 shrink-0">
-                <i class="fa-solid fa-wrench"></i>
-            </div>
-            <h1 id="mt-title" class="font-bold text-xl text-black uppercase tracking-tighter mb-2 shrink-0">Hệ thống tạm đóng</h1>
-
-            <!-- LÝ DO -->
-            <p id="mt-reason" class="text-gray-500 text-sm font-medium mb-8 px-4 leading-relaxed shrink-0">Đang tiến hành bảo trì định kỳ...</p>
-
-            <!-- Ô THỜI GIAN (NỀN TRẮNG) -->
-            <div class="bg-white border border-gray-200 rounded-2xl p-5 mb-10 shadow-sm shrink-0">
-                <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest block mb-2">Thời gian dự kiến mở lại</span>
-                <span id="mt-countdown" class="text-3xl font-black font-mono tracking-tighter text-black">--:--:--</span>
-            </div>
-
-            <!-- CỤM NÚT CẬP NHẬT THÔNG TIN -->
-            <div class="space-y-3 shrink-0 flex flex-col items-center w-full">
-                <!-- Ảnh GIF đã được giới hạn max-h-[20vh] để tự động thu nhỏ (tỉ lệ vuông) khi màn hình bị lùn đi -->
-                <img src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExb3RwdzZlNTZ4OWc4ZXppMmN0c3M2cGNhNzFvd3Z0cjhzejU0OGxvYyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/TJYEwHcXmpiipNdna3/giphy.gif" alt="Maintenance Status" class="w-auto h-auto max-w-[12rem] max-h-[20vh] aspect-square mx-auto mb-5 rounded-2xl shadow-sm object-cover">
-                
-                <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-4 w-full">Cập nhật thông tin tại</p>
-
-                <button onclick="app.newsboard.open()" class="w-full bg-black text-white py-3.5 rounded-xl font-bold text-sm shadow-lg shadow-black/10 hover:bg-gray-800 transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-newspaper"></i> Bảng tin hệ thống
-                </button>
-
-                <a href="https://www.facebook.com/vnbusarchive/" target="_blank" class="w-full bg-white border border-gray-200 text-gray-700 py-3.5 rounded-xl font-bold text-sm hover:bg-gray-50 transition flex items-center justify-center gap-2">
-                    <i class="fa-brands fa-facebook text-blue-600 text-lg"></i> Fanpage Facebook
-                </a>
-            </div>
-
-            <!-- NÚT CHO MANAGER -->
-            <button id="mt-manager-bypass" onclick="app.maintenance.bypass()" class="hidden mt-8 text-[10px] font-bold text-blue-500 hover:underline uppercase tracking-widest shrink-0">Truy cập Quản trị (Manager)</button>
+        <!-- LOGO (GIỐNG FOOTER) -->
+        <div class="flex items-center justify-center gap-2 mb-10">
+            <img src="https://wsrv.nl/?url=https://files.catbox.moe/crxvn6.png&we" alt="Logo" class="h-10 w-auto object-contain">
+            <span class="font-extrabold italic text-xl tracking-wider text-black" style="font-family: 'Montserrat', sans-serif;">VNBUSARCHIVE</span>
         </div>
+
+        <!-- ICON VÀ TIÊU ĐỀ -->
+        <div class="w-16 h-16 bg-gray-50 text-gray-400 rounded-full flex items-center justify-center text-2xl mx-auto mb-4 border border-gray-100">
+            <i class="fa-solid fa-wrench"></i>
+        </div>
+        <h1 id="mt-title" class="font-bold text-xl text-black uppercase tracking-tighter mb-2">Hệ thống tạm đóng</h1>
+
+        <!-- LÝ DO -->
+        <p id="mt-reason" class="text-gray-500 text-sm font-medium mb-8 px-4 leading-relaxed">Đang tiến hành bảo trì định kỳ...</p>
+
+        <!-- Ô THỜI GIAN (NỀN TRẮNG) -->
+        <div class="bg-white border border-gray-200 rounded-2xl p-5 mb-10 shadow-sm">
+            <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest block mb-2">Thời gian dự kiến mở lại</span>
+            <span id="mt-countdown" class="text-3xl font-black font-mono tracking-tighter text-black">--:--:--</span>
+        </div>
+
+        <!-- CỤM NÚT CẬP NHẬT THÔNG TIN -->
+        <div class="space-y-3">
+            <!-- Đã cố định kích thước GIF ở mức vừa phải (w-48) để không đẩy trang quá dài -->
+            <img src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExb3RwdzZlNTZ4OWc4ZXppMmN0c3M2cGNhNzFvd3Z0cjhzejU0OGxvYyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/TJYEwHcXmpiipNdna3/giphy.gif" alt="Maintenance Status" class="w-48 h-48 aspect-square mx-auto mb-5 rounded-2xl shadow-sm object-cover">
+            
+            <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-4">Cập nhật thông tin tại</p>
+
+            <button onclick="app.newsboard.open()" class="w-full bg-black text-white py-3.5 rounded-xl font-bold text-sm shadow-lg shadow-black/10 hover:bg-gray-800 transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-newspaper"></i> Bảng tin hệ thống
+            </button>
+
+            <a href="https://www.facebook.com/vnbusarchive/" target="_blank" class="w-full bg-white border border-gray-200 text-gray-700 py-3.5 rounded-xl font-bold text-sm hover:bg-gray-50 transition flex items-center justify-center gap-2">
+                <i class="fa-brands fa-facebook text-blue-600 text-lg"></i> Fanpage Facebook
+            </a>
+        </div>
+
+        <!-- NÚT CHO MANAGER -->
+        <button id="mt-manager-bypass" onclick="app.maintenance.bypass()" class="hidden mt-8 text-[10px] font-bold text-blue-500 hover:underline uppercase tracking-widest">Truy cập Quản trị (Manager)</button>
     </div>
 </div>
 
