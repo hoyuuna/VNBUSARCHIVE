@@ -1274,7 +1274,7 @@
         /* 3. NỀN BÊN NGOÀI POPUP CẢNH BÁO (Trong suốt hoàn toàn, chỉ giữ Blur) */
         #custom-image-menu-overlay,
         #custom-alert-modal, #settings-modal, #newsboard-modal, #docs-modal, 
-        #upload-info-modal, #custom-prompt-modal, #deny-prompt-modal, 
+        #upload-info-modal, #custom-prompt-modal, #custom-role-modal, #deny-prompt-modal, 
         #upload-progress-modal {
             background-color: rgba(0, 0, 0, 0) !important;
             backdrop-filter: blur(8px) !important; 
@@ -1283,7 +1283,7 @@
 
         /* 4. BẢN THÂN CÁC KHUNG POPUP CŨNG LÀ KÍNH - Cùng mức với dropdown */
         #custom-alert-content, #settings-content, #newsboard-content, #docs-content, 
-        #upload-info-content, #custom-prompt-content, #deny-prompt-content, 
+        #upload-info-content, #custom-prompt-content, #custom-role-content, #deny-prompt-content, 
         #up-progress-content {
             background-color: rgba(255, 255, 255, 0.7) !important;
             backdrop-filter: blur(20px) !important;
@@ -1509,6 +1509,32 @@
         </div>
 
         
+        <div id="custom-role-modal" class="hidden fixed inset-0 z-[6000] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+    <div id="custom-role-content" class="bg-white rounded-lg shadow-2xl max-w-sm w-full border border-gray-200 overflow-hidden transform transition-all opacity-0 scale-95">
+        <div class="p-5">
+            <h3 class="text-lg font-bold text-purple-700 mb-2"><i class="fa-solid fa-wand-magic-sparkles mr-2"></i>Thiết lập Custom Role</h3>
+            <p class="text-xs text-gray-500 mb-4">Nhập tên và chọn màu sắc cho Role hiển thị độc quyền trên Discord của bạn.</p>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Tên Role <span class="text-red-500">*</span></label>
+                    <input type="text" id="cr-name-input" maxlength="32" class="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-purple-500 outline-none transition" placeholder="VD: Bậc thầy săn ảnh">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Màu sắc hiển thị (Hex) <span class="text-red-500">*</span></label>
+                    <div class="flex gap-2 items-center">
+                        <input type="color" id="cr-color-picker" class="w-10 h-10 rounded cursor-pointer border-0 p-0" value="#a855f7" oninput="document.getElementById('cr-color-input').value = this.value.toUpperCase()">
+                        <input type="text" id="cr-color-input" maxlength="7" class="flex-1 border border-gray-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-purple-500 outline-none font-mono uppercase transition" value="#A855F7" oninput="if(this.value.startsWith('#') && this.value.length === 7) document.getElementById('cr-color-picker').value = this.value">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t border-gray-200">
+            <button type="button" id="cr-ok-btn" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-base font-bold text-white hover:opacity-90 sm:ml-3 sm:w-auto sm:text-sm transition">Tạo / Lưu Role</button>
+            <button type="button" onclick="app.ui.closeCustomRolePrompt()" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-bold text-gray-700 hover:bg-gray-50 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition">Hủy</button>
+        </div>
+    </div>
+</div>
+
         <div id="deny-prompt-modal"
             class="hidden fixed inset-0 z-[5000] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
             
@@ -4382,44 +4408,73 @@
 
                         document.getElementById('badge-photo-count').innerText = count || 0;
 
-                        const ROLE_MAP_FRONTEND = {
-                            100: '1505158627747561482',
-                            200: '1505158752372920320',
-                            500: '1505158986725462078',
-                            1000: '1505159111686488164'
-                        };
+const ROLE_MAP_FRONTEND = {
+    50: '1506239795175620728',
+    100: '1505158627747561482',
+    200: '1505158752372920320',
+    500: '1505158986725462078',
+    1000: '1505159111686488164'
+};
 
-                        const tiers = [100, 200, 500, 1000];
-                        const grid = document.getElementById('badges-grid');
-                        
-                        grid.innerHTML = tiers.map(tier => {
-                            const roleId = ROLE_MAP_FRONTEND[tier];
-                            const isClaimed = data.claimedRoles.includes(roleId);
-                            const isEligible = (count || 0) >= tier;
+const tiers = [50, 100, 200, 500, 1000, 1500];
+const grid = document.getElementById('badges-grid');
 
-                            let btnHtml = '';
-                            if (isClaimed) {
-                                btnHtml = `<button disabled class="px-4 py-2 bg-gray-100 text-gray-400 text-xs font-bold rounded cursor-not-allowed border border-gray-200"><i class="fa-solid fa-check mr-1"></i> Đã nhận</button>`;
-                            } else if (isEligible) {
-                                btnHtml = `<button id="btn-claim-${tier}" onclick="app.settings.claimBadge(${tier})" class="px-4 py-2 bg-black text-white text-xs font-bold rounded hover:bg-gray-800 transition shadow-sm border border-black">Nhận Role</button>`;
-                            } else {
-                                btnHtml = `<button disabled class="px-4 py-2 bg-gray-50 text-gray-400 text-xs font-bold rounded cursor-not-allowed border border-gray-200"><i class="fa-solid fa-lock mr-1"></i> Chưa đủ điều kiện</button>`;
-                            }
+grid.innerHTML = tiers.map(tier => {
+    if (tier === 1500) {
+        const hasCustomRole = !!data.customRoleId;
+        const isEligible = (count || 0) >= 1500;
+        let btnHtml = '';
 
-                            return `
-                            <div class="flex items-center justify-between p-3 border border-gray-200 rounded-md bg-white">
-                                <div class="flex items-center gap-3 overflow-hidden">
-                                    <div class="w-10 h-10 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-lg text-[#5865F2] shrink-0">
-                                        <i class="fa-solid fa-medal"></i>
-                                    </div>
-                                    <div class="overflow-hidden">
-                                        <p class="font-bold text-sm text-gray-800 truncate">Cột mốc ${tier} ảnh</p>
-                                        <p class="text-[10px] text-gray-500">Yêu cầu: Đóng góp ${tier}+ ảnh được duyệt.</p>
-                                    </div>
-                                </div>
-                                <div>${btnHtml}</div>
-                            </div>`;
-                        }).join('');
+        if (hasCustomRole) {
+            btnHtml = `<button onclick="app.settings.openCustomRolePrompt()" class="px-4 py-2 bg-gray-100 text-gray-800 text-xs font-bold rounded border border-gray-300 hover:bg-gray-200 transition whitespace-nowrap"><i class="fa-solid fa-pen mr-1"></i> Sửa Role</button>`;
+        } else if (isEligible) {
+            btnHtml = `<button onclick="app.settings.openCustomRolePrompt()" class="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold rounded hover:opacity-90 transition shadow-sm border border-transparent whitespace-nowrap">Tạo Role Riêng</button>`;
+        } else {
+            btnHtml = `<button disabled class="px-4 py-2 bg-gray-50 text-gray-400 text-xs font-bold rounded cursor-not-allowed border border-gray-200 whitespace-nowrap"><i class="fa-solid fa-lock mr-1"></i> Chưa đủ đ/k</button>`;
+        }
+
+        return `
+        <div class="flex items-center justify-between p-3 border border-purple-200 rounded-md bg-purple-50">
+            <div class="flex items-center gap-3 overflow-hidden">
+                <div class="w-10 h-10 rounded-full bg-purple-100 border border-purple-200 flex items-center justify-center text-lg text-purple-600 shrink-0">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                </div>
+                <div class="overflow-hidden">
+                    <p class="font-bold text-sm text-purple-900 truncate">Cột mốc 1500 ảnh (Tùy chỉnh)</p>
+                    <p class="text-[10px] text-purple-700">Đặc quyền tạo Role Custom riêng biệt.</p>
+                </div>
+            </div>
+            <div>${btnHtml}</div>
+        </div>`;
+    }
+
+    const roleId = ROLE_MAP_FRONTEND[tier];
+    const isClaimed = data.claimedRoles.includes(roleId);
+    const isEligible = (count || 0) >= tier;
+
+    let btnHtml = '';
+    if (isClaimed) {
+        btnHtml = `<button disabled class="px-4 py-2 bg-gray-100 text-gray-400 text-xs font-bold rounded cursor-not-allowed border border-gray-200 whitespace-nowrap"><i class="fa-solid fa-check mr-1"></i> Đã nhận</button>`;
+    } else if (isEligible) {
+        btnHtml = `<button id="btn-claim-${tier}" onclick="app.settings.claimBadge(${tier})" class="px-4 py-2 bg-black text-white text-xs font-bold rounded hover:bg-gray-800 transition shadow-sm border border-black whitespace-nowrap">Nhận Role</button>`;
+    } else {
+        btnHtml = `<button disabled class="px-4 py-2 bg-gray-50 text-gray-400 text-xs font-bold rounded cursor-not-allowed border border-gray-200 whitespace-nowrap"><i class="fa-solid fa-lock mr-1"></i> Chưa đủ đ/k</button>`;
+    }
+
+    return `
+    <div class="flex items-center justify-between p-3 border border-gray-200 rounded-md bg-white">
+        <div class="flex items-center gap-3 overflow-hidden">
+            <div class="w-10 h-10 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-lg text-[#5865F2] shrink-0">
+                <i class="fa-solid fa-medal"></i>
+            </div>
+            <div class="overflow-hidden">
+                <p class="font-bold text-sm text-gray-800 truncate">Cột mốc ${tier} ảnh</p>
+                <p class="text-[10px] text-gray-500">Yêu cầu: Đóng góp ${tier}+ ảnh được duyệt.</p>
+            </div>
+        </div>
+        <div>${btnHtml}</div>
+    </div>`;
+}).join('');
 
                         loading.classList.add('hidden');
                         claimBox.classList.remove('hidden');
@@ -4461,10 +4516,58 @@
                         btn.innerHTML = originalText;
                         btn.disabled = false;
                     }
-                }
-            },
+}
+                },
 
-            docs: {
+                openCustomRolePrompt: () => {
+                    const modal = document.getElementById('custom-role-modal');
+                    const content = document.getElementById('custom-role-content');
+                    const okBtn = document.getElementById('cr-ok-btn');
+                    
+                    app.ui.lockScroll();
+                    
+                    okBtn.onclick = async () => {
+                        const name = document.getElementById('cr-name-input').value.trim();
+                        const color = document.getElementById('cr-color-input').value.trim();
+                        
+                        if (!name || name.length < 2) return alert("Tên Role phải từ 2 ký tự trở lên!");
+                        if (!color.match(/^#[0-9A-Fa-f]{6}$/)) return alert("Mã màu Hex không hợp lệ!");
+
+                        const originalText = okBtn.innerHTML;
+                        okBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+                        okBtn.disabled = true;
+
+                        try {
+                            const { data: { session } } = await window.sb.auth.getSession();
+                            const token = session?.access_token;
+
+                            const res = await fetch('/api/discord-role', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                                body: JSON.stringify({ action: 'claim', tier: 1500, customName: name, customColor: color })
+                            });
+
+                            const data = await res.json();
+                            if (!res.ok) throw new Error(data.error || 'Lỗi không xác định');
+
+                            app.ui.closeCustomRolePrompt();
+                            app.ui.showAlert(data.message || "Tạo/Sửa Role thành công!", () => {
+                                app.settings.loadBadges();
+                            });
+                        } catch (err) {
+                            alert("Lỗi: " + err.message);
+                        } finally {
+                            okBtn.innerHTML = originalText;
+                            okBtn.disabled = false;
+                        }
+                    };
+
+                    modal.classList.remove('hidden');
+                    content.classList.remove('modal-content-leave');
+                    content.classList.add('modal-content-enter');
+                },
+
+                docs: {
                 open: () => {
                     const modal = document.getElementById('docs-modal');
                     const content = document.getElementById('docs-content');
@@ -10281,31 +10384,45 @@ changePassword: async () => {
                         }
                         app.ui.closePrompt(true);
                     };
-                },
-                closePrompt: (isOk) => {
-                    const modal = document.getElementById('custom-prompt-modal');
-                    const content = document.getElementById('custom-prompt-content');
-                    const inputEl = document.getElementById('custom-prompt-input');
+},
+                 closePrompt: (isOk) => {
+                     const modal = document.getElementById('custom-prompt-modal');
+                     const content = document.getElementById('custom-prompt-content');
+                     const inputEl = document.getElementById('custom-prompt-input');
 
+                     content.classList.remove('modal-content-enter');
+                     content.classList.add('modal-content-leave');
+
+                     setTimeout(() => {
+                         modal.classList.add('hidden');
+                         content.classList.remove('modal-content-leave');
+                         app.ui.unlockScroll();
+
+                         if (isOk && app.promptCallback) {
+                             const value = inputEl.value.trim();
+                             app.promptCallback(value);
+                         }
+
+                         app.promptCallback = null;
+                         inputEl.value = '';
+                     }, 200);
+                 },
+
+closeCustomRolePrompt: () => {
+                    const modal = document.getElementById('custom-role-modal');
+                    const content = document.getElementById('custom-role-content');
+                    
                     content.classList.remove('modal-content-enter');
                     content.classList.add('modal-content-leave');
-
+                    
                     setTimeout(() => {
                         modal.classList.add('hidden');
                         content.classList.remove('modal-content-leave');
                         app.ui.unlockScroll();
-
-                        if (isOk && app.promptCallback) {
-                            const value = inputEl.value.trim();
-                            app.promptCallback(value);
-                        }
-
-                        app.promptCallback = null;
-                        inputEl.value = '';
                     }, 200);
                 },
 
-                toggleDenySection: (section) => {
+                 toggleDenySection: (section) => {
                     app.activeDenySection = section;
 
                     const quickSection = document.getElementById('deny-section-quick');
