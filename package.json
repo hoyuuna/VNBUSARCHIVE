@@ -7,6 +7,8 @@
     "discord-interactions": "^3.4.0",
     "formidable": "^3.5.4",
     "imagekit": "^6.0.0",
-    "node-fetch": "^3.3.2"
+    "marked": "^15.0.0",
+    "node-fetch": "^3.3.2",
+    "resend": "^4.0.0"
   }
 }

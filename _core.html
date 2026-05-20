@@ -7070,6 +7070,7 @@ if (app.user && app.role === 'manager' && isDenied) {
                                     <div class="flex gap-2 mb-6 border-b border-gray-200 pb-3 overflow-x-auto">
                                         <button onclick="app.admin.switchManagerTab('denied')" id="mgr-tab-denied" class="font-bold text-sm px-4 py-2 bg-black text-white rounded transition whitespace-nowrap">Ảnh bị từ chối</button>
                                          <button onclick="app.admin.switchManagerTab('logs')" id="mgr-tab-logs" class="font-bold text-sm px-4 py-2 bg-white text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition whitespace-nowrap">Nhật ký hoạt động</button>
+                                        <button onclick="app.admin.switchManagerTab('email')" id="mgr-tab-email" class="font-bold text-sm px-4 py-2 bg-white text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition whitespace-nowrap"><i class="fa-solid fa-envelope mr-1"></i> Gửi Email</button>
                                         <button onclick="app.admin.switchManagerTab('settings')" id="mgr-tab-settings" class="font-bold text-sm px-4 py-2 bg-white text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition whitespace-nowrap"><i class="fa-solid fa-sliders mr-1"></i> Cài đặt</button>
                                     </div>
 
@@ -7110,6 +7111,51 @@ if (app.user && app.role === 'manager' && isDenied) {
                                          <div id="mgr-logs-pager" class="mt-6 w-full flex justify-center"></div>
                                      </div>
 
+                                    <!-- TAB: GỬI EMAIL -->
+                                    <div id="mgr-sec-email" class="hidden">
+                                        <div class="max-w-3xl border border-gray-200 rounded-lg p-5 bg-white shadow-sm">
+                                            <h3 class="font-bold text-lg mb-4 text-black border-b border-gray-100 pb-3"><i class="fa-solid fa-paper-plane mr-2 text-blue-600"></i>Soạn Email Mới</h3>
+
+                                            <form id="admin-email-form" onsubmit="app.admin.submitEmail(event)">
+                                                <div class="mb-4">
+                                                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Gửi tới <span class="text-red-500">*</span></label>
+                                                    <div class="flex gap-2">
+                                                        <select id="email-target-user" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none" onchange="app.admin.toggleEmailCustom()">
+                                                            <option value="">-- Chọn thành viên trong hệ thống --</option>
+                                                            <option value="custom">Gửi tới một Email tùy chỉnh khác...</option>
+                                                        </select>
+                                                    </div>
+                                                    <input type="email" id="email-custom-address" placeholder="Nhập địa chỉ email..." class="hidden w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none mt-2">
+                                                </div>
+
+                                                <div class="mb-4">
+                                                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Tiêu đề (Subject) <span class="text-red-500">*</span></label>
+                                                    <input type="text" id="email-subject" placeholder="VD: Thông báo cập nhật quy định..." required class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none">
+                                                </div>
+
+                                                <div class="mb-4">
+                                                    <div class="flex justify-between items-center mb-1">
+                                                        <label class="block text-xs font-bold text-gray-700 uppercase">Nội dung (Hỗ trợ Markdown) <span class="text-red-500">*</span></label>
+                                                        <button type="button" onclick="app.admin.previewEmailMd()" class="text-[11px] bg-gray-100 border border-gray-300 px-2 py-1 rounded text-gray-700 font-bold hover:bg-gray-200 transition"><i class="fa-brands fa-markdown mr-1"></i> Xem trước</button>
+                                                    </div>
+                                                    <textarea id="email-content" rows="8" required placeholder="Nhập nội dung email tại đây..." class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none font-mono"></textarea>
+                                                    <div id="email-md-preview" class="hidden markdown-body w-full border border-blue-200 bg-blue-50 p-4 mt-2 rounded-md text-sm min-h-[100px]"></div>
+                                                </div>
+
+                                                <div class="mb-6 flex items-center gap-2 bg-gray-50 border border-gray-200 p-3 rounded-md">
+                                                    <input type="checkbox" id="email-is-anonymous" class="w-4 h-4 rounded border-gray-300 text-black focus:ring-black cursor-pointer">
+                                                    <label for="email-is-anonymous" class="text-sm font-bold text-gray-800 cursor-pointer select-none">Gửi ẩn danh (Người gửi sẽ hiển thị là "Quản trị VNBUSARCHIVE")</label>
+                                                </div>
+
+                                                <div class="text-right border-t border-gray-100 pt-4">
+                                                    <button type="submit" id="btn-send-email" class="bg-blue-600 text-white px-6 py-2.5 font-bold rounded-md hover:bg-blue-700 transition shadow-sm flex items-center gap-2 ml-auto">
+                                                        <i class="fa-solid fa-paper-plane"></i> Gửi Email
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+
                                     <!-- TAB: CÀI ĐẶT HỆ THỐNG (MANAGER) -->
                                     <div id="mgr-sec-settings" class="hidden">
                                         <div class="mb-4 bg-blue-50 border border-blue-200 p-4 rounded-md">
@@ -7122,8 +7168,9 @@ if (app.user && app.role === 'manager' && isDenied) {
                                  </div>
                              `;
 
-                            app.admin.fetchManagerData('denied');
-                            app.admin.fetchManagerData('logs');
+app.admin.fetchManagerData('denied');
+                             app.admin.fetchManagerData('logs');
+                             app.admin.fetchUsersForEmail();
                         }
 
                     } catch (err) {
@@ -7135,7 +7182,7 @@ if (app.user && app.role === 'manager' && isDenied) {
                 switchManagerTab: (subTab) => {
                     app.admin.manager.activeTab = subTab;
 
-                    ['denied', 'logs', 'settings'].forEach(t => {
+                    ['denied', 'logs', 'email', 'settings'].forEach(t => {
                         const btn = document.getElementById('mgr-tab-' + t);
                         const sec = document.getElementById('mgr-sec-' + t);
                         if (btn && sec) {
@@ -7150,7 +7197,7 @@ if (app.user && app.role === 'manager' && isDenied) {
                     });
 
                     if (subTab === 'settings') {
-                        app.admin.renderManagerSettings(); // Hàm này gây lỗi nếu bạn chưa định nghĩa bên dưới
+                        app.admin.renderManagerSettings();
                     }
                 },
 
@@ -7226,6 +7273,102 @@ if (app.user && app.role === 'manager' && isDenied) {
                         app.admin.manager[type].page = newPage;
                         app.admin.renderManagerData(type);
                     });
+                },
+
+                // --- CÁC HÀM MỚI CHO TÍNH NĂNG GỬI EMAIL ---
+                fetchUsersForEmail: async () => {
+                    try {
+                        const { data: users } = await window.sb.from('profiles').select('id, username').order('username');
+                        const select = document.getElementById('email-target-user');
+                        if (users && select) {
+                            users.forEach(u => {
+                                const opt = document.createElement('option');
+                                opt.value = u.id;
+                                opt.innerText = u.username;
+                                select.appendChild(opt);
+                            });
+                        }
+                    } catch (e) { console.error("Lỗi lấy danh sách user:", e); }
+                },
+
+                toggleEmailCustom: () => {
+                    const select = document.getElementById('email-target-user');
+                    const customInput = document.getElementById('email-custom-address');
+                    if (select.value === 'custom') {
+                        customInput.classList.remove('hidden');
+                        customInput.required = true;
+                    } else {
+                        customInput.classList.add('hidden');
+                        customInput.required = false;
+                        customInput.value = '';
+                    }
+                },
+
+                previewEmailMd: () => {
+                    const content = document.getElementById('email-content').value;
+                    const previewBox = document.getElementById('email-md-preview');
+                    if (previewBox.classList.contains('hidden')) {
+                        previewBox.classList.remove('hidden');
+                        previewBox.innerHTML = DOMPurify.sanitize(marked.parse(content || '*Chưa có nội dung*'));
+                    } else {
+                        previewBox.classList.add('hidden');
+                    }
+                },
+
+                submitEmail: async (e) => {
+                    e.preventDefault();
+                    if (app.role !== 'manager') return app.ui.showAlert("Chỉ Manager mới có thể sử dụng chức năng này.");
+
+                    const selectVal = document.getElementById('email-target-user').value;
+                    const customEmail = document.getElementById('email-custom-address').value.trim();
+                    const subject = document.getElementById('email-subject').value.trim();
+                    const content = document.getElementById('email-content').value.trim();
+                    const isAnonymous = document.getElementById('email-is-anonymous').checked;
+
+                    if (!selectVal) return app.ui.showAlert("Vui lòng chọn người nhận!");
+                    if (selectVal === 'custom' && !customEmail) return app.ui.showAlert("Vui lòng nhập Email tùy chỉnh!");
+                    if (!subject || !content) return app.ui.showAlert("Vui lòng nhập Tiêu đề và Nội dung!");
+
+                    const btn = document.getElementById('btn-send-email');
+                    const origHTML = btn.innerHTML;
+                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi...';
+                    btn.disabled = true;
+
+                    try {
+                        const { data: { session } } = await window.sb.auth.getSession();
+
+                        const payload = {
+                            targetUserId: selectVal !== 'custom' ? selectVal : null,
+                            customEmail: selectVal === 'custom' ? customEmail : null,
+                            subject: subject,
+                            markdownContent: content,
+                            isAnonymous: isAnonymous
+                        };
+
+                        const res = await fetch('/api/send-email', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${session?.access_token}`
+                            },
+                            body: JSON.stringify(payload)
+                        });
+
+                        const data = await res.json();
+                        if (!res.ok) throw new Error(data.error || 'Lỗi không xác định từ Server');
+
+                        app.ui.showAlert("Đã gửi Email thành công!");
+                        document.getElementById('admin-email-form').reset();
+                        document.getElementById('email-md-preview').classList.add('hidden');
+                        app.admin.toggleEmailCustom();
+                        app.admin.logAction('send_email', selectVal === 'custom' ? customEmail : selectVal, { subject: subject, isAnonymous: isAnonymous });
+
+                    } catch (err) {
+                        app.ui.showAlert("Gửi Email thất bại: " + err.message);
+                    } finally {
+                        btn.innerHTML = origHTML;
+                        btn.disabled = false;
+                    }
                 },
 
                 // --- ĐÂY LÀ 2 HÀM BẠN ĐANG THIẾU DẪN ĐẾN LỖI ---
