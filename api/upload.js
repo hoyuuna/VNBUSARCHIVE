@@ -46,7 +46,9 @@ export default async function handler(req, res) {
                 metadata = JSON.parse(metadataString);
             } catch (parseError) {
                 try {
-                    const sanitized = metadataString.replace(/\\(?!["\\/bfnrtu])/g, '\\\\');
+                    const sanitized = metadataString
+                        .replace(/\\u(?![0-9a-fA-F]{4})/g, '\\\\u')
+                        .replace(/\\(?!["\\/bfnrtu])/g, '\\\\');
                     metadata = JSON.parse(sanitized);
                     console.warn('[WARN] metadata cần sanitize:', metadataString);
                 } catch (e) {
