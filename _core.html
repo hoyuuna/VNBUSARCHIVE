@@ -1318,11 +1318,44 @@
         .news-card:hover:not(.active) {
             background-color: #f4f4f5 !important;
         }
-        .news-card.active {
-            background-color: #000 !important;
-            border-color: #000 !important;
-            border-left: none !important;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+.news-card.active {
+             background-color: #000 !important;
+             border-color: #000 !important;
+             border-left: none !important;
+             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+         }
+
+
+        /* FIX LỖI GIAO DIỆN MOBILE: CHỐNG TRÀN BẢNG KHIẾN TRÌNH DUYỆT TỰ ZOOM-OUT */
+        .info-table, .data-table {
+            table-layout: fixed;
+            width: 100%;
+        }
+
+        .info-table td, .data-table td {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .info-input {
+            min-width: 0;
+            text-overflow: ellipsis;
+        }
+
+        textarea.info-input {
+            white-space: pre-wrap;
+        }
+
+        /* Thêm wrapper cuộn ngang cho bảng lịch sử để không vỡ layout */
+        .history-table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .history-table {
+            min-width: 400px;
+            width: 100%;
         }
 
 
@@ -2595,12 +2628,14 @@
                     <div class="mb-6">
                         <h3 class="text-sm font-bold uppercase text-black border-b border-gray-200 pb-2 mb-3 tracking-wide">LỊCH SỬ HOẠT ĐỘNG</h3>
                         <div class="bg-white border border-vbs-border rounded-lg overflow-hidden shadow-sm">
-                            <table class="history-table">
-                                <thead>
-                                    <tr><th>BKS</th><th>Đơn vị</th><th>Tuyến</th><th>Ghi chú</th></tr>
-                                </thead>
-                                <tbody id="history-list"></tbody>
-                            </table>
+                            <div class="history-table-wrapper">
+                                <table class="history-table">
+                                    <thead>
+                                        <tr><th>BKS</th><th>Đơn vị</th><th>Tuyến</th><th>Ghi chú</th></tr>
+                                    </thead>
+                                    <tbody id="history-list"></tbody>
+                                </table>
+                            </div>
                         </div>
 
                         <div id="history-edit-ui" class="hidden mt-4 bg-amber-50 p-4 border border-amber-200 rounded-lg">
@@ -6327,29 +6362,31 @@ if (app.user && app.role === 'manager' && isDenied) {
                         let historyHTML = '<p class="text-xs text-gray-500">Chưa có lịch sử hoạt động.</p>';
                         if (historyData.length > 0) {
                             historyHTML = `
-                                <table class="history-table">
-                                    <thead><tr><th>Đơn vị</th><th>Tuyến</th><th>Ghi chú</th></tr></thead>
-                                    <tbody>
-                                        ${historyData.map(h => {
-                                            let displayNote = h.note || '';
-                                            
-                                            const oldBksMatch = displayNote.match(/BKS cũ:\s*([A-Z0-9.-]+)/i);
-                                            let bksHtml = '';
-                                            if (oldBksMatch) {
-                                                bksHtml = `<br><span class="text-[10px] bg-gray-100 px-1 rounded border">BKS cũ: ${oldBksMatch[1]}</span>`;
-                                                displayNote = displayNote.replace(oldBksMatch[0], '').trim();
-                                            }
-                                            displayNote = displayNote.replace(/^[-,]\s*/, '').trim();
+                                <div class="history-table-wrapper">
+                                    <table class="history-table">
+                                        <thead><tr><th>Đơn vị</th><th>Tuyến</th><th>Ghi chú</th></tr></thead>
+                                        <tbody>
+                                            ${historyData.map(h => {
+                                                let displayNote = h.note || '';
+                                                
+                                                const oldBksMatch = displayNote.match(/BKS cũ:\s*([A-Z0-9.-]+)/i);
+                                                let bksHtml = '';
+                                                if (oldBksMatch) {
+                                                    bksHtml = `<br><span class="text-[10px] bg-gray-100 px-1 rounded border">BKS cũ: ${oldBksMatch[1]}</span>`;
+                                                    displayNote = displayNote.replace(oldBksMatch[0], '').trim();
+                                                }
+                                                displayNote = displayNote.replace(/^[-,]\s*/, '').trim();
 
-                                            return `
-                                            <tr>
-                                                <td class="font-bold">${h.operator}${bksHtml}</td>
-                                                <td class="font-bold">${h.route || '-'}</td>
-                                                <td class="text-xs text-gray-500">${displayNote}</td>
-                                            </tr>`;
-                                        }).join('')}
-                                    </tbody>
-                                </table>`;
+                                                return `
+                                                <tr>
+                                                    <td class="font-bold">${h.operator}${bksHtml}</td>
+                                                    <td class="font-bold">${h.route || '-'}</td>
+                                                    <td class="text-xs text-gray-500">${displayNote}</td>
+                                                </tr>`;
+                                            }).join('')}
+                                        </tbody>
+                                    </table>
+                                </div>`;
                         }
 
 
