@@ -2575,11 +2575,26 @@
                                      </tr>
                                     <tr>
                                         <td class="label">Loại xe</td>
-                                        <td class="value-cell">
-                                            <select id="info-type" class="info-input" disabled>
-                                                <option value="bus">Xe buýt</option>
-                                                <option value="coach">Xe khách</option>
-                                            </select>
+                                        <td class="value-cell" x-data="{ open: false }">
+                                            <div class="relative w-full h-full">
+                                                <input type="hidden" id="info-type" value="bus">
+                                                <input type="text" id="info-type-display" class="info-input" 
+                                                       readonly value="Xe buýt" 
+                                                       @click="if(!document.getElementById('info-type-display').hasAttribute('data-locked')) open = !open" 
+                                                       @click.outside="open = false"
+                                                       data-locked="true" style="cursor: default;">
+                                                <i id="info-type-icon" class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 pointer-events-none transition-transform duration-200 hidden" :class="open ? 'rotate-180' : ''"></i>
+                                                
+                                                <!-- Hộp menu thả xuống -->
+                                                <div class="suggestion-box !mt-0 border-t-0 rounded-t-none" :class="open ? 'active' : ''">
+                                                    <div class="suggestion-item flex justify-between items-center py-2 hover:bg-gray-50 cursor-pointer" @click="document.getElementById('info-type').value='bus'; document.getElementById('info-type-display').value='Xe buýt'; open=false;">
+                                                        <span class="font-bold text-gray-800">Xe buýt</span><i class="fa-solid fa-bus text-gray-400"></i>
+                                                    </div>
+                                                    <div class="suggestion-item flex justify-between items-center py-2 hover:bg-gray-50 cursor-pointer" @click="document.getElementById('info-type').value='coach'; document.getElementById('info-type-display').value='Xe khách'; open=false;">
+                                                        <span class="font-bold text-gray-800">Xe khách</span><i class="fa-solid fa-van-shuttle text-gray-400"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </td>
                                     </tr>
                                      <tr>
@@ -2949,16 +2964,16 @@
                                     </div>
                                 </div>
                                 
-<!-- KHỐI CHỌN LOẠI XE MỚI -->
+<!-- KHỐI CHỌN LOẠI XE -->
                                 <div class="md:col-span-2 mb-2">
                                     <label class="text-xs text-gray-500 font-bold block mb-2 uppercase">Loại xe <span class="text-red-500">*</span></label>
                                     <input type="hidden" id="up-type" value="">
                                     
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <!-- Nút Xe Buýt -->
-                                        <div id="btn-type-bus" onclick="app.upload.selectType('bus')" class="cursor-pointer border border-gray-300 bg-white text-gray-800 rounded-xl p-4 shadow-sm hover:shadow-md hover:bg-gray-50 transition-all duration-200 group relative">
+                                        <div id="btn-type-bus" onclick="app.upload.selectType('bus')" class="cursor-pointer border border-gray-300 bg-white text-gray-800 rounded-xl p-4 shadow-sm hover:shadow-md hover:border-gray-400 transition-all duration-200 group relative">
                                             <div class="flex items-start gap-3 pointer-events-none">
-                                                <div class="icon-bg w-10 h-10 rounded-full bg-gray-100 border border-transparent flex items-center justify-center shrink-0 group-hover:bg-white transition-colors">
+                                                <div class="icon-bg w-10 h-10 rounded-full bg-gray-100 border border-transparent flex items-center justify-center shrink-0 transition-colors">
                                                     <i class="fa-solid fa-bus text-lg"></i>
                                                 </div>
                                                 <div>
@@ -2969,9 +2984,9 @@
                                         </div>
 
                                         <!-- Nút Xe Khách -->
-                                        <div id="btn-type-coach" onclick="app.upload.selectType('coach')" class="cursor-pointer border border-gray-300 bg-white text-gray-800 rounded-xl p-4 shadow-sm hover:shadow-md hover:bg-gray-50 transition-all duration-200 group relative">
+                                        <div id="btn-type-coach" onclick="app.upload.selectType('coach')" class="cursor-pointer border border-gray-300 bg-white text-gray-800 rounded-xl p-4 shadow-sm hover:shadow-md hover:border-gray-400 transition-all duration-200 group relative">
                                             <div class="flex items-start gap-3 pointer-events-none">
-                                                <div class="icon-bg w-10 h-10 rounded-full bg-gray-100 border border-transparent flex items-center justify-center shrink-0 group-hover:bg-white transition-colors">
+                                                <div class="icon-bg w-10 h-10 rounded-full bg-gray-100 border border-transparent flex items-center justify-center shrink-0 transition-colors">
                                                     <i class="fa-solid fa-van-shuttle text-lg"></i>
                                                 </div>
                                                 <div>
@@ -6084,11 +6099,12 @@ grid.innerHTML = tiers.map(tier => {
 
                     app.edit.cancel();
 
-                    const elInfoPlate = document.getElementById('info-plate');
-                    const elInfoOperator = document.getElementById('info-operator');
-                    const elInfoRoute = document.getElementById('info-route');
-const elInfoModel = document.getElementById('info-model');
-                     const elInfoType = document.getElementById('info-type'); // Mới
+const elInfoPlate = document.getElementById('info-plate');
+                     const elInfoOperator = document.getElementById('info-operator');
+                     const elInfoRoute = document.getElementById('info-route');
+                     const elInfoModel = document.getElementById('info-model');
+                     const elInfoType = document.getElementById('info-type');
+                     const elInfoTypeDisplay = document.getElementById('info-type-display');
                      const elInfoLocation = document.getElementById('info-location');
                      const elInfoNote = document.getElementById('info-note');
                      const elInfoDate = document.getElementById('info-date');
@@ -6097,16 +6113,17 @@ const elInfoModel = document.getElementById('info-model');
 
                      if (elInfoPlate) elInfoPlate.value = photo.license_plate;
                      if (elInfoOperator) elInfoOperator.value = snapshot.operator || 'Đã bị xóa';
-                     if (elInfoType) elInfoType.value = snapshot.type || 'bus'; // Mới
+                     if (elInfoType) elInfoType.value = snapshot.type || 'bus';
+                     if (elInfoTypeDisplay) elInfoTypeDisplay.value = (snapshot.type === 'coach') ? 'Xe khách' : 'Xe buýt';
                      if (elInfoRoute) elInfoRoute.value = snapshot.route_no || 'Đã bị xóa';
                      if (elInfoModel) elInfoModel.value = snapshot.model || 'Đã bị xóa';
                      if (elInfoLocation) elInfoLocation.value = photo.location || '---';
                      if (elInfoNote) elInfoNote.value = photo.note || '---';
 
-                    const displayDate = photo.taken_at || photo.created_at;
-                    if (elInfoDate) elInfoDate.value = displayDate ? displayDate.split('T')[0] : '';
-                    if (elInfoCamera) elInfoCamera.value = photo.camera_model || 'N/A';
-                    if (elInfoExif) elInfoExif.value = photo.exif_params || 'N/A';
+                     const displayDate = photo.taken_at || photo.created_at;
+                     if (elInfoDate) elInfoDate.value = displayDate ? displayDate.split('T')[0] : '';
+                     if (elInfoCamera) elInfoCamera.value = photo.camera_model || 'N/A';
+                     if (elInfoExif) elInfoExif.value = photo.exif_params || 'N/A';
 
                     const statUploaderEl = document.getElementById('stat-uploader');
 
@@ -6559,30 +6576,52 @@ if (app.user && app.role === 'manager' && isDenied) {
                         notice.classList.remove('hidden');
                         btnLabel.innerText = "Đang sửa...";
 
-                        if (app.role === 'admin' || app.role === 'manager') {
-                            noticeText.innerText = "ADMIN MODE: Bạn đang sửa trực tiếp vào cơ sở dữ liệu.";
-                            btnSave.innerText = "Lưu ngay lập tức";
-                            document.getElementById('info-plate').readOnly = false;
-                        } else {
-                            noticeText.innerText = "Bạn đang ở chế độ chỉnh sửa. Thay đổi sẽ được gửi yêu cầu duyệt (Trừ ngày chụp).";
-                            btnSave.innerText = "Gửi yêu cầu";
-                        }
+if (app.role === 'admin' || app.role === 'manager') {
+                             noticeText.innerText = "ADMIN MODE: Bạn đang sửa trực tiếp vào cơ sở dữ liệu.";
+                             btnSave.innerText = "Lưu ngay lập tức";
+                             document.getElementById('info-plate').readOnly = false;
+                         } else {
+                             noticeText.innerText = "Bạn đang ở chế độ chỉnh sửa. Thay đổi sẽ được gửi yêu cầu duyệt (Trừ ngày chụp).";
+                             btnSave.innerText = "Gửi yêu cầu";
+                         }
+
+                         // Unlock custom type dropdown
+                         const typeDisplay = document.getElementById('info-type-display');
+                         const typeIcon = document.getElementById('info-type-icon');
+                         if (typeDisplay) {
+                             typeDisplay.removeAttribute('data-locked');
+                             typeDisplay.style.cursor = 'pointer';
+                             typeDisplay.style.boxShadow = 'inset 0 0 0 2px #18181b';
+                             typeDisplay.style.backgroundColor = '#fff';
+                         }
+                         if (typeIcon) typeIcon.classList.remove('hidden');
                     } else {
                         app.edit.cancel();
                     }
                 },
-                cancel: () => {
-                    const formInputs = document.querySelectorAll('#inline-edit-form .info-input');
-                    formInputs.forEach(input => {
-                        if (input.tagName === 'SELECT') input.disabled = true;
-                        else input.readOnly = true;
-                    });
+cancel: () => {
+                     const formInputs = document.querySelectorAll('#inline-edit-form .info-input');
+                     formInputs.forEach(input => {
+                         if (input.tagName === 'SELECT') input.disabled = true;
+                         else input.readOnly = true;
+                     });
 
-                    document.getElementById('edit-actions').classList.add('hidden');
-                    document.getElementById('edit-mode-notice').classList.add('hidden');
-                    document.getElementById('btn-edit-label').innerText = "Sửa thông tin";
-                    app.edit.isEditing = false;
-                },
+                     // Lock custom type dropdown
+                     const typeDisplay = document.getElementById('info-type-display');
+                     const typeIcon = document.getElementById('info-type-icon');
+                     if (typeDisplay) {
+                         typeDisplay.setAttribute('data-locked', 'true');
+                         typeDisplay.style.cursor = 'default';
+                         typeDisplay.style.boxShadow = 'none';
+                         typeDisplay.style.backgroundColor = 'transparent';
+                     }
+                     if (typeIcon) typeIcon.classList.add('hidden');
+
+                     document.getElementById('edit-actions').classList.add('hidden');
+                     document.getElementById('edit-mode-notice').classList.add('hidden');
+                     document.getElementById('btn-edit-label').innerText = "Sửa thông tin";
+                     app.edit.isEditing = false;
+                 },
                 submitInline: async (e) => {
                     e.preventDefault();
                     if (!app.user) return;
@@ -8295,20 +8334,30 @@ toggleRoute: (val) => {
                     const btnBus = document.getElementById('btn-type-bus');
                     const btnCoach = document.getElementById('btn-type-coach');
 
-                    // Reset cả 2 về mặc định (Màu trắng)
+                    // 1. Reset 2 nút về màu trắng (Chưa chọn)
                     [btnBus, btnCoach].forEach(btn => {
-                        btn.className = "cursor-pointer border-2 border-gray-200 bg-white text-black rounded-xl p-4 transition-all duration-200 hover:border-gray-400 group" + (app.vehicleLocked ? " opacity-60 cursor-not-allowed" : "");
-                        btn.querySelector('.icon-bg').classList.remove('bg-white/20');
-                        btn.querySelector('.icon-bg').classList.add('bg-gray-100');
+                        btn.className = "cursor-pointer border border-gray-300 bg-white text-gray-800 rounded-xl p-4 shadow-sm hover:border-gray-400 hover:shadow-md transition-all duration-200 group relative" + (app.vehicleLocked ? " opacity-60 cursor-not-allowed" : "");
+                        const iconBg = btn.querySelector('.icon-bg');
+                        iconBg.classList.remove('bg-white/20');
+                        iconBg.classList.add('bg-gray-100');
+                        iconBg.classList.remove('border-white/30');
+                        iconBg.classList.add('border-transparent');
+                        const p = btn.querySelector('p');
+                        p.classList.remove('text-gray-300');
+                        p.classList.add('text-gray-500');
                     });
 
-                    // Nhuộm đen nút được chọn
+                    // 2. Nhuộm đen nút được chọn (Scale lên 1 chút cho giống popup)
                     const activeBtn = type === 'bus' ? btnBus : btnCoach;
-                    activeBtn.className = "cursor-pointer border-2 border-black bg-black text-white rounded-xl p-4 transition-all duration-200 shadow-md" + (app.vehicleLocked ? " opacity-80 cursor-not-allowed" : "");
-                    activeBtn.querySelector('.icon-bg').classList.remove('bg-gray-100', 'group-hover:bg-gray-200');
-                    activeBtn.querySelector('.icon-bg').classList.add('bg-white/20');
+                    activeBtn.className = "cursor-pointer border border-black bg-black text-white rounded-xl p-4 shadow-md transition-all duration-200 scale-[1.02]" + (app.vehicleLocked ? " opacity-80 cursor-not-allowed scale-100" : "");
+                    const iconActiveBg = activeBtn.querySelector('.icon-bg');
+                    iconActiveBg.classList.remove('bg-gray-100');
+                    iconActiveBg.classList.add('bg-white/20');
+                    iconActiveBg.classList.remove('border-transparent');
+                    iconActiveBg.classList.add('border-white/30');
+                    activeBtn.querySelector('p').classList.remove('text-gray-500');
+                    activeBtn.querySelector('p').classList.add('text-gray-300');
 
-                    // Đổi chữ "Số tuyến" / "Lộ trình" cho hợp lý
                     app.upload.toggleRoute(type);
                 },
 
@@ -9191,15 +9240,17 @@ toggleRoute: (val) => {
                         app.utils.resetTurnstile('#upload .cf-turnstile');
                         app.utils.resetTurnstile('#auth .cf-turnstile');
 
-                        // Tẩy trắng 2 nút chọn loại xe
-                        document.getElementById('up-type').value = '';
-                        ['btn-type-bus', 'btn-type-coach'].forEach(id => {
-                            const btn = document.getElementById(id);
-                            if(btn) {
-                                btn.className = "cursor-pointer border-2 border-gray-200 bg-white text-black rounded-xl p-4 transition-all duration-200 hover:border-gray-400 group";
-                                btn.querySelector('.icon-bg').classList.replace('bg-white/20', 'bg-gray-100');
-                            }
-                        });
+// Tẩy trắng 2 nút chọn loại xe
+                         document.getElementById('up-type').value = '';
+                         ['btn-type-bus', 'btn-type-coach'].forEach(id => {
+                             const btn = document.getElementById(id);
+                             if(btn) {
+                                 btn.className = "cursor-pointer border border-gray-300 bg-white text-gray-800 rounded-xl p-4 shadow-sm hover:border-gray-400 hover:shadow-md transition-all duration-200 group relative";
+                                 const iconBg = btn.querySelector('.icon-bg');
+                                 iconBg.classList.remove('bg-white/20');
+                                 iconBg.classList.add('bg-gray-100');
+                             }
+                         });
                         document.getElementById('type-msg')?.classList.add('hidden');
                     }
 
