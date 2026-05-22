@@ -1400,7 +1400,7 @@
                 <!-- Body (Grid giống trang Upload) -->
                 <div class="p-5 md:p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <!-- Nút Xe Buýt -->
-                    <div id="pref-btn-bus" onclick="app.preference.select('bus')" class="pref-option cursor-pointer border border-gray-300 bg-white/50 text-gray-800 rounded-xl p-4 shadow-sm hover:shadow-md hover:border-gray-400 transition-all duration-200 group relative flex items-start gap-3">
+                    <div id="pref-btn-bus" onclick="app.preference.select('bus')" class="pref-option cursor-pointer border border-gray-300 bg-white text-gray-800 rounded-xl p-4 shadow-sm hover:shadow-md hover:border-gray-400 transition-all duration-200 group relative flex items-start gap-3">
                         <div class="pref-icon w-10 h-10 rounded-full bg-gray-100 border border-transparent flex items-center justify-center shrink-0 transition-colors">
                             <i class="fa-solid fa-bus text-lg"></i>
                         </div>
@@ -1411,7 +1411,7 @@
                     </div>
 
                     <!-- Nút Xe Khách -->
-                    <div id="pref-btn-coach" onclick="app.preference.select('coach')" class="pref-option cursor-pointer border border-gray-300 bg-white/50 text-gray-800 rounded-xl p-4 shadow-sm hover:shadow-md hover:border-gray-400 transition-all duration-200 group relative flex items-start gap-3">
+                    <div id="pref-btn-coach" onclick="app.preference.select('coach')" class="pref-option cursor-pointer border border-gray-300 bg-white text-gray-800 rounded-xl p-4 shadow-sm hover:shadow-md hover:border-gray-400 transition-all duration-200 group relative flex items-start gap-3">
                         <div class="pref-icon w-10 h-10 rounded-full bg-gray-100 border border-transparent flex items-center justify-center shrink-0 transition-colors">
                             <i class="fa-solid fa-van-shuttle text-lg"></i>
                         </div>
@@ -1422,7 +1422,7 @@
                     </div>
 
                     <!-- Nút Cả Hai (Trải dài 2 cột trên PC) -->
-                    <div id="pref-btn-both" onclick="app.preference.select('both')" class="pref-option sm:col-span-2 cursor-pointer border border-gray-300 bg-white/50 text-gray-800 rounded-xl p-4 shadow-sm hover:shadow-md hover:border-gray-400 transition-all duration-200 group relative flex items-center justify-center gap-3">
+                    <div id="pref-btn-both" onclick="app.preference.select('both')" class="pref-option sm:col-span-2 cursor-pointer border border-gray-300 bg-white text-gray-800 rounded-xl p-4 shadow-sm hover:shadow-md hover:border-gray-400 transition-all duration-200 group relative flex items-center justify-center gap-3">
                         <div class="pref-icon w-10 h-10 rounded-full bg-gray-100 border border-transparent flex items-center justify-center shrink-0 transition-colors">
                             <i class="fa-solid fa-check-double text-lg"></i>
                         </div>
@@ -3551,7 +3551,7 @@
                             iconBg.classList.replace('border-transparent', 'border-white/30');
                             if (p) p.classList.replace('text-gray-500', 'text-gray-300');
                         } else {
-                            btn.className = `pref-option ${isSpan2} cursor-pointer border border-gray-300 bg-white/50 text-gray-800 rounded-xl p-4 shadow-sm hover:shadow-md hover:border-gray-400 transition-all duration-200 flex gap-3 scale-100`;
+                            btn.className = `pref-option ${isSpan2} cursor-pointer border border-gray-300 bg-white text-gray-800 rounded-xl p-4 shadow-sm hover:shadow-md hover:border-gray-400 transition-all duration-200 flex gap-3 scale-100`;
                             iconBg.classList.replace('bg-white/20', 'bg-gray-100');
                             iconBg.classList.replace('border-white/30', 'border-transparent');
                             if (p) p.classList.replace('text-gray-300', 'text-gray-500');
