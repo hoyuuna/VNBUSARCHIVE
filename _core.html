@@ -1421,14 +1421,14 @@
                         </div>
                     </div>
 
-                    <!-- Nút Cả Hai (Trải dài 2 cột trên PC) -->
-                    <div id="pref-btn-both" onclick="app.preference.select('both')" class="pref-option sm:col-span-2 cursor-pointer border border-gray-300 bg-white text-gray-800 rounded-xl p-4 shadow-sm hover:shadow-md hover:border-gray-400 transition-all duration-200 group relative flex items-center justify-center gap-3">
+                    <!-- Nút Cả Hai (Đã sửa lại giống 2 nút trên) -->
+                    <div id="pref-btn-both" onclick="app.preference.select('both')" class="pref-option cursor-pointer border border-gray-300 bg-white text-gray-800 rounded-xl p-4 shadow-sm hover:shadow-md hover:border-gray-400 transition-all duration-200 group relative flex items-start gap-3">
                         <div class="pref-icon w-10 h-10 rounded-full bg-gray-100 border border-transparent flex items-center justify-center shrink-0 transition-colors">
                             <i class="fa-solid fa-check-double text-lg"></i>
                         </div>
-                        <div class="text-left sm:text-center mt-0.5">
-                            <h4 class="font-bold text-sm uppercase mb-0 sm:mb-1">Xem tất cả</h4>
-                            <p class="pref-desc text-[10px] font-medium text-gray-500 leading-snug hidden sm:block">Hiển thị đan xen cả Xe Buýt và Xe Khách.</p>
+                        <div class="mt-0.5">
+                            <h4 class="font-bold text-sm uppercase mb-1">Xem tất cả</h4>
+                            <p class="pref-desc text-[10px] font-medium text-gray-500 leading-snug">Hiển thị đan xen cả Xe Buýt và Xe Khách.</p>
                         </div>
                     </div>
                 </div>
@@ -3506,9 +3506,8 @@
 
                     if (isOnboarding) {
                         closeBtn.classList.add('hidden');
-                        footer.className = "p-4 md:px-6 bg-white/50 border-t border-gray-200/50 rounded-b-2xl flex justify-between items-center";
+                        footer.className = "p-4 md:px-6 bg-gray-50/50 border-t border-gray-200/50 rounded-b-2xl flex justify-end items-center";
                         footer.innerHTML = `
-                            <button onclick="app.preference.skip()" class="text-[11px] text-gray-500 hover:text-black font-bold transition underline decoration-transparent hover:decoration-black ml-1">Bỏ qua (Xem tất cả)</button>
                             <button onclick="app.preference.save()" class="bg-black text-white px-6 py-2.5 rounded-lg text-xs font-bold shadow-sm hover:bg-gray-800 transition">Tiếp tục <i class="fa-solid fa-arrow-right ml-1"></i></button>
                         `;
                     } else {
@@ -3542,26 +3541,19 @@
                         
                         const iconBg = btn.querySelector('.pref-icon');
                         const p = btn.querySelector('.pref-desc');
-                        
-                        const isSpan2 = type === 'both' ? 'sm:col-span-2 items-center justify-center' : 'items-start';
 
                         if (app.preference.tempSelection === type) {
-                            btn.className = `pref-option ${isSpan2} cursor-pointer border border-black bg-black text-white rounded-xl p-4 shadow-md transition-all duration-200 flex gap-3 scale-[1.02]`;
+                            btn.className = `pref-option cursor-pointer border border-black bg-black text-white rounded-xl p-4 shadow-md transition-all duration-200 flex items-start gap-3 scale-[1.02]`;
                             iconBg.classList.replace('bg-gray-100', 'bg-white/20');
                             iconBg.classList.replace('border-transparent', 'border-white/30');
                             if (p) p.classList.replace('text-gray-500', 'text-gray-300');
                         } else {
-                            btn.className = `pref-option ${isSpan2} cursor-pointer border border-gray-300 bg-white text-gray-800 rounded-xl p-4 shadow-sm hover:shadow-md hover:border-gray-400 transition-all duration-200 flex gap-3 scale-100`;
+                            btn.className = `pref-option cursor-pointer border border-gray-300 bg-white text-gray-800 rounded-xl p-4 shadow-sm hover:shadow-md hover:border-gray-400 transition-all duration-200 flex items-start gap-3 scale-100`;
                             iconBg.classList.replace('bg-white/20', 'bg-gray-100');
                             iconBg.classList.replace('border-white/30', 'border-transparent');
                             if (p) p.classList.replace('text-gray-300', 'text-gray-500');
                         }
                     });
-                },
-
-                skip: () => {
-                    app.preference.tempSelection = 'both';
-                    app.preference.save();
                 },
 
                 save: () => {
