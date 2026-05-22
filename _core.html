@@ -2952,31 +2952,31 @@
 <!-- KHỐI CHỌN LOẠI XE MỚI -->
                                 <div class="md:col-span-2 mb-2">
                                     <label class="text-xs text-gray-500 font-bold block mb-2 uppercase">Loại xe <span class="text-red-500">*</span></label>
-                                    <input type="hidden" id="up-type" value=""> <!-- Lưu giá trị thực tế để submit -->
+                                    <input type="hidden" id="up-type" value="">
                                     
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <!-- Nút Xe Buýt -->
-                                        <div id="btn-type-bus" onclick="app.upload.selectType('bus')" class="cursor-pointer border-2 border-gray-200 bg-white text-black rounded-xl p-4 transition-all duration-200 hover:border-gray-400 group">
+                                        <div id="btn-type-bus" onclick="app.upload.selectType('bus')" class="cursor-pointer border border-gray-300 bg-white text-gray-800 rounded-xl p-4 shadow-sm hover:shadow-md hover:bg-gray-50 transition-all duration-200 group relative">
                                             <div class="flex items-start gap-3 pointer-events-none">
-                                                <div class="icon-bg w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0 group-hover:bg-gray-200 transition-colors">
+                                                <div class="icon-bg w-10 h-10 rounded-full bg-gray-100 border border-transparent flex items-center justify-center shrink-0 group-hover:bg-white transition-colors">
                                                     <i class="fa-solid fa-bus text-lg"></i>
                                                 </div>
                                                 <div>
                                                     <h4 class="font-bold text-base uppercase mb-1">Xe Buýt</h4>
-                                                    <p class="text-[11px] font-medium opacity-70 leading-snug">Phương tiện chở khách theo tuyến đường, lộ trình và các điểm dừng cố định trong phạm vi đô thị hoặc nội tỉnh.</p>
+                                                    <p class="text-[11px] font-medium text-gray-500 leading-snug">Phương tiện chở khách theo tuyến đường, lộ trình và các điểm dừng cố định trong phạm vi đô thị hoặc nội tỉnh.</p>
                                                 </div>
                                             </div>
                                         </div>
 
                                         <!-- Nút Xe Khách -->
-                                        <div id="btn-type-coach" onclick="app.upload.selectType('coach')" class="cursor-pointer border-2 border-gray-200 bg-white text-black rounded-xl p-4 transition-all duration-200 hover:border-gray-400 group">
+                                        <div id="btn-type-coach" onclick="app.upload.selectType('coach')" class="cursor-pointer border border-gray-300 bg-white text-gray-800 rounded-xl p-4 shadow-sm hover:shadow-md hover:bg-gray-50 transition-all duration-200 group relative">
                                             <div class="flex items-start gap-3 pointer-events-none">
-                                                <div class="icon-bg w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0 group-hover:bg-gray-200 transition-colors">
+                                                <div class="icon-bg w-10 h-10 rounded-full bg-gray-100 border border-transparent flex items-center justify-center shrink-0 group-hover:bg-white transition-colors">
                                                     <i class="fa-solid fa-van-shuttle text-lg"></i>
                                                 </div>
                                                 <div>
                                                     <h4 class="font-bold text-base uppercase mb-1">Xe Khách</h4>
-                                                    <p class="text-[11px] font-medium opacity-70 leading-snug">Phương tiện chở khách theo tuyến cố định, hợp đồng hoặc du lịch giữa các tỉnh thành.</p>
+                                                    <p class="text-[11px] font-medium text-gray-500 leading-snug">Phương tiện chở khách theo tuyến cố định, hợp đồng hoặc du lịch giữa các tỉnh thành.</p>
                                                 </div>
                                             </div>
                                         </div>
