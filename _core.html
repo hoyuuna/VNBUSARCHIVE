@@ -1380,41 +1380,62 @@
     
     <div id="app-container" style="display: none; opacity: 0; transition: opacity 0.5s ease-in-out;">
 
-        <!-- POPUP NỘI DUNG QUAN TÂM -->
-        <div id="preference-modal" class="hidden fixed inset-0 z-[10000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-            <div id="preference-content" class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col">
-                <div class="p-6 text-center border-b border-gray-100">
-                    <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 shadow-sm border border-blue-100">
-                        <i class="fa-solid fa-layer-group"></i>
+        <!-- POPUP NỘI DUNG QUAN TÂM (GLASSMORPHISM & GRID UI) -->
+        <div id="preference-modal" class="hidden fixed inset-0 z-[10000] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+            <div id="preference-content" class="bg-white/80 backdrop-blur-[20px] border border-white/60 shadow-2xl rounded-2xl max-w-[500px] w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col">
+                
+                <!-- Header -->
+                <div class="p-5 md:p-6 border-b border-gray-200/50 flex justify-between items-center relative">
+                    <div class="w-full text-center mt-2">
+                        <div class="w-12 h-12 bg-black text-white rounded-full flex items-center justify-center text-xl mx-auto mb-3 shadow-md">
+                            <i class="fa-solid fa-filter"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-black uppercase tracking-tight">Cá nhân hóa nội dung</h3>
+                        <p class="text-[11px] md:text-xs text-gray-500 mt-1.5 font-medium px-4">Chọn loại phương tiện bạn quan tâm. Hệ thống sẽ tự động lọc và ẩn các nội dung còn lại.</p>
                     </div>
-                    <h3 class="text-xl font-bold text-black uppercase tracking-tight mb-2">Nội dung quan tâm</h3>
-                    <p class="text-sm text-gray-500">Hệ thống sẽ chỉ hiển thị những loại phương tiện mà bạn chọn. Bạn có thể thay đổi bất cứ lúc nào trong Menu Tài khoản.</p>
+                    <!-- Nút X (Ẩn khi onboarding) -->
+                    <button id="pref-close-btn" onclick="app.preference.close()" class="absolute right-4 top-4 text-gray-400 hover:text-red-500 transition text-xl px-2 hidden"><i class="fa-solid fa-xmark"></i></button>
                 </div>
-                <div class="p-6 bg-gray-50 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <!-- Xe Buýt -->
-                    <button onclick="app.preference.save('bus')" class="flex flex-col items-center justify-center gap-3 p-5 bg-white border border-gray-200 rounded-xl hover:border-black hover:shadow-md transition group">
-                        <div class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-black group-hover:text-white transition">
-                            <i class="fa-solid fa-bus text-xl"></i>
+
+                <!-- Body (Grid giống trang Upload) -->
+                <div class="p-5 md:p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Nút Xe Buýt -->
+                    <div id="pref-btn-bus" onclick="app.preference.select('bus')" class="pref-option cursor-pointer border border-gray-300 bg-white/50 text-gray-800 rounded-xl p-4 shadow-sm hover:shadow-md hover:border-gray-400 transition-all duration-200 group relative flex items-start gap-3">
+                        <div class="pref-icon w-10 h-10 rounded-full bg-gray-100 border border-transparent flex items-center justify-center shrink-0 transition-colors">
+                            <i class="fa-solid fa-bus text-lg"></i>
                         </div>
-                        <span class="font-bold text-sm text-gray-800 group-hover:text-black">Xe Buýt</span>
-                    </button>
-                    <!-- Xe Khách -->
-                    <button onclick="app.preference.save('coach')" class="flex flex-col items-center justify-center gap-3 p-5 bg-white border border-gray-200 rounded-xl hover:border-black hover:shadow-md transition group">
-                        <div class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-black group-hover:text-white transition">
-                            <i class="fa-solid fa-van-shuttle text-xl"></i>
+                        <div class="mt-0.5">
+                            <h4 class="font-bold text-sm uppercase mb-1">Xe Buýt</h4>
+                            <p class="pref-desc text-[10px] font-medium text-gray-500 leading-snug">Các phương tiện chạy tuyến nội đô, xe buýt công cộng.</p>
                         </div>
-                        <span class="font-bold text-sm text-gray-800 group-hover:text-black">Xe Khách</span>
-                    </button>
-                    <!-- Cả Hai -->
-                    <button onclick="app.preference.save('both')" class="flex flex-col items-center justify-center gap-3 p-5 bg-white border border-gray-200 rounded-xl hover:border-black hover:shadow-md transition group">
-                        <div class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-black group-hover:text-white transition">
-                            <i class="fa-solid fa-check-double text-xl"></i>
+                    </div>
+
+                    <!-- Nút Xe Khách -->
+                    <div id="pref-btn-coach" onclick="app.preference.select('coach')" class="pref-option cursor-pointer border border-gray-300 bg-white/50 text-gray-800 rounded-xl p-4 shadow-sm hover:shadow-md hover:border-gray-400 transition-all duration-200 group relative flex items-start gap-3">
+                        <div class="pref-icon w-10 h-10 rounded-full bg-gray-100 border border-transparent flex items-center justify-center shrink-0 transition-colors">
+                            <i class="fa-solid fa-van-shuttle text-lg"></i>
                         </div>
-                        <span class="font-bold text-sm text-gray-800 group-hover:text-black">Cả hai</span>
-                    </button>
+                        <div class="mt-0.5">
+                            <h4 class="font-bold text-sm uppercase mb-1">Xe Khách</h4>
+                            <p class="pref-desc text-[10px] font-medium text-gray-500 leading-snug">Xe liên tỉnh, hợp đồng, giường nằm, phòng nằm.</p>
+                        </div>
+                    </div>
+
+                    <!-- Nút Cả Hai (Trải dài 2 cột trên PC) -->
+                    <div id="pref-btn-both" onclick="app.preference.select('both')" class="pref-option sm:col-span-2 cursor-pointer border border-gray-300 bg-white/50 text-gray-800 rounded-xl p-4 shadow-sm hover:shadow-md hover:border-gray-400 transition-all duration-200 group relative flex items-center justify-center gap-3">
+                        <div class="pref-icon w-10 h-10 rounded-full bg-gray-100 border border-transparent flex items-center justify-center shrink-0 transition-colors">
+                            <i class="fa-solid fa-check-double text-lg"></i>
+                        </div>
+                        <div class="text-left sm:text-center mt-0.5">
+                            <h4 class="font-bold text-sm uppercase mb-0 sm:mb-1">Xem tất cả</h4>
+                            <p class="pref-desc text-[10px] font-medium text-gray-500 leading-snug hidden sm:block">Hiển thị đan xen cả Xe Buýt và Xe Khách.</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="p-4 bg-white text-center border-t border-gray-100">
-                    <button onclick="app.preference.save('both')" class="text-xs text-gray-500 hover:text-black font-bold transition underline decoration-gray-300 hover:decoration-black">Bỏ qua (Mặc định xem tất cả)</button>
+
+                <!-- Footer (Render bằng JS tùy ngữ cảnh Onboarding/Edit) -->
+                <div id="pref-footer" class="p-4 md:px-6 bg-gray-50/50 border-t border-gray-200/50 rounded-b-2xl flex gap-3">
+                    <!-- Tự động chèn bằng JavaScript -->
                 </div>
             </div>
         </div>
@@ -3460,6 +3481,9 @@
 
             preference: {
                 current: 'both',
+                tempSelection: 'both',
+                isOnboarding: false,
+
                 load: () => {
                     const saved = localStorage.getItem('vnbus_preference');
                     if (saved) {
@@ -3468,23 +3492,36 @@
                     }
                     return null;
                 },
-                save: (val) => {
-                    app.preference.current = val;
-                    localStorage.setItem('vnbus_preference', val);
-                    app.preference.close();
-                    
-                    app._profilePhotosCache = []; 
-                    
-                    if(window.location.pathname === '/') {
-                        app.views.loadHome(true);
-                    } else {
-                        app.handleRoute(); 
-                    }
-                },
-                open: () => {
+
+                open: (isOnboarding = false) => {
+                    app.preference.isOnboarding = isOnboarding;
+                    app.preference.tempSelection = app.preference.current || 'both';
+
                     const modal = document.getElementById('preference-modal');
                     const content = document.getElementById('preference-content');
+                    const closeBtn = document.getElementById('pref-close-btn');
+                    const footer = document.getElementById('pref-footer');
+
                     app.ui.toggleUserMenu(false);
+
+                    if (isOnboarding) {
+                        closeBtn.classList.add('hidden');
+                        footer.className = "p-4 md:px-6 bg-white/50 border-t border-gray-200/50 rounded-b-2xl flex justify-between items-center";
+                        footer.innerHTML = `
+                            <button onclick="app.preference.skip()" class="text-[11px] text-gray-500 hover:text-black font-bold transition underline decoration-transparent hover:decoration-black ml-1">Bỏ qua (Xem tất cả)</button>
+                            <button onclick="app.preference.save()" class="bg-black text-white px-6 py-2.5 rounded-lg text-xs font-bold shadow-sm hover:bg-gray-800 transition">Tiếp tục <i class="fa-solid fa-arrow-right ml-1"></i></button>
+                        `;
+                    } else {
+                        closeBtn.classList.remove('hidden');
+                        footer.className = "p-4 md:px-6 bg-gray-50/50 border-t border-gray-200/50 rounded-b-2xl flex justify-end gap-3";
+                        footer.innerHTML = `
+                            <button onclick="app.preference.close()" class="px-5 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-lg text-xs font-bold shadow-sm hover:bg-gray-50 transition">Hủy</button>
+                            <button onclick="app.preference.save()" class="bg-black text-white px-6 py-2.5 rounded-lg text-xs font-bold shadow-sm hover:bg-gray-800 transition"><i class="fa-solid fa-floppy-disk mr-1"></i> Lưu thay đổi</button>
+                        `;
+                    }
+
+                    app.preference.updateUI();
+
                     modal.classList.remove('hidden');
                     app.ui.lockScroll();
                     setTimeout(() => {
@@ -3492,6 +3529,58 @@
                         content.classList.add('opacity-100', 'scale-100');
                     }, 10);
                 },
+
+                select: (val) => {
+                    app.preference.tempSelection = val;
+                    app.preference.updateUI();
+                },
+
+                updateUI: () => {
+                    ['bus', 'coach', 'both'].forEach(type => {
+                        const btn = document.getElementById(`pref-btn-${type}`);
+                        if (!btn) return;
+                        
+                        const iconBg = btn.querySelector('.pref-icon');
+                        const p = btn.querySelector('.pref-desc');
+                        
+                        const isSpan2 = type === 'both' ? 'sm:col-span-2 items-center justify-center' : 'items-start';
+
+                        if (app.preference.tempSelection === type) {
+                            btn.className = `pref-option ${isSpan2} cursor-pointer border border-black bg-black text-white rounded-xl p-4 shadow-md transition-all duration-200 flex gap-3 scale-[1.02]`;
+                            iconBg.classList.replace('bg-gray-100', 'bg-white/20');
+                            iconBg.classList.replace('border-transparent', 'border-white/30');
+                            if (p) p.classList.replace('text-gray-500', 'text-gray-300');
+                        } else {
+                            btn.className = `pref-option ${isSpan2} cursor-pointer border border-gray-300 bg-white/50 text-gray-800 rounded-xl p-4 shadow-sm hover:shadow-md hover:border-gray-400 transition-all duration-200 flex gap-3 scale-100`;
+                            iconBg.classList.replace('bg-white/20', 'bg-gray-100');
+                            iconBg.classList.replace('border-white/30', 'border-transparent');
+                            if (p) p.classList.replace('text-gray-300', 'text-gray-500');
+                        }
+                    });
+                },
+
+                skip: () => {
+                    app.preference.tempSelection = 'both';
+                    app.preference.save();
+                },
+
+                save: () => {
+                    const isChanged = app.preference.current !== app.preference.tempSelection;
+                    app.preference.current = app.preference.tempSelection;
+                    localStorage.setItem('vnbus_preference', app.preference.current);
+                    
+                    app.preference.close();
+                    
+                    if (isChanged) {
+                        app._profilePhotosCache = []; 
+                        if(window.location.pathname === '/') {
+                            app.views.loadHome(true);
+                        } else {
+                            app.handleRoute(); 
+                        }
+                    }
+                },
+
                 close: () => {
                     const modal = document.getElementById('preference-modal');
                     const content = document.getElementById('preference-content');
@@ -3502,6 +3591,7 @@
                         app.ui.unlockScroll();
                     }, 200);
                 },
+
                 applyFilter: (query, tableName = 'photos') => {
                     if (app.preference.current === 'both') return query;
                     if (tableName === 'photos') {
@@ -4147,7 +4237,7 @@
 
                 // KIỂM TRA PREFERENCE LẦN ĐẦU
                 if (!app.preference.load()) {
-                    setTimeout(() => { app.preference.open(); }, 1000);
+                    setTimeout(() => { app.preference.open(true); }, 1000);
                 }
 
                 if (app.realtimeChannel) {
@@ -5210,14 +5300,14 @@ grid.innerHTML = tiers.map(tier => {
                     // Render tên lên UI Header
                     document.getElementById('nav-username').innerText = app.username;
 
-                    dropdown.innerHTML = `
-                        <a href="/profile" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-address-card w-5 text-center mr-1"></i> Hồ sơ của tôi</a>
-                        <button onclick="app.settings.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-gear w-5 text-center mr-1"></i> Cài đặt tài khoản</button>
-                        <button onclick="app.docs.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-book-open w-5 text-center mr-1"></i> Tài liệu</button>
-                        <button onclick="app.preference.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-layer-group w-5 text-center mr-1"></i> Nội dung quan tâm</button>
-                        <a href="/contact" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-headset w-5 text-center mr-1"></i> Liên hệ hỗ trợ</a>
-                        <button onclick="app.auth.logout()" class="w-full text-left block px-4 py-3 text-sm text-red-600 hover:bg-red-50 font-bold"><i class="fa-solid fa-right-from-bracket w-5 text-center mr-1"></i> Đăng xuất</button>
-                    `;
+dropdown.innerHTML = `
+                         <a href="/profile" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-address-card w-5 text-center mr-1"></i> Hồ sơ của tôi</a>
+                         <button onclick="app.settings.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-gear w-5 text-center mr-1"></i> Cài đặt tài khoản</button>
+                         <button onclick="app.docs.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-book-open w-5 text-center mr-1"></i> Tài liệu</button>
+                         <button onclick="app.preference.open(false)" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-layer-group w-5 text-center mr-1"></i> Nội dung quan tâm</button>
+                         <a href="/contact" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-headset w-5 text-center mr-1"></i> Liên hệ hỗ trợ</a>
+                         <button onclick="app.auth.logout()" class="w-full text-left block px-4 py-3 text-sm text-red-600 hover:bg-red-50 font-bold"><i class="fa-solid fa-right-from-bracket w-5 text-center mr-1"></i> Đăng xuất</button>
+                     `;
 
                     app.auth.close();
 
@@ -5252,13 +5342,13 @@ grid.innerHTML = tiers.map(tier => {
                     app.role = 'user';
                     
 
-                    dropdown.innerHTML = `
-                        <a href="/auth" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-arrow-right-to-bracket w-5 text-center mr-1"></i> Đăng nhập</a>
-                        <a href="/auth" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-user-plus w-5 text-center mr-1"></i> Tạo tài khoản</a>
-                        <button onclick="app.docs.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-book-open w-5 text-center mr-1"></i> Tài liệu</button>
-                        <button onclick="app.preference.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-layer-group w-5 text-center mr-1"></i> Nội dung quan tâm</button>
-                        <a href="/contact" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 font-bold"><i class="fa-solid fa-headset w-5 text-center mr-1"></i> Liên hệ hỗ trợ</a>
-                    `;
+dropdown.innerHTML = `
+                         <a href="/auth" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-arrow-right-to-bracket w-5 text-center mr-1"></i> Đăng nhập</a>
+                         <a href="/auth" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-user-plus w-5 text-center mr-1"></i> Tạo tài khoản</a>
+                         <button onclick="app.docs.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-book-open w-5 text-center mr-1"></i> Tài liệu</button>
+                         <button onclick="app.preference.open(false)" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-layer-group w-5 text-center mr-1"></i> Nội dung quan tâm</button>
+                         <a href="/contact" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 font-bold"><i class="fa-solid fa-headset w-5 text-center mr-1"></i> Liên hệ hỗ trợ</a>
+                     `;
                     
                     if (app.notificationChannel) {
                         window.sb.removeChannel(app.notificationChannel);
