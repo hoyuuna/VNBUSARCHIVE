@@ -3586,8 +3586,12 @@
 
                 applyFilter: (query, tableName = 'photos') => {
                     if (app.preference.current === 'both') return query;
+                    
                     if (tableName === 'photos') {
                         return query.eq('type', app.preference.current);
+                    } else if (tableName === 'vehicles') {
+                        // Bắt buộc Join bảng vehicles với photos để lọc những xe có type tương ứng
+                        return query.eq('photos.type', app.preference.current);
                     }
                     return query;
                 }
@@ -4133,6 +4137,12 @@
                 app.utils.updateBreadcrumbs();
                 await app.utils.loadProvinceData();
                 await app.maintenance.fetch();
+
+                // ĐÃ CHUYỂN LÊN ĐÂY: KIỂM TRA PREFERENCE TRƯỚC KHI TẢI DỮ LIỆU TRANG
+                if (!app.preference.load()) {
+                    setTimeout(() => { app.preference.open(true); }, 1000);
+                }
+
                 app.handleRoute();
 
                 document.getElementById('up-file').addEventListener('change', app.upload.handleFileSelect);
@@ -4226,11 +4236,6 @@
                 app.upload.initMap();
                 app.utils.loadAnnouncements();
                 await app.utils.fetchTopUploaders();
-
-                // KIỂM TRA PREFERENCE LẦN ĐẦU
-                if (!app.preference.load()) {
-                    setTimeout(() => { app.preference.open(true); }, 1000);
-                }
 
                 if (app.realtimeChannel) {
                     window.sb.removeChannel(app.realtimeChannel);
@@ -4932,14 +4937,19 @@ grid.innerHTML = tiers.map(tier => {
                             const isBasePlate = (plate) => !/-\d+$/.test(plate);
                             
                             const fetchSugs = async (table, col, label) => {
-                                let sbQuery = window.sb.from(table).select(col);
+                                let selectStr = col;
+                                if (table === 'vehicles' && app.preference.current !== 'both') {
+                                    selectStr = `${col}, photos!inner(type)`;
+                                }
+
+                                let sbQuery = window.sb.from(table).select(selectStr);
                                 
                                 searchWords.forEach(word => {
                                     sbQuery = sbQuery.ilike(col, `%${word}%`);
                                 });
                                 
-                                // Nếu là table photos, cũng áp dụng filter để không gợi ý ra xe mà user ẩn
-                                if (table === 'photos') sbQuery = app.preference.applyFilter(sbQuery);
+                                // Phân loại bảng để gọi filter cho chuẩn
+                                sbQuery = app.preference.applyFilter(sbQuery, table);
                                 
                                 const { data } = await sbQuery.limit(20).abortSignal(controller.signal);
                                 if (data) {
@@ -5123,7 +5133,13 @@ grid.innerHTML = tiers.map(tier => {
                     }
 
                     if (filterType === 'plate' || filterType === 'model' || filterType === 'all') {
-                        let vQuery = window.sb.from('vehicles').select('*').limit(100);
+                        let selectStr = '*';
+                        // Nếu có Preference, yêu cầu DB tải kèm cột type của bảng photos (INNER JOIN)
+                        if (app.preference.current !== 'both') {
+                            selectStr = '*, photos!inner(type)';
+                        }
+
+                        let vQuery = window.sb.from('vehicles').select(selectStr).limit(100);
                         if (filterType === 'plate') {
                             searchWords.forEach(w => { vQuery = vQuery.ilike('license_plate', `%${w}%`); });
                         } else if (filterType === 'model') {
@@ -5135,6 +5151,9 @@ grid.innerHTML = tiers.map(tier => {
                             });
                         }
 
+                        // LỌC TRIỆT ĐỂ BẰNG PREFERENCE
+                        vQuery = app.preference.applyFilter(vQuery, 'vehicles');
+
                         const { data: vData } = await vQuery;
 
                         if (vData && vData.length > 0) {
@@ -5142,9 +5161,13 @@ grid.innerHTML = tiers.map(tier => {
                                 const rawPlate = app.utils.cleanText(v.license_plate);
                                 const displayPlate = app.utils.displayPlate(rawPlate);
                                 const safeModel = app.utils.cleanText(v.model || 'Chưa rõ Model');
+                                
+                                // Đổi icon Card tự động theo nội dung đang lọc (Xe Khách -> Icon Van, Buýt -> Bus)
+                                const iconClass = (app.preference.current === 'coach') ? 'fa-van-shuttle' : 'fa-bus';
+                                
                                 cards.push(`
                                     <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.views.loadVehiclePage('${rawPlate}')">
-                                        <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0"><i class="fa-solid fa-bus"></i></div>
+                                        <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0"><i class="fa-solid ${iconClass}"></i></div>
                                         <div class="overflow-hidden">
                                             <div class="font-bold text-black text-sm truncate">${displayPlate}</div>
                                             <div class="text-xs text-gray-500 truncate" title="${safeModel}">${safeModel}</div>
@@ -6102,7 +6125,7 @@ dropdown.innerHTML = `
                         approvalIsland.classList.add('hidden');
                     }
 
-                    if (isOwnProfile) {
+if (isOwnProfile) {
                         const likedGrid = document.getElementById('liked-photos-grid');
                         likedGrid.innerHTML = '<p class="text-xs text-gray-500 col-span-4">Đang tải...</p>';
 
@@ -6116,10 +6139,13 @@ dropdown.innerHTML = `
                             const likedPagerEl = document.getElementById('liked-pager');
                             if (likedPagerEl) likedPagerEl.innerHTML = '';
                         } else {
-                            const { data: likedPhotos } = await window.sb
+                            let likedQuery = window.sb
                                 .from('photos')
                                 .select('*, profiles(username), vehicles(model)')
                                 .in('id', likedIds);
+                            
+                            likedQuery = app.preference.applyFilter(likedQuery); // Lọc nốt ảnh đã thích
+                            const { data: likedPhotos } = await likedQuery;
 
                             if (!likedPhotos || likedPhotos.length === 0) {
                                 app._likedPhotosCache = [];
@@ -10076,13 +10102,18 @@ cleanupState: () => {
                             }
                         } else {
                             // TRƯỜNG HỢP 2: Gợi ý bình thường theo Text nhập vào
-                            let sbQuery = window.sb.from(table).select(selectField);
+                            let selectStr = selectField;
+                            if (table === 'vehicles' && app.preference.current !== 'both') {
+                                selectStr = `${selectField}, photos!inner(type)`;
+                            }
+
+                            let sbQuery = window.sb.from(table).select(selectStr);
                             
                             searchWords.forEach(word => {
                                 sbQuery = sbQuery.ilike(selectField, `%${word}%`);
                             });
                             
-                            if (table === 'photos') sbQuery = app.preference.applyFilter(sbQuery); // <--- THÊM DÒNG NÀY
+                            sbQuery = app.preference.applyFilter(sbQuery, table);
                             
                             const res = await sbQuery.limit(15).abortSignal(controller.signal);
                             data = res.data;
