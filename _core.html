@@ -2573,28 +2573,14 @@
                                             </div>
 </td>
                                      </tr>
+                                    <!-- QUAY LẠI SELECT MẶC ĐỊNH CHO LOẠI XE -->
                                     <tr>
                                         <td class="label">Loại xe</td>
-                                        <td class="value-cell" x-data="{ open: false }">
-                                            <div class="relative w-full h-full">
-                                                <input type="hidden" id="info-type" value="bus">
-                                                <input type="text" id="info-type-display" class="info-input" 
-                                                       readonly value="Xe buýt" 
-                                                       @click="if(!document.getElementById('info-type-display').hasAttribute('data-locked')) open = !open" 
-                                                       @click.outside="open = false"
-                                                       data-locked="true" style="cursor: default;">
-                                                <i id="info-type-icon" class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 pointer-events-none transition-transform duration-200 hidden" :class="open ? 'rotate-180' : ''"></i>
-                                                
-                                                <!-- Hộp menu thả xuống -->
-                                                <div class="suggestion-box !mt-0 border-t-0 rounded-t-none" :class="open ? 'active' : ''">
-                                                    <div class="suggestion-item flex justify-between items-center py-2 hover:bg-gray-50 cursor-pointer" @click="document.getElementById('info-type').value='bus'; document.getElementById('info-type-display').value='Xe buýt'; open=false;">
-                                                        <span class="font-bold text-gray-800">Xe buýt</span><i class="fa-solid fa-bus text-gray-400"></i>
-                                                    </div>
-                                                    <div class="suggestion-item flex justify-between items-center py-2 hover:bg-gray-50 cursor-pointer" @click="document.getElementById('info-type').value='coach'; document.getElementById('info-type-display').value='Xe khách'; open=false;">
-                                                        <span class="font-bold text-gray-800">Xe khách</span><i class="fa-solid fa-van-shuttle text-gray-400"></i>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                        <td class="value-cell">
+                                            <select id="info-type" class="info-input" disabled>
+                                                <option value="bus">Xe buýt</option>
+                                                <option value="coach">Xe khách</option>
+                                            </select>
                                         </td>
                                     </tr>
                                      <tr>
@@ -6100,21 +6086,19 @@ grid.innerHTML = tiers.map(tier => {
                     app.edit.cancel();
 
 const elInfoPlate = document.getElementById('info-plate');
-                     const elInfoOperator = document.getElementById('info-operator');
-                     const elInfoRoute = document.getElementById('info-route');
-                     const elInfoModel = document.getElementById('info-model');
-                     const elInfoType = document.getElementById('info-type');
-                     const elInfoTypeDisplay = document.getElementById('info-type-display');
-                     const elInfoLocation = document.getElementById('info-location');
-                     const elInfoNote = document.getElementById('info-note');
-                     const elInfoDate = document.getElementById('info-date');
-                     const elInfoCamera = document.getElementById('info-camera');
-                     const elInfoExif = document.getElementById('info-exif-params');
+                      const elInfoOperator = document.getElementById('info-operator');
+                      const elInfoRoute = document.getElementById('info-route');
+                      const elInfoModel = document.getElementById('info-model');
+                      const elInfoType = document.getElementById('info-type');
+                      const elInfoLocation = document.getElementById('info-location');
+                      const elInfoNote = document.getElementById('info-note');
+                      const elInfoDate = document.getElementById('info-date');
+                      const elInfoCamera = document.getElementById('info-camera');
+                      const elInfoExif = document.getElementById('info-exif-params');
 
-                     if (elInfoPlate) elInfoPlate.value = photo.license_plate;
-                     if (elInfoOperator) elInfoOperator.value = snapshot.operator || 'Đã bị xóa';
-                     if (elInfoType) elInfoType.value = snapshot.type || 'bus';
-                     if (elInfoTypeDisplay) elInfoTypeDisplay.value = (snapshot.type === 'coach') ? 'Xe khách' : 'Xe buýt';
+                      if (elInfoPlate) elInfoPlate.value = photo.license_plate;
+                      if (elInfoOperator) elInfoOperator.value = snapshot.operator || 'Đã bị xóa';
+                      if (elInfoType) elInfoType.value = snapshot.type || 'bus';
                      if (elInfoRoute) elInfoRoute.value = snapshot.route_no || 'Đã bị xóa';
                      if (elInfoModel) elInfoModel.value = snapshot.model || 'Đã bị xóa';
                      if (elInfoLocation) elInfoLocation.value = photo.location || '---';
@@ -6577,47 +6561,25 @@ if (app.user && app.role === 'manager' && isDenied) {
                         btnLabel.innerText = "Đang sửa...";
 
 if (app.role === 'admin' || app.role === 'manager') {
-                             noticeText.innerText = "ADMIN MODE: Bạn đang sửa trực tiếp vào cơ sở dữ liệu.";
-                             btnSave.innerText = "Lưu ngay lập tức";
-                             document.getElementById('info-plate').readOnly = false;
-                         } else {
-                             noticeText.innerText = "Bạn đang ở chế độ chỉnh sửa. Thay đổi sẽ được gửi yêu cầu duyệt (Trừ ngày chụp).";
-                             btnSave.innerText = "Gửi yêu cầu";
-                         }
-
-                         // Unlock custom type dropdown
-                         const typeDisplay = document.getElementById('info-type-display');
-                         const typeIcon = document.getElementById('info-type-icon');
-                         if (typeDisplay) {
-                             typeDisplay.removeAttribute('data-locked');
-                             typeDisplay.style.cursor = 'pointer';
-                             typeDisplay.style.boxShadow = 'inset 0 0 0 2px #18181b';
-                             typeDisplay.style.backgroundColor = '#fff';
-                         }
-                         if (typeIcon) typeIcon.classList.remove('hidden');
-                    } else {
+                              noticeText.innerText = "ADMIN MODE: Bạn đang sửa trực tiếp vào cơ sở dữ liệu.";
+                              btnSave.innerText = "Lưu ngay lập tức";
+                              document.getElementById('info-plate').readOnly = false;
+                          } else {
+                              noticeText.innerText = "Bạn đang ở chế độ chỉnh sửa. Thay đổi sẽ được gửi yêu cầu duyệt (Trừ ngày chụp).";
+                              btnSave.innerText = "Gửi yêu cầu";
+                          }
+                     } else {
                         app.edit.cancel();
                     }
                 },
 cancel: () => {
                      const formInputs = document.querySelectorAll('#inline-edit-form .info-input');
-                     formInputs.forEach(input => {
-                         if (input.tagName === 'SELECT') input.disabled = true;
-                         else input.readOnly = true;
-                     });
+formInputs.forEach(input => {
+                          if (input.tagName === 'SELECT') input.disabled = true;
+                          else input.readOnly = true;
+                      });
 
-                     // Lock custom type dropdown
-                     const typeDisplay = document.getElementById('info-type-display');
-                     const typeIcon = document.getElementById('info-type-icon');
-                     if (typeDisplay) {
-                         typeDisplay.setAttribute('data-locked', 'true');
-                         typeDisplay.style.cursor = 'default';
-                         typeDisplay.style.boxShadow = 'none';
-                         typeDisplay.style.backgroundColor = 'transparent';
-                     }
-                     if (typeIcon) typeIcon.classList.add('hidden');
-
-                     document.getElementById('edit-actions').classList.add('hidden');
+                      document.getElementById('edit-actions').classList.add('hidden');
                      document.getElementById('edit-mode-notice').classList.add('hidden');
                      document.getElementById('btn-edit-label').innerText = "Sửa thông tin";
                      app.edit.isEditing = false;
