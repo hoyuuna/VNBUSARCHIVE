@@ -16,7 +16,7 @@ Hệ thống áp dụng bộ tiêu chuẩn duyệt ảnh nghiêm ngặt. Ảnh t
 
 ### 1. Đúng chủ đề
 * Chỉ chấp nhận ảnh xe buýt đang hoạt động và được đăng ký tại **Việt Nam**. Không chấp nhận xe buýt nước ngoài.
-* Tuyệt đối **nghiêm cấm** đăng tải ảnh xe của nhà nước (biển xanh/đỏ)
+* Tuyệt đối **nghiêm cấm** đăng tải ảnh xe của các cơ quan nhà nước/chính phủ (biển xanh/đỏ)
 
 ### 2. Tính chủ đích & Bố cục
 Chúng tôi tìm kiếm những bức ảnh có chủ đích nhiếp ảnh rõ ràng, được canh góc và chuẩn bị kỹ lưỡng.
