@@ -6188,7 +6188,7 @@ if (isOwnProfile) {
 
                     const snapshot = {
                         operator: photo.operator,
-                        type: photo.type || v?.type,
+                        type: photo.type || 'bus',
                         route_no: photo.route_no,
                         model: v?.model
                     };
@@ -8352,11 +8352,11 @@ app.admin.fetchManagerData('denied');
                     if (btn) btn.innerHTML = `<i class="fa-solid fa-droplet-slash mr-1"></i> Che vật thể (${count}/3)`;
                 },
 
-checkPlate: async (val) => {
+                checkPlate: async (val) => {
                     const rawPlate = val.replace(/[^A-Z0-9-]/gi, '').toUpperCase();
                     const msg = document.getElementById('plate-msg');
+                    const btnSubmit = document.getElementById('btn-submit');
 
-                    // HÀM HELPER: Mở khóa toàn bộ UI nếu biển số sai/bị xóa
                     const unlockUI = () => {
                         app.vehicleLocked = false;
                         app.currentVehicle = null;
@@ -8375,11 +8375,20 @@ checkPlate: async (val) => {
                         const btnCoach = document.getElementById('btn-type-coach');
                         if(btnBus) btnBus.classList.remove('opacity-60', 'opacity-80', 'cursor-not-allowed');
                         if(btnCoach) btnCoach.classList.remove('opacity-60', 'opacity-80', 'cursor-not-allowed');
+                        
+                        if(btnSubmit) btnSubmit.disabled = false;
                     };
+
+                    if (rawPlate.startsWith('80')) {
+                        unlockUI();
+                        if(btnSubmit) btnSubmit.disabled = true;
+                        msg.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Tuyệt đối nghiêm cấm đăng tải ảnh xe của các cơ quan nhà nước/chính phủ!';
+                        msg.className = "text-xs mt-1 text-red-600 font-bold";
+                        return;
+                    }
 
                     const regex = /^([0-9]{2}[A-Z]{1,2}[0-9]{4,5}|[0-9]{2}LD[0-9]{4,5}|T[0-9]{7}|[A-Z]{3}[0-9]{4,7})(-[0-9]+)?$/i;
 
-                    // Nếu gõ sai định dạng hoặc xóa đi -> MỞ KHÓA NGAY LẬP TỨC
                     if (!regex.test(rawPlate)) {
                         unlockUI();
                         msg.innerText = "Định dạng BKS không hợp lệ (VD: 29A12345, T1234567, HAN1234567)";
@@ -8511,28 +8520,51 @@ checkPlate: async (val) => {
                             msg.className = "hidden";
                         }
                     } catch (err) {
-                        unlockUI(); // Mở khóa nếu lỗi mạng
+                        unlockUI();
                         msg.innerText = "Mất kết nối server, vui lòng nhập lại BKS.";
                         msg.className = "text-xs mt-1 text-amber-600";
                     }
                 },
 
-toggleRoute: (val) => {
+                toggleRoute: (val) => {
                     const lbl = document.getElementById('lbl-route');
                     if (val === 'bus') lbl.innerHTML = 'Số tuyến <span class="text-red-500">*</span>';
                     else lbl.innerHTML = 'Lộ trình <span class="text-red-500">*</span>';
                 },
 
                 selectType: (type, isLocked = false) => {
-                    if (app.vehicleLocked && !isLocked) return;
+                    const currentType = document.getElementById('up-type').value;
 
+                    if (app.vehicleLocked && !isLocked && currentType && currentType !== type) {
+                        const typeName = type === 'bus' ? 'Xe Buýt' : 'Xe Khách';
+                        
+                        app.ui.showAlert(
+                            `Bạn có chắc phương tiện này đã được chuyển đổi công năng thành <b>${typeName}</b>?`,
+                            () => {
+                                app.upload.performSelectType(type);
+                            },
+                            () => {
+                            },
+                            {
+                                countdown: true,
+                                btnOkText: "Tôi chắc chắn",
+                                btnCancelText: "Hủy",
+                                title: "Xác nhận chuyển đổi"
+                            }
+                        );
+                        return;
+                    }
+
+                    app.upload.performSelectType(type);
+                },
+
+                performSelectType: (type) => {
                     document.getElementById('up-type').value = type;
                     document.getElementById('type-msg').classList.add('hidden');
 
                     const btnBus = document.getElementById('btn-type-bus');
                     const btnCoach = document.getElementById('btn-type-coach');
 
-                    // 1. Reset 2 nút về màu trắng (Chưa chọn)
                     [btnBus, btnCoach].forEach(btn => {
                         btn.className = "cursor-pointer border border-gray-300 bg-white text-gray-800 rounded-xl p-4 shadow-sm hover:border-gray-400 hover:shadow-md transition-all duration-200 group relative" + (app.vehicleLocked ? " opacity-60 cursor-not-allowed" : "");
                         const iconBg = btn.querySelector('.icon-bg');
@@ -8545,7 +8577,6 @@ toggleRoute: (val) => {
                         p.classList.add('text-gray-500');
                     });
 
-                    // 2. Nhuộm đen nút được chọn (Scale lên 1 chút cho giống popup)
                     const activeBtn = type === 'bus' ? btnBus : btnCoach;
                     activeBtn.className = "cursor-pointer border border-black bg-black text-white rounded-xl p-4 shadow-md transition-all duration-200 scale-[1.02]" + (app.vehicleLocked ? " opacity-80 cursor-not-allowed scale-100" : "");
                     const iconActiveBg = activeBtn.querySelector('.icon-bg');
