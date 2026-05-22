@@ -92,7 +92,7 @@ Phân loại rõ ràng giữa **Xe buýt** và **Xe khách**.
 
 ### 5. Tuyến đường
 * **Xe buýt:** Chỉ nhập số tuyến. *Ví dụ: `01`*. (Lộ trình chi tiết ghi tại phần **Ghi chú**).
-* **Xe khách:** Ghi điểm đầu - điểm cuối. *Ví dụ: `Hà Nội - Cẩm Phả`*.
+* **Xe khách:** Ghi điểm đầu - điểm cuối (theo tỉnh). Ưu tiên điểm đầu là nơi xe đăng kí (nếu có) *Ví dụ: `Hà Nội - Cẩm Phả`*.
 * **Xe đã dừng hoạt động:** Ghi `Dừng hoạt động`.
 * **Xe chưa hoạt động:** Ghi `Chưa hoạt động`.
 * **Xe về gara / Ngoài giờ hoạt động:** Ghi `Ngoài giờ hoạt động`.
