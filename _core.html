@@ -2571,11 +2571,19 @@
                                                     x-on:input.debounce.300ms="app.utils.triggerSuggestion('info-operator', 'info-operator-suggestions', $el.value, 'operator')">
                                                 <div id="info-operator-suggestions" class="suggestion-box"></div>
                                             </div>
+</td>
+                                     </tr>
+                                    <tr>
+                                        <td class="label">Loại xe</td>
+                                        <td class="value-cell">
+                                            <select id="info-type" class="info-input" disabled>
+                                                <option value="bus">Xe buýt</option>
+                                                <option value="coach">Xe khách</option>
+                                            </select>
                                         </td>
                                     </tr>
-                                    <tr>
-                                    <tr>
-                                        <td class="label">Tuyến</td>
+                                     <tr>
+                                         <td class="label">Tuyến</td>
                                         <td class="value-cell" x-data>
                                             <div class="relative w-full h-full">
                                                 <input type="text" id="info-route" autocomplete="off"
@@ -2941,13 +2949,39 @@
                                     </div>
                                 </div>
                                 
-                                <div class="hidden" x-data>
-                                    <label class="text-xs text-gray-500 font-bold block mb-1.5 uppercase">Loại xe <span
-                                            class="text-red-500">*</span></label>
-                                    <select id="up-type"
-                                        class="w-full border border-gray-300 p-2.5 text-sm bg-white rounded-md outline-none">
-                                        <option value="bus" selected>Xe buýt</option>
-                                    </select>
+<!-- KHỐI CHỌN LOẠI XE MỚI -->
+                                <div class="md:col-span-2 mb-2">
+                                    <label class="text-xs text-gray-500 font-bold block mb-2 uppercase">Loại xe <span class="text-red-500">*</span></label>
+                                    <input type="hidden" id="up-type" value=""> <!-- Lưu giá trị thực tế để submit -->
+                                    
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <!-- Nút Xe Buýt -->
+                                        <div id="btn-type-bus" onclick="app.upload.selectType('bus')" class="cursor-pointer border-2 border-gray-200 bg-white text-black rounded-xl p-4 transition-all duration-200 hover:border-gray-400 group">
+                                            <div class="flex items-start gap-3 pointer-events-none">
+                                                <div class="icon-bg w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0 group-hover:bg-gray-200 transition-colors">
+                                                    <i class="fa-solid fa-bus text-lg"></i>
+                                                </div>
+                                                <div>
+                                                    <h4 class="font-bold text-base uppercase mb-1">Xe Buýt</h4>
+                                                    <p class="text-[11px] font-medium opacity-70 leading-snug">Phương tiện chở khách theo tuyến đường, lộ trình và các điểm dừng cố định trong phạm vi đô thị hoặc nội tỉnh.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Nút Xe Khách -->
+                                        <div id="btn-type-coach" onclick="app.upload.selectType('coach')" class="cursor-pointer border-2 border-gray-200 bg-white text-black rounded-xl p-4 transition-all duration-200 hover:border-gray-400 group">
+                                            <div class="flex items-start gap-3 pointer-events-none">
+                                                <div class="icon-bg w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0 group-hover:bg-gray-200 transition-colors">
+                                                    <i class="fa-solid fa-van-shuttle text-lg"></i>
+                                                </div>
+                                                <div>
+                                                    <h4 class="font-bold text-base uppercase mb-1">Xe Khách</h4>
+                                                    <p class="text-[11px] font-medium opacity-70 leading-snug">Phương tiện chở khách theo tuyến cố định, hợp đồng hoặc du lịch giữa các tỉnh thành.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p id="type-msg" class="hidden text-xs text-red-500 mt-2 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Vui lòng chọn loại xe!</p>
                                 </div>
                                 <div>
                                     <label class="text-xs text-gray-500 font-bold block mb-1.5 uppercase"
@@ -6053,19 +6087,21 @@ grid.innerHTML = tiers.map(tier => {
                     const elInfoPlate = document.getElementById('info-plate');
                     const elInfoOperator = document.getElementById('info-operator');
                     const elInfoRoute = document.getElementById('info-route');
-                    const elInfoModel = document.getElementById('info-model');
-                    const elInfoLocation = document.getElementById('info-location');
-                    const elInfoNote = document.getElementById('info-note');
-                    const elInfoDate = document.getElementById('info-date');
-                    const elInfoCamera = document.getElementById('info-camera');
-                    const elInfoExif = document.getElementById('info-exif-params');
+const elInfoModel = document.getElementById('info-model');
+                     const elInfoType = document.getElementById('info-type'); // Mới
+                     const elInfoLocation = document.getElementById('info-location');
+                     const elInfoNote = document.getElementById('info-note');
+                     const elInfoDate = document.getElementById('info-date');
+                     const elInfoCamera = document.getElementById('info-camera');
+                     const elInfoExif = document.getElementById('info-exif-params');
 
-                    if (elInfoPlate) elInfoPlate.value = photo.license_plate;
-                    if (elInfoOperator) elInfoOperator.value = snapshot.operator || 'Đã bị xóa';
-                    if (elInfoRoute) elInfoRoute.value = snapshot.route_no || 'Đã bị xóa';
-                    if (elInfoModel) elInfoModel.value = snapshot.model || 'Đã bị xóa';
-                    if (elInfoLocation) elInfoLocation.value = photo.location || '---';
-                    if (elInfoNote) elInfoNote.value = photo.note || '---';
+                     if (elInfoPlate) elInfoPlate.value = photo.license_plate;
+                     if (elInfoOperator) elInfoOperator.value = snapshot.operator || 'Đã bị xóa';
+                     if (elInfoType) elInfoType.value = snapshot.type || 'bus'; // Mới
+                     if (elInfoRoute) elInfoRoute.value = snapshot.route_no || 'Đã bị xóa';
+                     if (elInfoModel) elInfoModel.value = snapshot.model || 'Đã bị xóa';
+                     if (elInfoLocation) elInfoLocation.value = photo.location || '---';
+                     if (elInfoNote) elInfoNote.value = photo.note || '---';
 
                     const displayDate = photo.taken_at || photo.created_at;
                     if (elInfoDate) elInfoDate.value = displayDate ? displayDate.split('T')[0] : '';
@@ -6558,7 +6594,7 @@ if (app.user && app.role === 'manager' && isDenied) {
                     const payload = {
                         license_plate: document.getElementById('info-plate').value.replace(/[^A-Z0-9-]/gi, '').toUpperCase(),
                         operator: document.getElementById('info-operator').value,
-                        type: 'bus',
+                        type: document.getElementById('info-type').value,
                         route: document.getElementById('info-route').value,
                         model: document.getElementById('info-model').value,
                         location: document.getElementById('info-location').value,
@@ -8148,7 +8184,7 @@ app.admin.fetchManagerData('denied');
                         }
 
 
-                        const exactVehicle = existingVehicles?.find(v => v.license_plate === rawPlate);
+const exactVehicle = existingVehicles?.find(v => v.license_plate === rawPlate);
 
                         if (exactVehicle) {
                             app.vehicleLocked = true;
@@ -8169,20 +8205,20 @@ app.admin.fetchManagerData('denied');
                             if (latestPhoto) {
                                 document.getElementById('up-operator').value = latestPhoto.operator || '';
                                 document.getElementById('up-route').value = latestPhoto.route_no || '';
-                                document.getElementById('up-type').value = latestPhoto.type || 'bus';
+                                app.upload.selectType(latestPhoto.type || 'bus', true);
                             } else {
                                 document.getElementById('up-operator').value = '';
                                 document.getElementById('up-route').value = '';
                             }
 
+                            ['up-operator', 'up-route'].forEach(id => {
+                                document.getElementById(id).readOnly = false;
+                                document.getElementById(id).classList.remove('bg-gray-100');
+                            });
+
                             ['up-model'].forEach(id => {
                                 document.getElementById(id).readOnly = true;
                                 document.getElementById(id).classList.add('bg-gray-100');
-                            });
-                            document.getElementById('up-type').disabled = true;
-                            document.getElementById('up-type').classList.add('bg-gray-100');['up-operator', 'up-route'].forEach(id => {
-                                document.getElementById(id).readOnly = false;
-                                document.getElementById(id).classList.remove('bg-gray-100');
                             });
 
                             document.getElementById('locked-msg').classList.remove('hidden');
@@ -8222,12 +8258,15 @@ app.admin.fetchManagerData('denied');
 
                         } else {
                             app.vehicleLocked = false;
-                            app.currentVehicle = null;['up-operator', 'up-model', 'up-route'].forEach(id => {
+                            app.currentVehicle = null;
+                            ['up-operator', 'up-model', 'up-route'].forEach(id => {
                                 document.getElementById(id).readOnly = false;
                                 document.getElementById(id).classList.remove('bg-gray-100');
                             });
-                            document.getElementById('up-type').disabled = false;
-                            document.getElementById('up-type').classList.remove('bg-gray-100');
+                            
+                            // Mở khóa UI nút bấm
+                            document.getElementById('btn-type-bus').classList.remove('opacity-60', 'opacity-80', 'cursor-not-allowed');
+                            document.getElementById('btn-type-coach').classList.remove('opacity-60', 'opacity-80', 'cursor-not-allowed');
 
                             document.getElementById('locked-msg').classList.add('hidden');
 
@@ -8241,10 +8280,36 @@ app.admin.fetchManagerData('denied');
                     }
                 },
 
-                toggleRoute: (val) => {
+toggleRoute: (val) => {
                     const lbl = document.getElementById('lbl-route');
-                    if (val === 'bus') lbl.innerText = "Tuyến";
-                    else lbl.innerText = "Lộ trình";
+                    if (val === 'bus') lbl.innerHTML = 'Số tuyến <span class="text-red-500">*</span>';
+                    else lbl.innerHTML = 'Lộ trình <span class="text-red-500">*</span>';
+                },
+
+                selectType: (type, isLocked = false) => {
+                    if (app.vehicleLocked && !isLocked) return;
+
+                    document.getElementById('up-type').value = type;
+                    document.getElementById('type-msg').classList.add('hidden');
+
+                    const btnBus = document.getElementById('btn-type-bus');
+                    const btnCoach = document.getElementById('btn-type-coach');
+
+                    // Reset cả 2 về mặc định (Màu trắng)
+                    [btnBus, btnCoach].forEach(btn => {
+                        btn.className = "cursor-pointer border-2 border-gray-200 bg-white text-black rounded-xl p-4 transition-all duration-200 hover:border-gray-400 group" + (app.vehicleLocked ? " opacity-60 cursor-not-allowed" : "");
+                        btn.querySelector('.icon-bg').classList.remove('bg-white/20');
+                        btn.querySelector('.icon-bg').classList.add('bg-gray-100');
+                    });
+
+                    // Nhuộm đen nút được chọn
+                    const activeBtn = type === 'bus' ? btnBus : btnCoach;
+                    activeBtn.className = "cursor-pointer border-2 border-black bg-black text-white rounded-xl p-4 transition-all duration-200 shadow-md" + (app.vehicleLocked ? " opacity-80 cursor-not-allowed" : "");
+                    activeBtn.querySelector('.icon-bg').classList.remove('bg-gray-100', 'group-hover:bg-gray-200');
+                    activeBtn.querySelector('.icon-bg').classList.add('bg-white/20');
+
+                    // Đổi chữ "Số tuyến" / "Lộ trình" cho hợp lý
+                    app.upload.toggleRoute(type);
                 },
 
                 toggleColor: (isBlack) => {
@@ -8503,10 +8568,17 @@ app.admin.fetchManagerData('denied');
 
                     const valPlate = document.getElementById('up-plate').value.trim();
                     const valOp = document.getElementById('up-operator').value.trim();
+                    const valType = document.getElementById('up-type').value;
                     const valRoute = document.getElementById('up-route').value.trim();
                     const valModel = document.getElementById('up-model').value.trim();
                     const valLoc = document.getElementById('up-location').value.trim();
                     const valDate = document.getElementById('up-date').value;
+
+                    // Nếu chưa click chọn loại xe
+                    if (!valType) {
+                        document.getElementById('type-msg').classList.remove('hidden');
+                        return app.ui.showAlert("Vui lòng chọn Loại xe (Xe buýt hoặc Xe khách)!");
+                    }
 
                     if (!valPlate || !valOp || !valRoute || !valModel || !valLoc || !valDate) {
                         app.ui.showAlert("Vui lòng nhập đầy đủ thông tin (trừ ghi chú)!");
@@ -9118,6 +9190,17 @@ app.admin.fetchManagerData('denied');
                         // Gọi hàm reset mới, cực kỳ gọn gàng
                         app.utils.resetTurnstile('#upload .cf-turnstile');
                         app.utils.resetTurnstile('#auth .cf-turnstile');
+
+                        // Tẩy trắng 2 nút chọn loại xe
+                        document.getElementById('up-type').value = '';
+                        ['btn-type-bus', 'btn-type-coach'].forEach(id => {
+                            const btn = document.getElementById(id);
+                            if(btn) {
+                                btn.className = "cursor-pointer border-2 border-gray-200 bg-white text-black rounded-xl p-4 transition-all duration-200 hover:border-gray-400 group";
+                                btn.querySelector('.icon-bg').classList.replace('bg-white/20', 'bg-gray-100');
+                            }
+                        });
+                        document.getElementById('type-msg')?.classList.add('hidden');
                     }
 
                     app.ui.closeUploadProgress();
