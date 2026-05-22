@@ -9400,7 +9400,7 @@ toggleRoute: (val) => {
                     app.handleRoute();
                 },
 
-                cleanupState: () => {
+cleanupState: () => {
                     if (document.getElementById('upload-form')) {
                         document.getElementById('upload-form').reset();
                         app.upload.removeImage();
@@ -9412,17 +9412,26 @@ toggleRoute: (val) => {
                         app.utils.resetTurnstile('#upload .cf-turnstile');
                         app.utils.resetTurnstile('#auth .cf-turnstile');
 
-// Tẩy trắng 2 nút chọn loại xe
-                         document.getElementById('up-type').value = '';
-                         ['btn-type-bus', 'btn-type-coach'].forEach(id => {
-                             const btn = document.getElementById(id);
-                             if(btn) {
-                                 btn.className = "cursor-pointer border border-gray-300 bg-white text-gray-800 rounded-xl p-4 shadow-sm hover:border-gray-400 hover:shadow-md transition-all duration-200 group relative";
-                                 const iconBg = btn.querySelector('.icon-bg');
-                                 iconBg.classList.remove('bg-white/20');
-                                 iconBg.classList.add('bg-gray-100');
-                             }
-                         });
+                        // Tẩy trắng 2 nút chọn loại xe
+                        document.getElementById('up-type').value = '';
+                        ['btn-type-bus', 'btn-type-coach'].forEach(id => {
+                            const btn = document.getElementById(id);
+                            if(btn) {
+                                btn.className = "cursor-pointer border border-gray-300 bg-white text-gray-800 rounded-xl p-4 shadow-sm hover:border-gray-400 hover:shadow-md transition-all duration-200 group relative";
+                                
+                                const iconBg = btn.querySelector('.icon-bg');
+                                if (iconBg) {
+                                    iconBg.classList.remove('bg-white/20', 'border-white/30');
+                                    iconBg.classList.add('bg-gray-100', 'border-transparent');
+                                }
+                                
+                                const p = btn.querySelector('p');
+                                if (p) {
+                                    p.classList.remove('text-gray-300');
+                                    p.classList.add('text-gray-500');
+                                }
+                            }
+                        });
                         document.getElementById('type-msg')?.classList.add('hidden');
                     }
 
