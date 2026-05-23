@@ -3,6 +3,15 @@ import crypto from 'crypto';
 import formidable from 'formidable';
 import fs from 'fs';
 
+// Hàm loại bỏ ký tự Null (\u0000 hoặc \x00) và chuẩn hóa Unicode tránh lỗi DB
+const sanitizeString = (str) => {
+    if (typeof str !== 'string') return str;
+    return str
+        .normalize('NFC')
+        .replace(/\u0000/g, '')
+        .replace(/\x00/g, '');
+};
+
 export const config = {
     api: {
         bodyParser: false,
@@ -42,17 +51,17 @@ export default async function handler(req, res) {
 
         // Gom các field rải rác lại thành object metadata để giữ nguyên logic lưu DB bên dưới
         const metadata = {
-            plate: getField(fields.meta_plate),
-            operator: getField(fields.meta_operator),
+            plate: sanitizeString(getField(fields.meta_plate)),
+            operator: sanitizeString(getField(fields.meta_operator)),
             type: getField(fields.meta_type),
-            route: getField(fields.meta_route),
-            model: getField(fields.meta_model),
-            location: getField(fields.meta_location),
-            note: getField(fields.meta_note),
+            route: sanitizeString(getField(fields.meta_route)),
+            model: sanitizeString(getField(fields.meta_model)),
+            location: sanitizeString(getField(fields.meta_location)),
+            note: sanitizeString(getField(fields.meta_note)),
             taken_at: getField(fields.meta_taken_at),
-            username: getField(fields.meta_username),
-            camera_model: getField(fields.meta_camera_model),
-            exif_params: getField(fields.meta_exif_params)
+            username: sanitizeString(getField(fields.meta_username)),
+            camera_model: sanitizeString(getField(fields.meta_camera_model)),
+            exif_params: sanitizeString(getField(fields.meta_exif_params))
         };
 
         const file = Array.isArray(files.file) ? files.file[0] : files.file;
