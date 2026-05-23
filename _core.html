@@ -8948,26 +8948,26 @@ app.admin.fetchManagerData('denied');
                             throw new Error("Ảnh quá phức tạp, không thể nén xuống mức an toàn (< 1.5MB). Vui lòng chọn ảnh khác!");
                         }
 
-                        const metadata = {
-                            plate: valPlate.replace(/[^A-Z0-9-]/gi, '').toUpperCase(),
-                            operator: app.utils.fixUnicode(valOp),
-                            type: document.getElementById('up-type').value,
-                            route: app.utils.fixUnicode(valRoute),
-                            model: app.utils.fixUnicode(valModel),
-                            location: app.utils.fixUnicode(valLoc),
-                            note: app.utils.fixUnicode(document.getElementById('up-note').value),
-                            taken_at: valDate,
-                            username: username,
-                            camera_model: app.currentExif.camera,
-                            exif_params: app.currentExif.params
-                        };
-
                         const uploadData = new FormData();
+
+                        // 1. Thêm các trường cơ bản
                         uploadData.append('file', compressedFile);
                         uploadData.append('userId', app.user.id);
                         uploadData.append('captchaToken', captchaResponse);
                         uploadData.append('fileExtension', app.utils.getTargetExtension());
-                        uploadData.append('metadata', JSON.stringify(metadata));
+
+                        // 2. Thêm TRỰC TIẾP từng trường metadata (Không dùng JSON.stringify nữa)
+                        uploadData.append('meta_plate', valPlate.replace(/[^A-Z0-9-]/gi, '').toUpperCase());
+                        uploadData.append('meta_operator', app.utils.fixUnicode(valOp));
+                        uploadData.append('meta_type', document.getElementById('up-type').value);
+                        uploadData.append('meta_route', app.utils.fixUnicode(valRoute));
+                        uploadData.append('meta_model', app.utils.fixUnicode(valModel));
+                        uploadData.append('meta_location', app.utils.fixUnicode(valLoc));
+                        uploadData.append('meta_note', app.utils.fixUnicode(document.getElementById('up-note').value));
+                        uploadData.append('meta_taken_at', valDate);
+                        uploadData.append('meta_username', username);
+                        uploadData.append('meta_camera_model', app.currentExif.camera);
+                        uploadData.append('meta_exif_params', app.currentExif.params);
 
                         const { data: { session } } = await window.sb.auth.getSession();
                         const token = session?.access_token;

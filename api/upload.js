@@ -39,26 +39,21 @@ export default async function handler(req, res) {
         const userId = getField(fields.userId);
         const captchaToken = getField(fields.captchaToken);
         const fileExtension = getField(fields.fileExtension) || 'jpg';
-        const metadataString = getField(fields.metadata);
-        let metadata = {};
-        if (metadataString) {
-            try {
-                metadata = JSON.parse(metadataString);
-            } catch (parseError) {
-                try {
-                    const sanitized = metadataString
-                        .replace(/\\u(?![0-9a-fA-F]{4})/g, '\\\\u')
-                        .replace(/\\(?!["\\/bfnrtu])/g, '\\\\');
-                    metadata = JSON.parse(sanitized);
-                    console.warn('[WARN] metadata cần sanitize:', metadataString);
-                } catch (e) {
-                    return res.status(400).json({
-                        success: false,
-                        error: 'Metadata ảnh chứa ký tự không hợp lệ. Vui lòng kiểm tra ghi chú hoặc thông tin ảnh.'
-                    });
-                }
-            }
-        }
+
+        // Gom các field rải rác lại thành object metadata để giữ nguyên logic lưu DB bên dưới
+        const metadata = {
+            plate: getField(fields.meta_plate),
+            operator: getField(fields.meta_operator),
+            type: getField(fields.meta_type),
+            route: getField(fields.meta_route),
+            model: getField(fields.meta_model),
+            location: getField(fields.meta_location),
+            note: getField(fields.meta_note),
+            taken_at: getField(fields.meta_taken_at),
+            username: getField(fields.meta_username),
+            camera_model: getField(fields.meta_camera_model),
+            exif_params: getField(fields.meta_exif_params)
+        };
 
         const file = Array.isArray(files.file) ? files.file[0] : files.file;
 
