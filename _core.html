@@ -10003,14 +10003,26 @@ cleanupState: () => {
                     const box = document.getElementById(suggestionId);
                     if (!box) return;
 
-                    const staticList = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động'];
-                    
+                    let currentType = '';
+                    if (inputId.startsWith('up-')) currentType = document.getElementById('up-type')?.value || '';
+                    else if (inputId.startsWith('info-')) currentType = document.getElementById('info-type')?.value || '';
+                    else if (inputId.startsWith('adm-p-')) currentType = document.getElementById(`adm-p-type-${inputId.split('-').pop()}`)?.value || '';
+                    else if (inputId.startsWith('req-') && !inputId.startsWith('req-v-')) currentType = document.getElementById(`req-type-${inputId.split('-').pop()}`)?.value || '';
+                    else if (app.currentVehicle) currentType = app.currentVehicle.type || '';
+
+                    let staticList = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động'];
+                    if (currentType === 'coach' || currentType === '') {
+                        staticList.unshift('Hợp đồng');
+                    }
 
                     let dbRoutes = [];
                     if (query.length > 0) {
                         try {
                             const routeWords = query.trim().split(/\s+/).filter(w => w.length > 0);
                             let rQuery = window.sb.from('photos').select('route_no');
+                            
+                            if (currentType) rQuery = rQuery.eq('type', currentType);
+                            
                             routeWords.forEach(word => { rQuery = rQuery.ilike('route_no', `%${word}%`); });
                             const { data } = await rQuery.limit(10);
                             if (data) {
@@ -10046,6 +10058,13 @@ cleanupState: () => {
                 triggerSuggestion: async (inputId, suggestionId, query, field = 'model') => {
                     const box = document.getElementById(suggestionId);
                     if (app.suggestionTimeouts[inputId]) clearTimeout(app.suggestionTimeouts[inputId]);
+
+                    let currentType = '';
+                    if (inputId.startsWith('up-')) currentType = document.getElementById('up-type')?.value || '';
+                    else if (inputId.startsWith('info-')) currentType = document.getElementById('info-type')?.value || '';
+                    else if (inputId.startsWith('adm-p-')) currentType = document.getElementById(`adm-p-type-${inputId.split('-').pop()}`)?.value || '';
+                    else if (inputId.startsWith('req-') && !inputId.startsWith('req-v-')) currentType = document.getElementById(`req-type-${inputId.split('-').pop()}`)?.value || '';
+                    else if (app.currentVehicle) currentType = app.currentVehicle.type || '';
 
                     // LOGIC MỚI: Tự động phát hiện Input "Tuyến" và "Biển số" tương ứng
                     let routeVal = '';
@@ -10094,6 +10113,10 @@ cleanupState: () => {
                             let sbQuery = window.sb.from('photos')
                                 .select('vehicles!inner(model)')
                                 .eq('route_no', routeVal);
+                                
+                            if (currentType) {
+                                sbQuery = sbQuery.eq('type', currentType);
+                            }
 
                             // Bổ sung: Lọc âm thầm theo Tỉnh (Cụm biển số)
                             if (plateVal && plateVal.length >= 2) {
@@ -10123,11 +10146,19 @@ cleanupState: () => {
                         } else {
                             // TRƯỜNG HỢP 2: Gợi ý bình thường theo Text nhập vào
                             let selectStr = selectField;
-                            if (table === 'vehicles' && app.preference.current !== 'both') {
+                            if (table === 'vehicles' && (app.preference.current !== 'both' || currentType)) {
                                 selectStr = `${selectField}, photos!inner(type)`;
                             }
 
                             let sbQuery = window.sb.from(table).select(selectStr);
+                            
+                            if (currentType) {
+                                if (table === 'photos') {
+                                    sbQuery = sbQuery.eq('type', currentType);
+                                } else if (table === 'vehicles') {
+                                    sbQuery = sbQuery.eq('photos.type', currentType);
+                                }
+                            }
                             
                             searchWords.forEach(word => {
                                 sbQuery = sbQuery.ilike(selectField, `%${word}%`);
