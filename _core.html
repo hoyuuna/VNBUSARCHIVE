@@ -2762,6 +2762,15 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- MỤC CÓ THỂ BẠN QUAN TÂM -->
+                <div id="detail-recommendation-section" class="mt-12 hidden">
+                    <div class="flex items-center gap-2 mb-4 border-b border-gray-200 pb-2">
+                        <i class="fa-solid fa-sparkles text-pink-600 text-lg"></i>
+                        <h3 class="text-lg font-bold uppercase text-black tracking-tight">Có thể bạn quan tâm</h3>
+                    </div>
+                    <div id="detail-rec-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+                </div>
             </div>
 
             <div id="contact" class="view-section">
@@ -6476,7 +6485,106 @@ if (app.user && app.role === 'manager' && isDenied) {
                         document.getElementById('detail-map').style.display = 'none';
                     }
 
+                    app.views.loadDetailRecommendations(photo, snapshot);
+
                     app.loadingBar.finish();
+                },
+
+                loadDetailRecommendations: async (photo, snapshot) => {
+                    const recSection = document.getElementById('detail-recommendation-section');
+                    const recGrid = document.getElementById('detail-rec-grid');
+                    if (!recSection || !recGrid) return;
+                    
+                    recSection.classList.add('hidden');
+                    recGrid.innerHTML = '<div class="col-span-full text-center py-4 text-gray-500"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải gợi ý...</div>';
+                    recSection.classList.remove('hidden');
+                    
+                    try {
+                        const promises = [];
+                        
+                        // Cấu hình tìm 3 tiêu chí đầu tiên
+                        const queriesConfig = [
+                            { type: 'operator', val: snapshot.operator },
+                            { type: 'route_no', val: snapshot.route_no },
+                            { type: 'uploader_id', val: photo.uploader_id }
+                        ];
+                        
+                        queriesConfig.forEach(cfg => {
+                            if (cfg.val && cfg.val !== '---') {
+                                let q = window.sb.from('photos').select('*, profiles(id, username, role), vehicles(model)').eq('status', 'approved').neq('id', photo.id).eq(cfg.type, cfg.val).limit(15);
+                                q = app.preference.applyFilter(q); // Lọc theo tùy chọn cá nhân
+                                promises.push(q);
+                            }
+                        });
+                        
+                        // Lấy ảnh ngẫu nhiên làm Backup dự phòng thiếu (nằm ở vị trí cuối mảng Promise)
+                        let backupQ = window.sb.from('photos').select('*, profiles(id, username, role), vehicles(model)').eq('status', 'approved').neq('id', photo.id).order('created_at', {ascending: false}).limit(20);
+                        backupQ = app.preference.applyFilter(backupQ);
+                        promises.push(backupQ);
+                        
+                        // Đẩy tất cả truy vấn chạy song song cho tốc độ nhanh nhất
+                        const results = await Promise.all(promises);
+                        
+                        let finalPhotos = [];
+                        let usedIds = new Set([photo.id]); // Chống trùng lặp ảnh với nhau
+                        
+                        // Nhặt mỗi tiêu chí đúng 1 ảnh
+                        for (let i = 0; i < promises.length - 1; i++) {
+                            const data = results[i].data || [];
+                            data.sort(() => 0.5 - Math.random()); // Trộn ngẫu nhiên
+                            for (const p of data) {
+                                if (!usedIds.has(p.id)) {
+                                    finalPhotos.push(p);
+                                    usedIds.add(p.id);
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        // Xử lý tiêu chí Dòng xe (phải đi đường vòng qua bảng vehicles)
+                        if (snapshot.model && snapshot.model !== '---') {
+                            const { data: vData } = await window.sb.from('vehicles').select('license_plate').eq('model', snapshot.model).limit(20);
+                            if (vData && vData.length > 0) {
+                                const plates = vData.map(v => v.license_plate);
+                                let mQ = window.sb.from('photos').select('*, profiles(id, username, role), vehicles(model)').eq('status', 'approved').neq('id', photo.id).in('license_plate', plates).limit(15);
+                                mQ = app.preference.applyFilter(mQ);
+                                const { data: mPhotos } = await mQ;
+                                if (mPhotos) {
+                                    mPhotos.sort(() => 0.5 - Math.random());
+                                    for (const p of mPhotos) {
+                                        if (!usedIds.has(p.id)) {
+                                            finalPhotos.push(p);
+                                            usedIds.add(p.id);
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Bù lỗ hổng (nếu < 4 ảnh) bằng các ảnh Backup
+                        const backupData = results[results.length - 1].data || [];
+                        backupData.sort(() => 0.5 - Math.random());
+                        for (const p of backupData) {
+                            if (finalPhotos.length >= 4) break;
+                            if (!usedIds.has(p.id)) {
+                                finalPhotos.push(p);
+                                usedIds.add(p.id);
+                            }
+                        }
+                        
+                        // Nếu có ảnh, xáo trộn lần cuối và in ra giao diện
+                        if (finalPhotos.length > 0) {
+                            finalPhotos.sort(() => 0.5 - Math.random());
+                            recGrid.innerHTML = finalPhotos.slice(0, 4).map(p => app.views.renderPhotoCard(p)).join('');
+                        } else {
+                            recSection.classList.add('hidden');
+                        }
+                        
+                    } catch (e) {
+                        console.error("Lỗi load Detail Recommendations:", e);
+                        recSection.classList.add('hidden');
+                    }
                 },
 
                 loadHistory: async (plate) => {
