@@ -2869,6 +2869,19 @@
 
 <form id="upload-form" class="space-y-6">
 
+                        <!-- KHUNG CÁ NHÂN HÓA -->
+                        <div id="upload-pref-warning" class="hidden bg-blue-50 border border-blue-200 p-4 rounded-md flex items-center justify-between shadow-sm">
+                            <div class="flex items-start gap-3">
+                                <div class="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center shrink-0">
+                                    <i class="fa-solid fa-filter text-sm"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-blue-900 font-medium mb-0.5">Bạn hiện tại chỉ có thể đăng <b id="pref-warning-type" class="uppercase">...</b></p>
+                                    <p class="text-[11px] text-blue-700">Thay đổi thông tin này trong <a href="javascript:void(0)" onclick="app.preference.open(false)" class="underline font-bold hover:text-blue-900 transition">Cài đặt Cá nhân hóa</a>.</p>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- KHUNG QUOTA MỚI (TÁCH BIỆT HOÀN TOÀN) -->
                         <div id="upload-quota-pill" class="hidden bg-white border border-gray-200 p-4 rounded-md flex items-center justify-between shadow-sm">
                             <div class="flex items-center gap-3">
@@ -8071,6 +8084,48 @@ app.admin.fetchManagerData('denied');
 
              upload: {
                  currentQuota: { limit: null, count: 0 },
+                 
+                 applyPreferenceUI: () => {
+                    const warningEl = document.getElementById('upload-pref-warning');
+                    const typeText = document.getElementById('pref-warning-type');
+                    const btnBus = document.getElementById('btn-type-bus');
+                    const btnCoach = document.getElementById('btn-type-coach');
+                    const pref = app.preference.current;
+
+                    if(btnBus) btnBus.classList.remove('opacity-50', 'pointer-events-none');
+                    if(btnCoach) btnCoach.classList.remove('opacity-50', 'pointer-events-none');
+
+                    if (pref === 'both' || !pref) {
+                        if(warningEl) warningEl.classList.add('hidden');
+                        document.getElementById('up-type').value = '';
+                        [btnBus, btnCoach].forEach(btn => {
+                            if(btn) {
+                                btn.className = "cursor-pointer border border-gray-300 bg-white text-gray-800 rounded-xl p-4 shadow-sm hover:border-gray-400 hover:shadow-md transition-all duration-200 group relative";
+                                const iconBg = btn.querySelector('.icon-bg');
+                                if (iconBg) {
+                                    iconBg.classList.remove('bg-white/20', 'border-white/30');
+                                    iconBg.classList.add('bg-gray-100', 'border-transparent');
+                                }
+                                const p = btn.querySelector('p');
+                                if (p) {
+                                    p.classList.remove('text-gray-300');
+                                    p.classList.add('text-gray-500');
+                                }
+                            }
+                        });
+                    } else {
+                        if(warningEl) warningEl.classList.remove('hidden');
+                        if(typeText) typeText.innerText = pref === 'bus' ? 'Xe Buýt' : 'Xe Khách';
+                        
+                        app.upload.performSelectType(pref); // Tự động click chọn
+                        
+                        if (pref === 'bus' && btnCoach) {
+                            btnCoach.classList.add('opacity-50', 'pointer-events-none');
+                        } else if (pref === 'coach' && btnBus) {
+                            btnBus.classList.add('opacity-50', 'pointer-events-none');
+                        }
+                    }
+                },
 
                  fetchRequirements: async () => {
                     const container = document.getElementById('upload-rules-content');
@@ -8360,6 +8415,8 @@ app.admin.fetchManagerData('denied');
                         
                         document.getElementById('locked-msg')?.classList.add('hidden');
 
+                        if(app.upload.applyPreferenceUI) app.upload.applyPreferenceUI();
+                        
                         const btnBus = document.getElementById('btn-type-bus');
                         const btnCoach = document.getElementById('btn-type-coach');
                         if(btnBus) btnBus.classList.remove('opacity-60', 'opacity-80', 'cursor-not-allowed');
@@ -8456,7 +8513,33 @@ app.admin.fetchManagerData('denied');
                             if (latestPhoto) {
                                 document.getElementById('up-operator').value = latestPhoto.operator || '';
                                 document.getElementById('up-route').value = latestPhoto.route_no || '';
-                                app.upload.selectType(latestPhoto.type || 'bus', true);
+                                
+                                const dbType = latestPhoto.type || 'bus';
+                                const prefType = app.preference.current;
+                                
+                                if (prefType !== 'both' && dbType !== prefType) {
+                                    app.ui.showAlert(
+                                        `Hệ thống nhận diện xe này là <b>${dbType === 'bus' ? 'Xe Buýt' : 'Xe Khách'}</b>, khác với tùy chọn Cá nhân hóa của bạn.<br><br>Bạn có muốn tạm thời mở khóa loại xe để tiếp tục đăng ảnh xe này không?`,
+                                        () => {
+                                            const btnBus = document.getElementById('btn-type-bus');
+                                            const btnCoach = document.getElementById('btn-type-coach');
+                                            if(btnBus) btnBus.classList.remove('opacity-50', 'pointer-events-none');
+                                            if(btnCoach) btnCoach.classList.remove('opacity-50', 'pointer-events-none');
+                                            app.upload.selectType(dbType, true);
+                                            const submitBtn = document.getElementById('btn-submit');
+                                            if(submitBtn) submitBtn.disabled = false;
+                                        },
+                                        () => {
+                                            const submitBtn = document.getElementById('btn-submit');
+                                            if(submitBtn) submitBtn.disabled = true;
+                                            msg.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Đã hủy chuyển đổi loại xe. Không thể tiếp tục đăng tải xe này.';
+                                            msg.className = "text-xs mt-1 text-red-600 font-bold";
+                                        },
+                                        { title: "Xác nhận chuyển đổi loại xe", btnOkText: "Chuyển đổi", btnCancelText: "Hủy" }
+                                    );
+                                } else {
+                                    app.upload.selectType(dbType, true);
+                                }
                             } else {
                                 document.getElementById('up-operator').value = '';
                                 document.getElementById('up-route').value = '';
@@ -9458,26 +9541,8 @@ cleanupState: () => {
                         app.utils.resetTurnstile('#upload .cf-turnstile');
                         app.utils.resetTurnstile('#auth .cf-turnstile');
 
-                        // Tẩy trắng 2 nút chọn loại xe
-                        document.getElementById('up-type').value = '';
-                        ['btn-type-bus', 'btn-type-coach'].forEach(id => {
-                            const btn = document.getElementById(id);
-                            if(btn) {
-                                btn.className = "cursor-pointer border border-gray-300 bg-white text-gray-800 rounded-xl p-4 shadow-sm hover:border-gray-400 hover:shadow-md transition-all duration-200 group relative";
-                                
-                                const iconBg = btn.querySelector('.icon-bg');
-                                if (iconBg) {
-                                    iconBg.classList.remove('bg-white/20', 'border-white/30');
-                                    iconBg.classList.add('bg-gray-100', 'border-transparent');
-                                }
-                                
-                                const p = btn.querySelector('p');
-                                if (p) {
-                                    p.classList.remove('text-gray-300');
-                                    p.classList.add('text-gray-500');
-                                }
-                            }
-                        });
+                        // Load lại trạng thái khóa nút theo cá nhân hóa
+                        if(app.upload.applyPreferenceUI) app.upload.applyPreferenceUI();
                         document.getElementById('type-msg')?.classList.add('hidden');
                     }
 
