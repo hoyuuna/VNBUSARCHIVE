@@ -2585,7 +2585,7 @@
                                     <tr>
                                         <td class="label">Biển kiểm soát</td>
                                         <td class="value-cell"><input type="text" id="info-plate"
-                                                class="info-input clickable-search" readonly></td>
+                                                class="info-input clickable-search" readonly oninput="app.utils.formatPlateInput(this)"></td>
                                     </tr>
                                     <tr>
                                         <td class="label">Ngày chụp</td>
@@ -2598,7 +2598,7 @@
                                             <div class="relative w-full h-full">
                                                 <input type="text" id="info-operator"
                                                     class="info-input clickable-search" readonly autocomplete="off"
-                                                    x-on:input.debounce.300ms="app.utils.triggerSuggestion('info-operator', 'info-operator-suggestions', $el.value, 'operator')">
+                                                    oninput="app.utils.formatNoPunctuation(this)" x-on:input.debounce.300ms="app.utils.triggerSuggestion('info-operator', 'info-operator-suggestions', $el.value, 'operator')">
                                                 <div id="info-operator-suggestions" class="suggestion-box"></div>
                                             </div>
 </td>
@@ -2640,7 +2640,7 @@
                                     <tr>
                                         <td class="label">Vị trí chụp</td>
                                         <td class="value-cell">
-                                            <input type="text" id="info-location" class="info-input" readonly>
+                                            <input type="text" id="info-location" class="info-input" readonly oninput="app.utils.formatNoPunctuation(this)">
                                             <div id="detail-map" class="border-t border-gray-200"></div>
                                         </td>
                                     </tr>
@@ -2682,8 +2682,8 @@
                             <p class="text-[10px] text-amber-700 mb-3">Kéo thả để sắp xếp lại. Thay đổi chỉ được lưu khi bấm "Lưu thay đổi". Để sửa một mục đã có, hãy bấm Xóa nó đi và Thêm lại.</p>
                             <ul id="sortable-history" class="space-y-2 mb-4"></ul>
                             <div class="flex flex-wrap sm:flex-nowrap gap-2 border-t border-amber-200 pt-3">
-                                <input type="text" id="hist-new-plate" placeholder="BKS" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-full sm:w-[18%] rounded bg-white">
-                                <input type="text" id="hist-new-op" placeholder="Đơn vị" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-[48%] sm:w-[22%] rounded bg-white">
+                                <input type="text" id="hist-new-plate" placeholder="BKS" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-full sm:w-[18%] rounded bg-white" oninput="app.utils.formatPlateInput(this)">
+                                <input type="text" id="hist-new-op" placeholder="Đơn vị" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-[48%] sm:w-[22%] rounded bg-white" oninput="app.utils.formatNoPunctuation(this)">
                                 <input type="text" id="hist-new-route" placeholder="Tuyến" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-[48%] sm:w-[18%] rounded bg-white">
                                 <input type="date" id="hist-new-date" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-full sm:w-[22%] rounded bg-white text-gray-600" title="Ngày áp dụng">
                                 <button id="btn-hist-add" onclick="app.vehicle.addHistoryItem('')" class="bg-green-600 text-white p-2 text-xs rounded font-bold hover:bg-green-700 transition w-full sm:flex-1">Thêm Mới</button>
@@ -2967,7 +2967,7 @@
                                 <div x-data>
                                     <label class="text-xs text-gray-500 font-bold block mb-1.5 uppercase">Biển kiểm soát
                                         <span class="text-red-500">*</span></label>
-                                    <input type="text" id="up-plate"
+                                    <input type="text" id="up-plate" oninput="app.utils.formatPlateInput(this)"
                                         x-on:input.debounce.500ms="app.upload.checkPlate($el.value)"
                                         placeholder="VD: 51B12345"
                                         class="w-full border border-gray-300 p-2.5 text-sm uppercase rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition"
@@ -2985,7 +2985,7 @@
                                     <label class="text-xs text-gray-500 font-bold block mb-1.5 uppercase">Đơn vị vận
                                         hành <span class="text-red-500">*</span></label>
                                     <div class="relative w-full">
-                                        <input type="text" id="up-operator"
+                                        <input type="text" id="up-operator" oninput="app.utils.formatNoPunctuation(this)"
                                             class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition"
                                             required autocomplete="off"
                                             x-on:input.debounce.300ms="app.utils.triggerSuggestion('up-operator', 'up-operator-suggestions', $el.value, 'operator')">
@@ -3059,7 +3059,7 @@
                                 <div>
                                     <label class="text-xs text-gray-500 font-bold block mb-1.5 uppercase">Vị trí chụp
                                         <span class="text-red-500">*</span></label>
-                                    <input type="text" id="up-location"
+                                    <input type="text" id="up-location" oninput="app.utils.formatNoPunctuation(this)"
                                         class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition">
                                     <div id="upload-map" class="mt-2 border border-gray-300 rounded-md"></div>
                                 </div>
@@ -6674,7 +6674,7 @@ if (app.user && app.role === 'manager' && isDenied) {
                                 <h4 class="font-bold text-xs text-amber-900 mt-4 mb-2 border-t border-amber-200 pt-3">Thêm mốc lịch sử mới</h4>
                                 <div class="flex flex-wrap sm:flex-nowrap gap-2">
                                     <input type="date" id="veh-hist-new-date" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-full sm:w-[18%] rounded bg-white text-gray-700" title="Ngày áp dụng">
-                                    <input type="text" id="veh-hist-new-op" placeholder="Đơn vị vận hành" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-[48%] sm:w-[25%] rounded bg-white">
+                                    <input type="text" id="veh-hist-new-op" placeholder="Đơn vị vận hành" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-[48%] sm:w-[25%] rounded bg-white" oninput="app.utils.formatNoPunctuation(this)">
                                     <input type="text" id="veh-hist-new-route" placeholder="Số tuyến" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-[48%] sm:w-[15%] rounded bg-white">
                                     <input type="text" id="veh-hist-new-note" placeholder="Ghi chú (BKS cũ...)" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-full sm:flex-1 rounded bg-white">
                                     <button onclick="app.vehicle.addHistoryItem('veh-')" class="bg-green-600 text-white p-2 text-xs rounded font-bold hover:bg-green-700 transition w-full sm:w-auto">Thêm Mới</button>
@@ -7145,11 +7145,11 @@ formInputs.forEach(input => {
                                     <div class="admin-card-body">
                                         <p class="text-[10px] text-gray-500 mb-2"><b>Ngày chụp:</b> ${p.taken_at ? p.taken_at.split('T')[0] : 'Không rõ'} | <b>Camera:</b> ${p.camera_model}</p>
                                         <div class="grid grid-cols-2 gap-2 mb-2">
-                                            <div><span class="admin-label">Biển số</span><input type="text" id="adm-p-plate-${p.id}" value="${safePlate}" class="admin-input uppercase"></div>
+                                            <div><span class="admin-label">Biển số</span><input type="text" id="adm-p-plate-${p.id}" value="${safePlate}" class="admin-input" oninput="app.utils.formatPlateInput(this)"></div>
                                             <div>
                                                 <span class="admin-label">Đơn vị</span>
                                                 <div class="relative">
-                                                    <input type="text" id="adm-p-op-${p.id}" value="${op}" class="admin-input" autocomplete="off" oninput="app.utils.triggerSuggestion('adm-p-op-${p.id}', 'adm-sug-op-${p.id}', this.value, 'operator')">
+                                                    <input type="text" id="adm-p-op-${p.id}" value="${op}" class="admin-input" autocomplete="off" oninput="app.utils.formatNoPunctuation(this); app.utils.triggerSuggestion('adm-p-op-${p.id}', 'adm-sug-op-${p.id}', this.value, 'operator')">
                                                     <div id="adm-sug-op-${p.id}" class="suggestion-box"></div>
                                                 </div>
                                             </div>
@@ -7170,7 +7170,7 @@ formInputs.forEach(input => {
                                                     <div id="adm-sug-model-${p.id}" class="suggestion-box"></div>
                                                 </div>
                                             </div>
-                                            <div><span class="admin-label">Vị trí</span><input type="text" id="adm-p-location-${p.id}" value="${location}" class="admin-input"></div>
+                                            <div><span class="admin-label">Vị trí</span><input type="text" id="adm-p-location-${p.id}" value="${location}" class="admin-input" oninput="app.utils.formatNoPunctuation(this)"></div>
                                         </div>
                                         <div><span class="admin-label">Ghi chú</span><textarea id="adm-p-note-${p.id}" rows="2" class="admin-input">${note}</textarea></div>
                                         ${(() => {
@@ -7294,11 +7294,11 @@ formInputs.forEach(input => {
                                         <div class="admin-card-header"><span class="font-bold text-xs uppercase text-blue-600">SỬA THÔNG TIN</span><span class="text-xs text-gray-500">${app.utils.cleanText(username)}</span></div>
                                         <div class="admin-card-body text-xs">
                                             <div class="grid grid-cols-2 gap-2 mb-2">
-                                                <div><span class="admin-label">BKS ${d.license_plate !== curV.license_plate ? tagNew : ''}</span><input type="text" id="req-plate-${r.id}" value="${app.utils.escapeAttr(d.license_plate)}" class="admin-input font-bold uppercase"></div>
+                                                <div><span class="admin-label">BKS ${d.license_plate !== curV.license_plate ? tagNew : ''}</span><input type="text" id="req-plate-${r.id}" value="${app.utils.escapeAttr(d.license_plate)}" class="admin-input font-bold" oninput="app.utils.formatPlateInput(this)"></div>
                                                 <div>
                                                     <span class="admin-label">Đơn vị ${d.operator !== curP.operator ? tagNew : ''}</span>
                                                     <div class="relative">
-                                                        <input type="text" id="req-op-${r.id}" value="${app.utils.escapeAttr(d.operator)}" class="admin-input" oninput="app.utils.triggerSuggestion('req-op-${r.id}', 'req-sug-op-${r.id}', this.value, 'operator')">
+                                                        <input type="text" id="req-op-${r.id}" value="${app.utils.escapeAttr(d.operator)}" class="admin-input" oninput="app.utils.formatNoPunctuation(this); app.utils.triggerSuggestion('req-op-${r.id}', 'req-sug-op-${r.id}', this.value, 'operator')">
                                                         <div id="req-sug-op-${r.id}" class="suggestion-box"></div>
                                                     </div>
                                                 </div>
@@ -7318,7 +7318,7 @@ formInputs.forEach(input => {
                                                 </div>
                                             </div>
                                             <div class="mb-2"><span class="admin-label">Loại xe ${d.type !== curP.type ? tagNew : ''}</span><select id="req-type-${r.id}" class="admin-input"><option value="bus" ${d.type === 'bus' ? 'selected' : ''}>Xe buýt</option><option value="coach" ${d.type === 'coach' ? 'selected' : ''}>Xe khách</option></select></div>
-                                            <div class="mb-2"><span class="admin-label">Vị trí (Chỉ cập nhật ảnh này)</span><input type="text" id="req-loc-${r.id}" value="${app.utils.escapeAttr(d.location || '')}" class="admin-input"></div>
+                                            <div class="mb-2"><span class="admin-label">Vị trí (Chỉ cập nhật ảnh này)</span><input type="text" id="req-loc-${r.id}" value="${app.utils.escapeAttr(d.location || '')}" class="admin-input" oninput="app.utils.formatNoPunctuation(this)"></div>
                                             <div class="mb-2"><span class="admin-label">Ghi chú (Chỉ cập nhật ảnh này)</span><textarea id="req-note-${r.id}" class="admin-input">${app.utils.cleanText(d.note || '')}</textarea></div>
                                             
                                             <div class="flex gap-2 mt-3">
@@ -9246,7 +9246,7 @@ app.admin.fetchManagerData('denied');
                                 <input type="date" value="${app.utils.escapeAttr(h.effective_date || '')}" onchange="app.vehicle.updateHistoryItem(${index}, 'effective_date', this.value, '${prefix}')" class="border border-gray-300 p-2 sm:p-1.5 rounded text-gray-700 w-full outline-none focus:ring-1 focus:ring-amber-500">
                             </div>
                             <div class="w-[48%] sm:w-[25%]">
-                                <input type="text" value="${app.utils.escapeAttr(h.operator)}" placeholder="Đơn vị" onchange="app.vehicle.updateHistoryItem(${index}, 'operator', this.value, '${prefix}')" class="border border-gray-300 p-2 sm:p-1.5 rounded w-full outline-none focus:ring-1 focus:ring-amber-500">
+                                <input type="text" value="${app.utils.escapeAttr(h.operator)}" placeholder="Đơn vị" oninput="app.utils.formatNoPunctuation(this)" onchange="app.vehicle.updateHistoryItem(${index}, 'operator', this.value, '${prefix}')" class="border border-gray-300 p-2 sm:p-1.5 rounded w-full outline-none focus:ring-1 focus:ring-amber-500">
                             </div>
                             <div class="w-[48%] sm:w-[15%]">
                                 <input type="text" value="${app.utils.escapeAttr(h.route || '')}" placeholder="Tuyến" onchange="app.vehicle.updateHistoryItem(${index}, 'route', this.value, '${prefix}')" class="border border-gray-300 p-2 sm:p-1.5 rounded w-full outline-none focus:ring-1 focus:ring-amber-500">
@@ -9752,6 +9752,28 @@ cleanupState: () => {
                 },
 
 
+                formatPlateInput: (el) => {
+                    let val = el.value;
+                    const upperVal = val.toUpperCase();
+                    if (val !== upperVal) {
+                        const start = el.selectionStart;
+                        const end = el.selectionEnd;
+                        el.value = upperVal;
+                        el.setSelectionRange(start, end);
+                    }
+                },
+                formatNoPunctuation: (el) => {
+                    let val = el.value;
+                    // Xóa các dấu câu, NHƯNG giữ lại dấu phẩy (,), gạch ngang (-), gạch dưới (_)
+                    const newVal = val.replace(/[.;:!?'"()\[\]{}<>*&^%$#@~`|\\]/g, '');
+                    if (val !== newVal) {
+                        const start = el.selectionStart;
+                        const end = el.selectionEnd;
+                        el.value = newVal;
+                        const offset = val.length - newVal.length;
+                        el.setSelectionRange(start > 0 ? start - offset : 0, end > 0 ? end - offset : 0);
+                    }
+                },
                 cleanText: (str) => {
                     if (!str) return '';
                     return DOMPurify.sanitize(str, { ALLOWED_TAGS: [] });
