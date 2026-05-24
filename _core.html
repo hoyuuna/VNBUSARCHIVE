@@ -1359,6 +1359,20 @@
         }
 
 
+    
+        /* Thêm CSS cho hiệu ứng trượt Menu Cài đặt */
+        .slide-left-enter { animation: slideLeft 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .slide-right-enter { animation: slideRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        @keyframes slideLeft {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes slideRight {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
     </style>
 </head>
 
@@ -1385,14 +1399,19 @@
             <div id="preference-content" class="bg-white/80 backdrop-blur-[20px] border border-white/60 shadow-2xl rounded-2xl max-w-[500px] w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col">
                 
                 <!-- Header -->
-                <div class="p-5 md:p-6 border-b border-gray-200/50 flex justify-between items-center relative">
+                <div class="p-5 md:p-6 border-b border-gray-200/50 flex justify-between items-center relative flex-col">
                     <div class="w-full text-center mt-2">
                         <div class="w-12 h-12 bg-black text-white rounded-full flex items-center justify-center text-xl mx-auto mb-3 shadow-md">
                             <i class="fa-solid fa-filter"></i>
                         </div>
-                        <h3 class="text-lg font-bold text-black uppercase tracking-tight">Cá nhân hóa nội dung</h3>
+                        <h3 class="text-lg font-bold text-black uppercase tracking-tight">Cá nhân hóa</h3>
                         <p class="text-[11px] md:text-xs text-gray-500 mt-1.5 font-medium px-4">Chọn loại phương tiện bạn quan tâm. Hệ thống sẽ tự động lọc và ẩn các nội dung còn lại.</p>
                     </div>
+                    
+                    <!-- Text dành cho người mới -->
+                    <p id="pref-onboarding-note" class="hidden w-full text-[11px] text-blue-700 bg-blue-50 border border-blue-200 p-2.5 rounded-lg mt-4 font-bold text-center shadow-sm">
+                        <i class="fa-solid fa-circle-info mr-1"></i> Bạn luôn có thể đổi lại thông tin này trong phần Cài đặt - Cá nhân hóa.
+                    </p>
                     <!-- Nút X (Ẩn khi onboarding) -->
                     <button id="pref-close-btn" onclick="app.preference.close()" class="absolute right-4 top-4 text-gray-400 hover:text-red-500 transition text-xl px-2 hidden"><i class="fa-solid fa-xmark"></i></button>
                 </div>
@@ -2163,33 +2182,50 @@
 
         
         <div id="settings-modal" class="hidden fixed inset-0 z-[4000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 md:p-6">
-            
-            <div id="settings-content" class="rounded-2xl shadow-2xl w-full max-w-3xl h-[85vh] md:h-[60vh] min-h-[400px] flex flex-col overflow-hidden transform transition-all opacity-0 scale-95 relative z-50">
+            <div id="settings-content" class="rounded-2xl shadow-2xl w-full max-w-4xl h-[85vh] md:h-[70vh] min-h-[450px] flex flex-col overflow-hidden transform transition-all opacity-0 scale-95 relative z-50">
                 
-                
+                <!-- Header -->
                 <div class="border-b border-gray-200/50 p-3 md:p-4 flex justify-between items-center shrink-0 rounded-t-2xl">
-                    <h2 class="font-bold text-base md:text-lg text-black uppercase tracking-tight"><i class="fa-solid fa-user-gear mr-2 text-gray-500"></i>Cài đặt tài khoản</h2>
+                    <h2 class="font-bold text-base md:text-lg text-black uppercase tracking-tight"><i class="fa-solid fa-gear mr-2 text-gray-500"></i>Cài đặt</h2>
                     <button onclick="app.settings.close()" class="text-gray-400 hover:text-red-500 transition text-xl px-2"><i class="fa-solid fa-xmark"></i></button>
                 </div>
 
-                
                 <div class="flex flex-col md:flex-row flex-1 overflow-hidden rounded-b-2xl">
-                    
-                    
-                    <div class="w-full md:w-1/3 border-b md:border-b-0 md:border-r border-gray-200/50 p-2 md:p-3 flex flex-row md:flex-col gap-2 shrink-0 overflow-x-auto">
+                    <!-- SIDEBAR ĐIỀU HƯỚNG -->
+                    <div class="w-full md:w-1/4 border-b md:border-b-0 md:border-r border-gray-200/50 p-2 md:p-3 shrink-0 overflow-hidden bg-gray-50/30">
                         
-                        <button onclick="app.settings.switchTab('profile')" id="set-tab-profile" class="text-center md:text-left whitespace-nowrap flex-1 md:flex-none px-4 py-2.5 md:py-3 rounded-md font-bold text-xs md:text-sm transition-colors bg-black text-white shadow-sm border border-black"><i class="fa-solid fa-user-pen md:w-5 text-center mr-1"></i> Tùy chỉnh hồ sơ</button>
-                        <button onclick="app.settings.switchTab('security')" id="set-tab-security" class="text-center md:text-left whitespace-nowrap flex-1 md:flex-none px-4 py-2.5 md:py-3 rounded-md font-bold text-xs md:text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"><i class="fa-solid fa-shield-halved md:w-5 text-center mr-1"></i> Bảo mật</button>
-                        <button onclick="app.settings.switchTab('links')" id="set-tab-links" class="text-center md:text-left whitespace-nowrap flex-1 md:flex-none px-4 py-2.5 md:py-3 rounded-md font-bold text-xs md:text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"><i class="fa-solid fa-link md:w-5 text-center mr-1"></i> Liên kết</button>
-                        <button onclick="app.settings.switchTab('badges')" id="set-tab-badges" class="text-center md:text-left whitespace-nowrap flex-1 md:flex-none px-4 py-2.5 md:py-3 rounded-md font-bold text-xs md:text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"><i class="fa-brands fa-discord md:w-5 text-center mr-1"></i> Huy hiệu</button>
+                        <!-- MENU CHÍNH -->
+                        <div id="set-menu-main" class="flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-visible w-full">
+                            <div id="set-account-group" class="flex flex-row md:flex-col gap-2 w-max md:w-full">
+                                <button onclick="app.settings.switchTab('profile')" id="set-tab-profile" class="text-center md:text-left whitespace-nowrap flex-1 md:flex-none px-4 py-2.5 md:py-3 rounded-md font-bold text-xs md:text-sm transition-colors bg-black text-white shadow-sm border border-black"><i class="fa-solid fa-user-pen md:w-5 text-center mr-1"></i> Tùy chỉnh hồ sơ</button>
+                                <button onclick="app.settings.switchTab('security')" id="set-tab-security" class="text-center md:text-left whitespace-nowrap flex-1 md:flex-none px-4 py-2.5 md:py-3 rounded-md font-bold text-xs md:text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"><i class="fa-solid fa-shield-halved md:w-5 text-center mr-1"></i> Bảo mật</button>
+                                <button onclick="app.settings.switchTab('links')" id="set-tab-links" class="text-center md:text-left whitespace-nowrap flex-1 md:flex-none px-4 py-2.5 md:py-3 rounded-md font-bold text-xs md:text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"><i class="fa-solid fa-link md:w-5 text-center mr-1"></i> Liên kết</button>
+                                <button onclick="app.settings.switchTab('badges')" id="set-tab-badges" class="text-center md:text-left whitespace-nowrap flex-1 md:flex-none px-4 py-2.5 md:py-3 rounded-md font-bold text-xs md:text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"><i class="fa-brands fa-discord md:w-5 text-center mr-1"></i> Huy hiệu</button>
+                            </div>
+                            
+                            <div id="set-menu-divider" class="hidden md:block w-full h-[1px] bg-gray-200/80 my-1 shrink-0"></div>
+                            
+                            <!-- MENU CHUNG -->
+                            <div class="flex flex-row md:flex-col gap-2 w-max md:w-full">
+                                <button onclick="app.settings.switchTab('preference')" id="set-tab-preference" class="text-center md:text-left whitespace-nowrap flex-1 md:flex-none px-4 py-2.5 md:py-3 rounded-md font-bold text-xs md:text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"><i class="fa-solid fa-layer-group md:w-5 text-center mr-1"></i> Cá nhân hóa</button>
+                                <button onclick="app.settings.openDocsMenu()" id="set-tab-docs-trigger" class="text-center md:text-left whitespace-nowrap flex-1 md:flex-none px-4 py-2.5 md:py-3 rounded-md font-bold text-xs md:text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 flex justify-center md:justify-between items-center group"><span class="flex items-center"><i class="fa-solid fa-book-open md:w-5 text-center mr-1"></i> Tài liệu</span> <i class="fa-solid fa-chevron-right text-gray-400 hidden md:block group-hover:text-black transition"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- MENU TÀI LIỆU -->
+                        <div id="set-menu-docs" class="hidden flex-row md:flex-col gap-2 overflow-x-auto md:overflow-visible w-full">
+                            <button onclick="app.settings.closeDocsMenu()" class="text-center md:text-left whitespace-nowrap flex-1 md:flex-none px-4 py-2.5 md:py-3 rounded-md font-bold text-xs md:text-sm transition-colors bg-gray-100 text-gray-700 hover:bg-gray-200 border border-transparent flex justify-center md:justify-start items-center shrink-0 mb-0 md:mb-2"><i class="fa-solid fa-arrow-left mr-2"></i> Quay lại</button>
+                            <button onclick="app.settings.switchTab('docs-intro')" id="set-tab-docs-intro" class="text-center md:text-left whitespace-nowrap px-4 py-2.5 md:py-3 rounded-md font-bold text-xs md:text-sm transition-colors bg-black text-white shadow-sm border border-black shrink-0"><i class="fa-brands fa-markdown md:w-5 text-center mr-1"></i> Giới thiệu</button>
+                            <button onclick="app.settings.switchTab('docs-requirements')" id="set-tab-docs-requirements" class="text-center md:text-left whitespace-nowrap px-4 py-2.5 md:py-3 rounded-md font-bold text-xs md:text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0"><i class="fa-solid fa-list-check md:w-5 text-center mr-1"></i> Kiểm duyệt</button>
+                            <button onclick="app.settings.switchTab('docs-policy')" id="set-tab-docs-policy" class="text-center md:text-left whitespace-nowrap px-4 py-2.5 md:py-3 rounded-md font-bold text-xs md:text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0"><i class="fa-solid fa-shield-halved md:w-5 text-center mr-1"></i> Chính sách</button>
+                        </div>
+
                     </div>
 
-                    
-                    <div class="w-full md:w-2/3 p-4 md:p-8 overflow-y-auto relative flex-1">
-                        
+                    <!-- NỘI DUNG HIỂN THỊ -->
+                    <div class="w-full md:w-3/4 p-4 md:p-8 overflow-y-auto relative flex-1">
                         
                         <div id="set-content-profile" class="space-y-4 md:space-y-6 block">
-                            
                             <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm">
                                 <h3 class="font-bold text-xs md:text-sm text-black mb-3 md:mb-4 uppercase tracking-wide">Ảnh đại diện</h3>
                                 <div class="flex flex-col sm:flex-row items-center gap-4">
@@ -2203,8 +2239,6 @@
                                     </div>
                                 </div>
                             </div>
-                            
-                            
                             <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm">
                                 <h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Đổi tên hiển thị</h3>
                                 <p class="text-[11px] md:text-xs text-gray-500 mb-3 leading-relaxed">Tên hiển thị công khai trên hồ sơ của bạn. Tên đăng nhập email vẫn được giữ nguyên.</p>
@@ -2215,137 +2249,59 @@
                             </div>
                         </div>
 
-                        
                         <div id="set-content-security" class="space-y-4 md:space-y-6 hidden">
-    
-                            
-                            <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm">
-                                <h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Đổi Email</h3>
-                                <p class="text-[11px] md:text-xs text-gray-500 mb-3 leading-relaxed">
-                                    Yêu cầu xác nhận mật khẩu hiện tại. Hệ thống sẽ gửi liên kết xác thực đến email mới. Email đang sử dụng: <b id="set-current-email" class="text-black">...</b>
-                                </p>
-                                <div class="space-y-3">
-                                    <input type="email" id="set-ce-new" placeholder="Nhập địa chỉ email mới" autocomplete="off" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none transition">
-                                    <input type="password" id="set-ce-password" placeholder="Nhập mật khẩu hiện tại để xác nhận" autocomplete="off" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none transition">
-                                    <button onclick="app.auth.changeEmail(this)" class="w-full bg-black text-white px-4 py-2.5 text-xs font-bold rounded-md hover:bg-gray-800 transition shadow-sm">Cập nhật Email</button>
-                                </div>
-                            </div>
-
-                              
-                              <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm">
-                                 <h3 class="font-bold text-xs md:text-sm text-black mb-3 uppercase tracking-wide">Đổi mật khẩu</h3>
-                                 <div class="space-y-3">
-<input type="password" id="set-cp-old" placeholder="Nhập mật khẩu hiện tại" autocomplete="off" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none transition">
-                                      <input type="password" id="set-cp-new" placeholder="Nhập mật khẩu mới (Tối thiểu 6 ký tự)" autocomplete="new-password" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none transition">
-                                     <button onclick="app.auth.changePassword()" class="w-full bg-black text-white px-4 py-2.5 text-xs font-bold rounded-md hover:bg-gray-800 transition shadow-sm">Đổi mật khẩu</button>
-                                 </div>
-                             </div>
-                            
-                            
-                            <div class="bg-red-50 p-4 md:p-5 rounded-lg border border-red-200 shadow-sm">
-                                <h3 class="font-bold text-xs md:text-sm text-red-600 mb-2 uppercase tracking-wide"><i class="fa-solid fa-triangle-exclamation mr-1.5"></i>Mã định danh (UUID)</h3>
-                                <p class="text-[10px] md:text-[11px] text-red-700 font-medium mb-3">Mã định danh dùng cho hỗ trợ kỹ thuật. <b class="text-black">Tuyệt đối không chia sẻ cho người khác.</b></p>
-                                <div class="flex gap-2">
-                                    <input type="password" id="set-uuid-input" readonly class="w-full border border-red-200 p-2.5 text-xs rounded-md bg-white font-mono text-center cursor-not-allowed text-red-800 focus:outline-none tracking-widest">
-                                    <button onclick="app.auth.revealUUID()" id="set-reveal-uuid" class="bg-white border border-red-200 text-red-600 px-3 py-2.5 text-xs font-bold rounded-md hover:bg-red-50 transition shadow-sm shrink-0" title="Hiển thị mã"><i class="fa-solid fa-eye"></i></button>
-                                    <button onclick="app.auth.copyUUID()" id="set-copy-uuid" class="bg-red-600 text-white px-3 py-2.5 text-xs font-bold rounded-md hover:bg-red-700 transition shadow-sm shrink-0" title="Copy mã"><i class="fa-solid fa-copy"></i></button>
-                                </div>
-                            </div>
+                            <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm"><h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Đổi Email</h3><p class="text-[11px] md:text-xs text-gray-500 mb-3 leading-relaxed">Yêu cầu xác nhận mật khẩu hiện tại. Email đang sử dụng: <b id="set-current-email" class="text-black">...</b></p><div class="space-y-3"><input type="email" id="set-ce-new" placeholder="Nhập địa chỉ email mới" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none"><input type="password" id="set-ce-password" placeholder="Mật khẩu hiện tại" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none"><button onclick="app.auth.changeEmail(this)" class="w-full bg-black text-white px-4 py-2.5 text-xs font-bold rounded-md hover:bg-gray-800">Cập nhật Email</button></div></div>
+                            <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm"><h3 class="font-bold text-xs md:text-sm text-black mb-3 uppercase tracking-wide">Đổi mật khẩu</h3><div class="space-y-3"><input type="password" id="set-cp-old" placeholder="Mật khẩu hiện tại" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none"><input type="password" id="set-cp-new" placeholder="Mật khẩu mới (Tối thiểu 6 ký tự)" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none"><button onclick="app.auth.changePassword()" class="w-full bg-black text-white px-4 py-2.5 text-xs font-bold rounded-md hover:bg-gray-800">Đổi mật khẩu</button></div></div>
+                            <div class="bg-red-50 p-4 md:p-5 rounded-lg border border-red-200 shadow-sm"><h3 class="font-bold text-xs md:text-sm text-red-600 mb-2 uppercase tracking-wide"><i class="fa-solid fa-triangle-exclamation mr-1.5"></i>Mã định danh (UUID)</h3><div class="flex gap-2"><input type="password" id="set-uuid-input" readonly class="w-full border border-red-200 p-2.5 text-xs rounded-md bg-white font-mono text-center cursor-not-allowed text-red-800 tracking-widest"><button onclick="app.auth.revealUUID()" id="set-reveal-uuid" class="bg-white border border-red-200 text-red-600 px-3 py-2.5 text-xs font-bold rounded-md hover:bg-red-50"><i class="fa-solid fa-eye"></i></button><button onclick="app.auth.copyUUID()" id="set-copy-uuid" class="bg-red-600 text-white px-3 py-2.5 text-xs font-bold rounded-md hover:bg-red-700"><i class="fa-solid fa-copy"></i></button></div></div>
                         </div>
 
-                        
-<div id="set-content-links" class="space-y-4 md:space-y-6 hidden">
-                             <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm">
-                                 <h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Tài khoản liên kết</h3>
-                                 <p class="text-[11px] md:text-xs text-gray-500 mb-4 leading-relaxed">Liên kết Google hoặc Discord để đăng nhập nhanh hơn.</p>
-                                 
-                                 <div class="space-y-3" id="linked-accounts-container">
-                                     <p class="text-xs text-gray-500"><i class="fa-solid fa-spinner fa-spin"></i> Đang kiểm tra liên kết...</p>
-                                 </div>
-                             </div>
-                         </div>
+                        <div id="set-content-links" class="space-y-4 md:space-y-6 hidden">
+                             <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm"><h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Tài khoản liên kết</h3><div class="space-y-3" id="linked-accounts-container"><p class="text-xs text-gray-500"><i class="fa-solid fa-spinner fa-spin"></i> Đang kiểm tra...</p></div></div>
+                        </div>
 
                         <div id="set-content-badges" class="space-y-4 md:space-y-6 hidden">
-                            <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm">
-                                <h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Nhận Huy hiệu Discord</h3>
-                                <p class="text-[11px] md:text-xs text-gray-500 mb-4 leading-relaxed">Kết nối tài khoản với Discord để nhận các Role đặc biệt trên server khi đạt các cột mốc đóng góp ảnh.</p>
-                                
-                                <div id="badge-loading" class="py-6 text-center text-gray-500 text-sm">
-                                    <i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang kiểm tra trạng thái...
-                                </div>
+                            <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm"><h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Nhận Huy hiệu Discord</h3><div id="badge-loading" class="py-6 text-center text-gray-500 text-sm"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang kiểm tra...</div><div id="badge-requirements" class="hidden space-y-3"><div id="req-link-container" class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-lg"><div id="req-link-status"></div><button id="req-link-action" onclick="app.settings.switchTab('links')" class="text-xs bg-black text-white px-4 py-2 rounded font-bold">Liên kết</button></div><div id="req-server-container" class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-lg"><div id="req-server-status"></div><a id="req-server-action" href="https://discord.com/invite/BNWyqbuvwq" target="_blank" class="text-xs bg-[#5865F2] text-white px-4 py-2 rounded font-bold text-center">Tham gia</a></div></div><div id="badge-claim-list" class="hidden space-y-3"><div class="bg-blue-50 text-blue-800 text-xs p-3 rounded-md border border-blue-200 mb-4 font-medium flex items-center justify-between"><span>Số ảnh đã duyệt: <b id="badge-photo-count" class="text-lg ml-1">0</b></span></div><div id="badges-grid" class="grid grid-cols-1 gap-3"></div></div></div>
+                        </div>
 
-                                <div id="badge-requirements" class="hidden space-y-3">
-                                    <h4 class="font-bold text-sm text-gray-800">Yêu cầu bắt buộc:</h4>
-                                    
-                                    <!-- Mục 1: Liên kết tài khoản -->
-                                    <div id="req-link-container" class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-lg transition-colors">
-                                        <div id="req-link-status" class="flex items-center gap-3 text-sm font-medium">
-                                            <!-- Javascript sẽ render trạng thái vào đây -->
-                                        </div>
-                                        <button id="req-link-action" onclick="app.settings.switchTab('links')" class="text-xs bg-black text-white px-4 py-2 rounded font-bold hover:bg-gray-800 transition shadow-sm w-full sm:w-auto">Liên kết</button>
+                        <!-- TAB CÁ NHÂN HÓA -->
+                        <div id="set-content-preference" class="space-y-4 md:space-y-6 hidden">
+                            <div class="bg-white p-4 md:p-6 rounded-lg border border-gray-200 shadow-sm">
+                                <h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Cá nhân hóa nội dung</h3>
+                                <p class="text-[11px] md:text-xs text-gray-500 mb-5 leading-relaxed">Chọn loại phương tiện bạn quan tâm. Hệ thống sẽ tự động lọc và ẩn các nội dung còn lại. Thiết lập này áp dụng cho toàn bộ thiết bị.</p>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                                    <div id="set-pref-btn-bus" onclick="app.preference.select('bus')" class="pref-option cursor-pointer border border-gray-300 bg-white text-gray-800 rounded-xl p-4 shadow-sm hover:shadow-md hover:border-gray-400 transition-all duration-200 flex items-start gap-3">
+                                        <div class="pref-icon w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0 transition-colors"><i class="fa-solid fa-bus text-lg"></i></div>
+                                        <div class="mt-0.5"><h4 class="font-bold text-sm uppercase mb-1">Xe Buýt</h4><p class="pref-desc text-[10px] font-medium text-gray-500">Các phương tiện chạy tuyến nội đô, xe buýt công cộng.</p></div>
                                     </div>
-
-                                    <!-- Mục 2: Tham gia server -->
-                                    <div id="req-server-container" class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-lg transition-colors">
-                                        <div id="req-server-status" class="flex items-center gap-3 text-sm font-medium">
-                                            <!-- Javascript sẽ render trạng thái vào đây -->
-                                        </div>
-                                        <a id="req-server-action" href="https://discord.com/invite/BNWyqbuvwq" target="_blank" class="text-xs bg-[#5865F2] text-white px-4 py-2 rounded font-bold hover:bg-[#4752C4] transition shadow-sm w-full sm:w-auto text-center">Tham gia</a>
+                                    <div id="set-pref-btn-coach" onclick="app.preference.select('coach')" class="pref-option cursor-pointer border border-gray-300 bg-white text-gray-800 rounded-xl p-4 shadow-sm hover:shadow-md hover:border-gray-400 transition-all duration-200 flex items-start gap-3">
+                                        <div class="pref-icon w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0 transition-colors"><i class="fa-solid fa-van-shuttle text-lg"></i></div>
+                                        <div class="mt-0.5"><h4 class="font-bold text-sm uppercase mb-1">Xe Khách</h4><p class="pref-desc text-[10px] font-medium text-gray-500">Xe liên tỉnh, hợp đồng, giường nằm, phòng nằm.</p></div>
+                                    </div>
+                                    <div id="set-pref-btn-both" onclick="app.preference.select('both')" class="pref-option cursor-pointer border border-gray-300 bg-white text-gray-800 rounded-xl p-4 shadow-sm hover:shadow-md hover:border-gray-400 transition-all duration-200 flex items-start gap-3">
+                                        <div class="pref-icon w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0 transition-colors"><i class="fa-solid fa-check-double text-lg"></i></div>
+                                        <div class="mt-0.5"><h4 class="font-bold text-sm uppercase mb-1">Xem tất cả</h4><p class="pref-desc text-[10px] font-medium text-gray-500">Hiển thị đan xen cả Xe Buýt và Xe Khách.</p></div>
                                     </div>
                                 </div>
-
-                                <div id="badge-claim-list" class="hidden space-y-3">
-                                    <div class="bg-blue-50 text-blue-800 text-xs p-3 rounded-md border border-blue-200 mb-4 font-medium flex items-center justify-between">
-                                        <span>Số ảnh đã duyệt của bạn: <b id="badge-photo-count" class="text-lg ml-1">0</b></span>
-                                    </div>
-                                    
-                                    <div id="badges-grid" class="grid grid-cols-1 gap-3">
-                                    </div>
+                                <div class="text-right border-t border-gray-100 pt-4">
+                                    <button onclick="app.preference.save()" class="bg-black text-white px-6 py-2.5 rounded-lg text-xs font-bold shadow-sm hover:bg-gray-800 transition"><i class="fa-solid fa-floppy-disk mr-1"></i> Lưu thiết lập</button>
                                 </div>
                             </div>
                         </div>
 
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        
-        <div id="docs-modal" class="hidden fixed inset-0 z-[4000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 md:p-6">
-            <div id="docs-content" class="rounded-2xl shadow-2xl w-full max-w-4xl h-[85vh] md:h-[75vh] min-h-[400px] flex flex-col overflow-hidden transform transition-all opacity-0 scale-95 relative z-50">
-                
-                
-                <div class="border-b border-gray-200/50 p-3 md:p-4 flex justify-between items-center shrink-0 rounded-t-2xl">
-                    <h2 class="font-bold text-base md:text-lg text-black uppercase tracking-tight"><i class="fa-solid fa-book-open mr-2 text-gray-500"></i>Tài liệu hệ thống</h2>
-                    <button onclick="app.docs.close()" class="text-gray-400 hover:text-red-500 transition text-xl px-2"><i class="fa-solid fa-xmark"></i></button>
-                </div>
-
-                
-                <div class="flex flex-col md:flex-row flex-1 overflow-hidden rounded-b-2xl">
-                    
-                    
-                    <div class="w-full md:w-1/4 border-b md:border-b-0 md:border-r border-gray-200/50 p-2 md:p-3 flex flex-row md:flex-col gap-2 shrink-0 overflow-x-auto">
-                        <button onclick="app.docs.switchTab('intro')" id="doc-tab-intro" class="text-center md:text-left whitespace-nowrap px-4 py-2.5 md:py-3 rounded-md font-bold text-xs md:text-sm transition-colors bg-black text-white shadow-sm border border-black shrink-0"><i class="fa-brands fa-markdown md:w-5 text-center mr-1"></i> Giới thiệu</button>
-                        <button onclick="app.docs.switchTab('requirements')" id="doc-tab-requirements" class="text-center md:text-left whitespace-nowrap px-4 py-2.5 md:py-3 rounded-md font-bold text-xs md:text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0"><i class="fa-solid fa-list-check md:w-5 text-center mr-1"></i> Kiểm duyệt</button>
-                        <button onclick="app.docs.switchTab('policy')" id="doc-tab-policy" class="text-center md:text-left whitespace-nowrap px-4 py-2.5 md:py-3 rounded-md font-bold text-xs md:text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0"><i class="fa-solid fa-shield-halved md:w-5 text-center mr-1"></i> Chính sách</button>
-                    </div>
-
-                    
-                    <div class="w-full md:w-3/4 p-4 md:p-6 overflow-y-auto relative flex-1">
-                        <div id="doc-content-intro" class="markdown-body block" data-url="https://raw.githubusercontent.com/hoyuuna/VNBUSARCHIVE/refs/heads/main/README.md" data-loaded="false">
+                        <!-- CÁC TAB TÀI LIỆU -->
+                        <div id="set-content-docs-intro" class="markdown-body hidden" data-url="https://raw.githubusercontent.com/hoyuuna/VNBUSARCHIVE/refs/heads/main/README.md" data-loaded="false">
                             <div class="text-center text-gray-500 py-10"><i class="fa-solid fa-circle-notch fa-spin text-2xl mb-2 text-black"></i><p>Đang tải tài liệu...</p></div>
                         </div>
-                        <div id="doc-content-requirements" class="markdown-body hidden" data-url="https://raw.githubusercontent.com/hoyuuna/VNBUSARCHIVE/refs/heads/main/Requirements.md" data-loaded="false">
+                        <div id="set-content-docs-requirements" class="markdown-body hidden" data-url="https://raw.githubusercontent.com/hoyuuna/VNBUSARCHIVE/refs/heads/main/Requirements.md" data-loaded="false">
                             <div class="text-center text-gray-500 py-10"><i class="fa-solid fa-circle-notch fa-spin text-2xl mb-2 text-black"></i><p>Đang tải tài liệu...</p></div>
                         </div>
-                        <div id="doc-content-policy" class="markdown-body hidden" data-url="https://raw.githubusercontent.com/hoyuuna/VNBUSARCHIVE/refs/heads/main/Policy.md" data-loaded="false">
+                        <div id="set-content-docs-policy" class="markdown-body hidden" data-url="https://raw.githubusercontent.com/hoyuuna/VNBUSARCHIVE/refs/heads/main/Policy.md" data-loaded="false">
                             <div class="text-center text-gray-500 py-10"><i class="fa-solid fa-circle-notch fa-spin text-2xl mb-2 text-black"></i><p>Đang tải tài liệu...</p></div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
         <div id="header-spacer" class="h-28 md:h-24 transition-all duration-300"></div>
 
         <main class="max-w-7xl mx-auto px-4 py-6 min-h-screen">
@@ -3497,27 +3453,30 @@
                     app.preference.isOnboarding = isOnboarding;
                     app.preference.tempSelection = app.preference.current || 'both';
 
+                    // Nếu KHÔNG phải onboarding lần đầu, dẫn thẳng vào Cài đặt -> Tab Cá nhân hóa
+                    if (!isOnboarding) {
+                        app.settings.open();
+                        app.settings.switchTab('preference');
+                        app.preference.updateUI();
+                        return;
+                    }
+
+                    // Nếu LÀ onboarding, mở popup như cũ
                     const modal = document.getElementById('preference-modal');
                     const content = document.getElementById('preference-content');
                     const closeBtn = document.getElementById('pref-close-btn');
                     const footer = document.getElementById('pref-footer');
+                    const note = document.getElementById('pref-onboarding-note');
 
                     app.ui.toggleUserMenu(false);
 
-                    if (isOnboarding) {
-                        closeBtn.classList.add('hidden');
-                        footer.className = "p-4 md:px-6 bg-gray-50/50 border-t border-gray-200/50 rounded-b-2xl flex justify-end items-center";
-                        footer.innerHTML = `
-                            <button onclick="app.preference.save()" class="bg-black text-white px-6 py-2.5 rounded-lg text-xs font-bold shadow-sm hover:bg-gray-800 transition">Tiếp tục <i class="fa-solid fa-arrow-right ml-1"></i></button>
-                        `;
-                    } else {
-                        closeBtn.classList.remove('hidden');
-                        footer.className = "p-4 md:px-6 bg-gray-50/50 border-t border-gray-200/50 rounded-b-2xl flex justify-end gap-3";
-                        footer.innerHTML = `
-                            <button onclick="app.preference.close()" class="px-5 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-lg text-xs font-bold shadow-sm hover:bg-gray-50 transition">Hủy</button>
-                            <button onclick="app.preference.save()" class="bg-black text-white px-6 py-2.5 rounded-lg text-xs font-bold shadow-sm hover:bg-gray-800 transition"><i class="fa-solid fa-floppy-disk mr-1"></i> Lưu thay đổi</button>
-                        `;
-                    }
+                    closeBtn.classList.add('hidden');
+                    if(note) note.classList.remove('hidden');
+
+                    footer.className = "p-4 md:px-6 bg-gray-50/50 border-t border-gray-200/50 rounded-b-2xl flex justify-end items-center";
+                    footer.innerHTML = `
+                        <button onclick="app.preference.save()" class="bg-black text-white px-6 py-2.5 rounded-lg text-xs font-bold shadow-sm hover:bg-gray-800 transition">Tiếp tục <i class="fa-solid fa-arrow-right ml-1"></i></button>
+                    `;
 
                     app.preference.updateUI();
 
@@ -3535,24 +3494,27 @@
                 },
 
                 updateUI: () => {
+                    // Update chung cho cả bảng Modal Onboarding và bảng Cài đặt
                     ['bus', 'coach', 'both'].forEach(type => {
-                        const btn = document.getElementById(`pref-btn-${type}`);
-                        if (!btn) return;
-                        
-                        const iconBg = btn.querySelector('.pref-icon');
-                        const p = btn.querySelector('.pref-desc');
+                        ['pref-btn-', 'set-pref-btn-'].forEach(prefix => {
+                            const btn = document.getElementById(`${prefix}${type}`);
+                            if (!btn) return;
+                            
+                            const iconBg = btn.querySelector('.pref-icon');
+                            const p = btn.querySelector('.pref-desc');
 
-                        if (app.preference.tempSelection === type) {
-                            btn.className = `pref-option cursor-pointer border border-black bg-black text-white rounded-xl p-4 shadow-md transition-all duration-200 flex items-start gap-3 scale-[1.02]`;
-                            iconBg.classList.replace('bg-gray-100', 'bg-white/20');
-                            iconBg.classList.replace('border-transparent', 'border-white/30');
-                            if (p) p.classList.replace('text-gray-500', 'text-gray-300');
-                        } else {
-                            btn.className = `pref-option cursor-pointer border border-gray-300 bg-white text-gray-800 rounded-xl p-4 shadow-sm hover:shadow-md hover:border-gray-400 transition-all duration-200 flex items-start gap-3 scale-100`;
-                            iconBg.classList.replace('bg-white/20', 'bg-gray-100');
-                            iconBg.classList.replace('border-white/30', 'border-transparent');
-                            if (p) p.classList.replace('text-gray-300', 'text-gray-500');
-                        }
+                            if (app.preference.tempSelection === type) {
+                                btn.className = `pref-option cursor-pointer border border-black bg-black text-white rounded-xl p-4 shadow-md transition-all duration-200 flex items-start gap-3 scale-[1.02]`;
+                                iconBg.classList.replace('bg-gray-100', 'bg-white/20');
+                                iconBg.classList.replace('border-transparent', 'border-white/30');
+                                if (p) p.classList.replace('text-gray-500', 'text-gray-300');
+                            } else {
+                                btn.className = `pref-option cursor-pointer border border-gray-300 bg-white text-gray-800 rounded-xl p-4 shadow-sm hover:shadow-md hover:border-gray-400 transition-all duration-200 flex items-start gap-3 scale-100`;
+                                iconBg.classList.replace('bg-white/20', 'bg-gray-100');
+                                iconBg.classList.replace('border-white/30', 'border-transparent');
+                                if (p) p.classList.replace('text-gray-300', 'text-gray-500');
+                            }
+                        });
                     });
                 },
 
@@ -3561,7 +3523,11 @@
                     app.preference.current = app.preference.tempSelection;
                     localStorage.setItem('vnbus_preference', app.preference.current);
                     
-                    app.preference.close();
+                    if (app.preference.isOnboarding) {
+                        app.preference.close();
+                    } else {
+                        app.ui.showAlert("Đã lưu thiết lập Cá nhân hóa thành công!");
+                    }
                     
                     if (isChanged) {
                         app._profilePhotosCache = []; 
@@ -3590,7 +3556,6 @@
                     if (tableName === 'photos') {
                         return query.eq('type', app.preference.current);
                     } else if (tableName === 'vehicles') {
-                        // Bắt buộc Join bảng vehicles với photos để lọc những xe có type tương ứng
                         return query.eq('photos.type', app.preference.current);
                     }
                     return query;
@@ -4428,54 +4393,67 @@
 
             settings: {
                 open: async () => {
-                    if(!app.user) return;
                     const modal = document.getElementById('settings-modal');
                     const content = document.getElementById('settings-content');
                     
-
-                    const uuidInput = document.getElementById('set-uuid-input');
-                    uuidInput.value = app.user.id;
-                    uuidInput.type = 'password';
-                    uuidInput.classList.add('tracking-widest');
-                    document.getElementById('set-reveal-uuid').innerHTML = '<i class="fa-solid fa-eye"></i>';
-                    if (app.auth.uuidTimeout) clearTimeout(app.auth.uuidTimeout);
-                    
                     app.ui.toggleUserMenu(false);
+
+                    // Reset menu trượt về menu chính
+                    app.settings.closeDocsMenu(true);
+
+                    if (app.user) {
+                        document.getElementById('set-account-group').classList.remove('hidden');
+                        document.getElementById('set-account-group').classList.add('flex');
+                        document.getElementById('set-menu-divider').classList.remove('hidden');
+                        
+                        const uuidInput = document.getElementById('set-uuid-input');
+                        if(uuidInput) {
+                            uuidInput.value = app.user.id;
+                            uuidInput.type = 'password';
+                            uuidInput.classList.add('tracking-widest');
+                        }
+                        const revealBtn = document.getElementById('set-reveal-uuid');
+                        if(revealBtn) revealBtn.innerHTML = '<i class="fa-solid fa-eye"></i>';
+                        if (app.auth.uuidTimeout) clearTimeout(app.auth.uuidTimeout);
+
+                        if (app.user.email) {
+                            const currentEmailEl = document.getElementById('set-current-email');
+                            if (currentEmailEl) currentEmailEl.innerText = app.user.email;
+                        }
+                        
+                        app.settings.switchTab('profile');
+                        app.settings.loadIdentities();
+
+                        const avatarImg = document.getElementById('set-avatar-img');
+                        try {
+                            const { data: profile } = await window.sb.from('profiles').select('avatar_url').eq('id', app.user.id).single();
+                            if (profile && profile.avatar_url) {
+                                const safeUrl = profile.avatar_url.replace(/"/g, '');
+                                avatarImg.src = app.utils.getProxiedUrl(safeUrl, 'avatar.jpg', 'avatar');
+                            } else {
+                                avatarImg.src = DEFAULT_AVATAR;
+                            }
+                        } catch (e) {
+                            avatarImg.src = app.user.user_metadata?.avatar_url ? app.utils.getProxiedUrl(app.user.user_metadata.avatar_url, 'avatar.jpg', 'avatar') : DEFAULT_AVATAR;
+                        }
+                        avatarImg.onerror = () => { avatarImg.src = DEFAULT_AVATAR; };
+                    } else {
+                        // Khách ẩn phần Tài khoản, mở thẳng Cá nhân hóa
+                        document.getElementById('set-account-group').classList.add('hidden');
+                        document.getElementById('set-account-group').classList.remove('flex');
+                        document.getElementById('set-menu-divider').classList.add('hidden');
+                        app.settings.switchTab('preference');
+                        app.preference.updateUI();
+                    }
 
                     modal.classList.remove('hidden');
                     app.ui.lockScroll();
-                    
-
-                    if (app.user && app.user.email) {
-                        const currentEmailEl = document.getElementById('set-current-email');
-                        if (currentEmailEl) currentEmailEl.innerText = app.user.email;
-                    }
-
                     setTimeout(() => {
                         content.classList.remove('opacity-0', 'scale-95');
                         content.classList.add('opacity-100', 'scale-100');
                     }, 10);
-                    
-                    app.settings.switchTab('profile');
-                    app.settings.loadIdentities();
-
-                    const avatarImg = document.getElementById('set-avatar-img');
-                    try {
-                        const { data: profile } = await window.sb.from('profiles').select('avatar_url').eq('id', app.user.id).single();
-                        if (profile && profile.avatar_url) {
-                            const safeUrl = profile.avatar_url.replace(/"/g, '');
-                            avatarImg.src = app.utils.getProxiedUrl(safeUrl, 'avatar.jpg', 'avatar');
-                        } else {
-                            avatarImg.src = DEFAULT_AVATAR;
-                        }
-                    } catch (e) {
-                        avatarImg.src = app.user.user_metadata?.avatar_url ? app.utils.getProxiedUrl(app.user.user_metadata.avatar_url, 'avatar.jpg', 'avatar') : DEFAULT_AVATAR;
-                    }
-                    
-                    avatarImg.onerror = () => {
-                        avatarImg.src = DEFAULT_AVATAR;
-                    };
                 },
+
                 close: () => {
                     const modal = document.getElementById('settings-modal');
                     const content = document.getElementById('settings-content');
@@ -4486,8 +4464,41 @@
                         app.ui.unlockScroll();
                     }, 200);
                 },
+
+                openDocsMenu: () => {
+                    const main = document.getElementById('set-menu-main');
+                    const docs = document.getElementById('set-menu-docs');
+                    
+                    main.classList.add('hidden');
+                    main.classList.remove('flex');
+                    docs.classList.remove('hidden');
+                    docs.classList.add('flex', 'slide-left-enter');
+                    docs.classList.remove('slide-right-enter');
+
+                    app.settings.switchTab('docs-intro');
+                },
+
+                closeDocsMenu: (instant = false) => {
+                    const main = document.getElementById('set-menu-main');
+                    const docs = document.getElementById('set-menu-docs');
+                    
+                    if (instant) {
+                        docs.classList.add('hidden');
+                        docs.classList.remove('flex', 'slide-left-enter', 'slide-right-enter');
+                        main.classList.remove('hidden', 'slide-left-enter', 'slide-right-enter');
+                        main.classList.add('flex');
+                    } else {
+                        docs.classList.add('hidden');
+                        docs.classList.remove('flex');
+                        main.classList.remove('hidden');
+                        main.classList.add('flex', 'slide-right-enter');
+                        main.classList.remove('slide-left-enter');
+                        app.settings.switchTab(app.user ? 'profile' : 'preference');
+                    }
+                },
+
                 switchTab: (tab) => {
-                    const tabs = ['profile', 'security', 'links', 'badges'];
+                    const tabs = ['profile', 'security', 'links', 'badges', 'preference', 'docs-intro', 'docs-requirements', 'docs-policy'];
                     const activeClasses = ['bg-black', 'text-white', 'border-black', 'shadow-sm'];
                     const inactiveClasses = ['bg-white', 'text-gray-600', 'hover:bg-gray-50', 'border-gray-200'];
 
@@ -4501,6 +4512,11 @@
                             btn.classList.add(...activeClasses);
                             content.classList.remove('hidden');
                             content.classList.add('block');
+                            
+                            // Nếu là tab tài liệu thì tải nội dung
+                            if (t.startsWith('docs-')) {
+                                app.docs.fetchContent(t);
+                            }
                         } else {
                             btn.classList.remove(...activeClasses);
                             btn.classList.add(...inactiveClasses);
@@ -4823,50 +4839,13 @@ grid.innerHTML = tiers.map(tier => {
 
                 docs: {
                 open: () => {
-                    const modal = document.getElementById('docs-modal');
-                    const content = document.getElementById('docs-content');
-                    app.ui.toggleUserMenu(false);
-
-                    modal.classList.remove('hidden');
-                    app.ui.lockScroll();
-                    setTimeout(() => {
-                        content.classList.remove('opacity-0', 'scale-95');
-                        content.classList.add('opacity-100', 'scale-100');
-                    }, 10);
-                    
-                    app.docs.switchTab('intro');
+                    app.settings.open();
+                    app.settings.openDocsMenu();
                 },
                 close: () => {
-                    const modal = document.getElementById('docs-modal');
-                    const content = document.getElementById('docs-content');
-                    content.classList.remove('opacity-100', 'scale-100');
-                    content.classList.add('opacity-0', 'scale-95');
-                    setTimeout(() => {
-                        modal.classList.add('hidden');
-                        app.ui.unlockScroll();
-                    }, 200);
-                },
-                switchTab: (tab) => {
-                    const tabs = ['intro', 'requirements', 'policy'];
-
-                    tabs.forEach(t => {
-                        const btn = document.getElementById('doc-tab-' + t);
-                        const contentEl = document.getElementById('doc-content-' + t);
-
-                        if (t === tab) {
-                            btn.className = "text-center md:text-left whitespace-nowrap px-4 py-2.5 md:py-3 rounded-md font-bold text-xs md:text-sm transition-colors bg-black text-white shadow-sm border border-black shrink-0";
-                            contentEl.classList.remove('hidden');
-                            contentEl.classList.add('block');
-                            app.docs.fetchContent(t);
-                        } else {
-                            btn.className = "text-center md:text-left whitespace-nowrap px-4 py-2.5 md:py-3 rounded-md font-bold text-xs md:text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0";
-                            contentEl.classList.add('hidden');
-                            contentEl.classList.remove('block');
-                        }
-                    });
                 },
                 fetchContent: async (tab) => {
-                    const container = document.getElementById('doc-content-' + tab);
+                    const container = document.getElementById('set-content-' + tab);
                     if (!container || container.dataset.loaded === 'true') return;
 
                     const url = container.dataset.url;
@@ -5317,9 +5296,7 @@ grid.innerHTML = tiers.map(tier => {
 
 dropdown.innerHTML = `
                          <a href="/profile" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-address-card w-5 text-center mr-1"></i> Hồ sơ của tôi</a>
-                         <button onclick="app.settings.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-gear w-5 text-center mr-1"></i> Cài đặt tài khoản</button>
-                         <button onclick="app.docs.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-book-open w-5 text-center mr-1"></i> Tài liệu</button>
-                         <button onclick="app.preference.open(false)" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-layer-group w-5 text-center mr-1"></i> Nội dung quan tâm</button>
+                         <button onclick="app.settings.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-gear w-5 text-center mr-1"></i> Cài đặt</button>
                          <a href="/contact" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-headset w-5 text-center mr-1"></i> Liên hệ hỗ trợ</a>
                          <button onclick="app.auth.logout()" class="w-full text-left block px-4 py-3 text-sm text-red-600 hover:bg-red-50 font-bold"><i class="fa-solid fa-right-from-bracket w-5 text-center mr-1"></i> Đăng xuất</button>
                      `;
@@ -5360,8 +5337,7 @@ dropdown.innerHTML = `
 dropdown.innerHTML = `
                          <a href="/auth" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-arrow-right-to-bracket w-5 text-center mr-1"></i> Đăng nhập</a>
                          <a href="/auth" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-user-plus w-5 text-center mr-1"></i> Tạo tài khoản</a>
-                         <button onclick="app.docs.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-book-open w-5 text-center mr-1"></i> Tài liệu</button>
-                         <button onclick="app.preference.open(false)" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-layer-group w-5 text-center mr-1"></i> Nội dung quan tâm</button>
+                         <button onclick="app.settings.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-gear w-5 text-center mr-1"></i> Cài đặt</button>
                          <a href="/contact" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 font-bold"><i class="fa-solid fa-headset w-5 text-center mr-1"></i> Liên hệ hỗ trợ</a>
                      `;
                     
