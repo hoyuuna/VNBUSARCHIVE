@@ -4507,6 +4507,9 @@
                             // Nếu là tab tài liệu thì tải nội dung
                             if (t.startsWith('docs-')) {
                                 app.docs.fetchContent(t);
+                            } else if (t === 'preference') {
+                                app.preference.tempSelection = app.preference.current || 'both';
+                                app.preference.updateUI();
                             }
                         } else {
                             btn.classList.remove(...activeClasses);
