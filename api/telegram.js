@@ -1,6 +1,6 @@
-import { createClient } from '@supabase/supabase-js';
+const { createClient } = require('@supabase/supabase-js');
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
     if (req.method !== 'POST') return res.status(200).send('OK');
 
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
@@ -30,7 +30,6 @@ export default async function handler(req, res) {
                 let replyText = "";
 
                 if (userId && userId.length > 10) {
-                    // Lấy dữ liệu cấu hình cũ
                     const { data, error: fetchErr } = await supabase.from('profiles').select('notif_config').eq('id', userId).single();
                     
                     if (fetchErr && fetchErr.code !== 'PGRST116') {
@@ -38,9 +37,8 @@ export default async function handler(req, res) {
 Không thể truy xuất dữ liệu từ máy chủ. Vui lòng thử lại sau.";
                     } else {
                         let currentConfig = data?.notif_config || { enabled: true, approved: true, denied: true, system: true };
-                        currentConfig.chat_id = chatId; // Gán ID Telegram vào JSON
+                        currentConfig.chat_id = chatId;
 
-                        // Lưu lên DB
                         const { error: updateErr } = await supabase.from('profiles').update({ notif_config: currentConfig }).eq('id', userId);
 
                         if (updateErr) {
@@ -51,7 +49,7 @@ Mã tài khoản không hợp lệ hoặc đã bị xóa.";
 
 Tài khoản của bạn đã được liên kết với Telegram.
 
-👉 *Vui lòng quay lại trình duyệt web và Tải lại trang (Reload) để kiểm tra trạng thái.*
+👉 *Vui lòng quay lại trình duyệt web và Tải lại trang (Reload) để cập nhật trạng thái.*
 
 Từ giờ, hệ thống sẽ gửi các thông báo quan trọng thẳng vào đoạn chat này.";
                         }
@@ -63,7 +61,6 @@ Bạn chưa cung cấp mã định danh tài khoản.
 👉 Vui lòng truy cập lại Cài đặt trên Website VNBUSARCHIVE và bấm nút *Kết nối Telegram* để thử lại.";
                 }
 
-                // Gửi tin nhắn phản hồi về Telegram cho user
                 await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -109,4 +106,4 @@ ${message}`,
         console.error('API Error:', error);
         return res.status(200).send('OK');
     }
-}
+};
