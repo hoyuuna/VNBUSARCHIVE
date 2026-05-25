@@ -4416,7 +4416,7 @@
                     })
                     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, payload => {
                         if (app.user && payload.new.user_id === app.user.id) {
-                            app.notifications.requestPermission();
+                            // Đã tắt tự động nhảy sang Telegram
                     
                         }
                     })
@@ -5755,7 +5755,7 @@ dropdown.innerHTML = `
                         document.getElementById('nav-admin').classList.add('hidden');
                     }
 
-                    app.notifications.requestPermission();
+                    // Đã tắt tự động nhảy sang Telegram
                     
                     
                     if (app.notificationChannel) {
@@ -5765,7 +5765,7 @@ dropdown.innerHTML = `
 
                     app.notificationChannel = window.sb.channel('public:notifications')
                         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` }, payload => {
-                            app.notifications.requestPermission();
+                            // Đã tắt tự động nhảy sang Telegram
                     
                         }).subscribe();
 
@@ -5788,7 +5788,7 @@ dropdown.innerHTML = `
                         app.notificationChannel = null;
                     }
                     
-                    app.notifications.requestPermission();
+                    // Đã tắt tự động nhảy sang Telegram
                     
                 }
             },
