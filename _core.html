@@ -4587,16 +4587,26 @@
                 },
                 
                 requestPermission: async () => {
-                    // TODO: Thay VNBUSARCHIVE_BOT bằng tên bot của bạn
-                    const BOT_USERNAME = "VNBUSARCHIVE_BOT"; 
+                    // TODO: KIỂM TRA LẠI TÊN BOT CỦA BẠN DƯỚI ĐÂY (VÍ DỤ: vnbusarchive_bot)
+                    const BOT_USERNAME = "vnbusarchive_bot"; 
                     if(app.user) {
                         window.open(`https://t.me/${BOT_USERNAME}?start=${app.user.id}`, '_blank');
-                        app.ui.showAlert("Đang chờ kết nối... Vui lòng nhấn nút <b>START</b> trong ứng dụng Telegram để hoàn tất, sau đó <b>tải lại trang web này</b>.");
+                        app.ui.showAlert(
+                            `<div class="text-left mt-2">
+                                <p class="text-sm text-gray-700 mb-2"><b>Bước 1:</b> Trình duyệt đang mở ứng dụng Telegram của bạn.</p>
+                                <p class="text-sm text-gray-700 mb-2"><b>Bước 2:</b> Vui lòng nhấn nút <b>START (BẮT ĐẦU)</b> ở dưới cùng màn hình chat với Bot.</p>
+                                <div class="bg-blue-50 border border-blue-200 p-3 rounded-md mt-3">
+                                    <p class="text-xs text-blue-800 font-medium"><b>Bước 3:</b> Chờ Bot Telegram thông báo <b>"KẾT NỐI THÀNH CÔNG"</b>, sau đó hãy quay lại đây và nhấn nút tải lại trang.</p>
+                                </div>
+                            </div>`,
+                            () => { window.location.reload(); },
+                            null,
+                            { title: "Hướng dẫn kết nối Telegram", btnOkText: "Đã làm xong, Tải lại trang" }
+                        );
                     } else {
                         app.ui.showAlert("Vui lòng đăng nhập trước!");
                     }
                 },
-                
                 sendTest: async () => {
                     const btn = document.querySelector('#notif-test-box button');
                     if (!btn) return;

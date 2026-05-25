@@ -7,7 +7,10 @@ export default async function handler(req, res) {
     const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_KEY;
 
-    if (!botToken || !supabaseUrl || !supabaseKey) return res.status(200).send('OK');
+    if (!botToken || !supabaseUrl || !supabaseKey) {
+        console.error("LỖI: Thiếu biến môi trường (ENV) trên Vercel!");
+        return res.status(200).send('OK');
+    }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
     const payload = req.body;
@@ -20,50 +23,65 @@ export default async function handler(req, res) {
             const chatId = payload.message.chat.id;
             const text = payload.message.text;
 
-            if (text.startsWith('/start ')) {
-                const userId = text.split(' ')[1];
+            if (text.startsWith('/start')) {
+                const parts = text.split(' ');
+                const userId = parts.length > 1 ? parts[1] : null;
+
+                let replyText = "";
 
                 if (userId && userId.length > 10) {
-                    // Lấy cục JSON cấu hình hiện tại ra
-                    const { data } = await supabase.from('profiles').select('notif_config').eq('id', userId).single();
-                    let currentConfig = data?.notif_config || { enabled: true, approved: true, denied: true, system: true };
+                    // Lấy dữ liệu cấu hình cũ
+                    const { data, error: fetchErr } = await supabase.from('profiles').select('notif_config').eq('id', userId).single();
                     
-                    // Nhồi ID chat vào trong JSON
-                    currentConfig.chat_id = chatId;
+                    if (fetchErr && fetchErr.code !== 'PGRST116') {
+                        replyText = "❌ *LỖI HỆ THỐNG:*
+Không thể truy xuất dữ liệu từ máy chủ. Vui lòng thử lại sau.";
+                    } else {
+                        let currentConfig = data?.notif_config || { enabled: true, approved: true, denied: true, system: true };
+                        currentConfig.chat_id = chatId; // Gán ID Telegram vào JSON
 
-                    // Lưu ngược lại lên Database
-                    const { error } = await supabase.from('profiles').update({ notif_config: currentConfig }).eq('id', userId);
+                        // Lưu lên DB
+                        const { error: updateErr } = await supabase.from('profiles').update({ notif_config: currentConfig }).eq('id', userId);
 
-                    let replyText = error 
-                        ? "❌ Đã có lỗi xảy ra. Vui lòng kiểm tra lại tài khoản." 
-                        : "✅ *Liên kết thành công!*
+                        if (updateErr) {
+                            replyText = "❌ *LỖI KẾT NỐI:*
+Mã tài khoản không hợp lệ hoặc đã bị xóa.";
+                        } else {
+                            replyText = "✅ *KẾT NỐI THÀNH CÔNG!*
 
-Hệ thống sẽ gửi thông báo đến bạn tại đây.
-Bạn có thể quay lại Website để tùy chỉnh Bật/Tắt các loại thông báo cụ thể.";
-                    
-                    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ chat_id: chatId, text: replyText, parse_mode: 'Markdown' })
-                    });
+Tài khoản của bạn đã được liên kết với Telegram.
+
+👉 *Vui lòng quay lại trình duyệt web và Tải lại trang (Reload) để kiểm tra trạng thái.*
+
+Từ giờ, hệ thống sẽ gửi các thông báo quan trọng thẳng vào đoạn chat này.";
+                        }
+                    }
+                } else {
+                    replyText = "⚠️ *LỖI CÚ PHÁP:*
+Bạn chưa cung cấp mã định danh tài khoản.
+
+👉 Vui lòng truy cập lại Cài đặt trên Website VNBUSARCHIVE và bấm nút *Kết nối Telegram* để thử lại.";
                 }
+
+                // Gửi tin nhắn phản hồi về Telegram cho user
+                await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chat_id: chatId, text: replyText, parse_mode: 'Markdown' })
+                });
             }
             return res.status(200).send('OK');
         }
 
         // ====================================================================
-        // NHIỆM VỤ 2: GỬI THÔNG BÁO CHO USER (Do Website của bạn gọi tới)
+        // NHIỆM VỤ 2: GỬI THÔNG BÁO TỪ WEBSITE
         // ====================================================================
         if (payload.action === 'notify' && payload.userId && payload.message) {
             const { userId, message } = payload;
-
             const { data } = await supabase.from('profiles').select('notif_config').eq('id', userId).single();
             const config = data?.notif_config;
 
-            // Nếu user chưa liên kết Telegram thì bỏ qua
             if (!config || !config.chat_id) return res.status(200).json({ error: 'User chưa kết nối Telegram' });
-
-            // KIỂM TRA BỘ LỌC CỦA USER TRƯỚC KHI GỬI
             if (!config.enabled) return res.status(200).json({ skipped: true, reason: 'User đã tắt toàn bộ thông báo' });
             
             const msgLower = message.toLowerCase();
@@ -71,7 +89,6 @@ Bạn có thể quay lại Website để tùy chỉnh Bật/Tắt các loại th
             if ((msgLower.includes('từ chối') || msgLower.includes('xóa')) && !config.denied) return res.status(200).json({ skipped: true });
             if (msgLower.includes('chỉnh sửa') && msgLower.includes('được duyệt') && !config.system) return res.status(200).json({ skipped: true });
 
-            // Nếu qua hết các bộ lọc thì bắn Telegram API
             const tgResponse = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -90,6 +107,6 @@ ${message}`,
         return res.status(200).send('OK');
     } catch (error) {
         console.error('API Error:', error);
-        return res.status(200).send('OK'); // Luôn trả 200 để Telegram ko gửi lại webhook
+        return res.status(200).send('OK');
     }
 }
