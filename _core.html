@@ -2317,17 +2317,17 @@
                         <!-- TAB THÔNG BÁO -->
                         <div id="set-content-notifications" class="space-y-4 md:space-y-6 hidden">
                             <div class="bg-white p-4 md:p-6 rounded-lg border border-gray-200 shadow-sm">
-                                <h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Cài đặt thông báo trình duyệt</h3>
-                                <p class="text-[11px] md:text-xs text-gray-500 mb-5 leading-relaxed">Thiết lập này chỉ áp dụng cho thiết bị và trình duyệt hiện tại. Hệ thống sẽ gửi Pop-up ngay cả khi bạn đang mở tab khác.</p>
+                                <h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Cài đặt thông báo qua Telegram</h3>
+                                <p class="text-[11px] md:text-xs text-gray-500 mb-5 leading-relaxed">Hệ thống sẽ gửi tin nhắn trực tiếp qua ứng dụng Telegram của bạn khi có thông báo mới (Duyệt ảnh, Từ chối, Cập nhật hệ thống).</p>
                                 
                                 <!-- Khung xin quyền hệ thống -->
                                 <div id="notif-permission-box" class="mb-5 bg-gray-50 border border-gray-200 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
                                     <div>
-                                        <h4 class="font-bold text-sm text-black mb-1">Quyền thông báo hệ thống</h4>
+                                        <h4 class="font-bold text-sm text-black mb-1">Trạng thái kết nối Telegram</h4>
                                         <p id="notif-status-text" class="text-[11px] font-medium text-gray-500">Đang kiểm tra...</p>
                                     </div>
                                     <button id="notif-request-btn" onclick="app.notifications.requestPermission()" class="bg-black text-white px-4 py-2 rounded-lg text-xs font-bold shadow-sm hover:bg-gray-800 transition shrink-0 whitespace-nowrap">
-                                        Cấp quyền ngay
+                                        Kết nối Telegram
                                     </button>
                                 </div>
 
@@ -4417,7 +4417,7 @@
                     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, payload => {
                         if (app.user && payload.new.user_id === app.user.id) {
                             app.notifications.requestPermission();
-                    if (window.OneSignalDeferred) { OneSignalDeferred.push(function(OneSignal) { OneSignal.login(user.id); }); }
+                    
                         }
                     })
                     .subscribe((status, err) => {
@@ -4563,95 +4563,104 @@
             },
 
             notifications: {
-                localPrefs: { enabled: true, approved: true, denied: true, system: true },
+                localPrefs: { chat_id: null, enabled: true, approved: true, denied: true, system: true },
                 
-                init: () => {
-                    const saved = localStorage.getItem('vnbus_notif_prefs');
-                    if (saved) {
-                        try { app.notifications.localPrefs = { ...app.notifications.localPrefs, ...JSON.parse(saved) }; } catch(e){}
+                init: async () => {
+                    // Ưu tiên lấy từ Database (cột notif_config) ngay khi khởi tạo
+                    if (app.user) {
+                        try {
+                            const { data } = await window.sb.from('profiles').select('notif_config').eq('id', app.user.id).single();
+                            if (data && data.notif_config) {
+                                app.notifications.localPrefs = { ...app.notifications.localPrefs, ...data.notif_config };
+                            }
+                        } catch(e) {}
                     }
                 },
                 
-                updateSettings: (key, value) => {
+                updateSettings: async (key, value) => {
                     app.notifications.localPrefs[key] = value;
-                    localStorage.setItem('vnbus_notif_prefs', JSON.stringify(app.notifications.localPrefs));
                     app.notifications.renderSettingsUI();
+                    
+                    if(app.user) {
+                        await window.sb.from('profiles').update({ notif_config: app.notifications.localPrefs }).eq('id', app.user.id);
+                    }
                 },
                 
                 requestPermission: async () => {
-                    if (window.OneSignalDeferred) {
-                        OneSignalDeferred.push(async function(OneSignal) {
-                            await OneSignal.Slidedown.promptPush();
-                            app.notifications.renderSettingsUI();
-                        });
+                    // TODO: Thay VNBUSARCHIVE_BOT bằng tên bot của bạn
+                    const BOT_USERNAME = "VNBUSARCHIVE_BOT"; 
+                    if(app.user) {
+                        window.open(`https://t.me/${BOT_USERNAME}?start=${app.user.id}`, '_blank');
+                        app.ui.showAlert("Đang chờ kết nối... Vui lòng nhấn nút <b>START</b> trong ứng dụng Telegram để hoàn tất, sau đó <b>tải lại trang web này</b>.");
+                    } else {
+                        app.ui.showAlert("Vui lòng đăng nhập trước!");
                     }
-                },
-                sendTest: () => {
-                    if (!("Notification" in window) || Notification.permission !== "granted") {
-                        app.ui.showAlert("Bạn chưa cấp quyền thông báo!");
-                        return;
-                    }
-                    new Notification("VNBUSARCHIVE", {
-                        body: "✅ Đây là thông báo thử nghiệm. Nếu bạn thấy dòng này, thiết bị đang nhận thông báo tốt!",
-                        icon: "https://wsrv.nl/?url=https://files.catbox.moe/crxvn6.png&we",
-                        vibrate: [200, 100, 200]
-                    });
-                    app.ui.showAlert("Đã gửi thông báo thử nghiệm! Vui lòng kiểm tra khay thông báo trên thiết bị của bạn.");
                 },
                 
-                renderSettingsUI: () => {
-                    app.notifications.init();
+                sendTest: async () => {
+                    const btn = document.querySelector('#notif-test-box button');
+                    if (!btn) return;
+                    const origHtml = btn.innerHTML;
+                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang gửi...';
+                    
+                    try {
+                        const { data: { session } } = await window.sb.auth.getSession();
+                        const res = await fetch('/api/telegram', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token}` },
+                            body: JSON.stringify({ action: 'notify', userId: app.user.id, message: "✅ Đây là thông báo thử nghiệm! Telegram của bạn đang hoạt động cực kì tốt." })
+                        });
+                        const data = await res.json();
+                        if(data.success) {
+                            app.ui.showAlert("Đã gửi thông báo thử nghiệm qua Telegram!");
+                        } else {
+                            app.ui.showAlert(data.error || "Lỗi: Chưa kết nối hoặc đã tắt thông báo.");
+                        }
+                    } catch(e) {
+                        app.ui.showAlert("Lỗi gửi thử nghiệm: " + e.message);
+                    } finally {
+                        btn.innerHTML = origHtml;
+                    }
+                },
+                
+                renderSettingsUI: async () => {
+                    await app.notifications.init();
                     const prefs = app.notifications.localPrefs;
                     
-                    const elMaster = document.getElementById('set-notif-master');
-                    const elAppr = document.getElementById('set-notif-approved');
-                    const elDeni = document.getElementById('set-notif-denied');
-                    const elSys = document.getElementById('set-notif-system');
+                    ['master', 'approved', 'denied', 'system'].forEach(key => {
+                        const el = document.getElementById(`set-notif-${key}`);
+                        if(el) el.checked = key === 'master' ? prefs.enabled : prefs[key];
+                    });
+                    
                     const group = document.getElementById('notif-details-group');
-                    
-                    if(elMaster) elMaster.checked = prefs.enabled;
-                    if(elAppr) elAppr.checked = prefs.approved;
-                    if(elDeni) elDeni.checked = prefs.denied;
-                    if(elSys) elSys.checked = prefs.system;
-                    
                     if(group) {
-                        if(prefs.enabled) {
-                            group.classList.remove('opacity-50', 'pointer-events-none');
-                        } else {
-                            group.classList.add('opacity-50', 'pointer-events-none');
-                        }
+                        if(prefs.enabled) group.classList.remove('opacity-50', 'pointer-events-none');
+                        else group.classList.add('opacity-50', 'pointer-events-none');
                     }
                     
                     const statusText = document.getElementById('notif-status-text');
                     const reqBtn = document.getElementById('notif-request-btn');
                     const box = document.getElementById('notif-permission-box');
-                    
-                    if (!statusText || !reqBtn || !box) return;
                     const testBox = document.getElementById('notif-test-box');
                     
-                    if (!("Notification" in window)) {
-                        statusText.innerHTML = '<span class="text-red-500 font-bold">Trình duyệt không hỗ trợ.</span>';
-                        reqBtn.classList.add('hidden');
-                        return;
-                    }
-
-                    if (Notification.permission === 'granted') {
-                        statusText.innerHTML = '<i class="fa-solid fa-check-circle text-green-500 mr-1"></i> <span class="text-green-600 font-bold">Đã cấp quyền</span>';
-                        reqBtn.classList.add('hidden');
+                    if (!statusText || !reqBtn || !box || !app.user) return;
+                    
+                    if (prefs.chat_id) {
+                        statusText.innerHTML = '<i class="fa-solid fa-check-circle text-green-500 mr-1"></i> <span class="text-green-600 font-bold">Đã kết nối Telegram</span>';
+                        reqBtn.innerText = "Liên kết tài khoản khác";
                         box.classList.replace('bg-gray-50', 'bg-green-50/30');
                         box.classList.replace('border-gray-200', 'border-green-200');
+                        box.classList.replace('bg-red-50/30', 'bg-green-50/30');
+                        box.classList.replace('border-red-200', 'border-green-200');
                         if (testBox) testBox.classList.remove('hidden');
-                    } else if (Notification.permission === 'denied') {
-                        statusText.innerHTML = '<i class="fa-solid fa-ban text-red-500 mr-1"></i> <span class="text-red-600 font-bold">Bị chặn bởi trình duyệt</span> (Nhấn ổ khóa trên thanh địa chỉ để mở lại)';
-                        reqBtn.classList.add('hidden');
-                        box.classList.replace('bg-gray-50', 'bg-red-50/30');
-                        box.classList.replace('border-gray-200', 'border-red-200');
-                        if (testBox) testBox.classList.add('hidden');
                     } else {
-                        statusText.innerHTML = '<i class="fa-solid fa-circle-question text-amber-500 mr-1"></i> <span class="text-amber-600 font-bold">Chưa yêu cầu</span>';
+                        statusText.innerHTML = '<i class="fa-solid fa-circle-question text-amber-500 mr-1"></i> <span class="text-amber-600 font-bold">Chưa kết nối</span>';
+                        reqBtn.innerText = "Kết nối Telegram";
                         reqBtn.classList.remove('hidden');
                         box.classList.replace('bg-green-50/30', 'bg-gray-50');
                         box.classList.replace('border-green-200', 'border-gray-200');
+                        box.classList.replace('bg-red-50/30', 'bg-gray-50');
+                        box.classList.replace('border-red-200', 'border-gray-200');
                         if (testBox) testBox.classList.add('hidden');
                     }
                 },
@@ -4663,22 +4672,7 @@
                     return 'system';
                 },
 
-                show: (message) => {
-                    app.notifications.init();
-                    if (!app.notifications.localPrefs.enabled) return;
-                    if (!("Notification" in window) || Notification.permission !== "granted") return;
-
-                    const cat = app.notifications.categorizeMsg(message);
-                    if (cat === 'approved' && !app.notifications.localPrefs.approved) return;
-                    if (cat === 'denied' && !app.notifications.localPrefs.denied) return;
-                    if (cat === 'system' && !app.notifications.localPrefs.system) return;
-
-                    new Notification("VNBUSARCHIVE", {
-                        body: message,
-                        icon: "https://wsrv.nl/?url=https://files.catbox.moe/crxvn6.png&we",
-                        vibrate: [200, 100, 200]
-                    });
-                },
+                show: (message) => {}, // Bỏ vì không dùng notification trình duyệt nữa
 
                 add: async (userId, message) => {
                     const { count } = await window.sb.from('notifications').select('*', { count: 'exact', head: true }).eq('user_id', userId);
@@ -4688,15 +4682,14 @@
                     }
                     await window.sb.from('notifications').insert({ user_id: userId, message: message });
 
-                    // Gọi API Vercel để Push Notification Realtime qua OneSignal
                     try {
-                        await fetch('/api/notify-request', {
+                        await fetch('/api/telegram', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ userId: userId, message: message })
+                            body: JSON.stringify({ action: 'notify', userId: userId, message: message })
                         });
                     } catch (e) {
-                        console.error('Lỗi gọi API Push Notification:', e);
+                        console.error('Lỗi API Push Telegram:', e);
                     }
                 }
             },
@@ -5753,7 +5746,7 @@ dropdown.innerHTML = `
                     }
 
                     app.notifications.requestPermission();
-                    if (window.OneSignalDeferred) { OneSignalDeferred.push(function(OneSignal) { OneSignal.login(user.id); }); }
+                    
                     
                     if (app.notificationChannel) {
                         window.sb.removeChannel(app.notificationChannel);
@@ -5763,7 +5756,7 @@ dropdown.innerHTML = `
                     app.notificationChannel = window.sb.channel('public:notifications')
                         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` }, payload => {
                             app.notifications.requestPermission();
-                    if (window.OneSignalDeferred) { OneSignalDeferred.push(function(OneSignal) { OneSignal.login(user.id); }); }
+                    
                         }).subscribe();
 
                 } else {
@@ -5786,7 +5779,7 @@ dropdown.innerHTML = `
                     }
                     
                     app.notifications.requestPermission();
-                    if (window.OneSignalDeferred) { OneSignalDeferred.push(function(OneSignal) { OneSignal.login(user.id); }); }
+                    
                 }
             },
 
