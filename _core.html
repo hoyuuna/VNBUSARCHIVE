@@ -2196,14 +2196,10 @@
                         
                         <!-- MENU CHÍNH -->
                         <div id="set-menu-main" class="flex flex-col gap-2 overflow-y-auto h-full w-full pb-2 md:pb-0 pr-1">
-                            <button onclick="app.settings.switchTab('profile')" id="set-tab-profile" class="account-only-btn w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-black text-white shadow-sm border border-black shrink-0">
-                                <i class="fa-solid fa-user-pen w-6 text-center mr-2"></i> Tùy chỉnh hồ sơ
-                            </button>
-                            <button onclick="app.settings.switchTab('security')" id="set-tab-security" class="account-only-btn w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
-                                <i class="fa-solid fa-shield-halved w-6 text-center mr-2"></i> Bảo mật
-                            </button>
-                            <button onclick="app.settings.switchTab('links')" id="set-tab-links" class="account-only-btn w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
-                                <i class="fa-solid fa-link w-6 text-center mr-2"></i> Liên kết
+                            <!-- Nút Tài khoản có mũi tên -->
+                            <button onclick="app.settings.openAccountMenu()" id="set-tab-account-trigger" class="account-only-btn w-full flex items-center justify-between text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 group shrink-0">
+                                <div class="flex items-center"><i class="fa-solid fa-user-shield w-6 text-center mr-2"></i> Tài khoản</div> 
+                                <i class="fa-solid fa-chevron-right text-gray-400 group-hover:text-black transition"></i>
                             </button>
                             <button onclick="app.settings.switchTab('badges')" id="set-tab-badges" class="account-only-btn w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
                                 <i class="fa-brands fa-discord w-6 text-center mr-2"></i> Huy hiệu
@@ -2217,6 +2213,23 @@
                             <button onclick="app.settings.openDocsMenu()" id="set-tab-docs-trigger" class="w-full flex items-center justify-between text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 group shrink-0">
                                 <div class="flex items-center"><i class="fa-solid fa-book-open w-6 text-center mr-2"></i> Tài liệu</div> 
                                 <i class="fa-solid fa-chevron-right text-gray-400 group-hover:text-black transition"></i>
+                            </button>
+                        </div>
+
+                        
+                        <!-- MENU TÀI KHOẢN (ẨN MẶC ĐỊNH) -->
+                        <div id="set-menu-account" class="hidden flex-col gap-2 overflow-y-auto h-full w-full pb-2 md:pb-0 pr-1">
+                            <button onclick="app.settings.closeAccountMenu()" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-gray-100 text-gray-700 hover:bg-gray-200 border border-transparent shrink-0 mb-2">
+                                <i class="fa-solid fa-arrow-left w-6 text-center mr-2"></i> Quay lại
+                            </button>
+                            <button onclick="app.settings.switchTab('profile')" id="set-tab-profile" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-black text-white shadow-sm border border-black shrink-0">
+                                <i class="fa-solid fa-user-pen w-6 text-center mr-2"></i> Tùy chỉnh hồ sơ
+                            </button>
+                            <button onclick="app.settings.switchTab('security')" id="set-tab-security" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
+                                <i class="fa-solid fa-shield-halved w-6 text-center mr-2"></i> Bảo mật
+                            </button>
+                            <button onclick="app.settings.switchTab('links')" id="set-tab-links" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
+                                <i class="fa-solid fa-link w-6 text-center mr-2"></i> Liên kết
                             </button>
                         </div>
 
@@ -2239,7 +2252,25 @@
                     </div>
                     
                     <div class="w-full md:w-3/4 p-4 md:p-8 overflow-y-auto relative flex-1">
-                        <div id="set-content-profile" class="space-y-4 md:space-y-6 block">
+                        
+                        <!-- MÀN HÌNH CHÀO MỪNG MẶC ĐỊNH -->
+                        <div id="set-content-welcome" class="block flex flex-col items-center justify-center h-full text-center fade-zoom-in px-4">
+                            <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-3xl mb-4 shadow-sm border border-blue-100">
+                                <i class="fa-solid fa-hand-wave"></i>
+                            </div>
+                            <h2 class="text-2xl font-bold text-black mb-2 tracking-tight">Xin chào <span id="set-welcome-name" class="text-blue-600">...</span>!</h2>
+                            <p class="text-sm text-gray-500 mb-8 max-w-sm leading-relaxed">Hãy chọn một mục ở menu bên trái hoặc tìm kiếm chức năng cài đặt để bắt đầu.</p>
+                            
+                            <div class="relative w-full max-w-md mx-auto text-left z-50">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                </span>
+                                <input type="text" id="set-search-input" placeholder="Tìm cài đặt (VD: đổi tên, mật khẩu, xe buýt...)" autocomplete="off" class="w-full border border-gray-300 py-3 pl-11 pr-4 rounded-xl focus:ring-2 focus:ring-black outline-none shadow-sm transition text-sm" oninput="app.settings.search(this.value)" onfocus="app.settings.search(this.value)">
+                                <div id="set-search-sug" class="suggestion-box" style="top: 100%; margin-top: 8px; width: 100%;"></div>
+                            </div>
+                        </div>
+
+                        <div id="set-content-profile" class="space-y-4 md:space-y-6 hidden">
                             <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm">
                                 <h3 class="font-bold text-xs md:text-sm text-black mb-3 md:mb-4 uppercase tracking-wide">Ảnh đại diện</h3>
                                 <div class="flex flex-col sm:flex-row items-center gap-4">
@@ -3518,7 +3549,9 @@
                     // Nếu KHÔNG phải onboarding lần đầu, dẫn thẳng vào Cài đặt -> Tab Cá nhân hóa
                     if (!isOnboarding) {
                         app.settings.open();
-                        app.settings.switchTab('preference');
+                        app.settings.switchTab('welcome');
+                        const wName = document.getElementById('set-welcome-name');
+                        if(wName) wName.innerText = 'Khách';
                         app.preference.updateUI();
                         return;
                     }
@@ -4481,6 +4514,93 @@
             },
 
             settings: {
+
+                search: (query) => {
+                    const box = document.getElementById('set-search-sug');
+                    if (!query.trim()) {
+                        box.classList.remove('active');
+                        return;
+                    }
+
+                    const keywords = [
+                        { text: "Tùy chỉnh hồ sơ / Avatar / Đổi tên", tab: "profile", parent: "account", icon: "fa-user-pen" },
+                        { text: "Bảo mật / Mật khẩu / Email / UUID", tab: "security", parent: "account", icon: "fa-shield-halved" },
+                        { text: "Liên kết tài khoản / Google / Discord", tab: "links", parent: "account", icon: "fa-link" },
+                        { text: "Huy hiệu Discord / Role", tab: "badges", parent: "main", icon: "fa-discord" },
+                        { text: "Cá nhân hóa / Xe buýt / Xe khách / Gợi ý", tab: "preference", parent: "main", icon: "fa-layer-group" },
+                        { text: "Tài liệu / Giới thiệu hệ thống", tab: "docs-intro", parent: "docs", icon: "fa-markdown" },
+                        { text: "Quy định / Kiểm duyệt", tab: "docs-requirements", parent: "docs", icon: "fa-list-check" },
+                        { text: "Chính sách bảo mật", tab: "docs-policy", parent: "docs", icon: "fa-shield" }
+                    ];
+
+                    const lowerQ = app.utils.cleanText(query.toLowerCase());
+                    const words = lowerQ.split(/\s+/);
+                    
+                    const results = keywords.filter(k => {
+                        const target = k.text.toLowerCase();
+                        return words.every(w => target.includes(w));
+                    });
+
+                    if (results.length > 0) {
+                        box.innerHTML = results.map(r => `
+                            <div class="suggestion-item border-b border-gray-100 last:border-0 flex items-center gap-3 py-3" 
+                                 onmousedown="event.preventDefault(); app.settings.jumpTo('${r.tab}', '${r.parent}'); document.getElementById('set-search-input').value=''; document.getElementById('set-search-sug').classList.remove('active');">
+                                <div class="w-8 h-8 rounded bg-gray-100 flex items-center justify-center text-gray-500 shrink-0"><i class="${r.icon.includes('discord') ? 'fa-brands' : 'fa-solid'} ${r.icon}"></i></div>
+                                <div class="text-[13px] text-black font-medium leading-snug">${r.text.replace(/\//g, '<span class="text-gray-300 mx-1">/</span>')}</div>
+                            </div>
+                        `).join('');
+                        box.classList.add('active');
+                    } else {
+                        box.innerHTML = `<div class="p-4 text-xs text-gray-500 text-center"><i class="fa-solid fa-magnifying-glass mr-1"></i> Không tìm thấy cài đặt nào phù hợp.</div>`;
+                        box.classList.add('active');
+                    }
+                },
+
+                jumpTo: (tab, parent) => {
+                    app.settings.closeDocsMenu(true);
+                    app.settings.closeAccountMenu(true);
+                    app.settings.closeAccountMenu(true);
+
+                    if (parent === 'account') app.settings.openAccountMenu();
+                    if (parent === 'docs') app.settings.openDocsMenu();
+
+                    app.settings.switchTab(tab);
+                },
+
+                openAccountMenu: () => {
+                    const main = document.getElementById('set-menu-main');
+                    const acc = document.getElementById('set-menu-account');
+                    
+                    main.classList.add('hidden');
+                    main.classList.remove('flex');
+                    acc.classList.remove('hidden');
+                    acc.classList.add('flex', 'slide-left-enter');
+                    acc.classList.remove('slide-right-enter');
+
+                    app.settings.switchTab('welcome');
+                        const wName = document.getElementById('set-welcome-name');
+                        if(wName) wName.innerText = app.username;
+                },
+
+                closeAccountMenu: (instant = false) => {
+                    const main = document.getElementById('set-menu-main');
+                    const acc = document.getElementById('set-menu-account');
+                    
+                    if (instant) {
+                        acc.classList.add('hidden');
+                        acc.classList.remove('flex', 'slide-left-enter', 'slide-right-enter');
+                        main.classList.remove('hidden', 'slide-left-enter', 'slide-right-enter');
+                        main.classList.add('flex');
+                    } else {
+                        acc.classList.add('hidden');
+                        acc.classList.remove('flex');
+                        main.classList.remove('hidden');
+                        main.classList.add('flex', 'slide-right-enter');
+                        main.classList.remove('slide-left-enter');
+                        app.settings.switchTab('welcome');
+                    }
+                },
+
                 open: async () => {
                     const modal = document.getElementById('settings-modal');
                     const content = document.getElementById('settings-content');
@@ -4489,6 +4609,7 @@
 
                     // Reset menu trượt về menu chính
                     app.settings.closeDocsMenu(true);
+                    app.settings.closeAccountMenu(true);
 
                     if (app.user) {
                         document.querySelectorAll('.account-only-btn').forEach(el => el.style.display = '');
@@ -4508,7 +4629,9 @@
                             if (currentEmailEl) currentEmailEl.innerText = app.user.email;
                         }
                         
-                        app.settings.switchTab('profile');
+                        app.settings.switchTab('welcome');
+                        const wName = document.getElementById('set-welcome-name');
+                        if(wName) wName.innerText = app.username;
                         app.settings.loadIdentities();
 
                         const avatarImg = document.getElementById('set-avatar-img');
@@ -4527,7 +4650,9 @@
                     } else {
                         // Khách ẩn phần Tài khoản, mở thẳng Cá nhân hóa
                         document.querySelectorAll('.account-only-btn').forEach(el => el.style.display = 'none');
-                        app.settings.switchTab('preference');
+                        app.settings.switchTab('welcome');
+                        const wName = document.getElementById('set-welcome-name');
+                        if(wName) wName.innerText = 'Khách';
                         app.preference.updateUI();
                     }
 
@@ -4583,7 +4708,7 @@
                 },
 
                 switchTab: (tab) => {
-                    const tabs = ['profile', 'security', 'links', 'badges', 'preference', 'docs-intro', 'docs-requirements', 'docs-policy'];
+                    const tabs = ['welcome', 'profile', 'security', 'links', 'badges', 'preference', 'docs-intro', 'docs-requirements', 'docs-policy'];
                     const activeClasses = ['bg-black', 'text-white', 'border-black', 'shadow-sm'];
                     const inactiveClasses = ['bg-white', 'text-gray-600', 'hover:bg-gray-50', 'border-gray-200'];
 
