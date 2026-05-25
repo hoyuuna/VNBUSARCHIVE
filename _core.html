@@ -2161,6 +2161,9 @@
                             <button onclick="app.settings.switchTab('preference')" id="set-tab-preference" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
                                 <i class="fa-solid fa-layer-group w-6 text-center mr-2"></i> Cá nhân hóa
                             </button>
+                            <button onclick="app.settings.switchTab('notifications')" id="set-tab-notifications" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0 mt-2">
+                                <i class="fa-solid fa-bell w-6 text-center mr-2"></i> Thông báo
+                            </button>
                             
                             <!-- Nút Tài liệu có mũi tên bên phải -->
                             <button onclick="app.settings.openDocsMenu()" id="set-tab-docs-trigger" class="w-full flex items-center justify-between text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 group shrink-0">
@@ -2296,7 +2299,74 @@
                             </div>
                         </div>
 
-                        <!-- CÁC TAB TÀI LIỆU -->
+                        
+                        <!-- TAB THÔNG BÁO -->
+                        <div id="set-content-notifications" class="space-y-4 md:space-y-6 hidden">
+                            <div class="bg-white p-4 md:p-6 rounded-lg border border-gray-200 shadow-sm">
+                                <h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Cài đặt thông báo trình duyệt</h3>
+                                <p class="text-[11px] md:text-xs text-gray-500 mb-5 leading-relaxed">Thiết lập này chỉ áp dụng cho thiết bị và trình duyệt hiện tại. Hệ thống sẽ gửi Pop-up ngay cả khi bạn đang mở tab khác.</p>
+                                
+                                <!-- Khung xin quyền -->
+                                <div id="notif-permission-box" class="mb-5 bg-gray-50 border border-gray-200 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
+                                    <div>
+                                        <h4 class="font-bold text-sm text-black mb-1">Quyền thông báo hệ thống</h4>
+                                        <p id="notif-status-text" class="text-[11px] font-medium text-gray-500">Đang kiểm tra...</p>
+                                    </div>
+                                    <button id="notif-request-btn" onclick="app.notifications.requestPermission()" class="bg-black text-white px-4 py-2 rounded-lg text-xs font-bold shadow-sm hover:bg-gray-800 transition shrink-0 whitespace-nowrap">
+                                        Cấp quyền ngay
+                                    </button>
+                                </div>
+
+                                <!-- Bật/Tắt Tổng -->
+                                <div class="mb-4 flex items-center justify-between border-b border-gray-100 pb-4">
+                                    <div>
+                                        <h4 class="font-bold text-sm text-black">Cho phép gửi thông báo</h4>
+                                        <p class="text-[10px] text-gray-500 mt-0.5">Bật/tắt toàn bộ thông báo từ hệ thống.</p>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-4">
+                                        <input type="checkbox" id="set-notif-master" class="sr-only peer" onchange="app.notifications.updateSettings('enabled', this.checked)">
+                                        <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-green-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all shadow-inner"></div>
+                                    </label>
+                                </div>
+
+                                <div id="notif-details-group" class="space-y-4 transition-opacity duration-300">
+                                    <!-- Duyệt ảnh -->
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <h4 class="font-bold text-[13px] text-gray-800">Ảnh được duyệt</h4>
+                                            <p class="text-[10px] text-gray-500">Thông báo khi quản trị viên chấp thuận ảnh của bạn.</p>
+                                        </div>
+                                        <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-4">
+                                            <input type="checkbox" id="set-notif-approved" class="sr-only peer" onchange="app.notifications.updateSettings('approved', this.checked)">
+                                            <div class="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-black after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all shadow-inner"></div>
+                                        </label>
+                                    </div>
+                                    <!-- Từ chối ảnh -->
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <h4 class="font-bold text-[13px] text-gray-800">Ảnh bị từ chối / Xóa</h4>
+                                            <p class="text-[10px] text-gray-500">Thông báo kèm lý do khi ảnh không đạt yêu cầu.</p>
+                                        </div>
+                                        <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-4">
+                                            <input type="checkbox" id="set-notif-denied" class="sr-only peer" onchange="app.notifications.updateSettings('denied', this.checked)">
+                                            <div class="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-black after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all shadow-inner"></div>
+                                        </label>
+                                    </div>
+                                    <!-- Hệ thống / Khác -->
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <h4 class="font-bold text-[13px] text-gray-800">Cập nhật hệ thống</h4>
+                                            <p class="text-[10px] text-gray-500">Thông báo khi yêu cầu sửa thông tin xe được duyệt.</p>
+                                        </div>
+                                        <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-4">
+                                            <input type="checkbox" id="set-notif-system" class="sr-only peer" onchange="app.notifications.updateSettings('system', this.checked)">
+                                            <div class="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-black after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all shadow-inner"></div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+<!-- CÁC TAB TÀI LIỆU -->
                         <div id="set-content-docs-intro" class="markdown-body hidden" data-url="https://raw.githubusercontent.com/hoyuuna/VNBUSARCHIVE/refs/heads/main/README.md" data-loaded="false">
                             <div class="text-center text-gray-500 py-10"><i class="fa-solid fa-circle-notch fa-spin text-2xl mb-2 text-black"></i><p>Đang tải tài liệu...</p></div>
                         </div>
@@ -4265,6 +4335,7 @@
                 app.upload.initMap();
                 app.utils.loadAnnouncements();
                 await app.utils.fetchTopUploaders();
+                app.notifications.init(); // Load Notification Prefs
 
                 if (app.realtimeChannel) {
                     window.sb.removeChannel(app.realtimeChannel);
@@ -4438,22 +4509,111 @@
             },
 
             notifications: {
-                requestPermission: () => {
-                    if (!("Notification" in window)) return;
-                    if (Notification.permission !== "granted" && Notification.permission !== "denied") {
-                        Notification.requestPermission();
+                localPrefs: { enabled: true, approved: true, denied: true, system: true },
+                
+                init: () => {
+                    const saved = localStorage.getItem('vnbus_notif_prefs');
+                    if (saved) {
+                        try { app.notifications.localPrefs = { ...app.notifications.localPrefs, ...JSON.parse(saved) }; } catch(e){}
                     }
                 },
+                
+                updateSettings: (key, value) => {
+                    app.notifications.localPrefs[key] = value;
+                    localStorage.setItem('vnbus_notif_prefs', JSON.stringify(app.notifications.localPrefs));
+                    app.notifications.renderSettingsUI();
+                },
+                
+                requestPermission: async () => {
+                    if (!("Notification" in window)) return alert("Trình duyệt của bạn không hỗ trợ thông báo.");
+                    
+                    const p = await Notification.requestPermission();
+                    app.notifications.renderSettingsUI();
+                    
+                    if (p === 'granted') {
+                        new Notification("VNBUSARCHIVE", { body: "Cấp quyền thành công! Bạn sẽ nhận được thông báo tại đây.", icon: "https://wsrv.nl/?url=https://files.catbox.moe/crxvn6.png&we" });
+                    } else if (p === 'denied') {
+                        app.ui.showAlert("Bạn đã từ chối quyền gửi thông báo. Để mở lại, vui lòng nhấn vào biểu tượng Ổ khóa trên thanh địa chỉ trình duyệt và cho phép 'Thông báo'.");
+                    }
+                },
+
+                renderSettingsUI: () => {
+                    app.notifications.init();
+                    const prefs = app.notifications.localPrefs;
+                    
+                    // Render các nút gạt
+                    const elMaster = document.getElementById('set-notif-master');
+                    const elAppr = document.getElementById('set-notif-approved');
+                    const elDeni = document.getElementById('set-notif-denied');
+                    const elSys = document.getElementById('set-notif-system');
+                    const group = document.getElementById('notif-details-group');
+                    
+                    if(elMaster) elMaster.checked = prefs.enabled;
+                    if(elAppr) elAppr.checked = prefs.approved;
+                    if(elDeni) elDeni.checked = prefs.denied;
+                    if(elSys) elSys.checked = prefs.system;
+                    
+                    if(group) {
+                        if(prefs.enabled) group.classList.remove('opacity-50', 'pointer-events-none');
+                        else group.classList.add('opacity-50', 'pointer-events-none');
+                    }
+                    
+                    // Render khung xin quyền
+                    const statusText = document.getElementById('notif-status-text');
+                    const reqBtn = document.getElementById('notif-request-btn');
+                    const box = document.getElementById('notif-permission-box');
+                    
+                    if (!statusText || !reqBtn || !box) return;
+                    
+                    if (!("Notification" in window)) {
+                        statusText.innerHTML = '<span class="text-red-500 font-bold">Trình duyệt không hỗ trợ.</span>';
+                        reqBtn.classList.add('hidden');
+                        return;
+                    }
+
+                    if (Notification.permission === 'granted') {
+                        statusText.innerHTML = '<i class="fa-solid fa-check-circle text-green-500 mr-1"></i> <span class="text-green-600 font-bold">Đã cấp quyền</span>';
+                        reqBtn.classList.add('hidden');
+                        box.classList.replace('bg-gray-50', 'bg-green-50/30');
+                        box.classList.replace('border-gray-200', 'border-green-200');
+                    } else if (Notification.permission === 'denied') {
+                        statusText.innerHTML = '<i class="fa-solid fa-ban text-red-500 mr-1"></i> <span class="text-red-600 font-bold">Bị chặn bởi trình duyệt</span> (Nhấn ổ khóa trên thanh địa chỉ để mở lại)';
+                        reqBtn.classList.add('hidden');
+                        box.classList.replace('bg-gray-50', 'bg-red-50/30');
+                        box.classList.replace('border-gray-200', 'border-red-200');
+                    } else {
+                        statusText.innerHTML = '<i class="fa-solid fa-circle-question text-amber-500 mr-1"></i> <span class="text-amber-600 font-bold">Chưa yêu cầu</span>';
+                        reqBtn.classList.remove('hidden');
+                        box.classList.replace('bg-green-50/30', 'bg-gray-50');
+                        box.classList.replace('border-green-200', 'border-gray-200');
+                    }
+                },
+
+                categorizeMsg: (msg) => {
+                    const l = msg.toLowerCase();
+                    if (l.includes('được duyệt') && l.includes('ảnh')) return 'approved';
+                    if (l.includes('từ chối') || l.includes('xóa')) return 'denied';
+                    return 'system';
+                },
+
                 show: (message) => {
+                    app.notifications.init();
+                    if (!app.notifications.localPrefs.enabled) return;
                     if (!("Notification" in window) || Notification.permission !== "granted") return;
+
+                    const cat = app.notifications.categorizeMsg(message);
+                    if (cat === 'approved' && !app.notifications.localPrefs.approved) return;
+                    if (cat === 'denied' && !app.notifications.localPrefs.denied) return;
+                    if (cat === 'system' && !app.notifications.localPrefs.system) return;
+
                     new Notification("VNBUSARCHIVE", {
                         body: message,
-                        icon: "https://wsrv.nl/?url=https://files.catbox.moe/crxvn6.png&we", // Logo VNBUSARCHIVE
+                        icon: "https://wsrv.nl/?url=https://files.catbox.moe/crxvn6.png&we",
                         vibrate: [200, 100, 200]
                     });
                 },
+
                 add: async (userId, message) => {
-                    // Vẫn lưu vào DB để mượn Realtime làm cầu nối gửi tới đúng UUID của user
                     const { count } = await window.sb.from('notifications').select('*', { count: 'exact', head: true }).eq('user_id', userId);
                     if (count >= 50) {
                         const { data: oldest } = await window.sb.from('notifications').select('id').eq('user_id', userId).order('created_at', { ascending: true }).limit(1).single();
@@ -4489,6 +4649,8 @@
                         { text: "Xe buýt", tab: "preference", parent: "main", icon: "fa-layer-group" },
                         { text: "Xe khách", tab: "preference", parent: "main", icon: "fa-layer-group" },
                         { text: "Gợi ý thông minh", tab: "preference", parent: "main", icon: "fa-layer-group" },
+                        { text: "Cài đặt thông báo", tab: "notifications", parent: "main", icon: "fa-bell" },
+                        { text: "Bật tắt thông báo", tab: "notifications", parent: "main", icon: "fa-bell" },
                         { text: "Tài liệu", tab: "docs-intro", parent: "docs", icon: "fa-markdown" },
                         { text: "Giới thiệu hệ thống", tab: "docs-intro", parent: "docs", icon: "fa-markdown" },
                         { text: "Quy định", tab: "docs-requirements", parent: "docs", icon: "fa-list-check" },
@@ -4665,7 +4827,7 @@
                 },
 
                 switchTab: (tab) => {
-                    const tabs = ['blank', 'profile', 'security', 'links', 'badges', 'preference', 'docs-intro', 'docs-requirements', 'docs-policy'];
+                    const tabs = ['blank', 'profile', 'security', 'links', 'badges', 'preference', 'notifications', 'docs-intro', 'docs-requirements', 'docs-policy'];
                     const activeClasses = ['bg-black', 'text-white', 'border-black', 'shadow-sm'];
                     const inactiveClasses = ['bg-white', 'text-gray-600', 'hover:bg-gray-50', 'border-gray-200'];
 
@@ -4683,6 +4845,8 @@
                             // Nếu là tab tài liệu thì tải nội dung
                             if (t.startsWith('docs-')) {
                                 app.docs.fetchContent(t);
+                            } else if (t === 'notifications') {
+                                app.notifications.renderSettingsUI();
                             } else if (t === 'preference') {
                                 app.preference.tempSelection = app.preference.current || 'both';
                                 app.preference.tempShowRec = app.preference.showRecommendations; // FIX: Đồng bộ đúng trạng thái
@@ -6163,6 +6327,7 @@ dropdown.innerHTML = `
 
                     if (Object.keys(app.topUploaders).length === 0) {
                         await app.utils.fetchTopUploaders();
+                app.notifications.init(); // Load Notification Prefs
                     }
 
                     const badges = app.utils.getBadgesHTML(profile.id, profile.role);
@@ -6519,6 +6684,7 @@ const elInfoPlate = document.getElementById('info-plate');
 
                     if (Object.keys(app.topUploaders).length === 0) {
                         await app.utils.fetchTopUploaders();
+                app.notifications.init(); // Load Notification Prefs
                     }
 
                     const badges = app.utils.getBadgesHTML(photo.profiles?.id, photo.profiles?.role);
