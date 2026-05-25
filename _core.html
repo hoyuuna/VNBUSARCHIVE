@@ -2360,7 +2360,7 @@
                                         </div>
                                     </div>
                                     <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-4 self-center">
-                                        <input type="checkbox" id="set-notif-master" class="sr-only peer" onchange="app.notifications.updateSettings('enabled', this.checked)">
+                                        <input type="checkbox" id="set-notif-master" class="sr-only peer" onchange="app.notifications.toggleTempSetting('enabled', this.checked)">
                                         <div class="w-11 h-6 bg-black rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all shadow-inner"></div>
                                     </label>
                                 </div>
@@ -2379,7 +2379,7 @@
                                             </div>
                                         </div>
                                         <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-4 self-center">
-                                            <input type="checkbox" id="set-notif-approved" class="sr-only peer" onchange="app.notifications.updateSettings('approved', this.checked)">
+                                            <input type="checkbox" id="set-notif-approved" class="sr-only peer" onchange="app.notifications.toggleTempSetting('approved', this.checked)">
                                             <div class="w-11 h-6 bg-black rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all shadow-inner"></div>
                                         </label>
                                     </div>
@@ -2396,7 +2396,7 @@
                                             </div>
                                         </div>
                                         <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-4 self-center">
-                                            <input type="checkbox" id="set-notif-denied" class="sr-only peer" onchange="app.notifications.updateSettings('denied', this.checked)">
+                                            <input type="checkbox" id="set-notif-denied" class="sr-only peer" onchange="app.notifications.toggleTempSetting('denied', this.checked)">
                                             <div class="w-11 h-6 bg-black rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all shadow-inner"></div>
                                         </label>
                                     </div>
@@ -2413,10 +2413,13 @@
                                             </div>
                                         </div>
                                         <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-4 self-center">
-                                            <input type="checkbox" id="set-notif-system" class="sr-only peer" onchange="app.notifications.updateSettings('system', this.checked)">
+                                            <input type="checkbox" id="set-notif-system" class="sr-only peer" onchange="app.notifications.toggleTempSetting('system', this.checked)">
                                             <div class="w-11 h-6 bg-black rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all shadow-inner"></div>
                                         </label>
                                     </div>
+                                </div>
+                                <div class="text-right border-t border-gray-100 pt-4 mt-6">
+                                    <button onclick="app.notifications.save()" class="bg-black text-white px-6 py-2.5 rounded-lg text-xs font-bold shadow-sm hover:bg-gray-800 transition"><i class="fa-solid fa-floppy-disk mr-1"></i> Lưu thiết lập</button>
                                 </div>
                             </div>
                         </div>
@@ -4565,9 +4568,9 @@
 
             notifications: {
                 localPrefs: { chat_id: null, enabled: true, approved: true, denied: true, system: true },
+                tempPrefs: { enabled: true, approved: true, denied: true, system: true },
                 
                 init: async () => {
-                    // Ưu tiên lấy từ Database (cột notif_config) ngay khi khởi tạo
                     if (app.user) {
                         try {
                             const { data } = await window.sb.from('profiles').select('notif_config').eq('id', app.user.id).single();
@@ -4576,19 +4579,53 @@
                             }
                         } catch(e) {}
                     }
+                    // Đồng bộ cấu hình từ Database sang bộ nhớ tạm (tempPrefs) khi khởi tạo
+                    app.notifications.tempPrefs = { ...app.notifications.localPrefs };
                 },
                 
-                updateSettings: async (key, value) => {
-                    app.notifications.localPrefs[key] = value;
-                    app.notifications.renderSettingsUI();
+                toggleTempSetting: (key, value) => {
+                    app.notifications.tempPrefs[key] = value;
                     
-                    if(app.user) {
-                        await window.sb.from('profiles').update({ notif_config: app.notifications.localPrefs }).eq('id', app.user.id);
+                    // Hiệu ứng làm mờ danh sách tùy chọn con khi tắt Công tắc chính (Master switch)
+                    if (key === 'enabled') {
+                        const group = document.getElementById('notif-details-group');
+                        if(group) {
+                            if(value) group.classList.remove('opacity-50', 'pointer-events-none');
+                            else group.classList.add('opacity-50', 'pointer-events-none');
+                        }
+                    }
+                },
+                
+                save: async () => {
+                    const btn = document.querySelector('#set-content-notifications button[onclick="app.notifications.save()"]');
+                    const origHtml = btn ? btn.innerHTML : '';
+                    if (btn) {
+                        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang lưu...';
+                        btn.disabled = true;
+                    }
+                    
+                    try {
+                        // Áp dụng từ bộ nhớ tạm vào bộ nhớ chính thức
+                        app.notifications.localPrefs = { ...app.notifications.tempPrefs };
+                        localStorage.setItem('vnbus_notif_prefs', JSON.stringify(app.notifications.localPrefs));
+                        
+                        if(app.user) {
+                            const { error } = await window.sb.from('profiles').update({ notif_config: app.notifications.localPrefs }).eq('id', app.user.id);
+                            if (error) throw error;
+                        }
+                        app.ui.showAlert("Đã lưu cài đặt thông báo thành công!");
+                    } catch(e) {
+                        app.ui.showAlert("Lỗi khi lưu cài đặt: " + e.message);
+                    } finally {
+                        if (btn) {
+                            btn.innerHTML = origHtml || '<i class="fa-solid fa-floppy-disk mr-1"></i> Lưu thiết lập';
+                            btn.disabled = false;
+                        }
                     }
                 },
                 
                 requestPermission: async () => {
-                    // TODO: KIỂM TRA LẠI TÊN BOT CỦA BẠN DƯỚI ĐÂY (VÍ DỤ: vnbusarchive_bot)
+                    // TODO: ĐỔI TÊN BOT TELEGRAM CỦA BẠN TẠI ĐÂY (VÍ DỤ: vnbusarchive_bot)
                     const BOT_USERNAME = "vnbusarchive_bot"; 
                     if(app.user) {
                         window.open(`https://t.me/${BOT_USERNAME}?start=${app.user.id}`, '_blank');
@@ -4608,6 +4645,7 @@
                         app.ui.showAlert("Vui lòng đăng nhập trước!");
                     }
                 },
+                
                 sendTest: async () => {
                     const btn = document.querySelector('#notif-test-box button');
                     if (!btn) return;
@@ -4619,13 +4657,13 @@
                         const res = await fetch('/api/telegram', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token}` },
-                            body: JSON.stringify({ action: 'notify', userId: app.user.id, message: "✅ Đây là thông báo thử nghiệm! Telegram của bạn đang hoạt động cực kì tốt." })
+                            body: JSON.stringify({ action: 'notify', userId: app.user.id, message: "✅ Đây là thông báo thử nghiệm từ VNBUSARCHIVE! Kết nối Telegram của bạn đang hoạt động cực kì tốt." })
                         });
                         const data = await res.json();
                         if(data.success) {
-                            app.ui.showAlert("Đã gửi thông báo thử nghiệm qua Telegram!");
+                            app.ui.showAlert("Đã gửi thông báo thử nghiệm qua Telegram! Vui lòng kiểm tra tin nhắn.");
                         } else {
-                            app.ui.showAlert(data.error || "Lỗi: Chưa kết nối hoặc đã tắt thông báo.");
+                            app.ui.showAlert(data.error || "Lỗi: Có thể bạn chưa bấm Bắt đầu (Start) trong Bot.");
                         }
                     } catch(e) {
                         app.ui.showAlert("Lỗi gửi thử nghiệm: " + e.message);
@@ -4683,7 +4721,7 @@
                     return 'system';
                 },
 
-                show: (message) => {}, // Bỏ vì không dùng notification trình duyệt nữa
+                show: (message) => {},
 
                 add: async (userId, message) => {
                     const { count } = await window.sb.from('notifications').select('*', { count: 'exact', head: true }).eq('user_id', userId);
