@@ -689,63 +689,7 @@
             }
         }
 
-        .notification-dropdown {
-            display: none;
-            position: absolute;
-            top: 100%;
-            right: 0;
-            width: 320px;
-            background: white;
-            border: 1px solid #e4e4e7;
-            border-radius: 8px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-            z-index: 60;
-            margin-top: 10px;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .notification-dropdown.active {
-            display: block;
-        }
-
-        .notif-item {
-            padding: 12px;
-            border-bottom: 1px solid #f4f4f5;
-            font-size: 0.8rem;
-            transition: background 0.2s;
-        }
-
-        .notif-item:hover {
-            background-color: #fafafa;
-        }
-
-        .notif-item.unread {
-            background-color: #f0f9ff;
-        }
-
-        .notif-item:last-child {
-            border-bottom: none;
-        }
-
-        .notif-time {
-            font-size: 0.7rem;
-            color: #a1a1aa;
-            margin-top: 4px;
-        }
-
-        .badge-count {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background-color: #ef4444;
-            color: white;
-            font-size: 0.6rem;
-            padding: 2px 5px;
-            border-radius: 99px;
-            font-weight: bold;
-            display: none;
-        }
+        /* Đã xóa CSS thông báo cũ */
 
         .badge-shiny {
             position: relative;
@@ -4348,7 +4292,7 @@
                     })
                     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, payload => {
                         if (app.user && payload.new.user_id === app.user.id) {
-                            app.notifications.fetch();
+                            app.notifications.requestPermission(); // Xin quyền thông báo trình duyệt
                         }
                     })
                     .subscribe((status, err) => {
@@ -4494,14 +4438,22 @@
             },
 
             notifications: {
-                fetch: async () => {
+                requestPermission: () => {
+                    if (!("Notification" in window)) return;
+                    if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+                        Notification.requestPermission();
+                    }
                 },
-                markAllRead: async () => {
-                    if (!app.user) return;
-                    await window.sb.from('notifications').update({ is_read: true }).eq('user_id', app.user.id);
-                    app.notifications.fetch();
+                show: (message) => {
+                    if (!("Notification" in window) || Notification.permission !== "granted") return;
+                    new Notification("VNBUSARCHIVE", {
+                        body: message,
+                        icon: "https://wsrv.nl/?url=https://files.catbox.moe/crxvn6.png&we", // Logo VNBUSARCHIVE
+                        vibrate: [200, 100, 200]
+                    });
                 },
                 add: async (userId, message) => {
+                    // Vẫn lưu vào DB để mượn Realtime làm cầu nối gửi tới đúng UUID của user
                     const { count } = await window.sb.from('notifications').select('*', { count: 'exact', head: true }).eq('user_id', userId);
                     if (count >= 50) {
                         const { data: oldest } = await window.sb.from('notifications').select('id').eq('user_id', userId).order('created_at', { ascending: true }).limit(1).single();
@@ -5558,7 +5510,7 @@ dropdown.innerHTML = `
                         document.getElementById('nav-admin').classList.add('hidden');
                     }
 
-                    app.notifications.fetch();
+                    app.notifications.requestPermission(); // Xin quyền thông báo trình duyệt
                     
                     if (app.notificationChannel) {
                         window.sb.removeChannel(app.notificationChannel);
@@ -5567,7 +5519,7 @@ dropdown.innerHTML = `
 
                     app.notificationChannel = window.sb.channel('public:notifications')
                         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` }, payload => {
-                            app.notifications.fetch();
+                            app.notifications.requestPermission(); // Xin quyền thông báo trình duyệt
                         }).subscribe();
 
                 } else {
@@ -5589,7 +5541,7 @@ dropdown.innerHTML = `
                         app.notificationChannel = null;
                     }
                     
-                    app.notifications.fetch();
+                    app.notifications.requestPermission(); // Xin quyền thông báo trình duyệt
                 }
             },
 
