@@ -10374,7 +10374,7 @@ cleanupState: () => {
                 formatNoPunctuation: (el) => {
                     let val = el.value;
                     // Xóa các dấu câu, NHƯNG giữ lại dấu phẩy (,), gạch ngang (-), gạch dưới (_)
-                    const newVal = val.replace(/[.;:!?'"()\[\]{}<>*&^%$#@~`|\\]/g, '');
+                    const newVal = val.replace(/[.;:!?'"\[\]{}<>*&^%$#@~`|\\]/g, '');
                     if (val !== newVal) {
                         const start = el.selectionStart;
                         const end = el.selectionEnd;
