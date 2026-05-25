@@ -2194,6 +2194,15 @@
                     <!-- SIDEBAR ĐIỀU HƯỚNG -->
                     <div class="w-full md:w-1/4 h-1/3 md:h-full border-b md:border-b-0 md:border-r border-gray-200/50 p-2 md:p-3 shrink-0 overflow-hidden bg-gray-50/30 flex flex-col">
                         
+                        <!-- THANH TÌM KIẾM MỤC LỤC -->
+                        <div class="relative w-full mb-3 z-50 shrink-0">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                <i class="fa-solid fa-magnifying-glass text-sm"></i>
+                            </span>
+                            <input type="text" id="set-search-input-sidebar" placeholder="Tìm kiếm cài đặt..." autocomplete="off" class="w-full border border-gray-300 py-2.5 pl-10 pr-3 rounded-lg focus:ring-2 focus:ring-black outline-none shadow-sm transition text-xs" oninput="app.settings.search(this.value, 'set-search-input-sidebar', 'set-search-sug-sidebar')" onfocus="app.settings.search(this.value, 'set-search-input-sidebar', 'set-search-sug-sidebar')">
+                            <div id="set-search-sug-sidebar" class="suggestion-box" style="top: 100%; margin-top: 4px; width: 100%;"></div>
+                        </div>
+
                         <!-- MENU CHÍNH -->
                         <div id="set-menu-main" class="flex flex-col gap-2 overflow-y-auto h-full w-full pb-2 md:pb-0 pr-1">
                             <!-- Nút Tài khoản có mũi tên -->
@@ -2254,19 +2263,18 @@
                     <div class="w-full md:w-3/4 p-4 md:p-8 overflow-y-auto relative flex-1">
                         
                         <!-- MÀN HÌNH CHÀO MỪNG MẶC ĐỊNH -->
-                        <div id="set-content-welcome" class="block flex flex-col items-center justify-center h-full text-center fade-zoom-in px-4">
-                            <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-3xl mb-4 shadow-sm border border-blue-100">
-                                <i class="fa-solid fa-hand-wave"></i>
-                            </div>
-                            <h2 class="text-2xl font-bold text-black mb-2 tracking-tight">Xin chào <span id="set-welcome-name" class="text-blue-600">...</span>!</h2>
-                            <p class="text-sm text-gray-500 mb-8 max-w-sm leading-relaxed">Hãy chọn một mục ở menu bên trái hoặc tìm kiếm chức năng cài đặt để bắt đầu.</p>
-                            
-                            <div class="relative w-full max-w-md mx-auto text-left z-50">
-                                <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400">
-                                    <i class="fa-solid fa-magnifying-glass"></i>
-                                </span>
-                                <input type="text" id="set-search-input" placeholder="Tìm cài đặt (VD: đổi tên, mật khẩu, xe buýt...)" autocomplete="off" class="w-full border border-gray-300 py-3 pl-11 pr-4 rounded-xl focus:ring-2 focus:ring-black outline-none shadow-sm transition text-sm" oninput="app.settings.search(this.value)" onfocus="app.settings.search(this.value)">
-                                <div id="set-search-sug" class="suggestion-box" style="top: 100%; margin-top: 8px; width: 100%;"></div>
+                        <div id="set-content-welcome" class="h-full fade-zoom-in px-4 hidden">
+                            <div class="flex flex-col items-center justify-center h-full text-center">
+                                <h2 class="text-2xl font-bold text-black mb-2 tracking-tight">Xin chào <span id="set-welcome-name" class="text-black">...</span>!</h2>
+                                <p class="text-sm text-gray-500 mb-8 max-w-sm leading-relaxed">Hãy chọn một mục ở menu bên trái hoặc tìm kiếm chức năng cài đặt để bắt đầu.</p>
+                                
+                                <div class="relative w-full max-w-md mx-auto text-left z-50">
+                                    <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400">
+                                        <i class="fa-solid fa-magnifying-glass"></i>
+                                    </span>
+                                    <input type="text" id="set-search-input-main" placeholder="Tìm kiếm cài đặt..." autocomplete="off" class="w-full border border-gray-300 py-3 pl-12 pr-4 rounded-xl focus:ring-2 focus:ring-black outline-none shadow-sm transition text-sm" oninput="app.settings.search(this.value, 'set-search-input-main', 'set-search-sug-main')" onfocus="app.settings.search(this.value, 'set-search-input-main', 'set-search-sug-main')">
+                                    <div id="set-search-sug-main" class="suggestion-box" style="top: 100%; margin-top: 8px; width: 100%;"></div>
+                                </div>
                             </div>
                         </div>
 
@@ -4515,21 +4523,34 @@
 
             settings: {
 
-                search: (query) => {
-                    const box = document.getElementById('set-search-sug');
+                search: (query, inputId = 'set-search-input-main', sugId = 'set-search-sug-main') => {
+                    const box = document.getElementById(sugId);
                     if (!query.trim()) {
                         box.classList.remove('active');
                         return;
                     }
 
                     const keywords = [
-                        { text: "Tùy chỉnh hồ sơ / Avatar / Đổi tên", tab: "profile", parent: "account", icon: "fa-user-pen" },
-                        { text: "Bảo mật / Mật khẩu / Email / UUID", tab: "security", parent: "account", icon: "fa-shield-halved" },
-                        { text: "Liên kết tài khoản / Google / Discord", tab: "links", parent: "account", icon: "fa-link" },
-                        { text: "Huy hiệu Discord / Role", tab: "badges", parent: "main", icon: "fa-discord" },
-                        { text: "Cá nhân hóa / Xe buýt / Xe khách / Gợi ý", tab: "preference", parent: "main", icon: "fa-layer-group" },
-                        { text: "Tài liệu / Giới thiệu hệ thống", tab: "docs-intro", parent: "docs", icon: "fa-markdown" },
-                        { text: "Quy định / Kiểm duyệt", tab: "docs-requirements", parent: "docs", icon: "fa-list-check" },
+                        { text: "Tùy chỉnh hồ sơ", tab: "profile", parent: "account", icon: "fa-user-pen" },
+                        { text: "Avatar", tab: "profile", parent: "account", icon: "fa-user-pen" },
+                        { text: "Đổi tên", tab: "profile", parent: "account", icon: "fa-user-pen" },
+                        { text: "Bảo mật", tab: "security", parent: "account", icon: "fa-shield-halved" },
+                        { text: "Mật khẩu", tab: "security", parent: "account", icon: "fa-shield-halved" },
+                        { text: "Email", tab: "security", parent: "account", icon: "fa-shield-halved" },
+                        { text: "Mã định danh (UUID)", tab: "security", parent: "account", icon: "fa-shield-halved" },
+                        { text: "Liên kết tài khoản", tab: "links", parent: "account", icon: "fa-link" },
+                        { text: "Google", tab: "links", parent: "account", icon: "fa-link" },
+                        { text: "Discord", tab: "links", parent: "account", icon: "fa-link" },
+                        { text: "Huy hiệu Discord", tab: "badges", parent: "main", icon: "fa-discord" },
+                        { text: "Role", tab: "badges", parent: "main", icon: "fa-discord" },
+                        { text: "Cá nhân hóa", tab: "preference", parent: "main", icon: "fa-layer-group" },
+                        { text: "Xe buýt", tab: "preference", parent: "main", icon: "fa-layer-group" },
+                        { text: "Xe khách", tab: "preference", parent: "main", icon: "fa-layer-group" },
+                        { text: "Gợi ý thông minh", tab: "preference", parent: "main", icon: "fa-layer-group" },
+                        { text: "Tài liệu", tab: "docs-intro", parent: "docs", icon: "fa-markdown" },
+                        { text: "Giới thiệu hệ thống", tab: "docs-intro", parent: "docs", icon: "fa-markdown" },
+                        { text: "Quy định", tab: "docs-requirements", parent: "docs", icon: "fa-list-check" },
+                        { text: "Kiểm duyệt", tab: "docs-requirements", parent: "docs", icon: "fa-list-check" },
                         { text: "Chính sách bảo mật", tab: "docs-policy", parent: "docs", icon: "fa-shield" }
                     ];
 
@@ -4544,9 +4565,9 @@
                     if (results.length > 0) {
                         box.innerHTML = results.map(r => `
                             <div class="suggestion-item border-b border-gray-100 last:border-0 flex items-center gap-3 py-3" 
-                                 onmousedown="event.preventDefault(); app.settings.jumpTo('${r.tab}', '${r.parent}'); document.getElementById('set-search-input').value=''; document.getElementById('set-search-sug').classList.remove('active');">
+                                 onmousedown="event.preventDefault(); app.settings.jumpTo('${r.tab}', '${r.parent}'); document.getElementById('${inputId}').value=''; document.getElementById('${sugId}').classList.remove('active');">
                                 <div class="w-8 h-8 rounded bg-gray-100 flex items-center justify-center text-gray-500 shrink-0"><i class="${r.icon.includes('discord') ? 'fa-brands' : 'fa-solid'} ${r.icon}"></i></div>
-                                <div class="text-[13px] text-black font-medium leading-snug">${r.text.replace(/\//g, '<span class="text-gray-300 mx-1">/</span>')}</div>
+                                <div class="text-[13px] text-black font-medium leading-snug">${r.text}</div>
                             </div>
                         `).join('');
                         box.classList.add('active');
