@@ -2174,9 +2174,7 @@
                             <button onclick="app.settings.switchTab('preference')" id="set-tab-preference" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
                                 <i class="fa-solid fa-layer-group w-6 text-center mr-2"></i> Cá nhân hóa
                             </button>
-                            <button onclick="app.settings.switchTab('notifications')" id="set-tab-notifications" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
-                                <i class="fa-solid fa-bell w-6 text-center mr-2"></i> Thông báo
-                            </button>
+                            
                             
                             
                             <!-- Nút Tài liệu có mũi tên bên phải -->
@@ -2200,6 +2198,9 @@
                             </button>
                             <button onclick="app.settings.switchTab('links')" id="set-tab-links" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
                                 <i class="fa-solid fa-link w-6 text-center mr-2"></i> Liên kết
+                            </button>
+                            <button onclick="app.settings.switchTab('notifications')" id="set-tab-notifications" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
+                                <i class="fa-solid fa-bell w-6 text-center mr-2"></i> Thông báo
                             </button>
                         </div>
 
@@ -4730,8 +4731,8 @@
                         { text: "Xe buýt", tab: "preference", parent: "main", icon: "fa-layer-group" },
                         { text: "Xe khách", tab: "preference", parent: "main", icon: "fa-layer-group" },
                         { text: "Gợi ý thông minh", tab: "preference", parent: "main", icon: "fa-layer-group" },
-                        { text: "Cài đặt thông báo", tab: "notifications", parent: "main", icon: "fa-bell" },
-                        { text: "Bật tắt thông báo", tab: "notifications", parent: "main", icon: "fa-bell" },
+                        { text: "Cài đặt thông báo", tab: "notifications", parent: "account", icon: "fa-bell" },
+                        { text: "Bật tắt thông báo", tab: "notifications", parent: "account", icon: "fa-bell" },
                         { text: "Tài liệu", tab: "docs-intro", parent: "docs", icon: "fa-markdown" },
                         { text: "Giới thiệu hệ thống", tab: "docs-intro", parent: "docs", icon: "fa-markdown" },
                         { text: "Quy định", tab: "docs-requirements", parent: "docs", icon: "fa-list-check" },
