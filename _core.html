@@ -2296,7 +2296,20 @@
                                         <div class="mt-0.5"><h4 class="font-bold text-sm uppercase mb-1">Xem tất cả</h4><p class="pref-desc text-[10px] font-medium text-gray-500">Hiển thị đan xen cả Xe Buýt và Xe Khách.</p></div>
                                     </div>
                                 </div>
-                                <div class="text-right border-t border-gray-100 pt-4">
+                                
+                                <!-- THÊM CÔNG TẮC GỢI Ý CÁ NHÂN HÓA -->
+                                <div class="mt-6 pt-5 border-t border-gray-100 flex items-center justify-between">
+                                    <div>
+                                        <h4 class="font-bold text-sm text-black">Gợi ý cá nhân hóa</h4>
+                                        <p class="text-[11px] text-gray-500 mt-1">Hiển thị các mục "Dành cho bạn" và "Có thể bạn quan tâm".</p>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" id="set-pref-toggle-rec" class="sr-only peer" onchange="app.preference.toggleRec(this.checked)">
+                                        <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-black after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                                    </label>
+                                </div>
+
+                                <div class="text-right border-t border-gray-100 pt-4 mt-4">
                                     <button onclick="app.preference.save()" class="bg-black text-white px-6 py-2.5 rounded-lg text-xs font-bold shadow-sm hover:bg-gray-800 transition"><i class="fa-solid fa-floppy-disk mr-1"></i> Lưu thiết lập</button>
                                 </div>
                             </div>
@@ -3474,9 +3487,15 @@
             preference: {
                 current: 'both',
                 tempSelection: 'both',
+                showRecommendations: true, // Thêm state quản lý hiển thị
+                tempShowRec: true,
                 isOnboarding: false,
 
                 load: () => {
+                    const savedRec = localStorage.getItem('vnbus_show_rec');
+                    if (savedRec !== null) {
+                        app.preference.showRecommendations = savedRec === 'true';
+                    }
                     const saved = localStorage.getItem('vnbus_preference');
                     if (saved) {
                         app.preference.current = saved;
@@ -3488,6 +3507,7 @@
                 open: (isOnboarding = false) => {
                     app.preference.isOnboarding = isOnboarding;
                     app.preference.tempSelection = app.preference.current || 'both';
+                    app.preference.tempShowRec = app.preference.showRecommendations;
 
                     // Nếu KHÔNG phải onboarding lần đầu, dẫn thẳng vào Cài đặt -> Tab Cá nhân hóa
                     if (!isOnboarding) {
@@ -3529,7 +3549,16 @@
                     app.preference.updateUI();
                 },
 
+                toggleRec: (val) => {
+                    app.preference.tempShowRec = val;
+                },
+
                 updateUI: () => {
+                    const toggleRec = document.getElementById('set-pref-toggle-rec');
+                    if (toggleRec) {
+                        toggleRec.checked = app.preference.tempShowRec;
+                    }
+                    
                     // Update chung cho cả bảng Modal Onboarding và bảng Cài đặt
                     ['bus', 'coach', 'both'].forEach(type => {
                         ['pref-btn-', 'set-pref-btn-'].forEach(prefix => {
@@ -3556,8 +3585,22 @@
 
                 save: () => {
                     const isChanged = app.preference.current !== app.preference.tempSelection;
+                    const isRecChanged = app.preference.showRecommendations !== app.preference.tempShowRec;
+                    
                     app.preference.current = app.preference.tempSelection;
+                    app.preference.showRecommendations = app.preference.tempShowRec;
+                    
                     localStorage.setItem('vnbus_preference', app.preference.current);
+                    localStorage.setItem('vnbus_show_rec', app.preference.showRecommendations);
+
+                    // Đồng bộ lên Supabase nếu đã đăng nhập
+                    if (app.user) {
+                        window.sb.from('profiles').update({
+                            preferences: { type: app.preference.current, showRec: app.preference.showRecommendations }
+                        }).eq('id', app.user.id).then(({error}) => {
+                            if(error) console.error("Lỗi đồng bộ DB:", error);
+                        });
+                    }
                     
                     if (app.preference.isOnboarding) {
                         app.preference.close();
@@ -3565,7 +3608,7 @@
                         app.ui.showAlert("Đã lưu thiết lập Cá nhân hóa thành công!");
                     }
                     
-                    if (isChanged) {
+                    if (isChanged || isRecChanged) {
                         app._profilePhotosCache = []; 
                         if(window.location.pathname === '/') {
                             app.views.loadHome(true);
@@ -5303,23 +5346,47 @@ grid.innerHTML = tiers.map(tier => {
                     let finalAvatar = user.user_metadata?.avatar_url || user.user_metadata?.picture || null;
 
                     try {
-                        // Kiểm tra xem user này đã có trong bảng profiles chưa
-                        const { data: profile } = await window.sb.from('profiles').select('username, role').eq('id', user.id).maybeSingle();
+                        const { data: profile } = await window.sb.from('profiles').select('username, role, preferences').eq('id', user.id).maybeSingle();
+
+                        // Đọc trạng thái lưu tạm ở trình duyệt (để dự phòng)
+                        let localPref = localStorage.getItem('vnbus_preference') || 'both';
+                        let localShowRec = localStorage.getItem('vnbus_show_rec');
+                        localShowRec = localShowRec !== null ? localShowRec === 'true' : true;
 
                         if (!profile || !profile.username) {
-                            // Nếu chưa có (OAuth mới đăng nhập) -> Tạo mới vào bảng profiles
+                            // Tạo mới user và đẩy thiết lập trình duyệt hiện tại lên Database
                             await window.sb.from('profiles').upsert({
                                 id: user.id,
                                 username: finalName,
-                                avatar_url: finalAvatar
+                                avatar_url: finalAvatar,
+                                preferences: { type: localPref, showRec: localShowRec }
                             }, { onConflict: 'id' });
 
-                            app.username = finalName; // Lưu vào biến toàn cục
+                            app.username = finalName;
                             app.role = 'user';
+                            app.preference.current = localPref;
+                            app.preference.showRecommendations = localShowRec;
                         } else {
-                            // Nếu đã có trong bảng profiles rồi thì lấy tên từ DB
-                            app.username = profile.username; // Lưu vào biến toàn cục
+                            app.username = profile.username;
                             app.role = profile.role || 'user';
+
+                            let dbPrefs = profile.preferences;
+                            if (dbPrefs && Object.keys(dbPrefs).length > 0) {
+                                // Nếu DB CÓ DỮ LIỆU -> Lấy DB đè lên LocalStorage (Ưu tiên DB)
+                                app.preference.current = dbPrefs.type || 'both';
+                                app.preference.showRecommendations = dbPrefs.showRec !== false;
+                                
+                                localStorage.setItem('vnbus_preference', app.preference.current);
+                                localStorage.setItem('vnbus_show_rec', app.preference.showRecommendations);
+                            } else {
+                                // Nếu DB TRỐNG (User cũ chưa lưu bao giờ) -> Lấy LocalStorage đẩy lên DB
+                                window.sb.from('profiles').update({
+                                    preferences: { type: localPref, showRec: localShowRec }
+                                }).eq('id', user.id).then(()=>{});
+                                
+                                app.preference.current = localPref;
+                                app.preference.showRecommendations = localShowRec;
+                            }
                         }
                     } catch (e) {
                         app.username = finalName;
@@ -5666,6 +5733,11 @@ dropdown.innerHTML = `
                 loadRecommendations: async () => {
                     const recSection = document.getElementById('recommendation-section');
                     const recGrid = document.getElementById('rec-grid');
+                    
+                    // Nếu tắt gợi ý, ẩn luôn section và dừng hàm
+                    if (!app.preference.showRecommendations) {
+                        return recSection.classList.add('hidden');
+                    }
 
                     try {
                         let prefs = JSON.parse(localStorage.getItem('vnbus_prefs'));
@@ -6494,6 +6566,11 @@ if (app.user && app.role === 'manager' && isDenied) {
                     const recSection = document.getElementById('detail-recommendation-section');
                     const recGrid = document.getElementById('detail-rec-grid');
                     if (!recSection || !recGrid) return;
+                    
+                    // Nếu tắt gợi ý, ẩn luôn section và dừng hàm
+                    if (!app.preference.showRecommendations) {
+                        return recSection.classList.add('hidden');
+                    }
                     
                     recSection.classList.add('hidden');
                     recGrid.innerHTML = '<div class="col-span-full text-center py-4 text-gray-500"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải gợi ý...</div>';
