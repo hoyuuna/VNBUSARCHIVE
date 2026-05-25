@@ -2297,20 +2297,20 @@
                                     </div>
                                 </div>
                                 
-                                <!-- CÔNG TẮC GỢI Ý CÁ NHÂN HÓA (ĐÃ LÀM MỚI GIAO DIỆN) -->
-                                <div class="mb-6 bg-white border border-gray-200 rounded-xl p-4 flex items-center justify-between shadow-sm transition-all hover:border-gray-300 group">
+                                <!-- CÔNG TẮC GỢI Ý CÁ NHÂN HÓA (NỀN ĐEN THUẦN) -->
+                                <div class="mb-6 bg-black border border-black rounded-xl p-4 flex items-center justify-between shadow-md transition-all group">
                                     <div class="flex items-start gap-3">
-                                        <div class="w-10 h-10 rounded-full bg-gray-100 border border-transparent flex items-center justify-center shrink-0 transition-colors group-hover:bg-gray-200 shadow-sm">
-                                            <i class="fa-solid fa-wand-magic-sparkles text-lg text-black"></i>
+                                        <div class="w-10 h-10 rounded-full bg-white/10 border border-white/20 flex items-center justify-center shrink-0 transition-colors shadow-sm">
+                                            <i class="fa-solid fa-wand-magic-sparkles text-lg text-white"></i>
                                         </div>
                                         <div class="mt-0.5">
-                                            <h4 class="font-bold text-sm uppercase mb-1 text-black">Gợi ý thông minh</h4>
-                                            <p class="text-[10px] font-medium text-gray-500 leading-snug">Hiển thị các khối "Dành cho bạn" và "Có thể bạn quan tâm" trên hệ thống.</p>
+                                            <h4 class="font-bold text-sm uppercase mb-1 text-white">Gợi ý thông minh</h4>
+                                            <p class="text-[10px] font-medium text-gray-400 leading-snug">Hiển thị các khối "Dành cho bạn" và "Có thể bạn quan tâm" trên hệ thống.</p>
                                         </div>
                                     </div>
                                     <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-4 self-center">
                                         <input type="checkbox" id="set-pref-toggle-rec" class="sr-only peer" onchange="app.preference.toggleRec(this.checked)">
-                                        <div class="w-11 h-6 bg-gray-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-black after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all shadow-inner"></div>
+                                        <div class="w-11 h-6 bg-gray-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white peer-checked:after:bg-black after:rounded-full after:h-5 after:w-5 after:transition-all shadow-inner border border-gray-700 peer-checked:border-white"></div>
                                     </label>
                                 </div>
 
@@ -3598,31 +3598,35 @@
                     localStorage.setItem('vnbus_preference', app.preference.current);
                     localStorage.setItem('vnbus_show_rec', app.preference.showRecommendations);
 
-                    // Đồng bộ lên Supabase nếu đã đăng nhập
                     if (app.user) {
                         window.sb.from('profiles').update({
                             preferences: { type: app.preference.current, showRec: app.preference.showRecommendations }
-                        }).eq('id', app.user.id).then(({error}) => {
-                            if(error) console.error("Lỗi đồng bộ DB:", error);
-                        });
+                        }).eq('id', app.user.id).then(({error}) => {});
                     }
                     
                     if (app.preference.isOnboarding) {
                         app.preference.close();
                     } else {
                         app.ui.showAlert("Đã lưu thiết lập Cá nhân hóa thành công!");
+                        // KHÔNG ĐÓNG POPUP, ĐỂ NGƯỜI DÙNG TỰ ĐÓNG KHI XONG
                     }
                     
+                    // Tải lại ngầm dữ liệu trang hiện tại mà không gọi handleRoute() làm văng popup
                     if (isChanged || isRecChanged) {
                         app._profilePhotosCache = []; 
-                        if(window.location.pathname === '/') {
+                        const path = window.location.pathname;
+                        if (path === '/') {
                             app.views.loadHome(true);
-                        } else {
-                            app.handleRoute(); 
+                        } else if (path.startsWith('/profile') || path.startsWith('/user/')) {
+                            app.views.loadAccount(null, true);
+                        } else if (path.startsWith('/vehicle/')) {
+                            app.views.loadVehiclePage(app.currentPlate);
+                        } else if (path.startsWith('/photo/')) {
+                            app.views.loadDetail(app.currentPhoto.id);
                         }
                     }
                 },
-
+                
                 close: () => {
                     const modal = document.getElementById('preference-modal');
                     const content = document.getElementById('preference-content');
@@ -4598,6 +4602,7 @@
                                 app.docs.fetchContent(t);
                             } else if (t === 'preference') {
                                 app.preference.tempSelection = app.preference.current || 'both';
+                                app.preference.tempShowRec = app.preference.showRecommendations; // FIX: Đồng bộ đúng trạng thái
                                 app.preference.updateUI();
                             }
                         } else {
