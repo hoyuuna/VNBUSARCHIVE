@@ -33,8 +33,7 @@ module.exports = async function handler(req, res) {
                     const { data, error: fetchErr } = await supabase.from('profiles').select('notif_config').eq('id', userId).single();
                     
                     if (fetchErr && fetchErr.code !== 'PGRST116') {
-                        replyText = "❌ *LỖI HỆ THỐNG:*
-Không thể truy xuất dữ liệu từ máy chủ. Vui lòng thử lại sau.";
+                        replyText = `❌ *LỖI HỆ THỐNG:*\nKhông thể truy xuất dữ liệu từ máy chủ. Vui lòng thử lại sau.`;
                     } else {
                         let currentConfig = data?.notif_config || { enabled: true, approved: true, denied: true, system: true };
                         currentConfig.chat_id = chatId;
@@ -42,23 +41,13 @@ Không thể truy xuất dữ liệu từ máy chủ. Vui lòng thử lại sau.
                         const { error: updateErr } = await supabase.from('profiles').update({ notif_config: currentConfig }).eq('id', userId);
 
                         if (updateErr) {
-                            replyText = "❌ *LỖI KẾT NỐI:*
-Mã tài khoản không hợp lệ hoặc đã bị xóa.";
+                            replyText = `❌ *LỖI KẾT NỐI:*\nMã tài khoản không hợp lệ hoặc đã bị xóa.`;
                         } else {
-                            replyText = "✅ *KẾT NỐI THÀNH CÔNG!*
-
-Tài khoản của bạn đã được liên kết với Telegram.
-
-👉 *Vui lòng quay lại trình duyệt web và Tải lại trang (Reload) để cập nhật trạng thái.*
-
-Từ giờ, hệ thống sẽ gửi các thông báo quan trọng thẳng vào đoạn chat này.";
+                            replyText = `✅ *KẾT NỐI THÀNH CÔNG!*\n\nTài khoản của bạn đã được liên kết với Telegram.\n\n👉 *Vui lòng quay lại trình duyệt web và Tải lại trang (Reload) để cập nhật trạng thái.*\n\nTừ giờ, hệ thống sẽ gửi các thông báo quan trọng thẳng vào đoạn chat này.`;
                         }
                     }
                 } else {
-                    replyText = "⚠️ *LỖI CÚ PHÁP:*
-Bạn chưa cung cấp mã định danh tài khoản.
-
-👉 Vui lòng truy cập lại Cài đặt trên Website VNBUSARCHIVE và bấm nút *Kết nối Telegram* để thử lại.";
+                    replyText = `⚠️ *LỖI CÚ PHÁP:*\nBạn chưa cung cấp mã định danh tài khoản.\n\n👉 Vui lòng truy cập lại Cài đặt trên Website VNBUSARCHIVE và bấm nút *Kết nối Telegram* để thử lại.`;
                 }
 
                 await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
@@ -91,9 +80,7 @@ Bạn chưa cung cấp mã định danh tài khoản.
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     chat_id: config.chat_id,
-                    text: `🔔 *VNBUSARCHIVE*
-
-${message}`,
+                    text: `🔔 *VNBUSARCHIVE*\n\n${message}`,
                     parse_mode: 'Markdown'
                 })
             });
