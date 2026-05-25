@@ -2161,9 +2161,7 @@
                             <button onclick="app.settings.switchTab('preference')" id="set-tab-preference" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
                                 <i class="fa-solid fa-layer-group w-6 text-center mr-2"></i> Cá nhân hóa
                             </button>
-                            <button onclick="app.settings.switchTab('notifications')" id="set-tab-notifications" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0 mt-2">
-                                <i class="fa-solid fa-bell w-6 text-center mr-2"></i> Thông báo
-                            </button>
+                            
                             
                             <!-- Nút Tài liệu có mũi tên bên phải -->
                             <button onclick="app.settings.openDocsMenu()" id="set-tab-docs-trigger" class="w-full flex items-center justify-between text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 group shrink-0">
@@ -2306,7 +2304,7 @@
                                 <h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Cài đặt thông báo trình duyệt</h3>
                                 <p class="text-[11px] md:text-xs text-gray-500 mb-5 leading-relaxed">Thiết lập này chỉ áp dụng cho thiết bị và trình duyệt hiện tại. Hệ thống sẽ gửi Pop-up ngay cả khi bạn đang mở tab khác.</p>
                                 
-                                <!-- Khung xin quyền -->
+                                <!-- Khung xin quyền hệ thống -->
                                 <div id="notif-permission-box" class="mb-5 bg-gray-50 border border-gray-200 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
                                     <div>
                                         <h4 class="font-bold text-sm text-black mb-1">Quyền thông báo hệ thống</h4>
@@ -2317,50 +2315,73 @@
                                     </button>
                                 </div>
 
-                                <!-- Bật/Tắt Tổng -->
-                                <div class="mb-4 flex items-center justify-between border-b border-gray-100 pb-4">
-                                    <div>
-                                        <h4 class="font-bold text-sm text-black">Cho phép gửi thông báo</h4>
-                                        <p class="text-[10px] text-gray-500 mt-0.5">Bật/tắt toàn bộ thông báo từ hệ thống.</p>
+                                <!-- Bật/Tắt Tổng (Dạng card chuẩn Cá nhân hóa) -->
+                                <div class="mb-4 bg-gray-50 border border-gray-200 rounded-xl p-4 flex items-center justify-between shadow-sm transition-all hover:border-gray-300 group">
+                                    <div class="flex items-start gap-3">
+                                        <div class="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center shrink-0 transition-colors shadow-sm group-hover:border-gray-300">
+                                            <i class="fa-solid fa-power-off text-lg text-black"></i>
+                                        </div>
+                                        <div class="mt-0.5">
+                                            <h4 class="font-bold text-sm uppercase mb-1 text-black">Bật thông báo</h4>
+                                            <p class="text-[10px] font-medium text-gray-500 leading-snug">Bật hoặc tắt toàn bộ thông báo từ hệ thống trên trình duyệt này.</p>
+                                        </div>
                                     </div>
-                                    <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-4">
+                                    <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-4 self-center">
                                         <input type="checkbox" id="set-notif-master" class="sr-only peer" onchange="app.notifications.updateSettings('enabled', this.checked)">
-                                        <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-green-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all shadow-inner"></div>
+                                        <div class="w-11 h-6 bg-black rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all shadow-inner"></div>
                                     </label>
                                 </div>
 
-                                <div id="notif-details-group" class="space-y-4 transition-opacity duration-300">
+                                <!-- Các công tắc con (Card bo tròn giống Cá nhân hóa, dùng nút gạt đen chuẩn) -->
+                                <div id="notif-details-group" class="space-y-4 transition-all duration-300">
                                     <!-- Duyệt ảnh -->
-                                    <div class="flex items-center justify-between">
-                                        <div>
-                                            <h4 class="font-bold text-[13px] text-gray-800">Ảnh được duyệt</h4>
-                                            <p class="text-[10px] text-gray-500">Thông báo khi quản trị viên chấp thuận ảnh của bạn.</p>
+                                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 flex items-center justify-between shadow-sm transition-all hover:border-gray-300 group">
+                                        <div class="flex items-start gap-3">
+                                            <div class="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center shrink-0 transition-colors shadow-sm group-hover:border-gray-300">
+                                                <i class="fa-solid fa-circle-check text-lg text-black"></i>
+                                            </div>
+                                            <div class="mt-0.5">
+                                                <h4 class="font-bold text-sm uppercase mb-1 text-black">Ảnh được duyệt</h4>
+                                                <p class="text-[10px] font-medium text-gray-500 leading-snug">Thông báo khi quản trị viên chấp thuận ảnh của bạn.</p>
+                                            </div>
                                         </div>
-                                        <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-4">
+                                        <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-4 self-center">
                                             <input type="checkbox" id="set-notif-approved" class="sr-only peer" onchange="app.notifications.updateSettings('approved', this.checked)">
-                                            <div class="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-black after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all shadow-inner"></div>
+                                            <div class="w-11 h-6 bg-black rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all shadow-inner"></div>
                                         </label>
                                     </div>
+
                                     <!-- Từ chối ảnh -->
-                                    <div class="flex items-center justify-between">
-                                        <div>
-                                            <h4 class="font-bold text-[13px] text-gray-800">Ảnh bị từ chối / Xóa</h4>
-                                            <p class="text-[10px] text-gray-500">Thông báo kèm lý do khi ảnh không đạt yêu cầu.</p>
+                                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 flex items-center justify-between shadow-sm transition-all hover:border-gray-300 group">
+                                        <div class="flex items-start gap-3">
+                                            <div class="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center shrink-0 transition-colors shadow-sm group-hover:border-gray-300">
+                                                <i class="fa-solid fa-circle-xmark text-lg text-black"></i>
+                                            </div>
+                                            <div class="mt-0.5">
+                                                <h4 class="font-bold text-sm uppercase mb-1 text-black">Ảnh bị từ chối / Xóa</h4>
+                                                <p class="text-[10px] font-medium text-gray-500 leading-snug">Thông báo kèm lý do khi ảnh không đạt yêu cầu hoặc bị gỡ bỏ.</p>
+                                            </div>
                                         </div>
-                                        <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-4">
+                                        <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-4 self-center">
                                             <input type="checkbox" id="set-notif-denied" class="sr-only peer" onchange="app.notifications.updateSettings('denied', this.checked)">
-                                            <div class="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-black after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all shadow-inner"></div>
+                                            <div class="w-11 h-6 bg-black rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all shadow-inner"></div>
                                         </label>
                                     </div>
-                                    <!-- Hệ thống / Khác -->
-                                    <div class="flex items-center justify-between">
-                                        <div>
-                                            <h4 class="font-bold text-[13px] text-gray-800">Cập nhật hệ thống</h4>
-                                            <p class="text-[10px] text-gray-500">Thông báo khi yêu cầu sửa thông tin xe được duyệt.</p>
+
+                                    <!-- Hệ thống -->
+                                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 flex items-center justify-between shadow-sm transition-all hover:border-gray-300 group">
+                                        <div class="flex items-start gap-3">
+                                            <div class="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center shrink-0 transition-colors shadow-sm group-hover:border-gray-300">
+                                                <i class="fa-solid fa-circle-info text-lg text-black"></i>
+                                            </div>
+                                            <div class="mt-0.5">
+                                                <h4 class="font-bold text-sm uppercase mb-1 text-black">Cập nhật hệ thống</h4>
+                                                <p class="text-[10px] font-medium text-gray-500 leading-snug">Thông báo khi các yêu cầu sửa đổi thông tin xe được duyệt.</p>
+                                            </div>
                                         </div>
-                                        <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-4">
+                                        <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-4 self-center">
                                             <input type="checkbox" id="set-notif-system" class="sr-only peer" onchange="app.notifications.updateSettings('system', this.checked)">
-                                            <div class="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-black after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all shadow-inner"></div>
+                                            <div class="w-11 h-6 bg-black rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all shadow-inner"></div>
                                         </label>
                                     </div>
                                 </div>
@@ -4541,7 +4562,6 @@
                     app.notifications.init();
                     const prefs = app.notifications.localPrefs;
                     
-                    // Render các nút gạt
                     const elMaster = document.getElementById('set-notif-master');
                     const elAppr = document.getElementById('set-notif-approved');
                     const elDeni = document.getElementById('set-notif-denied');
@@ -4554,11 +4574,13 @@
                     if(elSys) elSys.checked = prefs.system;
                     
                     if(group) {
-                        if(prefs.enabled) group.classList.remove('opacity-50', 'pointer-events-none');
-                        else group.classList.add('opacity-50', 'pointer-events-none');
+                        if(prefs.enabled) {
+                            group.classList.remove('opacity-50', 'pointer-events-none');
+                        } else {
+                            group.classList.add('opacity-50', 'pointer-events-none');
+                        }
                     }
                     
-                    // Render khung xin quyền
                     const statusText = document.getElementById('notif-status-text');
                     const reqBtn = document.getElementById('notif-request-btn');
                     const box = document.getElementById('notif-permission-box');
