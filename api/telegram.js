@@ -80,7 +80,7 @@ module.exports = async function handler(req, res) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     chat_id: config.chat_id,
-                    text: `🔔 *VNBUSARCHIVE*\n\n${message}`,
+                    text: message,
                     parse_mode: 'Markdown'
                 })
             });
