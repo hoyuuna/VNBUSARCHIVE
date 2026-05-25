@@ -1,47 +1,53 @@
 export default async function handler(req, res) {
-    if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
-
-    const { record } = req.body;
-    if (!record) return res.status(400).send('No record data');
-
-    const newData = record.new_data;
-    let typeLabel = 'Yêu cầu không xác định';
-    let details = [];
-
-    if (record.new_data.request_type === 'update_vehicle_info') {
-        typeLabel = 'Sửa thông tin xe';
-        details = [
-            { name: "BKS", value: newData.license_plate || 'N/A', inline: true },
-            { name: "Đơn vị", value: newData.operator || 'N/A', inline: true },
-            { name: "Note", value: newData.note || 'Không có' }
-        ];
-    } else if (record.new_data.request_type === 'update_history') {
-        typeLabel = 'Cập nhật lịch sử hoạt động';
-        const itemCount = newData.history_items ? newData.history_items.length : 0;
-        details = [
-            { name: "BKS", value: record.license_plate || 'N/A', inline: true },
-            { name: "Số lượng mục", value: `${itemCount} dòng lịch sử`, inline: true },
-            { name: "Ghi chú", value: "Xem chi tiết trên trang Admin" }
-        ];
+    // Chỉ nhận POST request
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method Not Allowed' });
     }
 
-    if (process.env.DISCORD_PRIVATE_WEBHOOK_URL) {
-        await fetch(process.env.DISCORD_PRIVATE_WEBHOOK_URL, {
+    const { userId, message, heading = 'VNBUSARCHIVE' } = req.body;
+
+    if (!userId || !message) {
+        return res.status(400).json({ error: 'Thiếu userId hoặc message' });
+    }
+
+    // Lấy Key từ Vercel Environment Variables
+    const appId = process.env.ONESIGNAL_APP_ID;
+    const restApiKey = process.env.ONESIGNAL_REST_API_KEY;
+
+    if (!appId || !restApiKey) {
+        console.error("Missing OneSignal ENV variables.");
+        return res.status(500).json({ error: 'Chưa cấu hình OneSignal trên Vercel' });
+    }
+
+    try {
+        const response = await fetch('https://onesignal.com/api/v1/notifications', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Basic ${restApiKey}`
+            },
             body: JSON.stringify({
-                username: "VBS Logger",
-                embeds: [{
-                    title: `📝 YÊU CẦU CHỈNH SỬA #${record.id}`,
-                    color: 3447003, // Blue
-                    description: `**Loại yêu cầu:** ${typeLabel}`,
-                    fields: details,
-                    footer: { text: "Vui lòng duyệt trên trang quản trị." },
-                    timestamp: new Date().toISOString()
-                }]
+                app_id: appId,
+                target_channel: "push",
+                // Gửi dựa trên external_id (Chính là user.id của Supabase ta đã setup ở Frontend)
+                include_aliases: {
+                    external_id: [userId] 
+                },
+                headings: { "en": heading, "vi": heading },
+                contents: { "en": message, "vi": message }
             })
         });
-    }
 
-    return res.status(200).json({ success: true });
+        const data = await response.json();
+        
+        if (!response.ok) {
+            console.error('OneSignal Error Response:', data);
+            return res.status(response.status).json({ error: 'Lỗi từ OneSignal', details: data });
+        }
+
+        return res.status(200).json({ success: true, data });
+    } catch (error) {
+        console.error('Fetch Error:', error);
+        return res.status(500).json({ error: 'Lỗi server (Internal Server Error)' });
+    }
 }

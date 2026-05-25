@@ -1318,6 +1318,19 @@
             to { opacity: 1; transform: translateX(0); }
         }
     </style>
+
+    <!-- OneSignal SDK -->
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script>
+        window.OneSignalDeferred = window.OneSignalDeferred || [];
+        OneSignalDeferred.push(async function(OneSignal) {
+            await OneSignal.init({
+                appId: "YOUR_ONESIGNAL_APP_ID", // Thay bằng App ID của OneSignal
+                safari_web_id: "YOUR_SAFARI_WEB_ID", // Tuỳ chọn nếu dùng Safari
+                notifyButton: { enable: false },
+            });
+        });
+    </script>
 </head>
 
 <body class="antialiased">
@@ -2160,6 +2173,9 @@
                             
                             <button onclick="app.settings.switchTab('preference')" id="set-tab-preference" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
                                 <i class="fa-solid fa-layer-group w-6 text-center mr-2"></i> Cá nhân hóa
+                            </button>
+                            <button onclick="app.settings.switchTab('notifications')" id="set-tab-notifications" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0 mt-2">
+                                <i class="fa-solid fa-bell w-6 text-center mr-2"></i> Thông báo
                             </button>
                             
                             
@@ -4384,7 +4400,8 @@
                     })
                     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, payload => {
                         if (app.user && payload.new.user_id === app.user.id) {
-                            app.notifications.requestPermission(); // Xin quyền thông báo trình duyệt
+                            app.notifications.requestPermission();
+                    if (window.OneSignalDeferred) { OneSignalDeferred.push(function(OneSignal) { OneSignal.login(user.id); }); }
                         }
                     })
                     .subscribe((status, err) => {
@@ -4546,18 +4563,13 @@
                 },
                 
                 requestPermission: async () => {
-                    if (!("Notification" in window)) return alert("Trình duyệt của bạn không hỗ trợ thông báo.");
-                    
-                    const p = await Notification.requestPermission();
-                    app.notifications.renderSettingsUI();
-                    
-                    if (p === 'granted') {
-                        new Notification("VNBUSARCHIVE", { body: "Cấp quyền thành công! Bạn sẽ nhận được thông báo tại đây.", icon: "https://wsrv.nl/?url=https://files.catbox.moe/crxvn6.png&we" });
-                    } else if (p === 'denied') {
-                        app.ui.showAlert("Bạn đã từ chối quyền gửi thông báo. Để mở lại, vui lòng nhấn vào biểu tượng Ổ khóa trên thanh địa chỉ trình duyệt và cho phép 'Thông báo'.");
+                    if (window.OneSignalDeferred) {
+                        OneSignalDeferred.push(async function(OneSignal) {
+                            await OneSignal.Slidedown.promptPush();
+                            app.notifications.renderSettingsUI();
+                        });
                     }
                 },
-
                 renderSettingsUI: () => {
                     app.notifications.init();
                     const prefs = app.notifications.localPrefs;
@@ -4642,6 +4654,17 @@
                         if (oldest) await window.sb.from('notifications').delete().eq('id', oldest.id);
                     }
                     await window.sb.from('notifications').insert({ user_id: userId, message: message });
+
+                    // Gọi API Vercel để Push Notification Realtime qua OneSignal
+                    try {
+                        await fetch('/api/notify-request', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ userId: userId, message: message })
+                        });
+                    } catch (e) {
+                        console.error('Lỗi gọi API Push Notification:', e);
+                    }
                 }
             },
 
@@ -5696,7 +5719,8 @@ dropdown.innerHTML = `
                         document.getElementById('nav-admin').classList.add('hidden');
                     }
 
-                    app.notifications.requestPermission(); // Xin quyền thông báo trình duyệt
+                    app.notifications.requestPermission();
+                    if (window.OneSignalDeferred) { OneSignalDeferred.push(function(OneSignal) { OneSignal.login(user.id); }); }
                     
                     if (app.notificationChannel) {
                         window.sb.removeChannel(app.notificationChannel);
@@ -5705,7 +5729,8 @@ dropdown.innerHTML = `
 
                     app.notificationChannel = window.sb.channel('public:notifications')
                         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` }, payload => {
-                            app.notifications.requestPermission(); // Xin quyền thông báo trình duyệt
+                            app.notifications.requestPermission();
+                    if (window.OneSignalDeferred) { OneSignalDeferred.push(function(OneSignal) { OneSignal.login(user.id); }); }
                         }).subscribe();
 
                 } else {
@@ -5727,7 +5752,8 @@ dropdown.innerHTML = `
                         app.notificationChannel = null;
                     }
                     
-                    app.notifications.requestPermission(); // Xin quyền thông báo trình duyệt
+                    app.notifications.requestPermission();
+                    if (window.OneSignalDeferred) { OneSignalDeferred.push(function(OneSignal) { OneSignal.login(user.id); }); }
                 }
             },
 
