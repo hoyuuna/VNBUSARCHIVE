@@ -2331,6 +2331,22 @@
                                     </button>
                                 </div>
 
+                                <!-- Khung Test thông báo -->
+                                <div id="notif-test-box" class="hidden mb-5 bg-white border border-blue-200 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm transition-all group">
+                                    <div class="flex items-start gap-3">
+                                        <div class="w-10 h-10 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0 transition-colors shadow-sm group-hover:border-blue-300">
+                                            <i class="fa-solid fa-flask text-lg text-blue-600"></i>
+                                        </div>
+                                        <div class="mt-0.5">
+                                            <h4 class="font-bold text-sm uppercase mb-1 text-black">Kiểm tra thông báo</h4>
+                                            <p class="text-[10px] font-medium text-gray-500 leading-snug">Gửi một thông báo thử nghiệm để đảm bảo thiết bị đang nhận đúng.</p>
+                                        </div>
+                                    </div>
+                                    <button onclick="app.notifications.sendTest()" class="bg-white border border-blue-600 text-blue-600 px-4 py-2 rounded-lg text-xs font-bold shadow-sm hover:bg-blue-50 transition shrink-0 whitespace-nowrap">
+                                        <i class="fa-solid fa-paper-plane mr-1"></i> Gửi thử nghiệm
+                                    </button>
+                                </div>
+
                                 <!-- Bật/Tắt Tổng (Dạng card chuẩn Cá nhân hóa) -->
                                 <div class="mb-4 bg-gray-50 border border-gray-200 rounded-xl p-4 flex items-center justify-between shadow-sm transition-all hover:border-gray-300 group">
                                     <div class="flex items-start gap-3">
@@ -4570,6 +4586,19 @@
                         });
                     }
                 },
+                sendTest: () => {
+                    if (!("Notification" in window) || Notification.permission !== "granted") {
+                        app.ui.showAlert("Bạn chưa cấp quyền thông báo!");
+                        return;
+                    }
+                    new Notification("VNBUSARCHIVE", {
+                        body: "✅ Đây là thông báo thử nghiệm. Nếu bạn thấy dòng này, thiết bị đang nhận thông báo tốt!",
+                        icon: "https://wsrv.nl/?url=https://files.catbox.moe/crxvn6.png&we",
+                        vibrate: [200, 100, 200]
+                    });
+                    app.ui.showAlert("Đã gửi thông báo thử nghiệm! Vui lòng kiểm tra khay thông báo trên thiết bị của bạn.");
+                },
+                
                 renderSettingsUI: () => {
                     app.notifications.init();
                     const prefs = app.notifications.localPrefs;
@@ -4598,6 +4627,7 @@
                     const box = document.getElementById('notif-permission-box');
                     
                     if (!statusText || !reqBtn || !box) return;
+                    const testBox = document.getElementById('notif-test-box');
                     
                     if (!("Notification" in window)) {
                         statusText.innerHTML = '<span class="text-red-500 font-bold">Trình duyệt không hỗ trợ.</span>';
@@ -4610,16 +4640,19 @@
                         reqBtn.classList.add('hidden');
                         box.classList.replace('bg-gray-50', 'bg-green-50/30');
                         box.classList.replace('border-gray-200', 'border-green-200');
+                        if (testBox) testBox.classList.remove('hidden');
                     } else if (Notification.permission === 'denied') {
                         statusText.innerHTML = '<i class="fa-solid fa-ban text-red-500 mr-1"></i> <span class="text-red-600 font-bold">Bị chặn bởi trình duyệt</span> (Nhấn ổ khóa trên thanh địa chỉ để mở lại)';
                         reqBtn.classList.add('hidden');
                         box.classList.replace('bg-gray-50', 'bg-red-50/30');
                         box.classList.replace('border-gray-200', 'border-red-200');
+                        if (testBox) testBox.classList.add('hidden');
                     } else {
                         statusText.innerHTML = '<i class="fa-solid fa-circle-question text-amber-500 mr-1"></i> <span class="text-amber-600 font-bold">Chưa yêu cầu</span>';
                         reqBtn.classList.remove('hidden');
                         box.classList.replace('bg-green-50/30', 'bg-gray-50');
                         box.classList.replace('border-green-200', 'border-gray-200');
+                        if (testBox) testBox.classList.add('hidden');
                     }
                 },
 
