@@ -2327,9 +2327,14 @@
                                         <h4 class="font-bold text-sm text-black mb-1">Trạng thái kết nối Telegram</h4>
                                         <p id="notif-status-text" class="text-[11px] font-medium text-gray-500">Đang kiểm tra...</p>
                                     </div>
-                                    <button id="notif-request-btn" onclick="app.notifications.requestPermission()" class="bg-black text-white px-4 py-2 rounded-lg text-xs font-bold shadow-sm hover:bg-gray-800 transition shrink-0 whitespace-nowrap">
+                                    <div class="flex gap-2 shrink-0 flex-wrap sm:flex-nowrap">
+                                    <button id="notif-request-btn" onclick="app.notifications.requestPermission()" class="bg-black text-white px-4 py-2 rounded-lg text-xs font-bold shadow-sm hover:bg-gray-800 transition whitespace-nowrap">
                                         Kết nối Telegram
                                     </button>
+                                    <button id="notif-unlink-btn" onclick="app.notifications.unlinkTelegram()" class="hidden bg-white border border-red-200 text-red-600 px-4 py-2 rounded-lg text-xs font-bold shadow-sm hover:bg-red-50 transition whitespace-nowrap">
+                                        Hủy liên kết
+                                    </button>
+                                </div>
                                 </div>
 
                                 <!-- Khung Test thông báo -->
@@ -4579,14 +4584,11 @@
                             }
                         } catch(e) {}
                     }
-                    // Đồng bộ cấu hình từ Database sang bộ nhớ tạm (tempPrefs) khi khởi tạo
                     app.notifications.tempPrefs = { ...app.notifications.localPrefs };
                 },
                 
                 toggleTempSetting: (key, value) => {
                     app.notifications.tempPrefs[key] = value;
-                    
-                    // Hiệu ứng làm mờ danh sách tùy chọn con khi tắt Công tắc chính (Master switch)
                     if (key === 'enabled') {
                         const group = document.getElementById('notif-details-group');
                         if(group) {
@@ -4605,7 +4607,6 @@
                     }
                     
                     try {
-                        // Áp dụng từ bộ nhớ tạm vào bộ nhớ chính thức
                         app.notifications.localPrefs = { ...app.notifications.tempPrefs };
                         localStorage.setItem('vnbus_notif_prefs', JSON.stringify(app.notifications.localPrefs));
                         
@@ -4625,7 +4626,6 @@
                 },
                 
                 requestPermission: async () => {
-                    // TODO: ĐỔI TÊN BOT TELEGRAM CỦA BẠN TẠI ĐÂY (VÍ DỤ: vnbusarchive_bot)
                     const BOT_USERNAME = "vnbusarchive_bot"; 
                     if(app.user) {
                         window.open(`https://t.me/${BOT_USERNAME}?start=${app.user.id}`, '_blank');
@@ -4644,6 +4644,45 @@
                     } else {
                         app.ui.showAlert("Vui lòng đăng nhập trước!");
                     }
+                },
+                
+                unlinkTelegram: async () => {
+                    app.ui.showAlert(
+                        "Bạn có chắc chắn muốn hủy kết nối Telegram? Bạn sẽ không thể nhận được bất kỳ thông báo đẩy nào từ hệ thống nữa.",
+                        async () => {
+                            const btn = document.getElementById('notif-unlink-btn');
+                            const origHtml = btn ? btn.innerHTML : '';
+                            if(btn) {
+                                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+                                btn.disabled = true;
+                            }
+                            
+                            try {
+                                // Xóa trắng chat_id trong biến nhớ tạm và biến chính thức
+                                app.notifications.localPrefs.chat_id = null;
+                                app.notifications.tempPrefs.chat_id = null;
+                                localStorage.setItem('vnbus_notif_prefs', JSON.stringify(app.notifications.localPrefs));
+                                
+                                if(app.user) {
+                                    // Gửi lệnh xóa chat_id lên Database
+                                    const { error } = await window.sb.from('profiles').update({ notif_config: app.notifications.localPrefs }).eq('id', app.user.id);
+                                    if (error) throw error;
+                                }
+                                
+                                app.ui.showAlert("Đã hủy liên kết Telegram thành công!");
+                                app.notifications.renderSettingsUI(); // Vẽ lại giao diện trạng thái "Chưa kết nối"
+                            } catch(e) {
+                                app.ui.showAlert("Lỗi khi hủy liên kết: " + e.message);
+                            } finally {
+                                if(btn) {
+                                    btn.innerHTML = origHtml || "Hủy liên kết";
+                                    btn.disabled = false;
+                                }
+                            }
+                        },
+                        () => {},
+                        { title: "Xác nhận hủy liên kết", btnOkText: "Hủy liên kết", btnCancelText: "Quay lại" }
+                    );
                 },
                 
                 sendTest: async () => {
@@ -4689,6 +4728,7 @@
                     
                     const statusText = document.getElementById('notif-status-text');
                     const reqBtn = document.getElementById('notif-request-btn');
+                    const unlinkBtn = document.getElementById('notif-unlink-btn');
                     const box = document.getElementById('notif-permission-box');
                     const testBox = document.getElementById('notif-test-box');
                     
@@ -4697,6 +4737,7 @@
                     if (prefs.chat_id) {
                         statusText.innerHTML = '<i class="fa-solid fa-check-circle text-green-500 mr-1"></i> <span class="text-green-600 font-bold">Đã kết nối Telegram</span>';
                         reqBtn.innerText = "Liên kết tài khoản khác";
+                        if(unlinkBtn) unlinkBtn.classList.remove('hidden'); // Hiện nút Hủy liên kết
                         box.classList.replace('bg-gray-50', 'bg-green-50/30');
                         box.classList.replace('border-gray-200', 'border-green-200');
                         box.classList.replace('bg-red-50/30', 'bg-green-50/30');
@@ -4706,11 +4747,12 @@
                         statusText.innerHTML = '<i class="fa-solid fa-circle-question text-amber-500 mr-1"></i> <span class="text-amber-600 font-bold">Chưa kết nối</span>';
                         reqBtn.innerText = "Kết nối Telegram";
                         reqBtn.classList.remove('hidden');
+                        if(unlinkBtn) unlinkBtn.classList.add('hidden'); // Ẩn nút Hủy liên kết
                         box.classList.replace('bg-green-50/30', 'bg-gray-50');
                         box.classList.replace('border-green-200', 'border-gray-200');
                         box.classList.replace('bg-red-50/30', 'bg-gray-50');
                         box.classList.replace('border-red-200', 'border-gray-200');
-                        if (testBox) testBox.classList.add('hidden');
+                        if (testBox) testBox.add && testBox.classList.add('hidden');
                     }
                 },
 
