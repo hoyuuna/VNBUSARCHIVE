@@ -2297,19 +2297,24 @@
                                     </div>
                                 </div>
                                 
-                                <!-- THÊM CÔNG TẮC GỢI Ý CÁ NHÂN HÓA -->
-                                <div class="mt-6 pt-5 border-t border-gray-100 flex items-center justify-between">
-                                    <div>
-                                        <h4 class="font-bold text-sm text-black">Gợi ý cá nhân hóa</h4>
-                                        <p class="text-[11px] text-gray-500 mt-1">Hiển thị các mục "Dành cho bạn" và "Có thể bạn quan tâm".</p>
+                                <!-- CÔNG TẮC GỢI Ý CÁ NHÂN HÓA (ĐÃ LÀM MỚI GIAO DIỆN) -->
+                                <div class="mb-6 bg-gray-50 border border-gray-200 rounded-xl p-4 flex items-center justify-between shadow-sm transition-all hover:border-gray-300 group">
+                                    <div class="flex items-start gap-3">
+                                        <div class="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center shrink-0 transition-colors group-hover:border-gray-300 shadow-sm">
+                                            <i class="fa-solid fa-wand-magic-sparkles text-lg text-black"></i>
+                                        </div>
+                                        <div class="mt-0.5">
+                                            <h4 class="font-bold text-sm uppercase mb-1 text-black">Gợi ý thông minh</h4>
+                                            <p class="text-[10px] font-medium text-gray-500 leading-snug">Hiển thị các khối "Dành cho bạn" và "Có thể bạn quan tâm" trên hệ thống.</p>
+                                        </div>
                                     </div>
-                                    <label class="relative inline-flex items-center cursor-pointer">
+                                    <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-4 self-center">
                                         <input type="checkbox" id="set-pref-toggle-rec" class="sr-only peer" onchange="app.preference.toggleRec(this.checked)">
-                                        <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-black after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                                        <div class="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-black after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all shadow-inner"></div>
                                     </label>
                                 </div>
 
-                                <div class="text-right border-t border-gray-100 pt-4 mt-4">
+                                <div class="text-right border-t border-gray-100 pt-4">
                                     <button onclick="app.preference.save()" class="bg-black text-white px-6 py-2.5 rounded-lg text-xs font-bold shadow-sm hover:bg-gray-800 transition"><i class="fa-solid fa-floppy-disk mr-1"></i> Lưu thiết lập</button>
                                 </div>
                             </div>
