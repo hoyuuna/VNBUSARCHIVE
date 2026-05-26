@@ -3197,15 +3197,34 @@
                                 </div>
                             </div>
 
-                            <h4 class="font-bold text-sm uppercase mt-10 mb-3 text-gray-800" id="profile-photos-title">
-                                Ảnh của bạn</h4>
-
+                            <div class="flex items-end justify-between mt-10 mb-3 gap-2">
+                                <h4 class="font-bold text-sm uppercase text-gray-800" id="profile-photos-title">Ảnh của bạn</h4>
+                            </div>
                             
-                            <div id="profile-photo-filters" class="hidden flex gap-2 mb-4 overflow-x-auto pb-1">
-                                <button onclick="app.views.filterProfilePhotos('all')" id="btn-filter-all" class="px-3 py-1.5 bg-black text-white text-xs font-bold rounded shadow-sm transition whitespace-nowrap border border-black">Tất cả</button>
-                                <button onclick="app.views.filterProfilePhotos('approved')" id="btn-filter-approved" class="px-3 py-1.5 bg-white text-gray-600 text-xs font-bold rounded hover:bg-gray-50 transition whitespace-nowrap border border-gray-300">Đã duyệt</button>
-                                <button onclick="app.views.filterProfilePhotos('pending')" id="btn-filter-pending" class="px-3 py-1.5 bg-white text-gray-600 text-xs font-bold rounded hover:bg-gray-50 transition whitespace-nowrap border border-gray-300">Chờ duyệt</button>
-                                <button onclick="app.views.filterProfilePhotos('denied')" id="btn-filter-denied" class="px-3 py-1.5 bg-white text-gray-600 text-xs font-bold rounded hover:bg-gray-50 transition whitespace-nowrap border border-gray-300">Từ chối</button>
+                            <div class="flex items-start sm:items-center justify-between gap-2 mb-4">
+                                <!-- Box chứa các nút bộ lọc, flex-1 giúp nó tự động chiếm phần còn lại, overflow-x-auto giúp cuộn trên mobile -->
+                                <div id="profile-photo-filters" class="hidden flex gap-2 overflow-x-auto pb-1 flex-1">
+                                    <button onclick="app.views.filterProfilePhotos('all')" id="btn-filter-all" class="px-3 py-1.5 bg-black text-white text-xs font-bold rounded shadow-sm transition whitespace-nowrap border border-black">Tất cả</button>
+                                    <button onclick="app.views.filterProfilePhotos('approved')" id="btn-filter-approved" class="px-3 py-1.5 bg-white text-gray-600 text-xs font-bold rounded hover:bg-gray-50 transition whitespace-nowrap border border-gray-300">Đã duyệt</button>
+                                    <button onclick="app.views.filterProfilePhotos('pending')" id="btn-filter-pending" class="px-3 py-1.5 bg-white text-gray-600 text-xs font-bold rounded hover:bg-gray-50 transition whitespace-nowrap border border-gray-300">Chờ duyệt</button>
+                                    <button onclick="app.views.filterProfilePhotos('denied')" id="btn-filter-denied" class="px-3 py-1.5 bg-white text-gray-600 text-xs font-bold rounded hover:bg-gray-50 transition whitespace-nowrap border border-gray-300">Từ chối</button>
+                                </div>
+                                
+                                <!-- Dropdown sắp xếp nằm bên phải, có shrink-0 để không bị ép nhỏ trên Mobile -->
+                                <div class="relative shrink-0 ml-auto z-40">
+                                    <button onclick="document.getElementById('profile-sort-menu').classList.toggle('active')" id="btn-profile-sort" class="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-300 text-gray-700 text-xs font-bold rounded hover:bg-gray-50 transition whitespace-nowrap">
+                                        <span id="profile-sort-label">Mới nhất</span> <i class="fa-solid fa-arrow-down-wide-short ml-0.5"></i>
+                                    </button>
+                                    <div id="profile-sort-menu" class="filter-menu w-40 right-0 origin-top-right">
+                                        <div class="px-3 py-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Xếp theo:</div>
+                                        <div class="filter-item selected profile-sort-item" onclick="app.views.sortProfilePhotos('newest')" data-sort="newest">
+                                            <span>Mới nhất</span> <i class="fa-solid fa-check check-icon"></i>
+                                        </div>
+                                        <div class="filter-item profile-sort-item" onclick="app.views.sortProfilePhotos('popular')" data-sort="popular">
+                                            <span>Phổ biến nhất</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <div id="my-photos-grid" class="profile-photo-grid">
@@ -5521,6 +5540,29 @@ dropdown.innerHTML = `
             },
 
             views: {
+                currentProfileSort: 'newest',
+                sortProfilePhotos: (type) => {
+                    app.views.currentProfileSort = type;
+                    document.getElementById('profile-sort-label').innerText = type === 'newest' ? 'Mới nhất' : 'Phổ biến nhất';
+                    document.querySelectorAll('.profile-sort-item').forEach(item => {
+                        item.classList.remove('selected');
+                        item.querySelector('.check-icon').classList.add('opacity-0');
+                        if (item.dataset.sort === type) {
+                            item.classList.add('selected');
+                            item.querySelector('.check-icon').classList.remove('opacity-0');
+                        }
+                    });
+                    document.getElementById('profile-sort-menu').classList.remove('active');
+
+                    let list = app._currentFilteredProfilePhotos || [];
+                    if (type === 'newest') {
+                        list.sort((a, b) => b.id - a.id);
+                    } else if (type === 'popular') {
+                        list.sort((a, b) => (b.views || 0) - (a.views || 0));
+                    }
+                    app.profilePage = 1;
+                    app.renderProfilePage(list, 1);
+                },
                 filterProfilePhotos: (status) => {
 
                     const btns = ['all', 'approved', 'pending', 'denied'];
@@ -5541,6 +5583,12 @@ dropdown.innerHTML = `
                         filtered = filtered.filter(p => p.status === status);
                     }
 
+                    // Tự động sắp xếp lại sau khi lọc xong
+                    if (app.views.currentProfileSort === 'newest') {
+                        filtered.sort((a, b) => b.id - a.id);
+                    } else if (app.views.currentProfileSort === 'popular') {
+                        filtered.sort((a, b) => (b.views || 0) - (a.views || 0));
+                    }
 
                     app._currentFilteredProfilePhotos = filtered;
                     app.profilePage = 1;
@@ -6230,10 +6278,11 @@ dropdown.innerHTML = `
                                 app.views.filterProfilePhotos('all');
                             } else {
                                 filterContainer.classList.add('hidden');
-                                app.renderProfilePage(photos, 1);
+                                // Thay vì gọi thẳng render, gọi filter ('all') để nó tự áp dụng Logic Sắp Xếp
+                                app.views.filterProfilePhotos('all');
                             }
                         } else {
-                            app.renderProfilePage(photos, 1);
+                            app.views.filterProfilePhotos('all');
                         }
                     }
 
