@@ -1319,18 +1319,6 @@
         }
     </style>
 
-    <!-- OneSignal SDK -->
-    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-    <script>
-        window.OneSignalDeferred = window.OneSignalDeferred || [];
-        OneSignalDeferred.push(async function(OneSignal) {
-            await OneSignal.init({
-                appId: "ce8d53d5-29d6-4433-b494-0ef226963095", // Thay bằng App ID của OneSignal
-                safari_web_id: "YOUR_SAFARI_WEB_ID", // Tuỳ chọn nếu dùng Safari
-                notifyButton: { enable: false },
-            });
-        });
-    </script>
 </head>
 
 <body class="antialiased">
@@ -9933,6 +9921,14 @@ app.admin.fetchManagerData('denied');
                         }
                     }
 
+                    
+                    // [BẢO VỆ] Kiểm tra dữ liệu lịch sử có thực sự thay đổi không
+                    const origClean = JSON.stringify((app.vehicle.currentHistoryData || []).map(h => ({op: h.operator, rt: h.route, nt: h.note, dt: h.effective_date})));
+                    const tempClean = JSON.stringify(app.vehicle.tempHistory.map(h => ({op: h.operator, rt: h.route, nt: h.note, dt: h.effective_date})));
+                    if (origClean === tempClean) {
+                        return app.ui.showAlert("Không có sự thay đổi nào so với dữ liệu gốc. Yêu cầu bị hủy.");
+                    }
+
                     const payload = app.vehicle.tempHistory.map((h, i) => ({
                         license_plate: app.currentPlate,
                         operator: h.operator,
@@ -9959,6 +9955,10 @@ app.admin.fetchManagerData('denied');
                         }
                     } else {
                         try {
+                            // [BẢO VỆ] Kiểm tra xem đã có yêu cầu nào đang chờ duyệt cho xe này chưa
+                            const { count, error: checkErr } = await window.sb.from('edit_requests').select('*', { count: 'exact', head: true }).eq('license_plate', app.currentPlate).eq('status', 'pending').contains('new_data', { request_type: 'update_history' });
+                            if (count > 0) return app.ui.showAlert("Có yêu cầu chỉnh sửa lịch sử khác đang chờ duyệt cho xe này. Vui lòng thử lại sau.");
+
                             const reqData = {
                                 requester_id: app.user.id,
                                 license_plate: app.currentPlate,
@@ -10063,6 +10063,12 @@ app.admin.fetchManagerData('denied');
                         note: document.getElementById('vehicle-edit-note').value.trim()
                     };
 
+                    // [BẢO VỆ] Kiểm tra xem có thay đổi không
+                    if (app.currentVehicle && newData.model === (app.currentVehicle.model || '') && newData.note === (app.currentVehicle.note || '')) {
+                        btnSave.disabled = false; btnSave.innerHTML = 'Gửi yêu cầu';
+                        return app.ui.showAlert("Không có sự thay đổi nào so với dữ liệu gốc. Yêu cầu bị hủy.");
+                    }
+
                     try {
                         if (app.role === 'admin' || app.role === 'manager') {
 
@@ -10070,6 +10076,13 @@ app.admin.fetchManagerData('denied');
                             if (error) throw error;
                             app.ui.showAlert("Đã cập nhật thông tin xe thành công!", () => { app.views.loadVehiclePage(plate); });
                         } else {
+                            // [BẢO VỆ] Kiểm tra xem đã có yêu cầu nào đang chờ duyệt cho xe này chưa
+                            const { count } = await window.sb.from('edit_requests').select('*', { count: 'exact', head: true }).eq('license_plate', plate).eq('status', 'pending').contains('new_data', { request_type: 'update_vehicle_details' });
+                            if (count > 0) {
+                                btnSave.disabled = false; btnSave.innerHTML = 'Gửi yêu cầu';
+                                return app.ui.showAlert("Có yêu cầu chỉnh sửa hồ sơ khác đang chờ duyệt cho xe này. Vui lòng thử lại sau.");
+                            }
+
                             const { error } = await window.sb.from('edit_requests').insert({
                                 requester_id: app.user.id, license_plate: plate, new_data: { ...newData, request_type: 'update_vehicle_details' }, status: 'pending'
                             });
