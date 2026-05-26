@@ -7592,6 +7592,63 @@ formInputs.forEach(input => {
 
             admin: {
                 adminInterval: null,
+                
+                originalData: {},
+                checkPlateAdmin: async (inputEl, id, type) => {
+                    const val = inputEl.value.trim().replace(/[^A-Z0-9-]/gi, '').toUpperCase();
+                    inputEl.value = val;
+                    
+                    const origKey = type + '_' + id;
+                    const orig = app.admin.originalData[origKey];
+                    if (!orig) return;
+
+                    const pre = type === 'photo' ? 'adm-p-' : 'req-';
+                    const elOp = document.getElementById(pre + 'op-' + id);
+                    const elType = document.getElementById(pre + 'type-' + id);
+                    const elRoute = document.getElementById(pre + 'route-' + id);
+                    const elModel = document.getElementById(pre + 'model-' + id);
+
+                    // Trả lại thông tin gốc nếu nhập lại biển số cũ
+                    if (val === orig.plate) {
+                        if (elOp) elOp.value = orig.operator || '';
+                        if (elType) elType.value = orig.type || 'bus';
+                        if (elRoute) elRoute.value = orig.route || '';
+                        if (elModel) elModel.value = orig.model || '';
+                        
+                        // Thêm hiệu ứng chớp xanh để báo đã khôi phục
+                        inputEl.classList.add('ring-2', 'ring-green-500');
+                        setTimeout(() => inputEl.classList.remove('ring-2', 'ring-green-500'), 500);
+                        return;
+                    }
+
+                    // Lấy dữ liệu biển số mới từ DB
+                    try {
+                        const { data: vData } = await window.sb.from('vehicles').select('*').eq('license_plate', val).maybeSingle();
+                        if (vData) {
+                            if (elModel) elModel.value = vData.model || '';
+                            
+                            const { data: pData } = await window.sb.from('photos')
+                                .select('operator, route_no, type')
+                                .eq('license_plate', val)
+                                .eq('status', 'approved')
+                                .order('taken_at', { ascending: false, nullsFirst: false })
+                                .order('created_at', { ascending: false })
+                                .limit(1).maybeSingle();
+                                
+                            if (pData) {
+                                if (elOp) elOp.value = pData.operator || '';
+                                if (elRoute) elRoute.value = pData.route_no || '';
+                                if (elType) elType.value = pData.type || 'bus';
+                            }
+                            
+                            // Thêm hiệu ứng chớp vàng để báo đã load dữ liệu có sẵn
+                            inputEl.classList.add('ring-2', 'ring-amber-500');
+                            setTimeout(() => inputEl.classList.remove('ring-2', 'ring-amber-500'), 500);
+                        }
+                    } catch (e) {
+                        console.error("Lỗi tự điền BKS Admin:", e);
+                    }
+                },
 
                 // --- THÊM STATE CHO TAB MANAGER ---
                 manager: {
@@ -7728,6 +7785,8 @@ formInputs.forEach(input => {
                                 const note = app.utils.cleanText(p.note);
                                 const safeUsername = app.utils.cleanText(p.profiles?.username || 'Ẩn danh');
                                 const safePlate = app.utils.cleanText(p.license_plate);
+                                if (!app.admin.originalData) app.admin.originalData = {};
+                                app.admin.originalData['photo_' + p.id] = { plate: safePlate, operator: op, type: type, route: route, model: model };
 
                                 return `
                                 <div class="admin-card overflow-visible">
@@ -7742,7 +7801,7 @@ formInputs.forEach(input => {
                                     <div class="admin-card-body">
                                         <p class="text-[10px] text-gray-500 mb-2"><b>Ngày chụp:</b> ${p.taken_at ? p.taken_at.split('T')[0] : 'Không rõ'} | <b>Camera:</b> ${p.camera_model}</p>
                                         <div class="grid grid-cols-2 gap-2 mb-2">
-                                            <div><span class="admin-label">Biển số</span><input type="text" id="adm-p-plate-${p.id}" value="${safePlate}" class="admin-input" oninput="app.utils.formatPlateInput(this)"></div>
+                                            <div><span class="admin-label">Biển số</span><input type="text" id="adm-p-plate-${p.id}" value="${safePlate}" class="admin-input transition-all" oninput="app.utils.formatPlateInput(this)" onchange="app.admin.checkPlateAdmin(this, '${p.id}', 'photo')"></div>
                                             <div>
                                                 <span class="admin-label">Đơn vị</span>
                                                 <div class="relative">
@@ -7886,12 +7945,14 @@ formInputs.forEach(input => {
 
                                 if (type === 'update_vehicle_info') {
                                     const tagNew = '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>';
+                                    if (!app.admin.originalData) app.admin.originalData = {};
+                                    app.admin.originalData['req_' + r.id] = { plate: d.license_plate, operator: d.operator, type: d.type, route: d.route, model: d.model };
                                     return `
                                     <div class="admin-card overflow-visible">
                                         <div class="admin-card-header"><span class="font-bold text-xs uppercase text-blue-600">SỬA THÔNG TIN</span><span class="text-xs text-gray-500">${app.utils.cleanText(username)}</span></div>
                                         <div class="admin-card-body text-xs">
                                             <div class="grid grid-cols-2 gap-2 mb-2">
-                                                <div><span class="admin-label">BKS ${d.license_plate !== curV.license_plate ? tagNew : ''}</span><input type="text" id="req-plate-${r.id}" value="${app.utils.escapeAttr(d.license_plate)}" class="admin-input font-bold" oninput="app.utils.formatPlateInput(this)"></div>
+                                                <div><span class="admin-label">BKS ${d.license_plate !== curV.license_plate ? tagNew : ''}</span><input type="text" id="req-plate-${r.id}" value="${app.utils.escapeAttr(d.license_plate)}" class="admin-input font-bold transition-all" oninput="app.utils.formatPlateInput(this)" onchange="app.admin.checkPlateAdmin(this, '${r.id}', 'req')"></div>
                                                 <div>
                                                     <span class="admin-label">Đơn vị ${d.operator !== curP.operator ? tagNew : ''}</span>
                                                     <div class="relative">
@@ -7940,6 +8001,8 @@ formInputs.forEach(input => {
                                     </div>`;
                                 } else if (type === 'update_vehicle_details') {
                                     const tagNew = '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>';
+                                    if (!app.admin.originalData) app.admin.originalData = {};
+                                    app.admin.originalData['req_' + r.id] = { plate: d.license_plate, operator: d.operator, type: d.type, route: d.route, model: d.model };
                                     return `
                                     <div class="admin-card overflow-visible">
                                         <div class="admin-card-header"><span class="font-bold text-xs uppercase text-purple-600">SỬA HỒ SƠ XE: ${r.license_plate}</span><span class="text-xs text-gray-500">${username}</span></div>
