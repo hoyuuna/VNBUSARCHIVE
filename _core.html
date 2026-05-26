@@ -2187,9 +2187,7 @@
                             <button onclick="app.settings.switchTab('links')" id="set-tab-links" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
                                 <i class="fa-solid fa-link w-6 text-center mr-2"></i> Liên kết
                             </button>
-                            <button onclick="app.settings.switchTab('notifications')" id="set-tab-notifications" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
-                                <i class="fa-solid fa-bell w-6 text-center mr-2"></i> Thông báo
-                            </button>
+                            
                         </div>
 
                         <!-- MENU TÀI LIỆU (ẨN MẶC ĐỊNH) -->
@@ -2304,119 +2302,7 @@
 
                         
                         <!-- TAB THÔNG BÁO -->
-                        <div id="set-content-notifications" class="space-y-4 md:space-y-6 hidden">
-                            <div class="bg-white p-4 md:p-6 rounded-lg border border-gray-200 shadow-sm">
-                                <h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Cài đặt thông báo qua Telegram</h3>
-                                <p class="text-[11px] md:text-xs text-gray-500 mb-5 leading-relaxed">Hệ thống sẽ gửi tin nhắn trực tiếp qua ứng dụng Telegram của bạn khi có thông báo mới (Duyệt ảnh, Từ chối, Cập nhật hệ thống).</p>
-                                
-                                <!-- Khung xin quyền hệ thống -->
-                                <div id="notif-permission-box" class="mb-5 bg-gray-50 border border-gray-200 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
-                                    <div>
-                                        <h4 class="font-bold text-sm text-black mb-1">Trạng thái kết nối Telegram</h4>
-                                        <p id="notif-status-text" class="text-[11px] font-medium text-gray-500">Đang kiểm tra...</p>
-                                    </div>
-                                    <div class="flex gap-2 shrink-0 flex-wrap sm:flex-nowrap">
-                                    <button id="notif-request-btn" onclick="app.notifications.requestPermission()" class="bg-black text-white px-4 py-2 rounded-lg text-xs font-bold shadow-sm hover:bg-gray-800 transition whitespace-nowrap">
-                                        Kết nối Telegram
-                                    </button>
-                                    <button id="notif-unlink-btn" onclick="app.notifications.unlinkTelegram()" class="hidden bg-white border border-red-200 text-red-600 px-4 py-2 rounded-lg text-xs font-bold shadow-sm hover:bg-red-50 transition whitespace-nowrap">
-                                        Hủy liên kết
-                                    </button>
-                                </div>
-                                </div>
-
-                                <!-- Khung Test thông báo -->
-                                <div id="notif-test-box" class="hidden mb-5 bg-white border border-blue-200 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm transition-all group">
-                                    <div class="flex items-start gap-3">
-                                        <div class="w-10 h-10 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0 transition-colors shadow-sm group-hover:border-blue-300">
-                                            <i class="fa-solid fa-flask text-lg text-blue-600"></i>
-                                        </div>
-                                        <div class="mt-0.5">
-                                            <h4 class="font-bold text-sm uppercase mb-1 text-black">Kiểm tra thông báo</h4>
-                                            <p class="text-[10px] font-medium text-gray-500 leading-snug">Gửi một thông báo thử nghiệm để đảm bảo thiết bị đang nhận đúng.</p>
-                                        </div>
-                                    </div>
-                                    <button onclick="app.notifications.sendTest()" class="bg-white border border-blue-600 text-blue-600 px-4 py-2 rounded-lg text-xs font-bold shadow-sm hover:bg-blue-50 transition shrink-0 whitespace-nowrap">
-                                        <i class="fa-solid fa-paper-plane mr-1"></i> Gửi thử nghiệm
-                                    </button>
-                                </div>
-
-                                <!-- Bật/Tắt Tổng (Dạng card chuẩn Cá nhân hóa) -->
-                                <div class="mb-4 bg-gray-50 border border-gray-200 rounded-xl p-4 flex items-center justify-between shadow-sm transition-all hover:border-gray-300 group">
-                                    <div class="flex items-start gap-3">
-                                        <div class="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center shrink-0 transition-colors shadow-sm group-hover:border-gray-300">
-                                            <i class="fa-solid fa-power-off text-lg text-black"></i>
-                                        </div>
-                                        <div class="mt-0.5">
-                                            <h4 class="font-bold text-sm uppercase mb-1 text-black">Bật thông báo</h4>
-                                            <p class="text-[10px] font-medium text-gray-500 leading-snug">Bật hoặc tắt toàn bộ thông báo từ hệ thống trên trình duyệt này.</p>
-                                        </div>
-                                    </div>
-                                    <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-4 self-center">
-                                        <input type="checkbox" id="set-notif-master" class="sr-only peer" onchange="app.notifications.toggleTempSetting('enabled', this.checked)">
-                                        <div class="w-11 h-6 bg-black rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all shadow-inner"></div>
-                                    </label>
-                                </div>
-
-                                <!-- Các công tắc con (Card bo tròn giống Cá nhân hóa, dùng nút gạt đen chuẩn) -->
-                                <div id="notif-details-group" class="space-y-4 transition-all duration-300">
-                                    <!-- Duyệt ảnh -->
-                                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 flex items-center justify-between shadow-sm transition-all hover:border-gray-300 group">
-                                        <div class="flex items-start gap-3">
-                                            <div class="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center shrink-0 transition-colors shadow-sm group-hover:border-gray-300">
-                                                <i class="fa-solid fa-circle-check text-lg text-black"></i>
-                                            </div>
-                                            <div class="mt-0.5">
-                                                <h4 class="font-bold text-sm uppercase mb-1 text-black">Ảnh được duyệt</h4>
-                                                <p class="text-[10px] font-medium text-gray-500 leading-snug">Thông báo khi quản trị viên chấp thuận ảnh của bạn.</p>
-                                            </div>
-                                        </div>
-                                        <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-4 self-center">
-                                            <input type="checkbox" id="set-notif-approved" class="sr-only peer" onchange="app.notifications.toggleTempSetting('approved', this.checked)">
-                                            <div class="w-11 h-6 bg-black rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all shadow-inner"></div>
-                                        </label>
-                                    </div>
-
-                                    <!-- Từ chối ảnh -->
-                                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 flex items-center justify-between shadow-sm transition-all hover:border-gray-300 group">
-                                        <div class="flex items-start gap-3">
-                                            <div class="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center shrink-0 transition-colors shadow-sm group-hover:border-gray-300">
-                                                <i class="fa-solid fa-circle-xmark text-lg text-black"></i>
-                                            </div>
-                                            <div class="mt-0.5">
-                                                <h4 class="font-bold text-sm uppercase mb-1 text-black">Ảnh bị từ chối / Xóa</h4>
-                                                <p class="text-[10px] font-medium text-gray-500 leading-snug">Thông báo kèm lý do khi ảnh không đạt yêu cầu hoặc bị gỡ bỏ.</p>
-                                            </div>
-                                        </div>
-                                        <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-4 self-center">
-                                            <input type="checkbox" id="set-notif-denied" class="sr-only peer" onchange="app.notifications.toggleTempSetting('denied', this.checked)">
-                                            <div class="w-11 h-6 bg-black rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all shadow-inner"></div>
-                                        </label>
-                                    </div>
-
-                                    <!-- Hệ thống -->
-                                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 flex items-center justify-between shadow-sm transition-all hover:border-gray-300 group">
-                                        <div class="flex items-start gap-3">
-                                            <div class="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center shrink-0 transition-colors shadow-sm group-hover:border-gray-300">
-                                                <i class="fa-solid fa-circle-info text-lg text-black"></i>
-                                            </div>
-                                            <div class="mt-0.5">
-                                                <h4 class="font-bold text-sm uppercase mb-1 text-black">Cập nhật hệ thống</h4>
-                                                <p class="text-[10px] font-medium text-gray-500 leading-snug">Thông báo khi các yêu cầu sửa đổi thông tin xe được duyệt.</p>
-                                            </div>
-                                        </div>
-                                        <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-4 self-center">
-                                            <input type="checkbox" id="set-notif-system" class="sr-only peer" onchange="app.notifications.toggleTempSetting('system', this.checked)">
-                                            <div class="w-11 h-6 bg-black rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all shadow-inner"></div>
-                                        </label>
-                                    </div>
-                                </div>
-                                <div class="text-right border-t border-gray-100 pt-4 mt-6">
-                                    <button onclick="app.notifications.save()" class="bg-black text-white px-6 py-2.5 rounded-lg text-xs font-bold shadow-sm hover:bg-gray-800 transition"><i class="fa-solid fa-floppy-disk mr-1"></i> Lưu thiết lập</button>
-                                </div>
-                            </div>
-                        </div>
-<!-- CÁC TAB TÀI LIỆU -->
+                        <!-- CÁC TAB TÀI LIỆU -->
                         <div id="set-content-docs-intro" class="markdown-body hidden" data-url="https://raw.githubusercontent.com/hoyuuna/VNBUSARCHIVE/refs/heads/main/README.md" data-loaded="false">
                             <div class="text-center text-gray-500 py-10"><i class="fa-solid fa-circle-notch fa-spin text-2xl mb-2 text-black"></i><p>Đang tải tài liệu...</p></div>
                         </div>
@@ -4385,7 +4271,7 @@
                 app.upload.initMap();
                 app.utils.loadAnnouncements();
                 await app.utils.fetchTopUploaders();
-                app.notifications.init(); // Load Notification Prefs
+                
 
                 if (app.realtimeChannel) {
                     window.sb.removeChannel(app.realtimeChannel);
@@ -4411,12 +4297,7 @@
                             }
                         }
                     })
-                    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, payload => {
-                        if (app.user && payload.new.user_id === app.user.id) {
-                            // Đã tắt tự động nhảy sang Telegram
                     
-                        }
-                    })
                     .subscribe((status, err) => {
                         if (status === 'SUBSCRIBED') {
                             console.log('🔌 Connected to Realtime');
@@ -4559,220 +4440,7 @@
                 app.utils.navigate(url);
             },
 
-            notifications: {
-                localPrefs: { chat_id: null, enabled: true, approved: true, denied: true, system: true },
-                tempPrefs: { enabled: true, approved: true, denied: true, system: true },
-                
-                init: async () => {
-                    if (app.user) {
-                        try {
-                            const { data } = await window.sb.from('profiles').select('notif_config').eq('id', app.user.id).single();
-                            if (data && data.notif_config) {
-                                app.notifications.localPrefs = { ...app.notifications.localPrefs, ...data.notif_config };
-                            }
-                        } catch(e) {}
-                    }
-                    app.notifications.tempPrefs = { ...app.notifications.localPrefs };
-                },
-                
-                toggleTempSetting: (key, value) => {
-                    app.notifications.tempPrefs[key] = value;
-                    if (key === 'enabled') {
-                        const group = document.getElementById('notif-details-group');
-                        if(group) {
-                            if(value) group.classList.remove('opacity-50', 'pointer-events-none');
-                            else group.classList.add('opacity-50', 'pointer-events-none');
-                        }
-                    }
-                },
-                
-                save: async () => {
-                    const btn = document.querySelector('#set-content-notifications button[onclick="app.notifications.save()"]');
-                    const origHtml = btn ? btn.innerHTML : '';
-                    if (btn) {
-                        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang lưu...';
-                        btn.disabled = true;
-                    }
-                    
-                    try {
-                        app.notifications.localPrefs = { ...app.notifications.tempPrefs };
-                        localStorage.setItem('vnbus_notif_prefs', JSON.stringify(app.notifications.localPrefs));
-                        
-                        if(app.user) {
-                            const { error } = await window.sb.from('profiles').update({ notif_config: app.notifications.localPrefs }).eq('id', app.user.id);
-                            if (error) throw error;
-                        }
-                        app.ui.showAlert("Đã lưu cài đặt thông báo thành công!");
-                    } catch(e) {
-                        app.ui.showAlert("Lỗi khi lưu cài đặt: " + e.message);
-                    } finally {
-                        if (btn) {
-                            btn.innerHTML = origHtml || '<i class="fa-solid fa-floppy-disk mr-1"></i> Lưu thiết lập';
-                            btn.disabled = false;
-                        }
-                    }
-                },
-                
-                requestPermission: async () => {
-                    const BOT_USERNAME = "vnbusarchive_bot"; 
-                    if(app.user) {
-                        window.open(`https://t.me/${BOT_USERNAME}?start=${app.user.id}`, '_blank');
-                        app.ui.showAlert(
-                            `<div class="text-left mt-2">
-                                <p class="text-sm text-gray-700 mb-2"><b>Bước 1:</b> Trình duyệt đang mở ứng dụng Telegram của bạn.</p>
-                                <p class="text-sm text-gray-700 mb-2"><b>Bước 2:</b> Vui lòng nhấn nút <b>START (BẮT ĐẦU)</b> ở dưới cùng màn hình chat với Bot.</p>
-                                <div class="bg-blue-50 border border-blue-200 p-3 rounded-md mt-3">
-                                    <p class="text-xs text-blue-800 font-medium"><b>Bước 3:</b> Chờ Bot Telegram thông báo <b>"KẾT NỐI THÀNH CÔNG"</b>, sau đó hãy quay lại đây và nhấn nút tải lại trang.</p>
-                                </div>
-                            </div>`,
-                            () => { window.location.reload(); },
-                            null,
-                            { title: "Hướng dẫn kết nối Telegram", btnOkText: "Đã làm xong, Tải lại trang" }
-                        );
-                    } else {
-                        app.ui.showAlert("Vui lòng đăng nhập trước!");
-                    }
-                },
-                
-                unlinkTelegram: async () => {
-                    app.ui.showAlert(
-                        "Bạn có chắc chắn muốn hủy kết nối Telegram? Bạn sẽ không thể nhận được bất kỳ thông báo đẩy nào từ hệ thống nữa.",
-                        async () => {
-                            const btn = document.getElementById('notif-unlink-btn');
-                            const origHtml = btn ? btn.innerHTML : '';
-                            if(btn) {
-                                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-                                btn.disabled = true;
-                            }
-                            
-                            try {
-                                // Xóa trắng chat_id trong biến nhớ tạm và biến chính thức
-                                app.notifications.localPrefs.chat_id = null;
-                                app.notifications.tempPrefs.chat_id = null;
-                                localStorage.setItem('vnbus_notif_prefs', JSON.stringify(app.notifications.localPrefs));
-                                
-                                if(app.user) {
-                                    // Gửi lệnh xóa chat_id lên Database
-                                    const { error } = await window.sb.from('profiles').update({ notif_config: app.notifications.localPrefs }).eq('id', app.user.id);
-                                    if (error) throw error;
-                                }
-                                
-                                app.ui.showAlert("Đã hủy liên kết Telegram thành công!");
-                                app.notifications.renderSettingsUI(); // Vẽ lại giao diện trạng thái "Chưa kết nối"
-                            } catch(e) {
-                                app.ui.showAlert("Lỗi khi hủy liên kết: " + e.message);
-                            } finally {
-                                if(btn) {
-                                    btn.innerHTML = origHtml || "Hủy liên kết";
-                                    btn.disabled = false;
-                                }
-                            }
-                        },
-                        () => {},
-                        { title: "Xác nhận hủy liên kết", btnOkText: "Hủy liên kết", btnCancelText: "Quay lại" }
-                    );
-                },
-                
-                sendTest: async () => {
-                    const btn = document.querySelector('#notif-test-box button');
-                    if (!btn) return;
-                    const origHtml = btn.innerHTML;
-                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang gửi...';
-                    
-                    try {
-                        const { data: { session } } = await window.sb.auth.getSession();
-                        const res = await fetch('/api/telegram', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token}` },
-                            body: JSON.stringify({ action: 'notify', userId: app.user.id, message: "✅ Đây là thông báo thử nghiệm từ VNBUSARCHIVE! Kết nối Telegram của bạn đang hoạt động cực kì tốt." })
-                        });
-                        const data = await res.json();
-                        if(data.success) {
-                            app.ui.showAlert("Đã gửi thông báo thử nghiệm qua Telegram! Vui lòng kiểm tra tin nhắn.");
-                        } else {
-                            app.ui.showAlert(data.error || "Lỗi: Có thể bạn chưa bấm Bắt đầu (Start) trong Bot.");
-                        }
-                    } catch(e) {
-                        app.ui.showAlert("Lỗi gửi thử nghiệm: " + e.message);
-                    } finally {
-                        btn.innerHTML = origHtml;
-                    }
-                },
-                
-                renderSettingsUI: async () => {
-                    await app.notifications.init();
-                    const prefs = app.notifications.localPrefs;
-                    
-                    ['master', 'approved', 'denied', 'system'].forEach(key => {
-                        const el = document.getElementById(`set-notif-${key}`);
-                        if(el) el.checked = key === 'master' ? prefs.enabled : prefs[key];
-                    });
-                    
-                    const group = document.getElementById('notif-details-group');
-                    if(group) {
-                        if(prefs.enabled) group.classList.remove('opacity-50', 'pointer-events-none');
-                        else group.classList.add('opacity-50', 'pointer-events-none');
-                    }
-                    
-                    const statusText = document.getElementById('notif-status-text');
-                    const reqBtn = document.getElementById('notif-request-btn');
-                    const unlinkBtn = document.getElementById('notif-unlink-btn');
-                    const box = document.getElementById('notif-permission-box');
-                    const testBox = document.getElementById('notif-test-box');
-                    
-                    if (!statusText || !reqBtn || !box || !app.user) return;
-                    
-                    if (prefs.chat_id) {
-                        statusText.innerHTML = '<i class="fa-solid fa-check-circle text-green-500 mr-1"></i> <span class="text-green-600 font-bold">Đã kết nối Telegram</span>';
-                        reqBtn.innerText = "Liên kết tài khoản khác";
-                        if(unlinkBtn) unlinkBtn.classList.remove('hidden'); // Hiện nút Hủy liên kết
-                        box.classList.replace('bg-gray-50', 'bg-green-50/30');
-                        box.classList.replace('border-gray-200', 'border-green-200');
-                        box.classList.replace('bg-red-50/30', 'bg-green-50/30');
-                        box.classList.replace('border-red-200', 'border-green-200');
-                        if (testBox) testBox.classList.remove('hidden');
-                    } else {
-                        statusText.innerHTML = '<i class="fa-solid fa-circle-question text-amber-500 mr-1"></i> <span class="text-amber-600 font-bold">Chưa kết nối</span>';
-                        reqBtn.innerText = "Kết nối Telegram";
-                        reqBtn.classList.remove('hidden');
-                        if(unlinkBtn) unlinkBtn.classList.add('hidden'); // Ẩn nút Hủy liên kết
-                        box.classList.replace('bg-green-50/30', 'bg-gray-50');
-                        box.classList.replace('border-green-200', 'border-gray-200');
-                        box.classList.replace('bg-red-50/30', 'bg-gray-50');
-                        box.classList.replace('border-red-200', 'border-gray-200');
-                        if (testBox) testBox.add && testBox.classList.add('hidden');
-                    }
-                },
-
-                categorizeMsg: (msg) => {
-                    const l = msg.toLowerCase();
-                    if (l.includes('được duyệt') && l.includes('ảnh')) return 'approved';
-                    if (l.includes('từ chối') || l.includes('xóa')) return 'denied';
-                    return 'system';
-                },
-
-                show: (message) => {},
-
-                add: async (userId, message) => {
-                    const { count } = await window.sb.from('notifications').select('*', { count: 'exact', head: true }).eq('user_id', userId);
-                    if (count >= 50) {
-                        const { data: oldest } = await window.sb.from('notifications').select('id').eq('user_id', userId).order('created_at', { ascending: true }).limit(1).single();
-                        if (oldest) await window.sb.from('notifications').delete().eq('id', oldest.id);
-                    }
-                    await window.sb.from('notifications').insert({ user_id: userId, message: message });
-
-                    try {
-                        await fetch('/api/telegram', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ action: 'notify', userId: userId, message: message })
-                        });
-                    } catch (e) {
-                        console.error('Lỗi API Push Telegram:', e);
-                    }
-                }
-            },
-
+            notifications: { init: ()=>{}, add: async ()=>{} },
             settings: {
 
                 search: (query, inputId = 'set-search-input-main', sugId = 'set-search-sug-main') => {
@@ -4852,7 +4520,7 @@
                     acc.classList.add('flex', 'slide-left-enter');
                     acc.classList.remove('slide-right-enter');
 
-                    app.settings.switchTab('profile');
+                    // app.settings.switchTab('profile');
                 },
 
                 closeAccountMenu: (instant = false) => {
@@ -4955,7 +4623,7 @@
                     docs.classList.add('flex', 'slide-left-enter');
                     docs.classList.remove('slide-right-enter');
 
-                    app.settings.switchTab('docs-intro');
+                    // app.settings.switchTab('docs-intro');
                 },
 
                 closeDocsMenu: (instant = false) => {
@@ -4979,7 +4647,7 @@
                 },
 
                 switchTab: (tab) => {
-                    const tabs = ['blank', 'profile', 'security', 'links', 'badges', 'preference', 'notifications', 'docs-intro', 'docs-requirements', 'docs-policy'];
+                    const tabs = ['blank', 'profile', 'security', 'links', 'badges', 'preference', 'docs-intro', 'docs-requirements', 'docs-policy'];
                     const activeClasses = ['bg-black', 'text-white', 'border-black', 'shadow-sm'];
                     const inactiveClasses = ['bg-white', 'text-gray-600', 'hover:bg-gray-50', 'border-gray-200'];
 
@@ -4997,8 +4665,8 @@
                             // Nếu là tab tài liệu thì tải nội dung
                             if (t.startsWith('docs-')) {
                                 app.docs.fetchContent(t);
-                            } else if (t === 'notifications') {
-                                app.notifications.renderSettingsUI();
+                            } else if (t === 'X') {
+                                
                             } else if (t === 'preference') {
                                 app.preference.tempSelection = app.preference.current || 'both';
                                 app.preference.tempShowRec = app.preference.showRecommendations; // FIX: Đồng bộ đúng trạng thái
@@ -5829,16 +5497,7 @@ dropdown.innerHTML = `
                     // Đã tắt tự động nhảy sang Telegram
                     
                     
-                    if (app.notificationChannel) {
-                        window.sb.removeChannel(app.notificationChannel);
-                        app.notificationChannel = null;
-                    }
-
-                    app.notificationChannel = window.sb.channel('public:notifications')
-                        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` }, payload => {
-                            // Đã tắt tự động nhảy sang Telegram
                     
-                        }).subscribe();
 
                 } else {
                     document.getElementById('nav-username').innerText = 'Tài khoản';
@@ -5854,10 +5513,7 @@ dropdown.innerHTML = `
                          <a href="/contact" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 font-bold"><i class="fa-solid fa-headset w-5 text-center mr-1"></i> Liên hệ hỗ trợ</a>
                      `;
                     
-                    if (app.notificationChannel) {
-                        window.sb.removeChannel(app.notificationChannel);
-                        app.notificationChannel = null;
-                    }
+                    
                     
                     // Đã tắt tự động nhảy sang Telegram
                     
@@ -6482,7 +6138,7 @@ dropdown.innerHTML = `
 
                     if (Object.keys(app.topUploaders).length === 0) {
                         await app.utils.fetchTopUploaders();
-                app.notifications.init(); // Load Notification Prefs
+                
                     }
 
                     const badges = app.utils.getBadgesHTML(profile.id, profile.role);
@@ -6839,7 +6495,7 @@ const elInfoPlate = document.getElementById('info-plate');
 
                     if (Object.keys(app.topUploaders).length === 0) {
                         await app.utils.fetchTopUploaders();
-                app.notifications.init(); // Load Notification Prefs
+                
                     }
 
                     const badges = app.utils.getBadgesHTML(photo.profiles?.id, photo.profiles?.role);
@@ -6919,7 +6575,6 @@ else if (app.user && app.role === 'manager' && !isDenied) {
         app.ui.showDenyPrompt("ADMIN - Xóa ảnh này", async (reason) => {
             try {
                 await window.sb.from('photos').update({ status: 'denied', denial_reason: reason }).eq('id', photo.id);
-                await app.notifications.add(photo.uploader_id, `Ảnh ${photo.license_plate} của bạn đã bị Admin xóa. Lý do: ${reason}`);
                 app.admin.logAction('admin_delete_from_detail', photo.id, { plate: photo.license_plate, reason: reason });
                 app.ui.showAlert("Đã xóa ảnh thành công.", () => app.views.loadHome());
             } catch (e) { app.ui.showAlert("Lỗi: " + e.message); }
@@ -6943,8 +6598,6 @@ if (app.user && app.role === 'manager' && isDenied) {
 
                     const { error } = await window.sb.from('photos').update({ status: 'approved', denial_reason: null }).eq('id', photo.id);
                     if (error) throw error;
-
-                    await app.notifications.add(photo.uploader_id, `Ảnh xe ${photo.license_plate} của bạn đã được Quản lý xét duyệt lại và chấp thuận.${reason ? ' Ghi chú: ' + reason : ''}`);
                     app.admin.logAction('manager_reapprove', photo.id, { plate: photo.license_plate, reason: reason });
 
                     app.ui.showAlert("Đã duyệt lại ảnh thành công!", () => {
@@ -8520,8 +8173,6 @@ app.admin.fetchManagerData('denied');
                                 }
                             }
                         }
-
-                        await app.notifications.add(uploaderId, `Ảnh ${plate} của bạn đã được duyệt.`);
                         app.admin.logAction('approve_photo', id, { plate: plate, operator: op });
                         app.admin.loadTab('photos');
                     } catch (err) {
@@ -8550,8 +8201,6 @@ app.admin.fetchManagerData('denied');
 
                                 const plate = document.getElementById(`adm-p-plate-${id}`).value.trim();
                                 await app.vehicle.cleanupVehicle(plate);
-
-                                await app.notifications.add(uploaderId, `Ảnh ${plate} của bạn đã bị từ chối với lý do: ${reason}`);
                                 app.admin.logAction('deny_photo', id, { plate: plate, reason: reason });
 
                                 app.admin.loadTab('photos');
@@ -8638,7 +8287,6 @@ app.admin.fetchManagerData('denied');
                             }
                         }
                         await window.sb.from('edit_requests').update({ status: 'approved' }).eq('id', id);
-                        await app.notifications.add(req.requester_id, `Yêu cầu chỉnh sửa cho xe ${req.license_plate} đã được duyệt.`);
                         app.admin.logAction('approve_edit_req', id, { req_type: reqType, plate: req.license_plate });
                         app.admin.loadTab('requests');
                     } catch (err) { app.ui.showAlert("Lỗi: " + err.message); } finally { btn.innerText = "DUYỆT"; btn.disabled = false; btn.classList.remove('btn-loading'); }
@@ -8665,8 +8313,6 @@ app.admin.fetchManagerData('denied');
 
                         await window.sb.from('photos').update({ status: 'denied', denial_reason: reason }).eq('id', p.id);
                         await app.vehicle.cleanupVehicle(p.license_plate);
-
-                        await app.notifications.add(p.uploader_id, `Ảnh ${p.license_plate} của bạn đã bị Admin xóa. Lý do: ${reason}`);
                         app.admin.logAction('direct_delete', photoId, { plate: p.license_plate, reason: reason });
 
                         app.ui.showAlert("Đã xóa ảnh thành công!");
@@ -8709,7 +8355,6 @@ app.admin.fetchManagerData('denied');
 
                         await app.vehicle.cleanupVehicle(plate);
                         await window.sb.from('edit_requests').update({ status: 'approved' }).eq('id', reqId);
-                        await app.notifications.add(requesterId, `Yêu cầu xóa ảnh xe ${plate} của bạn đã được Admin duyệt và ảnh đã bị xóa hoàn toàn khỏi hệ thống.`);
 
                         app.ui.showAlert("Đã duyệt yêu cầu và xóa ảnh vĩnh viễn thành công!");
                         app.admin.logAction('approve_delete_req', photoId, { plate: plate });
@@ -8731,7 +8376,6 @@ app.admin.fetchManagerData('denied');
 
                             let actionName = req.new_data.request_type === 'delete_photo' ? 'xóa ảnh' : 'chỉnh sửa';
                             let reasonMsg = reason ? ` Lý do: ${reason}` : '';
-                            await app.notifications.add(req.requester_id, `Yêu cầu ${actionName} cho xe ${req.license_plate} của bạn đã bị từ chối.${reasonMsg}`);
 
 
                             if (req.new_data.request_type === 'delete_photo') app.admin.loadTab('delete');
