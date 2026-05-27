@@ -1,4 +1,9 @@
-# 🚌 VNBUSARCHIVE
+<div align="center">
+  <h1>
+    <img src="https://www.vnbusarchive.io.vn/media/vnba.png" alt="VNBUSARCHIVE Logo" height="30" style="vertical-align: middle; margin-right: 10px;">
+    <b><i>VNBUSARCHIVE</i></b>
+  </h1>
+</div>
 
 **VNBUSARCHIVE** là một dự án cộng đồng phi lợi nhuận nhằm mục đích lưu trữ, bảo tồn hình ảnh và lịch sử của các phương tiện xe buýt tại Việt Nam.
 
