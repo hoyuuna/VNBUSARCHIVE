@@ -167,22 +167,6 @@ export default async function handler(req, res) {
 
         if (dbError) throw dbError;
 
-        if (process.env.DISCORD_PRIVATE_WEBHOOK_URL) {
-            fetch(process.env.DISCORD_PRIVATE_WEBHOOK_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    username: "VBS Logger",
-                    embeds:[{
-                        title: `📥 ẢNH MỚI CHỜ DUYỆT (CF ImgBed)`,
-                        description: `**BKS:** ${metadata.plate}\n**Máy:** ${metadata.camera_model}\n**Ngày chụp:** ${metadata.taken_at || 'Không rõ'}\n**User:** ${metadata.username}\nID: ${photoData.id}`,
-                        thumbnail: { url: finalOptimizedUrl },
-                        color: 15158332 
-                    }]
-                })
-            }).catch(e => console.error('Lỗi gửi Discord:', e));
-        }
-
         return res.status(200).json({ success: true, url: finalOptimizedUrl });
 
     } catch (error) {
