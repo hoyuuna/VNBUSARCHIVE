@@ -2940,36 +2940,31 @@
 
                                 <!-- Toolbar Chỉnh sửa & Upload -->
                             <div id="vnbus-editor-toolbar" class="mt-4">
-                                <!-- Thanh công cụ chính -->
-                                <div class="bg-gray-50 border border-gray-200 rounded-xl p-3 shadow-sm flex flex-col md:flex-row gap-3 items-start md:items-center justify-between relative z-40">
+                                <!-- Thanh công cụ chính (Đồng bộ UI nút bấm 100%) -->
+                                <div class="bg-gray-50 border border-gray-200 rounded-xl p-2.5 sm:p-3 shadow-sm flex flex-wrap gap-2 items-center relative z-40">
                                     
-                                    <!-- Left: Nhóm nút chỉnh sửa (Cắt, Màu, Che) -->
-                                    <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
-                                        <button type="button" id="btn-crop-image" onclick="app.crop.open('main')" class="flex items-center justify-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-100 hover:text-black font-bold text-[11px] sm:text-xs transition shadow-sm focus:ring-2 focus:ring-black flex-1 md:flex-none">
-                                            <i class="fa-solid fa-crop-simple"></i> Cắt ảnh
-                                        </button>
-                                        <button type="button" id="btn-adjust-color" onclick="app.upload.toggleColorPanel()" class="flex items-center justify-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-100 hover:text-black font-bold text-[11px] sm:text-xs transition shadow-sm focus:ring-2 focus:ring-black flex-1 md:flex-none">
-                                            <i class="fa-solid fa-sliders"></i> Chỉnh màu
-                                        </button>
-                                        <button type="button" id="btn-add-blur" onclick="app.upload.addBlurPanel()" class="flex items-center justify-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-100 hover:text-black font-bold text-[11px] sm:text-xs transition shadow-sm focus:ring-2 focus:ring-black w-full md:w-auto mt-1 md:mt-0">
-                                            <i class="fa-solid fa-droplet-slash"></i> Che biển/mặt (0/3)
-                                        </button>
-                                    </div>
+                                    <!-- Các nút chỉnh sửa (Cùng Form) -->
+                                    <button type="button" id="btn-crop-image" onclick="app.crop.open('main')" class="flex items-center justify-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-100 hover:text-black font-bold text-[11px] sm:text-xs transition shadow-sm focus:ring-2 focus:ring-black flex-1 md:flex-none whitespace-nowrap">
+                                        <i class="fa-solid fa-crop-simple"></i> Cắt ảnh
+                                    </button>
+                                    
+                                    <button type="button" id="btn-adjust-color" onclick="app.upload.toggleColorPanel()" class="flex items-center justify-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-100 hover:text-black font-bold text-[11px] sm:text-xs transition shadow-sm focus:ring-2 focus:ring-black flex-1 md:flex-none whitespace-nowrap">
+                                        <i class="fa-solid fa-sliders"></i> Chỉnh màu
+                                    </button>
+                                    
+                                    <button type="button" id="btn-add-blur" onclick="app.upload.addBlurPanel()" class="flex items-center justify-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-100 hover:text-black font-bold text-[11px] sm:text-xs transition shadow-sm focus:ring-2 focus:ring-black flex-1 md:flex-none whitespace-nowrap">
+                                        <i class="fa-solid fa-droplet-slash"></i> Làm mờ (0/3)
+                                    </button>
+                                    
+                                    <!-- Nút Dấu đen (Cùng Form nhưng là Label Toggle) -->
+                                    <label id="btn-lbl-wm-black" class="flex items-center justify-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-100 hover:text-black font-bold text-[11px] sm:text-xs transition shadow-sm cursor-pointer select-none flex-1 md:flex-none whitespace-nowrap m-0">
+                                        <input type="checkbox" id="chk-wm-black" onchange="app.upload.toggleColor(this.checked)" class="hidden">
+                                        <i class="fa-solid fa-stamp"></i> Dấu đen
+                                    </label>
 
-                                    <!-- Right: Cài đặt Watermark & Xóa -->
-                                    <div class="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 border-gray-200 pt-3 md:pt-0 mt-1 md:mt-0">
-                                        
-                                        <!-- Toggle Switch iOS cho Dấu đen -->
-                                        <label class="relative inline-flex items-center cursor-pointer group" title="Đóng dấu bản quyền màu đen">
-                                            <input type="checkbox" id="chk-wm-black" onchange="app.upload.toggleColor(this.checked)" class="sr-only peer">
-                                            <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-black shadow-inner"></div>
-                                            <span class="ml-2 text-[11px] sm:text-xs font-bold text-gray-700 group-hover:text-black transition select-none uppercase tracking-wide">Dấu đen</span>
-                                        </label>
-                                        
-                                        <div class="w-px h-5 bg-gray-300 hidden md:block"></div>
-
-                                        <!-- Nút Xóa nổi bật -->
-                                        <button type="button" onclick="app.upload.removeImage()" class="flex items-center justify-center gap-1.5 text-red-500 hover:text-white hover:bg-red-500 border border-transparent hover:border-red-600 px-3 py-1.5 rounded-lg font-bold text-[11px] sm:text-xs transition">
+                                    <!-- Nút Xóa (Đẩy sang lề phải, Cùng Form nhưng màu Đỏ) -->
+                                    <div class="w-full md:w-auto md:ml-auto flex mt-1 md:mt-0">
+                                        <button type="button" onclick="app.upload.removeImage()" class="flex items-center justify-center gap-1.5 bg-white border border-red-300 text-red-600 px-3 py-2 rounded-lg hover:bg-red-50 hover:text-red-700 font-bold text-[11px] sm:text-xs transition shadow-sm focus:ring-2 focus:ring-red-500 w-full md:w-auto">
                                             <i class="fa-solid fa-trash"></i> Xóa ảnh
                                         </button>
                                     </div>
@@ -8804,7 +8799,7 @@ app.admin.fetchManagerData('denied');
                 updateBlurBtn: () => {
                     const count = document.querySelectorAll('.blur-panel').length;
                     const btn = document.getElementById('btn-add-blur');
-                    if (btn) btn.innerHTML = `<i class="fa-solid fa-droplet-slash"></i> Che biển/mặt (${count}/3)`;
+                    if (btn) btn.innerHTML = `<i class="fa-solid fa-droplet-slash"></i> Làm mờ (${count}/3)`;
                 },
 
                 checkPlate: async (val) => {
@@ -9078,6 +9073,17 @@ app.admin.fetchManagerData('denied');
                     const el = document.getElementById('draggable-watermark');
                     if (isBlack) el.classList.add('wm-black');
                     else el.classList.remove('wm-black');
+                    // Đồng bộ UI Nút Dấu đen
+                    const lbl = document.getElementById('btn-lbl-wm-black');
+                    if (lbl) {
+                        if (isBlack) {
+                            lbl.classList.add('bg-gray-200', 'border-gray-400', 'text-black');
+                            lbl.classList.remove('bg-white');
+                        } else {
+                            lbl.classList.remove('bg-gray-200', 'border-gray-400', 'text-black');
+                            lbl.classList.add('bg-white');
+                        }
+                    }
                 },
 
                 currentFilters: 'none',
