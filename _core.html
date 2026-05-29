@@ -90,6 +90,13 @@
 
     <style>
         body {
+
+        /* BẮT BUỘC: Đảm bảo font-smoothing luôn được bật */
+        -webkit-font-smoothing: antialiased !important;
+        -moz-osx-font-smoothing: grayscale !important;
+        
+        /* HACK: Dùng bóng đổ siêu nhỏ để làm mềm viền chữ */
+        text-shadow: 0 0 0.5px rgba(0, 0, 0, 0.15);
             background-color: #fafafa;
             color: #09090b;
         }
