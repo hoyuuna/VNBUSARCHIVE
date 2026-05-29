@@ -1845,7 +1845,7 @@
             </div>
         </div>
 
-        <div id="admin-zoom-modal" class="hidden fixed inset-0 z-[2000] bg-black/95 flex items-center justify-center p-4" onclick="app.admin.closeZoom()">
+        <div id="admin-zoom-modal" class="hidden fixed inset-0 z-[2000] bg-black/95 flex flex-col items-center justify-center px-4 pt-4 pb-20 md:pb-24" onclick="app.admin.closeZoom()">
             <img id="admin-zoom-img" src="" class="max-w-full max-h-full object-contain transition-transform duration-300 zoom-img-cursor" onclick="event.stopPropagation(); this.classList.toggle('zoom-img-active');">
             <button onclick="app.admin.closeZoom()" class="absolute top-4 right-4 text-white hover:text-red-500 text-3xl z-[2001]"><i class="fa-solid fa-xmark"></i></button>
             
@@ -1853,30 +1853,29 @@
                 Click vào ảnh để phóng to/thu nhỏ
             </div>
             
-            <!-- Floating Toolbar Cực Chất -->
-            <!-- Floating Toolbar Kính Mờ Đen-Trắng -->
-            <div id="zoom-toolbar" class="hidden fixed bottom-8 md:bottom-12 left-1/2 -translate-x-1/2 rounded-full p-1.5 shadow-[0_10px_40px_rgba(0,0,0,0.4)] flex gap-1 items-center justify-center z-[2005]" style="background-color: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(0,0,0,0.1);" onclick="event.stopPropagation()">
+            <!-- Floating Toolbar Kính Mờ Hình Nút Bo Góc (Animation Trượt) -->
+            <div id="zoom-toolbar" class="absolute bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 bg-white/80 backdrop-blur-xl border border-white/60 rounded-xl p-2 md:p-2.5 shadow-[0_10px_40px_rgba(0,0,0,0.5)] flex gap-1.5 md:gap-2 items-center justify-center z-[2005] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] opacity-0 translate-y-8 pointer-events-none" onclick="event.stopPropagation()">
                 
                 <!-- Nút Thích -->
-                <button id="zoom-btn-like" onclick="app.utils.handleLike()" class="flex items-center justify-center gap-2 text-black bg-transparent hover:bg-black hover:text-white px-4 py-2.5 md:px-5 md:py-3 rounded-full font-bold text-xs md:text-sm transition-colors whitespace-nowrap">
+                <button id="zoom-btn-like" onclick="app.utils.handleLike()" class="flex items-center justify-center gap-1.5 text-gray-800 bg-transparent hover:bg-black hover:text-white px-3 py-2 md:px-4 md:py-2.5 rounded-lg font-bold text-[11px] md:text-sm transition-colors whitespace-nowrap">
                     <i class="fa-regular fa-thumbs-up text-sm md:text-base"></i> <span class="hidden md:inline">Thích</span>
                 </button>
                 
                 <!-- Nút Tải -->
-                <button id="zoom-btn-download" onclick="app.photo.downloadImage(event)" class="flex items-center justify-center gap-2 text-black bg-transparent hover:bg-black hover:text-white px-4 py-2.5 md:px-5 md:py-3 rounded-full font-bold text-xs md:text-sm transition-colors whitespace-nowrap">
+                <button id="zoom-btn-download" onclick="app.photo.downloadImage(event)" class="flex items-center justify-center gap-1.5 text-gray-800 bg-transparent hover:bg-black hover:text-white px-3 py-2 md:px-4 md:py-2.5 rounded-lg font-bold text-[11px] md:text-sm transition-colors whitespace-nowrap">
                     <i class="fa-solid fa-download text-sm md:text-base"></i> <span class="hidden md:inline">Tải về</span>
                 </button>
                 
-                <div class="w-px h-6 bg-black/20 mx-1"></div>
+                <div class="w-px h-5 bg-gray-400 mx-0.5 md:mx-1 opacity-50"></div>
                 
                 <!-- Nút Profile Người đăng -->
-                <button id="zoom-btn-profile" onclick="app.admin.closeZoom(); app.views.loadUserProfile(app.currentPhoto.profiles.username)" class="flex items-center justify-center gap-2 text-black bg-transparent hover:bg-black hover:text-white px-3 py-2 md:px-5 md:py-2.5 rounded-full font-bold text-xs md:text-sm transition-colors whitespace-nowrap group">
-                    <img id="zoom-uploader-avatar" src="" class="w-6 h-6 md:w-7 md:h-7 rounded-full object-cover border border-gray-300 bg-gray-100 transition-opacity"> 
+                <button id="zoom-btn-profile" onclick="app.admin.closeZoom(); app.views.loadUserProfile(app.currentPhoto.profiles.username)" class="flex items-center justify-center gap-1.5 text-gray-800 bg-transparent hover:bg-black hover:text-white px-2 py-2 md:px-4 md:py-2.5 rounded-lg font-bold text-[11px] md:text-sm transition-colors whitespace-nowrap group">
+                    <img id="zoom-uploader-avatar" src="" class="w-5 h-5 md:w-6 md:h-6 rounded-full object-cover border border-gray-300 bg-gray-100 transition-opacity"> 
                     <span id="zoom-uploader-name" class="hidden md:inline truncate max-w-[120px]">User</span>
                 </button>
                 
                 <!-- Nút Hỗ trợ -->
-                <button id="zoom-btn-contact" onclick="app.admin.closeZoom(); app.views.loadContact()" class="flex items-center justify-center gap-2 text-black bg-transparent hover:bg-black hover:text-white px-4 py-2.5 md:px-5 md:py-3 rounded-full font-bold text-xs md:text-sm transition-colors whitespace-nowrap">
+                <button id="zoom-btn-contact" onclick="app.admin.closeZoom(); app.views.loadContact()" class="flex items-center justify-center gap-1.5 text-gray-800 bg-transparent hover:bg-black hover:text-white px-3 py-2 md:px-4 md:py-2.5 rounded-lg font-bold text-[11px] md:text-sm transition-colors whitespace-nowrap">
                     <i class="fa-solid fa-headset text-sm md:text-base"></i> <span class="hidden md:inline">Hỗ trợ</span>
                 </button>
             </div>
@@ -7531,38 +7530,40 @@ formInputs.forEach(input => {
                     img.classList.remove('modal-content-leave');
                     img.classList.add('modal-content-enter');
                     
-                    // Logic hiển thị Toolbar
+                    // Logic hiển thị Toolbar với Animation Trượt
                     const toolbar = document.getElementById('zoom-toolbar');
                     const hint = document.getElementById('zoom-hint');
                     if(toolbar && hint) {
                         if(showToolbar && app.currentPhoto) {
-                            toolbar.classList.remove('hidden');
-                            hint.classList.add('hidden');
+                            toolbar.classList.remove('opacity-0', 'translate-y-8', 'pointer-events-none');
+                            toolbar.classList.add('opacity-100', 'translate-y-0', 'pointer-events-auto');
+                            hint.classList.add('opacity-0');
                             
-                            // Đổ dữ liệu người đăng
+                            // Đổ dữ liệu
                             const uploaderName = app.utils.cleanText(app.currentPhoto.profiles?.username || 'Ẩn danh');
-                            const uploaderAvatar = app.currentPhoto.profiles?.avatar_url ? app.utils.getProxiedUrl(app.currentPhoto.profiles.avatar_url.replace(/"/g, ''), 'avatar.jpg', 'avatar') : DEFAULT_AVATAR;
+                            const uploaderAvatar = app.currentPhoto.profiles?.avatar_url ? app.utils.getProxiedUrl(app.currentPhoto.profiles.avatar_url.replace(/"/g, ''), 'avatar.jpg', 'avatar') : 'https://wsrv.nl/?url=https://files.catbox.moe/zzh1q1.png&we';
                             document.getElementById('zoom-uploader-name').innerText = uploaderName;
                             document.getElementById('zoom-uploader-avatar').src = uploaderAvatar;
                             
-                            // Check trạng thái Thích ảnh / Bị khóa
+                            // Check trạng thái
                             const mainLikeBtn = document.getElementById('btn-like');
                             const zBtn = document.getElementById('zoom-btn-like');
                             const isLiked = mainLikeBtn && mainLikeBtn.classList.contains('bg-gray-400');
                             const isDenied = app.currentPhoto.status === 'denied';
                             
                             if (isLiked || isDenied) {
-                                zBtn.className = "flex items-center justify-center gap-2 bg-black text-white px-4 py-2.5 md:px-5 md:py-3 rounded-full font-bold text-xs md:text-sm transition-colors whitespace-nowrap";
-                                zBtn.innerHTML = isDenied ? '<i class="fa-solid fa-ban text-sm md:text-base"></i> <span class="hidden md:inline">Bị từ chối</span>' : '<i class="fa-solid fa-check text-sm md:text-base"></i> <span class="hidden md:inline">Đã thích</span>';
+                                zBtn.className = "flex items-center justify-center gap-1.5 bg-black text-white px-3 py-2 md:px-4 md:py-2.5 rounded-lg font-bold text-[11px] md:text-sm transition-colors whitespace-nowrap";
+                                zBtn.innerHTML = isDenied ? '<i class="fa-solid fa-ban text-sm md:text-base"></i> <span class="hidden md:inline">Từ chối</span>' : '<i class="fa-solid fa-check text-sm md:text-base"></i> <span class="hidden md:inline">Đã thích</span>';
                                 zBtn.disabled = isDenied;
                             } else {
-                                zBtn.className = "flex items-center justify-center gap-2 text-black bg-transparent hover:bg-black hover:text-white px-4 py-2.5 md:px-5 md:py-3 rounded-full font-bold text-xs md:text-sm transition-colors whitespace-nowrap";
+                                zBtn.className = "flex items-center justify-center gap-1.5 text-gray-800 bg-transparent hover:bg-black hover:text-white px-3 py-2 md:px-4 md:py-2.5 rounded-lg font-bold text-[11px] md:text-sm transition-colors whitespace-nowrap";
                                 zBtn.innerHTML = '<i class="fa-regular fa-thumbs-up text-sm md:text-base"></i> <span class="hidden md:inline">Thích</span>';
                                 zBtn.disabled = false;
                             }
                         } else {
-                            toolbar.classList.add('hidden');
-                            hint.classList.remove('hidden');
+                            toolbar.classList.add('opacity-0', 'translate-y-8', 'pointer-events-none');
+                            toolbar.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
+                            hint.classList.remove('opacity-0');
                         }
                     }
                 },
@@ -7570,14 +7571,23 @@ formInputs.forEach(input => {
                 closeZoom: () => {
                     const modal = document.getElementById('admin-zoom-modal');
                     const img = document.getElementById('admin-zoom-img');
+                    const toolbar = document.getElementById('zoom-toolbar');
+                    
                     img.classList.remove('modal-content-enter');
                     img.classList.add('modal-content-leave');
+                    
+                    if (toolbar) {
+                        toolbar.classList.add('opacity-0', 'translate-y-8', 'pointer-events-none');
+                        toolbar.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
+                    }
+                    
                     setTimeout(() => {
                         modal.classList.add('hidden');
                         img.src = "";
                         img.classList.remove('modal-content-leave');
                         app.ui.unlockScroll();
                     }, 200);
+                }, 200);
                 },
 
                 loadTab: async (tab) => {
@@ -10578,9 +10588,26 @@ cleanupState: () => {
                             likeBtn.classList.replace('bg-gray-400', 'bg-black');
                             likeBtn.innerHTML = '<i class="fa-regular fa-thumbs-up"></i> Thích ảnh này';
                             likeCountEl.innerText = Math.max(0, currentCount - 1);
+                            
                             const zBtn = document.getElementById('zoom-btn-like');
                             if(zBtn) {
-                                zBtn.className = "flex items-center justify-center gap-2 bg-black text-white px-4 py-2.5 md:px-5 md:py-3 rounded-full font-bold text-xs md:text-sm transition-colors whitespace-nowrap";
+                                zBtn.className = "flex items-center justify-center gap-1.5 text-gray-800 bg-transparent hover:bg-black hover:text-white px-3 py-2 md:px-4 md:py-2.5 rounded-lg font-bold text-[11px] md:text-sm transition-colors whitespace-nowrap";
+                                zBtn.innerHTML = '<i class="fa-regular fa-thumbs-up text-sm md:text-base"></i> <span class="hidden md:inline">Thích</span>';
+                            }
+                        } else {
+                            app.ui.showAlert("Lỗi khi bỏ thích: " + error.message);
+                        }
+                    } else {
+                        const { error } = await window.sb.from('photo_likes').insert({ photo_id: photoId, user_id: app.user.id });
+
+                        if (!error) {
+                            likeBtn.classList.replace('bg-black', 'bg-gray-400');
+                            likeBtn.innerHTML = '<i class="fa-solid fa-check"></i> Đã thích';
+                            likeCountEl.innerText = currentCount + 1;
+                            
+                            const zBtn = document.getElementById('zoom-btn-like');
+                            if(zBtn) {
+                                zBtn.className = "flex items-center justify-center gap-1.5 bg-black text-white px-3 py-2 md:px-4 md:py-2.5 rounded-lg font-bold text-[11px] md:text-sm transition-colors whitespace-nowrap";
                                 zBtn.innerHTML = '<i class="fa-solid fa-check text-sm md:text-base"></i> <span class="hidden md:inline">Đã thích</span>';
                             }
                         } else {
@@ -10593,7 +10620,6 @@ cleanupState: () => {
                         }
                     }
                 },
-
                 reverseGeocode: async (lat, lng) => {
                     try {
                         const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
