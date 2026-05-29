@@ -2953,7 +2953,7 @@
                                     </button>
                                     
                                     <button type="button" id="btn-add-blur" onclick="app.upload.addBlurPanel()" class="flex items-center justify-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-100 hover:text-black font-bold text-[11px] sm:text-xs transition shadow-sm focus:ring-2 focus:ring-black flex-1 md:flex-none whitespace-nowrap">
-                                        <i class="fa-solid fa-droplet-slash"></i> Làm mờ (0/3)
+                                        <i class="fa-solid fa-droplet-slash"></i> Làm mờ (0/5)
                                     </button>
                                     
                                     <!-- Nút Dấu đen (Cùng Form nhưng là Label Toggle) -->
@@ -5615,16 +5615,22 @@ dropdown.innerHTML = `
                 currentProfileSort: 'newest',
                 sortProfilePhotos: (type) => {
                     app.views.currentProfileSort = type;
-                    document.getElementById('profile-sort-label').innerText = type === 'newest' ? 'Mới nhất' : 'Phổ biến nhất';
+                    const labelEl = document.getElementById('profile-sort-label');
+                    if (labelEl) labelEl.innerText = type === 'newest' ? 'Mới nhất' : 'Phổ biến nhất';
+                    
                     document.querySelectorAll('.profile-sort-item').forEach(item => {
                         item.classList.remove('selected');
-                        item.querySelector('.check-icon').classList.add('opacity-0');
+                        const icon = item.querySelector('.check-icon');
+                        if (icon) icon.classList.add('opacity-0');
+                        
                         if (item.dataset.sort === type) {
                             item.classList.add('selected');
-                            item.querySelector('.check-icon').classList.remove('opacity-0');
+                            if (icon) icon.classList.remove('opacity-0');
                         }
                     });
-                    document.getElementById('profile-sort-menu').classList.remove('active');
+                    
+                    const menu = document.getElementById('profile-sort-menu');
+                    if (menu) menu.classList.remove('active');
 
                     let list = app._currentFilteredProfilePhotos || [];
                     if (type === 'newest') {
@@ -6343,6 +6349,7 @@ dropdown.innerHTML = `
                         app.profilePage = 1;
                         
 
+                        app.views.sortProfilePhotos('newest');
                         const filterContainer = document.getElementById('profile-photo-filters');
                         if (filterContainer) {
                             if (isOwnProfile) {
@@ -8686,8 +8693,8 @@ app.admin.fetchManagerData('denied');
                 addBlurPanel: () => {
                     const currentCount = document.querySelectorAll('.blur-panel').length;
 
-                    if (currentCount >= 3) {
-                        return app.ui.showAlert("Bạn chỉ được thêm tối đa 3 vùng làm mờ cho mỗi ảnh.");
+                    if (currentCount >= 5) {
+                        return app.ui.showAlert("Bạn chỉ được thêm tối đa 5 vùng làm mờ cho mỗi ảnh.");
                     }
 
                     app.upload.performAddBlurPanel();
@@ -8820,7 +8827,7 @@ app.admin.fetchManagerData('denied');
                 updateBlurBtn: () => {
                     const count = document.querySelectorAll('.blur-panel').length;
                     const btn = document.getElementById('btn-add-blur');
-                    if (btn) btn.innerHTML = `<i class="fa-solid fa-droplet-slash"></i> Làm mờ (${count}/3)`;
+                    if (btn) btn.innerHTML = `<i class="fa-solid fa-droplet-slash"></i> Làm mờ (${count}/5)`;
                 },
 
                 checkPlate: async (val) => {
