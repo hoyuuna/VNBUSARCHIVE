@@ -1325,10 +1325,23 @@
             to { opacity: 1; transform: translateX(0); }
         }
     
+        
+    
+    
         /* ==========================================
-           FIX ZOOM TOOLBAR (Glassmorphism & Căn giữa)
+           FIX ZOOM TOOLBAR BULLETPROOF (Kính mờ + Vị trí)
         ========================================== */
         #zoom-toolbar {
+            /* Ép cứng vị trí, không phụ thuộc Tailwind */
+            position: fixed !important;
+            bottom: 50px !important;
+            left: 50% !important;
+            
+            /* Ép căn giữa màn hình, giữ lại biến translate-y để Javascript làm hiệu ứng trượt */
+            --tw-translate-x: -50% !important;
+            transform: translate(var(--tw-translate-x), var(--tw-translate-y, 0)) !important;
+            
+            /* Kính cường lực Glassmorphism đồng bộ */
             background-color: rgba(255, 255, 255, 0.7) !important;
             backdrop-filter: blur(20px) !important;
             -webkit-backdrop-filter: blur(20px) !important;
@@ -1336,16 +1349,12 @@
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15) !important;
         }
 
-        /* Khi ẩn: Trượt xuống 20px */
-        #zoom-toolbar.opacity-0 {
-            transform: translateX(-50%) translateY(20px) !important;
+        /* Tự động đẩy lên cao hơn một chút trên điện thoại để không cấn thanh điều hướng (Safe Area) */
+        @media (max-width: 768px) {
+            #zoom-toolbar {
+                bottom: max(30px, env(safe-area-inset-bottom) + 20px) !important;
+            }
         }
-
-        /* Khi hiện: Nằm đúng vị trí căn giữa */
-        #zoom-toolbar.opacity-100 {
-            transform: translateX(-50%) translateY(0) !important;
-        }
-    
     </style>
 
 </head>
@@ -1876,7 +1885,7 @@
             </div>
             
             <!-- Floating Toolbar Kính Mờ Hình Nút Bo Góc (Animation Trượt) -->
-            <div id="zoom-toolbar" class="absolute bottom-6 md:bottom-8 left-1/2 rounded-xl p-2 md:p-2.5 flex gap-1.5 md:gap-2 items-center justify-center z-[2005] transition-all duration-300 opacity-0 pointer-events-none" onclick="event.stopPropagation()">
+            <div id="zoom-toolbar" class="w-max max-w-[95vw] rounded-xl p-2 md:p-2.5 flex gap-1.5 md:gap-2 items-center justify-center z-[2005] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] opacity-0 translate-y-8 pointer-events-none" onclick="event.stopPropagation()">
                 
                 <!-- Nút Thích -->
                 <button id="zoom-btn-like" onclick="app.utils.handleLike()" class="flex items-center justify-center gap-1.5 text-gray-800 bg-transparent hover:bg-black hover:text-white px-3 py-2 md:px-4 md:py-2.5 rounded-lg font-bold text-[11px] md:text-sm transition-colors whitespace-nowrap">
@@ -3050,10 +3059,23 @@
                                         box-shadow: 0 0 0 5px rgba(0,0,0,0.1); 
                                     }
                                 
+        
+    
+    
         /* ==========================================
-           FIX ZOOM TOOLBAR (Glassmorphism & Căn giữa)
+           FIX ZOOM TOOLBAR BULLETPROOF (Kính mờ + Vị trí)
         ========================================== */
         #zoom-toolbar {
+            /* Ép cứng vị trí, không phụ thuộc Tailwind */
+            position: fixed !important;
+            bottom: 50px !important;
+            left: 50% !important;
+            
+            /* Ép căn giữa màn hình, giữ lại biến translate-y để Javascript làm hiệu ứng trượt */
+            --tw-translate-x: -50% !important;
+            transform: translate(var(--tw-translate-x), var(--tw-translate-y, 0)) !important;
+            
+            /* Kính cường lực Glassmorphism đồng bộ */
             background-color: rgba(255, 255, 255, 0.7) !important;
             backdrop-filter: blur(20px) !important;
             -webkit-backdrop-filter: blur(20px) !important;
@@ -3061,16 +3083,12 @@
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15) !important;
         }
 
-        /* Khi ẩn: Trượt xuống 20px */
-        #zoom-toolbar.opacity-0 {
-            transform: translateX(-50%) translateY(20px) !important;
+        /* Tự động đẩy lên cao hơn một chút trên điện thoại để không cấn thanh điều hướng (Safe Area) */
+        @media (max-width: 768px) {
+            #zoom-toolbar {
+                bottom: max(30px, env(safe-area-inset-bottom) + 20px) !important;
+            }
         }
-
-        /* Khi hiện: Nằm đúng vị trí căn giữa */
-        #zoom-toolbar.opacity-100 {
-            transform: translateX(-50%) translateY(0) !important;
-        }
-    
     </style>
 
                                 <!-- Khối trượt -->
