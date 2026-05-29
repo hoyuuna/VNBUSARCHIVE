@@ -3352,22 +3352,12 @@
                                 </div>
                             </div>
 
-                            <div class="flex items-end justify-between mt-10 mb-3 gap-2">
+                            <div class="flex items-center justify-between mt-10 mb-3 gap-2">
                                 <h4 class="font-bold text-sm uppercase text-gray-800" id="profile-photos-title">Ảnh của bạn</h4>
-                            </div>
-                            
-                            <div class="flex items-start sm:items-center justify-between gap-2 mb-4 w-full">
-                                <!-- Box chứa các nút bộ lọc, flex-1 giúp nó tự động chiếm phần còn lại, overflow-x-auto giúp cuộn trên mobile -->
-                                <div id="profile-photo-filters" class="hidden flex gap-2 overflow-x-auto pb-1 flex-1">
-                                    <button onclick="app.views.filterProfilePhotos('all')" id="btn-filter-all" class="px-3 py-1.5 bg-black text-white text-xs font-bold rounded shadow-sm transition whitespace-nowrap border border-black">Tất cả</button>
-                                    <button onclick="app.views.filterProfilePhotos('approved')" id="btn-filter-approved" class="px-3 py-1.5 bg-white text-gray-600 text-xs font-bold rounded hover:bg-gray-50 transition whitespace-nowrap border border-gray-300">Đã duyệt</button>
-                                    <button onclick="app.views.filterProfilePhotos('pending')" id="btn-filter-pending" class="px-3 py-1.5 bg-white text-gray-600 text-xs font-bold rounded hover:bg-gray-50 transition whitespace-nowrap border border-gray-300">Chờ duyệt</button>
-                                    <button onclick="app.views.filterProfilePhotos('denied')" id="btn-filter-denied" class="px-3 py-1.5 bg-white text-gray-600 text-xs font-bold rounded hover:bg-gray-50 transition whitespace-nowrap border border-gray-300">Từ chối</button>
-                                </div>
                                 
-                                <!-- Dropdown sắp xếp nằm bên phải, có shrink-0 để không bị ép nhỏ trên Mobile -->
-                                <div class="relative shrink-0 ml-auto z-40">
-                                    <button onclick="document.getElementById('profile-sort-menu').classList.toggle('active')" id="btn-profile-sort" class="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-300 text-gray-700 text-xs font-bold rounded hover:bg-gray-50 transition whitespace-nowrap">
+                                <!-- Dropdown sắp xếp đã được chuyển lên cùng hàng với Tiêu đề -->
+                                <div class="relative shrink-0 z-40">
+                                    <button onclick="document.getElementById('profile-sort-menu').classList.toggle('active')" id="btn-profile-sort" class="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-300 text-gray-700 text-xs font-bold rounded hover:bg-gray-50 transition whitespace-nowrap shadow-sm">
                                         <span id="profile-sort-label">Mới nhất</span> <i class="fa-solid fa-arrow-down-wide-short ml-0.5"></i>
                                     </button>
                                     <div id="profile-sort-menu" class="filter-menu w-40 right-0 origin-top-right">
@@ -3379,6 +3369,16 @@
                                             <span>Phổ biến nhất</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start sm:items-center gap-2 mb-4">
+                                <!-- Box chứa các nút bộ lọc -->
+                                <div id="profile-photo-filters" class="hidden flex gap-2 overflow-x-auto pb-1 w-full">
+                                    <button onclick="app.views.filterProfilePhotos('all')" id="btn-filter-all" class="px-3 py-1.5 bg-black text-white text-xs font-bold rounded shadow-sm transition whitespace-nowrap border border-black">Tất cả</button>
+                                    <button onclick="app.views.filterProfilePhotos('approved')" id="btn-filter-approved" class="px-3 py-1.5 bg-white text-gray-600 text-xs font-bold rounded hover:bg-gray-50 transition whitespace-nowrap border border-gray-300">Đã duyệt</button>
+                                    <button onclick="app.views.filterProfilePhotos('pending')" id="btn-filter-pending" class="px-3 py-1.5 bg-white text-gray-600 text-xs font-bold rounded hover:bg-gray-50 transition whitespace-nowrap border border-gray-300">Chờ duyệt</button>
+                                    <button onclick="app.views.filterProfilePhotos('denied')" id="btn-filter-denied" class="px-3 py-1.5 bg-white text-gray-600 text-xs font-bold rounded hover:bg-gray-50 transition whitespace-nowrap border border-gray-300">Từ chối</button>
                                 </div>
                             </div>
 
