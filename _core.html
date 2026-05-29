@@ -2959,10 +2959,12 @@
                                                 class="text-[11px] bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 px-2 py-1 rounded shadow-sm font-bold transition">
                                                 <i class="fa-solid fa-crop-simple mr-1"></i> Cắt ảnh
                                             </button>
+<button type="button" id="btn-adjust-color" onclick="app.upload.toggleColorPanel()" class="text-[11px] bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 px-2 py-1 rounded shadow-sm font-bold transition"><i class="fa-solid fa-sliders mr-1"></i> Chỉnh màu</button>
                                         </div>
                                         <p class="text-[10px] text-gray-500 italic mt-1">* Nhấn vào chữ <b>&copy;
                                                     Tên</b> hoặc <b>Khung làm mờ</b> để kéo thả vị trí. Ở góc dưới phải
                                                     khung làm mờ có thể kéo để đổi kích thước.</p>
+<div id="color-adjust-panel" class="hidden mt-3 p-3 bg-gray-50 border border-gray-200 rounded-md"><div class="grid grid-cols-1 sm:grid-cols-3 gap-4"><div><label class="text-[10px] font-bold text-gray-700 block mb-1">Độ sáng (Brightness)</label><input type="range" id="adj-brightness" min="50" max="150" value="100" class="w-full accent-black" oninput="app.upload.updateFilters()"></div><div><label class="text-[10px] font-bold text-gray-700 block mb-1">Độ tương phản (Contrast)</label><input type="range" id="adj-contrast" min="50" max="150" value="100" class="w-full accent-black" oninput="app.upload.updateFilters()"></div><div><label class="text-[10px] font-bold text-gray-700 block mb-1">Độ bão hòa (Saturation)</label><input type="range" id="adj-saturation" min="0" max="200" value="100" class="w-full accent-black" oninput="app.upload.updateFilters()"></div></div><div class="text-right mt-2"><button type="button" onclick="app.upload.resetFilters()" class="text-[10px] text-gray-500 hover:text-black font-bold transition"><i class="fa-solid fa-rotate-left mr-1"></i> Đặt lại</button></div></div>
                                     </div>
                                     <button type="button" onclick="app.upload.removeImage()"
                                         class="text-red-600 text-xs hover:text-red-800 font-bold flex items-center gap-1 transition shrink-0">
@@ -3794,6 +3796,7 @@
                                     if (app.upload.updateBlurBtn) app.upload.updateBlurBtn();
 
                                     app.wmState = { x: 0.5, y: 0.5, color: 'white' };
+                    if(app.upload.resetFilters) app.upload.resetFilters();
                                     const chkWmBlack = document.getElementById('chk-wm-black');
                                     if (chkWmBlack) chkWmBlack.checked = false;
                                     if (app.upload.toggleColor) app.upload.toggleColor(false);
@@ -9031,6 +9034,29 @@ app.admin.fetchManagerData('denied');
                     else el.classList.remove('wm-black');
                 },
 
+                currentFilters: 'none',
+                toggleColorPanel: () => {
+                    const panel = document.getElementById('color-adjust-panel');
+                    if(panel) panel.classList.toggle('hidden');
+                },
+                updateFilters: () => {
+                    const b = document.getElementById('adj-brightness')?.value || 100;
+                    const c = document.getElementById('adj-contrast')?.value || 100;
+                    const s = document.getElementById('adj-saturation')?.value || 100;
+                    const filterString = `brightness(${b}%) contrast(${c}%) saturate(${s}%)`;
+                    const previewImg = document.getElementById('preview-img');
+                    if(previewImg) previewImg.style.filter = filterString;
+                    app.upload.currentFilters = filterString;
+                },
+                resetFilters: () => {
+                    const b = document.getElementById('adj-brightness');
+                    const c = document.getElementById('adj-contrast');
+                    const s = document.getElementById('adj-saturation');
+                    if(b) b.value = 100;
+                    if(c) c.value = 100;
+                    if(s) s.value = 100;
+                    app.upload.updateFilters();
+                },
                 removeImage: () => {
                     document.getElementById('up-file').value = '';
                     document.getElementById('preview-box').classList.add('hidden');
@@ -9040,6 +9066,7 @@ app.admin.fetchManagerData('denied');
                     document.getElementById('up-camera').value = 'N/A';
                     document.getElementById('up-exif-params').value = 'N/A';
                     document.getElementById('up-date').value = '';
+                    if(app.upload.resetFilters) app.upload.resetFilters();
 
                     document.querySelectorAll('.blur-panel').forEach(p => p.remove());
                     if (app.upload.updateBlurBtn) app.upload.updateBlurBtn();
@@ -9187,6 +9214,7 @@ app.admin.fetchManagerData('denied');
                     document.getElementById('chk-wm-black').checked = false;
                     app.upload.toggleColor(false);
                     app.wmState = { x: 0.5, y: 0.5, color: 'white' };
+                    if(app.upload.resetFilters) app.upload.resetFilters();
                 },
 
                 initDraggable: () => {
@@ -9344,7 +9372,7 @@ app.admin.fetchManagerData('denied');
 
                     try {
                         const username = app.username || "Guest";
-                        const finalBlob = await app.utils.watermark(app.rawFile, username, app.wmState);
+                        const finalBlob = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none');
 
                         const targetMime = app.utils.getTargetMimeType();
                         const compressOptions = {
@@ -10255,7 +10283,7 @@ cleanupState: () => {
                     });
                 },
 
-                watermark: (file, username, pos = { x: 0.5, y: 0.5, color: 'white' }) => {
+                watermark: (file, username, pos = { x: 0.5, y: 0.5, color: 'white' }, filters = 'none') => {
                     return new Promise((resolve, reject) => {
                         const img = new Image();
                         const url = URL.createObjectURL(file);
@@ -10274,7 +10302,9 @@ cleanupState: () => {
 
                                 canvas.width = width;
                                 canvas.height = height;
+                                ctx.filter = filters;
                                 ctx.drawImage(img, 0, 0, width, height);
+                                ctx.filter = 'none';
 
                                 const imgEl = document.getElementById('preview-img');
                                 const blurPanels = document.querySelectorAll('.blur-panel');
