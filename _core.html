@@ -1854,29 +1854,30 @@
             </div>
             
             <!-- Floating Toolbar Cực Chất -->
-            <div id="zoom-toolbar" class="hidden absolute bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 bg-white/70 backdrop-blur-xl border border-white/40 rounded-2xl p-2 md:p-2.5 shadow-[0_10px_40px_rgba(0,0,0,0.5)] flex gap-2 items-center justify-center z-[2005]" onclick="event.stopPropagation()">
+            <!-- Floating Toolbar Kính Mờ Đen-Trắng -->
+            <div id="zoom-toolbar" class="hidden fixed bottom-8 md:bottom-12 left-1/2 -translate-x-1/2 rounded-full p-1.5 shadow-[0_10px_40px_rgba(0,0,0,0.4)] flex gap-1 items-center justify-center z-[2005]" style="background-color: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(0,0,0,0.1);" onclick="event.stopPropagation()">
                 
                 <!-- Nút Thích -->
-                <button id="zoom-btn-like" onclick="app.utils.handleLike()" class="flex items-center justify-center gap-1.5 bg-white border border-gray-200 text-gray-700 px-3 py-2 md:px-4 md:py-2.5 rounded-xl hover:bg-gray-50 hover:text-black font-bold text-[11px] md:text-sm transition shadow-sm focus:ring-2 focus:ring-black whitespace-nowrap">
+                <button id="zoom-btn-like" onclick="app.utils.handleLike()" class="flex items-center justify-center gap-2 text-black bg-transparent hover:bg-black hover:text-white px-4 py-2.5 md:px-5 md:py-3 rounded-full font-bold text-xs md:text-sm transition-colors whitespace-nowrap">
                     <i class="fa-regular fa-thumbs-up text-sm md:text-base"></i> <span class="hidden md:inline">Thích</span>
                 </button>
                 
                 <!-- Nút Tải -->
-                <button id="zoom-btn-download" onclick="app.photo.downloadImage(event)" class="flex items-center justify-center gap-1.5 bg-white border border-gray-200 text-gray-700 px-3 py-2 md:px-4 md:py-2.5 rounded-xl hover:bg-gray-50 hover:text-black font-bold text-[11px] md:text-sm transition shadow-sm focus:ring-2 focus:ring-black whitespace-nowrap">
+                <button id="zoom-btn-download" onclick="app.photo.downloadImage(event)" class="flex items-center justify-center gap-2 text-black bg-transparent hover:bg-black hover:text-white px-4 py-2.5 md:px-5 md:py-3 rounded-full font-bold text-xs md:text-sm transition-colors whitespace-nowrap">
                     <i class="fa-solid fa-download text-sm md:text-base"></i> <span class="hidden md:inline">Tải về</span>
                 </button>
                 
-                <div class="w-px h-6 bg-gray-300 mx-1 opacity-50"></div>
+                <div class="w-px h-6 bg-black/20 mx-1"></div>
                 
                 <!-- Nút Profile Người đăng -->
-                <button id="zoom-btn-profile" onclick="app.admin.closeZoom(); app.views.loadUserProfile(app.currentPhoto.profiles.username)" class="flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 px-2 py-2 md:px-4 md:py-2.5 rounded-xl hover:bg-gray-50 hover:text-black font-bold text-[11px] md:text-sm transition shadow-sm focus:ring-2 focus:ring-black whitespace-nowrap">
-                    <img id="zoom-uploader-avatar" src="" class="w-5 h-5 md:w-6 md:h-6 rounded-full object-cover border border-gray-200 bg-gray-100 shadow-inner"> 
+                <button id="zoom-btn-profile" onclick="app.admin.closeZoom(); app.views.loadUserProfile(app.currentPhoto.profiles.username)" class="flex items-center justify-center gap-2 text-black bg-transparent hover:bg-black hover:text-white px-3 py-2 md:px-5 md:py-2.5 rounded-full font-bold text-xs md:text-sm transition-colors whitespace-nowrap group">
+                    <img id="zoom-uploader-avatar" src="" class="w-6 h-6 md:w-7 md:h-7 rounded-full object-cover border border-gray-300 bg-gray-100 transition-opacity"> 
                     <span id="zoom-uploader-name" class="hidden md:inline truncate max-w-[120px]">User</span>
                 </button>
                 
                 <!-- Nút Hỗ trợ -->
-                <button id="zoom-btn-contact" onclick="app.admin.closeZoom(); app.views.loadContact()" class="flex items-center justify-center gap-1.5 bg-white border border-gray-200 text-gray-700 px-3 py-2 md:px-4 md:py-2.5 rounded-xl hover:bg-gray-50 hover:text-black font-bold text-[11px] md:text-sm transition shadow-sm focus:ring-2 focus:ring-black whitespace-nowrap">
-                    <i class="fa-solid fa-headset text-sm md:text-base text-blue-600"></i> <span class="hidden md:inline">Hỗ trợ</span>
+                <button id="zoom-btn-contact" onclick="app.admin.closeZoom(); app.views.loadContact()" class="flex items-center justify-center gap-2 text-black bg-transparent hover:bg-black hover:text-white px-4 py-2.5 md:px-5 md:py-3 rounded-full font-bold text-xs md:text-sm transition-colors whitespace-nowrap">
+                    <i class="fa-solid fa-headset text-sm md:text-base"></i> <span class="hidden md:inline">Hỗ trợ</span>
                 </button>
             </div>
         </div>
@@ -7551,13 +7552,11 @@ formInputs.forEach(input => {
                             const isDenied = app.currentPhoto.status === 'denied';
                             
                             if (isLiked || isDenied) {
-                                zBtn.classList.add('text-blue-600', 'bg-blue-50', 'border-blue-200');
-                                zBtn.classList.remove('text-gray-700', 'bg-white', 'border-gray-200');
+                                zBtn.className = "flex items-center justify-center gap-2 bg-black text-white px-4 py-2.5 md:px-5 md:py-3 rounded-full font-bold text-xs md:text-sm transition-colors whitespace-nowrap";
                                 zBtn.innerHTML = isDenied ? '<i class="fa-solid fa-ban text-sm md:text-base"></i> <span class="hidden md:inline">Bị từ chối</span>' : '<i class="fa-solid fa-check text-sm md:text-base"></i> <span class="hidden md:inline">Đã thích</span>';
                                 zBtn.disabled = isDenied;
                             } else {
-                                zBtn.classList.remove('text-blue-600', 'bg-blue-50', 'border-blue-200');
-                                zBtn.classList.add('text-gray-700', 'bg-white', 'border-gray-200');
+                                zBtn.className = "flex items-center justify-center gap-2 text-black bg-transparent hover:bg-black hover:text-white px-4 py-2.5 md:px-5 md:py-3 rounded-full font-bold text-xs md:text-sm transition-colors whitespace-nowrap";
                                 zBtn.innerHTML = '<i class="fa-regular fa-thumbs-up text-sm md:text-base"></i> <span class="hidden md:inline">Thích</span>';
                                 zBtn.disabled = false;
                             }
@@ -10581,24 +10580,7 @@ cleanupState: () => {
                             likeCountEl.innerText = Math.max(0, currentCount - 1);
                             const zBtn = document.getElementById('zoom-btn-like');
                             if(zBtn) {
-                                zBtn.classList.remove('text-blue-600', 'bg-blue-50', 'border-blue-200');
-                                zBtn.classList.add('text-gray-700', 'bg-white', 'border-gray-200');
-                                zBtn.innerHTML = '<i class="fa-regular fa-thumbs-up text-sm md:text-base"></i> <span class="hidden md:inline">Thích</span>';
-                            }
-                        } else {
-                            app.ui.showAlert("Lỗi khi bỏ thích: " + error.message);
-                        }
-                    } else {
-                        const { error } = await window.sb.from('photo_likes').insert({ photo_id: photoId, user_id: app.user.id });
-
-                        if (!error) {
-                            likeBtn.classList.replace('bg-black', 'bg-gray-400');
-                            likeBtn.innerHTML = '<i class="fa-solid fa-check"></i> Đã thích';
-                            likeCountEl.innerText = currentCount + 1;
-                            const zBtn = document.getElementById('zoom-btn-like');
-                            if(zBtn) {
-                                zBtn.classList.add('text-blue-600', 'bg-blue-50', 'border-blue-200');
-                                zBtn.classList.remove('text-gray-700', 'bg-white', 'border-gray-200');
+                                zBtn.className = "flex items-center justify-center gap-2 bg-black text-white px-4 py-2.5 md:px-5 md:py-3 rounded-full font-bold text-xs md:text-sm transition-colors whitespace-nowrap";
                                 zBtn.innerHTML = '<i class="fa-solid fa-check text-sm md:text-base"></i> <span class="hidden md:inline">Đã thích</span>';
                             }
                         } else {
