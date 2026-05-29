@@ -2980,10 +2980,31 @@
                                 
                                 <!-- Style độc quyền cho thanh trượt -->
                                 <style>
-                                    .vnbus-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; background: #e4e4e7; border-radius: 99px; outline: none; transition: background 0.2s; }
-                                    .vnbus-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 2px solid #000; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.15); transition: transform 0.1s; }
-                                    .vnbus-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
-                                    .vnbus-slider::-webkit-slider-thumb:active { transform: scale(1.1); background: #f4f4f5; border-color: #3f3f46; }
+                                    .vnbus-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; background: #e4e4e7; border-radius: 99px; outline: none; cursor: pointer; }
+                                    
+                                    /* Dành cho Chrome / Safari / Edge */
+                                    .vnbus-slider::-webkit-slider-thumb { 
+                                        -webkit-appearance: none; appearance: none; 
+                                        width: 20px; height: 20px; border-radius: 50%; 
+                                        background: #fff; border: 2px solid #000; 
+                                        cursor: grab; box-shadow: 0 2px 6px rgba(0,0,0,0.15); 
+                                    }
+                                    .vnbus-slider::-webkit-slider-thumb:active { 
+                                        cursor: grabbing; background: #f4f4f5; border-color: #3f3f46; 
+                                        /* Tỏa bóng ra xung quanh thay vì phóng to để không bị tuột hit-box */
+                                        box-shadow: 0 0 0 5px rgba(0,0,0,0.1); 
+                                    }
+
+                                    /* Dành cho Firefox */
+                                    .vnbus-slider::-moz-range-thumb {
+                                        width: 20px; height: 20px; border-radius: 50%; 
+                                        background: #fff; border: 2px solid #000; 
+                                        cursor: grab; box-shadow: 0 2px 6px rgba(0,0,0,0.15); 
+                                    }
+                                    .vnbus-slider::-moz-range-thumb:active {
+                                        cursor: grabbing; background: #f4f4f5; border-color: #3f3f46; 
+                                        box-shadow: 0 0 0 5px rgba(0,0,0,0.1); 
+                                    }
                                 </style>
 
                                 <!-- Khối trượt -->
