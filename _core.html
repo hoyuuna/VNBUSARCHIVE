@@ -2640,7 +2640,7 @@
                                     <tr>
                                         <td class="label">Vị trí chụp</td>
                                         <td class="value-cell">
-                                            <input type="text" id="info-location" class="info-input" readonly oninput="app.utils.formatNoPunctuation(this)">
+                                            <input type="text" id="info-location" class="info-input" readonly>
                                             <div id="detail-map" class="border-t border-gray-200"></div>
                                         </td>
                                     </tr>
@@ -3068,7 +3068,7 @@
                                 <div>
                                     <label class="text-xs text-gray-500 font-bold block mb-1.5 uppercase">Vị trí chụp
                                         <span class="text-red-500">*</span></label>
-                                    <input type="text" id="up-location" oninput="app.utils.formatNoPunctuation(this)"
+                                    <input type="text" id="up-location"
                                         class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition">
                                     <div id="upload-map" class="mt-2 border border-gray-300 rounded-md"></div>
                                 </div>
@@ -7530,7 +7530,7 @@ formInputs.forEach(input => {
                                                     <div id="adm-sug-model-${p.id}" class="suggestion-box"></div>
                                                 </div>
                                             </div>
-                                            <div><span class="admin-label">Vị trí</span><input type="text" id="adm-p-location-${p.id}" value="${location}" class="admin-input" oninput="app.utils.formatNoPunctuation(this)"></div>
+                                            <div><span class="admin-label">Vị trí</span><input type="text" id="adm-p-location-${p.id}" value="${location}" class="admin-input"></div>
                                         </div>
                                         <div><span class="admin-label">Ghi chú</span><textarea id="adm-p-note-${p.id}" rows="2" class="admin-input">${note}</textarea></div>
                                         ${(() => {
@@ -7680,7 +7680,7 @@ formInputs.forEach(input => {
                                                 </div>
                                             </div>
                                             <div class="mb-2"><span class="admin-label">Loại xe ${d.type !== curP.type ? tagNew : ''}</span><select id="req-type-${r.id}" class="admin-input"><option value="bus" ${d.type === 'bus' ? 'selected' : ''}>Xe buýt</option><option value="coach" ${d.type === 'coach' ? 'selected' : ''}>Xe khách</option></select></div>
-                                            <div class="mb-2"><span class="admin-label">Vị trí (Chỉ cập nhật ảnh này)</span><input type="text" id="req-loc-${r.id}" value="${app.utils.escapeAttr(d.location || '')}" class="admin-input" oninput="app.utils.formatNoPunctuation(this)"></div>
+                                            <div class="mb-2"><span class="admin-label">Vị trí (Chỉ cập nhật ảnh này)</span><input type="text" id="req-loc-${r.id}" value="${app.utils.escapeAttr(d.location || '')}" class="admin-input"></div>
                                             <div class="mb-2"><span class="admin-label">Ghi chú (Chỉ cập nhật ảnh này)</span><textarea id="req-note-${r.id}" class="admin-input">${app.utils.cleanText(d.note || '')}</textarea></div>
                                             
                                             <div class="flex gap-2 mt-3">
