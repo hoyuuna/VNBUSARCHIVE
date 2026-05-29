@@ -5123,7 +5123,7 @@ grid.innerHTML = tiers.map(tier => {
                 setFilter: (type, updateUrl = true) => {
                     app.currentFilter = type;
 
-                    document.querySelectorAll('.filter-item').forEach(item => {
+                    document.querySelectorAll('#search-filter-menu .filter-item, #page-search-filter-menu .filter-item').forEach(item => {
                         item.classList.remove('selected');
                         item.querySelector('.check-icon').classList.add('opacity-0');
                         if (item.dataset.filter === type) {
