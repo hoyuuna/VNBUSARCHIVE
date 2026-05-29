@@ -2964,7 +2964,40 @@
                                         <p class="text-[10px] text-gray-500 italic mt-1">* Nhấn vào chữ <b>&copy;
                                                     Tên</b> hoặc <b>Khung làm mờ</b> để kéo thả vị trí. Ở góc dưới phải
                                                     khung làm mờ có thể kéo để đổi kích thước.</p>
-<div id="color-adjust-panel" class="hidden mt-3 p-3 bg-gray-50 border border-gray-200 rounded-md"><div class="grid grid-cols-1 sm:grid-cols-3 gap-4"><div><label class="text-[10px] font-bold text-gray-700 block mb-1">Độ sáng (Brightness)</label><input type="range" id="adj-brightness" min="50" max="150" value="100" class="w-full accent-black" oninput="app.upload.updateFilters()"></div><div><label class="text-[10px] font-bold text-gray-700 block mb-1">Độ tương phản (Contrast)</label><input type="range" id="adj-contrast" min="50" max="150" value="100" class="w-full accent-black" oninput="app.upload.updateFilters()"></div><div><label class="text-[10px] font-bold text-gray-700 block mb-1">Độ bão hòa (Saturation)</label><input type="range" id="adj-saturation" min="0" max="200" value="100" class="w-full accent-black" oninput="app.upload.updateFilters()"></div></div><div class="text-right mt-2"><button type="button" onclick="app.upload.resetFilters()" class="text-[10px] text-gray-500 hover:text-black font-bold transition"><i class="fa-solid fa-rotate-left mr-1"></i> Đặt lại</button></div></div>
+<div id="color-adjust-panel" class="hidden mt-3 p-4 bg-white border border-gray-200 rounded-xl shadow-sm relative z-50">
+                                <!-- Cảnh báo đỏ -->
+                                <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2.5">
+                                    <i class="fa-solid fa-triangle-exclamation text-red-500 mt-0.5 text-sm"></i>
+                                    <p class="text-[11px] font-bold text-red-700 leading-snug">Lưu ý quan trọng: Nếu lạm dụng chỉnh màu, kéo thông số quá đà làm mất đi tính chân thực nguyên bản của xe, ảnh có thể sẽ bị từ chối.</p>
+                                </div>
+                                
+                                <!-- Style độc quyền cho thanh trượt -->
+                                <style>
+                                    .vnbus-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; background: #e4e4e7; border-radius: 99px; outline: none; transition: background 0.2s; }
+                                    .vnbus-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 2px solid #000; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.15); transition: transform 0.1s; }
+                                    .vnbus-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+                                    .vnbus-slider::-webkit-slider-thumb:active { transform: scale(1.1); background: #f4f4f5; border-color: #3f3f46; }
+                                </style>
+
+                                <!-- Khối trượt -->
+                                <div class="grid grid-cols-1 gap-4">
+                                    <div>
+                                        <div class="flex justify-between items-center mb-2"><label class="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Độ sáng</label><span id="val-brightness" class="text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">100%</span></div>
+                                        <input type="range" id="adj-brightness" min="50" max="150" value="100" class="vnbus-slider" oninput="app.upload.updateFilters()" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
+                                    </div>
+                                    <div>
+                                        <div class="flex justify-between items-center mb-2"><label class="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Tương phản</label><span id="val-contrast" class="text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">100%</span></div>
+                                        <input type="range" id="adj-contrast" min="50" max="150" value="100" class="vnbus-slider" oninput="app.upload.updateFilters()" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
+                                    </div>
+                                    <div>
+                                        <div class="flex justify-between items-center mb-2"><label class="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Độ bão hòa (Màu sắc)</label><span id="val-saturation" class="text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">100%</span></div>
+                                        <input type="range" id="adj-saturation" min="0" max="200" value="100" class="vnbus-slider" oninput="app.upload.updateFilters()" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
+                                    </div>
+                                </div>
+                                <div class="text-right mt-4 pt-3 border-t border-gray-100">
+                                    <button type="button" onclick="app.upload.resetFilters()" class="text-xs bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-800 px-4 py-1.5 rounded-md font-bold transition"><i class="fa-solid fa-rotate-left mr-1"></i> Đặt lại mặc định</button>
+                                </div>
+                            </div>
                                     </div>
                                     <button type="button" onclick="app.upload.removeImage()"
                                         class="text-red-600 text-xs hover:text-red-800 font-bold flex items-center gap-1 transition shrink-0">
@@ -9043,6 +9076,14 @@ app.admin.fetchManagerData('denied');
                     const b = document.getElementById('adj-brightness')?.value || 100;
                     const c = document.getElementById('adj-contrast')?.value || 100;
                     const s = document.getElementById('adj-saturation')?.value || 100;
+                    
+                    const vb = document.getElementById('val-brightness');
+                    const vc = document.getElementById('val-contrast');
+                    const vs = document.getElementById('val-saturation');
+                    if(vb) vb.innerText = b + '%';
+                    if(vc) vc.innerText = c + '%';
+                    if(vs) vs.innerText = s + '%';
+
                     const filterString = `brightness(${b}%) contrast(${c}%) saturate(${s}%)`;
                     const previewImg = document.getElementById('preview-img');
                     if(previewImg) previewImg.style.filter = filterString;
