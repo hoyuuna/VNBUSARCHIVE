@@ -5254,7 +5254,12 @@ grid.innerHTML = tiers.map(tier => {
                                 let sbQuery = window.sb.from(table).select(selectStr);
                                 
                                 searchWords.forEach(word => {
-                                    sbQuery = sbQuery.ilike(col, `%${word}%`);
+                                    if (col === 'license_plate') {
+                                        // Áp dụng bộ lọc cho riêng cột BKS
+                                        sbQuery = sbQuery.ilike(col, `%${app.utils.normalizePlateQuery(word)}%`);
+                                    } else {
+                                        sbQuery = sbQuery.ilike(col, `%${word}%`);
+                                    }
                                 });
                                 
                                 // Phân loại bảng để gọi filter cho chuẩn
@@ -5450,13 +5455,14 @@ grid.innerHTML = tiers.map(tier => {
 
                         let vQuery = window.sb.from('vehicles').select(selectStr).limit(100);
                         if (filterType === 'plate') {
-                            searchWords.forEach(w => { vQuery = vQuery.ilike('license_plate', `%${w}%`); });
+                            searchWords.forEach(w => { vQuery = vQuery.ilike('license_plate', `%${app.utils.normalizePlateQuery(w)}%`); });
                         } else if (filterType === 'model') {
                             searchWords.forEach(w => { vQuery = vQuery.ilike('model', `%${w}%`); });
                         } else {
                             searchWords.forEach(w => {
                                 const safeW = w.replace(/"/g, '');
-                                vQuery = vQuery.or(`license_plate.ilike."%${safeW}%",model.ilike."%${safeW}%"`);
+                                const safeWPlate = app.utils.normalizePlateQuery(safeW);
+                                vQuery = vQuery.or(`license_plate.ilike."%${safeWPlate}%",model.ilike."%${safeW}%"`);
                             });
                         }
 
@@ -5507,7 +5513,7 @@ grid.innerHTML = tiers.map(tier => {
                         const prefixOrCond = relatedPrefixes.map(p => `license_plate.ilike.${p}%`).join(',');
                         photoQuery = photoQuery.eq('route_no', query).or(prefixOrCond);
                     } else if (filterType === 'plate') {
-                        searchWords.forEach(w => { photoQuery = photoQuery.ilike('license_plate', `%${w}%`); });
+                        searchWords.forEach(w => { photoQuery = photoQuery.ilike('license_plate', `%${app.utils.normalizePlateQuery(w)}%`); });
                     } else if (filterType === 'route') {
                         searchWords.forEach(w => { photoQuery = photoQuery.ilike('route_no', `%${w}%`); });
                     } else if (filterType === 'operator') {
@@ -5539,7 +5545,8 @@ grid.innerHTML = tiers.map(tier => {
 
                         searchWords.forEach(w => {
                             const safeW = w.replace(/"/g, '');
-                            let orConditions = `license_plate.ilike."%${safeW}%",operator.ilike."%${safeW}%",route_no.ilike."%${safeW}%",camera_model.ilike."%${safeW}%",location.ilike."%${safeW}%",note.ilike."%${safeW}%"`;
+                            const safeWPlate = app.utils.normalizePlateQuery(safeW);
+                            let orConditions = `license_plate.ilike."%${safeWPlate}%",operator.ilike."%${safeW}%",route_no.ilike."%${safeW}%",camera_model.ilike."%${safeW}%",location.ilike."%${safeW}%",note.ilike."%${safeW}%"`;
 
                             if (plates.length > 0) orConditions += `,license_plate.in.(${plates.join(',')})`;
                             if (uploaderIds.length > 0) orConditions += `,uploader_id.in.(${uploaderIds.join(',')})`;
@@ -10411,6 +10418,16 @@ cleanupState: () => {
                         const offset = val.length - newVal.length;
                         el.setSelectionRange(start > 0 ? start - offset : 0, end > 0 ? end - offset : 0);
                     }
+                },
+                normalizePlateQuery: (str) => {
+                    if (!str) return '';
+                    // Bỏ khoảng trắng, dấu chấm, phẩy, gạch dưới và in hoa
+                    let s = str.toUpperCase().replace(/[\s.,_]/g, '');
+                    // Bỏ gạch ngang nếu nó đứng trước chuỗi 3 đến 5 chữ số (Xóa 29F-12345 nhưng giữ lại -1 ở đuôi)
+                    s = s.replace(/\-(\d{3,5})(?!\d)/g, '$1');
+                    // Xử lý lỗi gõ dư gạch ngang rác
+                    if (s === '-') return '';
+                    return s;
                 },
                 cleanText: (str) => {
                     if (!str) return '';
