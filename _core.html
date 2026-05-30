@@ -8814,8 +8814,8 @@ app.admin.fetchManagerData('denied');
 
                 initMap: () => {
                     app.uploadMap = L.map('upload-map').setView([10.762622, 106.660172], 13);
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                        attribution: '&copy; OpenStreetMap contributors'
+                    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png', {
+                        attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                     }).addTo(app.uploadMap);
 
                     app.uploadMap.on('click', async (e) => {
@@ -10780,8 +10780,8 @@ cleanupState: () => {
 
                     if (!app.detailMap) {
                         app.detailMap = L.map('detail-map').setView([10.762622, 106.660172], 13);
-                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                            attribution: '&copy; OSM'
+                        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png', {
+                            attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                         }).addTo(app.detailMap);
                     }
 

@@ -355,7 +355,7 @@
         // 2. Các logic bản đồ giữ nguyên (nhưng lưu ý dời việc gọi hàm vào initApp)
         const STOPS_JSON_URL = "/hbds-map/stops.json";
         const map = L.map('map', { zoomControl: false }).setView([21.0258210, 105.8020055], 15);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' }).addTo(map);
 
         const busesLayer = L.layerGroup().addTo(map);
         const stopsLayer = L.layerGroup().addTo(map);
