@@ -2968,12 +2968,23 @@
                         </div>
 
                         <!-- MỤC 1. CHỌN TỆP (TRẢ VỀ NGUYÊN BẢN) -->
-                        <div class="bg-gray-50 border border-gray-200 p-5 rounded-md">
+                        <div class="mb-6">
                             <label class="block font-bold text-sm mb-3 text-black">1. Chọn tệp <span class="text-red-500">*</span></label>
                             
-                            <input type="file" id="up-file" accept="image/jpeg"
-                                class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-black file:text-white hover:file:bg-gray-800 transition cursor-pointer"
-                                required />
+                            <!-- DROP ZONE UI MỚI -->
+                            <div id="drop-zone" onclick="document.getElementById('up-file').click()" 
+                                 class="w-full border-2 border-dashed border-gray-300 rounded-2xl p-10 flex flex-col items-center justify-center gap-3 hover:border-black hover:bg-gray-50 transition-all cursor-pointer group relative overflow-hidden">
+                                <div class="pointer-events-none flex flex-col items-center gap-3">
+                                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center group-hover:bg-white transition-colors shadow-sm">
+                                        <i class="fa-solid fa-cloud-arrow-up text-2xl text-gray-400 group-hover:text-black"></i>
+                                    </div>
+                                    <div class="text-center">
+                                        <p class="text-sm font-bold text-gray-600 group-hover:text-black">Nhấn để chọn ảnh hoặc kéo thả vào đây</p>
+                                        <p class="text-[11px] text-gray-400 mt-1 uppercase tracking-wider font-semibold">Định dạng JPG, JPEG (Tối đa 20MB)</p>
+                                    </div>
+                                </div>
+                                <input type="file" id="up-file" accept="image/jpeg" class="hidden" required />
+                            </div>
 
                             <div id="preview-box" class="hidden mt-6">
                                 <p class="text-xs font-bold mb-2 text-gray-600">Xem trước (Đã đóng dấu bản quyền):</p>
@@ -4356,6 +4367,30 @@
                 app.handleRoute();
 
                 document.getElementById('up-file').addEventListener('change', app.upload.handleFileSelect);
+                
+                // Logic Drag & Drop cho vùng Upload
+                const dropZone = document.getElementById('drop-zone');
+                if (dropZone) {
+                    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                        dropZone.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); }, false);
+                    });
+                    ['dragenter', 'dragover'].forEach(eventName => {
+                        dropZone.addEventListener(eventName, () => { dropZone.classList.add('border-black', 'bg-gray-50'); }, false);
+                    });
+                    ['dragleave', 'drop'].forEach(eventName => {
+                        dropZone.addEventListener(eventName, () => { dropZone.classList.remove('border-black', 'bg-gray-50'); }, false);
+                    });
+                    dropZone.addEventListener('drop', e => {
+                        const dt = e.dataTransfer;
+                        const files = dt.files;
+                        if (files.length > 0) {
+                            const fileInput = document.getElementById('up-file');
+                            fileInput.files = files;
+                            // Kích hoạt hàm xử lý file có sẵn của app
+                            app.upload.handleFileSelect({ target: fileInput });
+                        }
+                    }, false);
+                }
                 app.upload.initDraggable();
 
                 document.getElementById('upload-form').addEventListener('submit', app.upload.submit);
