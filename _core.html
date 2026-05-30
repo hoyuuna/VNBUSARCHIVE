@@ -4375,10 +4375,10 @@
                         dropZone.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); }, false);
                     });
                     ['dragenter', 'dragover'].forEach(eventName => {
-                        dropZone.addEventListener(eventName, () => { dropZone.classList.add('border-black', 'bg-gray-50'); }, false);
+                        dropZone.addEventListener(eventName, () => { dropZone.classList.add('!border-blue-400', '!bg-blue-50'); const icon = dropZone.querySelector('i'); if(icon) icon.classList.add('!text-blue-600', 'animate-bounce'); }, false);
                     });
                     ['dragleave', 'drop'].forEach(eventName => {
-                        dropZone.addEventListener(eventName, () => { dropZone.classList.remove('border-black', 'bg-gray-50'); }, false);
+                        dropZone.addEventListener(eventName, () => { dropZone.classList.remove('!border-blue-400', '!bg-blue-50'); const icon = dropZone.querySelector('i'); if(icon) icon.classList.remove('!text-blue-600', 'animate-bounce'); }, false);
                     });
                     dropZone.addEventListener('drop', e => {
                         const dt = e.dataTransfer;
