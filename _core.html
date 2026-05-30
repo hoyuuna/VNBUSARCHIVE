@@ -4368,7 +4368,7 @@
 
                 document.getElementById('up-file').addEventListener('change', app.upload.handleFileSelect);
                 
-                // Logic Drag & Drop TOÀN MÀN HÌNH (Màu Info - Icon Đen)
+                // Logic Drag & Drop TOÀN MÀN HÌNH (Clean UI: Hình tròn trắng không viền)
                 const dropZone = document.getElementById('drop-zone');
                 if (dropZone) {
                     let dragCounter = 0;
@@ -4386,60 +4386,59 @@
 
                         dragCounter++;
                         if (dragCounter === 1) {
-                            // Hiệu ứng màu xanh Info giống ô thông báo
-                            dropZone.style.backgroundColor = '#eff6ff'; // bg-blue-50
-                            dropZone.style.borderColor = '#3b82f6';     // border-blue-500 (đậm hơn chút cho rõ)
-                            dropZone.style.color = '#1e40af';           // text-blue-800
-                            dropZone.style.transform = 'scale(1.03)';   // Nảy lên
-                            dropZone.style.boxShadow = '0 25px 50px -12px rgba(59, 130, 246, 0.25)';
+                            // Giao diện ô thông báo màu xanh
+                            dropZone.style.backgroundColor = '#eff6ff'; 
+                            dropZone.style.borderColor = '#3b82f6';     
+                            dropZone.style.color = '#1e40af';           
+                            dropZone.style.transform = 'scale(1.03)';   
+                            dropZone.style.boxShadow = '0 25px 50px -12px rgba(59, 130, 246, 0.3)';
                             dropZone.style.transition = 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
                             
                             const icon = dropZone.querySelector('i');
                             const iconContainer = dropZone.querySelector('.w-16');
+                            
                             if (icon) {
                                 icon.classList.add('animate-bounce');
-                                icon.style.color = '#000000'; // Đám mây màu đen theo ý bạn
+                                icon.style.color = '#000000'; // Đám mây màu đen
                             }
                             if (iconContainer) {
-                                iconContainer.style.borderColor = '#000000';
+                                iconContainer.style.backgroundColor = '#ffffff'; // Hình tròn trắng tinh
+                                iconContainer.style.border = 'none';            // Bỏ hoàn toàn viền
+                                iconContainer.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)'; // Thêm đổ bóng nhẹ cho hình tròn nổi lên
                             }
                         }
                     });
+
+                    const resetDropZoneUI = () => {
+                        dropZone.style.backgroundColor = '';
+                        dropZone.style.borderColor = '';
+                        dropZone.style.color = '';
+                        dropZone.style.transform = '';
+                        dropZone.style.boxShadow = '';
+                        const icon = dropZone.querySelector('i');
+                        const iconContainer = dropZone.querySelector('.w-16');
+                        if (icon) {
+                            icon.classList.remove('animate-bounce');
+                            icon.style.color = ''; 
+                        }
+                        if (iconContainer) {
+                            iconContainer.style.backgroundColor = '';
+                            iconContainer.style.border = '';
+                            iconContainer.style.boxShadow = '';
+                        }
+                    };
 
                     window.addEventListener('dragleave', (e) => {
                         dragCounter--;
                         if (dragCounter <= 0) {
                             dragCounter = 0;
-                            // Trả về mặc định
-                            dropZone.style.backgroundColor = '';
-                            dropZone.style.borderColor = '';
-                            dropZone.style.color = '';
-                            dropZone.style.transform = '';
-                            dropZone.style.boxShadow = '';
-                            const icon = dropZone.querySelector('i');
-                            const iconContainer = dropZone.querySelector('.w-16');
-                            if (icon) {
-                                icon.classList.remove('animate-bounce');
-                                icon.style.color = ''; 
-                            }
-                            if (iconContainer) {
-                                iconContainer.style.borderColor = '';
-                            }
+                            resetDropZoneUI();
                         }
                     });
 
                     window.addEventListener('drop', (e) => {
                         dragCounter = 0;
-                        // Reset UI
-                        dropZone.style.backgroundColor = '';
-                        dropZone.style.borderColor = '';
-                        dropZone.style.transform = '';
-                        dropZone.style.boxShadow = '';
-                        const icon = dropZone.querySelector('i');
-                        if (icon) {
-                            icon.classList.remove('animate-bounce');
-                            icon.style.color = '';
-                        }
+                        resetDropZoneUI();
 
                         const uploadView = document.getElementById('upload');
                         if (uploadView && uploadView.classList.contains('active')) {
