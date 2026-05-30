@@ -4368,76 +4368,56 @@
 
                 document.getElementById('up-file').addEventListener('change', app.upload.handleFileSelect);
                 
-                // Logic Drag & Drop TOÀN MÀN HÌNH (Bản Fix Chuẩn)
+                // Logic Drag & Drop TOÀN MÀN HÌNH (Giao diện Blue Info)
                 const dropZone = document.getElementById('drop-zone');
                 if (dropZone) {
-                    let dragCounter = 0; // Bộ đếm theo dõi việc ra/vào các element con
+                    let dragCounter = 0;
 
-                    // Chặn hành vi mở tab mới mặc định của trình duyệt
                     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
                         document.body.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); }, false);
                     });
 
-                    // Khi bắt đầu kéo file VÀO màn hình
                     document.body.addEventListener('dragenter', (e) => {
                         const uploadTab = document.getElementById('upload');
-                        // Chỉ chạy khi đang ở tab upload và vùng drop chưa bị ẩn (chưa chọn ảnh)
                         if (!uploadTab || !uploadTab.classList.contains('active') || dropZone.classList.contains('hidden')) return;
 
                         dragCounter++;
                         if (dragCounter === 1) {
-                            // Tạo hiệu ứng nảy và bóng đổ bằng CSS nội tuyến để chống lỗi Tailwind PurgeCSS
-                            dropZone.style.transform = 'scale(1.03)';
-                            dropZone.style.boxShadow = '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)';
-                            dropZone.classList.add('!border-blue-400', '!bg-blue-50');
+                            // Hiệu ứng giống ô thông báo: bg-blue-50, border-blue-300
+                            dropZone.classList.add('!bg-blue-50', '!border-blue-300', 'scale-[1.03]', 'shadow-2xl', '!text-blue-700');
+                            dropZone.style.transition = 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'; // Tạo độ nảy (Elastic)
                             
                             const icon = dropZone.querySelector('i');
-                            if (icon) {
-                                icon.classList.add('!text-blue-600', 'animate-bounce');
-                                icon.style.transform = 'scale(1.2)';
-                                icon.style.transition = 'all 0.3s ease';
-                            }
+                            const iconBg = dropZone.querySelector('.w-16');
+                            if (icon) icon.classList.add('animate-bounce', '!text-blue-600');
+                            if (iconBg) iconBg.classList.add('!border-blue-300', '!bg-white');
                         }
                     });
 
-                    // Khi kéo file RA KHỎI màn hình
                     document.body.addEventListener('dragleave', (e) => {
                         const uploadTab = document.getElementById('upload');
                         if (!uploadTab || !uploadTab.classList.contains('active') || dropZone.classList.contains('hidden')) return;
 
                         dragCounter--;
                         if (dragCounter === 0) {
-                            // Trả lại UI ban đầu
-                            dropZone.style.transform = '';
-                            dropZone.style.boxShadow = '';
-                            dropZone.classList.remove('!border-blue-400', '!bg-blue-50');
-                            
+                            // Trả về mặc định
+                            dropZone.classList.remove('!bg-blue-50', '!border-blue-300', 'scale-[1.03]', 'shadow-2xl', '!text-blue-700');
                             const icon = dropZone.querySelector('i');
-                            if (icon) {
-                                icon.classList.remove('!text-blue-600', 'animate-bounce');
-                                icon.style.transform = '';
-                            }
+                            const iconBg = dropZone.querySelector('.w-16');
+                            if (icon) icon.classList.remove('animate-bounce', '!text-blue-600');
+                            if (iconBg) iconBg.classList.remove('!border-blue-300', '!bg-white');
                         }
                     });
 
-                    // Khi NHẢ CHUỘT (Thả file)
                     document.body.addEventListener('drop', (e) => {
-                        dragCounter = 0; // Reset bộ đếm
-                        
-                        // Xóa hiệu ứng hover
-                        dropZone.style.transform = '';
-                        dropZone.style.boxShadow = '';
-                        dropZone.classList.remove('!border-blue-400', '!bg-blue-50');
+                        dragCounter = 0;
+                        dropZone.classList.remove('!bg-blue-50', '!border-blue-300', 'scale-[1.03]', 'shadow-2xl', '!text-blue-700');
                         const icon = dropZone.querySelector('i');
-                        if (icon) {
-                            icon.classList.remove('!text-blue-600', 'animate-bounce');
-                            icon.style.transform = '';
-                        }
+                        if (icon) icon.classList.remove('animate-bounce', '!text-blue-600');
 
                         const uploadTab = document.getElementById('upload');
                         if (!uploadTab || !uploadTab.classList.contains('active') || dropZone.classList.contains('hidden')) return;
 
-                        // Lấy file và kích hoạt upload
                         const dt = e.dataTransfer;
                         if (dt.files && dt.files.length > 0) {
                             const fileInput = document.getElementById('up-file');
