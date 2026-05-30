@@ -4368,50 +4368,81 @@
 
                 document.getElementById('up-file').addEventListener('change', app.upload.handleFileSelect);
                 
-                // Logic Drag & Drop TOÀN CỤC cho vùng Upload
+                // Logic Drag & Drop TOÀN MÀN HÌNH (Bản Fix Chuẩn)
                 const dropZone = document.getElementById('drop-zone');
                 if (dropZone) {
-                    // Chặn hành vi mở file mặc định của trình duyệt để cho phép thả file
+                    let dragCounter = 0; // Bộ đếm theo dõi việc ra/vào các element con
+
+                    // Chặn hành vi mở tab mới mặc định của trình duyệt
                     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                        window.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); }, false);
+                        document.body.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); }, false);
                     });
 
-                    // Kéo file VÀO màn hình (áp dụng toàn trang)
-                    window.addEventListener('dragover', (e) => {
-                        // Chỉ kích hoạt hiệu ứng nếu đang ở tab Upload và đang kéo File
-                        if (e.dataTransfer && e.dataTransfer.types.includes('Files') && document.getElementById('upload').classList.contains('active')) {
-                            // Thêm hiệu ứng to ra, bóng đổ sâu, đổi màu xanh đậm
-                            dropZone.classList.add('!border-blue-500', '!bg-blue-100', 'scale-[1.03]', 'shadow-2xl');
+                    // Khi bắt đầu kéo file VÀO màn hình
+                    document.body.addEventListener('dragenter', (e) => {
+                        const uploadTab = document.getElementById('upload');
+                        // Chỉ chạy khi đang ở tab upload và vùng drop chưa bị ẩn (chưa chọn ảnh)
+                        if (!uploadTab || !uploadTab.classList.contains('active') || dropZone.classList.contains('hidden')) return;
+
+                        dragCounter++;
+                        if (dragCounter === 1) {
+                            // Tạo hiệu ứng nảy và bóng đổ bằng CSS nội tuyến để chống lỗi Tailwind PurgeCSS
+                            dropZone.style.transform = 'scale(1.03)';
+                            dropZone.style.boxShadow = '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)';
+                            dropZone.classList.add('!border-blue-400', '!bg-blue-50');
+                            
                             const icon = dropZone.querySelector('i');
-                            // Icon nảy nảy (bounce) và to ra
-                            if (icon) icon.classList.add('!text-blue-600', 'animate-bounce', 'scale-125');
+                            if (icon) {
+                                icon.classList.add('!text-blue-600', 'animate-bounce');
+                                icon.style.transform = 'scale(1.2)';
+                                icon.style.transition = 'all 0.3s ease';
+                            }
                         }
                     });
 
-                    // Kéo file RA KHỎI màn hình hoặc nhả chuột
-                    ['dragleave', 'drop'].forEach(eventName => {
-                        window.addEventListener(eventName, (e) => {
-                            // Tránh lỗi chớp nháy khi drag chuột đi qua các element con bên trong trang
-                            if (eventName === 'dragleave' && e.clientX > 0 && e.clientY > 0 && e.clientX < window.innerWidth && e.clientY < window.innerHeight) return;
+                    // Khi kéo file RA KHỎI màn hình
+                    document.body.addEventListener('dragleave', (e) => {
+                        const uploadTab = document.getElementById('upload');
+                        if (!uploadTab || !uploadTab.classList.contains('active') || dropZone.classList.contains('hidden')) return;
+
+                        dragCounter--;
+                        if (dragCounter === 0) {
+                            // Trả lại UI ban đầu
+                            dropZone.style.transform = '';
+                            dropZone.style.boxShadow = '';
+                            dropZone.classList.remove('!border-blue-400', '!bg-blue-50');
                             
-                            // Gỡ bỏ hiệu ứng
-                            dropZone.classList.remove('!border-blue-500', '!bg-blue-100', 'scale-[1.03]', 'shadow-2xl');
                             const icon = dropZone.querySelector('i');
-                            if (icon) icon.classList.remove('!text-blue-600', 'animate-bounce', 'scale-125');
-                        });
+                            if (icon) {
+                                icon.classList.remove('!text-blue-600', 'animate-bounce');
+                                icon.style.transform = '';
+                            }
+                        }
                     });
 
-                    // Xử lý khi thả file (Có thể thả ở bất kỳ vị trí nào trên tab upload)
-                    window.addEventListener('drop', e => {
-                        if (document.getElementById('upload').classList.contains('active')) {
-                            const dt = e.dataTransfer;
-                            const files = dt.files;
-                            if (files.length > 0) {
-                                const fileInput = document.getElementById('up-file');
-                                fileInput.files = files;
-                                // Kích hoạt upload
-                                app.upload.handleFileSelect({ target: fileInput });
-                            }
+                    // Khi NHẢ CHUỘT (Thả file)
+                    document.body.addEventListener('drop', (e) => {
+                        dragCounter = 0; // Reset bộ đếm
+                        
+                        // Xóa hiệu ứng hover
+                        dropZone.style.transform = '';
+                        dropZone.style.boxShadow = '';
+                        dropZone.classList.remove('!border-blue-400', '!bg-blue-50');
+                        const icon = dropZone.querySelector('i');
+                        if (icon) {
+                            icon.classList.remove('!text-blue-600', 'animate-bounce');
+                            icon.style.transform = '';
+                        }
+
+                        const uploadTab = document.getElementById('upload');
+                        if (!uploadTab || !uploadTab.classList.contains('active') || dropZone.classList.contains('hidden')) return;
+
+                        // Lấy file và kích hoạt upload
+                        const dt = e.dataTransfer;
+                        if (dt.files && dt.files.length > 0) {
+                            const fileInput = document.getElementById('up-file');
+                            fileInput.files = dt.files;
+                            app.upload.handleFileSelect({ target: fileInput });
                         }
                     });
                 }
