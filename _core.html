@@ -5927,14 +5927,15 @@ dropdown.innerHTML = `
                     const heroSub = document.getElementById('hero-sub');
 
                     if (topPhotos && topPhotos.length > 0) {
+                        app.topPhotosCache = topPhotos;
                         const main = topPhotos[0];
                         const safeMainPlate = app.utils.displayPlate(app.utils.cleanText(main.license_plate));
                         const safeMainUser = app.utils.cleanText(main.profiles?.username);
                         heroMain.innerHTML = `
-                            <img src="${app.utils.getProxiedUrl(main.url, 'main.jpg', 'thumb')}" class="w-full h-[400px] object-cover block hover:scale-105 transition-transform duration-700">
-                            <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 pt-12">
-                                <p class="text-white font-bold text-lg tracking-tight flex items-center flex-wrap gap-y-1">${safeMainPlate} - ${safeMainUser}</p>
-                                <p class="text-gray-300 text-xs mt-1"><i class="fa-solid fa-eye mr-1"></i> ${main.views || 0} lượt xem</p>
+                            <img src="${app.utils.getProxiedUrl(main.url, 'main.jpg', 'thumb')}" onerror="app.utils.fallbackHeroImage(this, 'topPhotosCache', 0)" class="w-full h-[400px] object-cover block hover:scale-105 transition-transform duration-700 relative z-0">
+                            <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 pt-12 pointer-events-none z-10">
+                                <p class="text-white font-bold text-lg tracking-tight flex items-center flex-wrap gap-y-1 hero-main-text pointer-events-auto">${safeMainPlate} - ${safeMainUser}</p>
+                                <p class="text-gray-300 text-xs mt-1 hero-main-views pointer-events-auto"><i class="fa-solid fa-eye mr-1"></i> ${main.views || 0} lượt xem</p>
                             </div>
                         `;
                         heroMain.onclick = () => app.views.loadDetail(main.id);
@@ -7055,6 +7056,7 @@ if (app.user && app.role === 'manager' && isDenied) {
 
                         const pageTitle = `Hồ sơ xe ${vehicle.license_plate} | VNBUSARCHIVE`;
                         const allPhotos = allPhotosRes.data || [];
+                        app.vehiclePhotosCache = allPhotos;
                         // Lấy ảnh ở đầu danh sách (mới chụp nhất theo taken_at)
                         const topPhoto = allPhotos.length > 0 ? allPhotos[0] : null;
 
@@ -7166,7 +7168,7 @@ if (app.user && app.role === 'manager' && isDenied) {
                         const html = `
                             <div class="flex flex-col lg:flex-row gap-6">
                                 <div class="w-full lg:w-1/3 space-y-6">
-                                    ${topPhoto ? `<div class="bg-white border border-vbs-border shadow-sm rounded-lg overflow-hidden relative group"><img src="${app.utils.getProxiedUrl(topPhoto.url, 'vehicle-top.jpg', 'thumb')}" class="w-full h-auto object-cover cursor-pointer group-hover:scale-105 transition-transform duration-500" onclick="app.views.loadDetail(${topPhoto.id})"></div>` : '<div class="aspect-video bg-gray-100 flex items-center justify-center text-gray-400 rounded-lg">Chưa có ảnh</div>'}
+                                    ${topPhoto ? `<div class="bg-white border border-vbs-border shadow-sm rounded-lg overflow-hidden relative group cursor-pointer" onclick="app.views.loadDetail(${topPhoto.id})"><img src="${app.utils.getProxiedUrl(topPhoto.url, 'vehicle-top.jpg', 'thumb')}" onerror="app.utils.fallbackHeroImage(this, 'vehiclePhotosCache', 0)" class="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-500 relative z-0"></div>` : '<div class="aspect-video bg-gray-100 flex items-center justify-center text-gray-400 rounded-lg">Chưa có ảnh</div>'}
 
                                      <div class="bg-white border border-vbs-border shadow-sm rounded-lg p-4">
                                         <div class="flex justify-between items-start mb-4 pb-3 border-b">
@@ -10417,6 +10419,51 @@ cleanupState: () => {
                         el.value = newVal;
                         const offset = val.length - newVal.length;
                         el.setSelectionRange(start > 0 ? start - offset : 0, end > 0 ? end - offset : 0);
+                    }
+                },
+                fallbackHeroImage: (imgElement, cacheName, currentIndex) => {
+                    const photos = app[cacheName];
+                    const wrapper = imgElement.closest('#hero-main') || imgElement.closest('.group');
+                    
+                    // Nếu hết ảnh dự phòng -> Hiện UI báo lỗi đẹp mắt
+                    if (!photos || currentIndex >= photos.length - 1) {
+                        imgElement.style.display = 'none';
+                        if (wrapper) {
+                            wrapper.onclick = null;
+                            wrapper.classList.remove('cursor-pointer', 'hover:scale-105');
+                            let errBox = wrapper.querySelector('.fallback-error');
+                            if (!errBox) {
+                                wrapper.innerHTML += `<div class="fallback-error absolute inset-0 flex flex-col items-center justify-center bg-gray-100 z-10 w-full h-full min-h-[200px]">
+                                    <i class="fa-solid fa-image-slash text-gray-400 text-4xl mb-2"></i>
+                                    <span class="text-sm font-bold text-gray-500">Ảnh đã bị lỗi hoặc gỡ bỏ</span>
+                                </div>`;
+                            }
+                        }
+                        return;
+                    }
+                    
+                    // Thử load ảnh tiếp theo
+                    const nextIndex = currentIndex + 1;
+                    const nextPhoto = photos[nextIndex];
+                    
+                    imgElement.src = app.utils.getProxiedUrl(nextPhoto.url, 'fallback.jpg', 'thumb');
+                    imgElement.setAttribute('onerror', `app.utils.fallbackHeroImage(this, '${cacheName}', ${nextIndex})`);
+                    
+                    // Cập nhật lại Link click và Text (nếu có)
+                    if (wrapper) {
+                        wrapper.onclick = () => app.views.loadDetail(nextPhoto.id);
+                        if (cacheName === 'topPhotosCache') {
+                             const textPlate = wrapper.querySelector('.hero-main-text');
+                             const textViews = wrapper.querySelector('.hero-main-views');
+                             if (textPlate) {
+                                 const safePlate = app.utils.displayPlate(app.utils.cleanText(nextPhoto.license_plate));
+                                 const safeUser = app.utils.cleanText(nextPhoto.profiles?.username || 'Ẩn danh');
+                                 textPlate.innerHTML = `${safePlate} - ${safeUser}`;
+                             }
+                             if (textViews) {
+                                 textViews.innerHTML = `<i class="fa-solid fa-eye mr-1"></i> ${nextPhoto.views || 0} lượt xem`;
+                             }
+                        }
                     }
                 },
                 normalizePlateQuery: (str) => {
