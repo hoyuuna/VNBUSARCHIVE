@@ -4368,7 +4368,7 @@
 
                 document.getElementById('up-file').addEventListener('change', app.upload.handleFileSelect);
                 
-                // Logic Drag & Drop TOÀN MÀN HÌNH (Đã fix lỗi)
+                // Logic Drag & Drop TOÀN MÀN HÌNH (Màu Info - Icon Đen)
                 const dropZone = document.getElementById('drop-zone');
                 if (dropZone) {
                     let dragCounter = 0;
@@ -4381,24 +4381,27 @@
                     });
 
                     window.addEventListener('dragenter', (e) => {
-                        // Kiểm tra nếu đang ở tab upload
                         const uploadView = document.getElementById('upload');
                         if (!uploadView || !uploadView.classList.contains('active')) return;
 
                         dragCounter++;
                         if (dragCounter === 1) {
-                            // Màu xanh dương Info giống ô thông báo
+                            // Hiệu ứng màu xanh Info giống ô thông báo
                             dropZone.style.backgroundColor = '#eff6ff'; // bg-blue-50
-                            dropZone.style.borderColor = '#bfdbfe';     // border-blue-200
+                            dropZone.style.borderColor = '#3b82f6';     // border-blue-500 (đậm hơn chút cho rõ)
                             dropZone.style.color = '#1e40af';           // text-blue-800
-                            dropZone.style.transform = 'scale(1.03)';   // Hiệu ứng nảy lên
-                            dropZone.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1)';
+                            dropZone.style.transform = 'scale(1.03)';   // Nảy lên
+                            dropZone.style.boxShadow = '0 25px 50px -12px rgba(59, 130, 246, 0.25)';
                             dropZone.style.transition = 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
                             
                             const icon = dropZone.querySelector('i');
+                            const iconContainer = dropZone.querySelector('.w-16');
                             if (icon) {
                                 icon.classList.add('animate-bounce');
-                                icon.style.color = '#2563eb'; // blue-600
+                                icon.style.color = '#000000'; // Đám mây màu đen theo ý bạn
+                            }
+                            if (iconContainer) {
+                                iconContainer.style.borderColor = '#000000';
                             }
                         }
                     });
@@ -4414,17 +4417,29 @@
                             dropZone.style.transform = '';
                             dropZone.style.boxShadow = '';
                             const icon = dropZone.querySelector('i');
-                            if (icon) icon.classList.remove('animate-bounce');
+                            const iconContainer = dropZone.querySelector('.w-16');
+                            if (icon) {
+                                icon.classList.remove('animate-bounce');
+                                icon.style.color = ''; 
+                            }
+                            if (iconContainer) {
+                                iconContainer.style.borderColor = '';
+                            }
                         }
                     });
 
                     window.addEventListener('drop', (e) => {
                         dragCounter = 0;
+                        // Reset UI
                         dropZone.style.backgroundColor = '';
                         dropZone.style.borderColor = '';
                         dropZone.style.transform = '';
+                        dropZone.style.boxShadow = '';
                         const icon = dropZone.querySelector('i');
-                        if (icon) icon.classList.remove('animate-bounce');
+                        if (icon) {
+                            icon.classList.remove('animate-bounce');
+                            icon.style.color = '';
+                        }
 
                         const uploadView = document.getElementById('upload');
                         if (uploadView && uploadView.classList.contains('active')) {
