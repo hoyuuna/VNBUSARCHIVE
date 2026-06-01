@@ -6505,21 +6505,40 @@ dropdown.innerHTML = `
                         document.getElementById('profile-photos-title').innerText = "Ảnh đã đăng";
                     }
 
-                    let query = window.sb.from('photos')
+                    let baseQuery = window.sb.from('photos')
                         .select('id, url, status, views, license_plate, created_at, likes')
                         .eq('uploader_id', targetUserId)
                         .order('id', { ascending: false });
 
                     if (!isOwnProfile) {
-                        query = query.eq('status', 'approved');
+                        baseQuery = baseQuery.eq('status', 'approved');
                     }
                     
                     // LỌC THEO NỘI DUNG QUAN TÂM
-                    query = app.preference.applyFilter(query);
+                    baseQuery = app.preference.applyFilter(baseQuery);
 
-                    const { data: photos, error } = await query;
+                    let photos = [];
+                    let fromRow = 0;
+                    let stepRow = 999;
+                    let hasMore = true;
+                    let fetchError = null;
 
-                    if (error) return console.error(error);
+                    while (hasMore) {
+                        const { data, error } = await baseQuery.range(fromRow, fromRow + stepRow);
+                        if (error) {
+                            fetchError = error;
+                            break;
+                        }
+                        if (data) {
+                            photos.push(...data);
+                        }
+                        if (!data || data.length <= stepRow) {
+                            hasMore = false;
+                        }
+                        fromRow += stepRow + 1;
+                    }
+
+                    if (fetchError) return console.error(fetchError);
 
                     let totalViews = 0;
                     let totalLikes = 0;
