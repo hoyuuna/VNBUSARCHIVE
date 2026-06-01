@@ -264,23 +264,99 @@
         .bus-item:active { background: var(--md-surface-container-high); }
         .bus-item:last-child { border-bottom: none; }
         .bus-item-left .plate {
-    font-size: 14px;
-    font-weight: 700;
-    color: #ffffff; 
-    background-color: var(--md-primary); 
-    padding: 6px 12px; 
-    border-radius: 6px; 
-    display: inline-block;
-    letter-spacing: 0.5px; 
-    box-shadow: 0 2px 6px rgba(81, 112, 255, 0.3); 
-}
+            font-size: 14px;
+            font-weight: 700;
+            color: #ffffff; 
+            background-color: var(--md-primary); 
+            padding: 6px 12px; 
+            border-radius: 6px; 
+            display: inline-block;
+            letter-spacing: 0.5px; 
+            box-shadow: 0 2px 6px rgba(81, 112, 255, 0.3); 
+        }
         .bus-item-right { text-align: right; }
         .bus-item-time { font-size: 18px; font-weight: 700; color: var(--md-primary); }
         .bus-item-dist { font-size: 13px; color: var(--md-on-surface-variant); margin-top: 2px;}
         .empty-state { text-align: center; padding: 24px; color: var(--md-on-surface-variant); font-size: 14px; }
+
+        /* ================= OVERLAY CẬP NHẬT ================= */
+        #updateOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(20, 25, 30, 0.6); /* Lớp nền tối nhẹ để làm nổi bật text */
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            z-index: 9999; /* Đảm bảo nằm trên mọi thành phần khác */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #ffffff;
+            padding: 24px;
+            box-sizing: border-box;
+        }
+
+        .overlay-logo {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            margin-bottom: 24px;
+            filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));
+            -webkit-user-drag: none;
+        }
+
+        #updateOverlay h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 900;
+            font-size: 22px;
+            line-height: 1.5;
+            margin: 0 0 16px 0;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+            max-width: 500px;
+            letter-spacing: 0.5px;
+        }
+
+        #updateOverlay p {
+            font-size: 16px;
+            margin: 0 0 40px 0;
+            opacity: 0.9;
+            font-weight: 500;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+        }
+
+        #updateOverlay .sponsor-text {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+            font-size: 14px;
+            color: #ffffff;
+            opacity: 0.8;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+        }
+
+        #updateOverlay .sponsor-text a {
+            font-weight: 800;
+            font-style: italic;
+            color: #ffffff;
+            text-decoration: none;
+        }
     </style>
 </head>
 <body>
+
+    <!-- MÀN HÌNH CHỜ BẢO TRÌ/CẬP NHẬT -->
+    <div id="updateOverlay">
+        <img src="/hbds-map/logo.png" alt="Logo" class="overlay-logo" draggable="false">
+        <h1>GAME VẪN ĐANG TRONG QUÁ TRÌNH CẬP NHẬT,<br>VUI LÒNG QUAY LẠI SAU!</h1>
+        <p>Xin cảm ơn sự thấu hiểu của bạn!</p>
+        <div class="sponsor-text">
+            Tài trợ bởi <a href="https://vnbusarchive.qzz.io/" target="_blank">VNBUSARCHIVE</a>
+        </div>
+    </div>
+    <!-- KẾT THÚC MÀN HÌNH CHỜ -->
 
     <div id="map"></div>
 
