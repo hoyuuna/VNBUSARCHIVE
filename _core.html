@@ -10587,16 +10587,8 @@ cleanupState: () => {
                     }
                 },
                 formatNoPunctuation: (el) => {
-                    let val = el.value;
-                    // Xóa các dấu câu, NHƯNG giữ lại dấu phẩy (,), gạch ngang (-), gạch dưới (_)
-                    const newVal = val.replace(/[.;:!?'"\[\]{}<>*&^%$#@~`|\\]/g, '');
-                    if (val !== newVal) {
-                        const start = el.selectionStart;
-                        const end = el.selectionEnd;
-                        el.value = newVal;
-                        const offset = val.length - newVal.length;
-                        el.setSelectionRange(start > 0 ? start - offset : 0, end > 0 ? end - offset : 0);
-                    }
+                    // Đã gỡ bỏ giới hạn dấu câu theo yêu cầu (cho phép người dùng nhập tự do)
+                    return;
                 },
                 fallbackHeroImage: (imgElement, cacheName, currentIndex) => {
                     const photos = app[cacheName];
