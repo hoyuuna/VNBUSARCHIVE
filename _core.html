@@ -9061,6 +9061,21 @@ app.admin.fetchManagerData('denied');
                     const count = document.querySelectorAll('.blur-panel').length;
                     const btn = document.getElementById('btn-add-blur');
                     if (btn) btn.innerHTML = `<i class="fa-solid fa-droplet-slash"></i> Làm mờ (${count}/5)`;
+
+                    let warningBox = document.getElementById('blur-warning-box');
+                    if (!warningBox) {
+                        warningBox = document.createElement('div');
+                        warningBox.id = 'blur-warning-box';
+                        warningBox.className = 'mt-3 p-3 bg-amber-50 border border-amber-200 rounded-xl shadow-sm flex items-start gap-2 hidden';
+                        warningBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-amber-500 mt-0.5 text-xs"></i><p class="text-[11px] text-amber-800 font-bold leading-relaxed m-0">Không lạm dụng công cụ làm mờ. Vùng làm mờ/che vật thể tuyệt đối không được đè lên bất kỳ bộ phận nào của xe (thân xe, bánh xe, kính, đèn...), tránh làm ảnh hưởng đến tính toàn vẹn và chi tiết của chủ thể.</p>';
+                        const toolbar = document.getElementById('vnbus-editor-toolbar');
+                        if (toolbar) toolbar.appendChild(warningBox);
+                    }
+                    if (count > 0) {
+                        warningBox.classList.remove('hidden');
+                    } else {
+                        warningBox.classList.add('hidden');
+                    }
                 },
 
                 checkPlate: async (val) => {
@@ -9381,7 +9396,12 @@ app.admin.fetchManagerData('denied');
                 removeImage: () => {
                     document.getElementById('up-file').value = '';
                     document.getElementById('preview-box').classList.add('hidden');
-                    document.getElementById('drop-zone').classList.remove('hidden');
+                    const dropZone = document.getElementById('drop-zone');
+                    dropZone.classList.remove('hidden');
+                    if (dropZone.dataset.originalHtml) {
+                        dropZone.innerHTML = dropZone.dataset.originalHtml;
+                        dropZone.style.pointerEvents = 'auto';
+                    }
                     document.getElementById('preview-img').src = '';
                     app.rawFile = null;
                     app.currentExif = { camera: 'N/A', params: 'N/A' };
@@ -9397,6 +9417,22 @@ app.admin.fetchManagerData('denied');
                 handleFileSelect: async (e) => {
                     const file = e.target.files[0];
                     if (!file) return;
+
+                    const dropZone = document.getElementById('drop-zone');
+                    if (dropZone) {
+                        if (!dropZone.dataset.originalHtml) {
+                            dropZone.dataset.originalHtml = dropZone.innerHTML;
+                        }
+                        dropZone.style.pointerEvents = 'none';
+                        dropZone.innerHTML = '<div class="flex flex-col items-center gap-3 py-4"><i class="fa-solid fa-circle-notch fa-spin text-4xl text-gray-400"></i><p class="text-sm font-bold text-gray-600">Đang xử lý ảnh, vui lòng đợi...</p></div>';
+                    }
+
+                    const restoreDropZone = () => {
+                        if (dropZone && dropZone.dataset.originalHtml) {
+                            dropZone.innerHTML = dropZone.dataset.originalHtml;
+                            dropZone.style.pointerEvents = 'auto';
+                        }
+                    };
 
                     if (file.size > 20 * 1024 * 1024) {
                         app.ui.showAlert("File quá lớn (>20MB). Vui lòng chọn ảnh nhỏ hơn.");
@@ -9505,6 +9541,7 @@ app.admin.fetchManagerData('denied');
                         // 5. NẾU LỖI EXIF: Hiển thị thông báo, DỪNG HOẠT ĐỘNG, không show ảnh
                         app.ui.showAlert(errorMsg);
                         e.target.value = ''; // Xóa file rác trong input
+                        if (typeof restoreDropZone === 'function') restoreDropZone();
                         return;
                     }
                 },
@@ -9757,19 +9794,48 @@ app.admin.fetchManagerData('denied');
                         const { data: { session } } = await window.sb.auth.getSession();
                         const token = session?.access_token;
 
-                        const response = await fetch('/api/upload', {
-                            method: 'POST',
-                            headers: { 
-                                'Authorization': `Bearer ${token}`
-                            },
-                            body: uploadData
-                        });
+                        let result = null;
+                        let uploadAttempts = 0;
+                        const maxUploadAttempts = 3;
+                        let lastUploadErr = null;
 
-                        const result = await response.json();
+                        while (uploadAttempts < maxUploadAttempts) {
+                            uploadAttempts++;
+                            try {
+                                const response = await fetch('/api/upload', {
+                                    method: 'POST',
+                                    headers: { 
+                                        'Authorization': `Bearer ${token}`
+                                    },
+                                    body: uploadData
+                                });
+                                
+                                result = await response.json();
+                                
+                                if (!result.success) {
+                                    let errorDetail = result.error;
+                                    if (typeof errorDetail === 'object' && errorDetail !== null) {
+                                        errorDetail = errorDetail.message || JSON.stringify(errorDetail);
+                                    }
+                                    throw new Error(errorDetail || 'Máy chủ từ chối yêu cầu Upload.');
+                                }
+                                
+                                // Nếu thành công thì thoát vòng lặp
+                                break;
+                            } catch (err) {
+                                lastUploadErr = err;
+                                console.warn(`Upload attempt ${uploadAttempts} failed:`, err.message);
+                                if (uploadAttempts < maxUploadAttempts) {
+                                    const text = document.getElementById('up-progress-title');
+                                    if (text) text.innerText = `Lỗi kết nối. Đang thử lại lần ${uploadAttempts + 1}/${maxUploadAttempts}...`;
+                                    await new Promise(r => setTimeout(r, 2000));
+                                }
+                            }
+                        }
 
-                        if (!result.success) {
+                        if (!result || !result.success) {
                             // [MỚI] LOGIC TỰ ĐỘNG XÓA ẢNH IMAGEKIT NẾU LƯU VÀO DATABASE THẤT BẠI
-                            if (result.url) {
+                            if (result && result.url) {
                                 try {
                                     console.log("Phát hiện lỗi Database, đang tự động thu hồi ảnh trên ImageKit...");
                                     await fetch('/api/delete-image', {
@@ -9784,12 +9850,7 @@ app.admin.fetchManagerData('denied');
                                     console.error("Lỗi khi rollback xóa ảnh ImageKit:", delErr);
                                 }
                             }
-
-                            let errorDetail = result.error;
-                            if (typeof errorDetail === 'object' && errorDetail !== null) {
-                                errorDetail = errorDetail.message || JSON.stringify(errorDetail);
-                            }
-                            throw new Error(errorDetail || 'Máy chủ từ chối yêu cầu Upload.');
+                            throw lastUploadErr || new Error('Upload thất bại sau nhiều lần thử. Vui lòng kiểm tra lại mạng.');
                         }
 
 
