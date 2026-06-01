@@ -42,6 +42,7 @@ Chúng tôi tìm kiếm những bức ảnh có chủ đích nhiếp ảnh rõ r
 * **Dữ liệu gốc (EXIF):** File ảnh gốc bắt buộc phải giữ lại thông số máy ảnh và thời gian chụp.
 * **Không chèn chữ ký:** Vui lòng không chèn logo/chữ ký cá nhân (Watermark), hệ thống sẽ tự động đóng dấu bản quyền khi xuất bản.
 * **Quyền riêng tư:** Nếu ảnh chụp cận cảnh và nhận diện rõ khuôn mặt người (hành khách, tài xế), bạn cần có sự cho phép của họ hoặc dùng tính năng làm mờ vật thể có sẵn.
+* **Quy định về việc che/làm mờ:** Không lạm dụng công cụ làm mờ. Vùng làm mờ/che vật thể tuyệt đối không được đè lên bất kỳ bộ phận nào của xe (thân xe, bánh xe, kính, đèn...), tránh làm ảnh hưởng đến tính toàn vẹn và chi tiết của chủ thể.
 * **Trường hợp va chạm/tai nạn:** 
     * Nếu xe buýt/xe khách va chạm với các phương tiện khác (xe tải, ô tô con, xe máy...), bạn **bắt buộc phải che Biển kiểm soát của các phương tiện khác đó**.
     * Nếu là va chạm giữa xe buýt với xe buýt, hoặc xe buýt với xe khách (và ngược lại), **KHÔNG cần che biển số** của cả hai xe.
