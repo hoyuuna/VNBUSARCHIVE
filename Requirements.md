@@ -115,3 +115,12 @@ Nhập **địa chỉ đoạn đường mà xe đang di chuyển qua** trong khu
 
 ### 8. Ghi chú
 Chỉ ghi ghi chú **liên quan đến ảnh/xe**, không được phép ghi linh tinh, lạc đề v.. v..
+
+---
+
+## PHẦN 3: BIỆN PHÁP XỬ LÝ VI PHẠM
+* **Đình chỉ quyền đóng góp:** 
+    * Tài khoản sẽ bị **đình chỉ quyền đăng tải ảnh và cập nhật dữ liệu từ 2 đến 30 ngày** nếu tiếp tục tái diễn hành vi điền sai thông tin sau khi đã được nhắc nhở.
+    * Trong trường hợp cố ý điền sai thông tin mang tính chất hàng loạt, phá hoại dữ liệu hoặc spam thông tin rác, tài khoản sẽ bị **khóa vĩnh viễn** mà không cần báo trước.
+
+> 💡 **Lời khuyên:** Nếu bạn không chắc chắn về một thông tin nào đó (Đơn vị vận hành, Dòng xe, Tuyến đường...), vui lòng ghi rõ *"Chưa rõ thông tin ..."* tại phần **Ghi chú** để các Kiểm duyệt viên hỗ trợ xác minh, tuyệt đối không tự ý điền bừa.
