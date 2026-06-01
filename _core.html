@@ -9394,49 +9394,67 @@ app.admin.fetchManagerData('denied');
                     app.upload.updateFilters();
                 },
                 removeImage: () => {
-                    document.getElementById('up-file').value = '';
-                    document.getElementById('preview-box').classList.add('hidden');
+                    const upFile = document.getElementById('up-file');
+                    if (upFile) upFile.value = '';
+                    
+                    const previewBox = document.getElementById('preview-box');
+                    if (previewBox) previewBox.classList.add('hidden');
+                    
                     const dropZone = document.getElementById('drop-zone');
-                    dropZone.classList.remove('hidden');
-                    if (dropZone.dataset.originalHtml) {
-                        dropZone.innerHTML = dropZone.dataset.originalHtml;
-                        dropZone.style.pointerEvents = 'auto';
-                    }
-                    document.getElementById('preview-img').src = '';
+                    if (dropZone) dropZone.classList.remove('hidden');
+                    
+                    if (app.upload.restoreDropZone) app.upload.restoreDropZone();
+                    
+                    const previewImg = document.getElementById('preview-img');
+                    if (previewImg) previewImg.src = '';
+                    
                     app.rawFile = null;
                     app.currentExif = { camera: 'N/A', params: 'N/A' };
-                    document.getElementById('up-camera').value = 'N/A';
-                    document.getElementById('up-exif-params').value = 'N/A';
-                    document.getElementById('up-date').value = '';
+                    
+                    const upCamera = document.getElementById('up-camera');
+                    if (upCamera) upCamera.value = 'N/A';
+                    
+                    const upExif = document.getElementById('up-exif-params');
+                    if (upExif) upExif.value = 'N/A';
+                    
+                    const upDate = document.getElementById('up-date');
+                    if (upDate) upDate.value = '';
+                    
                     if(app.upload.resetFilters) app.upload.resetFilters();
 
                     document.querySelectorAll('.blur-panel').forEach(p => p.remove());
                     if (app.upload.updateBlurBtn) app.upload.updateBlurBtn();
                 },
-
                 handleFileSelect: async (e) => {
                     const file = e.target.files[0];
                     if (!file) return;
 
+                    // CHỈ TÁC ĐỘNG VÀO DIV HIỂN THỊ, BẢO TOÀN THẺ INPUT
                     const dropZone = document.getElementById('drop-zone');
-                    if (dropZone) {
-                        if (!dropZone.dataset.originalHtml) {
-                            dropZone.dataset.originalHtml = dropZone.innerHTML;
+                    const visualEl = dropZone ? dropZone.querySelector('.pointer-events-none') : null;
+                    
+                    if (dropZone && visualEl) {
+                        if (!visualEl.dataset.originalHtml) {
+                            visualEl.dataset.originalHtml = visualEl.innerHTML;
                         }
                         dropZone.style.pointerEvents = 'none';
-                        dropZone.innerHTML = '<div class="flex flex-col items-center gap-3 py-4"><i class="fa-solid fa-circle-notch fa-spin text-4xl text-gray-400"></i><p class="text-sm font-bold text-gray-600">Đang xử lý ảnh, vui lòng đợi...</p></div>';
+                        visualEl.innerHTML = '<div class="flex flex-col items-center gap-3 py-4"><i class="fa-solid fa-circle-notch fa-spin text-4xl text-gray-400"></i><p class="text-sm font-bold text-gray-600 mt-3">Đang xử lý ảnh, vui lòng đợi...</p></div>';
                     }
 
-                    const restoreDropZone = () => {
-                        if (dropZone && dropZone.dataset.originalHtml) {
-                            dropZone.innerHTML = dropZone.dataset.originalHtml;
-                            dropZone.style.pointerEvents = 'auto';
+                    app.upload.restoreDropZone = () => {
+                        const dz = document.getElementById('drop-zone');
+                        const vis = dz ? dz.querySelector('.pointer-events-none') : null;
+                        if (dz && vis && vis.dataset.originalHtml) {
+                            vis.innerHTML = vis.dataset.originalHtml;
+                            dz.style.pointerEvents = 'auto';
                         }
                     };
 
                     if (file.size > 20 * 1024 * 1024) {
                         app.ui.showAlert("File quá lớn (>20MB). Vui lòng chọn ảnh nhỏ hơn.");
-                        e.target.value = '';
+                        const fileInput = document.getElementById('up-file');
+                        if (fileInput) fileInput.value = '';
+                        if (app.upload.restoreDropZone) app.upload.restoreDropZone();
                         return;
                     }
 
@@ -9540,8 +9558,9 @@ app.admin.fetchManagerData('denied');
                     } catch (errorMsg) {
                         // 5. NẾU LỖI EXIF: Hiển thị thông báo, DỪNG HOẠT ĐỘNG, không show ảnh
                         app.ui.showAlert(errorMsg);
-                        e.target.value = ''; // Xóa file rác trong input
-                        if (typeof restoreDropZone === 'function') restoreDropZone();
+                        const fileInput = document.getElementById('up-file');
+                        if (fileInput) fileInput.value = ''; // Xóa file rác trong input
+                        if (app.upload.restoreDropZone) app.upload.restoreDropZone();
                         return;
                     }
                 },
