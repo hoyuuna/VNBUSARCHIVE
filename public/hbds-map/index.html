@@ -65,7 +65,7 @@
             flex-direction: column;
             align-items: center;
             text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7), 0px 0px 6px rgba(0, 0, 0, 0.5);
-
+            text-align: center;
             
             -webkit-user-select: none; 
             -ms-user-select: none; 
@@ -286,7 +286,7 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(20, 25, 30, 0.6); /* Lớp nền tối nhẹ để làm nổi bật text */
+            background: rgba(20, 25, 30, 0.65); /* Lớp nền tối nhẹ để làm nổi bật text */
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             z-index: 9999; /* Đảm bảo nằm trên mọi thành phần khác */
@@ -322,19 +322,80 @@
 
         #updateOverlay p {
             font-size: 16px;
-            margin: 0 0 40px 0;
+            margin: 0 0 32px 0;
             opacity: 0.9;
             font-weight: 500;
             text-shadow: 0 1px 4px rgba(0,0,0,0.5);
         }
 
+        /* Nút Chơi Game */
+        .play-btn-container {
+            position: relative;
+            margin-bottom: 28px;
+            display: inline-block;
+        }
+
+        .play-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--md-primary); 
+            color: #ffffff;
+            text-decoration: none;
+            padding: 14px 36px;
+            border-radius: 100px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            font-size: 16px;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 16px rgba(81, 112, 255, 0.4);
+            transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+            text-shadow: none;
+        }
+
+        .play-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(81, 112, 255, 0.6);
+            background: #405ce6;
+        }
+
+        .play-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(81, 112, 255, 0.4);
+        }
+
+        /* Tag MỚI */
+        .new-tag {
+            position: absolute;
+            top: -12px;
+            right: -16px;
+            background: #ff3b30;
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 900;
+            padding: 4px 8px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(255, 59, 48, 0.5);
+            font-family: 'Montserrat', sans-serif;
+            text-transform: uppercase;
+            animation: pulseTag 2s infinite;
+            pointer-events: none; /* Tránh cản trở click nút */
+        }
+
+        @keyframes pulseTag {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1) rotate(5deg); }
+            100% { transform: scale(1); }
+        }
+
         #updateOverlay .sponsor-text {
             font-family: 'Montserrat', sans-serif;
             font-weight: 500;
-            font-size: 14px;
+            font-size: 13px;
             color: #ffffff;
             opacity: 0.8;
             text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+            line-height: 1.4;
         }
 
         #updateOverlay .sponsor-text a {
@@ -352,8 +413,18 @@
         <img src="/hbds-map/logo.png" alt="Logo" class="overlay-logo" draggable="false">
         <h1>GAME VẪN ĐANG TRONG QUÁ TRÌNH CẬP NHẬT,<br>VUI LÒNG QUAY LẠI SAU!</h1>
         <p>Xin cảm ơn sự thấu hiểu của bạn!</p>
+
+        <!-- Nút Play mới thêm -->
+        <div class="play-btn-container">
+            <a href="https://www.roblox.com/vi/games/73275173656816/HanoiBus-Driving-Simulator" target="_blank" class="play-btn">
+                CHƠI HBDS 5
+            </a>
+            <div class="new-tag">MỚI</div>
+        </div>
+
+        <!-- Cập nhật lại text theo yêu cầu -->
         <div class="sponsor-text">
-            Tài trợ bởi <a href="https://vnbusarchive.qzz.io/" target="_blank">VNBUSARCHIVE</a>
+            Web được code và tặng hệ thống game HBDS bởi <a href="https://vnbusarchive.qzz.io/" target="_blank">VNBUSARCHIVE</a>
         </div>
     </div>
     <!-- KẾT THÚC MÀN HÌNH CHỜ -->
@@ -368,8 +439,9 @@
                 <img src="/hbds-map/logo.png" alt="Logo" class="top-logo" draggable="false">
                 <span class="app-title">HBDS Map</span>
             </div>
+            <!-- Mình cũng cập nhật lại dòng chữ tại giao diện nền cho đồng nhất -->
             <div class="sponsor-text">
-                Tài trợ bởi <a href="https://vnbusarchive.qzz.io/" target="_blank">VNBUSARCHIVE</a>
+                Web được code và tặng hệ thống game HBDS bởi <a href="https://vnbusarchive.qzz.io/" target="_blank">VNBUSARCHIVE</a>
             </div>
         </div>
 
@@ -404,12 +476,11 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
-        let FIREBASE_URL = ""; // Khởi tạo biến trống
+        let FIREBASE_URL = ""; 
 
-        // 1. Hàm khởi tạo ứng dụng sau khi lấy được config
         async function initApp() {
             try {
-                const response = await fetch('/api/config'); // Gọi đến serverless function
+                const response = await fetch('/api/config'); 
                 const config = await response.json();
                 FIREBASE_URL = config.FIREBASE_URL;
 
@@ -418,7 +489,6 @@
                     return;
                 }
 
-                // Sau khi có URL mới bắt đầu chạy các hàm fetch dữ liệu
                 loadStopsData();
                 setInterval(fetchBuses, 10000);
                 fetchBuses();
@@ -428,7 +498,6 @@
             }
         }
 
-        // 2. Các logic bản đồ giữ nguyên (nhưng lưu ý dời việc gọi hàm vào initApp)
         const STOPS_JSON_URL = "/hbds-map/stops.json";
         const map = L.map('map', { zoomControl: false }).setView([21.0258210, 105.8020055], 15);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' }).addTo(map);
@@ -458,7 +527,7 @@
                 searchTimeout = setTimeout(() => performSearch(val), 400);
             } else {
                 clearSearch.style.display = 'none';
-                searchResults.classList.remove('active'); // Đóng bảng mượt mà khi xóa hết chữ
+                searchResults.classList.remove('active'); 
             }
         });
 
@@ -468,7 +537,6 @@
             }
         });
 
-        // Nút X để xóa nhanh
         clearSearch.addEventListener('click', () => {
             searchInput.value = '';
             clearSearch.style.display = 'none';
@@ -547,7 +615,6 @@
         }
 
 
-        // ================= 3. LOGIC TRACKING VÀ TRẠM DỪNG =================
         const AVG_SPEED_METERS_PER_MIN = 500;
 
         function game_to_real_affine(x_game, z_game) {
@@ -631,28 +698,23 @@
             if(trackedBusId) { isFollowing = false; btnCenterMap.classList.remove('disabled'); }
         });
 
-        // ---------- THÊM MỚI TỪ ĐÂY ----------
-        // Chặn lỗi click xuyên qua nút bấm xuống bản đồ
         if (floatingControls) {
             L.DomEvent.disableClickPropagation(floatingControls);
             L.DomEvent.disableScrollPropagation(floatingControls);
         }
 
-        // Viết lại hàm căn giữa chuẩn xác hơn
         window.centerOnTrackedBus = function(e) {
-            if (e) e.stopPropagation(); // Ngăn sự kiện sủi bọt
+            if (e) e.stopPropagation(); 
 
-            // Nếu xe vẫn đang tồn tại trên bản đồ
             if (trackedBusId && activeBuses[trackedBusId]) {
                 isFollowing = true;
                 map.panTo(activeBuses[trackedBusId].getLatLng(), { animate: true });
                 btnCenterMap.classList.add('disabled');
             }
         };
-        // ---------- ĐẾN ĐÂY ----------
 
         async function fetchBuses() {
-            if (!FIREBASE_URL) return; // Nếu chưa có URL thì thoát
+            if (!FIREBASE_URL) return; 
             try {
                 const response = await fetch(FIREBASE_URL);
                 const data = await response.json();
@@ -679,7 +741,6 @@
                         if(imgElem) imgElem.style.transform = `rotate(${rotationDeg}deg)`;
                     } else {
                         const busHtml = `<img src="/hbds-map/bus.png" class="bus-marker-img" style="transform: rotate(${rotationDeg}deg);" />`;
-                        // Cập nhật lại iconSize và iconAnchor
                         const icon = L.divIcon({ html: busHtml, className: '', iconSize:[17, 17], iconAnchor:[8.5, 8.5] });
 
                         const marker = L.marker(finalCoords, { icon: icon }).addTo(busesLayer);
@@ -715,7 +776,6 @@
             } catch (err) { console.error("Lỗi:", err); }
         }
 
-        // ================= BOTTOM SHEET LOGIC =================
         const sheet = document.getElementById('bottomSheet');
         const content = document.getElementById('sheetContent');
         const handle = document.getElementById('sheetHandle');
@@ -823,7 +883,6 @@
             sheet.classList.add('active');
         }
 
-        // 3. Cuối cùng, gọi hàm khởi động
         initApp();
 
     </script>
