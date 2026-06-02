@@ -1,126 +1,111 @@
-# 🚌 QUY CHUẨN VÀ HƯỚNG DẪN ĐĂNG TẢI ẢNH
+# QUY CHUẨN VÀ HƯỚNG DẪN ĐĂNG TẢI DỮ LIỆU HÌNH ẢNH
 
-Tài liệu này quy định các tiêu chuẩn khắt khe về nhiếp ảnh và cách thức điền thông tin nhằm xây dựng một cơ sở dữ liệu hình ảnh xe buýt chất lượng cao. Vui lòng đọc kỹ trước khi đóng góp.
+Tài liệu này quy định các tiêu chuẩn kỹ thuật về hình ảnh và siêu dữ liệu nhằm xây dựng cơ sở dữ liệu phương tiện chất lượng cao. Yêu cầu toàn bộ thành viên đọc kỹ và tuân thủ nghiêm ngặt trước khi đóng góp.
 
-~~⚠️ **QUAN TRỌNG:** Kể từ ngày 15/03/2026, hệ thống cập nhật tiêu chuẩn duyệt ảnh khắt khe hơn và **chính thức từ chối mọi hình ảnh/dữ liệu liên quan đến xe khách**. Website chỉ chấp nhận dữ liệu về xe buýt.~~
-
-⚠️ **QUAN TRỌNG:** Kể từ ngày 22/05/2026, **ảnh Xe khách được chấp nhận trở lại**.
-
-ℹ️ **LƯU Ý:** Nếu bạn có ảnh mà bản thân thấy nó rất đặc biệt, bạn có thể [liên hệ](https://www.vnbusarchive.io.vn/contact) trước (chỉ liên hệ qua Email với trường hợp này) để được đặc cách duyệt bài.
+⚠️ **LƯU Ý QUAN TRỌNG:** 
+- Hệ thống hiện tại chấp nhận dữ liệu của cả **Xe buýt** và **Xe khách**.
+- Các hình ảnh mang tính đặc thù/hiếm có nhưng không đạt chuẩn, vui lòng [liên hệ qua Email](https://www.vnbusarchive.io.vn/contact) để được xét duyệt ngoại lệ.
 
 ---
 
 ## PHẦN 1: TIÊU CHUẨN HÌNH ẢNH (UPLOAD)
 
-Hệ thống áp dụng bộ tiêu chuẩn duyệt ảnh nghiêm ngặt. Ảnh tải lên bắt buộc phải đáp ứng các tiêu chí sau:
+Hệ thống áp dụng bộ lọc kiểm duyệt khắt khe. Tệp tin hình ảnh tải lên bắt buộc đáp ứng các thông số sau:
 
-### 1. Đúng chủ đề
-* Chỉ chấp nhận ảnh xe buýt/xe khách đang hoạt động và được đăng ký tại **Việt Nam**. Không chấp nhận xe buýt nước ngoài.
-* Tuyệt đối **nghiêm cấm** đăng tải ảnh xe của các cơ quan nhà nước/chính phủ (biển xanh/đỏ)
-* Đối với xe khách, chỉ được upload ảnh của các hãng xe khách, doanh nghiệp vận tải quy mô lớn hoặc các thương hiệu phổ biến có tuyến cố định. Vui lòng không đăng tải hình ảnh của các xe thuộc sở hữu cá nhân, hộ gia đình hoặc các nhà xe nhỏ lẻ.
+### 1. Giới hạn chủ đề
+* Chỉ chấp nhận phương tiện đang hoạt động và đăng ký tại **Việt Nam**.
+* **Nghiêm cấm:** Đăng tải phương tiện thuộc cơ quan Nhà nước/Quân đội (Biển xanh/đỏ).
+* **Đối với xe khách:** Chỉ chấp nhận phương tiện thuộc các hãng, doanh nghiệp vận tải quy mô lớn hoặc có tuyến cố định. Từ chối phương tiện cá nhân, hộ gia đình, nhà xe nhỏ lẻ.
 
-### 2. Tính chủ đích & Bố cục
-Chúng tôi tìm kiếm những bức ảnh có chủ đích nhiếp ảnh rõ ràng, được canh góc và chuẩn bị kỹ lưỡng.
-* **Không chụp vội:** Tuyệt đối từ chối các bức ảnh chụp vội vã, tiện tay khi đang đi đường, góc máy méo mó hoặc thiếu sự chuẩn bị.
-* **Đúng chủ thể & Trọn vẹn:** Xe phải là đối tượng chính. Khung hình phải lấy trọn vẹn chiếc xe, **không bị cắt xén** các bộ phận quan trọng (đầu, đuôi, nóc, bánh xe) hoặc góc chụp quá sát (trừ trường hợp tạo nên chất nghệ thuật riêng).
-* **Không bị che khuất:** Chủ thể không bị che lấp đáng kể bởi các phương tiện khác, người đi đường, cột điện, biển báo hay cây cối.
-* **Khung hình ngay ngắn:** Ảnh không bị quá nghiêng lệch. Tỉ lệ khung hình bắt buộc là ảnh ngang `4:3`, `3:2` hoặc `16:9`.
-* **Đảm bảo tính thẩm mỹ:** Ảnh chụp phải đảm bảo không xuất hiện rác thải, đồ vật dơ bẩn, vết bẩn lớn trên nền hoặc các chi tiết phản cảm khác.
+### 2. Tiêu chuẩn bố cục
+* **Chủ thể trung tâm:** Xe là đối tượng chính, nằm trọn vẹn trong khung hình. Tuyệt đối không cắt xén các chi tiết viền (đầu, đuôi, nóc, bánh xe).
+* **Không vật cản:** Chủ thể không bị che khuất bởi phương tiện khác, con người, hoặc cảnh quan (cây cối, cột điện...).
+* **Định dạng:** Tỉ lệ khung hình ngang chuẩn `4:3`, `3:2` hoặc `16:9`. Cạnh ảnh ngay ngắn, không nghiêng lệch.
+* **Bối cảnh:** Không xuất hiện rác thải, vết bẩn lớn hoặc các chi tiết gây phản cảm trong khung hình. Không chấp nhận ảnh chụp vội, chụp thiếu chủ đích.
 
-### 3. Yêu cầu nhận diện (Bắt buộc)
-* **Biển kiểm soát (BKS) phải đọc được:** Khung hình bắt buộc phải thể hiện rõ biển số của phương tiện để phục vụ việc tra cứu dữ liệu.
-* Chấp nhận biển số kim loại (biển cứng) ở đầu/đuôi xe hoặc biển số dán decal trên thân/kính xe, miễn là có thể nhìn rõ bằng mắt thường.
+### 3. Tiêu chuẩn nhận diện (Bắt buộc)
+* **Biển kiểm soát (BKS):** Phải hiển thị rõ ràng, đọc được bằng mắt thường. Chấp nhận cả biển kim loại và biển dán decal.
 
-### 4. Chất lượng kỹ thuật
-* Ảnh phải sắc nét, đủ sáng và có độ tương phản tốt.
-* **Không mờ nhòe:** Không chấp nhận ảnh bị mờ do rung tay, sai nét, hoặc xe di chuyển quá nhanh gây nhòe không mong muốn.
-* **Ảnh nguyên bản:** Giữ nguyên tính chân thực của ảnh chụp. Tuyệt đối **KHÔNG** sử dụng các công cụ AI (Upscale) để làm nét hoặc can thiệp thay đổi chi tiết xe.
-* **Hạn chế chụp một phía:** Có thể tạm chấp nhận chụp ảnh một phía đối với đầu và chấp nhận chụp ảnh một phía đối với thân xe. Không chấp nhận chụp ảnh một phía đối với đuôi xe. Luôn ưu tiên chụp ảnh lấy được ít nhất 2 phía của xe.
+### 4. Thông số kỹ thuật
+* Độ sắc nét, độ sáng và độ tương phản phải đạt mức tiêu chuẩn.
+* **Từ chối:** Ảnh mờ nhòe do rung tay, sai nét hoặc do chuyển động của phương tiện.
+* **Nguyên bản:** Cấm sử dụng AI (Upscale) để can thiệp, làm nét hoặc thay đổi chi tiết phương tiện.
+* **Góc chụp:** Ưu tiên góc chụp lấy được 2 phía của xe. Chấp nhận góc chụp 1 phía với đầu xe/thân xe. Từ chối góc chụp 1 phía với đuôi xe.
 
-### 5. Bản quyền & Dữ liệu ảnh
-* **Ảnh chính chủ:** Chỉ đăng tải hình ảnh do **chính tay bạn chụp**. Nghiêm cấm sử dụng ảnh từ các nguồn khác.
-* **Dữ liệu gốc (EXIF):** File ảnh gốc bắt buộc phải giữ lại thông số máy ảnh và thời gian chụp.
-* **Không chèn chữ ký:** Vui lòng không chèn logo/chữ ký cá nhân (Watermark), hệ thống sẽ tự động đóng dấu bản quyền khi xuất bản.
-* **Quyền riêng tư:** Nếu ảnh chụp cận cảnh và nhận diện rõ khuôn mặt người (hành khách, tài xế), bạn cần có sự cho phép của họ hoặc dùng tính năng làm mờ vật thể có sẵn.
-* **Quy định về việc che/làm mờ:** Không lạm dụng công cụ làm mờ. Vùng làm mờ/che vật thể tuyệt đối không được đè lên bất kỳ bộ phận nào của xe (thân xe, bánh xe, kính, đèn...), tránh làm ảnh hưởng đến tính toàn vẹn và chi tiết của chủ thể.
-* **Trường hợp va chạm/tai nạn:** 
-    * Nếu xe buýt/xe khách va chạm với các phương tiện khác (xe tải, ô tô con, xe máy...), bạn **bắt buộc phải che Biển kiểm soát của các phương tiện khác đó**.
-    * Nếu là va chạm giữa xe buýt với xe buýt, hoặc xe buýt với xe khách (và ngược lại), **KHÔNG cần che biển số** của cả hai xe.
+### 5. Bản quyền và Dữ liệu ảnh
+* **Quyền sở hữu:** Chỉ đăng tải ảnh do chính người dùng chụp.
+* **Siêu dữ liệu (EXIF):** Tệp tin gốc bắt buộc chứa dữ liệu máy ảnh và thời gian chụp.
+* **Watermark:** Cấm chèn chữ ký/logo cá nhân. Hệ thống tự động đóng dấu bản quyền khi xuất bản.
+* **Quyền riêng tư:** Bắt buộc che/làm mờ rõ khuôn mặt hành khách hoặc tài xế (nếu ảnh cận cảnh).
+* **Quy tắc làm mờ:** Vùng làm mờ tuyệt đối không đè lên các chi tiết của xe (thân, bánh, kính, đèn...).
+* **Xử lý ảnh tai nạn/va chạm:** 
+    * Che BKS của phương tiện khác (xe tải, ô tô con, xe máy...).
+    * **Không** che BKS nếu là va chạm giữa hai xe buýt/xe khách với nhau.
 
-### 6. Bảng ví dụ trực quan về bố cục ảnh
-Dưới đây là các ví dụ để đối chiếu xem bức ảnh của bạn có đạt chuẩn về bố cục hay không:
+### 6. Minh họa định chuẩn bố cục
 
-| Hình ảnh minh họa | Trạng thái | Nhận xét chi tiết |
+| Hình ảnh minh họa | Trạng thái | Phân tích kỹ thuật |
 | :--- | :---: | :--- |
-| <img src="https://i.postimg.cc/Pf1Hd8n3/IMG_20260321_174305.jpg" width="300"> | ✅ **HỢP LỆ** | **Tốt:** Toàn bộ xe nằm trọn trong khung hình, áp dụng tốt bố cục tỉ lệ 1/3 tạo không gian thoáng đãng. |
-| <img src="https://i.postimg.cc/yNr1SqfC/IMG_20260321_145006.jpg" width="300"> | ✅ **HỢP LỆ** | **Tốt:** Toàn bộ xe nằm trọn trong khung hình, chủ thể được đặt ngay ngắn ở chính giữa. |
-| <img src="https://i.postimg.cc/vBVsg4gm/IMG_20260321_150406.jpg" width="300"> | ❌ **TỪ CHỐI** | **Không ổn:** Xe bị lệch quá nhiều lên trên, mép ảnh xém cắt mất phần cục nóng máy lạnh trên nóc xe. |
-| <img src="https://i.postimg.cc/gkPYhHHN/IMG_20260321_144308.jpg" width="300"> | ❌ **TỪ CHỐI** | **Không ổn:** Xe bị lệch quá sát mép trái, xém cắt mất gương chiếu hậu bên phụ của xe. |
-| <img src="https://i.postimg.cc/pVcSbWpS/photo-2026-03-20-17-13-18.jpg" width="300"> | ❌ **TỪ CHỐI** | **Không ổn:** Xe bị mờ do chuyển động (Motion blur), nhòe do phản chiếu kính và không thấy BKS. |
-| <img src="https://i.postimg.cc/tRFzD9FZ/IMG_7959.jpg" width="300"> | ❌ **TỪ CHỐI** | **Không ổn:** Xe bị che khuất nghiêm trọng và không thấy BKS. |
-| <img src="https://i.postimg.cc/SQcGVmcz/IMG_8022.jpg" width="300"> | ❌ **TỪ CHỐI** | **Không ổn:** Khoảng cách chụp quá xa, không thể nhìn rõ chi tiết. |
-| <img src="https://i.postimg.cc/7PSNXqSC/IMG_8131.jpg" width="300"> | ❌ **TỪ CHỐI** | **Không ổn:** Ảnh bị lóa sáng nghiêm trọng. |
-| <img src="https://i.postimg.cc/rmm3qgbw/IMG-20260323-125800.jpg" width="300"> | ❌ **TỪ CHỐI** | **Không ổn:** Xe bị người đi đường che khuất một phần. |
+| <img src="https://i.postimg.cc/Pf1Hd8n3/IMG_20260321_174305.jpg" width="300"> | ✅ **HỢP LỆ** | **Đạt:** Chủ thể trọn vẹn, áp dụng chuẩn tỉ lệ 1/3. |
+| <img src="https://i.postimg.cc/yNr1SqfC/IMG_20260321_145006.jpg" width="300"> | ✅ **HỢP LỆ** | **Đạt:** Chủ thể trọn vẹn, căn lề chính giữa chuẩn xác. |
+| <img src="https://i.postimg.cc/vBVsg4gm/IMG_20260321_150406.jpg" width="300"> | ❌ **TỪ CHỐI** | **Lỗi:** Bố cục lệch trên, viền ảnh cắt cụt hệ thống điều hòa trên nóc. |
+| <img src="https://i.postimg.cc/gkPYhHHN/IMG_20260321_144308.jpg" width="300"> | ❌ **TỪ CHỐI** | **Lỗi:** Bố cục lệch trái, viền ảnh cắt cụt gương chiếu hậu. |
+| <img src="https://i.postimg.cc/pVcSbWpS/photo-2026-03-20-17-13-18.jpg" width="300"> | ❌ **TỪ CHỐI** | **Lỗi:** Nhòe do chuyển động, lóa kính, mất khả năng nhận diện BKS. |
+| <img src="https://i.postimg.cc/tRFzD9FZ/IMG_7959.jpg" width="300"> | ❌ **TỪ CHỐI** | **Lỗi:** Chủ thể bị che khuất nghiêm trọng, mất khả năng nhận diện BKS. |
+| <img src="https://i.postimg.cc/SQcGVmcz/IMG_8022.jpg" width="300"> | ❌ **TỪ CHỐI** | **Lỗi:** Cự ly chụp sai quy chuẩn (quá xa). |
+| <img src="https://i.postimg.cc/7PSNXqSC/IMG_8131.jpg" width="300"> | ❌ **TỪ CHỐI** | **Lỗi:** Cháy sáng (Overexposed) nghiêm trọng. |
+| <img src="https://i.postimg.cc/rmm3qgbw/IMG-20260323-125800.jpg" width="300"> | ❌ **TỪ CHỐI** | **Lỗi:** Xuất hiện vật cản (người đi đường) lấp chủ thể. |
 
 ---
 
-## PHẦN 2: QUY CHUẨN ĐIỀN THÔNG TIN
+## PHẦN 2: QUY CHUẨN NHẬP LIỆU
 
-⚠️ **QUAN TRỌNG:** Mọi thông tin bên dưới (Tuyến đường, Trạng thái, Đơn vị vận hành...) bắt buộc phải ghi theo **đúng thời điểm bấm máy chụp ảnh**.
+⚠️ **LƯU Ý:** Toàn bộ trường thông tin phải phản ánh chính xác trạng thái phương tiện **tại đúng thời điểm bấm máy**.
 
-### 1. Biển kiểm soát
-Chỉ chấp nhận nhập biển số viết liền, không chứa khoảng trắng hay ký tự đặc biệt.
-* **Biển số thường:** `29A1234`, `29A12345`
-* **Biển số tạm:** `T1234567`
-* **Trùng biển số:** Nếu có 2 xe mang cùng 1 biển số, thêm hậu tố số đếm: `29A12345-1`, `29A12345-2`.
-* **Nếu ảnh có nhiều hơn 1 xe:** Ghi ưu tiên xe chưa có trên hệ thống, nếu tất cả xe đã có (hoặc chưa) có trên hệ thống ưu tiên ghi BKS của xe từ trái sang phải.
-
-📌 *Lưu ý: Nếu cùng 1 dòng xe, cùng BKS nhưng chỉ khác tuyến/đơn vị vận hành, khả năng cao đó vẫn là cùng 1 chiếc xe.*
+### 1. Biển kiểm soát (BKS)
+Nhập chuỗi ký tự viết liền, loại bỏ khoảng trắng và ký tự đặc biệt.
+* **Tiêu chuẩn:** `29A1234`, `29A12345`
+* **Biển tạm:** `T1234567`
+* **Trùng BKS trên hệ thống:** Gắn thêm hậu tố định danh: `29A12345-1`, `29A12345-2`.
+* **Khung hình đa phương tiện (nhiều xe):** Ưu tiên nhập BKS của phương tiện chưa có dữ liệu trên hệ thống. Nếu đồng cấp, ưu tiên đọc từ trái sang phải.
+* *Lưu ý:* Phương tiện cùng dòng, cùng BKS nhưng khác tuyến/đơn vị vẫn được xác định là một phương tiện duy nhất.
 
 ### 2. Ngày chụp
-Hệ thống sẽ **tự động trích xuất** ngày chụp từ dữ liệu ảnh (EXIF). Không cần nhập thủ công.
+Hệ thống tự động đồng bộ từ metadata (EXIF). Bỏ qua nhập thủ công.
 
 ### 3. Đơn vị vận hành
-Ưu tiên chọn tên đơn vị từ **Gợi ý có sẵn**. Nếu phải nhập tay, cần nhập đầy đủ tên đơn vị *(VD: Vinbus -> Công ty TNHH Dịch vụ Vận tải sinh thái Vinbus)*.
+Sử dụng danh sách gợi ý của hệ thống. Nếu nhập thủ công, phải ghi tên đầy đủ pháp nhân và tuân thủ bảng viết tắt bắt buộc sau:
 
-⚠️ **Quy chuẩn viết tắt (BẮT BUỘC):**
-| Từ gốc | Viết chuẩn thành |
+| Thuật ngữ gốc | Ký hiệu chuẩn hóa |
 | :--- | :--- |
 | Xí nghiệp | **XN** |
 | Cổ phần | **CP** |
 | Hợp tác xã | **HTX** |
 | Bus | **Xe buýt** |
 
-*Ví dụ: `Xí nghiệp Bus Hà Nội` ➔ `XN Xe buýt Hà Nội`*
+*(Ví dụ: `Xí nghiệp Bus Hà Nội` ➔ `XN Xe buýt Hà Nội`)*
 
-### 4. Loại xe
-Phân loại rõ ràng giữa **Xe buýt** và **Xe khách**.
+### 4. Phân loại phương tiện
+Gán nhãn chính xác: **Xe buýt** hoặc **Xe khách**.
 
-### 5. Tuyến đường
-* **Xe buýt:** Chỉ nhập số tuyến. *Ví dụ: `01`*. (Lộ trình chi tiết ghi tại phần **Ghi chú**).
-* **Xe khách:** Ghi điểm đầu - điểm cuối (theo tỉnh). Ưu tiên điểm đầu là nơi xe đăng kí (nếu có) *Ví dụ: `Hà Nội - Cẩm Phả`*.
-* **Xe đã dừng hoạt động:** Ghi `Dừng hoạt động`.
-* **Xe chưa hoạt động:** Ghi `Chưa hoạt động`.
-* **Xe về gara / Ngoài giờ hoạt động:** Ghi `Ngoài giờ hoạt động`.
-* **Xe chạy hợp đồng:** Ghi `Hợp đồng`.
+### 5. Tuyến hoạt động
+* **Xe buýt:** Chỉ nhập mã số tuyến (Ví dụ: `01`). Lộ trình cụ thể chuyển xuống mục Ghi chú.
+* **Xe khách:** Nhập theo cú pháp `[Điểm đầu] - [Điểm cuối]` cấp tỉnh. Ưu tiên điểm đầu là nơi đăng ký phương tiện (Ví dụ: `Hà Nội - Cẩm Phả`).
+* **Trạng thái đặc biệt:** Khai báo bằng các nhãn chuẩn: `Dừng hoạt động`, `Chưa hoạt động`, `Ngoài giờ hoạt động`, `Hợp đồng`.
 
-### 6. Dòng xe
-Ưu tiên chọn từ gợi ý có sẵn. Nếu không có, vui lòng nhập tên chi tiết của dòng xe.
-*Ví dụ: `Thaco Garden` ➔ `Thaco Garden TB79CT`.*
+### 6. Dòng xe (Model)
+Ưu tiên danh sách gợi ý. Cần nhập chính xác mã định danh thương mại (Ví dụ: `Thaco Garden TB79CT`).
 
 ### 7. Vị trí chụp
-Nhập **địa chỉ đoạn đường mà xe đang di chuyển qua** trong khung hình (KHÔNG phải vị trí nơi người chụp đang đứng bấm máy).
-
-📌 *Lưu ý: Định vị tọa độ (Bản đồ) có thể sai lệch, hệ thống luôn **ưu tiên thông tin địa chỉ bằng chữ** do bạn tự nhập.*
+Khai báo địa chỉ đoạn đường **phương tiện đang di chuyển qua** (không lấy vị trí đứng của người chụp). Dữ liệu văn bản được ưu tiên cao hơn tọa độ GPS từ Bản đồ.
 
 ### 8. Ghi chú
-Chỉ ghi ghi chú **liên quan đến ảnh/xe**, không được phép ghi linh tinh, lạc đề v.. v..
+Khai báo siêu dữ liệu bổ sung. Nghiêm cấm chèn nội dung rác, sai mục đích. Nếu thiếu thông tin để khai báo ở các trường trên, nhập lệnh: `"Chưa rõ thông tin [tên trường]"`.
 
 ---
 
-## PHẦN 3: BIỆN PHÁP XỬ LÝ VI PHẠM
-* **Đình chỉ quyền đóng góp:** 
-    * Tài khoản sẽ bị **đình chỉ quyền đăng tải ảnh và cập nhật dữ liệu từ 2 đến 30 ngày** nếu tiếp tục tái diễn hành vi điền sai thông tin sau khi đã được nhắc nhở.
-    * Trong trường hợp cố ý điền sai thông tin mang tính chất hàng loạt, phá hoại dữ liệu hoặc spam thông tin rác, tài khoản sẽ bị **khóa vĩnh viễn** mà không cần báo trước.
+## PHẦN 3: QUẢN TRỊ RỦI RO & XỬ LÝ VI PHẠM
 
-> 💡 **Lời khuyên:** Nếu bạn không chắc chắn về một thông tin nào đó (Đơn vị vận hành, Dòng xe, Tuyến đường...), vui lòng ghi rõ *"Chưa rõ thông tin ..."* tại phần **Ghi chú** để các Kiểm duyệt viên hỗ trợ xác minh, tuyệt đối không tự ý điền bừa.
+Hệ thống có cơ chế xử lý tự động đối với các tài khoản vi phạm tiêu chuẩn nhập liệu:
+* **Tạm đình chỉ (2 - 30 ngày):** Áp dụng cho hành vi tái phạm lỗi sai thông tin sau khi đã có cảnh báo từ Kiểm duyệt viên.
+* **Khóa vĩnh viễn (Không báo trước):** Áp dụng cho các hành vi: Cố ý làm sai lệch thông tin hàng loạt, phá hoại tính toàn vẹn của Cơ sở dữ liệu, hoặc spam rác.
