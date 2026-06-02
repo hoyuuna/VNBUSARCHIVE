@@ -4406,6 +4406,7 @@
                             "Bạn có chắc chắn muốn xóa ảnh này? Ảnh sẽ bị xóa vĩnh viễn khỏi hệ thống.",
                             async () => {
                                 try {
+                                    try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
                                     // 1. Gọi API Xóa ảnh từ ImageKit trước
                                     const { data: { session } } = await window.sb.auth.getSession();
                                     if (session && p.url) {
@@ -4432,6 +4433,7 @@
                     } else {
                         app.ui.showPrompt("Vui lòng nhập lý do xóa ảnh này (Bắt buộc):", "", async (reason) => {
                             try {
+                                try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
                                 const { error } = await window.sb.from('edit_requests').insert({
                                     requester_id: app.user.id,
                                     license_plate: p.license_plate,
@@ -7595,6 +7597,14 @@ formInputs.forEach(input => {
                         btn.innerText = originalText; btn.disabled = false;
                         return;
                     }
+                    
+                    if (app.role !== 'admin' && app.role !== 'manager') {
+                        try { await app.captcha.request(); } catch (err) {
+                            if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha.");
+                            btn.innerText = originalText; btn.disabled = false;
+                            return;
+                        }
+                    }
 
                     try {
                         const takenAtChanged = !!(payload.taken_at && payload.taken_at !== app.currentPhoto.taken_at);
@@ -10313,6 +10323,10 @@ app.admin.fetchManagerData('denied');
                         return app.ui.showAlert("Không có sự thay đổi nào so với dữ liệu gốc. Yêu cầu bị hủy.");
                     }
 
+                    if (app.role !== 'admin' && app.role !== 'manager') {
+                        try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
+                    }
+
                     const payload = app.vehicle.tempHistory.map((h, i) => ({
                         license_plate: app.currentPlate,
                         operator: h.operator,
@@ -10451,6 +10465,14 @@ app.admin.fetchManagerData('denied');
                     if (app.currentVehicle && newData.model === (app.currentVehicle.model || '') && newData.note === (app.currentVehicle.note || '')) {
                         btnSave.disabled = false; btnSave.innerHTML = 'Gửi yêu cầu';
                         return app.ui.showAlert("Không có sự thay đổi nào so với dữ liệu gốc. Yêu cầu bị hủy.");
+                    }
+                    
+                    if (app.role !== 'admin' && app.role !== 'manager') {
+                        try { await app.captcha.request(); } catch (err) {
+                            if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha.");
+                            btnSave.disabled = false; btnSave.innerHTML = 'Gửi yêu cầu';
+                            return;
+                        }
                     }
 
                     try {
@@ -11628,6 +11650,8 @@ changePassword: async () => {
                     if (!oldPass) return app.ui.showAlert("Vui lòng nhập mật khẩu hiện tại.");
                     if (!newPass || newPass.length < 6) return app.ui.showAlert("Mật khẩu mới phải ít nhất 6 ký tự.");
                     
+                    try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
+                    
                     const { error } = await window.sb.auth.updateUser({ 
                         password: newPass,
                         current_password: oldPass
@@ -11656,6 +11680,8 @@ changePassword: async () => {
 
                     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                     if (!emailRegex.test(newEmail)) return app.ui.showAlert("Định dạng email không hợp lệ.");
+
+                    try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
 
                     const originalText = btn.innerHTML;
                     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
@@ -11731,11 +11757,18 @@ changePassword: async () => {
                         updateAvatarBtn.classList.add('opacity-50', 'cursor-not-allowed');
                     }
 
+                    let captchaResponse;
+                    try { captchaResponse = await app.captcha.request(); } catch (err) { 
+                        if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha.");
+                        if (updateAvatarBtn) { updateAvatarBtn.innerHTML = btnOriginalText || '<i class="fa-solid fa-upload mr-1"></i> Tải ảnh lên từ máy'; updateAvatarBtn.disabled = false; updateAvatarBtn.classList.remove('opacity-50', 'cursor-not-allowed'); }
+                        return; 
+                    }
                     try {
                         const avatarData = new FormData();
                         avatarData.append('file', blob);
                         avatarData.append('userId', app.user.id);
                         avatarData.append('isAvatar', 'true');
+                        avatarData.append('captchaToken', captchaResponse);
                         avatarData.append('fileExtension', app.utils.getTargetExtension());
 
                         const { data: { session } } = await window.sb.auth.getSession();
@@ -11828,6 +11861,7 @@ changePassword: async () => {
 
                             try {
 
+                                try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
                                 const { error: dbError } = await window.sb.from('profiles').update({ username: newName }).eq('id', app.user.id);
                                 if (dbError) {
                                     if (dbError.code === '23505') throw new Error("Tên này đã có người sử dụng!");
