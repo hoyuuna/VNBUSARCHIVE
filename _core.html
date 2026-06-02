@@ -3037,12 +3037,12 @@
 
                             <!-- GIAO DIỆN THIẾT BỊ ĐÃ KẾT NỐI (THAY THẾ DROPZONE) -->
                             <div id="webrtc-connected-zone" class="hidden w-full bg-blue-50 border-2 border-blue-300 rounded-2xl p-8 flex-col items-center justify-center gap-3 shadow-md relative overflow-hidden transition-all fade-zoom-in mt-2">
-                                <div class="w-16 h-16 bg-white border border-blue-300 text-blue-600 rounded-full flex items-center justify-center shadow-md">
+                                <div id="webrtc-connected-icon" class="w-16 h-16 bg-white border border-blue-300 text-blue-600 rounded-full flex items-center justify-center shadow-md">
                                     <i class="fa-solid fa-mobile-screen-button text-2xl animate-pulse"></i>
                                 </div>
                                 <div class="text-center mb-1">
-                                    <p class="text-sm font-bold text-blue-800">Đã kết nối với điện thoại!</p>
-                                    <p class="text-[11px] text-blue-600 mt-1 uppercase tracking-wider font-semibold">Vui lòng chọn ảnh trên màn hình điện thoại</p>
+                                    <p id="webrtc-connected-title" class="text-sm font-bold text-blue-800">Đã kết nối với điện thoại!</p>
+                                    <p id="webrtc-connected-sub" class="text-[11px] text-blue-600 mt-1 uppercase tracking-wider font-semibold">Vui lòng chọn ảnh trên màn hình điện thoại</p>
                                 </div>
                                 <button type="button" onclick="app.webrtc.disconnect()" class="bg-white hover:bg-red-50 border border-red-200 text-red-600 font-bold py-2.5 px-6 rounded-full text-xs transition shadow-sm mt-1">
                                     <i class="fa-solid fa-link-slash mr-1"></i> Ngắt kết nối
@@ -9657,7 +9657,21 @@ app.admin.fetchManagerData('denied');
                     if (previewBox) previewBox.classList.add('hidden');
                     
                     const dropZone = document.getElementById('drop-zone');
-                    if (dropZone) dropZone.classList.remove('hidden');
+                    const connectedZone = document.getElementById('webrtc-connected-zone');
+                    
+                    if (app.webrtc && app.webrtc.conn && app.webrtc.conn.open) {
+                        if (connectedZone) {
+                            connectedZone.classList.remove('hidden');
+                            connectedZone.classList.add('flex');
+                        }
+                        if (dropZone) dropZone.classList.add('hidden');
+                    } else {
+                        if (dropZone) dropZone.classList.remove('hidden');
+                        if (connectedZone) {
+                            connectedZone.classList.remove('flex');
+                            connectedZone.classList.add('hidden');
+                        }
+                    }
                     
                     if (app.upload.restoreDropZone) app.upload.restoreDropZone();
                     
@@ -9686,11 +9700,20 @@ app.admin.fetchManagerData('denied');
                     const file = e.target.files[0];
                     if (!file) return;
 
-                    // CHỈ TÁC ĐỘNG VÀO DIV HIỂN THỊ, BẢO TOÀN THẺ INPUT
                     const dropZone = document.getElementById('drop-zone');
                     const visualEl = dropZone ? dropZone.querySelector('.pointer-events-none') : null;
+                    const connectedZone = document.getElementById('webrtc-connected-zone');
                     
-                    if (dropZone && visualEl) {
+                    const isWebrtcActive = app.webrtc && app.webrtc.conn && connectedZone && !connectedZone.classList.contains('hidden');
+
+                    if (isWebrtcActive) {
+                        const cIcon = document.getElementById('webrtc-connected-icon');
+                        const cTitle = document.getElementById('webrtc-connected-title');
+                        const cSub = document.getElementById('webrtc-connected-sub');
+                        if (cIcon) cIcon.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-2xl text-blue-600"></i>';
+                        if (cTitle) cTitle.innerText = 'Đang xử lý ảnh...';
+                        if (cSub) cSub.innerText = 'Vui lòng đợi trong giây lát';
+                    } else if (dropZone && visualEl) {
                         if (!visualEl.dataset.originalHtml) {
                             visualEl.dataset.originalHtml = visualEl.innerHTML;
                         }
@@ -9709,6 +9732,13 @@ app.admin.fetchManagerData('denied');
                             dz.style.pointerEvents = 'auto';
                             if (qrWrap) qrWrap.classList.remove('hidden');
                         }
+
+                        const cIcon = document.getElementById('webrtc-connected-icon');
+                        const cTitle = document.getElementById('webrtc-connected-title');
+                        const cSub = document.getElementById('webrtc-connected-sub');
+                        if (cIcon) cIcon.innerHTML = '<i class="fa-solid fa-mobile-screen-button text-2xl animate-pulse"></i>';
+                        if (cTitle) cTitle.innerText = 'Đã kết nối với điện thoại!';
+                        if (cSub) cSub.innerText = 'Vui lòng chọn ảnh trên màn hình điện thoại';
                     };
 
                     if (file.size > 20 * 1024 * 1024) {
@@ -9833,6 +9863,11 @@ app.admin.fetchManagerData('denied');
                     previewImg.src = url;
                     document.getElementById('preview-box').classList.remove('hidden');
                     document.getElementById('drop-zone').classList.add('hidden');
+                    const connectedZone = document.getElementById('webrtc-connected-zone');
+                    if (connectedZone) {
+                        connectedZone.classList.add('hidden');
+                        connectedZone.classList.remove('flex');
+                    }
 
                     const name = app.username || "Guest";
                     const wmName = document.getElementById('wm-username');
@@ -12765,14 +12800,21 @@ closeCustomRolePrompt: () => {
                 app.webrtc.conn = null;
                 app.webrtc.peer = null;
                 
-                // Trả UI về Dropzone gốc
+                // Trả UI về Dropzone gốc NẾU khung preview đang tắt
                 const connectedZone = document.getElementById('webrtc-connected-zone');
                 const dropZone = document.getElementById('drop-zone');
-                if (connectedZone && dropZone) {
+                const previewBox = document.getElementById('preview-box');
+                
+                if (connectedZone) {
                     connectedZone.classList.remove('flex');
                     connectedZone.classList.add('hidden');
+                }
+                
+                if (dropZone && previewBox && previewBox.classList.contains('hidden')) {
                     dropZone.classList.remove('hidden');
                 }
+                
+                if (app.upload && app.upload.restoreDropZone) app.upload.restoreDropZone();
 
                 if (isFromMobile) {
                     app.ui.showAlert("Điện thoại đã ngắt kết nối.", null, null, {title: "Ngắt kết nối"});
