@@ -3035,6 +3035,20 @@
                                 <input type="file" id="up-file" accept="image/jpeg" class="hidden" required />
                             </div>
 
+                            <!-- GIAO DIỆN THIẾT BỊ ĐÃ KẾT NỐI (THAY THẾ DROPZONE) -->
+                            <div id="webrtc-connected-zone" class="hidden w-full bg-blue-50 border-2 border-blue-300 rounded-2xl p-8 flex-col items-center justify-center gap-3 shadow-md relative overflow-hidden transition-all fade-zoom-in mt-2">
+                                <div class="w-16 h-16 bg-white border border-blue-300 text-blue-600 rounded-full flex items-center justify-center shadow-md">
+                                    <i class="fa-solid fa-mobile-screen-button text-2xl animate-pulse"></i>
+                                </div>
+                                <div class="text-center mb-1">
+                                    <p class="text-sm font-bold text-blue-800">Đã kết nối với điện thoại!</p>
+                                    <p class="text-[11px] text-blue-600 mt-1 uppercase tracking-wider font-semibold">Vui lòng chọn ảnh trên màn hình điện thoại</p>
+                                </div>
+                                <button type="button" onclick="app.webrtc.disconnect()" class="bg-white hover:bg-red-50 border border-red-200 text-red-600 font-bold py-2.5 px-6 rounded-full text-xs transition shadow-sm mt-1">
+                                    <i class="fa-solid fa-link-slash mr-1"></i> Ngắt kết nối
+                                </button>
+                            </div>
+
                             <div id="preview-box" class="hidden mt-6">
                                 <p class="text-xs font-bold mb-2 text-gray-600">Xem trước (Đã đóng dấu bản quyền):</p>
                                 <div id="preview-container"
@@ -9650,6 +9664,7 @@ app.admin.fetchManagerData('denied');
                     const previewImg = document.getElementById('preview-img');
                     if (previewImg) previewImg.src = '';
                     
+                    if (app.webrtc && app.webrtc.resetMobile) app.webrtc.resetMobile();
                     app.rawFile = null;
                     app.currentExif = { camera: 'N/A', params: 'N/A' };
                     
@@ -12607,11 +12622,16 @@ closeCustomRolePrompt: () => {
                 </div>
             </div>
 
-            <!-- CHECKBOX ĐƯỢC CHUYỂN VÀO ĐÂY -->
-            <label class="flex items-center justify-center gap-2 mb-4 cursor-pointer group bg-gray-50 border border-gray-200 px-3 py-2 rounded-lg w-full transition hover:bg-gray-100">
-                <input type="checkbox" id="webrtc-persist-cb" class="w-4 h-4 rounded border-gray-300 text-black focus:ring-black cursor-pointer" onchange="app.webrtc.togglePersist(this.checked)">
-                <span class="text-[11px] font-bold text-gray-600 group-hover:text-black transition select-none">Tự động mở mã QR ở phiên tiếp theo</span>
-            </label>
+            <!-- HƯỚNG DẪN QUÉT VÀ CẢNH BÁO -->
+            <div class="bg-blue-50 p-3 rounded-lg border border-blue-100 w-full mb-3 text-left shadow-sm">
+                <p class="text-xs text-blue-800 font-bold mb-1"><i class="fa-solid fa-camera mr-1.5"></i>Hướng dẫn:</p>
+                <p class="text-[11px] text-blue-700 leading-relaxed">Mở ứng dụng <b>Camera</b> mặc định trên điện thoại và hướng vào mã QR này.</p>
+            </div>
+            <div class="px-2 mb-4 w-full">
+                <p class="text-[10px] text-amber-600 font-medium leading-relaxed text-left">
+                    <i class="fa-solid fa-triangle-exclamation mr-1"></i> Có thể không hỗ trợ một số điện thoại cũ. Vui lòng dùng <b>Chrome / Safari</b> để có kết quả tốt nhất.
+                </p>
+            </div>
 
             <div class="w-full bg-gray-50 rounded-lg p-3 mb-5 border border-gray-200 flex justify-between items-center">
                 <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest m-0">Trạng thái</p>
@@ -12630,33 +12650,15 @@ closeCustomRolePrompt: () => {
             conn: null,
             timer: null,
             timeLeft: 180,
-            isPersisted: false,
-            CHUNK_SIZE: 64 * 1024, // Băm file thành từng cục 64KB
+            CHUNK_SIZE: 64 * 1024,
             
             init: () => {
-                const savedPersist = localStorage.getItem('vnbus_webrtc_persist');
-                if (savedPersist === 'true') {
-                    app.webrtc.isPersisted = true;
-                    const cb = document.getElementById('webrtc-persist-cb');
-                    if(cb) cb.checked = true;
-                }
-
                 const urlParams = new URLSearchParams(window.location.search);
                 const mobilePeerId = urlParams.get('peer');
                 
-                // Nếu đang ở trang mobile upload
                 if (window.location.pathname === '/mobile-upload' && mobilePeerId) {
                     app.webrtc.startClient(mobilePeerId);
-                } else {
-                    if (app.webrtc.isPersisted && window.location.pathname === '/upload') {
-                        setTimeout(() => app.webrtc.startHost(), 500);
-                    }
                 }
-            },
-
-            togglePersist: (val) => {
-                app.webrtc.isPersisted = val;
-                localStorage.setItem('vnbus_webrtc_persist', val);
             },
 
             // ================= TẠI MÁY TÍNH (HOST) =================
@@ -12690,6 +12692,19 @@ closeCustomRolePrompt: () => {
 
                 app.webrtc.peer.on('connection', (conn) => {
                     app.webrtc.conn = conn;
+                    
+                    conn.on('open', () => {
+                        // 1. Tắt Modal QR ngay lập tức khi điện thoại join thành công
+                        document.getElementById('webrtc-qr-modal').classList.add('hidden');
+                        app.ui.unlockScroll();
+                        if(app.webrtc.timer) clearInterval(app.webrtc.timer);
+                        
+                        // 2. Chuyển UI Dropzone thành UI Connected
+                        document.getElementById('drop-zone').classList.add('hidden');
+                        document.getElementById('webrtc-connected-zone').classList.remove('hidden');
+                        document.getElementById('webrtc-connected-zone').classList.add('flex');
+                    });
+
                     let pendingMeta = null;
                     let receivedChunks = [];
 
@@ -12697,23 +12712,22 @@ closeCustomRolePrompt: () => {
                         if (data.type === 'file_meta') {
                             pendingMeta = data;
                             receivedChunks = [];
-                            countdownEl.innerText = "ĐANG TẢI... 0%";
                         } 
                         else if (data.type === 'chunk') {
                             receivedChunks.push(data.data);
-                            let percent = Math.round((receivedChunks.length / pendingMeta.totalChunks) * 100);
-                            countdownEl.innerText = `ĐANG TẢI... ${percent}%`;
 
                             if (receivedChunks.length === pendingMeta.totalChunks) {
-                                countdownEl.innerText = "ĐANG XỬ LÝ...";
                                 const blob = new Blob(receivedChunks, { type: pendingMeta.mime });
                                 const receivedFile = new File([blob], pendingMeta.name, { type: pendingMeta.mime });
                                 
-                                app.webrtc.cancelHost(false); // Đóng QR
                                 const fakeEvent = { target: { files: [receivedFile] } };
-                                app.upload.handleFileSelect(fakeEvent); // Kích hoạt UI Cắt ảnh trên PC
+                                app.upload.handleFileSelect(fakeEvent);
                             }
                         }
+                    });
+
+                    conn.on('close', () => {
+                        app.webrtc.disconnect(true);
                     });
                 });
             },
@@ -12724,8 +12738,6 @@ closeCustomRolePrompt: () => {
                 
                 if(app.webrtc.timer) clearInterval(app.webrtc.timer);
                 app.webrtc.timer = setInterval(() => {
-                    if (timerEl.innerText.includes('ĐANG TẢI')) return; 
-                    
                     app.webrtc.timeLeft--;
                     const m = Math.floor(app.webrtc.timeLeft / 60).toString().padStart(2, '0');
                     const s = (app.webrtc.timeLeft % 60).toString().padStart(2, '0');
@@ -12733,23 +12745,43 @@ closeCustomRolePrompt: () => {
                     
                     if (app.webrtc.timeLeft <= 0) {
                         app.ui.showAlert("Mã QR đã hết hạn (3 phút). Vui lòng tạo lại.");
-                        app.webrtc.cancelHost(false);
+                        app.webrtc.cancelHost();
                     }
                 }, 1000);
             },
 
-            cancelHost: (removePersist = true) => {
+            cancelHost: () => {
                 if(app.webrtc.timer) clearInterval(app.webrtc.timer);
                 if(app.webrtc.conn) app.webrtc.conn.close();
                 if(app.webrtc.peer) app.webrtc.peer.destroy();
                 
                 document.getElementById('webrtc-qr-modal').classList.add('hidden');
                 app.ui.unlockScroll();
+            },
 
-                if (removePersist) {
-                    app.webrtc.togglePersist(false);
-                    const cb = document.getElementById('webrtc-persist-cb');
-                    if(cb) cb.checked = false;
+            disconnect: (isFromMobile = false) => {
+                if(app.webrtc.conn) app.webrtc.conn.close();
+                if(app.webrtc.peer) app.webrtc.peer.destroy();
+                app.webrtc.conn = null;
+                app.webrtc.peer = null;
+                
+                // Trả UI về Dropzone gốc
+                const connectedZone = document.getElementById('webrtc-connected-zone');
+                const dropZone = document.getElementById('drop-zone');
+                if (connectedZone && dropZone) {
+                    connectedZone.classList.remove('flex');
+                    connectedZone.classList.add('hidden');
+                    dropZone.classList.remove('hidden');
+                }
+
+                if (isFromMobile) {
+                    app.ui.showAlert("Điện thoại đã ngắt kết nối.", null, null, {title: "Ngắt kết nối"});
+                }
+            },
+
+            resetMobile: () => {
+                if (app.webrtc.conn && app.webrtc.conn.open) {
+                    app.webrtc.conn.send({ type: 'reset_ui' });
                 }
             },
 
@@ -12760,34 +12792,43 @@ closeCustomRolePrompt: () => {
                 const fileInput = document.getElementById('webrtc-mobile-file');
 
                 app.webrtc.peer = new Peer();
-                app.webrtc.isSuccess = false; // Đánh dấu trạng thái hoàn thành để không bị lỗi lúc PC ngắt kết nối
+
+                const showMobileDropzone = () => {
+                    statusEl.classList.add('hidden');
+                    btnEl.classList.remove('hidden');
+                    btnEl.classList.add('flex');
+                    fileInput.value = ''; // Xóa cache file cũ để có thể chọn lại đúng file đó
+                };
+
+                const showMobileError = (title, sub) => {
+                    statusEl.classList.remove('hidden');
+                    statusEl.className = "w-full flex flex-col items-center justify-center min-h-[120px] bg-red-50 rounded-xl border border-red-200 p-4 mb-2 fade-zoom-in";
+                    statusEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-3xl text-red-500 mb-3"></i><p class="text-sm font-bold text-red-700">${title}</p><p class="text-xs text-red-600 mt-1 font-medium text-center">${sub}</p>`;
+                    btnEl.classList.remove('flex');
+                    btnEl.classList.add('hidden');
+                };
 
                 app.webrtc.peer.on('open', (id) => {
                     app.webrtc.conn = app.webrtc.peer.connect(hostId, { reliable: true });
 
                     app.webrtc.conn.on('open', () => {
-                        // Ẩn box loading, hiện box Dropzone
-                        statusEl.classList.add('hidden');
-                        btnEl.classList.remove('hidden');
-                        btnEl.classList.add('flex');
+                        showMobileDropzone();
+                    });
+
+                    app.webrtc.conn.on('data', (data) => {
+                        // Nhận tín hiệu từ PC báo đã sẵn sàng cho ảnh tiếp theo
+                        if (data.type === 'reset_ui') {
+                            showMobileDropzone();
+                        }
                     });
 
                     app.webrtc.conn.on('close', () => {
-                        if (app.webrtc.isSuccess) return; // Nếu đã success thì kệ sự kiện close này
-                        statusEl.classList.remove('hidden');
-                        statusEl.className = "w-full flex flex-col items-center justify-center min-h-[120px] bg-red-50 rounded-xl border border-red-200 p-4 mb-2 fade-zoom-in";
-                        statusEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-3xl text-red-500 mb-3"></i><p class="text-sm font-bold text-red-700">Mất kết nối với máy tính.</p><p class="text-xs text-red-600 mt-1 font-medium">Vui lòng tạo lại mã QR mới trên máy tính.</p>`;
-                        btnEl.classList.remove('flex');
-                        btnEl.classList.add('hidden');
+                        showMobileError("Mất kết nối với máy tính.", "Máy tính đã đóng kết nối hoặc bị tải lại trang. Vui lòng quét lại mã QR mới.");
                     });
                 });
 
                 app.webrtc.peer.on('error', (err) => {
-                    statusEl.classList.remove('hidden');
-                    statusEl.className = "w-full flex flex-col items-center justify-center min-h-[120px] bg-red-50 rounded-xl border border-red-200 p-4 mb-2 fade-zoom-in";
-                    statusEl.innerHTML = `<i class="fa-solid fa-xmark text-4xl text-red-500 mb-3"></i><p class="text-sm font-bold text-red-700">Lỗi đường truyền.</p><p class="text-xs text-red-600 mt-1 font-medium">Vui lòng tải lại trang để thử lại.</p>`;
-                    btnEl.classList.remove('flex');
-                    btnEl.classList.add('hidden');
+                    showMobileError("Lỗi kết nối WebRTC.", "Có thể mạng của bạn đang chặn P2P. Vui lòng tải lại trang hoặc đổi mạng.");
                 });
 
                 fileInput.addEventListener('change', async (e) => {
@@ -12799,7 +12840,6 @@ closeCustomRolePrompt: () => {
                         return;
                     }
 
-                    // Khi bắt đầu upload -> ẩn Dropzone, hiện Loading
                     btnEl.classList.remove('flex');
                     btnEl.classList.add('hidden');
                     statusEl.classList.remove('hidden');
@@ -12830,10 +12870,10 @@ closeCustomRolePrompt: () => {
                                 current: i,
                                 data: arrayBuffer.slice(start, end)
                             });
-                            await new Promise(r => setTimeout(r, 10)); // Giảm nghẽn mạng
+                            await new Promise(r => setTimeout(r, 10));
                         }
 
-                        app.webrtc.isSuccess = true; // Khóa cờ lỗi mất kết nối
+                        // Giữ nguyên giao diện thành công cho tới khi PC gởi tín hiệu reset_ui
                         setTimeout(() => {
                             statusEl.className = "w-full flex flex-col items-center justify-center min-h-[160px] bg-green-50 rounded-xl border border-green-200 p-4 mb-2 fade-zoom-in";
                             statusEl.innerHTML = `
@@ -12841,14 +12881,12 @@ closeCustomRolePrompt: () => {
                                     <i class="fa-solid fa-check text-3xl text-green-600"></i>
                                 </div>
                                 <p class="text-lg font-black text-green-800 uppercase tracking-tight">Đã chuyển ảnh!</p>
-                                <p class="text-xs text-green-700 mt-1 font-medium">Bạn có thể tiếp tục thao tác trên màn hình máy tính.</p>
+                                <p class="text-xs text-green-700 mt-1.5 font-medium text-center px-4 leading-relaxed">Tiếp tục thao tác trên màn hình máy tính.<br>Màn hình này sẽ tự mở khóa khi PC sẵn sàng nhận ảnh tiếp theo.</p>
                             `;
                         }, 500);
                     } catch (error) {
-                        alert("Lỗi khi đọc file: " + error.message);
-                        btnEl.classList.remove('hidden');
-                        btnEl.classList.add('flex');
-                        statusEl.classList.add('hidden');
+                        alert("Lỗi khi gửi file: " + error.message);
+                        showMobileDropzone();
                     }
                 });
             }
