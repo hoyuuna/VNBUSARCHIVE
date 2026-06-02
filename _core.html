@@ -3024,14 +3024,10 @@
                                         <p class="text-[11px] text-gray-400 mt-1 uppercase tracking-wider font-semibold">Định dạng JPG, JPEG (Tối đa 20MB)</p>
                                     </div>
                                 </div>
-                                <div class="w-full flex flex-col items-center mt-3 border-t border-gray-200 pt-3 relative z-20">
+                                <div id="qr-btn-wrapper" class="w-full flex flex-col items-center mt-3 border-t border-gray-200 pt-3 relative z-20">
                                     <button type="button" onclick="event.stopPropagation(); app.webrtc.startHost()" class="bg-gray-100 hover:bg-gray-200 border border-gray-300 text-black font-bold py-2.5 px-4 rounded-xl text-xs transition shadow-sm flex items-center gap-2">
                                         <i class="fa-solid fa-qrcode"></i> Quét QR Tải ảnh từ điện thoại
                                     </button>
-                                    <label class="flex items-center gap-1.5 mt-2 cursor-pointer group" onclick="event.stopPropagation()">
-                                        <input type="checkbox" id="webrtc-persist-cb" class="w-3.5 h-3.5 rounded border-gray-300 text-black focus:ring-black cursor-pointer" onchange="app.webrtc.togglePersist(this.checked)">
-                                        <span class="text-[10px] font-medium text-gray-500 group-hover:text-black transition select-none">Tiếp tục sử dụng cho tới phiên tiếp theo</span>
-                                    </label>
                                 </div>
                                 
                                 <input type="file" id="up-file" accept="image/jpeg" class="hidden" required />
@@ -3461,6 +3457,32 @@
 
             <div id="vehicle" class="view-section">
                 
+            </div>
+
+            <!-- VIEW MỚI: TẢI ẢNH TỪ ĐIỆN THOẠI -->
+            <div id="mobile-upload" class="view-section">
+                <div class="max-w-md mx-auto bg-white border border-vbs-border p-6 sm:p-8 rounded-2xl shadow-sm text-center flex flex-col items-center mt-6 min-h-[55vh] justify-center">
+                    <div class="w-16 h-16 bg-gray-50 text-black border border-gray-200 rounded-full flex items-center justify-center text-3xl mb-5 shadow-sm">
+                        <i class="fa-solid fa-mobile-screen-button"></i>
+                    </div>
+                    <h2 class="text-2xl font-black italic tracking-wider text-black mb-2" style="font-family: 'Montserrat', sans-serif;">VNBUSARCHIVE</h2>
+                    <p class="text-xs text-gray-500 mb-8 font-medium uppercase tracking-widest">Cổng truyền tải ảnh</p>
+                    
+                    <div id="webrtc-mobile-status" class="w-full flex flex-col items-center justify-center min-h-[120px] bg-gray-50 rounded-xl border border-gray-200 p-4">
+                        <i class="fa-solid fa-spinner fa-spin text-2xl text-gray-400 mb-3"></i>
+                        <p class="text-sm font-bold text-gray-700">Đang thiết lập kết nối...</p>
+                    </div>
+
+                    <input type="file" id="webrtc-mobile-file" accept="image/jpeg, image/png, image/webp" class="hidden">
+                    
+                    <button id="webrtc-mobile-btn" onclick="document.getElementById('webrtc-mobile-file').click()" class="hidden w-full bg-black text-white font-bold py-3.5 rounded-xl shadow-md hover:bg-gray-800 transition active:scale-95 text-sm flex items-center justify-center gap-2 mt-6">
+                        <i class="fa-solid fa-image text-lg"></i> Chọn ảnh từ Thư viện
+                    </button>
+                    
+                    <p class="text-[10px] text-gray-400 mt-6 max-w-xs leading-relaxed mx-auto">
+                        Chỉ hỗ trợ file JPG, PNG, WEBP (Tối đa 20MB). Trình duyệt trên điện thoại phải luôn được mở trong quá trình truyền tải.
+                    </p>
+                </div>
             </div>
 
         </main>
@@ -4850,6 +4872,8 @@
                     else app.views.loadHome();
                 } else if (path === '/upload') {
                     app.views.switch('upload', false);
+                } else if (path === '/mobile-upload') {
+                    app.views.switch('mobile-upload', false);
                 } else if (path === '/admin') {
                     app.views.switch('admin', false);
                 } else if (path === '/contact') {
@@ -6094,7 +6118,7 @@ dropdown.innerHTML = `
                     const headerSpacer = document.getElementById('header-spacer');
 
                     // Ẩn thanh tìm kiếm trên header nếu đang ở trang search hoặc upload
-                    if (id === 'upload' || id === 'search') {
+                    if (id === 'upload' || id === 'search' || id === 'mobile-upload') {
                         searchBox.classList.add('hidden');
 
                         // Thu nhỏ khoảng trống đệm trên mobile từ h-28 xuống h-20 (PC md:h-24 không bị ảnh hưởng)
@@ -9644,16 +9668,20 @@ app.admin.fetchManagerData('denied');
                         if (!visualEl.dataset.originalHtml) {
                             visualEl.dataset.originalHtml = visualEl.innerHTML;
                         }
+                        const qrWrapper = document.getElementById('qr-btn-wrapper');
                         dropZone.style.pointerEvents = 'none';
                         visualEl.innerHTML = '<div class="flex flex-col items-center gap-3 py-4"><i class="fa-solid fa-circle-notch fa-spin text-4xl text-gray-400"></i><p class="text-sm font-bold text-gray-600 mt-3">Đang xử lý ảnh, vui lòng đợi...</p></div>';
+                        if (qrWrapper) qrWrapper.classList.add('hidden');
                     }
 
                     app.upload.restoreDropZone = () => {
                         const dz = document.getElementById('drop-zone');
                         const vis = dz ? dz.querySelector('.pointer-events-none') : null;
+                        const qrWrap = document.getElementById('qr-btn-wrapper');
                         if (dz && vis && vis.dataset.originalHtml) {
                             vis.innerHTML = vis.dataset.originalHtml;
                             dz.style.pointerEvents = 'auto';
+                            if (qrWrap) qrWrap.classList.remove('hidden');
                         }
                     };
 
@@ -10770,6 +10798,7 @@ cleanupState: () => {
                     else if (pathParts.startsWith('/user/')) backName = "Hồ sơ (" + decodeURIComponent(pathParts.split('/')[2]) + ")";
                     else if (pathParts.startsWith('/search')) backName = "Kết quả tìm kiếm";
                     else if (pathParts === '/upload') backName = "Đăng tải";
+                    else if (pathParts === '/mobile-upload') backName = "Tải ảnh từ điện thoại";
                     else if (pathParts === '/admin') backName = "Quản trị hệ thống";
                     else if (pathParts.startsWith('/vehicle/')) backName = "Hồ sơ xe " + decodeURIComponent(pathParts.split('/')[2]);
                     else if (pathParts.startsWith('/photo/')) backName = "Quay lại ảnh";
@@ -12552,44 +12581,34 @@ closeCustomRolePrompt: () => {
 
     
     <!-- UI MODAL HIỂN THỊ MÃ QR TẠI PC -->
-    <div id="webrtc-qr-modal" class="hidden fixed inset-0 z-[8000] bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl p-6 md:p-8 max-w-sm w-full text-center flex flex-col items-center transform transition-all fade-zoom-in">
-            <h3 class="font-bold text-lg text-black uppercase tracking-tight mb-1"><i class="fa-solid fa-mobile-screen-button mr-2 text-black"></i>Kết nối thiết bị</h3>
-            <p class="text-xs text-gray-500 mb-5">Dùng điện thoại quét mã QR dưới đây để truyền ảnh trực tiếp.</p>
+    <div id="webrtc-qr-modal" class="hidden fixed inset-0 z-[8000] bg-black/40 backdrop-blur-sm flex flex-col items-center justify-center p-4">
+        <div class="bg-white/90 backdrop-blur-[20px] border border-white/60 rounded-2xl shadow-2xl p-6 md:p-8 max-w-sm w-full text-center flex flex-col items-center transform transition-all fade-zoom-in">
+            <div class="w-12 h-12 bg-black text-white rounded-full flex items-center justify-center text-xl mb-4 shadow-md">
+                <i class="fa-solid fa-mobile-screen-button"></i>
+            </div>
+            <h3 class="font-bold text-lg text-black uppercase tracking-tight mb-1">Kết nối thiết bị</h3>
+            <p class="text-xs text-gray-500 mb-5 font-medium px-2">Dùng điện thoại quét mã QR dưới đây để truyền ảnh trực tiếp vào hệ thống.</p>
             
-            <div class="bg-white p-3 border-2 border-dashed border-gray-300 rounded-xl mb-4 relative min-h-[224px] min-w-[224px] flex items-center justify-center">
+            <div class="bg-white p-3 border border-gray-200 shadow-sm rounded-xl mb-4 relative min-h-[224px] min-w-[224px] flex items-center justify-center">
                 <div id="webrtc-qrcode-container"></div>
-                <div id="webrtc-loading-qr" class="absolute inset-0 flex items-center justify-center bg-white z-10">
+                <div id="webrtc-loading-qr" class="absolute inset-0 flex items-center justify-center bg-white rounded-xl z-10">
                     <i class="fa-solid fa-spinner fa-spin text-2xl text-black"></i>
                 </div>
             </div>
 
-            <div class="w-full bg-gray-50 rounded-lg p-3 mb-5 border border-gray-200">
-                <p class="text-xs font-bold text-gray-500 uppercase tracking-widest">Trạng thái kết nối</p>
-                <p id="webrtc-countdown" class="text-xl font-mono font-black text-black tracking-widest mt-1">03:00</p>
+            <!-- CHECKBOX ĐƯỢC CHUYỂN VÀO ĐÂY -->
+            <label class="flex items-center justify-center gap-2 mb-4 cursor-pointer group bg-gray-50 border border-gray-200 px-3 py-2 rounded-lg w-full transition hover:bg-gray-100">
+                <input type="checkbox" id="webrtc-persist-cb" class="w-4 h-4 rounded border-gray-300 text-black focus:ring-black cursor-pointer" onchange="app.webrtc.togglePersist(this.checked)">
+                <span class="text-[11px] font-bold text-gray-600 group-hover:text-black transition select-none">Tự động mở mã QR ở phiên tiếp theo</span>
+            </label>
+
+            <div class="w-full bg-gray-50 rounded-lg p-3 mb-5 border border-gray-200 flex justify-between items-center">
+                <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest m-0">Trạng thái</p>
+                <p id="webrtc-countdown" class="text-sm font-mono font-black text-black tracking-widest m-0">03:00</p>
             </div>
 
-            <button type="button" onclick="app.webrtc.cancelHost()" class="w-full bg-black hover:bg-gray-800 text-white font-bold py-2.5 rounded-lg text-sm transition shadow-sm">
+            <button type="button" onclick="app.webrtc.cancelHost()" class="w-full bg-white border border-gray-300 hover:bg-gray-50 hover:border-black text-black font-bold py-2.5 rounded-lg text-sm transition shadow-sm">
                 Hủy kết nối
-            </button>
-        </div>
-    </div>
-
-    <!-- UI MOBILE TỐI GIẢN (TRẮNG/ĐEN) ĐỂ CHỌN ẢNH -->
-    <div id="webrtc-mobile-view" class="hidden fixed inset-0 z-[99999] bg-white flex-col items-center justify-center p-6 h-[100dvh] w-screen overflow-hidden">
-        <div class="w-full max-w-sm text-center flex flex-col items-center">
-            <h2 class="text-3xl font-black italic tracking-wider text-black mb-1" style="font-family: 'Montserrat', sans-serif;">VNBUSARCHIVE</h2>
-            <p class="text-xs text-gray-500 mb-10 font-medium uppercase tracking-widest">Truyền ảnh sang PC</p>
-            
-            <div id="webrtc-mobile-status" class="w-full flex flex-col items-center justify-center min-h-[150px]">
-                <i class="fa-solid fa-spinner fa-spin text-3xl text-black mb-4"></i>
-                <p class="text-sm font-bold text-black">Đang thiết lập kết nối...</p>
-            </div>
-
-            <input type="file" id="webrtc-mobile-file" accept="image/jpeg, image/png, image/webp" class="hidden">
-            
-            <button id="webrtc-mobile-btn" onclick="document.getElementById('webrtc-mobile-file').click()" class="hidden w-full bg-black text-white font-bold py-4 rounded-xl shadow-lg hover:bg-gray-800 transition active:scale-95 text-sm flex items-center justify-center gap-2 mt-6">
-                <i class="fa-solid fa-image"></i> Chọn ảnh
             </button>
         </div>
     </div>
@@ -12612,16 +12631,10 @@ closeCustomRolePrompt: () => {
                 }
 
                 const urlParams = new URLSearchParams(window.location.search);
-                const mobilePeerId = urlParams.get('mobile_peer');
+                const mobilePeerId = urlParams.get('peer');
                 
-                if (mobilePeerId) {
-                    // Xóa hoàn toàn giao diện cũ trên Mobile để tránh bị đè UI
-                    document.body.style.backgroundColor = '#ffffff';
-                    document.querySelectorAll('header, main, footer, #header-spacer, #app-container, #loading-screen').forEach(el => {
-                        if(el) el.style.display = 'none';
-                    });
-                    
-                    document.getElementById('webrtc-mobile-view').classList.replace('hidden', 'flex');
+                // Nếu đang ở trang mobile upload
+                if (window.location.pathname === '/mobile-upload' && mobilePeerId) {
                     app.webrtc.startClient(mobilePeerId);
                 } else {
                     if (app.webrtc.isPersisted && window.location.pathname === '/upload') {
@@ -12653,7 +12666,7 @@ closeCustomRolePrompt: () => {
 
                 app.webrtc.peer.on('open', (id) => {
                     loadingQr.classList.add('hidden');
-                    const mobileUrl = window.location.origin + '/?mobile_peer=' + id;
+                    const mobileUrl = window.location.origin + '/mobile-upload?peer=' + id;
                     
                     new QRCode(qrContainer, {
                         text: mobileUrl, width: 224, height: 224,
