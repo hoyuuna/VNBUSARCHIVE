@@ -9863,11 +9863,9 @@ app.admin.fetchManagerData('denied');
                     previewImg.src = url;
                     document.getElementById('preview-box').classList.remove('hidden');
                     document.getElementById('drop-zone').classList.add('hidden');
-                    const connectedZone = document.getElementById('webrtc-connected-zone');
-                    if (connectedZone) {
-                        connectedZone.classList.add('hidden');
-                        connectedZone.classList.remove('flex');
-                    }
+                    
+                    // Giữ nguyên box xanh và khôi phục trạng thái chữ
+                    if (app.upload.restoreDropZone) app.upload.restoreDropZone();
 
                     const name = app.username || "Guest";
                     const wmName = document.getElementById('wm-username');
