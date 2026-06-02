@@ -3470,19 +3470,28 @@
                     <h2 class="text-2xl font-black italic tracking-wider text-black mb-2" style="font-family: 'Montserrat', sans-serif;">VNBUSARCHIVE</h2>
                     <p class="text-xs text-gray-500 mb-8 font-medium uppercase tracking-widest">Cổng truyền tải ảnh</p>
                     
-                    <div id="webrtc-mobile-status" class="w-full flex flex-col items-center justify-center min-h-[120px] bg-gray-50 rounded-xl border border-gray-200 p-4">
+                    <div id="webrtc-mobile-status" class="w-full flex flex-col items-center justify-center min-h-[120px] bg-gray-50 rounded-xl border border-gray-200 p-4 mb-2">
                         <i class="fa-solid fa-spinner fa-spin text-2xl text-gray-400 mb-3"></i>
                         <p class="text-sm font-bold text-gray-700">Đang thiết lập kết nối...</p>
                     </div>
 
                     <input type="file" id="webrtc-mobile-file" accept="image/jpeg, image/png, image/webp" class="hidden">
                     
-                    <button id="webrtc-mobile-btn" onclick="document.getElementById('webrtc-mobile-file').click()" class="hidden w-full bg-black text-white font-bold py-3.5 rounded-xl shadow-md hover:bg-gray-800 transition active:scale-95 text-sm flex items-center justify-center gap-2 mt-6">
-                        <i class="fa-solid fa-image text-lg"></i> Chọn ảnh từ Thư viện
-                    </button>
+                    <!-- Box Dropzone chuẩn form PC -->
+                    <div id="webrtc-mobile-btn" onclick="document.getElementById('webrtc-mobile-file').click()" class="hidden w-full bg-gray-50 border-2 border-gray-300 rounded-2xl p-10 flex-col items-center justify-center gap-3 shadow-md hover:bg-gray-100 hover:border-black hover:shadow-lg transition-all cursor-pointer group relative overflow-hidden mb-2">
+                        <div class="pointer-events-none flex flex-col items-center gap-3">
+                            <div class="w-16 h-16 bg-white border border-gray-300 rounded-full flex items-center justify-center group-hover:border-black group-hover:bg-gray-50 transition-colors shadow-md">
+                                <i class="fa-solid fa-cloud-arrow-up text-2xl text-gray-400 group-hover:text-black"></i>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-sm font-bold text-gray-600 group-hover:text-black">Nhấn để chọn ảnh từ thư viện</p>
+                                <p class="text-[11px] text-gray-400 mt-1 uppercase tracking-wider font-semibold">Định dạng JPG, JPEG (Tối đa 20MB)</p>
+                            </div>
+                        </div>
+                    </div>
                     
                     <p class="text-[10px] text-gray-400 mt-6 max-w-xs leading-relaxed mx-auto">
-                        Chỉ hỗ trợ file JPG, PNG, WEBP (Tối đa 20MB). Trình duyệt trên điện thoại phải luôn được mở trong quá trình truyền tải.
+                        Trình duyệt trên điện thoại phải luôn được mở trong quá trình truyền tải.
                     </p>
                 </div>
             </div>
@@ -12751,27 +12760,33 @@ closeCustomRolePrompt: () => {
                 const fileInput = document.getElementById('webrtc-mobile-file');
 
                 app.webrtc.peer = new Peer();
+                app.webrtc.isSuccess = false; // Đánh dấu trạng thái hoàn thành để không bị lỗi lúc PC ngắt kết nối
 
                 app.webrtc.peer.on('open', (id) => {
                     app.webrtc.conn = app.webrtc.peer.connect(hostId, { reliable: true });
 
                     app.webrtc.conn.on('open', () => {
-                        statusEl.innerHTML = `
-                            <i class="fa-solid fa-check text-4xl text-black mb-3"></i>
-                            <p class="text-sm font-bold text-black">Kết nối thành công!</p>
-                            <p class="text-[11px] text-gray-500 mt-1 uppercase tracking-widest">Đã sẵn sàng truyền tải</p>
-                        `;
+                        // Ẩn box loading, hiện box Dropzone
+                        statusEl.classList.add('hidden');
                         btnEl.classList.remove('hidden');
+                        btnEl.classList.add('flex');
                     });
 
                     app.webrtc.conn.on('close', () => {
-                        statusEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-4xl text-black mb-4"></i><p class="text-sm font-bold text-black">Mất kết nối với máy tính.</p>`;
+                        if (app.webrtc.isSuccess) return; // Nếu đã success thì kệ sự kiện close này
+                        statusEl.classList.remove('hidden');
+                        statusEl.className = "w-full flex flex-col items-center justify-center min-h-[120px] bg-red-50 rounded-xl border border-red-200 p-4 mb-2 fade-zoom-in";
+                        statusEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-3xl text-red-500 mb-3"></i><p class="text-sm font-bold text-red-700">Mất kết nối với máy tính.</p><p class="text-xs text-red-600 mt-1 font-medium">Vui lòng tạo lại mã QR mới trên máy tính.</p>`;
+                        btnEl.classList.remove('flex');
                         btnEl.classList.add('hidden');
                     });
                 });
 
                 app.webrtc.peer.on('error', (err) => {
-                    statusEl.innerHTML = `<i class="fa-solid fa-xmark text-4xl text-black mb-4"></i><p class="text-sm font-bold text-black">Lỗi kết nối. Vui lòng tải lại trang để thử lại.</p>`;
+                    statusEl.classList.remove('hidden');
+                    statusEl.className = "w-full flex flex-col items-center justify-center min-h-[120px] bg-red-50 rounded-xl border border-red-200 p-4 mb-2 fade-zoom-in";
+                    statusEl.innerHTML = `<i class="fa-solid fa-xmark text-4xl text-red-500 mb-3"></i><p class="text-sm font-bold text-red-700">Lỗi đường truyền.</p><p class="text-xs text-red-600 mt-1 font-medium">Vui lòng tải lại trang để thử lại.</p>`;
+                    btnEl.classList.remove('flex');
                     btnEl.classList.add('hidden');
                 });
 
@@ -12784,11 +12799,15 @@ closeCustomRolePrompt: () => {
                         return;
                     }
 
+                    // Khi bắt đầu upload -> ẩn Dropzone, hiện Loading
+                    btnEl.classList.remove('flex');
                     btnEl.classList.add('hidden');
+                    statusEl.classList.remove('hidden');
+                    statusEl.className = "w-full flex flex-col items-center justify-center min-h-[120px] bg-gray-50 rounded-xl border border-gray-200 p-4 mb-2";
                     statusEl.innerHTML = `
-                        <i class="fa-solid fa-spinner fa-spin text-3xl text-black mb-4"></i>
+                        <i class="fa-solid fa-circle-notch fa-spin text-4xl text-black mb-4"></i>
                         <p class="text-sm font-bold text-black">Đang gửi ảnh sang PC...</p>
-                        <p class="text-[10px] text-gray-500 mt-2 uppercase tracking-widest">Giữ nguyên màn hình này</p>
+                        <p class="text-[10px] text-gray-500 mt-2 uppercase tracking-widest font-bold">Giữ nguyên màn hình này</p>
                     `;
 
                     try {
@@ -12814,21 +12833,26 @@ closeCustomRolePrompt: () => {
                             await new Promise(r => setTimeout(r, 10)); // Giảm nghẽn mạng
                         }
 
+                        app.webrtc.isSuccess = true; // Khóa cờ lỗi mất kết nối
                         setTimeout(() => {
+                            statusEl.className = "w-full flex flex-col items-center justify-center min-h-[160px] bg-green-50 rounded-xl border border-green-200 p-4 mb-2 fade-zoom-in";
                             statusEl.innerHTML = `
-                                <i class="fa-solid fa-check-double text-4xl text-black mb-3"></i>
-                                <p class="text-base font-bold text-black">Hoàn tất!</p>
-                                <p class="text-xs text-gray-500 mt-2">Vui lòng tiếp tục trên màn hình máy tính.</p>
+                                <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm mb-3 border border-green-200">
+                                    <i class="fa-solid fa-check text-3xl text-green-600"></i>
+                                </div>
+                                <p class="text-lg font-black text-green-800 uppercase tracking-tight">Đã chuyển ảnh!</p>
+                                <p class="text-xs text-green-700 mt-1 font-medium">Bạn có thể tiếp tục thao tác trên màn hình máy tính.</p>
                             `;
                         }, 500);
                     } catch (error) {
                         alert("Lỗi khi đọc file: " + error.message);
                         btnEl.classList.remove('hidden');
+                        btnEl.classList.add('flex');
+                        statusEl.classList.add('hidden');
                     }
                 });
             }
         };
-
         // Kích hoạt khi trang đã tải
         document.addEventListener('DOMContentLoaded', () => {
             app.webrtc.init();
