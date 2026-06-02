@@ -1375,6 +1375,27 @@
         </div>
 
     
+    
+    <!-- MODAL CAPTCHA POPUP -->
+    <div id="captcha-modal" class="hidden fixed inset-0 z-[100000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 transition-opacity duration-300 opacity-0">
+        <div class="bg-white rounded-2xl shadow-2xl p-6 flex flex-col items-center max-w-sm w-full transform scale-95 transition-transform duration-300" id="captcha-content">
+            <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-xl mb-4 shadow-inner border border-blue-100">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900 mb-1">Xác thực bảo mật</h3>
+            <p class="text-[12px] text-gray-500 mb-5 text-center px-2">Hệ thống cần xác nhận bạn không phải là robot trước khi tiếp tục.</p>
+
+            <div id="captcha-container" class="min-h-[65px] flex items-center justify-center mb-2"></div>
+
+            <div id="captcha-status" class="text-xs font-bold text-gray-400 mt-2 h-4 text-center">Đang tải biểu mẫu...</div>
+
+            <div id="captcha-actions" class="hidden mt-5 w-full flex gap-3">
+                <button onclick="app.captcha.cancel()" class="flex-1 bg-gray-100 text-gray-700 py-2.5 rounded-lg font-bold text-sm hover:bg-gray-200 transition border border-gray-200 shadow-sm">Hủy</button>
+                <button onclick="app.captcha.retry()" class="flex-1 bg-black text-white py-2.5 rounded-lg font-bold text-sm hover:bg-gray-800 transition shadow-sm border border-black">Thử lại</button>
+            </div>
+        </div>
+    </div>
+    
     <div id="app-container" style="display: none; opacity: 0; transition: opacity 0.5s ease-in-out;">
 
         <!-- POPUP NỘI DUNG QUAN TÂM (GLASSMORPHISM & GRID UI) -->
@@ -2031,9 +2052,7 @@
         <button type="button" @click="mode = 'forgot'" class="text-xs font-semibold text-vbs-dark/70 hover:text-vbs-dark transition-colors drop-shadow-sm">Quên mật khẩu?</button>
     </div>
 
-    <div class="flex justify-center mt-2">
-        <div class="cf-turnstile transform scale-90 sm:scale-100 origin-center" data-sitekey="0x4AAAAAAC0MVeewmy6kwkTF"></div>
-    </div>
+    <!-- Turnstile moved to popup -->
 
     <p id="auth-msg" class="text-xs text-center text-red-600 font-bold bg-white/80 backdrop-blur px-2 py-1 rounded-md empty:hidden shadow-sm"></p>
 
@@ -3284,7 +3303,7 @@
                             </div>
                         </div>
 
-                        <div class="cf-turnstile" data-sitekey="0x4AAAAAAC0MVeewmy6kwkTF"></div>
+                        <!-- Turnstile moved to popup -->
 
                         <div class="pt-6 border-t border-gray-200">
                             <button type="submit" id="btn-submit"
@@ -3528,6 +3547,133 @@
         // =====================================
 
         const app = {
+            captcha: {
+                widgetId: null,
+                resolvePromise: null,
+                rejectPromise: null,
+                timeoutTimer: null,
+                isOpen: false,
+
+                request: () => {
+                    return new Promise((resolve, reject) => {
+                        app.captcha.resolvePromise = resolve;
+                        app.captcha.rejectPromise = reject;
+                        app.captcha.openModal();
+                    });
+                },
+
+                openModal: () => {
+                    if(app.captcha.isOpen) return;
+                    app.captcha.isOpen = true;
+                    const modal = document.getElementById('captcha-modal');
+                    const content = document.getElementById('captcha-content');
+                    const container = document.getElementById('captcha-container');
+                    const status = document.getElementById('captcha-status');
+                    const actions = document.getElementById('captcha-actions');
+
+                    modal.classList.remove('hidden');
+                    setTimeout(() => {
+                        modal.classList.remove('opacity-0');
+                        content.classList.remove('scale-95');
+                    }, 10);
+
+                    status.innerText = "Đang kiểm tra...";
+                    status.className = "text-xs font-bold text-gray-500 mt-2 h-4 text-center";
+                    actions.classList.add('hidden');
+
+                    if (window.turnstile) {
+                        if (app.captcha.widgetId !== null) {
+                            window.turnstile.reset(app.captcha.widgetId);
+                        } else {
+                            container.innerHTML = '';
+                            app.captcha.widgetId = window.turnstile.render(container, {
+                                sitekey: '0x4AAAAAAC0MVeewmy6kwkTF',
+                                callback: app.captcha.onSuccess,
+                                'error-callback': app.captcha.onError,
+                                'timeout-callback': app.captcha.onError
+                            });
+                        }
+                    } else {
+                        status.innerText = "Lỗi: Không tải được hệ thống xác thực.";
+                        status.className = "text-xs font-bold text-red-500 mt-2 h-4 text-center";
+                        actions.classList.remove('hidden');
+                    }
+
+                    clearTimeout(app.captcha.timeoutTimer);
+                    app.captcha.timeoutTimer = setTimeout(() => {
+                        status.innerText = "Kiểm tra quá hạn (12s). Vui lòng thử lại.";
+                        status.className = "text-xs font-bold text-amber-600 mt-2 h-4 text-center";
+                        actions.classList.remove('hidden');
+                    }, 12000);
+                },
+
+                onSuccess: (token) => {
+                    clearTimeout(app.captcha.timeoutTimer);
+                    const status = document.getElementById('captcha-status');
+                    status.innerText = "Xác thực thành công!";
+                    status.className = "text-xs font-bold text-green-600 mt-2 h-4 text-center";
+
+                    setTimeout(() => {
+                        app.captcha.closeModal();
+                        if (app.captcha.resolvePromise) {
+                            app.captcha.resolvePromise(token);
+                            app.captcha.resolvePromise = null;
+                            app.captcha.rejectPromise = null;
+                        }
+                    }, 500);
+                },
+
+                onError: () => {
+                    clearTimeout(app.captcha.timeoutTimer);
+                    const status = document.getElementById('captcha-status');
+                    const actions = document.getElementById('captcha-actions');
+                    status.innerText = "Xác thực thất bại.";
+                    status.className = "text-xs font-bold text-red-600 mt-2 h-4 text-center";
+                    actions.classList.remove('hidden');
+                },
+
+                retry: () => {
+                    const actions = document.getElementById('captcha-actions');
+                    const status = document.getElementById('captcha-status');
+                    actions.classList.add('hidden');
+                    status.innerText = "Đang tải lại...";
+                    status.className = "text-xs font-bold text-gray-500 mt-2 h-4 text-center";
+
+                    if (window.turnstile && app.captcha.widgetId !== null) {
+                        window.turnstile.reset(app.captcha.widgetId);
+                    }
+
+                    clearTimeout(app.captcha.timeoutTimer);
+                    app.captcha.timeoutTimer = setTimeout(() => {
+                        status.innerText = "Kiểm tra quá hạn (12s). Vui lòng thử lại.";
+                        status.className = "text-xs font-bold text-amber-600 mt-2 h-4 text-center";
+                        actions.classList.remove('hidden');
+                    }, 12000);
+                },
+
+                closeModal: () => {
+                    app.captcha.isOpen = false;
+                    clearTimeout(app.captcha.timeoutTimer);
+                    const modal = document.getElementById('captcha-modal');
+                    const content = document.getElementById('captcha-content');
+
+                    modal.classList.add('opacity-0');
+                    content.classList.add('scale-95');
+
+                    setTimeout(() => {
+                        modal.classList.add('hidden');
+                    }, 300);
+                },
+
+                cancel: () => {
+                    app.captcha.closeModal();
+                    if (app.captcha.rejectPromise) {
+                        app.captcha.rejectPromise(new Error("CAPTCHA_CANCELLED"));
+                        app.captcha.resolvePromise = null;
+                        app.captcha.rejectPromise = null;
+                    }
+                }
+            },
             user: null,
             username: 'Guest',
             previousPath: '/',
@@ -9740,13 +9886,18 @@ app.admin.fetchManagerData('denied');
                     }
 
 
-                    // Dùng FormData để bắt buộc lấy Token mới nhất vừa được Turnstile sinh ra
-                    const formData = new FormData(e.target);
-                    const captchaResponse = formData.get('cf-turnstile-response');
-
-                    if (!captchaResponse) {
-                        return app.ui.showAlert("Phiên xác thực Captcha đã hết hạn. Vui lòng tải lại trang hoặc xác thực lại.");
+                    // Bật Popup xác thực Captcha
+                    let captchaResponse;
+                    try {
+                        captchaResponse = await app.captcha.request();
+                    } catch (err) {
+                        if (err.message === "CAPTCHA_CANCELLED") {
+                            return; // Hủy upload im lặng
+                        }
+                        return app.ui.showAlert("Lỗi xác thực Captcha.");
                     }
+                    
+                    const formData = new FormData(e.target);
 
 
                     try {
@@ -10328,23 +10479,8 @@ app.admin.fetchManagerData('denied');
             utils: {
                 // Thêm hàm resetTurnstile dùng chung này vào đầu object utils
                 resetTurnstile: (selector) => {
-                    if (window.turnstile) {
-                        const containers = document.querySelectorAll(selector);
-                        containers.forEach(container => {
-                            try {
-                                const input = container.querySelector('input[name="cf-turnstile-response"]');
-                                let realWidgetId = null;
-                                if (input && input.id) {
-                                    const match = input.id.match(/cf-chl-widget-(.*?)_response/);
-                                    if (match) realWidgetId = match[1];
-                                }
-                                if (realWidgetId) window.turnstile.reset(realWidgetId);
-                                else window.turnstile.reset(container);
-                            } catch (e) { console.error("Turnstile reset error:", e); }
-                        });
-                    }
+                    // Đã chuyển sang dùng Popup (app.captcha), hàm này bị vô hiệu hóa
                 },
-
                 isIOS: () => {
                     return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
                 },
@@ -11294,11 +11430,12 @@ cleanupState: () => {
                 uuidTimeout: null,
 
                 signInWithProvider: async (provider) => {
-                    const authTurnstileNode = document.querySelector('#auth [name="cf-turnstile-response"]');
-                    const captchaResponse = authTurnstileNode ? authTurnstileNode.value : '';
-
-                    if (!captchaResponse) {
-                        return app.ui.showAlert("Vui lòng xác nhận 'Tôi không phải là người máy' (Turnstile) trước.");
+                    let captchaResponse;
+                    try {
+                        captchaResponse = await app.captcha.request();
+                    } catch (err) {
+                        if (err.message === "CAPTCHA_CANCELLED") return;
+                        return app.ui.showAlert("Lỗi xác thực Captcha.");
                     }
 
                     try {
@@ -11342,10 +11479,12 @@ cleanupState: () => {
 
 
                     const formData = new FormData(e.target);
-                    const captchaResponse = formData.get('cf-turnstile-response');
-
-                    if (!captchaResponse) {
-                        return app.ui.showAlert("Vui lòng xác nhận Captcha (Tôi không phải là người máy) để tiếp tục!");
+                    let captchaResponse;
+                    try {
+                        captchaResponse = await app.captcha.request();
+                    } catch (err) {
+                        if (err.message === "CAPTCHA_CANCELLED") return;
+                        return app.ui.showAlert("Lỗi xác thực Captcha.");
                     }
 
                     const email = document.getElementById('auth-email').value.trim();
