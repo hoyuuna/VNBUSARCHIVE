@@ -1226,7 +1226,8 @@
         #custom-image-menu-overlay,
         #custom-alert-modal, #settings-modal, #newsboard-modal, #docs-modal, 
         #upload-info-modal, #custom-prompt-modal, #custom-role-modal, #deny-prompt-modal, 
-        #upload-progress-modal {
+        #upload-progress-modal,
+        #captcha-modal {
             background-color: rgba(0, 0, 0, 0) !important;
             backdrop-filter: blur(8px) !important; 
             -webkit-backdrop-filter: blur(8px) !important;
@@ -1235,7 +1236,8 @@
         /* 4. BẢN THÂN CÁC KHUNG POPUP CŨNG LÀ KÍNH - Cùng mức với dropdown */
         #custom-alert-content, #settings-content, #newsboard-content, #docs-content, 
         #upload-info-content, #custom-prompt-content, #custom-role-content, #deny-prompt-content, 
-        #up-progress-content {
+        #up-progress-content,
+        #captcha-content {
             background-color: rgba(255, 255, 255, 0.7) !important;
             backdrop-filter: blur(20px) !important;
             -webkit-backdrop-filter: blur(20px) !important;
@@ -1377,7 +1379,7 @@
     
     
     <!-- MODAL CAPTCHA POPUP -->
-    <div id="captcha-modal" class="hidden fixed inset-0 z-[100000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 transition-opacity duration-300 opacity-0">
+    <div id="captcha-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 transition-opacity duration-300 opacity-0" style="z-index: 99999;">
         <div class="bg-white rounded-2xl shadow-2xl p-6 flex flex-col items-center max-w-sm w-full transform scale-95 transition-transform duration-300" id="captcha-content">
             <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-xl mb-4 shadow-inner border border-blue-100">
                 <i class="fa-solid fa-shield-halved"></i>
