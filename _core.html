@@ -1227,7 +1227,8 @@
         #custom-alert-modal, #settings-modal, #newsboard-modal, #docs-modal, 
         #upload-info-modal, #custom-prompt-modal, #custom-role-modal, #deny-prompt-modal, 
         #upload-progress-modal,
-        #captcha-modal {
+        #captcha-modal,
+        #webrtc-qr-modal {
             background-color: rgba(0, 0, 0, 0) !important;
             backdrop-filter: blur(8px) !important; 
             -webkit-backdrop-filter: blur(8px) !important;
@@ -1237,7 +1238,8 @@
         #custom-alert-content, #settings-content, #newsboard-content, #docs-content, 
         #upload-info-content, #custom-prompt-content, #custom-role-content, #deny-prompt-content, 
         #up-progress-content,
-        #captcha-content {
+        #captcha-content,
+        #webrtc-qr-content {
             background-color: rgba(255, 255, 255, 0.7) !important;
             backdrop-filter: blur(20px) !important;
             -webkit-backdrop-filter: blur(20px) !important;
@@ -3024,9 +3026,9 @@
                                         <p class="text-[11px] text-gray-400 mt-1 uppercase tracking-wider font-semibold">Định dạng JPG, JPEG (Tối đa 20MB)</p>
                                     </div>
                                 </div>
-                                <div id="qr-btn-wrapper" class="w-full flex flex-col items-center mt-3 border-t border-gray-200 pt-3 relative z-20">
-                                    <button type="button" onclick="event.stopPropagation(); app.webrtc.startHost()" class="bg-gray-100 hover:bg-gray-200 border border-gray-300 text-black font-bold py-2.5 px-4 rounded-xl text-xs transition shadow-sm flex items-center gap-2">
-                                        <i class="fa-solid fa-qrcode"></i> Quét QR Tải ảnh từ điện thoại
+                                <div id="qr-btn-wrapper" class="flex flex-col items-center relative z-20 mt-1">
+                                    <button type="button" onclick="event.stopPropagation(); app.webrtc.startHost()" class="bg-white hover:bg-gray-50 border border-gray-300 text-gray-800 font-bold py-2 px-4 rounded-full text-xs transition shadow-sm flex items-center gap-2">
+                                        <i class="fa-solid fa-qrcode text-sm"></i> Quét QR tải ảnh từ điện thoại
                                     </button>
                                 </div>
                                 
@@ -12582,7 +12584,7 @@ closeCustomRolePrompt: () => {
     
     <!-- UI MODAL HIỂN THỊ MÃ QR TẠI PC -->
     <div id="webrtc-qr-modal" class="hidden fixed inset-0 z-[8000] bg-black/40 backdrop-blur-sm flex flex-col items-center justify-center p-4">
-        <div class="bg-white/90 backdrop-blur-[20px] border border-white/60 rounded-2xl shadow-2xl p-6 md:p-8 max-w-sm w-full text-center flex flex-col items-center transform transition-all fade-zoom-in">
+        <div id="webrtc-qr-content" class="bg-white rounded-2xl shadow-2xl p-6 md:p-8 max-w-sm w-full text-center flex flex-col items-center transform transition-all fade-zoom-in">
             <div class="w-12 h-12 bg-black text-white rounded-full flex items-center justify-center text-xl mb-4 shadow-md">
                 <i class="fa-solid fa-mobile-screen-button"></i>
             </div>
