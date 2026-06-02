@@ -1359,6 +1359,10 @@
         }
     </style>
 
+
+    <!-- Thư viện cho WebRTC QR Upload -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 </head>
 
 <body class="antialiased">
@@ -3019,6 +3023,15 @@
                                         <p class="text-sm font-bold text-gray-600 group-hover:text-black">Nhấn để chọn ảnh hoặc kéo thả vào đây</p>
                                         <p class="text-[11px] text-gray-400 mt-1 uppercase tracking-wider font-semibold">Định dạng JPG, JPEG (Tối đa 20MB)</p>
                                     </div>
+                                </div>
+                                <div class="w-full flex flex-col items-center mt-3 border-t border-gray-200 pt-3 relative z-20">
+                                    <button type="button" onclick="event.stopPropagation(); app.webrtc.startHost()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg text-xs transition shadow-sm flex items-center gap-2">
+                                        <i class="fa-solid fa-qrcode"></i> Quét QR Tải ảnh từ điện thoại
+                                    </button>
+                                    <label class="flex items-center gap-1.5 mt-2 cursor-pointer group" onclick="event.stopPropagation()">
+                                        <input type="checkbox" id="webrtc-persist-cb" class="w-3.5 h-3.5 rounded border-gray-300 text-black focus:ring-black cursor-pointer" onchange="app.webrtc.togglePersist(this.checked)">
+                                        <span class="text-[10px] font-medium text-gray-500 group-hover:text-black transition select-none">Tiếp tục sử dụng cho tới phiên tiếp theo</span>
+                                    </label>
                                 </div>
                                 <input type="file" id="up-file" accept="image/jpeg" class="hidden" required />
                             </div>
@@ -12535,6 +12548,296 @@ closeCustomRolePrompt: () => {
 
 
 
+
+    <!-- UI MODAL HIỂN THỊ MÃ QR TẠI PC -->
+    <div id="webrtc-qr-modal" class="hidden fixed inset-0 z-[8000] bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-6 md:p-8 max-w-sm w-full text-center flex flex-col items-center transform transition-all fade-zoom-in">
+            <h3 class="font-bold text-lg text-black uppercase tracking-tight mb-1"><i class="fa-solid fa-mobile-screen-button mr-2 text-blue-600"></i>Kết nối thiết bị</h3>
+            <p class="text-xs text-gray-500 mb-5">Dùng điện thoại quét mã QR dưới đây để truyền ảnh trực tiếp (Bảo mật, không qua máy chủ).</p>
+            
+            <div class="bg-white p-3 border-2 border-dashed border-gray-300 rounded-xl mb-4 relative min-h-[224px] min-w-[224px] flex items-center justify-center">
+                <div id="webrtc-qrcode-container"></div>
+                <div id="webrtc-loading-qr" class="absolute inset-0 flex items-center justify-center bg-white z-10">
+                    <i class="fa-solid fa-spinner fa-spin text-2xl text-gray-400"></i>
+                </div>
+            </div>
+
+            <div class="w-full bg-gray-50 rounded-lg p-3 mb-5 border border-gray-200">
+                <p class="text-xs font-bold text-gray-700">Mã QR sẽ hết hạn sau:</p>
+                <p id="webrtc-countdown" class="text-xl font-mono font-black text-red-600 tracking-widest mt-1">03:00</p>
+            </div>
+
+            <button type="button" onclick="app.webrtc.cancelHost()" class="w-full bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-800 font-bold py-2.5 rounded-lg text-sm transition">
+                Hủy kết nối
+            </button>
+        </div>
+    </div>
+
+    <!-- UI TOÀN MÀN HÌNH CHO MOBILE KHI QUÉT QR -->
+    <div id="webrtc-mobile-view" class="hidden fixed inset-0 z-[99999] bg-[#121212] flex-col items-center justify-center p-4">
+        <div class="bg-white rounded-3xl w-full max-w-sm p-8 text-center shadow-2xl flex flex-col items-center">
+            <img src="/media/vnba.png" alt="Logo" class="h-12 mb-4 object-contain">
+            <h2 class="text-xl font-black italic tracking-wider uppercase mb-1">VNBUSARCHIVE</h2>
+            <p class="text-xs text-gray-500 mb-8 font-medium">Truyền ảnh trực tiếp sang PC</p>
+            
+            <div id="webrtc-mobile-status" class="w-full">
+                <i class="fa-solid fa-spinner fa-spin text-4xl text-blue-500 mb-4"></i>
+                <p class="text-sm font-bold text-gray-700">Đang kết nối tới máy tính...</p>
+            </div>
+
+            <input type="file" id="webrtc-mobile-file" accept="image/jpeg, image/png, image/webp" class="hidden">
+            
+            <button id="webrtc-mobile-btn" onclick="document.getElementById('webrtc-mobile-file').click()" class="hidden w-full bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-600/30 hover:bg-blue-700 transition active:scale-95 text-sm flex items-center justify-center gap-2 mt-4">
+                <i class="fa-solid fa-image"></i> Chọn ảnh từ Thư viện
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // LOGIC WEBRTC HOẠT ĐỘNG ĐỘC LẬP
+        app.webrtc = {
+            peer: null,
+            conn: null,
+            timer: null,
+            timeLeft: 180, // 3 phút
+            isPersisted: false,
+            hostId: null,
+
+            init: () => {
+                // Đọc trạng thái persist
+                const savedPersist = localStorage.getItem('vnbus_webrtc_persist');
+                if (savedPersist === 'true') {
+                    app.webrtc.isPersisted = true;
+                    const cb = document.getElementById('webrtc-persist-cb');
+                    if(cb) cb.checked = true;
+                }
+
+                // Xử lý Route nếu mở từ Mobile (có query ?mobile_peer=...)
+                const urlParams = new URLSearchParams(window.location.search);
+                const mobilePeerId = urlParams.get('mobile_peer');
+                
+                if (mobilePeerId) {
+                    // Chặn hiển thị giao diện cũ
+                    document.getElementById('app-container').style.display = 'none';
+                    document.getElementById('loading-screen').style.display = 'none';
+                    document.getElementById('webrtc-mobile-view').classList.replace('hidden', 'flex');
+                    app.webrtc.startClient(mobilePeerId);
+                } else {
+                    // Nếu đang ở PC và có bật Persist
+                    if (app.webrtc.isPersisted && window.location.pathname === '/upload') {
+                        // Delay chút cho UI load xong rồi bật QR
+                        setTimeout(() => app.webrtc.startHost(), 500);
+                    }
+                }
+            },
+
+            togglePersist: (val) => {
+                app.webrtc.isPersisted = val;
+                localStorage.setItem('vnbus_webrtc_persist', val);
+            },
+
+            // ================= TẠI MÁY TÍNH (HOST) =================
+            startHost: () => {
+                const modal = document.getElementById('webrtc-qr-modal');
+                const loadingQr = document.getElementById('webrtc-loading-qr');
+                const qrContainer = document.getElementById('webrtc-qrcode-container');
+                
+                modal.classList.remove('hidden');
+                qrContainer.innerHTML = '';
+                loadingQr.classList.remove('hidden');
+                app.ui.lockScroll();
+
+                // Dọn dẹp kết nối cũ nếu có
+                if(app.webrtc.peer) app.webrtc.peer.destroy();
+
+                app.webrtc.peer = new Peer();
+
+                app.webrtc.peer.on('open', (id) => {
+                    loadingQr.classList.add('hidden');
+                    const mobileUrl = window.location.origin + '/?mobile_peer=' + id;
+                    
+                    // Tạo mã QR
+                    new QRCode(qrContainer, {
+                        text: mobileUrl,
+                        width: 224,
+                        height: 224,
+                        colorDark : "#000000",
+                        colorLight : "#ffffff",
+                        correctLevel : QRCode.CorrectLevel.H
+                    });
+
+                    app.webrtc.startCountdown();
+                });
+
+                // Lắng nghe kết nối từ Mobile
+                app.webrtc.peer.on('connection', (conn) => {
+                    app.webrtc.conn = conn;
+                    
+                    // Nhận dữ liệu từ Mobile
+                    let pendingMeta = null;
+                    conn.on('data', (data) => {
+                        if (data.type === 'file_meta') {
+                            pendingMeta = data;
+                            document.getElementById('webrtc-countdown').innerText = "ĐANG TRUYỀN FILE...";
+                            document.getElementById('webrtc-countdown').classList.replace('text-red-600', 'text-blue-600');
+                        } 
+                        else if (data instanceof ArrayBuffer) {
+                            // Ráp ArrayBuffer thành File object
+                            const receivedFile = new File([data], pendingMeta?.name || 'mobile_upload.jpg', { type: pendingMeta?.mime || 'image/jpeg' });
+                            
+                            // Đóng modal QR
+                            app.webrtc.cancelHost(false); // false = không bỏ tick persist
+                            
+                            // ẢO THUẬT: Nhét file vào hàm xử lý gốc của hệ thống!
+                            const fakeEvent = { target: { files: [receivedFile] } };
+                            
+                            // Bắt lỗi nếu file quá to
+                            if (receivedFile.size > 20 * 1024 * 1024) {
+                                app.ui.showAlert("File từ điện thoại truyền sang quá 20MB. Vui lòng chọn ảnh khác.");
+                                return;
+                            }
+                            
+                            // Ném thẳng vào hàm gốc để tự đọc EXIF, nén và mở CROP UI
+                            app.upload.handleFileSelect(fakeEvent);
+                        }
+                    });
+                });
+
+                app.webrtc.peer.on('error', (err) => {
+                    console.error("PeerJS Host Error:", err);
+                    app.ui.showAlert("Lỗi tạo mã QR. Vui lòng thử lại.");
+                    app.webrtc.cancelHost();
+                });
+            },
+
+            startCountdown: () => {
+                app.webrtc.timeLeft = 180;
+                const timerEl = document.getElementById('webrtc-countdown');
+                timerEl.classList.replace('text-blue-600', 'text-red-600');
+                
+                if(app.webrtc.timer) clearInterval(app.webrtc.timer);
+                
+                app.webrtc.timer = setInterval(() => {
+                    app.webrtc.timeLeft--;
+                    const m = Math.floor(app.webrtc.timeLeft / 60).toString().padStart(2, '0');
+                    const s = (app.webrtc.timeLeft % 60).toString().padStart(2, '0');
+                    timerEl.innerText = `${m}:${s}`;
+                    
+                    if (app.webrtc.timeLeft <= 0) {
+                        app.ui.showAlert("Mã QR đã hết hạn (3 phút). Vui lòng tạo lại.");
+                        app.webrtc.cancelHost(false); // Bỏ qua xóa tick nếu hết hạn
+                    }
+                }, 1000);
+            },
+
+            cancelHost: (removePersist = true) => {
+                if(app.webrtc.timer) clearInterval(app.webrtc.timer);
+                if(app.webrtc.conn) app.webrtc.conn.close();
+                if(app.webrtc.peer) app.webrtc.peer.destroy();
+                
+                document.getElementById('webrtc-qr-modal').classList.add('hidden');
+                app.ui.unlockScroll();
+
+                if (removePersist) {
+                    app.webrtc.togglePersist(false);
+                    const cb = document.getElementById('webrtc-persist-cb');
+                    if(cb) cb.checked = false;
+                }
+            },
+
+            // ================= TẠI ĐIỆN THOẠI (CLIENT) =================
+            startClient: (hostId) => {
+                const statusEl = document.getElementById('webrtc-mobile-status');
+                const btnEl = document.getElementById('webrtc-mobile-btn');
+                const fileInput = document.getElementById('webrtc-mobile-file');
+
+                app.webrtc.peer = new Peer();
+
+                app.webrtc.peer.on('open', (id) => {
+                    // Kết nối tới PC
+                    app.webrtc.conn = app.webrtc.peer.connect(hostId, { reliable: true });
+
+                    app.webrtc.conn.on('open', () => {
+                        // Kết nối thành công
+                        statusEl.innerHTML = `
+                            <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-3 shadow-inner">
+                                <i class="fa-solid fa-check"></i>
+                            </div>
+                            <p class="text-sm font-bold text-gray-700">Kết nối PC thành công!</p>
+                            <p class="text-[10px] text-gray-500 mt-1">Vui lòng chọn ảnh gốc có chứa vị trí.</p>
+                        `;
+                        btnEl.classList.remove('hidden');
+                    });
+
+                    app.webrtc.conn.on('close', () => {
+                        statusEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-4xl text-red-500 mb-4"></i><p class="text-sm font-bold text-gray-700">Mất kết nối với máy tính.</p>`;
+                        btnEl.classList.add('hidden');
+                    });
+                });
+
+                app.webrtc.peer.on('error', (err) => {
+                    statusEl.innerHTML = `<i class="fa-solid fa-circle-xmark text-4xl text-red-500 mb-4"></i><p class="text-sm font-bold text-gray-700">Lỗi kết nối. Vui lòng quét lại QR.</p>`;
+                    btnEl.classList.add('hidden');
+                });
+
+                // Lắng nghe sự kiện chọn file trên điện thoại
+                fileInput.addEventListener('change', async (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    if (file.size > 20 * 1024 * 1024) {
+                        alert("File quá 20MB. Không thể truyền!");
+                        return;
+                    }
+
+                    btnEl.classList.add('hidden');
+                    statusEl.innerHTML = `
+                        <div class="relative w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                            <svg class="animate-spin text-blue-500 w-16 h-16" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        </div>
+                        <p class="text-sm font-bold text-gray-700">Đang truyền ảnh sang PC...</p>
+                        <p class="text-[10px] text-gray-400 mt-1 uppercase tracking-widest">Không đóng màn hình này</p>
+                    `;
+
+                    try {
+                        // 1. Chuyển File thành ArrayBuffer
+                        const arrayBuffer = await file.arrayBuffer();
+
+                        // 2. Gửi Meta data trước
+                        app.webrtc.conn.send({ 
+                            type: 'file_meta', 
+                            name: file.name, 
+                            size: file.size, 
+                            mime: file.type 
+                        });
+
+                        // 3. Gửi ArrayBuffer nguyên bản (Giữ 100% EXIF)
+                        app.webrtc.conn.send(arrayBuffer);
+
+                        // Thành công
+                        setTimeout(() => {
+                            statusEl.innerHTML = `
+                                <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-3 shadow-inner">
+                                    <i class="fa-solid fa-paper-plane"></i>
+                                </div>
+                                <p class="text-sm font-bold text-gray-700">Đã gửi ảnh thành công!</p>
+                                <p class="text-[11px] text-gray-500 mt-2">Vui lòng tiếp tục các bước chỉnh sửa, nén ảnh và nhập thông tin trên màn hình máy tính.</p>
+                            `;
+                        }, 500);
+
+                    } catch (error) {
+                        alert("Lỗi khi đọc file: " + error.message);
+                        btnEl.classList.remove('hidden');
+                    }
+                });
+            }
+        };
+
+        // Kích hoạt khởi tạo WebRTC sau khi load xong DOM
+        document.addEventListener('DOMContentLoaded', () => {
+            app.webrtc.init();
+        });
+    </script>
 </body>
 
 </html>
