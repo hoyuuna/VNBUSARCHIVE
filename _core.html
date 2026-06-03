@@ -10242,6 +10242,7 @@ app.admin.fetchManagerData('denied');
                         const fileInput = document.getElementById('up-file');
                         if (fileInput) fileInput.value = '';
                         if (app.upload.restoreDropZone) app.upload.restoreDropZone();
+                        if (app.webrtc && app.webrtc.resetMobile) app.webrtc.resetMobile(); // Báo mobile reset
                         return;
                     }
 
@@ -10317,7 +10318,10 @@ app.admin.fetchManagerData('denied');
 
                             if (h < 1080 && w < 1080) {
                                 app.ui.showAlert(`Độ phân giải ảnh quá thấp (${w}x${h}). Yêu cầu chiều cao tối thiểu 1080px.`);
-                                e.target.value = ''; URL.revokeObjectURL(url); return;
+                                e.target.value = ''; URL.revokeObjectURL(url); 
+                                if (app.upload.restoreDropZone) app.upload.restoreDropZone();
+                                if (app.webrtc && app.webrtc.resetMobile) app.webrtc.resetMobile(); // Báo mobile reset
+                                return;
                             }
 
                             const ratio = w / h;
@@ -10338,6 +10342,8 @@ app.admin.fetchManagerData('denied');
                         img.onerror = () => {
                             app.ui.showAlert("Định dạng ảnh không được hỗ trợ hoặc file bị hỏng.");
                             e.target.value = ''; URL.revokeObjectURL(url);
+                            if (app.upload.restoreDropZone) app.upload.restoreDropZone();
+                            if (app.webrtc && app.webrtc.resetMobile) app.webrtc.resetMobile(); // Báo mobile reset
                         };
 
                         img.src = url;
@@ -10348,6 +10354,7 @@ app.admin.fetchManagerData('denied');
                         const fileInput = document.getElementById('up-file');
                         if (fileInput) fileInput.value = ''; // Xóa file rác trong input
                         if (app.upload.restoreDropZone) app.upload.restoreDropZone();
+                        if (app.webrtc && app.webrtc.resetMobile) app.webrtc.resetMobile(); // Báo mobile reset
                         return;
                     }
                 },
