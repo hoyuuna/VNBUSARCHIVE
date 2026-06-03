@@ -1228,7 +1228,8 @@
         #upload-info-modal, #custom-prompt-modal, #custom-role-modal, #deny-prompt-modal, 
         #upload-progress-modal,
         #captcha-modal,
-        #webrtc-qr-modal {
+        #webrtc-qr-modal,
+        #qr-login-host-modal, #qr-login-confirm-modal {
             background-color: rgba(0, 0, 0, 0) !important;
             backdrop-filter: blur(8px) !important; 
             -webkit-backdrop-filter: blur(8px) !important;
@@ -1239,7 +1240,8 @@
         #upload-info-content, #custom-prompt-content, #custom-role-content, #deny-prompt-content, 
         #up-progress-content,
         #captcha-content,
-        #webrtc-qr-content {
+        #webrtc-qr-content,
+        #qr-login-host-content, #qr-login-confirm-content {
             background-color: rgba(255, 255, 255, 0.7) !important;
             backdrop-filter: blur(20px) !important;
             -webkit-backdrop-filter: blur(20px) !important;
@@ -13135,7 +13137,7 @@ closeCustomRolePrompt: () => {
     <!-- MODALS ĐĂNG NHẬP QR -->
     <!-- 1. Modal Host (Máy B - Hiển thị QR) -->
     <div id="qr-login-host-modal" class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm flex flex-col items-center justify-center p-4" style="z-index: 99999;">
-        <div class="bg-white rounded-2xl shadow-2xl p-6 md:p-8 max-w-sm w-full text-center flex flex-col items-center transform transition-all fade-zoom-in">
+        <div id="qr-login-host-content" class="bg-white rounded-2xl shadow-2xl p-6 md:p-8 max-w-sm w-full text-center flex flex-col items-center transform transition-all fade-zoom-in">
             <div class="w-12 h-12 bg-black text-white rounded-full flex items-center justify-center text-xl mb-4 shadow-md">
                 <i class="fa-solid fa-qrcode"></i>
             </div>
@@ -13163,7 +13165,7 @@ closeCustomRolePrompt: () => {
 
     <!-- 2. Modal Client (Máy A - Xác nhận đăng nhập) -->
     <div id="qr-login-confirm-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-md flex flex-col items-center justify-center p-4" style="z-index: 100000;">
-        <div class="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full transform transition-all fade-zoom-in">
+        <div id="qr-login-confirm-content" class="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full transform transition-all fade-zoom-in">
             <div class="text-center mb-5">
                 <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center text-2xl mb-3 shadow-md mx-auto border border-red-100">
                     <i class="fa-solid fa-shield-halved"></i>
