@@ -3028,7 +3028,7 @@
                                 </div>
                                 <div id="qr-btn-wrapper" class="flex flex-col items-center relative z-20 mt-1">
                                     <button type="button" onclick="event.stopPropagation(); app.webrtc.startHost()" class="bg-white hover:bg-gray-50 border border-gray-300 text-gray-800 font-bold py-2 px-4 rounded-full text-xs transition shadow-sm flex items-center gap-2">
-                                        <i class="fa-solid fa-qrcode text-sm"></i> Quét QR tải ảnh từ điện thoại
+                                        <i class="fa-solid fa-qrcode text-sm"></i> Quét QR truyền tải ảnh từ thiết bị khác
                                     </button>
                                 </div>
                                 
@@ -3041,8 +3041,8 @@
                                     <i class="fa-solid fa-mobile-screen-button text-2xl animate-pulse"></i>
                                 </div>
                                 <div class="text-center mb-1">
-                                    <p id="webrtc-connected-title" class="text-sm font-bold text-blue-800">Đã kết nối với điện thoại!</p>
-                                    <p id="webrtc-connected-sub" class="text-[11px] text-blue-600 mt-1 uppercase tracking-wider font-semibold">Vui lòng chọn ảnh trên màn hình điện thoại</p>
+                                    <p id="webrtc-connected-title" class="text-sm font-bold text-blue-800">Thiết bị đã được kết nối!</p>
+                                    <p id="webrtc-connected-sub" class="text-[11px] text-blue-600 mt-1 uppercase tracking-wider font-semibold">Vui lòng chọn ảnh trên thiết bị còn lại</p>
                                 </div>
                                 <button type="button" onclick="app.webrtc.disconnect()" class="bg-white hover:bg-red-50 border border-red-200 text-red-600 font-bold py-2.5 px-6 rounded-full text-xs transition shadow-sm mt-1">
                                     <i class="fa-solid fa-link-slash mr-1"></i> Ngắt kết nối
@@ -3475,7 +3475,7 @@
                 
             </div>
 
-            <!-- VIEW MỚI: TẢI ẢNH TỪ ĐIỆN THOẠI -->
+            <!-- VIEW MỚI: TRUYỀN TẢI DỮ LIỆU -->
             <div id="mobile-upload" class="view-section">
                 <div class="max-w-md mx-auto bg-white border border-vbs-border p-6 sm:p-8 rounded-2xl shadow-sm text-center flex flex-col items-center mt-6 min-h-[55vh] justify-center">
                     <div class="w-16 h-16 bg-gray-50 text-black border border-gray-200 rounded-full flex items-center justify-center text-3xl mb-5 shadow-sm">
@@ -3505,7 +3505,7 @@
                     </div>
                     
                     <p class="text-[10px] text-gray-400 mt-6 max-w-xs leading-relaxed mx-auto">
-                        Trình duyệt trên điện thoại phải luôn được mở trong quá trình truyền tải.
+                        Trình duyệt trên thiết bị này phải luôn được mở trong quá trình truyền tải.
                     </p>
                 </div>
             </div>
@@ -9737,8 +9737,8 @@ app.admin.fetchManagerData('denied');
                         const cTitle = document.getElementById('webrtc-connected-title');
                         const cSub = document.getElementById('webrtc-connected-sub');
                         if (cIcon) cIcon.innerHTML = '<i class="fa-solid fa-mobile-screen-button text-2xl animate-pulse"></i>';
-                        if (cTitle) cTitle.innerText = 'Đã kết nối với điện thoại!';
-                        if (cSub) cSub.innerText = 'Vui lòng chọn ảnh trên màn hình điện thoại';
+                        if (cTitle) cTitle.innerText = 'Thiết bị đã được kết nối!';
+                        if (cSub) cSub.innerText = 'Vui lòng chọn ảnh trên thiết bị còn lại';
                     };
 
                     if (file.size > 20 * 1024 * 1024) {
@@ -9937,13 +9937,11 @@ app.admin.fetchManagerData('denied');
                         let newLeft = initialLeft + dx;
                         let newTop = initialTop + dy;
 
-                        const maxLeft = container.offsetWidth - el.offsetWidth;
-                        const maxTop = container.offsetHeight - el.offsetHeight - (container.offsetHeight * 0.08);
+                        const maxLeft = Math.max(0, container.offsetWidth - el.offsetWidth);
+                        const maxTop = Math.max(0, container.offsetHeight - el.offsetHeight - (container.offsetHeight * 0.08));
 
-                        if (newLeft < 0) newLeft = 0;
-                        if (newLeft > maxLeft) newLeft = maxLeft;
-                        if (newTop < 0) newTop = 0;
-                        if (newTop > maxTop) newTop = maxTop;
+                        newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+                        newTop = Math.max(0, Math.min(newTop, maxTop));
 
                         el.style.left = newLeft + 'px';
                         el.style.top = newTop + 'px';
@@ -12646,7 +12644,7 @@ closeCustomRolePrompt: () => {
                 <i class="fa-solid fa-mobile-screen-button"></i>
             </div>
             <h3 class="font-bold text-lg text-black uppercase tracking-tight mb-1">Kết nối thiết bị</h3>
-            <p class="text-xs text-gray-500 mb-5 font-medium px-2">Dùng điện thoại quét mã QR dưới đây để truyền ảnh trực tiếp vào hệ thống.</p>
+            <p class="text-xs text-gray-500 mb-5 font-medium px-2">Sử dụng thiết bị còn lại quét mã QR dưới đây để truyền ảnh trực tiếp vào hệ thống.</p>
             
             <div class="bg-white p-3 border border-gray-200 shadow-sm rounded-xl mb-4 relative min-h-[224px] min-w-[224px] flex items-center justify-center">
                 <div id="webrtc-qrcode-container"></div>
@@ -12660,7 +12658,7 @@ closeCustomRolePrompt: () => {
                 <p class="text-xs text-blue-800 font-bold mb-1"><i class="fa-solid fa-camera mr-1.5"></i>Hướng dẫn:</p>
                 <ul class="text-[11px] text-blue-700 leading-relaxed list-decimal pl-4 space-y-1">
                 <li>Mở app <b>Camera/Chụp ảnh</b> mặc định trên điện thoại hoặc sử dụng tính năng quét QR của ứng dụng <b>Zalo</b>.</li>
-                <li>Đi theo link mã QR mở trang web và bạn đã thành công kết nối tới máy tính.</li>
+                <li>Đi theo link mã QR mở trang web và bạn đã thành công kết nối tới thiết bị này.</li>
             </ul>
             </div>
             <div class="px-2 mb-4 w-full">
@@ -12818,7 +12816,7 @@ closeCustomRolePrompt: () => {
                 if (app.upload && app.upload.restoreDropZone) app.upload.restoreDropZone();
 
                 if (isFromMobile) {
-                    app.ui.showAlert("Điện thoại đã ngắt kết nối.", null, null, {title: "Ngắt kết nối"});
+                    app.ui.showAlert("Thiết bị còn lại đã ngắt kết nối.", null, null, {title: "Ngắt kết nối"});
                 }
             },
 
@@ -12866,7 +12864,7 @@ closeCustomRolePrompt: () => {
                     });
 
                     app.webrtc.conn.on('close', () => {
-                        showMobileError("Mất kết nối với máy tính.", "Máy tính đã đóng kết nối hoặc bị tải lại trang. Vui lòng quét lại mã QR mới.");
+                        showMobileError("Mất kết nối với thiết bị nhận.", "Thiết bị nhận đã đóng kết nối hoặc bị tải lại trang. Vui lòng quét lại mã QR mới.");
                     });
                 });
 
@@ -12889,7 +12887,7 @@ closeCustomRolePrompt: () => {
                     statusEl.className = "w-full flex flex-col items-center justify-center min-h-[120px] bg-gray-50 rounded-xl border border-gray-200 p-4 mb-2";
                     statusEl.innerHTML = `
                         <i class="fa-solid fa-circle-notch fa-spin text-4xl text-black mb-4"></i>
-                        <p class="text-sm font-bold text-black">Đang gửi ảnh sang PC...</p>
+                        <p class="text-sm font-bold text-black">Đang đang truyền dữ liệu sang thiết bị nhận...</p>
                         <p class="text-[10px] text-gray-500 mt-2 uppercase tracking-widest font-bold">Giữ nguyên màn hình này</p>
                     `;
 
@@ -12924,7 +12922,7 @@ closeCustomRolePrompt: () => {
                                     <i class="fa-solid fa-check text-3xl text-green-600"></i>
                                 </div>
                                 <p class="text-lg font-black text-green-800 uppercase tracking-tight">Đã chuyển ảnh!</p>
-                                <p class="text-xs text-green-700 mt-1.5 font-medium text-center px-4 leading-relaxed">Tiếp tục thao tác trên màn hình máy tính.<br>Màn hình này sẽ tự mở khóa khi PC sẵn sàng nhận ảnh tiếp theo.</p>
+                                <p class="text-xs text-green-700 mt-1.5 font-medium text-center px-4 leading-relaxed">Tiếp tục thao tác trên màn hình máy tính.<br>Màn hình này sẽ tự mở khóa khi Thiết bị nhận sẵn sàng nhận ảnh tiếp theo.</p>
                             `;
                         }, 500);
                     } catch (error) {
