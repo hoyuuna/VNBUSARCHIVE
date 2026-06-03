@@ -2356,6 +2356,11 @@
                             <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm"><h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Đổi Email</h3><p class="text-[11px] md:text-xs text-gray-500 mb-3 leading-relaxed">Yêu cầu xác nhận mật khẩu hiện tại. Email đang sử dụng: <b id="set-current-email" class="text-black">...</b></p><div class="space-y-3"><input type="email" id="set-ce-new" placeholder="Nhập địa chỉ email mới" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none"><input type="password" id="set-ce-password" placeholder="Mật khẩu hiện tại" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none"><button onclick="app.auth.changeEmail(this)" class="w-full bg-black text-white px-4 py-2.5 text-xs font-bold rounded-md hover:bg-gray-800">Cập nhật Email</button></div></div>
                             <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm"><h3 class="font-bold text-xs md:text-sm text-black mb-3 uppercase tracking-wide">Đổi mật khẩu</h3><div class="space-y-3"><input type="password" id="set-cp-old" placeholder="Mật khẩu hiện tại" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none"><input type="password" id="set-cp-new" placeholder="Mật khẩu mới (Tối thiểu 6 ký tự)" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none"><button onclick="app.auth.changePassword()" class="w-full bg-black text-white px-4 py-2.5 text-xs font-bold rounded-md hover:bg-gray-800">Đổi mật khẩu</button></div></div>
                             <div class="bg-red-50 p-4 md:p-5 rounded-lg border border-red-200 shadow-sm"><h3 class="font-bold text-xs md:text-sm text-red-600 mb-2 uppercase tracking-wide"><i class="fa-solid fa-triangle-exclamation mr-1.5"></i>Mã định danh (UUID)</h3><div class="flex gap-2"><input type="password" id="set-uuid-input" readonly class="w-full border border-red-200 p-2.5 text-xs rounded-md bg-white font-mono text-center cursor-not-allowed text-red-800 tracking-widest"><button onclick="app.auth.revealUUID()" id="set-reveal-uuid" class="bg-white border border-red-200 text-red-600 px-3 py-2.5 text-xs font-bold rounded-md hover:bg-red-50"><i class="fa-solid fa-eye"></i></button><button onclick="app.auth.copyUUID()" id="set-copy-uuid" class="bg-red-600 text-white px-3 py-2.5 text-xs font-bold rounded-md hover:bg-red-700"><i class="fa-solid fa-copy"></i></button></div></div>
+                            <div class="bg-red-50 p-4 md:p-5 rounded-lg border border-red-200 shadow-sm mt-4 md:mt-6">
+                                <h3 class="font-bold text-xs md:text-sm text-red-600 mb-2 uppercase tracking-wide"><i class="fa-solid fa-right-from-bracket mr-1.5"></i>Đăng xuất tất cả thiết bị</h3>
+                                <p class="text-[11px] md:text-xs text-red-700 mb-3 leading-relaxed">Hành động này sẽ đăng xuất tài khoản của bạn khỏi <b>tất cả</b> các thiết bị và trình duyệt hiện tại để bảo đảm an toàn.</p>
+                                <button onclick="app.auth.logoutAll()" class="w-full bg-red-600 text-white px-4 py-2.5 text-xs font-bold rounded-md hover:bg-red-700 transition shadow-sm border border-red-700"><i class="fa-solid fa-power-off mr-1"></i> Đăng xuất khỏi mọi thiết bị</button>
+                            </div>
                         </div>
 
                         <div id="set-content-links" class="space-y-4 md:space-y-6 hidden">
@@ -4492,9 +4497,21 @@
                             deviceText.className = "text-[10px] font-mono text-gray-800 break-words leading-tight mt-0.5";
                         }
                         else if (data.type === 'success') {
-                            app.ui.showAlert("Đăng nhập bằng mã QR thành công! Thiết bị yêu cầu đang tải lại trang.", () => {
-                                app.utils.navigate('/');
-                            });
+                            app.ui.showAlert(
+                                `<div class="text-left">
+                                    <p class="text-sm font-bold text-green-600 mb-2"><i class="fa-solid fa-check-circle mr-1"></i> Đăng nhập thành công!</p>
+                                    <p class="text-xs text-gray-700 mb-2">Thiết bị yêu cầu đã được cấp quyền truy cập hệ thống.</p>
+                                    <div class="bg-gray-50 border border-gray-200 p-3 rounded-md mt-3 shadow-sm">
+                                        <p class="text-[10.5px] text-gray-600 font-medium leading-relaxed m-0">
+                                            <i class="fa-solid fa-triangle-exclamation text-amber-500 mr-1"></i>
+                                            Nếu bạn lỡ tay hoặc nghi ngờ rủi ro, hãy vào <a href="javascript:void(0)" onclick="app.ui.closeAlert(true); setTimeout(() => { app.settings.open(); app.settings.switchTab('security'); }, 300);" class="font-bold text-red-600 hover:text-red-800 transition underline">Cài đặt > Bảo mật > Đăng xuất tất cả</a> để vô hiệu hóa quyền truy cập ngay lập tức.
+                                        </p>
+                                    </div>
+                                </div>`,
+                                () => { app.utils.navigate('/'); },
+                                null,
+                                { title: "Xác thực QR hoàn tất", btnOkText: "Đã hiểu" }
+                            );
                             app.qrLogin.closeClient();
                         }
                     });
@@ -4922,9 +4939,21 @@
                             deviceText.className = "text-[10px] font-mono text-gray-800 break-words leading-tight mt-0.5";
                         }
                         else if (data.type === 'success') {
-                            app.ui.showAlert("Đăng nhập bằng mã QR thành công! Thiết bị yêu cầu đang tải lại trang.", () => {
-                                app.utils.navigate('/');
-                            });
+                            app.ui.showAlert(
+                                `<div class="text-left">
+                                    <p class="text-sm font-bold text-green-600 mb-2"><i class="fa-solid fa-check-circle mr-1"></i> Đăng nhập thành công!</p>
+                                    <p class="text-xs text-gray-700 mb-2">Thiết bị yêu cầu đã được cấp quyền truy cập hệ thống.</p>
+                                    <div class="bg-gray-50 border border-gray-200 p-3 rounded-md mt-3 shadow-sm">
+                                        <p class="text-[10.5px] text-gray-600 font-medium leading-relaxed m-0">
+                                            <i class="fa-solid fa-triangle-exclamation text-amber-500 mr-1"></i>
+                                            Nếu bạn lỡ tay hoặc nghi ngờ rủi ro, hãy vào <a href="javascript:void(0)" onclick="app.ui.closeAlert(true); setTimeout(() => { app.settings.open(); app.settings.switchTab('security'); }, 300);" class="font-bold text-red-600 hover:text-red-800 transition underline">Cài đặt > Bảo mật > Đăng xuất tất cả</a> để vô hiệu hóa quyền truy cập ngay lập tức.
+                                        </p>
+                                    </div>
+                                </div>`,
+                                () => { app.utils.navigate('/'); },
+                                null,
+                                { title: "Xác thực QR hoàn tất", btnOkText: "Đã hiểu" }
+                            );
                             app.qrLogin.closeClient();
                         }
                     });
@@ -12245,6 +12274,34 @@ cleanupState: () => {
                         console.error("Lỗi đăng xuất:", err);
                         app.ui.showAlert("Có lỗi xảy ra khi đăng xuất.");
                     }
+                },
+                logoutAll: async () => {
+                    app.ui.showAlert(
+                        "Bạn có chắc chắn muốn đăng xuất tài khoản khỏi TẤT CẢ các thiết bị và trình duyệt (bao gồm cả thiết bị này) không?",
+                        async () => {
+                            try {
+                                const btn = document.getElementById('custom-alert-ok-btn');
+                                if(btn) { btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...'; btn.disabled = true; }
+                                
+                                // Gọi API Supabase huỷ toàn bộ session của User (Global scope)
+                                const { error } = await window.sb.auth.signOut({ scope: 'global' });
+                                if (error) throw error;
+                                
+                                await app.setUser(null);
+                                app.ui.toggleUserMenu(false);
+                                
+                                app.ui.showAlert("Đã đăng xuất thành công khỏi TẤT CẢ thiết bị!", () => {
+                                    app.utils.navigate('/');
+                                    window.location.reload();
+                                });
+                            } catch (err) {
+                                console.error("Lỗi đăng xuất tất cả:", err);
+                                app.ui.showAlert("Có lỗi xảy ra khi xử lý.");
+                            }
+                        },
+                        () => {},
+                        { btnOkText: "Đăng xuất tất cả", btnCancelText: "Hủy", title: "Xác nhận hành động" }
+                    );
                 },
 changePassword: async () => {
                     const oldPass = document.getElementById('set-cp-old').value;
