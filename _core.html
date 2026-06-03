@@ -4380,24 +4380,13 @@
                     });
 
                     conn.on('data', async (data) => {
-                        if (data.type === 'login_token') {
-                            statusText.innerText = "Đang đăng nhập hệ thống...";
-                            try {
-                                // HACK: BỎ QUA setSession(), LƯU TRỰC TIẾP VÀO LOCALSTORAGE ĐỂ TRÁNH LỖI 403 FORBIDDEN
-                                const projectUrl = window.sb.supabaseUrl;
-                                const ref = projectUrl.split('//')[1].split('.')[0];
-                                const storageKey = `sb-${ref}-auth-token`;
-                                
-                                localStorage.setItem(storageKey, JSON.stringify(data.session));
-                                
-                                conn.send({ type: 'success' });
-                                
-                                // Tải lại trang, Supabase sẽ tự động nhận diện Session từ LocalStorage
-                                window.location.href = '/';
-                            } catch (e) {
-                                alert("Lỗi khi ghi Token: " + e.message);
-                                app.qrLogin.cancelHost();
-                            }
+                        if (data.type === 'login_link') {
+                            statusText.innerText = "Đang chuyển hướng đăng nhập...";
+                            conn.send({ type: 'success' });
+                            
+                            // CHUẨN CHUYÊN NGHIỆP: ĐIỀU HƯỚNG PC ĐẾN MAGIC LINK DO BACKEND TẠO RA
+                            window.location.href = data.url;
+                            
                         } else if (data.type === 'cancel') {
                             app.ui.showAlert("Đăng nhập bị từ chối từ thiết bị quét.");
                             app.qrLogin.cancelHost();
@@ -4458,7 +4447,6 @@
 
                 document.getElementById('qr-confirm-name').innerText = app.username;
                 
-                // FIX LỖI AVATAR: Lấy avatar từ Database Profiles thay vì user_metadata (nét hơn)
                 try {
                     const { data: profile } = await window.sb.from('profiles').select('avatar_url').eq('id', app.user.id).single();
                     if (profile && profile.avatar_url) {
@@ -4498,7 +4486,6 @@
                     
                     app.qrLogin.conn.on('data', (data) => {
                         if (data.type === 'host_info') {
-                            // RAW UserAgent như yêu cầu
                             deviceText.innerText = data.userAgent || 'Trình duyệt không xác định';
                             deviceText.className = "text-[10px] font-mono text-gray-800 break-words leading-tight mt-0.5";
                         }
@@ -4537,15 +4524,28 @@
                     const { data, error } = await window.sb.auth.getSession();
                     if (error || !data.session) throw new Error("Lấy Token thất bại. Vui lòng tải lại trang.");
 
-                    if (app.qrLogin.conn && app.qrLogin.conn.open) {
-                        // FIX: Đẩy toàn bộ Object Session qua để PC tự lưu vào LocalStorage
-                        app.qrLogin.conn.send({ 
-                            type: 'login_token', 
-                            session: data.session
-                        });
-                    } else {
+                    if (!app.qrLogin.conn || !app.qrLogin.conn.open) {
                         throw new Error("Không thể kết nối với máy chủ chờ. Vui lòng quét lại mã QR.");
                     }
+
+                    // --- CHUẨN CHUYÊN NGHIỆP: GỌI API BACKEND ĐỂ TẠO MAGIC LINK ---
+                    const res = await fetch('/api/qr-login-generate', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${data.session.access_token}`
+                        }
+                    });
+
+                    const apiData = await res.json();
+                    if (!res.ok) throw new Error(apiData.error || "Không thể tạo token đăng nhập mới từ máy chủ.");
+
+                    // Bắn Magic Link qua cho PC
+                    app.qrLogin.conn.send({ 
+                        type: 'login_link', 
+                        url: apiData.url
+                    });
+
                 } catch (e) {
                     app.ui.showAlert(e.message);
                     btn.disabled = false;
@@ -4570,6 +4570,7 @@
                 app.ui.unlockScroll();
             }
         },
+
 
         init: async () => {
                     try {
@@ -4809,24 +4810,13 @@
                     });
 
                     conn.on('data', async (data) => {
-                        if (data.type === 'login_token') {
-                            statusText.innerText = "Đang đăng nhập hệ thống...";
-                            try {
-                                // HACK: BỎ QUA setSession(), LƯU TRỰC TIẾP VÀO LOCALSTORAGE ĐỂ TRÁNH LỖI 403 FORBIDDEN
-                                const projectUrl = window.sb.supabaseUrl;
-                                const ref = projectUrl.split('//')[1].split('.')[0];
-                                const storageKey = `sb-${ref}-auth-token`;
-                                
-                                localStorage.setItem(storageKey, JSON.stringify(data.session));
-                                
-                                conn.send({ type: 'success' });
-                                
-                                // Tải lại trang, Supabase sẽ tự động nhận diện Session từ LocalStorage
-                                window.location.href = '/';
-                            } catch (e) {
-                                alert("Lỗi khi ghi Token: " + e.message);
-                                app.qrLogin.cancelHost();
-                            }
+                        if (data.type === 'login_link') {
+                            statusText.innerText = "Đang chuyển hướng đăng nhập...";
+                            conn.send({ type: 'success' });
+                            
+                            // CHUẨN CHUYÊN NGHIỆP: ĐIỀU HƯỚNG PC ĐẾN MAGIC LINK DO BACKEND TẠO RA
+                            window.location.href = data.url;
+                            
                         } else if (data.type === 'cancel') {
                             app.ui.showAlert("Đăng nhập bị từ chối từ thiết bị quét.");
                             app.qrLogin.cancelHost();
@@ -4887,7 +4877,6 @@
 
                 document.getElementById('qr-confirm-name').innerText = app.username;
                 
-                // FIX LỖI AVATAR: Lấy avatar từ Database Profiles thay vì user_metadata (nét hơn)
                 try {
                     const { data: profile } = await window.sb.from('profiles').select('avatar_url').eq('id', app.user.id).single();
                     if (profile && profile.avatar_url) {
@@ -4927,7 +4916,6 @@
                     
                     app.qrLogin.conn.on('data', (data) => {
                         if (data.type === 'host_info') {
-                            // RAW UserAgent như yêu cầu
                             deviceText.innerText = data.userAgent || 'Trình duyệt không xác định';
                             deviceText.className = "text-[10px] font-mono text-gray-800 break-words leading-tight mt-0.5";
                         }
@@ -4966,15 +4954,28 @@
                     const { data, error } = await window.sb.auth.getSession();
                     if (error || !data.session) throw new Error("Lấy Token thất bại. Vui lòng tải lại trang.");
 
-                    if (app.qrLogin.conn && app.qrLogin.conn.open) {
-                        // FIX: Đẩy toàn bộ Object Session qua để PC tự lưu vào LocalStorage
-                        app.qrLogin.conn.send({ 
-                            type: 'login_token', 
-                            session: data.session
-                        });
-                    } else {
+                    if (!app.qrLogin.conn || !app.qrLogin.conn.open) {
                         throw new Error("Không thể kết nối với máy chủ chờ. Vui lòng quét lại mã QR.");
                     }
+
+                    // --- CHUẨN CHUYÊN NGHIỆP: GỌI API BACKEND ĐỂ TẠO MAGIC LINK ---
+                    const res = await fetch('/api/qr-login-generate', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${data.session.access_token}`
+                        }
+                    });
+
+                    const apiData = await res.json();
+                    if (!res.ok) throw new Error(apiData.error || "Không thể tạo token đăng nhập mới từ máy chủ.");
+
+                    // Bắn Magic Link qua cho PC
+                    app.qrLogin.conn.send({ 
+                        type: 'login_link', 
+                        url: apiData.url
+                    });
+
                 } catch (e) {
                     app.ui.showAlert(e.message);
                     btn.disabled = false;
@@ -4999,6 +5000,7 @@
                 app.ui.unlockScroll();
             }
         },
+
 
         init: async () => {
 
