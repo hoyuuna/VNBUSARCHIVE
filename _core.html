@@ -12640,7 +12640,7 @@ closeCustomRolePrompt: () => {
 
     
     <!-- UI MODAL HIỂN THỊ MÃ QR TẠI PC -->
-    <div id="webrtc-qr-modal" class="hidden fixed inset-0 z-[8000] bg-black/40 backdrop-blur-sm flex flex-col items-center justify-center p-4">
+    <div id="webrtc-qr-modal" class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm flex flex-col items-center justify-center p-4" style="z-index: 99999;">
         <div id="webrtc-qr-content" class="bg-white rounded-2xl shadow-2xl p-6 md:p-8 max-w-sm w-full text-center flex flex-col items-center transform transition-all fade-zoom-in">
             <div class="w-12 h-12 bg-black text-white rounded-full flex items-center justify-center text-xl mb-4 shadow-md">
                 <i class="fa-solid fa-mobile-screen-button"></i>
@@ -12658,7 +12658,10 @@ closeCustomRolePrompt: () => {
             <!-- HƯỚNG DẪN QUÉT VÀ CẢNH BÁO -->
             <div class="bg-blue-50 p-3 rounded-lg border border-blue-100 w-full mb-3 text-left shadow-sm">
                 <p class="text-xs text-blue-800 font-bold mb-1"><i class="fa-solid fa-camera mr-1.5"></i>Hướng dẫn:</p>
-                <p class="text-[11px] text-blue-700 leading-relaxed">Mở ứng dụng <b>Camera</b> mặc định trên điện thoại và hướng vào mã QR này.</p>
+                <ul class="text-[11px] text-blue-700 leading-relaxed list-decimal pl-4 space-y-1">
+                <li>Mở app <b>Camera/Chụp ảnh</b> mặc định trên điện thoại hoặc sử dụng tính năng quét QR của ứng dụng <b>Zalo</b>.</li>
+                <li>Đi theo link mã QR mở trang web và bạn đã thành công kết nối tới máy tính.</li>
+            </ul>
             </div>
             <div class="px-2 mb-4 w-full">
                 <p class="text-[10px] text-amber-600 font-medium leading-relaxed text-left">
