@@ -12277,30 +12277,33 @@ cleanupState: () => {
                 },
                 logoutAll: async () => {
                     app.ui.showAlert(
-                        "Bạn có chắc chắn muốn đăng xuất tài khoản khỏi TẤT CẢ các thiết bị và trình duyệt (bao gồm cả thiết bị này) không?",
+                        "<b>CẢNH BÁO:</b> Bạn sẽ bị đăng xuất khỏi <b>TẤT CẢ</b> thiết bị và trình duyệt hiện tại. Bạn có chắc chắn muốn thực hiện?",
                         async () => {
                             try {
-                                const btn = document.getElementById('custom-alert-ok-btn');
-                                if(btn) { btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...'; btn.disabled = true; }
-                                
-                                // Gọi API Supabase huỷ toàn bộ session của User (Global scope)
+                                // Hiển thị trạng thái đang xử lý trên nút của Popup
+                                const okBtn = document.getElementById('custom-alert-ok-btn');
+                                if(okBtn) { okBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>'; okBtn.disabled = true; }
+
+                                // 1. Gọi lệnh Global SignOut của Supabase
                                 const { error } = await window.sb.auth.signOut({ scope: 'global' });
                                 if (error) throw error;
+
+                                // 2. Xóa sạch LocalStorage để đảm bảo không còn Token rác
+                                localStorage.clear();
                                 
+                                // 3. Reset state ứng dụng
                                 await app.setUser(null);
-                                app.ui.toggleUserMenu(false);
                                 
-                                app.ui.showAlert("Đã đăng xuất thành công khỏi TẤT CẢ thiết bị!", () => {
-                                    app.utils.navigate('/');
-                                    window.location.reload();
+                                app.ui.showAlert("Đã vô hiệu hóa toàn bộ phiên đăng nhập thành công!", () => {
+                                    window.location.href = '/'; // Ép chuyển hướng và tải lại trang sạch
                                 });
                             } catch (err) {
-                                console.error("Lỗi đăng xuất tất cả:", err);
-                                app.ui.showAlert("Có lỗi xảy ra khi xử lý.");
+                                console.error("Logout All Error:", err);
+                                app.ui.showAlert("Lỗi hệ thống: " + err.message);
                             }
                         },
                         () => {},
-                        { btnOkText: "Đăng xuất tất cả", btnCancelText: "Hủy", title: "Xác nhận hành động" }
+                        { btnOkText: "Xác nhận Đăng xuất tất cả", btnCancelText: "Hủy bỏ", title: "Bảo mật tài khoản", countdown: true }
                     );
                 },
 changePassword: async () => {
