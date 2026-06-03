@@ -4370,23 +4370,27 @@
                     app.qrLogin.conn = conn;
                     
                     conn.on('open', () => {
-                        // Điện thoại đã quét mã, đổi trạng thái
                         loading.classList.remove('hidden');
                         statusText.innerText = "Vui lòng xác nhận trên điện thoại...";
                         if(app.qrLogin.timer) clearInterval(app.qrLogin.timer);
                         countdownEl.innerText = "Đang chờ...";
+
+                        // GỬI RAW USER-AGENT TỪ MÁY TÍNH QUA ĐIỆN THOẠI
+                        conn.send({ type: 'host_info', userAgent: navigator.userAgent });
                     });
 
                     conn.on('data', async (data) => {
                         if (data.type === 'login_token') {
                             statusText.innerText = "Đang đăng nhập hệ thống...";
                             try {
-                                const { error } = await window.sb.auth.setSession(data.session);
+                                // FIX LỖI: Truyền đúng cấu trúc access_token và refresh_token
+                                const { error } = await window.sb.auth.setSession({
+                                    access_token: data.access_token,
+                                    refresh_token: data.refresh_token
+                                });
                                 if (error) throw error;
                                 
                                 conn.send({ type: 'success' });
-                                
-                                // Đăng nhập thành công, tải lại trang
                                 window.location.href = '/';
                             } catch (e) {
                                 alert("Lỗi khi đăng nhập bằng QR: " + e.message);
@@ -4433,7 +4437,6 @@
 
             // --- CLIENT: Máy A (Điện thoại quét mã) ---
             initClient: async (hostId) => {
-                // Kiểm tra xem máy này đã đăng nhập chưa
                 if (!app.user) {
                     app.ui.showAlert("Bạn chưa đăng nhập! Vui lòng đăng nhập trên điện thoại này trước khi quét mã QR.", () => {
                         app.utils.navigate('/auth');
@@ -4443,30 +4446,34 @@
 
                 const modal = document.getElementById('qr-login-confirm-modal');
                 const btnConfirm = document.getElementById('qr-confirm-btn');
+                const avatarImg = document.getElementById('qr-confirm-avatar');
+                const deviceText = document.getElementById('qr-confirm-device');
                 
-                // Khởi tạo trạng thái nút bấm 3s
                 btnConfirm.disabled = true;
                 btnConfirm.classList.add('opacity-50', 'cursor-not-allowed');
                 let timeLeft = 3;
                 btnConfirm.innerText = `Đăng nhập (${timeLeft})`;
 
-                // Render Info User
                 document.getElementById('qr-confirm-name').innerText = app.username;
-                const avatarImg = document.getElementById('qr-confirm-avatar');
-                if (app.user.user_metadata?.avatar_url) {
-                    avatarImg.src = app.utils.getProxiedUrl(app.user.user_metadata.avatar_url, 'avatar.jpg', 'avatar');
-                } else {
+                
+                // FIX LỖI AVATAR: Lấy avatar gốc từ Database Profiles thay vì user_metadata
+                try {
+                    const { data: profile } = await window.sb.from('profiles').select('avatar_url').eq('id', app.user.id).single();
+                    if (profile && profile.avatar_url) {
+                        avatarImg.src = app.utils.getProxiedUrl(profile.avatar_url.replace(/"/g, ''), 'avatar.jpg', 'avatar');
+                    } else {
+                        avatarImg.src = app.user.user_metadata?.avatar_url ? app.utils.getProxiedUrl(app.user.user_metadata.avatar_url, 'avatar.jpg', 'avatar') : DEFAULT_AVATAR;
+                    }
+                } catch(e) {
                     avatarImg.src = DEFAULT_AVATAR;
                 }
 
-                // Render Device Info & IP
-                app.qrLogin.getDeviceInfo();
+                deviceText.innerText = "Đang kết nối để lấy thông tin thiết bị...";
                 app.qrLogin.getIP();
 
                 modal.classList.remove('hidden');
                 app.ui.lockScroll();
 
-                // Chạy Countdown nút bấm
                 const cTimer = setInterval(() => {
                     timeLeft--;
                     if (timeLeft <= 0) {
@@ -4479,14 +4486,19 @@
                     }
                 }, 1000);
 
-                // Khởi tạo Peer để báo cho Máy Host biết đã quét
                 if (app.qrLogin.peer) app.qrLogin.peer.destroy();
                 app.qrLogin.peer = new Peer();
 
                 app.qrLogin.peer.on('open', () => {
                     app.qrLogin.conn = app.qrLogin.peer.connect(hostId, { reliable: true });
+                    
                     app.qrLogin.conn.on('data', (data) => {
-                        if (data.type === 'success') {
+                        // FIX LỖI USER AGENT: Nhận info trực tiếp từ PC gửi sang
+                        if (data.type === 'host_info') {
+                            deviceText.innerText = data.userAgent || 'Trình duyệt không xác định';
+                            deviceText.className = "text-[10px] font-mono text-gray-800 break-words leading-tight mt-0.5";
+                        }
+                        else if (data.type === 'success') {
                             app.ui.showAlert("Đăng nhập bằng mã QR thành công! Trình duyệt bên kia đang được chuyển hướng.", () => {
                                 app.utils.navigate('/');
                             });
@@ -4500,20 +4512,6 @@
                         app.qrLogin.closeClient();
                     });
                 });
-            },
-
-            getDeviceInfo: () => {
-                const ua = navigator.userAgent;
-                let device = "Thiết bị không xác định";
-                if (/windows phone/i.test(ua)) device = "Windows Phone";
-                else if (/windows/i.test(ua)) device = "PC Windows";
-                else if (/macintosh|mac os x/i.test(ua)) device = "Mac OS";
-                else if (/ipad/i.test(ua)) device = "iPad (iOS)";
-                else if (/iphone|ipod/i.test(ua)) device = "iPhone (iOS)";
-                else if (/android/i.test(ua)) device = "Điện thoại Android";
-                else if (/linux/i.test(ua)) device = "Linux PC";
-                
-                document.getElementById('qr-confirm-device').innerText = device;
             },
 
             getIP: async () => {
@@ -4532,13 +4530,16 @@
                 btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
 
                 try {
-                    // Lấy Session Token hiện tại
                     const { data, error } = await window.sb.auth.getSession();
                     if (error || !data.session) throw new Error("Lấy Token thất bại. Vui lòng thử đăng nhập lại trên máy này.");
 
-                    // Bắn qua máy Host
                     if (app.qrLogin.conn && app.qrLogin.conn.open) {
-                        app.qrLogin.conn.send({ type: 'login_token', session: data.session });
+                        // FIX LỖI SESSION: Bóc tách rõ access_token và refresh_token thay vì đẩy cục data.session
+                        app.qrLogin.conn.send({ 
+                            type: 'login_token', 
+                            access_token: data.session.access_token,
+                            refresh_token: data.session.refresh_token
+                        });
                     } else {
                         throw new Error("Không thể kết nối với máy chủ (Host đã đóng). Vui lòng quét lại mã QR.");
                     }
@@ -4795,23 +4796,27 @@
                     app.qrLogin.conn = conn;
                     
                     conn.on('open', () => {
-                        // Điện thoại đã quét mã, đổi trạng thái
                         loading.classList.remove('hidden');
                         statusText.innerText = "Vui lòng xác nhận trên điện thoại...";
                         if(app.qrLogin.timer) clearInterval(app.qrLogin.timer);
                         countdownEl.innerText = "Đang chờ...";
+
+                        // GỬI RAW USER-AGENT TỪ MÁY TÍNH QUA ĐIỆN THOẠI
+                        conn.send({ type: 'host_info', userAgent: navigator.userAgent });
                     });
 
                     conn.on('data', async (data) => {
                         if (data.type === 'login_token') {
                             statusText.innerText = "Đang đăng nhập hệ thống...";
                             try {
-                                const { error } = await window.sb.auth.setSession(data.session);
+                                // FIX LỖI: Truyền đúng cấu trúc access_token và refresh_token
+                                const { error } = await window.sb.auth.setSession({
+                                    access_token: data.access_token,
+                                    refresh_token: data.refresh_token
+                                });
                                 if (error) throw error;
                                 
                                 conn.send({ type: 'success' });
-                                
-                                // Đăng nhập thành công, tải lại trang
                                 window.location.href = '/';
                             } catch (e) {
                                 alert("Lỗi khi đăng nhập bằng QR: " + e.message);
@@ -4858,7 +4863,6 @@
 
             // --- CLIENT: Máy A (Điện thoại quét mã) ---
             initClient: async (hostId) => {
-                // Kiểm tra xem máy này đã đăng nhập chưa
                 if (!app.user) {
                     app.ui.showAlert("Bạn chưa đăng nhập! Vui lòng đăng nhập trên điện thoại này trước khi quét mã QR.", () => {
                         app.utils.navigate('/auth');
@@ -4868,30 +4872,34 @@
 
                 const modal = document.getElementById('qr-login-confirm-modal');
                 const btnConfirm = document.getElementById('qr-confirm-btn');
+                const avatarImg = document.getElementById('qr-confirm-avatar');
+                const deviceText = document.getElementById('qr-confirm-device');
                 
-                // Khởi tạo trạng thái nút bấm 3s
                 btnConfirm.disabled = true;
                 btnConfirm.classList.add('opacity-50', 'cursor-not-allowed');
                 let timeLeft = 3;
                 btnConfirm.innerText = `Đăng nhập (${timeLeft})`;
 
-                // Render Info User
                 document.getElementById('qr-confirm-name').innerText = app.username;
-                const avatarImg = document.getElementById('qr-confirm-avatar');
-                if (app.user.user_metadata?.avatar_url) {
-                    avatarImg.src = app.utils.getProxiedUrl(app.user.user_metadata.avatar_url, 'avatar.jpg', 'avatar');
-                } else {
+                
+                // FIX LỖI AVATAR: Lấy avatar gốc từ Database Profiles thay vì user_metadata
+                try {
+                    const { data: profile } = await window.sb.from('profiles').select('avatar_url').eq('id', app.user.id).single();
+                    if (profile && profile.avatar_url) {
+                        avatarImg.src = app.utils.getProxiedUrl(profile.avatar_url.replace(/"/g, ''), 'avatar.jpg', 'avatar');
+                    } else {
+                        avatarImg.src = app.user.user_metadata?.avatar_url ? app.utils.getProxiedUrl(app.user.user_metadata.avatar_url, 'avatar.jpg', 'avatar') : DEFAULT_AVATAR;
+                    }
+                } catch(e) {
                     avatarImg.src = DEFAULT_AVATAR;
                 }
 
-                // Render Device Info & IP
-                app.qrLogin.getDeviceInfo();
+                deviceText.innerText = "Đang kết nối để lấy thông tin thiết bị...";
                 app.qrLogin.getIP();
 
                 modal.classList.remove('hidden');
                 app.ui.lockScroll();
 
-                // Chạy Countdown nút bấm
                 const cTimer = setInterval(() => {
                     timeLeft--;
                     if (timeLeft <= 0) {
@@ -4904,14 +4912,19 @@
                     }
                 }, 1000);
 
-                // Khởi tạo Peer để báo cho Máy Host biết đã quét
                 if (app.qrLogin.peer) app.qrLogin.peer.destroy();
                 app.qrLogin.peer = new Peer();
 
                 app.qrLogin.peer.on('open', () => {
                     app.qrLogin.conn = app.qrLogin.peer.connect(hostId, { reliable: true });
+                    
                     app.qrLogin.conn.on('data', (data) => {
-                        if (data.type === 'success') {
+                        // FIX LỖI USER AGENT: Nhận info trực tiếp từ PC gửi sang
+                        if (data.type === 'host_info') {
+                            deviceText.innerText = data.userAgent || 'Trình duyệt không xác định';
+                            deviceText.className = "text-[10px] font-mono text-gray-800 break-words leading-tight mt-0.5";
+                        }
+                        else if (data.type === 'success') {
                             app.ui.showAlert("Đăng nhập bằng mã QR thành công! Trình duyệt bên kia đang được chuyển hướng.", () => {
                                 app.utils.navigate('/');
                             });
@@ -4925,20 +4938,6 @@
                         app.qrLogin.closeClient();
                     });
                 });
-            },
-
-            getDeviceInfo: () => {
-                const ua = navigator.userAgent;
-                let device = "Thiết bị không xác định";
-                if (/windows phone/i.test(ua)) device = "Windows Phone";
-                else if (/windows/i.test(ua)) device = "PC Windows";
-                else if (/macintosh|mac os x/i.test(ua)) device = "Mac OS";
-                else if (/ipad/i.test(ua)) device = "iPad (iOS)";
-                else if (/iphone|ipod/i.test(ua)) device = "iPhone (iOS)";
-                else if (/android/i.test(ua)) device = "Điện thoại Android";
-                else if (/linux/i.test(ua)) device = "Linux PC";
-                
-                document.getElementById('qr-confirm-device').innerText = device;
             },
 
             getIP: async () => {
@@ -4957,13 +4956,16 @@
                 btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
 
                 try {
-                    // Lấy Session Token hiện tại
                     const { data, error } = await window.sb.auth.getSession();
                     if (error || !data.session) throw new Error("Lấy Token thất bại. Vui lòng thử đăng nhập lại trên máy này.");
 
-                    // Bắn qua máy Host
                     if (app.qrLogin.conn && app.qrLogin.conn.open) {
-                        app.qrLogin.conn.send({ type: 'login_token', session: data.session });
+                        // FIX LỖI SESSION: Bóc tách rõ access_token và refresh_token thay vì đẩy cục data.session
+                        app.qrLogin.conn.send({ 
+                            type: 'login_token', 
+                            access_token: data.session.access_token,
+                            refresh_token: data.session.refresh_token
+                        });
                     } else {
                         throw new Error("Không thể kết nối với máy chủ (Host đã đóng). Vui lòng quét lại mã QR.");
                     }
