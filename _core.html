@@ -4444,7 +4444,7 @@
                 
                 btnConfirm.disabled = true;
                 btnConfirm.classList.add('opacity-50', 'cursor-not-allowed');
-                let timeLeft = 3;
+                let timeLeft = 10;
                 btnConfirm.innerText = `Đăng nhập (${timeLeft})`;
 
                 document.getElementById('qr-confirm-name').innerText = app.username;
@@ -4474,7 +4474,7 @@
                         clearInterval(cTimer);
                         btnConfirm.disabled = false;
                         btnConfirm.classList.remove('opacity-50', 'cursor-not-allowed');
-                        btnConfirm.innerText = "Xác nhận Đăng nhập";
+                        btnConfirm.innerText = "Đăng nhập";
                     } else {
                         btnConfirm.innerText = `Đăng nhập (${timeLeft})`;
                     }
@@ -4874,7 +4874,7 @@
                 
                 btnConfirm.disabled = true;
                 btnConfirm.classList.add('opacity-50', 'cursor-not-allowed');
-                let timeLeft = 3;
+                let timeLeft = 10;
                 btnConfirm.innerText = `Đăng nhập (${timeLeft})`;
 
                 document.getElementById('qr-confirm-name').innerText = app.username;
@@ -4904,7 +4904,7 @@
                         clearInterval(cTimer);
                         btnConfirm.disabled = false;
                         btnConfirm.classList.remove('opacity-50', 'cursor-not-allowed');
-                        btnConfirm.innerText = "Xác nhận Đăng nhập";
+                        btnConfirm.innerText = "Đăng nhập";
                     } else {
                         btnConfirm.innerText = `Đăng nhập (${timeLeft})`;
                     }
@@ -13211,8 +13211,8 @@ closeCustomRolePrompt: () => {
                 <button type="button" onclick="app.qrLogin.cancelClient()" class="flex-1 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-2.5 rounded-lg text-sm transition shadow-sm">
                     Hủy bỏ
                 </button>
-                <button type="button" id="qr-confirm-btn" onclick="app.qrLogin.confirmClient()" disabled class="flex-1 bg-black text-white font-bold py-2.5 rounded-lg text-sm transition shadow-sm opacity-50 cursor-not-allowed">
-                    Đăng nhập (3)
+                <button type="button" id="qr-confirm-btn" onclick="app.qrLogin.confirmClient()" disabled class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-lg text-sm transition shadow-sm opacity-50 cursor-not-allowed"">
+                    Đăng nhập (10)
                 </button>
             </div>
         </div>
