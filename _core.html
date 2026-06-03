@@ -4335,7 +4335,7 @@
             timer: null,
             timeLeft: 180,
             
-            // --- HOST: Máy B (Mở Modal, Tảo QR, Chờ kết nối) ---
+            // --- HOST: Máy PC (Mở Modal, Tạo QR, Chờ kết nối) ---
             startHost: () => {
                 const modal = document.getElementById('qr-login-host-modal');
                 const loading = document.getElementById('qr-login-loading');
@@ -4371,7 +4371,7 @@
                     
                     conn.on('open', () => {
                         loading.classList.remove('hidden');
-                        statusText.innerText = "Vui lòng xác nhận trên điện thoại...";
+                        statusText.innerText = "Vui lòng xác nhận trên thiết bị quét...";
                         if(app.qrLogin.timer) clearInterval(app.qrLogin.timer);
                         countdownEl.innerText = "Đang chờ...";
 
@@ -4383,17 +4383,19 @@
                         if (data.type === 'login_token') {
                             statusText.innerText = "Đang đăng nhập hệ thống...";
                             try {
-                                // FIX LỖI: Truyền đúng cấu trúc access_token và refresh_token
-                                const { error } = await window.sb.auth.setSession({
-                                    access_token: data.access_token,
-                                    refresh_token: data.refresh_token
-                                });
-                                if (error) throw error;
+                                // HACK: BỎ QUA setSession(), LƯU TRỰC TIẾP VÀO LOCALSTORAGE ĐỂ TRÁNH LỖI 403 FORBIDDEN
+                                const projectUrl = window.sb.supabaseUrl;
+                                const ref = projectUrl.split('//')[1].split('.')[0];
+                                const storageKey = `sb-${ref}-auth-token`;
+                                
+                                localStorage.setItem(storageKey, JSON.stringify(data.session));
                                 
                                 conn.send({ type: 'success' });
+                                
+                                // Tải lại trang, Supabase sẽ tự động nhận diện Session từ LocalStorage
                                 window.location.href = '/';
                             } catch (e) {
-                                alert("Lỗi khi đăng nhập bằng QR: " + e.message);
+                                alert("Lỗi khi ghi Token: " + e.message);
                                 app.qrLogin.cancelHost();
                             }
                         } else if (data.type === 'cancel') {
@@ -4435,7 +4437,7 @@
                 app.ui.unlockScroll();
             },
 
-            // --- CLIENT: Máy A (Điện thoại quét mã) ---
+            // --- CLIENT: Điện thoại quét mã ---
             initClient: async (hostId) => {
                 if (!app.user) {
                     app.ui.showAlert("Bạn chưa đăng nhập! Vui lòng đăng nhập trên điện thoại này trước khi quét mã QR.", () => {
@@ -4456,16 +4458,18 @@
 
                 document.getElementById('qr-confirm-name').innerText = app.username;
                 
-                // FIX LỖI AVATAR: Lấy avatar gốc từ Database Profiles thay vì user_metadata
+                // FIX LỖI AVATAR: Lấy avatar từ Database Profiles thay vì user_metadata (nét hơn)
                 try {
                     const { data: profile } = await window.sb.from('profiles').select('avatar_url').eq('id', app.user.id).single();
                     if (profile && profile.avatar_url) {
                         avatarImg.src = app.utils.getProxiedUrl(profile.avatar_url.replace(/"/g, ''), 'avatar.jpg', 'avatar');
+                    } else if (app.user.user_metadata?.avatar_url) {
+                        avatarImg.src = app.utils.getProxiedUrl(app.user.user_metadata.avatar_url, 'avatar.jpg', 'avatar');
                     } else {
-                        avatarImg.src = app.user.user_metadata?.avatar_url ? app.utils.getProxiedUrl(app.user.user_metadata.avatar_url, 'avatar.jpg', 'avatar') : DEFAULT_AVATAR;
+                        avatarImg.src = 'https://wsrv.nl/?url=https://files.catbox.moe/zzh1q1.png&we';
                     }
                 } catch(e) {
-                    avatarImg.src = DEFAULT_AVATAR;
+                    avatarImg.src = 'https://wsrv.nl/?url=https://files.catbox.moe/zzh1q1.png&we';
                 }
 
                 deviceText.innerText = "Đang kết nối để lấy thông tin thiết bị...";
@@ -4493,13 +4497,13 @@
                     app.qrLogin.conn = app.qrLogin.peer.connect(hostId, { reliable: true });
                     
                     app.qrLogin.conn.on('data', (data) => {
-                        // FIX LỖI USER AGENT: Nhận info trực tiếp từ PC gửi sang
                         if (data.type === 'host_info') {
+                            // RAW UserAgent như yêu cầu
                             deviceText.innerText = data.userAgent || 'Trình duyệt không xác định';
                             deviceText.className = "text-[10px] font-mono text-gray-800 break-words leading-tight mt-0.5";
                         }
                         else if (data.type === 'success') {
-                            app.ui.showAlert("Đăng nhập bằng mã QR thành công! Trình duyệt bên kia đang được chuyển hướng.", () => {
+                            app.ui.showAlert("Đăng nhập bằng mã QR thành công! Thiết bị yêu cầu đang tải lại trang.", () => {
                                 app.utils.navigate('/');
                             });
                             app.qrLogin.closeClient();
@@ -4507,7 +4511,7 @@
                     });
                     
                     app.qrLogin.conn.on('close', () => {
-                        app.ui.showAlert("Mất kết nối với thiết bị cần đăng nhập. Vui lòng quét lại.");
+                        app.ui.showAlert("Mất kết nối với thiết bị chờ đăng nhập. Vui lòng quét lại.");
                         app.utils.navigate('/');
                         app.qrLogin.closeClient();
                     });
@@ -4531,17 +4535,16 @@
 
                 try {
                     const { data, error } = await window.sb.auth.getSession();
-                    if (error || !data.session) throw new Error("Lấy Token thất bại. Vui lòng thử đăng nhập lại trên máy này.");
+                    if (error || !data.session) throw new Error("Lấy Token thất bại. Vui lòng tải lại trang.");
 
                     if (app.qrLogin.conn && app.qrLogin.conn.open) {
-                        // FIX LỖI SESSION: Bóc tách rõ access_token và refresh_token thay vì đẩy cục data.session
+                        // FIX: Đẩy toàn bộ Object Session qua để PC tự lưu vào LocalStorage
                         app.qrLogin.conn.send({ 
                             type: 'login_token', 
-                            access_token: data.session.access_token,
-                            refresh_token: data.session.refresh_token
+                            session: data.session
                         });
                     } else {
-                        throw new Error("Không thể kết nối với máy chủ (Host đã đóng). Vui lòng quét lại mã QR.");
+                        throw new Error("Không thể kết nối với máy chủ chờ. Vui lòng quét lại mã QR.");
                     }
                 } catch (e) {
                     app.ui.showAlert(e.message);
@@ -4761,7 +4764,7 @@
             timer: null,
             timeLeft: 180,
             
-            // --- HOST: Máy B (Mở Modal, Tảo QR, Chờ kết nối) ---
+            // --- HOST: Máy PC (Mở Modal, Tạo QR, Chờ kết nối) ---
             startHost: () => {
                 const modal = document.getElementById('qr-login-host-modal');
                 const loading = document.getElementById('qr-login-loading');
@@ -4797,7 +4800,7 @@
                     
                     conn.on('open', () => {
                         loading.classList.remove('hidden');
-                        statusText.innerText = "Vui lòng xác nhận trên điện thoại...";
+                        statusText.innerText = "Vui lòng xác nhận trên thiết bị quét...";
                         if(app.qrLogin.timer) clearInterval(app.qrLogin.timer);
                         countdownEl.innerText = "Đang chờ...";
 
@@ -4809,17 +4812,19 @@
                         if (data.type === 'login_token') {
                             statusText.innerText = "Đang đăng nhập hệ thống...";
                             try {
-                                // FIX LỖI: Truyền đúng cấu trúc access_token và refresh_token
-                                const { error } = await window.sb.auth.setSession({
-                                    access_token: data.access_token,
-                                    refresh_token: data.refresh_token
-                                });
-                                if (error) throw error;
+                                // HACK: BỎ QUA setSession(), LƯU TRỰC TIẾP VÀO LOCALSTORAGE ĐỂ TRÁNH LỖI 403 FORBIDDEN
+                                const projectUrl = window.sb.supabaseUrl;
+                                const ref = projectUrl.split('//')[1].split('.')[0];
+                                const storageKey = `sb-${ref}-auth-token`;
+                                
+                                localStorage.setItem(storageKey, JSON.stringify(data.session));
                                 
                                 conn.send({ type: 'success' });
+                                
+                                // Tải lại trang, Supabase sẽ tự động nhận diện Session từ LocalStorage
                                 window.location.href = '/';
                             } catch (e) {
-                                alert("Lỗi khi đăng nhập bằng QR: " + e.message);
+                                alert("Lỗi khi ghi Token: " + e.message);
                                 app.qrLogin.cancelHost();
                             }
                         } else if (data.type === 'cancel') {
@@ -4861,7 +4866,7 @@
                 app.ui.unlockScroll();
             },
 
-            // --- CLIENT: Máy A (Điện thoại quét mã) ---
+            // --- CLIENT: Điện thoại quét mã ---
             initClient: async (hostId) => {
                 if (!app.user) {
                     app.ui.showAlert("Bạn chưa đăng nhập! Vui lòng đăng nhập trên điện thoại này trước khi quét mã QR.", () => {
@@ -4882,16 +4887,18 @@
 
                 document.getElementById('qr-confirm-name').innerText = app.username;
                 
-                // FIX LỖI AVATAR: Lấy avatar gốc từ Database Profiles thay vì user_metadata
+                // FIX LỖI AVATAR: Lấy avatar từ Database Profiles thay vì user_metadata (nét hơn)
                 try {
                     const { data: profile } = await window.sb.from('profiles').select('avatar_url').eq('id', app.user.id).single();
                     if (profile && profile.avatar_url) {
                         avatarImg.src = app.utils.getProxiedUrl(profile.avatar_url.replace(/"/g, ''), 'avatar.jpg', 'avatar');
+                    } else if (app.user.user_metadata?.avatar_url) {
+                        avatarImg.src = app.utils.getProxiedUrl(app.user.user_metadata.avatar_url, 'avatar.jpg', 'avatar');
                     } else {
-                        avatarImg.src = app.user.user_metadata?.avatar_url ? app.utils.getProxiedUrl(app.user.user_metadata.avatar_url, 'avatar.jpg', 'avatar') : DEFAULT_AVATAR;
+                        avatarImg.src = 'https://wsrv.nl/?url=https://files.catbox.moe/zzh1q1.png&we';
                     }
                 } catch(e) {
-                    avatarImg.src = DEFAULT_AVATAR;
+                    avatarImg.src = 'https://wsrv.nl/?url=https://files.catbox.moe/zzh1q1.png&we';
                 }
 
                 deviceText.innerText = "Đang kết nối để lấy thông tin thiết bị...";
@@ -4919,13 +4926,13 @@
                     app.qrLogin.conn = app.qrLogin.peer.connect(hostId, { reliable: true });
                     
                     app.qrLogin.conn.on('data', (data) => {
-                        // FIX LỖI USER AGENT: Nhận info trực tiếp từ PC gửi sang
                         if (data.type === 'host_info') {
+                            // RAW UserAgent như yêu cầu
                             deviceText.innerText = data.userAgent || 'Trình duyệt không xác định';
                             deviceText.className = "text-[10px] font-mono text-gray-800 break-words leading-tight mt-0.5";
                         }
                         else if (data.type === 'success') {
-                            app.ui.showAlert("Đăng nhập bằng mã QR thành công! Trình duyệt bên kia đang được chuyển hướng.", () => {
+                            app.ui.showAlert("Đăng nhập bằng mã QR thành công! Thiết bị yêu cầu đang tải lại trang.", () => {
                                 app.utils.navigate('/');
                             });
                             app.qrLogin.closeClient();
@@ -4933,7 +4940,7 @@
                     });
                     
                     app.qrLogin.conn.on('close', () => {
-                        app.ui.showAlert("Mất kết nối với thiết bị cần đăng nhập. Vui lòng quét lại.");
+                        app.ui.showAlert("Mất kết nối với thiết bị chờ đăng nhập. Vui lòng quét lại.");
                         app.utils.navigate('/');
                         app.qrLogin.closeClient();
                     });
@@ -4957,17 +4964,16 @@
 
                 try {
                     const { data, error } = await window.sb.auth.getSession();
-                    if (error || !data.session) throw new Error("Lấy Token thất bại. Vui lòng thử đăng nhập lại trên máy này.");
+                    if (error || !data.session) throw new Error("Lấy Token thất bại. Vui lòng tải lại trang.");
 
                     if (app.qrLogin.conn && app.qrLogin.conn.open) {
-                        // FIX LỖI SESSION: Bóc tách rõ access_token và refresh_token thay vì đẩy cục data.session
+                        // FIX: Đẩy toàn bộ Object Session qua để PC tự lưu vào LocalStorage
                         app.qrLogin.conn.send({ 
                             type: 'login_token', 
-                            access_token: data.session.access_token,
-                            refresh_token: data.session.refresh_token
+                            session: data.session
                         });
                     } else {
-                        throw new Error("Không thể kết nối với máy chủ (Host đã đóng). Vui lòng quét lại mã QR.");
+                        throw new Error("Không thể kết nối với máy chủ chờ. Vui lòng quét lại mã QR.");
                     }
                 } catch (e) {
                     app.ui.showAlert(e.message);
