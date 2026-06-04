@@ -7319,8 +7319,7 @@ dropdown.innerHTML = `
                         document.getElementById('profile-photos-title').innerText = "Ảnh đã đăng";
                     }
 
-                    let baseQuery = window.sb.from('photos')
-                        .select('id, url, status, views, license_plate, created_at, likes')
+                    let baseQuery = window.sb.from('photos').select('id, url, status, views, license_plate, created_at, likes, route_no, vehicles(model)')
                         .eq('uploader_id', targetUserId)
                         .order('id', { ascending: false });
 
@@ -7405,16 +7404,18 @@ dropdown.innerHTML = `
                     document.getElementById('my-stat-views').innerText = app.utils.formatCompact(totalViews);
                     document.getElementById('my-stat-likes').innerText = app.utils.formatCompact(totalLikes);
 
-                    // TÍNH TOÁN THỐNG KÊ CHI TIẾT
+                    // TÍNH TOÁN THỐNG KÊ CHI TIẾT (FIXED)
                     const routeFreq = {}; const plateFreq = {}; const modelFreq = {};
                     photos.forEach(p => {
                         if (p.status === 'approved') {
                             const r = p.route_no;
                             const pl = p.license_plate;
-                            const m = p.vehicles?.model;
-                            if (r && r !== '---') routeFreq[r] = (routeFreq[r] || 0) + 1;
+                            // Model nằm trong object vehicles do ta đã Join ở câu select
+                            const m = p.vehicles ? p.vehicles.model : null;
+
+                            if (r && r !== '---' && r !== 'N/A') routeFreq[r] = (routeFreq[r] || 0) + 1;
                             if (pl) plateFreq[pl] = (plateFreq[pl] || 0) + 1;
-                            if (m && m !== '---') modelFreq[m] = (modelFreq[m] || 0) + 1;
+                            if (m && m !== '---' && m !== 'N/A') modelFreq[m] = (modelFreq[m] || 0) + 1;
                         }
                     });
 
