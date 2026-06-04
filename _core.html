@@ -3022,7 +3022,7 @@
                                     <i class="fa-solid fa-cloud-arrow-up text-sm"></i>
                                 </div>
                                 <div>
-                                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-0.5">Lượt đăng ảnh hôm nay</p>
+                                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-0.5">Tổng Slot Upload của Server</p>
                                     <p id="upload-quota-text" class="text-sm font-black transition-colors">Đang kiểm tra...</p>
                                 </div>
                             </div>
@@ -9252,7 +9252,7 @@ app.admin.fetchManagerData('denied');
                             <i class="fa-solid fa-cloud-arrow-up text-blue-600 text-lg"></i>
                             <h3 class="font-bold text-blue-800 uppercase text-sm">Giới hạn Upload hàng ngày (Quota)</h3>
                         </div>
-                        <p class="text-xs text-blue-700 mb-4 leading-relaxed">Giới hạn số lượng ảnh <b>mỗi người dùng</b> được phép upload trong vòng 24h. Tự động làm mới vào <b>7:00 Sáng giờ Việt Nam</b>.</p>
+                        <p class="text-xs text-blue-700 mb-4 leading-relaxed">Giới hạn TỔNG số lượng ảnh <b>toàn hệ thống</b> được phép tiếp nhận trong vòng 24h. Tự động làm mới vào <b>7:00 Sáng giờ Việt Nam</b>.</p>
                         
                         <div class="flex items-end gap-3">
                             <div class="flex-1">
@@ -10570,7 +10570,7 @@ app.admin.fetchManagerData('denied');
                     // Check quota trước khi submit
                     const q = app.upload.currentQuota;
                     if (q.limit !== null && q.count >= q.limit) {
-                        return app.ui.showAlert(`Bạn đã dùng hết ${q.limit} lượt đăng ảnh của ngày hôm nay. Vui lòng quay lại sau 7:00 sáng mai!`);
+                        return app.ui.showAlert(`Hệ thống đã đạt giới hạn nhận ${q.limit} ảnh của ngày hôm nay. Vui lòng quay lại sau 7:00 sáng mai!`);
                     }
 
                     const valPlate = document.getElementById('up-plate').value.trim();
@@ -10834,8 +10834,7 @@ app.admin.fetchManagerData('denied');
                         const last7AM = app.utils.getLast7AM_UTC7();
                         const { count } = await window.sb.from('photos')
                             .select('*', { count: 'exact', head: true })
-                            .eq('uploader_id', app.user.id)
-                            .gte('created_at', last7AM);
+                            .gte('created_at', last7AM); // Đếm tổng toàn bộ ảnh của server
 
                         app.upload.currentQuota = { limit: limitNum, count: count || 0 };
                         
@@ -10855,7 +10854,7 @@ app.admin.fetchManagerData('denied');
                                 fileInput.disabled = true;
                                 btnSubmit.disabled = true;
                                 fileInput.classList.add('opacity-50', 'cursor-not-allowed');
-                                textEl.innerText = limitNum === 0 ? `Đã tạm dừng nhận ảnh` : `Hết lượt hôm nay (${count}/${limitNum})`;
+                                textEl.innerText = limitNum === 0 ? `Hệ thống tạm đóng upload` : `Hết slot hôm nay (${count}/${limitNum})`;
                             } else if (remaining <= 3) {
                                 textEl.classList.add('text-amber-500');
                                 fileInput.disabled = false;
@@ -12833,7 +12832,7 @@ changePassword: async () => {
                     const limitTxt = (limitStr && limitStr.trim() !== '') ? limitStr : 'không giới hạn';
                     
                     app.ui.showAlert(
-                        `Nhằm đảm bảo tính công bằng và bảo vệ hạ tầng lưu trữ ảnh, mỗi người chỉ được upload <b>${limitTxt} ảnh</b> hàng ngày (24h).<br><br>Chu kỳ sẽ được tự động đặt lại vào mỗi <b>7 giờ sáng (Giờ Việt Nam)</b>.`,
+                        `Nhằm bảo vệ hạ tầng máy chủ và dung lượng lưu trữ, hệ thống chỉ tiếp nhận tổng cộng tối đa <b>${limitTxt} ảnh</b> hàng ngày (áp dụng chung cho toàn server).<br><br>Chu kỳ sẽ được tự động đặt lại vào mỗi <b>7 giờ sáng (Giờ Việt Nam)</b>.`,
                         null, null, { title: "Chính sách giới hạn đăng tải", btnOkText: "Đã hiểu" }
                     );
                 },
