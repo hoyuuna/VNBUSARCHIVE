@@ -13467,50 +13467,47 @@ closeCustomRolePrompt: () => {
     </script>
 
     <!-- MODAL THÔNG SỐ CHI TIẾT -->
-    <div id="achievement-modal" class="hidden fixed inset-0 flex items-center justify-center p-4" style="z-index: 999999 !important; background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px);">
-        <div id="achievement-content" class="rounded-2xl shadow-2xl max-w-[360px] w-full transform transition-all opacity-0 scale-95 overflow-hidden" style="background-color: #ffffff !important;">
-            <div class="p-5" style="background-color: transparent !important;">
+    <div id="achievement-modal" class="hidden fixed inset-0 z-[110000] flex items-center justify-center p-4" style="background-color: rgba(0, 0, 0, 0) !important; backdrop-filter: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important;">
+        <div id="achievement-content" class="rounded-2xl max-w-[340px] w-full transform transition-all opacity-0 scale-95 overflow-hidden" style="background-color: rgba(255, 255, 255, 0.7) !important; backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important; border: 1px solid rgba(255, 255, 255, 0.6) !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;">
+            <div class="p-5" style="background-color: transparent !important; border-color: rgba(0, 0, 0, 0.05) !important;">
                 <div class="flex justify-between items-center mb-5">
                     <h3 class="font-bold text-sm uppercase tracking-widest text-gray-800"><i class="fa-solid fa-chart-pie mr-2 text-blue-600"></i>Chỉ số chi tiết</h3>
                     <button onclick="app.achievement.close()" class="text-gray-400 hover:text-red-500 transition text-xl px-2"><i class="fa-solid fa-xmark"></i></button>
                 </div>
                 
-                <div class="space-y-3">
-                    <!-- Tuyến -->
-                    <div class="flex items-center gap-3 p-3 rounded-xl border border-gray-200 shadow-sm" style="background-color: #f8fafc !important;">
-                        <div class="w-10 h-10 rounded-full flex items-center justify-center text-blue-600 shrink-0" style="background-color: #dbeafe !important;">
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center text-blue-600 bg-blue-50 border border-blue-100 shrink-0">
                             <i class="fa-solid fa-route text-lg"></i>
                         </div>
                         <div class="overflow-hidden">
                             <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">Tuyến chụp nhiều nhất</p>
-                            <p class="text-base font-black text-black truncate" id="my-top-route">---</p>
+                            <p class="text-base font-black text-black truncate leading-none" id="my-top-route">---</p>
                         </div>
                     </div>
 
-                    <!-- Xe -->
-                    <div class="flex items-center gap-3 p-3 rounded-xl border border-gray-200 shadow-sm" style="background-color: #fff7ed !important;">
-                        <div class="w-10 h-10 rounded-full flex items-center justify-center text-orange-600 shrink-0" style="background-color: #ffedd5 !important;">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center text-orange-600 bg-orange-50 border border-orange-100 shrink-0">
                             <i class="fa-solid fa-bus text-lg"></i>
                         </div>
                         <div class="overflow-hidden">
                             <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">Xe chụp nhiều nhất</p>
-                            <p class="text-base font-black text-black truncate" id="my-top-plate">---</p>
+                            <p class="text-base font-black text-black truncate leading-none" id="my-top-plate">---</p>
                         </div>
                     </div>
 
-                    <!-- Dòng xe -->
-                    <div class="flex items-center gap-3 p-3 rounded-xl border border-gray-200 shadow-sm" style="background-color: #faf5ff !important;">
-                        <div class="w-10 h-10 rounded-full flex items-center justify-center text-purple-600 shrink-0" style="background-color: #f3e8ff !important;">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center text-purple-600 bg-purple-50 border border-purple-100 shrink-0">
                             <i class="fa-solid fa-layer-group text-lg"></i>
                         </div>
                         <div class="overflow-hidden">
                             <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">Dòng xe chụp nhiều nhất</p>
-                            <p class="text-base font-black text-black truncate" id="my-top-model">---</p>
+                            <p class="text-base font-black text-black truncate leading-none" id="my-top-model">---</p>
                         </div>
                     </div>
                 </div>
 
-                <p class="text-[10px] text-gray-400 mt-4 text-center italic font-medium">Dữ liệu được tổng hợp dựa trên các ảnh đã duyệt.</p>
+                <p class="text-[10px] text-gray-400 mt-6 text-center italic font-medium">Dữ liệu được tổng hợp dựa trên ảnh đã duyệt.</p>
             </div>
         </div>
     </div>
