@@ -3429,8 +3429,8 @@
                                 </div>
                             </div>
                             
-                            <button onclick="app.achievement.open()" class="w-full mb-6 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-100 hover:text-black transition shadow-sm flex items-center justify-center gap-2 group">
-                                <i class="fa-solid fa-chart-pie text-gray-500 group-hover:text-black transition-colors"></i> Phân tích dữ liệu cá nhân
+                            <button onclick="app.achievement.open()" class="w-full mb-6 py-3 bg-white border border-[#e4e4e7] rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-black transition shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] flex items-center justify-center gap-2 group">
+                                <i class="fa-solid fa-chart-pie text-gray-500 group-hover:text-black transition-colors"></i> Chỉ số chi tiết
                             </button>
 
                             <div id="approval-rate-island" class="hidden mt-4 relative overflow-hidden bg-white border border-vbs-border rounded-lg shadow-sm p-3 sm:p-4">
@@ -4351,6 +4351,36 @@
             open: () => {
                 const modal = document.getElementById('achievement-modal');
                 const content = document.getElementById('achievement-content');
+
+                // Tự động tính toán khi bắt đầu mở Popup (Giảm tải cho trang)
+                const photos = app._profilePhotosCache || [];
+                const routeFreq = {}; const plateFreq = {}; const modelFreq = {};
+                photos.forEach(p => {
+                    if (p.status === 'approved') {
+                        const r = p.route_no;
+                        const pl = p.license_plate;
+                        const m = p.vehicles ? p.vehicles.model : null;
+
+                        if (r && r !== '---' && r !== 'N/A') routeFreq[r] = (routeFreq[r] || 0) + 1;
+                        if (pl) plateFreq[pl] = (plateFreq[pl] || 0) + 1;
+                        if (m && m !== '---' && m !== 'N/A') modelFreq[m] = (modelFreq[m] || 0) + 1;
+                    }
+                });
+
+                const getTop = (obj) => {
+                    const entries = Object.entries(obj);
+                    if (entries.length === 0) return '---';
+                    return entries.sort((a, b) => b[1] - a[1])[0][0];
+                };
+
+                const topRoute = getTop(routeFreq);
+                const topPlateRaw = getTop(plateFreq);
+                const topModel = getTop(modelFreq);
+
+                document.getElementById('my-top-route').innerText = topRoute;
+                document.getElementById('my-top-plate').innerText = topPlateRaw !== '---' ? app.utils.displayPlate(topPlateRaw) : '---';
+                document.getElementById('my-top-model').innerText = topModel;
+
                 modal.classList.remove('hidden');
                 app.ui.lockScroll();
                 setTimeout(() => {
@@ -7167,34 +7197,7 @@ dropdown.innerHTML = `
                     document.getElementById('my-stat-views').innerText = app.utils.formatCompact(totalViews);
                     document.getElementById('my-stat-likes').innerText = app.utils.formatCompact(totalLikes);
 
-                    // TÍNH TOÁN THỐNG KÊ CHI TIẾT (FIXED)
-                    const routeFreq = {}; const plateFreq = {}; const modelFreq = {};
-                    photos.forEach(p => {
-                        if (p.status === 'approved') {
-                            const r = p.route_no;
-                            const pl = p.license_plate;
-                            // Model nằm trong object vehicles do ta đã Join ở câu select
-                            const m = p.vehicles ? p.vehicles.model : null;
-
-                            if (r && r !== '---' && r !== 'N/A') routeFreq[r] = (routeFreq[r] || 0) + 1;
-                            if (pl) plateFreq[pl] = (plateFreq[pl] || 0) + 1;
-                            if (m && m !== '---' && m !== 'N/A') modelFreq[m] = (modelFreq[m] || 0) + 1;
-                        }
-                    });
-
-                    const getTop = (obj) => {
-                        const entries = Object.entries(obj);
-                        if (entries.length === 0) return '---';
-                        return entries.sort((a, b) => b[1] - a[1])[0][0];
-                    };
-
-                    const topRoute = getTop(routeFreq);
-                    const topPlateRaw = getTop(plateFreq);
-                    const topModel = getTop(modelFreq);
-
-                    document.getElementById('my-top-route').innerText = topRoute;
-                    document.getElementById('my-top-plate').innerText = topPlateRaw !== '---' ? app.utils.displayPlate(topPlateRaw) : '---';
-                    document.getElementById('my-top-model').innerText = topModel;
+                    
 
 
                     const approvalIsland = document.getElementById('approval-rate-island');
