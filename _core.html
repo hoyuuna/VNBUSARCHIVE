@@ -7114,13 +7114,13 @@ dropdown.innerHTML = `
                     if (isOwnProfile) {
                         likedSection.classList.remove('hidden');
                         reportBtn.classList.add('hidden');
-                        if (document.getElementById(\'btn-detailed-stats\')) document.getElementById(\'btn-detailed-stats\').classList.remove(\'hidden\');
+                        if (document.getElementById('btn-detailed-stats')) document.getElementById('btn-detailed-stats').classList.remove('hidden');
                         document.getElementById('profile-stats-title').innerText = "THỐNG KÊ HOẠT ĐỘNG";
                         document.getElementById('profile-photos-title').innerText = "Ảnh của bạn";
                     } else {
                         likedSection.classList.add('hidden');
                         reportBtn.classList.remove('hidden');
-                        if (document.getElementById(\'btn-detailed-stats\')) document.getElementById(\'btn-detailed-stats\').classList.add(\'hidden\');
+                        if (document.getElementById('btn-detailed-stats')) document.getElementById('btn-detailed-stats').classList.add('hidden');
                         document.getElementById('profile-stats-title').innerText = "THỐNG KÊ CỦA " + profile.username.toUpperCase();
                         document.getElementById('profile-photos-title').innerText = "Ảnh đã đăng";
                     }
