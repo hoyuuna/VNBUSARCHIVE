@@ -6180,7 +6180,7 @@ grid.innerHTML = tiers.map(tier => {
                             searchWords.forEach(w => {
                                 const safeW = w.replace(/"/g, '');
                                 const safeWPlate = app.utils.normalizePlateQuery(safeW);
-                                vQuery = vQuery.or(`license_plate.ilike."%${safeWPlate}%",model.ilike."%${safeW}%"`);
+                                vQuery = vQuery.or(`license_plate.ilike."%${safeWPlate}%",model.ilike."%${safeW}%",note.ilike."%${safeW}%"`);
                             });
                         }
 
@@ -6252,7 +6252,10 @@ grid.innerHTML = tiers.map(tier => {
                         else forceEmptyResult = true;
                     } else {
                         let mQ = window.sb.from('vehicles').select('license_plate');
-                        searchWords.forEach(w => { mQ = mQ.ilike('model', `%${w}%`); });
+                        searchWords.forEach(w => { 
+                            const safeW = w.replace(/"/g, '');
+                            mQ = mQ.or(`model.ilike."%${safeW}%",note.ilike."%${safeW}%"`); 
+                        });
                         const { data: mData } = await mQ;
                         const plates = mData ? mData.map(v => v.license_plate) :[];
 
