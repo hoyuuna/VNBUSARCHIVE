@@ -3409,29 +3409,26 @@
                     </div>
                     <div class="w-full md:w-3/4">
                         <div class="bg-white border border-vbs-border shadow-sm p-6 rounded-lg">
-                            <h3 class="font-bold text-lg mb-5 tracking-tight uppercase text-gray-800 flex items-center gap-2" id="profile-stats-title">
-                        <i class="fa-solid fa-chart-line text-blue-600"></i> THỐNG KÊ HOẠT ĐỘNG
-                    </h3>
-                    
-                    <div class="space-y-4">
-                        <!-- BANNER TỔNG QUAN (GIỐNG PHẦN GREEN RACE CỦA XANH SM) -->
-                        <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-5 text-white shadow-lg relative overflow-hidden group">
-                            <div class="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all"></div>
-                            <div class="relative z-10 grid grid-cols-3 gap-4 text-center">
-                                <div class="border-r border-white/20">
-                                    <span class="block text-2xl md:text-3xl font-black tracking-tighter" id="my-stat-photos">0</span>
-                                    <span class="text-[10px] uppercase font-bold opacity-80 tracking-widest">Ảnh đã đăng</span>
-                                </div>
-                                <div class="border-r border-white/20">
-                                    <span class="block text-2xl md:text-3xl font-black tracking-tighter" id="my-stat-views">0</span>
-                                    <span class="text-[10px] uppercase font-bold opacity-80 tracking-widest">Lượt xem</span>
-                                </div>
-                                <div>
-                                    <span class="block text-2xl md:text-3xl font-black tracking-tighter" id="my-stat-likes">0</span>
-                                    <span class="text-[10px] uppercase font-bold opacity-80 tracking-widest">Yêu thích</span>
-                                </div>
-                            </div>
+                            <div class="flex justify-between items-center border-b border-gray-200 pb-3 mb-4">
+                        <h3 class="font-bold text-lg tracking-tight uppercase text-gray-800" id="profile-stats-title">THỐNG KÊ HOẠT ĐỘNG</h3>
+                        <button onclick="app.achievement.open()" class="text-[10px] font-bold uppercase tracking-widest bg-gray-100 hover:bg-black hover:text-white transition-all px-3 py-1.5 rounded-full border border-gray-200">
+                            <i class="fa-solid fa-award mr-1"></i> Chỉ số chi tiết
+                        </button>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-value" id="my-stat-photos">0</span>
+                            <span class="stat-label">Ảnh đã đăng</span>
                         </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="my-stat-views">0</span>
+                            <span class="stat-label">Tổng lượt xem</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="my-stat-likes">0</span>
+                            <span class="stat-label">Tổng lượt thích</span>
+                        </div>
+                    </div>
 
                         <!-- LƯỚI THÀNH TÍCH (CÁC Ô NHỎ BÊN DƯỚI) -->
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -4387,6 +4384,29 @@
             newsboard: {
                 data: [],
                 activeIndex: 0,
+
+            achievement: {
+                open: () => {
+                    const modal = document.getElementById('achievement-modal');
+                    const content = document.getElementById('achievement-content');
+                    modal.classList.remove('hidden');
+                    app.ui.lockScroll();
+                    setTimeout(() => {
+                        content.classList.remove('opacity-0', 'scale-95');
+                        content.classList.add('opacity-100', 'scale-100');
+                    }, 10);
+                },
+                close: () => {
+                    const modal = document.getElementById('achievement-modal');
+                    const content = document.getElementById('achievement-content');
+                    content.classList.remove('opacity-100', 'scale-100');
+                    content.classList.add('opacity-0', 'scale-95');
+                    setTimeout(() => {
+                        modal.classList.add('hidden');
+                        app.ui.unlockScroll();
+                    }, 200);
+                }
+            },
                 qrLogin: {
             peer: null,
             conn: null,
@@ -13733,6 +13753,53 @@ closeCustomRolePrompt: () => {
             app.webrtc.init();
         });
     </script>
+
+    <!-- MODAL THÔNG SỐ CHI TIẾT -->
+    <div id="achievement-modal" class="hidden fixed inset-0 z-[11000] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+        <div id="achievement-content" class="bg-white/90 backdrop-blur-[20px] border border-white/60 shadow-2xl rounded-2xl max-w-[450px] w-full overflow-hidden transform transition-all opacity-0 scale-95">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="font-bold text-sm uppercase tracking-widest text-gray-500">Phân tích dữ liệu cá nhân</h3>
+                    <button onclick="app.achievement.close()" class="text-gray-400 hover:text-red-500 transition text-xl"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="flex items-center gap-4 p-4 bg-gray-50/50 border border-gray-100 rounded-xl">
+                        <div class="w-12 h-12 bg-white shadow-sm rounded-full flex items-center justify-center text-blue-600 border border-blue-50">
+                            <i class="fa-solid fa-route"></i>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Tuyến hoạt động chủ đạo</p>
+                            <p class="text-base font-black text-gray-800" id="my-top-route">---</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-4 p-4 bg-gray-50/50 border border-gray-100 rounded-xl">
+                        <div class="w-12 h-12 bg-white shadow-sm rounded-full flex items-center justify-center text-orange-600 border border-orange-50">
+                            <i class="fa-solid fa-bus"></i>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Phương tiện ghi hình nhiều nhất</p>
+                            <p class="text-base font-black text-gray-800" id="my-top-plate">---</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-4 p-4 bg-gray-50/50 border border-gray-100 rounded-xl">
+                        <div class="w-12 h-12 bg-white shadow-sm rounded-full flex items-center justify-center text-purple-600 border border-purple-50">
+                            <i class="fa-solid fa-layer-group"></i>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Hệ mẫu xe tiêu biểu</p>
+                            <p class="text-base font-black text-gray-800" id="my-top-model">---</p>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="text-[10px] text-gray-400 mt-6 text-center italic">Dữ liệu được tổng hợp dựa trên các hình ảnh đã được phê duyệt.</p>
+            </div>
+        </div>
+    </div>
+
 </body>
 
 </html>
