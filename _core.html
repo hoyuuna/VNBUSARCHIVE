@@ -13467,50 +13467,50 @@ closeCustomRolePrompt: () => {
     </script>
 
     <!-- MODAL THÔNG SỐ CHI TIẾT -->
-    <div id="achievement-modal" class="hidden fixed inset-0 z-[11000] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-        <div id="achievement-content" class="bg-white/80 backdrop-blur-xl border border-white/60 shadow-2xl rounded-2xl max-w-[400px] w-full overflow-hidden transform transition-all opacity-0 scale-95">
-            <div class="p-5 sm:p-6 relative z-10 bg-white/50">
+    <div id="achievement-modal" class="hidden fixed inset-0 flex items-center justify-center p-4" style="z-index: 999999 !important; background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px);">
+        <div id="achievement-content" class="rounded-2xl shadow-2xl max-w-[360px] w-full transform transition-all opacity-0 scale-95 overflow-hidden" style="background-color: #ffffff !important;">
+            <div class="p-5" style="background-color: transparent !important;">
                 <div class="flex justify-between items-center mb-5">
                     <h3 class="font-bold text-sm uppercase tracking-widest text-gray-800"><i class="fa-solid fa-chart-pie mr-2 text-blue-600"></i>Chỉ số chi tiết</h3>
                     <button onclick="app.achievement.close()" class="text-gray-400 hover:text-red-500 transition text-xl px-2"><i class="fa-solid fa-xmark"></i></button>
                 </div>
                 
                 <div class="space-y-3">
-                    <!-- Card Tuyến -->
-                    <div class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl shadow-sm relative overflow-hidden">
-                        <div class="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 shrink-0 relative z-10">
+                    <!-- Tuyến -->
+                    <div class="flex items-center gap-3 p-3 rounded-xl border border-gray-200 shadow-sm" style="background-color: #f8fafc !important;">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center text-blue-600 shrink-0" style="background-color: #dbeafe !important;">
                             <i class="fa-solid fa-route text-lg"></i>
                         </div>
-                        <div class="overflow-hidden relative z-10">
-                            <p class="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">Tuyến chụp nhiều nhất</p>
-                            <p class="text-lg font-black text-black truncate leading-none" id="my-top-route">---</p>
+                        <div class="overflow-hidden">
+                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">Tuyến chụp nhiều nhất</p>
+                            <p class="text-base font-black text-black truncate" id="my-top-route">---</p>
                         </div>
                     </div>
 
-                    <!-- Card Xe -->
-                    <div class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl shadow-sm relative overflow-hidden">
-                        <div class="w-10 h-10 bg-orange-50 rounded-full flex items-center justify-center text-orange-600 shrink-0 relative z-10">
+                    <!-- Xe -->
+                    <div class="flex items-center gap-3 p-3 rounded-xl border border-gray-200 shadow-sm" style="background-color: #fff7ed !important;">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center text-orange-600 shrink-0" style="background-color: #ffedd5 !important;">
                             <i class="fa-solid fa-bus text-lg"></i>
                         </div>
-                        <div class="overflow-hidden relative z-10">
-                            <p class="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">Xe chụp nhiều nhất</p>
-                            <p class="text-lg font-black text-black truncate leading-none" id="my-top-plate">---</p>
+                        <div class="overflow-hidden">
+                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">Xe chụp nhiều nhất</p>
+                            <p class="text-base font-black text-black truncate" id="my-top-plate">---</p>
                         </div>
                     </div>
 
-                    <!-- Card Dòng xe -->
-                    <div class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl shadow-sm relative overflow-hidden">
-                        <div class="w-10 h-10 bg-purple-50 rounded-full flex items-center justify-center text-purple-600 shrink-0 relative z-10">
+                    <!-- Dòng xe -->
+                    <div class="flex items-center gap-3 p-3 rounded-xl border border-gray-200 shadow-sm" style="background-color: #faf5ff !important;">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center text-purple-600 shrink-0" style="background-color: #f3e8ff !important;">
                             <i class="fa-solid fa-layer-group text-lg"></i>
                         </div>
-                        <div class="overflow-hidden relative z-10">
-                            <p class="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">Dòng xe chụp nhiều nhất</p>
-                            <p class="text-lg font-black text-black truncate leading-none" id="my-top-model">---</p>
+                        <div class="overflow-hidden">
+                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">Dòng xe chụp nhiều nhất</p>
+                            <p class="text-base font-black text-black truncate" id="my-top-model">---</p>
                         </div>
                     </div>
                 </div>
 
-                <p class="text-[10px] text-gray-400 mt-5 text-center italic font-medium">Dữ liệu được tổng hợp dựa trên các ảnh đã duyệt.</p>
+                <p class="text-[10px] text-gray-400 mt-4 text-center italic font-medium">Dữ liệu được tổng hợp dựa trên các ảnh đã duyệt.</p>
             </div>
         </div>
     </div>
