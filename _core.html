@@ -3411,13 +3411,10 @@
                     </div>
                     <div class="w-full md:w-3/4">
                         <div class="bg-white border border-vbs-border shadow-sm p-6 rounded-lg">
-                            <div class="flex justify-between items-center border-b border-gray-200 pb-3 mb-4">
+                            <div class="border-b border-gray-200 pb-3 mb-4">
                                 <h3 class="font-bold text-lg tracking-tight uppercase text-gray-800" id="profile-stats-title">THỐNG KÊ HOẠT ĐỘNG</h3>
-                                <button onclick="app.achievement.open()" class="text-[10px] font-bold uppercase tracking-widest bg-gray-100 hover:bg-black hover:text-white transition-all px-3 py-1.5 rounded-full border border-gray-200">
-                                    <i class="fa-solid fa-award mr-1"></i> Chỉ số chi tiết
-                                </button>
                             </div>
-                            <div class="stats-grid mb-6">
+                            <div class="stats-grid mb-4">
                                 <div class="stat-item">
                                     <span class="stat-value" id="my-stat-photos">0</span>
                                     <span class="stat-label">Ảnh đã đăng</span>
@@ -3431,6 +3428,10 @@
                                     <span class="stat-label">Tổng lượt thích</span>
                                 </div>
                             </div>
+                            
+                            <button onclick="app.achievement.open()" class="w-full mb-6 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-100 hover:text-black transition shadow-sm flex items-center justify-center gap-2 group">
+                                <i class="fa-solid fa-chart-pie text-gray-500 group-hover:text-black transition-colors"></i> Phân tích dữ liệu cá nhân
+                            </button>
 
                             <div id="approval-rate-island" class="hidden mt-4 relative overflow-hidden bg-white border border-vbs-border rounded-lg shadow-sm p-3 sm:p-4">
                                 <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 relative z-10">Tỉ lệ duyệt ảnh</p>
@@ -13471,38 +13472,41 @@ closeCustomRolePrompt: () => {
         <div id="achievement-content" class="rounded-2xl shadow-2xl w-full transform transition-all opacity-0 scale-95 overflow-hidden" style="max-width: 380px !important; background-color: rgba(255, 255, 255, 0.7) !important; backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important; border: 1px solid rgba(255, 255, 255, 0.6) !important;">
             <div class="p-6" style="background-color: transparent !important;">
                 <div class="flex justify-between items-center mb-6">
-                    <h3 class="font-bold text-sm uppercase tracking-widest text-gray-800"><i class="fa-solid fa-chart-pie mr-2 text-blue-600"></i>Chỉ số chi tiết</h3>
+                    <h3 class="font-bold text-sm uppercase tracking-widest text-gray-800"><i class="fa-solid fa-chart-pie mr-2 text-black"></i>Chỉ số chi tiết</h3>
                     <button onclick="app.achievement.close()" class="text-gray-400 hover:text-red-500 transition text-xl"><i class="fa-solid fa-xmark"></i></button>
                 </div>
                 
                 <div class="space-y-4">
-                    <div class="flex items-center gap-4 p-4 rounded-xl border border-gray-200 shadow-sm" style="background-color: rgba(249, 250, 251, 0.6) !important;">
-                        <div class="w-12 h-12 bg-white shadow-sm rounded-full flex items-center justify-center text-blue-600 border border-blue-50 shrink-0">
+                    <!-- Tuyến -->
+                    <div onclick="const v=document.getElementById('my-top-route').innerText; if(v!=='---'){app.searchRedirect(v, 'route'); app.achievement.close();}" class="cursor-pointer group flex items-center gap-4 p-4 rounded-xl border border-gray-200 shadow-sm transition-all hover:border-blue-400 hover:shadow-md hover:bg-white" style="background-color: rgba(249, 250, 251, 0.6);" title="Nhấn để tìm kiếm ảnh theo tuyến này">
+                        <div class="w-12 h-12 bg-white shadow-sm rounded-full flex items-center justify-center text-blue-600 border border-blue-50 shrink-0 group-hover:scale-110 transition-transform">
                             <i class="fa-solid fa-route text-lg"></i>
                         </div>
                         <div class="overflow-hidden">
-                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">Tuyến chụp nhiều nhất</p>
-                            <p class="text-lg font-black text-gray-800 truncate leading-none" id="my-top-route">---</p>
+                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5 group-hover:text-blue-600 transition-colors">Tuyến chụp nhiều nhất</p>
+                            <p class="text-lg font-black text-gray-800 truncate leading-none group-hover:text-black transition-colors" id="my-top-route">---</p>
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-4 p-4 rounded-xl border border-gray-200 shadow-sm" style="background-color: rgba(249, 250, 251, 0.6) !important;">
-                        <div class="w-12 h-12 bg-white shadow-sm rounded-full flex items-center justify-center text-orange-600 border border-orange-50 shrink-0">
+                    <!-- Xe -->
+                    <div onclick="const v=document.getElementById('my-top-plate').innerText; if(v!=='---'){app.utils.navigate('/vehicle/'+encodeURIComponent(v)); app.achievement.close();}" class="cursor-pointer group flex items-center gap-4 p-4 rounded-xl border border-gray-200 shadow-sm transition-all hover:border-orange-400 hover:shadow-md hover:bg-white" style="background-color: rgba(249, 250, 251, 0.6);" title="Nhấn để xem hồ sơ xe này">
+                        <div class="w-12 h-12 bg-white shadow-sm rounded-full flex items-center justify-center text-orange-600 border border-orange-50 shrink-0 group-hover:scale-110 transition-transform">
                             <i class="fa-solid fa-bus text-lg"></i>
                         </div>
                         <div class="overflow-hidden">
-                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">Xe chụp nhiều nhất</p>
-                            <p class="text-lg font-black text-gray-800 truncate leading-none" id="my-top-plate">---</p>
+                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5 group-hover:text-orange-600 transition-colors">Xe chụp nhiều nhất</p>
+                            <p class="text-lg font-black text-gray-800 truncate leading-none group-hover:text-black transition-colors" id="my-top-plate">---</p>
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-4 p-4 rounded-xl border border-gray-200 shadow-sm" style="background-color: rgba(249, 250, 251, 0.6) !important;">
-                        <div class="w-12 h-12 bg-white shadow-sm rounded-full flex items-center justify-center text-purple-600 border border-purple-50 shrink-0">
+                    <!-- Dòng xe -->
+                    <div onclick="const v=document.getElementById('my-top-model').innerText; if(v!=='---'){app.searchRedirect(v, 'model'); app.achievement.close();}" class="cursor-pointer group flex items-center gap-4 p-4 rounded-xl border border-gray-200 shadow-sm transition-all hover:border-purple-400 hover:shadow-md hover:bg-white" style="background-color: rgba(249, 250, 251, 0.6);" title="Nhấn để tìm kiếm dòng xe này">
+                        <div class="w-12 h-12 bg-white shadow-sm rounded-full flex items-center justify-center text-purple-600 border border-purple-50 shrink-0 group-hover:scale-110 transition-transform">
                             <i class="fa-solid fa-layer-group text-lg"></i>
                         </div>
                         <div class="overflow-hidden">
-                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">Dòng xe chụp nhiều nhất</p>
-                            <p class="text-lg font-black text-gray-800 truncate leading-none" id="my-top-model">---</p>
+                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5 group-hover:text-purple-600 transition-colors">Dòng xe chụp nhiều nhất</p>
+                            <p class="text-lg font-black text-gray-800 truncate leading-none group-hover:text-black transition-colors" id="my-top-model">---</p>
                         </div>
                     </div>
                 </div>
