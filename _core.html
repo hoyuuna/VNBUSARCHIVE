@@ -2356,11 +2356,20 @@
                             <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm"><h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Đổi Email</h3><p class="text-[11px] md:text-xs text-gray-500 mb-3 leading-relaxed">Yêu cầu xác nhận mật khẩu hiện tại. Email đang sử dụng: <b id="set-current-email" class="text-black">...</b></p><div class="space-y-3"><input type="email" id="set-ce-new" placeholder="Nhập địa chỉ email mới" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none"><input type="password" id="set-ce-password" placeholder="Mật khẩu hiện tại" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none"><button onclick="app.auth.changeEmail(this)" class="w-full bg-black text-white px-4 py-2.5 text-xs font-bold rounded-md hover:bg-gray-800">Cập nhật Email</button></div></div>
                             <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm"><h3 class="font-bold text-xs md:text-sm text-black mb-3 uppercase tracking-wide">Đổi mật khẩu</h3><div class="space-y-3"><input type="password" id="set-cp-old" placeholder="Mật khẩu hiện tại" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none"><input type="password" id="set-cp-new" placeholder="Mật khẩu mới (Tối thiểu 6 ký tự)" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none"><button onclick="app.auth.changePassword()" class="w-full bg-black text-white px-4 py-2.5 text-xs font-bold rounded-md hover:bg-gray-800">Đổi mật khẩu</button></div></div>
                             <div class="bg-red-50 p-4 md:p-5 rounded-lg border border-red-200 shadow-sm"><h3 class="font-bold text-xs md:text-sm text-red-600 mb-2 uppercase tracking-wide"><i class="fa-solid fa-triangle-exclamation mr-1.5"></i>Mã định danh (UUID)</h3><div class="flex gap-2"><input type="password" id="set-uuid-input" readonly class="w-full border border-red-200 p-2.5 text-xs rounded-md bg-white font-mono text-center cursor-not-allowed text-red-800 tracking-widest"><button onclick="app.auth.revealUUID()" id="set-reveal-uuid" class="bg-white border border-red-200 text-red-600 px-3 py-2.5 text-xs font-bold rounded-md hover:bg-red-50"><i class="fa-solid fa-eye"></i></button><button onclick="app.auth.copyUUID()" id="set-copy-uuid" class="bg-red-600 text-white px-3 py-2.5 text-xs font-bold rounded-md hover:bg-red-700"><i class="fa-solid fa-copy"></i></button></div></div>
-                            <div class="bg-red-50 p-4 md:p-5 rounded-lg border border-red-200 shadow-sm mt-4 md:mt-6">
-                                <h3 class="font-bold text-xs md:text-sm text-red-600 mb-2 uppercase tracking-wide"><i class="fa-solid fa-right-from-bracket mr-1.5"></i>Đăng xuất tất cả thiết bị</h3>
-                                <p class="text-[11px] md:text-xs text-red-700 mb-3 leading-relaxed">Hành động này sẽ đăng xuất tài khoản của bạn khỏi <b>tất cả</b> các thiết bị và trình duyệt hiện tại để bảo đảm an toàn.</p>
-                                <button onclick="app.auth.logoutAll()" class="w-full bg-red-600 text-white px-4 py-2.5 text-xs font-bold rounded-md hover:bg-red-700 transition shadow-sm border border-red-700"><i class="fa-solid fa-power-off mr-1"></i> Đăng xuất khỏi mọi thiết bị</button>
-                            </div>
+                            <div class="mt-6 bg-red-50/50 border border-red-200 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between shadow-sm transition-all hover:border-red-300 group">
+                                    <div class="flex items-start gap-3 w-full">
+                                        <div class="w-10 h-10 rounded-full bg-white border border-red-200 flex items-center justify-center shrink-0 transition-colors shadow-sm group-hover:border-red-300">
+                                            <i class="fa-solid fa-right-from-bracket text-lg text-red-600"></i>
+                                        </div>
+                                        <div class="mt-0.5">
+                                            <h4 class="font-bold text-sm uppercase mb-1 text-red-700">Đăng xuất từ xa</h4>
+                                            <p class="text-[10px] font-medium text-red-600 leading-snug">Hủy bỏ toàn bộ phiên đăng nhập trên các trình duyệt và thiết bị khác để bảo mật.</p>
+                                        </div>
+                                    </div>
+                                    <button onclick="app.auth.logoutAll()" class="w-full sm:w-auto mt-4 sm:mt-0 bg-red-600 text-white px-5 py-2.5 text-xs font-bold rounded-lg hover:bg-red-700 transition shadow-md whitespace-nowrap shrink-0">
+                                        <i class="fa-solid fa-power-off mr-1"></i> Đăng xuất tất cả
+                                    </button>
+                                </div>
                         </div>
 
                         <div id="set-content-links" class="space-y-4 md:space-y-6 hidden">
@@ -12294,9 +12303,14 @@ cleanupState: () => {
                                 // 3. Reset state ứng dụng
                                 await app.setUser(null);
                                 
-                                app.ui.showAlert("Đã vô hiệu hóa toàn bộ phiên đăng nhập thành công!", () => {
-                                    window.location.href = '/'; // Ép chuyển hướng và tải lại trang sạch
-                                });
+                                app.ui.showAlert(
+                                    `<div class="text-left">
+                                        <p class="text-sm font-bold text-green-600 mb-2"><i class="fa-solid fa-check-circle mr-1"></i> Lệnh đăng xuất đã được gửi!</p>
+                                        <p class="text-xs text-gray-700">Hệ thống đang tiến hành hủy các phiên làm việc cũ.</p>
+                                        <p class="text-[10px] text-amber-600 font-bold mt-2 italic"><i class="fa-solid fa-clock mr-1"></i> Lưu ý: Có thể mất từ 1-5 phút để tất cả các thiết bị khác bị thoát hoàn toàn.</p>
+                                    </div>`, 
+                                    () => { window.location.href = '/'; }
+                                );
                             } catch (err) {
                                 console.error("Logout All Error:", err);
                                 app.ui.showAlert("Lỗi hệ thống: " + err.message);
@@ -13113,10 +13127,19 @@ closeCustomRolePrompt: () => {
                     title.innerText = 'Không thể tải ảnh lên';
                     title.classList.replace('text-gray-900', 'text-red-600');
                     
-                    // Xử lý thông báo lỗi từ Database (Postgres thường trả về chuỗi có chứa tin nhắn mình set)
+                    // Phân loại lỗi để hiển thị tiêu đề chính xác
                     let cleanMsg = errMsg;
                     if (errMsg.includes('EXCEPTION:')) {
                         cleanMsg = errMsg.split('EXCEPTION:')[1].trim();
+                    }
+
+                    // Tự động điều chỉnh tiêu đề nếu lỗi liên quan đến xác thực/hệ thống
+                    if (errMsg.toLowerCase().includes('cloudflare') || errMsg.toLowerCase().includes('turnstile')) {
+                        title.innerText = 'Lỗi xác thực bảo mật';
+                    } else if (errMsg.toLowerCase().includes('image') || errMsg.toLowerCase().includes('upload')) {
+                        title.innerText = 'Lỗi máy chủ hình ảnh';
+                    } else {
+                        title.innerText = 'Không thể tải ảnh lên';
                     }
                     
                     desc.innerHTML = `<b class="text-red-700">${cleanMsg}</b>`;
