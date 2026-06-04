@@ -5219,6 +5219,7 @@
                     app.views.switch('home', false); // Cứ show màn home mờ ở dưới
                     setTimeout(() => app.qrLogin.initClient(searchParams.get('qr')), 500);
                 } else if (path === '/auth') {
+                    document.title = 'Xác thực | VNBUSARCHIVE';
                     // Kiểm tra xem trên URL có chứa key recovery không
                     const isRecovery = window.location.hash.includes('type=recovery') || app.auth.mode === 'recovery';
                     
@@ -5235,10 +5236,13 @@
                     if (username) app.views.loadAccount(username);
                     else app.views.loadHome();
                 } else if (path === '/upload') {
+                    document.title = 'Đăng tải ảnh | VNBUSARCHIVE';
                     app.views.switch('upload', false);
                 } else if (path === '/mobile-upload') {
+                    document.title = 'Tải ảnh từ thiết bị | VNBUSARCHIVE';
                     app.views.switch('mobile-upload', false);
                 } else if (path === '/admin') {
+                    document.title = 'Quản trị hệ thống | VNBUSARCHIVE';
                     app.views.switch('admin', false);
                 } else if (path === '/contact') {
                     app.views.loadContact();
@@ -5250,6 +5254,7 @@
                     if (plate) app.views.loadVehiclePage(plate);
                     else app.views.loadHome();
                 } else if (path.startsWith('/search')) {
+                    document.title = 'Tìm kiếm | VNBUSARCHIVE';
                     const q = searchParams.get('q');
                     const filter = searchParams.get('filter') || 'all';
                     
@@ -6123,6 +6128,7 @@ grid.innerHTML = tiers.map(tier => {
                 // Tách biệt hẳn ra tab search
                 app.views.switch('search', false);
                 app.currentViewMode = 'search';
+                document.title = 'Tìm kiếm | VNBUSARCHIVE';
 
                 const profileCardsContainer = document.getElementById('search-profile-cards');
                 profileCardsContainer.innerHTML = '';
@@ -7404,7 +7410,9 @@ if (isOwnProfile) {
                     const pageTitle = `${app.utils.displayPlate(photo.license_plate)} - ${snapshot.operator || 'Đã bị xóa'} | VNBUSARCHIVE`;
                     const pageDesc = `Ảnh chụp chi tiết xe buýt/xe khách ${app.utils.displayPlate(photo.license_plate)} thuộc đơn vị ${snapshot.operator}, dòng xe ${snapshot.model}.`;
                     const pageImg = app.utils.getProxiedUrl(photo.url);
-                    app.utils.updateMetaTags(pageTitle, pageDesc, pageImg);
+                    if (window.location.pathname === `/photo/${photoId}`) {
+                        app.utils.updateMetaTags(pageTitle, pageDesc, pageImg);
+                    }
                     document.getElementById('crumb-model').innerText = app.utils.displayPlate(photo.license_plate);
 
 
