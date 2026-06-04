@@ -1229,7 +1229,8 @@
         #upload-progress-modal,
         #captcha-modal,
         #webrtc-qr-modal,
-        #qr-login-host-modal, #qr-login-confirm-modal {
+        #qr-login-host-modal, #qr-login-confirm-modal,
+        #achievement-modal {
             background-color: rgba(0, 0, 0, 0) !important;
             backdrop-filter: blur(8px) !important; 
             -webkit-backdrop-filter: blur(8px) !important;
@@ -1241,7 +1242,8 @@
         #up-progress-content,
         #captcha-content,
         #webrtc-qr-content,
-        #qr-login-host-content, #qr-login-confirm-content {
+        #qr-login-host-content, #qr-login-confirm-content,
+        #achievement-content {
             background-color: rgba(255, 255, 255, 0.7) !important;
             backdrop-filter: blur(20px) !important;
             -webkit-backdrop-filter: blur(20px) !important;
@@ -1256,7 +1258,8 @@
         #upload-info-content > div,
         #settings-content > div,
         #newsboard-content > div,
-        #docs-content > div {
+        #docs-content > div,
+        #achievement-content > div {
             background-color: transparent !important;
             border-color: rgba(0, 0, 0, 0.05) !important;
         }
@@ -4344,285 +4347,32 @@
 
                 });
             },
-            newsboard: {
-                data: [],
-                activeIndex: 0,
-
             achievement: {
-                open: () => {
-                    const modal = document.getElementById('achievement-modal');
-                    const content = document.getElementById('achievement-content');
-                    modal.classList.remove('hidden');
-                    app.ui.lockScroll();
-                    setTimeout(() => {
-                        content.classList.remove('opacity-0', 'scale-95');
-                        content.classList.add('opacity-100', 'scale-100');
-                    }, 10);
-                },
-                close: () => {
-                    const modal = document.getElementById('achievement-modal');
-                    const content = document.getElementById('achievement-content');
-                    content.classList.remove('opacity-100', 'scale-100');
-                    content.classList.add('opacity-0', 'scale-95');
-                    setTimeout(() => {
-                        modal.classList.add('hidden');
-                        app.ui.unlockScroll();
-                    }, 200);
-                }
-            },
-                qrLogin: {
-            peer: null,
-            conn: null,
-            timer: null,
-            timeLeft: 180,
-            
-            // --- HOST: Máy PC (Mở Modal, Tạo QR, Chờ kết nối) ---
-            startHost: () => {
-                const modal = document.getElementById('qr-login-host-modal');
-                const loading = document.getElementById('qr-login-loading');
-                const qrContainer = document.getElementById('qr-login-qrcode-container');
-                const countdownEl = document.getElementById('qr-login-countdown');
-                const statusText = document.getElementById('qr-login-status-text');
-                
-                modal.classList.remove('hidden');
-                qrContainer.innerHTML = '';
-                loading.classList.remove('hidden');
-                statusText.innerText = "Đang tạo mã QR...";
-                countdownEl.innerText = "03:00";
-                app.ui.lockScroll();
-
-                if (app.qrLogin.peer) app.qrLogin.peer.destroy();
-                app.qrLogin.peer = new Peer();
-
-                app.qrLogin.peer.on('open', (id) => {
-                    loading.classList.add('hidden');
-                    const loginUrl = window.location.origin + '/login?qr=' + id;
-                    
-                    new QRCode(qrContainer, {
-                        text: loginUrl, width: 224, height: 224,
-                        colorDark : "#000000", colorLight : "#ffffff",
-                        correctLevel : QRCode.CorrectLevel.H
-                    });
-
-                    app.qrLogin.startCountdown();
-                });
-
-                app.qrLogin.peer.on('connection', (conn) => {
-                    app.qrLogin.conn = conn;
-                    
-                    conn.on('open', () => {
-                        loading.classList.remove('hidden');
-                        statusText.innerText = "Vui lòng xác nhận trên thiết bị quét...";
-                        if(app.qrLogin.timer) clearInterval(app.qrLogin.timer);
-                        countdownEl.innerText = "Đang chờ...";
-
-                        // GỬI RAW USER-AGENT TỪ MÁY TÍNH QUA ĐIỆN THOẠI
-                        conn.send({ type: 'host_info', userAgent: navigator.userAgent });
-                    });
-
-                    conn.on('data', async (data) => {
-                        if (data.type === 'login_link') {
-                            statusText.innerText = "Đang chuyển hướng đăng nhập...";
-                            conn.send({ type: 'success' });
-                            
-                            // CHUẨN CHUYÊN NGHIỆP: ĐIỀU HƯỚNG PC ĐẾN MAGIC LINK DO BACKEND TẠO RA
-                            window.location.href = data.url;
-                            
-                        } else if (data.type === 'cancel') {
-                            app.ui.showAlert("Đăng nhập bị từ chối từ thiết bị quét.");
-                            app.qrLogin.cancelHost();
-                        }
-                    });
-
-                    conn.on('close', () => {
-                        app.qrLogin.cancelHost();
-                    });
-                });
-            },
-
-            startCountdown: () => {
-                app.qrLogin.timeLeft = 180;
-                const timerEl = document.getElementById('qr-login-countdown');
-                
-                if(app.qrLogin.timer) clearInterval(app.qrLogin.timer);
-                app.qrLogin.timer = setInterval(() => {
-                    app.qrLogin.timeLeft--;
-                    const m = Math.floor(app.qrLogin.timeLeft / 60).toString().padStart(2, '0');
-                    const s = (app.qrLogin.timeLeft % 60).toString().padStart(2, '0');
-                    timerEl.innerText = `${m}:${s}`;
-                    
-                    if (app.qrLogin.timeLeft <= 0) {
-                        app.ui.showAlert("Mã QR đã hết hạn (3 phút). Vui lòng tạo lại.");
-                        app.qrLogin.cancelHost();
-                    }
-                }, 1000);
-            },
-
-            cancelHost: () => {
-                if(app.qrLogin.timer) clearInterval(app.qrLogin.timer);
-                if(app.qrLogin.conn) app.qrLogin.conn.close();
-                if(app.qrLogin.peer) app.qrLogin.peer.destroy();
-                
-                document.getElementById('qr-login-host-modal').classList.add('hidden');
-                app.ui.unlockScroll();
-            },
-
-            // --- CLIENT: Điện thoại quét mã ---
-            initClient: async (hostId) => {
-                if (!app.user) {
-                    app.ui.showAlert("Bạn chưa đăng nhập! Vui lòng đăng nhập trên điện thoại này trước khi quét mã QR.", () => {
-                        app.utils.navigate('/auth');
-                    });
-                    return;
-                }
-
-                const modal = document.getElementById('qr-login-confirm-modal');
-                const btnConfirm = document.getElementById('qr-confirm-btn');
-                const avatarImg = document.getElementById('qr-confirm-avatar');
-                const deviceText = document.getElementById('qr-confirm-device');
-                
-                btnConfirm.disabled = true;
-                btnConfirm.classList.add('opacity-50', 'cursor-not-allowed');
-                let timeLeft = 10;
-                btnConfirm.innerText = `Đăng nhập (${timeLeft})`;
-
-                document.getElementById('qr-confirm-name').innerText = app.username;
-                
-                try {
-                    const { data: profile } = await window.sb.from('profiles').select('avatar_url').eq('id', app.user.id).single();
-                    if (profile && profile.avatar_url) {
-                        avatarImg.src = app.utils.getProxiedUrl(profile.avatar_url.replace(/"/g, ''), 'avatar.jpg', 'avatar');
-                    } else if (app.user.user_metadata?.avatar_url) {
-                        avatarImg.src = app.utils.getProxiedUrl(app.user.user_metadata.avatar_url, 'avatar.jpg', 'avatar');
-                    } else {
-                        avatarImg.src = 'https://wsrv.nl/?url=https://files.catbox.moe/zzh1q1.png&we';
-                    }
-                } catch(e) {
-                    avatarImg.src = 'https://wsrv.nl/?url=https://files.catbox.moe/zzh1q1.png&we';
-                }
-
-                deviceText.innerText = "Đang kết nối để lấy thông tin thiết bị...";
-                app.qrLogin.getIP();
-
+            open: () => {
+                const modal = document.getElementById('achievement-modal');
+                const content = document.getElementById('achievement-content');
                 modal.classList.remove('hidden');
                 app.ui.lockScroll();
-
-                const cTimer = setInterval(() => {
-                    timeLeft--;
-                    if (timeLeft <= 0) {
-                        clearInterval(cTimer);
-                        btnConfirm.disabled = false;
-                        btnConfirm.classList.remove('opacity-50', 'cursor-not-allowed');
-                        btnConfirm.innerText = "Đăng nhập";
-                    } else {
-                        btnConfirm.innerText = `Đăng nhập (${timeLeft})`;
-                    }
-                }, 1000);
-
-                if (app.qrLogin.peer) app.qrLogin.peer.destroy();
-                app.qrLogin.peer = new Peer();
-
-                app.qrLogin.peer.on('open', () => {
-                    app.qrLogin.conn = app.qrLogin.peer.connect(hostId, { reliable: true });
-                    
-                    app.qrLogin.conn.on('data', (data) => {
-                        if (data.type === 'host_info') {
-                            deviceText.innerText = data.userAgent || 'Trình duyệt không xác định';
-                            deviceText.className = "text-[10px] font-mono text-gray-800 break-words leading-tight mt-0.5";
-                        }
-                        else if (data.type === 'success') {
-                            app.ui.showAlert(
-                                `<div class="text-left">
-                                    <p class="text-sm font-bold text-green-600 mb-2"><i class="fa-solid fa-check-circle mr-1"></i> Đăng nhập thành công!</p>
-                                    <p class="text-xs text-gray-700 mb-2">Thiết bị yêu cầu đã được cấp quyền truy cập hệ thống.</p>
-                                    <div class="bg-gray-50 border border-gray-200 p-3 rounded-md mt-3 shadow-sm">
-                                        <p class="text-[10.5px] text-gray-600 font-medium leading-relaxed m-0">
-                                            <i class="fa-solid fa-triangle-exclamation text-amber-500 mr-1"></i>
-                                            Nếu bạn lỡ tay hoặc nghi ngờ rủi ro, hãy vào <a href="javascript:void(0)" onclick="app.ui.closeAlert(true); setTimeout(() => { app.settings.open(); app.settings.switchTab('security'); }, 300);" class="font-bold text-red-600 hover:text-red-800 transition underline">Cài đặt > Bảo mật > Đăng xuất tất cả</a> để vô hiệu hóa quyền truy cập ngay lập tức.
-                                        </p>
-                                    </div>
-                                </div>`,
-                                () => { app.utils.navigate('/'); },
-                                null,
-                                { title: "Xác thực QR hoàn tất", btnOkText: "Đã hiểu" }
-                            );
-                            app.qrLogin.closeClient();
-                        }
-                    });
-                    
-                    app.qrLogin.conn.on('close', () => {
-                        app.ui.showAlert("Mất kết nối với thiết bị chờ đăng nhập. Vui lòng quét lại.");
-                        app.utils.navigate('/');
-                        app.qrLogin.closeClient();
-                    });
-                });
+                setTimeout(() => {
+                    content.classList.remove('opacity-0', 'scale-95');
+                    content.classList.add('opacity-100', 'scale-100');
+                }, 10);
             },
-
-            getIP: async () => {
-                try {
-                    const res = await fetch('https://api.ipify.org?format=json');
-                    const data = await res.json();
-                    document.getElementById('qr-confirm-ip').innerText = data.ip || 'Không thể lấy IP';
-                } catch(e) {
-                    document.getElementById('qr-confirm-ip').innerText = 'Không thể lấy IP';
-                }
-            },
-
-            confirmClient: async () => {
-                const btn = document.getElementById('qr-confirm-btn');
-                btn.disabled = true;
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
-
-                try {
-                    const { data, error } = await window.sb.auth.getSession();
-                    if (error || !data.session) throw new Error("Lấy Token thất bại. Vui lòng tải lại trang.");
-
-                    if (!app.qrLogin.conn || !app.qrLogin.conn.open) {
-                        throw new Error("Không thể kết nối với máy chủ chờ. Vui lòng quét lại mã QR.");
-                    }
-
-                    // --- CHUẨN CHUYÊN NGHIỆP: GỌI API BACKEND ĐỂ TẠO MAGIC LINK ---
-                    const res = await fetch('/api/qr-login-generate', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${data.session.access_token}`
-                        }
-                    });
-
-                    const apiData = await res.json();
-                    if (!res.ok) throw new Error(apiData.error || "Không thể tạo token đăng nhập mới từ máy chủ.");
-
-                    // Bắn Magic Link qua cho PC
-                    app.qrLogin.conn.send({ 
-                        type: 'login_link', 
-                        url: apiData.url
-                    });
-
-                } catch (e) {
-                    app.ui.showAlert(e.message);
-                    btn.disabled = false;
-                    btn.innerText = "Thử lại";
-                }
-            },
-
-            cancelClient: () => {
-                if (app.qrLogin.conn && app.qrLogin.conn.open) {
-                    app.qrLogin.conn.send({ type: 'cancel' });
-                }
-                app.ui.showAlert("Đã hủy quá trình đăng nhập qua QR.", () => {
-                    app.utils.navigate('/');
-                });
-                app.qrLogin.closeClient();
-            },
-
-            closeClient: () => {
-                if(app.qrLogin.conn) app.qrLogin.conn.close();
-                if(app.qrLogin.peer) app.qrLogin.peer.destroy();
-                document.getElementById('qr-login-confirm-modal').classList.add('hidden');
-                app.ui.unlockScroll();
+            close: () => {
+                const modal = document.getElementById('achievement-modal');
+                const content = document.getElementById('achievement-content');
+                content.classList.remove('opacity-100', 'scale-100');
+                content.classList.add('opacity-0', 'scale-95');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                    app.ui.unlockScroll();
+                }, 200);
             }
         },
+
+        newsboard: {
+            data: [],
+            activeIndex: 0,
 
 
         init: async () => {
