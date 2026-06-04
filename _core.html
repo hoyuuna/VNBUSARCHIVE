@@ -3411,7 +3411,7 @@
                         <div class="bg-white border border-vbs-border shadow-sm p-6 rounded-lg">
                             <h3 class="font-bold text-lg border-b border-gray-200 pb-3 mb-4 tracking-tight uppercase text-gray-800"
                                 id="profile-stats-title">THỐNG KÊ HOẠT ĐỘNG</h3>
-                            <div class="stats-grid">
+                            <div class="stats-grid grid-cols-2 md:grid-cols-3">
                                 <div class="stat-item">
                                     <span class="stat-value" id="my-stat-photos">0</span>
                                     <span class="stat-label">Ảnh đã đăng</span>
@@ -3423,6 +3423,18 @@
                                 <div class="stat-item">
                                     <span class="stat-value" id="my-stat-likes">0</span>
                                     <span class="stat-label">Tổng lượt thích</span>
+                                </div>
+                                <div class="stat-item bg-gray-50/50">
+                                    <span class="stat-value text-sm md:text-lg truncate" id="my-top-route">---</span>
+                                    <span class="stat-label">Tuyến chụp nhiều nhất</span>
+                                </div>
+                                <div class="stat-item bg-gray-50/50">
+                                    <span class="stat-value text-sm md:text-lg truncate" id="my-top-plate">---</span>
+                                    <span class="stat-label">Xe chụp nhiều nhất</span>
+                                </div>
+                                <div class="stat-item bg-gray-50/50">
+                                    <span class="stat-value text-sm md:text-lg truncate" id="my-top-model">---</span>
+                                    <span class="stat-label">Dòng xe chụp nhiều nhất</span>
                                 </div>
                             </div>
 
@@ -7392,6 +7404,33 @@ dropdown.innerHTML = `
                     document.getElementById('my-stat-photos').innerText = app.utils.formatCompact(photos.length);
                     document.getElementById('my-stat-views').innerText = app.utils.formatCompact(totalViews);
                     document.getElementById('my-stat-likes').innerText = app.utils.formatCompact(totalLikes);
+
+                    // TÍNH TOÁN THỐNG KÊ CHI TIẾT
+                    const routeFreq = {}; const plateFreq = {}; const modelFreq = {};
+                    photos.forEach(p => {
+                        if (p.status === 'approved') {
+                            const r = p.route_no;
+                            const pl = p.license_plate;
+                            const m = p.vehicles?.model;
+                            if (r && r !== '---') routeFreq[r] = (routeFreq[r] || 0) + 1;
+                            if (pl) plateFreq[pl] = (plateFreq[pl] || 0) + 1;
+                            if (m && m !== '---') modelFreq[m] = (modelFreq[m] || 0) + 1;
+                        }
+                    });
+
+                    const getTop = (obj) => {
+                        const entries = Object.entries(obj);
+                        if (entries.length === 0) return '---';
+                        return entries.sort((a, b) => b[1] - a[1])[0][0];
+                    };
+
+                    const topRoute = getTop(routeFreq);
+                    const topPlateRaw = getTop(plateFreq);
+                    const topModel = getTop(modelFreq);
+
+                    document.getElementById('my-top-route').innerText = topRoute;
+                    document.getElementById('my-top-plate').innerText = topPlateRaw !== '---' ? app.utils.displayPlate(topPlateRaw) : '---';
+                    document.getElementById('my-top-model').innerText = topModel;
 
 
                     const approvalIsland = document.getElementById('approval-rate-island');
