@@ -3429,7 +3429,7 @@
                                 </div>
                             </div>
                             
-                            <button onclick="app.achievement.open()" class="w-full mb-6 py-3 bg-white border border-[#e4e4e7] rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-black transition shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] flex items-center justify-center gap-2 group">
+                            <button id="btn-detailed-stats" onclick="app.achievement.open()" class="w-full mb-6 py-3 bg-white border border-[#e4e4e7] rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-black transition shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] flex items-center justify-center gap-2 group">
                                 <i class="fa-solid fa-chart-pie text-gray-500 group-hover:text-black transition-colors"></i> Chỉ số chi tiết
                             </button>
 
@@ -6142,7 +6142,7 @@ grid.innerHTML = tiers.map(tier => {
                     const searchWords = query.split(/\s+/).filter(w => w.length > 0);
 
                     if (filterType === 'uploader' || filterType === 'all') {
-                        let uQuery = window.sb.from('profiles').select('id, username, avatar_url, role');
+                        let uQuery = window.sb.from('profiles').select('id, username, avatar_url, role, subroles');
                         searchWords.forEach(w => { uQuery = uQuery.ilike('username', `%${w}%`); });
                         const { data: usersData } = await uQuery;
 
@@ -6150,7 +6150,7 @@ grid.innerHTML = tiers.map(tier => {
                             for (const user of usersData) {
                                 const { count } = await window.sb.from('photos').select('*', { count: 'exact', head: true }).eq('uploader_id', user.id).eq('status', 'approved');
                                 const avatarSrc = user.avatar_url ? app.utils.getProxiedUrl(user.avatar_url, 'avatar.jpg', 'avatar') : DEFAULT_AVATAR;
-                                const userBadges = app.utils.getBadgesHTML(user.id, user.role);
+                                const userBadges = app.utils.getBadgesHTML(user.id, user.role, user.subroles);
                                 cards.push(`
                                     <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.views.loadUserProfile('${user.username}')">
                                         <img src="${avatarSrc}" onerror="this.onerror=null;this.src='${DEFAULT_AVATAR}';" class="w-12 h-12 rounded-full object-cover bg-gray-100">
@@ -6180,7 +6180,11 @@ grid.innerHTML = tiers.map(tier => {
                             searchWords.forEach(w => {
                                 const safeW = w.replace(/"/g, '');
                                 const safeWPlate = app.utils.normalizePlateQuery(safeW);
-                                vQuery = vQuery.or(`license_plate.ilike."%${safeWPlate}%",model.ilike."%${safeW}%",note.ilike."%${safeW}%"`);
+                                if (safeWPlate) {
+                                    vQuery = vQuery.or(`license_plate.ilike."%${safeWPlate}%",model.ilike."%${safeW}%",note.ilike."%${safeW}%"`);
+                                } else {
+                                    vQuery = vQuery.or(`model.ilike."%${safeW}%",note.ilike."%${safeW}%"`);
+                                }
                             });
                         }
 
@@ -6214,7 +6218,7 @@ grid.innerHTML = tiers.map(tier => {
                     app.currentSearchCards = cards;
                     app.views.loadMoreSearchCards(true);
 
-                    const profileSelect = (filterType === 'uploader') ? 'profiles!inner(id, username, role)' : 'profiles(id, username, role)';
+                    const profileSelect = (filterType === 'uploader') ? 'profiles!inner(id, username, role, subroles)' : 'profiles(id, username, role, subroles)';
                     let photoQuery = window.sb
                         .from('photos')
                         .select(`*, ${profileSelect}, vehicles(model)`)
@@ -6267,7 +6271,11 @@ grid.innerHTML = tiers.map(tier => {
                         searchWords.forEach(w => {
                             const safeW = w.replace(/"/g, '');
                             const safeWPlate = app.utils.normalizePlateQuery(safeW);
-                            let orConditions = `license_plate.ilike."%${safeWPlate}%",operator.ilike."%${safeW}%",route_no.ilike."%${safeW}%",camera_model.ilike."%${safeW}%",location.ilike."%${safeW}%",note.ilike."%${safeW}%"`;
+                            let orConditions = "";
+                            if (safeWPlate) {
+                                orConditions += `license_plate.ilike."%${safeWPlate}%",`;
+                            }
+                            orConditions += `operator.ilike."%${safeW}%",route_no.ilike."%${safeW}%",camera_model.ilike."%${safeW}%",location.ilike."%${safeW}%",note.ilike."%${safeW}%"`;
 
                             if (plates.length > 0) orConditions += `,license_plate.in.(${plates.join(',')})`;
                             if (uploaderIds.length > 0) orConditions += `,uploader_id.in.(${uploaderIds.join(',')})`;
@@ -6633,7 +6641,7 @@ dropdown.innerHTML = `
 
                     let topQuery = window.sb
                         .from('photos')
-                        .select(`*, profiles(id, username, role), vehicles(model)`)
+                        .select(`*, profiles(id, username, role, subroles), vehicles(model)`)
                         .eq('status', 'approved')
                         .order('views', { ascending: false, nullsFirst: false })
                         .limit(5);
@@ -6680,7 +6688,7 @@ dropdown.innerHTML = `
                     const grid = document.getElementById('photo-grid');
                     let gridQuery = window.sb
                         .from('photos')
-                        .select(`*, profiles(id, username, role), vehicles(model)`)
+                        .select(`*, profiles(id, username, role, subroles), vehicles(model)`)
                         .eq('status', 'approved')
                         .order('created_at', { ascending: false })
                         .range(0, 19);
@@ -6953,7 +6961,7 @@ dropdown.innerHTML = `
                     } else {
                         let moreQuery = window.sb
                             .from('photos')
-                            .select(`*, profiles(id, username, role), vehicles(model)`)
+                            .select(`*, profiles(id, username, role, subroles), vehicles(model)`)
                             .eq('status', 'approved')
                             .order('created_at', { ascending: false })
                             .range(start, end);
@@ -7062,7 +7070,7 @@ dropdown.innerHTML = `
                     app.views.switch('account', false);
                     document.title = isOwnProfile ? 'Tài khoản của tôi | VNBUSARCHIVE' : `Hồ sơ: ${targetUsername} | VNBUSARCHIVE`;
 
-                    const { data: profile } = await window.sb.from('profiles').select('id, username, avatar_url, role').eq('username', targetUsername).single();
+                    const { data: profile } = await window.sb.from('profiles').select('id, username, avatar_url, role, subroles').eq('username', targetUsername).single();
 
 // BẮT LỖI RACE CONDITION
                     const expectedPath = isOwnProfile ? '/profile' : `/user/${encodeURIComponent(targetUsername)}`;
@@ -7080,7 +7088,7 @@ dropdown.innerHTML = `
                 
                     }
 
-                    const badges = app.utils.getBadgesHTML(profile.id, profile.role);
+                    const badges = app.utils.getBadgesHTML(profile.id, profile.role, profile.subroles);
                     document.getElementById('acc-name').innerHTML = `${profile.username} ${badges}`;
 
                     const avatarIcon = document.getElementById('acc-avatar-icon');
@@ -7106,11 +7114,13 @@ dropdown.innerHTML = `
                     if (isOwnProfile) {
                         likedSection.classList.remove('hidden');
                         reportBtn.classList.add('hidden');
+                        if (document.getElementById(\'btn-detailed-stats\')) document.getElementById(\'btn-detailed-stats\').classList.remove(\'hidden\');
                         document.getElementById('profile-stats-title').innerText = "THỐNG KÊ HOẠT ĐỘNG";
                         document.getElementById('profile-photos-title').innerText = "Ảnh của bạn";
                     } else {
                         likedSection.classList.add('hidden');
                         reportBtn.classList.remove('hidden');
+                        if (document.getElementById(\'btn-detailed-stats\')) document.getElementById(\'btn-detailed-stats\').classList.add(\'hidden\');
                         document.getElementById('profile-stats-title').innerText = "THỐNG KÊ CỦA " + profile.username.toUpperCase();
                         document.getElementById('profile-photos-title').innerText = "Ảnh đã đăng";
                     }
@@ -7286,7 +7296,7 @@ if (isOwnProfile) {
 
                     const { data: photo } = await window.sb
                         .from('photos')
-                        .select(`*, profiles(id, username, avatar_url, role), vehicles(model)`)
+                        .select(`*, profiles(id, username, avatar_url, role, subroles), vehicles(model)`)
                         .eq('id', photoId)
                         .single();
 
@@ -7459,7 +7469,7 @@ const elInfoPlate = document.getElementById('info-plate');
                 
                     }
 
-                    const badges = app.utils.getBadgesHTML(photo.profiles?.id, photo.profiles?.role);
+                    const badges = app.utils.getBadgesHTML(photo.profiles?.id, photo.profiles?.role, photo.profiles?.subroles);
 
                     const safeAvatar = photo.profiles?.avatar_url ? app.utils.getProxiedUrl(photo.profiles.avatar_url.replace(/"/g, '&quot;'), 'avatar.jpg', 'avatar') : DEFAULT_AVATAR;
 
@@ -7616,14 +7626,14 @@ if (app.user && app.role === 'manager' && isDenied) {
                         
                         queriesConfig.forEach(cfg => {
                             if (cfg.val && cfg.val !== '---') {
-                                let q = window.sb.from('photos').select('*, profiles(id, username, role), vehicles(model)').eq('status', 'approved').neq('id', photo.id).eq(cfg.type, cfg.val).limit(15);
+                                let q = window.sb.from('photos').select('*, profiles(id, username, role, subroles), vehicles(model)').eq('status', 'approved').neq('id', photo.id).eq(cfg.type, cfg.val).limit(15);
                                 q = app.preference.applyFilter(q); // Lọc theo tùy chọn cá nhân
                                 promises.push(q);
                             }
                         });
                         
                         // Lấy ảnh ngẫu nhiên làm Backup dự phòng thiếu (nằm ở vị trí cuối mảng Promise)
-                        let backupQ = window.sb.from('photos').select('*, profiles(id, username, role), vehicles(model)').eq('status', 'approved').neq('id', photo.id).order('created_at', {ascending: false}).limit(20);
+                        let backupQ = window.sb.from('photos').select('*, profiles(id, username, role, subroles), vehicles(model)').eq('status', 'approved').neq('id', photo.id).order('created_at', {ascending: false}).limit(20);
                         backupQ = app.preference.applyFilter(backupQ);
                         promises.push(backupQ);
                         
@@ -7651,7 +7661,7 @@ if (app.user && app.role === 'manager' && isDenied) {
                             const { data: vData } = await window.sb.from('vehicles').select('license_plate').eq('model', snapshot.model).limit(20);
                             if (vData && vData.length > 0) {
                                 const plates = vData.map(v => v.license_plate);
-                                let mQ = window.sb.from('photos').select('*, profiles(id, username, role), vehicles(model)').eq('status', 'approved').neq('id', photo.id).in('license_plate', plates).limit(15);
+                                let mQ = window.sb.from('photos').select('*, profiles(id, username, role, subroles), vehicles(model)').eq('status', 'approved').neq('id', photo.id).in('license_plate', plates).limit(15);
                                 mQ = app.preference.applyFilter(mQ);
                                 const { data: mPhotos } = await mQ;
                                 if (mPhotos) {
@@ -7772,7 +7782,7 @@ if (app.user && app.role === 'manager' && isDenied) {
 
                     try {
 
-                        let pQuery = window.sb.from('photos').select(`*, profiles(id, username, role), vehicles(model)`)
+                        let pQuery = window.sb.from('photos').select(`*, profiles(id, username, role, subroles), vehicles(model)`)
                                 .eq('license_plate', plate)
                                 .eq('status', 'approved')
                                 .order('taken_at', { ascending: false, nullsFirst: false })
@@ -11912,8 +11922,12 @@ cleanupState: () => {
                     } catch (e) { console.log("Lỗi tải Top:", e); }
                 },
 
-                getBadgesHTML: (userId, role) => {
+                getBadgesHTML: (userId, role, subroles = []) => {
                     let html = '';
+                    
+                    if (subroles && subroles.includes('dev')) {
+                        html += `<span class="badge-shiny" style="background: linear-gradient(135deg, #22c55e, #15803d);" title="Developer"><i class="fa-solid fa-code mr-1 text-[10px]"></i> Dev</span>`;
+                    }
 
                     if (role === 'admin' || role === 'manager') {
                         const badgeClass = role === 'manager' ? 'badge-manager' : 'badge-admin';
