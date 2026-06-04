@@ -6238,8 +6238,13 @@ grid.innerHTML = tiers.map(tier => {
                                     
                                     const labelHTML = (filter === 'all' || item.label.includes('(')) ? `<div class=\"text-[10px] text-gray-400 font-normal mt-0.5\">${item.label}</div>` : '';
                                     
-                                    // LẤY FILTER KEY DỰA TRÊN LABEL (NẾU KHÔNG CÓ THÌ GIỮ NGUYÊN FILTER HIỆN TẠI)
-                                    const filterKey = labelToFilter[item.label] || filter;
+                                    // LẤY FILTER KEY DỰA TRÊN LABEL (NẾU LÀ TUYẾN THÌ ÉP CHỌN absolute_route)
+                                    let filterKey = filter;
+                                    if (item.label && item.label.startsWith('Tuyến')) {
+                                        filterKey = 'absolute_route';
+                                    } else if (labelToFilter[item.label]) {
+                                        filterKey = labelToFilter[item.label];
+                                    }
                                     
                                     // Sửa để truyền linh hoạt inputId và sugId
                                     return `<div class="suggestion-item border-b border-gray-100 last:border-0" onmousedown="event.preventDefault(); document.getElementById('${inputId}').value = '${safeJS}'; document.getElementById('${sugId}').classList.remove('active'); app.search.setFilter('${filterKey}', false); app.handleSearch(true);">
