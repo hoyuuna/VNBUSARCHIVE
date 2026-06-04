@@ -6108,23 +6108,44 @@ grid.innerHTML = tiers.map(tier => {
                                 if (table === 'vehicles' && app.preference.current !== 'both') {
                                     selectStr = `${col}, photos!inner(type)`;
                                 }
+                                if (table === 'photos' && col === 'route_no') {
+                                    selectStr = 'route_no, license_plate';
+                                }
 
                                 let sbQuery = window.sb.from(table).select(selectStr);
                                 
                                 searchWords.forEach(word => {
                                     if (col === 'license_plate') {
-                                        // Áp dụng bộ lọc cho riêng cột BKS
                                         sbQuery = sbQuery.ilike(col, `%${app.utils.normalizePlateQuery(word)}%`);
                                     } else {
                                         sbQuery = sbQuery.ilike(col, `%${word}%`);
                                     }
                                 });
                                 
-                                // Phân loại bảng để gọi filter cho chuẩn
                                 sbQuery = app.preference.applyFilter(sbQuery, table);
                                 
-                                const { data } = await sbQuery.limit(20).abortSignal(controller.signal);
+                                const { data } = await sbQuery.limit(30).abortSignal(controller.signal);
                                 if (data) {
+                                    // XỬ LÝ RIÊNG CHO TUYẾN: TÌM TỈNH HOẠT ĐỘNG
+                                    if (col === 'route_no') {
+                                        const routeMap = {};
+                                        data.forEach(item => {
+                                            const r = item.route_no;
+                                            if (!r) return;
+                                            if (!routeMap[r]) routeMap[r] = new Set();
+                                            if (item.license_plate) {
+                                                const prov = app.utils.getProvinceFromPlate(item.license_plate);
+                                                if (prov && prov !== 'Không xác định' && prov !== 'Biển tạm') {
+                                                    routeMap[r].add(prov);
+                                                }
+                                            }
+                                        });
+                                        return Object.keys(routeMap).map(r => {
+                                            let provStr = Array.from(routeMap[r]).join(', ');
+                                            return { text: r, label: provStr ? `${label} (${provStr})` : label };
+                                        });
+                                    }
+
                                     const plates = [...new Set(data.map(item => item[col]).filter(Boolean))];
                                     if (col === 'license_plate') {
                                         const basePlates = plates.filter(p => isBasePlate(p));
@@ -6143,7 +6164,36 @@ grid.innerHTML = tiers.map(tier => {
                                     fetchSugs('photos', 'operator', 'Đơn vị vận hành'),
                                     fetchSugs('vehicles', 'model', 'Dòng xe')
                                 ]);
-                                results = [...plates, ...routes, ...ops, ...models];
+                                
+                                // THUẬT TOÁN CHIA SLOT: Đảm bảo chừa chỗ cho các mục khác nếu có
+                                let out = [];
+                                let pools = [
+                                    { data: plates, limit: 4 }, // BKS ưu tiên 4 slot
+                                    { data: routes, limit: 2 }, // Tuyến 2 slot
+                                    { data: ops, limit: 2 },    // Đơn vị 2 slot
+                                    { data: models, limit: 2 }  // Model 2 slot
+                                ];
+                                
+                                // B1: Rút dữ liệu theo limit tối đa được phân bổ
+                                pools.forEach(p => {
+                                    p.added = p.data.slice(0, p.limit);
+                                    out.push(...p.added);
+                                    p.remain = p.data.slice(p.limit); // Phần dư chưa được hiển thị
+                                });
+                                
+                                // B2: Nếu tổng chưa tới 10, vớt phần dư từ các pool (BKS sẽ tràn xuống lấy hết nếu các mục kia rỗng)
+                                let slotsLeft = 10 - out.length;
+                                if (slotsLeft > 0) {
+                                    for (let p of pools) {
+                                        if (slotsLeft <= 0) break;
+                                        if (p.remain.length > 0) {
+                                            let toAdd = p.remain.slice(0, slotsLeft);
+                                            out.push(...toAdd);
+                                            slotsLeft -= toAdd.length;
+                                        }
+                                    }
+                                }
+                                results = out;
                             } else if (filter === 'plate') {
                                 results = await fetchSugs('vehicles', 'license_plate', 'BKS');
                             } else if (filter === 'route' || filter === 'absolute_route') {
@@ -6186,7 +6236,7 @@ grid.innerHTML = tiers.map(tier => {
                                         displayHTML = safeText.replace(regex, '<strong class="font-extrabold">$1</strong>');
                                     }
                                     
-                                    const labelHTML = filter === 'all' ? `<div class="text-[10px] text-gray-400 font-normal mt-0.5">${item.label}</div>` : '';
+                                    const labelHTML = (filter === 'all' || item.label.includes('(')) ? `<div class=\"text-[10px] text-gray-400 font-normal mt-0.5\">${item.label}</div>` : '';
                                     
                                     // LẤY FILTER KEY DỰA TRÊN LABEL (NẾU KHÔNG CÓ THÌ GIỮ NGUYÊN FILTER HIỆN TẠI)
                                     const filterKey = labelToFilter[item.label] || filter;
@@ -11847,15 +11897,13 @@ cleanupState: () => {
                             const safeHTML = app.utils.cleanText(v);
                             const safeJS = v.replace(/'/g, "\\'").replace(/"/g, '&quot;');
                             
-                            // Highlight (in đậm) phần chữ trùng khớp
                             let displayHTML = safeHTML;
                             if (query) {
-                                const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                                const escapedQuery = query.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&');
                                 const regex = new RegExp(`(${escapedQuery})`, 'gi');
                                 displayHTML = safeHTML.replace(regex, '<strong class="font-extrabold">$1</strong>');
                             }
 
-                            // Đã gỡ bỏ text-gray-500 để chữ trở lại màu đen mặc định
                             return `<div class="suggestion-item" onmousedown="event.preventDefault(); document.getElementById('${inputId}').value = '${safeJS}'; document.getElementById('${suggestionId}').classList.remove('active');">${displayHTML}</div>`;
                         }).join('');
                         box.classList.add('active');
