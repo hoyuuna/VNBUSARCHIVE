@@ -2909,14 +2909,14 @@
                 </div>
 
                 
+                
                 <!-- BÌNH LUẬN FACEBOOK -->
-                <div id="fb-comments-section" class="mt-8 mb-6 bg-white border border-vbs-border p-4 md:p-6 rounded-lg shadow-sm">
+                <div id="fb-comments-section" class="hidden mt-8 mb-6 bg-white border border-vbs-border p-4 md:p-6 rounded-lg shadow-sm">
                     <h3 class="font-bold text-lg border-b border-gray-200 pb-3 mb-4 tracking-tight uppercase text-black">
                         <i class="fa-regular fa-comments mr-2 text-blue-600"></i>Bình luận
                     </h3>
-                    <div class="w-full overflow-x-hidden min-h-[150px]">
-                        <div id="fb-comments-container" class="fb-comments" data-href="" data-width="100%" data-numposts="5"></div>
-                    </div>
+                    <!-- Thẻ Wrapper này dùng để xóa đi tạo lại lõi FB mỗi khi chuyển trang -->
+                    <div class="w-full overflow-x-hidden min-h-[150px]" id="fb-comments-wrapper"></div>
                 </div>
 
                 <!-- MỤC CÓ THỂ BẠN QUAN TÂM -->
@@ -7667,15 +7667,33 @@ if (app.user && app.role === 'manager' && isDenied) {
 
                     app.views.loadDetailRecommendations(photo, snapshot);
 
-                    // Cập nhật URL và render lại Facebook Comments
-                    const fbContainer = document.getElementById('fb-comments-container');
-                    if (fbContainer) {
-                        const currentUrl = window.location.origin + '/photo/' + photoId;
-                        fbContainer.setAttribute('data-href', currentUrl);
-                        if (typeof FB !== 'undefined') {
-                            FB.XFBML.parse(document.getElementById('fb-comments-section'));
+                    // --- XỬ LÝ FACEBOOK COMMENTS ---
+                    const fbSection = document.getElementById('fb-comments-section');
+                    const fbWrapper = document.getElementById('fb-comments-wrapper');
+                    
+                    if (fbSection && fbWrapper) {
+                        if (photo.status === 'approved') {
+                            // 1. Hiện khu vực bình luận
+                            fbSection.classList.remove('hidden');
+                            
+                            // 2. Tạo URL của ảnh hiện tại
+                            const currentUrl = window.location.origin + '/photo/' + photoId;
+                            
+                            // 3. Trick cho SPA: Phải ghi đè lại thẻ HTML mới hoàn toàn thì FB mới chịu render lại
+                            fbWrapper.innerHTML = '<div class="fb-comments" data-href="' + currentUrl + '" data-width="100%" data-numposts="5"></div>';
+                            
+                            // 4. Gọi FB SDK quét lại giao diện
+                            setTimeout(() => {
+                                if (typeof FB !== 'undefined') {
+                                    FB.XFBML.parse(fbWrapper);
+                                }
+                            }, 100);
+                        } else {
+                            // Ẩn khu vực bình luận nếu ảnh chờ duyệt hoặc bị từ chối
+                            fbSection.classList.add('hidden');
                         }
                     }
+                    // -------------------------------
 
                     app.loadingBar.finish();
                 },
