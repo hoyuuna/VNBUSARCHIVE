@@ -2939,7 +2939,7 @@
                     </h3>
                     
                     <!-- Khung cuộn chứa bình luận (Cố định chiều cao) -->
-                    <div id="comment-scroll-area" class="flex-1 overflow-y-auto pr-2 mb-4 space-y-3 custom-scrollbar" style="min-height: 35vh;">
+                    <div id="comment-scroll-area" class="flex-1 overflow-y-auto overflow-x-hidden pr-2 mb-4 space-y-3 custom-scrollbar" style="min-height: 35vh;">
                         <div id="comment-list" class="space-y-3">
                             <p class="text-center text-gray-400 py-10"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tải...</p>
                         </div>
@@ -4656,7 +4656,7 @@
                         : 'https://wsrv.nl/?url=https://files.catbox.moe/zzh1q1.png&we';
 
                     return `
-                    <div id="comment-${c.id}" class="bg-gray-50/70 border border-gray-100 p-3 rounded-2xl flex gap-3 relative transition-all hover:bg-gray-100/50">
+                    <div id="comment-${c.id}" class="bg-gray-50/70 border border-gray-100 p-3 rounded-2xl flex gap-3 relative transition-all hover:bg-gray-100/50 overflow-hidden">
                         <img src="${avatar}" class="w-8 h-8 rounded-full object-cover shrink-0 border border-white shadow-sm">
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center justify-between mb-0.5 overflow-hidden">
