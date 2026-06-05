@@ -5936,24 +5936,40 @@ grid.innerHTML = tiers.map(tier => {
                                 
                                 const { data } = await sbQuery.limit(30).abortSignal(controller.signal);
                                 if (data) {
-                                    // XỬ LÝ RIÊNG CHO TUYẾN: TÌM TỈNH HOẠT ĐỘNG
+                                    // XỬ LÝ RIÊNG CHO TUYẾN: TÌM TỈNH HOẠT ĐỘNG (TÁCH THEO YÊU CẦU MỚI)
                                     if (col === 'route_no') {
-                                        const routeMap = {};
+                                        const routeProvSet = new Set();
+                                        const routeResults = [];
                                         data.forEach(item => {
                                             const r = item.route_no;
                                             if (!r) return;
-                                            if (!routeMap[r]) routeMap[r] = new Set();
+                                            
+                                            let prov = '';
                                             if (item.license_plate) {
-                                                const prov = app.utils.getProvinceFromPlate(item.license_plate);
-                                                if (prov && prov !== 'Không xác định' && prov !== 'Biển tạm') {
-                                                    routeMap[r].add(prov);
+                                                const extractedProv = app.utils.getProvinceFromPlate(item.license_plate);
+                                                if (extractedProv && extractedProv !== 'Không xác định' && extractedProv !== 'Biển tạm') {
+                                                    prov = extractedProv;
                                                 }
                                             }
+                                            
+                                            const key = r + '|' + prov;
+                                            if (!routeProvSet.has(key)) {
+                                                routeProvSet.add(key);
+                                                let prefix = '';
+                                                if (prov && app.utils.provinceData) {
+                                                    const provData = app.utils.provinceData.find(p => p.ten === prov);
+                                                    if (provData) prefix = provData.ky_hieu.split(',')[0].trim();
+                                                }
+
+                                                routeResults.push({ 
+                                                    text: prov ? `${r} (${prov})` : r, 
+                                                    label: label, // Chỉ để "Tuyến" bên dưới
+                                                    prefix: prefix,
+                                                    rawRoute: r // Giữ lại số tuyến gốc để fill vào ô tìm kiếm
+                                                });
+                                            }
                                         });
-                                        return Object.keys(routeMap).map(r => {
-                                            let provStr = Array.from(routeMap[r]).join(', ');
-                                            return { text: r, label: provStr ? `${label} (${provStr})` : label };
-                                        });
+                                        return routeResults;
                                     }
 
                                     const plates = [...new Set(data.map(item => item[col]).filter(Boolean))];
@@ -6056,8 +6072,16 @@ grid.innerHTML = tiers.map(tier => {
                                         filterKey = labelToFilter[item.label];
                                     }
                                     
-                                    // Sửa để truyền linh hoạt inputId và sugId
-                                    return `<div class="suggestion-item border-b border-gray-100 last:border-0" onmousedown="event.preventDefault(); document.getElementById('${inputId}').value = '${safeJS}'; document.getElementById('${sugId}').classList.remove('active'); app.search.setFilter('${filterKey}', false); app.handleSearch(true);">
+                                    // Xử lý lấy số tuyến nguyên bản thay vì nhét cả chữ "(Hà Nội)" vào ô search
+                                    const safeRawJS = (item.rawRoute || item.text).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                                    
+                                    let clickAction = `document.getElementById('${inputId}').value = '${safeRawJS}'; document.getElementById('${sugId}').classList.remove('active'); app.search.setFilter('${filterKey}', false); app.handleSearch(true);`;
+                                    
+                                    if (filterKey === 'absolute_route' && item.prefix) {
+                                        clickAction = `document.getElementById('${inputId}').value = '${safeRawJS}'; document.getElementById('${sugId}').classList.remove('active'); app.searchRedirect('${safeRawJS}', 'absolute_route', '${item.prefix}');`;
+                                    }
+
+                                    return `<div class="suggestion-item border-b border-gray-100 last:border-0" onmousedown="event.preventDefault(); ${clickAction}">
                                         <div class="text-[13px] text-black font-medium leading-snug break-words whitespace-normal">${displayHTML}</div>
                                         ${labelHTML}
                                     </div>`;
@@ -11267,28 +11291,30 @@ cleanupState: () => {
                     container.appendChild(wrap);
                 },
                 updateBreadcrumbs: () => {
-                    let backName = "Trang chủ";
-                    let backUrl = "/";
+                    // Cập nhật lại cơ chế Navigator: Lưu lại "Trang Gốc" thay vì chỉ lấy trang liền trước
+                    if (!app.baseOrigin) app.baseOrigin = { name: "Trang chủ", url: "/" };
                     
-                    const prev = app.previousPath || '/';
-                    const pathParts = prev.split('?')[0];
+                    const currentPath = window.location.pathname + window.location.search;
+                    const pathParts = window.location.pathname;
 
-                    if (pathParts === '/profile') backName = "Hồ sơ của tôi";
-                    else if (pathParts.startsWith('/user/')) backName = "Hồ sơ (" + decodeURIComponent(pathParts.split('/')[2]) + ")";
-                    else if (pathParts.startsWith('/search')) backName = "Kết quả tìm kiếm";
-                    else if (pathParts === '/upload') backName = "Đăng tải";
-                    else if (pathParts === '/mobile-upload') backName = "Tải ảnh từ điện thoại";
-                    else if (pathParts === '/admin') backName = "Quản trị hệ thống";
-                    else if (pathParts.startsWith('/vehicle/')) backName = "Hồ sơ xe " + decodeURIComponent(pathParts.split('/')[2]);
-                    else if (pathParts.startsWith('/photo/')) backName = "Quay lại ảnh";
-                    
-                    if (prev !== (window.location.pathname + window.location.search)) {
-                        backUrl = prev;
+                    // Các trang này được coi là "Trang gốc". Khi đi vào các trang này, lưu lại mốc làm điểm neo.
+                    if (pathParts === '/' || pathParts === '/profile' || pathParts.startsWith('/user/') || pathParts.startsWith('/search') || pathParts === '/upload' || pathParts === '/mobile-upload' || pathParts === '/admin' || pathParts === '/contact') {
+                        let bName = "Trang chủ";
+                        if (pathParts === '/profile') bName = "Hồ sơ của tôi";
+                        else if (pathParts.startsWith('/user/')) bName = "Hồ sơ (" + decodeURIComponent(pathParts.split('/')[2]) + ")";
+                        else if (pathParts.startsWith('/search')) bName = "Kết quả tìm kiếm";
+                        else if (pathParts === '/upload') bName = "Đăng tải";
+                        else if (pathParts === '/mobile-upload') bName = "Tải ảnh từ điện thoại";
+                        else if (pathParts === '/admin') bName = "Quản trị hệ thống";
+                        else if (pathParts === '/contact') bName = "Liên hệ hỗ trợ";
+
+                        app.baseOrigin = { name: bName, url: currentPath };
                     }
 
+                    // Áp dụng trang gốc cho nút quay lại để giữ Navigator cứng cáp, không bị lạc lối
                     document.querySelectorAll('.crumb-back').forEach(el => {
-                        el.innerText = backName;
-                        el.onclick = () => { app.utils.navigate(backUrl); };
+                        el.innerText = app.baseOrigin.name;
+                        el.onclick = () => { app.utils.navigate(app.baseOrigin.url); };
                     });
                 },
 
