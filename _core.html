@@ -4659,7 +4659,7 @@
                     <div id="comment-${c.id}" class="bg-gray-50/70 border border-gray-100 p-3 rounded-2xl flex gap-3 relative transition-all hover:bg-gray-100/50">
                         <img src="${avatar}" class="w-8 h-8 rounded-full object-cover shrink-0 border border-white shadow-sm">
                         <div class="flex-1 min-w-0">
-                            <div class="flex items-center justify-between mb-0.5">
+                            <div class="flex items-center justify-between mb-0.5 overflow-hidden">
                                 <!-- Khối Tên + Badge cuộn ngang liền mạch -->
                                 <div class="flex-1 min-w-0 flex items-center gap-1.5 overflow-x-auto whitespace-nowrap pb-1 mr-2" style="scrollbar-width: none;">
                                     <span onclick="app.views.loadUserProfile('${c.profiles?.username}')" class="text-[12px] font-bold text-black cursor-pointer hover:underline shrink-0">${c.profiles?.username || 'Ẩn danh'}</span>
