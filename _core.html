@@ -5956,10 +5956,12 @@ grid.innerHTML = tiers.map(tier => {
                                             if (!routeProvSet.has(key)) {
                                                 routeProvSet.add(key);
                                                 let prefix = '';
-                                                if (prov && app.utils.provinceData) {
-                                                    const provData = app.utils.provinceData.find(p => p.ten === prov);
-                                                    if (provData) prefix = provData.ky_hieu.split(',')[0].trim();
-                                                }
+                                                try {
+                                                    if (prov && app.utils.provinceData && app.utils.provinceData.length) {
+                                                        const provData = app.utils.provinceData.find(p => p.ten === prov);
+                                                        if (provData && provData.ky_hieu) prefix = provData.ky_hieu.split(',')[0].trim();
+                                                    }
+                                                } catch (e) { }
 
                                                 routeResults.push({ 
                                                     text: prov ? `${r} (${prov})` : r, 
