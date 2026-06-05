@@ -1637,31 +1637,47 @@
         </div>
 
         
-        <div id="custom-role-modal" class="hidden fixed inset-0 z-[6000] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-    <div id="custom-role-content" class="bg-white rounded-lg shadow-2xl max-w-sm w-full border border-gray-200 overflow-hidden transform transition-all opacity-0 scale-95">
-        <div class="p-5">
-            <h3 class="text-lg font-bold text-purple-700 mb-2"><i class="fa-solid fa-wand-magic-sparkles mr-2"></i>Thiết lập Custom Role</h3>
-            <p class="text-xs text-gray-500 mb-4">Nhập tên và chọn màu sắc cho Role hiển thị độc quyền trên Discord của bạn.</p>
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 mb-1">Tên Role <span class="text-red-500">*</span></label>
-                    <input type="text" id="cr-name-input" maxlength="32" class="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-purple-500 outline-none transition" placeholder="VD: Bậc thầy săn ảnh">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 mb-1">Màu sắc hiển thị (Hex) <span class="text-red-500">*</span></label>
-                    <div class="flex gap-2 items-center">
-                        <input type="color" id="cr-color-picker" class="w-10 h-10 rounded cursor-pointer border-0 p-0" value="#a855f7" oninput="document.getElementById('cr-color-input').value = this.value.toUpperCase()">
-                        <input type="text" id="cr-color-input" maxlength="7" class="flex-1 border border-gray-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-purple-500 outline-none font-mono uppercase transition" value="#A855F7" oninput="if(this.value.startsWith('#') && this.value.length === 7) document.getElementById('cr-color-picker').value = this.value">
+                <div id="custom-role-modal" class="hidden fixed inset-0 z-[6000] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+            <div id="custom-role-content" class="rounded-xl shadow-2xl max-w-sm w-full border border-white/60 overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col">
+                <div class="p-5 md:p-6 pb-4">
+                    <h3 class="text-lg font-bold text-black mb-1">
+                        <i class="fa-solid fa-wand-magic-sparkles mr-2 text-purple-600"></i>Thiết lập Custom Role
+                    </h3>
+                    <p class="text-[11px] text-gray-600 mb-4 font-medium leading-relaxed">Nhập tên và chọn màu sắc cho Role hiển thị độc quyền trên Discord của bạn.</p>
+                    
+                    <div class="bg-red-50 border border-red-200 p-3 rounded-lg mb-5 shadow-sm">
+                        <p class="text-[11px] text-red-700 font-bold leading-relaxed text-justify m-0">
+                            <i class="fa-solid fa-triangle-exclamation mr-1 text-red-600"></i>
+                            Nếu bạn đặt tên không phù hợp, bạn có thể bị cấm vĩnh viễn khỏi hệ thống.
+                        </p>
                     </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-500 mb-1.5 uppercase tracking-widest">Tên Role <span class="text-red-500">*</span></label>
+                            <input type="text" id="cr-name-input" maxlength="32" class="w-full bg-white border border-gray-300 rounded-lg p-2.5 text-sm font-medium focus:ring-2 focus:ring-black focus:border-transparent outline-none transition-all shadow-inner text-black" placeholder="VD: Bậc thầy săn ảnh">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-500 mb-1.5 uppercase tracking-widest">Màu sắc (Hex) <span class="text-red-500">*</span></label>
+                            <div class="flex gap-2 items-center">
+                                <div class="relative w-11 h-11 rounded-lg overflow-hidden border border-gray-300 shadow-sm shrink-0 bg-white">
+                                    <input type="color" id="cr-color-picker" class="absolute -top-2 -left-2 w-16 h-16 cursor-pointer" value="#a855f7" oninput="document.getElementById('cr-color-input').value = this.value.toUpperCase()">
+                                </div>
+                                <input type="text" id="cr-color-input" maxlength="7" class="w-full bg-white border border-gray-300 rounded-lg p-2.5 text-sm font-bold focus:ring-2 focus:ring-black focus:border-transparent outline-none font-mono uppercase transition-all shadow-inner text-black" value="#A855F7" oninput="if(this.value.startsWith('#') && this.value.length === 7) document.getElementById('cr-color-picker').value = this.value">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50/50 px-5 py-4 border-t border-gray-200/50 flex gap-3 rounded-b-xl">
+                    <button type="button" onclick="app.ui.closeCustomRolePrompt()" class="flex-1 inline-flex justify-center items-center rounded-lg shadow-sm px-4 py-2.5 bg-white border border-gray-300 text-sm font-bold text-gray-700 hover:bg-gray-50 focus:outline-none transition-all">
+                        Hủy
+                    </button>
+                    <button type="button" id="cr-ok-btn" class="flex-1 inline-flex justify-center items-center rounded-lg shadow-sm px-4 py-2.5 bg-black border border-black text-sm font-bold text-white hover:bg-gray-800 focus:outline-none transition-all">
+                        Lưu thiết lập
+                    </button>
                 </div>
             </div>
         </div>
-        <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t border-gray-200">
-            <button type="button" id="cr-ok-btn" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-base font-bold text-white hover:opacity-90 sm:ml-3 sm:w-auto sm:text-sm transition">Tạo / Lưu Role</button>
-            <button type="button" onclick="app.ui.closeCustomRolePrompt()" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-bold text-gray-700 hover:bg-gray-50 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition">Hủy</button>
-        </div>
-    </div>
-</div>
 
         <div id="deny-prompt-modal"
             class="hidden fixed inset-0 z-[5000] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
