@@ -11883,7 +11883,7 @@ cleanupState: () => {
                     return new Promise((resolve, reject) => {
                         const img = new Image();
                         const url = URL.createObjectURL(file);
-                        img.onload = () => {
+                        img.onload = async () => {
                             try {
                                 const canvas = document.createElement('canvas');
                                 const ctx = canvas.getContext('2d');
