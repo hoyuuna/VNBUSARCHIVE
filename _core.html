@@ -3514,8 +3514,12 @@
                                 </div>
                             </div>
                             
-                            <button id="btn-detailed-stats" onclick="app.achievement.open()" class="w-full mb-6 py-3 bg-white border border-[#e4e4e7] rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-black transition shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] flex items-center justify-center gap-2 group">
+                            <button id="btn-detailed-stats" onclick="app.achievement.open()" class="w-full mb-2 py-3 bg-white border border-[#e4e4e7] rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-black transition shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] flex items-center justify-center gap-2 group">
                                 <i class="fa-solid fa-chart-pie text-gray-500 group-hover:text-black transition-colors"></i> Chỉ số chi tiết
+                            </button>
+
+                            <button id="btn-manage-comments" onclick="app.utils.navigate('/profile/comments')" class="w-full mb-6 py-3 bg-white border border-[#e4e4e7] rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition shadow-sm flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-comments-gear text-gray-400"></i> Quản lý bình luận
                             </button>
 
                             <div id="approval-rate-island" class="hidden mt-4 relative overflow-hidden bg-white border border-vbs-border rounded-lg shadow-sm p-3 sm:p-4">
@@ -3536,10 +3540,6 @@
                                     </div>
                                 </div>
                             </div>
-
-                            <button id="btn-manage-comments" onclick="app.comments.openDashboard()" class="w-full mt-2 py-3 bg-white border border-[#e4e4e7] rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition shadow-sm flex items-center justify-center gap-2">
-                                <i class="fa-solid fa-comments-gear text-gray-400"></i> Quản lý bình luận trên bài đăng
-                            </button>
 
                             <div class="flex items-center justify-between mt-10 mb-3 gap-2">
                                 <h4 class="font-bold text-sm uppercase text-gray-800" id="profile-photos-title">Ảnh của bạn</h4>
@@ -5492,6 +5492,8 @@
                     } else {
                         app.views.switch('auth', false);
                     }
+                } else if (path === '/profile/comments') {
+                    app.comments.openDashboard();
                 } else if (path === '/profile') {
                     app.views.loadAccount();
                 } else if (path.startsWith('/user/')) {
@@ -11431,13 +11433,14 @@ app.admin.fetchManagerData('denied');
                     const prevFull = prevPath + window.location.search;
                     
                     let parentInfo = window.history.state?.parentInfo; 
-                    const rootPages = ['/', '/profile', '/search', '/upload', '/admin', '/contact', '/user/'];
+                    const rootPages = ['/', '/profile', '/profile/comments', '/search', '/upload', '/admin', '/contact', '/user/'];
                     const isDestLeaf = url.startsWith('/vehicle/') || url.startsWith('/photo/');
                     const isCurrentRoot = rootPages.some(r => prevPath === r || (r !== '/' && prevPath.startsWith(r)));
 
                     if (isCurrentRoot) {
                         let bName = "Trang chủ";
-                        if (prevPath === '/profile') bName = "Hồ sơ của tôi";
+                        if (prevPath === '/profile/comments') bName = "Quản lý bình luận";
+                        else if (prevPath === '/profile') bName = "Hồ sơ của tôi";
                         else if (prevPath.startsWith('/search')) bName = "Kết quả tìm kiếm";
                         else if (prevPath.startsWith('/user/')) bName = "Hồ sơ người dùng";
                         else if (prevPath === '/upload') bName = "Đăng tải";
