@@ -13506,7 +13506,7 @@ closeCustomRolePrompt: () => {
                 
                 <div class="space-y-4">
                     <!-- Tuyến -->
-                    <div onclick="const v=document.getElementById('my-top-route').innerText; if(v!=='---'){app.searchRedirect(v, 'route'); app.achievement.close();}" class="cursor-pointer group flex items-center gap-4 p-4 rounded-xl border border-gray-200 shadow-sm transition-all hover:border-blue-400 hover:shadow-md hover:bg-white" style="background-color: rgba(249, 250, 251, 0.6);" title="Nhấn để tìm kiếm ảnh theo tuyến này">
+                    <div onclick="var v=document.getElementById('my-top-route').innerText; if(v!=='---'){app.searchRedirect(v, 'route'); app.achievement.close();}" class="cursor-pointer group flex items-center gap-4 p-4 rounded-xl border border-gray-200 shadow-sm transition-all hover:border-blue-400 hover:shadow-md hover:bg-white" style="background-color: rgba(249, 250, 251, 0.6);" title="Nhấn để tìm kiếm ảnh theo tuyến này">
                         <div class="w-12 h-12 bg-white shadow-sm rounded-full flex items-center justify-center text-blue-600 border border-blue-50 shrink-0 group-hover:scale-110 transition-transform">
                             <i class="fa-solid fa-route text-lg"></i>
                         </div>
@@ -13517,7 +13517,7 @@ closeCustomRolePrompt: () => {
                     </div>
 
                     <!-- Xe -->
-                    <div onclick="const v=document.getElementById('my-top-plate').innerText; if(v!=='---'){app.utils.navigate('/vehicle/'+encodeURIComponent(v)); app.achievement.close();}" class="cursor-pointer group flex items-center gap-4 p-4 rounded-xl border border-gray-200 shadow-sm transition-all hover:border-orange-400 hover:shadow-md hover:bg-white" style="background-color: rgba(249, 250, 251, 0.6);" title="Nhấn để xem hồ sơ xe này">
+                    <div onclick="var v=document.getElementById('my-top-plate').innerText; if(v!=='---'){app.utils.navigate('/vehicle/'+encodeURIComponent(v)); app.achievement.close();}" class="cursor-pointer group flex items-center gap-4 p-4 rounded-xl border border-gray-200 shadow-sm transition-all hover:border-orange-400 hover:shadow-md hover:bg-white" style="background-color: rgba(249, 250, 251, 0.6);" title="Nhấn để xem hồ sơ xe này">
                         <div class="w-12 h-12 bg-white shadow-sm rounded-full flex items-center justify-center text-orange-600 border border-orange-50 shrink-0 group-hover:scale-110 transition-transform">
                             <i class="fa-solid fa-bus text-lg"></i>
                         </div>
@@ -13528,7 +13528,7 @@ closeCustomRolePrompt: () => {
                     </div>
 
                     <!-- Dòng xe -->
-                    <div onclick="const v=document.getElementById('my-top-model').innerText; if(v!=='---'){app.searchRedirect(v, 'model'); app.achievement.close();}" class="cursor-pointer group flex items-center gap-4 p-4 rounded-xl border border-gray-200 shadow-sm transition-all hover:border-purple-400 hover:shadow-md hover:bg-white" style="background-color: rgba(249, 250, 251, 0.6);" title="Nhấn để tìm kiếm dòng xe này">
+                    <div onclick="var v=document.getElementById('my-top-model').innerText; if(v!=='---'){app.searchRedirect(v, 'model'); app.achievement.close();}" class="cursor-pointer group flex items-center gap-4 p-4 rounded-xl border border-gray-200 shadow-sm transition-all hover:border-purple-400 hover:shadow-md hover:bg-white" style="background-color: rgba(249, 250, 251, 0.6);" title="Nhấn để tìm kiếm dòng xe này">
                         <div class="w-12 h-12 bg-white shadow-sm rounded-full flex items-center justify-center text-purple-600 border border-purple-50 shrink-0 group-hover:scale-110 transition-transform">
                             <i class="fa-solid fa-layer-group text-lg"></i>
                         </div>
