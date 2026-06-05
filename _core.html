@@ -11087,23 +11087,24 @@ app.admin.fetchManagerData('denied');
                     const prevPath = window.location.pathname;
                     const prevFull = prevPath + window.location.search;
                     
-                    // Logic Navigator: Chỉ cập nhật "cha" nếu trang trước đó là một trang danh sách (Root)
                     let parentInfo = window.history.state?.parentInfo; 
-                    const rootPages = ['/', '/profile', '/search', '/upload', '/admin', '/contact'];
-                    const isRoot = rootPages.some(r => prevPath === r || (r !== '/' && prevPath.startsWith(r)));
+                    const rootPages = ['/', '/profile', '/search', '/upload', '/admin', '/contact', '/user/'];
+                    const isDestLeaf = url.startsWith('/vehicle/') || url.startsWith('/photo/');
+                    const isCurrentRoot = rootPages.some(r => prevPath === r || (r !== '/' && prevPath.startsWith(r)));
 
-                    if (isRoot) {
+                    if (isCurrentRoot) {
                         let bName = "Trang chủ";
                         if (prevPath === '/profile') bName = "Hồ sơ của tôi";
                         else if (prevPath.startsWith('/search')) bName = "Kết quả tìm kiếm";
                         else if (prevPath.startsWith('/user/')) bName = "Hồ sơ người dùng";
                         else if (prevPath === '/upload') bName = "Đăng tải";
                         else if (prevPath === '/admin') bName = "Quản trị";
+                        else if (prevPath === '/contact') bName = "Liên hệ";
                         parentInfo = { name: bName, url: prevFull };
                     }
 
                     app.previousPath = prevFull;
-                    window.history.pushState({ parentInfo: parentInfo }, '', url);
+                    window.history.pushState({ parentInfo: isDestLeaf ? parentInfo : null }, '', url);
                     app.handleRoute();
                 },
 
@@ -11311,30 +11312,12 @@ cleanupState: () => {
                     container.appendChild(wrap);
                 },
                 updateBreadcrumbs: () => {
-                    // Cập nhật lại cơ chế Navigator: Lưu lại "Trang Gốc" thay vì chỉ lấy trang liền trước
-                    if (!app.baseOrigin) app.baseOrigin = { name: "Trang chủ", url: "/" };
-                    
-                    const currentPath = window.location.pathname + window.location.search;
-                    const pathParts = window.location.pathname;
+                    const state = window.history.state;
+                    const parent = state?.parentInfo || { name: "Trang chủ", url: "/" };
 
-                    // Các trang này được coi là "Trang gốc". Khi đi vào các trang này, lưu lại mốc làm điểm neo.
-                    if (pathParts === '/' || pathParts === '/profile' || pathParts.startsWith('/user/') || pathParts.startsWith('/search') || pathParts === '/upload' || pathParts === '/mobile-upload' || pathParts === '/admin' || pathParts === '/contact') {
-                        let bName = "Trang chủ";
-                        if (pathParts === '/profile') bName = "Hồ sơ của tôi";
-                        else if (pathParts.startsWith('/user/')) bName = "Hồ sơ (" + decodeURIComponent(pathParts.split('/')[2]) + ")";
-                        else if (pathParts.startsWith('/search')) bName = "Kết quả tìm kiếm";
-                        else if (pathParts === '/upload') bName = "Đăng tải";
-                        else if (pathParts === '/mobile-upload') bName = "Tải ảnh từ điện thoại";
-                        else if (pathParts === '/admin') bName = "Quản trị hệ thống";
-                        else if (pathParts === '/contact') bName = "Liên hệ hỗ trợ";
-
-                        app.baseOrigin = { name: bName, url: currentPath };
-                    }
-
-                    // Áp dụng trang gốc cho nút quay lại để giữ Navigator cứng cáp, không bị lạc lối
                     document.querySelectorAll('.crumb-back').forEach(el => {
-                        el.innerText = app.baseOrigin.name;
-                        el.onclick = () => { app.utils.navigate(app.baseOrigin.url); };
+                        el.innerText = parent.name;
+                        el.onclick = () => { app.utils.navigate(parent.url); };
                     });
                 },
 
