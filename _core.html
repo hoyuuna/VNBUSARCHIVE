@@ -1377,6 +1377,7 @@
     <div id="fb-root"></div>
     <script async defer crossorigin="anonymous" src="https://connect.facebook.net/vi_VN/sdk.js#xfbml=1&version=v20.0&appId=1523055899365050"></script>
     
+    
 
     <div id="top-loading-bar" class="fixed top-0 left-0 h-1 bg-black z-[9999] transition-all duration-300 ease-out w-0 opacity-0 pointer-events-none shadow-[0_0_10px_rgba(0,0,0,0.5)]"></div>
 
@@ -2913,12 +2914,13 @@
                 
                 
                 
+                
                 <!-- BÌNH LUẬN FACEBOOK -->
                 <div id="fb-comments-section" class="hidden mt-8 mb-6 bg-white border border-vbs-border p-4 md:p-6 rounded-lg shadow-sm">
                     <h3 class="font-bold text-lg border-b border-gray-200 pb-3 mb-4 tracking-tight uppercase text-black">
                         <i class="fa-regular fa-comments mr-2 text-blue-600"></i>Bình luận
                     </h3>
-                    <div class="w-full overflow-x-hidden min-h-[150px]" id="fb-comments-wrapper"></div>
+                    <div class="w-full overflow-x-hidden min-h-[180px]" id="fb-comments-wrapper"></div>
                 </div>
 
                 <!-- MỤC CÓ THỂ BẠN QUAN TÂM -->
@@ -7669,35 +7671,38 @@ if (app.user && app.role === 'manager' && isDenied) {
 
                     app.views.loadDetailRecommendations(photo, snapshot);
 
-                    // --- XỬ LÝ FACEBOOK COMMENTS ---
+                    // --- XỬ LÝ RELOAD FACEBOOK COMMENTS (SPA FIX) ---
                     const fbSection = document.getElementById('fb-comments-section');
                     const fbWrapper = document.getElementById('fb-comments-wrapper');
                     
                     if (fbSection && fbWrapper) {
-                        // Chỉ hiển thị bình luận nếu ảnh đã được duyệt
+                        // Chỉ hiện bình luận nếu trạng thái ảnh là 'approved'
                         if (photo.status === 'approved') {
                             fbSection.classList.remove('hidden');
                             
-                            // 1. Tạo URL và Ghi đè thẻ HTML để ép Facebook làm mới
+                            // Sử dụng window.location.origin để tự động khớp với domain hiện tại
                             const currentUrl = window.location.origin + '/photo/' + photoId;
+                            
+                            // Tạo lại thẻ div mới tinh bên trong wrapper
                             fbWrapper.innerHTML = '<div class="fb-comments" data-href="' + currentUrl + '" data-width="100%" data-numposts="5"></div>';
                             
-                            // 2. Hàm gọi FB SDK có cơ chế tự thử lại (Phòng khi mạng tải SDK bị chậm)
-                            const renderFB = () => {
-                                if (typeof FB !== 'undefined') {
-                                    FB.XFBML.parse(fbWrapper);
+                            // Kiểm tra và yêu cầu Facebook SDK vẽ lại khung bình luận
+                            const tryRenderFB = () => {
+                                if (window.FB) {
+                                    window.FB.XFBML.parse(fbWrapper);
                                 } else {
-                                    setTimeout(renderFB, 500); // Thử lại sau mỗi 0.5s
+                                    // Nếu SDK chưa load xong, thử lại sau 300ms
+                                    setTimeout(tryRenderFB, 300);
                                 }
                             };
-                            setTimeout(renderFB, 100);
+                            tryRenderFB();
                         } else {
-                            // Ẩn bình luận nếu là ảnh chưa duyệt (pending) hoặc bị từ chối (denied)
+                            // Ẩn hoàn toàn nếu ảnh chưa được duyệt
                             fbSection.classList.add('hidden');
                             fbWrapper.innerHTML = '';
                         }
                     }
-                    // -------------------------------
+                    // ------------------------------------------------
 
                     app.loadingBar.finish();
                 },
