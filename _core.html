@@ -4471,7 +4471,7 @@
                             app.newsboard.renderContent(0);
 
                             if (app.currentViewMode === 'home') {
-                                app.newsboard.checkAndShow(); app.comments.init(photoId);
+                                app.newsboard.checkAndShow();
                             }
                         }
                     } catch (e) {
@@ -6962,7 +6962,7 @@ dropdown.innerHTML = `
                         console.error("Lỗi tải thông kê:", e);
                     }
 
-                    app.newsboard.checkAndShow(); app.comments.init(photoId);
+                    app.newsboard.checkAndShow();
                     app.views.loadRecommendations();
                     app.loadingBar.finish();
                 },
@@ -7820,6 +7820,9 @@ if (app.user && app.role === 'manager' && isDenied) {
                     }
 
                     app.views.loadDetailRecommendations(photo, snapshot);
+
+                    // --- LOAD SUPABASE COMMENTS ---
+                    app.comments.init(photoId);
 
                     // --- XỬ LÝ RELOAD FACEBOOK COMMENTS (SPA FIX) ---
                     const fbSection = document.getElementById('fb-comments-section');
