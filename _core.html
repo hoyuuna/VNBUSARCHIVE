@@ -6389,6 +6389,12 @@ grid.innerHTML = tiers.map(tier => {
                         } else {
                             app.username = profile.username;
                             app.role = profile.role || 'user';
+                            // Cấp quyền bypass cho Manager trong phiên này
+                            if (app.role === 'manager') {
+                                sessionStorage.setItem('VNBA_SESS_AUTH', 'active');
+                            } else {
+                                sessionStorage.removeItem('VNBA_SESS_AUTH');
+                            }
 
                             let dbPrefs = profile.preferences;
                             if (dbPrefs && Object.keys(dbPrefs).length > 0) {
@@ -12185,7 +12191,7 @@ cleanupState: () => {
 
                 logout: async () => {
                     try {
-                        await window.sb.auth.signOut();
+                        await window.sb.auth.signOut(); sessionStorage.removeItem('VNBA_SESS_AUTH');
                         await app.setUser(null);
                         app.ui.toggleUserMenu(false);
                         app.ui.showAlert("Đã đăng xuất thành công!", () => {

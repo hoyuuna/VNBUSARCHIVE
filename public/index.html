@@ -63,21 +63,28 @@
 
     <script>
 
-        (function() {
-            document.addEventListener('contextmenu', e => e.preventDefault());
-            document.addEventListener('keydown', e => {
-                if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) || (e.ctrlKey && e.key === 'U')) {
-                    e.preventDefault(); return false;
-                }
-            });
-            setInterval(function() {
-                const before = new Date().getTime();
-                debugger; 
-                if (new Date().getTime() - before > 100) {
-                    document.body.innerHTML = "<h1 style='text-align:center; margin-top:20vh; font-family:sans-serif;'>Hành vi bị cấm!</h1>";
-                }
-            }, 100);
-        })();
+        
+    var _pInt = null;
+    (function() {
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('keydown', e => {
+            if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) || (e.ctrlKey && e.key === 'U')) {
+                e.preventDefault(); return false;
+            }
+        });
+        
+        // Kiểm tra ngay lập tức nếu đã có phiên manager trước đó trong tab này
+        if (sessionStorage.getItem('VNBA_SESS_AUTH') === 'active') return;
+
+        _pInt = setInterval(function() {
+            const before = new Date().getTime();
+            debugger; 
+            if (new Date().getTime() - before > 100) {
+                document.body.innerHTML = "<h1 style='text-align:center; margin-top:20vh; font-family:sans-serif;'>Hành vi bị cấm!</h1>";
+            }
+        }, 100);
+    })();
+        
 
 
         async function initApp() {
@@ -90,6 +97,7 @@
 
             
                 document.open();
+                if (sessionStorage.getItem('VNBA_SESS_AUTH') === 'active') clearInterval(_pInt);
                 document.write(decodedHTML);
                 document.close();
 
