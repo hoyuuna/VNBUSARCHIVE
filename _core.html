@@ -11084,8 +11084,26 @@ app.admin.fetchManagerData('denied');
 
                 navigate: (url) => {
                     if (window.location.pathname + window.location.search === url) return;
-                    app.previousPath = window.location.pathname + window.location.search;
-                    window.history.pushState({}, '', url);
+                    const prevPath = window.location.pathname;
+                    const prevFull = prevPath + window.location.search;
+                    
+                    // Logic Navigator: Chỉ cập nhật "cha" nếu trang trước đó là một trang danh sách (Root)
+                    let parentInfo = window.history.state?.parentInfo; 
+                    const rootPages = ['/', '/profile', '/search', '/upload', '/admin', '/contact'];
+                    const isRoot = rootPages.some(r => prevPath === r || (r !== '/' && prevPath.startsWith(r)));
+
+                    if (isRoot) {
+                        let bName = "Trang chủ";
+                        if (prevPath === '/profile') bName = "Hồ sơ của tôi";
+                        else if (prevPath.startsWith('/search')) bName = "Kết quả tìm kiếm";
+                        else if (prevPath.startsWith('/user/')) bName = "Hồ sơ người dùng";
+                        else if (prevPath === '/upload') bName = "Đăng tải";
+                        else if (prevPath === '/admin') bName = "Quản trị";
+                        parentInfo = { name: bName, url: prevFull };
+                    }
+
+                    app.previousPath = prevFull;
+                    window.history.pushState({ parentInfo: parentInfo }, '', url);
                     app.handleRoute();
                 },
 
