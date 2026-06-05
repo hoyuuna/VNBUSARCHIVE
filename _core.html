@@ -1637,11 +1637,11 @@
         </div>
 
         
-                <div id="custom-role-modal" class="hidden fixed inset-0 z-[6000] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+                        <div id="custom-role-modal" class="hidden fixed inset-0 z-[6000] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
             <div id="custom-role-content" class="rounded-xl shadow-2xl max-w-sm w-full border border-white/60 overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col">
                 <div class="p-5 md:p-6 pb-4">
                     <h3 class="text-lg font-bold text-black mb-1">
-                        <i class="fa-solid fa-wand-magic-sparkles mr-2 text-purple-600"></i>Thiết lập Custom Role
+                        <i class="fa-solid fa-wand-magic-sparkles mr-2 text-black"></i>Thiết lập Custom Role
                     </h3>
                     <p class="text-[11px] text-gray-600 mb-4 font-medium leading-relaxed">Nhập tên và chọn màu sắc cho Role hiển thị độc quyền trên Discord của bạn.</p>
                     
@@ -1660,8 +1660,9 @@
                         <div>
                             <label class="block text-[10px] font-bold text-gray-500 mb-1.5 uppercase tracking-widest">Màu sắc (Hex) <span class="text-red-500">*</span></label>
                             <div class="flex gap-2 items-center">
-                                <div class="relative w-11 h-11 rounded-lg overflow-hidden border border-gray-300 shadow-sm shrink-0 bg-white">
-                                    <input type="color" id="cr-color-picker" class="absolute -top-2 -left-2 w-16 h-16 cursor-pointer" value="#a855f7" oninput="document.getElementById('cr-color-input').value = this.value.toUpperCase()">
+                                <!-- Khung Color Picker đã được fix -->
+                                <div class="w-11 h-11 rounded-lg overflow-hidden border border-gray-300 shadow-sm shrink-0 relative bg-white">
+                                    <input type="color" id="cr-color-picker" class="cursor-pointer border-none outline-none bg-transparent absolute" value="#a855f7" style="width: 200%; height: 200%; top: -50%; left: -50%;" oninput="document.getElementById('cr-color-input').value = this.value.toUpperCase()">
                                 </div>
                                 <input type="text" id="cr-color-input" maxlength="7" class="w-full bg-white border border-gray-300 rounded-lg p-2.5 text-sm font-bold focus:ring-2 focus:ring-black focus:border-transparent outline-none font-mono uppercase transition-all shadow-inner text-black" value="#A855F7" oninput="if(this.value.startsWith('#') && this.value.length === 7) document.getElementById('cr-color-picker').value = this.value">
                             </div>
@@ -1675,157 +1676,6 @@
                     <button type="button" id="cr-ok-btn" class="flex-1 inline-flex justify-center items-center rounded-lg shadow-sm px-4 py-2.5 bg-black border border-black text-sm font-bold text-white hover:bg-gray-800 focus:outline-none transition-all">
                         Lưu thiết lập
                     </button>
-                </div>
-            </div>
-        </div>
-
-        <div id="deny-prompt-modal"
-            class="hidden fixed inset-0 z-[5000] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-            
-            <div id="deny-prompt-content"
-                class="bg-gray-50 rounded-xl shadow-2xl max-w-lg w-full border border-gray-200 overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col max-h-[90vh]">
-
-                
-                <div class="p-5 border-b border-gray-200 shrink-0 bg-white rounded-t-xl">
-                    <h3 id="deny-prompt-title" class="text-lg font-bold text-red-600 mb-1"><i
-                            class="fa-solid fa-triangle-exclamation mr-2"></i>Từ chối ảnh</h3>
-                    <p class="text-xs text-gray-500">Vui lòng chọn 1 trong 2 phương thức nhập lí do dưới đây.</p>
-                </div>
-
-                
-                <div class="p-5 overflow-y-auto space-y-5">
-
-                    
-                    <div>
-                        
-                        <button type="button" id="btn-deny-quick" onclick="app.ui.toggleDenySection('quick')"
-                            class="w-full bg-black text-white p-3 text-center font-bold text-sm rounded-lg shadow-sm transition border border-black">
-                            Lí do nhanh
-                        </button>
-                        
-                        <div id="deny-section-quick"
-                            class="mt-2 p-4 bg-white border border-gray-200 rounded-lg shadow-sm space-y-3 max-h-64 overflow-y-auto block">
-                            <label class="flex items-start gap-2 cursor-pointer group">
-                                <input type="checkbox" value="Ảnh chụp quá xa, không lấy xe làm chủ thể chính."
-                                    class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
-                                <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Ảnh
-                                    chụp quá xa, không lấy xe làm chủ thể chính.</span>
-                            </label>
-                            <label class="flex items-start gap-2 cursor-pointer group">
-                                <input type="checkbox"
-                                    value="Xe bị cắt xén mất các bộ phận quan trọng (đầu, đuôi, nóc, bánh, gương chiếu hậu)."
-                                    class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
-                                <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Xe bị
-                                    cắt xén mất các bộ phận quan trọng (đầu, đuôi, nóc, bánh, gương chiếu hậu).</span>
-                            </label>
-                            <label class="flex items-start gap-2 cursor-pointer group">
-                                <input type="checkbox"
-                                    value="Bố cục bị nghiêng lệch hoặc xe bị đẩy quá sát vào các mép ảnh."
-                                    class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
-                                <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Bố
-                                    cục bị nghiêng lệch hoặc xe bị đẩy quá sát vào các mép ảnh.</span>
-                            </label>
-                            <label class="flex items-start gap-2 cursor-pointer group">
-                                <input type="checkbox"
-                                    value="Xe bị che khuất đáng kể bởi phương tiện khác, con người hoặc vật cản (cây cối, cột điện...)."
-                                    class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
-                                <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Xe bị
-                                    che khuất đáng kể bởi phương tiện khác, con người hoặc vật cản (cây cối, cột
-                                    điện...).</span>
-                            </label>
-                            <label class="flex items-start gap-2 cursor-pointer group">
-                                <input type="checkbox"
-                                    value="Không nhìn thấy hoặc không thể đọc được Biển kiểm soát bằng mắt thường."
-                                    class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
-                                <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Không
-                                    nhìn thấy hoặc không thể đọc được Biển kiểm soát (BKS) bằng mắt thường.</span>
-                            </label>
-                            <label class="flex items-start gap-2 cursor-pointer group">
-                                <input type="checkbox"
-                                    value="Ảnh bị mờ, nhòe do rung tay, sai nét hoặc chủ thể đang chuyển động."
-                                    class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
-                                <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Ảnh
-                                    bị mờ, nhòe (do rung tay, sai nét, hoặc mờ do chuyển động - motion blur).</span>
-                            </label>
-                            <label class="flex items-start gap-2 cursor-pointer group">
-                                <input type="checkbox"
-                                    value="Chất lượng kỹ thuật kém, bị lóa sáng nghiêm trọng hoặc thiếu sáng."
-                                    class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
-                                <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Chất
-                                    lượng kỹ thuật kém, bị lóa sáng nghiêm trọng hoặc thiếu sáng.</span>
-                            </label>
-                            <label class="flex items-start gap-2 cursor-pointer group">
-                                <input type="checkbox"
-                                    value="Ảnh đã dùng AI upscale hoặc can thiệp làm thay đổi chi tiết xe nguyên bản."
-                                    class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
-                                <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Ảnh
-                                    đã dùng AI upscale hoặc can thiệp làm thay đổi chi tiết xe nguyên bản.</span>
-                            </label>
-                            <label class="flex items-start gap-2 cursor-pointer group">
-                                <input type="checkbox"
-                                    value="Ảnh lấy từ nguồn khác, không phải do chính tay bạn chụp (vi phạm bản quyền)."
-                                    class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
-                                <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Ảnh
-                                    lấy từ nguồn khác, không phải do chính tay bạn chụp (vi phạm bản quyền).</span>
-                            </label>
-                            <label class="flex items-start gap-2 cursor-pointer group">
-                                <input type="checkbox" value="Ảnh có chèn watermark, logo hoặc chữ ký cá nhân."
-                                    class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
-                                <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Ảnh
-                                    có chèn watermark, logo hoặc chữ ký cá nhân.</span>
-                            </label>
-                            <label class="flex items-start gap-2 cursor-pointer group">
-                                <input type="checkbox"
-                                    value="Chụp cận cảnh lộ rõ mặt người (tài xế, hành khách) nhưng chưa làm mờ/che chắn."
-                                    class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
-                                <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Chụp
-                                    cận cảnh lộ rõ mặt người (tài xế, hành khách) nhưng chưa làm mờ/che chắn.</span>
-                            </label>
-                        
-                            <label class="flex items-start gap-2 cursor-pointer group">
-                                <input type="checkbox" value="Ảnh không đúng chủ đề (xe nước ngoài hoặc ảnh xe của các cơ quan nhà nước/chính phủ hoặc xe thuộc sở hữu cá nhân, hộ gia đình hoặc các nhà xe nhỏ lẻ)."
-                                    class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
-                                <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Ảnh không đúng chủ đề (xe nước ngoài hoặc ảnh xe của các cơ quan nhà nước/chính phủ hoặc xe thuộc sở hữu cá nhân, hộ gia đình hoặc các nhà xe nhỏ lẻ).</span>
-                            </label>
-                            <label class="flex items-start gap-2 cursor-pointer group">
-                                <input type="checkbox" value="Vùng làm mờ/che vật thể quá to hoặc đè lên bộ phận của xe."
-                                    class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
-                                <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Vùng làm mờ/che vật thể quá to hoặc đè lên bộ phận của xe.</span>
-                            </label>
-                            <label class="flex items-start gap-2 cursor-pointer group">
-                                <input type="checkbox" value="Không chấp nhận chụp ảnh một phía đối với đuôi xe."
-                                    class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
-                                <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Không chấp nhận chụp ảnh một phía đối với đuôi xe.</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    
-                    <div>
-                        
-                        <button type="button" id="btn-deny-custom" onclick="app.ui.toggleDenySection('custom')"
-                            class="w-full bg-white text-gray-700 p-3 text-center font-bold text-sm rounded-lg shadow-sm transition border border-gray-300 hover:bg-gray-50 hover:text-black">
-                            Tự nhập lí do cụ thể
-                        </button>
-                        
-                        <div id="deny-section-custom"
-                            class="hidden mt-2 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
-                            <textarea id="deny-custom-input" rows="4"
-                                class="w-full border border-gray-300 rounded-md p-3 text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none transition-all resize-none"
-                                placeholder="Nhập lí do từ chối cụ thể..."></textarea>
-                        </div>
-                    </div>
-
-                </div>
-
-                
-                <div
-                    class="bg-white px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse shrink-0 border-t border-gray-200 rounded-b-xl">
-                    <button type="button" id="deny-prompt-ok-btn"
-                        class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-bold text-white hover:bg-red-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition">Xác
-                        nhận</button>
-                    <button type="button" onclick="app.ui.closeDenyPrompt(false)"
-                        class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-bold text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition">Hủy</button>
                 </div>
             </div>
         </div>
