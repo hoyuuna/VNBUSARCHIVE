@@ -1372,6 +1372,9 @@
 </head>
 
 <body class="antialiased">
+    <!-- FACEBOOK SDK -->
+    <div id="fb-root"></div>
+    <script async defer crossorigin="anonymous" src="https://connect.facebook.net/vi_VN/sdk.js#xfbml=1&version=v20.0&appId=1523055899365050"></script>
 
     <div id="top-loading-bar" class="fixed top-0 left-0 h-1 bg-black z-[9999] transition-all duration-300 ease-out w-0 opacity-0 pointer-events-none shadow-[0_0_10px_rgba(0,0,0,0.5)]"></div>
 
@@ -2902,6 +2905,17 @@
                                 </tr>
                             </table>
                         </div>
+                    </div>
+                </div>
+
+                
+                <!-- BÌNH LUẬN FACEBOOK -->
+                <div id="fb-comments-section" class="mt-8 mb-6 bg-white border border-vbs-border p-4 md:p-6 rounded-lg shadow-sm">
+                    <h3 class="font-bold text-lg border-b border-gray-200 pb-3 mb-4 tracking-tight uppercase text-black">
+                        <i class="fa-regular fa-comments mr-2 text-blue-600"></i>Bình luận
+                    </h3>
+                    <div class="w-full overflow-x-hidden min-h-[150px]">
+                        <div id="fb-comments-container" class="fb-comments" data-href="" data-width="100%" data-numposts="5"></div>
                     </div>
                 </div>
 
@@ -7652,6 +7666,16 @@ if (app.user && app.role === 'manager' && isDenied) {
                     }
 
                     app.views.loadDetailRecommendations(photo, snapshot);
+
+                    // Cập nhật URL và render lại Facebook Comments
+                    const fbContainer = document.getElementById('fb-comments-container');
+                    if (fbContainer) {
+                        const currentUrl = window.location.origin + '/photo/' + photoId;
+                        fbContainer.setAttribute('data-href', currentUrl);
+                        if (typeof FB !== 'undefined') {
+                            FB.XFBML.parse(document.getElementById('fb-comments-section'));
+                        }
+                    }
 
                     app.loadingBar.finish();
                 },
