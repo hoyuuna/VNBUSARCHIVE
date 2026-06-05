@@ -509,7 +509,7 @@
             user-select: none;
             z-index: 20;
             color: white;
-            font-family: 'Montserrat', sans-serif;
+            font-family: 'Montserrat', Arial, sans-serif !important;
             font-weight: 700;
             opacity: 0.5;
             white-space: nowrap;
@@ -545,7 +545,7 @@
         }
 
         .footer-text-left {
-            font-family: 'Montserrat', sans-serif;
+            font-family: 'Montserrat', Arial, sans-serif !important;
             font-weight: 900;
             font-style: italic;
             color: white;
@@ -553,10 +553,14 @@
         }
 
         .footer-text-right {
-            font-family: 'Montserrat', sans-serif;
+            font-family: 'Montserrat', Arial, sans-serif !important;
             font-weight: 700;
             color: white;
             font-size: clamp(6px, 1.8vw, 14px);
+        }
+
+        .font-watermark {
+            font-family: 'Montserrat', Arial, sans-serif !important;
         }
 
         #detail-map,
@@ -11936,7 +11940,8 @@ cleanupState: () => {
                                 const barHeight = height * 0.08;
                                 const barY = height - barHeight;
                                 const fontSize = barHeight * 0.4;
-                                const fontFace = '"Montserrat", sans-serif';
+                                await document.fonts.ready;
+                                const fontFace = 'Montserrat, Arial, sans-serif';
 
                                 const safeBarY = Math.floor(barY);
                                 const safeBarHeight = Math.ceil(barHeight);
