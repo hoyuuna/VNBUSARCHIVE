@@ -2923,39 +2923,36 @@
                 
                 
                 <!-- BÌNH LUẬN -->
-                <div id="comment-section" class="mt-8 mb-6 bg-white border border-vbs-border p-4 md:p-6 rounded-lg shadow-sm">
+                <div id="comment-section" class="mt-8 mb-6 bg-white border border-vbs-border p-4 md:p-6 rounded-lg shadow-sm flex flex-col h-[600px]">
                     <h3 class="font-bold text-lg border-b border-gray-200 pb-3 mb-4 tracking-tight uppercase text-black">
                         <i class="fa-regular fa-comments mr-2 text-blue-600"></i>Bình luận (<span id="comment-count">0</span>)
                     </h3>
                     
-                    <div id="comment-form-wrapper" class="mb-6 hidden">
-                        <!-- Ô cảnh báo hiện khi gõ -->
+                    <!-- Khung cuộn chứa bình luận (Cố định chiều cao) -->
+                    <div id="comment-scroll-area" class="flex-1 overflow-y-auto pr-2 mb-4 space-y-3 custom-scrollbar">
+                        <div id="comment-list" class="space-y-3">
+                            <p class="text-center text-gray-400 py-10"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tải...</p>
+                        </div>
+                        <button id="btn-load-more-comments" onclick="app.comments.loadMore()" 
+                            class="hidden w-full py-2 text-[10px] uppercase tracking-[0.2em] font-black text-gray-400 hover:text-black transition">Xem thêm bình luận</button>
+                    </div>
+
+                    <!-- Form gửi nằm dưới cùng -->
+                    <div id="comment-form-wrapper" class="hidden border-t border-gray-100 pt-4">
                         <div id="comment-warning" class="hidden mb-3 p-3 bg-red-50 border border-red-100 rounded-xl flex items-start gap-2">
                             <i class="fa-solid fa-triangle-exclamation text-red-500 mt-0.5 text-xs"></i>
-                            <p class="text-[11px] text-red-700 font-bold leading-tight">
-                                Bình luận không phù hợp có thể dẫn tới tài khoản bị đình chỉ vĩnh viễn. HÃY LÀ MỘT NGƯỜI CÓ Ý THỨC!
-                            </p>
+                            <p class="text-[11px] text-red-700 font-bold leading-tight">Bình luận không phù hợp có thể dẫn tới đình chỉ tài khoản. HÃY CÓ Ý THỨC!</p>
                         </div>
-
                         <div class="flex gap-3">
-                            <textarea id="comment-input" rows="2" placeholder="Viết bình luận của bạn..." 
+                            <textarea id="comment-input" rows="2" placeholder="Viết bình luận..." 
                                 class="flex-1 border border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-black outline-none transition-all resize-none text-black bg-gray-50/50"></textarea>
                             <button onclick="app.comments.post()" id="btn-post-comment" 
-                                class="bg-black text-white px-6 py-2 rounded-xl font-bold text-sm hover:bg-gray-800 transition shadow-sm h-fit self-end text-nowrap"> Gửi </button>
+                                class="bg-black text-white px-6 py-2 rounded-xl font-bold text-sm hover:bg-gray-800 transition shadow-sm h-fit self-end"> Gửi </button>
                         </div>
                     </div>
-
-                    <div id="comment-auth-notice" class="hidden mb-6 text-center py-4 bg-gray-50 rounded-xl border border-dashed border-gray-300">
-                        <p class="text-sm text-gray-500 font-medium">Vui lòng <a href="/auth" class="font-bold text-black underline">đăng nhập</a> để tham gia thảo luận.</p>
+                    <div id="comment-auth-notice" class="hidden text-center py-4 bg-gray-50 rounded-xl border border-dashed border-gray-300">
+                        <p class="text-sm text-gray-500 font-medium">Vui lòng <a href="/auth" class="font-bold text-black underline">đăng nhập</a> để bình luận.</p>
                     </div>
-
-                    <!-- Danh sách bình luận dạng Đảo (Islands) -->
-                    <div id="comment-list" class="space-y-3">
-                        <p class="text-center text-gray-400 py-4"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tải bình luận...</p>
-                    </div>
-                    
-                    <button id="btn-load-more-comments" onclick="app.comments.loadMore()" 
-                        class="hidden w-full mt-4 py-2 text-[10px] uppercase tracking-[0.2em] font-black text-gray-400 hover:text-black transition">Xem thêm bình luận</button>
                 </div>
 
                 <!-- MỤC CÓ THỂ BẠN QUAN TÂM -->
@@ -2965,6 +2962,20 @@
                         <h3 class="text-lg font-bold uppercase text-black tracking-tight">Có thể bạn quan tâm</h3>
                     </div>
                     <div id="detail-rec-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4"></div>
+                </div>
+            </div>
+
+            <div id="comment-dashboard" class="view-section">
+                <div class="text-xs text-gray-500 mb-4 bg-white px-3 py-2 border border-vbs-border rounded-md shadow-sm inline-flex items-center gap-2">
+                    <span onclick="app.utils.navigate('/profile')" class="cursor-pointer hover:text-black font-medium transition-colors">Hồ sơ</span>
+                    <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                    <span class="font-bold text-black">Quản lý bình luận</span>
+                </div>
+                
+                <h2 class="text-2xl font-bold text-black mb-6 uppercase tracking-tight">Bình luận trên ảnh của bạn</h2>
+                
+                <div id="dashboard-content" class="space-y-6">
+                    <!-- Nội dung đổ từ JS -->
                 </div>
             </div>
 
@@ -3518,6 +3529,10 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <button id="btn-manage-comments" onclick="app.comments.openDashboard()" class="w-full mt-2 py-3 bg-white border border-[#e4e4e7] rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition shadow-sm flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-comments-gear text-gray-400"></i> Quản lý bình luận trên bài đăng
+                            </button>
 
                             <div class="flex items-center justify-between mt-10 mb-3 gap-2">
                                 <h4 class="font-bold text-sm uppercase text-gray-800" id="profile-photos-title">Ảnh của bạn</h4>
@@ -4585,8 +4600,7 @@
                         form?.classList.remove('hidden');
                         notice?.classList.add('hidden');
                         input?.addEventListener('input', (e) => {
-                            if (e.target.value.length > 0) warning?.classList.remove('hidden');
-                            else warning?.classList.add('hidden');
+                            warning?.classList.toggle('hidden', e.target.value.length === 0);
                         });
                     } else {
                         form?.classList.add('hidden');
@@ -4615,58 +4629,88 @@
                         if (countEl) countEl.innerText = count || 0;
 
                         const btnMore = document.getElementById('btn-load-more-comments');
-                        if (btnMore) {
-                            if (count > (to + 1)) btnMore.classList.remove('hidden');
-                            else btnMore.classList.add('hidden');
-                        }
+                        if (btnMore) btnMore.classList.toggle('hidden', count <= (to + 1));
 
-                        const html = data.map(c => {
-                            const isMe = app.user && c.user_id === app.user.id;
-                            const canDelete = isMe || app.role === 'admin' || app.role === 'manager';
-                            const avatar = c.profiles?.avatar_url 
-                                ? app.utils.getProxiedUrl(c.profiles.avatar_url.replace(/"/g, ''), 'avatar.jpg', 'avatar') 
-                                : 'https://wsrv.nl/?url=https://files.catbox.moe/zzh1q1.png&we';
-
-                            return `
-                            <div class="bg-gray-50/70 border border-gray-100 p-3 rounded-2xl flex gap-3 relative group transition-all hover:bg-gray-50">
-                                <img src="${avatar}" class="w-8 h-8 rounded-full object-cover bg-gray-200 shrink-0 border border-white shadow-sm">
-                                
-                                <div class="flex-1 overflow-hidden">
-                                    <div class="flex items-center justify-between mb-0.5">
-                                        <div class="flex items-center gap-1.5 overflow-hidden">
-                                            <span onclick="app.views.loadUserProfile('${c.profiles?.username}')" 
-                                                class="text-[12px] font-bold text-black cursor-pointer hover:underline truncate">
-                                                ${c.profiles?.username || 'Ẩn danh'}
-                                            </span>
-                                            ${app.utils.getBadgesHTML(c.user_id, c.profiles?.role, c.profiles?.subroles)}
-                                        </div>
-                                        
-                                        <div class="relative">
-                                            <button onclick="this.nextElementSibling.classList.toggle('hidden')" class="text-gray-400 hover:text-black p-1">
-                                                <i class="fa-solid fa-ellipsis-vertical text-xs"></i>
-                                            </button>
-                                            <div class="hidden absolute right-0 top-full mt-1 bg-white border border-gray-200 shadow-xl rounded-xl py-1 z-10 w-32 overflow-hidden">
-                                                ${canDelete ? `
-                                                <button onclick="app.comments.delete('${c.id}')" class="w-full text-left px-3 py-2 text-[11px] font-bold text-red-600 hover:bg-red-50 transition">
-                                                    <i class="fa-solid fa-trash-can mr-2"></i> Xóa
-                                                </button>` : ''}
-                                                <button onclick="app.utils.navigate('/contact')" class="w-full text-left px-3 py-2 text-[11px] font-bold text-gray-700 hover:bg-gray-50 transition">
-                                                    <i class="fa-solid fa-flag mr-2"></i> Báo cáo
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <p class="text-[12px] text-gray-700 leading-relaxed break-words whitespace-pre-wrap">${app.utils.cleanText(c.content)}</p>
-                                    <span class="text-[9px] font-bold text-gray-400 uppercase mt-1 block">${new Date(c.created_at).toLocaleString('vi-VN')}</span>
-                                </div>
-                            </div>`;
-                        }).join('');
+                        const html = data.map(c => app.comments.renderItem(c)).join('');
 
                         if (append) listEl.innerHTML += html;
-                        else listEl.innerHTML = html || '<p class="text-center text-gray-400 py-6 text-xs font-medium italic">Chưa có bình luận nào. Hãy là người đầu tiên!</p>';
-                    } catch (e) {
-                        listEl.innerHTML = '<p class="text-red-500 text-[11px] text-center">Lỗi tải dữ liệu.</p>';
-                    }
+                        else listEl.innerHTML = html || '<p class="text-center text-gray-400 py-10 text-xs italic">Chưa có bình luận nào.</p>';
+                    } catch (e) { console.error(e); }
+                },
+                renderItem: (c) => {
+                    const isMe = app.user && c.user_id === app.user.id;
+                    const canDelete = isMe || app.role === 'admin' || app.role === 'manager';
+                    const avatar = c.profiles?.avatar_url 
+                        ? app.utils.getProxiedUrl(c.profiles.avatar_url.replace(/"/g, ''), 'avatar.jpg', 'avatar') 
+                        : 'https://wsrv.nl/?url=https://files.catbox.moe/zzh1q1.png&we';
+
+                    return `
+                    <div class="bg-gray-50/70 border border-gray-100 p-3 rounded-2xl flex gap-3 relative transition-all hover:bg-gray-100/50">
+                        <img src="${avatar}" class="w-8 h-8 rounded-full object-cover shrink-0 border border-white shadow-sm">
+                        <div class="flex-1 overflow-visible">
+                            <div class="flex items-center justify-between mb-0.5">
+                                <div class="flex items-center gap-1.5 overflow-hidden">
+                                    <span onclick="app.views.loadUserProfile('${c.profiles?.username}')" class="text-[12px] font-bold text-black cursor-pointer hover:underline truncate">${c.profiles?.username || 'Ẩn danh'}</span>
+                                    ${app.utils.getBadgesHTML(c.user_id, c.profiles?.role, c.profiles?.subroles)}
+                                </div>
+                                <div class="relative group">
+                                    <button class="text-gray-400 hover:text-black p-1"><i class="fa-solid fa-ellipsis-vertical text-xs"></i></button>
+                                    <div class="hidden group-focus-within:block absolute right-0 top-0 bg-white border border-gray-200 shadow-xl rounded-xl py-1 z-[100] w-32 overflow-hidden">
+                                        ${canDelete ? `<button onclick="app.comments.delete('${c.id}')" class="w-full text-left px-3 py-2 text-[11px] font-bold text-red-600 hover:bg-red-50"><i class="fa-solid fa-trash-can mr-2"></i> Xóa</button>` : ''}
+                                        <button onclick="app.utils.navigate('/contact')" class="w-full text-left px-3 py-2 text-[11px] font-bold text-gray-700 hover:bg-gray-50"><i class="fa-solid fa-flag mr-2"></i> Báo cáo</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-[12px] text-gray-700 leading-relaxed break-words whitespace-pre-wrap">${app.utils.cleanText(c.content)}</p>
+                            <span class="text-[9px] font-bold text-gray-400 uppercase mt-1 block">${new Date(c.created_at).toLocaleString('vi-VN')}</span>
+                        </div>
+                    </div>`;
+                },
+                openDashboard: async () => {
+                    app.views.switch('comment-dashboard', false);
+                    const container = document.getElementById('dashboard-content');
+                    container.innerHTML = '<p class="text-center py-20 text-gray-400"><i class="fa-solid fa-spinner fa-spin"></i> Đang tổng hợp bình luận...</p>';
+
+                    try {
+                        const { data, error } = await window.sb
+                            .from('photo_comments')
+                            .select('*, photos!inner(license_plate, url, uploader_id, id), profiles(username, avatar_url, role, subroles)')
+                            .eq('photos.uploader_id', app.user.id)
+                            .order('created_at', { ascending: false });
+
+                        if (error) throw error;
+
+                        const groups = {};
+                        data.forEach(c => {
+                            const plate = c.photos.license_plate;
+                            if (!groups[plate]) groups[plate] = { info: c.photos, comments: [] };
+                            groups[plate].comments.push(c);
+                        });
+
+                        const html = Object.values(groups).map(g => `
+                            <div class="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
+                                <div class="bg-gray-50 px-4 py-3 flex items-center gap-3 border-b border-gray-100">
+                                    <img src="${app.utils.getProxiedUrl(g.info.url, 'thumb.jpg', 'thumb')}" class="w-12 h-8 object-cover rounded shadow-sm border border-white">
+                                    <span class="font-black text-sm text-black uppercase cursor-pointer hover:text-blue-600" onclick="app.views.loadDetail('${g.info.id}')">${g.info.license_plate}</span>
+                                    <span class="text-[10px] text-gray-400 font-bold ml-auto">${g.comments.length} BÌNH LUẬN</span>
+                                </div>
+                                <div class="p-4 space-y-3 bg-white/50">
+                                    ${g.comments.map(c => `
+                                        <div class="flex justify-between items-start gap-3 border-l-2 border-gray-100 pl-3">
+                                            <div class="overflow-hidden">
+                                                <span class="text-[11px] font-bold text-black">${c.profiles.username}</span>
+                                                <p class="text-xs text-gray-600 mt-0.5">${c.content}</p>
+                                                <span class="text-[8px] text-gray-400 font-bold uppercase">${new Date(c.created_at).toLocaleString('vi-VN')}</span>
+                                            </div>
+                                            <button onclick="app.comments.delete('${c.id}')" class="text-red-400 hover:text-red-600 p-1 transition"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `).join('');
+
+                        container.innerHTML = html || '<p class="text-center py-20 text-gray-400">Chưa có ai bình luận trên bài đăng của bạn.</p>';
+                    } catch (e) { container.innerHTML = '<p class="text-red-500">Lỗi: ' + e.message + '</p>'; }
                 },
                 post: async () => {
                     const input = document.getElementById('comment-input');
@@ -4700,7 +4744,8 @@
                 delete: async (id) => {
                     app.ui.showAlert("Xóa bình luận này?", async () => {
                         await window.sb.from('photo_comments').delete().eq('id', id);
-                        if (app.adminTab === 'comments') app.admin.loadTab('comments');
+                        if (app.currentViewMode === 'comment-dashboard') app.comments.openDashboard();
+                        else if (app.adminTab === 'comments') app.admin.loadTab('comments');
                         else app.comments.load(app.currentPhoto.id);
                     }, null, { title: "Xác nhận xóa", btnOkText: "Xóa" });
                 },
@@ -8993,16 +9038,39 @@ formInputs.forEach(input => {
 
                         
                         else if (tab === 'comments') {
-                            const { data, error } = await window.sb.from('photo_comments').select('*, profiles(username), photos(license_plate)').order('created_at', {ascending: false}).limit(50);
-                            content.innerHTML = `<div class="col-span-full"><h3 class="font-bold mb-4">BÌNH LUẬN MỚI NHẤT</h3>
-                                <div class="bg-white border rounded-lg overflow-hidden"><table class="w-full text-sm">
-                                <thead class="bg-gray-50 border-b"><tr><th class="p-3 text-left">Người đăng</th><th class="p-3 text-left">Tại ảnh</th><th class="p-3 text-left">Nội dung</th><th class="p-3">Hành động</th></tr></thead>
-                                <tbody>${data.map(c => `<tr class="border-b">
-                                    <td class="p-3 font-bold">${c.profiles?.username}</td>
-                                    <td class="p-3 text-blue-600 underline cursor-pointer" onclick="app.views.loadDetail(${c.photo_id})">${c.photos?.license_plate}</td>
-                                    <td class="p-3 text-gray-600">${c.content}</td>
-                                    <td class="p-3 text-center"><button onclick="app.comments.delete('${c.id}')" class="text-red-600 font-bold">XÓA</button></td>
-                                </tr>`).join('')}</tbody></table></div></div>`;
+                            const { data } = await window.sb.from('photo_comments')
+                                .select('*, profiles(username), photos(license_plate)')
+                                .order('created_at', {ascending: false}).limit(100);
+                            
+                            content.innerHTML = `<div class="col-span-full">
+                                <h3 class="font-bold mb-4 uppercase tracking-widest text-sm text-gray-500">100 Bình luận mới nhất toàn hệ thống</h3>
+                                <div class="bg-white border rounded-lg overflow-hidden shadow-sm">
+                                    <table class="w-full text-left text-sm">
+                                        <thead class="bg-gray-50 border-b font-bold uppercase text-[10px]">
+                                            <tr>
+                                                <th class="p-3">Người đăng</th>
+                                                <th class="p-3">Xe</th>
+                                                <th class="p-3">Nội dung</th>
+                                                <th class="p-3">Thời gian</th>
+                                                <th class="p-3 text-center">Hành động</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${data.map(c => `
+                                                <tr class="border-b hover:bg-gray-50 transition">
+                                                    <td class="p-3 font-bold">${c.profiles?.username}</td>
+                                                    <td class="p-3 text-blue-600 font-black cursor-pointer" onclick="app.views.loadDetail(${c.photo_id})">${c.photos?.license_plate}</td>
+                                                    <td class="p-3 text-gray-600 max-w-xs truncate">${c.content}</td>
+                                                    <td class="p-3 text-[10px] text-gray-400 font-bold">${new Date(c.created_at).toLocaleString('vi-VN')}</td>
+                                                    <td class="p-3 text-center">
+                                                        <button onclick="app.comments.delete('${c.id}')" class="text-red-600 hover:scale-110 transition"><i class="fa-solid fa-trash-can"></i></button>
+                                                    </td>
+                                                </tr>
+                                            `).join('')}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>`;
                         } else if (tab === 'manager') {
                             if (app.role !== 'manager') {
                                 content.innerHTML = '<p class="p-4 text-red-500 font-bold">Bạn không có quyền truy cập khu vực này.</p>';
