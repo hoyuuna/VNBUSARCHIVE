@@ -2917,20 +2917,22 @@
                 <!-- BÌNH LUẬN FACEBOOK -->
                 <div id="comment-section" class="mt-8 mb-6 bg-white border border-vbs-border p-4 md:p-6 rounded-lg shadow-sm">
                     <h3 class="font-bold text-lg border-b border-gray-200 pb-3 mb-4 tracking-tight uppercase text-black">
-                        <i class="fa-regular fa-comments mr-2"></i>Bình luận (<span id="comment-count">0</span>)
+                        <i class="fa-regular fa-comments mr-2 text-blue-600"></i>Bình luận (<span id="comment-count">0</span>)
                     </h3>
                     
-                    <!-- Form gửi bình luận -->
-                    <div id="comment-form-container" class="mb-6">
-                        <div v-if="app.user" class="flex gap-3">
+                    <!-- Form gửi bình luận (Ẩn/Hiện bằng JS) -->
+                    <div id="comment-form-wrapper" class="mb-6 hidden">
+                        <div class="flex gap-3">
                             <textarea id="comment-input" rows="2" placeholder="Viết bình luận của bạn..." 
-                                class="flex-1 border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-black outline-none transition-all resize-none"></textarea>
+                                class="flex-1 border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-black outline-none transition-all resize-none text-black"></textarea>
                             <button onclick="app.comments.post()" id="btn-post-comment" 
                                 class="bg-black text-white px-6 py-2 rounded-lg font-bold text-sm hover:bg-gray-800 transition shadow-sm h-fit self-end"> Gửi </button>
                         </div>
-                        <div id="comment-auth-notice" class="hidden text-center py-4 bg-gray-50 rounded-lg border border-dashed border-gray-300">
-                            <p class="text-sm text-gray-500">Vui lòng <a href="/auth" class="font-bold text-black underline">đăng nhập</a> để tham gia thảo luận.</p>
-                        </div>
+                    </div>
+
+                    <!-- Thông báo đăng nhập (Ẩn/Hiện bằng JS) -->
+                    <div id="comment-auth-notice" class="hidden mb-6 text-center py-4 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                        <p class="text-sm text-gray-500">Vui lòng <a href="/auth" class="font-bold text-black underline">đăng nhập</a> để tham gia thảo luận.</p>
                     </div>
 
                     <!-- Danh sách bình luận -->
@@ -2939,7 +2941,7 @@
                     </div>
                     
                     <button id="btn-load-more-comments" onclick="app.comments.loadMore()" 
-                        class="hidden w-full mt-4 py-2 text-xs font-bold text-gray-500 hover:text-black transition">Xem thêm bình luận cũ hơn</button>
+                        class="hidden w-full mt-4 py-2 text-[11px] uppercase tracking-widest font-bold text-gray-400 hover:text-black transition">Xem thêm bình luận</button>
                 </div>
 
                 <!-- MỤC CÓ THỂ BẠN QUAN TÂM -->
@@ -4555,26 +4557,32 @@
             },
 
             
+            
             comments: {
                 data: [],
                 page: 1,
                 lastPostTime: 0,
                 init: async (photoId) => {
-                    const form = document.getElementById('comment-form-container');
+                    const form = document.getElementById('comment-form-wrapper');
                     const notice = document.getElementById('comment-auth-notice');
+                    
+                    // Logic ẩn hiện dựa trên app.user
                     if (app.user) {
-                        form.classList.remove('hidden');
-                        notice.classList.add('hidden');
+                        if(form) form.classList.remove('hidden');
+                        if(notice) notice.classList.add('hidden');
                     } else {
-                        form.classList.add('hidden');
-                        notice.classList.remove('hidden');
+                        if(form) form.classList.add('hidden');
+                        if(notice) notice.classList.remove('hidden');
                     }
+                    
                     app.comments.page = 1;
                     app.comments.load(photoId);
                 },
                 load: async (photoId, append = false) => {
                     const listEl = document.getElementById('comment-list');
                     const countEl = document.getElementById('comment-count');
+                    if(!listEl) return;
+                    
                     const limit = 12;
                     const from = (app.comments.page - 1) * limit;
                     const to = from + limit - 1;
@@ -4582,74 +4590,96 @@
                     try {
                         const { data, count, error } = await window.sb
                             .from('photo_comments')
-                            .select('*, profiles(username, avatar_url, role, subroles)', { count: 'exact' })
+                            .select('*, profiles(id, username, avatar_url, role, subroles)', { count: 'exact' })
                             .eq('photo_id', photoId)
                             .order('created_at', { ascending: false })
                             .range(from, to);
 
                         if (error) throw error;
 
-                        countEl.innerText = count || 0;
+                        if(countEl) countEl.innerText = count || 0;
                         const btnMore = document.getElementById('btn-load-more-comments');
-                        if (count > (to + 1)) btnMore.classList.remove('hidden');
-                        else btnMore.classList.add('hidden');
+                        if (btnMore) {
+                            if (count > (to + 1)) btnMore.classList.remove('hidden');
+                            else btnMore.classList.add('hidden');
+                        }
 
                         const html = data.map(c => {
                             const isAdmin = c.profiles?.role === 'admin' || c.profiles?.role === 'manager';
                             const isMe = app.user && c.user_id === app.user.id;
                             const deleteBtn = (isMe || app.role === 'admin' || app.role === 'manager') 
-                                ? `<button onclick="app.comments.delete('${c.id}')" class="text-red-400 hover:text-red-600 ml-2"><i class="fa-solid fa-trash-can"></i></button>` : '';
+                                ? `<button onclick="app.comments.delete('${c.id}')" class="text-gray-400 hover:text-red-600 transition-colors ml-2" title="Xóa bình luận"><i class="fa-solid fa-trash-can text-[10px]"></i></button>` : '';
                             
-                            return `<div class="flex gap-3 border-b border-gray-50 pb-4 last:border-0">
-                                <img src="${app.utils.getProxiedUrl(c.profiles?.avatar_url, 'avatar.jpg', 'avatar') || 'https://wsrv.nl/?url=https://files.catbox.moe/zzh1q1.png&we'}" 
-                                     class="w-8 h-8 rounded-full object-cover bg-gray-100 shrink-0">
-                                <div class="flex-1">
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-xs font-bold ${isAdmin ? 'text-red-600' : 'text-black'}">${c.profiles?.username} ${app.utils.getBadgesHTML(c.user_id, c.profiles?.role, c.profiles?.subroles)}</span>
-                                        <span class="text-[10px] text-gray-400">${new Date(c.created_at).toLocaleString('vi-VN')} ${deleteBtn}</span>
+                            const avatar = c.profiles?.avatar_url 
+                                ? app.utils.getProxiedUrl(c.profiles.avatar_url.replace(/"/g, ''), 'avatar.jpg', 'avatar') 
+                                : 'https://wsrv.nl/?url=https://files.catbox.moe/zzh1q1.png&we';
+
+                            return `<div class="flex gap-3 border-b border-gray-50 pb-4 last:border-0 fade-zoom-in">
+                                <img src="${avatar}" class="w-9 h-9 rounded-full object-cover bg-gray-100 shrink-0 border border-gray-100">
+                                <div class="flex-1 overflow-hidden">
+                                    <div class="flex items-center justify-between mb-0.5">
+                                        <div class="flex items-center flex-wrap gap-1">
+                                            <span class="text-[13px] font-bold text-black">${c.profiles?.username || 'Người dùng ẩn danh'}</span>
+                                            ${app.utils.getBadgesHTML(c.user_id, c.profiles?.role, c.profiles?.subroles)}
+                                        </div>
+                                        <div class="flex items-center gap-1">
+                                            <span class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">${new Date(c.created_at).toLocaleString('vi-VN')}</span>
+                                            ${deleteBtn}
+                                        </div>
                                     </div>
-                                    <p class="text-sm text-gray-700 mt-1 whitespace-pre-wrap">${app.utils.cleanText(c.content)}</p>
+                                    <p class="text-[13px] text-gray-700 leading-relaxed break-words whitespace-pre-wrap">${app.utils.cleanText(c.content)}</p>
                                 </div>
                             </div>`;
                         }).join('');
 
                         if (append) listEl.innerHTML += html;
-                        else listEl.innerHTML = html || '<p class="text-center text-gray-400 py-4 text-sm">Chưa có bình luận nào. Hãy là người đầu tiên!</p>';
-                    } catch (e) { listEl.innerHTML = '<p class="text-red-500 text-xs">Lỗi tải bình luận.</p>'; }
+                        else listEl.innerHTML = html || '<div class="py-10 text-center"><i class="fa-regular fa-comment-dots text-3xl text-gray-200 mb-2 block"></i><p class="text-xs text-gray-400">Chưa có bình luận nào. Hãy là người đầu tiên!</p></div>';
+                    } catch (e) { 
+                        console.error("Comment Load Error:", e);
+                        listEl.innerHTML = '<p class="text-red-500 text-xs text-center">Không thể tải bình luận. Vui lòng thử lại.</p>'; 
+                    }
                 },
                 post: async () => {
                     const input = document.getElementById('comment-input');
+                    const btn = document.getElementById('btn-post-comment');
                     const content = input.value.trim();
-                    if (!content) return;
+                    if (!content || !app.currentPhoto) return;
 
                     const now = Date.now();
                     if (now - app.comments.lastPostTime < 30000) {
-                        return app.ui.showAlert("Bạn gửi bình luận quá nhanh. Vui lòng đợi 30 giây.");
+                        return app.ui.showAlert("<b>Rate Limit:</b> Vui lòng đợi 30 giây giữa mỗi lần bình luận.");
                     }
 
-                    const btn = document.getElementById('btn-post-comment');
+                    const originalText = btn.innerHTML;
                     btn.disabled = true;
+                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
 
-                    const { error } = await window.sb.from('photo_comments').insert({
-                        photo_id: app.currentPhoto.id,
-                        user_id: app.user.id,
-                        content: content
-                    });
+                    try {
+                        const { error } = await window.sb.from('photo_comments').insert({
+                            photo_id: app.currentPhoto.id,
+                            user_id: app.user.id,
+                            content: content
+                        });
 
-                    if (error) app.ui.showAlert("Lỗi: " + error.message);
-                    else {
+                        if (error) throw error;
+
                         input.value = '';
                         app.comments.lastPostTime = now;
                         app.comments.page = 1;
                         app.comments.load(app.currentPhoto.id);
+                    } catch (err) { 
+                        app.ui.showAlert("Lỗi: " + err.message); 
+                    } finally {
+                        btn.disabled = false;
+                        btn.innerHTML = originalText;
                     }
-                    btn.disabled = false;
                 },
                 delete: async (id) => {
-                    if (!confirm("Xóa bình luận này?")) return;
-                    await window.sb.from('photo_comments').delete().eq('id', id);
-                    if (app.adminTab === 'comments') app.admin.loadTab('comments');
-                    else app.comments.load(app.currentPhoto.id);
+                    app.ui.showAlert("Bạn có chắc chắn muốn xóa bình luận này?", async () => {
+                        await window.sb.from('photo_comments').delete().eq('id', id);
+                        if (app.adminTab === 'comments') app.admin.loadTab('comments');
+                        else if(app.currentPhoto) app.comments.load(app.currentPhoto.id);
+                    }, null, { title: "Xác nhận xóa", btnOkText: "Xóa ngay" });
                 },
                 loadMore: () => {
                     app.comments.page++;
