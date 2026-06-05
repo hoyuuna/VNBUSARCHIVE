@@ -11584,7 +11584,7 @@ cleanupState: () => {
                                 const cacheBuster = url.includes('?') ? '&cb=' : '?cb=';
                                 img.src = url + cacheBuster + new Date().getTime();
 
-                                img.onload = () => {
+                        img.onload = async () => {
                                     if (img.naturalWidth > 10) resolve(true);
                                     else reject(new Error("File ảnh bị hỏng hoặc trống."));
                                 };
