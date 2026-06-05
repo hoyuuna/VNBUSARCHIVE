@@ -4661,7 +4661,7 @@
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center justify-between mb-0.5">
                                 <!-- Khối Tên + Badge cuộn ngang liền mạch -->
-                                <div class="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap pb-1 mr-2" style="scrollbar-width: none;">
+                                <div class="flex-1 min-w-0 flex items-center gap-1.5 overflow-x-auto whitespace-nowrap pb-1 mr-2" style="scrollbar-width: none;">
                                     <span onclick="app.views.loadUserProfile('${c.profiles?.username}')" class="text-[12px] font-bold text-black cursor-pointer hover:underline shrink-0">${c.profiles?.username || 'Ẩn danh'}</span>
                                     <div class="flex gap-1 shrink-0 items-center">
                                         ${app.utils.getBadgesHTML(c.user_id, c.profiles?.role, c.profiles?.subroles)}
