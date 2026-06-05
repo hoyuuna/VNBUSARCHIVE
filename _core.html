@@ -1369,12 +1369,14 @@
     <!-- Thư viện cho WebRTC QR Upload -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <meta property="fb:app_id" content="1523055899365050" />
 </head>
 
 <body class="antialiased">
     <!-- FACEBOOK SDK -->
     <div id="fb-root"></div>
     <script async defer crossorigin="anonymous" src="https://connect.facebook.net/vi_VN/sdk.js#xfbml=1&version=v20.0&appId=1523055899365050"></script>
+    
 
     <div id="top-loading-bar" class="fixed top-0 left-0 h-1 bg-black z-[9999] transition-all duration-300 ease-out w-0 opacity-0 pointer-events-none shadow-[0_0_10px_rgba(0,0,0,0.5)]"></div>
 
@@ -2910,12 +2912,12 @@
 
                 
                 
+                
                 <!-- BÌNH LUẬN FACEBOOK -->
                 <div id="fb-comments-section" class="hidden mt-8 mb-6 bg-white border border-vbs-border p-4 md:p-6 rounded-lg shadow-sm">
                     <h3 class="font-bold text-lg border-b border-gray-200 pb-3 mb-4 tracking-tight uppercase text-black">
                         <i class="fa-regular fa-comments mr-2 text-blue-600"></i>Bình luận
                     </h3>
-                    <!-- Thẻ Wrapper này dùng để xóa đi tạo lại lõi FB mỗi khi chuyển trang -->
                     <div class="w-full overflow-x-hidden min-h-[150px]" id="fb-comments-wrapper"></div>
                 </div>
 
@@ -7672,25 +7674,27 @@ if (app.user && app.role === 'manager' && isDenied) {
                     const fbWrapper = document.getElementById('fb-comments-wrapper');
                     
                     if (fbSection && fbWrapper) {
+                        // Chỉ hiển thị bình luận nếu ảnh đã được duyệt
                         if (photo.status === 'approved') {
-                            // 1. Hiện khu vực bình luận
                             fbSection.classList.remove('hidden');
                             
-                            // 2. Tạo URL của ảnh hiện tại
+                            // 1. Tạo URL và Ghi đè thẻ HTML để ép Facebook làm mới
                             const currentUrl = window.location.origin + '/photo/' + photoId;
-                            
-                            // 3. Trick cho SPA: Phải ghi đè lại thẻ HTML mới hoàn toàn thì FB mới chịu render lại
                             fbWrapper.innerHTML = '<div class="fb-comments" data-href="' + currentUrl + '" data-width="100%" data-numposts="5"></div>';
                             
-                            // 4. Gọi FB SDK quét lại giao diện
-                            setTimeout(() => {
+                            // 2. Hàm gọi FB SDK có cơ chế tự thử lại (Phòng khi mạng tải SDK bị chậm)
+                            const renderFB = () => {
                                 if (typeof FB !== 'undefined') {
                                     FB.XFBML.parse(fbWrapper);
+                                } else {
+                                    setTimeout(renderFB, 500); // Thử lại sau mỗi 0.5s
                                 }
-                            }, 100);
+                            };
+                            setTimeout(renderFB, 100);
                         } else {
-                            // Ẩn khu vực bình luận nếu ảnh chờ duyệt hoặc bị từ chối
+                            // Ẩn bình luận nếu là ảnh chưa duyệt (pending) hoặc bị từ chối (denied)
                             fbSection.classList.add('hidden');
+                            fbWrapper.innerHTML = '';
                         }
                     }
                     // -------------------------------
