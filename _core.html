@@ -1380,9 +1380,9 @@
             display: flex;
             align-items: center;
             gap: 2px;
-            margin-top: 6px;
-            padding-top: 6px;
-            border-top: 1px solid #f0f0f0;
+            margin-top: 4px;
+            padding-top: 0;
+            border-top: none;
         }
         .comment-toolbar button {
             display: inline-flex;
@@ -1410,14 +1410,14 @@
 
         .reply-group {
             margin-top: 8px;
-            padding-left: 16px;
-            border-left: 2px solid #e4e4e7;
+            padding-left: 0;
+            border-left: none;
         }
         .reply-item {
-            padding: 6px 10px;
+            padding: 6px 8px;
             background: #fafafa;
-            border-radius: 12px;
-            margin-bottom: 6px;
+            border-radius: 10px;
+            margin-bottom: 4px;
             border: 1px solid #f0f0f0;
         }
         .reply-item:last-child { margin-bottom: 0; }
@@ -4851,9 +4851,9 @@
                                 </div>
                             </div>
                             <p class="text-[11px] text-gray-700 leading-relaxed break-words whitespace-pre-wrap">${app.utils.cleanText(r.content)}</p>
-                            <div class="flex items-center gap-3 mt-1">
-                                <span class="text-[8px] font-bold text-gray-400 uppercase"><i class="fa-regular fa-clock mr-1"></i>${new Date(r.created_at).toLocaleString('vi-VN')}</span>
-                                ${canDelete ? `<button class="text-[8px] font-bold text-red-400 hover:text-red-600 transition" onclick="app.comments.delete('${r.id}')"><i class="fa-solid fa-trash-can mr-0.5"></i>Xóa</button>` : ''}
+                            <div class="flex items-center gap-2 mt-0.5">
+                                <span class="text-[8px] font-bold text-gray-400 uppercase"><i class="fa-regular fa-clock mr-0.5"></i>${new Date(r.created_at).toLocaleString('vi-VN')}</span>
+                                ${canDelete ? `<button class="inline-flex items-center gap-0.5 text-[8px] font-bold text-red-500 bg-red-50 hover:bg-red-100 px-1.5 py-0.5 rounded transition" onclick="app.comments.delete('${r.id}')"><i class="fa-solid fa-trash-can"></i>Xóa</button>` : ''}
                             </div>
                         </div>
                     </div>`;
