@@ -4920,13 +4920,16 @@
                     btn.disabled = false;
                 },
                 delete: async (id) => {
-                    app.ui.showAlert("Xóa bình luận này?", async () => {
-                        await window.sb.from('photo_comments').delete().eq('id', id);
+                    app.ui.showAlert("Bạn có chắc chắn muốn xóa bình luận này? (Các phản hồi bên trong cũng sẽ bị xóa theo)", async () => {
+                        
+                        await window.sb.from('photo_comments').delete().or(`id.eq.${id},parent_id.eq.${id}`);
+                        
                         if (app.currentViewMode === 'comment-dashboard') app.comments.openDashboard();
                         else if (app.adminTab === 'comments') app.admin.loadTab('comments');
                         else app.comments.load(app.currentPhoto.id);
+                        
                     }, () => { 
-                        // Hàm Hủy (Trống)
+                        // Hàm Hủy
                     }, { title: "Xác nhận xóa", btnOkText: "Xóa", btnCancelText: "Hủy" });
                 },
                 loadMore: () => {
