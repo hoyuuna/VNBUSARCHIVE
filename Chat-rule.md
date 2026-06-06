@@ -18,6 +18,10 @@ Mỗi bức ảnh được đăng tải là công sức và tâm huyết của n
 - **Ngôn từ:** Chỉ sử dụng tiếng Việt có dấu hoặc tiếng Anh. Không sử dụng teencode, ngôn ngữ mạng gây khó hiểu hoặc thô tục.
 - **Chính trị & Tôn giáo:** Tuyệt đối không bàn luận về các vấn đề chính trị, tôn giáo, sắc tộc hoặc các chủ đề nhạy cảm không liên quan đến mục đích của website.
 - **Xung đột cá nhân:** Không sử dụng mục bình luận làm nơi giải quyết mâu thuẫn cá nhân. Mọi tranh cãi ngoài lề sẽ bị xóa bỏ mà không cần báo trước.
+- **Giao lưu ngoài nền tảng:** 
+  - VNBUSARCHIVE là nền tảng lưu trữ và thảo luận trực tuyến. Chúng tôi không khuyến khích và không chịu trách nhiệm quản lý việc người dùng tự ý tổ chức, kêu gọi, hoặc hẹn gặp mặt giao lưu trực tiếp (offline) bên ngoài phạm vi hệ thống.
+  - **Nghiêm cấm:** Việc lợi dụng mục bình luận để đăng tải các thông tin hẹn hò, lôi kéo tụ tập đông người tự phát tại các bến xe, bãi đỗ hoặc các khu vực công cộng nhằm mục đích cá nhân khi chưa có sự phê duyệt chính thức từ Ban Quản trị.
+  - **Bảo mật an toàn:** Để bảo vệ an toàn thông tin và quyền riêng tư cá nhân, người dùng tuyệt đối không chia sẻ công khai số điện thoại, link nhóm chat kín (Zalo, Messenger, Discord,...) hoặc địa chỉ nhà riêng trong phần bình luận nhằm mục đích lôi kéo thành viên rời khỏi nền tảng. Mọi rủi ro phát sinh từ các cuộc gặp gỡ ngoài đời thực sẽ do các cá nhân tự chịu trách nhiệm trước pháp luật.
 
 ## 4. CẤM SPAM VÀ QUẢNG CÁO
 - **Spam:** Không gửi nhiều bình luận có nội dung giống nhau hoặc các ký tự vô nghĩa (như: "....", "123", "abc") để tăng tương tác.
