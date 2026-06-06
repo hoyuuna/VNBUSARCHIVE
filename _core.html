@@ -4737,12 +4737,14 @@
                         const shown = replies.slice(0, 2);
                         const hidden = replies.length - 2;
                         
-                        repliesHTML = `<div class="reply-group ml-10 md:ml-14 pl-3 md:pl-4 mt-3 space-y-3 border-l-2 border-gray-200" id="reply-group-${c.id}">`;
+                        repliesHTML = `<div class="reply-group relative mx-12 sm:mx-20 mt-3 space-y-3" id="reply-group-${c.id}">
+                            <div class="absolute -left-6 sm:-left-8 top-[-15px] w-4 sm:w-6 h-10 border-l-2 border-b-2 border-gray-300 rounded-bl-xl pointer-events-none z-0"></div>`;
+                        
                         shown.forEach(r => {
                             repliesHTML += app.comments.renderReplyItem(r);
                         });
                         if (hidden > 0) {
-                            repliesHTML += `<button class="text-[10px] font-bold text-gray-500 hover:text-black bg-white border border-gray-200 px-3 py-1.5 rounded-md shadow-sm transition mt-1" onclick="app.comments.toggleReplies('${c.id}', ${replies.length})" id="btn-toggle-replies-${c.id}"><i class="fa-solid fa-chevron-down mr-1"></i>Xem thêm ${hidden} phản hồi</button>`;
+                            repliesHTML += `<div class="flex justify-center"><button class="text-[10px] font-bold text-gray-500 hover:text-black bg-white border border-gray-200 px-3 py-1.5 rounded-md shadow-sm transition mt-1 relative z-10" onclick="app.comments.toggleReplies('${c.id}', ${replies.length})" id="btn-toggle-replies-${c.id}"><i class="fa-solid fa-chevron-down mr-1"></i>Xem thêm ${hidden} phản hồi</button></div>`;
                             repliesHTML += `<div id="reply-hidden-${c.id}" class="hidden space-y-3 mt-3">`;
                             replies.slice(2).forEach(r => {
                                 repliesHTML += app.comments.renderReplyItem(r);
@@ -4781,11 +4783,11 @@
 
                     const toolbar = app.user ? `
                         <div class="flex flex-wrap gap-1.5 mt-2">
-                            <button class="flex items-center gap-1 bg-white border border-gray-300 text-gray-600 px-2 py-1 rounded-md hover:bg-gray-100 hover:text-orange-500 font-bold text-[9px] transition shadow-sm" onclick="app.utils.navigate('/contact')"><i class="fa-solid fa-flag text-[9px]"></i> Báo cáo</button>
-                            ${canDelete ? `<button class="flex items-center gap-1 bg-white border border-gray-300 text-gray-600 px-2 py-1 rounded-md hover:bg-red-50 hover:text-red-600 hover:border-red-300 font-bold text-[9px] transition shadow-sm" onclick="app.comments.delete('${r.id}')"><i class="fa-solid fa-trash-can text-[9px]"></i> Xóa</button>` : ''}
+                            <button class="flex items-center gap-1 bg-white border border-gray-300 text-gray-600 px-2 py-1 rounded hover:bg-gray-100 hover:text-orange-500 font-bold text-[9px] transition shadow-sm" onclick="app.utils.navigate('/contact')"><i class="fa-solid fa-flag text-[9px]"></i> Báo cáo</button>
+                            ${canDelete ? `<button class="flex items-center gap-1 bg-white border border-gray-300 text-gray-600 px-2 py-1 rounded hover:bg-red-50 hover:text-red-600 hover:border-red-300 font-bold text-[9px] transition shadow-sm" onclick="app.comments.delete('${r.id}')"><i class="fa-solid fa-trash-can text-[9px]"></i> Xóa</button>` : ''}
                         </div>` : `
                         <div class="flex flex-wrap gap-1.5 mt-2">
-                            ${canDelete ? `<button class="flex items-center gap-1 bg-white border border-gray-300 text-gray-600 px-2 py-1 rounded-md hover:bg-red-50 hover:text-red-600 hover:border-red-300 font-bold text-[9px] transition shadow-sm" onclick="app.comments.delete('${r.id}')"><i class="fa-solid fa-trash-can text-[9px]"></i> Xóa</button>` : ''}
+                            ${canDelete ? `<button class="flex items-center gap-1 bg-white border border-gray-300 text-gray-600 px-2 py-1 rounded hover:bg-red-50 hover:text-red-600 hover:border-red-300 font-bold text-[9px] transition shadow-sm" onclick="app.comments.delete('${r.id}')"><i class="fa-solid fa-trash-can text-[9px]"></i> Xóa</button>` : ''}
                         </div>`;
 
                     return `
