@@ -25,7 +25,6 @@
     <title>VNBUSARCHIVE</title>
     <link rel="icon" href="/media/icon.png">
     
-    <!-- Load Font cho chữ VNBUSARCHIVE -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@1,800&display=swap" rel="stylesheet">
@@ -73,7 +72,6 @@
             }
         });
         
-        // Kiểm tra ngay lập tức nếu đã có phiên manager trước đó trong tab này
         if (sessionStorage.getItem('VNBA_SESS_AUTH') === 'active') return;
 
         _pInt = setInterval(function() {
@@ -110,4 +108,3 @@
     </script>
 </body>
 </html>
-<!-- dummy commit to trigger vercel deploy -->

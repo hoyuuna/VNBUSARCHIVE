@@ -1376,74 +1376,7 @@
             background-color: rgba(249, 250, 251, 0.7);
         }
 
-        .comment-toolbar {
-            display: flex;
-            align-items: center;
-            gap: 2px;
-            margin-top: 4px;
-            padding-top: 0;
-            border-top: none;
-        }
-        .comment-toolbar button {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 3px 8px;
-            font-size: 0.6rem;
-            font-weight: 700;
-            color: #71717a;
-            border-radius: 6px;
-            transition: all 0.15s;
-            text-transform: uppercase;
-            letter-spacing: 0.03em;
-            background: transparent;
-            border: none;
-            cursor: pointer;
-        }
-        .comment-toolbar button:hover {
-            background: #f4f4f5;
-            color: #09090b;
-        }
-        .comment-toolbar button.btn-reply:hover { color: #2563eb; }
-        .comment-toolbar button.btn-report:hover { color: #f59e0b; }
-        .comment-toolbar button.btn-delete:hover { color: #ef4444; background: #fef2f2; }
 
-        .reply-group {
-            margin-top: 8px;
-            padding-left: 0;
-            border-left: none;
-        }
-        .reply-item {
-            padding: 6px 8px;
-            background: #fafafa;
-            border-radius: 10px;
-            margin-bottom: 4px;
-            border: 1px solid #f0f0f0;
-        }
-        .reply-item:last-child { margin-bottom: 0; }
-
-        .reply-indicator {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 12px;
-            background: #eff6ff;
-            border: 1px solid #bfdbfe;
-            border-radius: 10px;
-            margin-bottom: 8px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: #1e40af;
-        }
-        .reply-indicator button {
-            margin-left: auto;
-            color: #6b7280;
-            cursor: pointer;
-            background: none;
-            border: none;
-            padding: 2px;
-        }
-        .reply-indicator button:hover { color: #ef4444; }
 
         .badge-xe-moi {
             display: inline-flex;
@@ -3042,10 +2975,12 @@
                             <i class="fa-solid fa-triangle-exclamation text-red-500 mt-0.5 text-xs"></i>
                             <p class="text-[11px] text-red-700 font-bold leading-tight">Bình luận không phù hợp có thể dẫn tới đình chỉ tài khoản. HÃY CÓ Ý THỨC!</p>
                         </div>
-                        <div id="reply-indicator" class="hidden reply-indicator">
-                            <i class="fa-solid fa-reply text-xs"></i>
-                            <span>Đang trả lời <b id="reply-to-name"></b></span>
-                            <button onclick="app.comments.cancelReply()"><i class="fa-solid fa-xmark"></i></button>
+                        <div id="reply-indicator" class="hidden mb-3 p-3 bg-blue-50 border border-blue-200 rounded-xl flex items-center gap-2 shadow-sm">
+                            <i class="fa-solid fa-reply text-blue-600 text-xs"></i>
+                            <span class="text-[12px] text-blue-800 font-bold m-0">Đang phản hồi: <b id="reply-to-name" class="text-black"></b></span>
+                            <button type="button" onclick="app.comments.cancelReply()" class="ml-auto w-6 h-6 rounded-full bg-blue-100 text-blue-600 hover:bg-red-100 hover:text-red-600 transition flex items-center justify-center">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
                         </div>
                         <div class="flex gap-3">
                             <textarea id="comment-input" rows="2" placeholder="Viết bình luận..." 
@@ -4788,26 +4723,26 @@
                         : 'https://wsrv.nl/?url=https://files.catbox.moe/zzh1q1.png&we';
 
                     const toolbar = app.user ? `
-                        <div class="comment-toolbar">
-                            <button class="btn-reply" onclick="app.comments.startReply('${c.id}', '${c.profiles?.username || ''}')"><i class="fa-solid fa-reply"></i> Phản hồi</button>
-                            <button class="btn-report" onclick="app.utils.navigate('/contact')"><i class="fa-solid fa-flag"></i> Báo cáo</button>
-                            ${canDelete ? `<button class="btn-delete" onclick="app.comments.delete('${c.id}')"><i class="fa-solid fa-trash-can"></i> Xóa</button>` : ''}
+                        <div class="flex flex-wrap gap-2 mt-3">
+                            <button class="flex items-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-100 hover:text-blue-600 font-bold text-[11px] transition shadow-sm" onclick="app.comments.startReply('${c.id}', '${c.profiles?.username || ''}')"><i class="fa-solid fa-reply"></i> Phản hồi</button>
+                            <button class="flex items-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-100 hover:text-orange-500 font-bold text-[11px] transition shadow-sm" onclick="app.utils.navigate('/contact')"><i class="fa-solid fa-flag"></i> Báo cáo</button>
+                            ${canDelete ? `<button class="flex items-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-red-50 hover:text-red-600 hover:border-red-300 font-bold text-[11px] transition shadow-sm" onclick="app.comments.delete('${c.id}')"><i class="fa-solid fa-trash-can"></i> Xóa</button>` : ''}
                         </div>` : `
-                        <div class="comment-toolbar">
-                            ${canDelete ? `<button class="btn-delete" onclick="app.comments.delete('${c.id}')"><i class="fa-solid fa-trash-can"></i> Xóa</button>` : ''}
+                        <div class="flex flex-wrap gap-2 mt-3">
+                            ${canDelete ? `<button class="flex items-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-red-50 hover:text-red-600 hover:border-red-300 font-bold text-[11px] transition shadow-sm" onclick="app.comments.delete('${c.id}')"><i class="fa-solid fa-trash-can"></i> Xóa</button>` : ''}
                         </div>`;
 
                     let repliesHTML = '';
                     if (replies.length > 0) {
                         const shown = replies.slice(0, 2);
                         const hidden = replies.length - 2;
-                        repliesHTML = `<div class="reply-group" id="reply-group-${c.id}">`;
+                        repliesHTML = `<div class="reply-group pl-8 sm:pl-12 mt-2 space-y-2 relative before:absolute before:top-0 before:bottom-4 before:left-4 sm:before:left-6 before:w-px before:bg-gray-300" id="reply-group-${c.id}">`;
                         shown.forEach(r => {
                             repliesHTML += app.comments.renderReplyItem(r);
                         });
                         if (hidden > 0) {
-                            repliesHTML += `<button class="text-[10px] font-bold text-blue-600 hover:text-blue-800 transition py-1" onclick="app.comments.toggleReplies('${c.id}', ${replies.length})" id="btn-toggle-replies-${c.id}">Xem thêm ${hidden} phản hồi</button>`;
-                            repliesHTML += `<div id="reply-hidden-${c.id}" class="hidden">`;
+                            repliesHTML += `<button class="text-[11px] font-bold text-gray-500 hover:text-black bg-white border border-gray-200 px-3 py-1.5 rounded-lg shadow-sm transition mt-1 relative z-10" onclick="app.comments.toggleReplies('${c.id}', ${replies.length})" id="btn-toggle-replies-${c.id}"><i class="fa-solid fa-chevron-down mr-1"></i>Xem thêm ${hidden} phản hồi</button>`;
+                            repliesHTML += `<div id="reply-hidden-${c.id}" class="hidden space-y-2 mt-2">`;
                             replies.slice(2).forEach(r => {
                                 repliesHTML += app.comments.renderReplyItem(r);
                             });
@@ -4817,20 +4752,22 @@
                     }
 
                     return `
-                    <div id="comment-${c.id}" class="bg-gray-50/70 border border-gray-100 p-3 rounded-2xl flex gap-3 items-start relative transition-all hover:bg-gray-100/50">
-                        <img src="${avatar}" class="w-8 h-8 rounded-full object-cover shrink-0 border border-white shadow-sm mt-0.5">
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-center gap-1.5 mb-0.5 overflow-x-auto whitespace-nowrap" style="scrollbar-width: none;">
-                                <span onclick="app.views.loadUserProfile('${c.profiles?.username}')" class="text-[12px] font-bold text-black cursor-pointer hover:underline shrink-0">${c.profiles?.username || 'Ẩn danh'}</span>
-                                <div class="flex gap-1 shrink-0 items-center">
-                                    ${app.utils.getBadgesHTML(c.user_id, c.profiles?.role, c.profiles?.subroles)}
+                    <div class="mb-5">
+                        <div id="comment-${c.id}" class="bg-white border border-gray-200 p-3 sm:p-4 rounded-2xl flex gap-3 items-start shadow-sm transition-all hover:border-gray-300 z-10 relative">
+                            <img src="${avatar}" class="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover shrink-0 border border-gray-100 shadow-sm mt-0.5">
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 mb-1 overflow-x-auto whitespace-nowrap" style="scrollbar-width: none;">
+                                    <span onclick="app.views.loadUserProfile('${c.profiles?.username}')" class="text-[13px] font-bold text-black cursor-pointer hover:underline shrink-0">${c.profiles?.username || 'Ẩn danh'}</span>
+                                    <div class="flex gap-1 shrink-0 items-center">
+                                        ${app.utils.getBadgesHTML(c.user_id, c.profiles?.role, c.profiles?.subroles)}
+                                    </div>
                                 </div>
+                                <span class="text-[10px] font-bold text-gray-400 block mb-2"><i class="fa-regular fa-clock mr-1"></i>${new Date(c.created_at).toLocaleString('vi-VN')}</span>
+                                <p class="text-[13px] text-gray-800 leading-relaxed break-words whitespace-pre-wrap">${app.utils.cleanText(c.content)}</p>
+                                ${toolbar}
                             </div>
-                            <p class="text-[12px] text-gray-700 leading-relaxed break-words whitespace-pre-wrap">${app.utils.cleanText(c.content)}</p>
-                            <span class="text-[9px] font-bold text-gray-400 uppercase mt-1 block"><i class="fa-regular fa-clock mr-1"></i>${new Date(c.created_at).toLocaleString('vi-VN')}</span>
-                            ${toolbar}
-                            ${repliesHTML}
                         </div>
+                        ${repliesHTML}
                     </div>`;
                 },
                 renderReplyItem: (r) => {
@@ -4841,19 +4778,19 @@
                         : 'https://wsrv.nl/?url=https://files.catbox.moe/zzh1q1.png&we';
 
                     return `
-                    <div id="comment-${r.id}" class="reply-item flex gap-2 items-start">
-                        <img src="${avatar}" class="w-5 h-5 rounded-full object-cover shrink-0 border border-white shadow-sm mt-0.5">
+                    <div id="comment-${r.id}" class="bg-gray-50 border border-gray-200 p-3 rounded-xl flex gap-2.5 items-start shadow-sm hover:bg-gray-100 transition-all z-10 relative">
+                        <img src="${avatar}" class="w-6 h-6 sm:w-8 sm:h-8 rounded-full object-cover shrink-0 border border-white shadow-sm mt-0.5">
                         <div class="flex-1 min-w-0">
-                            <div class="flex items-center gap-1.5">
-                                <span onclick="app.views.loadUserProfile('${r.profiles?.username}')" class="text-[11px] font-bold text-black cursor-pointer hover:underline shrink-0">${r.profiles?.username || 'Ẩn danh'}</span>
+                            <div class="flex items-center gap-1.5 mb-0.5 overflow-x-auto whitespace-nowrap" style="scrollbar-width: none;">
+                                <span onclick="app.views.loadUserProfile('${r.profiles?.username}')" class="text-[12px] font-bold text-black cursor-pointer hover:underline shrink-0">${r.profiles?.username || 'Ẩn danh'}</span>
                                 <div class="flex gap-1 shrink-0 items-center">
                                     ${app.utils.getBadgesHTML(r.user_id, r.profiles?.role, r.profiles?.subroles)}
                                 </div>
                             </div>
-                            <p class="text-[11px] text-gray-700 leading-relaxed break-words whitespace-pre-wrap">${app.utils.cleanText(r.content)}</p>
-                            <div class="flex items-center gap-2 mt-0.5">
-                                <span class="text-[8px] font-bold text-gray-400 uppercase"><i class="fa-regular fa-clock mr-0.5"></i>${new Date(r.created_at).toLocaleString('vi-VN')}</span>
-                                ${canDelete ? `<button class="inline-flex items-center gap-0.5 text-[8px] font-bold text-red-500 bg-red-50 hover:bg-red-100 px-1.5 py-0.5 rounded transition" onclick="app.comments.delete('${r.id}')"><i class="fa-solid fa-trash-can"></i>Xóa</button>` : ''}
+                            <span class="text-[9px] font-bold text-gray-400 uppercase block mb-1.5"><i class="fa-regular fa-clock mr-0.5"></i>${new Date(r.created_at).toLocaleString('vi-VN')}</span>
+                            <p class="text-[12px] text-gray-700 leading-relaxed break-words whitespace-pre-wrap">${app.utils.cleanText(r.content)}</p>
+                            <div class="flex items-center gap-2 mt-2">
+                                ${canDelete ? `<button class="flex items-center gap-1 bg-white border border-gray-300 text-gray-700 px-2.5 py-1 rounded hover:bg-red-50 hover:text-red-600 hover:border-red-300 font-bold text-[10px] transition shadow-sm" onclick="app.comments.delete('${r.id}')"><i class="fa-solid fa-trash-can"></i> Xóa</button>` : ''}
                             </div>
                         </div>
                     </div>`;
@@ -9025,8 +8962,15 @@ formInputs.forEach(input => {
                             if (error) throw error;
                             if (!rawPhotos || rawPhotos.length === 0) { content.innerHTML = '<p class="p-4">Không có ảnh nào chờ duyệt.</p>'; return; }
 
-                            const { data: approvedPlates } = await window.sb.from('photos').select('license_plate').eq('status', 'approved');
-                            const approvedPlateSet = new Set((approvedPlates || []).map(p => (p.license_plate || '').toUpperCase()));
+                            const pendingPlates = [...new Set(rawPhotos.map(p => p.license_plate).filter(Boolean))];
+                            let approvedPlateSet = new Set();
+                            if (pendingPlates.length > 0) {
+                                const { data: approvedPlates } = await window.sb.from('photos')
+                                    .select('license_plate')
+                                    .eq('status', 'approved')
+                                    .in('license_plate', pendingPlates);
+                                approvedPlateSet = new Set((approvedPlates || []).map(p => (p.license_plate || '').toUpperCase()));
+                            }
 
                             // THÊM: Sắp xếp ưu tiên (Admin/Manager lên đầu, theo thứ tự up trước xếp trước)
                             const photos = rawPhotos.sort((a, b) => {
@@ -11791,7 +11735,10 @@ cleanupState: () => {
                 getRelatedPrefixes: (prefix) => {
                     if (!app.utils.provinceData.length) return [prefix];
                     const province = app.utils.provinceData.find(p => p.ky_hieu.includes(prefix));
-                    return province ? province.ky_hieu : [prefix];
+                    if (province && province.ky_hieu) {
+                        return Array.isArray(province.ky_hieu) ? province.ky_hieu : province.ky_hieu.split(',').map(s => s.trim());
+                    }
+                    return [prefix];
                 },
                 formatCompact: (num) => {
                     if (!num && num !== 0) return '0';
