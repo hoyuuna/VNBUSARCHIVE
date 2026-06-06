@@ -4723,13 +4723,13 @@
                         : 'https://wsrv.nl/?url=https://files.catbox.moe/zzh1q1.png&we';
 
                     const toolbar = app.user ? `
-                        <div class="flex flex-wrap gap-2 mt-3">
-                            <button class="flex items-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-100 hover:text-blue-600 font-bold text-[11px] transition shadow-sm" onclick="app.comments.startReply('${c.id}', '${c.profiles?.username || ''}')"><i class="fa-solid fa-reply"></i> Phản hồi</button>
-                            <button class="flex items-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-100 hover:text-orange-500 font-bold text-[11px] transition shadow-sm" onclick="app.utils.navigate('/contact')"><i class="fa-solid fa-flag"></i> Báo cáo</button>
-                            ${canDelete ? `<button class="flex items-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-red-50 hover:text-red-600 hover:border-red-300 font-bold text-[11px] transition shadow-sm" onclick="app.comments.delete('${c.id}')"><i class="fa-solid fa-trash-can"></i> Xóa</button>` : ''}
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;">
+                            <button style="display: flex; align-items: center; gap: 6px; background: white; border: 1px solid #d1d5db; color: #374151; padding: 6px 12px; border-radius: 8px; font-weight: bold; font-size: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onclick="app.comments.startReply('${c.id}', '${c.profiles?.username || ''}')" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='white'"><i class="fa-solid fa-reply"></i> Phản hồi</button>
+                            <button style="display: flex; align-items: center; gap: 6px; background: white; border: 1px solid #d1d5db; color: #374151; padding: 6px 12px; border-radius: 8px; font-weight: bold; font-size: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onclick="app.utils.navigate('/contact')" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='white'"><i class="fa-solid fa-flag"></i> Báo cáo</button>
+                            ${canDelete ? `<button style="display: flex; align-items: center; gap: 6px; background: white; border: 1px solid #fca5a5; color: #dc2626; padding: 6px 12px; border-radius: 8px; font-weight: bold; font-size: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onclick="app.comments.delete('${c.id}')" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='white'"><i class="fa-solid fa-trash-can"></i> Xóa</button>` : ''}
                         </div>` : `
-                        <div class="flex flex-wrap gap-2 mt-3">
-                            ${canDelete ? `<button class="flex items-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-red-50 hover:text-red-600 hover:border-red-300 font-bold text-[11px] transition shadow-sm" onclick="app.comments.delete('${c.id}')"><i class="fa-solid fa-trash-can"></i> Xóa</button>` : ''}
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;">
+                            ${canDelete ? `<button style="display: flex; align-items: center; gap: 6px; background: white; border: 1px solid #fca5a5; color: #dc2626; padding: 6px 12px; border-radius: 8px; font-weight: bold; font-size: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onclick="app.comments.delete('${c.id}')" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='white'"><i class="fa-solid fa-trash-can"></i> Xóa</button>` : ''}
                         </div>`;
 
                     let repliesHTML = '';
@@ -4737,15 +4737,18 @@
                         const shown = replies.slice(0, 2);
                         const hidden = replies.length - 2;
                         
-                        repliesHTML = `<div class="reply-group relative mx-12 sm:mx-20 mt-3 space-y-3" id="reply-group-${c.id}">
-                            <div class="absolute -left-6 sm:-left-8 top-[-15px] w-4 sm:w-6 h-10 border-l-2 border-b-2 border-gray-300 rounded-bl-xl pointer-events-none z-0"></div>`;
+                        repliesHTML = `
+                        <div class="reply-group relative" id="reply-group-${c.id}" style="margin-top: 12px; margin-left: 48px; margin-right: 16px;">
+                            <div style="position: absolute; left: -24px; top: -16px; width: 16px; height: 36px; border-left: 2px solid #d1d5db; border-bottom: 2px solid #d1d5db; border-bottom-left-radius: 12px; pointer-events: none; z-index: 0;"></div>
+                        `;
                         
                         shown.forEach(r => {
                             repliesHTML += app.comments.renderReplyItem(r);
                         });
+                        
                         if (hidden > 0) {
-                            repliesHTML += `<div class="flex justify-center"><button class="text-[10px] font-bold text-gray-500 hover:text-black bg-white border border-gray-200 px-3 py-1.5 rounded-md shadow-sm transition mt-1 relative z-10" onclick="app.comments.toggleReplies('${c.id}', ${replies.length})" id="btn-toggle-replies-${c.id}"><i class="fa-solid fa-chevron-down mr-1"></i>Xem thêm ${hidden} phản hồi</button></div>`;
-                            repliesHTML += `<div id="reply-hidden-${c.id}" class="hidden space-y-3 mt-3">`;
+                            repliesHTML += `<div style="display: flex; justify-content: center; margin-top: 4px;"><button style="font-size: 11px; font-weight: bold; color: #4b5563; background: white; border: 1px solid #e5e7eb; padding: 6px 16px; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onclick="app.comments.toggleReplies('${c.id}', ${replies.length})" id="btn-toggle-replies-${c.id}" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'"><i class="fa-solid fa-chevron-down" style="margin-right: 4px;"></i>Xem thêm ${hidden} phản hồi</button></div>`;
+                            repliesHTML += `<div id="reply-hidden-${c.id}" class="hidden" style="margin-top: 12px; display: flex; flex-direction: column;">`;
                             replies.slice(2).forEach(r => {
                                 repliesHTML += app.comments.renderReplyItem(r);
                             });
@@ -4755,18 +4758,18 @@
                     }
 
                     return `
-                    <div class="mb-5">
-                        <div id="comment-${c.id}" class="bg-white border border-gray-200 p-4 rounded-2xl flex gap-3 items-start shadow-sm transition-all hover:border-gray-300 z-10 relative">
-                            <img src="${avatar}" class="w-10 h-10 rounded-full object-cover shrink-0 border border-gray-100 shadow-sm mt-0.5">
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-center gap-2 mb-1 overflow-x-auto whitespace-nowrap" style="scrollbar-width: none;">
-                                    <span onclick="app.views.loadUserProfile('${c.profiles?.username}')" class="text-[13px] font-bold text-black cursor-pointer hover:underline shrink-0">${c.profiles?.username || 'Ẩn danh'}</span>
-                                    <div class="flex gap-1 shrink-0 items-center">
+                    <div style="margin-bottom: 20px;">
+                        <div id="comment-${c.id}" class="bg-white border border-gray-200 shadow-sm z-10 relative" style="padding: 16px; border-radius: 16px; display: flex; gap: 12px; align-items: flex-start;">
+                            <img src="${avatar}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid #f3f4f6; margin-top: 2px;">
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; overflow-x: auto; white-space: nowrap; scrollbar-width: none;">
+                                    <span onclick="app.views.loadUserProfile('${c.profiles?.username}')" style="font-size: 14px; font-weight: bold; color: black; cursor: pointer; flex-shrink: 0;">${c.profiles?.username || 'Ẩn danh'}</span>
+                                    <div style="display: flex; gap: 4px; flex-shrink: 0; align-items: center;">
                                         ${app.utils.getBadgesHTML(c.user_id, c.profiles?.role, c.profiles?.subroles)}
                                     </div>
                                 </div>
-                                <span class="text-[10px] font-bold text-gray-400 block mb-2"><i class="fa-regular fa-clock mr-1"></i>${new Date(c.created_at).toLocaleString('vi-VN')}</span>
-                                <p class="text-[13px] text-gray-800 leading-relaxed break-words whitespace-pre-wrap">${app.utils.cleanText(c.content)}</p>
+                                <span style="font-size: 11px; font-weight: bold; color: #9ca3af; display: block; margin-bottom: 8px;"><i class="fa-regular fa-clock" style="margin-right: 4px;"></i>${new Date(c.created_at).toLocaleString('vi-VN')}</span>
+                                <p style="font-size: 14px; color: #1f2937; line-height: 1.6; word-break: break-word; white-space: pre-wrap; margin: 0;">${app.utils.cleanText(c.content)}</p>
                                 ${toolbar}
                             </div>
                         </div>
@@ -4782,26 +4785,26 @@
                         : 'https://wsrv.nl/?url=https://files.catbox.moe/zzh1q1.png&we';
 
                     const toolbar = app.user ? `
-                        <div class="flex flex-wrap gap-1.5 mt-2">
-                            <button class="flex items-center gap-1 bg-white border border-gray-300 text-gray-600 px-2 py-1 rounded hover:bg-gray-100 hover:text-orange-500 font-bold text-[9px] transition shadow-sm" onclick="app.utils.navigate('/contact')"><i class="fa-solid fa-flag text-[9px]"></i> Báo cáo</button>
-                            ${canDelete ? `<button class="flex items-center gap-1 bg-white border border-gray-300 text-gray-600 px-2 py-1 rounded hover:bg-red-50 hover:text-red-600 hover:border-red-300 font-bold text-[9px] transition shadow-sm" onclick="app.comments.delete('${r.id}')"><i class="fa-solid fa-trash-can text-[9px]"></i> Xóa</button>` : ''}
+                        <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;">
+                            <button style="display: flex; align-items: center; gap: 4px; background: white; border: 1px solid #d1d5db; color: #4b5563; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onclick="app.utils.navigate('/contact')" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='white'"><i class="fa-solid fa-flag" style="font-size: 10px;"></i> Báo cáo</button>
+                            ${canDelete ? `<button style="display: flex; align-items: center; gap: 4px; background: white; border: 1px solid #fca5a5; color: #dc2626; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onclick="app.comments.delete('${r.id}')" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='white'"><i class="fa-solid fa-trash-can" style="font-size: 10px;"></i> Xóa</button>` : ''}
                         </div>` : `
-                        <div class="flex flex-wrap gap-1.5 mt-2">
-                            ${canDelete ? `<button class="flex items-center gap-1 bg-white border border-gray-300 text-gray-600 px-2 py-1 rounded hover:bg-red-50 hover:text-red-600 hover:border-red-300 font-bold text-[9px] transition shadow-sm" onclick="app.comments.delete('${r.id}')"><i class="fa-solid fa-trash-can text-[9px]"></i> Xóa</button>` : ''}
+                        <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;">
+                            ${canDelete ? `<button style="display: flex; align-items: center; gap: 4px; background: white; border: 1px solid #fca5a5; color: #dc2626; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onclick="app.comments.delete('${r.id}')" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='white'"><i class="fa-solid fa-trash-can" style="font-size: 10px;"></i> Xóa</button>` : ''}
                         </div>`;
 
                     return `
-                    <div id="comment-${r.id}" class="bg-gray-50 border border-gray-200 p-2.5 rounded-xl flex gap-2 items-start shadow-sm hover:border-gray-300 transition-all z-10 relative">
-                        <img src="${avatar}" class="w-6 h-6 rounded-full object-cover shrink-0 border border-gray-200 shadow-sm mt-0.5">
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-center gap-1.5 mb-0.5 overflow-x-auto whitespace-nowrap" style="scrollbar-width: none;">
-                                <span onclick="app.views.loadUserProfile('${r.profiles?.username}')" class="text-[11px] font-bold text-black cursor-pointer hover:underline shrink-0">${r.profiles?.username || 'Ẩn danh'}</span>
-                                <div class="flex gap-1 shrink-0 items-center scale-75 origin-left">
+                    <div id="comment-${r.id}" class="bg-gray-50 border border-gray-200 shadow-sm z-10 relative" style="padding: 12px; border-radius: 12px; display: flex; gap: 10px; align-items: flex-start; margin-bottom: 12px;">
+                        <img src="${avatar}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid #e5e7eb; margin-top: 2px;">
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px; overflow-x: auto; white-space: nowrap; scrollbar-width: none;">
+                                <span onclick="app.views.loadUserProfile('${r.profiles?.username}')" style="font-size: 12px; font-weight: bold; color: black; cursor: pointer; flex-shrink: 0;">${r.profiles?.username || 'Ẩn danh'}</span>
+                                <div style="display: flex; gap: 4px; flex-shrink: 0; align-items: center; transform: scale(0.8); transform-origin: left;">
                                     ${app.utils.getBadgesHTML(r.user_id, r.profiles?.role, r.profiles?.subroles)}
                                 </div>
                             </div>
-                            <span class="text-[9px] font-bold text-gray-400 block mb-1"><i class="fa-regular fa-clock mr-1"></i>${new Date(r.created_at).toLocaleString('vi-VN')}</span>
-                            <p class="text-[11px] text-gray-800 leading-relaxed break-words whitespace-pre-wrap">${app.utils.cleanText(r.content)}</p>
+                            <span style="font-size: 10px; font-weight: bold; color: #9ca3af; display: block; margin-bottom: 4px;"><i class="fa-regular fa-clock" style="margin-right: 4px;"></i>${new Date(r.created_at).toLocaleString('vi-VN')}</span>
+                            <p style="font-size: 12px; color: #374151; line-height: 1.5; word-break: break-word; white-space: pre-wrap; margin: 0;">${app.utils.cleanText(r.content)}</p>
                             ${toolbar}
                         </div>
                     </div>`;
@@ -5943,7 +5946,7 @@
                 },
 
                 switchTab: (tab) => {
-                    const tabs = ['blank', 'profile', 'security', 'links', 'badges', 'preference', 'docs-intro', 'docs-requirements', 'docs-policy'];
+                    const tabs = ['blank', 'profile', 'security', 'links', 'badges', 'preference', 'docs-intro', 'docs-requirements', 'docs-policy', 'docs-chatrule'];
                     const activeClasses = ['bg-black', 'text-white', 'border-black', 'shadow-sm'];
                     const inactiveClasses = ['bg-white', 'text-gray-600', 'hover:bg-gray-50', 'border-gray-200'];
 
@@ -6409,12 +6412,14 @@ grid.innerHTML = tiers.map(tier => {
                                             if (!routeProvSet.has(key)) {
                                                 routeProvSet.add(key);
                                                 let prefix = '';
-                                                try {
-                                                    if (prov && app.utils.provinceData && app.utils.provinceData.length) {
-                                                        const provData = app.utils.provinceData.find(p => p.ten === prov);
-                                                        if (provData && provData.ky_hieu) prefix = provData.ky_hieu.split(',')[0].trim();
-                                                    }
-                                                } catch (e) { }
+                                try {
+                                    if (prov && app.utils.provinceData && app.utils.provinceData.length) {
+                                        const provData = app.utils.provinceData.find(p => p.ten === prov);
+                                        if (provData && provData.ky_hieu) {
+                                            prefix = Array.isArray(provData.ky_hieu) ? String(provData.ky_hieu[0]).trim() : String(provData.ky_hieu).split(',')[0].trim();
+                                        }
+                                    }
+                                } catch (e) { }
 
                                                 routeResults.push({ 
                                                     text: prov ? `${r} (${prov})` : r, 
@@ -6567,6 +6572,29 @@ grid.innerHTML = tiers.map(tier => {
                     if(pageInput) pageInput.value = query;
                 }
 
+                // ==========================================
+                // TỰ ĐỘNG NHẬN DIỆN "01 (Hà Nội)" KHI NHẬP TAY
+                // ==========================================
+                let autoPrefix = null;
+                const provMatch = query.match(/^(.*?)\s*\((.+?)\)$/);
+                if (provMatch) {
+                    const extractedRoute = provMatch[1].trim();
+                    const extractedProvName = provMatch[2].trim();
+                    
+                    if (app.utils.provinceData && app.utils.provinceData.length) {
+                        const prov = app.utils.provinceData.find(p => p.ten.toLowerCase() === extractedProvName.toLowerCase());
+                        if (prov && prov.ky_hieu) {
+                            autoPrefix = Array.isArray(prov.ky_hieu) ? String(prov.ky_hieu[0]).trim() : String(prov.ky_hieu).split(',')[0].trim();
+                            query = extractedRoute;
+                            
+                            headerInput.value = query;
+                            if (pageInput) pageInput.value = query;
+                            
+                            app.currentFilter = 'absolute_route';
+                        }
+                    }
+                }
+
                 const clearBtn = document.getElementById('btn-clear-search');
                 const pageClearBtn = document.getElementById('btn-page-clear-search');
                 const filterType = app.currentFilter;
@@ -6588,10 +6616,12 @@ grid.innerHTML = tiers.map(tier => {
                     app.currentFilter = 'absolute_route';
                 }
 
-                if (!window.location.pathname.includes('/search') || currentParams.get('q') !== query || filterFromUrl !== filterType) {
+                // Nếu autoPrefix phát hiện ra Tỉnh, lấy nó làm prefix để đẩy lên URL
+                let prefixToUrl = autoPrefix || currentParams.get('prefix');
+
+                if (!window.location.pathname.includes('/search') || currentParams.get('q') !== query || filterFromUrl !== filterType || (filterType === 'absolute_route' && currentParams.get('prefix') !== prefixToUrl)) {
                     let url = `/search?q=${encodeURIComponent(query)}&filter=${filterType}`;
-                    const prefix = currentParams.get('prefix');
-                    if (prefix) url += `&prefix=${encodeURIComponent(prefix)}`;
+                    if (prefixToUrl) url += `&prefix=${encodeURIComponent(prefixToUrl)}`;
                     app.utils.navigate(url);
                     return;
                 }
@@ -6715,7 +6745,7 @@ grid.innerHTML = tiers.map(tier => {
                     let forceEmptyResult = false;
 
                     if (filterType === 'absolute_route') {
-                        const prefix = currentParams.get('prefix') || '';
+                        const prefix = prefixToUrl || currentParams.get('prefix') || '';
                         const relatedPrefixes = app.utils.getRelatedPrefixes(prefix);
                         const prefixOrCond = relatedPrefixes.map(p => `license_plate.ilike.${p}%`).join(',');
                         photoQuery = photoQuery.eq('route_no', query).or(prefixOrCond);
