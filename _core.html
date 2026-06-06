@@ -4664,6 +4664,14 @@
                         let parents, count, error;
                         let useThreads = true;
 
+                        if (countEl) {
+                            const { count: totalCount } = await window.sb
+                                .from('photo_comments')
+                                .select('*', { count: 'exact', head: true })
+                                .eq('photo_id', photoId);
+                            countEl.innerText = totalCount || 0;
+                        }
+
                         const result = await window.sb
                             .from('photo_comments')
                             .select('*, profiles(id, username, avatar_url, role, subroles)', { count: 'exact' })
@@ -4690,7 +4698,6 @@
                         }
 
                         if (error) throw error;
-                        if (countEl) countEl.innerText = count || 0;
 
                         const btnMore = document.getElementById('btn-load-more-comments');
                         if (btnMore) btnMore.classList.toggle('hidden', count <= (to + 1));
@@ -4749,7 +4756,7 @@
                         });
                         
                         if (hidden > 0) {
-                            repliesHTML += `<div style="display: flex; justify-content: center; margin-top: 4px; margin-bottom: 8px;"><button style="font-size: 11px; font-weight: bold; color: #4b5563; background: white; border: 1px solid #e5e7eb; padding: 6px 16px; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onclick="app.comments.toggleReplies('${c.id}', ${replies.length})" id="btn-toggle-replies-${c.id}" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'"><i class="fa-solid fa-chevron-down" style="margin-right: 4px;"></i>Xem thêm ${hidden} phản hồi</button></div>`;
+                            repliesHTML += `<div style="display: flex; justify-content: center; margin-top: 4px; margin-bottom: 8px;"><button style="font-family: inherit; font-size: 11px; font-weight: bold; color: #4b5563; background: white; border: 1px solid #e5e7eb; padding: 6px 16px; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onclick="app.comments.toggleReplies('${c.id}', ${replies.length})" id="btn-toggle-replies-${c.id}" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'"><i class="fa-solid fa-chevron-down" style="margin-right: 4px;"></i>Xem thêm ${hidden} phản hồi</button></div>`;
                             repliesHTML += `<div id="reply-hidden-${c.id}" class="hidden">`;
                             replies.slice(2).forEach(r => {
                                 repliesHTML += app.comments.renderReplyItem(r);
@@ -4918,7 +4925,9 @@
                         if (app.currentViewMode === 'comment-dashboard') app.comments.openDashboard();
                         else if (app.adminTab === 'comments') app.admin.loadTab('comments');
                         else app.comments.load(app.currentPhoto.id);
-                    }, null, { title: "Xác nhận xóa", btnOkText: "Xóa" });
+                    }, () => { 
+                        // Hàm Hủy (Trống)
+                    }, { title: "Xác nhận xóa", btnOkText: "Xóa", btnCancelText: "Hủy" });
                 },
                 loadMore: () => {
                     app.comments.page++;
