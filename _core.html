@@ -1375,6 +1375,95 @@
         .bg-gray-50\/70 {
             background-color: rgba(249, 250, 251, 0.7);
         }
+
+        .comment-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px solid #f0f0f0;
+        }
+        .comment-toolbar button {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: #71717a;
+            border-radius: 6px;
+            transition: all 0.15s;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+        }
+        .comment-toolbar button:hover {
+            background: #f4f4f5;
+            color: #09090b;
+        }
+        .comment-toolbar button.btn-reply:hover { color: #2563eb; }
+        .comment-toolbar button.btn-report:hover { color: #f59e0b; }
+        .comment-toolbar button.btn-delete:hover { color: #ef4444; background: #fef2f2; }
+
+        .reply-group {
+            margin-top: 8px;
+            padding-left: 16px;
+            border-left: 2px solid #e4e4e7;
+        }
+        .reply-item {
+            padding: 6px 10px;
+            background: #fafafa;
+            border-radius: 12px;
+            margin-bottom: 6px;
+            border: 1px solid #f0f0f0;
+        }
+        .reply-item:last-child { margin-bottom: 0; }
+
+        .reply-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #1e40af;
+        }
+        .reply-indicator button {
+            margin-left: auto;
+            color: #6b7280;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 2px;
+        }
+        .reply-indicator button:hover { color: #ef4444; }
+
+        .badge-xe-moi {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            padding: 2px 8px;
+            font-size: 0.65rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #78350f;
+            background: linear-gradient(135deg, #fde68a, #fbbf24);
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(251, 191, 36, 0.4);
+            animation: badge-xe-moi-pulse 2s infinite;
+        }
+        @keyframes badge-xe-moi-pulse {
+            0%, 100% { box-shadow: 0 1px 3px rgba(251, 191, 36, 0.4); }
+            50% { box-shadow: 0 1px 8px rgba(251, 191, 36, 0.7); }
+        }
     </style>
 
 
@@ -2952,6 +3041,11 @@
                         <div id="comment-warning" class="hidden mb-3 p-3 bg-red-50 border border-red-100 rounded-xl flex items-start gap-2">
                             <i class="fa-solid fa-triangle-exclamation text-red-500 mt-0.5 text-xs"></i>
                             <p class="text-[11px] text-red-700 font-bold leading-tight">Bình luận không phù hợp có thể dẫn tới đình chỉ tài khoản. HÃY CÓ Ý THỨC!</p>
+                        </div>
+                        <div id="reply-indicator" class="hidden reply-indicator">
+                            <i class="fa-solid fa-reply text-xs"></i>
+                            <span>Đang trả lời <b id="reply-to-name"></b></span>
+                            <button onclick="app.comments.cancelReply()"><i class="fa-solid fa-xmark"></i></button>
                         </div>
                         <div class="flex gap-3">
                             <textarea id="comment-input" rows="2" placeholder="Viết bình luận..." 
@@ -4601,6 +4695,7 @@
             comments: {
                 page: 1,
                 lastPostTime: 0,
+                replyingTo: null,
                 init: async (photoId) => {
                     const form = document.getElementById('comment-form-wrapper');
                     const notice = document.getElementById('comment-auth-notice');
@@ -4629,10 +4724,11 @@
                     const to = from + limit - 1;
 
                     try {
-                        const { data, count, error } = await window.sb
+                        const { data: parents, count, error } = await window.sb
                             .from('photo_comments')
                             .select('*, profiles(id, username, avatar_url, role, subroles)', { count: 'exact' })
                             .eq('photo_id', photoId)
+                            .is('parent_id', null)
                             .order('created_at', { ascending: false })
                             .range(from, to);
 
@@ -4642,41 +4738,103 @@
                         const btnMore = document.getElementById('btn-load-more-comments');
                         if (btnMore) btnMore.classList.toggle('hidden', count <= (to + 1));
 
-                        const html = data.map(c => app.comments.renderItem(c)).join('');
+                        let repliesMap = {};
+                        if (parents && parents.length > 0) {
+                            const parentIds = parents.map(p => p.id);
+                            const { data: replies } = await window.sb
+                                .from('photo_comments')
+                                .select('*, profiles(id, username, avatar_url, role, subroles)')
+                                .in('parent_id', parentIds)
+                                .order('created_at', { ascending: true });
+                            if (replies) {
+                                replies.forEach(r => {
+                                    if (!repliesMap[r.parent_id]) repliesMap[r.parent_id] = [];
+                                    repliesMap[r.parent_id].push(r);
+                                });
+                            }
+                        }
+
+                        const html = (parents || []).map(c => app.comments.renderItem(c, repliesMap[c.id] || [])).join('');
 
                         if (append) listEl.innerHTML += html;
                         else listEl.innerHTML = html || '<p class="text-center text-gray-400 py-10 text-xs italic">Chưa có bình luận nào.</p>';
                     } catch (e) { console.error(e); }
                 },
-                renderItem: (c) => {
+                renderItem: (c, replies = []) => {
                     const isMe = app.user && c.user_id === app.user.id;
                     const canDelete = isMe || app.role === 'admin' || app.role === 'manager';
                     const avatar = c.profiles?.avatar_url 
                         ? app.utils.getProxiedUrl(c.profiles.avatar_url.replace(/"/g, ''), 'avatar.jpg', 'avatar') 
                         : 'https://wsrv.nl/?url=https://files.catbox.moe/zzh1q1.png&we';
 
+                    const toolbar = app.user ? `
+                        <div class="comment-toolbar">
+                            <button class="btn-reply" onclick="app.comments.startReply('${c.id}', '${c.profiles?.username || ''}')"><i class="fa-solid fa-reply"></i> Phản hồi</button>
+                            <button class="btn-report" onclick="app.utils.navigate('/contact')"><i class="fa-solid fa-flag"></i> Báo cáo</button>
+                            ${canDelete ? `<button class="btn-delete" onclick="app.comments.delete('${c.id}')"><i class="fa-solid fa-trash-can"></i> Xóa</button>` : ''}
+                        </div>` : `
+                        <div class="comment-toolbar">
+                            ${canDelete ? `<button class="btn-delete" onclick="app.comments.delete('${c.id}')"><i class="fa-solid fa-trash-can"></i> Xóa</button>` : ''}
+                        </div>`;
+
+                    let repliesHTML = '';
+                    if (replies.length > 0) {
+                        const shown = replies.slice(0, 2);
+                        const hidden = replies.length - 2;
+                        repliesHTML = `<div class="reply-group" id="reply-group-${c.id}">`;
+                        shown.forEach(r => {
+                            repliesHTML += app.comments.renderReplyItem(r);
+                        });
+                        if (hidden > 0) {
+                            repliesHTML += `<button class="text-[10px] font-bold text-blue-600 hover:text-blue-800 transition py-1" onclick="app.comments.toggleReplies('${c.id}', ${replies.length})" id="btn-toggle-replies-${c.id}">Xem thêm ${hidden} phản hồi</button>`;
+                            repliesHTML += `<div id="reply-hidden-${c.id}" class="hidden">`;
+                            replies.slice(2).forEach(r => {
+                                repliesHTML += app.comments.renderReplyItem(r);
+                            });
+                            repliesHTML += '</div>';
+                        }
+                        repliesHTML += '</div>';
+                    }
+
                     return `
                     <div id="comment-${c.id}" class="bg-gray-50/70 border border-gray-100 p-3 rounded-2xl flex gap-3 items-start relative transition-all hover:bg-gray-100/50">
                         <img src="${avatar}" class="w-8 h-8 rounded-full object-cover shrink-0 border border-white shadow-sm mt-0.5">
                         <div class="flex-1 min-w-0">
-                            <div class="flex items-center justify-between mb-0.5">
-                                <!-- Khối Tên + Badge cuộn ngang liền mạch -->
-                                <div class="flex-1 min-w-0 flex items-center gap-1.5 overflow-x-auto whitespace-nowrap" style="scrollbar-width: none;">
-                                    <span onclick="app.views.loadUserProfile('${c.profiles?.username}')" class="text-[12px] font-bold text-black cursor-pointer hover:underline shrink-0">${c.profiles?.username || 'Ẩn danh'}</span>
-                                    <div class="flex gap-1 shrink-0 items-center">
-                                        ${app.utils.getBadgesHTML(c.user_id, c.profiles?.role, c.profiles?.subroles)}
-                                    </div>
-                                </div>
-                                <div class="relative shrink-0">
-                                    <button onclick="this.nextElementSibling.classList.toggle('hidden')" class="text-gray-400 hover:text-black p-1.5 rounded-full hover:bg-gray-200/60 transition"><i class="fa-solid fa-ellipsis-vertical text-xs"></i></button>
-                                    <div class="hidden absolute right-0 top-full mt-1 bg-white border border-gray-200 shadow-xl rounded-xl py-1 z-[100] w-32">
-                                        ${canDelete ? `<button onclick="app.comments.delete('${c.id}')" class="w-full text-left px-3 py-2 text-[11px] font-bold text-red-600 hover:bg-red-50"><i class="fa-solid fa-trash-can mr-2"></i> Xóa</button>` : ''}
-                                        <button onclick="app.utils.navigate('/contact')" class="w-full text-left px-3 py-2 text-[11px] font-bold text-gray-700 hover:bg-gray-50"><i class="fa-solid fa-flag mr-2"></i> Báo cáo</button>
-                                    </div>
+                            <div class="flex items-center gap-1.5 mb-0.5 overflow-x-auto whitespace-nowrap" style="scrollbar-width: none;">
+                                <span onclick="app.views.loadUserProfile('${c.profiles?.username}')" class="text-[12px] font-bold text-black cursor-pointer hover:underline shrink-0">${c.profiles?.username || 'Ẩn danh'}</span>
+                                <div class="flex gap-1 shrink-0 items-center">
+                                    ${app.utils.getBadgesHTML(c.user_id, c.profiles?.role, c.profiles?.subroles)}
                                 </div>
                             </div>
                             <p class="text-[12px] text-gray-700 leading-relaxed break-words whitespace-pre-wrap">${app.utils.cleanText(c.content)}</p>
                             <span class="text-[9px] font-bold text-gray-400 uppercase mt-1 block"><i class="fa-regular fa-clock mr-1"></i>${new Date(c.created_at).toLocaleString('vi-VN')}</span>
+                            ${toolbar}
+                            ${repliesHTML}
+                        </div>
+                    </div>`;
+                },
+                renderReplyItem: (r) => {
+                    const isMe = app.user && r.user_id === app.user.id;
+                    const canDelete = isMe || app.role === 'admin' || app.role === 'manager';
+                    const avatar = r.profiles?.avatar_url 
+                        ? app.utils.getProxiedUrl(r.profiles.avatar_url.replace(/"/g, ''), 'avatar.jpg', 'avatar') 
+                        : 'https://wsrv.nl/?url=https://files.catbox.moe/zzh1q1.png&we';
+
+                    return `
+                    <div id="comment-${r.id}" class="reply-item flex gap-2 items-start">
+                        <img src="${avatar}" class="w-5 h-5 rounded-full object-cover shrink-0 border border-white shadow-sm mt-0.5">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-1.5">
+                                <span onclick="app.views.loadUserProfile('${r.profiles?.username}')" class="text-[11px] font-bold text-black cursor-pointer hover:underline shrink-0">${r.profiles?.username || 'Ẩn danh'}</span>
+                                <div class="flex gap-1 shrink-0 items-center">
+                                    ${app.utils.getBadgesHTML(r.user_id, r.profiles?.role, r.profiles?.subroles)}
+                                </div>
+                            </div>
+                            <p class="text-[11px] text-gray-700 leading-relaxed break-words whitespace-pre-wrap">${app.utils.cleanText(r.content)}</p>
+                            <div class="flex items-center gap-3 mt-1">
+                                <span class="text-[8px] font-bold text-gray-400 uppercase"><i class="fa-regular fa-clock mr-1"></i>${new Date(r.created_at).toLocaleString('vi-VN')}</span>
+                                ${canDelete ? `<button class="text-[8px] font-bold text-red-400 hover:text-red-600 transition" onclick="app.comments.delete('${r.id}')"><i class="fa-solid fa-trash-can mr-0.5"></i>Xóa</button>` : ''}
+                            </div>
                         </div>
                     </div>`;
                 },
@@ -4752,16 +4910,22 @@
                     const btn = document.getElementById('btn-post-comment');
                     btn.disabled = true;
 
-                    const { error } = await window.sb.from('photo_comments').insert({
+                    const insertData = {
                         photo_id: app.currentPhoto.id,
                         user_id: app.user.id,
                         content: content
-                    });
+                    };
+                    if (app.comments.replyingTo) {
+                        insertData.parent_id = app.comments.replyingTo;
+                    }
+
+                    const { error } = await window.sb.from('photo_comments').insert(insertData);
 
                     if (error) app.ui.showAlert("Lỗi: " + error.message);
                     else {
                         input.value = '';
                         document.getElementById('comment-warning')?.classList.add('hidden');
+                        app.comments.cancelReply();
                         app.comments.lastPostTime = now;
                         app.comments.page = 1;
                         app.comments.load(app.currentPhoto.id);
@@ -4779,6 +4943,36 @@
                 loadMore: () => {
                     app.comments.page++;
                     app.comments.load(app.currentPhoto.id, true);
+                },
+                startReply: (commentId, username) => {
+                    app.comments.replyingTo = commentId;
+                    const indicator = document.getElementById('reply-indicator');
+                    const nameEl = document.getElementById('reply-to-name');
+                    if (indicator && nameEl) {
+                        nameEl.textContent = username || 'Ẩn danh';
+                        indicator.classList.remove('hidden');
+                    }
+                    const input = document.getElementById('comment-input');
+                    if (input) {
+                        input.placeholder = `Trả lời ${username}...`;
+                        input.focus();
+                    }
+                },
+                cancelReply: () => {
+                    app.comments.replyingTo = null;
+                    const indicator = document.getElementById('reply-indicator');
+                    if (indicator) indicator.classList.add('hidden');
+                    const input = document.getElementById('comment-input');
+                    if (input) input.placeholder = 'Viết bình luận...';
+                },
+                toggleReplies: (commentId, total) => {
+                    const hidden = document.getElementById(`reply-hidden-${commentId}`);
+                    const btn = document.getElementById(`btn-toggle-replies-${commentId}`);
+                    if (!hidden || !btn) return;
+                    const isHidden = hidden.classList.contains('hidden');
+                    hidden.classList.toggle('hidden');
+                    const remaining = total - 2;
+                    btn.textContent = isHidden ? 'Ẩn bớt phản hồi' : `Xem thêm ${remaining} phản hồi`;
                 }
             },
 
@@ -8804,6 +8998,9 @@ formInputs.forEach(input => {
                             if (error) throw error;
                             if (!rawPhotos || rawPhotos.length === 0) { content.innerHTML = '<p class="p-4">Không có ảnh nào chờ duyệt.</p>'; return; }
 
+                            const { data: approvedPlates } = await window.sb.from('photos').select('license_plate').eq('status', 'approved');
+                            const approvedPlateSet = new Set((approvedPlates || []).map(p => (p.license_plate || '').toUpperCase()));
+
                             // THÊM: Sắp xếp ưu tiên (Admin/Manager lên đầu, theo thứ tự up trước xếp trước)
                             const photos = rawPhotos.sort((a, b) => {
                                 const roleA = a.profiles?.role || 'user';
@@ -8832,7 +9029,10 @@ formInputs.forEach(input => {
                                 return `
                                 <div class="admin-card overflow-visible">
                                     <div class="admin-card-header">
-                                        <span class="font-bold text-sm">${safePlate}</span>
+                                        <div class="flex items-center gap-2">
+                                            <span class="font-bold text-sm">${safePlate}</span>
+                                            ${!approvedPlateSet.has(safePlate.toUpperCase()) ? '<span class="badge-xe-moi"><i class="fa-solid fa-sparkles"></i> XE MỚI</span>' : ''}
+                                        </div>
                                         <span class="text-xs text-gray-500">${safeUsername}</span>
                                     </div>
                                     <div class="relative h-40 bg-gray-200">
