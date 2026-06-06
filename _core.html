@@ -4724,13 +4724,33 @@
                     const to = from + limit - 1;
 
                     try {
-                        const { data: parents, count, error } = await window.sb
+                        let parents, count, error;
+                        let useThreads = true;
+
+                        const result = await window.sb
                             .from('photo_comments')
                             .select('*, profiles(id, username, avatar_url, role, subroles)', { count: 'exact' })
                             .eq('photo_id', photoId)
                             .is('parent_id', null)
                             .order('created_at', { ascending: false })
                             .range(from, to);
+
+                        parents = result.data;
+                        count = result.count;
+                        error = result.error;
+
+                        if (error) {
+                            useThreads = false;
+                            const fallback = await window.sb
+                                .from('photo_comments')
+                                .select('*, profiles(id, username, avatar_url, role, subroles)', { count: 'exact' })
+                                .eq('photo_id', photoId)
+                                .order('created_at', { ascending: false })
+                                .range(from, to);
+                            parents = fallback.data;
+                            count = fallback.count;
+                            error = fallback.error;
+                        }
 
                         if (error) throw error;
                         if (countEl) countEl.innerText = count || 0;
@@ -4739,7 +4759,7 @@
                         if (btnMore) btnMore.classList.toggle('hidden', count <= (to + 1));
 
                         let repliesMap = {};
-                        if (parents && parents.length > 0) {
+                        if (useThreads && parents && parents.length > 0) {
                             const parentIds = parents.map(p => p.id);
                             const { data: replies } = await window.sb
                                 .from('photo_comments')
@@ -4919,7 +4939,14 @@
                         insertData.parent_id = app.comments.replyingTo;
                     }
 
-                    const { error } = await window.sb.from('photo_comments').insert(insertData);
+                    let { error } = await window.sb.from('photo_comments').insert(insertData);
+
+                    if (error && app.comments.replyingTo) {
+                        delete insertData.parent_id;
+                        const retry = await window.sb.from('photo_comments').insert(insertData);
+                        error = retry.error;
+                        if (!error) app.comments.cancelReply();
+                    }
 
                     if (error) app.ui.showAlert("Lỗi: " + error.message);
                     else {
