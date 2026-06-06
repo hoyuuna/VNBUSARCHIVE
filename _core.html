@@ -4777,21 +4777,28 @@
                         ? app.utils.getProxiedUrl(r.profiles.avatar_url.replace(/"/g, ''), 'avatar.jpg', 'avatar') 
                         : 'https://wsrv.nl/?url=https://files.catbox.moe/zzh1q1.png&we';
 
+                    const toolbar = app.user ? `
+                        <div class="flex flex-wrap gap-2 mt-2.5">
+                            <button class="flex items-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-100 hover:text-orange-500 font-bold text-[11px] transition shadow-sm" onclick="app.utils.navigate('/contact')"><i class="fa-solid fa-flag"></i> Báo cáo</button>
+                            ${canDelete ? `<button class="flex items-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-red-50 hover:text-red-600 hover:border-red-300 font-bold text-[11px] transition shadow-sm" onclick="app.comments.delete('${r.id}')"><i class="fa-solid fa-trash-can"></i> Xóa</button>` : ''}
+                        </div>` : `
+                        <div class="flex flex-wrap gap-2 mt-2.5">
+                            ${canDelete ? `<button class="flex items-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-red-50 hover:text-red-600 hover:border-red-300 font-bold text-[11px] transition shadow-sm" onclick="app.comments.delete('${r.id}')"><i class="fa-solid fa-trash-can"></i> Xóa</button>` : ''}
+                        </div>`;
+
                     return `
-                    <div id="comment-${r.id}" class="bg-gray-50 border border-gray-200 p-3 rounded-xl flex gap-2.5 items-start shadow-sm hover:bg-gray-100 transition-all z-10 relative">
+                    <div id="comment-${r.id}" class="bg-gray-50 border border-gray-200 p-3 rounded-2xl flex gap-2.5 items-start shadow-sm hover:border-gray-300 transition-all z-10 relative ml-2 sm:ml-4">
                         <img src="${avatar}" class="w-6 h-6 sm:w-8 sm:h-8 rounded-full object-cover shrink-0 border border-white shadow-sm mt-0.5">
                         <div class="flex-1 min-w-0">
-                            <div class="flex items-center gap-1.5 mb-0.5 overflow-x-auto whitespace-nowrap" style="scrollbar-width: none;">
+                            <div class="flex items-center gap-1.5 mb-1 overflow-x-auto whitespace-nowrap" style="scrollbar-width: none;">
                                 <span onclick="app.views.loadUserProfile('${r.profiles?.username}')" class="text-[12px] font-bold text-black cursor-pointer hover:underline shrink-0">${r.profiles?.username || 'Ẩn danh'}</span>
                                 <div class="flex gap-1 shrink-0 items-center">
                                     ${app.utils.getBadgesHTML(r.user_id, r.profiles?.role, r.profiles?.subroles)}
                                 </div>
                             </div>
-                            <span class="text-[9px] font-bold text-gray-400 uppercase block mb-1.5"><i class="fa-regular fa-clock mr-0.5"></i>${new Date(r.created_at).toLocaleString('vi-VN')}</span>
-                            <p class="text-[12px] text-gray-700 leading-relaxed break-words whitespace-pre-wrap">${app.utils.cleanText(r.content)}</p>
-                            <div class="flex items-center gap-2 mt-2">
-                                ${canDelete ? `<button class="flex items-center gap-1 bg-white border border-gray-300 text-gray-700 px-2.5 py-1 rounded hover:bg-red-50 hover:text-red-600 hover:border-red-300 font-bold text-[10px] transition shadow-sm" onclick="app.comments.delete('${r.id}')"><i class="fa-solid fa-trash-can"></i> Xóa</button>` : ''}
-                            </div>
+                            <span class="text-[10px] font-bold text-gray-400 block mb-1.5"><i class="fa-regular fa-clock mr-1"></i>${new Date(r.created_at).toLocaleString('vi-VN')}</span>
+                            <p class="text-[12.5px] text-gray-800 leading-relaxed break-words whitespace-pre-wrap">${app.utils.cleanText(r.content)}</p>
+                            ${toolbar}
                         </div>
                     </div>`;
                 },
