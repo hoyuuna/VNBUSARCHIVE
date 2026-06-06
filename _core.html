@@ -2955,22 +2955,18 @@
                 
                 
                 <!-- BÌNH LUẬN -->
-                <div id="comment-section" class="mt-8 mb-6 bg-white border border-vbs-border p-4 md:p-6 rounded-lg shadow-sm flex flex-col">
+                <div id="comment-section" class="mt-8 mb-6 bg-white border border-vbs-border p-4 md:p-6 rounded-lg shadow-sm block">
                     <h3 class="font-bold text-lg border-b border-gray-200 pb-3 mb-4 tracking-tight uppercase text-black">
                         <i class="fa-regular fa-comments mr-2 text-black"></i>Bình luận (<span id="comment-count">0</span>)
                     </h3>
                     
-                    <!-- Khung cuộn chứa bình luận (Cố định chiều cao) -->
-                    <div id="comment-scroll-area" class="flex-1 overflow-y-auto overflow-x-hidden pr-2 mb-4 space-y-3 custom-scrollbar" style="height: 400px;">
-                        <div id="comment-list" class="space-y-3">
-                            <p class="text-center text-gray-400 py-10"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tải...</p>
-                        </div>
-                        <button id="btn-load-more-comments" onclick="app.comments.loadMore()" 
-                            class="hidden w-full py-2 text-[10px] uppercase tracking-[0.2em] font-black text-gray-400 hover:text-black transition">Xem thêm bình luận</button>
+                    <!-- Thông báo chưa đăng nhập -->
+                    <div id="comment-auth-notice" class="hidden text-center py-4 mb-4 bg-gray-50 rounded-xl border border-dashed border-gray-300">
+                        <p class="text-sm text-gray-500 font-medium">Vui lòng <a href="/auth" class="font-bold text-black underline">đăng nhập</a> để bình luận.</p>
                     </div>
 
-                    <!-- Form gửi nằm dưới cùng -->
-                    <div id="comment-form-wrapper" class="hidden border-t border-gray-100 pt-4">
+                    <!-- Form gửi (Đẩy lên trên, ngăn cách với danh sách bên dưới) -->
+                    <div id="comment-form-wrapper" class="hidden border-b border-gray-100 pb-4 mb-4">
                         <div id="comment-warning" class="hidden mb-3 p-3 bg-red-50 border border-red-100 rounded-xl flex items-start gap-2">
                             <i class="fa-solid fa-triangle-exclamation text-red-500 mt-0.5 text-xs"></i>
                             <p class="text-[11px] text-red-700 font-bold leading-tight">Bình luận không phù hợp có thể dẫn tới đình chỉ tài khoản. HÃY CÓ Ý THỨC!</p>
@@ -2990,8 +2986,14 @@
                         </div>
                         <p class="text-[10px] text-gray-400 mt-2 leading-relaxed">Bằng việc comment, bạn đã hoàn toàn đồng ý với <a href="https://github.com/hoyuuna/VNBUSARCHIVE/blob/main/Chat-rule.md" target="_blank" class="text-gray-600 font-bold underline hover:text-black">Tiêu chuẩn bình luận</a> của chúng tôi.</p>
                     </div>
-                    <div id="comment-auth-notice" class="hidden text-center py-4 bg-gray-50 rounded-xl border border-dashed border-gray-300">
-                        <p class="text-sm text-gray-500 font-medium">Vui lòng <a href="/auth" class="font-bold text-black underline">đăng nhập</a> để bình luận.</p>
+                    
+                    <!-- Khung cuộn chứa bình luận (Cố định cứng chiều cao 550px) -->
+                    <div id="comment-scroll-area" class="overflow-y-auto overflow-x-hidden pr-2 space-y-3 custom-scrollbar block" style="height: 550px;">
+                        <div id="comment-list" class="space-y-3">
+                            <p class="text-center text-gray-400 py-10"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tải...</p>
+                        </div>
+                        <button id="btn-load-more-comments" onclick="app.comments.loadMore()" 
+                            class="hidden w-full py-2 text-[10px] uppercase tracking-[0.2em] font-black text-gray-400 hover:text-black transition border border-gray-200 rounded-lg mt-2">Xem thêm bình luận</button>
                     </div>
                 </div>
 
