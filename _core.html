@@ -4639,6 +4639,25 @@
                     const input = document.getElementById('comment-input');
                     const warning = document.getElementById('comment-warning');
 
+                    if (app.currentPhoto && (app.currentPhoto.status === 'pending' || app.currentPhoto.status === 'denied')) {
+                        if (form) form.classList.add('hidden');
+                        if (notice) {
+                            notice.classList.remove('hidden');
+                            notice.innerHTML = '<p class="text-sm text-gray-500 font-medium">Bình luận sẽ không được mở cho các trường hợp ảnh đang chờ duyệt hoặc ảnh bị từ chối.</p>';
+                        }
+                        
+                        const listEl = document.getElementById('comment-list');
+                        if (listEl) listEl.innerHTML = '<p class="text-center text-gray-400 py-10 text-xs italic">Bình luận bị vô hiệu hóa.</p>';
+                        
+                        const countEl = document.getElementById('comment-count');
+                        if (countEl) countEl.innerText = '0';
+                        
+                        const btnMore = document.getElementById('btn-load-more-comments');
+                        if (btnMore) btnMore.classList.add('hidden');
+                        
+                        return;
+                    }
+
                     if (app.user) {
                         form?.classList.remove('hidden');
                         notice?.classList.add('hidden');
@@ -4647,7 +4666,10 @@
                         });
                     } else {
                         form?.classList.add('hidden');
-                        notice?.classList.remove('hidden');
+                        if (notice) {
+                            notice.classList.remove('hidden');
+                            notice.innerHTML = '<p class="text-sm text-gray-500 font-medium">Vui lòng <a href="/auth" class="font-bold text-black underline">đăng nhập</a> để bình luận.</p>';
+                        }
                     }
                     app.comments.page = 1;
                     app.comments.load(photoId);
@@ -4869,6 +4891,10 @@
                     const input = document.getElementById('comment-input');
                     const content = input?.value.trim();
                     if (!content || !app.currentPhoto) return;
+
+                    if (app.currentPhoto.status === 'pending' || app.currentPhoto.status === 'denied') {
+                        return app.ui.showAlert("Hành vi bị từ chối. Không thể bình luận trên ảnh chưa được duyệt!");
+                    }
 
                     if (/https?:\/\/|www\.|\.com|\.vn|\.io|\.net|\.org/i.test(content)) {
                         return app.ui.showAlert("Bình luận chứa liên kết không được phép. Vui lòng xóa link và thử lại.");
