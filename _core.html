@@ -352,20 +352,30 @@
         .profile-photo-item {
             position: relative;
             aspect-ratio: 3/2;
-            overflow: hidden;
-            border-radius: 6px;
+            border-radius: 10px;
             border: 1px solid #e4e4e7;
-            transition: transform 0.2s;
+            transition: all 0.2s;
+            background: #fff;
+            padding: 6px;
         }
 
         .profile-photo-item:hover {
-            transform: scale(1.02);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
 
         .profile-photo-item img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            border-radius: 6px;
+        }
+        
+        .profile-photo-item .absolute.bottom-0 {
+            bottom: 6px !important;
+            left: 6px !important;
+            width: calc(100% - 12px) !important;
+            border-radius: 0 0 6px 6px;
         }
 
         .pagination-wrap {
@@ -7222,8 +7232,9 @@ dropdown.innerHTML = `
                         const safeMainPlate = app.utils.displayPlate(app.utils.cleanText(main.license_plate));
                         const safeMainUser = app.utils.cleanText(main.profiles?.username);
                         heroMain.innerHTML = `
-                            <img src="${app.utils.getProxiedUrl(main.url, 'main.jpg', 'thumb')}" onerror="app.utils.fallbackHeroImage(this, 'topPhotosCache', 0)" class="w-full h-[400px] object-cover block hover:scale-105 transition-transform duration-700 relative z-0">
-                            <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 pt-12 pointer-events-none z-10">
+                            <div class="absolute inset-0 bg-[#09090b] z-0 pointer-events-none"></div>
+                            <img src="${app.utils.getProxiedUrl(main.url, 'main.jpg', 'thumb')}" onerror="app.utils.fallbackHeroImage(this, 'topPhotosCache', 0)" class="w-full h-[400px] object-contain block hover:scale-105 transition-transform duration-700 relative z-10">
+                            <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black via-black/50 to-transparent p-4 pt-16 pointer-events-none z-20">
                                 <p class="text-white font-bold text-lg tracking-tight flex items-center flex-wrap gap-y-1 hero-main-text pointer-events-auto">${safeMainPlate} - ${safeMainUser}</p>
                                 <p class="text-gray-300 text-xs mt-1 hero-main-views pointer-events-auto"><i class="fa-solid fa-eye mr-1"></i> ${main.views || 0} lượt xem</p>
                             </div>
@@ -7555,8 +7566,8 @@ dropdown.innerHTML = `
                     const dateStr = p.taken_at ? p.taken_at.split('T')[0].split('-').reverse().join('/') : new Date(p.created_at).toLocaleDateString('vi-VN');
 
                     return `
-                        <div class="bg-white border border-vbs-border hover:shadow-md cursor-pointer rounded-md overflow-hidden transition-all flex flex-col" onclick="app.views.loadDetail(${p.id})">
-                            <div class="img-wrapper relative w-full aspect-[4/3] bg-gray-100 overflow-hidden shrink-0">
+                        <div class="bg-white border border-gray-200 hover:border-gray-300 hover:shadow-lg cursor-pointer rounded-xl p-2 transition-all flex flex-col" onclick="app.views.loadDetail(${p.id})">
+                            <div class="img-wrapper relative w-full aspect-[4/3] bg-gray-100 rounded-lg overflow-hidden shrink-0 border border-gray-100">
                                 <div class="img-spinner absolute inset-0 flex items-center justify-center text-gray-400">
                                     <i class="fa-solid fa-circle-notch fa-spin text-2xl"></i>
                                 </div>
@@ -7571,14 +7582,14 @@ dropdown.innerHTML = `
                                 </div>
                             </div>
 
-                            <div class="p-3 flex-1 flex flex-col justify-between">
+                            <div class="pt-3 px-1.5 pb-1 flex-1 flex flex-col justify-between">
                                 <div>
                                     <div class="font-bold text-sm text-black">${safePlate}</div>
                                     <div class="text-xs text-gray-600 font-semibold truncate">${safeOp}</div>
                                 </div>
                                 <div class="text-[10px] text-gray-400 mt-2 flex justify-between">
-                                    <span>${safeUser}</span>
-                                    <span><i class="fa-regular fa-calendar mr-1"></i>${dateStr}</span>
+                                    <span class="truncate pr-2">${safeUser}</span>
+                                    <span class="shrink-0"><i class="fa-regular fa-calendar mr-1"></i>${dateStr}</span>
                                 </div>
                             </div>
                         </div>
