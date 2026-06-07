@@ -6430,6 +6430,11 @@ grid.innerHTML = tiers.map(tier => {
 
                                 let sbQuery = window.sb.from(table).select(selectStr);
                                 
+                                // CHỈ GỢI Ý TỪ ẢNH ĐÃ ĐƯỢC DUYỆT
+                                if (table === 'photos') {
+                                    sbQuery = sbQuery.eq('status', 'approved');
+                                }
+                                
                                 searchWords.forEach(word => {
                                     if (col === 'license_plate') {
                                         sbQuery = sbQuery.ilike(col, `%${app.utils.normalizePlateQuery(word)}%`);
@@ -8872,18 +8877,23 @@ formInputs.forEach(input => {
                         if (vData) {
                             if (elModel) elModel.value = vData.model || '';
                             
-                            const { data: pData } = await window.sb.from('photos')
+                            const { data: pDataArray } = await window.sb.from('photos')
                                 .select('operator, route_no, type')
                                 .eq('license_plate', val)
                                 .eq('status', 'approved')
                                 .order('taken_at', { ascending: false, nullsFirst: false })
                                 .order('created_at', { ascending: false })
-                                .limit(1).maybeSingle();
+                                .limit(10);
                                 
-                            if (pData) {
-                                if (elOp) elOp.value = pData.operator || '';
-                                if (elRoute) elRoute.value = pData.route_no || '';
-                                if (elType) elType.value = pData.type || 'bus';
+                            if (pDataArray && pDataArray.length > 0) {
+                                let validPhoto = pDataArray.find(p => p.route_no !== 'Ngoài giờ hoạt động');
+                                if (!validPhoto) {
+                                    validPhoto = { operator: pDataArray[0].operator, route_no: '', type: pDataArray[0].type };
+                                }
+
+                                if (elOp) elOp.value = validPhoto.operator || '';
+                                if (elRoute) elRoute.value = validPhoto.route_no || '';
+                                if (elType) elType.value = validPhoto.type || 'bus';
                             }
                             
                             // Thêm hiệu ứng chớp vàng để báo đã load dữ liệu có sẵn
@@ -10535,21 +10545,28 @@ app.admin.fetchManagerData('denied');
                             app.currentVehicle = exactVehicle;
                             document.getElementById('up-model').value = exactVehicle.model || '';
 
-                            const { data: latestPhoto } = await window.sb
+                            const { data: recentPhotos } = await window.sb
                                 .from('photos')
                                 .select('operator, route_no, type')
                                 .eq('license_plate', rawPlate)
                                 .eq('status', 'approved')
                                 .order('taken_at', { ascending: false, nullsFirst: false })
                                 .order('created_at', { ascending: false })
-                                .limit(1)
-                                .single();
+                                .limit(10); // Lấy 10 ảnh gần nhất
                             
-                            if (latestPhoto) {
-                                document.getElementById('up-operator').value = latestPhoto.operator || '';
-                                document.getElementById('up-route').value = latestPhoto.route_no || '';
+                            if (recentPhotos && recentPhotos.length > 0) {
+                                // Tìm ảnh gần nhất CÓ TUYẾN KHÁC "Ngoài giờ hoạt động"
+                                let validPhoto = recentPhotos.find(p => p.route_no !== 'Ngoài giờ hoạt động');
                                 
-                                const dbType = latestPhoto.type || 'bus';
+                                // Nếu xui xẻo cả 10 ảnh đều là ngoài giờ, lấy tạm Đơn vị và bỏ trống Tuyến
+                                if (!validPhoto) {
+                                    validPhoto = { operator: recentPhotos[0].operator, route_no: '', type: recentPhotos[0].type };
+                                }
+
+                                document.getElementById('up-operator').value = validPhoto.operator || '';
+                                document.getElementById('up-route').value = validPhoto.route_no || '';
+                                
+                                const dbType = validPhoto.type || 'bus';
                                 const prefType = app.preference.current;
                                 
                                 if (prefType !== 'both' && dbType !== prefType) {
@@ -12396,7 +12413,8 @@ cleanupState: () => {
                     if (query.length > 0) {
                         try {
                             const routeWords = query.trim().split(/\s+/).filter(w => w.length > 0);
-                            let rQuery = window.sb.from('photos').select('route_no');
+                            // BẮT BUỘC STATUS = APPROVED
+                            let rQuery = window.sb.from('photos').select('route_no').eq('status', 'approved');
                             
                             if (currentType) rQuery = rQuery.eq('type', currentType);
                             
@@ -12487,7 +12505,8 @@ cleanupState: () => {
                             // TRƯỜNG HỢP 1: Query rỗng nhưng có TUYẾN -> Fetch các dòng xe theo Tuyến từ Database
                             let sbQuery = window.sb.from('photos')
                                 .select('vehicles!inner(model)')
-                                .eq('route_no', routeVal);
+                                .eq('route_no', routeVal)
+                                .eq('status', 'approved'); // CHỈ GỢI Ý TỪ ẢNH ĐÃ ĐƯỢC DUYỆT
                                 
                             if (currentType) {
                                 sbQuery = sbQuery.eq('type', currentType);
@@ -12526,6 +12545,11 @@ cleanupState: () => {
                             }
 
                             let sbQuery = window.sb.from(table).select(selectStr);
+                            
+                            // CHỈ GỢI Ý TỪ ẢNH ĐÃ ĐƯỢC DUYỆT (Áp dụng cho bảng photos: Đơn vị)
+                            if (table === 'photos') {
+                                sbQuery = sbQuery.eq('status', 'approved');
+                            }
                             
                             if (currentType) {
                                 if (table === 'photos') {
