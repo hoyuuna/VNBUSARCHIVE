@@ -7232,9 +7232,8 @@ dropdown.innerHTML = `
                         const safeMainPlate = app.utils.displayPlate(app.utils.cleanText(main.license_plate));
                         const safeMainUser = app.utils.cleanText(main.profiles?.username);
                         heroMain.innerHTML = `
-                            <div class="absolute inset-0 bg-[#09090b] z-0 pointer-events-none"></div>
-                            <img src="${app.utils.getProxiedUrl(main.url, 'main.jpg', 'thumb')}" onerror="app.utils.fallbackHeroImage(this, 'topPhotosCache', 0)" class="w-full h-[400px] object-contain block hover:scale-105 transition-transform duration-700 relative z-10">
-                            <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black via-black/50 to-transparent p-4 pt-16 pointer-events-none z-20">
+                            <img src="${app.utils.getProxiedUrl(main.url, 'main.jpg', 'full')}" onerror="app.utils.fallbackHeroImage(this, 'topPhotosCache', 0)" class="w-full h-[400px] object-cover block hover:scale-105 transition-transform duration-700 relative z-0">
+                            <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 pt-12 pointer-events-none z-10">
                                 <p class="text-white font-bold text-lg tracking-tight flex items-center flex-wrap gap-y-1 hero-main-text pointer-events-auto">${safeMainPlate} - ${safeMainUser}</p>
                                 <p class="text-gray-300 text-xs mt-1 hero-main-views pointer-events-auto"><i class="fa-solid fa-eye mr-1"></i> ${main.views || 0} lượt xem</p>
                             </div>
