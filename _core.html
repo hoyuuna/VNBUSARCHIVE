@@ -4750,19 +4750,40 @@
                         const { data: myComments } = await window.sb.from('photo_comments').select('id').eq('user_id', app.user.id);
                         const myCommentIds = myComments ? myComments.map(c => c.id).slice(0, 500) : []; // Giới hạn mảng để không làm tràn bộ lọc DB
 
-                        // 2. Gom 2 điều kiện: (Ảnh là của tôi đăng) OR (Bình luận này là Reply cho Bình luận của tôi)
-                        let orCondition = `photos.uploader_id.eq.${app.user.id}`;
-                        if (myCommentIds.length > 0) {
-                            orCondition += `,parent_id.in.(${myCommentIds.join(',')})`;
-                        }
+                        // 2. Chạy 2 truy vấn riêng biệt và gộp lại để tránh lỗi Syntax của PostgREST
 
-                        const { data, error } = await window.sb
+                        // Truy vấn 1: Lấy comment trên ảnh do tôi đăng
+                        const p1 = window.sb
                             .from('photo_comments')
                             .select('*, photos!inner(license_plate, url, uploader_id, id), profiles(username, avatar_url, role, subroles)')
-                            .or(orCondition)
-                            .order('created_at', { ascending: false });
+                            .eq('photos.uploader_id', app.user.id);
 
-                        if (error) throw error;
+                        // Truy vấn 2: Lấy comment là reply cho bình luận của tôi (Bất kể trên ảnh ai)
+                        let p2 = null;
+                        if (myCommentIds.length > 0) {
+                            p2 = window.sb
+                                .from('photo_comments')
+                                .select('*, photos!inner(license_plate, url, uploader_id, id), profiles(username, avatar_url, role, subroles)')
+                                .in('parent_id', myCommentIds);
+                        }
+
+                        // Chạy song song cả 2 để tiết kiệm thời gian
+                        const [res1, res2] = await Promise.all([p1, p2 || Promise.resolve({ data: [] })]);
+
+                        if (res1.error) throw res1.error;
+                        if (res2.error) throw res2.error;
+
+                        // Gộp mảng và lọc trùng lặp (tránh TH tự comment trên ảnh của chính mình bị duplicate)
+                        const combinedData = [...(res1.data || []), ...(res2.data || [])];
+                        const uniqueDataMap = new Map();
+
+                        combinedData.forEach(item => {
+                            uniqueDataMap.set(item.id, item);
+                        });
+
+                        // Chuyển lại thành mảng và sắp xếp theo ngày tháng mới nhất
+                        const data = Array.from(uniqueDataMap.values())
+                                          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
                         const groups = {};
                         data.forEach(c => {
