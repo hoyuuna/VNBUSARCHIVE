@@ -3563,8 +3563,8 @@
                                 <i class="fa-solid fa-chart-pie text-gray-500 group-hover:text-black transition-colors"></i> Chỉ số chi tiết
                             </button>
 
-                            <button id="btn-manage-comments" onclick="app.utils.navigate('/profile/comments')" class="w-full mb-6 py-3 bg-white border border-[#e4e4e7] rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition shadow-sm flex items-center justify-center gap-2">
-                                <i class="fa-solid fa-comments-gear text-gray-400"></i> Quản lý bình luận
+                            <button id="btn-manage-comments" onclick="app.utils.navigate('/profile/comments')" class="w-full mb-6 py-3 bg-white border border-[#e4e4e7] rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-black transition shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] flex items-center justify-center gap-2 group">
+                                <i class="fa-solid fa-comments text-gray-500 group-hover:text-black transition-colors"></i> Quản lý bình luận
                             </button>
 
                             <div id="approval-rate-island" class="hidden mt-4 relative overflow-hidden bg-white border border-vbs-border rounded-lg shadow-sm p-3 sm:p-4">
@@ -4746,10 +4746,20 @@
                     container.innerHTML = '<p class="text-center py-20 text-gray-400"><i class="fa-solid fa-spinner fa-spin"></i> Đang tổng hợp bình luận...</p>';
 
                     try {
+                        // 1. Tìm tất cả các bình luận mà user đã đăng (để lấy ID làm parent_id)
+                        const { data: myComments } = await window.sb.from('photo_comments').select('id').eq('user_id', app.user.id);
+                        const myCommentIds = myComments ? myComments.map(c => c.id).slice(0, 500) : []; // Giới hạn mảng để không làm tràn bộ lọc DB
+
+                        // 2. Gom 2 điều kiện: (Ảnh là của tôi đăng) OR (Bình luận này là Reply cho Bình luận của tôi)
+                        let orCondition = `photos.uploader_id.eq.${app.user.id}`;
+                        if (myCommentIds.length > 0) {
+                            orCondition += `,parent_id.in.(${myCommentIds.join(',')})`;
+                        }
+
                         const { data, error } = await window.sb
                             .from('photo_comments')
                             .select('*, photos!inner(license_plate, url, uploader_id, id), profiles(username, avatar_url, role, subroles)')
-                            .eq('photos.uploader_id', app.user.id)
+                            .or(orCondition)
                             .order('created_at', { ascending: false });
 
                         if (error) throw error;
@@ -4766,26 +4776,33 @@
                                 <div class="bg-gray-50 px-4 py-3 flex items-center gap-3 border-b border-gray-100 cursor-pointer hover:bg-gray-100 transition" onclick="app.views.loadDetail('${g.info.id}')">
                                     <img src="${app.utils.getProxiedUrl(g.info.url, 'thumb.jpg', 'thumb')}" class="w-12 h-8 object-cover rounded shadow-sm border border-white">
                                     <span class="font-black text-sm text-black uppercase">${g.info.license_plate}</span>
-                                    <span class="text-[10px] text-gray-400 font-bold ml-auto">${g.comments.length} BÌNH LUẬN</span>
+                                    <span class="text-[10px] text-gray-400 font-bold ml-auto">${g.comments.length} TƯƠNG TÁC</span>
                                 </div>
                                 <div class="p-3 space-y-2 bg-white/50">
-                                    ${g.comments.map(c => `
-                                        <!-- Island riêng cho mỗi comment, click để scroll đến đúng id="comment-xxx" trên detail -->
+                                    ${g.comments.map(c => {
+                                        // NẾU BÌNH LUẬN NÀY LÀ REPLY CHO BÌNH LUẬN CỦA USER, HIỂN THỊ THÊM BADGE "ĐÃ TRẢ LỜI BẠN"
+                                        const isReplyToMe = myCommentIds.includes(c.parent_id);
+                                        const replyBadge = isReplyToMe ? `<span class="bg-blue-100 text-blue-700 text-[9px] px-1.5 py-0.5 rounded ml-2 font-bold border border-blue-200 whitespace-nowrap"><i class="fa-solid fa-reply"></i> Trả lời bạn</span>` : '';
+
+                                        return `
                                         <div class="flex justify-between items-start gap-3 bg-white border border-gray-200 p-3 rounded-xl shadow-sm hover:shadow-md transition cursor-pointer" onclick="app.utils.navigate('/photo/${g.info.id}'); setTimeout(()=> { const el = document.getElementById('comment-${c.id}'); if(el) el.scrollIntoView({behavior: 'smooth', block: 'center'}); }, 1000);">
                                             <div class="overflow-hidden flex-1">
-                                                <span class="text-[11px] font-bold text-black">${c.profiles.username}</span>
+                                                <div class="flex items-center">
+                                                    <span class="text-[11px] font-bold text-black">${c.profiles.username}</span>
+                                                    ${replyBadge}
+                                                </div>
                                                 <p class="text-xs text-gray-700 mt-1 mb-1.5 line-clamp-2 leading-relaxed">${c.content}</p>
                                                 <span class="text-[9px] text-gray-400 font-bold uppercase"><i class="fa-regular fa-clock mr-1"></i>${new Date(c.created_at).toLocaleString('vi-VN')}</span>
                                             </div>
                                             <button onclick="event.stopPropagation(); app.comments.delete('${c.id}')" class="text-red-400 hover:text-red-600 bg-red-50 p-2 rounded-lg transition shrink-0"><i class="fa-solid fa-trash-can text-sm"></i></button>
                                         </div>
-                                    `).join('')}
+                                    `}).join('')}
                                 </div>
                             </div>
                         `).join('');
 
-                        container.innerHTML = html || '<p class="text-center py-20 text-gray-400">Chưa có ai bình luận trên bài đăng của bạn.</p>';
-                    } catch (e) { container.innerHTML = '<p class="text-red-500">Lỗi: ' + e.message + '</p>'; }
+                        container.innerHTML = html || '<p class="text-center py-20 text-gray-400">Chưa có ai bình luận trên bài đăng của bạn hoặc phản hồi lại bạn.</p>';
+                    } catch (e) { container.innerHTML = '<p class="text-red-500 text-center mt-10">Lỗi: ' + e.message + '</p>'; }
                 },
                 post: async () => {
                     const input = document.getElementById('comment-input');
@@ -6899,6 +6916,8 @@ dropdown.innerHTML = `
             views: {
                 currentProfileSort: 'newest',
                 currentProfileFilter: 'all',
+                _profileCache: {},
+                _likedCache: {},
                 updateSortFilterUI: () => {
                     const btns = ['all', 'approved', 'pending', 'denied'];
                     btns.forEach(btnId => {
@@ -7482,17 +7501,25 @@ dropdown.innerHTML = `
                         if (isOwnProfile && window.location.pathname !== '/profile') return app.utils.navigate('/profile');
                         if (!isOwnProfile && window.location.pathname !== `/user/${encodeURIComponent(targetUsername)}`) return app.utils.navigate(`/user/${encodeURIComponent(targetUsername)}`);
                     }
+
+                    // KIỂM TRA QUAY LẠI CÙNG 1 PROFILE (Tránh load lại từ đầu làm giật trang)
+                    const isReturningToSameProfile = (app.lastLoadedUsername === targetUsername) && !forceRefresh;
                     app._isOwnProfile = isOwnProfile;
                     app.lastLoadedUsername = targetUsername;
 
                     app.views.switch('account', false);
                     document.title = isOwnProfile ? 'Tài khoản của tôi | VNBUSARCHIVE' : `Hồ sơ: ${targetUsername} | VNBUSARCHIVE`;
 
-                    const { data: profile, error: profileError } = await window.sb.from('profiles').select('id, username, avatar_url, role, subroles').eq('username', targetUsername).single();
+                    // Nếu quay lại cùng 1 profile và đã có giao diện -> Bỏ qua phần gọi API tạo giao diện lại
+                    if (isReturningToSameProfile && document.getElementById('acc-name').innerText !== '...') {
+                        app.loadingBar.finish();
+                        return;
+                    }
 
+                    const { data: profile } = await window.sb.from('profiles').select('id, username, avatar_url, role, subroles').eq('username', targetUsername).single();
                     if (window.location.pathname !== (isOwnProfile ? '/profile' : `/user/${encodeURIComponent(targetUsername)}`)) return;
 
-                    if (profileError || !profile) {
+                    if (!profile) {
                         app.ui.showAlert("Không tìm thấy người dùng này.");
                         return app.views.loadHome();
                     }
@@ -7516,21 +7543,25 @@ dropdown.innerHTML = `
 
                     const likedSection = document.getElementById('acc-liked-section');
                     const reportBtn = document.getElementById('btn-report-profile');
+                    const manageCommentBtn = document.getElementById('btn-manage-comments'); // Lấy nút Quản lý BL
 
                     if (isOwnProfile) {
                         likedSection.classList.remove('hidden');
                         reportBtn.classList.add('hidden');
                         if (document.getElementById('btn-detailed-stats')) document.getElementById('btn-detailed-stats').classList.remove('hidden');
+                        if (manageCommentBtn) manageCommentBtn.classList.remove('hidden'); // HIỆN NÚT
                         document.getElementById('profile-stats-title').innerText = "THỐNG KÊ HOẠT ĐỘNG";
                         document.getElementById('profile-photos-title').innerText = "Ảnh của bạn";
                     } else {
                         likedSection.classList.add('hidden');
                         reportBtn.classList.remove('hidden');
                         if (document.getElementById('btn-detailed-stats')) document.getElementById('btn-detailed-stats').classList.add('hidden');
+                        if (manageCommentBtn) manageCommentBtn.classList.add('hidden'); // ẨN NÚT
                         document.getElementById('profile-stats-title').innerText = "THỐNG KÊ CỦA " + profile.username.toUpperCase();
                         document.getElementById('profile-photos-title').innerText = "Ảnh đã đăng";
                     }
 
+                    // GỌI HÀM RPC ĐỂ LẤY THỐNG KÊ SIÊU TỐC
                     document.getElementById('my-stat-photos').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-gray-400"></i>';
                     document.getElementById('my-stat-views').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-gray-400"></i>';
                     document.getElementById('my-stat-likes').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-gray-400"></i>';
@@ -7569,8 +7600,6 @@ dropdown.innerHTML = `
                         }
                     }
 
-                    const isReturningToSameProfile = (app.lastLoadedUsername === targetUsername) && !forceRefresh;
-
                     if (!isReturningToSameProfile) {
                         app.views.currentProfileSort = 'newest';
                         app.views.currentProfileFilter = 'all';
@@ -7599,28 +7628,31 @@ dropdown.innerHTML = `
                     const size = app.PROFILE_PAGE_SIZE || 12;
                     const fromRow = (page - 1) * size;
                     const toRow = fromRow + size - 1;
-
                     const grid = document.getElementById('my-photos-grid');
-                    if (!grid) return;
+
+                    // TẠO KHÓA CACHE DUY NHẤT
+                    const cacheKey = `${app.currentProfileId}_${app.views.currentProfileFilter}_${app.views.currentProfileSort}_${page}`;
+
+                    // NẾU TRANG NÀY ĐÃ TẢI TRƯỚC ĐÓ -> LẤY TỪ CACHE RA XÀI NGAY LẬP TỨC
+                    if (app.views._profileCache[cacheKey]) {
+                        const { photos, count } = app.views._profileCache[cacheKey];
+                        app.views.renderProfileGridHTML(photos, count, page);
+                        return;
+                    }
+
                     grid.innerHTML = '<p class="text-xs text-gray-500 col-span-4 text-center py-10"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</p>';
 
-                    let query = window.sb.from('photos').select('id, url, status, views, license_plate', { count: 'exact' })
-                        .eq('uploader_id', app.currentProfileId);
+                    let query = window.sb.from('photos').select('id, url, status, views, license_plate', { count: 'exact' }).eq('uploader_id', app.currentProfileId);
 
-                    if (!app._isOwnProfile) {
-                        query = query.eq('status', 'approved');
-                    } else if (app.views.currentProfileFilter !== 'all') {
-                        query = query.eq('status', app.views.currentProfileFilter);
-                    }
+                    if (!app._isOwnProfile) query = query.eq('status', 'approved');
+                    else if (app.views.currentProfileFilter !== 'all') query = query.eq('status', app.views.currentProfileFilter);
 
                     query = app.preference.applyFilter(query);
 
                     if (app.views.currentProfileSort === 'newest') query = query.order('id', { ascending: false });
                     else if (app.views.currentProfileSort === 'popular') query = query.order('views', { ascending: false, nullsFirst: false });
 
-                    query = query.range(fromRow, toRow);
-
-                    const { data: photos, count, error } = await query;
+                    const { data: photos, count, error } = await query.range(fromRow, toRow);
 
                     if (error || !photos || photos.length === 0) {
                         grid.innerHTML = '<p class="text-xs text-gray-500 col-span-4 text-center py-4">Chưa có ảnh nào.</p>';
@@ -7629,6 +7661,14 @@ dropdown.innerHTML = `
                         return;
                     }
 
+                    // LƯU VÀO CACHE TRƯỚC KHI RENDER
+                    app.views._profileCache[cacheKey] = { photos, count };
+                    app.views.renderProfileGridHTML(photos, count, page);
+                },
+
+                // Hàm hỗ trợ render (để tránh lặp code)
+                renderProfileGridHTML: (photos, count, page) => {
+                    const grid = document.getElementById('my-photos-grid');
                     grid.innerHTML = photos.map(p => {
                         let cardStyleClasses = "profile-photo-item cursor-pointer group transition-all duration-300 relative";
                         let textHtml = `<span class="block truncate">${app.utils.cleanText(app.utils.displayPlate(p.license_plate))}</span>`;
@@ -7656,7 +7696,8 @@ dropdown.innerHTML = `
                         `;
                     }).join('');
 
-                    const totalPages = Math.ceil((count || 0) / size);
+                    const size = app.PROFILE_PAGE_SIZE || 12;
+                    const totalPages = Math.ceil(count / size);
                     let pagerEl = document.getElementById('profile-pager');
                     if (!pagerEl) {
                         pagerEl = document.createElement('div');
@@ -7664,19 +7705,9 @@ dropdown.innerHTML = `
                         grid.parentNode.insertBefore(pagerEl, grid.nextSibling);
                     }
 
-                    if (totalPages <= 1) {
-                        pagerEl.innerHTML = '';
-                        return;
-                    }
-
-                    pagerEl.innerHTML = `
-                        <div id="profile-pagination-container" class="mt-4 w-full"></div>
-                        <p class="text-center text-[10px] text-gray-400 mt-3">Trang ${page}/${totalPages} · Tổng ${count} ảnh</p>
-                    `;
-
-                    app.utils.renderPagination('profile-pagination-container', page, totalPages, (newPage) => {
-                        app.views.fetchProfilePhotosPage(newPage);
-                    });
+                    if (totalPages <= 1) { pagerEl.innerHTML = ''; return; }
+                    pagerEl.innerHTML = `<div id="profile-pagination-container" class="mt-4 w-full"></div><p class="text-center text-[10px] text-gray-400 mt-3">Trang ${page}/${totalPages} · Tổng ${count} ảnh</p>`;
+                    app.utils.renderPagination('profile-pagination-container', page, totalPages, (newPage) => app.views.fetchProfilePhotosPage(newPage));
                 },
                 fetchLikedPhotosPage: async (page) => {
                     app.likedPage = page;
@@ -7684,21 +7715,21 @@ dropdown.innerHTML = `
                     const fromRow = (page - 1) * size;
                     const toRow = fromRow + size - 1;
                     const grid = document.getElementById('liked-photos-grid');
-                    if (!grid || !app.user) return;
-                    grid.innerHTML = '<p class="text-xs text-gray-500 col-span-4 text-center py-10"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải ảnh đã thích...</p>';
 
-                    let query = window.sb.from('photo_likes')
-                        .select('photo_id, photos!inner(id, url, license_plate, operator, type)', { count: 'exact' })
-                        .eq('user_id', app.user.id)
-                        .order('created_at', { ascending: false });
-
-                    if (app.preference.current !== 'both') {
-                        query = query.eq('photos.type', app.preference.current);
+                    // CACHE LIKED PHOTOS
+                    const cacheKey = `liked_${app.currentProfileId}_${page}`;
+                    if (app.views._likedCache[cacheKey]) {
+                        const { likedData, count } = app.views._likedCache[cacheKey];
+                        app.views.renderLikedGridHTML(likedData, count, page);
+                        return;
                     }
 
-                    query = query.range(fromRow, toRow);
+                    grid.innerHTML = '<p class="text-xs text-gray-500 col-span-4 text-center py-10"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải ảnh đã thích...</p>';
 
-                    const { data: likedData, count, error } = await query;
+                    let query = window.sb.from('photo_likes').select('photo_id, photos!inner(id, url, license_plate, operator, type)', { count: 'exact' }).eq('user_id', app.user.id).order('created_at', { ascending: false });
+                    if (app.preference.current !== 'both') query = query.eq('photos.type', app.preference.current);
+
+                    const { data: likedData, count, error } = await query.range(fromRow, toRow);
 
                     if (error || !likedData || likedData.length === 0) {
                         grid.innerHTML = '<p class="text-xs text-gray-500 col-span-4 text-center py-4">Bạn chưa thích ảnh nào.</p>';
@@ -7707,37 +7738,35 @@ dropdown.innerHTML = `
                         return;
                     }
 
+                    // LƯU CACHE VÀ RENDER
+                    app.views._likedCache[cacheKey] = { likedData, count };
+                    app.views.renderLikedGridHTML(likedData, count, page);
+                },
+
+                renderLikedGridHTML: (likedData, count, page) => {
+                    const grid = document.getElementById('liked-photos-grid');
                     grid.innerHTML = likedData.map(item => {
                         const p = item.photos;
                         return `
-                            <div class="profile-photo-item cursor-pointer hover:shadow-md transition-shadow" onclick="app.views.loadDetail(${JSON.stringify(p.id)})">
-                                <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(p.url, 'liked.jpg', 'thumb')}" class="w-full h-full object-cover">
-                                <div class="absolute bottom-0 left-0 bg-black/60 text-white text-[10px] w-full p-1.5 truncate backdrop-blur-sm">
-                                    ${app.utils.displayPlate(p.license_plate)} - ${p.operator || 'N/A'}
-                                </div>
+                        <div class="profile-photo-item cursor-pointer hover:shadow-md transition-shadow" onclick="app.views.loadDetail(${p.id})">
+                            <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(p.url, 'liked.jpg', 'thumb')}" class="w-full h-full object-cover">
+                            <div class="absolute bottom-0 left-0 bg-black/60 text-white text-[10px] w-full p-1.5 truncate backdrop-blur-sm">
+                                ${app.utils.displayPlate(p.license_plate)} - ${p.operator || 'N/A'}
                             </div>
-                        `;
+                        </div>`
                     }).join('');
 
-                    const totalPages = Math.ceil((count || 0) / size);
+                    const size = app.PROFILE_PAGE_SIZE || 12;
+                    const totalPages = Math.ceil(count / size);
                     let pagerEl = document.getElementById('liked-pager');
                     if (!pagerEl) {
                         pagerEl = document.createElement('div');
                         pagerEl.id = 'liked-pager';
                         grid.parentNode.insertBefore(pagerEl, grid.nextSibling);
                     }
-                    if (totalPages <= 1) {
-                        pagerEl.innerHTML = '';
-                        return;
-                    }
-
-                    pagerEl.innerHTML = `
-                        <div id="liked-pagination-container" class="mt-4 w-full"></div>
-                        <p class="text-center text-[10px] text-gray-400 mt-3">Trang ${page}/${totalPages} · Tổng ${count} ảnh</p>
-                    `;
-                    app.utils.renderPagination('liked-pagination-container', page, totalPages, (newPage) => {
-                        app.views.fetchLikedPhotosPage(newPage);
-                    });
+                    if (totalPages <= 1) { pagerEl.innerHTML = ''; return; }
+                    pagerEl.innerHTML = `<div id="liked-pagination-container" class="mt-4 w-full"></div><p class="text-center text-[10px] text-gray-400 mt-3">Trang ${page}/${totalPages} · Tổng ${count} ảnh</p>`;
+                    app.utils.renderPagination('liked-pagination-container', page, totalPages, (newPage) => app.views.fetchLikedPhotosPage(newPage));
                 },
 
                 loadDetail: async (photoId) => {
