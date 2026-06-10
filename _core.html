@@ -6924,6 +6924,7 @@ dropdown.innerHTML = `
                 },
                 sortProfilePhotos: (type) => {
                     app.views.currentProfileSort = type;
+                    app.profilePage = 1;
                     const menu = document.getElementById('profile-sort-menu');
                     if (menu) menu.classList.remove('active');
                     app.views.updateSortFilterUI();
@@ -6931,6 +6932,7 @@ dropdown.innerHTML = `
                 },
                 filterProfilePhotos: (status) => {
                     app.views.currentProfileFilter = status;
+                    app.profilePage = 1;
                     app.views.updateSortFilterUI();
                     app.views.fetchProfilePhotosPage(1);
                 },
@@ -7567,8 +7569,14 @@ dropdown.innerHTML = `
                         }
                     }
 
-                    app.views.currentProfileSort = 'newest';
-                    app.views.currentProfileFilter = 'all';
+                    const isReturningToSameProfile = (app.lastLoadedUsername === targetUsername) && !forceRefresh;
+
+                    if (!isReturningToSameProfile) {
+                        app.views.currentProfileSort = 'newest';
+                        app.views.currentProfileFilter = 'all';
+                        app.profilePage = 1;
+                        app.likedPage = 1;
+                    }
 
                     const filterContainer = document.getElementById('profile-photo-filters');
                     if (filterContainer) {
@@ -7577,14 +7585,17 @@ dropdown.innerHTML = `
                     }
 
                     app.views.updateSortFilterUI();
-                    await app.views.fetchProfilePhotosPage(1);
+                    await app.views.fetchProfilePhotosPage(app.profilePage || 1);
 
-                    if (isOwnProfile) await app.views.fetchLikedPhotosPage(1);
+                    if (isOwnProfile) await app.views.fetchLikedPhotosPage(app.likedPage || 1);
+
+                    app.lastLoadedUsername = targetUsername;
 
                     app.loadingBar.finish();
                 },
 
                 fetchProfilePhotosPage: async (page) => {
+                    app.profilePage = page;
                     const size = app.PROFILE_PAGE_SIZE || 12;
                     const fromRow = (page - 1) * size;
                     const toRow = fromRow + size - 1;
@@ -7668,6 +7679,7 @@ dropdown.innerHTML = `
                     });
                 },
                 fetchLikedPhotosPage: async (page) => {
+                    app.likedPage = page;
                     const size = app.PROFILE_PAGE_SIZE || 12;
                     const fromRow = (page - 1) * size;
                     const toRow = fromRow + size - 1;
