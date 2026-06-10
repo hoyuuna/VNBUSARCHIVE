@@ -3930,9 +3930,7 @@
             PROFILE_PAGE_SIZE: 12,
             profilePage: 1,
             likedPage: 1,
-            _profilePhotosCache: [],
-            _currentFilteredProfilePhotos: [],
-            _likedPhotosCache: [],
+            currentProfileId: null,
             _isOwnProfile: false,
 
             maintenance: {
@@ -4165,7 +4163,6 @@
                     
                     // Tải lại ngầm dữ liệu trang hiện tại mà không gọi handleRoute() làm văng popup
                     if (isChanged || isRecChanged) {
-                        app._profilePhotosCache = []; 
                         const path = window.location.pathname;
                         if (path === '/') {
                             app.views.loadHome(true);
@@ -4373,113 +4370,6 @@
                         }
                     }, 50);
                 }
-            },
-            renderProfilePage: (photos, page) => {
-                const size = app.PROFILE_PAGE_SIZE;
-                const total = photos.length;
-                const totalPages = Math.ceil(total / size);
-                const slice = photos.slice((page - 1) * size, page * size);
-
-                const grid = document.getElementById('my-photos-grid');
-                if (!grid) return;
-
-                grid.innerHTML = slice.map(p => {
-
-                    let cardStyleClasses = "profile-photo-item cursor-pointer group transition-all duration-300 relative";
-                    let textHtml = `<span class="block truncate">${app.utils.cleanText(app.utils.displayPlate(p.license_plate))}</span>`;
-
-
-                    if (app._isOwnProfile) {
-                        if (p.status === 'approved') {
-                            cardStyleClasses += " !border-2 !border-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)] hover:shadow-[0_0_14px_rgba(34,197,94,0.8)] hover:z-10";
-                            textHtml = `<span class="block truncate font-bold drop-shadow-md">${app.utils.cleanText(app.utils.displayPlate(p.license_plate))}</span>`;
-                        } 
-                        else if (p.status === 'pending') {
-                            cardStyleClasses += " !border-2 !border-[#f58e27] shadow-[0_0_8px_rgba(245,142,39,0.5)] hover:shadow-[0_0_14px_rgba(245,142,39,0.8)] hover:z-10";
-                            textHtml = `
-                                <span class="block truncate group-hover:hidden">${app.utils.cleanText(app.utils.displayPlate(p.license_plate))}</span>
-                                <span class="hidden truncate group-hover:block font-bold drop-shadow-md tracking-wide">Đang chờ duyệt...</span>
-                            `;
-                        } 
-                        else if (p.status === 'denied') {
-                            cardStyleClasses += " !border-2 !border-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)] hover:shadow-[0_0_14px_rgba(239,68,68,0.8)] hover:z-10";
-                            textHtml = `
-                                <span class="block truncate group-hover:hidden">${app.utils.cleanText(app.utils.displayPlate(p.license_plate))}</span>
-                                <span class="hidden truncate group-hover:block font-bold drop-shadow-md tracking-wide">Đã bị từ chối</span>
-                            `;
-                        }
-                    }
-
-                    return `
-                        <div class="${cardStyleClasses}" onclick="app.views.loadDetail('${p.id}')">
-                            <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(p.url, 'profile.jpg', 'thumb')}" alt="${app.utils.cleanText(p.license_plate)}" class="w-full h-full object-cover">
-                            <div class="absolute bottom-0 left-0 bg-black/70 text-white text-[10px] w-full p-1.5 backdrop-blur-sm transition-all duration-300">
-                                ${textHtml}
-                            </div>
-                        </div>
-                    `;
-                }).join('') || '<p class="text-xs text-gray-400 col-span-full">Chưa có ảnh nào.</p>';
-
-                let pagerEl = document.getElementById('profile-pager');
-                if (!pagerEl) {
-                    pagerEl = document.createElement('div');
-                    pagerEl.id = 'profile-pager';
-                    grid.parentNode.insertBefore(pagerEl, grid.nextSibling);
-                }
-
-                if (totalPages <= 1) { pagerEl.innerHTML = ''; return; }
-
-
-                pagerEl.innerHTML = `
-                    <div id="profile-pagination-container" class="mt-4 w-full"></div>
-                    <p class="text-center text-[10px] text-gray-400 mt-3">Trang ${page}/${totalPages} · ${total} ảnh</p>
-                `;
-
-
-                app.utils.renderPagination('profile-pagination-container', page, totalPages, (newPage) => {
-                    app.profilePage = newPage;
-                    app.renderProfilePage(app._currentFilteredProfilePhotos || app._profilePhotosCache, newPage);
-
-
-                });
-            },
-            renderLikedPage: (photos, page) => {
-                const size = app.PROFILE_PAGE_SIZE;
-                const total = photos.length;
-                const totalPages = Math.ceil(total / size);
-                const slice = photos.slice((page - 1) * size, page * size);
-
-                const grid = document.getElementById('liked-photos-grid');
-                if (!grid) return;
-
-                grid.innerHTML = slice.map(p => `
-                    <div class="profile-photo-item cursor-pointer" onclick="app.views.loadDetail(${p.id})">
-                        <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(p.url, 'liked.jpg', 'thumb')}" class="w-full h-full object-cover">
-                        <div class="absolute bottom-0 left-0 bg-black/60 text-white text-[10px] w-full p-1.5 truncate backdrop-blur-sm">
-                            ${app.utils.displayPlate(p.license_plate)} - ${p.operator || 'N/A'}
-                        </div>
-                    </div>
-                `).join('') || '<p class="text-xs text-gray-400 col-span-full">Chưa có ảnh nào.</p>';
-
-                let pagerEl = document.getElementById('liked-pager');
-                if (!pagerEl) {
-                    pagerEl = document.createElement('div');
-                    pagerEl.id = 'liked-pager';
-                    grid.parentNode.insertBefore(pagerEl, grid.nextSibling);
-                }
-
-                if (totalPages <= 1) { pagerEl.innerHTML = ''; return; }
-
-                pagerEl.innerHTML = `
-                    <div id="liked-pagination-container" class="mt-4 w-full"></div>
-                    <p class="text-center text-[10px] text-gray-400 mt-3">Trang ${page}/${totalPages} · ${total} ảnh</p>
-                `;
-
-                app.utils.renderPagination('liked-pagination-container', page, totalPages, (newPage) => {
-                    app.likedPage = newPage;
-                    app.renderLikedPage(app._likedPhotosCache, newPage);
-
-                });
             },
             achievement: {
             open: () => {
@@ -5418,7 +5308,6 @@
                 app.lastSearchQuery = '';
                 app.lastSearchFilter = '';
                 app.lastLoadedUsername = '';
-                app._profilePhotosCache = [];
                 app.utils.updateBreadcrumbs();
                 await app.utils.loadProvinceData();
                 await app.maintenance.fetch();
@@ -7009,64 +6898,41 @@ dropdown.innerHTML = `
 
             views: {
                 currentProfileSort: 'newest',
-                sortProfilePhotos: (type) => {
-                    app.views.currentProfileSort = type;
-                    const labelEl = document.getElementById('profile-sort-label');
-                    if (labelEl) labelEl.innerText = type === 'newest' ? 'Mới nhất' : 'Phổ biến nhất';
-                    
-                    document.querySelectorAll('.profile-sort-item').forEach(item => {
-                        item.classList.remove('selected');
-                        const icon = item.querySelector('.check-icon');
-                        if (icon) icon.classList.add('opacity-0');
-                        
-                        if (item.dataset.sort === type) {
-                            item.classList.add('selected');
-                            if (icon) icon.classList.remove('opacity-0');
-                        }
-                    });
-                    
-                    const menu = document.getElementById('profile-sort-menu');
-                    if (menu) menu.classList.remove('active');
-
-                    let list = app._currentFilteredProfilePhotos || [];
-                    if (type === 'newest') {
-                        list.sort((a, b) => b.id - a.id);
-                    } else if (type === 'popular') {
-                        list.sort((a, b) => (b.views || 0) - (a.views || 0));
-                    }
-                    app.profilePage = 1;
-                    app.renderProfilePage(list, 1);
-                },
-                filterProfilePhotos: (status) => {
-
+                currentProfileFilter: 'all',
+                updateSortFilterUI: () => {
                     const btns = ['all', 'approved', 'pending', 'denied'];
                     btns.forEach(btnId => {
                         const el = document.getElementById('btn-filter-' + btnId);
                         if (el) {
-                            if (btnId === status) {
-                                el.className = "px-3 py-1.5 bg-black text-white text-xs font-bold rounded shadow-sm transition whitespace-nowrap border border-black";
-                            } else {
-                                el.className = "px-3 py-1.5 bg-white text-gray-600 text-xs font-bold rounded hover:bg-gray-50 transition whitespace-nowrap border border-gray-300";
-                            }
+                            if (btnId === app.views.currentProfileFilter) el.className = "px-3 py-1.5 bg-black text-white text-xs font-bold rounded shadow-sm transition whitespace-nowrap border border-black";
+                            else el.className = "px-3 py-1.5 bg-white text-gray-600 text-xs font-bold rounded hover:bg-gray-50 transition whitespace-nowrap border border-gray-300";
                         }
                     });
 
+                    const labelEl = document.getElementById('profile-sort-label');
+                    if (labelEl) labelEl.innerText = app.views.currentProfileSort === 'newest' ? 'Mới nhất' : 'Phổ biến nhất';
 
-                    let filtered = app._profilePhotosCache || [];
-                    if (status !== 'all') {
-                        filtered = filtered.filter(p => p.status === status);
-                    }
-
-                    // Tự động sắp xếp lại sau khi lọc xong
-                    if (app.views.currentProfileSort === 'newest') {
-                        filtered.sort((a, b) => b.id - a.id);
-                    } else if (app.views.currentProfileSort === 'popular') {
-                        filtered.sort((a, b) => (b.views || 0) - (a.views || 0));
-                    }
-
-                    app._currentFilteredProfilePhotos = filtered;
-                    app.profilePage = 1;
-                    app.renderProfilePage(filtered, 1);
+                    document.querySelectorAll('.profile-sort-item').forEach(item => {
+                        item.classList.remove('selected');
+                        const icon = item.querySelector('.check-icon');
+                        if (icon) icon.classList.add('opacity-0');
+                        if (item.dataset.sort === app.views.currentProfileSort) {
+                            item.classList.add('selected');
+                            if (icon) icon.classList.remove('opacity-0');
+                        }
+                    });
+                },
+                sortProfilePhotos: (type) => {
+                    app.views.currentProfileSort = type;
+                    const menu = document.getElementById('profile-sort-menu');
+                    if (menu) menu.classList.remove('active');
+                    app.views.updateSortFilterUI();
+                    app.views.fetchProfilePhotosPage(1);
+                },
+                filterProfilePhotos: (status) => {
+                    app.views.currentProfileFilter = status;
+                    app.views.updateSortFilterUI();
+                    app.views.fetchProfilePhotosPage(1);
                 },
                 switch: async (id, updateUrl = true) => {
                     if (id === 'home' && window.location.pathname !== '/' && !window.location.pathname.startsWith('/search')) {
@@ -7605,84 +7471,46 @@ dropdown.innerHTML = `
                     let isOwnProfile = false;
 
                     if (!targetUsername) {
-                        if (!app.user) {
-                            app.utils.navigate('/auth');
-                            return;
-                        }
+                        if (!app.user) return app.utils.navigate('/auth');
                         targetUsername = app.username;
                         isOwnProfile = true;
-                        if (window.location.pathname !== '/profile') {
-                            app.utils.navigate('/profile');
-                            return;
-                        }
+                        if (window.location.pathname !== '/profile') return app.utils.navigate('/profile');
                     } else {
-                        // Kiểm tra xem user đang xem có phải là chính mình không
                         isOwnProfile = (app.user && app.username === targetUsername);
-                        
-                        if (isOwnProfile) {
-                            // Nếu là chính mình, ép URL về /profile
-                            if (window.location.pathname !== '/profile') {
-                                app.utils.navigate('/profile');
-                                return;
-                            }
-                        } else {
-                            // Nếu là người khác, giữ nguyên URL /user/...
-                            if (window.location.pathname !== `/user/${encodeURIComponent(targetUsername)}`) {
-                                app.utils.navigate(`/user/${encodeURIComponent(targetUsername)}`);
-                                return;
-                            }
-                        }
+                        if (isOwnProfile && window.location.pathname !== '/profile') return app.utils.navigate('/profile');
+                        if (!isOwnProfile && window.location.pathname !== `/user/${encodeURIComponent(targetUsername)}`) return app.utils.navigate(`/user/${encodeURIComponent(targetUsername)}`);
                     }
                     app._isOwnProfile = isOwnProfile;
-
-                    if (app.lastLoadedUsername === targetUsername && app._profilePhotosCache && app._profilePhotosCache.length > 0 && !forceRefresh) {
-                        app.views.switch('account', false);
-                        document.title = isOwnProfile ? 'Tài khoản của tôi | VNBUSARCHIVE' : `Hồ sơ: ${targetUsername} | VNBUSARCHIVE`;
-                        app.loadingBar.finish();
-                        return;
-                    }
                     app.lastLoadedUsername = targetUsername;
 
                     app.views.switch('account', false);
                     document.title = isOwnProfile ? 'Tài khoản của tôi | VNBUSARCHIVE' : `Hồ sơ: ${targetUsername} | VNBUSARCHIVE`;
 
-                    const { data: profile } = await window.sb.from('profiles').select('id, username, avatar_url, role, subroles').eq('username', targetUsername).single();
+                    const { data: profile, error: profileError } = await window.sb.from('profiles').select('id, username, avatar_url, role, subroles').eq('username', targetUsername).single();
 
-// BẮT LỖI RACE CONDITION
-                    const expectedPath = isOwnProfile ? '/profile' : `/user/${encodeURIComponent(targetUsername)}`;
-                    if (window.location.pathname !== expectedPath) return;
+                    if (window.location.pathname !== (isOwnProfile ? '/profile' : `/user/${encodeURIComponent(targetUsername)}`)) return;
 
-                    if (!profile) {
+                    if (profileError || !profile) {
                         app.ui.showAlert("Không tìm thấy người dùng này.");
                         return app.views.loadHome();
                     }
 
                     const targetUserId = profile.id;
+                    app.currentProfileId = targetUserId;
 
-                    if (Object.keys(app.topUploaders).length === 0) {
-                        await app.utils.fetchTopUploaders();
-                
-                    }
+                    if (Object.keys(app.topUploaders).length === 0) await app.utils.fetchTopUploaders();
 
                     const badges = app.utils.getBadgesHTML(profile.id, profile.role, profile.subroles);
                     document.getElementById('acc-name').innerHTML = `${profile.username} ${badges}`;
 
                     const avatarIcon = document.getElementById('acc-avatar-icon');
                     const avatarImg = document.getElementById('acc-avatar-img');
-                    if (profile.avatar_url) {
-                        avatarImg.onerror = () => {
-                            avatarImg.src = DEFAULT_AVATAR;
-                            avatarImg.classList.remove('hidden');
-                            avatarIcon.classList.add('hidden');
-                        };
-                        avatarImg.src = app.utils.getProxiedUrl(profile.avatar_url, 'avatar.jpg', 'avatar');
-                        avatarImg.classList.remove('hidden');
-                        avatarIcon.classList.add('hidden');
-                    } else {
-                        avatarImg.src = DEFAULT_AVATAR;
-                        avatarImg.classList.remove('hidden');
-                        avatarIcon.classList.add('hidden');
-                    }
+                    const safeAvatar = profile.avatar_url ? app.utils.getProxiedUrl(profile.avatar_url, 'avatar.jpg', 'avatar') : DEFAULT_AVATAR;
+
+                    avatarImg.src = safeAvatar;
+                    avatarImg.onerror = () => { avatarImg.src = DEFAULT_AVATAR; };
+                    avatarImg.classList.remove('hidden');
+                    avatarIcon.classList.add('hidden');
 
                     const likedSection = document.getElementById('acc-liked-section');
                     const reportBtn = document.getElementById('btn-report-profile');
@@ -7701,167 +7529,203 @@ dropdown.innerHTML = `
                         document.getElementById('profile-photos-title').innerText = "Ảnh đã đăng";
                     }
 
-                    let baseQuery = window.sb.from('photos').select('id, url, status, views, license_plate, created_at, likes, route_no, vehicles(model)')
-                        .eq('uploader_id', targetUserId)
-                        .order('id', { ascending: false });
+                    document.getElementById('my-stat-photos').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-gray-400"></i>';
+                    document.getElementById('my-stat-views').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-gray-400"></i>';
+                    document.getElementById('my-stat-likes').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-gray-400"></i>';
 
-                    if (!isOwnProfile) {
-                        baseQuery = baseQuery.eq('status', 'approved');
-                    }
-                    
-                    // LỌC THEO NỘI DUNG QUAN TÂM
-                    baseQuery = app.preference.applyFilter(baseQuery);
+                    const { data: stats, error: statsError } = await window.sb.rpc('get_user_profile_stats', { target_user_id: targetUserId, is_own_profile: isOwnProfile });
 
-                    let photos = [];
-                    let fromRow = 0;
-                    let stepRow = 999;
-                    let hasMore = true;
-                    let fetchError = null;
+                    if (!statsError && stats && stats.length > 0) {
+                        document.getElementById('my-stat-photos').innerText = app.utils.formatCompact(stats[0].total_photos);
+                        document.getElementById('my-stat-views').innerText = app.utils.formatCompact(stats[0].total_views);
+                        document.getElementById('my-stat-likes').innerText = app.utils.formatCompact(stats[0].total_likes);
 
-                    while (hasMore) {
-                        const { data, error } = await baseQuery.range(fromRow, fromRow + stepRow);
-                        if (error) {
-                            fetchError = error;
-                            break;
-                        }
-                        if (data) {
-                            photos.push(...data);
-                        }
-                        if (!data || data.length <= stepRow) {
-                            hasMore = false;
-                        }
-                        fromRow += stepRow + 1;
-                    }
+                        const approvalIsland = document.getElementById('approval-rate-island');
+                        if (isOwnProfile && stats[0].total_photos > 0) {
+                            const { count: approvedCount, error: approvedError } = await window.sb.from('photos').select('*', { count: 'exact', head: true }).eq('uploader_id', targetUserId).eq('status', 'approved');
+                            const { count: deniedCount, error: deniedError } = await window.sb.from('photos').select('*', { count: 'exact', head: true }).eq('uploader_id', targetUserId).eq('status', 'denied');
 
-                    if (fetchError) return console.error(fetchError);
+                            const processedCount = (approvedError || deniedError) ? 0 : ((approvedCount || 0) + (deniedCount || 0));
+                            if (processedCount > 0) {
+                                const rate = Math.round(((approvedCount || 0) / processedCount) * 100);
+                                const rateValueEl = document.getElementById('approval-rate-value');
+                                const gradientEl = document.getElementById('approval-gradient');
 
-                    let totalViews = 0;
-                    let totalLikes = 0;
+                                rateValueEl.innerText = `${rate}%`;
+                                rateValueEl.classList.remove('text-green-600', 'text-red-600');
+                                gradientEl.classList.remove('from-green-100', 'from-red-100');
 
-                    const grid = document.getElementById('my-photos-grid');
-                    grid.innerHTML = '';
+                                if (rate >= 85) { rateValueEl.classList.add('text-green-600'); gradientEl.classList.add('from-green-100'); }
+                                else { rateValueEl.classList.add('text-red-600'); gradientEl.classList.add('from-red-100'); }
 
-                    if (photos.length === 0) {
-                        app._profilePhotosCache = [];
-                        app.profilePage = 1;
-                        grid.innerHTML = isOwnProfile ? '<p class="text-xs text-gray-500 col-span-4">Bạn chưa đăng ảnh nào.</p>' : '<p class="text-xs text-gray-500 col-span-4">Người dùng này chưa có ảnh nào được duyệt.</p>';
-                        const pagerEl = document.getElementById('profile-pager');
-                        if (pagerEl) pagerEl.innerHTML = '';
-                    } else {
-                        const photoIds = photos.map(p => p.id);
-
-                        if (photoIds.length > 0) {
-                            const { count } = await window.sb.from('photo_likes').select('*', { count: 'exact', head: true }).in('photo_id', photoIds);
-                            totalLikes = count || 0;
-                        }
-
-                        photos.forEach(p => {
-                            if (p.status !== 'denied') {
-                                totalViews += (p.views || 0);
-                            }
-                        });
-
-                        app._profilePhotosCache = photos;
-                        app._currentFilteredProfilePhotos = photos;
-                        app.profilePage = 1;
-                        
-
-                        app.views.sortProfilePhotos('newest');
-                        const filterContainer = document.getElementById('profile-photo-filters');
-                        if (filterContainer) {
-                            if (isOwnProfile) {
-                                filterContainer.classList.remove('hidden');
-                                app.views.filterProfilePhotos('all');
+                                approvalIsland.classList.remove('hidden');
                             } else {
-                                filterContainer.classList.add('hidden');
-                                // Thay vì gọi thẳng render, gọi filter ('all') để nó tự áp dụng Logic Sắp Xếp
-                                app.views.filterProfilePhotos('all');
+                                approvalIsland.classList.add('hidden');
                             }
-                        } else {
-                            app.views.filterProfilePhotos('all');
-                        }
-                    }
-
-                    document.getElementById('my-stat-photos').innerText = app.utils.formatCompact(photos.length);
-                    document.getElementById('my-stat-views').innerText = app.utils.formatCompact(totalViews);
-                    document.getElementById('my-stat-likes').innerText = app.utils.formatCompact(totalLikes);
-
-                    
-
-
-                    const approvalIsland = document.getElementById('approval-rate-island');
-                    if (isOwnProfile && photos.length > 0) {
-                        const approvedCount = photos.filter(p => p.status === 'approved').length;
-                        const deniedCount = photos.filter(p => p.status === 'denied').length;
-                        const processedCount = approvedCount + deniedCount;
-                        
-
-                        if (processedCount > 0) {
-                            const rate = Math.round((approvedCount / processedCount) * 100);
-                            const rateValueEl = document.getElementById('approval-rate-value');
-                            const gradientEl = document.getElementById('approval-gradient');
-                            
-                            rateValueEl.innerText = `${rate}%`;
-                            
-
-                            rateValueEl.classList.remove('text-green-600', 'text-red-600');
-                            gradientEl.classList.remove('from-green-100', 'from-red-100');
-                            
-
-                            if (rate >= 85) {
-                                rateValueEl.classList.add('text-green-600');
-                                gradientEl.classList.add('from-green-100');
-                            } else {
-                                rateValueEl.classList.add('text-red-600');
-                                gradientEl.classList.add('from-red-100');
-                            }
-                            
-                            approvalIsland.classList.remove('hidden');
-                        } else {
+                        } else if (approvalIsland) {
                             approvalIsland.classList.add('hidden');
                         }
-                    } else if (approvalIsland) {
-                        approvalIsland.classList.add('hidden');
                     }
 
-if (isOwnProfile) {
-                        const likedGrid = document.getElementById('liked-photos-grid');
-                        likedGrid.innerHTML = '<p class="text-xs text-gray-500 col-span-4">Đang tải...</p>';
+                    app.views.currentProfileSort = 'newest';
+                    app.views.currentProfileFilter = 'all';
 
-                        const { data: likedData } = await window.sb.from('photo_likes').select('photo_id, created_at').eq('user_id', app.user.id).order('created_at', { ascending: false });
-                        const likedIds = likedData ? likedData.map(l => l.photo_id) : [];
-
-                        if (likedIds.length === 0) {
-                            app._likedPhotosCache = [];
-                            app.likedPage = 1;
-                            likedGrid.innerHTML = '<p class="text-xs text-gray-500 col-span-4">Bạn chưa thích ảnh nào.</p>';
-                            const likedPagerEl = document.getElementById('liked-pager');
-                            if (likedPagerEl) likedPagerEl.innerHTML = '';
-                        } else {
-                            let likedQuery = window.sb
-                                .from('photos')
-                                .select('*, profiles(username), vehicles(model)')
-                                .in('id', likedIds);
-                            
-                            likedQuery = app.preference.applyFilter(likedQuery); // Lọc nốt ảnh đã thích
-                            const { data: likedPhotos } = await likedQuery;
-
-                            if (!likedPhotos || likedPhotos.length === 0) {
-                                app._likedPhotosCache = [];
-                                app.likedPage = 1;
-                                likedGrid.innerHTML = '<p class="text-xs text-gray-500 col-span-4">Không tìm thấy dữ liệu.</p>';
-                                const likedPagerEl = document.getElementById('liked-pager');
-                                if (likedPagerEl) likedPagerEl.innerHTML = '';
-                            } else {
-                                const orderedLikedPhotos = likedIds.map(id => likedPhotos.find(p => p.id === id)).filter(Boolean);
-                                app._likedPhotosCache = orderedLikedPhotos;
-                                app.likedPage = 1;
-                                app.renderLikedPage(orderedLikedPhotos, 1);
-                            }
-                        }
+                    const filterContainer = document.getElementById('profile-photo-filters');
+                    if (filterContainer) {
+                        if (isOwnProfile) filterContainer.classList.remove('hidden');
+                        else filterContainer.classList.add('hidden');
                     }
+
+                    app.views.updateSortFilterUI();
+                    await app.views.fetchProfilePhotosPage(1);
+
+                    if (isOwnProfile) await app.views.fetchLikedPhotosPage(1);
 
                     app.loadingBar.finish();
+                },
+
+                fetchProfilePhotosPage: async (page) => {
+                    const size = app.PROFILE_PAGE_SIZE || 12;
+                    const fromRow = (page - 1) * size;
+                    const toRow = fromRow + size - 1;
+
+                    const grid = document.getElementById('my-photos-grid');
+                    if (!grid) return;
+                    grid.innerHTML = '<p class="text-xs text-gray-500 col-span-4 text-center py-10"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</p>';
+
+                    let query = window.sb.from('photos').select('id, url, status, views, license_plate', { count: 'exact' })
+                        .eq('uploader_id', app.currentProfileId);
+
+                    if (!app._isOwnProfile) {
+                        query = query.eq('status', 'approved');
+                    } else if (app.views.currentProfileFilter !== 'all') {
+                        query = query.eq('status', app.views.currentProfileFilter);
+                    }
+
+                    query = app.preference.applyFilter(query);
+
+                    if (app.views.currentProfileSort === 'newest') query = query.order('id', { ascending: false });
+                    else if (app.views.currentProfileSort === 'popular') query = query.order('views', { ascending: false, nullsFirst: false });
+
+                    query = query.range(fromRow, toRow);
+
+                    const { data: photos, count, error } = await query;
+
+                    if (error || !photos || photos.length === 0) {
+                        grid.innerHTML = '<p class="text-xs text-gray-500 col-span-4 text-center py-4">Chưa có ảnh nào.</p>';
+                        const pagerEl = document.getElementById('profile-pager');
+                        if (pagerEl) pagerEl.innerHTML = '';
+                        return;
+                    }
+
+                    grid.innerHTML = photos.map(p => {
+                        let cardStyleClasses = "profile-photo-item cursor-pointer group transition-all duration-300 relative";
+                        let textHtml = `<span class="block truncate">${app.utils.cleanText(app.utils.displayPlate(p.license_plate))}</span>`;
+
+                        if (app._isOwnProfile) {
+                            if (p.status === 'approved') {
+                                cardStyleClasses += " !border-2 !border-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)] hover:shadow-[0_0_14px_rgba(34,197,94,0.8)] hover:z-10";
+                                textHtml = `<span class="block truncate font-bold drop-shadow-md">${app.utils.cleanText(app.utils.displayPlate(p.license_plate))}</span>`;
+                            } else if (p.status === 'pending') {
+                                cardStyleClasses += " !border-2 !border-[#f58e27] shadow-[0_0_8px_rgba(245,142,39,0.5)] hover:shadow-[0_0_14px_rgba(245,142,39,0.8)] hover:z-10";
+                                textHtml = `<span class="block truncate group-hover:hidden">${app.utils.cleanText(app.utils.displayPlate(p.license_plate))}</span><span class="hidden truncate group-hover:block font-bold drop-shadow-md tracking-wide">Đang chờ duyệt...</span>`;
+                            } else if (p.status === 'denied') {
+                                cardStyleClasses += " !border-2 !border-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)] hover:shadow-[0_0_14px_rgba(239,68,68,0.8)] hover:z-10";
+                                textHtml = `<span class="block truncate group-hover:hidden">${app.utils.cleanText(app.utils.displayPlate(p.license_plate))}</span><span class="hidden truncate group-hover:block font-bold drop-shadow-md tracking-wide">Đã bị từ chối</span>`;
+                            }
+                        }
+
+                        return `
+                            <div class="${cardStyleClasses}" onclick="app.views.loadDetail('${p.id}')">
+                                <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(p.url, 'profile.jpg', 'thumb')}" class="w-full h-full object-cover">
+                                <div class="absolute bottom-0 left-0 bg-black/70 text-white text-[10px] w-full p-1.5 backdrop-blur-sm transition-all duration-300">
+                                    ${textHtml}
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+
+                    const totalPages = Math.ceil((count || 0) / size);
+                    let pagerEl = document.getElementById('profile-pager');
+                    if (!pagerEl) {
+                        pagerEl = document.createElement('div');
+                        pagerEl.id = 'profile-pager';
+                        grid.parentNode.insertBefore(pagerEl, grid.nextSibling);
+                    }
+
+                    if (totalPages <= 1) {
+                        pagerEl.innerHTML = '';
+                        return;
+                    }
+
+                    pagerEl.innerHTML = `
+                        <div id="profile-pagination-container" class="mt-4 w-full"></div>
+                        <p class="text-center text-[10px] text-gray-400 mt-3">Trang ${page}/${totalPages} · Tổng ${count} ảnh</p>
+                    `;
+
+                    app.utils.renderPagination('profile-pagination-container', page, totalPages, (newPage) => {
+                        app.views.fetchProfilePhotosPage(newPage);
+                    });
+                },
+                fetchLikedPhotosPage: async (page) => {
+                    const size = app.PROFILE_PAGE_SIZE || 12;
+                    const fromRow = (page - 1) * size;
+                    const toRow = fromRow + size - 1;
+                    const grid = document.getElementById('liked-photos-grid');
+                    if (!grid || !app.user) return;
+                    grid.innerHTML = '<p class="text-xs text-gray-500 col-span-4 text-center py-10"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải ảnh đã thích...</p>';
+
+                    let query = window.sb.from('photo_likes')
+                        .select('photo_id, photos!inner(id, url, license_plate, operator, type)', { count: 'exact' })
+                        .eq('user_id', app.user.id)
+                        .order('created_at', { ascending: false });
+
+                    if (app.preference.current !== 'both') {
+                        query = query.eq('photos.type', app.preference.current);
+                    }
+
+                    query = query.range(fromRow, toRow);
+
+                    const { data: likedData, count, error } = await query;
+
+                    if (error || !likedData || likedData.length === 0) {
+                        grid.innerHTML = '<p class="text-xs text-gray-500 col-span-4 text-center py-4">Bạn chưa thích ảnh nào.</p>';
+                        const pagerEl = document.getElementById('liked-pager');
+                        if (pagerEl) pagerEl.innerHTML = '';
+                        return;
+                    }
+
+                    grid.innerHTML = likedData.map(item => {
+                        const p = item.photos;
+                        return `
+                            <div class="profile-photo-item cursor-pointer hover:shadow-md transition-shadow" onclick="app.views.loadDetail(${JSON.stringify(p.id)})">
+                                <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(p.url, 'liked.jpg', 'thumb')}" class="w-full h-full object-cover">
+                                <div class="absolute bottom-0 left-0 bg-black/60 text-white text-[10px] w-full p-1.5 truncate backdrop-blur-sm">
+                                    ${app.utils.displayPlate(p.license_plate)} - ${p.operator || 'N/A'}
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+
+                    const totalPages = Math.ceil((count || 0) / size);
+                    let pagerEl = document.getElementById('liked-pager');
+                    if (!pagerEl) {
+                        pagerEl = document.createElement('div');
+                        pagerEl.id = 'liked-pager';
+                        grid.parentNode.insertBefore(pagerEl, grid.nextSibling);
+                    }
+                    if (totalPages <= 1) {
+                        pagerEl.innerHTML = '';
+                        return;
+                    }
+
+                    pagerEl.innerHTML = `
+                        <div id="liked-pagination-container" class="mt-4 w-full"></div>
+                        <p class="text-center text-[10px] text-gray-400 mt-3">Trang ${page}/${totalPages} · Tổng ${count} ảnh</p>
+                    `;
+                    app.utils.renderPagination('liked-pagination-container', page, totalPages, (newPage) => {
+                        app.views.fetchLikedPhotosPage(newPage);
+                    });
                 },
 
                 loadDetail: async (photoId) => {
