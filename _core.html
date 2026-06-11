@@ -1504,8 +1504,8 @@
     <div id="app-container" style="display: none; opacity: 0; transition: opacity 0.5s ease-in-out;">
 
         <!-- POPUP ONBOARDING (CHÀO MỪNG NGƯỜI MỚI - GLASSMORPHISM) -->
-        <div id="onboarding-modal" class="hidden fixed inset-0 z-[10000] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-            <div id="onboarding-content" class="bg-white/80 backdrop-blur-[20px] border border-white/60 shadow-2xl rounded-3xl max-w-[500px] w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col relative">
+        <div id="onboarding-modal" class="hidden fixed inset-0 z-[10000] flex items-center justify-center p-4" style="background-color: rgba(0, 0, 0, 0.4) !important; backdrop-filter: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important;">
+            <div id="onboarding-content" class="rounded-2xl shadow-2xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col relative" style="max-width: 420px; background-color: rgba(255, 255, 255, 0.8) !important; backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important; border: 1px solid rgba(255, 255, 255, 0.6) !important;">
 
                 <!-- Thanh tiến trình (Progress Bar) -->
                 <div class="px-6 pt-6">
@@ -1518,7 +1518,7 @@
                 </div>
 
                 <!-- Body chứa các Slide -->
-                <div class="px-6 pb-2 min-h-[320px] relative">
+                <div class="px-6 pb-2 min-h-[350px] relative">
 
                     <!-- Bước 1: Chào mừng -->
                     <div class="onb-slide active text-left" id="onb-step-1">
@@ -1543,15 +1543,15 @@
                         <p class="text-sm text-gray-600 font-medium leading-relaxed mb-5">Chọn loại phương tiện bạn quan tâm. Hệ thống sẽ tự động lọc và ưu tiên hiển thị nội dung phù hợp nhất.</p>
 
                         <div class="grid grid-cols-1 gap-3">
-                            <div id="onb-pref-bus" onclick="app.preference.select('bus')" class="pref-option cursor-pointer border border-gray-300 bg-white/70 backdrop-blur-md rounded-xl p-3.5 shadow-sm hover:shadow-md hover:border-black transition-all flex items-center gap-4">
+                            <div id="onb-pref-bus" onclick="app.preference.select('bus')" class="pref-option cursor-pointer border border-gray-300 bg-white/70 backdrop-blur-md rounded-xl p-3 shadow-sm hover:shadow-md hover:border-black transition-all flex items-center gap-4">
                                 <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0 transition-colors"><i class="fa-solid fa-bus text-lg"></i></div>
                                 <div><h4 class="font-bold text-sm uppercase">Xe Buýt</h4><p class="text-[11px] font-medium text-gray-500 mt-0.5">Xe tuyến nội đô, buýt công cộng.</p></div>
                             </div>
-                            <div id="onb-pref-coach" onclick="app.preference.select('coach')" class="pref-option cursor-pointer border border-gray-300 bg-white/70 backdrop-blur-md rounded-xl p-3.5 shadow-sm hover:shadow-md hover:border-black transition-all flex items-center gap-4">
+                            <div id="onb-pref-coach" onclick="app.preference.select('coach')" class="pref-option cursor-pointer border border-gray-300 bg-white/70 backdrop-blur-md rounded-xl p-3 shadow-sm hover:shadow-md hover:border-black transition-all flex items-center gap-4">
                                 <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0 transition-colors"><i class="fa-solid fa-van-shuttle text-lg"></i></div>
                                 <div><h4 class="font-bold text-sm uppercase">Xe Khách</h4><p class="text-[11px] font-medium text-gray-500 mt-0.5">Xe liên tỉnh, giường nằm, hợp đồng.</p></div>
                             </div>
-                            <div id="onb-pref-both" onclick="app.preference.select('both')" class="pref-option cursor-pointer border border-black bg-black text-white rounded-xl p-3.5 shadow-md transition-all flex items-center gap-4">
+                            <div id="onb-pref-both" onclick="app.preference.select('both')" class="pref-option cursor-pointer border border-black bg-black text-white rounded-xl p-3 shadow-md transition-all flex items-center gap-4">
                                 <div class="w-10 h-10 rounded-full bg-white/20 border border-white/30 flex items-center justify-center shrink-0 transition-colors"><i class="fa-solid fa-check-double text-lg"></i></div>
                                 <div><h4 class="font-bold text-sm uppercase">Xem tất cả</h4><p class="text-[11px] font-medium text-gray-300 mt-0.5">Hiển thị đan xen cả Buýt & Khách.</p></div>
                             </div>
@@ -1588,15 +1588,15 @@
                         <p class="text-sm text-gray-600 font-medium leading-relaxed mb-5">Bạn muốn làm gì tiếp theo?</p>
 
                         <div class="space-y-3">
-                            <div onclick="app.onboarding.complete(true, '/')" class="cursor-pointer bg-white/70 border border-gray-200 p-4 rounded-xl flex items-center gap-4 hover:border-black hover:shadow-md transition group">
+                            <div onclick="app.onboarding.complete(true, '/')" class="cursor-pointer bg-white/60 border border-gray-200 p-3.5 rounded-xl flex items-center gap-4 hover:border-black hover:bg-white hover:shadow-md transition group">
                                 <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center group-hover:bg-black group-hover:text-white transition"><i class="fa-solid fa-images"></i></div>
                                 <div><h4 class="font-bold text-sm text-black">Xem ảnh xung quanh</h4><p class="text-[11px] text-gray-500 mt-0.5">Về trang chủ</p></div>
                             </div>
-                            <div onclick="app.onboarding.complete(true, '/upload')" class="cursor-pointer bg-white/70 border border-gray-200 p-4 rounded-xl flex items-center gap-4 hover:border-black hover:shadow-md transition group">
+                            <div onclick="app.onboarding.complete(true, '/upload')" class="cursor-pointer bg-white/60 border border-gray-200 p-3.5 rounded-xl flex items-center gap-4 hover:border-black hover:bg-white hover:shadow-md transition group">
                                 <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center group-hover:bg-black group-hover:text-white transition"><i class="fa-solid fa-upload"></i></div>
                                 <div><h4 class="font-bold text-sm text-black">Đăng ảnh mới</h4><p class="text-[11px] text-gray-500 mt-0.5">Tải ảnh lên hệ thống</p></div>
                             </div>
-                            <div onclick="app.onboarding.complete(true, '/contact')" class="cursor-pointer bg-white/70 border border-gray-200 p-4 rounded-xl flex items-center gap-4 hover:border-black hover:shadow-md transition group">
+                            <div onclick="app.onboarding.complete(true, '/contact')" class="cursor-pointer bg-white/60 border border-gray-200 p-3.5 rounded-xl flex items-center gap-4 hover:border-black hover:bg-white hover:shadow-md transition group">
                                 <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center group-hover:bg-black group-hover:text-white transition"><i class="fa-solid fa-headset"></i></div>
                                 <div><h4 class="font-bold text-sm text-black">Liên hệ BQT</h4><p class="text-[11px] text-gray-500 mt-0.5">Trang hỗ trợ trực tuyến</p></div>
                             </div>
@@ -1606,11 +1606,11 @@
                 </div>
 
                 <!-- Footer (Nút Back / Next) -->
-                <div class="p-6 pt-2 flex justify-between items-center mt-auto border-t border-gray-200/50">
-                    <button id="onb-btn-prev" onclick="app.onboarding.prev()" class="w-11 h-11 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition flex items-center justify-center invisible">
+                <div class="p-6 pt-3 flex justify-between items-center mt-auto border-t border-gray-200/50">
+                    <button id="onb-btn-prev" onclick="app.onboarding.prev()" class="w-10 h-10 rounded-full bg-black/5 hover:bg-black/10 text-gray-700 transition flex items-center justify-center invisible" title="Quay lại">
                         <i class="fa-solid fa-arrow-left"></i>
                     </button>
-                    <button id="onb-btn-next" onclick="app.onboarding.next()" class="bg-black text-white px-6 py-2.5 rounded-full text-sm font-bold shadow-md hover:bg-gray-800 transition flex items-center gap-2">
+                    <button id="onb-btn-next" onclick="app.onboarding.next()" class="bg-black text-white px-5 py-2.5 rounded-full text-sm font-bold shadow-md hover:bg-gray-800 transition flex items-center gap-2">
                         Tiếp tục <i class="fa-solid fa-arrow-right"></i>
                     </button>
                 </div>
@@ -4218,16 +4218,18 @@
                     if (step === 1) {
                         btnPrev.style.visibility = 'hidden';
                         btnNext.innerHTML = 'Tiếp tục <i class="fa-solid fa-arrow-right"></i>';
+                        btnNext.style.visibility = 'visible';
                     } else if (step === 4) {
                         btnPrev.style.visibility = 'visible';
-                        btnNext.innerHTML = '<i class="fa-solid fa-check"></i> Xong';
+                        btnNext.innerHTML = 'Hoàn thành <i class="fa-solid fa-check"></i>';
+                        btnNext.style.visibility = 'visible';
                     } else if (step === 3 && !app.user) {
                         btnPrev.style.visibility = 'visible';
                         btnNext.style.visibility = 'hidden';
                     } else {
                         btnPrev.style.visibility = 'visible';
-                        btnNext.style.visibility = 'visible';
                         btnNext.innerHTML = 'Tiếp tục <i class="fa-solid fa-arrow-right"></i>';
+                        btnNext.style.visibility = 'visible';
                     }
                 },
 
