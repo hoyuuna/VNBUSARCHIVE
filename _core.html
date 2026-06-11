@@ -1503,9 +1503,9 @@
 
     <div id="app-container" style="display: none; opacity: 0; transition: opacity 0.5s ease-in-out;">
 
-        <!-- POPUP ONBOARDING (CHÀO MỪNG NGƯỜI MỚI - GLASSMORPHISM) -->
-        <div id="onboarding-modal" class="hidden fixed inset-0 z-[10000] flex items-center justify-center p-4" style="background-color: rgba(0, 0, 0, 0.4) !important; backdrop-filter: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important;">
-            <div id="onboarding-content" class="rounded-2xl shadow-2xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col relative" style="max-width: 420px; background-color: rgba(255, 255, 255, 0.8) !important; backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important; border: 1px solid rgba(255, 255, 255, 0.6) !important;">
+        <!-- POPUP ONBOARDING (CHÀO MỪNG NGƯỜI MỚI - GLASSMORPHISM ĐỒNG BỘ) -->
+        <div id="onboarding-modal" class="hidden fixed inset-0 z-[10000] flex items-center justify-center p-4" style="background-color: rgba(0, 0, 0, 0) !important; backdrop-filter: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important;">
+            <div id="onboarding-content" class="rounded-2xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col relative" style="max-width: 420px; background-color: rgba(255, 255, 255, 0.7) !important; backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important; border: 1px solid rgba(255, 255, 255, 0.6) !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;">
 
                 <!-- Thanh tiến trình (Progress Bar) -->
                 <div class="px-6 pt-6">
@@ -1527,7 +1527,7 @@
                             <span class="font-extrabold italic text-2xl tracking-wider text-black font-watermark">VNBUSARCHIVE</span>
                         </div>
                         <h2 class="text-2xl font-bold text-black mb-3 leading-tight tracking-tight">Chào mừng bạn đã đến với VNBUSARCHIVE</h2>
-                        <p class="text-sm text-gray-600 font-medium leading-relaxed mb-6">Dự án website lưu trữ ảnh xe buýt và xe khách phi lợi nhuận lớn nhất Việt Nam. Cùng nhau xây dựng một kho dữ liệu mở, minh bạch và miễn phí cho cộng đồng.</p>
+                        <p class="text-sm text-gray-600 font-medium leading-relaxed mb-6">Dự án website lưu trữ ảnh xe buýt và xe khách phi lợi nhuận. Cùng nhau xây dựng một kho dữ liệu mở, minh bạch và miễn phí cho cộng đồng.</p>
 
                         <button onclick="app.onboarding.complete(true)" class="text-sm font-bold text-gray-500 hover:text-black underline decoration-gray-300 hover:decoration-black transition-colors">
                             Dùng mặc định và bỏ qua thiết lập
@@ -1605,8 +1605,8 @@
 
                 </div>
 
-                <!-- Footer (Nút Back / Next) -->
-                <div class="p-6 pt-3 flex justify-between items-center mt-auto border-t border-gray-200/50">
+                <!-- Footer (Nút Back / Next) - ĐÃ BỎ ĐƯỜNG KẺ TRÊN (border-t) -->
+                <div class="p-6 pt-3 flex justify-between items-center mt-auto">
                     <button id="onb-btn-prev" onclick="app.onboarding.prev()" class="w-10 h-10 rounded-full bg-black/5 hover:bg-black/10 text-gray-700 transition flex items-center justify-center invisible" title="Quay lại">
                         <i class="fa-solid fa-arrow-left"></i>
                     </button>
