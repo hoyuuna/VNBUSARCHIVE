@@ -3931,8 +3931,10 @@
                     const banner = document.getElementById('server-status-banner');
                     if (!banner) return;
 
-                    // Chỉ hiển thị ở Trang chủ, Cá nhân (Account) và Tìm kiếm
-                    if (app.serverStatus.isDown && ['home', 'account', 'search'].includes(currentView)) {
+                    // Danh sách các trang CÓ KÉO ẢNH TỪ DATABASE (chừa Admin, Đăng tải, Liên hệ, Đăng nhập)
+                    const targetViews = ['home', 'account', 'search', 'detail', 'vehicle', 'comment-dashboard'];
+
+                    if (app.serverStatus.isDown && targetViews.includes(currentView)) {
                         banner.classList.remove('hidden');
                     } else {
                         banner.classList.add('hidden');
