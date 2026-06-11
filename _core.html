@@ -2610,6 +2610,16 @@
 
         <main class="max-w-7xl mx-auto px-4 py-6 min-h-screen">
 
+            <!-- BANNER CẢNH BÁO MÁY CHỦ -->
+            <div id="server-status-banner" class="hidden mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3 shadow-sm transition-all duration-300">
+                <i class="fa-solid fa-triangle-exclamation text-red-500 mt-0.5 text-lg"></i>
+                <div>
+                    <p class="text-sm text-red-800 font-bold leading-tight mb-1">Hệ thống máy chủ của VNBUSARCHIVE hiện đang hoạt động không ổn định. Bạn có thể gặp sự cố trong khi sử dụng.</p>
+                    <p class="text-xs text-red-700 font-medium leading-relaxed">Dự kiến sẽ quay trở lại hoạt động bình thường vào <b id="server-status-time">07:00 --/--/----</b>.</p>
+                    <p class="text-xs text-red-700 font-medium leading-relaxed mt-0.5">Chúng tôi đã nhận thức được vấn đề và trân trọng sự cảm thông của bạn!</p>
+                </div>
+            </div>
+
             <div id="home" class="view-section active">
 
                 <div class="bg-white border border-vbs-border mb-8 rounded-lg shadow-sm overflow-hidden"
@@ -3863,6 +3873,72 @@
         // =====================================
 
         const app = {
+            serverStatus: {
+                isDown: false,
+                hasChecked: false,
+                check: async () => {
+                    if (app.serverStatus.hasChecked) return;
+                    app.serverStatus.hasChecked = true;
+
+                    const urls = [
+                        'https://cdn.vnbusarchive.io.vn/file/1779854807644_img_1779854799124_e366ba9dcf8d.webp',
+                        'https://cdn.vnbusarchive.io.vn/file/1780456878649_img_1778092852168_3859_ImhPiuqVr.jpg'
+                    ];
+
+                    // Tải ảnh để check xem có bị 404 không, ghép Date.now() để chặn cache của trình duyệt
+                    const checkImg = (url) => new Promise((resolve) => {
+                        const img = new Image();
+                        img.onload = () => resolve(true);
+                        img.onerror = () => resolve(false);
+                        img.src = url + '?cb=' + Date.now();
+                    });
+
+                    try {
+                        const results = await Promise.all(urls.map(checkImg));
+                        // Nếu 1 trong 2 ảnh bị lỗi (false), kích hoạt cảnh báo
+                        if (results.includes(false)) {
+                            app.serverStatus.isDown = true;
+
+                            // Tính toán thời gian 07:00 AM của ngày tiếp theo
+                            const now = new Date();
+                            const next7AM = new Date(now);
+                            next7AM.setHours(7, 0, 0, 0);
+
+                            // Nếu giờ hiện tại đã qua 7h sáng, cộng thêm 1 ngày
+                            if (now.getTime() >= next7AM.getTime()) {
+                                next7AM.setDate(next7AM.getDate() + 1);
+                            }
+
+                            const dd = String(next7AM.getDate()).padStart(2, '0');
+                            const mm = String(next7AM.getMonth() + 1).padStart(2, '0');
+                            const yyyy = next7AM.getFullYear();
+
+                            const timeEl = document.getElementById('server-status-time');
+                            if (timeEl) {
+                                timeEl.innerText = `07:00 ${dd}/${mm}/${yyyy}`;
+                            }
+
+                            // Kích hoạt giao diện
+                            app.serverStatus.updateVisibility();
+                        }
+                    } catch (e) {
+                        console.error("Lỗi kiểm tra server:", e);
+                    }
+                },
+
+                updateVisibility: (viewId) => {
+                    const currentView = viewId || app.currentViewMode || 'home';
+                    const banner = document.getElementById('server-status-banner');
+                    if (!banner) return;
+
+                    // Chỉ hiển thị ở Trang chủ, Cá nhân (Account) và Tìm kiếm
+                    if (app.serverStatus.isDown && ['home', 'account', 'search'].includes(currentView)) {
+                        banner.classList.remove('hidden');
+                    } else {
+                        banner.classList.add('hidden');
+                    }
+                }
+            },
             captcha: {
                 widgetId: null,
                 resolvePromise: null,
@@ -5575,6 +5651,8 @@
                 app.preference.load();
 
                 app.onboarding.check();
+
+                app.serverStatus.check();
 
                 app.handleRoute();
 
@@ -7303,6 +7381,9 @@ dropdown.innerHTML = `
                         app.admin.refreshCounts();
                         app.admin.loadTab(app.adminTab);
                     }
+
+                    // --- Thêm dòng này để điều khiển banner hiện hoặc ẩn tùy view ---
+                    if (app.serverStatus) app.serverStatus.updateVisibility(id);
 
                     app.loadingBar.finish();
                 },
