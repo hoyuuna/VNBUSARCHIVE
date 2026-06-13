@@ -10360,13 +10360,27 @@ app.admin.fetchManagerData('denied');
                     const plateInput = document.getElementById('up-plate');
                     const routeInput = document.getElementById('up-route');
                     const opInput = document.getElementById('up-operator');
+                    const modelInput = document.getElementById('up-model');
 
                     if (!plateInput || !routeInput || !opInput) return;
 
                     const plate = plateInput.value.replace(/[^A-Z0-9-]/gi, '').toUpperCase();
                     const route = routeInput.value.trim();
 
-                    if (!plate || plate.length < 2 || !route) return;
+                    // Thêm trạng thái theo dõi autofill để không ghi đè dữ liệu user nhập tay
+                    if (!app.upload.autoFilledData) app.upload.autoFilledData = { operator: '', model: '' };
+
+                    const canOverwriteOp = !opInput.value || opInput.value === app.upload.autoFilledData.operator;
+                    const canOverwriteModel = !modelInput || !modelInput.value || modelInput.value === app.upload.autoFilledData.model;
+
+                    const specialRoutes = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động', 'Xe hợp đồng / Đưa đón', 'Hợp đồng / Đưa đón'];
+
+                    // Nếu đổi tuyến rỗng hoặc nhập tuyến đặc biệt thì xóa autofill
+                    if (!plate || plate.length < 2 || !route || specialRoutes.includes(route)) {
+                        if (canOverwriteOp) { opInput.value = ''; app.upload.autoFilledData.operator = ''; }
+                        if (canOverwriteModel) { modelInput.value = ''; app.upload.autoFilledData.model = ''; }
+                        return;
+                    }
 
                     // Lấy mã tỉnh (2 số đầu)
                     const prefix = plate.substring(0, 2);
@@ -10383,7 +10397,7 @@ app.admin.fetchManagerData('denied');
 
                         // Lấy 50 ảnh đã duyệt có cùng số tuyến và cùng tỉnh
                         const { data } = await window.sb.from('photos')
-                            .select('operator, taken_at, created_at, vehicles(model)')
+                            .select('operator, type, taken_at, created_at, vehicles(model)')
                             .eq('route_no', route)
                             .eq('status', 'approved')
                             .or(prefixOrCond)
@@ -10398,16 +10412,24 @@ app.admin.fetchManagerData('denied');
                             });
 
                             const closest = data[0];
-                            if (closest.operator && (!opInput.value || opInput.value !== closest.operator)) {
+                            if (closest.operator && canOverwriteOp) {
                                 opInput.value = closest.operator;
+                                app.upload.autoFilledData.operator = closest.operator;
                             }
                             
-                            const modelInput = document.getElementById('up-model');
-                            if (modelInput && closest.vehicles && closest.vehicles.model) {
-                                if (!modelInput.value || modelInput.value !== closest.vehicles.model) {
-                                    modelInput.value = closest.vehicles.model;
-                                }
+                            if (modelInput && closest.vehicles && closest.vehicles.model && canOverwriteModel) {
+                                modelInput.value = closest.vehicles.model;
+                                app.upload.autoFilledData.model = closest.vehicles.model;
                             }
+
+                            // Tự động chọn xe buýt
+                            if (closest.type === 'bus') {
+                                app.upload.selectType('bus');
+                            }
+                        } else {
+                            // Nếu tuyến mới không tìm thấy dữ liệu, xóa giá trị autofill cũ
+                            if (canOverwriteOp) { opInput.value = ''; app.upload.autoFilledData.operator = ''; }
+                            if (canOverwriteModel) { modelInput.value = ''; app.upload.autoFilledData.model = ''; }
                         }
                     } catch (e) {
                         console.error("Lỗi Auto-fill đơn vị vận hành:", e);
