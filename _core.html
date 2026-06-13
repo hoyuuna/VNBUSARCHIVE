@@ -3529,7 +3529,7 @@
                                     <div class="relative w-full">
                                         <input type="text" id="up-route" autocomplete="off"
                                             onfocus="app.utils.triggerRouteSuggestion('up-route', 'up-route-suggestions', '')"
-                                            oninput="app.utils.triggerRouteSuggestion('up-route', 'up-route-suggestions', this.value)"
+                                            oninput="app.utils.triggerRouteSuggestion('up-route', 'up-route-suggestions', this.value); clearTimeout(app.upload.routeOpTimeout); app.upload.routeOpTimeout = setTimeout(app.upload.autoFillOperatorByRoute, 500);"
                                             class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition">
                                         <div id="up-route-suggestions" class="suggestion-box"></div>
                                     </div>
@@ -8649,8 +8649,15 @@ if (app.user && app.role === 'manager' && isDenied) {
                             return;
                         }
 
-                        const pageTitle = `Hồ sơ xe ${vehicle.license_plate} | VNBUSARCHIVE`;
                         const allPhotos = allPhotosRes.data || [];
+                        
+                        // YÊU CẦU XE PHẢI CÓ ÍT NHẤT 1 ẢNH ĐƯỢC DUYỆT MỚI CHO XEM HỒ SƠ
+                        if (allPhotos.length === 0) {
+                            app.ui.showAlert("Hồ sơ ẩn: Xe này chưa có ảnh nào được duyệt trên hệ thống.", () => app.views.loadHome());
+                            return;
+                        }
+
+                        const pageTitle = `Hồ sơ xe ${vehicle.license_plate} | VNBUSARCHIVE`;
                         app.vehiclePhotosCache = allPhotos;
                         // Lấy ảnh ở đầu danh sách (mới chụp nhất theo taken_at)
                         const topPhoto = allPhotos.length > 0 ? allPhotos[0] : null;
@@ -10344,6 +10351,59 @@ app.admin.fetchManagerData('denied');
 
              upload: {
                  currentQuota: { limit: null, count: 0 },
+                 routeOpTimeout: null, // Thêm dòng này
+
+                 // THÊM HÀM NÀY VÀO ĐÂY
+                 autoFillOperatorByRoute: async () => {
+                    // Nếu xe đã bị khóa thông tin (vì đã có ảnh duyệt), không tự điền đè lên
+                    if (app.vehicleLocked) return;
+
+                    const plateInput = document.getElementById('up-plate');
+                    const routeInput = document.getElementById('up-route');
+                    const opInput = document.getElementById('up-operator');
+
+                    if (!plateInput || !routeInput || !opInput) return;
+
+                    const plate = plateInput.value.replace(/[^A-Z0-9-]/gi, '').toUpperCase();
+                    const route = routeInput.value.trim();
+
+                    if (!plate || plate.length < 2 || !route) return;
+
+                    // Lấy mã tỉnh (2 số đầu)
+                    const prefix = plate.substring(0, 2);
+                    if (isNaN(prefix)) return;
+
+                    const relatedPrefixes = app.utils.getRelatedPrefixes(prefix);
+                    if (!relatedPrefixes || relatedPrefixes.length === 0) return;
+
+                    try {
+                        const prefixOrCond = relatedPrefixes.map(p => `license_plate.ilike.${p}%`).join(',');
+
+                        // Lấy ảnh đã duyệt mới nhất có cùng số tuyến và cùng tỉnh
+                        const { data } = await window.sb.from('photos')
+                            .select('operator')
+                            .eq('route_no', route)
+                            .eq('status', 'approved')
+                            .or(prefixOrCond)
+                            .order('created_at', { ascending: false })
+                            .limit(1);
+
+                        if (data && data.length > 0 && data[0].operator) {
+                            if (!opInput.value || opInput.value !== data[0].operator) {
+                                opInput.value = data[0].operator;
+                                // Hiệu ứng chớp xanh để báo cho user biết hệ thống vừa tự điền
+                                opInput.classList.remove('border-gray-300');
+                                opInput.classList.add('bg-green-50', 'border-green-400', 'text-green-800');
+                                setTimeout(() => {
+                                    opInput.classList.remove('bg-green-50', 'border-green-400', 'text-green-800');
+                                    opInput.classList.add('border-gray-300');
+                                }, 1500);
+                            }
+                        }
+                    } catch (e) {
+                        console.error("Lỗi Auto-fill đơn vị vận hành:", e);
+                    }
+                },
 
                  applyPreferenceUI: () => {
                     const warningEl = document.getElementById('upload-pref-warning');
@@ -10770,25 +10830,34 @@ app.admin.fetchManagerData('denied');
 
                         const exactVehicle = existingVehicles?.find(v => v.license_plate === rawPlate);
 
-                        if (exactVehicle) {
-                            app.vehicleLocked = true;
-                            app.currentVehicle = exactVehicle;
-                            document.getElementById('up-model').value = exactVehicle.model || '';
+                        // THÊM: Biến kiểm tra xem xe này đã có ảnh duyệt chưa
+                        let hasApproved = false;
+                        let recentPhotos = [];
 
-                            const { data: recentPhotos } = await window.sb
+                        if (exactVehicle) {
+                            const { data } = await window.sb
                                 .from('photos')
                                 .select('operator, route_no, type')
                                 .eq('license_plate', rawPlate)
                                 .eq('status', 'approved')
                                 .order('taken_at', { ascending: false, nullsFirst: false })
                                 .order('created_at', { ascending: false })
-                                .limit(10); // Lấy 10 ảnh gần nhất
+                                .limit(10); // Lấy 10 ảnh gần nhất đã duyệt
+
+                            recentPhotos = data || [];
+                            hasApproved = recentPhotos.length > 0;
+                        }
+
+                        // CHỈ KHÓA THÔNG TIN KHI XE ĐÃ CÓ ÍT NHẤT 1 ẢNH DUYỆT
+                        if (exactVehicle && hasApproved) {
+                            app.vehicleLocked = true;
+                            app.currentVehicle = exactVehicle;
+                            document.getElementById('up-model').value = exactVehicle.model || '';
 
                             if (recentPhotos && recentPhotos.length > 0) {
                                 // Tìm ảnh gần nhất CÓ TUYẾN KHÁC "Ngoài giờ hoạt động"
                                 let validPhoto = recentPhotos.find(p => p.route_no !== 'Ngoài giờ hoạt động');
 
-                                // Nếu xui xẻo cả 10 ảnh đều là ngoài giờ, lấy tạm Đơn vị và bỏ trống Tuyến
                                 if (!validPhoto) {
                                     validPhoto = { operator: recentPhotos[0].operator, route_no: '', type: recentPhotos[0].type };
                                 }
@@ -10822,9 +10891,6 @@ app.admin.fetchManagerData('denied');
                                 } else {
                                     app.upload.selectType(dbType, true);
                                 }
-                            } else {
-                                document.getElementById('up-operator').value = '';
-                                document.getElementById('up-route').value = '';
                             }
 
                             ['up-operator', 'up-route'].forEach(id => {
@@ -10869,9 +10935,21 @@ app.admin.fetchManagerData('denied');
                             msg.className = "text-xs mt-1 text-black";
 
                         } else {
-                            unlockUI(); // Mở khóa UI vì xe là xe mới tinh
-                            msg.innerText = "";
-                            msg.className = "hidden";
+                            // NẾU XE CHƯA TỪNG ĐƯỢC DUYỆT LẦN NÀO -> MỞ KHÓA HOÀN TOÀN
+                            unlockUI(); 
+                            
+                            if (exactVehicle) {
+                                // Vẫn điền nhẹ cái Dòng xe có sẵn (của ảnh bị từ chối) để gợi ý, nhưng user vẫn có thể sửa đè lên
+                                document.getElementById('up-model').value = exactVehicle.model || '';
+                                msg.innerHTML = '<i class="fa-solid fa-info-circle"></i> Xe chưa có ảnh duyệt. Thông tin không bị khóa.';
+                                msg.className = "text-xs mt-1 text-blue-600 font-bold";
+                            } else {
+                                msg.innerText = "";
+                                msg.className = "hidden";
+                            }
+                            
+                            // Gọi hàm auto fill Đơn vị dựa theo Tuyến và Tỉnh
+                            app.upload.autoFillOperatorByRoute();
                         }
                     } catch (err) {
                         unlockUI();
@@ -12672,7 +12750,7 @@ cleanupState: () => {
                                 displayHTML = safeHTML.replace(regex, '<strong class="font-extrabold">$1</strong>');
                             }
 
-                            return `<div class="suggestion-item" onmousedown="event.preventDefault(); document.getElementById('${inputId}').value = '${safeJS}'; document.getElementById('${suggestionId}').classList.remove('active');">${displayHTML}</div>`;
+                            return `<div class="suggestion-item" onmousedown="event.preventDefault(); document.getElementById('${inputId}').value = '${safeJS}'; document.getElementById('${suggestionId}').classList.remove('active'); if('${inputId}' === 'up-route'){ app.upload.autoFillOperatorByRoute(); }">${displayHTML}</div>`;
                         }).join('');
                         box.classList.add('active');
                     } else { box.classList.remove('active'); }
