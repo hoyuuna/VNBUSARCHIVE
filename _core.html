@@ -10375,21 +10375,38 @@ app.admin.fetchManagerData('denied');
                     const relatedPrefixes = app.utils.getRelatedPrefixes(prefix);
                     if (!relatedPrefixes || relatedPrefixes.length === 0) return;
 
+                    const dateInput = document.getElementById('up-date');
+                    const uploadDate = dateInput && dateInput.value ? new Date(dateInput.value).getTime() : Date.now();
+
                     try {
                         const prefixOrCond = relatedPrefixes.map(p => `license_plate.ilike.${p}%`).join(',');
 
-                        // Lấy ảnh đã duyệt mới nhất có cùng số tuyến và cùng tỉnh
+                        // Lấy 50 ảnh đã duyệt có cùng số tuyến và cùng tỉnh
                         const { data } = await window.sb.from('photos')
-                            .select('operator')
+                            .select('operator, taken_at, created_at, vehicles(model)')
                             .eq('route_no', route)
                             .eq('status', 'approved')
                             .or(prefixOrCond)
-                            .order('created_at', { ascending: false })
-                            .limit(1);
+                            .order('taken_at', { ascending: false, nullsFirst: false })
+                            .limit(50);
 
-                        if (data && data.length > 0 && data[0].operator) {
-                            if (!opInput.value || opInput.value !== data[0].operator) {
-                                opInput.value = data[0].operator;
+                        if (data && data.length > 0) {
+                            data.sort((a, b) => {
+                                const timeA = a.taken_at ? new Date(a.taken_at).getTime() : new Date(a.created_at).getTime();
+                                const timeB = b.taken_at ? new Date(b.taken_at).getTime() : new Date(b.created_at).getTime();
+                                return Math.abs(timeA - uploadDate) - Math.abs(timeB - uploadDate);
+                            });
+
+                            const closest = data[0];
+                            if (closest.operator && (!opInput.value || opInput.value !== closest.operator)) {
+                                opInput.value = closest.operator;
+                            }
+                            
+                            const modelInput = document.getElementById('up-model');
+                            if (modelInput && closest.vehicles && closest.vehicles.model) {
+                                if (!modelInput.value || modelInput.value !== closest.vehicles.model) {
+                                    modelInput.value = closest.vehicles.model;
+                                }
                             }
                         }
                     } catch (e) {
@@ -10829,12 +10846,12 @@ app.admin.fetchManagerData('denied');
                         if (exactVehicle) {
                             const { data } = await window.sb
                                 .from('photos')
-                                .select('operator, route_no, type')
+                                .select('operator, route_no, type, taken_at, created_at')
                                 .eq('license_plate', rawPlate)
                                 .eq('status', 'approved')
                                 .order('taken_at', { ascending: false, nullsFirst: false })
                                 .order('created_at', { ascending: false })
-                                .limit(10); // Lấy 10 ảnh gần nhất đã duyệt
+                                .limit(50); // Lấy 50 ảnh gần nhất đã duyệt
 
                             recentPhotos = data || [];
                             hasApproved = recentPhotos.length > 0;
@@ -10847,6 +10864,15 @@ app.admin.fetchManagerData('denied');
                             document.getElementById('up-model').value = exactVehicle.model || '';
 
                             if (recentPhotos && recentPhotos.length > 0) {
+                                const dateInput = document.getElementById('up-date');
+                                const uploadDate = dateInput && dateInput.value ? new Date(dateInput.value).getTime() : Date.now();
+
+                                recentPhotos.sort((a, b) => {
+                                    const timeA = a.taken_at ? new Date(a.taken_at).getTime() : new Date(a.created_at).getTime();
+                                    const timeB = b.taken_at ? new Date(b.taken_at).getTime() : new Date(b.created_at).getTime();
+                                    return Math.abs(timeA - uploadDate) - Math.abs(timeB - uploadDate);
+                                });
+
                                 // Tìm ảnh gần nhất CÓ TUYẾN KHÁC "Ngoài giờ hoạt động"
                                 let validPhoto = recentPhotos.find(p => p.route_no !== 'Ngoài giờ hoạt động');
 
