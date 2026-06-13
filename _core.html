@@ -3477,15 +3477,15 @@
                                         class="w-full border border-gray-300 p-2.5 text-sm rounded-md bg-gray-100 text-gray-500 pointer-events-none outline-none transition"
                                         readonly required>
                                 </div>
-                                <div x-data>
-                                    <label class="text-xs text-gray-500 font-bold block mb-1.5 uppercase">Đơn vị vận
-                                        hành <span class="text-red-500">*</span></label>
+                                <div>
+                                    <label class="text-xs text-gray-500 font-bold block mb-1.5 uppercase"
+                                        id="lbl-route">Số tuyến<span class="text-red-500">*</span></label>
                                     <div class="relative w-full">
-                                        <input type="text" id="up-operator" oninput="app.utils.formatNoPunctuation(this)"
-                                            class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition"
-                                            required autocomplete="off"
-                                            x-on:input.debounce.300ms="app.utils.triggerSuggestion('up-operator', 'up-operator-suggestions', $el.value, 'operator')">
-                                        <div id="up-operator-suggestions" class="suggestion-box"></div>
+                                        <input type="text" id="up-route" autocomplete="off"
+                                            onfocus="app.utils.triggerRouteSuggestion('up-route', 'up-route-suggestions', '')"
+                                            oninput="app.utils.triggerRouteSuggestion('up-route', 'up-route-suggestions', this.value); clearTimeout(app.upload.routeOpTimeout); app.upload.routeOpTimeout = setTimeout(app.upload.autoFillOperatorByRoute, 500);"
+                                            class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition">
+                                        <div id="up-route-suggestions" class="suggestion-box"></div>
                                     </div>
                                 </div>
 
@@ -3523,15 +3523,15 @@
                                     </div>
                                     <p id="type-msg" class="hidden text-xs text-red-500 mt-2 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Vui lòng chọn loại xe!</p>
                                 </div>
-                                <div>
-                                    <label class="text-xs text-gray-500 font-bold block mb-1.5 uppercase"
-                                        id="lbl-route">Số tuyến<span class="text-red-500">*</span></label>
+                                <div x-data>
+                                    <label class="text-xs text-gray-500 font-bold block mb-1.5 uppercase">Đơn vị vận
+                                        hành <span class="text-red-500">*</span></label>
                                     <div class="relative w-full">
-                                        <input type="text" id="up-route" autocomplete="off"
-                                            onfocus="app.utils.triggerRouteSuggestion('up-route', 'up-route-suggestions', '')"
-                                            oninput="app.utils.triggerRouteSuggestion('up-route', 'up-route-suggestions', this.value); clearTimeout(app.upload.routeOpTimeout); app.upload.routeOpTimeout = setTimeout(app.upload.autoFillOperatorByRoute, 500);"
-                                            class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition">
-                                        <div id="up-route-suggestions" class="suggestion-box"></div>
+                                        <input type="text" id="up-operator" oninput="app.utils.formatNoPunctuation(this)"
+                                            class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition"
+                                            required autocomplete="off"
+                                            x-on:input.debounce.300ms="app.utils.triggerSuggestion('up-operator', 'up-operator-suggestions', $el.value, 'operator')">
+                                        <div id="up-operator-suggestions" class="suggestion-box"></div>
                                     </div>
                                 </div>
                                 <div x-data>
@@ -10390,13 +10390,6 @@ app.admin.fetchManagerData('denied');
                         if (data && data.length > 0 && data[0].operator) {
                             if (!opInput.value || opInput.value !== data[0].operator) {
                                 opInput.value = data[0].operator;
-                                // Hiệu ứng chớp xanh để báo cho user biết hệ thống vừa tự điền
-                                opInput.classList.remove('border-gray-300');
-                                opInput.classList.add('bg-green-50', 'border-green-400', 'text-green-800');
-                                setTimeout(() => {
-                                    opInput.classList.remove('bg-green-50', 'border-green-400', 'text-green-800');
-                                    opInput.classList.add('border-gray-300');
-                                }, 1500);
                             }
                         }
                     } catch (e) {
