@@ -10558,14 +10558,19 @@ app.admin.fetchManagerData('denied');
                     const valPlate = plateInput.value.trim();
                     const valDate = dateInput.value;
 
-                    // Xóa cảnh báo cũ nếu có
-                    let warningEl = document.getElementById('duplicate-warning-msg');
-                    if (warningEl) warningEl.remove();
-                    btnSubmit.disabled = false;
+                    // Luôn xóa cảnh báo cũ mỗi khi gõ/kiểm tra lại
+                    const oldWarning = document.getElementById('duplicate-warning-msg');
+                    if (oldWarning) oldWarning.remove();
+                    
+                    // Khôi phục nút submit (nếu nó không bị khóa bởi lý do khác như quota)
+                    if (!document.getElementById('upload-quota-text')?.classList.contains('text-red-600')) {
+                        btnSubmit.disabled = false;
+                    }
 
                     if (!valPlate || !valDate) return;
 
                     const cleanPlate = valPlate.replace(/[^A-Z0-9-]/gi, '').toUpperCase();
+
                     try {
                         const { data: existingPhotos, error: checkErr } = await window.sb
                             .from('photos')
@@ -10575,13 +10580,17 @@ app.admin.fetchManagerData('denied');
                             .neq('status', 'denied');
 
                         if (!checkErr && existingPhotos && existingPhotos.length > 0) {
-                            const isDuplicateDate = existingPhotos.some(p => p.taken_at && p.taken_at.split('T')[0] === valDate);
+                            const isDuplicateDate = existingPhotos.some(p => {
+                                if (!p.taken_at) return false;
+                                return p.taken_at.split('T')[0] === valDate;
+                            });
+
                             if (isDuplicateDate) {
                                 btnSubmit.disabled = true;
                                 const displayDate = valDate.split('-').reverse().join('/');
 
-                                // Tạo UI hộp cảnh báo mới
-                                warningEl = document.createElement('div');
+                                // Tạo UI Box Cảnh báo
+                                const warningEl = document.createElement('div');
                                 warningEl.id = 'duplicate-warning-msg';
                                 warningEl.className = 'mt-3 p-3 bg-red-50 border border-red-200 rounded-lg shadow-sm flex items-start gap-2.5 fade-zoom-in';
                                 warningEl.innerHTML = `
@@ -10591,15 +10600,13 @@ app.admin.fetchManagerData('denied');
                                     </p>
                                 `;
 
-                                // Chèn ngay dưới ô input BKS (dưới thẻ p có id plate-msg)
-                                const plateMsg = document.getElementById('plate-msg');
-                                if (plateMsg) {
-                                    plateMsg.parentNode.insertBefore(warningEl, plateMsg.nextSibling);
-                                }
+                                // Xác định thẻ Div bọc ngoài của input BKS (thẻ div có x-data) và nhét vào cuối
+                                const plateContainer = plateInput.closest('div[x-data]') || plateInput.parentElement;
+                                plateContainer.appendChild(warningEl);
                             }
                         }
                     } catch (err) {
-                        console.error("Lỗi kiểm tra trùng lặp realtime:", err);
+                        console.error("Lỗi realtime trùng ngày:", err);
                     }
                 },
 
@@ -11003,6 +11010,9 @@ app.admin.fetchManagerData('denied');
                             // Gọi hàm auto fill Đơn vị dựa theo Tuyến và Tỉnh
                             app.upload.autoFillOperatorByRoute();
                         }
+
+                        // Kích hoạt check trùng ngày chụp và biển số ngay sau khi load xong BKS
+                        app.upload.checkDuplicateRealtime();
                     } catch (err) {
                         unlockUI();
                         msg.innerText = "Mất kết nối server, vui lòng nhập lại BKS.";
@@ -11271,6 +11281,8 @@ app.admin.fetchManagerData('denied');
                         document.getElementById('up-camera').value = app.currentExif.camera;
                         document.getElementById('up-exif-params').value = app.currentExif.params;
                         document.getElementById('up-date').value = exifData.date;
+
+                        app.upload.checkDuplicateRealtime();
 
                         if (exifData.gps.lat && exifData.gps.lon && exifData.gps.latRef && exifData.gps.lonRef) {
                             const toDecimal = (gps, ref) => {
