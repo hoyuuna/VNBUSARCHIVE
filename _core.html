@@ -7214,9 +7214,20 @@ grid.innerHTML = tiers.map(tier => {
                 grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tìm kiếm...</div>';
 
                 try {
-                    let cards =[];
+                    // 1. TÍNH NĂNG MỚI: TỰ ĐỘNG CHUYỂN HƯỚNG NẾU NHẬP LINK HOẶC ID ẢNH
+                    // Hỗ trợ link: /photo/123, domain.com/photo/123, hoặc chỉ gõ #123
+                    const isIdSearch = query.match(/\/photo\/(\d+)/i) || (query.match(/^#?(\d+)$/) && filterType === 'all');
+                    if (isIdSearch) {
+                        const directId = isIdSearch[1];
+                        app.loadingBar.finish();
+                        app.utils.navigate(`/photo/${directId}`);
+                        return;
+                    }
+
+                    let cards = [];
                     const searchWords = query.split(/\s+/).filter(w => w.length > 0);
 
+                    // ================= TẠO THẺ CARD GỢI Ý =================
                     if (filterType === 'uploader' || filterType === 'all') {
                         let uQuery = window.sb.from('profiles').select('id, username, avatar_url, role, subroles');
                         searchWords.forEach(w => { uQuery = uQuery.ilike('username', `%${w}%`); });
@@ -7242,10 +7253,7 @@ grid.innerHTML = tiers.map(tier => {
 
                     if (filterType === 'plate' || filterType === 'model' || filterType === 'all') {
                         let selectStr = '*';
-                        // Nếu có Preference, yêu cầu DB tải kèm cột type của bảng photos (INNER JOIN)
-                        if (app.preference.current !== 'both') {
-                            selectStr = '*, photos!inner(type)';
-                        }
+                        if (app.preference.current !== 'both') selectStr = '*, photos!inner(type)';
 
                         let vQuery = window.sb.from('vehicles').select(selectStr).limit(100);
                         if (filterType === 'plate') {
@@ -7256,17 +7264,12 @@ grid.innerHTML = tiers.map(tier => {
                             searchWords.forEach(w => {
                                 const safeW = w.replace(/"/g, '');
                                 const safeWPlate = app.utils.normalizePlateQuery(safeW);
-                                if (safeWPlate) {
-                                    vQuery = vQuery.or(`license_plate.ilike."%${safeWPlate}%",model.ilike."%${safeW}%",note.ilike."%${safeW}%"`);
-                                } else {
-                                    vQuery = vQuery.or(`model.ilike."%${safeW}%",note.ilike."%${safeW}%"`);
-                                }
+                                if (safeWPlate) vQuery = vQuery.or(`license_plate.ilike."%${safeWPlate}%",model.ilike."%${safeW}%",note.ilike."%${safeW}%"`);
+                                else vQuery = vQuery.or(`model.ilike."%${safeW}%",note.ilike."%${safeW}%"`);
                             });
                         }
 
-                        // LỌC TRIỆT ĐỂ BẰNG PREFERENCE
                         vQuery = app.preference.applyFilter(vQuery, 'vehicles');
-
                         const { data: vData } = await vQuery;
 
                         if (vData && vData.length > 0) {
@@ -7274,8 +7277,6 @@ grid.innerHTML = tiers.map(tier => {
                                 const rawPlate = app.utils.cleanText(v.license_plate);
                                 const displayPlate = app.utils.displayPlate(rawPlate);
                                 const safeModel = app.utils.cleanText(v.model || 'Chưa rõ Model');
-
-                                // Đổi icon Card tự động theo nội dung đang lọc (Xe Khách -> Icon Van, Buýt -> Bus)
                                 const iconClass = (app.preference.current === 'coach') ? 'fa-van-shuttle' : 'fa-bus';
 
                                 cards.push(`
@@ -7294,15 +7295,19 @@ grid.innerHTML = tiers.map(tier => {
                     app.currentSearchCards = cards;
                     app.views.loadMoreSearchCards(true);
 
+
+                    // ================= TÌM KIẾM ẢNH CHÍNH =================
                     const profileSelect = (filterType === 'uploader') ? 'profiles!inner(id, username, role, subroles)' : 'profiles(id, username, role, subroles)';
-                    let photoQuery = window.sb
-                        .from('photos')
-                        .select(`*, ${profileSelect}, vehicles(model)`)
-                        .eq('status', 'approved');
+                    let photoQuery;
 
-                    // ÁP DỤNG PREFERENCE
+                    // FIX LỖI: Dùng INNER JOIN cho 'model' để Database tự lọc mà không bị lỡ ảnh cũ
+                    if (filterType === 'model') {
+                        photoQuery = window.sb.from('photos').select(`*, ${profileSelect}, vehicles!inner(model)`).eq('status', 'approved');
+                    } else {
+                        photoQuery = window.sb.from('photos').select(`*, ${profileSelect}, vehicles(model)`).eq('status', 'approved');
+                    }
+
                     photoQuery = app.preference.applyFilter(photoQuery);
-
                     let forceEmptyResult = false;
 
                     if (filterType === 'absolute_route') {
@@ -7323,52 +7328,40 @@ grid.innerHTML = tiers.map(tier => {
                     } else if (filterType === 'uploader') {
                         searchWords.forEach(w => { photoQuery = photoQuery.ilike('profiles.username', `%${w}%`); });
                     } else if (filterType === 'model') {
-                        // CHỈNH SỬA: Giới hạn danh sách BKS phụ để tránh lỗi URL quá dài làm mất ảnh cũ
-                        let vQ = window.sb.from('vehicles').select('license_plate');
-                        searchWords.forEach(w => { vQ = vQ.ilike('model', `%${w}%`); });
-                        const { data: vData } = await vQ.limit(200);
-                        const plates = vData ? vData.map(v => v.license_plate) : [];
-
-                        if (plates.length > 0) photoQuery = photoQuery.in('license_plate', plates);
-                        else forceEmptyResult = true;
+                        // Kích hoạt tìm kiếm Model bằng INNER JOIN
+                        searchWords.forEach(w => { photoQuery = photoQuery.ilike('vehicles.model', `%${w}%`); });
                     } else {
-                        // FILTER TYPE = 'ALL' (TẤT CẢ) - ĐÃ TỐI ƯU LOGIC TÌM KIẾM ĐỂ KHÔNG SÓT ẢNH
-                        const cleanFullQuery = query.trim().replace(/"/g, '');
-
-                        // 1. Tìm trước biển số của các Dòng xe khớp từ khóa (Giới hạn 100 chiếc để không làm sập API Request)
+                        // LỌC ALL (ĐÃ NỞI RỘNG LIMIT ĐỂ KHÔNG BỊ RỚT ẢNH CŨ)
                         let mQ = window.sb.from('vehicles').select('license_plate');
                         searchWords.forEach(w => {
                             const safeW = w.replace(/"/g, '');
                             mQ = mQ.or(`model.ilike."%${safeW}%",note.ilike."%${safeW}%"`);
                         });
-                        const { data: mData } = await mQ.limit(100);
+                        const { data: mData } = await mQ.limit(800); // Lấy tới 800 xe thay vì 100
                         const plates = mData ? mData.map(v => v.license_plate) : [];
 
-                        // 2. Tìm trước ID của Người đăng (Giới hạn 10 người)
-                        const { data: uData } = await window.sb.from('profiles')
-                            .select('id')
-                            .ilike('username', `%${cleanFullQuery}%`)
-                            .limit(10);
+                        let uQ = window.sb.from('profiles').select('id');
+                        searchWords.forEach(w => { uQ = uQ.ilike('username', `%${w}%`); });
+                        const { data: uData } = await uQ.limit(20);
                         const uploaderIds = uData ? uData.map(u => u.id) : [];
 
-                        // 3. Ráp nối điều kiện tìm kiếm đa cột cho từng từ khóa (Giao thức AND giữa các từ, OR giữa các cột)
                         searchWords.forEach(w => {
                             const safeW = w.replace(/"/g, '');
                             const safeWPlate = app.utils.normalizePlateQuery(safeW);
                             
-                            let colOrs = [];
-                            if (safeWPlate) colOrs.push(`license_plate.ilike."%${safeWPlate}%"`);
-                            colOrs.push(`operator.ilike."%${safeW}%"`);
-                            colOrs.push(`route_no.ilike."%${safeW}%"`);
-                            colOrs.push(`camera_model.ilike."%${safeW}%"`);
-                            colOrs.push(`location.ilike."%${safeW}%"`);
-                            colOrs.push(`note.ilike."%${safeW}%"`);
+                            let orConditions = [];
+                            if (safeWPlate) orConditions.push(`license_plate.ilike."%${safeWPlate}%"`);
+                            
+                            orConditions.push(`operator.ilike."%${safeW}%"`);
+                            orConditions.push(`route_no.ilike."%${safeW}%"`);
+                            orConditions.push(`camera_model.ilike."%${safeW}%"`);
+                            orConditions.push(`location.ilike."%${safeW}%"`);
+                            orConditions.push(`note.ilike."%${safeW}%"`);
 
-                            // Nhúng kết quả tìm bảng ngoại vào câu OR
-                            if (plates.length > 0) colOrs.push(`license_plate.in.(${plates.join(',')})`);
-                            if (uploaderIds.length > 0) colOrs.push(`uploader_id.in.(${uploaderIds.join(',')})`);
-
-                            photoQuery = photoQuery.or(colOrs.join(','));
+                            if (plates.length > 0) orConditions.push(`license_plate.in.(${plates.join(',')})`);
+                            if (uploaderIds.length > 0) orConditions.push(`uploader_id.in.(${uploaderIds.join(',')})`);
+                            
+                            photoQuery = photoQuery.or(orConditions.join(','));
                         });
                     }
 
@@ -7383,9 +7376,7 @@ grid.innerHTML = tiers.map(tier => {
                         .order('created_at', { ascending: false })
                         .limit(500);
 
-// BẮT LỖI RACE CONDITION
                     if (app.currentViewMode !== 'search') return;
-
                     if (error) throw error;
 
                     if (!results || results.length === 0) {
@@ -7397,7 +7388,6 @@ grid.innerHTML = tiers.map(tier => {
                     app.loadedCount = 0;
                     grid.innerHTML = '';
 
-                    // Nó sẽ tự load và append vào đúng `search-photo-grid` do ta đã cấu hình ở phần 4
                     app.views.loadMorePhotos();
 
                 } catch (err) {
