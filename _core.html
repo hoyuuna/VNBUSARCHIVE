@@ -8202,7 +8202,8 @@ dropdown.innerHTML = `
                     const views = isDenied ? 0 : ((photo.views || 0) + 1);
 
                     if (!isDenied) {
-                        await window.sb.from('photos').update({ views: views }).eq('id', photoId);
+                        // Gọi RPC thay vì update trực tiếp
+                        await window.sb.rpc('increment_views', { photo_id: photoId });
                     }
                     document.getElementById('detail-title').innerText = `${app.utils.displayPlate(photo.license_plate)} - ${snapshot.operator || 'Đã bị xóa'}`;
 
