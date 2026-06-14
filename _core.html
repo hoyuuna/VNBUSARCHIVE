@@ -3680,24 +3680,24 @@
                                         <p class="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-3 text-center md:text-left">Ảnh tâm đắc nhất</p>
 
                                         <!-- Khung ảnh 4:3 -->
-                                        <div class="relative w-full aspect-[4/3] bg-gray-100 rounded-xl overflow-hidden border border-gray-200/60 shadow-inner group flex flex-col items-center justify-center">
+                                        <div class="relative w-full aspect-[4/3] bg-gray-100 rounded-xl overflow-hidden border border-gray-200/60 shadow-inner flex flex-col items-center justify-center">
 
-                                            <!-- PLACEHOLDER NỀN (Luôn nằm dưới cùng) -->
-                                            <i class="fa-regular fa-image text-4xl mb-3 opacity-20 text-gray-500"></i>
-                                            <span class="text-[10px] uppercase font-bold opacity-30 tracking-widest text-gray-500">Chưa có ảnh</span>
+                                            <!-- PLACEHOLDER NỀN (Đã thêm ID để JS kiểm soát ẩn/hiện) -->
+                                            <i id="fav-photo-placeholder-icon" class="fa-regular fa-image text-4xl mb-3 opacity-20 text-gray-500"></i>
+                                            <span id="fav-photo-placeholder-text" class="text-[10px] uppercase font-bold opacity-30 tracking-widest text-gray-500">Chưa có ảnh</span>
 
                                             <!-- LỚP CHỨA ẢNH (Nằm đè lên placeholder) -->
                                             <div id="profile-fav-photo-container" class="absolute inset-0 w-full h-full z-10 pointer-events-none">
                                                 <!-- JS sẽ nhét ảnh vào đây, che mất cái nền -->
                                             </div>
 
-                                            <!-- NÚT CHỌN ẢNH (To, bo tròn, luôn nằm trên) -->
+                                            <!-- NÚT CHỌN ẢNH -->
                                             <button id="btn-add-fav-photo" onclick="app.profileIntro.openPhotoSelector()" class="hidden absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white/95 backdrop-blur-sm border border-gray-200 text-gray-800 px-5 py-2.5 rounded-full text-xs font-bold hover:bg-black hover:text-white hover:border-black transition-all shadow-lg items-center gap-2 w-max z-20">
                                                 <i class="fa-solid fa-camera-retro"></i> Chọn ảnh nổi bật
                                             </button>
 
-                                            <!-- NÚT SỬA/XÓA (Hiện khi có ảnh & hover) -->
-                                            <div id="profile-fav-photo-controls" class="hidden absolute top-3 right-3 items-center gap-1 bg-black/60 backdrop-blur-md rounded-full p-1 shadow-lg border border-white/20 z-30 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                            <!-- NÚT SỬA/XÓA (Hiện rõ ràng luôn cho dễ bấm trên cả Mobile & PC, bỏ hover ảo ma) -->
+                                            <div id="profile-fav-photo-controls" class="hidden absolute top-3 right-3 items-center gap-1 bg-black/60 backdrop-blur-md rounded-full p-1 shadow-lg border border-white/20 z-30">
                                                 <button onclick="app.profileIntro.openPhotoSelector()" class="w-8 h-8 rounded-full text-white hover:bg-white/20 transition flex items-center justify-center" title="Thay đổi ảnh">
                                                     <i class="fa-solid fa-pen text-[11px]"></i>
                                                 </button>
@@ -4851,7 +4851,7 @@
                         const safePlateText = app.utils.cleanText(app.utils.displayPlate(p.license_plate || ''));
 
                         return `
-                            <div class="aspect-[4/3] relative rounded-xl overflow-hidden cursor-pointer group border-2 border-transparent hover:border-black hover:shadow-lg transition-all duration-300 bg-gray-200" onclick="app.profileIntro.saveFavPhoto(${photoIdArg}, '${safeUrl}', '${safePlate}')">
+                            <div class="aspect-[4/3] relative rounded-xl overflow-hidden cursor-pointer group border-2 border-transparent hover:border-black hover:shadow-lg transition-all duration-300 bg-gray-200" onclick="app.profileIntro.saveFavPhoto(${photoIdArg}, '${safeUrl}')">
                                 <img src="${app.utils.getProxiedUrl(p.url, 'thumb.jpg', 'thumb')}" class="w-full h-full object-cover">
                                 <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white font-bold text-sm backdrop-blur-[2px]">
                                     Chọn ảnh này
@@ -4864,7 +4864,8 @@
                     }).join('');
                 },
 
-                saveFavPhoto: async (photoId, url, plate) => {
+                // Sửa tham số truyền vào, xóa cái plate đi
+                saveFavPhoto: async (photoId, url) => {
                     try {
                         const { error } = await window.sb.from('profiles').update({ favorite_photo_id: photoId }).eq('id', app.user.id);
                         if (error) throw error;
@@ -4874,14 +4875,17 @@
                         const favContainer = document.getElementById('profile-fav-photo-container');
                         const favControls = document.getElementById('profile-fav-photo-controls');
                         const btnAddFav = document.getElementById('btn-add-fav-photo');
-                        const safePlate = app.utils.cleanText(app.utils.displayPlate(plate || ''));
+                        const placeholderIcon = document.getElementById('fav-photo-placeholder-icon');
+                        const placeholderText = document.getElementById('fav-photo-placeholder-text');
+
+                        // Ẩn nền rác
+                        placeholderIcon.classList.add('hidden');
+                        placeholderText.classList.add('hidden');
+
                         const detailId = String(photoId).includes('-') ? `'${String(photoId).replace(/'/g, "\\'")}'` : photoId;
 
                         favContainer.innerHTML = `
                             <img src="${app.utils.getProxiedUrl(url, 'fav.jpg', 'thumb')}" class="absolute inset-0 w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-700 pointer-events-auto" onclick="app.views.loadDetail(${detailId})">
-                            <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 via-black/30 to-transparent p-3 text-white text-[11px] font-bold truncate pointer-events-none z-0">
-                                ${safePlate}
-                            </div>
                         `;
                         favControls.classList.remove('hidden');
                         favControls.classList.add('flex');
@@ -4902,9 +4906,14 @@
                             const favContainer = document.getElementById('profile-fav-photo-container');
                             const favControls = document.getElementById('profile-fav-photo-controls');
                             const btnAddFav = document.getElementById('btn-add-fav-photo');
+                            const placeholderIcon = document.getElementById('fav-photo-placeholder-icon');
+                            const placeholderText = document.getElementById('fav-photo-placeholder-text');
 
-                            // Chìa khóa: Rút lớp che đi để lộ nền Placeholder cực chuẩn
                             favContainer.innerHTML = '';
+
+                            // Ẩn nền "Chưa có ảnh" vì đây là nick của bạn
+                            placeholderIcon.classList.add('hidden');
+                            placeholderText.classList.add('hidden');
 
                             favControls.classList.add('hidden');
                             favControls.classList.remove('flex');
@@ -8148,60 +8157,67 @@ dropdown.innerHTML = `
                     const favContainer = document.getElementById('profile-fav-photo-container');
                     const favControls = document.getElementById('profile-fav-photo-controls');
                     const btnAddFav = document.getElementById('btn-add-fav-photo');
-
-                    const showFavControls = () => {
-                        favControls.classList.remove('hidden');
-                        favControls.classList.add('flex');
-                    };
-                    const hideFavControls = () => {
-                        favControls.classList.add('hidden');
-                        favControls.classList.remove('flex');
-                    };
-                    const showAddFavButton = () => {
-                        btnAddFav.classList.remove('hidden');
-                        btnAddFav.classList.add('flex');
-                    };
-                    const hideAddFavButton = () => {
-                        btnAddFav.classList.add('hidden');
-                        btnAddFav.classList.remove('flex');
-                    };
+                    const placeholderIcon = document.getElementById('fav-photo-placeholder-icon');
+                    const placeholderText = document.getElementById('fav-photo-placeholder-text');
 
                     if (profile.favorite_photo_id) {
-                        window.sb.from('photos').select('id, url, license_plate').eq('id', profile.favorite_photo_id).single()
+                        window.sb.from('photos').select('id, url').eq('id', profile.favorite_photo_id).single()
                         .then(({data: favPhoto}) => {
                             if (favPhoto) {
-                                const safePlate = app.utils.cleanText(app.utils.displayPlate(favPhoto.license_plate || ''));
+                                // Ẩn cái nền rác đi
+                                placeholderIcon.classList.add('hidden');
+                                placeholderText.classList.add('hidden');
+
+                                // XÓA BIỂN SỐ Ở ĐÂY RỒI NHÉ
                                 const detailId = String(favPhoto.id).includes('-') ? `'${String(favPhoto.id).replace(/'/g, "\\'")}'` : favPhoto.id;
 
                                 favContainer.innerHTML = `
                                     <img src="${app.utils.getProxiedUrl(favPhoto.url, 'fav.jpg', 'thumb')}" class="absolute inset-0 w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-700 pointer-events-auto" onclick="app.views.loadDetail(${detailId})">
-                                    <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 via-black/30 to-transparent p-3 text-white text-[11px] font-bold truncate pointer-events-none z-0">
-                                        ${safePlate}
-                                    </div>
                                 `;
                                 if (isOwnProfile) {
-                                    showFavControls();
-                                    hideAddFavButton();
+                                    favControls.classList.remove('hidden');
+                                    favControls.classList.add('flex');
+                                    btnAddFav.classList.add('hidden');
+                                    btnAddFav.classList.remove('flex');
                                 } else {
-                                    hideFavControls();
-                                    hideAddFavButton();
+                                    favControls.classList.add('hidden');
+                                    favControls.classList.remove('flex');
+                                    btnAddFav.classList.add('hidden');
+                                    btnAddFav.classList.remove('flex');
                                 }
                             } else {
-                                // Ảnh đã bị xóa khỏi server -> Xóa HTML che đậy để lộ Placeholder
                                 favContainer.innerHTML = '';
-                                if (isOwnProfile) showAddFavButton();
-                                else hideAddFavButton();
-                                hideFavControls();
+                                favControls.classList.add('hidden');
+                                favControls.classList.remove('flex');
+                                if (isOwnProfile) {
+                                    btnAddFav.classList.remove('hidden');
+                                    btnAddFav.classList.add('flex');
+                                    placeholderIcon.classList.add('hidden');
+                                    placeholderText.classList.add('hidden');
+                                } else {
+                                    placeholderIcon.classList.remove('hidden');
+                                    placeholderText.classList.remove('hidden');
+                                    btnAddFav.classList.add('hidden');
+                                    btnAddFav.classList.remove('flex');
+                                }
                             }
                         });
                     } else {
-                        // Chưa chọn ảnh -> Xóa HTML che đậy để lộ Placeholder
                         favContainer.innerHTML = '';
-                        hideFavControls();
+                        favControls.classList.add('hidden');
+                        favControls.classList.remove('flex');
                         if (isOwnProfile) {
-                            showAddFavButton();
+                            // Ẩn chữ Chưa Có Ảnh, chỉ hiện nút Add
+                            btnAddFav.classList.remove('hidden');
+                            btnAddFav.classList.add('flex');
+                            placeholderIcon.classList.add('hidden');
+                            placeholderText.classList.add('hidden');
                         } else {
-                            hideAddFavButton();
+                            // Người xem thì thấy chữ Chưa Có Ảnh, ẩn nút Add
+                            placeholderIcon.classList.remove('hidden');
+                            placeholderText.classList.remove('hidden');
+                            btnAddFav.classList.add('hidden');
+                            btnAddFav.classList.remove('flex');
                         }
                     }
                     // --- KẾT THÚC RENDER GIỚI THIỆU ---
