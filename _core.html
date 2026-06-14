@@ -10558,11 +10558,10 @@ app.admin.fetchManagerData('denied');
                     const valPlate = plateInput.value.trim();
                     const valDate = dateInput.value;
 
-
+                    // Xóa cảnh báo cũ nếu có
                     let warningEl = document.getElementById('duplicate-warning-msg');
                     if (warningEl) warningEl.remove();
                     btnSubmit.disabled = false;
-
 
                     if (!valPlate || !valDate) return;
 
@@ -10579,12 +10578,24 @@ app.admin.fetchManagerData('denied');
                             const isDuplicateDate = existingPhotos.some(p => p.taken_at && p.taken_at.split('T')[0] === valDate);
                             if (isDuplicateDate) {
                                 btnSubmit.disabled = true;
+                                const displayDate = valDate.split('-').reverse().join('/');
+
+                                // Tạo UI hộp cảnh báo mới
                                 warningEl = document.createElement('div');
                                 warningEl.id = 'duplicate-warning-msg';
-                                warningEl.className = 'text-red-600 font-bold text-sm mb-3';
-                                warningEl.innerHTML = `⚠️ <b>Trùng lặp:</b> Bạn đã có ảnh xe <b>${cleanPlate}</b> chụp ngày <b>${valDate.split('-').reverse().join('/')}</b>. Vui lòng không upload 2 ảnh cùng 1 xe trong cùng 1 ngày.`;
+                                warningEl.className = 'mt-3 p-3 bg-red-50 border border-red-200 rounded-lg shadow-sm flex items-start gap-2.5 fade-zoom-in';
+                                warningEl.innerHTML = `
+                                    <i class="fa-solid fa-triangle-exclamation text-red-500 mt-0.5 text-sm"></i>
+                                    <p class="text-[11px] font-bold text-red-700 leading-snug m-0">
+                                        Bạn đã có ảnh với BKS tương tự được chụp ngày ${displayDate}. Bạn không thể đăng 2 ảnh của cùng 1 xe được chụp cùng ngày.
+                                    </p>
+                                `;
 
-                                btnSubmit.parentNode.insertBefore(warningEl, btnSubmit);
+                                // Chèn ngay dưới ô input BKS (dưới thẻ p có id plate-msg)
+                                const plateMsg = document.getElementById('plate-msg');
+                                if (plateMsg) {
+                                    plateMsg.parentNode.insertBefore(warningEl, plateMsg.nextSibling);
+                                }
                             }
                         }
                     } catch (err) {
