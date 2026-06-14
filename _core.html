@@ -3675,25 +3675,29 @@
 
                                 <div class="bg-white border border-[#e4e4e7] shadow-sm rounded-2xl overflow-hidden flex flex-col md:flex-row">
 
-                                    <!-- CỘT TRÁI: ẢNH TÂM ĐẮC (Ép cứng 4:3, nền xám nhạt tôn ảnh) -->
+                                    <!-- CỘT TRÁI: ẢNH TÂM ĐẮC -->
                                     <div class="w-full md:w-5/12 p-4 md:p-5 border-b md:border-b-0 md:border-r border-[#e4e4e7] bg-gray-50/50">
-                                        <p class="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-3">Ảnh tâm đắc nhất</p>
+                                        <p class="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-3 text-center md:text-left">Ảnh tâm đắc nhất</p>
 
-                                        <!-- Khung ảnh 4:3 Bất khả xâm phạm -->
-                                        <div class="relative w-full aspect-[4/3] bg-gray-100 rounded-xl overflow-hidden border border-gray-200/60 shadow-inner group">
+                                        <!-- Khung ảnh 4:3 -->
+                                        <div class="relative w-full aspect-[4/3] bg-gray-100 rounded-xl overflow-hidden border border-gray-200/60 shadow-inner group flex flex-col items-center justify-center">
 
-                                            <!-- Container chứa ảnh hoặc Placeholder -->
-                                            <div id="profile-fav-photo-container" class="absolute inset-0 w-full h-full">
-                                                <!-- JS sẽ nhét ảnh vào đây -->
+                                            <!-- PLACEHOLDER NỀN (Luôn nằm dưới cùng) -->
+                                            <i class="fa-regular fa-image text-4xl mb-3 opacity-20 text-gray-500"></i>
+                                            <span class="text-[10px] uppercase font-bold opacity-30 tracking-widest text-gray-500">Chưa có ảnh</span>
+
+                                            <!-- LỚP CHỨA ẢNH (Nằm đè lên placeholder) -->
+                                            <div id="profile-fav-photo-container" class="absolute inset-0 w-full h-full z-10 pointer-events-none">
+                                                <!-- JS sẽ nhét ảnh vào đây, che mất cái nền -->
                                             </div>
 
-                                            <!-- Nút Chọn ảnh ban đầu (Căn giữa tuyệt đối, bo viên nang) -->
-                                            <button id="btn-add-fav-photo" onclick="app.profileIntro.openPhotoSelector()" class="hidden absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white/95 backdrop-blur-sm border border-gray-200 text-gray-800 px-5 py-2.5 rounded-full text-xs font-bold hover:bg-black hover:text-white hover:border-black transition-all shadow-lg items-center gap-2 w-max z-10">
+                                            <!-- NÚT CHỌN ẢNH (To, bo tròn, luôn nằm trên) -->
+                                            <button id="btn-add-fav-photo" onclick="app.profileIntro.openPhotoSelector()" class="hidden absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white/95 backdrop-blur-sm border border-gray-200 text-gray-800 px-5 py-2.5 rounded-full text-xs font-bold hover:bg-black hover:text-white hover:border-black transition-all shadow-lg items-center gap-2 w-max z-20">
                                                 <i class="fa-solid fa-camera-retro"></i> Chọn ảnh nổi bật
                                             </button>
 
-                                            <!-- Pill Edit/Delete (Nguyên khối đen kính mờ, hiện khi hover) -->
-                                            <div id="profile-fav-photo-controls" class="hidden absolute top-3 right-3 items-center gap-1 bg-black/60 backdrop-blur-md rounded-full p-1 shadow-lg border border-white/20 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                            <!-- NÚT SỬA/XÓA (Hiện khi có ảnh & hover) -->
+                                            <div id="profile-fav-photo-controls" class="hidden absolute top-3 right-3 items-center gap-1 bg-black/60 backdrop-blur-md rounded-full p-1 shadow-lg border border-white/20 z-30 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                                 <button onclick="app.profileIntro.openPhotoSelector()" class="w-8 h-8 rounded-full text-white hover:bg-white/20 transition flex items-center justify-center" title="Thay đổi ảnh">
                                                     <i class="fa-solid fa-pen text-[11px]"></i>
                                                 </button>
@@ -4874,7 +4878,7 @@
                         const detailId = String(photoId).includes('-') ? `'${String(photoId).replace(/'/g, "\\'")}'` : photoId;
 
                         favContainer.innerHTML = `
-                            <img src="${app.utils.getProxiedUrl(url, 'fav.jpg', 'thumb')}" class="absolute inset-0 w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-700" onclick="app.views.loadDetail(${detailId})">
+                            <img src="${app.utils.getProxiedUrl(url, 'fav.jpg', 'thumb')}" class="absolute inset-0 w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-700 pointer-events-auto" onclick="app.views.loadDetail(${detailId})">
                             <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 via-black/30 to-transparent p-3 text-white text-[11px] font-bold truncate pointer-events-none z-0">
                                 ${safePlate}
                             </div>
@@ -4899,7 +4903,8 @@
                             const favControls = document.getElementById('profile-fav-photo-controls');
                             const btnAddFav = document.getElementById('btn-add-fav-photo');
 
-                            favContainer.innerHTML = '<div class="absolute inset-0 w-full h-full flex flex-col items-center justify-center text-gray-400 bg-gray-50"><i class="fa-regular fa-image text-4xl mb-3 opacity-20"></i><span class="text-[10px] uppercase font-bold opacity-30 tracking-widest">Chưa có ảnh</span></div>';
+                            // Chìa khóa: Rút lớp che đi để lộ nền Placeholder cực chuẩn
+                            favContainer.innerHTML = '';
 
                             favControls.classList.add('hidden');
                             favControls.classList.remove('flex');
@@ -8129,11 +8134,8 @@ dropdown.innerHTML = `
                     const bioContent = document.getElementById('profile-bio-content');
                     const btnEditBio = document.getElementById('btn-edit-bio');
 
-                    if (profile.bio) {
-                        bioContent.innerHTML = app.utils.cleanText(profile.bio);
-                    } else {
-                        bioContent.innerHTML = '<span class="text-gray-400 italic">Chưa có thông tin giới thiệu.</span>';
-                    }
+                    if (profile.bio) bioContent.innerHTML = app.utils.cleanText(profile.bio);
+                    else bioContent.innerHTML = '<span class="text-gray-400 italic">Chưa có thông tin giới thiệu.</span>';
 
                     if (isOwnProfile) {
                         btnEditBio.classList.remove('hidden');
@@ -8172,7 +8174,7 @@ dropdown.innerHTML = `
                                 const detailId = String(favPhoto.id).includes('-') ? `'${String(favPhoto.id).replace(/'/g, "\\'")}'` : favPhoto.id;
 
                                 favContainer.innerHTML = `
-                                    <img src="${app.utils.getProxiedUrl(favPhoto.url, 'fav.jpg', 'thumb')}" class="absolute inset-0 w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-700" onclick="app.views.loadDetail(${detailId})">
+                                    <img src="${app.utils.getProxiedUrl(favPhoto.url, 'fav.jpg', 'thumb')}" class="absolute inset-0 w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-700 pointer-events-auto" onclick="app.views.loadDetail(${detailId})">
                                     <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 via-black/30 to-transparent p-3 text-white text-[11px] font-bold truncate pointer-events-none z-0">
                                         ${safePlate}
                                     </div>
@@ -8185,15 +8187,17 @@ dropdown.innerHTML = `
                                     hideAddFavButton();
                                 }
                             } else {
-                                favContainer.innerHTML = '<div class="absolute inset-0 w-full h-full flex flex-col items-center justify-center text-gray-400 bg-gray-50"><i class="fa-solid fa-image-slash text-3xl mb-2 opacity-30"></i><span class="text-[10px] uppercase font-bold opacity-40">Ảnh không tồn tại</span></div>';
+                                // Ảnh đã bị xóa khỏi server -> Xóa HTML che đậy để lộ Placeholder
+                                favContainer.innerHTML = '';
                                 if (isOwnProfile) showAddFavButton();
+                                else hideAddFavButton();
                                 hideFavControls();
                             }
                         });
                     } else {
-                        favContainer.innerHTML = '<div class="absolute inset-0 w-full h-full flex flex-col items-center justify-center text-gray-400 bg-gray-50"><i class="fa-regular fa-image text-4xl mb-3 opacity-20"></i><span class="text-[10px] uppercase font-bold opacity-30 tracking-widest">Chưa có ảnh</span></div>';
+                        // Chưa chọn ảnh -> Xóa HTML che đậy để lộ Placeholder
+                        favContainer.innerHTML = '';
                         hideFavControls();
-
                         if (isOwnProfile) {
                             showAddFavButton();
                         } else {
@@ -14951,9 +14955,9 @@ closeCustomRolePrompt: () => {
             </div>
 
             <div class="p-3 border-b border-gray-200/50 bg-white/20 shrink-0">
-                <div class="relative w-full max-w-md mx-auto md:mx-0">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                    <input type="text" id="fav-photo-search" placeholder="Tìm kiếm BKS hoặc Tuyến..." class="w-full pl-9 pr-3 py-2.5 border border-gray-300/80 rounded-xl text-sm outline-none focus:ring-2 focus:ring-black transition shadow-inner bg-white/60" oninput="app.profileIntro.filterFavPhotos(this.value)">
+                <div class="w-full max-w-md mx-auto md:mx-0 flex items-center gap-2 bg-white/60 border border-gray-300/80 rounded-xl px-3 py-2.5 shadow-inner focus-within:ring-2 focus-within:ring-black focus-within:border-transparent transition-all">
+                    <i class="fa-solid fa-magnifying-glass text-gray-400 text-sm"></i>
+                    <input type="text" id="fav-photo-search" placeholder="Tìm kiếm BKS hoặc Tuyến..." class="w-full bg-transparent border-none outline-none text-sm text-black placeholder-gray-500 font-medium" oninput="app.profileIntro.filterFavPhotos(this.value)">
                 </div>
             </div>
 
