@@ -4845,37 +4845,33 @@
                     const plateEl = document.getElementById('fav-photo-preview-plate');
                     const opEl = document.getElementById('fav-photo-preview-op');
 
-                    // Cấu hình câu báo lỗi tĩnh theo yêu cầu
+                    // Câu báo lỗi chung
                     const genericErrorMsg = "Ảnh không hợp lệ. Chỉ chấp nhận ảnh VNBUSARCHIVE và là của bạn.";
 
-                    // Reset trạng thái nút lưu
+                    // Reset mọi trạng thái
                     btnSave.disabled = true;
                     btnSave.classList.add('opacity-50', 'cursor-not-allowed');
                     errorBox.classList.add('hidden');
+                    previewArea.classList.add('hidden');
                     app.profileIntro.previewedPhoto = null;
 
                     const val = url.trim();
-                    if (!val) {
-                        previewArea.classList.add('hidden');
-                        return;
-                    }
+                    if (!val) return;
 
-                    previewArea.classList.remove('hidden');
-
-                    // Regex trích xuất ID từ URL
+                    // Kiểm tra URL có đúng định dạng không
                     const match = val.match(/\/photo\/(\d+)/i);
                     if (!match) {
-                        imgEl.src = 'https://placehold.co/400x300/f3f4f6/a1a1aa?text=Link+khong+hop+le';
-                        plateEl.innerText = '---';
-                        opEl.innerText = '---';
                         errorText.innerText = genericErrorMsg;
                         errorBox.classList.remove('hidden');
-                        return;
+                        return; // Dừng, không hiện preview
                     }
 
                     const photoId = match[1];
-                    imgEl.src = 'https://placehold.co/400x300/f3f4f6/a1a1aa?text=Dang+tai+thong+tin...';
-                    plateEl.innerText = 'Đang tải thông tin...';
+                    
+                    // Trong lúc chờ API, hiện tạm khung preview dạng đang tải
+                    previewArea.classList.remove('hidden');
+                    imgEl.src = 'https://placehold.co/400x300/f3f4f6/a1a1aa?text=Dang+tai...';
+                    plateEl.innerText = 'Đang kiểm tra dữ liệu...';
                     opEl.innerText = '';
 
                     try {
@@ -4884,13 +4880,13 @@
                             .eq('id', photoId)
                             .single();
 
+                        // Các điều kiện từ chối
                         if (error || !data) throw new Error();
                         if (data.status !== 'approved') throw new Error();
                         if (data.uploader_id !== app.user.id) throw new Error();
 
-                        // Nếu qua hết các bài test, gán vào cache và hiện nút Save
+                        // Nếu qua hết các bài test -> Render ảnh thật
                         app.profileIntro.previewedPhoto = data;
-
                         imgEl.src = app.utils.getProxiedUrl(data.url, 'preview.jpg', 'thumb');
                         plateEl.innerText = app.utils.displayPlate(data.license_plate);
                         opEl.innerText = data.operator || 'Không rõ đơn vị';
@@ -4899,10 +4895,9 @@
                         btnSave.classList.remove('opacity-50', 'cursor-not-allowed');
 
                     } catch (e) {
-                        // Mọi lỗi văng ra đều bị bắt lại và hiển thị duy nhất 1 câu báo lỗi này
-                        imgEl.src = 'https://placehold.co/400x300/f3f4f6/ef4444?text=Loi+he+thong';
-                        plateEl.innerText = 'Lỗi';
-                        opEl.innerText = '';
+                        // Nếu ảnh bị lỗi (không tồn tại, chưa duyệt, của người khác) 
+                        // -> ẨN KHUNG PREVIEW ĐI, CHỈ SHOW Ô BÁO LỖI
+                        previewArea.classList.add('hidden');
                         errorText.innerText = genericErrorMsg;
                         errorBox.classList.remove('hidden');
                     }
