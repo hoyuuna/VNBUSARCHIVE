@@ -3669,62 +3669,60 @@
                                 <i class="fa-solid fa-comments text-gray-500 group-hover:text-black transition-colors"></i> Quản lý bình luận
                             </button>
 
-                            <!-- ĐOẠN CODE THÊM MỚI: PHẦN GIỚI THIỆU CHUẨN UI -->
-                            <div id="profile-intro-section" class="mt-8 mb-6">
-                                <h3 class="font-bold text-sm uppercase text-gray-800 border-b border-gray-200 pb-2 mb-4 tracking-wide">Giới thiệu</h3>
-                                <div class="flex flex-col md:flex-row gap-4 items-stretch">
+                            <!-- ĐOẠN CODE THÊM MỚI: PHẦN GIỚI THIỆU (GIAO DIỆN SANG TRỌNG) -->
+                            <div id="profile-intro-section" class="mt-10 mb-8">
+                                <h3 class="font-bold text-lg uppercase text-black tracking-tight mb-4">Giới thiệu bản thân</h3>
 
-                                    <!-- CỘT TRÁI: ẢNH TÂM ĐẮC (Luôn ép cứng 4:3) -->
-                                    <div class="w-full md:w-5/12 shrink-0">
-                                        <div class="bg-white border border-[#e4e4e7] shadow-sm rounded-lg p-3 sm:p-4 flex flex-col h-full">
-                                            <p class="text-[11px] font-bold text-gray-500 mb-3 uppercase tracking-wider text-center md:text-left">Ảnh tâm đắc nhất</p>
+                                <div class="bg-white border border-[#e4e4e7] shadow-sm rounded-2xl overflow-hidden flex flex-col md:flex-row">
 
-                                            <!-- Khung ảnh 4:3 -->
-                                            <div class="w-full aspect-[4/3] relative bg-gray-100 rounded-md overflow-hidden border border-gray-200">
+                                    <!-- CỘT TRÁI: ẢNH TÂM ĐẮC (Ép cứng 4:3, nền xám nhạt tôn ảnh) -->
+                                    <div class="w-full md:w-5/12 p-4 md:p-5 border-b md:border-b-0 md:border-r border-[#e4e4e7] bg-gray-50/50">
+                                        <p class="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-3">Ảnh tâm đắc nhất</p>
 
-                                                <!-- Container chứa ảnh hoặc Placeholder -->
-                                                <div id="profile-fav-photo-container" class="absolute inset-0 w-full h-full flex flex-col items-center justify-center">
-                                                    <!-- Sẽ được JS ghi đè -->
-                                                </div>
+                                        <!-- Khung ảnh 4:3 Bất khả xâm phạm -->
+                                        <div class="relative w-full aspect-[4/3] bg-gray-100 rounded-xl overflow-hidden border border-gray-200/60 shadow-inner group">
 
-                                                <!-- Nút Chọn ảnh ban đầu (To, rõ ràng) -->
-                                                <button id="btn-add-fav-photo" onclick="app.profileIntro.openPhotoSelector()" class="hidden absolute inset-0 m-auto w-max h-max bg-white border border-gray-300 text-black px-4 py-2 rounded-lg text-xs font-bold hover:bg-gray-50 transition shadow-sm z-10 flex items-center gap-2">
-                                                    <i class="fa-solid fa-image"></i> Chọn ảnh nổi bật
+                                            <!-- Container chứa ảnh hoặc Placeholder -->
+                                            <div id="profile-fav-photo-container" class="absolute inset-0 w-full h-full">
+                                                <!-- JS sẽ nhét ảnh vào đây -->
+                                            </div>
+
+                                            <!-- Nút Chọn ảnh ban đầu (Căn giữa tuyệt đối, bo viên nang) -->
+                                            <button id="btn-add-fav-photo" onclick="app.profileIntro.openPhotoSelector()" class="hidden absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white/95 backdrop-blur-sm border border-gray-200 text-gray-800 px-5 py-2.5 rounded-full text-xs font-bold hover:bg-black hover:text-white hover:border-black transition-all shadow-lg items-center gap-2 w-max z-10">
+                                                <i class="fa-solid fa-camera-retro"></i> Chọn ảnh nổi bật
+                                            </button>
+
+                                            <!-- Pill Edit/Delete (Nguyên khối đen kính mờ, hiện khi hover) -->
+                                            <div id="profile-fav-photo-controls" class="hidden absolute top-3 right-3 items-center gap-1 bg-black/60 backdrop-blur-md rounded-full p-1 shadow-lg border border-white/20 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                                <button onclick="app.profileIntro.openPhotoSelector()" class="w-8 h-8 rounded-full text-white hover:bg-white/20 transition flex items-center justify-center" title="Thay đổi ảnh">
+                                                    <i class="fa-solid fa-pen text-[11px]"></i>
                                                 </button>
-
-                                                <!-- Nhóm nút Sửa / Xóa (Pill bự, rõ ràng ở góc phải) -->
-                                                <div id="profile-fav-photo-controls" class="hidden absolute top-2 right-2 flex gap-1.5 z-20">
-                                                    <button onclick="app.profileIntro.openPhotoSelector()" class="bg-white/90 backdrop-blur border border-gray-300 text-gray-700 hover:text-black hover:bg-white px-3 py-1.5 rounded text-[11px] font-bold shadow-sm transition flex items-center gap-1.5" title="Thay đổi ảnh">
-                                                        <i class="fa-solid fa-pen"></i> Đổi
-                                                    </button>
-                                                    <button onclick="app.profileIntro.deleteFavPhoto()" class="bg-red-500/90 backdrop-blur border border-red-600 text-white hover:bg-red-600 px-3 py-1.5 rounded text-[11px] font-bold shadow-sm transition flex items-center justify-center" title="Gỡ ảnh">
-                                                        <i class="fa-solid fa-trash-can"></i>
-                                                    </button>
-                                                </div>
+                                                <div class="w-px h-4 bg-white/30"></div>
+                                                <button onclick="app.profileIntro.deleteFavPhoto()" class="w-8 h-8 rounded-full text-red-400 hover:bg-red-500 hover:text-white transition flex items-center justify-center" title="Gỡ ảnh">
+                                                    <i class="fa-solid fa-trash-can text-[11px]"></i>
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <!-- CỘT PHẢI: TIỂU SỬ (Cuộn nội bộ, tự giãn theo chiều cao) -->
-                                    <div class="w-full md:w-7/12 flex flex-col">
-                                        <div class="bg-white border border-[#e4e4e7] shadow-sm rounded-lg p-4 flex flex-col h-full min-h-[200px]">
-                                            <div class="flex justify-between items-center mb-3 shrink-0 border-b border-gray-100 pb-2">
-                                                <p class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Tiểu sử (Bio)</p>
-                                                <button id="btn-edit-bio" onclick="app.profileIntro.openBioEditor()" class="hidden text-[11px] bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded shadow-sm hover:bg-gray-50 font-bold transition flex items-center gap-1.5">
-                                                    <i class="fa-solid fa-pen"></i> Cập nhật
-                                                </button>
-                                            </div>
+                                    <!-- CỘT PHẢI: TIỂU SỬ -->
+                                    <div class="w-full md:w-7/12 p-4 md:p-6 flex flex-col bg-white">
+                                        <div class="flex justify-between items-center mb-4 shrink-0">
+                                            <p class="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Tiểu sử (Bio)</p>
+                                            <button id="btn-edit-bio" onclick="app.profileIntro.openBioEditor()" class="hidden text-xs text-gray-500 hover:text-black font-bold transition items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-gray-100">
+                                                <i class="fa-solid fa-pen-to-square"></i> Cập nhật
+                                            </button>
+                                        </div>
 
-                                            <!-- Khung nội dung có thanh cuộn nếu quá dài -->
-                                            <div id="profile-bio-content" class="text-sm text-gray-800 overflow-y-auto flex-1 whitespace-pre-wrap break-words pr-2 custom-scrollbar leading-relaxed">
-                                                <!-- Nội dung Bio -->
-                                            </div>
+                                        <!-- Khung nội dung có thanh cuộn nếu quá dài -->
+                                        <div id="profile-bio-content" class="text-sm text-gray-700 overflow-y-auto flex-1 whitespace-pre-wrap break-words pr-2 custom-scrollbar leading-relaxed">
+                                            <!-- Nội dung Bio -->
                                         </div>
                                     </div>
 
                                 </div>
                             </div>
-                            <!-- KẾT THÚC ĐOẠN CODE THÊM MỚI -->
+                            <!-- KẾT THÚC ĐOẠN CODE -->
 
                             <div id="approval-rate-island" class="hidden mt-4 relative overflow-hidden bg-white border border-vbs-border rounded-lg shadow-sm p-3 sm:p-4">
                                 <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 relative z-10">Tỉ lệ duyệt ảnh</p>
@@ -4876,13 +4874,15 @@
                         const detailId = String(photoId).includes('-') ? `'${String(photoId).replace(/'/g, "\\'")}'` : photoId;
 
                         favContainer.innerHTML = `
-                            <img src="${app.utils.getProxiedUrl(url, 'fav.jpg', 'thumb')}" class="absolute inset-0 w-full h-full object-cover cursor-pointer hover:scale-105 transition duration-500" onclick="app.views.loadDetail(${detailId})">
-                            <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 to-transparent p-2.5 text-white text-[11px] font-bold truncate pointer-events-none z-0">
+                            <img src="${app.utils.getProxiedUrl(url, 'fav.jpg', 'thumb')}" class="absolute inset-0 w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-700" onclick="app.views.loadDetail(${detailId})">
+                            <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 via-black/30 to-transparent p-3 text-white text-[11px] font-bold truncate pointer-events-none z-0">
                                 ${safePlate}
                             </div>
                         `;
                         favControls.classList.remove('hidden');
+                        favControls.classList.add('flex');
                         btnAddFav.classList.add('hidden');
+                        btnAddFav.classList.remove('flex');
 
                     } catch (e) {
                         app.ui.showAlert("Lỗi cài đặt ảnh: " + e.message);
@@ -4899,9 +4899,12 @@
                             const favControls = document.getElementById('profile-fav-photo-controls');
                             const btnAddFav = document.getElementById('btn-add-fav-photo');
 
-                            favContainer.innerHTML = '<div class="absolute inset-0 w-full h-full flex flex-col items-center justify-center text-gray-400"><i class="fa-regular fa-image text-4xl mb-2 opacity-30"></i><span class="text-xs uppercase font-bold opacity-40">Chưa có ảnh</span></div>';
+                            favContainer.innerHTML = '<div class="absolute inset-0 w-full h-full flex flex-col items-center justify-center text-gray-400 bg-gray-50"><i class="fa-regular fa-image text-4xl mb-3 opacity-20"></i><span class="text-[10px] uppercase font-bold opacity-30 tracking-widest">Chưa có ảnh</span></div>';
+
                             favControls.classList.add('hidden');
+                            favControls.classList.remove('flex');
                             btnAddFav.classList.remove('hidden');
+                            btnAddFav.classList.add('flex');
 
                         } catch (e) {
                             app.ui.showAlert("Lỗi gỡ ảnh: " + e.message);
@@ -8131,12 +8134,35 @@ dropdown.innerHTML = `
                     } else {
                         bioContent.innerHTML = '<span class="text-gray-400 italic">Chưa có thông tin giới thiệu.</span>';
                     }
-                    if (isOwnProfile) btnEditBio.classList.remove('hidden');
-                    else btnEditBio.classList.add('hidden');
+
+                    if (isOwnProfile) {
+                        btnEditBio.classList.remove('hidden');
+                        btnEditBio.classList.add('flex');
+                    } else {
+                        btnEditBio.classList.add('hidden');
+                        btnEditBio.classList.remove('flex');
+                    }
 
                     const favContainer = document.getElementById('profile-fav-photo-container');
                     const favControls = document.getElementById('profile-fav-photo-controls');
                     const btnAddFav = document.getElementById('btn-add-fav-photo');
+
+                    const showFavControls = () => {
+                        favControls.classList.remove('hidden');
+                        favControls.classList.add('flex');
+                    };
+                    const hideFavControls = () => {
+                        favControls.classList.add('hidden');
+                        favControls.classList.remove('flex');
+                    };
+                    const showAddFavButton = () => {
+                        btnAddFav.classList.remove('hidden');
+                        btnAddFav.classList.add('flex');
+                    };
+                    const hideAddFavButton = () => {
+                        btnAddFav.classList.add('hidden');
+                        btnAddFav.classList.remove('flex');
+                    };
 
                     if (profile.favorite_photo_id) {
                         window.sb.from('photos').select('id, url, license_plate').eq('id', profile.favorite_photo_id).single()
@@ -8146,29 +8172,33 @@ dropdown.innerHTML = `
                                 const detailId = String(favPhoto.id).includes('-') ? `'${String(favPhoto.id).replace(/'/g, "\\'")}'` : favPhoto.id;
 
                                 favContainer.innerHTML = `
-                                    <img src="${app.utils.getProxiedUrl(favPhoto.url, 'fav.jpg', 'thumb')}" class="w-full h-full object-cover cursor-pointer hover:scale-105 transition duration-500" onclick="app.views.loadDetail(${detailId})">
-                                    <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 to-transparent p-2.5 text-white text-[11px] font-bold truncate pointer-events-none">
+                                    <img src="${app.utils.getProxiedUrl(favPhoto.url, 'fav.jpg', 'thumb')}" class="absolute inset-0 w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-700" onclick="app.views.loadDetail(${detailId})">
+                                    <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 via-black/30 to-transparent p-3 text-white text-[11px] font-bold truncate pointer-events-none z-0">
                                         ${safePlate}
                                     </div>
                                 `;
                                 if (isOwnProfile) {
-                                    favControls.classList.remove('hidden');
-                                    btnAddFav.classList.add('hidden');
+                                    showFavControls();
+                                    hideAddFavButton();
                                 } else {
-                                    favControls.classList.add('hidden');
-                                    btnAddFav.classList.add('hidden');
+                                    hideFavControls();
+                                    hideAddFavButton();
                                 }
                             } else {
-                                favContainer.innerHTML = '<div class="w-full h-full flex flex-col items-center justify-center text-gray-400"><i class="fa-solid fa-image-slash text-3xl mb-2 opacity-60"></i><span class="text-[11px] uppercase font-bold opacity-60">Ảnh không tồn tại</span></div>';
-                                if (isOwnProfile) btnAddFav.classList.remove('hidden');
-                                favControls.classList.add('hidden');
+                                favContainer.innerHTML = '<div class="absolute inset-0 w-full h-full flex flex-col items-center justify-center text-gray-400 bg-gray-50"><i class="fa-solid fa-image-slash text-3xl mb-2 opacity-30"></i><span class="text-[10px] uppercase font-bold opacity-40">Ảnh không tồn tại</span></div>';
+                                if (isOwnProfile) showAddFavButton();
+                                hideFavControls();
                             }
                         });
                     } else {
-                        favContainer.innerHTML = '<div class="w-full h-full flex flex-col items-center justify-center text-gray-400"><i class="fa-regular fa-image text-4xl mb-2 opacity-30"></i><span class="text-xs uppercase font-bold opacity-40">Chưa có ảnh</span></div>';
-                        favControls.classList.add('hidden');
-                        if (isOwnProfile) btnAddFav.classList.remove('hidden');
-                        else btnAddFav.classList.add('hidden');
+                        favContainer.innerHTML = '<div class="absolute inset-0 w-full h-full flex flex-col items-center justify-center text-gray-400 bg-gray-50"><i class="fa-regular fa-image text-4xl mb-3 opacity-20"></i><span class="text-[10px] uppercase font-bold opacity-30 tracking-widest">Chưa có ảnh</span></div>';
+                        hideFavControls();
+
+                        if (isOwnProfile) {
+                            showAddFavButton();
+                        } else {
+                            hideAddFavButton();
+                        }
                     }
                     // --- KẾT THÚC RENDER GIỚI THIỆU ---
 
