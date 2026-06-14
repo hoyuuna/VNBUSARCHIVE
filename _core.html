@@ -7323,39 +7323,52 @@ grid.innerHTML = tiers.map(tier => {
                     } else if (filterType === 'uploader') {
                         searchWords.forEach(w => { photoQuery = photoQuery.ilike('profiles.username', `%${w}%`); });
                     } else if (filterType === 'model') {
+                        // CHỈNH SỬA: Giới hạn danh sách BKS phụ để tránh lỗi URL quá dài làm mất ảnh cũ
                         let vQ = window.sb.from('vehicles').select('license_plate');
                         searchWords.forEach(w => { vQ = vQ.ilike('model', `%${w}%`); });
-                        const { data: vData } = await vQ;
-                        const plates = vData ? vData.map(v => v.license_plate) :[];
+                        const { data: vData } = await vQ.limit(200);
+                        const plates = vData ? vData.map(v => v.license_plate) : [];
 
                         if (plates.length > 0) photoQuery = photoQuery.in('license_plate', plates);
                         else forceEmptyResult = true;
                     } else {
+                        // FILTER TYPE = 'ALL' (TẤT CẢ) - ĐÃ TỐI ƯU LOGIC TÌM KIẾM ĐỂ KHÔNG SÓT ẢNH
+                        const cleanFullQuery = query.trim().replace(/"/g, '');
+
+                        // 1. Tìm trước biển số của các Dòng xe khớp từ khóa (Giới hạn 100 chiếc để không làm sập API Request)
                         let mQ = window.sb.from('vehicles').select('license_plate');
                         searchWords.forEach(w => {
                             const safeW = w.replace(/"/g, '');
                             mQ = mQ.or(`model.ilike."%${safeW}%",note.ilike."%${safeW}%"`);
                         });
-                        const { data: mData } = await mQ;
-                        const plates = mData ? mData.map(v => v.license_plate) :[];
+                        const { data: mData } = await mQ.limit(100);
+                        const plates = mData ? mData.map(v => v.license_plate) : [];
 
-                        let uQ = window.sb.from('profiles').select('id');
-                        searchWords.forEach(w => { uQ = uQ.ilike('username', `%${w}%`); });
-                        const { data: uData } = await uQ;
-                        const uploaderIds = uData ? uData.map(u => u.id) :[];
+                        // 2. Tìm trước ID của Người đăng (Giới hạn 10 người)
+                        const { data: uData } = await window.sb.from('profiles')
+                            .select('id')
+                            .ilike('username', `%${cleanFullQuery}%`)
+                            .limit(10);
+                        const uploaderIds = uData ? uData.map(u => u.id) : [];
 
+                        // 3. Ráp nối điều kiện tìm kiếm đa cột cho từng từ khóa (Giao thức AND giữa các từ, OR giữa các cột)
                         searchWords.forEach(w => {
                             const safeW = w.replace(/"/g, '');
                             const safeWPlate = app.utils.normalizePlateQuery(safeW);
-                            let orConditions = "";
-                            if (safeWPlate) {
-                                orConditions += `license_plate.ilike."%${safeWPlate}%",`;
-                            }
-                            orConditions += `operator.ilike."%${safeW}%",route_no.ilike."%${safeW}%",camera_model.ilike."%${safeW}%",location.ilike."%${safeW}%",note.ilike."%${safeW}%"`;
+                            
+                            let colOrs = [];
+                            if (safeWPlate) colOrs.push(`license_plate.ilike."%${safeWPlate}%"`);
+                            colOrs.push(`operator.ilike."%${safeW}%"`);
+                            colOrs.push(`route_no.ilike."%${safeW}%"`);
+                            colOrs.push(`camera_model.ilike."%${safeW}%"`);
+                            colOrs.push(`location.ilike."%${safeW}%"`);
+                            colOrs.push(`note.ilike."%${safeW}%"`);
 
-                            if (plates.length > 0) orConditions += `,license_plate.in.(${plates.join(',')})`;
-                            if (uploaderIds.length > 0) orConditions += `,uploader_id.in.(${uploaderIds.join(',')})`;
-                            photoQuery = photoQuery.or(orConditions);
+                            // Nhúng kết quả tìm bảng ngoại vào câu OR
+                            if (plates.length > 0) colOrs.push(`license_plate.in.(${plates.join(',')})`);
+                            if (uploaderIds.length > 0) colOrs.push(`uploader_id.in.(${uploaderIds.join(',')})`);
+
+                            photoQuery = photoQuery.or(colOrs.join(','));
                         });
                     }
 
