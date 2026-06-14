@@ -3669,7 +3669,7 @@
                                 <i class="fa-solid fa-comments text-gray-500 group-hover:text-black transition-colors"></i> Quản lý bình luận
                             </button>
 
-                            <!-- ĐOẠN CODE THÊM MỚI: PHẦN GIỚI THIỆU (NÚT XUỐNG DƯỚI ĐỒNG BỘ) -->
+                            <!-- ĐOẠN CODE THÊM MỚI: PHẦN GIỚI THIỆU -->
                             <div id="profile-intro-section" class="mt-10 mb-8">
                                 <h3 class="font-bold text-lg uppercase text-black tracking-tight mb-4">Giới thiệu bản thân</h3>
                                 
@@ -3679,25 +3679,26 @@
                                     <div class="w-full md:w-5/12 p-4 md:p-5 border-b md:border-b-0 md:border-r border-[#e4e4e7] bg-gray-50/50 flex flex-col">
                                         <p class="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-3 text-center md:text-left shrink-0">Ảnh tâm đắc nhất</p>
                                         
-                                        <!-- Khung ảnh 4:3 (Chỉ chứa ảnh) -->
+                                        <!-- Khung ảnh 4:3 -->
                                         <div class="relative w-full aspect-[4/3] bg-gray-100 rounded-xl overflow-hidden border border-gray-200/60 shadow-inner flex flex-col items-center justify-center shrink-0">
                                             
-                                            <!-- PLACEHOLDER NỀN -->
-                                            <i id="fav-photo-placeholder-icon" class="fa-regular fa-image text-4xl mb-3 opacity-20 text-gray-500"></i>
-                                            <span id="fav-photo-placeholder-text" class="text-[10px] uppercase font-bold opacity-30 tracking-widest text-gray-500">Chưa có ảnh</span>
+                                            <!-- PLACEHOLDER NỀN (Đã bọc div để JS ẩn/hiện dễ dàng) -->
+                                            <div id="fav-photo-placeholder" class="absolute inset-0 flex flex-col items-center justify-center z-0">
+                                                <i class="fa-regular fa-image text-4xl mb-3 opacity-20 text-gray-500"></i>
+                                                <span class="text-[10px] uppercase font-bold opacity-30 tracking-widest text-gray-500">Chưa có ảnh</span>
+                                            </div>
 
-                                            <!-- LỚP CHỨA ẢNH (Không có BKS) -->
+                                            <!-- LỚP CHỨA ẢNH -->
                                             <div id="profile-fav-photo-container" class="absolute inset-0 w-full h-full z-10 pointer-events-none">
-                                                <!-- JS sẽ nhét ảnh vào đây -->
                                             </div>
                                             
-                                            <!-- NÚT CHỌN ẢNH BAN ĐẦU (Nằm giữa khung trống) -->
+                                            <!-- NÚT CHỌN ẢNH BAN ĐẦU -->
                                             <button id="btn-add-fav-photo" onclick="app.profileIntro.openPhotoSelector()" class="hidden absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white/95 backdrop-blur-sm border border-gray-200 text-gray-800 px-5 py-2.5 rounded-full text-xs font-bold hover:bg-black hover:text-white hover:border-black transition-all shadow-lg items-center gap-2 w-max z-20">
                                                 <i class="fa-solid fa-camera-retro"></i> Chọn ảnh nổi bật
                                             </button>
                                         </div>
 
-                                        <!-- THANH CÔNG CỤ ẢNH (Nằm cố định bên dưới ảnh) -->
+                                        <!-- THANH CÔNG CỤ ẢNH -->
                                         <div id="profile-fav-photo-controls" class="hidden mt-3 gap-2 shrink-0">
                                             <button onclick="app.profileIntro.openPhotoSelector()" class="flex-1 bg-white border border-gray-300 text-gray-700 hover:text-black hover:bg-gray-50 px-3 py-2 rounded-lg text-xs font-bold shadow-sm transition flex items-center justify-center gap-1.5" title="Thay đổi ảnh">
                                                 <i class="fa-solid fa-pen"></i> Đổi ảnh
@@ -3710,18 +3711,19 @@
 
                                     <!-- CỘT PHẢI: TIỂU SỬ -->
                                     <div class="w-full md:w-7/12 p-4 md:p-6 flex flex-col bg-white">
-                                        <div class="mb-3 shrink-0 border-b border-gray-100 pb-2">
-                                            <p class="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Tiểu sử (Bio)</p>
+                                        <!-- Bỏ border gạch dưới -->
+                                        <div class="mb-2 shrink-0">
+                                            <p class="text-[11px] font-bold text-gray-500 uppercase tracking-widest text-center md:text-left">Tiểu sử (Bio)</p>
                                         </div>
                                         
                                         <!-- Khung nội dung có thanh cuộn -->
-                                        <div id="profile-bio-content" class="text-sm text-gray-800 overflow-y-auto flex-1 whitespace-pre-wrap break-words pr-2 custom-scrollbar leading-relaxed min-h-[100px]">
+                                        <div id="profile-bio-content" class="text-sm text-gray-800 overflow-y-auto flex-1 whitespace-pre-wrap break-words pr-2 custom-scrollbar leading-relaxed min-h-[100px] text-center md:text-left flex flex-col justify-center md:justify-start">
                                             <!-- Nội dung Bio -->
                                         </div>
 
-                                        <!-- THANH CÔNG CỤ BIO (Nằm cố định bên dưới chữ) -->
-                                        <div id="profile-bio-controls" class="hidden mt-4 pt-4 border-t border-gray-100 shrink-0 justify-end">
-                                            <button id="btn-edit-bio" onclick="app.profileIntro.openBioEditor()" class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg shadow-sm hover:bg-gray-50 hover:text-black font-bold transition flex items-center gap-1.5 text-xs">
+                                        <!-- THANH CÔNG CỤ BIO (Bỏ gạch trên, căn giữa nút) -->
+                                        <div id="profile-bio-controls" class="hidden mt-2 shrink-0 justify-center md:justify-start">
+                                            <button id="btn-edit-bio" onclick="app.profileIntro.openBioEditor()" class="bg-white border border-gray-300 text-gray-700 px-5 py-2 rounded-full shadow-sm hover:bg-black hover:text-white hover:border-black font-bold transition flex items-center gap-1.5 text-xs">
                                                 <i class="fa-solid fa-pen-to-square"></i> Cập nhật tiểu sử
                                             </button>
                                         </div>
@@ -4871,17 +4873,17 @@
                         const favContainer = document.getElementById('profile-fav-photo-container');
                         const favControls = document.getElementById('profile-fav-photo-controls');
                         const btnAddFav = document.getElementById('btn-add-fav-photo');
-                        const placeholderIcon = document.getElementById('fav-photo-placeholder-icon');
-                        const placeholderText = document.getElementById('fav-photo-placeholder-text');
+                        const placeholderWrap = document.getElementById('fav-photo-placeholder');
 
-                        placeholderIcon.classList.add('hidden');
-                        placeholderText.classList.add('hidden');
+                        // Ẩn nền rác
+                        if(placeholderWrap) {
+                            placeholderWrap.classList.add('hidden');
+                            placeholderWrap.classList.remove('flex');
+                        }
 
                         favContainer.innerHTML = `
                             <img src="${app.utils.getProxiedUrl(url, 'fav.jpg', 'thumb')}" class="absolute inset-0 w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-700 pointer-events-auto" onclick="app.views.loadDetail(${photoId})">
                         `;
-                        
-                        // Bật dải nút ở dưới
                         favControls.classList.remove('hidden');
                         favControls.classList.add('flex');
                         btnAddFav.classList.add('hidden');
@@ -4901,14 +4903,15 @@
                             const favContainer = document.getElementById('profile-fav-photo-container');
                             const favControls = document.getElementById('profile-fav-photo-controls');
                             const btnAddFav = document.getElementById('btn-add-fav-photo');
-                            const placeholderIcon = document.getElementById('fav-photo-placeholder-icon');
-                            const placeholderText = document.getElementById('fav-photo-placeholder-text');
+                            const placeholderWrap = document.getElementById('fav-photo-placeholder');
 
                             favContainer.innerHTML = '';
                             
-                            // Nick chủ -> Ẩn rác, hiện nút Chọn
-                            placeholderIcon.classList.add('hidden');
-                            placeholderText.classList.add('hidden');
+                            // Nick chủ nên tiếp tục GIỮ ẨN nền rác
+                            if(placeholderWrap) {
+                                placeholderWrap.classList.add('hidden');
+                                placeholderWrap.classList.remove('flex');
+                            }
 
                             favControls.classList.add('hidden');
                             favControls.classList.remove('flex');
@@ -8141,7 +8144,6 @@ dropdown.innerHTML = `
                     if (profile.bio) bioContent.innerHTML = app.utils.cleanText(profile.bio);
                     else bioContent.innerHTML = '<span class="text-gray-400 italic">Chưa có thông tin giới thiệu.</span>';
                     
-                    // Ẩn/hiện dải nút Bio
                     if (isOwnProfile) {
                         bioControls.classList.remove('hidden');
                         bioControls.classList.add('flex');
@@ -8153,22 +8155,20 @@ dropdown.innerHTML = `
                     const favContainer = document.getElementById('profile-fav-photo-container');
                     const favControls = document.getElementById('profile-fav-photo-controls');
                     const btnAddFav = document.getElementById('btn-add-fav-photo');
-                    const placeholderIcon = document.getElementById('fav-photo-placeholder-icon');
-                    const placeholderText = document.getElementById('fav-photo-placeholder-text');
+                    const placeholderWrap = document.getElementById('fav-photo-placeholder'); // <-- Lấy đúng Wrapper
 
                     if (profile.favorite_photo_id) {
                         window.sb.from('photos').select('id, url').eq('id', profile.favorite_photo_id).single()
                         .then(({data: favPhoto}) => {
                             if (favPhoto) {
-                                placeholderIcon.classList.add('hidden');
-                                placeholderText.classList.add('hidden');
+                                // Ẩn cái nền rác đi
+                                placeholderWrap.classList.add('hidden');
+                                placeholderWrap.classList.remove('flex');
 
-                                // KHÔNG CHÈN BKS NỮA
                                 favContainer.innerHTML = `
                                     <img src="${app.utils.getProxiedUrl(favPhoto.url, 'fav.jpg', 'thumb')}" class="absolute inset-0 w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-700 pointer-events-auto" onclick="app.views.loadDetail(${favPhoto.id})">
                                 `;
                                 if (isOwnProfile) {
-                                    // Bật dải nút Sửa/Xóa ở dưới
                                     favControls.classList.remove('hidden');
                                     favControls.classList.add('flex');
                                     btnAddFav.classList.add('hidden');
@@ -8184,11 +8184,11 @@ dropdown.innerHTML = `
                                 if (isOwnProfile) {
                                     btnAddFav.classList.remove('hidden');
                                     btnAddFav.classList.add('flex');
-                                    placeholderIcon.classList.add('hidden');
-                                    placeholderText.classList.add('hidden');
+                                    placeholderWrap.classList.add('hidden');
+                                    placeholderWrap.classList.remove('flex');
                                 } else {
-                                    placeholderIcon.classList.remove('hidden');
-                                    placeholderText.classList.remove('hidden');
+                                    placeholderWrap.classList.remove('hidden');
+                                    placeholderWrap.classList.add('flex');
                                     btnAddFav.classList.add('hidden');
                                 }
                             }
@@ -8200,11 +8200,14 @@ dropdown.innerHTML = `
                         if (isOwnProfile) {
                             btnAddFav.classList.remove('hidden');
                             btnAddFav.classList.add('flex');
-                            placeholderIcon.classList.add('hidden');
-                            placeholderText.classList.add('hidden');
+                            
+                            // Nick chủ thì ẨN "Chưa có ảnh"
+                            placeholderWrap.classList.add('hidden');
+                            placeholderWrap.classList.remove('flex');
                         } else {
-                            placeholderIcon.classList.remove('hidden');
-                            placeholderText.classList.remove('hidden');
+                            // Người xem thì HIỆN "Chưa có ảnh"
+                            placeholderWrap.classList.remove('hidden');
+                            placeholderWrap.classList.add('flex');
                             btnAddFav.classList.add('hidden');
                         }
                     }
