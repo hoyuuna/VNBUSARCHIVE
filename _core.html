@@ -4845,6 +4845,9 @@
                     const plateEl = document.getElementById('fav-photo-preview-plate');
                     const opEl = document.getElementById('fav-photo-preview-op');
 
+                    // Cấu hình câu báo lỗi tĩnh theo yêu cầu
+                    const genericErrorMsg = "Ảnh không hợp lệ. Chỉ chấp nhận ảnh VNBUSARCHIVE và là của bạn.";
+
                     // Reset trạng thái nút lưu
                     btnSave.disabled = true;
                     btnSave.classList.add('opacity-50', 'cursor-not-allowed');
@@ -4865,7 +4868,7 @@
                         imgEl.src = 'https://placehold.co/400x300/f3f4f6/a1a1aa?text=Link+khong+hop+le';
                         plateEl.innerText = '---';
                         opEl.innerText = '---';
-                        errorText.innerText = 'Đường dẫn không hợp lệ. Vui lòng copy đúng link bài viết trên hệ thống (phải có dạng .../photo/id).';
+                        errorText.innerText = genericErrorMsg;
                         errorBox.classList.remove('hidden');
                         return;
                     }
@@ -4881,9 +4884,9 @@
                             .eq('id', photoId)
                             .single();
 
-                        if (error || !data) throw new Error('Không tìm thấy ảnh này trên hệ thống.');
-                        if (data.status !== 'approved') throw new Error('Ảnh này chưa được duyệt hoặc đã bị từ chối.');
-                        if (data.uploader_id !== app.user.id) throw new Error('Bạn chỉ có thể đặt ảnh do CHÍNH BẠN đăng tải làm ảnh tâm đắc.');
+                        if (error || !data) throw new Error();
+                        if (data.status !== 'approved') throw new Error();
+                        if (data.uploader_id !== app.user.id) throw new Error();
 
                         // Nếu qua hết các bài test, gán vào cache và hiện nút Save
                         app.profileIntro.previewedPhoto = data;
@@ -4896,10 +4899,11 @@
                         btnSave.classList.remove('opacity-50', 'cursor-not-allowed');
 
                     } catch (e) {
+                        // Mọi lỗi văng ra đều bị bắt lại và hiển thị duy nhất 1 câu báo lỗi này
                         imgEl.src = 'https://placehold.co/400x300/f3f4f6/ef4444?text=Loi+he+thong';
                         plateEl.innerText = 'Lỗi';
                         opEl.innerText = '';
-                        errorText.innerText = e.message;
+                        errorText.innerText = genericErrorMsg;
                         errorBox.classList.remove('hidden');
                     }
                 },
@@ -4907,6 +4911,18 @@
                 confirmSaveFavPhoto: async () => {
                     if (!app.profileIntro.previewedPhoto) return;
                     
+                    // ===================================
+                    // GỌI CAPTCHA TRƯỚC KHI XỬ LÝ LƯU ẢNH
+                    // ===================================
+                    try {
+                        await app.captcha.request();
+                    } catch (err) {
+                        if (err.message !== "CAPTCHA_CANCELLED") {
+                            app.ui.showAlert("Lỗi xác thực Captcha.");
+                        }
+                        return; // Ngừng thực thi nếu Captcha bị hủy hoặc lỗi
+                    }
+
                     const { id, url } = app.profileIntro.previewedPhoto;
                     const btnSave = document.getElementById('btn-save-fav-photo');
                     const origText = btnSave.innerHTML;
@@ -4914,12 +4930,10 @@
                     btnSave.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
                     btnSave.disabled = true;
 
-                    try {
-                        await app.profileIntro.saveFavPhoto(id, url);
-                    } finally {
-                        btnSave.innerHTML = origText;
-                        btnSave.disabled = false;
-                    }
+                    await app.profileIntro.saveFavPhoto(id, url);
+                    
+                    btnSave.innerHTML = origText;
+                    btnSave.disabled = false;
                 },
 
                 saveFavPhoto: async (photoId, url) => {
