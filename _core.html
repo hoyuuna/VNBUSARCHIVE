@@ -743,6 +743,25 @@
             transform: skewX(-20deg);
         }
 
+        .badge-beta {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2px 6px;
+            font-size: 0.55rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #92400e;
+            background: linear-gradient(135deg, #fde68a, #f59e0b);
+            border-radius: 9999px;
+            box-shadow: 0 1px 2px rgba(245, 158, 11, 0.3);
+            vertical-align: middle;
+            margin-left: 6px;
+            user-select: none;
+            transform: translateY(-1px);
+        }
+
         @keyframes shine {
             0% {
                 left: -100%;
@@ -2000,7 +2019,15 @@
                     <!-- Khung hiển thị chi tiết -->
                     <div class="w-full md:w-2/3 overflow-y-auto p-5 md:p-8 h-2/3 md:h-full relative flex-1 bg-white/30">
                         <div class="max-w-2xl mx-auto">
-                            <p id="news-date" class="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-2"></p>
+                            <!-- Khối Tác giả và Ngày -->
+                            <div class="flex items-center gap-3 mb-4">
+                                <img id="news-author-avatar" src="" class="w-10 h-10 rounded-full object-cover border border-gray-200 bg-gray-100 hidden">
+                                <div class="flex flex-col">
+                                    <span id="news-author-name" class="text-sm font-bold text-black hidden"></span>
+                                    <span id="news-date" class="text-[11px] font-bold text-gray-500 uppercase tracking-widest mt-0.5"></span>
+                                </div>
+                            </div>
+                            
                             <h1 id="news-title" class="text-2xl md:text-3xl font-bold text-black mb-6 leading-tight"></h1>
                             <div id="news-body" class="markdown-body">
                                 <!-- Javascript sẽ tự động chèn nội dung vào đây -->
@@ -3069,8 +3096,9 @@
 
                 <!-- BÌNH LUẬN -->
                 <div id="comment-section" class="mt-8 mb-6 bg-white border border-vbs-border p-4 md:p-6 rounded-lg shadow-sm block">
-                    <h3 class="font-bold text-lg border-b border-gray-200 pb-3 mb-4 tracking-tight uppercase text-black">
-                        <i class="fa-regular fa-comments mr-2 text-black"></i>Bình luận (<span id="comment-count">0</span>)
+                    <h3 class="font-bold text-lg border-b border-gray-200 pb-3 mb-4 tracking-tight uppercase text-black flex items-center">
+                        <i class="fa-regular fa-comments mr-2 text-black"></i>Bình luận (<span id="comment-count" class="mr-1">0</span>)
+                        <span class="badge-beta">BETA</span>
                     </h3>
 
                     <!-- Thông báo chưa đăng nhập -->
@@ -3670,12 +3698,14 @@
                             </button>
 
                             <button id="btn-manage-comments" onclick="app.utils.navigate('/profile/comments')" class="w-full mb-6 py-3 bg-white border border-[#e4e4e7] rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-black transition shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] flex items-center justify-center gap-2 group">
-                                <i class="fa-solid fa-comments text-gray-500 group-hover:text-black transition-colors"></i> Quản lý bình luận
+                                <i class="fa-solid fa-comments text-gray-500 group-hover:text-black transition-colors"></i> Quản lý bình luận <span class="badge-beta">BETA</span>
                             </button>
 
                             <!-- ĐOẠN CODE THÊM MỚI: PHẦN GIỚI THIỆU -->
                             <div id="profile-intro-section" class="mt-10 mb-8">
-                                <h3 class="font-bold text-lg uppercase text-black tracking-tight mb-4">Giới thiệu bản thân</h3>
+                                <h3 class="font-bold text-lg uppercase text-black tracking-tight mb-4 flex items-center">
+                                    Giới thiệu bản thân <span class="badge-beta">BETA</span>
+                                </h3>
                                 
                                 <div class="bg-white border border-[#e4e4e7] shadow-sm rounded-2xl overflow-hidden flex flex-col md:flex-row items-stretch">
                                     
@@ -5107,6 +5137,23 @@
 
                     document.getElementById('news-date').innerText = item.date || 'Hôm nay';
                     document.getElementById('news-title').innerText = item.title || 'Thông báo';
+                    
+                    const avatarEl = document.getElementById('news-author-avatar');
+                    const nameEl = document.getElementById('news-author-name');
+                    
+                    if (item.authorName) {
+                        nameEl.innerText = item.authorName;
+                        nameEl.classList.remove('hidden');
+                        if (item.authorAvatar) {
+                            avatarEl.src = item.authorAvatar;
+                            avatarEl.classList.remove('hidden');
+                        } else {
+                            avatarEl.classList.add('hidden');
+                        }
+                    } else {
+                        nameEl.classList.add('hidden');
+                        avatarEl.classList.add('hidden');
+                    }
 
                     const contentHtml = marked.parse(item.content || '');
 

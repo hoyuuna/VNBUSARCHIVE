@@ -23,9 +23,10 @@ export default async function handler(req, res) {
         const formattedNews = messages.map((msg) => {
             let text = msg.content || '';
 
-            // Replace custom emojis with plain text and strip mentions
             text = text.replace(/<a?:(\w+):\d+>/g, ':$1:');
             text = text.replace(/<@!?\d+>/g, '@user');
+            text = text.replace(/<#[^>]+>/g, '#kênh');
+            text = text.replace(/<@&\d+>/g, '@role');
 
             const lines = text.split('\n').map((l) => l.trim()).filter((l) => l.length > 0);
             let title = 'Thông báo hệ thống';
@@ -53,12 +54,21 @@ export default async function handler(req, res) {
             let summary = text.replace(/\n/g, ' ').substring(0, 100);
             if (text.length > 100) summary += '...';
 
+            const author = msg.author || {};
+            const authorName = author.global_name || author.username || 'Ban Quản Trị';
+            const avatarExtension = author.avatar?.startsWith('a_') ? 'gif' : 'png';
+            const authorAvatar = author.id && author.avatar
+                ? `https://cdn.discordapp.com/avatars/${author.id}/${author.avatar}.${avatarExtension}?size=128`
+                : 'https://wsrv.nl/?url=https://files.catbox.moe/zzh1q1.png&we';
+
             return {
                 id: msg.id,
                 title,
                 summary: summary || 'Nhấn để xem chi tiết đính kèm...',
                 date: dateStr,
-                content: fullContent
+                content: fullContent,
+                authorName,
+                authorAvatar
             };
         });
 
