@@ -96,8 +96,8 @@ export default async function handler(req, res) {
 
         let finalOptimizedUrl = '';
 
-        // TỐI ƯU HÓA: Chạy 2 Promise (Tải ảnh & Cập nhật Dòng xe DB) SONG SONG
-        console.log(`[DEBUG] Tiến hành tải ảnh và đồng bộ DB: ${fileName}`);
+        // TỐI ƯU HÓA: Chỉ tải ảnh lên CDN, không cập nhật bảng vehicles từ quyền user
+        console.log(`[DEBUG] Tiến hành tải ảnh lên CDN: ${fileName}`);
 
         const uploadTask = fetch('https://cdn.vnbusarchive.io.vn/upload', {
             method: 'POST',
@@ -111,18 +111,10 @@ export default async function handler(req, res) {
             throw new Error('Lỗi phản hồi từ máy chủ lưu trữ ảnh.');
         });
 
-        let vehicleUpsertTask = Promise.resolve();
-        if (!isAvatar) {
-            vehicleUpsertTask = supabase
-                .from('vehicles')
-                .upsert({ license_plate: metadata.plate, model: metadata.model }, { onConflict: 'license_plate' })
-                .then(({ error }) => { if (error) throw error; });
-        }
-
         try {
-            // Đợi cả mạng Upload và mạng Database phản hồi xong
-            [finalOptimizedUrl] = await Promise.all([uploadTask, vehicleUpsertTask]);
-            console.log(`[DEBUG] Xong đa tiến trình, URL: ${finalOptimizedUrl}`);
+            // CHỈ ĐỢI ẢNH ĐƯỢC TẢI LÊN CDN (Bỏ qua việc đụng chạm vào bảng vehicles)
+            finalOptimizedUrl = await uploadTask;
+            console.log(`[DEBUG] Upload ảnh thành công, URL: ${finalOptimizedUrl}`);
         } catch (err) {
             console.error('===[LỖI UPLOAD HOẶC DATABASE] ===', err);
             throw new Error('Đã xảy ra lỗi trong quá trình gửi dữ liệu lên máy chủ.');
@@ -147,7 +139,7 @@ export default async function handler(req, res) {
             return res.status(200).json({ success: true, url: finalOptimizedUrl });
         }
 
-        // Xử lý chèn Database Ảnh (Chỉ chạy sau khi có URL và Upsert Vehicle thành công)
+        // Xử lý chèn Database Ảnh (Chỉ chạy sau khi ảnh đã được tải lên CDN thành công)
         const { error: dbError } = await supabase
             .from('photos')
             .insert({
