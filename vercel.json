@@ -2,6 +2,8 @@
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/sitemap.xml", "destination": "/api/sitemap" },
+    { "source": "/photo/:id", "destination": "/api/embed?type=photo&id=:id" },
+    { "source": "/vehicle/:plate", "destination": "/api/embed?type=vehicle&plate=:plate" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
