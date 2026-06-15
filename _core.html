@@ -3487,6 +3487,7 @@
                                             class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition">
                                         <div id="up-route-suggestions" class="suggestion-box"></div>
                                     </div>
+                                    <p id="err-up-route" class="upload-req-err hidden text-[11px] mt-1 text-red-600 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Vui lòng nhập Số tuyến / Lộ trình</p>
                                 </div>
 
 <!-- KHỐI CHỌN LOẠI XE -->
@@ -3533,6 +3534,7 @@
                                             x-on:input.debounce.300ms="app.utils.triggerSuggestion('up-operator', 'up-operator-suggestions', $el.value, 'operator')">
                                         <div id="up-operator-suggestions" class="suggestion-box"></div>
                                     </div>
+                                    <p id="err-up-operator" class="upload-req-err hidden text-[11px] mt-1 text-red-600 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Vui lòng nhập Đơn vị vận hành</p>
                                 </div>
                                 <div x-data>
                                     <label class="text-xs text-gray-500 font-bold block mb-1.5 uppercase">Dòng xe
@@ -3545,6 +3547,7 @@
                                             x-on:input.debounce.300ms="app.utils.triggerSuggestion('up-model', 'up-model-suggestions', $el.value, 'model'); app.upload.checkModelWarning && app.upload.checkModelWarning()">
                                         <div id="up-model-suggestions" class="suggestion-box"></div>
                                     </div>
+                                    <p id="err-up-model" class="upload-req-err hidden text-[11px] mt-1 text-red-600 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Vui lòng nhập Dòng xe (Model)</p>
 
                                     <p class="text-[11px] text-gray-500 mt-1.5 font-medium">
                                         Không chắc chắn? Tham khảo tại <a href="https://vnbusarchive.qzz.io/bus-route" target="_blank" class="text-blue-600 font-bold hover:underline">đây</a>.
@@ -3561,6 +3564,7 @@
                                         <span class="text-red-500">*</span></label>
                                     <input type="text" id="up-location"
                                         class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition">
+                                    <p id="err-up-location" class="upload-req-err hidden text-[11px] mt-1 text-red-600 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Vui lòng nhập Vị trí chụp</p>
                                     <div id="upload-map" class="mt-2 border border-gray-300 rounded-md"></div>
                                 </div>
                                 <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -6088,6 +6092,7 @@
                 document.getElementById('inline-edit-form').addEventListener('submit', app.edit.submitInline);
                 document.getElementById('up-plate').addEventListener('blur', app.upload.checkDuplicateRealtime);
                 document.getElementById('up-date').addEventListener('change', app.upload.checkDuplicateRealtime);
+                app.upload.initValidation();
 
                 const fieldMap = {
                     'info-plate': 'plate',
@@ -9332,10 +9337,21 @@ formInputs.forEach(input => {
                         taken_at: document.getElementById('info-date').value
                     };
 
-                    if (!payload.license_plate || !payload.operator || !payload.route || !payload.model || !payload.location) {
-                        app.ui.showAlert("Vui lòng nhập đầy đủ thông tin (trừ ghi chú)!");
+                    let missingFields = [];
+                    if (!payload.type) missingFields.push("Loại xe");
+                    if (!payload.license_plate) missingFields.push("Biển kiểm soát");
+                    if (!payload.taken_at) missingFields.push("Ngày chụp");
+                    if (!payload.route) missingFields.push("Số tuyến / Lộ trình");
+                    if (!payload.operator) missingFields.push("Đơn vị vận hành");
+                    if (!payload.model) missingFields.push("Dòng xe (Model)");
+                    if (!payload.location) missingFields.push("Vị trí chụp");
+
+                    if (missingFields.length > 0) {
+                        let msg = "Bạn cần điền các trường bắt buộc sau:<br><ul class='list-disc pl-5 mt-2 text-left text-red-600'>";
+                        missingFields.forEach(f => msg += `<li><b>${f}</b></li>`);
+                        msg += "</ul>";
                         btn.innerText = originalText; btn.disabled = false;
-                        return;
+                        return app.ui.showAlert(msg, null, null, { title: "Thiếu thông tin" });
                     }
 
                     if (app.role !== 'admin' && app.role !== 'manager') {
@@ -11896,15 +11912,21 @@ app.admin.fetchManagerData('denied');
                     const valLoc = document.getElementById('up-location').value.trim();
                     const valDate = document.getElementById('up-date').value;
 
-                    // Nếu chưa click chọn loại xe
-                    if (!valType) {
-                        document.getElementById('type-msg').classList.remove('hidden');
-                        return app.ui.showAlert("Vui lòng chọn Loại xe (Xe buýt hoặc Xe khách)!");
-                    }
+                    let missingFields = [];
+                    if (!valType) missingFields.push("Loại xe (Xe Buýt/Khách)");
+                    if (!valPlate) missingFields.push("Biển kiểm soát");
+                    if (!valDate) missingFields.push("Ngày chụp");
+                    if (!valRoute) missingFields.push("Số tuyến / Lộ trình");
+                    if (!valOp) missingFields.push("Đơn vị vận hành");
+                    if (!valModel) missingFields.push("Dòng xe (Model)");
+                    if (!valLoc) missingFields.push("Vị trí chụp");
 
-                    if (!valPlate || !valOp || !valRoute || !valModel || !valLoc || !valDate) {
-                        app.ui.showAlert("Vui lòng nhập đầy đủ thông tin (trừ ghi chú)!");
-                        return;
+                    if (missingFields.length > 0) {
+                        app.upload.triggerEmptyWarnings();
+                        let msg = "Bạn cần điền các trường bắt buộc sau:<br><ul class='list-disc pl-5 mt-2 text-left text-red-600'>";
+                        missingFields.forEach(f => msg += `<li><b>${f}</b></li>`);
+                        msg += "</ul>";
+                        return app.ui.showAlert(msg, null, null, { title: "Thiếu thông tin" });
                     }
 
 
@@ -12126,6 +12148,72 @@ app.admin.fetchManagerData('denied');
                         btn.innerHTML = originalText;
                         btn.disabled = false;
                     }
+                },
+                triggerEmptyWarnings: () => {
+                    const fields = [
+                        {id: 'up-plate', errId: 'plate-msg', name: 'Biển kiểm soát'},
+                        {id: 'up-route', errId: 'err-up-route', name: 'Số tuyến'},
+                        {id: 'up-operator', errId: 'err-up-operator', name: 'Đơn vị vận hành'},
+                        {id: 'up-model', errId: 'err-up-model', name: 'Dòng xe'},
+                        {id: 'up-location', errId: 'err-up-location', name: 'Vị trí chụp'}
+                    ];
+
+                    fields.forEach(f => {
+                        const el = document.getElementById(f.id);
+                        const errEl = document.getElementById(f.errId);
+                        if (el && errEl && !el.value.trim() && !el.readOnly) {
+                            if (f.id === 'up-plate') {
+                                errEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Vui lòng nhập ${f.name}`;
+                                errEl.className = "text-xs mt-1 text-red-600 font-bold";
+                            } else {
+                                errEl.classList.remove('hidden');
+                            }
+                            el.classList.add('border-red-500');
+                        }
+                    });
+                    
+                    if (!document.getElementById('up-type').value) {
+                        document.getElementById('type-msg').classList.remove('hidden');
+                    }
+                },
+                
+                initValidation: () => {
+                    const fields = [
+                        {id: 'up-plate', errId: 'plate-msg', name: 'Biển kiểm soát'},
+                        {id: 'up-route', errId: 'err-up-route', name: 'Số tuyến'},
+                        {id: 'up-operator', errId: 'err-up-operator', name: 'Đơn vị vận hành'},
+                        {id: 'up-model', errId: 'err-up-model', name: 'Dòng xe'},
+                        {id: 'up-location', errId: 'err-up-location', name: 'Vị trí chụp'}
+                    ];
+
+                    fields.forEach(f => {
+                        const el = document.getElementById(f.id);
+                        const errEl = document.getElementById(f.errId);
+                        if (el && errEl) {
+                            el.addEventListener('blur', () => {
+                                if (!el.value.trim() && !el.readOnly) {
+                                    if (f.id === 'up-plate') {
+                                        if (!errEl.innerText.includes("Định dạng")) {
+                                            errEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Vui lòng nhập ${f.name}`;
+                                            errEl.className = "text-xs mt-1 text-red-600 font-bold";
+                                        }
+                                    } else {
+                                        errEl.classList.remove('hidden');
+                                    }
+                                    el.classList.add('border-red-500');
+                                }
+                            });
+                            
+                            el.addEventListener('input', () => {
+                                if (f.id !== 'up-plate') {
+                                    errEl.classList.add('hidden');
+                                } else if (errEl.innerText.includes("Vui lòng nhập")) {
+                                    errEl.innerText = "";
+                                }
+                                el.classList.remove('border-red-500');
+                            });
+                        }
+                    });
                 },
                 checkQuota: async () => {
                     if (!app.user) return;
@@ -12574,6 +12662,11 @@ app.admin.fetchManagerData('denied');
 cleanupState: () => {
                     if (document.getElementById('upload-form')) {
                         document.getElementById('upload-form').reset();
+                        document.querySelectorAll('.upload-req-err').forEach(el => el.classList.add('hidden'));
+                        ['up-plate', 'up-route', 'up-operator', 'up-model', 'up-location'].forEach(id => {
+                            const el = document.getElementById(id);
+                            if (el) el.classList.remove('border-red-500');
+                        });
                         app.upload.removeImage();
                         document.getElementById('locked-msg')?.classList.add('hidden');
                         app.vehicleLocked = false;
