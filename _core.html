@@ -9347,9 +9347,7 @@ formInputs.forEach(input => {
                     if (!payload.location) missingFields.push("Vị trí chụp");
 
                     if (missingFields.length > 0) {
-                        let msg = "Bạn cần điền các trường bắt buộc sau:<br><ul class='list-disc pl-5 mt-2 text-left text-red-600'>";
-                        missingFields.forEach(f => msg += `<li><b>${f}</b></li>`);
-                        msg += "</ul>";
+                        let msg = `Vui lòng điền đủ các trường bắt buộc: <b>${missingFields.join(', ')}</b>.`;
                         btn.innerText = originalText; btn.disabled = false;
                         return app.ui.showAlert(msg, null, null, { title: "Thiếu thông tin" });
                     }
@@ -11923,9 +11921,7 @@ app.admin.fetchManagerData('denied');
 
                     if (missingFields.length > 0) {
                         app.upload.triggerEmptyWarnings();
-                        let msg = "Bạn cần điền các trường bắt buộc sau:<br><ul class='list-disc pl-5 mt-2 text-left text-red-600'>";
-                        missingFields.forEach(f => msg += `<li><b>${f}</b></li>`);
-                        msg += "</ul>";
+                        let msg = `Vui lòng điền đủ các trường bắt buộc: <b>${missingFields.join(', ')}</b>.`;
                         return app.ui.showAlert(msg, null, null, { title: "Thiếu thông tin" });
                     }
 
@@ -12161,19 +12157,34 @@ app.admin.fetchManagerData('denied');
                     fields.forEach(f => {
                         const el = document.getElementById(f.id);
                         const errEl = document.getElementById(f.errId);
-                        if (el && errEl && !el.value.trim() && !el.readOnly) {
-                            if (f.id === 'up-plate') {
-                                errEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Vui lòng nhập ${f.name}`;
-                                errEl.className = "text-xs mt-1 text-red-600 font-bold";
+                        if (el && errEl && !el.readOnly) {
+                            if (!el.value.trim()) {
+                                if (f.id === 'up-plate') {
+                                    if (!errEl.innerText.includes("Định dạng")) {
+                                        errEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Vui lòng nhập ${f.name}`;
+                                        errEl.className = "text-xs mt-1 text-red-600 font-bold";
+                                    }
+                                } else {
+                                    errEl.classList.remove('hidden');
+                                }
+                                el.classList.remove('border-gray-300', 'focus:ring-black');
+                                el.classList.add('border-red-500', 'focus:ring-red-500');
                             } else {
-                                errEl.classList.remove('hidden');
+                                if (f.id !== 'up-plate') errEl.classList.add('hidden');
+                                else if (errEl.innerText.includes("Vui lòng nhập")) errEl.innerText = "";
+                                el.classList.remove('border-red-500', 'focus:ring-red-500');
+                                el.classList.add('border-gray-300', 'focus:ring-black');
                             }
-                            el.classList.add('border-red-500');
                         }
                     });
                     
-                    if (!document.getElementById('up-type').value) {
-                        document.getElementById('type-msg').classList.remove('hidden');
+                    const typeMsg = document.getElementById('type-msg');
+                    if (typeMsg) {
+                        if (!document.getElementById('up-type').value) {
+                            typeMsg.classList.remove('hidden');
+                        } else {
+                            typeMsg.classList.add('hidden');
+                        }
                     }
                 },
                 
@@ -12190,6 +12201,16 @@ app.admin.fetchManagerData('denied');
                         const el = document.getElementById(f.id);
                         const errEl = document.getElementById(f.errId);
                         if (el && errEl) {
+                            const clearError = () => {
+                                if (f.id !== 'up-plate') {
+                                    errEl.classList.add('hidden');
+                                } else if (errEl.innerText.includes("Vui lòng nhập")) {
+                                    errEl.innerText = "";
+                                }
+                                el.classList.remove('border-red-500', 'focus:ring-red-500');
+                                el.classList.add('border-gray-300', 'focus:ring-black');
+                            };
+
                             el.addEventListener('blur', () => {
                                 if (!el.value.trim() && !el.readOnly) {
                                     if (f.id === 'up-plate') {
@@ -12200,18 +12221,15 @@ app.admin.fetchManagerData('denied');
                                     } else {
                                         errEl.classList.remove('hidden');
                                     }
-                                    el.classList.add('border-red-500');
+                                    el.classList.remove('border-gray-300', 'focus:ring-black');
+                                    el.classList.add('border-red-500', 'focus:ring-red-500');
+                                } else {
+                                    clearError();
                                 }
                             });
                             
-                            el.addEventListener('input', () => {
-                                if (f.id !== 'up-plate') {
-                                    errEl.classList.add('hidden');
-                                } else if (errEl.innerText.includes("Vui lòng nhập")) {
-                                    errEl.innerText = "";
-                                }
-                                el.classList.remove('border-red-500');
-                            });
+                            el.addEventListener('input', clearError);
+                            el.addEventListener('change', clearError);
                         }
                     });
                 },
@@ -12665,7 +12683,10 @@ cleanupState: () => {
                         document.querySelectorAll('.upload-req-err').forEach(el => el.classList.add('hidden'));
                         ['up-plate', 'up-route', 'up-operator', 'up-model', 'up-location'].forEach(id => {
                             const el = document.getElementById(id);
-                            if (el) el.classList.remove('border-red-500');
+                            if (el) {
+                                el.classList.remove('border-red-500', 'focus:ring-red-500');
+                                el.classList.add('border-gray-300', 'focus:ring-black');
+                            }
                         });
                         app.upload.removeImage();
                         document.getElementById('locked-msg')?.classList.add('hidden');
