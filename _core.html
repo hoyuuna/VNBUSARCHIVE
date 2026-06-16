@@ -14990,13 +14990,12 @@ closeCustomRolePrompt: () => {
 
                     const statusText = isReported ? "Lỗi này đã được thông báo tự động." : "Lỗi này sẽ KHÔNG được thông báo tự động.";
 
-                    // Xếp dòng chữ màu xám nằm ngay trên 2 nút bấm, căn giữa
                     actions.className = "mt-5 flex flex-col w-full"; // Ghi đè class để xếp dọc
                     actions.innerHTML = `
-                        <div class="text-[10px] text-gray-500 font-medium text-center mb-3">
+                        <div class="text-[10.5px] text-black font-medium text-center mb-3 leading-relaxed">
                             <span class="inline-flex flex-wrap justify-center items-center gap-1">
                                 <span>${statusText}</span>
-                                <a href="javascript:void(0)" onclick="app.ui.closeUploadProgress(); setTimeout(() => app.utils.navigate('/help/1516405301996421281'), 300)" class="font-bold underline hover:text-gray-800 transition-colors inline-flex items-center">Tìm hiểu thêm & hướng dẫn khắc phục</a>
+                                <a href="javascript:void(0)" onclick="app.ui.closeUploadProgress(); setTimeout(() => app.utils.navigate('/help/1516405301996421281'), 300)" class="font-bold underline hover:text-gray-600 transition-colors inline-flex items-center">Tìm hiểu thêm & hướng dẫn khắc phục</a>
                             </span>
                         </div>
                         <div class="flex gap-3 w-full">
