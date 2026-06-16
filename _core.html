@@ -11986,7 +11986,7 @@ app.admin.fetchManagerData('denied');
                             const lonRef = EXIF.getTag(this, "GPSLongitudeRef");
 
                             // Biến chứa Link hướng dẫn khắc phục để tái sử dụng
-                            const helpLinkHTML = `<br><br><a href="javascript:void(0)" onclick="app.ui.closeAlert(true); setTimeout(() => app.utils.navigate('/help/1516371307481272330'), 300)" class="text-blue-600 font-bold hover:text-blue-800 hover:underline transition-colors inline-flex items-center gap-1.5"><i class="fa-solid fa-circle-info"></i> Tìm hiểu thêm & hướng dẫn khắc phục</a>`;
+                            const helpLinkHTML = `<br><br><a href="javascript:void(0)" onclick="app.ui.closeAlert(true); setTimeout(() => app.utils.navigate('/help/1516371307481272330'), 300)" class="text-black font-bold hover:text-gray-700 hover:underline transition-colors inline-flex items-center gap-1.5"><i class="fa-solid fa-circle-info"></i> Tìm hiểu thêm & hướng dẫn khắc phục</a>`;
 
                             // 1. Kiểm tra Tên thiết bị (Model)
                             if (!model) {
@@ -12432,28 +12432,41 @@ app.admin.fetchManagerData('denied');
                             displayError = JSON.stringify(err);
                         }
 
-                        app.ui.updateUploadError(displayError);
+                        // Danh sách các lỗi CỤC BỘ (Do thiết bị người dùng) KHÔNG cần gửi lên Discord gây rác hệ thống
+                        const localErrors = [
+                            "Trình duyệt của bạn không hỗ trợ",
+                            "Ảnh quá phức tạp",
+                            "Lỗi nén ảnh"
+                        ];
+                        
+                        const shouldReport = !localErrors.some(eStr => displayError.includes(eStr));
 
-                        // === BẮT ĐẦU GỬI BUG REPORT TỰ ĐỘNG VỀ API ===
-                        try {
-                            fetch('/api/bug-report', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    errorMessage: displayError,
-                                    fileInfo: {
-                                        name: app.rawFile ? app.rawFile.name : 'N/A',
-                                        type: app.rawFile ? app.rawFile.type : 'N/A',
-                                        originalSize: originalSizeKB,
-                                        compressedSize: compressedSizeKB
-                                    },
-                                    consoleLogs: window._consoleErrors || [],
-                                    user: app.user ? { username: app.username, id: app.user.id } : null,
-                                    userAgent: navigator.userAgent
-                                })
-                            });
-                        } catch (reportErr) {
-                            console.error("Không thể gửi bug report:", reportErr);
+                        // Nếu không report, dán nhãn [NO_REPORT] để UI biết đường hiển thị
+                        const uiErrorMsg = shouldReport ? displayError : `[NO_REPORT] ${displayError}`;
+                        app.ui.updateUploadError(uiErrorMsg);
+
+                        // === BẮT ĐẦU GỬI BUG REPORT TỰ ĐỘNG VỀ API (NẾU HỢP LỆ) ===
+                        if (shouldReport) {
+                            try {
+                                fetch('/api/bug-report', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        errorMessage: displayError,
+                                        fileInfo: {
+                                            name: app.rawFile ? app.rawFile.name : 'N/A',
+                                            type: app.rawFile ? app.rawFile.type : 'N/A',
+                                            originalSize: originalSizeKB,
+                                            compressedSize: compressedSizeKB
+                                        },
+                                        consoleLogs: window._consoleErrors || [],
+                                        user: app.user ? { username: app.username, id: app.user.id } : null,
+                                        userAgent: navigator.userAgent
+                                    })
+                                });
+                            } catch (reportErr) {
+                                console.error("Không thể gửi bug report:", reportErr);
+                            }
                         }
                     } finally {
                         btn.innerHTML = originalText;
@@ -14966,7 +14979,19 @@ closeCustomRolePrompt: () => {
                     }
 
                     desc.innerHTML = `<b class="text-red-700">${cleanMsg}</b>`;
-                    errorBox.innerText = "Mã lỗi: " + errMsg;
+                    
+                    // --- THÊM LOGIC TRẠNG THÁI REPORT VÀ LINK HELP ---
+                    // Cờ isReported được truyền ẩn thông qua thẻ span do hàm submit quyết định
+                    const isReported = !errMsg.includes('NO_REPORT'); 
+                    const pureErrMsg = errMsg.replace('[NO_REPORT] ', '');
+
+                    const reportStatusHTML = isReported 
+                        ? `<span class="text-green-700"><i class="fa-solid fa-check-circle mr-1"></i>Lỗi này đã được thông báo tự động.</span>`
+                        : `<span class="text-gray-500"><i class="fa-solid fa-info-circle mr-1"></i>Lỗi này sẽ KHÔNG được thông báo tự động.</span>`;
+
+                    const helpLinkHTML = `<a href="javascript:void(0)" onclick="app.ui.closeUploadProgress(); setTimeout(() => app.utils.navigate('/help/1516405301996421281'), 300)" class="text-black font-bold hover:text-gray-700 hover:underline transition-colors inline-flex items-center gap-1.5 mt-2.5 block"><i class="fa-solid fa-circle-info"></i> Tìm hiểu thêm & hướng dẫn khắc phục</a>`;
+
+                    errorBox.innerHTML = `Mã lỗi: ${pureErrMsg}<br><div class="mt-2 text-[10px] font-medium border-t border-red-200 pt-2">${reportStatusHTML} ${helpLinkHTML}</div>`;
                     errorBox.classList.remove('hidden');
 
                     // Thay đổi Onclick của nút "Thử lại" dưới đây:
