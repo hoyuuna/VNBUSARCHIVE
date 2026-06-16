@@ -14926,6 +14926,7 @@ closeCustomRolePrompt: () => {
                             });
                     }
 
+                    actions.className = "mt-6 flex gap-3 justify-center w-full"; // Khôi phục class xếp ngang
                     actions.innerHTML = `
                         <button onclick="app.utils.cleanupState(); window.scrollTo({ top: 0, behavior: 'smooth' });" class="flex-1 bg-white border border-gray-300 text-gray-700 py-2.5 rounded-md font-bold text-xs hover:bg-gray-50 transition shadow-sm">Upload thêm</button>
                         <button onclick="app.utils.navigate('/');" class="flex-1 bg-black text-white py-2.5 rounded-md font-bold text-xs hover:bg-gray-800 transition shadow-sm">Trang chủ</button>
@@ -14980,26 +14981,29 @@ closeCustomRolePrompt: () => {
 
                     desc.innerHTML = `<b class="text-red-700">${cleanMsg}</b>`;
                     
-                    // --- THÊM LOGIC TRẠNG THÁI REPORT VÀ LINK HELP ---
-                    // Cờ isReported được truyền ẩn thông qua thẻ span do hàm submit quyết định
                     const isReported = !errMsg.includes('NO_REPORT'); 
                     const pureErrMsg = errMsg.replace('[NO_REPORT] ', '');
 
-                    const reportStatusHTML = isReported 
-                        ? `<span class="text-black"><i class="fa-solid fa-check-circle mr-1"></i>Lỗi này đã được thông báo tự động.</span>`
-                        : `<span class="text-black"><i class="fa-solid fa-info-circle mr-1"></i>Lỗi này sẽ KHÔNG được thông báo tự động.</span>`;
-
-                    const helpLinkHTML = `<a href="javascript:void(0)" onclick="app.ui.closeUploadProgress(); setTimeout(() => app.utils.navigate('/help/1516405301996421281'), 300)" class="text-black font-bold hover:text-gray-700 hover:underline transition-colors inline-flex items-center gap-1.5 mt-2.5 block"><i class="fa-solid fa-circle-info"></i> Tìm hiểu thêm & hướng dẫn khắc phục</a>`;
-
-                    errorBox.innerHTML = `Mã lỗi: ${pureErrMsg}<br><div class="mt-2 text-[10px] font-medium border-t border-red-200 pt-2">${reportStatusHTML} ${helpLinkHTML}</div>`;
+                    // Chỉ để lại mã lỗi gốc trong hộp đỏ
+                    errorBox.innerHTML = `Mã lỗi: ${pureErrMsg}`;
                     errorBox.classList.remove('hidden');
 
-                    // Thay đổi Onclick của nút "Thử lại" dưới đây:
+                    const statusText = isReported ? "Lỗi này đã được thông báo tự động." : "Lỗi này sẽ KHÔNG được thông báo tự động.";
+
+                    // Xếp dòng chữ màu xám nằm ngay trên 2 nút bấm, căn giữa
+                    actions.className = "mt-5 flex flex-col w-full"; // Ghi đè class để xếp dọc
                     actions.innerHTML = `
-                        <button onclick="app.ui.closeUploadProgress(); app.utils.resetTurnstile('#upload .cf-turnstile');" class="flex-1 bg-white border border-gray-300 text-gray-700 py-2.5 rounded-md font-bold text-xs hover:bg-gray-50 transition shadow-sm">Thử lại</button>
-                        <button onclick="app.utils.navigate('/');" class="flex-1 bg-black text-white py-2.5 rounded-md font-bold text-xs hover:bg-gray-800 transition shadow-sm">Trang chủ</button>
+                        <div class="text-[10px] text-gray-500 font-medium text-center mb-3">
+                            <span class="inline-flex flex-wrap justify-center items-center gap-1">
+                                <span>${statusText}</span>
+                                <a href="javascript:void(0)" onclick="app.ui.closeUploadProgress(); setTimeout(() => app.utils.navigate('/help/1516405301996421281'), 300)" class="font-bold underline hover:text-gray-800 transition-colors inline-flex items-center">Tìm hiểu thêm & hướng dẫn khắc phục</a>
+                            </span>
+                        </div>
+                        <div class="flex gap-3 w-full">
+                            <button onclick="app.ui.closeUploadProgress(); app.utils.resetTurnstile('#upload .cf-turnstile');" class="flex-1 bg-white border border-gray-300 text-gray-700 py-2.5 rounded-md font-bold text-xs hover:bg-gray-50 transition shadow-sm">Thử lại</button>
+                            <button onclick="app.utils.navigate('/');" class="flex-1 bg-black text-white py-2.5 rounded-md font-bold text-xs hover:bg-gray-800 transition shadow-sm">Trang chủ</button>
+                        </div>
                     `;
-                    actions.classList.remove('hidden');
                 },
 
                 closeUploadProgress: () => {
