@@ -5208,7 +5208,7 @@
                         <div class="news-card p-3 rounded-lg cursor-pointer mb-2 transition-colors ${isActive ? 'active' : ''}" onclick="app.newsboard.renderContent(${index})">
                             <div class="text-[10px] ${isActive ? 'text-gray-300' : 'text-gray-400'} font-bold uppercase mb-1">${item.date || 'Hôm nay'}</div>
                             <div class="text-sm font-bold ${isActive ? 'text-white' : 'text-gray-800'} line-clamp-2 leading-snug">${item.title || 'Thông báo hệ thống'}</div>
-                            <div class="text-xs ${isActive ? 'text-gray-400' : 'text-gray-500'} mt-1 line-clamp-1">${item.summary || 'Nhấn để xem chi tiết...'}</div>
+                            <div class="text-xs ${isActive ? 'text-gray-400' : 'text-gray-500'} mt-1 line-clamp-1">${app.utils.stripMarkdown(item.summary) || 'Nhấn để xem chi tiết...'}</div>
                         </div>
                         `;
                     }).join('');
@@ -5327,7 +5327,7 @@
                         container.innerHTML = app.help.data.map(item => `
                             <div onclick="app.utils.navigate('/help/${item.id}')" class="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md hover:border-black transition-all cursor-pointer flex flex-col h-full group">
                                 <h3 class="font-bold text-base text-black mb-2 line-clamp-2 transition-colors">${item.title}</h3>
-                                <p class="text-xs text-gray-600 line-clamp-3 mb-5 flex-1 leading-relaxed">${item.summary}</p>
+                                <p class="text-xs text-gray-600 line-clamp-3 mb-5 flex-1 leading-relaxed">${app.utils.stripMarkdown(item.summary)}</p>
                                 <div class="flex items-center gap-2 mt-auto pt-2">
                                     <div class="w-7 h-7 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center text-[10px] shrink-0 group-hover:bg-black group-hover:text-white transition-colors">
                                         <i class="fa-solid fa-file-lines"></i>
@@ -12912,6 +12912,13 @@ app.admin.fetchManagerData('denied');
             },
 
             utils: {
+                stripMarkdown: (md) => {
+                    if (!md) return '';
+                    const html = marked.parse(md);
+                    const temp = document.createElement('div');
+                    temp.innerHTML = html;
+                    return (temp.textContent || temp.innerText || '').replace(/\s+/g, ' ').trim();
+                },
                 // Thêm hàm resetTurnstile dùng chung này vào đầu object utils
                 resetTurnstile: (selector) => {
                     // Đã chuyển sang dùng Popup (app.captcha), hàm này bị vô hiệu hóa
