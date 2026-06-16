@@ -11976,14 +11976,17 @@ app.admin.fetchManagerData('denied');
                             const lon = EXIF.getTag(this, "GPSLongitude");
                             const lonRef = EXIF.getTag(this, "GPSLongitudeRef");
 
+                            // Biến chứa Link hướng dẫn khắc phục để tái sử dụng
+                            const helpLinkHTML = `<br><br><a href="javascript:void(0)" onclick="app.ui.closeAlert(true); setTimeout(() => app.utils.navigate('/help/1516371307481272330'), 300)" class="text-blue-600 font-bold hover:text-blue-800 hover:underline transition-colors inline-flex items-center gap-1.5"><i class="fa-solid fa-circle-info"></i> Tìm hiểu thêm & hướng dẫn khắc phục</a>`;
+
                             // Kiểm tra điều kiện bắt buộc
                             if (!model) {
-                                reject("Ảnh không chứa thông tin EXIF bắt buộc (Model máy ảnh). Vui lòng chọn ảnh gốc chưa qua chỉnh sửa.");
+                                reject("Ảnh không chứa thông tin EXIF bắt buộc (Model máy ảnh). Vui lòng chọn ảnh gốc chưa qua chỉnh sửa." + helpLinkHTML);
                                 return;
                             }
 
                             if (!dateTimeOriginal) {
-                                reject("Ảnh không chứa thông tin ngày chụp (EXIF Date). Việc có ngày chụp gốc là bắt buộc. Vui lòng chọn file ảnh nguyên bản.");
+                                reject("Ảnh không chứa thông tin ngày chụp (EXIF Date). Việc có ngày chụp gốc là bắt buộc. Vui lòng chọn file ảnh nguyên bản." + helpLinkHTML);
                                 return;
                             }
 
