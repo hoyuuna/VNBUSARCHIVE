@@ -1,16 +1,30 @@
-// Fetch latest messages from a Discord channel and expose as news feed
+// Fetch latest messages from a Discord channel and expose as news/help feed
 export default async function handler(req, res) {
     if (req.method !== 'GET') return res.status(405).json({ error: 'Method Not Allowed' });
 
     const token = process.env.DISCORD_BOT_TOKEN;
-    const channelId = process.env.DISCORD_CHANNEL_ID;
+    const type = req.query.type === 'help' ? 'help' : 'news';
+    const channelId = type === 'help' ? process.env.DISCORD_HELP_CHANNEL_ID : process.env.DISCORD_CHANNEL_ID;
+    const id = req.query.id;
+
+    const requiredEnv = type === 'help'
+        ? ['DISCORD_BOT_TOKEN', 'DISCORD_HELP_CHANNEL_ID']
+        : ['DISCORD_BOT_TOKEN', 'DISCORD_CHANNEL_ID'];
+    const missingEnv = requiredEnv.filter((name) => !process.env[name]);
 
     if (!token || !channelId) {
-        return res.status(500).json({ error: 'Missing DISCORD_BOT_TOKEN or DISCORD_CHANNEL_ID' });
+        return res.status(500).json({ error: `Missing ${missingEnv.join(', ')} in Environment Variables` });
     }
 
     try {
-        const response = await fetch(`https://discord.com/api/v10/channels/${channelId}/messages?limit=10`, {
+        let url = `https://discord.com/api/v10/channels/${channelId}/messages`;
+        if (id) {
+            url += `/${encodeURIComponent(id)}`;
+        } else {
+            url += `?limit=${type === 'help' ? 12 : 10}`;
+        }
+
+        const response = await fetch(url, {
             headers: { Authorization: `Bot ${token}` }
         });
 
@@ -18,9 +32,10 @@ export default async function handler(req, res) {
             throw new Error(`Discord API error: ${response.status}`);
         }
 
-        const messages = await response.json();
+        const rawData = await response.json();
+        const messages = Array.isArray(rawData) ? rawData : [rawData];
 
-        const formattedNews = messages.map((msg) => {
+        const formattedData = messages.map((msg) => {
             let text = msg.content || '';
 
             text = text.replace(/<a?:(\w+):\d+>/g, ':$1:');
@@ -28,11 +43,12 @@ export default async function handler(req, res) {
             text = text.replace(/<#[^>]+>/g, '#kênh');
             text = text.replace(/<@&\d+>/g, '@role');
 
-            const lines = text.split('\n').map((l) => l.trim()).filter((l) => l.length > 0);
-            let title = 'Thông báo hệ thống';
+            const lines = text.split('\n').map((line) => line.trim()).filter((line) => line.length > 0);
+
+            let title = type === 'help' ? 'Hướng dẫn' : 'Thông báo hệ thống';
             if (lines.length > 0) {
                 title = lines[0].replace(/[*_#]/g, '').trim();
-                if (title.length > 60) title = `${title.substring(0, 60)}...`;
+                if (title.length > 70) title = `${title.substring(0, 70)}...`;
             }
 
             let fullContent = text;
@@ -51,8 +67,11 @@ export default async function handler(req, res) {
                 year: 'numeric'
             });
 
-            let summary = text.replace(/\n/g, ' ').substring(0, 100);
-            if (text.length > 100) summary += '...';
+            const firstLine = lines[0] || '';
+            let summaryRaw = firstLine ? text.replace(firstLine, '').replace(/\n/g, ' ').trim() : text.replace(/\n/g, ' ').trim();
+
+            let summary = summaryRaw.substring(0, 150);
+            if (summaryRaw.length > 150) summary += '...';
 
             const author = msg.author || {};
             const authorName = author.global_name || author.username || 'Ban Quản Trị';
@@ -64,7 +83,7 @@ export default async function handler(req, res) {
             return {
                 id: msg.id,
                 title,
-                summary: summary || 'Nhấn để xem chi tiết đính kèm...',
+                summary: summary || 'Nhấn để xem chi tiết...',
                 date: dateStr,
                 content: fullContent,
                 authorName,
@@ -72,9 +91,9 @@ export default async function handler(req, res) {
             };
         });
 
-        return res.status(200).json(formattedNews);
+        return res.status(200).json(id ? formattedData[0] : formattedData);
     } catch (error) {
-        console.error('News API Error:', error);
+        console.error('API Error:', error);
         return res.status(500).json({ error: error.message });
     }
 }
