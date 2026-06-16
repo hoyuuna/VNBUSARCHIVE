@@ -14931,6 +14931,8 @@ closeCustomRolePrompt: () => {
             }
         });
 
+        marked.use({ breaks: true, gfm: true });
+
         document.addEventListener('DOMContentLoaded', async () => {
             try {
                 // 1. Gọi API để lấy key cấu hình
