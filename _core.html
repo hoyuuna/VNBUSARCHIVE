@@ -3240,17 +3240,20 @@
             <!-- DANH SÁCH HELP CENTER -->
             <div id="help-list" class="view-section">
                 <div class="max-w-4xl mx-auto">
-                    <div class="bg-gradient-animated border border-white/50 rounded-2xl p-6 md:p-10 mb-8 shadow-sm text-center relative overflow-hidden">
-                        <div class="relative z-10">
-                            <div class="w-16 h-16 bg-white/80 text-blue-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 shadow-sm backdrop-blur-sm">
-                                <i class="fa-solid fa-book-open"></i>
-                            </div>
-                            <h2 class="text-2xl md:text-3xl font-black text-gray-900 mb-2 tracking-tight uppercase">Trung tâm hỗ trợ</h2>
-                            <p class="text-sm text-gray-700 font-medium max-w-lg mx-auto">Giải đáp thắc mắc, hướng dẫn sử dụng và các quy định khi tham gia cộng đồng VNBUSARCHIVE.</p>
+                    <!-- Banner Tối giản -->
+                    <div class="bg-white border border-gray-200 rounded-2xl p-6 md:p-10 mb-8 shadow-sm text-center relative overflow-hidden flex flex-col items-center justify-center">
+                        <div class="w-16 h-16 bg-gray-50 text-black border border-gray-200 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 shadow-sm">
+                            <i class="fa-solid fa-book-open"></i>
                         </div>
+                        <h2 class="text-2xl md:text-3xl font-black text-black mb-2 tracking-tight uppercase">Trung tâm hỗ trợ</h2>
+                        <p class="text-sm text-gray-500 font-medium max-w-lg mx-auto leading-relaxed">
+                            Giải đáp thắc mắc, hướng dẫn sử dụng và các quy định khi tham gia cộng đồng.
+                        </p>
                     </div>
 
+                    <!-- Lưới bài viết -->
                     <div id="help-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Sẽ được render qua JS -->
                     </div>
                 </div>
             </div>
@@ -5305,11 +5308,11 @@
                         container.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500 font-medium">Chưa có bài viết hướng dẫn nào.</div>';
                     } else {
                         container.innerHTML = app.help.data.map((item) => `
-                            <div onclick="app.utils.navigate('/help/${app.utils.escapeAttr(item.id)}')" class="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-lg hover:border-blue-300 transition-all cursor-pointer flex flex-col h-full group">
-                                <h3 class="font-bold text-base text-black mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">${app.utils.escapeAttr(item.title)}</h3>
+                            <div onclick="app.utils.navigate('/help/${app.utils.escapeAttr(item.id)}')" class="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md hover:border-black transition-all cursor-pointer flex flex-col h-full group">
+                                <h3 class="font-bold text-base text-black mb-2 line-clamp-2 transition-colors">${app.utils.escapeAttr(item.title)}</h3>
                                 <p class="text-xs text-gray-600 line-clamp-3 mb-5 flex-1 leading-relaxed">${app.utils.escapeAttr(item.summary)}</p>
-                                <div class="flex items-center gap-2 mt-auto">
-                                    <div class="w-6 h-6 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center text-[10px] shrink-0">
+                                <div class="flex items-center gap-2 mt-auto pt-4 border-t border-gray-100">
+                                    <div class="w-7 h-7 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center text-[10px] shrink-0 group-hover:bg-black group-hover:text-white transition-colors">
                                         <i class="fa-solid fa-file-lines"></i>
                                     </div>
                                     <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">${app.utils.escapeAttr(item.date)}</span>
