@@ -5238,8 +5238,13 @@
                     }
 
                     const contentHtml = marked.parse(item.content || '');
+                    
+                    const newsBody = document.getElementById('news-body');
+                    newsBody.innerHTML = DOMPurify.sanitize(contentHtml);
 
-                    document.getElementById('news-body').innerHTML = DOMPurify.sanitize(contentHtml);
+                    // XÓA TIÊU ĐỀ TRÙNG LẶP DƯ THỪA TỪ MARKDOWN
+                    const firstH1 = newsBody.querySelector('h1');
+                    if (firstH1) firstH1.remove();
 
                     app.newsboard.renderSidebar();
 
@@ -5388,6 +5393,10 @@
                         const contentHtml = marked.parse(item.content || '');
                         const articleBody = document.getElementById('help-detail-body');
                         articleBody.innerHTML = DOMPurify.sanitize(contentHtml);
+
+                        // XÓA TIÊU ĐỀ TRÙNG LẶP DƯ THỪA TỪ MARKDOWN
+                        const firstH1 = articleBody.querySelector('h1');
+                        if (firstH1) firstH1.remove();
 
                         // --- LOGIC TẠO MỤC LỤC TỰ ĐỘNG ---
                         // Bỏ qua H1 (tiêu đề chính), chỉ quét H2, H3, H4
