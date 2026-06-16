@@ -743,23 +743,24 @@
             transform: skewX(-20deg);
         }
 
+        /* CSS CỤC TAG BETA DÙNG CHUNG (Đồng bộ form với badge-shiny) */
         .badge-beta {
             display: inline-flex;
             align-items: center;
-            justify-content: center;
-            padding: 2px 6px;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.2rem;
             font-size: 0.55rem;
-            font-weight: 800;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.03em;
+            line-height: 1;
+            vertical-align: middle;
+            margin-left: 4px;
+            user-select: none;
+            
             color: #92400e;
             background: linear-gradient(135deg, #fde68a, #f59e0b);
-            border-radius: 9999px;
-            box-shadow: 0 1px 2px rgba(245, 158, 11, 0.3);
-            vertical-align: middle;
-            margin-left: 6px;
-            user-select: none;
-            transform: translateY(-1px);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
 
         @keyframes shine {
