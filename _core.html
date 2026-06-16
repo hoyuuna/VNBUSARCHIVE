@@ -1527,6 +1527,27 @@
         </div>
     </div>
 
+    <!-- MODAL YÊU CẦU XÁC MINH EMAIL (CHẶN HỆ THỐNG) -->
+    <div id="email-verify-modal" class="hidden fixed inset-0 flex items-center justify-center p-4" style="z-index: 9999999; background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);">
+        <div class="bg-white/90 backdrop-blur-2xl border border-white/60 rounded-3xl w-full max-w-sm p-6 md:p-8 text-center shadow-2xl flex flex-col items-center transform transition-all opacity-0 scale-95" id="email-verify-content">
+            <div class="w-16 h-16 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center text-3xl mb-5 shadow-inner border border-amber-100">
+                <i class="fa-solid fa-envelope-circle-check"></i>
+            </div>
+            <h3 class="text-xl font-black text-gray-900 mb-2 uppercase tracking-tight">Xác minh Email</h3>
+            <p class="text-sm text-gray-600 mb-2 font-medium leading-relaxed">Để có thể sử dụng hệ thống, vui lòng xác minh địa chỉ email: <br><b id="verify-modal-email" class="text-black text-base mt-1 block truncate"></b></p>
+            <p class="text-[11px] text-gray-500 mb-6 italic bg-gray-50/50 p-2.5 rounded-xl border border-gray-100 shadow-inner">Lưu ý: Rất có thể thư xác nhận đã bị lọt vào hộp thư rác (Spam) hoặc mục Quảng cáo.</p>
+
+            <div class="w-full flex flex-col gap-3">
+                <button id="btn-resend-verify" onclick="app.auth.resendVerification()" class="w-full bg-black text-white py-3.5 rounded-xl font-bold text-sm hover:bg-gray-800 transition shadow-xl shadow-black/20 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-paper-plane"></i> Gửi lại thư xác nhận
+                </button>
+                <button onclick="app.auth.logoutUnverified()" class="w-full bg-white border border-gray-300 text-gray-700 py-3.5 rounded-xl font-bold text-sm hover:bg-gray-50 transition shadow-sm flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-user-secret"></i> Dùng ẩn danh (Không tài khoản)
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="app-container" style="display: none; opacity: 0; transition: opacity 0.5s ease-in-out;">
 
         <!-- POPUP ONBOARDING (CHÀO MỪNG NGƯỜI MỚI - GLASSMORPHISM ĐỒNG BỘ) -->
@@ -6205,6 +6226,20 @@
 
 
         init: async () => {
+            let session = null;
+
+            try {
+                const { data } = await window.sb.auth.getSession();
+                session = data.session;
+
+                // --- CHẶN TÀI KHOẢN CHƯA XÁC MINH NGAY TỪ ĐẦU ---
+                if (session && session.user && !session.user.email_confirmed_at) {
+                    document.getElementById('loading-screen').style.display = 'none';
+                    if(document.getElementById('app-container')) document.getElementById('app-container').style.display = 'none';
+                    app.auth.showVerificationModal(session.user.email);
+                    return;
+                }
+                // ---------------------------------------------------
 
                 setTimeout(() => {
                     document.getElementById('loading-screen').style.display = 'none';
@@ -6213,11 +6248,9 @@
                     setTimeout(() => appContainer.style.opacity = '1', 50);
                 }, 400);
 
-                try {
-                    const { data: { session } } = await window.sb.auth.getSession();
-                    await app.setUser(session ? session.user : null);
+                await app.setUser(session ? session.user : null);
 
-                    window.sb.auth.onAuthStateChange(async (event, session) => {
+                window.sb.auth.onAuthStateChange(async (event, session) => {
 
                         if (event === 'PASSWORD_RECOVERY') {
     // Chỉ xử lý trên TAB MỚI (Tab được mở từ Link Email sẽ có chứa chữ type=recovery trên URL)
@@ -6262,6 +6295,12 @@
                     });
 
                 } catch (e) {
+                    document.getElementById('loading-screen').style.display = 'none';
+                    const appContainer = document.getElementById('app-container');
+                    if(appContainer) {
+                        appContainer.style.display = 'block';
+                        appContainer.style.opacity = '1';
+                    }
                     await app.setUser(null);
                 }
 
@@ -13950,6 +13989,52 @@ cleanupState: () => {
             auth: {
                 mode: 'login',
                 uuidTimeout: null,
+                unverifiedEmail: null,
+
+                showVerificationModal: (email) => {
+                    app.auth.unverifiedEmail = email;
+                    const modal = document.getElementById('email-verify-modal');
+                    const content = document.getElementById('email-verify-content');
+                    if(document.getElementById('verify-modal-email')) document.getElementById('verify-modal-email').innerText = email;
+
+                    modal.classList.remove('hidden');
+                    setTimeout(() => {
+                        content.classList.remove('scale-95', 'opacity-0');
+                        content.classList.add('scale-100', 'opacity-100');
+                    }, 10);
+                },
+
+                resendVerification: async () => {
+                    const btn = document.getElementById('btn-resend-verify');
+                    const origHTML = btn.innerHTML;
+                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi...';
+                    btn.disabled = true;
+
+                    try {
+                        const { error } = await window.sb.auth.resend({
+                            type: 'signup',
+                            email: app.auth.unverifiedEmail,
+                            options: { emailRedirectTo: window.location.origin + '/auth' }
+                        });
+
+                        if (error) {
+                            if (error.status === 429) throw new Error("Bạn đã yêu cầu quá nhiều lần. Vui lòng đợi ít phút rồi thử lại.");
+                            throw error;
+                        }
+                        alert("Đã gửi lại link xác nhận thành công! Vui lòng kiểm tra email.");
+                    } catch (err) {
+                        alert("Lỗi: " + err.message);
+                    } finally {
+                        btn.innerHTML = origHTML;
+                        btn.disabled = false;
+                    }
+                },
+
+                logoutUnverified: async () => {
+                    await window.sb.auth.signOut();
+                    sessionStorage.removeItem('VNBA_SESS_AUTH');
+                    window.location.href = '/';
+                },
 
                 signInWithProvider: async (provider) => {
                     let captchaResponse;
@@ -14023,7 +14108,25 @@ cleanupState: () => {
                     try {
                         if (app.auth.mode === 'login') {
                             const { data, error } = await window.sb.auth.signInWithPassword({ email, password });
-                            if (error) throw error;
+
+                            // BẮT LỖI TỪ SUPABASE NẾU BACKEND CẤM LOGIN KHI CHƯA XÁC MINH
+                            if (error) {
+                                if (error.message.includes('Email not confirmed') || error.message.includes('not confirmed')) {
+                                    app.auth.showVerificationModal(email);
+                                    btn.disabled = false;
+                                    btn.innerHTML = originalHTML;
+                                    return;
+                                }
+                                throw error;
+                            }
+
+                            // BẮT LỖI BẰNG FRONTEND NẾU BACKEND LỠ CHO ĐĂNG NHẬP NHƯNG CHƯA XÁC MINH
+                            if (data.user && !data.user.email_confirmed_at) {
+                                app.auth.showVerificationModal(data.user.email);
+                                btn.disabled = false;
+                                btn.innerHTML = originalHTML;
+                                return;
+                            }
 
                             await app.setUser(data.user);
                             app.ui.showAlert("Đăng nhập thành công!", () => { app.utils.navigate('/'); });
