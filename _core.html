@@ -14986,8 +14986,8 @@ closeCustomRolePrompt: () => {
                     const pureErrMsg = errMsg.replace('[NO_REPORT] ', '');
 
                     const reportStatusHTML = isReported 
-                        ? `<span class="text-green-700"><i class="fa-solid fa-check-circle mr-1"></i>Lỗi này đã được thông báo tự động.</span>`
-                        : `<span class="text-gray-500"><i class="fa-solid fa-info-circle mr-1"></i>Lỗi này sẽ KHÔNG được thông báo tự động.</span>`;
+                        ? `<span class="text-black"><i class="fa-solid fa-check-circle mr-1"></i>Lỗi này đã được thông báo tự động.</span>`
+                        : `<span class="text-black"><i class="fa-solid fa-info-circle mr-1"></i>Lỗi này sẽ KHÔNG được thông báo tự động.</span>`;
 
                     const helpLinkHTML = `<a href="javascript:void(0)" onclick="app.ui.closeUploadProgress(); setTimeout(() => app.utils.navigate('/help/1516405301996421281'), 300)" class="text-black font-bold hover:text-gray-700 hover:underline transition-colors inline-flex items-center gap-1.5 mt-2.5 block"><i class="fa-solid fa-circle-info"></i> Tìm hiểu thêm & hướng dẫn khắc phục</a>`;
 
