@@ -8138,32 +8138,53 @@ dropdown.innerHTML = `
                     grid.innerHTML = photos.map(p => app.views.renderPhotoCard(p)).join('');
 
                     try {
+                        // 1. Đếm tổng số ảnh
                         let countQuery = window.sb.from('photos').select('*', { count: 'exact', head: true }).eq('status', 'approved');
                         countQuery = app.preference.applyFilter(countQuery);
                         const { count: photoCount } = await countQuery;
-                        const { data: vehicleData } = await window.sb.from('photos').select('license_plate');
-                        let vehicleCount = 0;
-                        if (vehicleData) {
-                            const uniquePlates = new Set();
-                            vehicleData.forEach(v => {
-                                if (v.license_plate) uniquePlates.add(v.license_plate.trim().toUpperCase());
-                            });
-                            vehicleCount = uniquePlates.size;
-                        }
-                        const { data: routeData } = await window.sb.from('photos').select('route_no');
 
-                        let routeCount = 0;
-                        if (routeData) {
-                            const uniqueRoutes = new Set();
-                            routeData.forEach(r => {
-                                if (r.route_no && r.route_no !== '---') uniqueRoutes.add(r.route_no.trim().toLowerCase());
+                        // 2. Đếm số Xe và Tuyến (Sử dụng vòng lặp để vượt qua giới hạn 1000 row)
+                        const uniquePlates = new Set();
+                        const uniqueRoutes = new Set();
+                        let from = 0;
+                        const step = 999;
+                        let fetchMore = true;
+
+                        // Gom chung việc lấy Biển số và Tuyến vào 1 truy vấn để tiết kiệm API Call
+                        while (fetchMore) {
+                            let statsQuery = window.sb.from('photos')
+                                .select('license_plate, route_no')
+                                .eq('status', 'approved') // Chỉ lấy ảnh đã được duyệt
+                                .range(from, from + step);
+
+                            // Áp dụng bộ lọc cá nhân hóa nếu user đang chọn xem riêng Xe Buýt hoặc Xe Khách
+                            statsQuery = app.preference.applyFilter(statsQuery);
+
+                            const { data, error } = await statsQuery;
+
+                            if (error || !data || data.length === 0) break;
+
+                            data.forEach(item => {
+                                if (item.license_plate) {
+                                    uniquePlates.add(item.license_plate.trim().toUpperCase());
+                                }
+                                if (item.route_no && item.route_no !== '---') {
+                                    uniqueRoutes.add(item.route_no.trim().toLowerCase());
+                                }
                             });
-                            routeCount = uniqueRoutes.size;
+
+                            if (data.length <= step) {
+                                fetchMore = false;
+                            } else {
+                                from += step + 1;
+                            }
                         }
 
+                        // 3. Render ra giao diện
                         document.getElementById('db-stat-photos').innerText = app.utils.formatCompact(photoCount || 0);
-                        document.getElementById('db-stat-vehicles').innerText = app.utils.formatCompact(vehicleCount || 0);
-                        document.getElementById('db-stat-routes').innerText = app.utils.formatCompact(routeCount || 0);
+                        document.getElementById('db-stat-vehicles').innerText = app.utils.formatCompact(uniquePlates.size || 0);
+                        document.getElementById('db-stat-routes').innerText = app.utils.formatCompact(uniqueRoutes.size || 0);
+                        
                     } catch (e) {
                         console.error("Lỗi tải thông kê:", e);
                     }
