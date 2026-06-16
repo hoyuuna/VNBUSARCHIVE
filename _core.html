@@ -757,10 +757,16 @@
             vertical-align: middle;
             margin-left: 4px;
             user-select: none;
-            
+
             color: #92400e;
             background: linear-gradient(135deg, #fde68a, #f59e0b);
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .badge-beta:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         @keyframes shine {
@@ -3099,7 +3105,7 @@
                 <div id="comment-section" class="mt-8 mb-6 bg-white border border-vbs-border p-4 md:p-6 rounded-lg shadow-sm block">
                     <h3 class="font-bold text-lg border-b border-gray-200 pb-3 mb-4 tracking-tight uppercase text-black flex items-center">
                         <i class="fa-regular fa-comments mr-2 text-black"></i>Bình luận (<span id="comment-count" class="mr-1">0</span>)
-                        <span class="badge-beta">BETA</span>
+                        <span class="badge-beta" onclick="event.stopPropagation(); app.utils.navigate('/help/1516281955526901780')" title="Tìm hiểu tính năng BETA">BETA</span>
                     </h3>
 
                     <!-- Thông báo chưa đăng nhập -->
@@ -3274,9 +3280,10 @@
                         </div>
 
                         <div id="help-detail-container" class="hidden fade-zoom-in">
+                            <!-- Tiêu đề & Meta (ĐÃ BỎ ĐƯỜNG KẺ) -->
                             <h1 id="help-detail-title" class="text-2xl md:text-3xl font-bold text-black mb-4 leading-tight"></h1>
 
-                            <div class="flex items-center gap-3 mb-8 pb-6 border-b border-gray-100">
+                            <div class="flex items-center gap-3 mb-6 pb-2">
                                 <img id="help-detail-avatar" src="" class="w-10 h-10 rounded-full object-cover border border-gray-200 bg-gray-100">
                                 <div class="flex flex-col">
                                     <span id="help-detail-author" class="text-sm font-bold text-black"></span>
@@ -3284,10 +3291,13 @@
                                 </div>
                             </div>
 
+                            <!-- Nội dung bài viết -->
                             <div id="help-detail-body" class="markdown-body">
+                                <!-- Đổ Markdown vào đây -->
                             </div>
 
-                            <div class="mt-12 pt-6 border-t border-gray-100 flex justify-between items-center">
+                            <!-- ĐÃ BỎ ĐƯỜNG KẺ -->
+                            <div class="mt-12 pt-2 flex justify-between items-center">
                                 <p class="text-xs text-gray-500 font-medium">Bài viết có hữu ích không?</p>
                                 <button onclick="app.utils.navigate('/contact')" class="text-xs bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 px-4 py-2 rounded-lg font-bold transition flex items-center gap-1.5">
                                     <i class="fa-solid fa-headset"></i> Cần thêm hỗ trợ
@@ -3760,13 +3770,13 @@
                             </button>
 
                             <button id="btn-manage-comments" onclick="app.utils.navigate('/profile/comments')" class="w-full mb-6 py-3 bg-white border border-[#e4e4e7] rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-black transition shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] flex items-center justify-center gap-2 group">
-                                <i class="fa-solid fa-comments text-gray-500 group-hover:text-black transition-colors"></i> Quản lý bình luận <span class="badge-beta">BETA</span>
+                                <i class="fa-solid fa-comments text-gray-500 group-hover:text-black transition-colors"></i> Quản lý bình luận <span class="badge-beta" onclick="event.stopPropagation(); app.utils.navigate('/help/1516281955526901780')" title="Tìm hiểu tính năng BETA">BETA</span>
                             </button>
 
                             <!-- ĐOẠN CODE THÊM MỚI: PHẦN GIỚI THIỆU -->
                             <div id="profile-intro-section" class="mt-10 mb-8">
                                 <h3 class="font-bold text-lg uppercase text-black tracking-tight mb-4 flex items-center">
-                                    Giới thiệu bản thân <span class="badge-beta">BETA</span>
+                                    Giới thiệu bản thân <span class="badge-beta" onclick="event.stopPropagation(); app.utils.navigate('/help/1516281955526901780')" title="Tìm hiểu tính năng BETA">BETA</span>
                                 </h3>
                                 
                                 <div class="bg-white border border-[#e4e4e7] shadow-sm rounded-2xl overflow-hidden flex flex-col md:flex-row items-stretch">
@@ -5311,7 +5321,7 @@
                             <div onclick="app.utils.navigate('/help/${app.utils.escapeAttr(item.id)}')" class="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md hover:border-black transition-all cursor-pointer flex flex-col h-full group">
                                 <h3 class="font-bold text-base text-black mb-2 line-clamp-2 transition-colors">${app.utils.escapeAttr(item.title)}</h3>
                                 <p class="text-xs text-gray-600 line-clamp-3 mb-5 flex-1 leading-relaxed">${app.utils.escapeAttr(item.summary)}</p>
-                                <div class="flex items-center gap-2 mt-auto pt-4 border-t border-gray-100">
+                                <div class="flex items-center gap-2 mt-auto pt-2">
                                     <div class="w-7 h-7 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center text-[10px] shrink-0 group-hover:bg-black group-hover:text-white transition-colors">
                                         <i class="fa-solid fa-file-lines"></i>
                                     </div>
