@@ -5906,6 +5906,21 @@
                             { countdown: true, btnOkText: "Xóa ảnh", btnCancelText: "Hủy bỏ", title: "Xác nhận xóa" }
                         );
                     } else {
+                        // [BẢO VỆ] Kiểm tra xem ảnh này đã có yêu cầu nào đang chờ duyệt chưa
+                        try {
+                            const { count, error: checkErr } = await window.sb.from('edit_requests')
+                                .select('*', { count: 'exact', head: true })
+                                .eq('status', 'pending')
+                                .contains('new_data', { photo_id: p.id });
+
+                            if (checkErr) throw checkErr;
+                            if (count > 0) {
+                                return app.ui.showAlert("Ảnh này đang có một yêu cầu chỉnh sửa hoặc xóa khác chờ duyệt. Vui lòng đợi Admin xử lý xong trước khi gửi yêu cầu mới.");
+                            }
+                        } catch (e) {
+                            return app.ui.showAlert("Lỗi kiểm tra hệ thống: " + e.message);
+                        }
+
                         app.ui.showPrompt("Vui lòng nhập lý do xóa ảnh này (Bắt buộc):", "", async (reason) => {
                             try {
                                 try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
@@ -9751,6 +9766,18 @@ formInputs.forEach(input => {
 
                             app.edit.cancel();
                         } else {
+                            // [BẢO VỆ] Kiểm tra xem ảnh này đã có yêu cầu nào đang chờ duyệt chưa
+                            const { count, error: checkErr } = await window.sb.from('edit_requests')
+                                .select('*', { count: 'exact', head: true })
+                                .eq('status', 'pending')
+                                .contains('new_data', { photo_id: app.currentPhoto.id });
+                                
+                            if (checkErr) throw checkErr;
+                            if (count > 0) {
+                                btn.innerText = originalText; btn.disabled = false;
+                                return app.ui.showAlert("Ảnh này đang có một yêu cầu chỉnh sửa hoặc xóa khác chờ duyệt. Vui lòng đợi Admin xử lý xong trước khi gửi yêu cầu mới.");
+                            }
+
                             const reqData = {
                                 requester_id: app.user.id,
                                 license_plate: payload.license_plate,
