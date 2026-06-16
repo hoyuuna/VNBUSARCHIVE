@@ -1527,24 +1527,28 @@
         </div>
     </div>
 
-    <!-- MODAL YÊU CẦU XÁC MINH EMAIL -->
-    <div id="email-verify-modal" class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm flex flex-col items-center justify-center p-4" style="z-index: 99999;">
-        <div id="email-verify-content" class="bg-white rounded-2xl shadow-2xl p-6 md:p-8 max-w-sm w-full text-center flex flex-col items-center transform transition-all fade-zoom-in">
-            <div class="w-12 h-12 bg-black text-white rounded-full flex items-center justify-center text-xl mb-4 shadow-md">
-                <i class="fa-solid fa-envelope-circle-check"></i>
+    <!-- MODAL YÊU CẦU XÁC MINH EMAIL (CHUẨN UI KÍNH MỜ CỦA SYSTEM) -->
+    <div id="email-verify-modal" class="hidden fixed inset-0 flex items-center justify-center p-4" style="z-index: 99999; background-color: rgba(0, 0, 0, 0) !important; backdrop-filter: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important;">
+        <div id="email-verify-content" class="rounded-lg shadow-2xl max-w-sm w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col" style="background-color: rgba(255, 255, 255, 0.7) !important; backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important; border: 1px solid rgba(255, 255, 255, 0.6) !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;">
+            
+            <div class="p-5 text-center" style="background-color: transparent !important;">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full mb-4" style="background-color: rgba(0, 0, 0, 0.05);">
+                    <i class="fa-solid fa-envelope-circle-check text-xl text-black"></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Xác minh Email</h3>
+                <p class="text-sm text-gray-500 mb-3">Vui lòng kiểm tra và xác nhận địa chỉ email để tiếp tục sử dụng hệ thống:</p>
+                <b id="verify-modal-email" class="text-black text-sm block mb-2 truncate"></b>
             </div>
-            <h3 class="font-bold text-lg text-black uppercase tracking-tight mb-1">Xác minh Email</h3>
-            <p class="text-xs text-gray-500 mb-5 font-medium px-2">Vui lòng kiểm tra và xác nhận địa chỉ email để tiếp tục sử dụng hệ thống.</p>
-            <b id="verify-modal-email" class="text-black text-sm block mb-4 truncate w-full"></b>
 
-            <div class="w-full flex flex-col gap-2">
-                <button type="button" id="btn-resend-verify" onclick="app.auth.resendVerification()" class="w-full bg-black text-white py-3 rounded-xl font-bold text-sm hover:bg-gray-800 transition shadow-md flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-paper-plane"></i> Gửi lại mail
+            <div class="px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse" style="background-color: transparent !important; border-top: 1px solid rgba(0, 0, 0, 0.05) !important;">
+                <button type="button" id="btn-resend-verify" onclick="app.auth.resendVerification()" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-black text-base font-medium text-white hover:bg-gray-800 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition">
+                    Gửi lại mail
                 </button>
-                <button type="button" onclick="app.auth.logoutUnverified()" class="w-full bg-white border border-gray-300 text-gray-700 py-3 rounded-xl font-bold text-sm hover:bg-gray-50 transition shadow-sm flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+                <button type="button" onclick="app.auth.logoutUnverified()" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-transparent text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition">
+                    Đăng xuất
                 </button>
             </div>
+            
         </div>
     </div>
 
