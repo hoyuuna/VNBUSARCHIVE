@@ -1527,24 +1527,28 @@
         </div>
     </div>
 
-    <!-- MODAL YÊU CẦU XÁC MINH EMAIL (CHẶN HỆ THỐNG) -->
-    <div id="email-verify-modal" class="hidden fixed inset-0 flex items-center justify-center p-4" style="z-index: 9999999; background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);">
-        <div class="bg-white/90 backdrop-blur-2xl border border-white/60 rounded-3xl w-full max-w-sm p-6 md:p-8 text-center shadow-2xl flex flex-col items-center transform transition-all opacity-0 scale-95" id="email-verify-content">
-            <div class="w-16 h-16 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center text-3xl mb-5 shadow-inner border border-amber-100">
-                <i class="fa-solid fa-envelope-circle-check"></i>
+    <!-- MODAL YÊU CẦU XÁC MINH EMAIL (CHUẨN UI KÍNH MỜ CỦA SYSTEM) -->
+    <div id="email-verify-modal" class="hidden fixed inset-0 z-[100000] flex items-center justify-center p-4" style="background-color: rgba(0, 0, 0, 0) !important; backdrop-filter: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important;">
+        <div id="email-verify-content" class="rounded-lg shadow-2xl max-w-sm w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col" style="background-color: rgba(255, 255, 255, 0.7) !important; backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important; border: 1px solid rgba(255, 255, 255, 0.6) !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;">
+            
+            <div class="p-5 text-center" style="background-color: transparent !important;">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full mb-4" style="background-color: rgba(0, 0, 0, 0.05);">
+                    <i class="fa-solid fa-envelope-circle-check text-xl text-black"></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Xác minh Email</h3>
+                <p class="text-sm text-gray-500 mb-3">Vui lòng kiểm tra và xác nhận địa chỉ email để tiếp tục sử dụng hệ thống:</p>
+                <b id="verify-modal-email" class="text-black text-sm block mb-2 truncate"></b>
             </div>
-            <h3 class="text-xl font-black text-gray-900 mb-2 uppercase tracking-tight">Xác minh Email</h3>
-            <p class="text-sm text-gray-600 mb-2 font-medium leading-relaxed">Để có thể sử dụng hệ thống, vui lòng xác minh địa chỉ email: <br><b id="verify-modal-email" class="text-black text-base mt-1 block truncate"></b></p>
-            <p class="text-[11px] text-gray-500 mb-6 italic bg-gray-50/50 p-2.5 rounded-xl border border-gray-100 shadow-inner">Lưu ý: Rất có thể thư xác nhận đã bị lọt vào hộp thư rác (Spam) hoặc mục Quảng cáo.</p>
 
-            <div class="w-full flex flex-col gap-3">
-                <button id="btn-resend-verify" onclick="app.auth.resendVerification()" class="w-full bg-black text-white py-3.5 rounded-xl font-bold text-sm hover:bg-gray-800 transition shadow-xl shadow-black/20 flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-paper-plane"></i> Gửi lại thư xác nhận
+            <div class="px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse" style="background-color: transparent !important; border-top: 1px solid rgba(0, 0, 0, 0.05) !important;">
+                <button type="button" id="btn-resend-verify" onclick="app.auth.resendVerification()" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-black text-base font-medium text-white hover:bg-gray-800 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition">
+                    Gửi lại mail
                 </button>
-                <button onclick="app.auth.logoutUnverified()" class="w-full bg-white border border-gray-300 text-gray-700 py-3.5 rounded-xl font-bold text-sm hover:bg-gray-50 transition shadow-sm flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-user-secret"></i> Dùng ẩn danh (Không tài khoản)
+                <button type="button" onclick="app.auth.logoutUnverified()" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-transparent text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition">
+                    Đăng xuất
                 </button>
             </div>
+            
         </div>
     </div>
 
@@ -14031,9 +14035,10 @@ cleanupState: () => {
                 },
 
                 logoutUnverified: async () => {
+                    // Xóa session, đăng xuất và đẩy về Auth sạch sẽ
                     await window.sb.auth.signOut();
                     sessionStorage.removeItem('VNBA_SESS_AUTH');
-                    window.location.href = '/';
+                    window.location.href = '/auth'; // Reset về trang đăng nhập
                 },
 
                 signInWithProvider: async (provider) => {
