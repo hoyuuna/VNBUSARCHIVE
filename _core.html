@@ -3294,7 +3294,7 @@
                             <!-- MỤC LỤC TỰ ĐỘNG (THÊM MỚI) -->
                             <div id="help-toc-box" class="mb-8 bg-gray-50 border border-gray-200 rounded-2xl p-5 hidden">
                                 <h3 class="text-[11px] font-bold text-gray-500 mb-3 flex items-center gap-1.5 uppercase tracking-widest">
-                                    <i class="fa-solid fa-list-ul text-blue-600"></i> Nội dung được đề cập:
+                                    <i class="fa-solid fa-list-ul text-black"></i> Nội dung được đề cập:
                                 </h3>
                                 <ul id="help-toc-list" class="space-y-2.5 text-sm font-bold text-gray-800">
                                     <!-- Javascript sẽ đổ mục lục vào đây -->
@@ -5411,8 +5411,8 @@
                                 else if (level === 4) li.classList.add('pl-8', 'text-[12px]', 'text-gray-500');
 
                                 // Link bấm gọi hàm scrollToHeading
-                                li.innerHTML = `<a href="javascript:void(0)" onclick="app.help.scrollToHeading('${targetId}')" class="hover:text-blue-600 transition-colors flex items-start gap-2 leading-snug">
-                                    <span class="text-blue-400 opacity-50 mt-0.5"><i class="fa-solid fa-angle-right text-[10px]"></i></span> 
+                                li.innerHTML = `<a href="javascript:void(0)" onclick="app.help.scrollToHeading('${targetId}')" class="hover:text-black hover:underline transition-all flex items-start gap-2 leading-snug">
+                                    <span class="text-black opacity-40 mt-[3px] shrink-0"><i class="fa-solid fa-angle-right text-[10px]"></i></span> 
                                     <span>${heading.innerText}</span>
                                 </a>`;
                                 
