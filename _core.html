@@ -15622,6 +15622,15 @@ closeCustomRolePrompt: () => {
             };
 
             const updateTransform = () => {
+                if (currentZoom <= 1) {
+                    panX = 0;
+                    panY = 0;
+                } else {
+                    const maxX = Math.max(0, (zoomImg.clientWidth * currentZoom - window.innerWidth) / 2);
+                    const maxY = Math.max(0, (zoomImg.clientHeight * currentZoom - window.innerHeight) / 2);
+                    panX = Math.max(-maxX - 50, Math.min(maxX + 50, panX));
+                    panY = Math.max(-maxY - 50, Math.min(maxY + 50, panY));
+                }
                 zoomImg.style.transform = `translate(${panX}px, ${panY}px) scale(${currentZoom})`;
             };
 
@@ -15638,6 +15647,7 @@ closeCustomRolePrompt: () => {
 
             let initialDistance = 0;
             let initialZoom = 1;
+            let lastTapTime = 0;
 
             zoomModal.addEventListener('touchstart', (e) => {
                 zoomImg.classList.remove('modal-content-enter');
@@ -15648,10 +15658,20 @@ closeCustomRolePrompt: () => {
                         e.touches[0].pageY - e.touches[1].pageY
                     );
                     initialZoom = currentZoom;
-                } else if (e.touches.length === 1 && currentZoom > 1) {
-                    isPanning = true;
-                    startX = e.touches[0].pageX - panX;
-                    startY = e.touches[0].pageY - panY;
+                } else if (e.touches.length === 1) {
+                    const now = Date.now();
+                    if (now - lastTapTime < 300) {
+                        resetZoom();
+                        lastTapTime = 0;
+                        return;
+                    }
+                    lastTapTime = now;
+
+                    if (currentZoom > 1) {
+                        isPanning = true;
+                        startX = e.touches[0].pageX - panX;
+                        startY = e.touches[0].pageY - panY;
+                    }
                 }
             }, { passive: false });
 
@@ -15671,6 +15691,8 @@ closeCustomRolePrompt: () => {
                     panX = e.touches[0].pageX - startX;
                     panY = e.touches[0].pageY - startY;
                     updateTransform();
+                    startX = e.touches[0].pageX - panX;
+                    startY = e.touches[0].pageY - panY;
                 }
             }, { passive: false });
 
@@ -15694,11 +15716,18 @@ closeCustomRolePrompt: () => {
                 }
             });
 
+            zoomImg.addEventListener('dblclick', (e) => {
+                e.preventDefault();
+                resetZoom();
+            });
+
             window.addEventListener('mousemove', (e) => {
                 if (isPanning) {
                     panX = e.pageX - startX;
                     panY = e.pageY - startY;
                     updateTransform();
+                    startX = e.pageX - panX;
+                    startY = e.pageY - panY;
                 }
             });
 
