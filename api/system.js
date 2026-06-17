@@ -44,7 +44,7 @@ async function handleGetCore(req, res) {
                         try {
                             const banInfo = typeof profile.ban_status === 'string' ? JSON.parse(profile.ban_status) : profile.ban_status;
                             if (banInfo && banInfo.banned) {
-                                return res.status(403).json({ banned: true, reason: banInfo.reason, name: profile.username || user.email });
+                                return res.status(403).json({ banned: true, reason: banInfo.reason, name: profile.username || user.email, uuid: user.id });
                             }
                         } catch (e) {
                             console.error("Lỗi parse ban_status", e);
