@@ -102,14 +102,26 @@
         async function initApp() {
             try {
                 let token = null;
-                for (let i = 0; i < localStorage.length; i++) {
-                    const key = localStorage.key(i);
-                    if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
-                        try {
-                            const session = JSON.parse(localStorage.getItem(key));
-                            token = session.access_token;
-                            break;
-                        } catch (e) {}
+
+                // 1. Kiểm tra Token từ URL (trường hợp OAuth Callback)
+                if (window.location.hash) {
+                    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+                    if (hashParams.has('access_token')) {
+                        token = hashParams.get('access_token');
+                    }
+                }
+
+                // 2. Fallback sang LocalStorage (đã login từ trước)
+                if (!token) {
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+                            try {
+                                const session = JSON.parse(localStorage.getItem(key));
+                                token = session.access_token;
+                                break;
+                            } catch (e) {}
+                        }
                     }
                 }
 
@@ -129,6 +141,12 @@
                             }
                         }
                         sessionStorage.removeItem('VNBA_SESS_AUTH');
+                        
+                        // Clear OAuth tokens from URL
+                        if (window.location.hash.includes('access_token')) {
+                            history.replaceState(null, '', window.location.pathname + window.location.search);
+                        }
+
                         document.body.innerHTML = `
                             <div style="background-color: #ffffff; color: #ff0000; width: 100vw; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: sans-serif; text-align: center; padding: 20px; box-sizing: border-box;">
                                 <h1 style="font-size: 2.5rem; margin-bottom: 20px; font-weight: 900;">BẠN ĐÃ BỊ CẤM</h1>
