@@ -1265,7 +1265,7 @@
         /* 3. NỀN BÊN NGOÀI POPUP CẢNH BÁO (Trong suốt hoàn toàn, chỉ giữ Blur) */
         #custom-image-menu-overlay,
         #custom-alert-modal, #settings-modal, #newsboard-modal, #docs-modal,
-        #upload-info-modal, #custom-prompt-modal, #custom-role-modal, #deny-prompt-modal,
+        #upload-info-modal, #custom-prompt-modal, #custom-role-modal, #deny-prompt-modal, #ban-prompt-modal,
         #upload-progress-modal,
         #captcha-modal,
         #webrtc-qr-modal,
@@ -1278,7 +1278,7 @@
 
         /* 4. BẢN THÂN CÁC KHUNG POPUP CŨNG LÀ KÍNH - Cùng mức với dropdown */
         #custom-alert-content, #settings-content, #newsboard-content, #docs-content,
-        #upload-info-content, #custom-prompt-content, #custom-role-content, #deny-prompt-content,
+        #upload-info-content, #custom-prompt-content, #custom-role-content, #deny-prompt-content, #ban-prompt-content,
         #up-progress-content,
         #captcha-content,
         #webrtc-qr-content,
@@ -1295,6 +1295,7 @@
         #custom-alert-content > div,
         #custom-prompt-content > div,
         #deny-prompt-content > div,
+        #ban-prompt-content > div,
         #upload-info-content > div,
         #settings-content > div,
         #newsboard-content > div,
@@ -1895,67 +1896,67 @@
                         <div id="ban-section-quick"
                             class="mt-2 p-4 bg-white border border-gray-200 rounded-lg shadow-sm space-y-3 max-h-64 overflow-y-auto block">
                             <label class="flex items-start gap-2 cursor-pointer group">
-                                <input type="radio" name="ban-quick-reason" value="Dò quét lỗ hổng, tấn công mạng hoặc có hành vi phá hoại máy chủ."
+                                <input type="checkbox" value="Dò quét lỗ hổng, tấn công mạng hoặc có hành vi phá hoại máy chủ."
                                     class="ban-quick-cb mt-0.5 cursor-pointer accent-red-600">
                                 <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Dò quét lỗ hổng, tấn công mạng hoặc có hành vi phá hoại máy chủ.</span>
                             </label>
                             <label class="flex items-start gap-2 cursor-pointer group">
-                                <input type="radio" name="ban-quick-reason" value="Cố tình lách luật giới hạn tần suất truy xuất dữ liệu mở gây quá tải hệ thống."
+                                <input type="checkbox" value="Cố tình lách luật giới hạn tần suất truy xuất dữ liệu mở gây quá tải hệ thống."
                                     class="ban-quick-cb mt-0.5 cursor-pointer accent-red-600">
                                 <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Cố tình lách luật giới hạn tần suất truy xuất dữ liệu mở gây quá tải hệ thống.</span>
                             </label>
                             <label class="flex items-start gap-2 cursor-pointer group">
-                                <input type="radio" name="ban-quick-reason" value="Người dùng chưa đủ 14 tuổi hoặc có nhận thức, hành vi ứng xử không phù hợp."
+                                <input type="checkbox" value="Người dùng chưa đủ 14 tuổi hoặc có nhận thức, hành vi ứng xử không phù hợp."
                                     class="ban-quick-cb mt-0.5 cursor-pointer accent-red-600">
                                 <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Người dùng chưa đủ 14 tuổi hoặc có nhận thức, hành vi ứng xử không phù hợp.</span>
                             </label>
                             <label class="flex items-start gap-2 cursor-pointer group">
-                                <input type="radio" name="ban-quick-reason" value="Đăng tải hình ảnh sao chép từ các nguồn khác (vi phạm bản quyền) nhiều lần."
+                                <input type="checkbox" value="Đăng tải hình ảnh sao chép từ các nguồn khác (vi phạm bản quyền) nhiều lần."
                                     class="ban-quick-cb mt-0.5 cursor-pointer accent-red-600">
                                 <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Đăng tải hình ảnh sao chép từ các nguồn khác (vi phạm bản quyền) nhiều lần.</span>
                             </label>
                             <label class="flex items-start gap-2 cursor-pointer group">
-                                <input type="radio" name="ban-quick-reason" value="Cố ý làm sai lệch thông tin hàng loạt hoặc phá hoại tính toàn vẹn của Cơ sở dữ liệu."
+                                <input type="checkbox" value="Cố ý làm sai lệch thông tin hàng loạt hoặc phá hoại tính toàn vẹn của Cơ sở dữ liệu."
                                     class="ban-quick-cb mt-0.5 cursor-pointer accent-red-600">
                                 <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Cố ý làm sai lệch thông tin hàng loạt hoặc phá hoại tính toàn vẹn của Cơ sở dữ liệu.</span>
                             </label>
                             <label class="flex items-start gap-2 cursor-pointer group">
-                                <input type="radio" name="ban-quick-reason" value="Tái phạm lỗi nhập sai thông tin phương tiện sau khi đã được cảnh báo."
+                                <input type="checkbox" value="Tái phạm lỗi nhập sai thông tin phương tiện sau khi đã được cảnh báo."
                                     class="ban-quick-cb mt-0.5 cursor-pointer accent-red-600">
                                 <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Tái phạm lỗi nhập sai thông tin phương tiện sau khi đã được cảnh báo.</span>
                             </label>
                             <label class="flex items-start gap-2 cursor-pointer group">
-                                <input type="radio" name="ban-quick-reason" value="Đăng tải hàng loạt dữ liệu rác, spam vô nghĩa, sai mục đích vào hệ thống."
+                                <input type="checkbox" value="Đăng tải hàng loạt dữ liệu rác, spam vô nghĩa, sai mục đích vào hệ thống."
                                     class="ban-quick-cb mt-0.5 cursor-pointer accent-red-600">
                                 <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Đăng tải hàng loạt dữ liệu rác, spam vô nghĩa, sai mục đích vào hệ thống.</span>
                             </label>
                             <label class="flex items-start gap-2 cursor-pointer group">
-                                <input type="radio" name="ban-quick-reason" value="Tiết lộ thông tin cá nhân khi chưa được phép."
+                                <input type="checkbox" value="Tiết lộ thông tin cá nhân khi chưa được phép."
                                     class="ban-quick-cb mt-0.5 cursor-pointer accent-red-600">
                                 <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Tiết lộ thông tin cá nhân khi chưa được phép.</span>
                             </label>
                             <label class="flex items-start gap-2 cursor-pointer group">
-                                <input type="radio" name="ban-quick-reason" value="Có hành vi bắt nạt trực tuyến, mỉa mai, công kích thành viên khác hoặc nói xấu, miệt thị."
+                                <input type="checkbox" value="Có hành vi bắt nạt trực tuyến, mỉa mai, công kích thành viên khác hoặc nói xấu, miệt thị."
                                     class="ban-quick-cb mt-0.5 cursor-pointer accent-red-600">
                                 <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Có hành vi bắt nạt trực tuyến, mỉa mai, công kích thành viên khác hoặc nói xấu, miệt thị.</span>
                             </label>
                             <label class="flex items-start gap-2 cursor-pointer group">
-                                <input type="radio" name="ban-quick-reason" value="Bàn luận về các vấn đề chính trị, tôn giáo, sắc tộc hoặc các chủ đề nhạy cảm."
+                                <input type="checkbox" value="Bàn luận về các vấn đề chính trị, tôn giáo, sắc tộc hoặc các chủ đề nhạy cảm."
                                     class="ban-quick-cb mt-0.5 cursor-pointer accent-red-600">
                                 <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Bàn luận về các vấn đề chính trị, tôn giáo, sắc tộc hoặc các chủ đề nhạy cảm.</span>
                             </label>
                             <label class="flex items-start gap-2 cursor-pointer group">
-                                <input type="radio" name="ban-quick-reason" value="Gửi bình luận spam, chèn link quảng cáo, rao bán hàng hóa, dịch vụ."
+                                <input type="checkbox" value="Gửi bình luận spam, chèn link quảng cáo, rao bán hàng hóa, dịch vụ."
                                     class="ban-quick-cb mt-0.5 cursor-pointer accent-red-600">
                                 <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Gửi bình luận spam, chèn link quảng cáo, rao bán hàng hóa, dịch vụ.</span>
                             </label>
                             <label class="flex items-start gap-2 cursor-pointer group">
-                                <input type="radio" name="ban-quick-reason" value="Lợi dụng nền tảng để lôi kéo tụ tập đông người tự phát hoặc kéo thành viên rời khỏi hệ thống."
+                                <input type="checkbox" value="Lợi dụng nền tảng để lôi kéo tụ tập đông người tự phát hoặc kéo thành viên rời khỏi hệ thống."
                                     class="ban-quick-cb mt-0.5 cursor-pointer accent-red-600">
                                 <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Lợi dụng nền tảng để lôi kéo tụ tập đông người tự phát hoặc kéo thành viên rời khỏi hệ thống.</span>
                             </label>
                             <label class="flex items-start gap-2 cursor-pointer group">
-                                <input type="radio" name="ban-quick-reason" value="Truyền bá văn hóa phẩm đồi trụy."
+                                <input type="checkbox" value="Truyền bá văn hóa phẩm đồi trụy."
                                     class="ban-quick-cb mt-0.5 cursor-pointer accent-red-600">
                                 <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Truyền bá văn hóa phẩm đồi trụy.</span>
                             </label>
@@ -10952,8 +10953,8 @@ app.admin.fetchManagerData('denied');
                     if (app.admin.activeBanSection === 'custom') {
                         reason = document.getElementById('ban-custom-input').value.trim();
                     } else {
-                        const checked = document.querySelector('.ban-quick-cb:checked');
-                        if (checked) reason = checked.value;
+                        const selectedChecks = Array.from(document.querySelectorAll('.ban-quick-cb:checked')).map(cb => cb.value);
+                        reason = selectedChecks.join(' + ');
                     }
                     
                     if (!reason) return alert("Vui lòng chọn hoặc nhập lý do cấm!");
