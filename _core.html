@@ -10983,22 +10983,27 @@ app.admin.fetchManagerData('denied');
                 },
 
                 managerUnbanUser: async (userId) => {
-                    if (app.role !== 'manager') return alert("Chỉ Manager mới có quyền này.");
-                    if (!confirm("Bạn có chắc muốn gỡ cấm tài khoản này?")) return;
+                    if (app.role !== 'manager') return app.ui.showCustomAlert("Chỉ Manager mới có quyền này.");
                     
-                    try {
-                        const { data: { session } } = await window.sb.auth.getSession();
-                        const response = await fetch('/api/manager', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ action: 'unban', targetUserId: userId, token: session.access_token })
-                        });
-                        const data = await response.json();
-                        if (data.success) {
-                            alert(data.message);
-                            app.admin.fetchManagerData('bans');
-                        } else throw new Error(data.error);
-                    } catch (e) { alert("Lỗi: " + e.message); }
+                    app.ui.showCustomAlert("Bạn có chắc muốn gỡ cấm tài khoản này không?", {
+                        title: "Xác nhận gỡ cấm",
+                        btnOkText: "Gỡ cấm",
+                        showCancel: true
+                    }, async () => {
+                        try {
+                            const { data: { session } } = await window.sb.auth.getSession();
+                            const response = await fetch('/api/manager', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ action: 'unban', targetUserId: userId, token: session.access_token })
+                            });
+                            const data = await response.json();
+                            if (data.success) {
+                                app.ui.showCustomAlert(data.message, { title: "Thành công", hideButtons: false });
+                                app.admin.fetchManagerData('bans');
+                            } else throw new Error(data.error);
+                        } catch (e) { app.ui.showCustomAlert("Lỗi: " + e.message, { title: "Lỗi" }); }
+                    });
                 },
 
                 // --- CÁC HÀM MỚI CHO TÍNH NĂNG GỬI EMAIL ---
