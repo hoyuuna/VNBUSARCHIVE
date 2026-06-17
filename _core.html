@@ -2149,7 +2149,7 @@
         </div>
 
         <div id="admin-zoom-modal" class="hidden fixed inset-0 z-[2000] bg-black/95 flex flex-col items-center justify-center px-4 pt-4 pb-20 md:pb-24" onclick="app.admin.closeZoom()">
-            <img id="admin-zoom-img" src="" class="max-w-full max-h-full object-contain transition-transform duration-300 zoom-img-cursor" onclick="event.stopPropagation(); this.classList.toggle('zoom-img-active');">
+            <img id="admin-zoom-img" src="" class="max-w-full max-h-full object-contain transition-transform duration-300 zoom-img-cursor" onclick="event.stopPropagation();">
             <button onclick="app.admin.closeZoom()" class="absolute top-4 right-4 text-white hover:text-red-500 text-3xl z-[2001]"><i class="fa-solid fa-xmark"></i></button>
 
             <div id="zoom-hint" class="absolute bottom-4 left-0 w-full text-center text-white/50 text-xs pointer-events-none transition-opacity">
@@ -10159,8 +10159,8 @@ formInputs.forEach(input => {
                                         </div>
                                         <span class="text-xs text-gray-500">${safeUsername}</span>
                                     </div>
-                                    <div class="relative h-40 bg-gray-200">
-                                        <img loading="lazy" src="${app.utils.getProxiedUrl(p.url)}" class="w-full h-full object-cover">
+                                    <div class="relative h-40 bg-black">
+                                        <img loading="lazy" src="${app.utils.getProxiedUrl(p.url)}" class="w-full h-full object-contain">
                                         <button onclick="app.admin.openZoom('${app.utils.getProxiedUrl(p.url)}')" class="absolute top-2 right-2 bg-black/50 text-white w-8 h-8 rounded hover:bg-black flex items-center justify-center transition" title="Soi ảnh"><i class="fa-solid fa-expand"></i></button>
                                     </div>
                                     <div class="admin-card-body">
@@ -10267,8 +10267,8 @@ formInputs.forEach(input => {
                                         <span class="font-bold text-xs uppercase text-red-600">YÊU CẦU XÓA</span>
                                         <span class="text-xs text-gray-500">${username}</span>
                                     </div>
-                                    <div class="relative h-32 bg-gray-200">
-                                        <img loading="lazy" src="${app.utils.getProxiedUrl(photo?.url)}" class="w-full h-full object-cover">
+                                    <div class="relative h-32 bg-black">
+                                        <img loading="lazy" src="${app.utils.getProxiedUrl(photo?.url)}" class="w-full h-full object-contain">
                                         <button onclick="app.admin.openZoom('${app.utils.getProxiedUrl(photo?.url)}')" class="absolute top-2 right-2 bg-black/50 text-white w-8 h-8 rounded hover:bg-black flex items-center justify-center transition" title="Soi ảnh"><i class="fa-solid fa-expand"></i></button>
                                     </div>
                                     <div class="admin-card-body text-xs">
@@ -15604,6 +15604,118 @@ closeCustomRolePrompt: () => {
         // Kích hoạt khi trang đã tải
         document.addEventListener('DOMContentLoaded', () => {
             app.webrtc.init();
+
+            // Zoom Modal Logic (Wheel & Touch)
+            const zoomImg = document.getElementById('admin-zoom-img');
+            const zoomModal = document.getElementById('admin-zoom-modal');
+            let currentZoom = 1;
+            let isPanning = false;
+            let startX = 0, startY = 0;
+            let panX = 0, panY = 0;
+
+            const resetZoom = () => {
+                currentZoom = 1;
+                panX = 0;
+                panY = 0;
+                zoomImg.style.transform = `translate(${panX}px, ${panY}px) scale(${currentZoom})`;
+                zoomImg.style.transition = 'transform 0.3s';
+            };
+
+            const updateTransform = () => {
+                zoomImg.style.transform = `translate(${panX}px, ${panY}px) scale(${currentZoom})`;
+            };
+
+            zoomModal.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                zoomImg.style.transition = 'none';
+                const zoomAmount = e.deltaY * -0.005;
+                currentZoom += zoomAmount;
+                if (currentZoom < 0.5) currentZoom = 0.5;
+                if (currentZoom > 10) currentZoom = 10;
+                updateTransform();
+            }, { passive: false });
+
+            let initialDistance = 0;
+            let initialZoom = 1;
+
+            zoomModal.addEventListener('touchstart', (e) => {
+                zoomImg.style.transition = 'none';
+                if (e.touches.length === 2) {
+                    initialDistance = Math.hypot(
+                        e.touches[0].pageX - e.touches[1].pageX,
+                        e.touches[0].pageY - e.touches[1].pageY
+                    );
+                    initialZoom = currentZoom;
+                } else if (e.touches.length === 1 && currentZoom > 1) {
+                    isPanning = true;
+                    startX = e.touches[0].pageX - panX;
+                    startY = e.touches[0].pageY - panY;
+                }
+            }, { passive: false });
+
+            zoomModal.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                if (e.touches.length === 2) {
+                    const currentDistance = Math.hypot(
+                        e.touches[0].pageX - e.touches[1].pageX,
+                        e.touches[0].pageY - e.touches[1].pageY
+                    );
+                    const zoomAmount = (currentDistance / initialDistance);
+                    currentZoom = initialZoom * zoomAmount;
+                    if (currentZoom < 0.5) currentZoom = 0.5;
+                    if (currentZoom > 10) currentZoom = 10;
+                    updateTransform();
+                } else if (e.touches.length === 1 && isPanning) {
+                    panX = e.touches[0].pageX - startX;
+                    panY = e.touches[0].pageY - startY;
+                    updateTransform();
+                }
+            }, { passive: false });
+
+            zoomModal.addEventListener('touchend', (e) => {
+                if (e.touches.length < 2) {
+                    initialDistance = 0;
+                }
+                if (e.touches.length === 0) {
+                    isPanning = false;
+                }
+            });
+
+            zoomImg.addEventListener('mousedown', (e) => {
+                if (currentZoom > 1) {
+                    e.preventDefault();
+                    isPanning = true;
+                    startX = e.pageX - panX;
+                    startY = e.pageY - panY;
+                    zoomImg.style.transition = 'none';
+                }
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (isPanning) {
+                    panX = e.pageX - startX;
+                    panY = e.pageY - startY;
+                    updateTransform();
+                }
+            });
+
+            window.addEventListener('mouseup', () => {
+                isPanning = false;
+            });
+
+            // Override app.admin functions to hook zoom reset
+            if (app && app.admin) {
+                const originalCloseZoom = app.admin.closeZoom;
+                app.admin.closeZoom = () => {
+                    originalCloseZoom();
+                    setTimeout(resetZoom, 300);
+                };
+                const originalOpenZoom = app.admin.openZoom;
+                app.admin.openZoom = (url, showToolbar = false) => {
+                    resetZoom();
+                    originalOpenZoom(url, showToolbar);
+                };
+            }
         });
     </script>
 
