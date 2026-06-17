@@ -26,8 +26,34 @@ function handleConfig(req, res) {
     });
 }
 
-function handleGetCore(req, res) {
+async function handleGetCore(req, res) {
     try {
+        const authHeader = req.headers.authorization;
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            const token = authHeader.replace('Bearer ', '');
+            const supabaseUrl = process.env.SUPABASE_URL;
+            const supabaseServiceRole = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY;
+            
+            if (supabaseUrl && supabaseServiceRole) {
+                const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRole);
+                const { data: { user }, error: userErr } = await supabaseAdmin.auth.getUser(token);
+                
+                if (!userErr && user) {
+                    const { data: profile } = await supabaseAdmin.from('profiles').select('ban_status, username').eq('id', user.id).single();
+                    if (profile && profile.ban_status) {
+                        try {
+                            const banInfo = typeof profile.ban_status === 'string' ? JSON.parse(profile.ban_status) : profile.ban_status;
+                            if (banInfo && banInfo.banned) {
+                                return res.status(403).json({ banned: true, reason: banInfo.reason, name: profile.username || user.email });
+                            }
+                        } catch (e) {
+                            console.error("Lỗi parse ban_status", e);
+                        }
+                    }
+                }
+            }
+        }
+
         const filePath = path.join(process.cwd(), '_core.html');
         const coreHtml = fs.readFileSync(filePath, 'utf8');
         const encodedPayload = Buffer.from(coreHtml).toString('base64');

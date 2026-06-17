@@ -9961,7 +9961,8 @@ formInputs.forEach(input => {
                 manager: {
                     activeTab: 'denied',
                     denied: { data: [], filtered:[], page: 1, denierMap: {} },
-                    logs: { data: [], filtered:[], page: 1 }
+                    logs: { data: [], filtered:[], page: 1 },
+                    bans: { data: [], filtered:[], page: 1 }
                 },
                 // ----------------------------------
 
@@ -10438,6 +10439,7 @@ formInputs.forEach(input => {
                                     <div class="flex gap-2 mb-6 border-b border-gray-200 pb-3 overflow-x-auto">
                                         <button onclick="app.admin.switchManagerTab('denied')" id="mgr-tab-denied" class="font-bold text-sm px-4 py-2 bg-black text-white rounded transition whitespace-nowrap">Ảnh bị từ chối</button>
                                          <button onclick="app.admin.switchManagerTab('logs')" id="mgr-tab-logs" class="font-bold text-sm px-4 py-2 bg-white text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition whitespace-nowrap">Nhật ký hoạt động</button>
+                                        <button onclick="app.admin.switchManagerTab('bans')" id="mgr-tab-bans" class="font-bold text-sm px-4 py-2 bg-white text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition whitespace-nowrap"><i class="fa-solid fa-ban mr-1"></i> Quản lý Ban</button>
                                         <button onclick="app.admin.switchManagerTab('email')" id="mgr-tab-email" class="font-bold text-sm px-4 py-2 bg-white text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition whitespace-nowrap"><i class="fa-solid fa-envelope mr-1"></i> Gửi Email</button>
                                         <button onclick="app.admin.switchManagerTab('settings')" id="mgr-tab-settings" class="font-bold text-sm px-4 py-2 bg-white text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition whitespace-nowrap"><i class="fa-solid fa-sliders mr-1"></i> Cài đặt</button>
                                     </div>
@@ -10550,7 +10552,7 @@ app.admin.fetchManagerData('denied');
                 switchManagerTab: (subTab) => {
                     app.admin.manager.activeTab = subTab;
 
-                    ['denied', 'logs', 'email', 'settings'].forEach(t => {
+                    ['denied', 'logs', 'email', 'settings', 'bans'].forEach(t => {
                         const btn = document.getElementById('mgr-tab-' + t);
                         const sec = document.getElementById('mgr-sec-' + t);
                         if (btn && sec) {
@@ -10585,6 +10587,11 @@ app.admin.fetchManagerData('denied');
                             app.admin.manager.logs.data = logs ||[];
                             app.admin.filterManagerData('logs', '');
                         }
+                        else if (type === 'bans') {
+                            const { data: users } = await window.sb.from('profiles').select('id, username, email, ban_status').order('created_at', {ascending: false}).limit(1000);
+                            app.admin.manager.bans.data = users || [];
+                            app.admin.filterManagerData('bans', '');
+                        }
                     } catch (e) { console.error("Lỗi fetch data manager:", e); }
                 },
 
@@ -10595,6 +10602,8 @@ app.admin.fetchManagerData('denied');
                     else {
                         if (type === 'denied') {
                             state.filtered = state.data.filter(p => `${p.license_plate} ${p.denial_reason} ${p.profiles?.username}`.toLowerCase().includes(q));
+                        } else if (type === 'bans') {
+                            state.filtered = state.data.filter(u => `${u.username} ${u.email}`.toLowerCase().includes(q));
                         } else {
                             state.filtered = state.data.filter(l => `${l.action_type} ${l.target_id} ${l.profiles?.username} ${JSON.stringify(l.details)}`.toLowerCase().includes(q));
                         }
@@ -10664,6 +10673,27 @@ app.admin.fetchManagerData('denied');
                                 </div>
                             </div>`;
                         }).join('');
+                    } else if (type === 'bans') {
+                        contentEl.innerHTML = slice.map(u => {
+                            let banInfo = { banned: false, reason: '' };
+                            try { banInfo = typeof u.ban_status === 'string' ? JSON.parse(u.ban_status) : (u.ban_status || banInfo); } catch(e){}
+                            const statusBadge = banInfo.banned 
+                                ? `<span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold"><i class="fa-solid fa-ban"></i> Bị cấm</span>` 
+                                : `<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">Hoạt động</span>`;
+                            const actionBtn = banInfo.banned
+                                ? `<button onclick="app.admin.managerUnbanUser('${u.id}')" class="px-3 py-1 bg-white border border-gray-300 rounded text-xs hover:bg-gray-50 text-black font-bold shadow-sm">Gỡ cấm</button>`
+                                : `<button onclick="app.admin.managerBanUser('${u.id}')" class="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 font-bold shadow-sm">Cấm</button>`;
+                            
+                            return `<tr class="hover:bg-gray-50 transition">
+                                <td class="p-3">
+                                    <div class="font-bold text-black text-[12px]">${app.utils.cleanText(u.username || 'Unknown')}</div>
+                                    <div class="text-[10px] text-gray-500">${app.utils.cleanText(u.email || 'No email')}</div>
+                                </td>
+                                <td class="p-3">${statusBadge}</td>
+                                <td class="p-3 text-[11px] text-gray-600 max-w-[200px] truncate" title="${app.utils.cleanText(banInfo.reason || '')}">${app.utils.cleanText(banInfo.reason || '-')}</td>
+                                <td class="p-3 text-right">${actionBtn}</td>
+                            </tr>`;
+                        }).join('');
                     } else {
                         contentEl.innerHTML = slice.map(log => {
                             const time = new Date(log.created_at).toLocaleString('vi-VN');
@@ -10674,6 +10704,45 @@ app.admin.fetchManagerData('denied');
                         app.admin.manager[type].page = newPage;
                         app.admin.renderManagerData(type);
                     });
+                },
+
+                managerBanUser: async (userId) => {
+                    if (app.role !== 'manager') return alert("Chỉ Manager mới có quyền này.");
+                    const reason = prompt("Nhập lý do cấm tài khoản này:");
+                    if (!reason) return;
+                    
+                    try {
+                        const { data: { session } } = await window.sb.auth.getSession();
+                        const response = await fetch('/api/manager', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ action: 'ban', targetUserId: userId, reason: reason, token: session.access_token })
+                        });
+                        const data = await response.json();
+                        if (data.success) {
+                            alert(data.message);
+                            app.admin.fetchManagerData('bans');
+                        } else throw new Error(data.error);
+                    } catch (e) { alert("Lỗi: " + e.message); }
+                },
+
+                managerUnbanUser: async (userId) => {
+                    if (app.role !== 'manager') return alert("Chỉ Manager mới có quyền này.");
+                    if (!confirm("Bạn có chắc muốn gỡ cấm tài khoản này?")) return;
+                    
+                    try {
+                        const { data: { session } } = await window.sb.auth.getSession();
+                        const response = await fetch('/api/manager', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ action: 'unban', targetUserId: userId, token: session.access_token })
+                        });
+                        const data = await response.json();
+                        if (data.success) {
+                            alert(data.message);
+                            app.admin.fetchManagerData('bans');
+                        } else throw new Error(data.error);
+                    } catch (e) { alert("Lỗi: " + e.message); }
                 },
 
                 // --- CÁC HÀM MỚI CHO TÍNH NĂNG GỬI EMAIL ---

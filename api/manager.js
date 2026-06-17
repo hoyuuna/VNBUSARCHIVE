@@ -6,13 +6,12 @@ export default async function handler(req, res) {
         return res.status(405).json({ success: false, error: 'Method Not Allowed' });
     }
 
-    const { targetUserId, newUsername, newRole, newEmail, newPass, token } = req.body;
+    const { action, targetUserId, newUsername, newRole, newEmail, newPass, reason, token } = req.body;
 
     // 1. Khởi tạo Supabase Admin Client bằng Biến môi trường Vercel
-    // Đọc SUPABASE_URL và SUPABASE_KEY từ Vercel Env (Bảo mật tuyệt đối, không lộ ra frontend)
     const supabaseAdmin = createClient(
         process.env.SUPABASE_URL,
-        process.env.SUPABASE_KEY, 
+        process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY, 
         { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
@@ -26,7 +25,23 @@ export default async function handler(req, res) {
             throw new Error("Truy cập bị từ chối: Bạn không phải là Manager.");
         }
 
-        // 3. Tiến hành cập nhật Profile (Username, Role)
+        // Xử lý hành động Ban / Unban
+        if (action === 'ban' || action === 'unban') {
+            if (!targetUserId) throw new Error("Thiếu targetUserId.");
+            
+            const banStatus = action === 'ban' 
+                ? { banned: true, reason: reason || 'Không có lý do' } 
+                : { banned: false, reason: '' };
+                
+            const { error: banError } = await supabaseAdmin.from('profiles').update({
+                ban_status: banStatus
+            }).eq('id', targetUserId);
+            
+            if (banError) throw banError;
+            return res.status(200).json({ success: true, message: action === 'ban' ? "Đã cấm tài khoản thành công!" : "Đã gỡ cấm tài khoản thành công!" });
+        }
+
+        // 3. Tiến hành cập nhật Profile (Username, Role) (Mặc định)
         const { error: profileError } = await supabaseAdmin.from('profiles').update({
             username: newUsername,
             role: newRole

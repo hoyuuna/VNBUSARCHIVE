@@ -101,7 +101,41 @@
 
         async function initApp() {
             try {
-                const response = await fetch('/api/system', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'core' }) });
+                let token = null;
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+                        try {
+                            const session = JSON.parse(localStorage.getItem(key));
+                            token = session.access_token;
+                            break;
+                        } catch (e) {}
+                    }
+                }
+
+                const headers = { 'Content-Type': 'application/json' };
+                if (token) headers['Authorization'] = `Bearer ${token}`;
+
+                const response = await fetch('/api/system', { method: 'POST', headers: headers, body: JSON.stringify({ action: 'core' }) });
+                
+                if (response.status === 403) {
+                    const data = await response.json();
+                    if (data.banned) {
+                        clearInterval(_pInt);
+                        document.body.innerHTML = `
+                            <div style="background-color: #ff0000; color: white; width: 100vw; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: sans-serif; text-align: center; padding: 20px; box-sizing: border-box;">
+                                <h1 style="font-size: 2rem; margin-bottom: 20px;">NGẮT KẾT NỐI MÁY CHỦ</h1>
+                                <p style="font-size: 1.2rem; max-width: 600px; line-height: 1.5; margin-bottom: 30px;">
+                                    Tài khoản <b>${data.name}</b> của bạn đã bị cấm với lí do: <b>${data.reason || 'Không rõ'}</b>. 
+                                    <br><br>Tìm hiểu thêm tại: <a href="https://www.vnbusarchive.io.vn/help/1516761580069720074" style="color: #fff; text-decoration: underline;">https://www.vnbusarchive.io.vn/help/1516761580069720074</a>
+                                </p>
+                                <button onclick="localStorage.clear(); sessionStorage.clear(); window.location.reload();" style="background-color: white; color: red; border: none; padding: 10px 20px; font-size: 1rem; font-weight: bold; cursor: pointer; border-radius: 5px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">[ Đăng xuất ]</button>
+                            </div>
+                        `;
+                        return;
+                    }
+                }
+
                 if (!response.ok) throw new Error('Bị từ chối');
                 
                 const data = await response.json();
