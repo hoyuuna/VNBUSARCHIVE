@@ -122,13 +122,16 @@ export default async function handler(req, res) {
         if (action === 'delete_user') {
             if (!targetUserId) throw new Error("Thiếu targetUserId.");
             
+            // Giữ lại ảnh và dữ liệu liên quan bằng cách gỡ liên kết (đưa về null) trước khi xóa user
+            await supabaseAdmin.from('photos').update({ uploader_id: null }).eq('uploader_id', targetUserId);
+            await supabaseAdmin.from('photo_comments').update({ user_id: null }).eq('user_id', targetUserId);
+            await supabaseAdmin.from('edit_requests').update({ requester_id: null }).eq('requester_id', targetUserId);
+            
+            // Xóa tài khoản khỏi hệ thống Auth
             const { error: deleteErr } = await supabaseAdmin.auth.admin.deleteUser(targetUserId);
             if (deleteErr) throw deleteErr;
             
-            // Note: Supabase trigger or cascading delete should handle deleting from profiles, photos, etc. 
-            // If there's no cascade, the profile might remain but we rely on Supabase's built-in cascade or manual triggers.
-            
-            return res.status(200).json({ success: true, message: "Đã xóa tài khoản vĩnh viễn!" });
+            return res.status(200).json({ success: true, message: "Đã xóa tài khoản vĩnh viễn (các ảnh đã tải lên vẫn được giữ lại)!" });
         }
 
         // 3. Tiến hành cập nhật Profile (Username, Role) (Mặc định)
