@@ -10159,8 +10159,8 @@ formInputs.forEach(input => {
                                         </div>
                                         <span class="text-xs text-gray-500">${safeUsername}</span>
                                     </div>
-                                    <div class="relative w-full bg-transparent mt-2 mb-2">
-                                        <img loading="lazy" src="${app.utils.getProxiedUrl(p.url)}" class="w-full h-auto object-contain rounded-md border border-gray-200 shadow-sm">
+                                    <div class="relative w-full bg-gray-200 border-y border-gray-200">
+                                        <img loading="lazy" src="${app.utils.getProxiedUrl(p.url)}" class="w-full h-auto object-contain">
                                         <button onclick="app.admin.openZoom('${app.utils.getProxiedUrl(p.url)}')" class="absolute top-2 right-2 bg-black/50 text-white w-8 h-8 rounded hover:bg-black flex items-center justify-center transition" title="Soi ảnh"><i class="fa-solid fa-expand"></i></button>
                                     </div>
                                     <div class="admin-card-body">
@@ -10267,8 +10267,8 @@ formInputs.forEach(input => {
                                         <span class="font-bold text-xs uppercase text-red-600">YÊU CẦU XÓA</span>
                                         <span class="text-xs text-gray-500">${username}</span>
                                     </div>
-                                    <div class="relative w-full bg-transparent mt-2 mb-2">
-                                        <img loading="lazy" src="${app.utils.getProxiedUrl(photo?.url)}" class="w-full h-auto object-contain rounded-md border border-gray-200 shadow-sm">
+                                    <div class="relative w-full bg-gray-200 border-y border-gray-200">
+                                        <img loading="lazy" src="${app.utils.getProxiedUrl(photo?.url)}" class="w-full h-auto object-contain">
                                         <button onclick="app.admin.openZoom('${app.utils.getProxiedUrl(photo?.url)}')" class="absolute top-2 right-2 bg-black/50 text-white w-8 h-8 rounded hover:bg-black flex items-center justify-center transition" title="Soi ảnh"><i class="fa-solid fa-expand"></i></button>
                                     </div>
                                     <div class="admin-card-body text-xs">
@@ -15629,7 +15629,7 @@ closeCustomRolePrompt: () => {
                 e.preventDefault();
                 zoomImg.classList.remove('modal-content-enter');
                 zoomImg.style.transition = 'none';
-                const zoomAmount = e.deltaY * -0.005;
+                const zoomAmount = e.deltaY * -0.0015;
                 currentZoom += zoomAmount;
                 if (currentZoom < 0.5) currentZoom = 0.5;
                 if (currentZoom > 10) currentZoom = 10;
