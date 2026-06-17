@@ -25,6 +25,50 @@ export default async function handler(req, res) {
             throw new Error("Truy cập bị từ chối: Bạn không phải là Manager.");
         }
 
+        // Xử lý lấy danh sách user
+        if (action === 'get_users') {
+            const { data: authData, error: authErr } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
+            if (authErr) throw authErr;
+
+            const { data: profiles, error: profErr } = await supabaseAdmin.from('profiles').select('id, username, ban_status');
+            if (profErr) throw profErr;
+
+            const { data: photos, error: photoErr } = await supabaseAdmin.from('photos').select('author_id').eq('status', 'approved');
+            const photoCounts = {};
+            if (photos) {
+                photos.forEach(p => {
+                    if(p.author_id) {
+                        photoCounts[p.author_id] = (photoCounts[p.author_id] || 0) + 1;
+                    }
+                });
+            }
+
+            const usersMap = {};
+            profiles.forEach(p => {
+                let banInfo = { banned: false, reason: '' };
+                if (p.ban_status) {
+                    try { banInfo = typeof p.ban_status === 'string' ? JSON.parse(p.ban_status) : p.ban_status; } catch(e){}
+                }
+                usersMap[p.id] = {
+                    username: p.username,
+                    ban_status: banInfo,
+                    photo_count: photoCounts[p.id] || 0
+                };
+            });
+
+            const merged = authData.users.map(u => ({
+                id: u.id,
+                email: u.email,
+                created_at: u.created_at,
+                last_sign_in_at: u.last_sign_in_at,
+                username: usersMap[u.id]?.username || 'Unknown',
+                ban_status: usersMap[u.id]?.ban_status || { banned: false, reason: '' },
+                photo_count: usersMap[u.id]?.photo_count || 0
+            }));
+
+            return res.status(200).json({ success: true, users: merged });
+        }
+
         // Xử lý hành động Ban / Unban
         if (action === 'ban' || action === 'unban') {
             if (!targetUserId) throw new Error("Thiếu targetUserId.");

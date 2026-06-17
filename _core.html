@@ -1878,6 +1878,47 @@
             </div>
         </div>
 
+        <div id="ban-prompt-modal" class="hidden fixed inset-0 z-[5000] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+            <div id="ban-prompt-content" class="bg-gray-50 rounded-xl shadow-2xl max-w-lg w-full border border-gray-200 overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col max-h-[90vh]">
+                <div class="p-5 border-b border-gray-200 shrink-0 bg-white rounded-t-xl">
+                    <h3 id="ban-prompt-title" class="text-lg font-bold text-red-600 mb-1"><i class="fa-solid fa-ban mr-2"></i>Cấm Tài Khoản</h3>
+                    <p class="text-xs text-gray-500">Vui lòng chọn hoặc nhập lý do cấm người dùng này.</p>
+                </div>
+                <div class="p-5 overflow-y-auto space-y-4">
+                    <input type="hidden" id="ban-target-id">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-2">Chọn lý do có sẵn</label>
+                        <select id="ban-reason-select" class="w-full bg-white border border-gray-300 text-sm rounded-lg px-3 py-2.5 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500" onchange="document.getElementById('ban-reason-input').value = this.value === 'custom' ? '' : this.value;">
+                            <option value="">-- Chọn lý do --</option>
+                            <option value="Dò quét lỗ hổng, tấn công mạng hoặc có hành vi phá hoại máy chủ.">Dò quét lỗ hổng, tấn công mạng hoặc có hành vi phá hoại máy chủ.</option>
+                            <option value="Cố tình lách luật giới hạn tần suất truy xuất dữ liệu mở gây quá tải hệ thống.">Cố tình lách luật giới hạn tần suất truy xuất dữ liệu mở gây quá tải hệ thống.</option>
+                            <option value="Người dùng chưa đủ 14 tuổi hoặc có nhận thức, hành vi ứng xử không phù hợp.">Người dùng chưa đủ 14 tuổi hoặc có nhận thức, hành vi ứng xử không phù hợp.</option>
+                            <option value="Đăng tải hình ảnh sao chép từ các nguồn khác (vi phạm bản quyền).">Đăng tải hình ảnh sao chép từ các nguồn khác (vi phạm bản quyền).</option>
+                            <option value="Cố ý làm sai lệch thông tin hàng loạt hoặc phá hoại tính toàn vẹn của Cơ sở dữ liệu.">Cố ý làm sai lệch thông tin hàng loạt hoặc phá hoại tính toàn vẹn của Cơ sở dữ liệu.</option>
+                            <option value="Tái phạm lỗi nhập sai thông tin phương tiện sau khi đã được kiểm duyệt viên cảnh báo.">Tái phạm lỗi nhập sai thông tin phương tiện sau khi đã được kiểm duyệt viên cảnh báo.</option>
+                            <option value="Đăng tải hàng loạt dữ liệu rác, spam vô nghĩa, sai mục đích vào hệ thống.">Đăng tải hàng loạt dữ liệu rác, spam vô nghĩa, sai mục đích vào hệ thống.</option>
+                            <option value="Tiết lộ thông tin cá nhân khi chưa được phép.">Tiết lộ thông tin cá nhân khi chưa được phép.</option>
+                            <option value="Có hành vi bắt nạt trực tuyến, mỉa mai, công kích thành viên khác hoặc nói xấu, xúc phạm danh dự, nhân phẩm, miệt thị .">Có hành vi bắt nạt trực tuyến, mỉa mai, công kích thành viên khác hoặc nói xấu, xúc phạm danh dự, nhân phẩm, miệt thị.</option>
+                            <option value="Bàn luận về các vấn đề chính trị, tôn giáo, sắc tộc hoặc các chủ đề nhạy cảm.">Bàn luận về các vấn đề chính trị, tôn giáo, sắc tộc hoặc các chủ đề nhạy cảm.</option>
+                            <option value="Gửi bình luận spam, chèn link quảng cáo, rao bán hàng hóa, dịch vụ.">Gửi bình luận spam, chèn link quảng cáo, rao bán hàng hóa, dịch vụ.</option>
+                            <option value="Lợi dụng nền tảng để đăng tải thông tin lôi kéo tụ tập đông người tự phát.">Lợi dụng nền tảng để đăng tải thông tin lôi kéo tụ tập đông người tự phát.</option>
+                            <option value="Chia sẻ thông tin cá nhân, link nhóm kín để lôi kéo thành viên rời khỏi hệ thống.">Chia sẻ thông tin cá nhân, link nhóm kín để lôi kéo thành viên rời khỏi hệ thống.</option>
+                            <option value="Truyền bá văn hóa phẩm đồi trụy.">Truyền bá văn hóa phẩm đồi trụy.</option>
+                            <option value="custom">Lý do khác (Nhập bên dưới)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-2">Hoặc nhập lý do tùy chỉnh</label>
+                        <textarea id="ban-reason-input" rows="3" placeholder="Nhập lý do cấm..." class="w-full bg-white border border-gray-300 text-sm rounded-lg p-3 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 resize-none"></textarea>
+                    </div>
+                </div>
+                <div class="p-4 bg-gray-100 border-t border-gray-200 shrink-0 flex gap-2 justify-end rounded-b-xl">
+                    <button onclick="app.admin.closeBanModal()" class="px-5 py-2 text-sm font-bold text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition">Hủy</button>
+                    <button id="btn-submit-ban" onclick="app.admin.submitBanUser()" class="px-5 py-2 text-sm font-bold text-white bg-red-600 border border-transparent rounded-lg hover:bg-red-700 transition">Xác nhận cấm</button>
+                </div>
+            </div>
+        </div>
+
         <div id="deny-prompt-modal"
             class="hidden fixed inset-0 z-[5000] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
 
@@ -10540,15 +10581,22 @@ formInputs.forEach(input => {
                                      <div id="mgr-sec-bans" class="hidden">
                                          <div class="flex items-center gap-2 mb-4 bg-gray-50 border border-gray-200 rounded-md px-3">
                                              <i class="fa-solid fa-magnifying-glass text-gray-400"></i>
-                                             <input type="text" placeholder="Tìm kiếm Username, UUID..." class="w-full py-2.5 bg-transparent outline-none text-sm" oninput="app.admin.filterManagerData('bans', this.value)">
+                                             <input type="text" id="mgr-ban-search" placeholder="Tìm kiếm Username, UUID..." class="w-full py-2.5 bg-transparent outline-none text-sm" oninput="app.admin.filterManagerData('bans', this.value, document.getElementById('mgr-ban-status').value)">
+                                             <select id="mgr-ban-status" onchange="app.admin.filterManagerData('bans', document.getElementById('mgr-ban-search').value, this.value)" class="bg-white border border-gray-300 text-xs rounded px-2 py-1 outline-none font-bold text-gray-700">
+                                                 <option value="all">Tất cả trạng thái</option>
+                                                 <option value="active">Hoạt động</option>
+                                                 <option value="warning">Cần lưu ý</option>
+                                                 <option value="banned">Bị cấm</option>
+                                             </select>
                                          </div>
                                          <div class="overflow-x-auto border border-gray-200 rounded-md">
                                              <table class="w-full text-left text-sm whitespace-nowrap">
                                                  <thead class="bg-gray-50 border-b border-gray-200 text-gray-600 uppercase text-[11px] tracking-wider">
                                                      <tr>
                                                          <th class="p-3">Người dùng</th>
+                                                         <th class="p-3 text-center">Số ảnh</th>
+                                                         <th class="p-3">Thời gian</th>
                                                          <th class="p-3">Trạng thái</th>
-                                                         <th class="p-3">Lý do</th>
                                                          <th class="p-3 text-right">Hành động</th>
                                                      </tr>
                                                  </thead>
@@ -10614,10 +10662,16 @@ app.admin.fetchManagerData('denied');
                             app.admin.filterManagerData('logs', '');
                         }
                         else if (type === 'bans') {
-                            const { data: users, error } = await window.sb.from('profiles').select('id, username, ban_status').limit(1000);
-                            if (error) console.error("Lỗi lấy danh sách users:", error);
-                            app.admin.manager.bans.data = users || [];
-                            app.admin.filterManagerData('bans', '');
+                            const { data: { session } } = await window.sb.auth.getSession();
+                            const response = await fetch('/api/manager', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ action: 'get_users', token: session.access_token })
+                            });
+                            const result = await response.json();
+                            if (!result.success) throw new Error(result.error);
+                            app.admin.manager.bans.data = result.users || [];
+                            app.admin.filterManagerData('bans', '', 'all');
                         }
                     } catch (e) { console.error("Lỗi fetch data manager:", e); }
                 },
@@ -10630,7 +10684,25 @@ app.admin.fetchManagerData('denied');
                         if (type === 'denied') {
                             state.filtered = state.data.filter(p => `${p.license_plate} ${p.denial_reason} ${p.profiles?.username}`.toLowerCase().includes(q));
                         } else if (type === 'bans') {
-                            state.filtered = state.data.filter(u => `${u.username} ${u.id}`.toLowerCase().includes(q));
+                            const status = arguments[2] || 'all';
+                            state.filtered = state.data.filter(u => {
+                                const matchText = `${u.username} ${u.id}`.toLowerCase().includes(q);
+                                
+                                const oneMonthAgo = new Date();
+                                oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+                                const lastSignIn = new Date(u.last_sign_in_at);
+                                const isWarning = lastSignIn < oneMonthAgo;
+                                
+                                let banInfo = { banned: false };
+                                try { banInfo = typeof u.ban_status === 'string' ? JSON.parse(u.ban_status) : (u.ban_status || banInfo); } catch(e){}
+
+                                let matchStatus = true;
+                                if (status === 'active') matchStatus = !banInfo.banned && !isWarning;
+                                if (status === 'warning') matchStatus = !banInfo.banned && isWarning;
+                                if (status === 'banned') matchStatus = banInfo.banned;
+
+                                return matchText && matchStatus;
+                            });
                         } else {
                             state.filtered = state.data.filter(l => `${l.action_type} ${l.target_id} ${l.profiles?.username} ${JSON.stringify(l.details)}`.toLowerCase().includes(q));
                         }
@@ -10704,21 +10776,40 @@ app.admin.fetchManagerData('denied');
                         contentEl.innerHTML = slice.map(u => {
                             let banInfo = { banned: false, reason: '' };
                             try { banInfo = typeof u.ban_status === 'string' ? JSON.parse(u.ban_status) : (u.ban_status || banInfo); } catch(e){}
-                            const statusBadge = banInfo.banned 
-                                ? `<span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold"><i class="fa-solid fa-ban"></i> Bị cấm</span>` 
-                                : `<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">Hoạt động</span>`;
-                            const actionBtn = banInfo.banned
-                                ? `<button onclick="app.admin.managerUnbanUser('${u.id}')" class="px-3 py-1 bg-white border border-gray-300 rounded text-xs hover:bg-gray-50 text-black font-bold shadow-sm">Gỡ cấm</button>`
-                                : `<button onclick="app.admin.managerBanUser('${u.id}')" class="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 font-bold shadow-sm">Cấm</button>`;
                             
-                            return `<tr class="hover:bg-gray-50 transition">
+                            const oneMonthAgo = new Date();
+                            oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+                            const lastSignIn = new Date(u.last_sign_in_at);
+                            const isWarning = lastSignIn < oneMonthAgo;
+
+                            let statusBadge = '';
+                            if (banInfo.banned) {
+                                statusBadge = `<div class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold inline-block"><i class="fa-solid fa-ban"></i> Bị cấm</div>
+                                               <div class="text-[10px] text-red-600 mt-1 max-w-[150px] truncate" title="${app.utils.cleanText(banInfo.reason || '')}">${app.utils.cleanText(banInfo.reason || '')}</div>`;
+                            } else if (isWarning) {
+                                statusBadge = `<div class="bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs font-bold inline-block" title="Offline quá 1 tháng"><i class="fa-solid fa-triangle-exclamation"></i> Cần lưu ý</div>`;
+                            } else {
+                                statusBadge = `<div class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold inline-block">Hoạt động</div>`;
+                            }
+
+                            const actionBtn = banInfo.banned
+                                ? `<button onclick="app.admin.managerUnbanUser('${u.id}')" class="px-3 py-1.5 bg-white border border-gray-300 rounded-md text-xs hover:bg-gray-50 text-black font-bold shadow-sm transition">Gỡ cấm</button>`
+                                : `<button onclick="app.admin.managerBanUser('${u.id}')" class="px-3 py-1.5 bg-red-600 text-white rounded-md text-xs hover:bg-red-700 font-bold shadow-sm transition">Cấm</button>`;
+                            
+                            return `<tr class="hover:bg-gray-50 transition border-b border-gray-100">
                                 <td class="p-3">
                                     <div class="font-bold text-black text-[12px]">${app.utils.cleanText(u.username || 'Unknown')}</div>
                                     <div class="text-[10px] text-gray-500 font-mono" title="Click để copy UUID" style="cursor:pointer;" onclick="navigator.clipboard.writeText('${u.id}'); alert('Đã copy UUID: ' + '${u.id}')">${u.id}</div>
                                 </td>
+                                <td class="p-3 text-center">
+                                    <span class="font-bold text-black bg-gray-100 px-2 py-1 rounded-md text-xs">${u.photo_count}</span>
+                                </td>
+                                <td class="p-3">
+                                    <div class="text-[11px] text-gray-700"><i class="fa-solid fa-calendar-plus text-gray-400 w-4"></i> ${new Date(u.created_at).toLocaleDateString('vi-VN')}</div>
+                                    <div class="text-[11px] text-gray-700 mt-1" title="Đăng nhập lần cuối lúc ${new Date(u.last_sign_in_at).toLocaleString('vi-VN')}"><i class="fa-solid fa-right-to-bracket text-gray-400 w-4"></i> ${new Date(u.last_sign_in_at).toLocaleDateString('vi-VN')}</div>
+                                </td>
                                 <td class="p-3">${statusBadge}</td>
-                                <td class="p-3 text-[11px] text-gray-600 max-w-[200px] truncate" title="${app.utils.cleanText(banInfo.reason || '')}">${app.utils.cleanText(banInfo.reason || '-')}</td>
-                                <td class="p-3 text-right">${actionBtn}</td>
+                                <td class="p-3 text-right align-middle">${actionBtn}</td>
                             </tr>`;
                         }).join('');
                     } else {
@@ -10733,11 +10824,36 @@ app.admin.fetchManagerData('denied');
                     });
                 },
 
-                managerBanUser: async (userId) => {
+                managerBanUser: (userId) => {
                     if (app.role !== 'manager') return alert("Chỉ Manager mới có quyền này.");
-                    const reason = prompt("Nhập lý do cấm tài khoản này:");
-                    if (!reason) return;
+                    document.getElementById('ban-target-id').value = userId;
+                    document.getElementById('ban-reason-select').value = '';
+                    document.getElementById('ban-reason-input').value = '';
+                    const modal = document.getElementById('ban-prompt-modal');
+                    modal.classList.remove('hidden');
+                    setTimeout(() => {
+                        document.getElementById('ban-prompt-content').classList.remove('opacity-0', 'scale-95');
+                    }, 10);
+                },
+
+                closeBanModal: () => {
+                    const content = document.getElementById('ban-prompt-content');
+                    content.classList.add('opacity-0', 'scale-95');
+                    setTimeout(() => {
+                        document.getElementById('ban-prompt-modal').classList.add('hidden');
+                    }, 300);
+                },
+
+                submitBanUser: async () => {
+                    if (app.role !== 'manager') return alert("Chỉ Manager mới có quyền này.");
+                    const userId = document.getElementById('ban-target-id').value;
+                    const reason = document.getElementById('ban-reason-input').value.trim();
                     
+                    if (!reason) return alert("Vui lòng nhập hoặc chọn lý do cấm!");
+                    
+                    document.getElementById('btn-submit-ban').innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang xử lý...';
+                    document.getElementById('btn-submit-ban').disabled = true;
+
                     try {
                         const { data: { session } } = await window.sb.auth.getSession();
                         const response = await fetch('/api/manager', {
@@ -10747,10 +10863,15 @@ app.admin.fetchManagerData('denied');
                         });
                         const data = await response.json();
                         if (data.success) {
-                            alert(data.message);
+                            app.admin.closeBanModal();
                             app.admin.fetchManagerData('bans');
                         } else throw new Error(data.error);
-                    } catch (e) { alert("Lỗi: " + e.message); }
+                    } catch (e) { 
+                        alert("Lỗi: " + e.message); 
+                    } finally {
+                        document.getElementById('btn-submit-ban').innerHTML = 'Xác nhận cấm';
+                        document.getElementById('btn-submit-ban').disabled = false;
+                    }
                 },
 
                 managerUnbanUser: async (userId) => {
