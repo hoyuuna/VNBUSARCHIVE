@@ -10439,7 +10439,7 @@ formInputs.forEach(input => {
                                     <div class="flex gap-2 mb-6 border-b border-gray-200 pb-3 overflow-x-auto">
                                         <button onclick="app.admin.switchManagerTab('denied')" id="mgr-tab-denied" class="font-bold text-sm px-4 py-2 bg-black text-white rounded transition whitespace-nowrap">Ảnh bị từ chối</button>
                                          <button onclick="app.admin.switchManagerTab('logs')" id="mgr-tab-logs" class="font-bold text-sm px-4 py-2 bg-white text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition whitespace-nowrap">Nhật ký hoạt động</button>
-                                        <button onclick="app.admin.switchManagerTab('bans')" id="mgr-tab-bans" class="font-bold text-sm px-4 py-2 bg-white text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition whitespace-nowrap"><i class="fa-solid fa-ban mr-1"></i> Quản lý Ban</button>
+                                        <button onclick="app.admin.switchManagerTab('bans')" id="mgr-tab-bans" class="font-bold text-sm px-4 py-2 bg-white text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition whitespace-nowrap"><i class="fa-solid fa-users mr-1"></i> Quản lý người dùng</button>
                                         <button onclick="app.admin.switchManagerTab('email')" id="mgr-tab-email" class="font-bold text-sm px-4 py-2 bg-white text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition whitespace-nowrap"><i class="fa-solid fa-envelope mr-1"></i> Gửi Email</button>
                                         <button onclick="app.admin.switchManagerTab('settings')" id="mgr-tab-settings" class="font-bold text-sm px-4 py-2 bg-white text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition whitespace-nowrap"><i class="fa-solid fa-sliders mr-1"></i> Cài đặt</button>
                                     </div>
@@ -10540,7 +10540,7 @@ formInputs.forEach(input => {
                                      <div id="mgr-sec-bans" class="hidden">
                                          <div class="flex items-center gap-2 mb-4 bg-gray-50 border border-gray-200 rounded-md px-3">
                                              <i class="fa-solid fa-magnifying-glass text-gray-400"></i>
-                                             <input type="text" placeholder="Tìm kiếm Email, Username..." class="w-full py-2.5 bg-transparent outline-none text-sm" oninput="app.admin.filterManagerData('bans', this.value)">
+                                             <input type="text" placeholder="Tìm kiếm Username, UUID..." class="w-full py-2.5 bg-transparent outline-none text-sm" oninput="app.admin.filterManagerData('bans', this.value)">
                                          </div>
                                          <div class="overflow-x-auto border border-gray-200 rounded-md">
                                              <table class="w-full text-left text-sm whitespace-nowrap">
@@ -10630,7 +10630,7 @@ app.admin.fetchManagerData('denied');
                         if (type === 'denied') {
                             state.filtered = state.data.filter(p => `${p.license_plate} ${p.denial_reason} ${p.profiles?.username}`.toLowerCase().includes(q));
                         } else if (type === 'bans') {
-                            state.filtered = state.data.filter(u => `${u.username}`.toLowerCase().includes(q));
+                            state.filtered = state.data.filter(u => `${u.username} ${u.id}`.toLowerCase().includes(q));
                         } else {
                             state.filtered = state.data.filter(l => `${l.action_type} ${l.target_id} ${l.profiles?.username} ${JSON.stringify(l.details)}`.toLowerCase().includes(q));
                         }
@@ -10714,7 +10714,7 @@ app.admin.fetchManagerData('denied');
                             return `<tr class="hover:bg-gray-50 transition">
                                 <td class="p-3">
                                     <div class="font-bold text-black text-[12px]">${app.utils.cleanText(u.username || 'Unknown')}</div>
-                                    <div class="text-[10px] text-gray-500">ID: ${u.id.substring(0,8)}...</div>
+                                    <div class="text-[10px] text-gray-500 font-mono" title="Click để copy UUID" style="cursor:pointer;" onclick="navigator.clipboard.writeText('${u.id}'); alert('Đã copy UUID: ' + '${u.id}')">${u.id}</div>
                                 </td>
                                 <td class="p-3">${statusBadge}</td>
                                 <td class="p-3 text-[11px] text-gray-600 max-w-[200px] truncate" title="${app.utils.cleanText(banInfo.reason || '')}">${app.utils.cleanText(banInfo.reason || '-')}</td>
