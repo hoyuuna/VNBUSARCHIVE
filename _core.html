@@ -14243,7 +14243,7 @@ cleanupState: () => {
                             }
 
                             await app.setUser(data.user);
-                            app.ui.showAlert("Đăng nhập thành công!", () => { window.location.href = '/'; });
+                            app.ui.showAlert("Đăng nhập thành công!", () => { window.location.reload(); });
 
                         } else if (app.auth.mode === 'register') {
                             const username = document.getElementById('auth-username').value.trim();
@@ -14351,7 +14351,7 @@ cleanupState: () => {
                         await app.setUser(null);
                         app.ui.toggleUserMenu(false);
                         app.ui.showAlert("Đã đăng xuất thành công!", () => {
-                            window.location.href = '/';
+                            window.location.reload();
                         });
                     } catch (err) {
                         console.error("Lỗi đăng xuất:", err);
@@ -14383,7 +14383,7 @@ cleanupState: () => {
                                         <p class="text-xs text-gray-700">Hệ thống đang tiến hành hủy các phiên làm việc cũ.</p>
                                         <p class="text-[10px] text-amber-600 font-bold mt-2 italic"><i class="fa-solid fa-clock mr-1"></i> Lưu ý: Có thể mất từ 1-5 phút để tất cả các thiết bị khác bị thoát hoàn toàn.</p>
                                     </div>`,
-                                    () => { window.location.href = '/'; }
+                                    () => { window.location.reload(); }
                                 );
                             } catch (err) {
                                 console.error("Logout All Error:", err);
