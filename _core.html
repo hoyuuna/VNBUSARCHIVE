@@ -10999,10 +10999,10 @@ app.admin.fetchManagerData('denied');
                                 app.admin.fetchManagerData('bans');
                             } else throw new Error(data.error);
                         } catch (e) { app.ui.showAlert("Lỗi: " + e.message, null, null, { title: "Lỗi" }); }
-                    }, null, {
+                    }, () => {}, {
                         title: "Xác nhận gỡ cấm",
                         btnOkText: "Gỡ cấm",
-                        showCancel: true
+                        btnCancelText: "Hủy"
                     });
                 },
 
