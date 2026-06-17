@@ -10579,15 +10579,17 @@ formInputs.forEach(input => {
 
                                      <!-- TAB: QUẢN LÝ BAN -->
                                      <div id="mgr-sec-bans" class="hidden">
-                                         <div class="flex items-center gap-2 mb-4 bg-gray-50 border border-gray-200 rounded-md px-3">
-                                             <i class="fa-solid fa-magnifying-glass text-gray-400"></i>
-                                             <input type="text" id="mgr-ban-search" placeholder="Tìm kiếm Username, UUID..." class="w-full py-2.5 bg-transparent outline-none text-sm" oninput="app.admin.filterManagerData('bans', this.value, document.getElementById('mgr-ban-status').value)">
-                                             <select id="mgr-ban-status" onchange="app.admin.filterManagerData('bans', document.getElementById('mgr-ban-search').value, this.value)" class="bg-white border border-gray-300 text-xs rounded px-2 py-1 outline-none font-bold text-gray-700">
-                                                 <option value="all">Tất cả trạng thái</option>
-                                                 <option value="active">Hoạt động</option>
-                                                 <option value="warning">Cần lưu ý</option>
-                                                 <option value="banned">Bị cấm</option>
-                                             </select>
+                                         <div class="flex flex-col gap-3 mb-4">
+                                             <div class="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-md px-3">
+                                                 <i class="fa-solid fa-magnifying-glass text-gray-400"></i>
+                                                 <input type="text" id="mgr-ban-search" placeholder="Tìm kiếm Username, UUID..." class="w-full py-2.5 bg-transparent outline-none text-sm" oninput="app.admin.filterManagerData('bans', this.value)">
+                                             </div>
+                                             <div class="flex flex-wrap gap-2">
+                                                 <button id="ban-flt-all" onclick="app.admin.setBanFilter('all')" class="ban-flt-btn font-bold text-xs px-3 py-1.5 bg-black text-white rounded-md transition">Tất cả</button>
+                                                 <button id="ban-flt-active" onclick="app.admin.setBanFilter('active')" class="ban-flt-btn font-bold text-xs px-3 py-1.5 bg-white text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition">Hoạt động</button>
+                                                 <button id="ban-flt-warning" onclick="app.admin.setBanFilter('warning')" class="ban-flt-btn font-bold text-xs px-3 py-1.5 bg-white text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition">Cần lưu ý</button>
+                                                 <button id="ban-flt-banned" onclick="app.admin.setBanFilter('banned')" class="ban-flt-btn font-bold text-xs px-3 py-1.5 bg-white text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition">Bị cấm</button>
+                                             </div>
                                          </div>
                                          <div class="overflow-x-auto border border-gray-200 rounded-md">
                                              <table class="w-full text-left text-sm whitespace-nowrap">
@@ -10676,15 +10678,15 @@ app.admin.fetchManagerData('denied');
                     } catch (e) { console.error("Lỗi fetch data manager:", e); }
                 },
 
-                filterManagerData: (type, query) => {
-                    const q = query.toLowerCase().trim();
+                filterManagerData: (type, query, statusArg) => {
+                    const q = (query || '').toLowerCase().trim();
                     const state = app.admin.manager[type];
-                    if (!q) { state.filtered =[...state.data]; }
+                    if (!q && (!statusArg || statusArg === 'all') && type !== 'bans') { state.filtered =[...state.data]; }
                     else {
                         if (type === 'denied') {
                             state.filtered = state.data.filter(p => `${p.license_plate} ${p.denial_reason} ${p.profiles?.username}`.toLowerCase().includes(q));
                         } else if (type === 'bans') {
-                            const status = arguments[2] || 'all';
+                            const status = statusArg || app.admin.manager.bans.currentFilter || 'all';
                             state.filtered = state.data.filter(u => {
                                 const matchText = `${u.username} ${u.id}`.toLowerCase().includes(q);
                                 
@@ -10709,6 +10711,17 @@ app.admin.fetchManagerData('denied');
                     }
                     state.page = 1;
                     app.admin.renderManagerData(type);
+                },
+
+                setBanFilter: (status) => {
+                    document.querySelectorAll('.ban-flt-btn').forEach(btn => {
+                        btn.className = "ban-flt-btn font-bold text-xs px-3 py-1.5 bg-white text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition";
+                    });
+                    const activeBtn = document.getElementById('ban-flt-' + status);
+                    if (activeBtn) activeBtn.className = "ban-flt-btn font-bold text-xs px-3 py-1.5 bg-black text-white rounded-md transition";
+                    
+                    app.admin.manager.bans.currentFilter = status;
+                    app.admin.filterManagerData('bans', document.getElementById('mgr-ban-search').value, status);
                 },
 
                 // --- Hàm Render cho Tab Quản lý Bình luận (Admin) ---
@@ -10784,12 +10797,12 @@ app.admin.fetchManagerData('denied');
 
                             let statusBadge = '';
                             if (banInfo.banned) {
-                                statusBadge = `<div class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold inline-block"><i class="fa-solid fa-ban"></i> Bị cấm</div>
+                                statusBadge = `<span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold inline-block"><i class="fa-solid fa-ban"></i> Bị cấm</span>
                                                <div class="text-[10px] text-red-600 mt-1 max-w-[150px] truncate" title="${app.utils.cleanText(banInfo.reason || '')}">${app.utils.cleanText(banInfo.reason || '')}</div>`;
                             } else if (isWarning) {
-                                statusBadge = `<div class="bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs font-bold inline-block" title="Offline quá 1 tháng"><i class="fa-solid fa-triangle-exclamation"></i> Cần lưu ý</div>`;
+                                statusBadge = `<span class="bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs font-bold inline-block" title="Offline quá 1 tháng"><i class="fa-solid fa-triangle-exclamation"></i> Cần lưu ý</span>`;
                             } else {
-                                statusBadge = `<div class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold inline-block">Hoạt động</div>`;
+                                statusBadge = `<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold inline-block">Hoạt động</span>`;
                             }
 
                             const actionBtn = banInfo.banned
