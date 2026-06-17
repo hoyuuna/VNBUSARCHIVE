@@ -10535,11 +10535,37 @@ formInputs.forEach(input => {
                                             <p class="text-gray-500 italic"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải cấu hình...</p>
                                         </div>
                                     </div>
+
+                                     <!-- TAB: QUẢN LÝ BAN -->
+                                     <div id="mgr-sec-bans" class="hidden">
+                                         <div class="flex items-center gap-2 mb-4 bg-gray-50 border border-gray-200 rounded-md px-3">
+                                             <i class="fa-solid fa-magnifying-glass text-gray-400"></i>
+                                             <input type="text" placeholder="Tìm kiếm Email, Username..." class="w-full py-2.5 bg-transparent outline-none text-sm" oninput="app.admin.filterManagerData('bans', this.value)">
+                                         </div>
+                                         <div class="overflow-x-auto border border-gray-200 rounded-md">
+                                             <table class="w-full text-left text-sm whitespace-nowrap">
+                                                 <thead class="bg-gray-50 border-b border-gray-200 text-gray-600 uppercase text-[11px] tracking-wider">
+                                                     <tr>
+                                                         <th class="p-3">Người dùng</th>
+                                                         <th class="p-3">Trạng thái</th>
+                                                         <th class="p-3">Lý do</th>
+                                                         <th class="p-3 text-right">Hành động</th>
+                                                     </tr>
+                                                 </thead>
+                                                 <tbody id="mgr-bans-content" class="divide-y divide-gray-200">
+                                                     <tr><td colspan="4" class="p-4 text-center text-gray-500"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải...</td></tr>
+                                                 </tbody>
+                                             </table>
+                                         </div>
+                                          <div id="mgr-bans-pager" class="mt-6 w-full flex justify-center"></div>
+                                     </div>
+
                                  </div>
                              `;
 
 app.admin.fetchManagerData('denied');
                              app.admin.fetchManagerData('logs');
+                             app.admin.fetchManagerData('bans');
                              app.admin.fetchUsersForEmail();
                         }
 
