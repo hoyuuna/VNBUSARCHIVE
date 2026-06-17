@@ -56,7 +56,7 @@ export default async function handler(req, res) {
             let allPhotos = [];
             let phFrom = 0;
             while (true) {
-                const { data, error } = await supabaseAdmin.from('photos').select('author_id').eq('status', 'approved').range(phFrom, phFrom + step - 1);
+                const { data, error } = await supabaseAdmin.from('photos').select('uploader_id').eq('status', 'approved').range(phFrom, phFrom + step - 1);
                 if (error) throw error;
                 if (!data || data.length === 0) break;
                 allPhotos = allPhotos.concat(data);
@@ -66,8 +66,8 @@ export default async function handler(req, res) {
 
             const photoCounts = {};
             allPhotos.forEach(p => {
-                if(p.author_id) {
-                    photoCounts[p.author_id] = (photoCounts[p.author_id] || 0) + 1;
+                if(p.uploader_id) {
+                    photoCounts[p.uploader_id] = (photoCounts[p.uploader_id] || 0) + 1;
                 }
             });
 
