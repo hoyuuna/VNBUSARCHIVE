@@ -10159,8 +10159,8 @@ formInputs.forEach(input => {
                                         </div>
                                         <span class="text-xs text-gray-500">${safeUsername}</span>
                                     </div>
-                                    <div class="relative h-40 bg-black">
-                                        <img loading="lazy" src="${app.utils.getProxiedUrl(p.url)}" class="w-full h-full object-contain">
+                                    <div class="relative w-full bg-transparent mt-2 mb-2">
+                                        <img loading="lazy" src="${app.utils.getProxiedUrl(p.url)}" class="w-full h-auto object-contain rounded-md border border-gray-200 shadow-sm">
                                         <button onclick="app.admin.openZoom('${app.utils.getProxiedUrl(p.url)}')" class="absolute top-2 right-2 bg-black/50 text-white w-8 h-8 rounded hover:bg-black flex items-center justify-center transition" title="Soi ảnh"><i class="fa-solid fa-expand"></i></button>
                                     </div>
                                     <div class="admin-card-body">
@@ -10267,8 +10267,8 @@ formInputs.forEach(input => {
                                         <span class="font-bold text-xs uppercase text-red-600">YÊU CẦU XÓA</span>
                                         <span class="text-xs text-gray-500">${username}</span>
                                     </div>
-                                    <div class="relative h-32 bg-black">
-                                        <img loading="lazy" src="${app.utils.getProxiedUrl(photo?.url)}" class="w-full h-full object-contain">
+                                    <div class="relative w-full bg-transparent mt-2 mb-2">
+                                        <img loading="lazy" src="${app.utils.getProxiedUrl(photo?.url)}" class="w-full h-auto object-contain rounded-md border border-gray-200 shadow-sm">
                                         <button onclick="app.admin.openZoom('${app.utils.getProxiedUrl(photo?.url)}')" class="absolute top-2 right-2 bg-black/50 text-white w-8 h-8 rounded hover:bg-black flex items-center justify-center transition" title="Soi ảnh"><i class="fa-solid fa-expand"></i></button>
                                     </div>
                                     <div class="admin-card-body text-xs">
@@ -15627,6 +15627,7 @@ closeCustomRolePrompt: () => {
 
             zoomModal.addEventListener('wheel', (e) => {
                 e.preventDefault();
+                zoomImg.classList.remove('modal-content-enter');
                 zoomImg.style.transition = 'none';
                 const zoomAmount = e.deltaY * -0.005;
                 currentZoom += zoomAmount;
@@ -15639,6 +15640,7 @@ closeCustomRolePrompt: () => {
             let initialZoom = 1;
 
             zoomModal.addEventListener('touchstart', (e) => {
+                zoomImg.classList.remove('modal-content-enter');
                 zoomImg.style.transition = 'none';
                 if (e.touches.length === 2) {
                     initialDistance = Math.hypot(
@@ -15684,6 +15686,7 @@ closeCustomRolePrompt: () => {
             zoomImg.addEventListener('mousedown', (e) => {
                 if (currentZoom > 1) {
                     e.preventDefault();
+                    zoomImg.classList.remove('modal-content-enter');
                     isPanning = true;
                     startX = e.pageX - panX;
                     startY = e.pageY - panY;
