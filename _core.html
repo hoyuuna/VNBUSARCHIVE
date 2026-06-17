@@ -14242,6 +14242,21 @@ cleanupState: () => {
                                 return;
                             }
 
+                            // KIỂM TRA BAN TRỰC TIẾP TẠI FRONTEND
+                            if (data.user) {
+                                const { data: profile } = await window.sb.from('profiles').select('ban_status').eq('id', data.user.id).single();
+                                if (profile && profile.ban_status) {
+                                    let banInfo = typeof profile.ban_status === 'string' ? JSON.parse(profile.ban_status) : profile.ban_status;
+                                    if (banInfo.banned) {
+                                        await window.sb.auth.signOut();
+                                        app.ui.showAlert(`<b>ĐĂNG NHẬP THẤT BẠI</b><br>Tài khoản của bạn đã bị cấm với lý do: <b>${banInfo.reason || 'Không rõ'}</b>`);
+                                        btn.disabled = false;
+                                        btn.innerHTML = originalHTML;
+                                        return;
+                                    }
+                                }
+                            }
+
                             await app.setUser(data.user);
                             app.ui.showAlert("Đăng nhập thành công!", () => { window.location.reload(); });
 

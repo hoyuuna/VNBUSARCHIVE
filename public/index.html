@@ -131,7 +131,7 @@
                         sessionStorage.removeItem('VNBA_SESS_AUTH');
                         document.body.innerHTML = `
                             <div style="background-color: #ffffff; color: #ff0000; width: 100vw; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: sans-serif; text-align: center; padding: 20px; box-sizing: border-box;">
-                                <h1 style="font-size: 2rem; margin-bottom: 20px;">NGẮT KẾT NỐI MÁY CHỦ</h1>
+                                <h1 style="font-size: 2.5rem; margin-bottom: 20px; font-weight: 900;">BẠN ĐÃ BỊ CẤM</h1>
                                 <p style="font-size: 1.2rem; max-width: 600px; line-height: 1.5; margin-bottom: 30px;">
                                     Tài khoản <b>${data.name}</b> (ID: <b><span style="font-family: monospace;">${data.uuid || 'Không rõ'}</span></b>) của bạn đã bị cấm với lí do: <b>${data.reason || 'Không rõ'}</b>. 
                                     <br><br>Tìm hiểu thêm tại: <a href="https://www.vnbusarchive.io.vn/help/1516761580069720074" style="color: #ff0000; text-decoration: underline;">https://www.vnbusarchive.io.vn/help/1516761580069720074</a>
