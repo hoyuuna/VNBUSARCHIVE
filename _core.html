@@ -10614,7 +10614,8 @@ app.admin.fetchManagerData('denied');
                             app.admin.filterManagerData('logs', '');
                         }
                         else if (type === 'bans') {
-                            const { data: users } = await window.sb.from('profiles').select('id, username, email, ban_status').order('created_at', {ascending: false}).limit(1000);
+                            const { data: users, error } = await window.sb.from('profiles').select('id, username, ban_status').limit(1000);
+                            if (error) console.error("Lỗi lấy danh sách users:", error);
                             app.admin.manager.bans.data = users || [];
                             app.admin.filterManagerData('bans', '');
                         }
@@ -10629,7 +10630,7 @@ app.admin.fetchManagerData('denied');
                         if (type === 'denied') {
                             state.filtered = state.data.filter(p => `${p.license_plate} ${p.denial_reason} ${p.profiles?.username}`.toLowerCase().includes(q));
                         } else if (type === 'bans') {
-                            state.filtered = state.data.filter(u => `${u.username} ${u.email}`.toLowerCase().includes(q));
+                            state.filtered = state.data.filter(u => `${u.username}`.toLowerCase().includes(q));
                         } else {
                             state.filtered = state.data.filter(l => `${l.action_type} ${l.target_id} ${l.profiles?.username} ${JSON.stringify(l.details)}`.toLowerCase().includes(q));
                         }
@@ -10713,7 +10714,7 @@ app.admin.fetchManagerData('denied');
                             return `<tr class="hover:bg-gray-50 transition">
                                 <td class="p-3">
                                     <div class="font-bold text-black text-[12px]">${app.utils.cleanText(u.username || 'Unknown')}</div>
-                                    <div class="text-[10px] text-gray-500">${app.utils.cleanText(u.email || 'No email')}</div>
+                                    <div class="text-[10px] text-gray-500">ID: ${u.id.substring(0,8)}...</div>
                                 </td>
                                 <td class="p-3">${statusBadge}</td>
                                 <td class="p-3 text-[11px] text-gray-600 max-w-[200px] truncate" title="${app.utils.cleanText(banInfo.reason || '')}">${app.utils.cleanText(banInfo.reason || '-')}</td>
