@@ -1882,39 +1882,105 @@
             <div id="ban-prompt-content" class="bg-gray-50 rounded-xl shadow-2xl max-w-lg w-full border border-gray-200 overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col max-h-[90vh]">
                 <div class="p-5 border-b border-gray-200 shrink-0 bg-white rounded-t-xl">
                     <h3 id="ban-prompt-title" class="text-lg font-bold text-red-600 mb-1"><i class="fa-solid fa-ban mr-2"></i>Cấm Tài Khoản</h3>
-                    <p class="text-xs text-gray-500">Vui lòng chọn hoặc nhập lý do cấm người dùng này.</p>
+                    <p class="text-xs text-gray-500">Vui lòng chọn 1 trong 2 phương thức nhập lí do dưới đây.</p>
                 </div>
-                <div class="p-5 overflow-y-auto space-y-4">
+                <div class="p-5 overflow-y-auto space-y-5">
                     <input type="hidden" id="ban-target-id">
+
                     <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-2">Chọn lý do có sẵn</label>
-                        <select id="ban-reason-select" class="w-full bg-white border border-gray-300 text-sm rounded-lg px-3 py-2.5 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500" onchange="document.getElementById('ban-reason-input').value = this.value === 'custom' ? '' : this.value;">
-                            <option value="">-- Chọn lý do --</option>
-                            <option value="Dò quét lỗ hổng, tấn công mạng hoặc có hành vi phá hoại máy chủ.">Dò quét lỗ hổng, tấn công mạng hoặc có hành vi phá hoại máy chủ.</option>
-                            <option value="Cố tình lách luật giới hạn tần suất truy xuất dữ liệu mở gây quá tải hệ thống.">Cố tình lách luật giới hạn tần suất truy xuất dữ liệu mở gây quá tải hệ thống.</option>
-                            <option value="Người dùng chưa đủ 14 tuổi hoặc có nhận thức, hành vi ứng xử không phù hợp.">Người dùng chưa đủ 14 tuổi hoặc có nhận thức, hành vi ứng xử không phù hợp.</option>
-                            <option value="Đăng tải hình ảnh sao chép từ các nguồn khác (vi phạm bản quyền).">Đăng tải hình ảnh sao chép từ các nguồn khác (vi phạm bản quyền).</option>
-                            <option value="Cố ý làm sai lệch thông tin hàng loạt hoặc phá hoại tính toàn vẹn của Cơ sở dữ liệu.">Cố ý làm sai lệch thông tin hàng loạt hoặc phá hoại tính toàn vẹn của Cơ sở dữ liệu.</option>
-                            <option value="Tái phạm lỗi nhập sai thông tin phương tiện sau khi đã được kiểm duyệt viên cảnh báo.">Tái phạm lỗi nhập sai thông tin phương tiện sau khi đã được kiểm duyệt viên cảnh báo.</option>
-                            <option value="Đăng tải hàng loạt dữ liệu rác, spam vô nghĩa, sai mục đích vào hệ thống.">Đăng tải hàng loạt dữ liệu rác, spam vô nghĩa, sai mục đích vào hệ thống.</option>
-                            <option value="Tiết lộ thông tin cá nhân khi chưa được phép.">Tiết lộ thông tin cá nhân khi chưa được phép.</option>
-                            <option value="Có hành vi bắt nạt trực tuyến, mỉa mai, công kích thành viên khác hoặc nói xấu, xúc phạm danh dự, nhân phẩm, miệt thị .">Có hành vi bắt nạt trực tuyến, mỉa mai, công kích thành viên khác hoặc nói xấu, xúc phạm danh dự, nhân phẩm, miệt thị.</option>
-                            <option value="Bàn luận về các vấn đề chính trị, tôn giáo, sắc tộc hoặc các chủ đề nhạy cảm.">Bàn luận về các vấn đề chính trị, tôn giáo, sắc tộc hoặc các chủ đề nhạy cảm.</option>
-                            <option value="Gửi bình luận spam, chèn link quảng cáo, rao bán hàng hóa, dịch vụ.">Gửi bình luận spam, chèn link quảng cáo, rao bán hàng hóa, dịch vụ.</option>
-                            <option value="Lợi dụng nền tảng để đăng tải thông tin lôi kéo tụ tập đông người tự phát.">Lợi dụng nền tảng để đăng tải thông tin lôi kéo tụ tập đông người tự phát.</option>
-                            <option value="Chia sẻ thông tin cá nhân, link nhóm kín để lôi kéo thành viên rời khỏi hệ thống.">Chia sẻ thông tin cá nhân, link nhóm kín để lôi kéo thành viên rời khỏi hệ thống.</option>
-                            <option value="Truyền bá văn hóa phẩm đồi trụy.">Truyền bá văn hóa phẩm đồi trụy.</option>
-                            <option value="custom">Lý do khác (Nhập bên dưới)</option>
-                        </select>
+                        <button type="button" id="btn-ban-quick" onclick="app.admin.toggleBanSection('quick')"
+                            class="w-full bg-black text-white p-3 text-center font-bold text-sm rounded-lg shadow-sm transition border border-black">
+                            Lí do nhanh
+                        </button>
+                        <div id="ban-section-quick"
+                            class="mt-2 p-4 bg-white border border-gray-200 rounded-lg shadow-sm space-y-3 max-h-64 overflow-y-auto block">
+                            <label class="flex items-start gap-2 cursor-pointer group">
+                                <input type="radio" name="ban-quick-reason" value="Dò quét lỗ hổng, tấn công mạng hoặc có hành vi phá hoại máy chủ."
+                                    class="ban-quick-cb mt-0.5 cursor-pointer accent-red-600">
+                                <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Dò quét lỗ hổng, tấn công mạng hoặc có hành vi phá hoại máy chủ.</span>
+                            </label>
+                            <label class="flex items-start gap-2 cursor-pointer group">
+                                <input type="radio" name="ban-quick-reason" value="Cố tình lách luật giới hạn tần suất truy xuất dữ liệu mở gây quá tải hệ thống."
+                                    class="ban-quick-cb mt-0.5 cursor-pointer accent-red-600">
+                                <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Cố tình lách luật giới hạn tần suất truy xuất dữ liệu mở gây quá tải hệ thống.</span>
+                            </label>
+                            <label class="flex items-start gap-2 cursor-pointer group">
+                                <input type="radio" name="ban-quick-reason" value="Người dùng chưa đủ 14 tuổi hoặc có nhận thức, hành vi ứng xử không phù hợp."
+                                    class="ban-quick-cb mt-0.5 cursor-pointer accent-red-600">
+                                <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Người dùng chưa đủ 14 tuổi hoặc có nhận thức, hành vi ứng xử không phù hợp.</span>
+                            </label>
+                            <label class="flex items-start gap-2 cursor-pointer group">
+                                <input type="radio" name="ban-quick-reason" value="Đăng tải hình ảnh sao chép từ các nguồn khác (vi phạm bản quyền) nhiều lần."
+                                    class="ban-quick-cb mt-0.5 cursor-pointer accent-red-600">
+                                <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Đăng tải hình ảnh sao chép từ các nguồn khác (vi phạm bản quyền) nhiều lần.</span>
+                            </label>
+                            <label class="flex items-start gap-2 cursor-pointer group">
+                                <input type="radio" name="ban-quick-reason" value="Cố ý làm sai lệch thông tin hàng loạt hoặc phá hoại tính toàn vẹn của Cơ sở dữ liệu."
+                                    class="ban-quick-cb mt-0.5 cursor-pointer accent-red-600">
+                                <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Cố ý làm sai lệch thông tin hàng loạt hoặc phá hoại tính toàn vẹn của Cơ sở dữ liệu.</span>
+                            </label>
+                            <label class="flex items-start gap-2 cursor-pointer group">
+                                <input type="radio" name="ban-quick-reason" value="Tái phạm lỗi nhập sai thông tin phương tiện sau khi đã được cảnh báo."
+                                    class="ban-quick-cb mt-0.5 cursor-pointer accent-red-600">
+                                <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Tái phạm lỗi nhập sai thông tin phương tiện sau khi đã được cảnh báo.</span>
+                            </label>
+                            <label class="flex items-start gap-2 cursor-pointer group">
+                                <input type="radio" name="ban-quick-reason" value="Đăng tải hàng loạt dữ liệu rác, spam vô nghĩa, sai mục đích vào hệ thống."
+                                    class="ban-quick-cb mt-0.5 cursor-pointer accent-red-600">
+                                <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Đăng tải hàng loạt dữ liệu rác, spam vô nghĩa, sai mục đích vào hệ thống.</span>
+                            </label>
+                            <label class="flex items-start gap-2 cursor-pointer group">
+                                <input type="radio" name="ban-quick-reason" value="Tiết lộ thông tin cá nhân khi chưa được phép."
+                                    class="ban-quick-cb mt-0.5 cursor-pointer accent-red-600">
+                                <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Tiết lộ thông tin cá nhân khi chưa được phép.</span>
+                            </label>
+                            <label class="flex items-start gap-2 cursor-pointer group">
+                                <input type="radio" name="ban-quick-reason" value="Có hành vi bắt nạt trực tuyến, mỉa mai, công kích thành viên khác hoặc nói xấu, miệt thị."
+                                    class="ban-quick-cb mt-0.5 cursor-pointer accent-red-600">
+                                <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Có hành vi bắt nạt trực tuyến, mỉa mai, công kích thành viên khác hoặc nói xấu, miệt thị.</span>
+                            </label>
+                            <label class="flex items-start gap-2 cursor-pointer group">
+                                <input type="radio" name="ban-quick-reason" value="Bàn luận về các vấn đề chính trị, tôn giáo, sắc tộc hoặc các chủ đề nhạy cảm."
+                                    class="ban-quick-cb mt-0.5 cursor-pointer accent-red-600">
+                                <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Bàn luận về các vấn đề chính trị, tôn giáo, sắc tộc hoặc các chủ đề nhạy cảm.</span>
+                            </label>
+                            <label class="flex items-start gap-2 cursor-pointer group">
+                                <input type="radio" name="ban-quick-reason" value="Gửi bình luận spam, chèn link quảng cáo, rao bán hàng hóa, dịch vụ."
+                                    class="ban-quick-cb mt-0.5 cursor-pointer accent-red-600">
+                                <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Gửi bình luận spam, chèn link quảng cáo, rao bán hàng hóa, dịch vụ.</span>
+                            </label>
+                            <label class="flex items-start gap-2 cursor-pointer group">
+                                <input type="radio" name="ban-quick-reason" value="Lợi dụng nền tảng để lôi kéo tụ tập đông người tự phát hoặc kéo thành viên rời khỏi hệ thống."
+                                    class="ban-quick-cb mt-0.5 cursor-pointer accent-red-600">
+                                <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Lợi dụng nền tảng để lôi kéo tụ tập đông người tự phát hoặc kéo thành viên rời khỏi hệ thống.</span>
+                            </label>
+                            <label class="flex items-start gap-2 cursor-pointer group">
+                                <input type="radio" name="ban-quick-reason" value="Truyền bá văn hóa phẩm đồi trụy."
+                                    class="ban-quick-cb mt-0.5 cursor-pointer accent-red-600">
+                                <span class="text-xs text-gray-700 group-hover:text-black transition leading-snug">Truyền bá văn hóa phẩm đồi trụy.</span>
+                            </label>
+                        </div>
                     </div>
+
                     <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-2">Hoặc nhập lý do tùy chỉnh</label>
-                        <textarea id="ban-reason-input" rows="3" placeholder="Nhập lý do cấm..." class="w-full bg-white border border-gray-300 text-sm rounded-lg p-3 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 resize-none"></textarea>
+                        <button type="button" id="btn-ban-custom" onclick="app.admin.toggleBanSection('custom')"
+                            class="w-full bg-white text-gray-700 p-3 text-center font-bold text-sm rounded-lg shadow-sm transition border border-gray-300 hover:bg-gray-50 hover:text-black">
+                            Tự nhập lí do cụ thể
+                        </button>
+                        <div id="ban-section-custom" class="hidden mt-2 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                            <textarea id="ban-custom-input" rows="4"
+                                class="w-full border border-gray-300 rounded-md p-3 text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none transition-all resize-none"
+                                placeholder="Nhập lí do cấm cụ thể..."></textarea>
+                        </div>
                     </div>
                 </div>
-                <div class="p-4 bg-gray-100 border-t border-gray-200 shrink-0 flex gap-2 justify-end rounded-b-xl">
-                    <button onclick="app.admin.closeBanModal()" class="px-5 py-2 text-sm font-bold text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition">Hủy</button>
-                    <button id="btn-submit-ban" onclick="app.admin.submitBanUser()" class="px-5 py-2 text-sm font-bold text-white bg-red-600 border border-transparent rounded-lg hover:bg-red-700 transition">Xác nhận cấm</button>
+
+                <div class="bg-white px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse shrink-0 border-t border-gray-200 rounded-b-xl">
+                    <button type="button" id="btn-submit-ban" onclick="app.admin.submitBanUser()"
+                        class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-bold text-white hover:bg-red-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition">Xác
+                        nhận cấm</button>
+                    <button type="button" onclick="app.admin.closeBanModal()"
+                        class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-bold text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition">Hủy</button>
                 </div>
             </div>
         </div>
@@ -10800,7 +10866,7 @@ app.admin.fetchManagerData('denied');
                                 statusBadge = `<span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold inline-block"><i class="fa-solid fa-ban"></i> Bị cấm</span>
                                                <div class="text-[10px] text-red-600 mt-1 max-w-[150px] truncate" title="${app.utils.cleanText(banInfo.reason || '')}">${app.utils.cleanText(banInfo.reason || '')}</div>`;
                             } else if (isWarning) {
-                                statusBadge = `<span class="bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs font-bold inline-block" title="Offline quá 1 tháng"><i class="fa-solid fa-triangle-exclamation"></i> Cần lưu ý</span>`;
+                                statusBadge = `<span class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs font-bold inline-block" title="Offline quá 1 tháng"><i class="fa-solid fa-triangle-exclamation"></i> Cần lưu ý</span>`;
                             } else {
                                 statusBadge = `<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold inline-block">Hoạt động</span>`;
                             }
@@ -10837,11 +10903,33 @@ app.admin.fetchManagerData('denied');
                     });
                 },
 
+                toggleBanSection: (section) => {
+                    app.admin.activeBanSection = section;
+                    const quickSection = document.getElementById('ban-section-quick');
+                    const customSection = document.getElementById('ban-section-custom');
+                    const btnQuick = document.getElementById('btn-ban-quick');
+                    const btnCustom = document.getElementById('btn-ban-custom');
+                    if (section === 'quick') {
+                        quickSection.classList.remove('hidden');
+                        customSection.classList.add('hidden');
+                        btnQuick.className = "w-full bg-black text-white p-3 text-center font-bold text-sm rounded-lg shadow-sm transition border border-black";
+                        btnCustom.className = "w-full bg-white text-gray-700 p-3 text-center font-bold text-sm rounded-lg shadow-sm transition border border-gray-300 hover:bg-gray-50 hover:text-black";
+                    } else {
+                        quickSection.classList.add('hidden');
+                        customSection.classList.remove('hidden');
+                        btnCustom.className = "w-full bg-black text-white p-3 text-center font-bold text-sm rounded-lg shadow-sm transition border border-black";
+                        btnQuick.className = "w-full bg-white text-gray-700 p-3 text-center font-bold text-sm rounded-lg shadow-sm transition border border-gray-300 hover:bg-gray-50 hover:text-black";
+                    }
+                },
+
                 managerBanUser: (userId) => {
                     if (app.role !== 'manager') return alert("Chỉ Manager mới có quyền này.");
                     document.getElementById('ban-target-id').value = userId;
-                    document.getElementById('ban-reason-select').value = '';
-                    document.getElementById('ban-reason-input').value = '';
+                    
+                    app.admin.toggleBanSection('quick');
+                    document.querySelectorAll('.ban-quick-cb').forEach(cb => cb.checked = false);
+                    document.getElementById('ban-custom-input').value = '';
+                    
                     const modal = document.getElementById('ban-prompt-modal');
                     modal.classList.remove('hidden');
                     setTimeout(() => {
@@ -10860,9 +10948,15 @@ app.admin.fetchManagerData('denied');
                 submitBanUser: async () => {
                     if (app.role !== 'manager') return alert("Chỉ Manager mới có quyền này.");
                     const userId = document.getElementById('ban-target-id').value;
-                    const reason = document.getElementById('ban-reason-input').value.trim();
+                    let reason = '';
+                    if (app.admin.activeBanSection === 'custom') {
+                        reason = document.getElementById('ban-custom-input').value.trim();
+                    } else {
+                        const checked = document.querySelector('.ban-quick-cb:checked');
+                        if (checked) reason = checked.value;
+                    }
                     
-                    if (!reason) return alert("Vui lòng nhập hoặc chọn lý do cấm!");
+                    if (!reason) return alert("Vui lòng chọn hoặc nhập lý do cấm!");
                     
                     document.getElementById('btn-submit-ban').innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang xử lý...';
                     document.getElementById('btn-submit-ban').disabled = true;
