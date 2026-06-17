@@ -101,7 +101,7 @@
 
         async function initApp() {
             try {
-                const response = await fetch('/api/get-core', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+                const response = await fetch('/api/system', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'core' }) });
                 if (!response.ok) throw new Error('Bị từ chối');
                 
                 const data = await response.json();

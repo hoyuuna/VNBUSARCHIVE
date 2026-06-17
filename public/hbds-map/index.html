@@ -480,7 +480,7 @@
 
         async function initApp() {
             try {
-                const response = await fetch('/api/config'); 
+                const response = await fetch('/api/system'); 
                 const config = await response.json();
                 FIREBASE_URL = config.FIREBASE_URL;
 
