@@ -27,44 +27,77 @@ export default async function handler(req, res) {
 
         // Xử lý lấy danh sách user
         if (action === 'get_users') {
-            const { data: authData, error: authErr } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
-            if (authErr) throw authErr;
-
-            const { data: profiles, error: profErr } = await supabaseAdmin.from('profiles').select('id, username, ban_status');
-            if (profErr) throw profErr;
-
-            const { data: photos, error: photoErr } = await supabaseAdmin.from('photos').select('author_id').eq('status', 'approved');
-            const photoCounts = {};
-            if (photos) {
-                photos.forEach(p => {
-                    if(p.author_id) {
-                        photoCounts[p.author_id] = (photoCounts[p.author_id] || 0) + 1;
-                    }
-                });
+            // Lấy tất cả auth users
+            let allAuthUsers = [];
+            let page = 1;
+            while (true) {
+                const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 1000 });
+                if (error) throw error;
+                if (!data || !data.users || data.users.length === 0) break;
+                allAuthUsers = allAuthUsers.concat(data.users);
+                if (data.users.length < 1000) break;
+                page++;
             }
 
-            const usersMap = {};
-            profiles.forEach(p => {
+            // Lấy tất cả profiles
+            let allProfiles = [];
+            let pFrom = 0;
+            const step = 1000;
+            while (true) {
+                const { data, error } = await supabaseAdmin.from('profiles').select('id, username, ban_status').range(pFrom, pFrom + step - 1);
+                if (error) throw error;
+                if (!data || data.length === 0) break;
+                allProfiles = allProfiles.concat(data);
+                if (data.length < step) break;
+                pFrom += step;
+            }
+
+            // Lấy tất cả photos được duyệt để đếm
+            let allPhotos = [];
+            let phFrom = 0;
+            while (true) {
+                const { data, error } = await supabaseAdmin.from('photos').select('author_id').eq('status', 'approved').range(phFrom, phFrom + step - 1);
+                if (error) throw error;
+                if (!data || data.length === 0) break;
+                allPhotos = allPhotos.concat(data);
+                if (data.length < step) break;
+                phFrom += step;
+            }
+
+            const photoCounts = {};
+            allPhotos.forEach(p => {
+                if(p.author_id) {
+                    photoCounts[p.author_id] = (photoCounts[p.author_id] || 0) + 1;
+                }
+            });
+
+            // Map auth users for quick lookup
+            const authMap = {};
+            allAuthUsers.forEach(u => {
+                authMap[u.id] = {
+                    email: u.email,
+                    created_at: u.created_at,
+                    last_sign_in_at: u.last_sign_in_at
+                };
+            });
+
+            // Map all profiles
+            const merged = allProfiles.map(p => {
                 let banInfo = { banned: false, reason: '' };
                 if (p.ban_status) {
                     try { banInfo = typeof p.ban_status === 'string' ? JSON.parse(p.ban_status) : p.ban_status; } catch(e){}
                 }
-                usersMap[p.id] = {
-                    username: p.username,
+                const auth = authMap[p.id] || {};
+                return {
+                    id: p.id,
+                    username: p.username || 'Unknown',
                     ban_status: banInfo,
-                    photo_count: photoCounts[p.id] || 0
+                    photo_count: photoCounts[p.id] || 0,
+                    email: auth.email || '',
+                    created_at: auth.created_at || new Date(0).toISOString(),
+                    last_sign_in_at: auth.last_sign_in_at || new Date(0).toISOString()
                 };
             });
-
-            const merged = authData.users.map(u => ({
-                id: u.id,
-                email: u.email,
-                created_at: u.created_at,
-                last_sign_in_at: u.last_sign_in_at,
-                username: usersMap[u.id]?.username || 'Unknown',
-                ban_status: usersMap[u.id]?.ban_status || { banned: false, reason: '' },
-                photo_count: usersMap[u.id]?.photo_count || 0
-            }));
 
             return res.status(200).json({ success: true, users: merged });
         }
