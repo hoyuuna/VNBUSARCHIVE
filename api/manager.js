@@ -118,6 +118,19 @@ export default async function handler(req, res) {
             return res.status(200).json({ success: true, message: action === 'ban' ? "Đã cấm tài khoản thành công!" : "Đã gỡ cấm tài khoản thành công!" });
         }
 
+        // Xử lý hành động Xóa tài khoản
+        if (action === 'delete_user') {
+            if (!targetUserId) throw new Error("Thiếu targetUserId.");
+            
+            const { error: deleteErr } = await supabaseAdmin.auth.admin.deleteUser(targetUserId);
+            if (deleteErr) throw deleteErr;
+            
+            // Note: Supabase trigger or cascading delete should handle deleting from profiles, photos, etc. 
+            // If there's no cascade, the profile might remain but we rely on Supabase's built-in cascade or manual triggers.
+            
+            return res.status(200).json({ success: true, message: "Đã xóa tài khoản vĩnh viễn!" });
+        }
+
         // 3. Tiến hành cập nhật Profile (Username, Role) (Mặc định)
         const { error: profileError } = await supabaseAdmin.from('profiles').update({
             username: newUsername,

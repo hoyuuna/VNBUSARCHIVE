@@ -10757,10 +10757,10 @@ app.admin.fetchManagerData('denied');
                             state.filtered = state.data.filter(u => {
                                 const matchText = `${u.username} ${u.id}`.toLowerCase().includes(q);
                                 
-                                const oneMonthAgo = new Date();
-                                oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+                                const threeMonthsAgo = new Date();
+                                threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
                                 const lastSignIn = new Date(u.last_sign_in_at);
-                                const isWarning = lastSignIn < oneMonthAgo;
+                                const isWarning = lastSignIn < threeMonthsAgo;
                                 
                                 let banInfo = { banned: false };
                                 try { banInfo = typeof u.ban_status === 'string' ? JSON.parse(u.ban_status) : (u.ban_status || banInfo); } catch(e){}
@@ -10857,24 +10857,26 @@ app.admin.fetchManagerData('denied');
                             let banInfo = { banned: false, reason: '' };
                             try { banInfo = typeof u.ban_status === 'string' ? JSON.parse(u.ban_status) : (u.ban_status || banInfo); } catch(e){}
                             
-                            const oneMonthAgo = new Date();
-                            oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+                            const threeMonthsAgo = new Date();
+                            threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
                             const lastSignIn = new Date(u.last_sign_in_at);
-                            const isWarning = lastSignIn < oneMonthAgo;
+                            const isWarning = lastSignIn < threeMonthsAgo;
 
                             let statusBadge = '';
                             if (banInfo.banned) {
                                 statusBadge = `<span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold inline-block"><i class="fa-solid fa-ban"></i> Bị cấm</span>
                                                <div class="text-[10px] text-red-600 mt-1 max-w-[150px] truncate" title="${app.utils.cleanText(banInfo.reason || '')}">${app.utils.cleanText(banInfo.reason || '')}</div>`;
                             } else if (isWarning) {
-                                statusBadge = `<span class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs font-bold inline-block" title="Offline quá 1 tháng"><i class="fa-solid fa-triangle-exclamation"></i> Cần lưu ý</span>`;
+                                statusBadge = `<span class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs font-bold inline-block" title="Offline quá 3 tháng"><i class="fa-solid fa-triangle-exclamation"></i> Cần lưu ý</span>`;
                             } else {
-                                statusBadge = `<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold inline-block">Hoạt động</span>`;
+                                statusBadge = `<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold inline-block"><i class="fa-solid fa-circle-check"></i> Hoạt động</span>`;
                             }
 
                             const actionBtn = banInfo.banned
                                 ? `<button onclick="app.admin.managerUnbanUser('${u.id}')" class="px-3 py-1.5 bg-white border border-gray-300 rounded-md text-xs hover:bg-gray-50 text-black font-bold shadow-sm transition">Gỡ cấm</button>`
                                 : `<button onclick="app.admin.managerBanUser('${u.id}')" class="px-3 py-1.5 bg-red-600 text-white rounded-md text-xs hover:bg-red-700 font-bold shadow-sm transition">Cấm</button>`;
+                            
+                            const delBtn = `<button onclick="app.admin.managerDeleteUser('${u.id}')" class="px-3 py-1.5 bg-gray-200 text-gray-800 rounded-md text-xs hover:bg-gray-300 font-bold shadow-sm transition ml-1"><i class="fa-solid fa-trash-can"></i> Xóa</button>`;
                             
                             return `<tr class="hover:bg-gray-50 transition border-b border-gray-100">
                                 <td class="p-3">
@@ -10889,7 +10891,7 @@ app.admin.fetchManagerData('denied');
                                     <div class="text-[11px] text-gray-700 mt-1" title="Đăng nhập lần cuối lúc ${new Date(u.last_sign_in_at).toLocaleString('vi-VN')}"><i class="fa-solid fa-right-to-bracket text-gray-400 w-4"></i> ${new Date(u.last_sign_in_at).toLocaleDateString('vi-VN')}</div>
                                 </td>
                                 <td class="p-3">${statusBadge}</td>
-                                <td class="p-3 text-right align-middle">${actionBtn}</td>
+                                <td class="p-3 text-right align-middle whitespace-nowrap">${actionBtn}${delBtn}</td>
                             </tr>`;
                         }).join('');
                     } else {
@@ -11003,6 +11005,31 @@ app.admin.fetchManagerData('denied');
                         title: "Xác nhận gỡ cấm",
                         btnOkText: "Gỡ cấm",
                         btnCancelText: "Hủy"
+                    });
+                },
+
+                managerDeleteUser: async (userId) => {
+                    if (app.role !== 'manager') return app.ui.showAlert("Chỉ Manager mới có quyền này.");
+                    
+                    app.ui.showAlert("LƯU Ý: Hành động này sẽ XÓA VĨNH VIỄN tài khoản người dùng và không thể khôi phục. Bạn có chắc chắn muốn xóa không?", async () => {
+                        try {
+                            const { data: { session } } = await window.sb.auth.getSession();
+                            const response = await fetch('/api/manager', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ action: 'delete_user', targetUserId: userId, token: session.access_token })
+                            });
+                            const data = await response.json();
+                            if (data.success) {
+                                app.ui.showAlert(data.message, null, null, { title: "Đã xóa", hideButtons: false });
+                                app.admin.fetchManagerData('bans');
+                            } else throw new Error(data.error);
+                        } catch (e) { app.ui.showAlert("Lỗi: " + e.message, null, null, { title: "Lỗi" }); }
+                    }, () => {}, {
+                        title: "Xác nhận xóa tài khoản",
+                        btnOkText: "Xóa tài khoản",
+                        btnCancelText: "Hủy",
+                        countdown: true
                     });
                 },
 
