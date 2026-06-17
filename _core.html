@@ -11814,12 +11814,9 @@ app.admin.fetchManagerData('denied');
                             if (exactVehicle) {
                                 // Vẫn điền nhẹ cái Dòng xe có sẵn (của ảnh bị từ chối) để gợi ý, nhưng user vẫn có thể sửa đè lên
                                 document.getElementById('up-model').value = exactVehicle.model || '';
-                                msg.innerHTML = '<i class="fa-solid fa-info-circle"></i> Xe chưa có ảnh duyệt. Thông tin không bị khóa.';
-                                msg.className = "text-xs mt-1 text-blue-600 font-bold";
-                            } else {
-                                msg.innerText = "";
-                                msg.className = "hidden";
                             }
+                            msg.innerText = "";
+                            msg.className = "hidden";
                             
                             // Gọi hàm auto fill Đơn vị dựa theo Tuyến và Tỉnh
                             app.upload.autoFillOperatorByRoute();
