@@ -1,22 +1,22 @@
 import { createClient } from '@supabase/supabase-js';
 
-export default async function handler(req, res) {
-    // Chỉ cho phép phương thức POST
-    if (req.method !== 'POST') {
-        return res.status(405).json({ success: false, error: 'Method Not Allowed' });
+export async function onRequest(context) {
+    const { request, env } = context;
+    
+    if (request.method !== 'POST') {
+        return new Response(JSON.stringify({ success: false, error: 'Method Not Allowed' }), { status: 405, headers: { 'Content-Type': 'application/json' }});
     }
 
-    const { action, targetUserId, newUsername, newRole, newEmail, newPass, reason, token } = req.body;
-
-    // 1. Khởi tạo Supabase Admin Client bằng Biến môi trường Vercel
-    const supabaseAdmin = createClient(
-        process.env.SUPABASE_URL,
-        process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY, 
-        { auth: { autoRefreshToken: false, persistSession: false } }
-    );
-
     try {
-        // 2. Xác thực người đang request có đúng là Manager không
+        const body = await request.json();
+        const { action, targetUserId, newUsername, newRole, newEmail, newPass, reason, token } = body;
+
+        const supabaseAdmin = createClient(
+            env.SUPABASE_URL,
+            env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_KEY, 
+            { auth: { autoRefreshToken: false, persistSession: false } }
+        );
+
         const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
         if (authError || !user) throw new Error("Xác thực thất bại, token không hợp lệ.");
 
@@ -25,9 +25,7 @@ export default async function handler(req, res) {
             throw new Error("Truy cập bị từ chối: Bạn không phải là Manager.");
         }
 
-        // Xử lý lấy danh sách user
         if (action === 'get_users') {
-            // Lấy tất cả auth users
             let allAuthUsers = [];
             let page = 1;
             while (true) {
@@ -39,7 +37,6 @@ export default async function handler(req, res) {
                 page++;
             }
 
-            // Lấy tất cả profiles
             let allProfiles = [];
             let pFrom = 0;
             const step = 1000;
@@ -52,7 +49,6 @@ export default async function handler(req, res) {
                 pFrom += step;
             }
 
-            // Lấy tất cả photos được duyệt để đếm
             let allPhotos = [];
             let phFrom = 0;
             while (true) {
@@ -71,7 +67,6 @@ export default async function handler(req, res) {
                 }
             });
 
-            // Map auth users for quick lookup
             const authMap = {};
             allAuthUsers.forEach(u => {
                 authMap[u.id] = {
@@ -81,7 +76,6 @@ export default async function handler(req, res) {
                 };
             });
 
-            // Map all profiles
             const merged = allProfiles.map(p => {
                 let banInfo = { banned: false, reason: '' };
                 if (p.ban_status) {
@@ -99,10 +93,9 @@ export default async function handler(req, res) {
                 };
             });
 
-            return res.status(200).json({ success: true, users: merged });
+            return new Response(JSON.stringify({ success: true, users: merged }), { status: 200, headers: { 'Content-Type': 'application/json' }});
         }
 
-        // Xử lý hành động Ban / Unban
         if (action === 'ban' || action === 'unban') {
             if (!targetUserId) throw new Error("Thiếu targetUserId.");
             
@@ -115,26 +108,22 @@ export default async function handler(req, res) {
             }).eq('id', targetUserId);
             
             if (banError) throw banError;
-            return res.status(200).json({ success: true, message: action === 'ban' ? "Đã cấm tài khoản thành công!" : "Đã gỡ cấm tài khoản thành công!" });
+            return new Response(JSON.stringify({ success: true, message: action === 'ban' ? "Đã cấm tài khoản thành công!" : "Đã gỡ cấm tài khoản thành công!" }), { status: 200, headers: { 'Content-Type': 'application/json' }});
         }
 
-        // Xử lý hành động Xóa tài khoản
         if (action === 'delete_user') {
             if (!targetUserId) throw new Error("Thiếu targetUserId.");
             
-            // Giữ lại ảnh và dữ liệu liên quan bằng cách gỡ liên kết (đưa về null) trước khi xóa user
             await supabaseAdmin.from('photos').update({ uploader_id: null }).eq('uploader_id', targetUserId);
             await supabaseAdmin.from('photo_comments').update({ user_id: null }).eq('user_id', targetUserId);
             await supabaseAdmin.from('edit_requests').update({ requester_id: null }).eq('requester_id', targetUserId);
             
-            // Xóa tài khoản khỏi hệ thống Auth
             const { error: deleteErr } = await supabaseAdmin.auth.admin.deleteUser(targetUserId);
             if (deleteErr) throw deleteErr;
             
-            return res.status(200).json({ success: true, message: "Đã xóa tài khoản vĩnh viễn (các ảnh đã tải lên vẫn được giữ lại)!" });
+            return new Response(JSON.stringify({ success: true, message: "Đã xóa tài khoản vĩnh viễn (các ảnh đã tải lên vẫn được giữ lại)!" }), { status: 200, headers: { 'Content-Type': 'application/json' }});
         }
 
-        // 3. Tiến hành cập nhật Profile (Username, Role) (Mặc định)
         const { error: profileError } = await supabaseAdmin.from('profiles').update({
             username: newUsername,
             role: newRole
@@ -142,7 +131,6 @@ export default async function handler(req, res) {
         
         if (profileError) throw profileError;
 
-        // 4. Tiến hành cập nhật Auth (Email, Password)
         let authUpdates = {};
         if (newEmail) authUpdates.email = newEmail;
         if (newPass) authUpdates.password = newPass;
@@ -152,10 +140,9 @@ export default async function handler(req, res) {
             if (updateAuthErr) throw updateAuthErr;
         }
 
-        // Thành công
-        return res.status(200).json({ success: true, message: "Cập nhật user thành công!" });
+        return new Response(JSON.stringify({ success: true, message: "Cập nhật user thành công!" }), { status: 200, headers: { 'Content-Type': 'application/json' }});
 
     } catch (error) {
-        return res.status(400).json({ success: false, error: error.message });
+        return new Response(JSON.stringify({ success: false, error: error.message }), { status: 400, headers: { 'Content-Type': 'application/json' }});
     }
 }

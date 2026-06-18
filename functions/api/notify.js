@@ -2,30 +2,25 @@ import { Resend } from 'resend';
 import { createClient } from '@supabase/supabase-js';
 import { marked } from 'marked';
 
-// Resend instance is created inside the handler so it doesn't break if env is missing when not used.
-let resend;
-if (process.env.RESEND_API_KEY) {
-    resend = new Resend(process.env.RESEND_API_KEY);
-}
+async function handleSendEmail(request, env, body) {
+    const authHeader = request.headers.get('authorization');
+    const token = authHeader?.split(' ')[1];
+    if (!token) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { 'Content-Type': 'application/json' }});
 
-const supabaseAdmin = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-);
-
-async function handleSendEmail(req, res) {
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) return res.status(401).json({ error: 'Unauthorized' });
+    const supabaseAdmin = createClient(
+        env.SUPABASE_URL,
+        env.SUPABASE_SERVICE_ROLE_KEY
+    );
 
     const { data: { user }, error: authErr } = await supabaseAdmin.auth.getUser(token);
-    if (authErr || !user) return res.status(401).json({ error: 'Invalid token' });
+    if (authErr || !user) return new Response(JSON.stringify({ error: 'Invalid token' }), { status: 401, headers: { 'Content-Type': 'application/json' }});
 
     const { data: profile } = await supabaseAdmin.from('profiles').select('username, role').eq('id', user.id).single();
     if (!profile || profile.role !== 'manager') {
-        return res.status(403).json({ error: 'Bạn không có quyền thực hiện hành động này.' });
+        return new Response(JSON.stringify({ error: 'Bạn không có quyền thực hiện hành động này.' }), { status: 403, headers: { 'Content-Type': 'application/json' }});
     }
 
-    const { targetUserId, customEmail, subject, markdownContent, isAnonymous } = req.body;
+    const { targetUserId, customEmail, subject, markdownContent, isAnonymous } = body;
 
     let toEmail = customEmail;
     let recipientName = customEmail;
@@ -33,7 +28,7 @@ async function handleSendEmail(req, res) {
     if (targetUserId) {
         const { data: targetUser, error: targetErr } = await supabaseAdmin.auth.admin.getUserById(targetUserId);
         if (targetErr || !targetUser.user) {
-            return res.status(404).json({ error: 'Không tìm thấy thông tin liên hệ của User này.' });
+            return new Response(JSON.stringify({ error: 'Không tìm thấy thông tin liên hệ của User này.' }), { status: 404, headers: { 'Content-Type': 'application/json' }});
         }
         toEmail = targetUser.user.email;
 
@@ -41,7 +36,7 @@ async function handleSendEmail(req, res) {
         recipientName = targetProfile?.username || toEmail;
     }
 
-    if (!toEmail) return res.status(400).json({ error: 'Không xác định được địa chỉ Email người nhận.' });
+    if (!toEmail) return new Response(JSON.stringify({ error: 'Không xác định được địa chỉ Email người nhận.' }), { status: 400, headers: { 'Content-Type': 'application/json' }});
 
     const adminName = isAnonymous ? 'Quản trị VNBUSARCHIVE' : profile.username;
     const senderLine = isAnonymous ? 'VNBUSARCHIVE <noreply@vnbusarchive.io.vn>' : `${profile.username} via VNBUSARCHIVE <noreply@vnbusarchive.io.vn>`;
@@ -122,6 +117,13 @@ async function handleSendEmail(req, res) {
     </html>
     `;
 
+    let resend;
+    if (env.RESEND_API_KEY) {
+        resend = new Resend(env.RESEND_API_KEY);
+    } else {
+        throw new Error("Missing RESEND_API_KEY in Environment Variables");
+    }
+
     const resendData = await resend.emails.send({
         from: senderLine,
         to: [toEmail],
@@ -131,18 +133,18 @@ async function handleSendEmail(req, res) {
 
     if (resendData.error) throw new Error(resendData.error.message);
 
-    return res.status(200).json({ success: true, message: 'Gửi Email thành công.' });
+    return new Response(JSON.stringify({ success: true, message: 'Gửi Email thành công.' }), { status: 200, headers: { 'Content-Type': 'application/json' }});
 }
 
-async function handleBugReport(req, res) {
-    const { DISCORD_BOT_TOKEN, BUG_CHANNEL } = process.env;
+async function handleBugReport(request, env, body) {
+    const { DISCORD_BOT_TOKEN, BUG_CHANNEL } = env;
 
     if (!DISCORD_BOT_TOKEN || !BUG_CHANNEL) {
         console.error("Thiếu DISCORD_BOT_TOKEN hoặc BUG_CHANNEL trong Environment Variables");
-        return res.status(500).json({ error: 'Server configuration error' });
+        return new Response(JSON.stringify({ error: 'Server configuration error' }), { status: 500, headers: { 'Content-Type': 'application/json' }});
     }
 
-    const { errorMessage, fileInfo, consoleLogs, user, userAgent } = req.body;
+    const { errorMessage, fileInfo, consoleLogs, user, userAgent } = body;
 
     const embed = {
         title: "🚨 Báo cáo lỗi Upload tự động",
@@ -150,17 +152,17 @@ async function handleBugReport(req, res) {
         fields:[
             { 
                 name: "📝 Chi tiết lỗi", 
-                value: `\`\`\`\n${errorMessage || "Không có thông báo lỗi cụ thể"}\n\`\`\``, 
+                value: \`\`\`\n${errorMessage || "Không có thông báo lỗi cụ thể"}\n\`\`\`, 
                 inline: false 
             },
             { 
                 name: "👤 Người dùng", 
-                value: user ? `**${user.username}**\n\`${user.id}\`` : "Guest / Khách", 
+                value: user ? \`**${user.username}**\n\`${user.id}\`\` : "Guest / Khách", 
                 inline: true 
             },
             { 
                 name: "🌐 Trình duyệt / Thiết bị", 
-                value: `\`${userAgent || "Unknown"}\``, 
+                value: \`\`${userAgent || "Unknown"}\`\`, 
                 inline: false 
             }
         ],
@@ -170,7 +172,7 @@ async function handleBugReport(req, res) {
     if (fileInfo) {
         embed.fields.splice(1, 0, {
             name: "📁 Thông tin File",
-            value: `**Tên file:** ${fileInfo.name || 'N/A'}\n**Loại:** ${fileInfo.type || 'N/A'}\n**Cỡ gốc:** ${fileInfo.originalSize ? fileInfo.originalSize + ' KB' : 'N/A'}\n**Cỡ sau nén:** ${fileInfo.compressedSize ? fileInfo.compressedSize + ' KB' : 'Chưa kịp nén (Lỗi trước đó)'}`,
+            value: \`**Tên file:** ${fileInfo.name || 'N/A'}\n**Loại:** ${fileInfo.type || 'N/A'}\n**Cỡ gốc:** ${fileInfo.originalSize ? fileInfo.originalSize + ' KB' : 'N/A'}\n**Cỡ sau nén:** ${fileInfo.compressedSize ? fileInfo.compressedSize + ' KB' : 'Chưa kịp nén (Lỗi trước đó)'}\`,
             inline: true
         });
     }
@@ -179,15 +181,15 @@ async function handleBugReport(req, res) {
         const logsStr = consoleLogs.slice(-5).join('\n').substring(0, 1000);
         embed.fields.push({
             name: "🔴 Console Errors (Cảnh báo đỏ)",
-            value: `\`\`\`js\n${logsStr}\n\`\`\``,
+            value: \`\`\`js\n${logsStr}\n\`\`\`,
             inline: false
         });
     }
 
-    const discordRes = await fetch(`https://discord.com/api/v10/channels/${BUG_CHANNEL}/messages`, {
+    const discordRes = await fetch(\`https://discord.com/api/v10/channels/${BUG_CHANNEL}/messages\`, {
         method: 'POST',
         headers: {
-            'Authorization': `Bot ${DISCORD_BOT_TOKEN}`,
+            'Authorization': \`Bot ${DISCORD_BOT_TOKEN}\`,
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({ embeds: [embed] })
@@ -195,27 +197,29 @@ async function handleBugReport(req, res) {
 
     if (!discordRes.ok) {
         const errorText = await discordRes.text();
-        throw new Error(`Discord API Error: ${errorText}`);
+        throw new Error(\`Discord API Error: ${errorText}\`);
     }
 
-    return res.status(200).json({ success: true, message: "Bug reported successfully" });
+    return new Response(JSON.stringify({ success: true, message: "Bug reported successfully" }), { status: 200, headers: { 'Content-Type': 'application/json' }});
 }
 
-export default async function handler(req, res) {
-    if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+export async function onRequest(context) {
+    const { request, env } = context;
+    if (request.method !== 'POST') return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers: { 'Content-Type': 'application/json' }});
 
     try {
-        const { action } = req.body || {};
+        const body = await request.json().catch(() => ({}));
+        const { action } = body;
         
         if (action === 'email') {
-            return await handleSendEmail(req, res);
+            return await handleSendEmail(request, env, body);
         } else if (action === 'bug') {
-            return await handleBugReport(req, res);
+            return await handleBugReport(request, env, body);
         } else {
-            return res.status(400).json({ error: 'Invalid or missing action in payload' });
+            return new Response(JSON.stringify({ error: 'Invalid or missing action in payload' }), { status: 400, headers: { 'Content-Type': 'application/json' }});
         }
     } catch (error) {
         console.error('Lỗi API Notify:', error);
-        return res.status(500).json({ error: error.message || 'Lỗi hệ thống' });
+        return new Response(JSON.stringify({ error: error.message || 'Lỗi hệ thống' }), { status: 500, headers: { 'Content-Type': 'application/json' }});
     }
 }

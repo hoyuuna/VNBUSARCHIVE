@@ -1,14 +1,10 @@
 {
   "scripts": {
-    "build": "echo \"const FIREBASE_URL = '$FIREBASE_BUS_URL';\" > public/token.js"
+    "build": "node build-core.js && echo \"const FIREBASE_URL = '$FIREBASE_BUS_URL';\" > public/token.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.89.0",
-    "discord-interactions": "^3.4.0",
-    "formidable": "^3.5.4",
-    "imagekit": "^6.0.0",
     "marked": "^15.0.0",
-    "node-fetch": "^3.3.2",
     "resend": "^4.0.0"
   }
 }

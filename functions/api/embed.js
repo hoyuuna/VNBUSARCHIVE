@@ -1,8 +1,4 @@
-import fs from 'fs';
-import path from 'path';
 import { createClient } from '@supabase/supabase-js';
-
-export const maxDuration = 10;
 
 const DEFAULT_TITLE = 'VNBUSARCHIVE';
 const DEFAULT_DESCRIPTION = 'Hệ thống database xe buýt/khách';
@@ -27,12 +23,8 @@ const truncate = (value, max) => {
 
 const normalizePlate = (plate) => {
     if (!plate) return '';
-
     let decoded = plate;
-    try {
-        decoded = decodeURIComponent(plate);
-    } catch (_) {}
-
+    try { decoded = decodeURIComponent(plate); } catch (_) {}
     return decoded.replace(/[^A-Z0-9.-]/gi, '').toUpperCase();
 };
 
@@ -46,23 +38,15 @@ const getImageProxyUrl = (url, filename = 'image.jpg') => {
     return `https://wsrv.nl/${encodeURIComponent(safeName)}?url=${encodeURIComponent(url)}&w=1200&fit=inside&output=webp`;
 };
 
-const createSupabase = () => {
-    if (!process.env.SUPABASE_URL) return null;
-
-    const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || process.env.SUPABASE_ANON_KEY;
+const createSupabase = (env) => {
+    if (!env.SUPABASE_URL) return null;
+    const key = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_KEY || env.SUPABASE_ANON_KEY;
     if (!key) return null;
-
-    return createClient(process.env.SUPABASE_URL, key);
+    return createClient(env.SUPABASE_URL, key);
 };
 
-const getBaseUrl = (req) => {
-    const host = req.headers.host || 'vnbusarchive.io.vn';
-    const protocol = req.headers['x-forwarded-proto'] || 'https';
-    return `${protocol}://${host}`;
-};
-
-const fetchPhotoEmbed = async (photoId, baseUrl) => {
-    const supabase = createSupabase();
+const fetchPhotoEmbed = async (photoId, baseUrl, env) => {
+    const supabase = createSupabase(env);
     if (!supabase) return null;
 
     const { data, error } = await supabase
@@ -99,8 +83,8 @@ const fetchPhotoEmbed = async (photoId, baseUrl) => {
     };
 };
 
-const fetchVehicleEmbed = async (plate, baseUrl) => {
-    const supabase = createSupabase();
+const fetchVehicleEmbed = async (plate, baseUrl, env) => {
+    const supabase = createSupabase(env);
     if (!supabase) return null;
 
     const [photoRes, vehicleRes] = await Promise.all([
@@ -120,8 +104,7 @@ const fetchVehicleEmbed = async (plate, baseUrl) => {
             .single()
     ]);
 
-    if (photoRes.error && !photoRes.data) return null;
-    if (vehicleRes.error && !vehicleRes.data) return null;
+    if (photoRes.error && !photoRes.data && vehicleRes.error && !vehicleRes.data) return null;
 
     const photo = photoRes.data;
     const vehicle = vehicleRes.data;
@@ -183,54 +166,59 @@ const applyMeta = (html, meta) => {
     return output;
 };
 
-const readIndexHtml = () => {
-    const filePath = path.join(process.cwd(), 'public', 'index.html');
-    return fs.readFileSync(filePath, 'utf8');
-};
-
-const defaultMetaFor = (req) => {
-    const url = getBaseUrl(req);
-
+const defaultMetaFor = (baseUrl) => {
     return {
         title: DEFAULT_TITLE,
         description: DEFAULT_DESCRIPTION,
         image: DEFAULT_IMAGE,
-        url
+        url: baseUrl
     };
 };
 
-export default async function handler(req, res) {
-    if (req.method !== 'GET') {
-        return res.status(405).send('Method Not Allowed');
+export async function onRequest(context) {
+    const { request, env } = context;
+
+    if (request.method !== 'GET') {
+        return new Response('Method Not Allowed', { status: 405 });
     }
 
     try {
-        const requestUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
-        const baseUrl = getBaseUrl(req);
+        const requestUrl = new URL(request.url);
+        const protocol = request.headers.get('x-forwarded-proto') || 'https';
+        const host = request.headers.get('host') || requestUrl.host;
+        const baseUrl = `${protocol}://${host}`;
+
         const type = requestUrl.searchParams.get('type');
         const id = requestUrl.searchParams.get('id');
         const plate = normalizePlate(requestUrl.searchParams.get('plate') || '');
 
-        let meta = defaultMetaFor(req);
+        let meta = defaultMetaFor(baseUrl);
 
         if (type === 'photo' && /^\d+$/.test(id || '')) {
-            meta = await fetchPhotoEmbed(id, baseUrl) || meta;
+            meta = await fetchPhotoEmbed(id, baseUrl, env) || meta;
         } else if (type === 'vehicle' && plate) {
-            meta = await fetchVehicleEmbed(plate, baseUrl) || meta;
+            meta = await fetchVehicleEmbed(plate, baseUrl, env) || meta;
         }
 
-        const html = applyMeta(readIndexHtml(), meta);
+        const indexResponse = await env.ASSETS.fetch(new Request(new URL('/index.html', request.url)));
+        const indexHtml = await indexResponse.text();
+
+        const html = applyMeta(indexHtml, meta);
         const isDetail = type === 'photo' || type === 'vehicle';
 
-        res.setHeader('Content-Type', 'text/html; charset=utf-8');
-        res.setHeader('Cache-Control', isDetail
+        const cacheControl = isDetail
             ? 'public, s-maxage=300, stale-while-revalidate=86400'
-            : 'public, s-maxage=3600, stale-while-revalidate=86400'
-        );
+            : 'public, s-maxage=3600, stale-while-revalidate=86400';
 
-        return res.status(200).send(html);
+        return new Response(html, {
+            status: 200,
+            headers: {
+                'Content-Type': 'text/html; charset=utf-8',
+                'Cache-Control': cacheControl
+            }
+        });
     } catch (error) {
         console.error('Dynamic embed error:', error);
-        return res.status(500).send('Internal Server Error');
+        return new Response('Internal Server Error', { status: 500 });
     }
 }

@@ -1,29 +1,30 @@
 import { createClient } from '@supabase/supabase-js';
 
-async function handleNewsOrHelp(req, res) {
-    const token = process.env.DISCORD_BOT_TOKEN;
-    const type = req.query.type === 'help' ? 'help' : 'news';
-    const channelId = type === 'help' ? process.env.DISCORD_HELP_CHANNEL_ID : process.env.DISCORD_CHANNEL_ID;
-    const id = req.query.id;
+async function handleNewsOrHelp(request, env) {
+    const url = new URL(request.url);
+    const token = env.DISCORD_BOT_TOKEN;
+    const type = url.searchParams.get('type') === 'help' ? 'help' : 'news';
+    const channelId = type === 'help' ? env.DISCORD_HELP_CHANNEL_ID : env.DISCORD_CHANNEL_ID;
+    const id = url.searchParams.get('id');
 
     const requiredEnv = type === 'help'
         ? ['DISCORD_BOT_TOKEN', 'DISCORD_HELP_CHANNEL_ID']
         : ['DISCORD_BOT_TOKEN', 'DISCORD_CHANNEL_ID'];
-    const missingEnv = requiredEnv.filter((name) => !process.env[name]);
+    const missingEnv = requiredEnv.filter((name) => !env[name]);
 
     if (!token || !channelId) {
-        return res.status(500).json({ error: `Missing ${missingEnv.join(', ')} in Environment Variables` });
+        return new Response(JSON.stringify({ error: `Missing ${missingEnv.join(', ')} in Environment Variables` }), { status: 500, headers: { 'Content-Type': 'application/json' }});
     }
 
     try {
-        let url = `https://discord.com/api/v10/channels/${channelId}/messages`;
+        let fetchUrl = `https://discord.com/api/v10/channels/${channelId}/messages`;
         if (id) {
-            url += `/${encodeURIComponent(id)}`;
+            fetchUrl += `/${encodeURIComponent(id)}`;
         } else {
-            url += `?limit=${type === 'help' ? 12 : 10}`;
+            fetchUrl += `?limit=${type === 'help' ? 12 : 10}`;
         }
 
-        const response = await fetch(url, {
+        const response = await fetch(fetchUrl, {
             headers: { Authorization: `Bot ${token}` }
         });
 
@@ -90,14 +91,14 @@ async function handleNewsOrHelp(req, res) {
             };
         });
 
-        return res.status(200).json(id ? formattedData[0] : formattedData);
+        return new Response(JSON.stringify(id ? formattedData[0] : formattedData), { status: 200, headers: { 'Content-Type': 'application/json' }});
     } catch (error) {
         console.error('API Error:', error);
-        return res.status(500).json({ error: error.message });
+        return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: { 'Content-Type': 'application/json' }});
     }
 }
 
-async function handleRoleClaim(req, res) {
+async function handleRoleClaim(request, env) {
     const ROLE_MAP = {
         50: '1506239795175620728',
         100: '1505158627747561482',
@@ -107,11 +108,12 @@ async function handleRoleClaim(req, res) {
     };
     const CUSTOM_ROLE_ANCHOR = '1457222204344238110';
 
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) return res.status(401).json({ error: 'Unauthorized' });
+    const authHeader = request.headers.get('authorization');
+    const token = authHeader?.split(' ')[1];
+    if (!token) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { 'Content-Type': 'application/json' }});
 
-    const supabaseUrl = process.env.SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseUrl = env.SUPABASE_URL;
+    const supabaseServiceKey = env.SUPABASE_SERVICE_ROLE_KEY;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     try {
@@ -120,36 +122,37 @@ async function handleRoleClaim(req, res) {
 
         const discordIdentity = user.identities?.find(id => id.provider === 'discord');
         if (!discordIdentity) {
-            return res.status(200).json({ linked: false, inServer: false, claimedRoles: [] });
+            return new Response(JSON.stringify({ linked: false, inServer: false, claimedRoles: [] }), { status: 200, headers: { 'Content-Type': 'application/json' }});
         }
 
         const discordUserId = discordIdentity.identity_data?.provider_id || discordIdentity.id;
 
-        const guildId = process.env.DISCORD_GUILD_ID;
-        const botToken = process.env.DISCORD_BOT_TOKEN;
+        const guildId = env.DISCORD_GUILD_ID;
+        const botToken = env.DISCORD_BOT_TOKEN;
 
         const discordRes = await fetch(`https://discord.com/api/v10/guilds/${guildId}/members/${discordUserId}`, {
             headers: { 'Authorization': `Bot ${botToken}` }
         });
 
         if (discordRes.status === 404) {
-            return res.status(200).json({ linked: true, inServer: false, claimedRoles: [] });
+            return new Response(JSON.stringify({ linked: true, inServer: false, claimedRoles: [] }), { status: 200, headers: { 'Content-Type': 'application/json' }});
         }
         if (!discordRes.ok) throw new Error('Lỗi khi gọi Discord API');
 
         const memberData = await discordRes.json();
         const currentRoles = memberData.roles || [];
 
-        const { action, tier, customName, customColor } = req.body;
+        const body = await request.json();
+        const { action, tier, customName, customColor } = body;
 
         if (action === 'status') {
             const { data: profile } = await supabase.from('profiles').select('discord_custom_role_id').eq('id', user.id).single();
-            return res.status(200).json({
+            return new Response(JSON.stringify({
                 linked: true,
                 inServer: true,
                 claimedRoles: currentRoles,
                 customRoleId: profile?.discord_custom_role_id || null
-            });
+            }), { status: 200, headers: { 'Content-Type': 'application/json' }});
         }
 
         const { count, error: countError } = await supabase
@@ -162,13 +165,13 @@ async function handleRoleClaim(req, res) {
 
         if (tier === 1500 && action === 'claim') {
             if (!customName || customName.length < 2 || customName.length > 100) {
-                return res.status(400).json({ error: 'Tên Role phải từ 2-100 ký tự.' });
+                return new Response(JSON.stringify({ error: 'Tên Role phải từ 2-100 ký tự.' }), { status: 400, headers: { 'Content-Type': 'application/json' }});
             }
             if (!customColor || !/^#[0-9A-F]{6}$/i.test(customColor)) {
-                return res.status(400).json({ error: 'Mã màu Hex không hợp lệ.' });
+                return new Response(JSON.stringify({ error: 'Mã màu Hex không hợp lệ.' }), { status: 400, headers: { 'Content-Type': 'application/json' }});
             }
             if ((count || 0) < 1500) {
-                return res.status(400).json({ error: 'Bạn cần 1500 ảnh để tạo Custom Role.' });
+                return new Response(JSON.stringify({ error: 'Bạn cần 1500 ảnh để tạo Custom Role.' }), { status: 400, headers: { 'Content-Type': 'application/json' }});
             }
 
             const colorInt = parseInt(customColor.replace('#', ''), 16);
@@ -181,7 +184,7 @@ async function handleRoleClaim(req, res) {
                     body: JSON.stringify({ name: customName, color: colorInt })
                 });
                 if (!updateRes.ok) throw new Error('Không thể cập nhật Custom Role Discord.');
-                return res.status(200).json({ success: true, message: 'Đã cập nhật Custom Role thành công!' });
+                return new Response(JSON.stringify({ success: true, message: 'Đã cập nhật Custom Role thành công!' }), { status: 200, headers: { 'Content-Type': 'application/json' }});
             } else {
                 const createRes = await fetch(`https://discord.com/api/v10/guilds/${guildId}/roles`, {
                     method: 'POST',
@@ -212,7 +215,7 @@ async function handleRoleClaim(req, res) {
 
                 await supabase.from('profiles').update({ discord_custom_role_id: newRole.id }).eq('id', user.id);
 
-                return res.status(200).json({ success: true, message: 'Đã tạo và cấp Custom Role thành công!' });
+                return new Response(JSON.stringify({ success: true, message: 'Đã tạo và cấp Custom Role thành công!' }), { status: 200, headers: { 'Content-Type': 'application/json' }});
             }
         }
 
@@ -227,16 +230,16 @@ async function handleRoleClaim(req, res) {
                     .single();
                 if (profileError) throw profileError;
                 if (profile?.discord_custom_role_id) {
-                    return res.status(400).json({ error: 'Bạn đã nhận phần thưởng này rồi!' });
+                    return new Response(JSON.stringify({ error: 'Bạn đã nhận phần thưởng này rồi!' }), { status: 400, headers: { 'Content-Type': 'application/json' }});
                 }
             } else {
                 if (currentRoles.includes(roleId)) {
-                    return res.status(400).json({ error: 'Bạn đã nhận phần thưởng này rồi!' });
+                    return new Response(JSON.stringify({ error: 'Bạn đã nhận phần thưởng này rồi!' }), { status: 400, headers: { 'Content-Type': 'application/json' }});
                 }
             }
 
             if (count < parseInt(tier)) {
-                return res.status(400).json({ error: `Bạn cần ${tier} ảnh đã duyệt. Hiện tại bạn có ${count} ảnh.` });
+                return new Response(JSON.stringify({ error: `Bạn cần ${tier} ảnh đã duyệt. Hiện tại bạn có ${count} ảnh.` }), { status: 400, headers: { 'Content-Type': 'application/json' }});
             }
 
             const addRoleRes = await fetch(`https://discord.com/api/v10/guilds/${guildId}/members/${discordUserId}/roles/${roleId}`, {
@@ -246,24 +249,24 @@ async function handleRoleClaim(req, res) {
 
             if (!addRoleRes.ok) throw new Error('Bot không thể thêm Role (Hãy kiểm tra phân quyền Role Hierarchy trong Server).');
 
-            return res.status(200).json({ success: true, message: `Đã cấp Role ${tier}+ ảnh thành công!` });
+            return new Response(JSON.stringify({ success: true, message: `Đã cấp Role ${tier}+ ảnh thành công!` }), { status: 200, headers: { 'Content-Type': 'application/json' }});
         }
 
-        return res.status(400).json({ error: 'Hành động không hợp lệ' });
+        return new Response(JSON.stringify({ error: 'Hành động không hợp lệ' }), { status: 400, headers: { 'Content-Type': 'application/json' }});
 
     } catch (err) {
         console.error("Discord Role API Error:", err);
-        return res.status(500).json({ error: err.message });
+        return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { 'Content-Type': 'application/json' }});
     }
 }
 
-export default async function handler(req, res) {
-    if (req.method === 'GET') {
-        return handleNewsOrHelp(req, res);
-    } else if (req.method === 'POST') {
-        // Here we expect req.body.action to be 'status' or 'claim' as sent by the original _core.html
-        return handleRoleClaim(req, res);
+export async function onRequest(context) {
+    const { request, env } = context;
+    if (request.method === 'GET') {
+        return handleNewsOrHelp(request, env);
+    } else if (request.method === 'POST') {
+        return handleRoleClaim(request, env);
     }
     
-    return res.status(405).json({ error: 'Method Not Allowed' });
+    return new Response(JSON.stringify({ error: 'Method Not Allowed' }), { status: 405, headers: { 'Content-Type': 'application/json' }});
 }
