@@ -8864,7 +8864,12 @@ dropdown.innerHTML = `
                         return;
                     }
 
-                    grid.innerHTML = '<p class="text-xs text-gray-500 col-span-4 text-center py-10"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</p>';
+                    if (grid.children.length === 0) {
+                        grid.innerHTML = '<p class="text-xs text-gray-500 col-span-4 text-center py-10"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</p>';
+                    } else {
+                        grid.style.opacity = '0.5';
+                        grid.style.pointerEvents = 'none';
+                    }
 
                     let query = window.sb.from('photos').select('id, url, status, views, license_plate', { count: 'exact' }).eq('uploader_id', app.currentProfileId);
 
@@ -8879,6 +8884,8 @@ dropdown.innerHTML = `
                     const { data: photos, count, error } = await query.range(fromRow, toRow);
 
                     if (error || !photos || photos.length === 0) {
+                        grid.style.opacity = '1';
+                        grid.style.pointerEvents = 'auto';
                         grid.innerHTML = '<p class="text-xs text-gray-500 col-span-4 text-center py-4">Chưa có ảnh nào.</p>';
                         const pagerEl = document.getElementById('profile-pager');
                         if (pagerEl) pagerEl.innerHTML = '';
@@ -8893,6 +8900,8 @@ dropdown.innerHTML = `
                 // Hàm hỗ trợ render (để tránh lặp code)
                 renderProfileGridHTML: (photos, count, page) => {
                     const grid = document.getElementById('my-photos-grid');
+                    grid.style.opacity = '1';
+                    grid.style.pointerEvents = 'auto';
                     grid.innerHTML = photos.map(p => {
                         let cardStyleClasses = "profile-photo-item cursor-pointer group transition-all duration-300 relative";
                         let textHtml = `<span class="block truncate">${app.utils.cleanText(app.utils.displayPlate(p.license_plate))}</span>`;
@@ -8948,7 +8957,12 @@ dropdown.innerHTML = `
                         return;
                     }
 
-                    grid.innerHTML = '<p class="text-xs text-gray-500 col-span-4 text-center py-10"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải ảnh đã thích...</p>';
+                    if (grid.children.length === 0) {
+                        grid.innerHTML = '<p class="text-xs text-gray-500 col-span-4 text-center py-10"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải ảnh đã thích...</p>';
+                    } else {
+                        grid.style.opacity = '0.5';
+                        grid.style.pointerEvents = 'none';
+                    }
 
                     let query = window.sb.from('photo_likes').select('photo_id, photos!inner(id, url, license_plate, operator, type)', { count: 'exact' }).eq('user_id', app.user.id).order('created_at', { ascending: false });
                     if (app.preference.current !== 'both') query = query.eq('photos.type', app.preference.current);
@@ -8956,6 +8970,8 @@ dropdown.innerHTML = `
                     const { data: likedData, count, error } = await query.range(fromRow, toRow);
 
                     if (error || !likedData || likedData.length === 0) {
+                        grid.style.opacity = '1';
+                        grid.style.pointerEvents = 'auto';
                         grid.innerHTML = '<p class="text-xs text-gray-500 col-span-4 text-center py-4">Bạn chưa thích ảnh nào.</p>';
                         const pagerEl = document.getElementById('liked-pager');
                         if (pagerEl) pagerEl.innerHTML = '';
@@ -8969,6 +8985,8 @@ dropdown.innerHTML = `
 
                 renderLikedGridHTML: (likedData, count, page) => {
                     const grid = document.getElementById('liked-photos-grid');
+                    grid.style.opacity = '1';
+                    grid.style.pointerEvents = 'auto';
                     grid.innerHTML = likedData.map(item => {
                         const p = item.photos;
                         return `
