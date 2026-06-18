@@ -47,9 +47,6 @@ Khi tải ảnh lên hệ thống, bạn cam kết tuân thủ tuyệt đối qu
 * **Không có giá trị pháp lý:** Hình ảnh và dữ liệu trên hệ thống tuyệt đối không được sử dụng làm cơ sở pháp lý để xác định lỗi vi phạm giao thông hoặc nội quy doanh nghiệp, trừ khi có yêu cầu bằng văn bản từ cơ quan chức năng có thẩm quyền.
 * **Trách nhiệm người dùng:** Người dùng tự chịu trách nhiệm về hình ảnh mình đăng tải. Chúng tôi được miễn trừ mọi trách nhiệm liên quan đến khiếu nại quyền riêng tư do sự bất cẩn của người dùng, hoặc các tranh chấp phát sinh bên ngoài nền tảng.
 
-### 8. Kinh phí và Hoạt động Phi lợi nhuận
-Trong trường hợp dự án nhận được đóng góp tài chính từ cộng đồng, toàn bộ kinh phí chỉ được sử dụng để chi trả chi phí vận hành máy chủ và hạ tầng kỹ thuật. Mọi khoản thu chi sẽ được báo cáo minh bạch định kỳ trên các kênh thông báo chính thức.
-
 ---
 
 ## PHẦN 2: CHÍNH SÁCH BẢO MẬT
