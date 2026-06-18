@@ -30,12 +30,7 @@ const normalizePlate = (plate) => {
 
 const getImageProxyUrl = (url, filename = 'image.jpg') => {
     if (!url) return DEFAULT_IMAGE;
-    if (String(url).includes('wsrv.nl')) return String(url);
-
-    const safeName = String(filename || 'image.jpg')
-        .replace(/[^a-z0-9A-Z.-]/gi, '_');
-
-    return `https://wsrv.nl/${encodeURIComponent(safeName)}?url=${encodeURIComponent(url)}&w=1200&fit=inside&output=webp`;
+    return String(url);
 };
 
 const createSupabase = (env) => {

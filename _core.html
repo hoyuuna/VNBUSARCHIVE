@@ -4131,7 +4131,7 @@
         </div>
     </div>
     <script>
-        const DEFAULT_AVATAR = 'https://wsrv.nl/?url=https://files.catbox.moe/zzh1q1.png&we';
+        const DEFAULT_AVATAR = 'https://files.catbox.moe/zzh1q1.png';
 
         // =====================================
         // === CODE BẮT LỖI CONSOLE TỰ ĐỘNG ===
@@ -4563,7 +4563,7 @@
                         try {
                             window.sb.from('profiles').select('avatar_url').eq('id', app.user.id).single().then(({data}) => {
                                 if (data && data.avatar_url) avatarEl.src = app.utils.getProxiedUrl(data.avatar_url.replace(/"/g, ''), 'avatar.jpg', 'avatar');
-                                else avatarEl.src = 'https://wsrv.nl/?url=https://files.catbox.moe/zzh1q1.png&we';
+                                else avatarEl.src = 'https://files.catbox.moe/zzh1q1.png';
                             });
                         } catch(e) {}
                     } else {
@@ -5710,7 +5710,7 @@
                     const canDelete = isMe || app.role === 'admin' || app.role === 'manager';
                     const avatar = c.profiles?.avatar_url
                         ? app.utils.getProxiedUrl(c.profiles.avatar_url.replace(/"/g, ''), 'avatar.jpg', 'avatar')
-                        : 'https://wsrv.nl/?url=https://files.catbox.moe/zzh1q1.png&we';
+                        : 'https://files.catbox.moe/zzh1q1.png';
 
                     const toolbar = app.user ? `
                         <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;">
@@ -5772,7 +5772,7 @@
                     const canDelete = isMe || app.role === 'admin' || app.role === 'manager';
                     const avatar = r.profiles?.avatar_url
                         ? app.utils.getProxiedUrl(r.profiles.avatar_url.replace(/"/g, ''), 'avatar.jpg', 'avatar')
-                        : 'https://wsrv.nl/?url=https://files.catbox.moe/zzh1q1.png&we';
+                        : 'https://files.catbox.moe/zzh1q1.png';
 
                     const toolbar = app.user ? `
                         <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;">
@@ -6003,10 +6003,7 @@
                         const plateName = app.utils.displayPlate(app.currentPhoto.license_plate) || 'VNBUSARCHIVE';
                         let proxyUrl = app.utils.getProxiedUrl(app.currentPhoto.url, `${plateName}.jpg`);
 
-                        // Ép proxy trả về định dạng JPEG
-                        if (proxyUrl.includes('wsrv.nl')) {
-                            proxyUrl += '&output=jpg';
-                        }
+                        // Bỏ proxy wsrv.nl
 
                         const response = await fetch(proxyUrl);
                         const blob = await response.blob();
@@ -6220,10 +6217,10 @@
                     } else if (app.user.user_metadata?.avatar_url) {
                         avatarImg.src = app.utils.getProxiedUrl(app.user.user_metadata.avatar_url, 'avatar.jpg', 'avatar');
                     } else {
-                        avatarImg.src = 'https://wsrv.nl/?url=https://files.catbox.moe/zzh1q1.png&we';
+                        avatarImg.src = 'https://files.catbox.moe/zzh1q1.png';
                     }
                 } catch(e) {
-                    avatarImg.src = 'https://wsrv.nl/?url=https://files.catbox.moe/zzh1q1.png&we';
+                    avatarImg.src = 'https://files.catbox.moe/zzh1q1.png';
                 }
 
                 deviceText.innerText = "Đang kết nối để lấy thông tin thiết bị...";
@@ -10152,7 +10149,7 @@ formInputs.forEach(input => {
 
                             // Đổ dữ liệu
                             const uploaderName = app.utils.cleanText(app.currentPhoto.profiles?.username || 'Ẩn danh');
-                            const uploaderAvatar = app.currentPhoto.profiles?.avatar_url ? app.utils.getProxiedUrl(app.currentPhoto.profiles.avatar_url.replace(/"/g, ''), 'avatar.jpg', 'avatar') : 'https://wsrv.nl/?url=https://files.catbox.moe/zzh1q1.png&we';
+                            const uploaderAvatar = app.currentPhoto.profiles?.avatar_url ? app.utils.getProxiedUrl(app.currentPhoto.profiles.avatar_url.replace(/"/g, ''), 'avatar.jpg', 'avatar') : 'https://files.catbox.moe/zzh1q1.png';
                             document.getElementById('zoom-uploader-name').innerText = uploaderName;
                             document.getElementById('zoom-uploader-avatar').src = uploaderAvatar;
 
@@ -13786,16 +13783,7 @@ cleanupState: () => {
                     }
 
                     if (url.includes('catbox.moe') || url.includes('postimg.cc') || url.includes('supabase.co') || url.includes('vnbusarchive.io.vn')) {
-                        let wsrvUrl = `https://wsrv.nl/${encodeURIComponent(safeName)}?url=${encodeURIComponent(url)}&we`;
-
-                        if (type === 'thumb') {
-                            wsrvUrl += '&w=400&h=300&fit=inside';
-                        } else if (type === 'avatar') {
-                            wsrvUrl += '&w=200&h=200&fit=cover';
-                        }
-
-                        wsrvUrl += '&output=webp';
-                        return wsrvUrl;
+                        return url;
                     }
 
                     return url;

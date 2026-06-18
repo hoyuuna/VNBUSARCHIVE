@@ -78,7 +78,7 @@ async function handleNewsOrHelp(request, env) {
             const avatarExtension = author.avatar?.startsWith('a_') ? 'gif' : 'png';
             const authorAvatar = author.id && author.avatar
                 ? `https://cdn.discordapp.com/avatars/${author.id}/${author.avatar}.${avatarExtension}?size=128`
-                : 'https://wsrv.nl/?url=https://files.catbox.moe/zzh1q1.png&we';
+                : 'https://files.catbox.moe/zzh1q1.png';
 
             return {
                 id: msg.id,
