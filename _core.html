@@ -16010,16 +16010,29 @@ closeCustomRolePrompt: () => {
                 e.preventDefault();
                 zoomImg.classList.remove('modal-content-enter');
                 zoomImg.style.transition = 'none';
+                
+                const oldZoom = currentZoom;
                 const zoomAmount = e.deltaY * -0.0015;
                 currentZoom += zoomAmount;
                 if (currentZoom < 0.5) currentZoom = 0.5;
                 if (currentZoom > 10) currentZoom = 10;
+                
+                if (oldZoom !== currentZoom) {
+                    const cx = e.clientX;
+                    const cy = e.clientY;
+                    const dx = cx - window.innerWidth / 2;
+                    const dy = cy - window.innerHeight / 2;
+                    panX = dx - (dx - panX) * (currentZoom / oldZoom);
+                    panY = dy - (dy - panY) * (currentZoom / oldZoom);
+                }
+                
                 updateTransform();
             }, { passive: false });
 
             let initialDistance = 0;
             let initialZoom = 1;
             let lastTapTime = 0;
+            let lastPinchCenter = { x: 0, y: 0 };
 
             zoomModal.addEventListener('touchstart', (e) => {
                 zoomImg.classList.remove('modal-content-enter');
@@ -16030,6 +16043,10 @@ closeCustomRolePrompt: () => {
                         e.touches[0].pageY - e.touches[1].pageY
                     );
                     initialZoom = currentZoom;
+                    lastPinchCenter = {
+                        x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
+                        y: (e.touches[0].clientY + e.touches[1].clientY) / 2
+                    };
                 } else if (e.touches.length === 1) {
                     const now = Date.now();
                     if (now - lastTapTime < 300) {
@@ -16054,10 +16071,28 @@ closeCustomRolePrompt: () => {
                         e.touches[0].pageX - e.touches[1].pageX,
                         e.touches[0].pageY - e.touches[1].pageY
                     );
+                    
+                    const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+                    const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+                    
+                    const oldZoom = currentZoom;
                     const zoomAmount = (currentDistance / initialDistance);
                     currentZoom = initialZoom * zoomAmount;
                     if (currentZoom < 0.5) currentZoom = 0.5;
                     if (currentZoom > 10) currentZoom = 10;
+                    
+                    if (oldZoom !== currentZoom) {
+                        const dx = cx - window.innerWidth / 2;
+                        const dy = cy - window.innerHeight / 2;
+                        panX = dx - (dx - panX) * (currentZoom / oldZoom);
+                        panY = dy - (dy - panY) * (currentZoom / oldZoom);
+                    }
+                    
+                    panX += cx - lastPinchCenter.x;
+                    panY += cy - lastPinchCenter.y;
+                    
+                    lastPinchCenter = { x: cx, y: cy };
+                    
                     updateTransform();
                 } else if (e.touches.length === 1 && isPanning) {
                     panX = e.touches[0].pageX - startX;
@@ -16071,6 +16106,11 @@ closeCustomRolePrompt: () => {
             zoomModal.addEventListener('touchend', (e) => {
                 if (e.touches.length < 2) {
                     initialDistance = 0;
+                }
+                if (e.touches.length === 1 && currentZoom > 1) {
+                    isPanning = true;
+                    startX = e.touches[0].pageX - panX;
+                    startY = e.touches[0].pageY - panY;
                 }
                 if (e.touches.length === 0) {
                     isPanning = false;
