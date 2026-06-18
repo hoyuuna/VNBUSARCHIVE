@@ -152,17 +152,17 @@ async function handleBugReport(request, env, body) {
         fields:[
             { 
                 name: "📝 Chi tiết lỗi", 
-                value: ```n${errorMessage || "Không có thông báo lỗi cụ thể"}n```, 
+                value: "```\n" + (errorMessage || "Không có thông báo lỗi cụ thể") + "\n```", 
                 inline: false 
             },
             { 
                 name: "👤 Người dùng", 
-                value: user ? `**${user.username}**n`${user.id}`` : "Guest / Khách", 
+                value: user ? "**" + user.username + "**\n`" + user.id + "`" : "Guest / Khách", 
                 inline: true 
             },
             { 
                 name: "🌐 Trình duyệt / Thiết bị", 
-                value: ``${userAgent || "Unknown"}``, 
+                value: "`" + (userAgent || "Unknown") + "`", 
                 inline: false 
             }
         ],
@@ -172,24 +172,24 @@ async function handleBugReport(request, env, body) {
     if (fileInfo) {
         embed.fields.splice(1, 0, {
             name: "📁 Thông tin File",
-            value: `**Tên file:** ${fileInfo.name || 'N/A'}n**Loại:** ${fileInfo.type || 'N/A'}n**Cỡ gốc:** ${fileInfo.originalSize ? fileInfo.originalSize + ' KB' : 'N/A'}n**Cỡ sau nén:** ${fileInfo.compressedSize ? fileInfo.compressedSize + ' KB' : 'Chưa kịp nén (Lỗi trước đó)'}`,
+            value: "**Tên file:** " + (fileInfo.name || 'N/A') + "\n**Loại:** " + (fileInfo.type || 'N/A') + "\n**Cỡ gốc:** " + (fileInfo.originalSize ? fileInfo.originalSize + ' KB' : 'N/A') + "\n**Cỡ sau nén:** " + (fileInfo.compressedSize ? fileInfo.compressedSize + ' KB' : 'Chưa kịp nén (Lỗi trước đó)'),
             inline: true
         });
     }
 
     if (consoleLogs && consoleLogs.length > 0) {
-        const logsStr = consoleLogs.slice(-5).join('n').substring(0, 1000);
+        const logsStr = consoleLogs.slice(-5).join('\n').substring(0, 1000);
         embed.fields.push({
             name: "🔴 Console Errors (Cảnh báo đỏ)",
-            value: ```jsn${logsStr}n```,
+            value: "```js\n" + logsStr + "\n```",
             inline: false
         });
     }
 
-    const discordRes = await fetch(`https://discord.com/api/v10/channels/${BUG_CHANNEL}/messages`, {
+    const discordRes = await fetch("https://discord.com/api/v10/channels/" + BUG_CHANNEL + "/messages", {
         method: 'POST',
         headers: {
-            'Authorization': `Bot ${DISCORD_BOT_TOKEN}`,
+            'Authorization': "Bot " + DISCORD_BOT_TOKEN,
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({ embeds: [embed] })
@@ -197,7 +197,7 @@ async function handleBugReport(request, env, body) {
 
     if (!discordRes.ok) {
         const errorText = await discordRes.text();
-        throw new Error(`Discord API Error: ${errorText}`);
+        throw new Error("Discord API Error: " + errorText);
     }
 
     return new Response(JSON.stringify({ success: true, message: "Bug reported successfully" }), { status: 200, headers: { 'Content-Type': 'application/json' }});
