@@ -7332,8 +7332,8 @@ grid.innerHTML = tiers.map(tier => {
                         const name = document.getElementById('cr-name-input').value.trim();
                         const color = document.getElementById('cr-color-input').value.trim();
 
-                        if (!name || name.length < 2) return alert("Tên Role phải từ 2 ký tự trở lên!");
-                        if (!color.match(/^#[0-9A-Fa-f]{6}$/)) return alert("Mã màu Hex không hợp lệ!");
+                        if (!name || name.length < 2) return app.ui.showAlert("Tên Role phải từ 2 ký tự trở lên!");
+                        if (!color.match(/^#[0-9A-Fa-f]{6}$/)) return app.ui.showAlert("Mã màu Hex không hợp lệ!");
 
                         const originalText = okBtn.innerHTML;
                         okBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
@@ -7357,7 +7357,7 @@ grid.innerHTML = tiers.map(tier => {
                                 app.settings.loadBadges();
                             });
                         } catch (err) {
-                            alert("Lỗi: " + err.message);
+                            app.ui.showAlert("Lỗi: " + err.message);
                         } finally {
                             okBtn.innerHTML = originalText;
                             okBtn.disabled = false;
@@ -10881,7 +10881,7 @@ app.admin.fetchManagerData('denied');
                             return `<tr class="hover:bg-gray-50 transition border-b border-gray-100">
                                 <td class="p-3">
                                     <div class="font-bold text-black text-[12px]">${app.utils.cleanText(u.username || 'Unknown')}</div>
-                                    <div class="text-[10px] text-gray-500 font-mono" title="Click để copy UUID" style="cursor:pointer;" onclick="navigator.clipboard.writeText('${u.id}'); alert('Đã copy UUID: ' + '${u.id}')">${u.id}</div>
+                                    <div class="text-[10px] text-gray-500 font-mono" title="Click để copy UUID" style="cursor:pointer;" onclick="navigator.clipboard.writeText('${u.id}'); app.ui.showAlert('Đã copy UUID: ' + '${u.id}')">${u.id}</div>
                                 </td>
                                 <td class="p-3 text-center">
                                     <span class="font-bold text-black bg-gray-100 px-2 py-1 rounded-md text-xs">${u.photo_count}</span>
@@ -10926,7 +10926,7 @@ app.admin.fetchManagerData('denied');
                 },
 
                 managerBanUser: (userId) => {
-                    if (app.role !== 'manager') return alert("Chỉ Manager mới có quyền này.");
+                    if (app.role !== 'manager') return app.ui.showAlert("Chỉ Manager mới có quyền này.");
                     document.getElementById('ban-target-id').value = userId;
                     
                     app.admin.toggleBanSection('quick');
@@ -10949,7 +10949,7 @@ app.admin.fetchManagerData('denied');
                 },
 
                 submitBanUser: async () => {
-                    if (app.role !== 'manager') return alert("Chỉ Manager mới có quyền này.");
+                    if (app.role !== 'manager') return app.ui.showAlert("Chỉ Manager mới có quyền này.");
                     const userId = document.getElementById('ban-target-id').value;
                     let reason = '';
                     if (app.admin.activeBanSection === 'custom') {
@@ -10959,7 +10959,7 @@ app.admin.fetchManagerData('denied');
                         reason = selectedChecks.join(' + ');
                     }
                     
-                    if (!reason) return alert("Vui lòng chọn hoặc nhập lý do cấm!");
+                    if (!reason) return app.ui.showAlert("Vui lòng chọn hoặc nhập lý do cấm!");
                     
                     document.getElementById('btn-submit-ban').innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang xử lý...';
                     document.getElementById('btn-submit-ban').disabled = true;
@@ -10977,7 +10977,7 @@ app.admin.fetchManagerData('denied');
                             app.admin.fetchManagerData('bans');
                         } else throw new Error(data.error);
                     } catch (e) { 
-                        alert("Lỗi: " + e.message); 
+                        app.ui.showAlert("Lỗi: " + e.message); 
                     } finally {
                         document.getElementById('btn-submit-ban').innerHTML = 'Xác nhận cấm';
                         document.getElementById('btn-submit-ban').disabled = false;
@@ -14395,9 +14395,9 @@ cleanupState: () => {
                             if (error.status === 429) throw new Error("Bạn đã yêu cầu quá nhiều lần. Vui lòng đợi ít phút rồi thử lại.");
                             throw error;
                         }
-                        alert("Đã gửi lại link xác nhận thành công! Vui lòng kiểm tra email.");
+                        app.ui.showAlert("Đã gửi lại link xác nhận thành công! Vui lòng kiểm tra email.");
                     } catch (err) {
-                        alert("Lỗi: " + err.message);
+                        app.ui.showAlert("Lỗi: " + err.message);
                     } finally {
                         btn.innerHTML = origHTML;
                         btn.disabled = false;
@@ -15168,7 +15168,7 @@ changePassword: async () => {
 
                     okBtn.onclick = () => {
                         if (!inputEl.value.trim()) {
-                            alert("Vui lòng nhập nội dung, không được để trống!");
+                            app.ui.showAlert("Vui lòng nhập nội dung, không được để trống!");
                             return;
                         }
                         app.ui.closePrompt(true);
@@ -15275,7 +15275,7 @@ closeCustomRolePrompt: () => {
                         if (app.activeDenySection === 'quick') {
                             const selectedChecks = Array.from(document.querySelectorAll('.deny-quick-cb:checked')).map(cb => cb.value);
                             if (selectedChecks.length === 0) {
-                                alert("Vui lòng chọn ít nhất một lý do từ danh sách!");
+                                app.ui.showAlert("Vui lòng chọn ít nhất một lý do từ danh sách!");
                                 return;
                             }
                             reasonString = selectedChecks.join(' + ');
@@ -15283,7 +15283,7 @@ closeCustomRolePrompt: () => {
                         } else if (app.activeDenySection === 'custom') {
                             const customText = customInput.value.trim();
                             if (!customText) {
-                                alert("Vui lòng nhập lý do từ chối cụ thể!");
+                                app.ui.showAlert("Vui lòng nhập lý do từ chối cụ thể!");
                                 document.getElementById('deny-custom-input').focus();
                                 return;
                             }
@@ -15917,7 +15917,7 @@ closeCustomRolePrompt: () => {
                     if (!file) return;
 
                     if (file.size > 20 * 1024 * 1024) {
-                        alert("File quá 20MB. Vui lòng chọn file khác!");
+                        app.ui.showAlert("File quá 20MB. Vui lòng chọn file khác!");
                         return;
                     }
 
@@ -15967,7 +15967,7 @@ closeCustomRolePrompt: () => {
                             `;
                         }, 500);
                     } catch (error) {
-                        alert("Lỗi khi gửi file: " + error.message);
+                        app.ui.showAlert("Lỗi khi gửi file: " + error.message);
                         showMobileDropzone();
                     }
                 });
