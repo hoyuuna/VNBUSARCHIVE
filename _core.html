@@ -10295,7 +10295,7 @@ formInputs.forEach(input => {
                                 if (!app.admin.originalData) app.admin.originalData = {};
                                 app.admin.originalData['photo_' + p.id] = { plate: safePlate, operator: op, type: type, route: route, model: model };
 
-                                const tagNew = '<span class="bg-black text-white px-1 py-0.5 rounded text-[9px] font-bold ml-1 tracking-wider">[MỚI]</span>';
+                                const tagNew = '<span class="bg-black text-white px-1.5 py-0.5 rounded text-[9px] font-bold ml-1 tracking-wider">MỚI</span>';
                                 const isNewOp = op && !approvedOpSet.has(op);
                                 const isNewRoute = route && !approvedRouteSet.has(route);
                                 const isNewModel = model && !approvedModelSet.has(model);
