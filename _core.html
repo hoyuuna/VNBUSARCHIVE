@@ -12311,9 +12311,44 @@ app.admin.fetchManagerData('denied');
                             lbl.classList.add('bg-white');
                         }
                     }
+                    if (app.upload.schedulePrepareBlob) app.upload.schedulePrepareBlob();
                 },
 
                 currentFilters: 'none',
+                readyBlob: null,
+                isPreparingBlob: false,
+                prepareTimeout: null,
+                schedulePrepareBlob: () => {
+                    if (app.upload.prepareTimeout) clearTimeout(app.upload.prepareTimeout);
+                    app.upload.prepareTimeout = setTimeout(app.upload.prepareFinalBlob, 500);
+                },
+                prepareFinalBlob: async () => {
+                    if (!app.rawFile || !app.user) return;
+                    try {
+                        app.upload.isPreparingBlob = true;
+                        const username = app.username || "Guest";
+                        const finalBlob = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none');
+                        const targetMime = app.utils.getTargetMimeType();
+                        const compressOptions = {
+                            maxSizeMB: 0.8,
+                            maxWidthOrHeight: 1920,
+                            useWebWorker: true,
+                            fileType: targetMime,
+                            initialQuality: 0.85
+                        };
+                        const compressedFile = await imageCompression(finalBlob, compressOptions);
+                        if (compressedFile.size <= 1.5 * 1024 * 1024) {
+                            app.upload.readyBlob = compressedFile;
+                        } else {
+                            app.upload.readyBlob = null;
+                        }
+                    } catch (err) {
+                        console.error("Lỗi prepareFinalBlob:", err);
+                        app.upload.readyBlob = null;
+                    } finally {
+                        app.upload.isPreparingBlob = false;
+                    }
+                },
                 toggleColorPanel: () => {
                     const panel = document.getElementById('color-adjust-panel');
                     if(panel) panel.classList.toggle('hidden');
@@ -12334,6 +12369,7 @@ app.admin.fetchManagerData('denied');
                     const previewImg = document.getElementById('preview-img');
                     if(previewImg) previewImg.style.filter = filterString;
                     app.upload.currentFilters = filterString;
+                    if (app.upload.schedulePrepareBlob) app.upload.schedulePrepareBlob();
                 },
                 resetFilters: () => {
                     const b = document.getElementById('adj-brightness');
@@ -12675,7 +12711,7 @@ app.admin.fetchManagerData('denied');
                         if (isDragging) { e.preventDefault(); onMove(e.touches[0].clientX, e.touches[0].clientY); }
                     }, { passive: false });
 
-                    const onEnd = () => { isDragging = false; };
+                    const onEnd = () => { isDragging = false; if (app.upload.schedulePrepareBlob) app.upload.schedulePrepareBlob(); };
                     document.addEventListener('mouseup', onEnd);
                     document.addEventListener('touchend', onEnd);
                 },
@@ -12729,29 +12765,8 @@ app.admin.fetchManagerData('denied');
                     const formData = new FormData(e.target);
 
 
-                    try {
-                        const cleanPlate = valPlate.replace(/[^A-Z0-9-]/gi, '').toUpperCase();
-                        const { data: existingPhotos, error: checkErr } = await window.sb
-                            .from('photos')
-                            .select('taken_at')
-                            .eq('uploader_id', app.user.id)
-                            .eq('license_plate', cleanPlate)
-                            .neq('status', 'denied');
+                    // Check duplicate đã được kiểm tra realtime trước đó
 
-                        if (!checkErr && existingPhotos && existingPhotos.length > 0) {
-                            const isDuplicateDate = existingPhotos.some(p => {
-                                if (!p.taken_at) return false;
-                                return p.taken_at.split('T')[0] === valDate;
-                            });
-
-                            if (isDuplicateDate) {
-                                const displayDate = valDate.split('-').reverse().join('/');
-                                return app.ui.showAlert(`Từ chối: Bạn đã có ảnh của xe <b>${cleanPlate}</b> chụp vào ngày <b>${displayDate}</b> trong hệ thống (chờ duyệt hoặc đã duyệt).<br><br>Theo quy định, một người không thể upload 2 ảnh cùng 1 xe nếu chụp trong cùng 1 ngày.`);
-                            }
-                        }
-                    } catch (err) {
-                        console.error("Lỗi kiểm tra trùng lặp ngày:", err);
-                    }
 
                     const btn = document.getElementById('btn-submit');
                     const originalText = btn.innerHTML;
@@ -12766,28 +12781,22 @@ app.admin.fetchManagerData('denied');
 
                     try {
                         const username = app.username || "Guest";
-                        const finalBlob = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none');
-
+                        let compressedFile = app.upload.readyBlob;
                         const targetMime = app.utils.getTargetMimeType();
-                        const compressOptions = {
-                            maxSizeMB: 0.8,
-                            maxWidthOrHeight: 1920,
-                            useWebWorker: true,
-                            fileType: targetMime,
-                            initialQuality: 0.85
-                        };
 
-                        let compressedFile;
-                        try {
-                            compressedFile = await imageCompression(finalBlob, compressOptions);
-                        } catch (compressErr) {
-                            btn.innerHTML = originalText;
-                            btn.disabled = false;
-                            app.ui.closeUploadProgress();
-                            throw new Error("Lỗi nén ảnh (Image Compression): " + compressErr.message); // Ném lỗi để block catch bắt lấy
+                        if (!compressedFile) {
+                            const finalBlob = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none');
+                            const compressOptions = { maxSizeMB: 0.8, maxWidthOrHeight: 1920, useWebWorker: true, fileType: targetMime, initialQuality: 0.85 };
+                            try {
+                                compressedFile = await imageCompression(finalBlob, compressOptions);
+                            } catch (compressErr) {
+                                btn.innerHTML = originalText;
+                                btn.disabled = false;
+                                app.ui.closeUploadProgress();
+                                throw new Error("Lỗi nén ảnh (Image Compression): " + compressErr.message);
+                            }
                         }
 
-                        // LƯU LẠI KÍCH CỠ SAU KHI NÉN
                         compressedSizeKB = (compressedFile.size / 1024).toFixed(2);
 
                         if (compressedFile.type !== targetMime) {
@@ -12888,14 +12897,7 @@ app.admin.fetchManagerData('denied');
                         }
 
 
-                        if (result.url) {
-                            try {
-                                await app.utils.verifyImageLoaded(result.url, 3);
-                            } catch (verifyErr) {
-
-                                console.warn('Backend đã lưu ảnh thành công, nhưng CDN tải về hơi chậm:', verifyErr);
-                            }
-                        }
+                        // Đã bỏ verifyImageLoaded để không block UI người dùng chờ CDN cache.
 
 
                         app.ui.updateUploadSuccess();
