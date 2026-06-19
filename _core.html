@@ -8582,7 +8582,12 @@ dropdown.innerHTML = `
                         const { data: photos } = await moreQuery;
 
                         if (photos && photos.length > 0) {
-                            grid.innerHTML += photos.map(p => app.views.renderPhotoCard(p)).join('');
+                            const existingIds = Array.from(grid.querySelectorAll('[data-id]')).map(el => el.getAttribute('data-id'));
+                            const uniquePhotos = photos.filter(p => !existingIds.includes(String(p.id)));
+
+                            if (uniquePhotos.length > 0) {
+                                grid.innerHTML += uniquePhotos.map(p => app.views.renderPhotoCard(p)).join('');
+                            }
                             app.loadedCount += photos.length;
                             if (photos.length < 12) document.getElementById('load-more-container').classList.add('hidden');
                         } else {
@@ -8606,7 +8611,7 @@ dropdown.innerHTML = `
                     const dateStr = p.taken_at ? p.taken_at.split('T')[0].split('-').reverse().join('/') : new Date(p.created_at).toLocaleDateString('vi-VN');
 
                     return `
-                        <div class="bg-white border border-gray-200 hover:border-gray-300 hover:shadow-lg cursor-pointer rounded-xl p-2 transition-all flex flex-col" onclick="app.views.loadDetail(${p.id})">
+                        <div data-id="${p.id}" class="bg-white border border-gray-200 hover:border-gray-300 hover:shadow-lg cursor-pointer rounded-xl p-2 transition-all flex flex-col" onclick="app.views.loadDetail(${p.id})">
                             <div class="img-wrapper relative w-full aspect-[4/3] bg-gray-100 rounded-lg overflow-hidden shrink-0 border border-gray-100">
                                 <div class="img-spinner absolute inset-0 flex items-center justify-center text-gray-400">
                                     <i class="fa-solid fa-circle-notch fa-spin text-2xl"></i>
