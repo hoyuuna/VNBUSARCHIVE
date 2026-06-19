@@ -10241,13 +10241,33 @@ formInputs.forEach(input => {
                             if (!rawPhotos || rawPhotos.length === 0) { content.innerHTML = '<p class="p-4">Không có ảnh nào chờ duyệt.</p>'; return; }
 
                             const pendingPlates = [...new Set(rawPhotos.map(p => p.license_plate).filter(Boolean))];
+                            const pendingOps = [...new Set(rawPhotos.map(p => app.utils.cleanText(p.operator || '')).filter(Boolean))];
+                            const pendingRoutes = [...new Set(rawPhotos.map(p => app.utils.cleanText(p.route_no || '')).filter(Boolean))];
+                            const pendingModels = [...new Set(rawPhotos.map(p => app.utils.cleanText(p.vehicles?.model || '')).filter(Boolean))];
+
                             let approvedPlateSet = new Set();
+                            let approvedOpSet = new Set();
+                            let approvedRouteSet = new Set();
+                            let approvedModelSet = new Set();
+
                             if (pendingPlates.length > 0) {
                                 const { data: approvedPlates } = await window.sb.from('photos')
                                     .select('license_plate')
                                     .eq('status', 'approved')
                                     .in('license_plate', pendingPlates);
                                 approvedPlateSet = new Set((approvedPlates || []).map(p => (p.license_plate || '').toUpperCase()));
+                            }
+                            if (pendingOps.length > 0) {
+                                const { data: approvedOps } = await window.sb.from('photos').select('operator').eq('status', 'approved').in('operator', pendingOps);
+                                approvedOpSet = new Set((approvedOps || []).map(p => app.utils.cleanText(p.operator || '')));
+                            }
+                            if (pendingRoutes.length > 0) {
+                                const { data: approvedRoutes } = await window.sb.from('photos').select('route_no').eq('status', 'approved').in('route_no', pendingRoutes);
+                                approvedRouteSet = new Set((approvedRoutes || []).map(p => app.utils.cleanText(p.route_no || '')));
+                            }
+                            if (pendingModels.length > 0) {
+                                const { data: approvedModels } = await window.sb.from('photos').select('vehicles!inner(model)').eq('status', 'approved').in('vehicles.model', pendingModels);
+                                approvedModelSet = new Set((approvedModels || []).map(p => app.utils.cleanText(p.vehicles?.model || '')));
                             }
 
                             // THÊM: Sắp xếp ưu tiên (Admin/Manager lên đầu, theo thứ tự up trước xếp trước)
@@ -10275,6 +10295,11 @@ formInputs.forEach(input => {
                                 if (!app.admin.originalData) app.admin.originalData = {};
                                 app.admin.originalData['photo_' + p.id] = { plate: safePlate, operator: op, type: type, route: route, model: model };
 
+                                const tagNew = '<span class="bg-black text-white px-1 py-0.5 rounded text-[9px] font-bold ml-1 tracking-wider">[MỚI]</span>';
+                                const isNewOp = op && !approvedOpSet.has(op);
+                                const isNewRoute = route && !approvedRouteSet.has(route);
+                                const isNewModel = model && !approvedModelSet.has(model);
+
                                 return `
                                 <div class="admin-card overflow-visible">
                                     <div class="admin-card-header">
@@ -10293,7 +10318,7 @@ formInputs.forEach(input => {
                                         <div class="grid grid-cols-2 gap-2 mb-2">
                                             <div><span class="admin-label">Biển số</span><input type="text" id="adm-p-plate-${p.id}" value="${safePlate}" class="admin-input transition-all" oninput="app.utils.formatPlateInput(this)" onchange="app.admin.checkPlateAdmin(this, '${p.id}', 'photo')"></div>
                                             <div>
-                                                <span class="admin-label">Đơn vị</span>
+                                                <span class="admin-label">Đơn vị${isNewOp ? tagNew : ''}</span>
                                                 <div class="relative">
                                                     <input type="text" id="adm-p-op-${p.id}" value="${op}" class="admin-input" autocomplete="off" oninput="app.utils.formatNoPunctuation(this); app.utils.triggerSuggestion('adm-p-op-${p.id}', 'adm-sug-op-${p.id}', this.value, 'operator')">
                                                     <div id="adm-sug-op-${p.id}" class="suggestion-box"></div>
@@ -10301,7 +10326,7 @@ formInputs.forEach(input => {
                                             </div>
                                             <div><span class="admin-label">Loại xe</span><select id="adm-p-type-${p.id}" class="admin-input"><option value="bus" ${type === 'bus' ? 'selected' : ''}>Xe buýt</option><option value="coach" ${type === 'coach' ? 'selected' : ''}>Xe khách</option></select></div>
                                             <div>
-                                                <span class="admin-label">Tuyến</span>
+                                                <span class="admin-label">Tuyến${isNewRoute ? tagNew : ''}</span>
                                                 <div class="relative">
                                                     <input type="text" id="adm-p-route-${p.id}" value="${route}" class="admin-input" autocomplete="off" onfocus="app.utils.triggerRouteSuggestion('adm-p-route-${p.id}', 'adm-sug-route-${p.id}', '')" oninput="app.utils.triggerRouteSuggestion('adm-p-route-${p.id}', 'adm-sug-route-${p.id}', this.value)">
                                                     <div id="adm-sug-route-${p.id}" class="suggestion-box"></div>
@@ -10310,7 +10335,7 @@ formInputs.forEach(input => {
                                         </div>
                                         <div class="grid grid-cols-2 gap-2 mb-2">
                                             <div>
-                                                <span class="admin-label">Dòng xe</span>
+                                                <span class="admin-label">Dòng xe${isNewModel ? tagNew : ''}</span>
                                                 <div class="relative">
                                                     <input type="text" id="adm-p-model-${p.id}" value="${model}" class="admin-input" autocomplete="off" oninput="app.utils.triggerSuggestion('adm-p-model-${p.id}', 'adm-sug-model-${p.id}', this.value, 'model')">
                                                     <div id="adm-sug-model-${p.id}" class="suggestion-box"></div>
