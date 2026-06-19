@@ -12774,6 +12774,8 @@ app.admin.fetchManagerData('denied');
 
                     btn.disabled = true;
                     app.ui.showUploadProgress();
+                    app.ui.setUploadProgress(40, 800);
+                    document.getElementById('up-progress-title').innerText = 'Đang xử lý ảnh...';
 
                     // KHỞI TẠO BIẾN ĐỂ TRACK THÔNG TIN BUG REPORT TẠI ĐÂY
                     let originalSizeKB = (app.rawFile.size / 1024).toFixed(2);
@@ -12841,7 +12843,9 @@ app.admin.fetchManagerData('denied');
                         let uploadAttempts = 0;
                         const maxUploadAttempts = 3;
                         let lastUploadErr = null;
-
+                        app.ui.setUploadProgress(80, 2000);
+                        document.getElementById('up-progress-title').innerText = 'Đang tải lên dữ liệu...';
+                        
                         while (uploadAttempts < maxUploadAttempts) {
                             uploadAttempts++;
                             try {
@@ -15346,6 +15350,37 @@ closeCustomRolePrompt: () => {
                         app.denyPromptCallback = null;
                     }, 200);
                 },
+                uploadProgressValue: 0,
+                progressInterval: null,
+                setUploadProgress: (targetPercent, durationMs = 1500) => {
+                    const circle = document.getElementById('up-progress-circle');
+                    const text = document.getElementById('up-progress-text');
+                    if (!circle || !text) return;
+                    
+                    circle.style.transition = `stroke-dashoffset ${durationMs}ms ease-out, stroke 0.5s ease`;
+                    const targetOffset = 339.29 * (1 - targetPercent / 100);
+                    circle.setAttribute('stroke-dashoffset', targetOffset.toString());
+                    
+                    if (app.ui.progressInterval) clearInterval(app.ui.progressInterval);
+                    
+                    const stepCount = durationMs / 30;
+                    const stepSize = (targetPercent - app.ui.uploadProgressValue) / stepCount;
+                    
+                    app.ui.progressInterval = setInterval(() => {
+                        app.ui.uploadProgressValue += stepSize;
+                        
+                        let displayValue = Math.round(app.ui.uploadProgressValue);
+                        if ((stepSize > 0 && displayValue >= targetPercent) || (stepSize < 0 && displayValue <= targetPercent)) {
+                            app.ui.uploadProgressValue = targetPercent;
+                            displayValue = targetPercent;
+                            clearInterval(app.ui.progressInterval);
+                        }
+                        
+                        if (text.innerText.includes('%')) {
+                            text.innerText = displayValue + '%';
+                        }
+                    }, 30);
+                },
                 showUploadProgress: () => {
                     const modal = document.getElementById('upload-progress-modal');
                     const content = document.getElementById('up-progress-content');
@@ -15354,52 +15389,34 @@ closeCustomRolePrompt: () => {
                     const title = document.getElementById('up-progress-title');
                     const desc = document.getElementById('up-progress-desc');
                     const errorBox = document.getElementById('up-progress-error');
-                    const infoBox = document.getElementById('up-progress-info'); // Thêm dòng này
+                    const infoBox = document.getElementById('up-progress-info');
                     const actions = document.getElementById('up-progress-actions');
-
 
                     circle.style.transition = 'none';
                     circle.setAttribute('stroke-dashoffset', '339.29');
                     circle.setAttribute('stroke', '#18181b');
 
+                    app.ui.uploadProgressValue = 0;
                     text.innerHTML = '0%';
                     text.className = 'absolute inset-0 flex items-center justify-center text-2xl font-bold text-black';
-                    title.innerText = 'Ảnh đang được upload...';
+                    title.innerText = 'Đang chuẩn bị...';
                     title.className = 'text-lg font-bold text-gray-900 mb-1';
                     desc.innerText = 'Vui lòng không rời khỏi trang';
 
-                    // Reset trạng thái ẩn các hộp
                     errorBox.classList.add('hidden');
                     if (infoBox) infoBox.classList.add('hidden');
                     actions.classList.add('hidden');
                     actions.innerHTML = '';
 
-
                     modal.classList.remove('hidden');
                     content.classList.remove('modal-content-leave');
-
 
                     content.style.opacity = '1';
                     content.classList.add('modal-content-enter');
                     app.ui.lockScroll();
 
-
                     setTimeout(() => {
-                        circle.style.transition = 'stroke-dashoffset 1.5s ease-out, stroke 0.5s ease';
-                        circle.setAttribute('stroke-dashoffset', '67.85');
-
-
-                        let progress = 0;
-                        const interval = setInterval(() => {
-                            progress += 2;
-                            if (progress >= 80) {
-                                progress = 80;
-                                clearInterval(interval);
-                            }
-                            if (text.innerText.includes('%')) {
-                                text.innerText = progress + '%';
-                            }
-                        }, 30);
+                        app.ui.setUploadProgress(15, 800);
                     }, 150);
                 },
 
@@ -15416,16 +15433,17 @@ closeCustomRolePrompt: () => {
                     circle.setAttribute('stroke-dashoffset', '0');
                     circle.setAttribute('stroke', '#16a34a');
 
-                    let current = parseInt(text.innerText) || 80;
+                    if (app.ui.progressInterval) clearInterval(app.ui.progressInterval);
+                    
                     const interval = setInterval(() => {
-                        current += 2;
-                        if (current >= 100) {
+                        app.ui.uploadProgressValue += 2;
+                        if (app.ui.uploadProgressValue >= 100) {
                             clearInterval(interval);
                             text.innerHTML = '<i class="fa-solid fa-check"></i>';
                             text.classList.replace('text-black', 'text-green-600');
                             text.classList.add('text-4xl', 'modal-content-enter');
                         } else {
-                            if (text.innerText.includes('%')) text.innerText = current + '%';
+                            if (text.innerText.includes('%')) text.innerText = Math.round(app.ui.uploadProgressValue) + '%';
                         }
                     }, 20);
 
