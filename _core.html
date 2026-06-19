@@ -3552,7 +3552,7 @@
                             <!-- GIAO DIỆN THIẾT BỊ ĐÃ KẾT NỐI (THAY THẾ DROPZONE) -->
                             <div id="webrtc-connected-zone" class="hidden w-full bg-gray-100 border border-gray-200 rounded-2xl p-4 flex flex-row items-center justify-between shadow-sm relative overflow-hidden transition-all fade-zoom-in mt-2">
                                 <div class="flex items-center gap-3">
-                                    <div id="webrtc-connected-icon" class="w-11 h-11 bg-white border border-gray-200 text-gray-700 rounded-full flex shrink-0 items-center justify-center shadow-sm">
+                                    <div id="webrtc-connected-icon" class="w-11 h-11 min-w-[44px] min-h-[44px] aspect-square bg-white border border-gray-200 text-gray-700 rounded-full flex shrink-0 items-center justify-center shadow-sm">
                                         <i class="fa-solid fa-mobile-screen-button text-lg animate-pulse"></i>
                                     </div>
                                     <div class="text-left flex flex-col justify-center">
@@ -4067,18 +4067,8 @@
             <!-- VIEW MỚI: TRUYỀN TẢI DỮ LIỆU -->
             <div id="mobile-upload" class="view-section">
                 <div class="max-w-md mx-auto bg-white border border-vbs-border p-6 sm:p-8 rounded-2xl shadow-sm text-center flex flex-col items-center mt-6 min-h-[55vh] justify-center">
-                    <div class="relative mb-6">
-                        <div class="absolute inset-0 bg-gray-200 rounded-full blur-xl opacity-60"></div>
-                        <div class="relative w-20 h-20 bg-gradient-to-tr from-gray-900 to-gray-700 text-white border border-gray-800 rounded-2xl flex items-center justify-center text-3xl shadow-lg transform rotate-3 hover:rotate-0 transition-transform duration-300">
-                            <i class="fa-solid fa-mobile-screen-button"></i>
-                        </div>
-                    </div>
-                    <h2 class="text-2xl font-black italic tracking-wider text-black mb-1.5" style="font-family: 'Montserrat', sans-serif;">VNBUSARCHIVE</h2>
-                    <div class="flex items-center gap-2 mb-8">
-                        <span class="w-8 h-[1px] bg-gray-300"></span>
-                        <p class="text-[11px] text-gray-500 font-bold uppercase tracking-[0.2em] m-0">Cổng truyền tải</p>
-                        <span class="w-8 h-[1px] bg-gray-300"></span>
-                    </div>
+                    
+                    <img src="/media/vnba.png" alt="VNBUSARCHIVE" class="h-6 w-auto object-contain mb-8 opacity-70">
 
                     <div id="webrtc-mobile-status" class="w-full flex flex-col items-center justify-center min-h-[120px] bg-gray-50 rounded-xl border border-gray-200 p-4 mb-2">
                         <i class="fa-solid fa-spinner fa-spin text-2xl text-gray-400 mb-3"></i>
