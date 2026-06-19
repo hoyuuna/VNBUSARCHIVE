@@ -3552,7 +3552,7 @@
                             <!-- GIAO DIỆN THIẾT BỊ ĐÃ KẾT NỐI (THAY THẾ DROPZONE) -->
                             <div id="webrtc-connected-zone" class="hidden w-full bg-gray-100 border border-gray-200 rounded-2xl p-4 flex flex-row items-center justify-between shadow-sm relative overflow-hidden transition-all fade-zoom-in mt-2">
                                 <div class="flex items-center gap-3">
-                                    <div id="webrtc-connected-icon" class="w-11 h-11 min-w-[44px] min-h-[44px] aspect-square bg-white border border-gray-200 text-gray-700 rounded-full flex shrink-0 items-center justify-center shadow-sm">
+                                    <div id="webrtc-connected-icon" class="bg-white border border-gray-200 text-gray-700 rounded-full flex shrink-0 items-center justify-center shadow-sm" style="width: 44px; height: 44px; min-width: 44px; min-height: 44px;">
                                         <i class="fa-solid fa-mobile-screen-button text-lg animate-pulse"></i>
                                     </div>
                                     <div class="text-left flex flex-col justify-center">
@@ -3561,7 +3561,7 @@
                                     </div>
                                 </div>
                                 <button type="button" onclick="app.webrtc.disconnect()" class="bg-white hover:bg-gray-50 border border-gray-200 text-red-600 font-bold w-10 h-10 md:w-auto md:px-4 rounded-xl text-xs transition shadow-sm shrink-0 flex items-center justify-center">
-                                    <i class="fa-solid fa-link-slash md:mr-1.5"></i> <span class="hidden md:inline">Ngắt kết nối</span>
+                                    <i class="fa-solid fa-link-slash mr-0 md:mr-2"></i> <span class="hidden md:inline">Ngắt kết nối</span>
                                 </button>
                             </div>
 
@@ -4067,8 +4067,10 @@
             <!-- VIEW MỚI: TRUYỀN TẢI DỮ LIỆU -->
             <div id="mobile-upload" class="view-section">
                 <div class="max-w-md mx-auto bg-white border border-vbs-border p-6 sm:p-8 rounded-2xl shadow-sm text-center flex flex-col items-center mt-6 min-h-[55vh] justify-center">
-                    
-                    <img src="/media/vnba.png" alt="VNBUSARCHIVE" class="h-6 w-auto object-contain mb-8 opacity-70">
+                    <div class="flex items-center gap-2 mb-8 opacity-70">
+                        <img src="/media/vnba.png" alt="Logo" class="h-6 w-auto object-contain">
+                        <h2 class="text-lg font-black italic tracking-wider text-black m-0" style="font-family: 'Montserrat', sans-serif;">VNBUSARCHIVE</h2>
+                    </div>
 
                     <div id="webrtc-mobile-status" class="w-full flex flex-col items-center justify-center min-h-[120px] bg-gray-50 rounded-xl border border-gray-200 p-4 mb-2">
                         <i class="fa-solid fa-spinner fa-spin text-2xl text-gray-400 mb-3"></i>
