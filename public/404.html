@@ -1,117 +1,183 @@
+<!-- 
+====================================================================================================
+   ⚠️ CHÀO CON VỢ, XIN CON VỢ HÃY DỪNG LẠI NGAY LẬP TỨC! ⚠️
+====================================================================================================
+   Mọi hành vi dò quét lỗ hổng, xâm nhập trái phép, dịch ngược (Reverse Engineering), 
+   hoặc tự động cào dữ liệu (Scraping/Crawling) tại hệ thống này đều bị NGHIÊM CẤM.
+
+   [HÀNH VI VI PHẠM SẼ BỊ XỬ LÝ THEO PHÁP LUẬT VIỆT NAM]:
+   - Điều 287 BLHS: Tội cản trở hoặc gây rối loạn hoạt động của mạng máy tính (Tấn công DoS/DDoS) 
+     => Phạt tù lên đến 12 NĂM.
+   - Điều 288 BLHS: Tội đưa hoặc sử dụng trái phép thông tin mạng máy tính (Scrape/Crawl dữ liệu) 
+     => Phạt tiền đến 1 TỶ ĐỒNG hoặc phạt tù đến 7 NĂM.
+   - Điều 289 BLHS: Tội xâm nhập trái phép vào mạng máy tính của người khác (Hack/Bẻ khóa) 
+     => Phạt tù lên đến 12 NĂM.
+   - Nghị định 13/2023/NĐ-CP: Vi phạm quy định về bảo vệ dữ liệu cá nhân.
+
+   HÃY LÀ MỘT NGƯỜI XEM ẢNH CÓ VĂN HÓA VÀ TRÁCH NHIỆM!
+====================================================================================================
+-->
 <!DOCTYPE html>
 <html lang="vi">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>404 | VNBUSARCHIVE</title>
+    <title id="meta-title">VNBUSARCHIVE</title>
+    
+    <!-- SEO & Embed Mặc định -->
+    <meta name="description" id="meta-desc" content="Hệ thống database xe buýt/khách">
+    <meta property="og:type" content="website">
+    <meta property="og:url" id="og-url" content="https://vnbusarchive.io.vn">
+    <meta property="og:title" id="og-title" content="VNBUSARCHIVE">
+    <meta property="og:description" id="og-desc" content="Hệ thống database xe buýt/khách">
+    <meta property="og:image" id="og-image" content="https://files.catbox.moe/ddvw49.png">
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" id="tw-url" content="https://vnbusarchive.io.vn">
+    <meta property="twitter:title" id="tw-title" content="VNBUSARCHIVE">
+    <meta property="twitter:description" id="tw-desc" content="Hệ thống database xe buýt/khách">
+    <meta property="twitter:image" id="tw-image" content="https://files.catbox.moe/ddvw49.png">
+    <meta name="theme-color" content="#FFFFFF">
     <link rel="icon" href="/media/icon.png">
     
-    <meta name="theme-color" content="#f4f4f5">
-    <meta name="title" content="404 | VNBUSARCHIVE">
-    
-    <link href="/tailwind.css" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Montserrat:wght@400;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@1,800&display=swap" rel="stylesheet">
+    
     <style>
-        body {
-            font-family: 'Be Vietnam Pro', sans-serif;
-            -webkit-font-smoothing: antialiased !important;
-            -moz-osx-font-smoothing: grayscale !important;
-            text-shadow: 0 0 0.5px rgba(0, 0, 0, 0.15);
-            background-color: #f4f4f5; 
-            color: #09090b;
-            overflow: hidden; 
-        }
+        body { margin: 0; background: #ffffff; overflow: hidden; }
+        
 
-        .font-watermark {
-            font-family: 'Montserrat', sans-serif !important;
-        }
+        #loading-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #ffffff; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
+        .brand-container { display: flex; align-items: center; justify-content: center; }
+        .logo { height: 80px; object-fit: contain; position: relative; z-index: 2; }
+        
 
-        .fade-zoom-in {
-            animation: fadeZoomIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        @keyframes fadeZoomIn {
-            from {
-                opacity: 0;
-                transform: scale(0.95) translateY(15px);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1) translateY(0);
-            }
-        }
-
-        .text-404 {
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 900;
-            background: linear-gradient(135deg, #e4e4e7 0%, #a1a1aa 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0px 10px 20px rgba(0,0,0,0.05);
-            line-height: 1;
-        }
-
-        .bg-pattern {
-            background-image: radial-gradient(#d4d4d8 1.5px, transparent 1.5px);
-            background-size: 28px 28px;
-        }
+        .text-wrapper { display: grid; grid-template-columns: 0fr; opacity: 0; animation: slideOut 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards; }
+        .text-inner { overflow: hidden; white-space: nowrap; }
+        .text-inner span { font-family: 'Montserrat', sans-serif; font-weight: 800; font-style: italic; font-size: 2.5rem; letter-spacing: 2px; padding-left: 15px; display: block; padding-right: 5px; color: #000; }
+        
+        .spinner { position: absolute; bottom: 15%; width: 40px; height: 40px; border: 4px solid rgba(0, 0, 0, 0.1); border-left-color: #000000; border-radius: 50%; animation: spin 1s linear infinite; }
+        
+        @media (max-width: 768px) { .logo { height: 60px; } .text-inner span { font-size: 1.8rem; padding-left: 12px; } }
+        @media (max-width: 480px) { .logo { height: 45px; } .text-inner span { font-size: 1.25rem; letter-spacing: 1px; padding-left: 8px; } .spinner { width: 30px; height: 30px; border-width: 3px; bottom: 12%; } }
+        
+        @keyframes slideOut { 0% { grid-template-columns: 0fr; opacity: 0; } 100% { grid-template-columns: 1fr; opacity: 1; } }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-
-<body class="bg-pattern relative h-screen w-screen flex items-center justify-center p-4">
-
-    <div class="absolute inset-0 pointer-events-none overflow-hidden">
-        <div class="absolute top-[5%] left-[15%] w-80 h-80 bg-gray-300 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-pulse"></div>
-        <div class="absolute bottom-[10%] right-[15%] w-72 h-72 bg-gray-200 rounded-full mix-blend-multiply filter blur-3xl opacity-50"></div>
+<body>
+    <div id="loading-screen">
+        <div class="brand-container">
+            <img src="/media/vnba.png" alt="Logo" class="logo">
+            <div class="text-wrapper"><div class="text-inner"><span>VNBUSARCHIVE</span></div></div>
+        </div>
+        <div class="spinner"></div>
     </div>
 
-    <div class="relative z-10 w-full max-w-md bg-white/80 backdrop-blur-2xl border border-white rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] p-8 md:p-10 text-center flex flex-col items-center fade-zoom-in">
+    <script>
+
         
-        <div class="flex items-center justify-center gap-2 mb-8">
-            <img src="/media/vnba.png" alt="VNBUSARCHIVE Logo" class="h-10 w-auto object-contain drop-shadow-sm" decoding="async">
-            <span class="font-watermark font-extrabold italic text-2xl tracking-wider text-black mt-1 drop-shadow-sm">VNBUSARCHIVE</span>
-        </div>
+    var _pInt = null;
+    (function() {
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('keydown', e => {
+            if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) || (e.ctrlKey && e.key === 'U')) {
+                e.preventDefault(); return false;
+            }
+        });
+        
+        if (sessionStorage.getItem('VNBA_SESS_AUTH') === 'active') return;
 
-        <div class="relative flex items-center justify-center w-full mb-8">
-            <span class="text-404 text-[130px] md:text-[150px] absolute z-0 select-none tracking-tighter">404</span>
-            
-            <div class="relative inline-flex z-10 mt-6 transform hover:scale-110 transition-transform duration-300">
-                <div class="w-20 h-20 min-w-[5rem] min-h-[5rem] bg-black text-white rounded-full flex items-center justify-center text-3xl shadow-xl border-4 border-white shrink-0 aspect-square">
-                    <i class="fa-solid fa-bus-simple"></i>
-                </div>
+        _pInt = setInterval(function() {
+            const before = new Date().getTime();
+            debugger; 
+            if (new Date().getTime() - before > 100) {
+                document.body.innerHTML = "<h1 style='text-align:center; margin-top:20vh; font-family:sans-serif;'>Hành vi bị cấm!</h1>";
+            }
+        }, 100);
+    })();
+        
+
+
+        async function initApp() {
+            try {
+                let token = null;
+
+                // 1. Kiểm tra Token từ URL (trường hợp OAuth Callback)
+                if (window.location.hash) {
+                    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+                    if (hashParams.has('access_token')) {
+                        token = hashParams.get('access_token');
+                    }
+                }
+
+                // 2. Fallback sang LocalStorage (đã login từ trước)
+                if (!token) {
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+                            try {
+                                const session = JSON.parse(localStorage.getItem(key));
+                                token = session.access_token;
+                                break;
+                            } catch (e) {}
+                        }
+                    }
+                }
+
+                const headers = { 'Content-Type': 'application/json' };
+                if (token) headers['Authorization'] = `Bearer ${token}`;
+
+                const response = await fetch('/api/system', { method: 'POST', headers: headers, body: JSON.stringify({ action: 'core' }) });
                 
-                <div class="absolute -bottom-1 -right-1 w-8 h-8 min-w-[2rem] min-h-[2rem] bg-red-500 text-white rounded-full flex items-center justify-center text-sm border-2 border-white shadow-md shrink-0 aspect-square">
-                    <i class="fa-solid fa-location-crosshairs"></i>
-                </div>
-            </div>
-        </div>
+                if (response.status === 403) {
+                    const data = await response.json();
+                    if (data.banned) {
+                        clearInterval(_pInt);
+                        for (let i = 0; i < localStorage.length; i++) {
+                            const key = localStorage.key(i);
+                            if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+                                localStorage.removeItem(key);
+                            }
+                        }
+                        sessionStorage.removeItem('VNBA_SESS_AUTH');
+                        
+                        // Clear OAuth tokens from URL
+                        if (window.location.hash.includes('access_token')) {
+                            history.replaceState(null, '', window.location.pathname + window.location.search);
+                        }
 
-        <h2 class="text-2xl font-bold text-black mb-3 tracking-tight">Chuyến xe không tồn tại!</h2>
-        <p class="text-[13px] text-gray-500 font-medium leading-relaxed mb-8 px-2">
-            Có vẻ như bạn đã đi lạc tuyến. Đường dẫn, hình ảnh hoặc hồ sơ xe này đã bị gỡ bỏ khỏi hệ thống hoặc không tồn tại.
-        </p>
+                        document.body.innerHTML = `
+                            <div style="background-color: #ffffff; color: #ff0000; width: 100vw; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; text-align: center; padding: 20px; box-sizing: border-box;">
+                                <h1 style="font-size: 2.5rem; margin-bottom: 20px; font-weight: 900;">BẠN ĐÃ BỊ CẤM</h1>
+                                <p style="font-size: 1.2rem; max-width: 600px; line-height: 1.5; margin-bottom: 30px;">
+                                    Tài khoản <b>${data.name}</b> (ID: <b><span style="font-family: monospace;">${data.uuid || 'Không rõ'}</span></b>) của bạn đã bị cấm với lí do: <b>${data.reason || 'Không rõ'}</b>. 
+                                    <br><br>Tìm hiểu thêm tại: <a href="https://www.vnbusarchive.io.vn/help/1516761580069720074" style="color: #ff0000; text-decoration: underline;">https://www.vnbusarchive.io.vn/help/1516761580069720074</a>
+                                </p>
+                                <p style="font-style: italic; color: #666; font-size: 0.9rem; margin-top: 20px;">Làm mới trang sẽ tự động đăng xuất tài khoản</p>
+                            </div>
+                        `;
+                        return;
+                    }
+                }
 
-        <div class="w-full flex flex-col gap-3">
-            <button onclick="window.location.href='/'" class="w-full bg-black text-white py-3.5 rounded-xl font-bold text-sm hover:bg-gray-800 transition shadow-lg flex justify-center items-center gap-2 group">
-                <i class="fa-solid fa-house group-hover:-translate-y-0.5 transition-transform"></i> Về Trang chủ
-            </button>
-            <button onclick="history.back()" class="w-full bg-white border border-gray-200 text-gray-700 py-3.5 rounded-xl font-bold text-sm hover:bg-gray-50 transition shadow-sm flex justify-center items-center gap-2 group">
-                <i class="fa-solid fa-arrow-left group-hover:-translate-x-1 transition-transform"></i> Quay lại trang trước
-            </button>
-        </div>
+                if (!response.ok) throw new Error('Bị từ chối');
+                
+                const data = await response.json();
+                const decodedHTML = decodeURIComponent(escape(atob(data.payload)));
 
-        <div class="mt-8 text-center">
-            <a href="/contact" class="text-[11px] text-gray-500 font-bold hover:text-black transition-colors inline-flex items-center gap-1.5 underline decoration-gray-300 hover:decoration-black">
-                <i class="fa-solid fa-headset"></i> Liên hệ hỗ trợ
-            </a>
-        </div>
+            
+                document.open();
+                if (sessionStorage.getItem('VNBA_SESS_AUTH') === 'active') clearInterval(_pInt);
+                document.write(decodedHTML);
+                document.close();
 
-    </div>
+            } catch (error) {
+                console.error("Lỗi:", error);
+                document.getElementById('loading-screen').innerHTML = '<p style="color:red; text-align:center; margin-top: 40vh; font-weight: bold;">Mất kết nối máy chủ. Vui lòng tải lại trang hoặc tham khảo trang hỗ trợ tại: https://www.vnbusarchive.io.vn/help/1516401956581802025.</p>';
+            }
+        }
+        initApp();
+    </script>
 </body>
 </html>
