@@ -1606,7 +1606,6 @@
                         </button>
                     </div>
 
-
                     <!-- Bước 2: Cá nhân hóa -->
                     <div class="onb-slide text-left" id="onb-step-2">
                         <div class="w-12 h-12 bg-black text-white rounded-full flex items-center justify-center text-xl mb-4 shadow-md">
@@ -4110,80 +4109,6 @@
                     <p class="text-[10px] text-gray-400 mt-6 max-w-xs leading-relaxed mx-auto">
                         Trình duyệt trên thiết bị này phải luôn được mở trong quá trình truyền tải.
                     </p>
-                </div>
-            </div>
-
-            <!-- 404 NOT FOUND VIEW -->
-            <div id="not-found" class="view-section">
-                <style>
-                    .font-watermark { font-family: 'Montserrat', sans-serif !important; }
-                    .fade-zoom-in { animation: fadeZoomIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-                    @keyframes fadeZoomIn {
-                        from { opacity: 0; transform: scale(0.95) translateY(15px); }
-                        to { opacity: 1; transform: scale(1) translateY(0); }
-                    }
-                    .text-404 {
-                        font-family: 'Montserrat', sans-serif;
-                        font-weight: 900;
-                        background: linear-gradient(135deg, #e4e4e7 0%, #a1a1aa 100%);
-                        -webkit-background-clip: text;
-                        -webkit-text-fill-color: transparent;
-                        text-shadow: 0px 10px 20px rgba(0,0,0,0.05);
-                        line-height: 1;
-                    }
-                    .bg-pattern {
-                        background-image: radial-gradient(#d4d4d8 1.5px, transparent 1.5px);
-                        background-size: 28px 28px;
-                    }
-                </style>
-                <div class="bg-pattern relative w-full flex items-center justify-center p-4" style="min-height: calc(100vh - 80px);">
-                    <div class="absolute inset-0 pointer-events-none overflow-hidden">
-                        <div class="absolute top-[5%] left-[15%] w-80 h-80 bg-gray-300 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-pulse"></div>
-                        <div class="absolute bottom-[10%] right-[15%] w-72 h-72 bg-gray-200 rounded-full mix-blend-multiply filter blur-3xl opacity-50"></div>
-                    </div>
-                
-                    <div class="relative z-10 w-full max-w-md bg-white/80 backdrop-blur-2xl border border-white rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] p-8 md:p-10 text-center flex flex-col items-center fade-zoom-in">
-                        
-                        <div class="flex items-center justify-center gap-2 mb-8">
-                            <img src="/media/vnba.png" alt="VNBUSARCHIVE Logo" class="h-10 w-auto object-contain drop-shadow-sm" decoding="async">
-                            <span class="font-watermark font-extrabold italic text-2xl tracking-wider text-black mt-1 drop-shadow-sm">VNBUSARCHIVE</span>
-                        </div>
-                
-                        <div class="relative flex items-center justify-center w-full mb-8">
-                            <span class="text-404 text-[130px] md:text-[150px] absolute z-0 select-none tracking-tighter">404</span>
-                            
-                            <div class="relative inline-flex z-10 mt-6 transform hover:scale-110 transition-transform duration-300">
-                                <div class="w-20 h-20 min-w-[5rem] min-h-[5rem] bg-black text-white rounded-full flex items-center justify-center text-3xl shadow-xl border-4 border-white shrink-0 aspect-square">
-                                    <i class="fa-solid fa-bus-simple"></i>
-                                </div>
-                                
-                                <div class="absolute -bottom-1 -right-1 w-8 h-8 min-w-[2rem] min-h-[2rem] bg-red-500 text-white rounded-full flex items-center justify-center text-sm border-2 border-white shadow-md shrink-0 aspect-square">
-                                    <i class="fa-solid fa-location-crosshairs"></i>
-                                </div>
-                            </div>
-                        </div>
-                
-                        <h2 class="text-2xl font-bold text-black mb-3 tracking-tight">Chuyến xe không tồn tại!</h2>
-                        <p class="text-[13px] text-gray-500 font-medium leading-relaxed mb-8 px-2">
-                            Có vẻ như bạn đã đi lạc tuyến. Đường dẫn, hình ảnh hoặc hồ sơ xe này đã bị gỡ bỏ khỏi hệ thống hoặc không tồn tại.
-                        </p>
-                
-                        <div class="w-full flex flex-col gap-3">
-                            <button onclick="app.utils.navigate('/')" class="w-full bg-black text-white py-3.5 rounded-xl font-bold text-sm hover:bg-gray-800 transition shadow-lg flex justify-center items-center gap-2 group">
-                                <i class="fa-solid fa-house group-hover:-translate-y-0.5 transition-transform"></i> Về Trang chủ
-                            </button>
-                            <button onclick="history.back()" class="w-full bg-white border border-gray-200 text-gray-700 py-3.5 rounded-xl font-bold text-sm hover:bg-gray-50 transition shadow-sm flex justify-center items-center gap-2 group">
-                                <i class="fa-solid fa-arrow-left group-hover:-translate-x-1 transition-transform"></i> Quay lại trang trước
-                            </button>
-                        </div>
-                
-                        <div class="mt-8 text-center">
-                            <a href="javascript:void(0)" onclick="app.utils.navigate('/contact')" class="text-[11px] text-gray-500 font-bold hover:text-black transition-colors inline-flex items-center gap-1.5 underline decoration-gray-300 hover:decoration-black">
-                                <i class="fa-solid fa-headset"></i> Liên hệ hỗ trợ
-                            </a>
-                        </div>
-                
-                    </div>
                 </div>
             </div>
 
@@ -6820,10 +6745,7 @@
                 app.loadingBar.start();
                 app.utils.cleanupState();
 
-                let path = window.location.pathname;
-                if (path.length > 1 && path.endsWith('/')) {
-                    path = path.slice(0, -1);
-                }
+                const path = window.location.pathname;
                 const searchParams = new URLSearchParams(window.location.search);
 
                 app.currentPathForScroll = path + window.location.search;
@@ -6891,11 +6813,8 @@
                     } else {
                         app.views.loadHome();
                     }
-                } else if (path === '/' || path === '' || path === '/index.html') {
-                    app.views.switch('home', false);
                 } else {
-                    document.title = '404 Không tìm thấy | VNBUSARCHIVE';
-                    app.views.switch('not-found', false);
+                    app.views.switch('home', false);
                 }
 
                 app.utils.updateBreadcrumbs();
