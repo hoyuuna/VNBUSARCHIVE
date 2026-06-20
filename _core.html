@@ -6813,8 +6813,10 @@
                     } else {
                         app.views.loadHome();
                     }
-                } else {
+                } else if (path === '/' || path === '' || path === '/index.html') {
                     app.views.switch('home', false);
+                } else {
+                    window.location.href = '/404.html';
                 }
 
                 app.utils.updateBreadcrumbs();
