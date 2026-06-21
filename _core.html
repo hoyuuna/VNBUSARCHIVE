@@ -117,6 +117,24 @@
             border-bottom: none;
         }
 
+        /* Tối ưu hiệu suất cho danh sách ảnh dài */
+        .photo-card {
+            content-visibility: auto;
+            contain-intrinsic-size: 0 250px;
+        }
+
+        /* Skeleton loading animation */
+        .skeleton-loader {
+            background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s infinite linear;
+        }
+
+        @keyframes skeleton-loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
         .data-table .label {
             font-weight: 500;
             color: #71717a;
@@ -2485,17 +2503,17 @@
 
                     <nav
                         class="flex gap-4 text-sm font-semibold text-gray-600 items-center order-2 md:order-3 ml-2 md:ml-6 shrink-0">
-                        <a href="https://discord.com/invite/BNWyqbuvwq" target="_blank" class="nav-link">
+                        <a href="https://discord.com/invite/BNWyqbuvwq" target="_blank" class="hidden md:flex nav-link">
                             <i class="fa-brands fa-discord md:mr-1"></i> <span class="hidden md:inline">Discord</span>
                         </a>
 
-                        <button onclick="app.newsboard.open()" class="nav-link relative cursor-pointer">
+                        <button onclick="app.newsboard.open()" class="hidden md:flex nav-link relative cursor-pointer">
                             <i class="fa-solid fa-bell md:mr-1"></i>
                             <span class="hidden md:inline">Bảng tin</span>
                         </button>
 
 
-                        <div class="relative" id="user-menu-container">
+                        <div class="relative hidden md:block" id="user-menu-container">
                             <button onclick="app.ui.toggleUserMenu()" class="nav-link relative flex items-center gap-1 cursor-pointer">
                                 <i class="fa-solid fa-circle-user md:mr-1"></i>
                                 <span id="nav-username" class="hidden md:inline">Tài khoản</span>
@@ -2505,12 +2523,12 @@
                             </div>
                         </div>
                         <a href="/admin" id="nav-admin"
-                            class="hidden nav-link text-red-600 transition-colors duration-200">
+                            class="hidden md:hidden nav-link text-red-600 transition-colors duration-200">
                             <i id="nav-admin-icon" class="fa-solid fa-shield-halved md:mr-1"></i> <span
                                 class="hidden md:inline">Admin</span>
                         </a>
                         <a href="/upload"
-                            class="text-white bg-black px-4 py-2 rounded-md hover:bg-gray-800 transition shadow-sm text-xs md:text-sm">
+                            class="hidden md:flex text-white bg-black px-4 py-2 rounded-md hover:bg-gray-800 transition shadow-sm text-xs md:text-sm">
                             <i class="fa-solid fa-upload md:mr-1"></i> <span class="hidden md:inline">Đăng ảnh</span>
                         </a>
                     </nav>
@@ -3223,7 +3241,7 @@
                                 </button>
                                 <!-- NÚT LIKE HIỆN TẠI -->
                                 <button id="btn-like" onclick="app.utils.handleLike()"
-                                    class="w-full bg-black text-white py-2.5 text-sm font-bold rounded-md hover:bg-gray-800 transition shadow-sm">
+                                    class="w-full bg-black text-white py-2.5 text-sm font-bold rounded-md hover:bg-gray-800 transition transform active:scale-95 shadow-sm">
                                     <i class="fa-regular fa-thumbs-up mr-1"></i> Thích ảnh này
                                 </button>
                                 <button id="btn-request-delete" onclick="app.photo.requestDelete()"
@@ -3288,6 +3306,7 @@
                         </div>
                         <div class="flex gap-3">
                             <textarea id="comment-input" rows="2" placeholder="Viết bình luận..."
+                                onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); app.comments.post(); }"
                                 class="flex-1 border border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-black outline-none transition-all resize-none text-black bg-gray-50/50"></textarea>
                             <button onclick="app.comments.post()" id="btn-post-comment"
                                 class="bg-black text-white px-6 py-2 rounded-xl font-bold text-sm hover:bg-gray-800 transition shadow-sm h-fit self-end"> Gửi </button>
@@ -3735,7 +3754,7 @@
                                 <div x-data>
                                     <label class="text-xs text-gray-500 font-bold block mb-1.5 uppercase">Biển kiểm soát
                                         <span class="text-red-500">*</span></label>
-                                    <input type="text" id="up-plate" oninput="app.utils.formatPlateInput(this)"
+                                    <input type="text" id="up-plate" oninput="app.utils.formatPlateInput(this); app.upload.saveDraft();"
                                         x-on:input.debounce.500ms="app.upload.checkPlate($el.value)"
                                         placeholder="VD: 51B12345"
                                         class="w-full border border-gray-300 p-2.5 text-sm uppercase rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition"
@@ -3755,7 +3774,7 @@
                                     <div class="relative w-full">
                                         <input type="text" id="up-route" autocomplete="off"
                                             onfocus="app.utils.triggerRouteSuggestion('up-route', 'up-route-suggestions', '')"
-                                            oninput="app.utils.triggerRouteSuggestion('up-route', 'up-route-suggestions', this.value); clearTimeout(app.upload.routeOpTimeout); app.upload.routeOpTimeout = setTimeout(app.upload.autoFillOperatorByRoute, 500);"
+                                            oninput="app.utils.triggerRouteSuggestion('up-route', 'up-route-suggestions', this.value); clearTimeout(app.upload.routeOpTimeout); app.upload.routeOpTimeout = setTimeout(app.upload.autoFillOperatorByRoute, 500); app.upload.saveDraft();"
                                             class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition">
                                         <div id="up-route-suggestions" class="suggestion-box"></div>
                                     </div>
@@ -3800,7 +3819,7 @@
                                     <label class="text-xs text-gray-500 font-bold block mb-1.5 uppercase">Đơn vị vận
                                         hành <span class="text-red-500">*</span></label>
                                     <div class="relative w-full">
-                                        <input type="text" id="up-operator" oninput="app.utils.formatNoPunctuation(this)"
+                                        <input type="text" id="up-operator" oninput="app.utils.formatNoPunctuation(this); app.upload.saveDraft();"
                                             class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition"
                                             required autocomplete="off"
                                             x-on:input.debounce.300ms="app.utils.triggerSuggestion('up-operator', 'up-operator-suggestions', $el.value, 'operator')">
@@ -3812,7 +3831,7 @@
                                     <label class="text-xs text-gray-500 font-bold block mb-1.5 uppercase">Dòng xe
                                         (Model) <span class="text-red-500">*</span></label>
                                     <div class="relative w-full">
-                                         <input type="text" id="up-model" placeholder="VD: Thaco Mobihome"
+                                         <input type="text" id="up-model" placeholder="VD: Thaco Mobihome" oninput="app.upload.saveDraft()"
                                             class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition"
                                             autocomplete="off"
                                             onfocus="app.utils.triggerSuggestion('up-model', 'up-model-suggestions', this.value, 'model')"
@@ -3858,7 +3877,7 @@
                                 <div class="md:col-span-2">
                                     <label class="text-xs text-gray-500 font-bold block mb-1.5 uppercase">Ghi chú
                                         ảnh</label>
-                                    <textarea id="up-note" rows="2"
+                                    <textarea id="up-note" rows="2" oninput="app.upload.saveDraft()"
                                         class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition"></textarea>
                                 </div>
                             </div>
@@ -3868,7 +3887,7 @@
 
                         <div class="pt-6 border-t border-gray-200">
                             <button type="submit" id="btn-submit"
-                                class="bg-black text-white px-8 py-3 font-bold uppercase text-sm rounded-md hover:bg-gray-800 transition w-full md:w-auto shadow-sm">Gửi
+                                class="bg-black text-white px-8 py-3 font-bold uppercase text-sm rounded-md hover:bg-gray-800 transition transform active:scale-95 w-full md:w-auto shadow-sm">Gửi
                                 ảnh</button>
                         </div>
                     </form>
@@ -4780,7 +4799,7 @@
                         }).eq('id', app.user.id).then(({error}) => {});
                     }
 
-                    app.ui.showAlert("Đã lưu thiết lập Cá nhân hóa thành công!");
+                    app.ui.showToast("Đã lưu thiết lập Cá nhân hóa thành công!");
 
                     if (isChanged || isRecChanged) {
                         const path = window.location.pathname;
@@ -5062,7 +5081,7 @@
                         if (error) throw error;
 
                         app.profileIntro.closeBioEditor();
-                        app.ui.showAlert("Đã cập nhật tiểu sử thành công!");
+                        app.ui.showToast("Đã cập nhật tiểu sử thành công!");
 
                         const bioContent = document.getElementById('profile-bio-content');
                         if (text) bioContent.innerHTML = app.utils.cleanText(text);
@@ -5233,7 +5252,7 @@
                         btnAddFav.classList.add('hidden');
                         btnAddFav.classList.remove('flex');
 
-                        app.ui.showAlert("Đã đặt ảnh tâm đắc thành công!");
+                        app.ui.showToast("Đã đặt ảnh tâm đắc thành công!");
 
                     } catch (e) {
                         app.ui.showAlert("Lỗi cài đặt ảnh: " + e.message);
@@ -5880,7 +5899,7 @@
                                         const replyBadge = isReplyToMe ? `<span class="bg-blue-100 text-blue-700 text-[9px] px-1.5 py-0.5 rounded ml-2 font-bold border border-blue-200 whitespace-nowrap"><i class="fa-solid fa-reply"></i> Trả lời bạn</span>` : '';
 
                                         return `
-                                        <div class="flex justify-between items-start gap-3 bg-white border border-gray-200 p-3 rounded-xl shadow-sm hover:shadow-md transition cursor-pointer" onclick="app.utils.navigate('/photo/${g.info.id}'); setTimeout(()=> { const el = document.getElementById('comment-${c.id}'); if(el) el.scrollIntoView({behavior: 'smooth', block: 'center'}); }, 1000);">
+                                        <div class="flex justify-between items-start gap-3 bg-white border border-gray-200 p-3 rounded-xl shadow-sm hover:shadow-md transition cursor-pointer" onclick="app.utils.navigate('/photo/${g.info.id}'); setTimeout(()=> { const el = document.getElementById('comment-${c.id}'); if(el) { el.scrollIntoView({behavior: 'smooth', block: 'center'}); el.style.transition = 'all 1s ease'; el.style.backgroundColor = '#eff6ff'; el.style.boxShadow = '0 0 0 2px #60a5fa'; setTimeout(() => { el.style.backgroundColor = ''; el.style.boxShadow = ''; }, 2000); } }, 1000);">
                                             <div class="overflow-hidden flex-1">
                                                 <div class="flex items-center">
                                                     <span class="text-[11px] font-bold text-black">${c.profiles.username}</span>
@@ -6415,7 +6434,7 @@
                             const hash = window.location.hash;
                             if (hash && hash.includes('type=email_change')) {
                                 setTimeout(() => {
-                                    app.ui.showAlert("Xác nhận đổi địa chỉ Email thành công!");
+                                    app.ui.showToast("Xác nhận đổi địa chỉ Email thành công!");
                                     window.history.replaceState(null, null, window.location.pathname);
                                 }, 500);
                             }
@@ -6425,7 +6444,7 @@
                             const hash = window.location.hash;
                             if (hash && hash.includes('type=signup')) {
                                 setTimeout(() => {
-                                    app.ui.showAlert("Xác thực Email thành công! Chào mừng bạn đến với hệ thống.");
+                                    app.ui.showToast("Xác thực Email thành công! Chào mừng bạn đến với hệ thống.");
                                     window.history.replaceState(null, null, window.location.pathname);
                                 }, 500);
                             }
@@ -6483,45 +6502,31 @@
 
                         dragCounter++;
                         if (dragCounter === 1) {
-                            // Giao diện ô thông báo màu xanh
-                            dropZone.style.backgroundColor = '#eff6ff';
-                            dropZone.style.borderColor = '#3b82f6';
-                            dropZone.style.color = '#1e40af';
-                            dropZone.style.transform = 'scale(1.03)';
-                            dropZone.style.boxShadow = '0 25px 50px -12px rgba(59, 130, 246, 0.3)';
-                            dropZone.style.transition = 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-
-                            const icon = dropZone.querySelector('i');
-                            const iconContainer = dropZone.querySelector('.w-16');
-
-                            if (icon) {
-                                icon.classList.add('animate-bounce');
-                                icon.style.color = '#000000'; // Đám mây màu đen
+                            let overlay = document.getElementById('drag-overlay');
+                            if (!overlay) {
+                                overlay = document.createElement('div');
+                                overlay.id = 'drag-overlay';
+                                overlay.className = 'fixed inset-0 bg-blue-600/90 z-[9999] flex flex-col items-center justify-center text-white pointer-events-none backdrop-blur-md transition-opacity duration-300 opacity-0';
+                                overlay.innerHTML = `
+                                    <i class="fa-solid fa-cloud-arrow-up text-7xl mb-6 animate-bounce drop-shadow-lg"></i>
+                                    <h2 class="text-3xl md:text-4xl font-black drop-shadow-md">Thả ảnh vào đây để tải lên</h2>
+                                    <p class="mt-3 text-blue-100 font-medium">Định dạng hỗ trợ: JPG, JPEG</p>
+                                `;
+                                document.body.appendChild(overlay);
                             }
-                            if (iconContainer) {
-                                iconContainer.style.backgroundColor = '#ffffff'; // Hình tròn trắng tinh
-                                iconContainer.style.border = 'none';            // Bỏ hoàn toàn viền
-                                iconContainer.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)'; // Thêm đổ bóng nhẹ cho hình tròn nổi lên
-                            }
+                            overlay.classList.remove('hidden');
+                            
+                            // Trigger reflow
+                            overlay.offsetHeight;
+                            overlay.classList.remove('opacity-0');
                         }
                     });
 
                     const resetDropZoneUI = () => {
-                        dropZone.style.backgroundColor = '';
-                        dropZone.style.borderColor = '';
-                        dropZone.style.color = '';
-                        dropZone.style.transform = '';
-                        dropZone.style.boxShadow = '';
-                        const icon = dropZone.querySelector('i');
-                        const iconContainer = dropZone.querySelector('.w-16');
-                        if (icon) {
-                            icon.classList.remove('animate-bounce');
-                            icon.style.color = '';
-                        }
-                        if (iconContainer) {
-                            iconContainer.style.backgroundColor = '';
-                            iconContainer.style.border = '';
-                            iconContainer.style.boxShadow = '';
+                        const overlay = document.getElementById('drag-overlay');
+                        if (overlay) {
+                            overlay.classList.add('opacity-0');
+                            setTimeout(() => overlay.classList.add('hidden'), 300);
                         }
                     };
 
@@ -7136,7 +7141,7 @@
                                 const { error } = await window.sb.auth.unlinkIdentity({ identity_id: identityId });
                                 if (error) throw error;
 
-                                app.ui.showAlert(`Đã hủy liên kết với ${providerName} thành công!`);
+                                app.ui.showToast(`Đã hủy liên kết với ${providerName} thành công!`);
                                 app.settings.loadIdentities();
                             } catch (err) {
                                 app.ui.showAlert("Lỗi hủy liên kết: " + err.message);
@@ -8164,6 +8169,7 @@ dropdown.innerHTML = `
                             app.upload.checkQuota();
                             setTimeout(() => app.uploadMap.invalidateSize(), 200);
                             app.utils.resetTurnstile('#upload .cf-turnstile');
+                            app.upload.checkDraft();
                         }
                     } else {
                         searchBox.classList.remove('hidden');
@@ -8625,11 +8631,9 @@ dropdown.innerHTML = `
                     const dateStr = p.taken_at ? p.taken_at.split('T')[0].split('-').reverse().join('/') : new Date(p.created_at).toLocaleDateString('vi-VN');
 
                     return `
-                        <div data-id="${p.id}" class="bg-white border border-gray-200 hover:border-gray-300 hover:shadow-lg cursor-pointer rounded-xl p-2 transition-all flex flex-col" onclick="app.views.loadDetail(${p.id})">
+                        <div data-id="${p.id}" class="photo-card bg-white border border-gray-200 hover:border-gray-300 hover:shadow-lg cursor-pointer rounded-xl p-2 transition-all flex flex-col" onclick="app.views.loadDetail(${p.id})">
                             <div class="img-wrapper relative w-full aspect-[4/3] bg-gray-100 rounded-lg overflow-hidden shrink-0 border border-gray-100">
-                                <div class="img-spinner absolute inset-0 flex items-center justify-center text-gray-400">
-                                    <i class="fa-solid fa-circle-notch fa-spin text-2xl"></i>
-                                </div>
+                                <div class="img-spinner absolute inset-0 skeleton-loader"></div>
                                 <img loading="lazy" src="${proxyUrl}"
                                      onload="app.utils.handleImgLoad(this)"
                                      onerror="app.utils.handleImgError(this)"
@@ -10941,7 +10945,7 @@ app.admin.fetchManagerData('denied');
                             return `<tr class="hover:bg-gray-50 transition border-b border-gray-100">
                                 <td class="p-3">
                                     <div class="font-bold text-black text-[12px]">${app.utils.cleanText(u.username || 'Unknown')}</div>
-                                    <div class="text-[10px] text-gray-500 font-mono" title="Click để copy UUID" style="cursor:pointer;" onclick="navigator.clipboard.writeText('${u.id}'); app.ui.showAlert('Đã copy UUID: ' + '${u.id}')">${u.id}</div>
+                                    <div class="text-[10px] text-gray-500 font-mono" title="Click để copy UUID" style="cursor:pointer;" onclick="navigator.clipboard.writeText('${u.id}'); app.ui.showToast('Đã copy UUID: ' + '${u.id}')">${u.id}</div>
                                 </td>
                                 <td class="p-3 text-center">
                                     <span class="font-bold text-black bg-gray-100 px-2 py-1 rounded-md text-xs">${u.photo_count}</span>
@@ -11585,6 +11589,70 @@ app.admin.fetchManagerData('denied');
              upload: {
                  currentQuota: { limit: null, count: 0 },
                  routeOpTimeout: null, // Thêm dòng này
+
+                 saveDraft: () => {
+                    const plate = document.getElementById('up-plate')?.value || '';
+                    const route = document.getElementById('up-route')?.value || '';
+                    const operator = document.getElementById('up-operator')?.value || '';
+                    const model = document.getElementById('up-model')?.value || '';
+                    const type = document.getElementById('up-type')?.value || '';
+                    const notes = document.getElementById('up-note')?.value || '';
+
+                    // Chỉ lưu draft nếu có nhập ít nhất 1 trường
+                    if (plate || route || operator || model || notes) {
+                        localStorage.setItem('vnbus_upload_draft', JSON.stringify({ plate, route, operator, model, type, notes }));
+                    } else {
+                        localStorage.removeItem('vnbus_upload_draft');
+                    }
+                 },
+
+                 checkDraft: () => {
+                    const draft = localStorage.getItem('vnbus_upload_draft');
+                    if (draft) {
+                        try {
+                            const parsed = JSON.parse(draft);
+                            if (parsed.plate || parsed.route || parsed.operator || parsed.notes) {
+                                app.ui.showAlert('Bạn có một bản nháp chưa gửi. Bạn có muốn khôi phục không?', () => {
+                                    app.upload.restoreDraft(parsed);
+                                }, () => {
+                                    app.upload.clearDraft();
+                                });
+                            }
+                        } catch (e) {
+                            app.upload.clearDraft();
+                        }
+                    }
+                 },
+
+                 restoreDraft: (draft) => {
+                    if (draft.plate) {
+                        const el = document.getElementById('up-plate');
+                        if(el) { el.value = draft.plate; app.upload.checkPlate(draft.plate); }
+                    }
+                    if (draft.route) {
+                        const el = document.getElementById('up-route');
+                        if(el) el.value = draft.route;
+                    }
+                    if (draft.operator) {
+                        const el = document.getElementById('up-operator');
+                        if(el) el.value = draft.operator;
+                    }
+                    if (draft.model) {
+                        const el = document.getElementById('up-model');
+                        if(el) el.value = draft.model;
+                    }
+                    if (draft.notes) {
+                        const el = document.getElementById('up-note');
+                        if(el) el.value = draft.notes;
+                    }
+                    if (draft.type) {
+                        app.upload.selectType(draft.type);
+                    }
+                 },
+
+                 clearDraft: () => {
+                    localStorage.removeItem('vnbus_upload_draft');
+                 },
 
                  // THÊM HÀM NÀY VÀO ĐÂY
                  autoFillOperatorByRoute: async () => {
@@ -12924,6 +12992,8 @@ app.admin.fetchManagerData('denied');
 
 
                         app.ui.updateUploadSuccess();
+                        app.upload.clearDraft();
+                        if (navigator.vibrate) navigator.vibrate(50);
 
                     } catch (err) {
                         let displayError = err.message;
@@ -14033,6 +14103,7 @@ cleanupState: () => {
                         const { error } = await window.sb.from('photo_likes').delete().eq('photo_id', photoId).eq('user_id', app.user.id);
 
                         if (!error) {
+                            if (navigator.vibrate) navigator.vibrate(50);
                             likeBtn.classList.replace('bg-gray-400', 'bg-black');
                             likeBtn.innerHTML = '<i class="fa-regular fa-thumbs-up"></i> Thích ảnh này';
                             likeCountEl.innerText = Math.max(0, currentCount - 1);
@@ -14049,6 +14120,7 @@ cleanupState: () => {
                         const { error } = await window.sb.from('photo_likes').insert({ photo_id: photoId, user_id: app.user.id });
 
                         if (!error) {
+                            if (navigator.vibrate) navigator.vibrate(50);
                             likeBtn.classList.replace('bg-black', 'bg-gray-400');
                             likeBtn.innerHTML = '<i class="fa-solid fa-check"></i> Đã thích';
                             likeCountEl.innerText = currentCount + 1;
@@ -14818,6 +14890,7 @@ changePassword: async () => {
                 updateAvatar: () => {
                     if (!app.user) return;
 
+
                     const fileInput = document.createElement('input');
                     fileInput.type = 'file';
                     fileInput.accept = 'image/jpeg, image/png, image/webp';
@@ -15162,6 +15235,34 @@ changePassword: async () => {
                         app.alertCallback = null;
                         app.alertCancelCallback = null;
                     }, 200);
+                },
+                showToast: (msg, type = 'success') => {
+                    const container = document.getElementById('toast-container');
+                    if (!container) return;
+                    
+                    const toast = document.createElement('div');
+                    toast.className = `transform transition-all duration-300 translate-y-10 opacity-0 px-4 py-3 rounded-xl shadow-lg flex items-center gap-3 pointer-events-auto backdrop-blur-md border border-white/20 text-sm font-medium ${type === 'success' ? 'bg-green-500/90 text-white' : type === 'error' ? 'bg-red-500/90 text-white' : 'bg-gray-800/90 text-white'}`;
+                    
+                    const icon = type === 'success' ? '<i class="fa-solid fa-circle-check text-lg"></i>' : type === 'error' ? '<i class="fa-solid fa-circle-exclamation text-lg"></i>' : '<i class="fa-solid fa-circle-info text-lg"></i>';
+                    toast.innerHTML = `${icon}<span>${msg}</span>`;
+                    
+                    container.appendChild(toast);
+                    
+                    // Trigger reflow
+                    toast.offsetHeight;
+                    
+                    // Enter animation
+                    toast.classList.remove('translate-y-10', 'opacity-0');
+                    toast.classList.add('translate-y-0', 'opacity-100');
+                    
+                    setTimeout(() => {
+                        // Leave animation
+                        toast.classList.remove('translate-y-0', 'opacity-100');
+                        toast.classList.add('opacity-0');
+                        setTimeout(() => {
+                            toast.remove();
+                        }, 300);
+                    }, 3000);
                 },
                 showUploadInfo: () => {
                     const modal = document.getElementById('upload-info-modal');
@@ -15626,10 +15727,12 @@ closeCustomRolePrompt: () => {
                 // Nếu đang ở màn hình Tìm kiếm mở rộng, ưu tiên focus ô ở giữa màn hình
                 if (searchView && searchView.classList.contains('active') && pageInput) {
                     pageInput.focus();
+                    pageInput.select();
                 }
                 // Ngược lại focus ô Header (nếu nó không bị ẩn)
                 else if (headerInput && headerBox && !headerBox.classList.contains('hidden')) {
                     headerInput.focus();
+                    headerInput.select();
                     window.scrollTo({ top: 0, behavior: 'smooth' }); // Tự động cuộn lên đầu trang
                 }
             }
@@ -16299,7 +16402,7 @@ closeCustomRolePrompt: () => {
             <!-- NÚT XÁC NHẬN -->
             <div class="bg-gray-50/50 px-5 py-4 border-t border-gray-200/50 flex gap-3 rounded-b-2xl shrink-0">
                 <button type="button" onclick="app.profileIntro.closePhotoSelector()" class="flex-1 rounded-xl shadow-sm px-4 py-2.5 bg-white border border-gray-300 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all">Hủy</button>
-                <button type="button" id="btn-save-fav-photo" onclick="app.profileIntro.confirmSaveFavPhoto()" disabled class="flex-1 rounded-xl shadow-sm px-4 py-2.5 bg-black border border-black text-sm font-bold text-white hover:bg-gray-800 transition-all opacity-50 cursor-not-allowed">Xác nhận đặt ảnh</button>
+                <button type="button" id="btn-save-fav-photo" onclick="app.profileIntro.confirmSaveFavPhoto()" disabled class="flex-1 rounded-xl shadow-sm px-4 py-2.5 bg-black border border-black text-sm font-bold text-white hover:bg-gray-800 transition-all transform active:scale-95 opacity-50 cursor-not-allowed">Xác nhận đặt ảnh</button>
             </div>
         </div>
     </div>
@@ -16352,6 +16455,37 @@ closeCustomRolePrompt: () => {
             </div>
         </div>
     </div>
+
+    <!-- MOBILE BOTTOM NAVIGATION BAR -->
+    <nav id="mobile-bottom-nav" class="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-200 z-[9998] pb-safe flex justify-between items-center px-2 sm:px-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+        <a href="/" class="flex flex-col items-center justify-center w-1/5 py-2 text-gray-500 hover:text-black transition group nav-item" onclick="event.preventDefault(); app.views.switch('home')">
+            <i class="fa-solid fa-house text-lg group-hover:-translate-y-0.5 transition-transform"></i>
+            <span class="text-[9px] mt-1 font-semibold">Trang chủ</span>
+        </a>
+        <button onclick="document.getElementById('search-input').focus(); window.scrollTo({top: 0, behavior: 'smooth'});" class="flex flex-col items-center justify-center w-1/5 py-2 text-gray-500 hover:text-black transition group nav-item">
+            <i class="fa-solid fa-magnifying-glass text-lg group-hover:-translate-y-0.5 transition-transform"></i>
+            <span class="text-[9px] mt-1 font-semibold">Tìm kiếm</span>
+        </button>
+        
+        <!-- Nút Đăng ảnh nổi bật ở giữa -->
+        <div class="w-1/5 flex justify-center relative -top-5">
+            <button onclick="app.views.switch('upload')" class="bg-black text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-transform border-4 border-white">
+                <i class="fa-solid fa-plus text-xl"></i>
+            </button>
+        </div>
+
+        <button onclick="app.newsboard.open()" class="flex flex-col items-center justify-center w-1/5 py-2 text-gray-500 hover:text-black transition group nav-item">
+            <i class="fa-solid fa-bell text-lg group-hover:-translate-y-0.5 transition-transform"></i>
+            <span class="text-[9px] mt-1 font-semibold">Bảng tin</span>
+        </button>
+        <button onclick="app.ui.toggleUserMenu()" class="flex flex-col items-center justify-center w-1/5 py-2 text-gray-500 hover:text-black transition group nav-item">
+            <i class="fa-solid fa-user text-lg group-hover:-translate-y-0.5 transition-transform"></i>
+            <span class="text-[9px] mt-1 font-semibold">Tài khoản</span>
+        </button>
+    </nav>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed bottom-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none md:bottom-4 md:right-4 bottom-24 left-1/2 md:left-auto -translate-x-1/2 md:translate-x-0 w-max max-w-[90vw]"></div>
 
 </body>
 
