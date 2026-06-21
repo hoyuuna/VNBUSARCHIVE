@@ -7505,12 +7505,14 @@ grid.innerHTML = tiers.map(tier => {
                     if (query.length < 1) {
                         let recents = JSON.parse(localStorage.getItem('vnbus_recent_searches') || '[]');
                         if (recents.length > 0) {
-                            const html = `<div class="p-2 text-xs text-gray-500 font-bold uppercase tracking-wider flex justify-between items-center"><span><i class="fa-solid fa-clock-rotate-left mr-1.5"></i> Tìm kiếm gần đây</span><button onclick="localStorage.removeItem('vnbus_recent_searches'); document.getElementById('${sugId}').classList.remove('active')" class="hover:text-red-500 transition-colors"><i class="fa-solid fa-trash"></i></button></div>` + recents.map(r => {
+                            const html = `<div class="p-3 text-xs text-gray-400 font-bold uppercase tracking-wider flex justify-between items-center bg-gray-50 border-b border-gray-100">
+                                <span>Lịch sử tìm kiếm</span>
+                                <button onmousedown="event.preventDefault(); localStorage.removeItem('vnbus_recent_searches'); document.getElementById('${sugId}').classList.remove('active')" class="hover:text-red-500 transition-colors p-1"><i class="fa-solid fa-trash"></i></button>
+                            </div>` + recents.map(r => {
                                 let safeRawJS = r.query.replace(/'/g, "\\'").replace(/"/g, '\\"');
                                 let clickAction = `document.getElementById('${inputId}').value = '${safeRawJS}'; document.getElementById('${sugId}').classList.remove('active'); app.search.setFilter('${r.filter}', false); app.handleSearch(true);`;
-                                return `<div onclick="${clickAction}" class="px-4 py-2.5 hover:bg-gray-100 cursor-pointer flex items-center gap-3 transition-colors text-black font-medium border-b border-gray-50 last:border-none">
-                                    <i class="fa-solid fa-clock-rotate-left text-gray-300"></i>
-                                    <span>${r.query}</span>
+                                return `<div class="suggestion-item border-b border-gray-100 last:border-0" onmousedown="event.preventDefault(); ${clickAction}">
+                                    <div class="text-[13px] text-black font-medium leading-snug break-words whitespace-normal flex items-center gap-2"><i class="fa-solid fa-clock-rotate-left text-gray-400"></i> ${r.query}</div>
                                 </div>`;
                             }).join('');
                             box.innerHTML = html;
