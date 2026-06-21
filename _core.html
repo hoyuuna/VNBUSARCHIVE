@@ -1493,7 +1493,9 @@
             to { opacity: 1; transform: translateX(0); }
         }
     </style>
-
+    <style>
+        body.is-offline button[type="submit"], body.is-offline .submit-btn, body.is-offline #btn-submit, body.is-offline #btn-post-comment, body.is-offline #btn-like { pointer-events: none !important; opacity: 0.5 !important; }
+    </style>
 
     <!-- Thư viện cho WebRTC QR Upload -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -1502,6 +1504,7 @@
 </head>
 
 <body class="antialiased">
+    <div id="offline-banner" class="hidden fixed top-0 left-0 w-full bg-red-600 text-white text-center py-2 z-[999999] font-bold text-sm shadow-md"> <i class="fa-solid fa-wifi-slash mr-2"></i> Bạn đang ngoại tuyến. Một số tính năng sẽ bị vô hiệu hóa. </div>
     <!-- FACEBOOK SDK -->
 
 
@@ -3737,7 +3740,7 @@
                                         <span class="text-red-500">*</span></label>
                                     <input type="text" id="up-plate" oninput="app.utils.formatPlateInput(this)"
                                         x-on:input.debounce.500ms="app.upload.checkPlate($el.value)"
-                                        placeholder="VD: 51B12345"
+                                        placeholder="VD: 51B12345" tabindex="1"
                                         class="w-full border border-gray-300 p-2.5 text-sm uppercase rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition"
                                         required>
                                     <p id="plate-msg" class="text-xs mt-1"></p>
@@ -3745,7 +3748,7 @@
                                 <div>
                                     <label class="text-xs text-gray-500 font-bold block mb-1.5 uppercase">Ngày chụp
                                         <span class="text-red-500">*</span></label>
-                                    <input type="date" id="up-date"
+                                    <input type="date" id="up-date" tabindex="2"
                                         class="w-full border border-gray-300 p-2.5 text-sm rounded-md bg-gray-100 text-gray-500 pointer-events-none outline-none transition"
                                         readonly required>
                                 </div>
@@ -3753,7 +3756,7 @@
                                     <label class="text-xs text-gray-500 font-bold block mb-1.5 uppercase"
                                         id="lbl-route">Số tuyến<span class="text-red-500">*</span></label>
                                     <div class="relative w-full">
-                                        <input type="text" id="up-route" autocomplete="off"
+                                        <input type="text" id="up-route" autocomplete="off" tabindex="3"
                                             onfocus="app.utils.triggerRouteSuggestion('up-route', 'up-route-suggestions', '')"
                                             oninput="app.utils.triggerRouteSuggestion('up-route', 'up-route-suggestions', this.value); clearTimeout(app.upload.routeOpTimeout); app.upload.routeOpTimeout = setTimeout(app.upload.autoFillOperatorByRoute, 500);"
                                             class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition">
@@ -3800,7 +3803,7 @@
                                     <label class="text-xs text-gray-500 font-bold block mb-1.5 uppercase">Đơn vị vận
                                         hành <span class="text-red-500">*</span></label>
                                     <div class="relative w-full">
-                                        <input type="text" id="up-operator" oninput="app.utils.formatNoPunctuation(this)"
+                                        <input type="text" id="up-operator" oninput="app.utils.formatNoPunctuation(this)" tabindex="4"
                                             class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition"
                                             required autocomplete="off"
                                             x-on:input.debounce.300ms="app.utils.triggerSuggestion('up-operator', 'up-operator-suggestions', $el.value, 'operator')">
@@ -3812,7 +3815,7 @@
                                     <label class="text-xs text-gray-500 font-bold block mb-1.5 uppercase">Dòng xe
                                         (Model) <span class="text-red-500">*</span></label>
                                     <div class="relative w-full">
-                                         <input type="text" id="up-model" placeholder="VD: Thaco Mobihome"
+                                         <input type="text" id="up-model" placeholder="VD: Thaco Mobihome" tabindex="5"
                                             class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition"
                                             autocomplete="off"
                                             onfocus="app.utils.triggerSuggestion('up-model', 'up-model-suggestions', this.value, 'model')"
@@ -3834,7 +3837,7 @@
                                 <div>
                                     <label class="text-xs text-gray-500 font-bold block mb-1.5 uppercase">Vị trí chụp
                                         <span class="text-red-500">*</span></label>
-                                    <input type="text" id="up-location"
+                                    <input type="text" id="up-location" tabindex="6"
                                         class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition">
                                     <p id="err-up-location" class="upload-req-err hidden text-[11px] mt-1 text-red-600 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Vui lòng nhập Vị trí chụp</p>
                                     <div id="upload-map" class="mt-2 border border-gray-300 rounded-md"></div>
@@ -3858,7 +3861,7 @@
                                 <div class="md:col-span-2">
                                     <label class="text-xs text-gray-500 font-bold block mb-1.5 uppercase">Ghi chú
                                         ảnh</label>
-                                    <textarea id="up-note" rows="2"
+                                    <textarea id="up-note" rows="2" tabindex="7"
                                         class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition"></textarea>
                                 </div>
                             </div>
@@ -5937,7 +5940,37 @@
                         insertData.parent_id = app.comments.replyingTo;
                     }
 
+                    // Optimistic UI Update: Fake comment
+                    const fakeId = 'temp-' + Date.now();
+                    const listEl = document.getElementById('comment-list');
+                    if (listEl) {
+                        const fakeHtml = app.comments.renderItem({
+                            id: fakeId,
+                            user_id: app.user.id,
+                            content: content,
+                            created_at: new Date().toISOString(),
+                            profiles: { username: app.username || 'Bạn', avatar_url: app.user.user_metadata?.avatar_url || '' }
+                        }, []);
+                        // Thay đổi style để hiển thị "Đang gửi"
+                        const modifiedFakeHtml = fakeHtml.replace('<div class="flex justify-between items-start gap-3 bg-white border border-gray-200', '<div id="'+fakeId+'" class="flex justify-between items-start gap-3 bg-white border border-gray-200 opacity-70').replace('</div>\n                                            <button', '<span class="text-[10px] text-blue-500 font-bold ml-2 italic">Đang gửi...</span></div>\n                                            <button');
+                        if (listEl.innerHTML.includes('Chưa có bình luận')) listEl.innerHTML = '';
+                        listEl.insertAdjacentHTML('afterbegin', modifiedFakeHtml);
+                        
+                        // Xóa text input ngay lập tức
+                        input.value = '';
+                    }
+
                     let { error } = await window.sb.from('photo_comments').insert(insertData);
+
+                    if (error && error.message && error.message.includes('JWT')) {
+                        const { data: { session: newSession } } = await window.sb.auth.refreshSession();
+                        if (newSession) {
+                            const retry = await window.sb.from('photo_comments').insert(insertData);
+                            error = retry.error;
+                        } else {
+                            app.ui.showAlert('Phiên đã hết hạn. Vui lòng tải lại trang và đăng nhập lại.');
+                        }
+                    }
 
                     if (error && app.comments.replyingTo) {
                         delete insertData.parent_id;
@@ -5946,9 +5979,12 @@
                         if (!error) app.comments.cancelReply();
                     }
 
-                    if (error) app.ui.showAlert("Lỗi: " + error.message);
+                    if (error) {
+                        app.ui.showAlert("Lỗi: " + error.message);
+                        const fakeEl = document.getElementById(fakeId);
+                        if(fakeEl) fakeEl.remove();
+                    }
                     else {
-                        input.value = '';
                         document.getElementById('comment-warning')?.classList.add('hidden');
                         app.comments.cancelReply();
                         app.comments.lastPostTime = now;
@@ -6443,6 +6479,24 @@
                 }
 
                 window.onpopstate = () => app.handleRoute();
+
+                // Network Resilience
+                window.addEventListener('offline', () => {
+                    const banner = document.getElementById('offline-banner');
+                    if (banner) banner.classList.remove('hidden');
+                    document.body.classList.add('is-offline');
+                });
+                window.addEventListener('online', () => {
+                    const banner = document.getElementById('offline-banner');
+                    if (banner) banner.classList.add('hidden');
+                    document.body.classList.remove('is-offline');
+                });
+                if (!navigator.onLine) {
+                    const banner = document.getElementById('offline-banner');
+                    if (banner) banner.classList.remove('hidden');
+                    document.body.classList.add('is-offline');
+                }
+
                 app.scrollPositions = {};
                 app.currentPathForScroll = window.location.pathname + window.location.search;
                 window.addEventListener('scroll', () => {
@@ -6584,26 +6638,34 @@
                 });
 
                 // ---- KÍCH HOẠT SỰ KIỆN CHO CẢ 2 Ô TÌM KIẾM ----
-                document.getElementById('search-input').addEventListener('keypress', function (e) {
+                const clearSearchInput = (inputEl, sugId) => {
+                    inputEl.value = '';
+                    document.getElementById(sugId).classList.remove('active');
+                    app.search.triggerMainSuggestion('', inputEl.id, sugId);
+                };
+
+                document.getElementById('search-input').addEventListener('keydown', function (e) {
                     if (e.key === 'Enter') { document.getElementById('main-search-suggestions').classList.remove('active'); app.handleSearch(); }
+                    if (e.key === 'Escape') clearSearchInput(e.target, 'main-search-suggestions');
                 });
                 document.getElementById('search-input').addEventListener('input', function (e) {
                     app.search.triggerMainSuggestion(e.target.value.trim(), 'search-input', 'main-search-suggestions');
                 });
                 document.getElementById('search-input').addEventListener('focus', function (e) {
-                    if (e.target.value.trim().length > 0) app.search.triggerMainSuggestion(e.target.value.trim(), 'search-input', 'main-search-suggestions');
+                    app.search.triggerMainSuggestion(e.target.value.trim(), 'search-input', 'main-search-suggestions');
                 });
 
                 const pageSearchInput = document.getElementById('page-search-input');
                 if (pageSearchInput) {
-                    pageSearchInput.addEventListener('keypress', function (e) {
+                    pageSearchInput.addEventListener('keydown', function (e) {
                         if (e.key === 'Enter') { document.getElementById('page-search-suggestions').classList.remove('active'); app.handleSearch(true); }
+                        if (e.key === 'Escape') clearSearchInput(e.target, 'page-search-suggestions');
                     });
                     pageSearchInput.addEventListener('input', function (e) {
                         app.search.triggerMainSuggestion(e.target.value.trim(), 'page-search-input', 'page-search-suggestions');
                     });
                     pageSearchInput.addEventListener('focus', function (e) {
-                        if (e.target.value.trim().length > 0) app.search.triggerMainSuggestion(e.target.value.trim(), 'page-search-input', 'page-search-suggestions');
+                        app.search.triggerMainSuggestion(e.target.value.trim(), 'page-search-input', 'page-search-suggestions');
                     });
                 }
 
@@ -7440,7 +7502,24 @@ grid.innerHTML = tiers.map(tier => {
                 triggerMainSuggestion: async (query, inputId = 'search-input', sugId = 'main-search-suggestions') => {
                     const box = document.getElementById(sugId);
                     if (app.suggestionTimeouts[inputId]) clearTimeout(app.suggestionTimeouts[inputId]);
-                    if (query.length < 1) { box.classList.remove('active'); return; }
+                    if (query.length < 1) {
+                        let recents = JSON.parse(localStorage.getItem('vnbus_recent_searches') || '[]');
+                        if (recents.length > 0) {
+                            const html = `<div class="p-2 text-xs text-gray-500 font-bold uppercase tracking-wider flex justify-between items-center"><span><i class="fa-solid fa-clock-rotate-left mr-1.5"></i> Tìm kiếm gần đây</span><button onclick="localStorage.removeItem('vnbus_recent_searches'); document.getElementById('${sugId}').classList.remove('active')" class="hover:text-red-500 transition-colors"><i class="fa-solid fa-trash"></i></button></div>` + recents.map(r => {
+                                let safeRawJS = r.query.replace(/'/g, "\\'").replace(/"/g, '\\"');
+                                let clickAction = `document.getElementById('${inputId}').value = '${safeRawJS}'; document.getElementById('${sugId}').classList.remove('active'); app.search.setFilter('${r.filter}', false); app.handleSearch(true);`;
+                                return `<div onclick="${clickAction}" class="px-4 py-2.5 hover:bg-gray-100 cursor-pointer flex items-center gap-3 transition-colors text-black font-medium border-b border-gray-50 last:border-none">
+                                    <i class="fa-solid fa-clock-rotate-left text-gray-300"></i>
+                                    <span>${r.query}</span>
+                                </div>`;
+                            }).join('');
+                            box.innerHTML = html;
+                            box.classList.add('active');
+                        } else {
+                            box.classList.remove('active');
+                        }
+                        return;
+                    }
 
                     app.suggestionTimeouts[inputId] = setTimeout(async () => {
                         if (app.suggestionControllers && app.suggestionControllers[inputId]) {
@@ -7455,7 +7534,12 @@ grid.innerHTML = tiers.map(tier => {
                             const filter = app.currentFilter;
                             let results =[];
 
-                            const searchWords = query.trim().split(/\s+/).filter(w => w.length > 0);
+                            let normalizedQuery = query.toLowerCase()
+                                .replace(/vin bus/g, 'vinbus')
+                                .replace(/thanh buoi/g, 'thành bưởi')
+                                .replace(/phuong trang/g, 'phương trang');
+
+                            const searchWords = normalizedQuery.trim().split(/\s+/).filter(w => w.length > 0);
 
                             const isBasePlate = (plate) => !/-\d+$/.test(plate);
 
@@ -7728,6 +7812,13 @@ grid.innerHTML = tiers.map(tier => {
                 }
                 app.lastSearchQuery = query;
                 app.lastSearchFilter = filterType;
+
+                // Save recent search
+                let recents = JSON.parse(localStorage.getItem('vnbus_recent_searches') || '[]');
+                recents = recents.filter(r => r.query !== query);
+                recents.unshift({ query, filter: filterType });
+                if (recents.length > 5) recents.pop();
+                localStorage.setItem('vnbus_recent_searches', JSON.stringify(recents));
 
                 // Tách biệt hẳn ra tab search
                 app.views.switch('search', false);
@@ -8162,6 +8253,7 @@ dropdown.innerHTML = `
                         if (id === 'upload') {
                             app.upload.fetchRequirements();
                             app.upload.checkQuota();
+                            app.upload.loadDraft(); // Load draft when switching to upload view
                             setTimeout(() => app.uploadMap.invalidateSize(), 200);
                             app.utils.resetTurnstile('#upload .cf-turnstile');
                         }
@@ -11586,6 +11678,41 @@ app.admin.fetchManagerData('denied');
                  currentQuota: { limit: null, count: 0 },
                  routeOpTimeout: null, // Thêm dòng này
 
+                 saveDraft: () => {
+                     const draft = {
+                         plate: document.getElementById('up-plate')?.value || '',
+                         type: document.getElementById('up-type')?.value || '',
+                         route: document.getElementById('up-route')?.value || '',
+                         operator: document.getElementById('up-operator')?.value || '',
+                         model: document.getElementById('up-model')?.value || '',
+                         location: document.getElementById('up-location')?.value || '',
+                         date: document.getElementById('up-date')?.value || '',
+                         note: document.getElementById('up-note')?.value || ''
+                     };
+                     localStorage.setItem('vnbus_upload_draft', JSON.stringify(draft));
+                 },
+                 loadDraft: () => {
+                     const saved = localStorage.getItem('vnbus_upload_draft');
+                     if (saved) {
+                         try {
+                             const draft = JSON.parse(saved);
+                             if(draft.plate) document.getElementById('up-plate').value = draft.plate;
+                             if(draft.type) { document.getElementById('up-type').value = draft.type; app.upload.applyPreferenceUI(); }
+                             if(draft.route) document.getElementById('up-route').value = draft.route;
+                             if(draft.operator) document.getElementById('up-operator').value = draft.operator;
+                             if(draft.model) document.getElementById('up-model').value = draft.model;
+                             if(draft.location) document.getElementById('up-location').value = draft.location;
+                             if(draft.date) document.getElementById('up-date').value = draft.date;
+                             if(draft.note) document.getElementById('up-note').value = draft.note;
+                         } catch (e) {
+                             console.warn("Lỗi load draft", e);
+                         }
+                     }
+                 },
+                 clearDraft: () => {
+                     localStorage.removeItem('vnbus_upload_draft');
+                 },
+
                  // THÊM HÀM NÀY VÀO ĐÂY
                  autoFillOperatorByRoute: async () => {
                     // Nếu xe đã bị khóa thông tin (vì đã có ảnh duyệt), không tự điền đè lên
@@ -12856,7 +12983,7 @@ app.admin.fetchManagerData('denied');
                         uploadData.append('meta_exif_params', app.currentExif.params);
 
                         const { data: { session } } = await window.sb.auth.getSession();
-                        const token = session?.access_token;
+                        let token = session?.access_token;
 
                         let result = null;
                         let uploadAttempts = 0;
@@ -12877,6 +13004,18 @@ app.admin.fetchManagerData('denied');
                                 });
 
                                 result = await response.json();
+
+                                if (response.status === 401 || (result && result.error && result.error.message && result.error.message.includes('JWT'))) {
+                                    app.ui.showAlert('Phiên đăng nhập đã hết hạn. Đang cố gắng khôi phục...', null, null, { title: 'Đang kết nối lại' });
+                                    const { data: { session: newSession } } = await window.sb.auth.refreshSession();
+                                    if (newSession && newSession.access_token) {
+                                        token = newSession.access_token;
+                                        uploadAttempts--;
+                                        continue;
+                                    } else {
+                                        throw new Error('Phiên đã hết hạn. Vui lòng đăng nhập lại.');
+                                    }
+                                }
 
                                 if (!result.success) {
                                     let errorDetail = result.error;
@@ -12922,7 +13061,7 @@ app.admin.fetchManagerData('denied');
 
                         // Đã bỏ verifyImageLoaded để không block UI người dùng chờ CDN cache.
 
-
+                        app.upload.clearDraft(); // Xoá draft sau khi upload thành công
                         app.ui.updateUploadSuccess();
 
                     } catch (err) {
@@ -14030,39 +14169,54 @@ cleanupState: () => {
                     const isLiked = likeBtn.classList.contains('bg-gray-400');
 
                     if (isLiked) {
+                        // Optimistic UI Update: Revert UI immediately
+                        likeBtn.classList.replace('bg-gray-400', 'bg-black');
+                        likeBtn.innerHTML = '<i class="fa-regular fa-thumbs-up"></i> Thích ảnh này';
+                        likeCountEl.innerText = Math.max(0, currentCount - 1);
+
+                        const zBtn = document.getElementById('zoom-btn-like');
+                        if(zBtn) {
+                            zBtn.className = "flex items-center justify-center gap-1.5 text-gray-800 bg-transparent hover:bg-black hover:text-white px-3 py-2 md:px-4 md:py-2.5 rounded-lg font-bold text-[11px] md:text-sm transition-colors whitespace-nowrap";
+                            zBtn.innerHTML = '<i class="fa-regular fa-thumbs-up text-sm md:text-base"></i> <span class="hidden md:inline">Thích</span>';
+                        }
+
                         const { error } = await window.sb.from('photo_likes').delete().eq('photo_id', photoId).eq('user_id', app.user.id);
 
-                        if (!error) {
-                            likeBtn.classList.replace('bg-gray-400', 'bg-black');
-                            likeBtn.innerHTML = '<i class="fa-regular fa-thumbs-up"></i> Thích ảnh này';
-                            likeCountEl.innerText = Math.max(0, currentCount - 1);
-
-                            const zBtn = document.getElementById('zoom-btn-like');
-                            if(zBtn) {
-                                zBtn.className = "flex items-center justify-center gap-1.5 text-gray-800 bg-transparent hover:bg-black hover:text-white px-3 py-2 md:px-4 md:py-2.5 rounded-lg font-bold text-[11px] md:text-sm transition-colors whitespace-nowrap";
-                                zBtn.innerHTML = '<i class="fa-regular fa-thumbs-up text-sm md:text-base"></i> <span class="hidden md:inline">Thích</span>';
-                            }
-                        } else {
-                            app.ui.showAlert("Lỗi khi bỏ thích: " + error.message);
-                        }
-                    } else {
-                        const { error } = await window.sb.from('photo_likes').insert({ photo_id: photoId, user_id: app.user.id });
-
-                        if (!error) {
+                        if (error) {
+                            // Rollback UI
                             likeBtn.classList.replace('bg-black', 'bg-gray-400');
                             likeBtn.innerHTML = '<i class="fa-solid fa-check"></i> Đã thích';
-                            likeCountEl.innerText = currentCount + 1;
-
-                            const zBtn = document.getElementById('zoom-btn-like');
+                            likeCountEl.innerText = currentCount;
                             if(zBtn) {
                                 zBtn.className = "flex items-center justify-center gap-1.5 bg-black text-white px-3 py-2 md:px-4 md:py-2.5 rounded-lg font-bold text-[11px] md:text-sm transition-colors whitespace-nowrap";
                                 zBtn.innerHTML = '<i class="fa-solid fa-check text-sm md:text-base"></i> <span class="hidden md:inline">Đã thích</span>';
                             }
-                        } else {
-                            if (error.code === '23505') {
-                                likeBtn.classList.replace('bg-black', 'bg-gray-400');
-                                likeBtn.innerHTML = '<i class="fa-solid fa-check"></i> Đã thích';
-                            } else {
+                            app.ui.showAlert("Lỗi khi bỏ thích: " + error.message);
+                        }
+                    } else {
+                        // Optimistic UI Update: Update UI immediately
+                        likeBtn.classList.replace('bg-black', 'bg-gray-400');
+                        likeBtn.innerHTML = '<i class="fa-solid fa-check"></i> Đã thích';
+                        likeCountEl.innerText = currentCount + 1;
+
+                        const zBtn = document.getElementById('zoom-btn-like');
+                        if(zBtn) {
+                            zBtn.className = "flex items-center justify-center gap-1.5 bg-black text-white px-3 py-2 md:px-4 md:py-2.5 rounded-lg font-bold text-[11px] md:text-sm transition-colors whitespace-nowrap";
+                            zBtn.innerHTML = '<i class="fa-solid fa-check text-sm md:text-base"></i> <span class="hidden md:inline">Đã thích</span>';
+                        }
+
+                        const { error } = await window.sb.from('photo_likes').insert({ photo_id: photoId, user_id: app.user.id });
+
+                        if (error) {
+                            if (error.code !== '23505') {
+                                // Rollback UI
+                                likeBtn.classList.replace('bg-gray-400', 'bg-black');
+                                likeBtn.innerHTML = '<i class="fa-regular fa-thumbs-up"></i> Thích ảnh này';
+                                likeCountEl.innerText = currentCount;
+                                if(zBtn) {
+                                    zBtn.className = "flex items-center justify-center gap-1.5 text-gray-800 bg-transparent hover:bg-black hover:text-white px-3 py-2 md:px-4 md:py-2.5 rounded-lg font-bold text-[11px] md:text-sm transition-colors whitespace-nowrap";
+                                    zBtn.innerHTML = '<i class="fa-regular fa-thumbs-up text-sm md:text-base"></i> <span class="hidden md:inline">Thích</span>';
+                                }
                                 app.ui.showAlert("Lỗi khi thích: " + error.message);
                             }
                         }
@@ -15636,6 +15790,51 @@ closeCustomRolePrompt: () => {
         });
 
         marked.use({ breaks: true, gfm: true });
+
+        document.addEventListener('keydown', (e) => {
+            if (!['ArrowDown', 'ArrowUp', 'Enter'].includes(e.key)) return;
+            const activeEl = document.activeElement;
+            if (!activeEl || activeEl.tagName !== 'INPUT') return;
+            
+            let sugBoxId = null;
+            if (activeEl.id === 'search-input') sugBoxId = 'main-search-suggestions';
+            else if (activeEl.id === 'page-search-input') sugBoxId = 'page-search-suggestions';
+            else if (activeEl.id.includes('route')) sugBoxId = activeEl.id + '-suggestions';
+            else if (activeEl.id.includes('operator')) sugBoxId = activeEl.id + '-suggestions';
+            else if (activeEl.id.includes('model')) sugBoxId = activeEl.id + '-suggestions';
+            
+            if (!sugBoxId) return;
+            const box = document.getElementById(sugBoxId);
+            if (!box || !box.classList.contains('active')) return;
+
+            const items = Array.from(box.querySelectorAll('.suggestion-item, [onclick]'));
+            if (items.length === 0) return;
+
+            let currentIndex = items.findIndex(item => item.classList.contains('bg-gray-100'));
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (currentIndex >= 0) items[currentIndex].classList.remove('bg-gray-100');
+                currentIndex = (currentIndex + 1) % items.length;
+                items[currentIndex].classList.add('bg-gray-100');
+                items[currentIndex].scrollIntoView({ block: 'nearest' });
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (currentIndex >= 0) items[currentIndex].classList.remove('bg-gray-100');
+                currentIndex = (currentIndex - 1 + items.length) % items.length;
+                items[currentIndex].classList.add('bg-gray-100');
+                items[currentIndex].scrollIntoView({ block: 'nearest' });
+            } else if (e.key === 'Enter') {
+                if (currentIndex >= 0) {
+                    e.preventDefault();
+                    if (items[currentIndex].onclick) items[currentIndex].click();
+                    else {
+                        const evt = new MouseEvent('mousedown', { bubbles: true });
+                        items[currentIndex].dispatchEvent(evt);
+                    }
+                }
+            }
+        });
 
         document.addEventListener('DOMContentLoaded', async () => {
             try {
