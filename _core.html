@@ -6497,6 +6497,15 @@
                     document.body.classList.add('is-offline');
                 }
 
+                // Upload Form Data Loss Prevention
+                window.addEventListener('beforeunload', (e) => {
+                    if (app.currentViewMode === 'upload' && (app.rawFile || document.getElementById('up-plate').value || document.getElementById('up-route').value)) {
+                        app.upload.saveDraft();
+                        e.preventDefault();
+                        e.returnValue = ''; // Standard way to show prompt
+                    }
+                });
+
                 app.scrollPositions = {};
                 app.currentPathForScroll = window.location.pathname + window.location.search;
                 window.addEventListener('scroll', () => {
