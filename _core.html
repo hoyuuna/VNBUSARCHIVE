@@ -4303,7 +4303,7 @@
                         timeout = setTimeout(removeToast, duration);
                     }
 
-                    // --- LOGIC VUỐT ĐỂ TẮT ---
+                    // --- LOGIC VUỐT ĐỂ TẮT (VẬT LÝ MƯỢT MÀ BÁM THEO NGÓN TAY) ---
                     let startX = 0, startY = 0, currentX = 0, currentY = 0;
                     let isDragging = false;
 
@@ -4311,6 +4311,8 @@
                         isDragging = true;
                         startX = e.touches ? e.touches[0].clientX : e.clientX;
                         startY = e.touches ? e.touches[0].clientY : e.clientY;
+                        
+                        // Tắt transition để thẻ bám dính lập tức theo ngón tay không bị delay
                         toast.style.transition = 'none'; 
                         if (timeout) clearTimeout(timeout);
                     };
@@ -4319,13 +4321,19 @@
                         if (!isDragging) return;
                         currentX = e.touches ? e.touches[0].clientX : e.clientX;
                         currentY = e.touches ? e.touches[0].clientY : e.clientY;
+                        
                         const diffX = currentX - startX;
-                        const diffY = currentY - startY;
+                        let diffY = currentY - startY;
 
-                        if (diffY > 15) return; // Chống vuốt nhầm xuống dưới
+                        // Chống vuốt xuống (Vuốt xuống sẽ bị cản lực kéo lại)
+                        if (diffY > 0) diffY = diffY * 0.2; 
 
-                        toast.style.transform = `translate(${diffX}px, ${diffY < 0 ? diffY : 0}px)`;
-                        toast.style.opacity = 1 - (Math.abs(diffX) + Math.abs(diffY)) / 200;
+                        // 1. Di chuyển thẻ khớp 1:1 với ngón tay
+                        toast.style.transform = `translate(${diffX}px, ${diffY}px)`;
+                        
+                        // 2. Tính toán độ mờ dần dựa trên quãng đường kéo (càng xa càng mờ)
+                        const distance = Math.sqrt(diffX * diffX + diffY * diffY);
+                        toast.style.opacity = Math.max(0, 1 - distance / 150);
                     };
 
                     const onEnd = () => {
@@ -4334,15 +4342,20 @@
                         const diffX = currentX - startX;
                         const diffY = currentY - startY;
 
-                        toast.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease-out';
+                        // Bật lại transition để làm animation trượt kết thúc
+                        toast.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
 
-                        if (Math.abs(diffX) > 50 || diffY < -30) {
-                            const dirX = Math.abs(diffX) > 50 ? Math.sign(diffX) * window.innerWidth : 0;
-                            const dirY = diffY < -30 ? -100 : 0;
-                            toast.style.transform = `translate(${dirX}px, ${dirY}px)`;
+                        // Nếu vuốt đủ xa (>60px ngang hoặc >40px dọc lên) -> Bắn thẻ ra khỏi màn hình
+                        if (Math.abs(diffX) > 60 || diffY < -40) {
+                            // Nhân 5 quãng đường lên để thẻ văng tiếp theo đúng quỹ đạo vuốt
+                            const endX = diffX * 5; 
+                            const endY = diffY < 0 ? diffY * 5 : 0; 
+                            
+                            toast.style.transform = `translate(${endX}px, ${endY}px)`;
                             toast.style.opacity = 0;
-                            setTimeout(() => toast.remove(), 250);
+                            setTimeout(() => toast.remove(), 300);
                         } else {
+                            // Vuốt chưa đủ lực -> Bật nảy về lại vị trí cũ
                             toast.style.transform = 'translate(0, 0)';
                             toast.style.opacity = 1;
                             if (duration > 0) timeout = setTimeout(removeToast, duration);
@@ -13268,7 +13281,20 @@ app.admin.fetchManagerData('denied');
                         // Đã bỏ verifyImageLoaded để không block UI người dùng chờ CDN cache.
 
                         app.upload.clearDraft(); // Xoá draft sau khi upload thành công
-                        app.ui.updateUploadSuccess();
+                        
+                        // 1. Dọn dẹp form ngay lập tức (xóa ảnh, reset text, tắt tiến trình)
+                        app.utils.cleanupState(); 
+                        
+                        // 2. Cuộn mượt mà lên đầu trang để sẵn sàng úp xe mới
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        
+                        // 3. Bắn Toast Notification thay vì dùng bảng Update Upload Success cũ
+                        app.toast.show(
+                            'success', 
+                            'Ảnh đã upload thành công!', 
+                            'Hình ảnh của bạn đã được đưa vào hàng chờ kiểm duyệt.', 
+                            10000
+                        );
 
                     } catch (err) {
                         let displayError = err.message;
