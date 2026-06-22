@@ -4267,13 +4267,13 @@
             toast: {
                 currentOfflineToast: null,
                 
-                show: (type, title, message, duration = 10000) => {
+                show: (type, title, message, duration = 10000, onClickAction = null) => {
                     const container = document.getElementById('toast-container');
                     if (!container) return null;
 
                     const toast = document.createElement('div');
-                    // Giao diện kính mờ, max-w-sm cho gọn gàng vừa vặn
-                    toast.className = 'toast-card toast-enter rounded-2xl p-4 flex items-start gap-3 w-11/12 max-w-sm cursor-grab active:cursor-grabbing mx-auto';
+                    // Đổi cursor thành pointer để người dùng biết có thể bấm
+                    toast.className = 'toast-card toast-enter bg-white/90 backdrop-blur-xl border border-gray-200 shadow-2xl rounded-2xl p-4 flex items-start gap-3 w-11/12 max-w-sm cursor-pointer mx-auto';
 
                     let iconHtml = '';
                     if (type === 'success') {
@@ -4294,45 +4294,41 @@
 
                     container.prepend(toast);
 
-                    // HÀM TỰ ĐỘNG ĐÓNG HOẶC ĐÓNG BẰNG LỆNH (Fix lỗi mất cái đùng)
                     const removeToast = () => {
-                        // Tắt keyframe lúc xuất hiện để không bị xung đột
                         toast.style.animation = 'none';
-                        // Gán hiệu ứng trượt mượt mà
                         toast.style.transition = 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease-out';
-                        
-                        // "Mẹo" ép trình duyệt nhận diện transition ngay lập tức (Reflow)
                         void toast.offsetHeight;
-
-                        // Trượt ngược lên trên và mờ đi
                         toast.style.transform = 'translateY(-40px) scale(0.95)';
                         toast.style.opacity = '0';
-                        
                         setTimeout(() => toast.remove(), 300);
                     };
 
                     let timeout;
-                    if (duration > 0) {
-                        timeout = setTimeout(removeToast, duration);
-                    }
+                    if (duration > 0) timeout = setTimeout(removeToast, duration);
 
-                    // --- LOGIC VUỐT ĐỂ TẮT (NÂNG CẤP VẬN TỐC & QUÁN TÍNH NHƯ IOS) ---
+                    // --- LOGIC VUỐT (SWIPE) & NHẤN (TAP) KẾT HỢP ---
                     let startX = 0, startY = 0, currentX = 0, currentY = 0;
                     let lastX = 0, lastY = 0, lastTime = 0;
                     let velocityX = 0, velocityY = 0;
                     let isDragging = false;
+                    let hasMoved = false; // Cờ nhận diện có đang vuốt hay không
 
                     const onStart = (e) => {
                         isDragging = true;
+                        hasMoved = false; 
                         startX = e.touches ? e.touches[0].clientX : e.clientX;
                         startY = e.touches ? e.touches[0].clientY : e.clientY;
+                        currentX = startX;
+                        currentY = startY;
                         lastX = startX;
                         lastY = startY;
                         lastTime = Date.now();
                         
-                        // Tắt toàn bộ độ trễ để bám chặt ngón tay, đồng thời tắt animation xuất hiện
-                        toast.style.transition = 'none'; 
+                        // ANIMATION KHI CHẠM VÀO: Lún nhẹ thẻ xuống tạo cảm giác bấm thật
+                        toast.style.transition = 'transform 0.15s cubic-bezier(0.16, 1, 0.3, 1)'; 
                         toast.style.animation = 'none';
+                        toast.style.transform = 'scale(0.95)';
+
                         if (timeout) clearTimeout(timeout);
                     };
 
@@ -4344,42 +4340,58 @@
                         const diffX = currentX - startX;
                         let diffY = currentY - startY;
 
-                        // Hiệu ứng "kéo dây thun" khi cố vuốt xuống dưới
-                        if (diffY > 0) diffY = diffY * 0.2; 
-
-                        // Bám sát vị trí ngón tay 1:1
-                        toast.style.transform = `translate(${diffX}px, ${diffY}px)`;
-                        
-                        // Tính toán độ mờ theo khoảng cách thực
-                        const distance = Math.sqrt(diffX * diffX + diffY * diffY);
-                        toast.style.opacity = Math.max(0, 1 - distance / 200);
-
-                        // Tính toán vận tốc (Tốc độ vuốt)
-                        const now = Date.now();
-                        const dt = now - lastTime;
-                        if (dt > 0) {
-                            velocityX = (currentX - lastX) / dt;
-                            velocityY = (currentY - lastY) / dt;
+                        // Nếu di chuyển quá 5px, chuyển từ trạng thái "Nhấn" sang "Vuốt"
+                        if (Math.abs(diffX) > 5 || Math.abs(diffY) > 5) {
+                            hasMoved = true;
+                            toast.style.transition = 'none'; // Tắt độ trễ để thẻ bám ngón tay
                         }
-                        lastX = currentX;
-                        lastY = currentY;
-                        lastTime = now;
+
+                        if (hasMoved) {
+                            if (diffY > 0) diffY = diffY * 0.2; // Dây thun khi kéo xuống
+                            toast.style.transform = `translate(${diffX}px, ${diffY}px)`;
+                            
+                            const distance = Math.sqrt(diffX * diffX + diffY * diffY);
+                            toast.style.opacity = Math.max(0, 1 - distance / 200);
+
+                            const now = Date.now();
+                            const dt = now - lastTime;
+                            if (dt > 0) {
+                                velocityX = (currentX - lastX) / dt;
+                                velocityY = (currentY - lastY) / dt;
+                            }
+                            lastX = currentX;
+                            lastY = currentY;
+                            lastTime = now;
+                        }
                     };
 
                     const onEnd = () => {
                         if (!isDragging) return;
                         isDragging = false;
                         
+                        toast.style.transition = 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease-out';
+                        void toast.offsetHeight;
+
+                        // KIỂM TRA XEM LÀ NHẤN HAY VUỐT
+                        if (!hasMoved) {
+                            // ĐÂY LÀ NHẤN (TAP) -> Nảy thẻ lên lại
+                            toast.style.transform = 'scale(1)';
+                            toast.style.opacity = '1';
+                            
+                            if (onClickAction) {
+                                onClickAction(); // Chạy lệnh (VD: chuyển trang)
+                                removeToast();   // Bấm xong thì đóng luôn thẻ
+                            } else {
+                                // Nếu bấm cho vui (ko có tính năng), thẻ nảy lên và tiếp tục đếm ngược
+                                if (duration > 0) timeout = setTimeout(removeToast, duration);
+                            }
+                            return;
+                        }
+
+                        // ĐÂY LÀ VUỐT (SWIPE)
                         const diffX = currentX - startX;
                         const diffY = currentY - startY;
 
-                        // Bật lại gia tốc trượt khi thả tay
-                        toast.style.transition = 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease-out';
-                        
-                        // Ép trình duyệt áp dụng transition ngay lập tức
-                        void toast.offsetHeight;
-
-                        // ĐIỀU KIỆN ĐÓNG THÔNG BÁO: Kéo đủ xa HOẶC Quẹt tay đủ nhanh
                         const isSwipeFastX = Math.abs(velocityX) > 0.5;
                         const isSwipeFastY = velocityY < -0.5; 
                         
@@ -4397,7 +4409,6 @@
                             toast.style.opacity = '0';
                             setTimeout(() => toast.remove(), 300);
                         } else {
-                            // Vuốt nhẹ, thả tay ra sẽ tự bật nảy về vị trí cũ
                             toast.style.transform = 'translate(0, 0)';
                             toast.style.opacity = '1';
                             if (duration > 0) timeout = setTimeout(removeToast, duration);
@@ -4412,7 +4423,7 @@
                     toast.addEventListener('mousemove', onMove);
                     toast.addEventListener('mouseup', onEnd);
 
-                    return removeToast; 
+                    return removeToast;
                 }
             },
             serverStatus: {
@@ -13323,23 +13334,25 @@ app.admin.fetchManagerData('denied');
 
                         app.upload.clearDraft(); // Xoá draft sau khi upload thành công
                         
-                        // TÍNH TOÁN SỐ LƯỢNG HÀNG ĐỢI (Kế thừa logic tính độ ưu tiên của hệ thống cũ)
+                        // TÍNH TOÁN SỐ LƯỢNG HÀNG ĐỢI & LẤY ID ẢNH VỪA ÚP
                         let queueCount = '?';
+                        let newPhotoId = null; // Khởi tạo biến lưu ID ảnh mới
+                        
                         try {
                             const { data: pendingData } = await window.sb.from('photos').select('id, uploader_id, created_at, profiles(role)').eq('status', 'pending');
                             if (pendingData) {
                                 let ahead = 0;
                                 const isMePrivileged = (app.role === 'admin' || app.role === 'manager');
                                 
-                                // Tìm ảnh vừa mới đăng xong của user này
                                 const myPhotos = pendingData.filter(p => p.uploader_id === app.user.id).sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
                                 
                                 if (myPhotos.length > 0) {
                                     const myPhoto = myPhotos[0];
+                                    newPhotoId = myPhoto.id; // LƯU ID LẠI ĐỂ TRUYỀN VÀO TOAST
                                     const myTime = new Date(myPhoto.created_at).getTime();
 
                                     pendingData.forEach(p => {
-                                        if (p.id === myPhoto.id) return; // Bỏ qua ảnh mình vừa up
+                                        if (p.id === myPhoto.id) return; 
                                         const pRole = p.profiles?.role || 'user';
                                         const pPrivileged = (pRole === 'admin' || pRole === 'manager');
                                         const pTime = new Date(p.created_at).getTime();
@@ -13366,12 +13379,13 @@ app.admin.fetchManagerData('denied');
                         // 2. Cuộn mượt mà lên đầu trang
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                         
-                        // 3. Bắn Toast Notification kèm số hàng đợi (Inline & Bold)
+                        // 3. Bắn Toast Notification kèm ID chuyển trang
                         app.toast.show(
                             'success', 
                             'Ảnh đã upload thành công!', 
-                            `Hình ảnh đã được đưa vào hàng chờ kiểm duyệt. Chờ duyệt trước bạn: <b>${queueCount} ảnh</b>.`, 
-                            10000
+                            `Đã đưa vào hàng chờ kiểm duyệt. Chờ duyệt trước bạn: <b>${queueCount} ảnh</b>. Nhấn để xem chi tiết.`, 
+                            10000,
+                            newPhotoId ? () => { app.utils.navigate(`/photo/${newPhotoId}`); } : null // TRUYỀN HÀM CHUYỂN TRANG VÀO ĐÂY
                         );
 
                     } catch (err) {
