@@ -90,9 +90,9 @@ Gán nhãn chính xác: **Xe buýt** hoặc **Xe khách**.
 
 ### 5. Tuyến hoạt động
 * **Xe buýt:** Chỉ nhập mã số tuyến (Ví dụ: `01`). Lộ trình cụ thể chuyển xuống mục Ghi chú.
+  *Lưu ý:* Các tuyến cuối tuần (CT) sẽ không ghi hậu tố CT vào cuối. Các hậu tố tạm thời khác có tính lặp lại liên tục cũng được áp dụng.
 * **Xe khách:** Nhập theo cú pháp `[Điểm đầu] - [Điểm cuối]` cấp tỉnh. Ưu tiên điểm đầu là nơi đăng ký phương tiện (Ví dụ: `Hà Nội - Cẩm Phả`).
 * **Trạng thái đặc biệt:** Khai báo bằng các nhãn chuẩn: `Dừng hoạt động`, `Chưa hoạt động`, `Ngoài giờ hoạt động`, `Hợp đồng`.
-
 ### 6. Dòng xe (Model)
 Ưu tiên danh sách gợi ý. Cần nhập chính xác mã định danh thương mại (Ví dụ: `Thaco Garden TB79CT`).
 
