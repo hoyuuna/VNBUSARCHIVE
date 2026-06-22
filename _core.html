@@ -3628,6 +3628,15 @@
                                     class="relative w-full border border-gray-300 shadow-sm overflow-hidden no-select bg-gray-200 rounded-md">
                                     <img id="preview-img" class="w-full h-auto block pointer-events-none"
                                         style="max-height: 80vh; object-fit: contain;">
+                                        
+                                    <!-- [MỚI] NÚT ZOOM ẢNH BÊ TỪ ADMIN SANG -->
+                                    <button type="button" onclick="app.admin.openZoom(document.getElementById('preview-img').src, false)" 
+                                        class="absolute top-2 right-2 bg-black/50 text-white w-8 h-8 rounded hover:bg-black flex items-center justify-center transition z-50 pointer-events-auto" 
+                                        title="Phóng to ảnh gốc">
+                                        <i class="fa-solid fa-expand"></i>
+                                    </button>
+                                    <!-- ================================== -->
+
                                     <div id="preview-footer-bar"
                                         class="absolute bottom-0 left-0 w-full bg-black/25 backdrop-blur-[8px] z-10 pointer-events-none border-t border-white/10">
                                         <span class="footer-text-left">VNBUSARCHIVE</span>
