@@ -3027,17 +3027,12 @@
 
                         <div class="bg-white p-1.5 border border-vbs-border shadow-sm mb-6 rounded-lg">
                             <!-- KHUNG ẢNH CHI TIẾT SỬ DỤNG SKELETON -->
-                            <div class="img-wrapper relative w-full aspect-[4/3] bg-gray-100 rounded-md overflow-hidden group">
+                            <div class="img-wrapper relative w-full aspect-[4/3] bg-gray-100 rounded-md overflow-hidden">
                                 <div class="img-spinner absolute inset-0 flex items-center justify-center text-gray-400">
                                     <i class="fa-solid fa-circle-notch fa-spin text-4xl"></i>
                                 </div>
 
                                 <img id="detail-img" src="" class="absolute inset-0 w-full h-full object-contain opacity-0 transition-all duration-300 block">
-                                
-                                <!-- NÚT ZOOM VÀO ẢNH (MỚI THÊM) -->
-                                <button id="btn-detail-zoom" class="hidden absolute top-3 right-3 bg-black/60 backdrop-blur-sm text-white w-10 h-10 rounded-lg hover:bg-black items-center justify-center transition z-20 shadow-md" title="Phóng to ảnh nguyên bản">
-                                    <i class="fa-solid fa-expand text-lg"></i>
-                                </button>
 
                                 <div class="img-error absolute inset-0 hidden flex-col items-center justify-center p-6 text-center bg-gray-50">
                                     <i class="fa-solid fa-image-slash text-red-400 text-5xl mb-4"></i>
@@ -9471,45 +9466,18 @@ dropdown.innerHTML = `
                         wrapper.querySelector('.img-spinner').style.display = 'flex';
                     }
 
-                    const zoomBtn = document.getElementById('btn-detail-zoom');
-                    if(zoomBtn) {
-                        zoomBtn.classList.add('hidden');
-                        zoomBtn.classList.remove('flex');
-                    }
-
-                    imgEl.onload = () => {
-                        app.utils.handleImgLoad(imgEl);
-                        if(zoomBtn) {
-                            zoomBtn.classList.remove('hidden');
-                            zoomBtn.classList.add('flex');
-                        }
-                    };
-                    
-                    imgEl.onerror = () => {
-                        app.utils.handleImgError(imgEl);
-                        if(zoomBtn) {
-                            zoomBtn.classList.add('hidden');
-                            zoomBtn.classList.remove('flex');
-                        }
-                    };
+                    imgEl.onload = () => app.utils.handleImgLoad(imgEl);
+                    imgEl.onerror = () => app.utils.handleImgError(imgEl);
 
                     imgEl.src = proxyUrl;
                     imgEl.alt = `Hình ảnh xe buýt ${app.utils.displayPlate(photo.license_plate)} - ${snapshot.operator || 'Đã bị xóa'}`;
                     imgEl.title = "Nhấn vào ảnh để phóng to toàn màn hình";
                     imgEl.style.cursor = 'zoom-in';
 
-                    // Bấm vào ảnh để Zoom (Giữ nguyên)
+
                     imgEl.onclick = () => {
                         app.admin.openZoom(proxyUrl, true);
                     };
-                    
-                    // Bấm vào nút icon góc phải để Zoom (Mới thêm)
-                    if(zoomBtn) {
-                        zoomBtn.onclick = (e) => {
-                            e.stopPropagation();
-                            app.admin.openZoom(proxyUrl, true);
-                        };
-                    }
 
                     const safeUploaderName = app.utils.cleanText(photo.profiles?.username || 'Ẩn danh');
                     document.getElementById('detail-copyright').innerHTML = `Bản quyền &copy; <strong>${safeUploaderName}</strong>`;
