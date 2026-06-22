@@ -13315,17 +13315,54 @@ app.admin.fetchManagerData('denied');
 
                         app.upload.clearDraft(); // Xoá draft sau khi upload thành công
                         
-                        // 1. Dọn dẹp form ngay lập tức (xóa ảnh, reset text, tắt tiến trình)
+                        // TÍNH TOÁN SỐ LƯỢNG HÀNG ĐỢI (Kế thừa logic tính độ ưu tiên của hệ thống cũ)
+                        let queueCount = '?';
+                        try {
+                            const { data: pendingData } = await window.sb.from('photos').select('id, uploader_id, created_at, profiles(role)').eq('status', 'pending');
+                            if (pendingData) {
+                                let ahead = 0;
+                                const isMePrivileged = (app.role === 'admin' || app.role === 'manager');
+                                
+                                // Tìm ảnh vừa mới đăng xong của user này
+                                const myPhotos = pendingData.filter(p => p.uploader_id === app.user.id).sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+                                
+                                if (myPhotos.length > 0) {
+                                    const myPhoto = myPhotos[0];
+                                    const myTime = new Date(myPhoto.created_at).getTime();
+
+                                    pendingData.forEach(p => {
+                                        if (p.id === myPhoto.id) return; // Bỏ qua ảnh mình vừa up
+                                        const pRole = p.profiles?.role || 'user';
+                                        const pPrivileged = (pRole === 'admin' || pRole === 'manager');
+                                        const pTime = new Date(p.created_at).getTime();
+
+                                        if (isMePrivileged) {
+                                            if (pPrivileged && pTime < myTime) ahead++;
+                                        } else {
+                                            if (pPrivileged) ahead++;
+                                            else if (pTime < myTime) ahead++;
+                                        }
+                                    });
+                                    queueCount = ahead;
+                                } else {
+                                    queueCount = Math.max(0, pendingData.length - 1);
+                                }
+                            }
+                        } catch (e) {
+                            console.error("Lỗi đếm hàng đợi:", e);
+                        }
+
+                        // 1. Dọn dẹp form ngay lập tức
                         app.utils.cleanupState(); 
                         
-                        // 2. Cuộn mượt mà lên đầu trang để sẵn sàng úp xe mới
+                        // 2. Cuộn mượt mà lên đầu trang
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                         
-                        // 3. Bắn Toast Notification thay vì dùng bảng Update Upload Success cũ
+                        // 3. Bắn Toast Notification kèm số hàng đợi (Inline & Bold)
                         app.toast.show(
                             'success', 
                             'Ảnh đã upload thành công!', 
-                            'Hình ảnh của bạn đã được đưa vào hàng chờ kiểm duyệt.', 
+                            `Hình ảnh đã được đưa vào hàng chờ kiểm duyệt. Chờ duyệt trước bạn: <b>${queueCount} ảnh</b>.`, 
                             10000
                         );
 
