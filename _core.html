@@ -5256,7 +5256,7 @@
                         if (error) throw error;
 
                         app.profileIntro.closeBioEditor();
-                        app.ui.showAlert("Đã cập nhật tiểu sử thành công!");
+                        app.toast.show('success', 'Thành công', 'Đã cập nhật tiểu sử thành công!');
 
                         const bioContent = document.getElementById('profile-bio-content');
                         if (text) bioContent.innerHTML = app.utils.cleanText(text);
@@ -5427,7 +5427,7 @@
                         btnAddFav.classList.add('hidden');
                         btnAddFav.classList.remove('flex');
 
-                        app.ui.showAlert("Đã đặt ảnh tâm đắc thành công!");
+                        app.toast.show('success', 'Thành công', 'Đã đặt ảnh tâm đắc thành công!');
 
                     } catch (e) {
                         app.ui.showAlert("Lỗi cài đặt ảnh: " + e.message);
@@ -6293,7 +6293,8 @@
                                     await window.sb.from('photos').delete().eq('id', p.id);
                                     await app.vehicle.cleanupVehicle(p.license_plate);
 
-                                    app.ui.showAlert("Ảnh đã được xóa vĩnh viễn thành công.", () => app.views.loadHome());
+                                    app.toast.show('success', 'Thành công', 'Ảnh đã được xóa vĩnh viễn khỏi hệ thống.');
+                                    app.views.loadHome();
                                 } catch (err) { app.ui.showAlert("Lỗi khi xóa ảnh: " + err.message); }
                             },
                             () => { console.log("Hủy xóa"); },
@@ -7586,9 +7587,8 @@ grid.innerHTML = tiers.map(tier => {
 
                         if (!res.ok) throw new Error(data.error || 'Lỗi không xác định');
 
-                        app.ui.showAlert(data.message || "Đã nhận Role thành công!", () => {
-                            app.settings.loadBadges();
-                        });
+                        app.toast.show('success', 'Thành công', data.message || "Đã nhận Role thành công!");
+                        app.settings.loadBadges();
 
                     } catch (err) {
                         app.ui.showAlert("Lỗi: " + err.message);
@@ -7630,9 +7630,8 @@ grid.innerHTML = tiers.map(tier => {
                             if (!res.ok) throw new Error(data.error || 'Lỗi không xác định');
 
                             app.ui.closeCustomRolePrompt();
-                            app.ui.showAlert(data.message || "Tạo/Sửa Role thành công!", () => {
-                                app.settings.loadBadges();
-                            });
+                            app.toast.show('success', 'Thành công', data.message || "Tạo/Sửa Role thành công!");
+                            app.settings.loadBadges();
                         } catch (err) {
                             app.ui.showAlert("Lỗi: " + err.message);
                         } finally {
@@ -9594,7 +9593,8 @@ else if (app.user && app.role === 'manager' && !isDenied) {
             try {
                 await window.sb.from('photos').update({ status: 'denied', denial_reason: reason }).eq('id', photo.id);
                 app.admin.logAction('admin_delete_from_detail', photo.id, { plate: photo.license_plate, reason: reason });
-                app.ui.showAlert("Đã xóa ảnh thành công.", () => app.views.loadHome());
+                app.toast.show('success', 'Đã xóa ảnh', 'Ảnh đã được xóa khỏi hệ thống thành công.');
+                app.views.loadHome();
             } catch (e) { app.ui.showAlert("Lỗi: " + e.message); }
         });
     };
@@ -9618,9 +9618,8 @@ if (app.user && app.role === 'manager' && isDenied) {
                     if (error) throw error;
                     app.admin.logAction('manager_reapprove', photo.id, { plate: photo.license_plate, reason: reason });
 
-                    app.ui.showAlert("Đã duyệt lại ảnh thành công!", () => {
-                        app.views.loadDetail(photo.id);
-                    });
+                    app.toast.show('success', 'Đã duyệt lại', 'Ảnh này đã được cấp phép hiển thị trở lại trên hệ thống.');
+                    app.views.loadDetail(photo.id);
                 } catch (e) {
                     app.ui.showAlert("Lỗi: " + e.message);
                     reapproveBtn.innerHTML = '<i class="fa-solid fa-rotate-left mr-1"></i> Manager: Duyệt lại ảnh này';
@@ -10274,7 +10273,7 @@ formInputs.forEach(input => {
                                 );
                             }
 
-                            app.ui.showAlert("Đã cập nhật dữ liệu thành công!");
+                            app.toast.show('success', 'Lưu thành công', 'Dữ liệu của ảnh này đã được cập nhật.');
 
                             if (beforeSnapshot.license_plate !== payload.license_plate) {
                                 await app.vehicle.cleanupVehicle(beforeSnapshot.license_plate);
@@ -11811,7 +11810,7 @@ app.admin.fetchManagerData('denied');
                         await app.vehicle.cleanupVehicle(p.license_plate);
                         app.admin.logAction('direct_delete', photoId, { plate: p.license_plate, reason: reason });
 
-                        app.ui.showAlert("Đã xóa ảnh thành công!");
+                        app.toast.show('success', 'Thành công', 'Đã xóa ảnh thành công!');
                         document.getElementById('adm-direct-delete-id').value = '';
                         document.getElementById('adm-direct-delete-reason').value = '';
                     } catch (e) { app.ui.showAlert("Lỗi: " + e.message); }
@@ -11852,7 +11851,7 @@ app.admin.fetchManagerData('denied');
                         await app.vehicle.cleanupVehicle(plate);
                         await window.sb.from('edit_requests').update({ status: 'approved' }).eq('id', reqId);
 
-                        app.ui.showAlert("Đã duyệt yêu cầu và xóa ảnh vĩnh viễn thành công!");
+                        app.toast.show('success', 'Thành công', 'Đã duyệt yêu cầu và xóa ảnh vĩnh viễn thành công!');
                         app.admin.logAction('approve_delete_req', photoId, { plate: plate });
                         app.admin.loadTab('delete');
 
@@ -13725,13 +13724,12 @@ app.admin.fetchManagerData('denied');
                             await window.sb.from('vehicle_history').delete().eq('license_plate', app.currentPlate);
                             if (payload.length > 0) await window.sb.from('vehicle_history').insert(payload);
 
-                            app.ui.showAlert("Đã lưu lịch sử hoạt động thành công!", () => {
-                                if (window.location.pathname.startsWith('/vehicle/')) {
-                                    app.views.loadVehiclePage(app.currentPlate);
-                                } else {
-                                    app.views.loadHistory(app.currentPlate);
-                                }
-                            });
+                            app.toast.show('success', 'Đã cập nhật', 'Lịch sử hoạt động của xe đã được lưu thành công.');
+                            if (window.location.pathname.startsWith('/vehicle/')) {
+                                app.views.loadVehiclePage(app.currentPlate);
+                            } else {
+                                app.views.loadHistory(app.currentPlate);
+                            }
                         } catch (err) {
                             app.ui.showAlert("Lỗi khi lưu: " + err.message);
                         }
@@ -13864,7 +13862,8 @@ app.admin.fetchManagerData('denied');
 
                             const { error } = await window.sb.from('vehicles').update(newData).eq('license_plate', plate);
                             if (error) throw error;
-                            app.ui.showAlert("Đã cập nhật thông tin xe thành công!", () => { app.views.loadVehiclePage(plate); });
+                            app.toast.show('success', 'Đã lưu thay đổi', 'Thông tin xe đã được cập nhật thành công.');
+                            app.views.loadVehiclePage(plate);
                         } else {
                             // [BẢO VỆ] Kiểm tra xem đã có yêu cầu nào đang chờ duyệt cho xe này chưa
                             const { count } = await window.sb.from('edit_requests').select('*', { count: 'exact', head: true }).eq('license_plate', plate).eq('status', 'pending').contains('new_data', { request_type: 'update_vehicle_details' });
@@ -15203,7 +15202,7 @@ changePassword: async () => {
                         if (msg.includes('should be different')) msg = "Mật khẩu mới phải khác mật khẩu hiện tại.";
                         app.ui.showAlert("Lỗi: " + msg);
                     } else {
-                        app.ui.showAlert("Đã đổi mật khẩu thành công!");
+                        app.toast.show('success', 'Thành công', 'Đã đổi mật khẩu thành công!');
                         document.getElementById('set-cp-old').value = '';
                         document.getElementById('set-cp-new').value = '';
                     }
@@ -15348,7 +15347,7 @@ changePassword: async () => {
                             const setAvatarImg = document.getElementById('set-avatar-img');
                             if(setAvatarImg) setAvatarImg.src = proxiedUrl;
 
-                            app.ui.showAlert('Cập nhật ảnh đại diện thành công!');
+                            app.toast.show('success', 'Thành công', 'Cập nhật ảnh đại diện thành công!');
                         } else {
                             throw new Error(data.error || 'Lỗi upload');
                         }
@@ -15409,7 +15408,7 @@ changePassword: async () => {
                                 }
 
                                 app.username = newName; // Cập nhật biến cục bộ sau khi đổi tên thành công
-                                app.ui.showAlert("Đổi Tên hiển thị thành công!");
+                                app.toast.show('success', 'Thành công', 'Đổi Tên hiển thị thành công!');
                                 document.getElementById('set-new-username').value = '';
                                 document.getElementById('nav-username').innerText = newName;
                                 app.views.loadAccount();
