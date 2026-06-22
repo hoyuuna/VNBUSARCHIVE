@@ -4303,16 +4303,21 @@
                         timeout = setTimeout(removeToast, duration);
                     }
 
-                    // --- LOGIC VUỐT ĐỂ TẮT (VẬT LÝ MƯỢT MÀ BÁM THEO NGÓN TAY) ---
+                    // --- LOGIC VUỐT ĐỂ TẮT (NÂNG CẤP VẬN TỐC & QUÁN TÍNH NHƯ IOS) ---
                     let startX = 0, startY = 0, currentX = 0, currentY = 0;
+                    let lastX = 0, lastY = 0, lastTime = 0;
+                    let velocityX = 0, velocityY = 0;
                     let isDragging = false;
 
                     const onStart = (e) => {
                         isDragging = true;
                         startX = e.touches ? e.touches[0].clientX : e.clientX;
                         startY = e.touches ? e.touches[0].clientY : e.clientY;
+                        lastX = startX;
+                        lastY = startY;
+                        lastTime = Date.now();
                         
-                        // Tắt transition để thẻ bám dính lập tức theo ngón tay không bị delay
+                        // Khóa độ trễ để bám chặt ngón tay
                         toast.style.transition = 'none'; 
                         if (timeout) clearTimeout(timeout);
                     };
@@ -4325,37 +4330,58 @@
                         const diffX = currentX - startX;
                         let diffY = currentY - startY;
 
-                        // Chống vuốt xuống (Vuốt xuống sẽ bị cản lực kéo lại)
+                        // Hiệu ứng "kéo dây thun" khi cố vuốt xuống dưới
                         if (diffY > 0) diffY = diffY * 0.2; 
 
-                        // 1. Di chuyển thẻ khớp 1:1 với ngón tay
+                        // Bám sát vị trí ngón tay 1:1
                         toast.style.transform = `translate(${diffX}px, ${diffY}px)`;
                         
-                        // 2. Tính toán độ mờ dần dựa trên quãng đường kéo (càng xa càng mờ)
+                        // Tính toán độ mờ theo khoảng cách thực
                         const distance = Math.sqrt(diffX * diffX + diffY * diffY);
-                        toast.style.opacity = Math.max(0, 1 - distance / 150);
+                        toast.style.opacity = Math.max(0, 1 - distance / 200);
+
+                        // Tính toán vận tốc (Tốc độ vuốt)
+                        const now = Date.now();
+                        const dt = now - lastTime;
+                        if (dt > 0) {
+                            velocityX = (currentX - lastX) / dt;
+                            velocityY = (currentY - lastY) / dt;
+                        }
+                        lastX = currentX;
+                        lastY = currentY;
+                        lastTime = now;
                     };
 
                     const onEnd = () => {
                         if (!isDragging) return;
                         isDragging = false;
+                        
                         const diffX = currentX - startX;
                         const diffY = currentY - startY;
 
-                        // Bật lại transition để làm animation trượt kết thúc
-                        toast.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
+                        // Bật lại gia tốc trượt khi thả tay
+                        toast.style.transition = 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease-out';
 
-                        // Nếu vuốt đủ xa (>60px ngang hoặc >40px dọc lên) -> Bắn thẻ ra khỏi màn hình
-                        if (Math.abs(diffX) > 60 || diffY < -40) {
-                            // Nhân 5 quãng đường lên để thẻ văng tiếp theo đúng quỹ đạo vuốt
-                            const endX = diffX * 5; 
-                            const endY = diffY < 0 ? diffY * 5 : 0; 
+                        // ĐIỀU KIỆN ĐÓNG THÔNG BÁO: Kéo đủ xa HOẶC Quẹt tay đủ nhanh (Velocity > 0.5)
+                        const isSwipeFastX = Math.abs(velocityX) > 0.5;
+                        const isSwipeFastY = velocityY < -0.5; // Quẹt nhanh lên trên
+                        
+                        if (Math.abs(diffX) > 60 || diffY < -40 || isSwipeFastX || isSwipeFastY) {
+                            // Tính toán hướng bay ra ngoài dựa theo hướng tay quẹt
+                            let endX = diffX;
+                            let endY = diffY < 0 ? diffY : 0;
+
+                            if (Math.abs(diffX) > 60 || isSwipeFastX) {
+                                endX = Math.sign(diffX || velocityX) * window.innerWidth;
+                            } else if (diffY < -40 || isSwipeFastY) {
+                                endY = -window.innerHeight;
+                            }
                             
                             toast.style.transform = `translate(${endX}px, ${endY}px)`;
                             toast.style.opacity = 0;
                             setTimeout(() => toast.remove(), 300);
                         } else {
-                            // Vuốt chưa đủ lực -> Bật nảy về lại vị trí cũ
+                            // Vuốt nhẹ, thả tay ra sẽ tự bật nảy về vị trí cũ
                             toast.style.transform = 'translate(0, 0)';
                             toast.style.opacity = 1;
                             if (duration > 0) timeout = setTimeout(removeToast, duration);
