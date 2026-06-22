@@ -106,7 +106,7 @@
 
     <style>
 /* ==========================================
-   TOAST NOTIFICATION (POP-UP TỪ TRÊN XUỐNG)
+   TOAST NOTIFICATION (POP-UP TỪ DƯỚI HEADER)
 ========================================== */
 .toast-enter {
     animation: toastSlideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -115,12 +115,13 @@
     animation: toastFadeOut 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 @keyframes toastSlideDown {
-    from { opacity: 0; transform: translateY(-40px) scale(0.95); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
+    /* Trượt từ tọa độ âm (bị che bởi Header) xuống */
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 @keyframes toastFadeOut {
     from { opacity: 1; transform: translateY(0) scale(1); }
-    to { opacity: 0; transform: translateY(-40px) scale(0.95); }
+    to { opacity: 0; transform: translateY(-20px) scale(0.95); }
 }
 .toast-card {
     pointer-events: auto;
@@ -1548,8 +1549,6 @@
 
 
     <div id="top-loading-bar" class="fixed top-0 left-0 h-1 bg-black z-[9999] transition-all duration-300 ease-out w-0 opacity-0 pointer-events-none shadow-[0_0_10px_rgba(0,0,0,0.5)]"></div>
-<!-- KHAY CHỨA TOAST NOTIFICATION -->
-<div id="toast-container" class="fixed top-20 md:top-24 left-0 right-0 z-[99999] flex flex-col items-center gap-3 pointer-events-none px-4"></div>
 
         <div id="loading-screen">
             <div class="brand-container">
@@ -2621,6 +2620,8 @@
                         </button>
                     </div>
                 </div>
+                <!-- 👇 DÁN VÀO ĐÂY: KHAY CHỨA TOAST NẰM NGAY MẶT DƯỚI HEADER 👇 -->
+                <div id="toast-container" class="absolute top-full left-0 w-full mt-3 flex flex-col items-center gap-2 pointer-events-none z-50"></div>
             </div>
         </header>
 
@@ -4262,28 +4263,26 @@
                     if (!container) return null;
 
                     const toast = document.createElement('div');
-                    // Giao diện kính mờ, viền xám, nền trắng
-                    toast.className = 'toast-card toast-enter bg-white/90 backdrop-blur-xl border border-gray-200 shadow-2xl rounded-2xl p-4 flex items-start gap-3 w-full max-w-sm cursor-grab active:cursor-grabbing';
+                    // Giao diện kính mờ, max-w-sm cho gọn gàng vừa vặn
+                    toast.className = 'toast-card toast-enter bg-white/90 backdrop-blur-xl border border-gray-200 shadow-2xl rounded-2xl p-4 flex items-start gap-3 w-11/12 max-w-sm cursor-grab active:cursor-grabbing mx-auto';
 
-                    // Thiết lập Icon tùy theo loại thông báo (Dùng màu được phép cho Notification)
                     let iconHtml = '';
                     if (type === 'success') {
-                        iconHtml = '<div class="w-9 h-9 rounded-full bg-green-50 text-green-600 flex items-center justify-center shrink-0 border border-green-100 shadow-sm"><i class="fa-solid fa-check"></i></div>';
+                        iconHtml = '<div class="w-8 h-8 rounded-full bg-green-50 text-green-600 flex items-center justify-center shrink-0 border border-green-100 shadow-sm"><i class="fa-solid fa-check text-sm"></i></div>';
                     } else if (type === 'error' || type === 'offline') {
-                        iconHtml = `<div class="w-9 h-9 rounded-full bg-red-50 text-red-600 flex items-center justify-center shrink-0 border border-red-100 shadow-sm"><i class="fa-solid ${type === 'offline' ? 'fa-wifi-slash' : 'fa-triangle-exclamation'}"></i></div>`;
+                        iconHtml = `<div class="w-8 h-8 rounded-full bg-red-50 text-red-600 flex items-center justify-center shrink-0 border border-red-100 shadow-sm"><i class="fa-solid ${type === 'offline' ? 'fa-wifi-slash' : 'fa-triangle-exclamation'} text-sm"></i></div>`;
                     } else {
-                        iconHtml = '<div class="w-9 h-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100 shadow-sm"><i class="fa-solid fa-bell"></i></div>';
+                        iconHtml = '<div class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100 shadow-sm"><i class="fa-solid fa-bell text-sm"></i></div>';
                     }
 
                     toast.innerHTML = `
                         ${iconHtml}
-                        <div class="flex-1 overflow-hidden mt-0.5 pointer-events-none select-none">
+                        <div class="flex-1 overflow-hidden pointer-events-none select-none">
                             <h4 class="text-sm font-bold text-gray-900 leading-tight">${title}</h4>
                             ${message ? `<p class="text-[12px] text-gray-500 mt-1 leading-relaxed">${message}</p>` : ''}
                         </div>
                     `;
 
-                    // Đẩy thông báo mới lên đầu
                     container.prepend(toast);
 
                     let timeout;
@@ -4293,12 +4292,11 @@
                         setTimeout(() => toast.remove(), 300);
                     };
 
-                    // duration = 0 nghĩa là thông báo vĩnh viễn (cho đến khi bị vuốt tắt hoặc gọi hàm xóa)
                     if (duration > 0) {
                         timeout = setTimeout(removeToast, duration);
                     }
 
-                    // --- LOGIC VUỐT ĐỂ TẮT (SWIPE TO DISMISS) ---
+                    // --- LOGIC VUỐT ĐỂ TẮT ---
                     let startX = 0, startY = 0, currentX = 0, currentY = 0;
                     let isDragging = false;
 
@@ -4306,7 +4304,7 @@
                         isDragging = true;
                         startX = e.touches ? e.touches[0].clientX : e.clientX;
                         startY = e.touches ? e.touches[0].clientY : e.clientY;
-                        toast.style.transition = 'none'; // Tắt transition khi ngón tay đang di chuyển
+                        toast.style.transition = 'none'; 
                         if (timeout) clearTimeout(timeout);
                     };
 
@@ -4317,10 +4315,8 @@
                         const diffX = currentX - startX;
                         const diffY = currentY - startY;
 
-                        // Chống vuốt xuống (hơi khựng lại)
-                        if (diffY > 15) return;
+                        if (diffY > 15) return; // Chống vuốt nhầm xuống dưới
 
-                        // Cho phép vuốt lên, vuốt trái, vuốt phải
                         toast.style.transform = `translate(${diffX}px, ${diffY < 0 ? diffY : 0}px)`;
                         toast.style.opacity = 1 - (Math.abs(diffX) + Math.abs(diffY)) / 200;
                     };
@@ -4333,7 +4329,6 @@
 
                         toast.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease-out';
 
-                        // Nếu vuốt đủ xa (>50px ngang hoặc >30px dọc lên) -> Đóng
                         if (Math.abs(diffX) > 50 || diffY < -30) {
                             const dirX = Math.abs(diffX) > 50 ? Math.sign(diffX) * window.innerWidth : 0;
                             const dirY = diffY < -30 ? -100 : 0;
@@ -4341,7 +4336,6 @@
                             toast.style.opacity = 0;
                             setTimeout(() => toast.remove(), 250);
                         } else {
-                            // Trả về vị trí cũ nếu vuốt chưa đủ lực
                             toast.style.transform = 'translate(0, 0)';
                             toast.style.opacity = 1;
                             if (duration > 0) timeout = setTimeout(removeToast, duration);
@@ -4356,7 +4350,7 @@
                     toast.addEventListener('mousemove', onMove);
                     toast.addEventListener('mouseup', onEnd);
 
-                    return removeToast; // Trả về hàm để lưu lại dùng khi cần đóng thủ công
+                    return removeToast; 
                 }
             },
             serverStatus: {
