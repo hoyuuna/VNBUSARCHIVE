@@ -127,6 +127,13 @@
     pointer-events: auto;
     touch-action: none; /* Khóa cuộn màn hình khi vuốt thẻ */
     transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease-out;
+    
+    /* Ép chuẩn Glassmorphism y hệt các Popup (Settings, Alert...) của bạn */
+    background-color: rgba(255, 255, 255, 0.7) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.6) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
 }
         body {
 
@@ -4264,7 +4271,7 @@
 
                     const toast = document.createElement('div');
                     // Giao diện kính mờ, max-w-sm cho gọn gàng vừa vặn
-                    toast.className = 'toast-card toast-enter bg-white/90 backdrop-blur-xl border border-gray-200 shadow-2xl rounded-2xl p-4 flex items-start gap-3 w-11/12 max-w-sm cursor-grab active:cursor-grabbing mx-auto';
+                    toast.className = 'toast-card toast-enter rounded-2xl p-4 flex items-start gap-3 w-11/12 max-w-sm cursor-grab active:cursor-grabbing mx-auto';
 
                     let iconHtml = '';
                     if (type === 'success') {
