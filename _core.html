@@ -111,17 +111,10 @@
 .toast-enter {
     animation: toastSlideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
-.toast-leave {
-    animation: toastFadeOut 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
 @keyframes toastSlideDown {
     /* Trượt từ tọa độ âm (bị che bởi Header) xuống */
     from { opacity: 0; transform: translateY(-20px); }
     to { opacity: 1; transform: translateY(0); }
-}
-@keyframes toastFadeOut {
-    from { opacity: 1; transform: translateY(0) scale(1); }
-    to { opacity: 0; transform: translateY(-20px) scale(0.95); }
 }
 .toast-card {
     pointer-events: auto;
@@ -4292,13 +4285,24 @@
 
                     container.prepend(toast);
 
-                    let timeout;
+                    // HÀM TỰ ĐỘNG ĐÓNG HOẶC ĐÓNG BẰNG LỆNH (Fix lỗi mất cái đùng)
                     const removeToast = () => {
-                        toast.classList.remove('toast-enter');
-                        toast.classList.add('toast-leave');
+                        // Tắt keyframe lúc xuất hiện để không bị xung đột
+                        toast.style.animation = 'none';
+                        // Gán hiệu ứng trượt mượt mà
+                        toast.style.transition = 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease-out';
+                        
+                        // "Mẹo" ép trình duyệt nhận diện transition ngay lập tức (Reflow)
+                        void toast.offsetHeight;
+
+                        // Trượt ngược lên trên và mờ đi
+                        toast.style.transform = 'translateY(-40px) scale(0.95)';
+                        toast.style.opacity = '0';
+                        
                         setTimeout(() => toast.remove(), 300);
                     };
 
+                    let timeout;
                     if (duration > 0) {
                         timeout = setTimeout(removeToast, duration);
                     }
@@ -4317,8 +4321,9 @@
                         lastY = startY;
                         lastTime = Date.now();
                         
-                        // Khóa độ trễ để bám chặt ngón tay
+                        // Tắt toàn bộ độ trễ để bám chặt ngón tay, đồng thời tắt animation xuất hiện
                         toast.style.transition = 'none'; 
+                        toast.style.animation = 'none';
                         if (timeout) clearTimeout(timeout);
                     };
 
@@ -4361,13 +4366,15 @@
 
                         // Bật lại gia tốc trượt khi thả tay
                         toast.style.transition = 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease-out';
+                        
+                        // Ép trình duyệt áp dụng transition ngay lập tức
+                        void toast.offsetHeight;
 
-                        // ĐIỀU KIỆN ĐÓNG THÔNG BÁO: Kéo đủ xa HOẶC Quẹt tay đủ nhanh (Velocity > 0.5)
+                        // ĐIỀU KIỆN ĐÓNG THÔNG BÁO: Kéo đủ xa HOẶC Quẹt tay đủ nhanh
                         const isSwipeFastX = Math.abs(velocityX) > 0.5;
-                        const isSwipeFastY = velocityY < -0.5; // Quẹt nhanh lên trên
+                        const isSwipeFastY = velocityY < -0.5; 
                         
                         if (Math.abs(diffX) > 60 || diffY < -40 || isSwipeFastX || isSwipeFastY) {
-                            // Tính toán hướng bay ra ngoài dựa theo hướng tay quẹt
                             let endX = diffX;
                             let endY = diffY < 0 ? diffY : 0;
 
@@ -4378,12 +4385,12 @@
                             }
                             
                             toast.style.transform = `translate(${endX}px, ${endY}px)`;
-                            toast.style.opacity = 0;
+                            toast.style.opacity = '0';
                             setTimeout(() => toast.remove(), 300);
                         } else {
                             // Vuốt nhẹ, thả tay ra sẽ tự bật nảy về vị trí cũ
                             toast.style.transform = 'translate(0, 0)';
-                            toast.style.opacity = 1;
+                            toast.style.opacity = '1';
                             if (duration > 0) timeout = setTimeout(removeToast, duration);
                         }
                     };
