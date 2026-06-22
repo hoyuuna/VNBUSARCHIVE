@@ -1,3 +1,19 @@
+<!-- 
+====================================================================================================
+   ⚠️ AGENT READ THIS BEFORE PROCEED ⚠️
+====================================================================================================
+## UI and Color Palette Rules
+- Use only black, white, and gray for standard UI components. Red, yellow, and blue are reserved strictly for notification modals.
+- Always reuse existing designs (popups, modals) unless explicitly asked to create a new design.
+
+## Project Stack & Deployment
+- **Hosting/Platform:** Cloudflare Pages (Framework preset: `None`).
+- **Frontend:** Pure vanilla HTML, CSS, and JavaScript.
+- **Backend/API:** Cloudflare Pages Functions (Serverless architecture).
+- **Rule:** All web assets must be standard web-compliant, and any backend logic must leverage Cloudflare's serverless environment.
+====================================================================================================
+-->
+
 <!DOCTYPE html>
 <html lang="vi">
 
@@ -89,6 +105,28 @@
     </script>
 
     <style>
+/* ==========================================
+   TOAST NOTIFICATION (POP-UP TỪ TRÊN XUỐNG)
+========================================== */
+.toast-enter {
+    animation: toastSlideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.toast-leave {
+    animation: toastFadeOut 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes toastSlideDown {
+    from { opacity: 0; transform: translateY(-40px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes toastFadeOut {
+    from { opacity: 1; transform: translateY(0) scale(1); }
+    to { opacity: 0; transform: translateY(-40px) scale(0.95); }
+}
+.toast-card {
+    pointer-events: auto;
+    touch-action: none; /* Khóa cuộn màn hình khi vuốt thẻ */
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease-out;
+}
         body {
 
         /* BẮT BUỘC: Đảm bảo font-smoothing luôn được bật */
@@ -1504,13 +1542,14 @@
 </head>
 
 <body class="antialiased">
-    <div id="offline-banner" class="hidden fixed top-0 left-0 w-full bg-red-600 text-white text-center py-2 z-[999999] font-bold text-sm shadow-md"> <i class="fa-solid fa-wifi-slash mr-2"></i> Bạn đang ngoại tuyến. Một số tính năng sẽ bị vô hiệu hóa. </div>
     <!-- FACEBOOK SDK -->
 
 
 
 
     <div id="top-loading-bar" class="fixed top-0 left-0 h-1 bg-black z-[9999] transition-all duration-300 ease-out w-0 opacity-0 pointer-events-none shadow-[0_0_10px_rgba(0,0,0,0.5)]"></div>
+<!-- KHAY CHỨA TOAST NOTIFICATION -->
+<div id="toast-container" class="fixed top-20 md:top-24 left-0 right-0 z-[99999] flex flex-col items-center gap-3 pointer-events-none px-4"></div>
 
         <div id="loading-screen">
             <div class="brand-container">
@@ -4215,6 +4254,111 @@
         // =====================================
 
         const app = {
+            toast: {
+                currentOfflineToast: null,
+                
+                show: (type, title, message, duration = 10000) => {
+                    const container = document.getElementById('toast-container');
+                    if (!container) return null;
+
+                    const toast = document.createElement('div');
+                    // Giao diện kính mờ, viền xám, nền trắng
+                    toast.className = 'toast-card toast-enter bg-white/90 backdrop-blur-xl border border-gray-200 shadow-2xl rounded-2xl p-4 flex items-start gap-3 w-full max-w-sm cursor-grab active:cursor-grabbing';
+
+                    // Thiết lập Icon tùy theo loại thông báo (Dùng màu được phép cho Notification)
+                    let iconHtml = '';
+                    if (type === 'success') {
+                        iconHtml = '<div class="w-9 h-9 rounded-full bg-green-50 text-green-600 flex items-center justify-center shrink-0 border border-green-100 shadow-sm"><i class="fa-solid fa-check"></i></div>';
+                    } else if (type === 'error' || type === 'offline') {
+                        iconHtml = `<div class="w-9 h-9 rounded-full bg-red-50 text-red-600 flex items-center justify-center shrink-0 border border-red-100 shadow-sm"><i class="fa-solid ${type === 'offline' ? 'fa-wifi-slash' : 'fa-triangle-exclamation'}"></i></div>`;
+                    } else {
+                        iconHtml = '<div class="w-9 h-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100 shadow-sm"><i class="fa-solid fa-bell"></i></div>';
+                    }
+
+                    toast.innerHTML = `
+                        ${iconHtml}
+                        <div class="flex-1 overflow-hidden mt-0.5 pointer-events-none select-none">
+                            <h4 class="text-sm font-bold text-gray-900 leading-tight">${title}</h4>
+                            ${message ? `<p class="text-[12px] text-gray-500 mt-1 leading-relaxed">${message}</p>` : ''}
+                        </div>
+                    `;
+
+                    // Đẩy thông báo mới lên đầu
+                    container.prepend(toast);
+
+                    let timeout;
+                    const removeToast = () => {
+                        toast.classList.remove('toast-enter');
+                        toast.classList.add('toast-leave');
+                        setTimeout(() => toast.remove(), 300);
+                    };
+
+                    // duration = 0 nghĩa là thông báo vĩnh viễn (cho đến khi bị vuốt tắt hoặc gọi hàm xóa)
+                    if (duration > 0) {
+                        timeout = setTimeout(removeToast, duration);
+                    }
+
+                    // --- LOGIC VUỐT ĐỂ TẮT (SWIPE TO DISMISS) ---
+                    let startX = 0, startY = 0, currentX = 0, currentY = 0;
+                    let isDragging = false;
+
+                    const onStart = (e) => {
+                        isDragging = true;
+                        startX = e.touches ? e.touches[0].clientX : e.clientX;
+                        startY = e.touches ? e.touches[0].clientY : e.clientY;
+                        toast.style.transition = 'none'; // Tắt transition khi ngón tay đang di chuyển
+                        if (timeout) clearTimeout(timeout);
+                    };
+
+                    const onMove = (e) => {
+                        if (!isDragging) return;
+                        currentX = e.touches ? e.touches[0].clientX : e.clientX;
+                        currentY = e.touches ? e.touches[0].clientY : e.clientY;
+                        const diffX = currentX - startX;
+                        const diffY = currentY - startY;
+
+                        // Chống vuốt xuống (hơi khựng lại)
+                        if (diffY > 15) return;
+
+                        // Cho phép vuốt lên, vuốt trái, vuốt phải
+                        toast.style.transform = `translate(${diffX}px, ${diffY < 0 ? diffY : 0}px)`;
+                        toast.style.opacity = 1 - (Math.abs(diffX) + Math.abs(diffY)) / 200;
+                    };
+
+                    const onEnd = () => {
+                        if (!isDragging) return;
+                        isDragging = false;
+                        const diffX = currentX - startX;
+                        const diffY = currentY - startY;
+
+                        toast.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease-out';
+
+                        // Nếu vuốt đủ xa (>50px ngang hoặc >30px dọc lên) -> Đóng
+                        if (Math.abs(diffX) > 50 || diffY < -30) {
+                            const dirX = Math.abs(diffX) > 50 ? Math.sign(diffX) * window.innerWidth : 0;
+                            const dirY = diffY < -30 ? -100 : 0;
+                            toast.style.transform = `translate(${dirX}px, ${dirY}px)`;
+                            toast.style.opacity = 0;
+                            setTimeout(() => toast.remove(), 250);
+                        } else {
+                            // Trả về vị trí cũ nếu vuốt chưa đủ lực
+                            toast.style.transform = 'translate(0, 0)';
+                            toast.style.opacity = 1;
+                            if (duration > 0) timeout = setTimeout(removeToast, duration);
+                        }
+                    };
+
+                    toast.addEventListener('touchstart', onStart, { passive: true });
+                    toast.addEventListener('touchmove', onMove, { passive: true });
+                    toast.addEventListener('touchend', onEnd);
+                    toast.addEventListener('mousedown', onStart);
+                    toast.addEventListener('mouseleave', onEnd);
+                    toast.addEventListener('mousemove', onMove);
+                    toast.addEventListener('mouseup', onEnd);
+
+                    return removeToast; // Trả về hàm để lưu lại dùng khi cần đóng thủ công
+                }
+            },
             serverStatus: {
                 isDown: false,
                 hasChecked: false,
@@ -6480,22 +6624,27 @@
 
                 window.onpopstate = () => app.handleRoute();
 
-                // Network Resilience
+                // Network Resilience (Tích hợp Toast mới)
                 window.addEventListener('offline', () => {
-                    const banner = document.getElementById('offline-banner');
-                    if (banner) banner.classList.remove('hidden');
                     document.body.classList.add('is-offline');
+                    if (app.toast.currentOfflineToast) app.toast.currentOfflineToast(); // Đóng cái cũ nếu có
+                    app.toast.currentOfflineToast = app.toast.show('offline', 'Mất kết nối Internet', 'Bạn đang ngoại tuyến. Dữ liệu sẽ không thể đồng bộ.', 0);
                 });
+                
                 window.addEventListener('online', () => {
-                    const banner = document.getElementById('offline-banner');
-                    if (banner) banner.classList.add('hidden');
                     document.body.classList.remove('is-offline');
+                    if (app.toast.currentOfflineToast) {
+                        app.toast.currentOfflineToast(); // Ẩn thông báo lỗi
+                        app.toast.currentOfflineToast = null;
+                    }
+                    app.toast.show('success', 'Đã khôi phục kết nối', 'Mạng Internet đã hoạt động trở lại.', 5000);
                 });
+                
                 if (!navigator.onLine) {
-                    const banner = document.getElementById('offline-banner');
-                    if (banner) banner.classList.remove('hidden');
                     document.body.classList.add('is-offline');
+                    app.toast.currentOfflineToast = app.toast.show('offline', 'Mất kết nối Internet', 'Bạn đang ngoại tuyến. Dữ liệu sẽ không thể đồng bộ.', 0);
                 }
+
 
                 // Upload Form Auto-save Draft on Exit
                 window.addEventListener('beforeunload', () => {
@@ -15280,6 +15429,17 @@ changePassword: async () => {
             ui: {
                 alertInterval: null,
                 showAlert: (msg, okCallback = null, cancelCallback = null, options = {}) => {
+                    // TỰ ĐỘNG BẮT CÁC THÔNG BÁO THÀNH CÔNG VÀ CHUYỂN SANG TOAST
+                    const cleanMsg = (msg || '').toLowerCase();
+                    const isSuccess = cleanMsg.includes('thành công') || cleanMsg.includes('đã lưu') || cleanMsg.includes('đã cập nhật');
+                    
+                    // Chỉ chuyển sang Toast nếu nó KHÔNG CÓ callback bắt buộc (nút bấm làm hành động gì đó)
+                    if (isSuccess && !okCallback && !cancelCallback && !options.countdown) {
+                        // Gọi Toast và bỏ qua việc bật Modal Alert
+                        app.toast.show('success', 'Thành công', msg);
+                        return;
+                    }
+
                     if (app.ui.alertInterval) clearInterval(app.ui.alertInterval);
 
                     document.getElementById('custom-alert-msg').innerHTML = msg;
