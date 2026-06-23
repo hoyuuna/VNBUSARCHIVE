@@ -13403,14 +13403,12 @@ app.admin.fetchManagerData('denied');
                         
                         const shouldReport = !localErrors.some(eStr => displayError.includes(eStr));
 
-                        // Nếu không report, dán nhãn [NO_REPORT] để UI biết đường hiển thị
-                        const uiErrorMsg = shouldReport ? displayError : `[NO_REPORT] ${displayError}`;
-                        app.ui.updateUploadError(uiErrorMsg);
+                        let actuallyReported = false;
 
                         // === BẮT ĐẦU GỬI BUG REPORT TỰ ĐỘNG VỀ API (NẾU HỢP LỆ) ===
                         if (shouldReport) {
                             try {
-                                fetch('/api/notify', {
+                                const reportRes = await fetch('/api/notify', {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({
@@ -13427,10 +13425,21 @@ app.admin.fetchManagerData('denied');
                                         userAgent: navigator.userAgent
                                     })
                                 });
+
+                                if (reportRes.ok) {
+                                    const reportData = await reportRes.json();
+                                    if (reportData && reportData.success) {
+                                        actuallyReported = true;
+                                    }
+                                }
                             } catch (reportErr) {
                                 console.error("Không thể gửi bug report:", reportErr);
                             }
                         }
+
+                        // Nếu không report thành công, dán nhãn [NO_REPORT] để UI biết đường hiển thị
+                        const uiErrorMsg = actuallyReported ? displayError : `[NO_REPORT] ${displayError}`;
+                        app.ui.updateUploadError(uiErrorMsg);
                     } finally {
                         btn.innerHTML = originalText;
                         btn.disabled = false;
