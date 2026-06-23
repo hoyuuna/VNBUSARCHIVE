@@ -6728,6 +6728,12 @@
                     const desc = document.getElementById('op-edit-desc').value.trim();
                     const btn = document.getElementById('btn-save-operator');
                     
+                    if (!logo && !desc) {
+                        if (!confirm("Bạn đã để trống cả 2 ô. Điều này sẽ XÓA thông tin của Đơn vị vận hành hiện tại (trở về mặc định). Bạn có chắc chắn muốn tiếp tục?")) {
+                            return;
+                        }
+                    }
+
                     if (logo && !/^https?:\/\//i.test(logo)) {
                         return app.ui.showAlert("Logo URL phải bắt đầu bằng http:// hoặc https://");
                     }
@@ -8365,7 +8371,7 @@ grid.innerHTML = tiers.map(tier => {
                                 const logo = info.logo_url ? app.utils.escapeAttr(info.logo_url) : '';
                                 
                                 const iconHtml = logo 
-                                    ? `<img src="${logo}" class="w-12 h-12 object-contain shrink-0 drop-shadow-sm" onerror="this.outerHTML='<div class=\\'w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0 shadow-sm border border-blue-100\\'><i class=\\'fa-solid fa-building\\'></i></div>';">` 
+                                    ? `<img src="${logo}" class="w-12 h-12 object-contain shrink-0 drop-shadow-sm" onerror="this.outerHTML='<div class=&quot;w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0 shadow-sm border border-blue-100&quot;><i class=&quot;fa-solid fa-building&quot;></i></div>';">` 
                                     : `<div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0 shadow-sm border border-blue-100"><i class="fa-solid fa-building"></i></div>`;
 
                                 cards.push(`
