@@ -6976,10 +6976,17 @@
                 modelLoadedCount: 0,
                 modelPhotos: [],
 
-                loadModelPage: async (modelName) => {
+                loadModelPage: async (modelName, forceRefresh = false) => {
                     const decodedPath = decodeURIComponent(window.location.pathname);
                     if (decodedPath !== `/model/${modelName}`) {
                         app.utils.navigate(`/model/${encodeURIComponent(modelName)}`);
+                        return;
+                    }
+
+                    // --- KIỂM TRA BỘ NHỚ TẠM ---
+                    if (app.model.currentModel === modelName && app.model.modelPhotos && app.model.modelPhotos.length > 0 && !forceRefresh) {
+                        app.views.switch('model-view', false);
+                        app.loadingBar.finish();
                         return;
                     }
 
@@ -10165,9 +10172,16 @@ dropdown.innerHTML = `
                     app.utils.renderPagination('liked-pagination-container', page, totalPages, (newPage) => app.views.fetchLikedPhotosPage(newPage));
                 },
 
-                loadDetail: async (photoId) => {
+                loadDetail: async (photoId, forceRefresh = false) => {
                     if (window.location.pathname !== `/photo/${photoId}`) {
                         app.utils.navigate(`/photo/${photoId}`);
+                        return;
+                    }
+
+                    // --- KIỂM TRA BỘ NHỚ TẠM: NẾU VÀO LẠI ĐÚNG ẢNH ĐÓ THÌ MỞ LUÔN, KHÔNG TẢI LẠI ---
+                    if (app.currentPhoto && String(app.currentPhoto.id) === String(photoId) && !forceRefresh) {
+                        app.views.switch('detail', false);
+                        app.loadingBar.finish();
                         return;
                     }
 
@@ -10693,9 +10707,16 @@ dropdown.innerHTML = `
                     app.loadingBar.finish();
                 },
 
-                loadVehiclePage: async (plate) => {
+                loadVehiclePage: async (plate, forceRefresh = false) => {
                     if (window.location.pathname !== `/vehicle/${encodeURIComponent(plate)}`) {
                         app.utils.navigate(`/vehicle/${encodeURIComponent(plate)}`);
+                        return;
+                    }
+
+                    // --- KIỂM TRA BỘ NHỚ TẠM ---
+                    if (app.currentPlate === plate && document.getElementById('vehicle').innerHTML !== '' && !forceRefresh) {
+                        app.views.switch('vehicle', false);
+                        app.loadingBar.finish();
                         return;
                     }
 
@@ -10925,10 +10946,17 @@ dropdown.innerHTML = `
                 operatorLoadedCount: 0,
                 operatorPhotos: [],
 
-                loadOperatorPage: async (operatorName) => {
+                loadOperatorPage: async (operatorName, forceRefresh = false) => {
                     const decodedPath = decodeURIComponent(window.location.pathname);
                     if (decodedPath !== `/operator/${operatorName}`) {
                         app.utils.navigate(`/operator/${encodeURIComponent(operatorName)}`);
+                        return;
+                    }
+
+                    // --- KIỂM TRA BỘ NHỚ TẠM ---
+                    if (app.currentOperator === operatorName && app.operatorPhotos && app.operatorPhotos.length > 0 && !forceRefresh) {
+                        app.views.switch('operator-view', false);
+                        app.loadingBar.finish();
                         return;
                     }
 
