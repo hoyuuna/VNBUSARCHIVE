@@ -4180,6 +4180,45 @@
                             <p id="op-stat-views" class="text-2xl font-black text-black">...</p>
                         </div>
                     </div>
+
+                    <!-- BẢNG THỐNG KÊ DÒNG XE CỦA HÃNG NÀY -->
+                    <div id="op-model-stats-wrapper" class="hidden mt-8 border border-gray-200 rounded-xl overflow-hidden shadow-sm relative">
+                        <div class="bg-gray-50 px-4 py-3 border-b border-gray-200 font-bold text-sm text-black uppercase flex items-center gap-2">
+                            <i class="fa-solid fa-chart-pie text-gray-500"></i> Cơ cấu Dòng xe
+                        </div>
+                        
+                        <div id="op-model-table-container" class="relative max-h-[275px] overflow-hidden transition-all duration-500 bg-white">
+                            <table class="w-full text-left text-sm whitespace-nowrap">
+                                <thead class="bg-white border-b border-gray-100 text-gray-500 text-[11px] uppercase tracking-wider">
+                                    <tr>
+                                        <th class="p-3 font-bold">Dòng xe</th>
+                                        <th class="p-3 font-bold text-center">Đang HĐ</th>
+                                        <th class="p-3 font-bold text-center">Dừng HĐ</th>
+                                        <th class="p-3 font-bold text-center text-black">Tổng</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="op-model-tbody" class="divide-y divide-gray-50">
+                                    <!-- JS sẽ render dòng xe vào đây -->
+                                </tbody>
+                                <tfoot id="op-model-tfoot" class="bg-gray-50 font-bold text-black border-t border-gray-200">
+                                    <tr>
+                                        <td class="p-3 text-[11px] uppercase tracking-widest text-gray-500">Tổng cộng</td>
+                                        <td class="p-3 text-center text-green-600" id="op-model-total-active">0</td>
+                                        <td class="p-3 text-center text-red-500" id="op-model-total-inactive">0</td>
+                                        <td class="p-3 text-center" id="op-model-total-all">0</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                            
+                            <!-- Hiệu ứng Fade mờ dần khi danh sách quá dài -->
+                            <div id="op-model-fade" class="absolute bottom-0 left-0 w-full h-20 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
+                        </div>
+                        
+                        <!-- Nút xem thêm -->
+                        <button id="btn-op-model-expand" onclick="app.operator.toggleModelTable()" class="w-full py-2.5 bg-white text-xs font-bold text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition border-t border-gray-200">
+                            Xem toàn bộ danh sách <i class="fa-solid fa-chevron-down ml-1"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="flex items-center gap-2 mb-4 border-b border-gray-200 pb-2">
@@ -6743,6 +6782,25 @@
 
 
             operator: {
+                toggleModelTable: () => {
+                    const container = document.getElementById('op-model-table-container');
+                    const fade = document.getElementById('op-model-fade');
+                    const btn = document.getElementById('btn-op-model-expand');
+                    
+                    if (container.classList.contains('max-h-[275px]')) {
+                        // Mở rộng bảng
+                        container.classList.remove('max-h-[275px]');
+                        container.classList.add('max-h-[2000px]'); 
+                        fade.classList.add('hidden');
+                        btn.innerHTML = 'Thu gọn danh sách <i class="fa-solid fa-chevron-up ml-1"></i>';
+                    } else {
+                        // Thu gọn bảng
+                        container.classList.add('max-h-[275px]');
+                        container.classList.remove('max-h-[2000px]');
+                        fade.classList.remove('hidden');
+                        btn.innerHTML = 'Xem toàn bộ danh sách <i class="fa-solid fa-chevron-down ml-1"></i>';
+                    }
+                },
                 openEditPrompt: async () => {
                     if (!app.user) return app.auth.check();
                     const modal = document.getElementById('operator-edit-modal');
@@ -10865,38 +10923,133 @@ if (app.user && app.role === 'manager' && isDenied) {
                             descEl.classList.add('hidden');
                         }
 
-                        // Lấy dữ liệu ảnh và thống kê (Giữ nguyên như cũ)
-                        const { data: statsData, error: statsErr } = await window.sb.from('photos')
-                            .select('views, license_plate, route_no')
-                            .eq('status', 'approved')
-                            .ilike('operator', operatorName);
+                        // =========================================================
+                        // LOGIC THÔNG MINH: VÒNG LẶP LẤY THỐNG KÊ (VƯỢT GIỚI HẠN 1000 DÒNG)
+                        // Chỉ tải text (BKS, Tuyến, Dòng xe), tuyệt đối không tải URL ảnh để tiết kiệm RAM
+                        // =========================================================
+                        let allStatsData = [];
+                        let from = 0;
+                        const step = 999;
+                        let fetchMore = true;
 
-                        if (statsErr) throw statsErr;
+                        while (fetchMore) {
+                            const { data, error } = await window.sb.from('photos')
+                                .select('views, license_plate, route_no, vehicles(model)')
+                                .eq('status', 'approved')
+                                .ilike('operator', operatorName)
+                                .order('taken_at', { ascending: false, nullsFirst: false }) // Ép ảnh mới nhất lên đầu
+                                .range(from, from + step);
 
-                        if (!statsData || statsData.length === 0) {
+                            if (error || !data || data.length === 0) break;
+
+                            allStatsData.push(...data);
+
+                            if (data.length <= step) {
+                                fetchMore = false;
+                            } else {
+                                from += step + 1;
+                            }
+                        }
+
+                        if (allStatsData.length === 0) {
                             grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500">Chưa có ảnh nào của đơn vị này được duyệt trên hệ thống.</div>';
                             document.getElementById('op-stat-photos').innerText = '0';
                             document.getElementById('op-stat-vehicles').innerText = '0';
                             document.getElementById('op-stat-routes').innerText = '0';
                             document.getElementById('op-stat-views').innerText = '0';
+                            document.getElementById('op-model-stats-wrapper').classList.add('hidden');
                             app.loadingBar.finish();
                             return;
                         }
 
+                        // 1. TÍNH TOÁN 4 Ô THỐNG KÊ TRÊN CÙNG
                         let totalViews = 0;
-                        let uniquePlates = new Set();
                         let uniqueRoutes = new Set();
+                        
+                        // 2. TÍNH TOÁN BẢNG CƠ CẤU DÒNG XE
+                        const latestStatusByPlate = new Map();
 
-                        statsData.forEach(p => {
+                        allStatsData.forEach(p => {
+                            // Cộng dồn view và tuyến
                             totalViews += (p.views || 0);
-                            if (p.license_plate) uniquePlates.add(p.license_plate.toUpperCase());
                             if (p.route_no && p.route_no !== '---') uniqueRoutes.add(p.route_no.toLowerCase());
+
+                            // Lọc trạng thái xe (Do API đã order DESC, lần gặp đầu tiên luôn là mới nhất)
+                            const plate = p.license_plate;
+                            if (plate && !latestStatusByPlate.has(plate.toUpperCase())) {
+                                const route = p.route_no || '';
+                                const isInactive = ['Dừng hoạt động', 'Chưa hoạt động'].includes(route);
+                                const model = p.vehicles?.model || 'Chưa cập nhật';
+                                
+                                latestStatusByPlate.set(plate.toUpperCase(), {
+                                    model: model,
+                                    active: !isInactive
+                                });
+                            }
                         });
 
-                        document.getElementById('op-stat-photos').innerText = app.utils.formatCompact(statsData.length);
-                        document.getElementById('op-stat-vehicles').innerText = app.utils.formatCompact(uniquePlates.size);
+                        // Ghi dữ liệu ra 4 ô Thống kê chung
+                        document.getElementById('op-stat-photos').innerText = app.utils.formatCompact(allStatsData.length);
+                        document.getElementById('op-stat-vehicles').innerText = app.utils.formatCompact(latestStatusByPlate.size);
                         document.getElementById('op-stat-routes').innerText = app.utils.formatCompact(uniqueRoutes.size);
                         document.getElementById('op-stat-views').innerText = app.utils.formatCompact(totalViews);
+
+                        // Tổng hợp dữ liệu cho bảng Dòng xe
+                        const modelStats = {};
+                        let totalActive = 0;
+                        let totalInactive = 0;
+
+                        latestStatusByPlate.forEach((info) => {
+                            if (!modelStats[info.model]) {
+                                modelStats[info.model] = { active: 0, inactive: 0, total: 0 };
+                            }
+                            if (info.active) {
+                                modelStats[info.model].active++;
+                                totalActive++;
+                            } else {
+                                modelStats[info.model].inactive++;
+                                totalInactive++;
+                            }
+                            modelStats[info.model].total++;
+                        });
+
+                        const sortedModels = Object.entries(modelStats)
+                            .map(([name, stats]) => ({ name, ...stats }))
+                            .sort((a, b) => b.total - a.total);
+
+                        // Render bảng Dòng xe
+                        const tbody = document.getElementById('op-model-tbody');
+                        tbody.innerHTML = sortedModels.map(m => `
+                            <tr class="hover:bg-blue-50 cursor-pointer transition group" onclick="app.utils.navigate('/model/${encodeURIComponent(m.name)}')">
+                                <td class="p-3 font-bold text-gray-800 group-hover:text-blue-700 max-w-[200px] truncate" title="${app.utils.cleanText(m.name)}">${app.utils.cleanText(m.name)}</td>
+                                <td class="p-3 text-center font-bold ${m.active > 0 ? 'text-green-600' : 'text-gray-300'}">${m.active}</td>
+                                <td class="p-3 text-center font-bold ${m.inactive > 0 ? 'text-red-500' : 'text-gray-300'}">${m.inactive}</td>
+                                <td class="p-3 text-center font-black text-black">${m.total}</td>
+                            </tr>
+                        `).join('');
+
+                        document.getElementById('op-model-total-active').innerText = totalActive;
+                        document.getElementById('op-model-total-inactive').innerText = totalInactive;
+                        document.getElementById('op-model-total-all').innerText = totalActive + totalInactive;
+
+                        // Hiệu ứng ẩn hiện bảng Dòng xe
+                        const wrapper = document.getElementById('op-model-stats-wrapper');
+                        const btnExpand = document.getElementById('btn-op-model-expand');
+                        const fadeEl = document.getElementById('op-model-fade');
+                        
+                        wrapper.classList.remove('hidden');
+
+                        if (sortedModels.length <= 5) {
+                            btnExpand.classList.add('hidden');
+                            fadeEl.classList.add('hidden');
+                            document.getElementById('op-model-table-container').classList.replace('max-h-[275px]', 'max-h-[2000px]');
+                        } else {
+                            btnExpand.classList.remove('hidden');
+                            fadeEl.classList.remove('hidden');
+                            document.getElementById('op-model-table-container').classList.replace('max-h-[2000px]', 'max-h-[275px]');
+                            btnExpand.innerHTML = 'Xem toàn bộ danh sách <i class="fa-solid fa-chevron-down ml-1"></i>';
+                        }
+                        // =========================================================
 
                         let pQuery = window.sb.from('photos').select(`*, profiles(id, username, role, subroles), vehicles(model)`)
                             .eq('status', 'approved')
