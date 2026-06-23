@@ -4130,6 +4130,55 @@
 
             </div>
 
+            <!-- GIAO DIỆN PROFILE ĐƠN VỊ VẬN HÀNH -->
+            <div id="operator-view" class="view-section">
+                <div class="text-xs text-gray-500 mb-4 bg-white px-3 py-2 border border-vbs-border rounded-md shadow-sm inline-flex items-center gap-2">
+                    <span onclick="app.utils.navigate('/')" class="cursor-pointer hover:text-black font-medium transition-colors">Trang chủ</span>
+                    <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                    <span id="crumb-operator" class="font-bold text-black truncate max-w-[200px]">...</span>
+                </div>
+
+                <div class="bg-white border border-vbs-border shadow-sm rounded-lg p-6 md:p-8 mb-6 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-5 text-8xl pointer-events-none"><i class="fa-solid fa-building"></i></div>
+                    <h2 id="operator-title" class="text-2xl md:text-3xl font-bold uppercase text-black tracking-tight mb-2">...</h2>
+                    <p class="text-sm text-gray-500 font-medium mb-6 flex items-center gap-2">
+                        <i class="fa-solid fa-briefcase"></i> Hồ sơ Đơn vị vận hành
+                    </p>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Tổng số ảnh</p>
+                            <p id="op-stat-photos" class="text-2xl font-black text-black">...</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Số xe quản lý</p>
+                            <p id="op-stat-vehicles" class="text-2xl font-black text-blue-600">...</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Tuyến hoạt động</p>
+                            <p id="op-stat-routes" class="text-2xl font-black text-orange-600">...</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Tổng lượt xem</p>
+                            <p id="op-stat-views" class="text-2xl font-black text-green-600">...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 mb-4 border-b border-gray-200 pb-2">
+                    <h3 class="text-lg font-bold uppercase text-black tracking-tight">Thư viện ảnh</h3>
+                </div>
+                
+                <div id="operator-photo-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+                
+                <div id="operator-load-more-container" class="text-center mt-8 hidden">
+                    <button onclick="app.views.loadMoreOperatorPhotos()" class="bg-white border border-gray-300 text-gray-700 px-6 py-2.5 text-sm font-bold rounded-md hover:bg-gray-50 hover:border-gray-400 transition shadow-sm">
+                        Xem thêm <i class="fa-solid fa-chevron-down ml-1"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- KẾT THÚC GIAO DIỆN PROFILE ĐƠN VỊ VẬN HÀNH -->
+
             <!-- VIEW MỚI: TRUYỀN TẢI DỮ LIỆU -->
             <div id="mobile-upload" class="view-section">
                 <div class="max-w-md mx-auto bg-white border border-vbs-border p-6 sm:p-8 rounded-2xl shadow-sm text-center flex flex-col items-center mt-6 min-h-[55vh] justify-center">
@@ -6849,6 +6898,9 @@
                             if (id === 'info-plate') {
                                 app.utils.navigate(`/vehicle/${encodeURIComponent(this.value)}`);
                             }
+                            else if (id === 'info-operator') {
+                                app.utils.navigate(`/operator/${encodeURIComponent(this.value)}`);
+                            }
                             else if (id === 'info-route') {
                                 const plateValue = document.getElementById('info-plate').value;
                                 const provinceCode = plateValue ? plateValue.substring(0, 2) : '';
@@ -7081,6 +7133,10 @@
                 } else if (path.startsWith('/vehicle/')) {
                     const plate = decodeURIComponent(path.split('/')[2]);
                     if (plate) app.views.loadVehiclePage(plate);
+                    else app.views.loadHome();
+                } else if (path.startsWith('/operator/')) {
+                    const operatorName = decodeURIComponent(path.split('/')[2]);
+                    if (operatorName) app.views.loadOperatorPage(operatorName);
                     else app.views.loadHome();
                 } else if (path.startsWith('/search')) {
                     document.title = 'Tìm kiếm | VNBUSARCHIVE';
@@ -13591,7 +13647,106 @@ app.admin.fetchManagerData('denied');
                         textEl.innerText = "Lỗi kiểm tra giới hạn";
                         textEl.classList.add('text-red-500');
                     }
+                },
+
+                // --- BẮT ĐẦU LOGIC PROFILE ĐƠN VỊ VẬN HÀNH ---
+                currentOperator: '',
+                operatorLoadedCount: 0,
+                operatorPhotos: [],
+
+                loadOperatorPage: async (operatorName) => {
+                    if (window.location.pathname !== `/operator/${encodeURIComponent(operatorName)}`) {
+                        app.utils.navigate(`/operator/${encodeURIComponent(operatorName)}`);
+                        return;
+                    }
+
+                    app.views.switch('operator-view', false);
+                    document.title = `${operatorName} | VNBUSARCHIVE`;
+                    app.currentOperator = operatorName;
+                    app.operatorLoadedCount = 0;
+
+                    document.getElementById('crumb-operator').innerText = operatorName;
+                    document.getElementById('operator-title').innerText = operatorName;
+                    
+                    const grid = document.getElementById('operator-photo-grid');
+                    grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tổng hợp dữ liệu...</div>';
+                    document.getElementById('operator-load-more-container').classList.add('hidden');
+
+                    try {
+                        // 1. Lấy dữ liệu thô nhẹ để tính toán Thống kê nhanh chóng
+                        const { data: statsData, error: statsErr } = await window.sb.from('photos')
+                            .select('views, license_plate, route_no')
+                            .eq('status', 'approved')
+                            .ilike('operator', operatorName); // Tìm khớp tên không phân biệt hoa thường
+
+                        if (statsErr) throw statsErr;
+
+                        if (!statsData || statsData.length === 0) {
+                            grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500">Chưa có ảnh nào của đơn vị này được duyệt trên hệ thống.</div>';
+                            document.getElementById('op-stat-photos').innerText = '0';
+                            document.getElementById('op-stat-vehicles').innerText = '0';
+                            document.getElementById('op-stat-routes').innerText = '0';
+                            document.getElementById('op-stat-views').innerText = '0';
+                            app.loadingBar.finish();
+                            return;
+                        }
+
+                        let totalViews = 0;
+                        let uniquePlates = new Set();
+                        let uniqueRoutes = new Set();
+
+                        statsData.forEach(p => {
+                            totalViews += (p.views || 0);
+                            if (p.license_plate) uniquePlates.add(p.license_plate.toUpperCase());
+                            if (p.route_no && p.route_no !== '---') uniqueRoutes.add(p.route_no.toLowerCase());
+                        });
+
+                        document.getElementById('op-stat-photos').innerText = app.utils.formatCompact(statsData.length);
+                        document.getElementById('op-stat-vehicles').innerText = app.utils.formatCompact(uniquePlates.size);
+                        document.getElementById('op-stat-routes').innerText = app.utils.formatCompact(uniqueRoutes.size);
+                        document.getElementById('op-stat-views').innerText = app.utils.formatCompact(totalViews);
+
+                        // 2. Fetch danh sách ảnh đầy đủ cho Grid (áp dụng lọc cá nhân hóa)
+                        let pQuery = window.sb.from('photos').select(`*, profiles(id, username, role, subroles), vehicles(model)`)
+                            .eq('status', 'approved')
+                            .ilike('operator', operatorName)
+                            .order('taken_at', { ascending: false, nullsFirst: false })
+                            .order('created_at', { ascending: false });
+                        
+                        pQuery = app.preference.applyFilter(pQuery);
+
+                        const { data: photos, error } = await pQuery;
+                        if (error) throw error;
+
+                        app.operatorPhotos = photos || [];
+                        grid.innerHTML = '';
+                        app.views.loadMoreOperatorPhotos();
+
+                    } catch (err) {
+                        grid.innerHTML = `<div class="col-span-full text-center py-10 text-red-500">Lỗi lấy dữ liệu: ${err.message}</div>`;
+                    }
+                    app.loadingBar.finish();
+                },
+
+                loadMoreOperatorPhotos: () => {
+                    const start = app.operatorLoadedCount;
+                    const limit = 12; // Load mỗi lần 12 ảnh
+                    const end = start + limit;
+                    const grid = document.getElementById('operator-photo-grid');
+                    
+                    const photosToRender = app.operatorPhotos.slice(start, end);
+                    if (photosToRender.length > 0) {
+                        grid.innerHTML += photosToRender.map(p => app.views.renderPhotoCard(p)).join('');
+                        app.operatorLoadedCount += photosToRender.length;
+                    }
+
+                    if (app.operatorLoadedCount >= app.operatorPhotos.length) {
+                        document.getElementById('operator-load-more-container').classList.add('hidden');
+                    } else {
+                        document.getElementById('operator-load-more-container').classList.remove('hidden');
+                    }
                 }
+                // --- KẾT THÚC LOGIC PROFILE ĐƠN VỊ ---
             },
 
             vehicle: {
