@@ -4139,7 +4139,24 @@
                 </div>
 
                 <div class="bg-white border border-vbs-border shadow-sm rounded-lg p-6 md:p-8 mb-6 relative overflow-hidden">
-                    <h2 id="operator-title" class="text-2xl md:text-3xl font-bold uppercase text-black tracking-tight mb-6">...</h2>
+                    <div class="flex flex-col md:flex-row justify-between items-start mb-6 gap-4">
+                        <div class="flex items-center gap-4 w-full md:w-auto">
+                            <img id="operator-logo" src="" class="hidden w-16 h-16 md:w-20 md:h-20 object-cover rounded-xl border border-gray-200 bg-white shadow-sm shrink-0">
+                            <div id="operator-logo-fallback" class="w-16 h-16 md:w-20 md:h-20 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center font-bold text-3xl border border-orange-100 shadow-sm shrink-0">
+                                <i class="fa-solid fa-building"></i>
+                            </div>
+                            <div class="overflow-hidden">
+                                <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-widest font-bold mb-1">Đơn vị vận hành</p>
+                                <h2 id="operator-title" class="text-xl md:text-3xl font-black uppercase text-black tracking-tight leading-tight truncate">...</h2>
+                            </div>
+                        </div>
+                        <button onclick="app.operator.openEditPrompt()" class="w-full md:w-auto text-xs text-black hover:bg-gray-100 bg-white px-4 py-2.5 border border-gray-200 rounded-lg transition shadow-sm font-bold shrink-0 flex justify-center items-center gap-1.5">
+                            <i class="fa-solid fa-pen-to-square"></i> Cập nhật thông tin
+                        </button>
+                    </div>
+                    
+                    <!-- Khung mô tả -->
+                    <div id="operator-desc" class="text-sm text-gray-700 mb-6 whitespace-pre-wrap leading-relaxed hidden bg-gray-50 p-4 rounded-xl border border-gray-100 shadow-inner"></div>
 
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
@@ -6656,6 +6673,98 @@
         },
 
 
+            operator: {
+                openEditPrompt: async () => {
+                    if (!app.user) return app.auth.check();
+                    const modal = document.getElementById('operator-edit-modal');
+                    const content = document.getElementById('operator-edit-content');
+                    
+                    document.getElementById('op-edit-logo').value = '';
+                    document.getElementById('op-edit-desc').value = '';
+                    
+                    try {
+                        const { data: opInfo } = await window.sb.from('operator_info').select('*').eq('operator_name', app.currentOperator).maybeSingle();
+                        if (opInfo) {
+                            document.getElementById('op-edit-logo').value = opInfo.logo_url || '';
+                            document.getElementById('op-edit-desc').value = opInfo.description || '';
+                        }
+                    } catch(e) {}
+
+                    modal.classList.remove('hidden');
+                    app.ui.lockScroll();
+                    setTimeout(() => {
+                        content.classList.remove('opacity-0', 'scale-95');
+                        content.classList.add('opacity-100', 'scale-100');
+                    }, 10);
+                },
+                closeEditPrompt: () => {
+                    const modal = document.getElementById('operator-edit-modal');
+                    const content = document.getElementById('operator-edit-content');
+                    content.classList.remove('opacity-100', 'scale-100');
+                    content.classList.add('opacity-0', 'scale-95');
+                    setTimeout(() => {
+                        modal.classList.add('hidden');
+                        app.ui.unlockScroll();
+                    }, 200);
+                },
+                submitEdit: async () => {
+                    if (!app.user) return;
+                    const logo = document.getElementById('op-edit-logo').value.trim();
+                    const desc = document.getElementById('op-edit-desc').value.trim();
+                    const btn = document.getElementById('btn-save-operator');
+                    
+                    if (logo && !/^https?:\/\//i.test(logo)) {
+                        return app.ui.showAlert("Logo URL phải bắt đầu bằng http:// hoặc https://");
+                    }
+
+                    try {
+                        await app.captcha.request();
+                    } catch (err) {
+                        if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha.");
+                        return;
+                    }
+
+                    const origText = btn.innerHTML;
+                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
+                    btn.disabled = true;
+
+                    try {
+                        const { count, error: checkErr } = await window.sb.from('edit_requests')
+                            .select('*', { count: 'exact', head: true })
+                            .eq('status', 'pending')
+                            .contains('new_data', { request_type: 'update_operator_info', operator_name: app.currentOperator });
+                            
+                        if (checkErr) throw checkErr;
+                        if (count > 0) {
+                            throw new Error("Đã có một yêu cầu cập nhật thông tin cho đơn vị này đang chờ duyệt. Vui lòng đợi!");
+                        }
+
+                        const reqData = {
+                            requester_id: app.user.id,
+                            license_plate: 'OP_INFO', // Giả lập để vượt qua bắt buộc NOT NULL
+                            new_data: {
+                                request_type: 'update_operator_info',
+                                operator_name: app.currentOperator,
+                                description: desc,
+                                logo_url: logo
+                            },
+                            status: 'pending'
+                        };
+
+                        const { error } = await window.sb.from('edit_requests').insert(reqData);
+                        if (error) throw error;
+
+                        app.ui.showAlert("Đã gửi yêu cầu cập nhật thông tin đơn vị vận hành và đang chờ Admin duyệt.");
+                        app.operator.closeEditPrompt();
+                    } catch (err) {
+                        app.ui.showAlert("Lỗi: " + err.message);
+                    } finally {
+                        btn.innerHTML = origText;
+                        btn.disabled = false;
+                    }
+                }
+            },
+
         init: async () => {
             let session = null;
 
@@ -7131,7 +7240,8 @@
                     if (plate) app.views.loadVehiclePage(plate);
                     else app.views.loadHome();
                 } else if (path.startsWith('/operator/')) {
-                    const operatorName = decodeURIComponent(path.split('/')[2]);
+                    // Cắt chữ cực kì an toàn bằng substring thay vì split('/') để không dính lỗi khi tên có chứa dấu gạch chéo.
+                    const operatorName = decodeURIComponent(path.substring('/operator/'.length));
                     if (operatorName) app.views.loadOperatorPage(operatorName);
                     else app.views.loadHome();
                 } else if (path.startsWith('/search')) {
@@ -8145,6 +8255,38 @@ grid.innerHTML = tiers.map(tier => {
                                         <div class="overflow-hidden">
                                             <div class="font-bold text-black text-sm flex items-center truncate">${user.username} ${userBadges}</div>
                                             <div class="text-xs text-gray-500">${count || 0} ảnh đã đăng</div>
+                                        </div>
+                                    </div>
+                                `);
+                            }
+                        }
+                    }
+
+                    if (filterType === 'operator' || filterType === 'all') {
+                        let opQuery = window.sb.from('photos').select('operator').eq('status', 'approved');
+                        searchWords.forEach(w => { opQuery = opQuery.ilike('operator', `%${w}%`); });
+                        const { data: opData } = await opQuery.limit(500);
+
+                        if (opData && opData.length > 0) {
+                            const uniqueOps = [...new Set(opData.map(p => p.operator).filter(Boolean))].slice(0, 4); // Lấy tối đa 4 nhà xe nổi bật
+                            
+                            const { data: opInfos } = await window.sb.from('operator_info').select('*').in('operator_name', uniqueOps);
+                            const opInfoMap = {};
+                            if(opInfos) opInfos.forEach(i => opInfoMap[i.operator_name] = i);
+
+                            for (const op of uniqueOps) {
+                                const info = opInfoMap[op] || {};
+                                const logo = info.logo_url ? app.utils.escapeAttr(info.logo_url) : '';
+                                const iconHtml = logo 
+                                    ? `<img src="${logo}" class="w-12 h-12 rounded object-cover bg-white border border-gray-200 shrink-0">` 
+                                    : `<div class="w-12 h-12 rounded bg-orange-50 text-orange-600 flex items-center justify-center font-bold text-xl shrink-0 border border-orange-100"><i class="fa-solid fa-building"></i></div>`;
+
+                                cards.push(`
+                                    <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.views.loadOperatorPage('${app.utils.escapeAttr(op)}')">
+                                        ${iconHtml}
+                                        <div class="overflow-hidden">
+                                            <div class="font-bold text-black text-sm truncate">${app.utils.cleanText(op)}</div>
+                                            <div class="text-[10px] text-gray-500 uppercase tracking-widest mt-0.5 font-bold">Đơn vị vận hành</div>
                                         </div>
                                     </div>
                                 `);
@@ -10157,7 +10299,8 @@ if (app.user && app.role === 'manager' && isDenied) {
                 operatorPhotos: [],
 
                 loadOperatorPage: async (operatorName) => {
-                    if (window.location.pathname !== `/operator/${encodeURIComponent(operatorName)}`) {
+                    const decodedPath = decodeURIComponent(window.location.pathname);
+                    if (decodedPath !== `/operator/${operatorName}`) {
                         app.utils.navigate(`/operator/${encodeURIComponent(operatorName)}`);
                         return;
                     }
@@ -10175,11 +10318,34 @@ if (app.user && app.role === 'manager' && isDenied) {
                     document.getElementById('operator-load-more-container').classList.add('hidden');
 
                     try {
-                        // 1. Lấy dữ liệu thô nhẹ để tính toán Thống kê nhanh chóng
+                        // Gọi DB Lấy thông tin Operator (Logo, Mô tả)
+                        const { data: opInfo } = await window.sb.from('operator_info').select('*').eq('operator_name', operatorName).maybeSingle();
+                        
+                        const logoEl = document.getElementById('operator-logo');
+                        const fallbackEl = document.getElementById('operator-logo-fallback');
+                        const descEl = document.getElementById('operator-desc');
+
+                        if (opInfo && opInfo.logo_url) {
+                            logoEl.src = opInfo.logo_url;
+                            logoEl.classList.remove('hidden');
+                            fallbackEl.classList.add('hidden');
+                        } else {
+                            logoEl.classList.add('hidden');
+                            fallbackEl.classList.remove('hidden');
+                        }
+
+                        if (opInfo && opInfo.description) {
+                            descEl.innerHTML = app.utils.cleanText(opInfo.description);
+                            descEl.classList.remove('hidden');
+                        } else {
+                            descEl.classList.add('hidden');
+                        }
+
+                        // Lấy dữ liệu ảnh và thống kê (Giữ nguyên như cũ)
                         const { data: statsData, error: statsErr } = await window.sb.from('photos')
                             .select('views, license_plate, route_no')
                             .eq('status', 'approved')
-                            .ilike('operator', operatorName); // Tìm khớp tên không phân biệt hoa thường
+                            .ilike('operator', operatorName);
 
                         if (statsErr) throw statsErr;
 
@@ -10208,7 +10374,6 @@ if (app.user && app.role === 'manager' && isDenied) {
                         document.getElementById('op-stat-routes').innerText = app.utils.formatCompact(uniqueRoutes.size);
                         document.getElementById('op-stat-views').innerText = app.utils.formatCompact(totalViews);
 
-                        // 2. Fetch danh sách ảnh đầy đủ cho Grid (áp dụng lọc cá nhân hóa)
                         let pQuery = window.sb.from('photos').select(`*, profiles(id, username, role, subroles), vehicles(model)`)
                             .eq('status', 'approved')
                             .ilike('operator', operatorName)
@@ -11027,6 +11192,27 @@ formInputs.forEach(input => {
                                             <div class="flex gap-2 mt-3">
                                                 <button onclick="app.admin.approveReq('${r.id}', this, 'vehicle_details')" class="flex-1 bg-green-600 text-white py-1.5 font-bold rounded hover:bg-green-700">DUYỆT</button>
                                                 <button onclick="app.admin.denyReq('${r.id}', this)" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">HỦY</button>
+                                            </div>
+                                        </div>
+                                    </div>`;
+                                } else if (type === 'update_operator_info') {
+                                    return `
+                                    <div class="admin-card overflow-visible">
+                                        <div class="admin-card-header bg-orange-50"><span class="font-bold text-xs uppercase text-orange-600">CẬP NHẬT NHÀ XE</span><span class="text-xs text-gray-500">${username}</span></div>
+                                        <div class="admin-card-body text-xs">
+                                            <p class="font-bold text-sm mb-3 text-black"><i class="fa-solid fa-building mr-1 text-gray-400"></i> ${app.utils.escapeAttr(d.operator_name)}</p>
+                                            <div class="mb-2">
+                                                <span class="admin-label">Logo URL</span>
+                                                <input type="text" id="req-op-logo-${r.id}" value="${app.utils.escapeAttr(d.logo_url || '')}" class="admin-input">
+                                                ${d.logo_url ? `<img src="${app.utils.escapeAttr(d.logo_url)}" class="mt-1 h-8 w-8 object-cover rounded border border-gray-200">` : ''}
+                                            </div>
+                                            <div class="mb-2">
+                                                <span class="admin-label">Mô tả</span>
+                                                <textarea id="req-op-desc-${r.id}" class="admin-input" rows="4">${app.utils.escapeAttr(d.description || '')}</textarea>
+                                            </div>
+                                            <div class="flex gap-2 mt-3">
+                                                <button onclick="app.admin.approveReq('${r.id}', this, 'operator_info')" class="flex-1 bg-green-600 text-white py-1.5 font-bold rounded hover:bg-green-700">DUYỆT</button>
+                                                <button onclick="app.admin.denyReq('${r.id}', this)" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">TỪ CHỐI</button>
                                             </div>
                                         </div>
                                     </div>`;
@@ -11933,6 +12119,18 @@ app.admin.fetchManagerData('denied');
                             const { error } = await window.sb.from('vehicles')
                                 .update({ model: finalModel, note: finalNote })
                                 .eq('license_plate', req.license_plate);
+                            if (error) throw error;
+                        }
+
+                        else if (reqType === 'operator_info' || req.new_data.request_type === 'update_operator_info') {
+                            const logo = document.getElementById(`req-op-logo-${id}`).value.trim();
+                            const desc = document.getElementById(`req-op-desc-${id}`).value.trim();
+                            
+                            const { error } = await window.sb.from('operator_info').upsert({
+                                operator_name: req.new_data.operator_name,
+                                logo_url: logo || null,
+                                description: desc || null
+                            });
                             if (error) throw error;
                         }
 
@@ -16947,6 +17145,31 @@ closeCustomRolePrompt: () => {
             <div class="bg-gray-50/30 px-5 py-4 border-t border-gray-200/50 flex gap-3">
                 <button type="button" onclick="app.profileIntro.closeBioEditor()" class="flex-1 rounded-xl shadow-sm px-4 py-2.5 bg-white border border-gray-300 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all">Hủy</button>
                 <button type="button" id="btn-save-bio" onclick="app.profileIntro.saveBio()" class="flex-1 rounded-xl shadow-sm px-4 py-2.5 bg-black border border-black text-sm font-bold text-white hover:bg-gray-800 transition-all">Lưu tiểu sử</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CẬP NHẬT ĐƠN VỊ VẬN HÀNH -->
+    <div id="operator-edit-modal" class="hidden fixed inset-0 z-[10000] flex items-center justify-center p-4" style="background-color: rgba(0, 0, 0, 0) !important; backdrop-filter: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important;">
+        <div id="operator-edit-content" class="rounded-2xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col" style="max-width: 450px; background-color: rgba(255, 255, 255, 0.7) !important; backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important; border: 1px solid rgba(255, 255, 255, 0.6) !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;">
+            <div class="p-5 border-b border-gray-200/50 flex justify-between items-center shrink-0">
+                <h3 class="text-lg font-bold text-black tracking-tight"><i class="fa-solid fa-building mr-2 text-gray-500"></i>Cập nhật Đơn vị vận hành</h3>
+                <button onclick="app.operator.closeEditPrompt()" class="text-gray-400 hover:text-red-500 transition text-xl px-2"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="p-5 bg-transparent space-y-4">
+                <p class="text-xs text-gray-600 font-medium leading-relaxed">Thông tin này sẽ được kiểm duyệt bởi Admin. Việc để trống cả 2 ô sẽ làm mới và xóa thông tin hiện tại.</p>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Logo URL (Link ảnh vuông)</label>
+                    <input type="text" id="op-edit-logo" class="w-full bg-white/60 border border-gray-300/80 rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all shadow-inner text-black" placeholder="VD: https://imgur.com/xyz.png">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Mô tả giới thiệu</label>
+                    <textarea id="op-edit-desc" rows="4" class="w-full bg-white/60 border border-gray-300/80 rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all shadow-inner resize-none custom-scrollbar text-black" placeholder="Cung cấp thông tin lịch sử hoạt động, trụ sở..."></textarea>
+                </div>
+            </div>
+            <div class="bg-gray-50/30 px-5 py-4 border-t border-gray-200/50 flex gap-3">
+                <button type="button" onclick="app.operator.closeEditPrompt()" class="flex-1 rounded-xl shadow-sm px-4 py-2.5 bg-white border border-gray-300 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all">Hủy</button>
+                <button type="button" id="btn-save-operator" onclick="app.operator.submitEdit()" class="flex-1 rounded-xl shadow-sm px-4 py-2.5 bg-black border border-black text-sm font-bold text-white hover:bg-gray-800 transition-all">Gửi yêu cầu</button>
             </div>
         </div>
     </div>
