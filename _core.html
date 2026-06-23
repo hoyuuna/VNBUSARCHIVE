@@ -4133,17 +4133,13 @@
             <!-- GIAO DIỆN PROFILE ĐƠN VỊ VẬN HÀNH -->
             <div id="operator-view" class="view-section">
                 <div class="text-xs text-gray-500 mb-4 bg-white px-3 py-2 border border-vbs-border rounded-md shadow-sm inline-flex items-center gap-2">
-                    <span onclick="app.utils.navigate('/')" class="cursor-pointer hover:text-black font-medium transition-colors">Trang chủ</span>
+                    <span class="crumb-back cursor-pointer hover:text-black font-medium transition-colors">Trang chủ</span>
                     <i class="fa-solid fa-chevron-right text-[10px]"></i>
                     <span id="crumb-operator" class="font-bold text-black truncate max-w-[200px]">...</span>
                 </div>
 
                 <div class="bg-white border border-vbs-border shadow-sm rounded-lg p-6 md:p-8 mb-6 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 p-4 opacity-5 text-8xl pointer-events-none"><i class="fa-solid fa-building"></i></div>
-                    <h2 id="operator-title" class="text-2xl md:text-3xl font-bold uppercase text-black tracking-tight mb-2">...</h2>
-                    <p class="text-sm text-gray-500 font-medium mb-6 flex items-center gap-2">
-                        <i class="fa-solid fa-briefcase"></i> Hồ sơ Đơn vị vận hành
-                    </p>
+                    <h2 id="operator-title" class="text-2xl md:text-3xl font-bold uppercase text-black tracking-tight mb-6">...</h2>
 
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
@@ -4152,7 +4148,7 @@
                         </div>
                         <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
                             <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Số xe quản lý</p>
-                            <p id="op-stat-vehicles" class="text-2xl font-black text-blue-600">...</p>
+                            <p id="op-stat-vehicles" class="text-2xl font-black text-black">...</p>
                         </div>
                         <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
                             <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Tuyến hoạt động</p>
