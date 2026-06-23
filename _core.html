@@ -8316,62 +8316,70 @@ grid.innerHTML = tiers.map(tier => {
                         }
                     }
 
-                    // TỐI ƯU HÓA TÌM KIẾM ĐƠN VỊ VẬN HÀNH (KHẮC PHỤC LỖI TRỄ NHỊP)
+                    // TỐI ƯU HÓA TÌM KIẾM ĐƠN VỊ VẬN HÀNH (KHẮC PHỤC TRIỆT ĐỂ LỖI TRỄ NHỊP & HOA/THƯỜNG)
                     if (filterType === 'operator' || filterType === 'all') {
                         try {
-                            // Truy vấn trực tiếp vào bảng operator_info (siêu nhanh)
                             let opInfoQuery = window.sb.from('operator_info').select('*');
-                            searchWords.forEach(w => { opInfoQuery = opInfoQuery.ilike('operator_name', `%${w}%`); });
-                            
-                            // Truy vấn song song vào bảng photos (phòng trường hợp đơn vị đó chưa có logo/mô tả)
                             let opPhotoQuery = window.sb.from('photos').select('operator').eq('status', 'approved');
-                            searchWords.forEach(w => { opPhotoQuery = opPhotoQuery.ilike('operator', `%${w}%`); });
+                            
+                            searchWords.forEach(w => { 
+                                opInfoQuery = opInfoQuery.ilike('operator_name', `%${w}%`); 
+                                opPhotoQuery = opPhotoQuery.ilike('operator', `%${w}%`); 
+                            });
 
-                            // Chạy 2 truy vấn cùng lúc để tiết kiệm thời gian
+                            // Chạy 2 truy vấn song song để không bị nghẽn
                             const [infoRes, photoRes] = await Promise.all([
                                 opInfoQuery.limit(10),
                                 opPhotoQuery.limit(500)
                             ]);
 
-                            let uniqueOps = new Set();
+                            // Dùng Map để triệt tiêu lỗi phân biệt hoa/thường (BRT Hà Nội vs brt hà nội)
+                            let uniqueOpsMap = new Map();
                             const opInfoMap = {};
 
-                            // Gom dữ liệu từ bảng operator_info
                             if (infoRes.data) {
                                 infoRes.data.forEach(info => {
                                     if (info.operator_name) {
-                                        uniqueOps.add(info.operator_name);
-                                        opInfoMap[info.operator_name] = info;
+                                        const key = info.operator_name.toLowerCase();
+                                        uniqueOpsMap.set(key, info.operator_name);
+                                        opInfoMap[key] = info;
                                     }
                                 });
                             }
 
-                            // Gom dữ liệu từ bảng photos
                             if (photoRes.data) {
                                 photoRes.data.forEach(p => {
-                                    if (p.operator) uniqueOps.add(p.operator);
+                                    if (p.operator) {
+                                        const key = p.operator.toLowerCase();
+                                        if (!uniqueOpsMap.has(key)) {
+                                            uniqueOpsMap.set(key, p.operator);
+                                        }
+                                    }
                                 });
                             }
 
-                            // Lấy tối đa 4 nhà xe đầu tiên
-                            const finalOps = [...uniqueOps].slice(0, 4);
+                            // Giới hạn 4 nhà xe đầu tiên
+                            const finalOps = Array.from(uniqueOpsMap.values()).slice(0, 4);
 
-                            // Nếu nhà xe lấy từ photos chưa có thông tin trong Map, lấy bù từ DB
-                            const missingInfos = finalOps.filter(op => !opInfoMap[op]);
+                            // Lấy bù thông tin cho các nhà xe nếu chưa có trong Map
+                            const missingInfos = finalOps.filter(op => !opInfoMap[op.toLowerCase()]);
                             if (missingInfos.length > 0) {
                                 const { data: extraInfos } = await window.sb.from('operator_info').select('*').in('operator_name', missingInfos);
                                 if (extraInfos) {
-                                    extraInfos.forEach(info => { opInfoMap[info.operator_name] = info; });
+                                    extraInfos.forEach(info => { 
+                                        opInfoMap[info.operator_name.toLowerCase()] = info; 
+                                    });
                                 }
                             }
 
-                            // Render ra UI
+                            // Render giao diện
                             for (const op of finalOps) {
-                                const info = opInfoMap[op] || {};
+                                const info = opInfoMap[op.toLowerCase()] || {};
                                 const logo = info.logo_url ? app.utils.escapeAttr(info.logo_url) : '';
                                 
+                                // NẾU CÓ LOGO: Vuông, vừa khít, đổ bóng viền ngoài. NẾU KHÔNG: Tròn màu xanh.
                                 const iconHtml = logo 
-                                    ? `<img src="${logo}" class="w-12 h-12 object-contain shrink-0 drop-shadow-sm" onerror="this.outerHTML='<div class=&quot;w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0 shadow-sm border border-blue-100&quot;><i class=&quot;fa-solid fa-building&quot;></i></div>';">` 
+                                    ? `<img src="${logo}" class="w-12 h-12 object-contain shrink-0 drop-shadow-md" onerror="this.outerHTML='<div class=&quot;w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0 shadow-sm border border-blue-100&quot;><i class=&quot;fa-solid fa-building&quot;></i></div>';">` 
                                     : `<div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0 shadow-sm border border-blue-100"><i class="fa-solid fa-building"></i></div>`;
 
                                 cards.push(`
