@@ -6081,6 +6081,12 @@
 
                         if (error) throw error;
 
+                        // --- THÊM CHỐT CHẶN RACE CONDITION CHO BÌNH LUẬN VÀO ĐÂY ---
+                        if (app.currentPhoto && String(app.currentPhoto.id) !== String(photoId)) return;
+                        const currentPath = window.location.pathname;
+                        if (!currentPath.includes(`/photo/${photoId}`) && !currentPath.includes('/profile/comments')) return;
+                        // -------------------------------------------------------------
+
                         const btnMore = document.getElementById('btn-load-more-comments');
                         if (btnMore) btnMore.classList.toggle('hidden', count <= (to + 1));
 
@@ -10585,6 +10591,11 @@ dropdown.innerHTML = `
                         // Đẩy tất cả truy vấn chạy song song cho tốc độ nhanh nhất
                         const results = await Promise.all(promises);
 
+                        // --- THÊM CHỐT CHẶN TRÁNH VẼ GỢI Ý NHẦM SANG ẢNH KHÁC ---
+                        if (app.currentPhoto && app.currentPhoto.id !== photo.id) return;
+                        if (window.location.pathname !== `/photo/${photo.id}`) return;
+                        // --------------------------------------------------------
+
                         let finalPhotos = [];
                         let usedIds = new Set([photo.id]); // Chống trùng lặp ảnh với nhau
 
@@ -10650,13 +10661,16 @@ dropdown.innerHTML = `
                 loadHistory: async (plate) => {
                     document.getElementById('history-edit-ui').classList.add('hidden');
                     const tbody = document.getElementById('history-list');
-                    tbody.innerHTML = '<tr><td colspan="4" class="text-center py-2"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải...</td></tr>';
+                    if(tbody) tbody.innerHTML = '<tr><td colspan="4" class="text-center py-2"><i class="fa-solid fa-spinner fa-spin text-gray-400"></i> Đang tải...</td></tr>';
 
                     const { data: history } = await window.sb
                         .from('vehicle_history')
                         .select('*')
                         .eq('license_plate', plate);
 
+                    // --- CHỐT CHẶN: Đảm bảo user chưa bỏ đi nơi khác trong lúc chờ mạng tải Lịch sử ---
+                    const currentPath = decodeURIComponent(window.location.pathname);
+                    if (!currentPath.includes(plate)) return;
 
                     let parsedHistory = (history || []).map(h => {
                         if (!h.effective_date && h.note) {
@@ -10671,6 +10685,8 @@ dropdown.innerHTML = `
                     }).sort((a, b) => new Date(a.effective_date || '1970-01-01') - new Date(b.effective_date || '1970-01-01'));
 
                     app.vehicle.currentHistoryData = parsedHistory;
+                    
+                    if(!tbody) return; // Chặn lỗi nếu UI đã bị hủy
                     tbody.innerHTML = '';
 
                     if (parsedHistory.length > 0) {
@@ -10716,21 +10732,22 @@ dropdown.innerHTML = `
                 },
 
                 loadVehiclePage: async (plate, forceRefresh = false) => {
-                    if (window.location.pathname !== `/vehicle/${encodeURIComponent(plate)}`) {
+                    const decodedPath = decodeURIComponent(window.location.pathname);
+                    if (decodedPath !== `/vehicle/${encodeURIComponent(plate)}`) {
                         app.utils.navigate(`/vehicle/${encodeURIComponent(plate)}`);
                         return;
                     }
 
-                    // --- KIỂM TRA BỘ NHỚ TẠM ---
-                    if (app.currentPlate === plate && document.getElementById('vehicle').innerHTML !== '' && !forceRefresh) {
-                        app.views.switch('vehicle', false);
+                    // --- SỬA LỖI TRẮNG TRANG: TÁCH RIÊNG BIẾN CACHE CỦA XE ---
+                    // Không dùng chung app.currentPlate với trang ảnh nữa, mà dùng app.vehicle._renderedPlate
+                    if (app.vehicle._renderedPlate === plate && document.getElementById('vehicle').innerHTML.includes('history-table') && !forceRefresh) {
                         app.loadingBar.finish();
                         return;
                     }
 
-                    app.views.switch('vehicle', false);
+                    app.vehicle._renderedPlate = null; // Đặt lại trạng thái
                     const container = document.getElementById('vehicle');
-                    container.innerHTML = '<div class="text-center py-20"><i class="fa-solid fa-circle-notch fa-spin text-2xl"></i></div>';
+                    container.innerHTML = '<div class="text-center py-20"><i class="fa-solid fa-circle-notch fa-spin text-2xl text-gray-400"></i></div>';
 
                     try {
 
@@ -10941,11 +10958,13 @@ dropdown.innerHTML = `
                             </div>
                         `;
                         container.innerHTML = html;
+                        app.vehicle._renderedPlate = plate; // ĐÁNH DẤU XE NÀY ĐÃ RENDER THÀNH CÔNG
                         app.loadingBar.finish();
 
                     } catch (err) {
                         console.error("Lỗi khi tải trang xe:", err);
                         container.innerHTML = `<p class="text-center text-red-500 p-10">Đã xảy ra lỗi: ${err.message}</p>`;
+                        app.loadingBar.finish();
                     }
                 },
 
