@@ -4168,7 +4168,7 @@
                             <p id="op-stat-photos" class="text-2xl font-black text-black">...</p>
                         </div>
                         <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Số xe quản lý</p>
+                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Số xe được chụp</p>
                             <p id="op-stat-vehicles" class="text-2xl font-black text-black">...</p>
                         </div>
                         <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
@@ -6691,7 +6691,7 @@
                     // Cập nhật UI theo Role (Quyền)
                     if (app.role === 'admin' || app.role === 'manager') {
                         btnSave.innerText = "Lưu ngay lập tức";
-                        warningText.innerHTML = "<span class='text-red-600 font-bold'>ADMIN MODE:</span> Bạn đang ghi đè thông tin trực tiếp vào cơ sở dữ liệu. Để trống cả 2 ô sẽ xóa dữ liệu hiện tại.";
+                        warningText.innerHTML = "";
                     } else {
                         btnSave.innerText = "Gửi yêu cầu";
                         warningText.innerText = "Thông tin này sẽ được kiểm duyệt bởi Admin. Việc để trống cả 2 ô sẽ gửi yêu cầu xóa thông tin hiện tại.";
@@ -17204,7 +17204,11 @@ closeCustomRolePrompt: () => {
             <div class="p-5 bg-transparent space-y-4">
                 <p class="text-xs text-gray-600 font-medium leading-relaxed">Thông tin này sẽ được kiểm duyệt bởi Admin. Việc để trống cả 2 ô sẽ làm mới và xóa thông tin hiện tại.</p>
                 <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Logo URL (Link ảnh vuông)</label>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Logo URL</label>
+                    <div class="bg-yellow-50 border border-yellow-200 text-yellow-700 px-3 py-2 rounded-md text-[11px] font-medium mb-2 flex gap-2 items-center">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span>Khuyến cáo dùng ảnh hình vuông, đã được xóa nền.</span>
+                    </div>
                     <input type="text" id="op-edit-logo" class="w-full bg-white/60 border border-gray-300/80 rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all shadow-inner text-black" placeholder="VD: https://imgur.com/xyz.png">
                 </div>
                 <div>
