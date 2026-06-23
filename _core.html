@@ -11043,8 +11043,10 @@ if (app.user && app.role === 'manager' && isDenied) {
                             // KIỂM TRA ĐIỀU KIỆN QUAN TRỌNG: Xe này trạng thái hiện tại có còn thuộc Hãng này nữa không?
                             const currentOp = p.operator || '';
                             if (currentOp.toLowerCase() === operatorName.toLowerCase()) {
-                                const route = p.route_no || '';
-                                const isInactive = ['Dừng hoạt động', 'Chưa hoạt động'].includes(route);
+                                const route = (p.route_no || '').trim();
+                                // CHỈ DUY NHẤT "Dừng hoạt động" mới bị tính là xe loại biên (Cột Đỏ)
+                                // "Chưa hoạt động" (xe mới) hay "Tạm dừng" đều sẽ rơi vào Đang HĐ (Cột Xanh)
+                                const isInactive = route === 'Dừng hoạt động';
                                 const model = p.vehicles?.model || 'Chưa cập nhật';
 
                                 if (!modelStats[model]) {
