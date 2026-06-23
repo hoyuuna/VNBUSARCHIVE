@@ -4182,42 +4182,46 @@
                     </div>
 
                     <!-- BẢNG THỐNG KÊ DÒNG XE CỦA HÃNG NÀY -->
-                    <div id="op-model-stats-wrapper" class="hidden mt-8 border border-gray-200 rounded-xl overflow-hidden shadow-sm relative">
-                        <div class="bg-gray-50 px-4 py-3 border-b border-gray-200 font-bold text-sm text-black uppercase flex items-center gap-2">
-                            <i class="fa-solid fa-chart-pie text-gray-500"></i> Cơ cấu Dòng xe
-                        </div>
+                    <div id="op-model-stats-wrapper" class="hidden mt-10">
+                        <!-- Tách tiêu đề ra khỏi khung bảng -->
+                        <h3 class="text-lg font-bold uppercase text-black tracking-tight mb-3">
+                            <i class="fa-solid fa-chart-pie mr-2 text-gray-500"></i> Cơ cấu Dòng xe
+                        </h3>
                         
-                        <div id="op-model-table-container" class="relative max-h-[275px] overflow-hidden transition-all duration-500 bg-white">
-                            <table class="w-full text-left text-sm whitespace-nowrap">
-                                <thead class="bg-white border-b border-gray-100 text-gray-500 text-[11px] uppercase tracking-wider">
-                                    <tr>
-                                        <th class="p-3 font-bold">Dòng xe</th>
-                                        <th class="p-3 font-bold text-center">Đang HĐ</th>
-                                        <th class="p-3 font-bold text-center">Dừng HĐ</th>
-                                        <th class="p-3 font-bold text-center text-black">Tổng</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="op-model-tbody" class="divide-y divide-gray-50">
-                                    <!-- JS sẽ render dòng xe vào đây -->
-                                </tbody>
-                                <tfoot id="op-model-tfoot" class="bg-gray-50 font-bold text-black border-t border-gray-200">
-                                    <tr>
-                                        <td class="p-3 text-[11px] uppercase tracking-widest text-gray-500">Tổng cộng</td>
-                                        <td class="p-3 text-center text-green-600" id="op-model-total-active">0</td>
-                                        <td class="p-3 text-center text-red-500" id="op-model-total-inactive">0</td>
-                                        <td class="p-3 text-center" id="op-model-total-all">0</td>
-                                    </tr>
-                                </tfoot>
-                            </table>
+                        <div class="border border-gray-200 rounded-xl overflow-hidden shadow-sm relative bg-white">
+                            <!-- Thiết lập max-h-[280px] cứng ở HTML để đảm bảo mặc định bị giới hạn -->
+                            <div id="op-model-table-container" class="relative max-h-[280px] overflow-hidden transition-all duration-500">
+                                <table class="w-full text-left text-sm whitespace-nowrap">
+                                    <thead class="bg-gray-50 border-b border-gray-200 text-gray-500 text-[11px] uppercase tracking-wider">
+                                        <tr>
+                                            <th class="p-3 font-bold">Dòng xe</th>
+                                            <th class="p-3 font-bold text-center">Đang HĐ</th>
+                                            <th class="p-3 font-bold text-center">Dừng HĐ</th>
+                                            <th class="p-3 font-bold text-center text-black">Tổng</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="op-model-tbody" class="divide-y divide-gray-100">
+                                        <!-- JS sẽ render dòng xe vào đây -->
+                                    </tbody>
+                                    <tfoot id="op-model-tfoot" class="bg-gray-50 font-bold text-black border-t border-gray-200">
+                                        <tr>
+                                            <td class="p-3 text-[11px] uppercase tracking-widest text-gray-500">Tổng cộng</td>
+                                            <td class="p-3 text-center" id="op-model-total-active">0</td>
+                                            <td class="p-3 text-center" id="op-model-total-inactive">0</td>
+                                            <td class="p-3 text-center" id="op-model-total-all">0</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
                             
-                            <!-- Hiệu ứng Fade mờ dần khi danh sách quá dài -->
-                            <div id="op-model-fade" class="absolute bottom-0 left-0 w-full h-20 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
+                            <!-- Hiệu ứng Fade mờ dần khi danh sách quá dài (Nằm đè lên bảng) -->
+                            <div id="op-model-fade" class="absolute bottom-11 left-0 w-full h-16 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none"></div>
+                            
+                            <!-- Nút xem thêm (Màu đen/xám) -->
+                            <button id="btn-op-model-expand" onclick="app.operator.toggleModelTable()" class="w-full py-3 bg-white text-xs font-bold text-gray-600 hover:text-black hover:bg-gray-50 transition border-t border-gray-200 relative z-10">
+                                Xem toàn bộ danh sách <i class="fa-solid fa-chevron-down ml-1"></i>
+                            </button>
                         </div>
-                        
-                        <!-- Nút xem thêm -->
-                        <button id="btn-op-model-expand" onclick="app.operator.toggleModelTable()" class="w-full py-2.5 bg-white text-xs font-bold text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition border-t border-gray-200">
-                            Xem toàn bộ danh sách <i class="fa-solid fa-chevron-down ml-1"></i>
-                        </button>
                     </div>
                 </div>
 
@@ -6787,16 +6791,16 @@
                     const fade = document.getElementById('op-model-fade');
                     const btn = document.getElementById('btn-op-model-expand');
                     
-                    if (container.classList.contains('max-h-[275px]')) {
+                    if (container.classList.contains('max-h-[280px]')) {
                         // Mở rộng bảng
-                        container.classList.remove('max-h-[275px]');
-                        container.classList.add('max-h-[2000px]'); 
+                        container.classList.remove('max-h-[280px]');
+                        container.classList.add('max-h-[3000px]'); 
                         fade.classList.add('hidden');
                         btn.innerHTML = 'Thu gọn danh sách <i class="fa-solid fa-chevron-up ml-1"></i>';
                     } else {
                         // Thu gọn bảng
-                        container.classList.add('max-h-[275px]');
-                        container.classList.remove('max-h-[2000px]');
+                        container.classList.remove('max-h-[3000px]');
+                        container.classList.add('max-h-[280px]');
                         fade.classList.remove('hidden');
                         btn.innerHTML = 'Xem toàn bộ danh sách <i class="fa-solid fa-chevron-down ml-1"></i>';
                     }
@@ -11017,13 +11021,17 @@ if (app.user && app.role === 'manager' && isDenied) {
                             .map(([name, stats]) => ({ name, ...stats }))
                             .sort((a, b) => b.total - a.total);
 
-                        // Render bảng Dòng xe
+                        // Render bảng Dòng xe (Tone Đen/Trắng/Xám, Chỉ click vào Tên xe)
                         const tbody = document.getElementById('op-model-tbody');
                         tbody.innerHTML = sortedModels.map(m => `
-                            <tr class="hover:bg-blue-50 cursor-pointer transition group" onclick="app.utils.navigate('/model/${encodeURIComponent(m.name)}')">
-                                <td class="p-3 font-bold text-gray-800 group-hover:text-blue-700 max-w-[200px] truncate" title="${app.utils.cleanText(m.name)}">${app.utils.cleanText(m.name)}</td>
-                                <td class="p-3 text-center font-bold ${m.active > 0 ? 'text-green-600' : 'text-gray-300'}">${m.active}</td>
-                                <td class="p-3 text-center font-bold ${m.inactive > 0 ? 'text-red-500' : 'text-gray-300'}">${m.inactive}</td>
+                            <tr class="hover:bg-gray-50 transition group">
+                                <td class="p-3 font-medium text-gray-700 max-w-[200px] truncate" title="${app.utils.cleanText(m.name)}">
+                                    <span onclick="app.utils.navigate('/model/${encodeURIComponent(m.name)}')" class="cursor-pointer hover:text-black hover:underline font-bold transition">
+                                        ${app.utils.cleanText(m.name)}
+                                    </span>
+                                </td>
+                                <td class="p-3 text-center font-bold ${m.active > 0 ? 'text-black' : 'text-gray-300'}">${m.active}</td>
+                                <td class="p-3 text-center font-bold ${m.inactive > 0 ? 'text-gray-500' : 'text-gray-300'}">${m.inactive}</td>
                                 <td class="p-3 text-center font-black text-black">${m.total}</td>
                             </tr>
                         `).join('');
@@ -11036,17 +11044,18 @@ if (app.user && app.role === 'manager' && isDenied) {
                         const wrapper = document.getElementById('op-model-stats-wrapper');
                         const btnExpand = document.getElementById('btn-op-model-expand');
                         const fadeEl = document.getElementById('op-model-fade');
+                        const tableContainer = document.getElementById('op-model-table-container');
                         
                         wrapper.classList.remove('hidden');
 
                         if (sortedModels.length <= 5) {
                             btnExpand.classList.add('hidden');
                             fadeEl.classList.add('hidden');
-                            document.getElementById('op-model-table-container').classList.replace('max-h-[275px]', 'max-h-[2000px]');
+                            tableContainer.classList.replace('max-h-[280px]', 'max-h-[3000px]');
                         } else {
                             btnExpand.classList.remove('hidden');
                             fadeEl.classList.remove('hidden');
-                            document.getElementById('op-model-table-container').classList.replace('max-h-[2000px]', 'max-h-[275px]');
+                            tableContainer.classList.replace('max-h-[3000px]', 'max-h-[280px]');
                             btnExpand.innerHTML = 'Xem toàn bộ danh sách <i class="fa-solid fa-chevron-down ml-1"></i>';
                         }
                         // =========================================================
