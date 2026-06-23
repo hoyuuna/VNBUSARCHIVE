@@ -10659,7 +10659,9 @@ dropdown.innerHTML = `
                 },
 
                 loadHistory: async (plate) => {
-                    document.getElementById('history-edit-ui').classList.add('hidden');
+                    const editUi = document.getElementById('history-edit-ui');
+                    if(editUi) editUi.classList.add('hidden');
+                    
                     const tbody = document.getElementById('history-list');
                     if(tbody) tbody.innerHTML = '<tr><td colspan="4" class="text-center py-2"><i class="fa-solid fa-spinner fa-spin text-gray-400"></i> Đang tải...</td></tr>';
 
@@ -10668,9 +10670,10 @@ dropdown.innerHTML = `
                         .select('*')
                         .eq('license_plate', plate);
 
-                    // --- CHỐT CHẶN: Đảm bảo user chưa bỏ đi nơi khác trong lúc chờ mạng tải Lịch sử ---
-                    const currentPath = decodeURIComponent(window.location.pathname);
-                    if (!currentPath.includes(plate)) return;
+                    // --- CHỐT CHẶN ĐÃ SỬA LỖI: KIỂM TRA BẰNG BIẾN THAY VÌ URL ---
+                    if (app.currentPlate !== plate) return;
+                    if (!window.location.pathname.startsWith('/photo/') && !window.location.pathname.startsWith('/vehicle/')) return;
+                    // -------------------------------------------------------------
 
                     let parsedHistory = (history || []).map(h => {
                         if (!h.effective_date && h.note) {
@@ -10686,7 +10689,7 @@ dropdown.innerHTML = `
 
                     app.vehicle.currentHistoryData = parsedHistory;
                     
-                    if(!tbody) return; // Chặn lỗi nếu UI đã bị hủy
+                    if(!tbody) return; // Chặn lỗi nếu thẻ HTML đã bị hủy
                     tbody.innerHTML = '';
 
                     if (parsedHistory.length > 0) {
