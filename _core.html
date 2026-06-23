@@ -4145,7 +4145,7 @@
                             <img id="operator-logo" src="" class="hidden w-16 h-16 md:w-20 md:h-20 object-contain shrink-0 drop-shadow-sm" onerror="this.classList.add('hidden'); document.getElementById('operator-logo-fallback').classList.remove('hidden');">
                             
                             <!-- NẾU KHÔNG CÓ LOGO: Hình tròn, màu xanh dương (Giữ nguyên như default) -->
-                            <div id="operator-logo-fallback" class="w-16 h-16 md:w-20 md:h-20 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-3xl shrink-0 shadow-sm border border-blue-100">
+                            <div id="operator-logo-fallback" class="w-16 h-16 md:w-20 md:h-20 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-3xl shrink-0">
                                 <i class="fa-solid fa-building"></i>
                             </div>
                             
@@ -4210,7 +4210,7 @@
                             <!-- LOGO DÒNG XE (ĐỒNG BỘ THEO HÃNG) -->
                             <img id="model-logo" src="" class="hidden w-16 h-16 md:w-20 md:h-20 object-contain shrink-0 drop-shadow-sm" onerror="this.classList.add('hidden'); document.getElementById('model-logo-fallback').classList.remove('hidden');">
                             
-                            <div id="model-logo-fallback" class="w-16 h-16 md:w-20 md:h-20 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-3xl shrink-0 shadow-sm border border-purple-100">
+                            <div id="model-logo-fallback" class="w-16 h-16 md:w-20 md:h-20 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-3xl shrink-0">
                                 <i class="fa-solid fa-layer-group"></i>
                             </div>
                             
@@ -8709,8 +8709,8 @@ grid.innerHTML = tiers.map(tier => {
                                 
                                 // NẾU CÓ LOGO: Vuông, vừa khít, đổ bóng viền ngoài. NẾU KHÔNG: Tròn màu xanh.
                                 const iconHtml = logo 
-                                    ? `<img src="${logo}" class="w-12 h-12 object-contain shrink-0 drop-shadow-md" onerror="this.outerHTML='<div class=&quot;w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0 shadow-sm border border-blue-100&quot;><i class=&quot;fa-solid fa-building&quot;></i></div>';">` 
-                                    : `<div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0 shadow-sm border border-blue-100"><i class="fa-solid fa-building"></i></div>`;
+                                    ? `<img src="${logo}" class="w-12 h-12 object-contain shrink-0 drop-shadow-md" onerror="this.outerHTML='<div class=&quot;w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0&quot;><i class=&quot;fa-solid fa-building&quot;></i></div>';">` 
+                                    : `<div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0"><i class="fa-solid fa-building"></i></div>`;
 
                                 cards.push(`
                                     <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.views.loadOperatorPage('${app.utils.escapeAttr(op)}')">
@@ -8798,10 +8798,10 @@ grid.innerHTML = tiers.map(tier => {
                                     }
                                 }
 
-                                // Icon chuẩn đồng bộ với UI Model Profile: vuông trong suốt shadow-md, tròn màu tím nếu lỗi
+                                // Icon chuẩn đồng bộ với UI Model Profile: vuông trong suốt shadow-md, tròn màu xanh nếu lỗi
                                 const iconHtml = logo 
-                                    ? `<img src="${logo}" class="w-12 h-12 object-contain shrink-0 drop-shadow-md" onerror="this.outerHTML='<div class=&quot;w-12 h-12 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-xl shrink-0 shadow-sm border border-purple-100&quot;><i class=&quot;fa-solid fa-layer-group&quot;></i></div>';">` 
-                                    : `<div class="w-12 h-12 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-xl shrink-0 shadow-sm border border-purple-100"><i class="fa-solid fa-layer-group"></i></div>`;
+                                    ? `<img src="${logo}" class="w-12 h-12 object-contain shrink-0 drop-shadow-md" onerror="this.outerHTML='<div class=&quot;w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0&quot;><i class=&quot;fa-solid fa-layer-group&quot;></i></div>';">` 
+                                    : `<div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0"><i class="fa-solid fa-layer-group"></i></div>`;
 
                                 cards.push(`
                                     <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.model.loadModelPage('${app.utils.escapeAttr(m)}')">
@@ -17772,7 +17772,7 @@ closeCustomRolePrompt: () => {
                 <p class="text-xs text-gray-600 font-medium leading-relaxed">Thông tin này sẽ được kiểm duyệt bởi Admin. Việc để trống cả 2 ô sẽ làm mới và xóa thông tin hiện tại.</p>
                 <div>
                     <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Logo Hãng Xe (URL)</label>
-                    <div class="bg-purple-50 border border-purple-200 text-purple-800 px-3 py-2 rounded-md text-[11px] font-medium mb-2 flex gap-2 items-start">
+                    <div class="bg-blue-50 border border-blue-200 text-blue-800 px-3 py-2 rounded-md text-[11px] font-medium mb-2 flex gap-2 items-start">
                         <i class="fa-solid fa-bolt mt-0.5"></i>
                         <span class="leading-relaxed">Thay đổi Logo ở đây sẽ <b>tự động đồng bộ</b> cho tất cả các dòng xe cùng hãng (dựa vào từ đầu tiên trong tên dòng xe).</span>
                     </div>
@@ -17871,12 +17871,12 @@ closeCustomRolePrompt: () => {
                     </div>
 
                     <!-- Dòng xe -->
-                    <div onclick="var v=document.getElementById('my-top-model').innerText; if(v!=='---'){app.utils.navigate('/model/'+encodeURIComponent(v)); app.achievement.close();}" class="cursor-pointer group flex items-center gap-4 p-4 rounded-xl border border-gray-200 shadow-sm transition-all hover:border-purple-400 hover:shadow-md hover:bg-white" style="background-color: rgba(249, 250, 251, 0.6);" title="Nhấn để xem hồ sơ dòng xe này">
-                        <div class="w-12 h-12 bg-white shadow-sm rounded-full flex items-center justify-center text-purple-600 border border-purple-50 shrink-0 group-hover:scale-110 transition-transform">
+                    <div onclick="var v=document.getElementById('my-top-model').innerText; if(v!=='---'){app.utils.navigate('/model/'+encodeURIComponent(v)); app.achievement.close();}" class="cursor-pointer group flex items-center gap-4 p-4 rounded-xl border border-gray-200 shadow-sm transition-all hover:border-blue-400 hover:shadow-md hover:bg-white" style="background-color: rgba(249, 250, 251, 0.6);" title="Nhấn để xem hồ sơ dòng xe này">
+                        <div class="w-12 h-12 bg-white shadow-sm rounded-full flex items-center justify-center text-blue-600 border border-blue-50 shrink-0 group-hover:scale-110 transition-transform">
                             <i class="fa-solid fa-layer-group text-lg"></i>
                         </div>
                         <div class="overflow-hidden">
-                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5 group-hover:text-purple-600 transition-colors">Dòng xe chụp nhiều nhất</p>
+                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5 group-hover:text-blue-600 transition-colors">Dòng xe chụp nhiều nhất</p>
                             <p class="text-lg font-black text-gray-800 truncate leading-none group-hover:text-black transition-colors" id="my-top-model">---</p>
                         </div>
                     </div>
