@@ -10523,7 +10523,7 @@ dropdown.innerHTML = `
                     app.comments.init(photoId);
 
                     const fbSection = document.getElementById('fb-comments-section');
-                    const fbCommentsWrapper = document.getElementById('fb-comments-wrapper'); // Bắt lại biến này vì ở trên chưa khai báo
+                    // fbCommentsWrapper đã được khai báo ở đầu hàm
                     
                     if (fbCommentsWrapper) {
                         if (photo.status === 'approved') {
