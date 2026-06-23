@@ -10171,34 +10171,50 @@ dropdown.innerHTML = `
                         return;
                     }
 
-                    // --- RESET UI TRỐNG TRƯỚC KHI TẢI DATA ĐỂ TRÁNH NHÁY THÔNG TIN CŨ ---
+                    // --- RESET UI AN TOÀN TRƯỚC KHI TẢI DATA ---
                     document.getElementById('detail-title').innerText = 'Đang tải dữ liệu...';
                     document.getElementById('crumb-model').innerText = '...';
                     
-                    const tempImgEl = document.getElementById('detail-img');
-                    if (tempImgEl) {
-                        tempImgEl.style.opacity = '0';
-                        const wrapper = tempImgEl.closest('.img-wrapper');
+                    const imgEl = document.getElementById('detail-img');
+                    if (imgEl) {
+                        imgEl.style.opacity = '0';
+                        const wrapper = imgEl.closest('.img-wrapper');
                         if (wrapper) {
-                            wrapper.querySelector('.img-error').classList.add('hidden');
-                            wrapper.querySelector('.img-spinner').style.display = 'flex';
+                            const errorBox = wrapper.querySelector('.img-error');
+                            const spinner = wrapper.querySelector('.img-spinner');
+                            if (errorBox) errorBox.classList.add('hidden');
+                            if (spinner) spinner.style.display = 'flex';
                         }
                     }
                     
-                    document.getElementById('stat-uploader').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-gray-400"></i>';
-                    document.getElementById('stat-date').innerText = '...';
-                    document.getElementById('stat-views').innerText = '0';
-                    document.getElementById('stat-likes').innerText = '0';
+                    const statUploader = document.getElementById('stat-uploader');
+                    if (statUploader) statUploader.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-gray-400"></i>';
+                    
+                    const statDate = document.getElementById('stat-date');
+                    if (statDate) statDate.innerText = '...';
+                    
+                    const statViews = document.getElementById('stat-views');
+                    if (statViews) statViews.innerText = '0';
+                    
+                    const statLikes = document.getElementById('stat-likes');
+                    if (statLikes) statLikes.innerText = '0';
                     
                     ['info-plate', 'info-operator', 'info-route', 'info-model', 'info-location', 'info-note', 'info-camera', 'info-exif-params'].forEach(id => {
                         const el = document.getElementById(id);
                         if (el) el.value = '';
                     });
                     
-                    document.getElementById('history-list').innerHTML = '<tr><td colspan="4" class="text-center py-2"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải...</td></tr>';
-                    document.getElementById('comment-list').innerHTML = '<p class="text-center text-gray-400 py-10"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tải...</p>';
-                    document.getElementById('detail-rec-grid').innerHTML = '';
-                    document.getElementById('fb-comments-wrapper').innerHTML = '';
+                    const historyList = document.getElementById('history-list');
+                    if (historyList) historyList.innerHTML = '<tr><td colspan="4" class="text-center py-2"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải...</td></tr>';
+                    
+                    const commentList = document.getElementById('comment-list');
+                    if (commentList) commentList.innerHTML = '<p class="text-center text-gray-400 py-10"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tải...</p>';
+                    
+                    const detailRecGrid = document.getElementById('detail-rec-grid');
+                    if (detailRecGrid) detailRecGrid.innerHTML = '';
+                    
+                    const fbCommentsWrapper = document.getElementById('fb-comments-wrapper');
+                    if (fbCommentsWrapper) fbCommentsWrapper.innerHTML = '';
                     // -------------------------------------------------------------------
 
                     const { data: photo } = await window.sb
@@ -10207,10 +10223,13 @@ dropdown.innerHTML = `
                         .eq('id', photoId)
                         .single();
 
-// BẮT LỖI RACE CONDITION: Nếu trong lúc chờ API mà user nhấn back đổi URL thì bỏ qua không render
+                    // BẮT LỖI RACE CONDITION
                     if (window.location.pathname !== `/photo/${photoId}`) return;
 
-                    if (!photo) return app.views.loadHome();
+                    if (!photo) {
+                        app.ui.showAlert("Ảnh không tồn tại hoặc đã bị xóa khỏi hệ thống.");
+                        return app.views.loadHome();
+                    }
 
                     app.currentPhoto = photo;
                     app.currentPlate = photo.license_plate;
@@ -10224,7 +10243,6 @@ dropdown.innerHTML = `
                     };
                     app.currentVehicle = { ...v, ...snapshot };
 
-
                     if (snapshot) {
                         try {
                             let prefs = JSON.parse(localStorage.getItem('vnbus_prefs') || '{"routes":{}, "ops":{}, "models":{}}');
@@ -10234,7 +10252,6 @@ dropdown.innerHTML = `
                             localStorage.setItem('vnbus_prefs', JSON.stringify(prefs));
                         } catch (e) { }
                     }
-
 
                     const isDenied = photo.status === 'denied';
                     const isPending = photo.status === 'pending';
@@ -10247,7 +10264,6 @@ dropdown.innerHTML = `
                     }
 
                     if (isDenied) {
-                        // THÊM: Cho phép manager đi qua vòng kiểm duyệt này (admin sẽ bị chặn ở đây)
                         if (!app.user || (app.user.id !== photo.uploader_id && app.role !== 'manager')) {
                             app.ui.showAlert("Bạn không có quyền xem ảnh bị từ chối này.");
                             return app.views.loadHome();
@@ -10258,16 +10274,13 @@ dropdown.innerHTML = `
                         document.getElementById('denial-reason-box').classList.add('hidden');
                     }
 
-
                     if (isPending) {
                         document.getElementById('pending-status-box').classList.remove('hidden');
-
                         const queueBox = document.getElementById('pending-queue-box');
                         if (queueBox) {
                             queueBox.classList.remove('hidden');
                             document.getElementById('pending-queue-count').innerText = '...';
 
-                            // THÊM: Tính toán hàng đợi có ưu tiên Admin/Manager
                             window.sb.from('photos').select('id, created_at, profiles(role)').eq('status', 'pending')
                                 .then(({ data, error }) => {
                                     if (!error && data) {
@@ -10317,16 +10330,16 @@ dropdown.innerHTML = `
                     document.getElementById('crumb-model').innerText = app.utils.displayPlate(photo.license_plate);
 
 
-                    const imgEl = document.getElementById('detail-img');
                     const proxyUrl = app.utils.getProxiedUrl(photo.url, `${app.utils.displayPlate(photo.license_plate)}.jpg`);
 
-                    // Reset skeleton trạng thái loading trước khi gán SRC
                     imgEl.style.display = 'block';
                     imgEl.style.opacity = '0';
-                    const wrapper = imgEl.closest('.img-wrapper');
-                    if(wrapper) {
-                        wrapper.querySelector('.img-error').classList.add('hidden');
-                        wrapper.querySelector('.img-spinner').style.display = 'flex';
+                    const wrapper2 = imgEl.closest('.img-wrapper');
+                    if(wrapper2) {
+                        const errBox2 = wrapper2.querySelector('.img-error');
+                        const spinner2 = wrapper2.querySelector('.img-spinner');
+                        if (errBox2) errBox2.classList.add('hidden');
+                        if (spinner2) spinner2.style.display = 'flex';
                     }
 
                     imgEl.onload = () => app.utils.handleImgLoad(imgEl);
@@ -10337,7 +10350,6 @@ dropdown.innerHTML = `
                     imgEl.title = "Nhấn vào ảnh để phóng to toàn màn hình";
                     imgEl.style.cursor = 'zoom-in';
 
-
                     imgEl.onclick = () => {
                         app.admin.openZoom(proxyUrl, true);
                     };
@@ -10347,39 +10359,37 @@ dropdown.innerHTML = `
 
                     app.edit.cancel();
 
-const elInfoPlate = document.getElementById('info-plate');
-                      const elInfoOperator = document.getElementById('info-operator');
-                      const elInfoRoute = document.getElementById('info-route');
-                      const elInfoModel = document.getElementById('info-model');
-                      const elInfoType = document.getElementById('info-type');
-                      const elInfoLocation = document.getElementById('info-location');
-                      const elInfoNote = document.getElementById('info-note');
-                      const elInfoDate = document.getElementById('info-date');
-                      const elInfoCamera = document.getElementById('info-camera');
-                      const elInfoExif = document.getElementById('info-exif-params');
+                    const elInfoPlate = document.getElementById('info-plate');
+                    const elInfoOperator = document.getElementById('info-operator');
+                    const elInfoRoute = document.getElementById('info-route');
+                    const elInfoModel = document.getElementById('info-model');
+                    const elInfoType = document.getElementById('info-type');
+                    const elInfoLocation = document.getElementById('info-location');
+                    const elInfoNote = document.getElementById('info-note');
+                    const elInfoDate = document.getElementById('info-date');
+                    const elInfoCamera = document.getElementById('info-camera');
+                    const elInfoExif = document.getElementById('info-exif-params');
 
-                      if (elInfoPlate) elInfoPlate.value = photo.license_plate;
-                      if (elInfoOperator) elInfoOperator.value = snapshot.operator || 'Đã bị xóa';
-                      if (elInfoType) elInfoType.value = snapshot.type || 'bus';
-                     if (elInfoRoute) elInfoRoute.value = snapshot.route_no || 'Đã bị xóa';
-                     if (elInfoModel) elInfoModel.value = snapshot.model || 'Đã bị xóa';
-                     if (elInfoLocation) elInfoLocation.value = photo.location || '---';
-                     if (elInfoNote) elInfoNote.value = photo.note || '---';
+                    if (elInfoPlate) elInfoPlate.value = photo.license_plate;
+                    if (elInfoOperator) elInfoOperator.value = snapshot.operator || 'Đã bị xóa';
+                    if (elInfoType) elInfoType.value = snapshot.type || 'bus';
+                    if (elInfoRoute) elInfoRoute.value = snapshot.route_no || 'Đã bị xóa';
+                    if (elInfoModel) elInfoModel.value = snapshot.model || 'Đã bị xóa';
+                    if (elInfoLocation) elInfoLocation.value = photo.location || '---';
+                    if (elInfoNote) elInfoNote.value = photo.note || '---';
 
-                     const displayDate = photo.taken_at || photo.created_at;
-                     if (elInfoDate) elInfoDate.value = displayDate ? displayDate.split('T')[0] : '';
-                     if (elInfoCamera) elInfoCamera.value = photo.camera_model || 'N/A';
-                     if (elInfoExif) elInfoExif.value = photo.exif_params || 'N/A';
+                    const displayDate = photo.taken_at || photo.created_at;
+                    if (elInfoDate) elInfoDate.value = displayDate ? displayDate.split('T')[0] : '';
+                    if (elInfoCamera) elInfoCamera.value = photo.camera_model || 'N/A';
+                    if (elInfoExif) elInfoExif.value = photo.exif_params || 'N/A';
 
                     const statUploaderEl = document.getElementById('stat-uploader');
 
                     if (Object.keys(app.topUploaders).length === 0) {
                         await app.utils.fetchTopUploaders();
-
                     }
 
                     const badges = app.utils.getBadgesHTML(photo.profiles?.id, photo.profiles?.role, photo.profiles?.subroles);
-
                     const safeAvatar = photo.profiles?.avatar_url ? app.utils.getProxiedUrl(photo.profiles.avatar_url.replace(/"/g, '&quot;'), 'avatar.jpg', 'avatar') : DEFAULT_AVATAR;
 
                     if (photo.profiles?.avatar_url) {
@@ -10417,81 +10427,66 @@ const elInfoPlate = document.getElementById('info-plate');
                         likeBtn.disabled = false;
                     }
 
+                    const reapproveBtn = document.getElementById('btn-manager-reapprove');
+                    deleteBtn.onclick = null;
+                    deleteBtn.classList.add('hidden');
+                    if (reapproveBtn) {
+                        reapproveBtn.onclick = null;
+                        reapproveBtn.classList.add('hidden');
+                    }
 
-const reapproveBtn = document.getElementById('btn-manager-reapprove');
+                    if (app.user && app.user.id === photo.uploader_id) {
+                        deleteBtn.classList.remove('hidden');
+                        if (isPending || isDenied) {
+                            deleteBtn.innerHTML = `<i class="fa-solid fa-trash-can mr-1"></i> Xóa ảnh ${isDenied ? '(Bị từ chối)' : '(Đang chờ duyệt)'}`;
+                            deleteBtn.className = "w-full border border-gray-500 text-gray-600 py-2.5 text-sm font-bold rounded-md hover:bg-gray-50 transition shadow-sm";
+                        } else {
+                            deleteBtn.innerHTML = '<i class="fa-solid fa-trash-can mr-1"></i> Yêu cầu xóa ảnh';
+                            deleteBtn.className = "w-full border border-red-500 text-red-600 py-2.5 text-sm font-bold rounded-md hover:bg-red-50 transition shadow-sm";
+                        }
+                        deleteBtn.onclick = () => app.photo.requestDelete();
+                    }
+                    else if (app.user && app.role === 'manager' && !isDenied) {
+                        deleteBtn.classList.remove('hidden');
+                        deleteBtn.innerHTML = '<i class="fa-solid fa-radiation mr-1"></i> Manager: Xóa ảnh này';
+                        deleteBtn.className = "w-full bg-red-600 border border-red-600 text-white py-2.5 text-sm font-bold rounded-md hover:bg-red-700 transition shadow-sm";
+                        deleteBtn.onclick = () => {
+                            app.ui.showDenyPrompt("ADMIN - Xóa ảnh này", async (reason) => {
+                                try {
+                                    await window.sb.from('photos').update({ status: 'denied', denial_reason: reason }).eq('id', photo.id);
+                                    app.admin.logAction('admin_delete_from_detail', photo.id, { plate: photo.license_plate, reason: reason });
+                                    app.toast.show('success', 'Đã xóa ảnh', 'Ảnh đã được xóa khỏi hệ thống thành công.');
+                                    app.views.loadHome();
+                                } catch (e) { app.ui.showAlert("Lỗi: " + e.message); }
+                            });
+                        };
+                    }
 
-// Reset trạng thái ban đầu của cả 2 nút
-deleteBtn.onclick = null;
-deleteBtn.classList.add('hidden');
-if (reapproveBtn) {
-    reapproveBtn.onclick = null;
-    reapproveBtn.classList.add('hidden');
-}
+                    if (app.user && app.role === 'manager' && isDenied) {
+                        if (reapproveBtn) {
+                            reapproveBtn.classList.remove('hidden');
+                            reapproveBtn.onclick = () => {
+                                app.ui.showPrompt("Nhập ghi chú cho việc duyệt lại (Tùy chọn):", "", async (reason) => {
+                                    try {
+                                        const originalText = reapproveBtn.innerHTML;
+                                        reapproveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang xử lý...';
+                                        reapproveBtn.disabled = true;
 
-// ==========================================
-// ƯU TIÊN 1: NÚT XÓA CỦA USER (UPLOADER) - HIỆN Ở MỌI TRẠNG THÁI
-// ==========================================
-if (app.user && app.user.id === photo.uploader_id) {
-    deleteBtn.classList.remove('hidden');
-    if (isPending || isDenied) {
-        // Ảnh pending hoặc denied thì cho phép xóa thẳng
-        deleteBtn.innerHTML = `<i class="fa-solid fa-trash-can mr-1"></i> Xóa ảnh ${isDenied ? '(Bị từ chối)' : '(Đang chờ duyệt)'}`;
-        deleteBtn.className = "w-full border border-gray-500 text-gray-600 py-2.5 text-sm font-bold rounded-md hover:bg-gray-50 transition shadow-sm";
-    } else {
-        // Ảnh đã duyệt thì gửi yêu cầu xóa
-        deleteBtn.innerHTML = '<i class="fa-solid fa-trash-can mr-1"></i> Yêu cầu xóa ảnh';
-        deleteBtn.className = "w-full border border-red-500 text-red-600 py-2.5 text-sm font-bold rounded-md hover:bg-red-50 transition shadow-sm";
-    }
-    deleteBtn.onclick = () => app.photo.requestDelete();
-}
-// ==========================================
-// ƯU TIÊN 2: NÚT XÓA DÀNH CHO MANAGER (KHI XEM ẢNH ĐƯỢC DUYỆT/CHỜ DUYỆT CỦA NGƯỜI KHÁC)
-// ==========================================
-else if (app.user && app.role === 'manager' && !isDenied) {
-    deleteBtn.classList.remove('hidden');
-    deleteBtn.innerHTML = '<i class="fa-solid fa-radiation mr-1"></i> Manager: Xóa ảnh này';
-    deleteBtn.className = "w-full bg-red-600 border border-red-600 text-white py-2.5 text-sm font-bold rounded-md hover:bg-red-700 transition shadow-sm";
-    deleteBtn.onclick = () => {
-        app.ui.showDenyPrompt("ADMIN - Xóa ảnh này", async (reason) => {
-            try {
-                await window.sb.from('photos').update({ status: 'denied', denial_reason: reason }).eq('id', photo.id);
-                app.admin.logAction('admin_delete_from_detail', photo.id, { plate: photo.license_plate, reason: reason });
-                app.toast.show('success', 'Đã xóa ảnh', 'Ảnh đã được xóa khỏi hệ thống thành công.');
-                app.views.loadHome();
-            } catch (e) { app.ui.showAlert("Lỗi: " + e.message); }
-        });
-    };
-}
+                                        const { error } = await window.sb.from('photos').update({ status: 'approved', denial_reason: null }).eq('id', photo.id);
+                                        if (error) throw error;
+                                        app.admin.logAction('manager_reapprove', photo.id, { plate: photo.license_plate, reason: reason });
 
-// ==========================================
-// ƯU TIÊN 3: NÚT THỨ 4 (DUYỆT LẠI) DÀNH CHO MANAGER KHI ẢNH BỊ TỪ CHỐI
-// Nút này chạy độc lập, nên Manager sẽ thấy nút này bất kể đó là ảnh của ai
-// ==========================================
-if (app.user && app.role === 'manager' && isDenied) {
-    if (reapproveBtn) {
-        reapproveBtn.classList.remove('hidden');
-        reapproveBtn.onclick = () => {
-            app.ui.showPrompt("Nhập ghi chú cho việc duyệt lại (Tùy chọn):", "", async (reason) => {
-                try {
-                    const originalText = reapproveBtn.innerHTML;
-                    reapproveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang xử lý...';
-                    reapproveBtn.disabled = true;
-
-                    const { error } = await window.sb.from('photos').update({ status: 'approved', denial_reason: null }).eq('id', photo.id);
-                    if (error) throw error;
-                    app.admin.logAction('manager_reapprove', photo.id, { plate: photo.license_plate, reason: reason });
-
-                    app.toast.show('success', 'Đã duyệt lại', 'Ảnh này đã được cấp phép hiển thị trở lại trên hệ thống.');
-                    app.views.loadDetail(photo.id);
-                } catch (e) {
-                    app.ui.showAlert("Lỗi: " + e.message);
-                    reapproveBtn.innerHTML = '<i class="fa-solid fa-rotate-left mr-1"></i> Manager: Duyệt lại ảnh này';
-                    reapproveBtn.disabled = false;
-                }
-            });
-        };
-    }
-}
+                                        app.toast.show('success', 'Đã duyệt lại', 'Ảnh này đã được cấp phép hiển thị trở lại trên hệ thống.');
+                                        app.views.loadDetail(photo.id);
+                                    } catch (e) {
+                                        app.ui.showAlert("Lỗi: " + e.message);
+                                        reapproveBtn.innerHTML = '<i class="fa-solid fa-rotate-left mr-1"></i> Manager: Duyệt lại ảnh này';
+                                        reapproveBtn.disabled = false;
+                                    }
+                                });
+                            };
+                        }
+                    }
 
                     const historyPlate = v?.license_plate || photo.license_plate;
                     app.views.loadHistory(historyPlate);
@@ -10505,42 +10500,25 @@ if (app.user && app.role === 'manager' && isDenied) {
                     }
 
                     app.views.loadDetailRecommendations(photo, snapshot);
-
-                    // --- LOAD SUPABASE COMMENTS ---
                     app.comments.init(photoId);
 
-                    // --- XỬ LÝ RELOAD FACEBOOK COMMENTS (SPA FIX) ---
                     const fbSection = document.getElementById('fb-comments-section');
-                    const fbWrapper = document.getElementById('fb-comments-wrapper');
-
-                    if (fbSection && fbWrapper) {
-                        // Chỉ hiện bình luận nếu trạng thái ảnh là 'approved'
+                    if (fbCommentsWrapper) {
                         if (photo.status === 'approved') {
-                            fbSection.classList.remove('hidden');
-
-                            // Sử dụng window.location.origin để tự động khớp với domain hiện tại
+                            if (fbSection) fbSection.classList.remove('hidden');
                             const currentUrl = window.location.origin + '/photo/' + photoId;
-
-                            // Tạo lại thẻ div mới tinh bên trong wrapper
-                            fbWrapper.innerHTML = '<div class="fb-comments" data-href="' + currentUrl + '" data-width="100%" data-numposts="5"></div>';
-
-                            // Kiểm tra và yêu cầu Facebook SDK vẽ lại khung bình luận
+                            fbCommentsWrapper.innerHTML = '<div class="fb-comments" data-href="' + currentUrl + '" data-width="100%" data-numposts="5"></div>';
+                            
                             const tryRenderFB = () => {
-                                if (window.FB) {
-                                    window.FB.XFBML.parse(fbWrapper);
-                                } else {
-                                    // Nếu SDK chưa load xong, thử lại sau 300ms
-                                    setTimeout(tryRenderFB, 300);
-                                }
+                                if (window.FB) window.FB.XFBML.parse(fbCommentsWrapper);
+                                else setTimeout(tryRenderFB, 300);
                             };
                             tryRenderFB();
                         } else {
-                            // Ẩn hoàn toàn nếu ảnh chưa được duyệt
-                            fbSection.classList.add('hidden');
-                            fbWrapper.innerHTML = '';
+                            if (fbSection) fbSection.classList.add('hidden');
+                            fbCommentsWrapper.innerHTML = '';
                         }
                     }
-                    // ------------------------------------------------
 
                     app.loadingBar.finish();
                 },
