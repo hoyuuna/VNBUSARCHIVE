@@ -4238,7 +4238,7 @@
                         </div>
                         <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
                             <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Đơn vị sở hữu</p>
-                            <p id="mdl-stat-ops" class="text-2xl font-black text-purple-600">...</p>
+                            <p id="mdl-stat-ops" class="text-2xl font-black text-black">...</p>
                         </div>
                         <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
                             <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Tổng lượt xem</p>
@@ -8724,6 +8724,97 @@ grid.innerHTML = tiers.map(tier => {
                             }
                         } catch (e) {
                             console.error("Lỗi khi tìm Đơn vị vận hành:", e);
+                        }
+                    }
+
+                    // TỐI ƯU HÓA TÌM KIẾM DÒNG XE (MODEL)
+                    if (filterType === 'model' || filterType === 'all') {
+                        try {
+                            let mdlInfoQuery = window.sb.from('model_info').select('*');
+                            let mdlVehicleQuery = window.sb.from('vehicles').select('model');
+                            
+                            searchWords.forEach(w => { 
+                                mdlInfoQuery = mdlInfoQuery.ilike('model_name', `%${w}%`); 
+                                mdlVehicleQuery = mdlVehicleQuery.ilike('model', `%${w}%`); 
+                            });
+
+                            // Chạy song song
+                            const [infoRes, vehicleRes] = await Promise.all([
+                                mdlInfoQuery.limit(10),
+                                mdlVehicleQuery.limit(500)
+                            ]);
+
+                            let uniqueModelsMap = new Map();
+                            const mdlInfoMap = {};
+
+                            if (infoRes.data) {
+                                infoRes.data.forEach(info => {
+                                    if (info.model_name) {
+                                        const key = info.model_name.toLowerCase();
+                                        uniqueModelsMap.set(key, info.model_name);
+                                        mdlInfoMap[key] = info;
+                                    }
+                                });
+                            }
+
+                            if (vehicleRes.data) {
+                                vehicleRes.data.forEach(v => {
+                                    if (v.model) {
+                                        const key = v.model.toLowerCase();
+                                        if (!uniqueModelsMap.has(key)) {
+                                            uniqueModelsMap.set(key, v.model);
+                                        }
+                                    }
+                                });
+                            }
+
+                            const finalModels = Array.from(uniqueModelsMap.values()).slice(0, 4);
+
+                            const missingInfos = finalModels.filter(m => !mdlInfoMap[m.toLowerCase()]);
+                            if (missingInfos.length > 0) {
+                                const { data: extraInfos } = await window.sb.from('model_info').select('*').in('model_name', missingInfos);
+                                if (extraInfos) {
+                                    extraInfos.forEach(info => { 
+                                        mdlInfoMap[info.model_name.toLowerCase()] = info; 
+                                    });
+                                }
+                            }
+
+                            for (const m of finalModels) {
+                                const info = mdlInfoMap[m.toLowerCase()] || {};
+                                let logo = info.logo_url ? app.utils.escapeAttr(info.logo_url) : '';
+                                
+                                // Nếu chưa có logo cụ thể, thử tìm theo brand (đồng bộ hãng)
+                                if (!logo) {
+                                    const brandName = m.split(' ')[0];
+                                    const { data: brandLogoData } = await window.sb.from('model_info')
+                                        .select('logo_url')
+                                        .ilike('model_name', `${brandName}%`)
+                                        .not('logo_url', 'is', null)
+                                        .limit(1)
+                                        .maybeSingle();
+                                    if (brandLogoData && brandLogoData.logo_url) {
+                                        logo = app.utils.escapeAttr(brandLogoData.logo_url);
+                                    }
+                                }
+
+                                // Icon chuẩn đồng bộ với UI Model Profile: vuông trong suốt shadow-md, tròn màu tím nếu lỗi
+                                const iconHtml = logo 
+                                    ? `<img src="${logo}" class="w-12 h-12 object-contain shrink-0 drop-shadow-md" onerror="this.outerHTML='<div class=&quot;w-12 h-12 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-xl shrink-0 shadow-sm border border-purple-100&quot;><i class=&quot;fa-solid fa-layer-group&quot;></i></div>';">` 
+                                    : `<div class="w-12 h-12 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-xl shrink-0 shadow-sm border border-purple-100"><i class="fa-solid fa-layer-group"></i></div>`;
+
+                                cards.push(`
+                                    <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.model.loadModelPage('${app.utils.escapeAttr(m)}')">
+                                        ${iconHtml}
+                                        <div class="overflow-hidden">
+                                            <div class="font-bold text-black text-sm truncate">${app.utils.cleanText(m)}</div>
+                                            <div class="text-[10px] text-gray-500 uppercase tracking-widest mt-0.5 font-bold">Dòng xe</div>
+                                        </div>
+                                    </div>
+                                `);
+                            }
+                        } catch (e) {
+                            console.error("Lỗi khi tìm Dòng xe:", e);
                         }
                     }
 
