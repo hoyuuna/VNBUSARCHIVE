@@ -8713,252 +8713,255 @@ grid.innerHTML = tiers.map(tier => {
                         return;
                     }
 
+                    // ================= TẠO THẺ CARD GỢI Ý (CHẠY SONG SONG SIÊU TỐC) =================
                     let cards = [];
                     
-                    // Chuẩn hóa từ khóa giống hệt bộ Gợi ý (Giúp gõ không dấu vẫn ra)
                     let normalizedQuery = query.toLowerCase()
                         .replace(/vin bus/g, 'vinbus')
                         .replace(/thanh buoi/g, 'thành bưởi')
                         .replace(/phuong trang/g, 'phương trang');
                     const searchWords = normalizedQuery.trim().split(/\s+/).filter(w => w.length > 0);
 
-                    // ================= TẠO THẺ CARD GỢI Ý =================
+                    // Mảng chứa các tiến trình lấy dữ liệu
+                    const cardPromises = [];
+
+                    // 1. LẤY UPLOADER
                     if (filterType === 'uploader' || filterType === 'all') {
-                        let uQuery = window.sb.from('profiles').select('id, username, avatar_url, role, subroles');
-                        searchWords.forEach(w => { uQuery = uQuery.ilike('username', `%${w}%`); });
-                        const { data: usersData } = await uQuery;
+                        cardPromises.push((async () => {
+                            try {
+                                let uQuery = window.sb.from('profiles').select('id, username, avatar_url, role, subroles');
+                                searchWords.forEach(w => { uQuery = uQuery.ilike('username', `%${w}%`); });
+                                const { data: usersData } = await uQuery.limit(5);
 
-                        if (usersData && usersData.length > 0) {
-                            for (const user of usersData) {
-                                const { count } = await window.sb.from('photos').select('*', { count: 'exact', head: true }).eq('uploader_id', user.id).eq('status', 'approved');
-                                const avatarSrc = user.avatar_url ? app.utils.getProxiedUrl(user.avatar_url, 'avatar.jpg', 'avatar') : DEFAULT_AVATAR;
-                                const userBadges = app.utils.getBadgesHTML(user.id, user.role, user.subroles);
-                                cards.push(`
-                                    <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.views.loadUserProfile('${user.username}')">
-                                        <img src="${avatarSrc}" onerror="this.onerror=null;this.src='${DEFAULT_AVATAR}';" class="w-12 h-12 rounded-full object-cover bg-gray-100 shrink-0">
-                                        <div class="overflow-hidden">
-                                            <div class="font-bold text-black text-sm flex items-center truncate">${user.username} ${userBadges}</div>
-                                            <div class="text-xs text-gray-500">${count || 0} ảnh đã đăng</div>
-                                        </div>
-                                    </div>
-                                `);
-                            }
-                        }
+                                if (usersData && usersData.length > 0) {
+                                    for (const user of usersData) {
+                                        const { count } = await window.sb.from('photos').select('*', { count: 'exact', head: true }).eq('uploader_id', user.id).eq('status', 'approved');
+                                        const avatarSrc = user.avatar_url ? app.utils.getProxiedUrl(user.avatar_url, 'avatar.jpg', 'avatar') : DEFAULT_AVATAR;
+                                        const userBadges = app.utils.getBadgesHTML(user.id, user.role, user.subroles);
+                                        cards.push(`
+                                            <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.views.loadUserProfile('${user.username}')">
+                                                <img src="${avatarSrc}" onerror="this.onerror=null;this.src='${DEFAULT_AVATAR}';" class="w-12 h-12 rounded-full object-cover bg-gray-100 shrink-0">
+                                                <div class="overflow-hidden">
+                                                    <div class="font-bold text-black text-sm flex items-center truncate">${user.username} ${userBadges}</div>
+                                                    <div class="text-xs text-gray-500">${count || 0} ảnh đã đăng</div>
+                                                </div>
+                                            </div>
+                                        `);
+                                    }
+                                }
+                            } catch (e) { console.error("Lỗi tìm Uploader:", e); }
+                        })());
                     }
 
-                    // TỐI ƯU HÓA TÌM KIẾM ĐƠN VỊ VẬN HÀNH (KHẮC PHỤC TRIỆT ĐỂ LỖI TRỄ NHỊP & HOA/THƯỜNG)
+                    // 2. LẤY ĐƠN VỊ VẬN HÀNH
                     if (filterType === 'operator' || filterType === 'all') {
-                        try {
-                            let opInfoQuery = window.sb.from('operator_info').select('*');
-                            let opPhotoQuery = window.sb.from('photos').select('operator').eq('status', 'approved');
-                            
-                            searchWords.forEach(w => { 
-                                opInfoQuery = opInfoQuery.ilike('operator_name', `%${w}%`); 
-                                opPhotoQuery = opPhotoQuery.ilike('operator', `%${w}%`); 
-                            });
-
-                            // Chạy 2 truy vấn song song để không bị nghẽn
-                            const [infoRes, photoRes] = await Promise.all([
-                                opInfoQuery.limit(10),
-                                opPhotoQuery.limit(500)
-                            ]);
-
-                            // Dùng Map để triệt tiêu lỗi phân biệt hoa/thường (BRT Hà Nội vs brt hà nội)
-                            let uniqueOpsMap = new Map();
-                            const opInfoMap = {};
-
-                            if (infoRes.data) {
-                                infoRes.data.forEach(info => {
-                                    if (info.operator_name) {
-                                        const key = info.operator_name.toLowerCase();
-                                        uniqueOpsMap.set(key, info.operator_name);
-                                        opInfoMap[key] = info;
-                                    }
+                        cardPromises.push((async () => {
+                            try {
+                                let opInfoQuery = window.sb.from('operator_info').select('*');
+                                let opPhotoQuery = window.sb.from('photos').select('operator').eq('status', 'approved');
+                                
+                                searchWords.forEach(w => { 
+                                    opInfoQuery = opInfoQuery.ilike('operator_name', `%${w}%`); 
+                                    opPhotoQuery = opPhotoQuery.ilike('operator', `%${w}%`); 
                                 });
-                            }
 
-                            if (photoRes.data) {
-                                photoRes.data.forEach(p => {
-                                    if (p.operator) {
-                                        const key = p.operator.toLowerCase();
-                                        if (!uniqueOpsMap.has(key)) {
-                                            uniqueOpsMap.set(key, p.operator);
+                                const [infoRes, photoRes] = await Promise.all([
+                                    opInfoQuery.limit(10),
+                                    opPhotoQuery.limit(200) // Giảm scope nhẹ lại để nhẹ RAM
+                                ]);
+
+                                let uniqueOpsMap = new Map();
+                                const opInfoMap = {};
+
+                                if (infoRes.data) {
+                                    infoRes.data.forEach(info => {
+                                        if (info.operator_name) {
+                                            const key = info.operator_name.toLowerCase();
+                                            uniqueOpsMap.set(key, info.operator_name);
+                                            opInfoMap[key] = info;
                                         }
-                                    }
-                                });
-                            }
-
-                            // Giới hạn 4 nhà xe đầu tiên
-                            const finalOps = Array.from(uniqueOpsMap.values()).slice(0, 4);
-
-                            // Lấy bù thông tin cho các nhà xe nếu chưa có trong Map
-                            const missingInfos = finalOps.filter(op => !opInfoMap[op.toLowerCase()]);
-                            if (missingInfos.length > 0) {
-                                const { data: extraInfos } = await window.sb.from('operator_info').select('*').in('operator_name', missingInfos);
-                                if (extraInfos) {
-                                    extraInfos.forEach(info => { 
-                                        opInfoMap[info.operator_name.toLowerCase()] = info; 
                                     });
                                 }
-                            }
 
-                            // Render giao diện
-                            for (const op of finalOps) {
-                                const info = opInfoMap[op.toLowerCase()] || {};
-                                const logo = info.logo_url ? app.utils.escapeAttr(info.logo_url) : '';
-                                
-                                // NẾU CÓ LOGO: Vuông, vừa khít, đổ bóng viền ngoài. NẾU KHÔNG: Tròn màu xanh.
-                                const iconHtml = logo 
-                                    ? `<img src="${logo}" class="w-12 h-12 object-contain shrink-0" onerror="this.outerHTML='<div class=&quot;w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0&quot;><i class=&quot;fa-solid fa-building&quot;></i></div>';">` 
-                                    : `<div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0"><i class="fa-solid fa-building"></i></div>`;
+                                if (photoRes.data) {
+                                    photoRes.data.forEach(p => {
+                                        if (p.operator) {
+                                            const key = p.operator.toLowerCase();
+                                            if (!uniqueOpsMap.has(key)) {
+                                                uniqueOpsMap.set(key, p.operator);
+                                            }
+                                        }
+                                    });
+                                }
 
-                                cards.push(`
-                                    <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.views.loadOperatorPage('${app.utils.escapeAttr(op)}')">
-                                        ${iconHtml}
-                                        <div class="overflow-hidden">
-                                            <div class="font-bold text-black text-sm truncate">${app.utils.cleanText(op)}</div>
-                                            <div class="text-[10px] text-gray-500 uppercase tracking-widest mt-0.5 font-bold">Đơn vị vận hành</div>
+                                const finalOps = Array.from(uniqueOpsMap.values()).slice(0, 4);
+
+                                const missingInfos = finalOps.filter(op => !opInfoMap[op.toLowerCase()]);
+                                if (missingInfos.length > 0) {
+                                    const { data: extraInfos } = await window.sb.from('operator_info').select('*').in('operator_name', missingInfos);
+                                    if (extraInfos) {
+                                        extraInfos.forEach(info => { opInfoMap[info.operator_name.toLowerCase()] = info; });
+                                    }
+                                }
+
+                                for (const op of finalOps) {
+                                    const info = opInfoMap[op.toLowerCase()] || {};
+                                    const logo = info.logo_url ? app.utils.escapeAttr(info.logo_url) : '';
+                                    
+                                    const iconHtml = logo 
+                                        ? `<img src="${logo}" class="w-12 h-12 object-contain shrink-0" onerror="this.outerHTML='<div class=&quot;w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0&quot;><i class=&quot;fa-solid fa-building&quot;></i></div>';">` 
+                                        : `<div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0"><i class="fa-solid fa-building"></i></div>`;
+
+                                    cards.push(`
+                                        <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.views.loadOperatorPage('${app.utils.escapeAttr(op)}')">
+                                            ${iconHtml}
+                                            <div class="overflow-hidden">
+                                                <div class="font-bold text-black text-sm truncate">${app.utils.cleanText(op)}</div>
+                                                <div class="text-[10px] text-gray-500 uppercase tracking-widest mt-0.5 font-bold">Đơn vị vận hành</div>
+                                            </div>
                                         </div>
-                                    </div>
-                                `);
-                            }
-                        } catch (e) {
-                            console.error("Lỗi khi tìm Đơn vị vận hành:", e);
-                        }
+                                    `);
+                                }
+                            } catch (e) { console.error("Lỗi tìm Đơn vị:", e); }
+                        })());
                     }
 
-                    // TỐI ƯU HÓA TÌM KIẾM DÒNG XE (MODEL)
+                    // 3. LẤY DÒNG XE (MODEL)
                     if (filterType === 'model' || filterType === 'all') {
-                        try {
-                            let mdlInfoQuery = window.sb.from('model_info').select('*');
-                            let mdlVehicleQuery = window.sb.from('vehicles').select('model');
-                            
-                            searchWords.forEach(w => { 
-                                mdlInfoQuery = mdlInfoQuery.ilike('model_name', `%${w}%`); 
-                                mdlVehicleQuery = mdlVehicleQuery.ilike('model', `%${w}%`); 
-                            });
-
-                            // Chạy song song
-                            const [infoRes, vehicleRes] = await Promise.all([
-                                mdlInfoQuery.limit(10),
-                                mdlVehicleQuery.limit(500)
-                            ]);
-
-                            let uniqueModelsMap = new Map();
-                            const mdlInfoMap = {};
-
-                            if (infoRes.data) {
-                                infoRes.data.forEach(info => {
-                                    if (info.model_name) {
-                                        const key = info.model_name.toLowerCase();
-                                        uniqueModelsMap.set(key, info.model_name);
-                                        mdlInfoMap[key] = info;
-                                    }
+                        cardPromises.push((async () => {
+                            try {
+                                let mdlInfoQuery = window.sb.from('model_info').select('*');
+                                let mdlVehicleQuery = window.sb.from('vehicles').select('model');
+                                
+                                searchWords.forEach(w => { 
+                                    mdlInfoQuery = mdlInfoQuery.ilike('model_name', `%${w}%`); 
+                                    mdlVehicleQuery = mdlVehicleQuery.ilike('model', `%${w}%`); 
                                 });
-                            }
 
-                            if (vehicleRes.data) {
-                                vehicleRes.data.forEach(v => {
-                                    if (v.model) {
-                                        const key = v.model.toLowerCase();
-                                        if (!uniqueModelsMap.has(key)) {
-                                            uniqueModelsMap.set(key, v.model);
+                                const [infoRes, vehicleRes] = await Promise.all([
+                                    mdlInfoQuery.limit(10),
+                                    mdlVehicleQuery.limit(200)
+                                ]);
+
+                                let uniqueModelsMap = new Map();
+                                const mdlInfoMap = {};
+
+                                if (infoRes.data) {
+                                    infoRes.data.forEach(info => {
+                                        if (info.model_name) {
+                                            const key = info.model_name.toLowerCase();
+                                            uniqueModelsMap.set(key, info.model_name);
+                                            mdlInfoMap[key] = info;
                                         }
-                                    }
-                                });
-                            }
-
-                            const finalModels = Array.from(uniqueModelsMap.values()).slice(0, 4);
-
-                            const missingInfos = finalModels.filter(m => !mdlInfoMap[m.toLowerCase()]);
-                            if (missingInfos.length > 0) {
-                                const { data: extraInfos } = await window.sb.from('model_info').select('*').in('model_name', missingInfos);
-                                if (extraInfos) {
-                                    extraInfos.forEach(info => { 
-                                        mdlInfoMap[info.model_name.toLowerCase()] = info; 
                                     });
                                 }
-                            }
 
-                            for (const m of finalModels) {
-                                const info = mdlInfoMap[m.toLowerCase()] || {};
-                                let logo = info.logo_url ? app.utils.escapeAttr(info.logo_url) : '';
-                                
-                                // Nếu chưa có logo cụ thể, thử tìm theo brand (đồng bộ hãng)
-                                if (!logo) {
-                                    const brandName = m.split(' ')[0];
-                                    const { data: brandLogoData } = await window.sb.from('model_info')
-                                        .select('logo_url')
-                                        .ilike('model_name', `${brandName}%`)
-                                        .not('logo_url', 'is', null)
-                                        .limit(1)
-                                        .maybeSingle();
-                                    if (brandLogoData && brandLogoData.logo_url) {
-                                        logo = app.utils.escapeAttr(brandLogoData.logo_url);
+                                if (vehicleRes.data) {
+                                    vehicleRes.data.forEach(v => {
+                                        if (v.model) {
+                                            const key = v.model.toLowerCase();
+                                            if (!uniqueModelsMap.has(key)) {
+                                                uniqueModelsMap.set(key, v.model);
+                                            }
+                                        }
+                                    });
+                                }
+
+                                const finalModels = Array.from(uniqueModelsMap.values()).slice(0, 4);
+
+                                const missingInfos = finalModels.filter(m => !mdlInfoMap[m.toLowerCase()]);
+                                if (missingInfos.length > 0) {
+                                    const { data: extraInfos } = await window.sb.from('model_info').select('*').in('model_name', missingInfos);
+                                    if (extraInfos) {
+                                        extraInfos.forEach(info => { mdlInfoMap[info.model_name.toLowerCase()] = info; });
                                     }
                                 }
 
-                                // Icon chuẩn đồng bộ với UI Model Profile: vuông trong suốt shadow-md, tròn màu xanh nếu lỗi
-                                const iconHtml = logo 
-                                    ? `<img src="${logo}" class="w-12 h-12 object-contain shrink-0" onerror="this.outerHTML='<div class=&quot;w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0&quot;><i class=&quot;fa-solid fa-layer-group&quot;></i></div>';">` 
-                                    : `<div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0"><i class="fa-solid fa-layer-group"></i></div>`;
+                                for (const m of finalModels) {
+                                    const info = mdlInfoMap[m.toLowerCase()] || {};
+                                    let logo = info.logo_url ? app.utils.escapeAttr(info.logo_url) : '';
+                                    
+                                    if (!logo) {
+                                        const brandName = m.split(' ')[0];
+                                        const { data: brandLogoData } = await window.sb.from('model_info')
+                                            .select('logo_url')
+                                            .ilike('model_name', `${brandName}%`)
+                                            .not('logo_url', 'is', null)
+                                            .limit(1)
+                                            .maybeSingle();
+                                        if (brandLogoData && brandLogoData.logo_url) {
+                                            logo = app.utils.escapeAttr(brandLogoData.logo_url);
+                                        }
+                                    }
 
-                                cards.push(`
-                                    <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.model.loadModelPage('${app.utils.escapeAttr(m)}')">
-                                        ${iconHtml}
-                                        <div class="overflow-hidden">
-                                            <div class="font-bold text-black text-sm truncate">${app.utils.cleanText(m)}</div>
-                                            <div class="text-[10px] text-gray-500 uppercase tracking-widest mt-0.5 font-bold">Dòng xe</div>
+                                    const iconHtml = logo 
+                                        ? `<img src="${logo}" class="w-12 h-12 object-contain shrink-0" onerror="this.outerHTML='<div class=&quot;w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0&quot;><i class=&quot;fa-solid fa-layer-group&quot;></i></div>';">` 
+                                        : `<div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0"><i class="fa-solid fa-layer-group"></i></div>`;
+
+                                    cards.push(`
+                                        <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.model.loadModelPage('${app.utils.escapeAttr(m)}')">
+                                            ${iconHtml}
+                                            <div class="overflow-hidden">
+                                                <div class="font-bold text-black text-sm truncate">${app.utils.cleanText(m)}</div>
+                                                <div class="text-[10px] text-gray-500 uppercase tracking-widest mt-0.5 font-bold">Dòng xe</div>
+                                            </div>
                                         </div>
-                                    </div>
-                                `);
-                            }
-                        } catch (e) {
-                            console.error("Lỗi khi tìm Dòng xe:", e);
-                        }
+                                    `);
+                                }
+                            } catch (e) { console.error("Lỗi tìm Dòng xe:", e); }
+                        })());
                     }
 
+                    // 4. LẤY XE (VEHICLE / PLATE)
                     if (filterType === 'plate' || filterType === 'model' || filterType === 'all') {
-                        let selectStr = '*';
-                        if (app.preference.current !== 'both') selectStr = '*, photos!inner(type)';
+                        cardPromises.push((async () => {
+                            try {
+                                let selectStr = '*';
+                                if (app.preference.current !== 'both') selectStr = '*, photos!inner(type)';
 
-                        let vQuery = window.sb.from('vehicles').select(selectStr).limit(100);
-                        if (filterType === 'plate') {
-                            searchWords.forEach(w => { vQuery = vQuery.ilike('license_plate', `%${app.utils.normalizePlateQuery(w)}%`); });
-                        } else if (filterType === 'model') {
-                            searchWords.forEach(w => { vQuery = vQuery.ilike('model', `%${w}%`); });
-                        } else {
-                            searchWords.forEach(w => {
-                                const safeW = w.replace(/"/g, '');
-                                const safeWPlate = app.utils.normalizePlateQuery(safeW);
-                                if (safeWPlate) vQuery = vQuery.or(`license_plate.ilike."%${safeWPlate}%",model.ilike."%${safeW}%",note.ilike."%${safeW}%"`);
-                                else vQuery = vQuery.or(`model.ilike."%${safeW}%",note.ilike."%${safeW}%"`);
-                            });
-                        }
+                                let vQuery = window.sb.from('vehicles').select(selectStr).limit(10); // Lấy 10 là đủ
+                                if (filterType === 'plate') {
+                                    searchWords.forEach(w => { vQuery = vQuery.ilike('license_plate', `%${app.utils.normalizePlateQuery(w)}%`); });
+                                } else if (filterType === 'model') {
+                                    searchWords.forEach(w => { vQuery = vQuery.ilike('model', `%${w}%`); });
+                                } else {
+                                    searchWords.forEach(w => {
+                                        const safeW = w.replace(/"/g, '');
+                                        const safeWPlate = app.utils.normalizePlateQuery(safeW);
+                                        if (safeWPlate) vQuery = vQuery.or(`license_plate.ilike."%${safeWPlate}%",model.ilike."%${safeW}%",note.ilike."%${safeW}%"`);
+                                        else vQuery = vQuery.or(`model.ilike."%${safeW}%",note.ilike."%${safeW}%"`);
+                                    });
+                                }
 
-                        vQuery = app.preference.applyFilter(vQuery, 'vehicles');
-                        const { data: vData } = await vQuery;
+                                vQuery = app.preference.applyFilter(vQuery, 'vehicles');
+                                const { data: vData } = await vQuery;
 
-                        if (vData && vData.length > 0) {
-                            for (const v of vData) {
-                                const rawPlate = app.utils.cleanText(v.license_plate);
-                                const displayPlate = app.utils.displayPlate(rawPlate);
-                                const safeModel = app.utils.cleanText(v.model || 'Chưa rõ Model');
-                                const iconClass = (app.preference.current === 'coach') ? 'fa-van-shuttle' : 'fa-bus';
+                                if (vData && vData.length > 0) {
+                                    for (const v of vData) {
+                                        const rawPlate = app.utils.cleanText(v.license_plate);
+                                        const displayPlate = app.utils.displayPlate(rawPlate);
+                                        const safeModel = app.utils.cleanText(v.model || 'Chưa rõ Model');
+                                        const iconClass = (app.preference.current === 'coach') ? 'fa-van-shuttle' : 'fa-bus';
 
-                                cards.push(`
-                                    <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.views.loadVehiclePage('${rawPlate}')">
-                                        <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0"><i class="fa-solid ${iconClass}"></i></div>
-                                        <div class="overflow-hidden">
-                                            <div class="font-bold text-black text-sm truncate">${displayPlate}</div>
-                                            <div class="text-xs text-gray-500 truncate" title="${safeModel}">${safeModel}</div>
-                                        </div>
-                                    </div>
-                                `);
-                            }
-                        }
+                                        cards.push(`
+                                            <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.views.loadVehiclePage('${rawPlate}')">
+                                                <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0"><i class="fa-solid ${iconClass}"></i></div>
+                                                <div class="overflow-hidden">
+                                                    <div class="font-bold text-black text-sm truncate">${displayPlate}</div>
+                                                    <div class="text-xs text-gray-500 truncate" title="${safeModel}">${safeModel}</div>
+                                                </div>
+                                            </div>
+                                        `);
+                                    }
+                                }
+                            } catch (e) { console.error("Lỗi tìm Xe:", e); }
+                        })());
                     }
 
+                    // ÉP TRÌNH DUYỆT CHẠY 4 TIẾN TRÌNH TRÊN CÙNG 1 LÚC (TỐC ĐỘ X4)
+                    await Promise.all(cardPromises);
+
+                    // XUẤT RA UI
                     app.currentSearchCards = cards;
                     app.views.loadMoreSearchCards(true);
 
