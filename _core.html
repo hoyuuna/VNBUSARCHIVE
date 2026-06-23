@@ -6988,12 +6988,21 @@
                     app.model.currentModel = modelName;
                     app.model.modelLoadedCount = 0;
 
+                    // --- RESET UI TRỐNG ĐỂ CHỐNG NHÁY THÔNG TIN CŨ ---
                     document.getElementById('crumb-model-profile').innerText = modelName;
                     document.getElementById('model-profile-title').innerText = modelName;
+                    document.getElementById('model-logo').classList.add('hidden');
+                    document.getElementById('model-logo-fallback').classList.remove('hidden');
+                    document.getElementById('model-desc').classList.add('hidden');
+                    document.getElementById('mdl-stat-photos').innerText = '...';
+                    document.getElementById('mdl-stat-vehicles').innerText = '...';
+                    document.getElementById('mdl-stat-ops').innerText = '...';
+                    document.getElementById('mdl-stat-views').innerText = '...';
                     
                     const grid = document.getElementById('model-photo-grid');
                     grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tổng hợp dữ liệu...</div>';
                     document.getElementById('model-load-more-container').classList.add('hidden');
+                    // --------------------------------------------------
 
                     try {
                         // 1. Tách lấy tên hãng xe (Từ khóa đầu tiên: ví dụ "Thaco Mobihome" -> "Thaco")
@@ -9795,6 +9804,20 @@ dropdown.innerHTML = `
                         return;
                     }
 
+                    // --- RESET UI TRỐNG ĐỂ CHỐNG NHÁY THÔNG TIN CŨ ---
+                    document.getElementById('acc-name').innerText = '...';
+                    document.getElementById('acc-avatar-img').classList.add('hidden');
+                    document.getElementById('acc-avatar-icon').classList.remove('hidden');
+                    document.getElementById('profile-bio-content').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-gray-400"></i>';
+                    document.getElementById('profile-fav-photo-container').innerHTML = '';
+                    document.getElementById('my-stat-photos').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-gray-400"></i>';
+                    document.getElementById('my-stat-views').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-gray-400"></i>';
+                    document.getElementById('my-stat-likes').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-gray-400"></i>';
+                    document.getElementById('my-photos-grid').innerHTML = '<p class="text-xs text-gray-500 col-span-4 text-center py-10"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</p>';
+                    document.getElementById('liked-photos-grid').innerHTML = '<p class="text-xs text-gray-500 col-span-4 text-center py-10"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</p>';
+                    document.getElementById('approval-rate-island').classList.add('hidden');
+                    // --------------------------------------------------
+
                     const { data: profile } = await window.sb.from('profiles').select('id, username, avatar_url, role, subroles, bio, favorite_photo_id').eq('username', targetUsername).single();
                     if (window.location.pathname !== (isOwnProfile ? '/profile' : `/user/${encodeURIComponent(targetUsername)}`)) return;
 
@@ -10147,6 +10170,36 @@ dropdown.innerHTML = `
                         app.utils.navigate(`/photo/${photoId}`);
                         return;
                     }
+
+                    // --- RESET UI TRỐNG TRƯỚC KHI TẢI DATA ĐỂ TRÁNH NHÁY THÔNG TIN CŨ ---
+                    document.getElementById('detail-title').innerText = 'Đang tải dữ liệu...';
+                    document.getElementById('crumb-model').innerText = '...';
+                    
+                    const imgEl = document.getElementById('detail-img');
+                    if (imgEl) {
+                        imgEl.style.opacity = '0';
+                        const wrapper = imgEl.closest('.img-wrapper');
+                        if (wrapper) {
+                            wrapper.querySelector('.img-error').classList.add('hidden');
+                            wrapper.querySelector('.img-spinner').style.display = 'flex';
+                        }
+                    }
+                    
+                    document.getElementById('stat-uploader').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-gray-400"></i>';
+                    document.getElementById('stat-date').innerText = '...';
+                    document.getElementById('stat-views').innerText = '0';
+                    document.getElementById('stat-likes').innerText = '0';
+                    
+                    ['info-plate', 'info-operator', 'info-route', 'info-model', 'info-location', 'info-note', 'info-camera', 'info-exif-params'].forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) el.value = '';
+                    });
+                    
+                    document.getElementById('history-list').innerHTML = '<tr><td colspan="4" class="text-center py-2"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải...</td></tr>';
+                    document.getElementById('comment-list').innerHTML = '<p class="text-center text-gray-400 py-10"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tải...</p>';
+                    document.getElementById('detail-rec-grid').innerHTML = '';
+                    document.getElementById('fb-comments-wrapper').innerHTML = '';
+                    // -------------------------------------------------------------------
 
                     const { data: photo } = await window.sb
                         .from('photos')
@@ -10906,12 +10959,22 @@ if (app.user && app.role === 'manager' && isDenied) {
                     app.currentOperator = operatorName;
                     app.operatorLoadedCount = 0;
 
+                    // --- RESET UI TRỐNG ĐỂ CHỐNG NHÁY THÔNG TIN CŨ ---
                     document.getElementById('crumb-operator').innerText = operatorName;
                     document.getElementById('operator-title').innerText = operatorName;
+                    document.getElementById('operator-logo').classList.add('hidden');
+                    document.getElementById('operator-logo-fallback').classList.remove('hidden');
+                    document.getElementById('operator-desc').classList.add('hidden');
+                    document.getElementById('op-stat-photos').innerText = '...';
+                    document.getElementById('op-stat-vehicles').innerText = '...';
+                    document.getElementById('op-stat-routes').innerText = '...';
+                    document.getElementById('op-stat-views').innerText = '...';
+                    document.getElementById('op-model-stats-wrapper').classList.add('hidden');
                     
                     const grid = document.getElementById('operator-photo-grid');
                     grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tổng hợp dữ liệu...</div>';
                     document.getElementById('operator-load-more-container').classList.add('hidden');
+                    // --------------------------------------------------
 
                     try {
                         // Gọi DB Lấy thông tin Operator (Logo, Mô tả)
