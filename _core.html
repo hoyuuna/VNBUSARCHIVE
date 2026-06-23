@@ -4196,6 +4196,71 @@
             </div>
             <!-- KẾT THÚC GIAO DIỆN PROFILE ĐƠN VỊ VẬN HÀNH -->
 
+            <!-- GIAO DIỆN PROFILE DÒNG XE (MODEL) -->
+            <div id="model-view" class="view-section">
+                <div class="text-xs text-gray-500 mb-4 bg-white px-3 py-2 border border-vbs-border rounded-md shadow-sm inline-flex items-center gap-2">
+                    <span class="crumb-back cursor-pointer hover:text-black font-medium transition-colors">Trang chủ</span>
+                    <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                    <span id="crumb-model-profile" class="font-bold text-black truncate max-w-[200px]">...</span>
+                </div>
+
+                <div class="bg-white border border-vbs-border shadow-sm rounded-lg p-6 md:p-8 mb-6 relative overflow-hidden">
+                    <div class="flex flex-col md:flex-row justify-between items-start mb-6 gap-4">
+                        <div class="flex items-center gap-4 w-full md:w-auto">
+                            <!-- LOGO DÒNG XE (ĐỒNG BỘ THEO HÃNG) -->
+                            <img id="model-logo" src="" class="hidden w-16 h-16 md:w-20 md:h-20 object-contain shrink-0 drop-shadow-sm" onerror="this.classList.add('hidden'); document.getElementById('model-logo-fallback').classList.remove('hidden');">
+                            
+                            <div id="model-logo-fallback" class="w-16 h-16 md:w-20 md:h-20 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-3xl shrink-0 shadow-sm border border-purple-100">
+                                <i class="fa-solid fa-layer-group"></i>
+                            </div>
+                            
+                            <div class="overflow-hidden">
+                                <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-widest font-bold mb-1">Hồ sơ Dòng xe</p>
+                                <h2 id="model-profile-title" class="text-xl md:text-3xl font-black uppercase text-black tracking-tight leading-tight truncate">...</h2>
+                            </div>
+                        </div>
+                        <button onclick="app.model.openEditPrompt()" class="w-full md:w-auto text-xs text-black hover:bg-gray-100 bg-white px-4 py-2.5 border border-gray-200 rounded-lg transition shadow-sm font-bold shrink-0 flex justify-center items-center gap-1.5">
+                            <i class="fa-solid fa-pen-to-square"></i> Cập nhật thông tin
+                        </button>
+                    </div>
+                    
+                    <!-- Khung mô tả -->
+                    <div id="model-desc" class="text-sm text-gray-700 mb-6 whitespace-pre-wrap leading-relaxed hidden bg-gray-50 p-4 rounded-xl border border-gray-100 shadow-inner"></div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Tổng số ảnh</p>
+                            <p id="mdl-stat-photos" class="text-2xl font-black text-black">...</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Số xe được chụp</p>
+                            <p id="mdl-stat-vehicles" class="text-2xl font-black text-black">...</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Đơn vị sở hữu</p>
+                            <p id="mdl-stat-ops" class="text-2xl font-black text-purple-600">...</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Tổng lượt xem</p>
+                            <p id="mdl-stat-views" class="text-2xl font-black text-black">...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 mb-4 border-b border-gray-200 pb-2">
+                    <h3 class="text-lg font-bold uppercase text-black tracking-tight">Thư viện ảnh</h3>
+                </div>
+                
+                <div id="model-photo-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+                
+                <div id="model-load-more-container" class="text-center mt-8 hidden">
+                    <button onclick="app.views.loadMoreModelPhotos()" class="bg-white border border-gray-300 text-gray-700 px-6 py-2.5 text-sm font-bold rounded-md hover:bg-gray-50 hover:border-gray-400 transition shadow-sm">
+                        Xem thêm <i class="fa-solid fa-chevron-down ml-1"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- KẾT THÚC GIAO DIỆN PROFILE DÒNG XE -->
+
             <!-- VIEW MỚI: TRUYỀN TẢI DỮ LIỆU -->
             <div id="mobile-upload" class="view-section">
                 <div class="max-w-md mx-auto bg-white border border-vbs-border p-6 sm:p-8 rounded-2xl shadow-sm text-center flex flex-col items-center mt-6 min-h-[55vh] justify-center">
@@ -6814,6 +6879,257 @@
                 }
             },
 
+            // --- BẮT ĐẦU LOGIC PROFILE DÒNG XE ---
+            model: {
+                currentModel: '',
+                modelLoadedCount: 0,
+                modelPhotos: [],
+
+                loadModelPage: async (modelName) => {
+                    const decodedPath = decodeURIComponent(window.location.pathname);
+                    if (decodedPath !== `/model/${modelName}`) {
+                        app.utils.navigate(`/model/${encodeURIComponent(modelName)}`);
+                        return;
+                    }
+
+                    app.views.switch('model-view', false);
+                    document.title = `${modelName} | VNBUSARCHIVE`;
+                    app.model.currentModel = modelName;
+                    app.model.modelLoadedCount = 0;
+
+                    document.getElementById('crumb-model-profile').innerText = modelName;
+                    document.getElementById('model-profile-title').innerText = modelName;
+                    
+                    const grid = document.getElementById('model-photo-grid');
+                    grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tổng hợp dữ liệu...</div>';
+                    document.getElementById('model-load-more-container').classList.add('hidden');
+
+                    try {
+                        // 1. Tách lấy tên hãng xe (Từ khóa đầu tiên: ví dụ "Thaco Mobihome" -> "Thaco")
+                        const brandName = modelName.split(' ')[0];
+
+                        // 2. Lấy dữ liệu Mô tả của CHÍNH XÁC dòng xe này
+                        const { data: exactInfo } = await window.sb.from('model_info').select('*').eq('model_name', modelName).maybeSingle();
+
+                        // 3. Tìm Logo của hãng (Tìm dòng xe bất kỳ bắt đầu bằng tên hãng và có logo)
+                        const { data: brandLogoData } = await window.sb.from('model_info')
+                            .select('logo_url')
+                            .ilike('model_name', `${brandName}%`)
+                            .not('logo_url', 'is', null)
+                            .limit(1)
+                            .maybeSingle();
+
+                        const logoEl = document.getElementById('model-logo');
+                        const fallbackEl = document.getElementById('model-logo-fallback');
+                        const descEl = document.getElementById('model-desc');
+
+                        if (brandLogoData && brandLogoData.logo_url) {
+                            logoEl.src = brandLogoData.logo_url;
+                            logoEl.classList.remove('hidden');
+                            fallbackEl.classList.add('hidden');
+                        } else {
+                            logoEl.classList.add('hidden');
+                            fallbackEl.classList.remove('hidden');
+                        }
+
+                        if (exactInfo && exactInfo.description) {
+                            descEl.innerHTML = app.utils.cleanText(exactInfo.description);
+                            descEl.classList.remove('hidden');
+                        } else {
+                            descEl.classList.add('hidden');
+                        }
+
+                        // 4. Lấy dữ liệu ảnh và thống kê thông qua INNER JOIN bảng vehicles
+                        const { data: statsData, error: statsErr } = await window.sb.from('photos')
+                            .select('views, license_plate, operator, vehicles!inner(model)')
+                            .eq('status', 'approved')
+                            .eq('vehicles.model', modelName);
+
+                        if (statsErr) throw statsErr;
+
+                        if (!statsData || statsData.length === 0) {
+                            grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500">Chưa có ảnh xe nào thuộc dòng này được duyệt trên hệ thống.</div>';
+                            document.getElementById('mdl-stat-photos').innerText = '0';
+                            document.getElementById('mdl-stat-vehicles').innerText = '0';
+                            document.getElementById('mdl-stat-ops').innerText = '0';
+                            document.getElementById('mdl-stat-views').innerText = '0';
+                            app.loadingBar.finish();
+                            return;
+                        }
+
+                        let totalViews = 0;
+                        let uniquePlates = new Set();
+                        let uniqueOps = new Set();
+
+                        statsData.forEach(p => {
+                            totalViews += (p.views || 0);
+                            if (p.license_plate) uniquePlates.add(p.license_plate.toUpperCase());
+                            if (p.operator && p.operator !== '---') uniqueOps.add(p.operator.toLowerCase());
+                        });
+
+                        document.getElementById('mdl-stat-photos').innerText = app.utils.formatCompact(statsData.length);
+                        document.getElementById('mdl-stat-vehicles').innerText = app.utils.formatCompact(uniquePlates.size);
+                        document.getElementById('mdl-stat-ops').innerText = app.utils.formatCompact(uniqueOps.size);
+                        document.getElementById('mdl-stat-views').innerText = app.utils.formatCompact(totalViews);
+
+                        let pQuery = window.sb.from('photos').select(`*, profiles(id, username, role, subroles), vehicles!inner(model)`)
+                            .eq('status', 'approved')
+                            .eq('vehicles.model', modelName)
+                            .order('taken_at', { ascending: false, nullsFirst: false })
+                            .order('created_at', { ascending: false });
+                        
+                        pQuery = app.preference.applyFilter(pQuery);
+
+                        const { data: photos, error } = await pQuery;
+                        if (error) throw error;
+
+                        app.model.modelPhotos = photos || [];
+                        grid.innerHTML = '';
+                        app.views.loadMoreModelPhotos();
+
+                    } catch (err) {
+                        grid.innerHTML = `<div class="col-span-full text-center py-10 text-red-500">Lỗi lấy dữ liệu: ${err.message}</div>`;
+                    }
+                    app.loadingBar.finish();
+                },
+
+                openEditPrompt: async () => {
+                    if (!app.user) return app.auth.check();
+                    const modal = document.getElementById('model-edit-modal');
+                    const content = document.getElementById('model-edit-content');
+                    const btnSave = document.getElementById('btn-save-model');
+                    const warningText = content.querySelector('p.text-xs');
+                    
+                    document.getElementById('mdl-edit-logo').value = '';
+                    document.getElementById('mdl-edit-desc').value = '';
+                    
+                    if (app.role === 'admin' || app.role === 'manager') {
+                        btnSave.innerText = "Lưu ngay lập tức";
+                        warningText.innerHTML = "";
+                    } else {
+                        btnSave.innerText = "Gửi yêu cầu";
+                        warningText.innerText = "Thông tin này sẽ được kiểm duyệt bởi Admin. Việc để trống cả 2 ô sẽ gửi yêu cầu xóa thông tin hiện tại.";
+                    }
+
+                    try {
+                        const brandName = app.model.currentModel.split(' ')[0];
+                        
+                        // Lấy Mô tả của dòng xe này
+                        const { data: exactInfo } = await window.sb.from('model_info').select('description').eq('model_name', app.model.currentModel).maybeSingle();
+                        if (exactInfo) document.getElementById('mdl-edit-desc').value = exactInfo.description || '';
+
+                        // Lấy Logo của hãng (tìm bất kỳ dòng xe nào cùng hãng có logo)
+                        const { data: brandLogoData } = await window.sb.from('model_info').select('logo_url').ilike('model_name', `${brandName}%`).not('logo_url', 'is', null).limit(1).maybeSingle();
+                        if (brandLogoData) document.getElementById('mdl-edit-logo').value = brandLogoData.logo_url || '';
+
+                    } catch(e) {}
+
+                    modal.classList.remove('hidden');
+                    app.ui.lockScroll();
+                    setTimeout(() => {
+                        content.classList.remove('opacity-0', 'scale-95');
+                        content.classList.add('opacity-100', 'scale-100');
+                    }, 10);
+                },
+
+                closeEditPrompt: () => {
+                    const modal = document.getElementById('model-edit-modal');
+                    const content = document.getElementById('model-edit-content');
+                    content.classList.remove('opacity-100', 'scale-100');
+                    content.classList.add('opacity-0', 'scale-95');
+                    setTimeout(() => {
+                        modal.classList.add('hidden');
+                        app.ui.unlockScroll();
+                    }, 200);
+                },
+
+                submitEdit: async () => {
+                    if (!app.user) return;
+                    const logo = document.getElementById('mdl-edit-logo').value.trim();
+                    const desc = document.getElementById('mdl-edit-desc').value.trim();
+                    const btn = document.getElementById('btn-save-model');
+                    
+                    if (!logo && !desc) {
+                        if (!confirm("Bạn đã để trống cả 2 ô. Bạn có chắc chắn muốn XÓA thông tin của Dòng xe hiện tại không?")) {
+                            return;
+                        }
+                    }
+
+                    if (logo && !/^https?:\/\//i.test(logo)) {
+                        return app.ui.showAlert("Logo URL phải bắt đầu bằng http:// hoặc https://");
+                    }
+
+                    if (app.role !== 'admin' && app.role !== 'manager') {
+                        try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
+                    }
+
+                    const origText = btn.innerHTML;
+                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
+                    btn.disabled = true;
+
+                    try {
+                        const brandName = app.model.currentModel.split(' ')[0];
+
+                        if (app.role === 'admin' || app.role === 'manager') {
+                            // BƯỚC 1: Lưu (Upsert) thông tin cho dòng xe hiện tại
+                            const { error: upsertErr } = await window.sb.from('model_info').upsert({
+                                model_name: app.model.currentModel,
+                                logo_url: logo || null,
+                                description: desc || null
+                            });
+                            if (upsertErr) throw upsertErr;
+
+                            // BƯỚC 2: Đồng bộ Logo cho tất cả dòng xe cùng hãng (Nếu có thay đổi Logo)
+                            // Sử dụng .ilike để bao quát (Ví dụ: Thaco Mobihome, Thaco County...)
+                            await window.sb.from('model_info')
+                                .update({ logo_url: logo || null })
+                                .ilike('model_name', `${brandName}%`);
+                            
+                            app.toast.show('success', 'Thành công', 'Đã lưu và đồng bộ thông tin Dòng xe!');
+                            app.model.closeEditPrompt();
+                            app.model.loadModelPage(app.model.currentModel);
+                            
+                            if (app.admin && app.admin.logAction) {
+                                app.admin.logAction('update_model_direct', app.model.currentModel, { logo_url: logo, description: desc, brand_sync: brandName });
+                            }
+                        } else {
+                            // GỬI YÊU CẦU DUYỆT (CHO USER THƯỜNG)
+                            const { count, error: checkErr } = await window.sb.from('edit_requests')
+                                .select('*', { count: 'exact', head: true })
+                                .eq('status', 'pending')
+                                .contains('new_data', { request_type: 'update_model_info', model_name: app.model.currentModel });
+                                
+                            if (checkErr) throw checkErr;
+                            if (count > 0) throw new Error("Đã có một yêu cầu cập nhật thông tin cho dòng xe này đang chờ duyệt. Vui lòng đợi!");
+
+                            const reqData = {
+                                requester_id: app.user.id,
+                                license_plate: 'MODEL_INFO', // Giả lập để qua Validate
+                                new_data: {
+                                    request_type: 'update_model_info',
+                                    model_name: app.model.currentModel,
+                                    description: desc,
+                                    logo_url: logo
+                                },
+                                status: 'pending'
+                            };
+
+                            const { error } = await window.sb.from('edit_requests').insert(reqData);
+                            if (error) throw error;
+
+                            app.ui.showAlert("Đã gửi yêu cầu cập nhật thông tin Dòng xe và đang chờ Admin duyệt.");
+                            app.model.closeEditPrompt();
+                        }
+                    } catch (err) {
+                        app.ui.showAlert("Lỗi: " + err.message);
+                    } finally {
+                        btn.innerHTML = origText;
+                        btn.disabled = false;
+                    }
+                }
+            },
+            // --- KẾT THÚC LOGIC PROFILE DÒNG XE ---
+
         init: async () => {
             let session = null;
 
@@ -7041,12 +7357,12 @@
                     'info-plate': 'plate',
                     'info-operator': 'operator',
                     'info-route': 'route',
-                    'info-model': 'model',
                     'info-camera': 'camera'
                 };
 
                 Object.keys(fieldMap).forEach(id => {
                     const el = document.getElementById(id);
+                    if(!el) return;
                     el.addEventListener('click', function () {
                         if (this.readOnly && this.value && this.value !== '---' && this.value !== 'N/A') {
                             if (id === 'info-plate') {
@@ -7066,6 +7382,16 @@
                         }
                     });
                 });
+
+                // XỬ LÝ RIÊNG CHO INFO-MODEL (ĐIỀU HƯỚNG SANG PROFILE DÒNG XE)
+                const elInfoModel = document.getElementById('info-model');
+                if (elInfoModel) {
+                    elInfoModel.addEventListener('click', function() {
+                        if (this.readOnly && this.value && this.value !== '---' && this.value !== 'N/A') {
+                            app.utils.navigate(`/model/${encodeURIComponent(this.value)}`);
+                        }
+                    });
+                }
 
                 // ---- KÍCH HOẠT SỰ KIỆN CHO CẢ 2 Ô TÌM KIẾM ----
                 const clearSearchInput = (inputEl, sugId) => {
@@ -7292,6 +7618,10 @@
                     // Cắt chữ cực kì an toàn bằng substring thay vì split('/') để không dính lỗi khi tên có chứa dấu gạch chéo.
                     const operatorName = decodeURIComponent(path.substring('/operator/'.length));
                     if (operatorName) app.views.loadOperatorPage(operatorName);
+                    else app.views.loadHome();
+                } else if (path.startsWith('/model/')) {
+                    const modelName = decodeURIComponent(path.substring('/model/'.length));
+                    if (modelName) app.model.loadModelPage(modelName);
                     else app.views.loadHome();
                 } else if (path.startsWith('/search')) {
                     document.title = 'Tìm kiếm | VNBUSARCHIVE';
@@ -10515,6 +10845,25 @@ if (app.user && app.role === 'manager' && isDenied) {
                     } else {
                         document.getElementById('operator-load-more-container').classList.remove('hidden');
                     }
+                },
+
+                loadMoreModelPhotos: () => {
+                    const start = app.model.modelLoadedCount;
+                    const limit = 12;
+                    const end = start + limit;
+                    const grid = document.getElementById('model-photo-grid');
+                    
+                    const photosToRender = app.model.modelPhotos.slice(start, end);
+                    if (photosToRender.length > 0) {
+                        grid.innerHTML += photosToRender.map(p => app.views.renderPhotoCard(p)).join('');
+                        app.model.modelLoadedCount += photosToRender.length;
+                    }
+
+                    if (app.model.modelLoadedCount >= app.model.modelPhotos.length) {
+                        document.getElementById('model-load-more-container').classList.add('hidden');
+                    } else {
+                        document.getElementById('model-load-more-container').classList.remove('hidden');
+                    }
                 }
                 // --- KẾT THÚC LOGIC PROFILE ĐƠN VỊ ---
 
@@ -11315,6 +11664,27 @@ formInputs.forEach(input => {
                                             </div>
                                             <div class="flex gap-2 mt-3">
                                                 <button onclick="app.admin.approveReq('${r.id}', this, 'operator_info')" class="flex-1 bg-green-600 text-white py-1.5 font-bold rounded hover:bg-green-700">DUYỆT</button>
+                                                <button onclick="app.admin.denyReq('${r.id}', this)" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">TỪ CHỐI</button>
+                                            </div>
+                                        </div>
+                                    </div>`;
+                                } else if (type === 'update_model_info') {
+                                    return `
+                                    <div class="admin-card overflow-visible">
+                                        <div class="admin-card-header bg-purple-50"><span class="font-bold text-xs uppercase text-purple-600">CẬP NHẬT DÒNG XE</span><span class="text-xs text-gray-500">${username}</span></div>
+                                        <div class="admin-card-body text-xs">
+                                            <p class="font-bold text-sm mb-3 text-black"><i class="fa-solid fa-layer-group mr-1 text-gray-400"></i> ${app.utils.escapeAttr(d.model_name)}</p>
+                                            <div class="mb-2">
+                                                <span class="admin-label">Logo Hãng (Tự động đồng bộ hãng)</span>
+                                                <input type="text" id="req-mdl-logo-${r.id}" value="${app.utils.escapeAttr(d.logo_url || '')}" class="admin-input">
+                                                ${d.logo_url ? `<img src="${app.utils.escapeAttr(d.logo_url)}" class="mt-1 h-8 w-auto max-w-[80px] object-contain rounded border border-gray-200">` : ''}
+                                            </div>
+                                            <div class="mb-2">
+                                                <span class="admin-label">Mô tả chi tiết Model</span>
+                                                <textarea id="req-mdl-desc-${r.id}" class="admin-input" rows="4">${app.utils.escapeAttr(d.description || '')}</textarea>
+                                            </div>
+                                            <div class="flex gap-2 mt-3">
+                                                <button onclick="app.admin.approveReq('${r.id}', this, 'model_info')" class="flex-1 bg-green-600 text-white py-1.5 font-bold rounded hover:bg-green-700">DUYỆT</button>
                                                 <button onclick="app.admin.denyReq('${r.id}', this)" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">TỪ CHỐI</button>
                                             </div>
                                         </div>
@@ -12235,6 +12605,25 @@ app.admin.fetchManagerData('denied');
                                 description: desc || null
                             });
                             if (error) throw error;
+                        }
+
+                        else if (reqType === 'model_info' || req.new_data.request_type === 'update_model_info') {
+                            const logo = document.getElementById(`req-mdl-logo-${id}`).value.trim();
+                            const desc = document.getElementById(`req-mdl-desc-${id}`).value.trim();
+                            const brandName = req.new_data.model_name.split(' ')[0];
+                            
+                            // 1. Lưu thông tin cho dòng xe cụ thể
+                            const { error: upsertErr } = await window.sb.from('model_info').upsert({
+                                model_name: req.new_data.model_name,
+                                logo_url: logo || null,
+                                description: desc || null
+                            });
+                            if (upsertErr) throw upsertErr;
+
+                            // 2. Tự động đồng bộ Logo cho toàn bộ hãng
+                            await window.sb.from('model_info')
+                                .update({ logo_url: logo || null })
+                                .ilike('model_name', `${brandName}%`);
                         }
 
                         else {
@@ -17281,6 +17670,35 @@ closeCustomRolePrompt: () => {
         </div>
     </div>
 
+    <!-- MODAL CẬP NHẬT DÒNG XE (MODEL) -->
+    <div id="model-edit-modal" class="hidden fixed inset-0 z-[10000] flex items-center justify-center p-4" style="background-color: rgba(0, 0, 0, 0) !important; backdrop-filter: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important;">
+        <div id="model-edit-content" class="rounded-2xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col" style="max-width: 450px; background-color: rgba(255, 255, 255, 0.7) !important; backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important; border: 1px solid rgba(255, 255, 255, 0.6) !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;">
+            <div class="p-5 border-b border-gray-200/50 flex justify-between items-center shrink-0">
+                <h3 class="text-lg font-bold text-black tracking-tight"><i class="fa-solid fa-layer-group mr-2 text-gray-500"></i>Cập nhật Dòng xe</h3>
+                <button onclick="app.model.closeEditPrompt()" class="text-gray-400 hover:text-red-500 transition text-xl px-2"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="p-5 bg-transparent space-y-4">
+                <p class="text-xs text-gray-600 font-medium leading-relaxed">Thông tin này sẽ được kiểm duyệt bởi Admin. Việc để trống cả 2 ô sẽ làm mới và xóa thông tin hiện tại.</p>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Logo Hãng Xe (URL)</label>
+                    <div class="bg-purple-50 border border-purple-200 text-purple-800 px-3 py-2 rounded-md text-[11px] font-medium mb-2 flex gap-2 items-start">
+                        <i class="fa-solid fa-bolt mt-0.5"></i>
+                        <span class="leading-relaxed">Thay đổi Logo ở đây sẽ <b>tự động đồng bộ</b> cho tất cả các dòng xe cùng hãng (dựa vào từ đầu tiên trong tên dòng xe).</span>
+                    </div>
+                    <input type="text" id="mdl-edit-logo" class="w-full bg-white/60 border border-gray-300/80 rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all shadow-inner text-black" placeholder="VD: https://imgur.com/xyz.png">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Mô tả chi tiết Dòng xe này</label>
+                    <textarea id="mdl-edit-desc" rows="4" class="w-full bg-white/60 border border-gray-300/80 rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all shadow-inner resize-none custom-scrollbar text-black" placeholder="Cung cấp thông tin về sức chứa, động cơ, năm sản xuất..."></textarea>
+                </div>
+            </div>
+            <div class="bg-gray-50/30 px-5 py-4 border-t border-gray-200/50 flex gap-3">
+                <button type="button" onclick="app.model.closeEditPrompt()" class="flex-1 rounded-xl shadow-sm px-4 py-2.5 bg-white border border-gray-300 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all">Hủy</button>
+                <button type="button" id="btn-save-model" onclick="app.model.submitEdit()" class="flex-1 rounded-xl shadow-sm px-4 py-2.5 bg-black border border-black text-sm font-bold text-white hover:bg-gray-800 transition-all">Gửi yêu cầu</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL CHỌN ẢNH TÂM ĐẮC (Glassmorphism 100% Sync) -->
     <div id="fav-photo-modal" class="hidden fixed inset-0 z-[10000] flex items-center justify-center p-2 md:p-6" style="background-color: rgba(0, 0, 0, 0) !important; backdrop-filter: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important;">
         <div id="fav-photo-content" class="rounded-2xl w-full max-w-md flex flex-col overflow-hidden transform transition-all opacity-0 scale-95 relative" style="background-color: rgba(255, 255, 255, 0.7) !important; backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important; border: 1px solid rgba(255, 255, 255, 0.6) !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;">
@@ -17362,7 +17780,7 @@ closeCustomRolePrompt: () => {
                     </div>
 
                     <!-- Dòng xe -->
-                    <div onclick="var v=document.getElementById('my-top-model').innerText; if(v!=='---'){app.searchRedirect(v, 'model'); app.achievement.close();}" class="cursor-pointer group flex items-center gap-4 p-4 rounded-xl border border-gray-200 shadow-sm transition-all hover:border-purple-400 hover:shadow-md hover:bg-white" style="background-color: rgba(249, 250, 251, 0.6);" title="Nhấn để tìm kiếm dòng xe này">
+                    <div onclick="var v=document.getElementById('my-top-model').innerText; if(v!=='---'){app.utils.navigate('/model/'+encodeURIComponent(v)); app.achievement.close();}" class="cursor-pointer group flex items-center gap-4 p-4 rounded-xl border border-gray-200 shadow-sm transition-all hover:border-purple-400 hover:shadow-md hover:bg-white" style="background-color: rgba(249, 250, 251, 0.6);" title="Nhấn để xem hồ sơ dòng xe này">
                         <div class="w-12 h-12 bg-white shadow-sm rounded-full flex items-center justify-center text-purple-600 border border-purple-50 shrink-0 group-hover:scale-110 transition-transform">
                             <i class="fa-solid fa-layer-group text-lg"></i>
                         </div>
