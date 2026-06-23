@@ -7024,7 +7024,7 @@
                         }
 
                         if (exactInfo && exactInfo.description) {
-                            descEl.innerHTML = app.utils.cleanText(exactInfo.description);
+                            descEl.innerHTML = app.utils.cleanText(exactInfo.description).replace(/\n/g, '<br>');
                             descEl.classList.remove('hidden');
                         } else {
                             descEl.classList.add('hidden');
@@ -7651,36 +7651,33 @@
             },
 
             handleRoute: () => {
-                app.loadingBar.start();
+                app.loadingBar.start(); // Bật thanh loading ngay lập tức
                 app.utils.cleanupState();
 
                 const path = window.location.pathname;
                 const searchParams = new URLSearchParams(window.location.search);
-
                 app.currentPathForScroll = path + window.location.search;
 
+                // CHUYỂN GIAO DIỆN (UI) NGAY LẬP TỨC TRƯỚC, DATA LOAD NGẦM SAU
                 if (path === '/login' && searchParams.get('qr')) {
-                    app.views.switch('home', false); // Cứ show màn home mờ ở dưới
+                    app.views.switch('home', false);
                     setTimeout(() => app.qrLogin.initClient(searchParams.get('qr')), 500);
                 } else if (path === '/auth') {
                     document.title = 'Xác thực | VNBUSARCHIVE';
-                    // Kiểm tra xem trên URL có chứa key recovery không
                     const isRecovery = window.location.hash.includes('type=recovery') || app.auth.mode === 'recovery';
-
-                    // Nếu đã đăng nhập VÀ không phải đang đổi mật khẩu -> đuổi về trang chủ
-                    if (app.user && !isRecovery) {
-                        app.utils.navigate('/');
-                    } else {
-                        app.views.switch('auth', false);
-                    }
+                    if (app.user && !isRecovery) app.utils.navigate('/');
+                    else app.views.switch('auth', false);
                 } else if (path === '/profile/comments') {
                     app.comments.openDashboard();
                 } else if (path === '/profile') {
+                    app.views.switch('account', false);
                     app.views.loadAccount();
                 } else if (path.startsWith('/user/')) {
                     const username = decodeURIComponent(path.split('/')[2]);
-                    if (username) app.views.loadAccount(username);
-                    else app.views.loadHome();
+                    if (username) {
+                        app.views.switch('account', false);
+                        app.views.loadAccount(username);
+                    } else app.views.loadHome();
                 } else if (path === '/upload') {
                     document.title = 'Đăng tải ảnh | VNBUSARCHIVE';
                     app.views.switch('upload', false);
@@ -7690,6 +7687,8 @@
                 } else if (path === '/admin') {
                     document.title = 'Quản trị hệ thống | VNBUSARCHIVE';
                     app.views.switch('admin', false);
+                    app.admin.refreshCounts();
+                    app.admin.loadTab(app.adminTab);
                 } else if (path === '/contact') {
                     app.views.loadContact();
                 } else if (path === '/help' || path === '/help/') {
@@ -7700,42 +7699,52 @@
                     else app.help.loadList();
                 } else if (path.startsWith('/photo/')) {
                     const id = path.split('/')[2];
-                    if (id) app.views.loadDetail(id);
+                    if (id) {
+                        app.views.switch('detail', false);
+                        app.views.loadDetail(id);
+                    }
                 } else if (path.startsWith('/vehicle/')) {
                     const plate = decodeURIComponent(path.split('/')[2]);
-                    if (plate) app.views.loadVehiclePage(plate);
-                    else app.views.loadHome();
+                    if (plate) {
+                        app.views.switch('vehicle', false);
+                        app.views.loadVehiclePage(plate);
+                    } else app.views.loadHome();
                 } else if (path.startsWith('/operator/')) {
-                    // Cắt chữ cực kì an toàn bằng substring thay vì split('/') để không dính lỗi khi tên có chứa dấu gạch chéo.
                     const operatorName = decodeURIComponent(path.substring('/operator/'.length));
-                    if (operatorName) app.views.loadOperatorPage(operatorName);
-                    else app.views.loadHome();
+                    if (operatorName) {
+                        app.views.switch('operator-view', false);
+                        app.views.loadOperatorPage(operatorName);
+                    } else app.views.loadHome();
                 } else if (path.startsWith('/model/')) {
                     const modelName = decodeURIComponent(path.substring('/model/'.length));
-                    if (modelName) app.model.loadModelPage(modelName);
-                    else app.views.loadHome();
+                    if (modelName) {
+                        app.views.switch('model-view', false);
+                        app.model.loadModelPage(modelName);
+                    } else app.views.loadHome();
                 } else if (path.startsWith('/search')) {
                     document.title = 'Tìm kiếm | VNBUSARCHIVE';
                     const q = searchParams.get('q');
                     const filter = searchParams.get('filter') || 'all';
 
-                    if (filter === 'absolute_route') {
-                        app.currentFilter = 'absolute_route';
-                    } else {
-                        app.search.setFilter(filter, false);
-                    }
+                    if (filter === 'absolute_route') app.currentFilter = 'absolute_route';
+                    else app.search.setFilter(filter, false);
 
                     if (q) {
                         document.getElementById('search-input').value = decodeURIComponent(q);
+                        app.views.switch('search', false);
                         app.handleSearch();
-                    } else {
-                        app.views.loadHome();
-                    }
+                    } else app.views.loadHome();
                 } else {
                     app.views.switch('home', false);
+                    app.views.loadHome();
                 }
 
                 app.utils.updateBreadcrumbs();
+                
+                // Trả cảm giác mượt mà: Bất chấp Database load lâu cỡ nào, thanh Loading chạy xong ngay sau khi đổi UI!
+                setTimeout(() => {
+                    app.loadingBar.finish();
+                }, 150);
             },
 
             searchRedirect: (query, filterType = 'all', prefix = '') => {
@@ -9220,23 +9229,17 @@ dropdown.innerHTML = `
                 },
                 switch: async (id, updateUrl = true) => {
                     if (id === 'home' && window.location.pathname !== '/' && !window.location.pathname.startsWith('/search')) {
-                        app.utils.navigate('/');
-                        return;
+                        app.utils.navigate('/'); return;
                     }
                     if (id === 'upload' && window.location.pathname !== '/upload') {
-                        app.utils.navigate('/upload');
-                        return;
+                        app.utils.navigate('/upload'); return;
                     }
                     if (id === 'admin' && window.location.pathname !== '/admin') {
-                        app.utils.navigate('/admin');
-                        return;
+                        app.utils.navigate('/admin'); return;
                     }
 
                     if (id === 'admin') {
-                        if (!app.user) {
-                            app.utils.navigate('/auth');
-                            return;
-                        }
+                        if (!app.user) { app.utils.navigate('/auth'); return; }
                         const { data: securityCheck } = await window.sb.from('profiles').select('role').eq('id', app.user.id).single();
                         if (!securityCheck || (securityCheck.role !== 'admin' && securityCheck.role !== 'manager')) {
                             app.ui.showAlert("Truy cập bị từ chối: Bạn không có quyền truy cập.");
@@ -9246,72 +9249,57 @@ dropdown.innerHTML = `
                         }
                     }
 
-                    // --- CHECK BẢO TRÌ ---
                     let mtCheck = false;
-                    if (id === 'home' || id === 'search' || id === 'detail' || id === 'vehicle' || id === 'account') {
-                        mtCheck = app.maintenance.check('global');
-                    } else if (id === 'auth') {
-                        mtCheck = app.maintenance.check('auth');
-                    } else if (id === 'upload') {
-                        mtCheck = app.maintenance.check('upload');
-                    }
+                    if (['home', 'search', 'detail', 'vehicle', 'account'].includes(id)) mtCheck = app.maintenance.check('global');
+                    else if (id === 'auth') mtCheck = app.maintenance.check('auth');
+                    else if (id === 'upload') mtCheck = app.maintenance.check('upload');
 
                     if (mtCheck) {
                         app.maintenance.showScreen(mtCheck);
-                        app.loadingBar.finish();
-                        return; // Dừng việc load View
+                        return; // Đang bảo trì thì dừng đổi trang
                     } else {
                         app.maintenance.hideScreen();
                     }
-                    // ---------------------
 
                     if (id === 'auth') {
                         window.dispatchEvent(new CustomEvent('auth-opened'));
-                        app.utils.resetTurnstile('#auth .cf-turnstile'); // <-- Thêm dòng này
+                        app.utils.resetTurnstile('#auth .cf-turnstile');
                     }
 
                     const searchBox = document.getElementById('header-search-box');
                     const headerSpacer = document.getElementById('header-spacer');
 
-                    // Ẩn thanh tìm kiếm trên header nếu đang ở trang search hoặc upload
-                    if (id === 'upload' || id === 'search' || id === 'mobile-upload') {
+                    if (['upload', 'search', 'mobile-upload'].includes(id)) {
                         searchBox.classList.add('hidden');
-
-                        // Thu nhỏ khoảng trống đệm trên mobile từ h-28 xuống h-20 (PC md:h-24 không bị ảnh hưởng)
                         if (headerSpacer) {
                             headerSpacer.classList.remove('h-28');
                             headerSpacer.classList.add('h-20');
                         }
-
                         if (id === 'upload') {
                             app.upload.fetchRequirements();
                             app.upload.checkQuota();
-                            app.upload.checkAndPromptDraft(); // Gọi popup hỏi bản nháp
-                            setTimeout(() => app.uploadMap.invalidateSize(), 200);
+                            app.upload.checkAndPromptDraft();
+                            setTimeout(() => app.uploadMap && app.uploadMap.invalidateSize(), 200);
                             app.utils.resetTurnstile('#upload .cf-turnstile');
                         }
                     } else {
                         searchBox.classList.remove('hidden');
-
-                        // Trả lại khoảng trống đệm bình thường trên mobile
                         if (headerSpacer) {
                             headerSpacer.classList.remove('h-20');
                             headerSpacer.classList.add('h-28');
                         }
                     }
 
-                    if (id === 'upload' && !app.user) {
-                        app.utils.navigate('/auth');
-                        return;
-                    }
+                    if (id === 'upload' && !app.user) { app.utils.navigate('/auth'); return; }
 
-                    // Nếu đang ở trang Đăng ảnh mà lại chuyển sang trang khác -> Lưu nháp
                     if (app.currentViewMode === 'upload' && id !== 'upload') {
                         app.upload.saveDraft();
                     }
 
+                    // --- CHUYỂN CLASS CSS NGAY LẬP TỨC ---
                     document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-                    document.getElementById(id).classList.add('active');
+                    const targetEl = document.getElementById(id);
+                    if (targetEl) targetEl.classList.add('active');
 
                     const targetPath = window.location.pathname + window.location.search;
                     if (app.scrollPositions && app.scrollPositions[targetPath] !== undefined) {
@@ -9320,21 +9308,7 @@ dropdown.innerHTML = `
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                     }
 
-                    if (id === 'home' && window.location.pathname === '/') {
-                        app.views.loadHome();
-                    }
-                    if (id === 'account') {
-
-                    }
-                    if (id === 'admin') {
-                        app.admin.refreshCounts();
-                        app.admin.loadTab(app.adminTab);
-                    }
-
-                    // --- Thêm dòng này để điều khiển banner hiện hoặc ẩn tùy view ---
                     if (app.serverStatus) app.serverStatus.updateVisibility(id);
-
-                    app.loadingBar.finish();
                 },
 
                 loadUserProfile: (username) => {
@@ -10950,7 +10924,7 @@ if (app.user && app.role === 'manager' && isDenied) {
                         }
 
                         if (opInfo && opInfo.description) {
-                            descEl.innerHTML = app.utils.cleanText(opInfo.description);
+                            descEl.innerHTML = app.utils.cleanText(opInfo.description).replace(/\n/g, '<br>');
                             descEl.classList.remove('hidden');
                         } else {
                             descEl.classList.add('hidden');
@@ -16637,43 +16611,51 @@ changePassword: async () => {
 
             loadingBar: {
                 interval: null,
+                timeout1: null,
+                timeout2: null,
                 start: () => {
                     const bar = document.getElementById('top-loading-bar');
                     if (!bar) return;
 
+                    // Xóa dứt điểm các vòng lặp cũ nếu người dùng click liên tục
                     clearInterval(app.loadingBar.interval);
+                    clearTimeout(app.loadingBar.timeout1);
+                    clearTimeout(app.loadingBar.timeout2);
 
                     bar.style.transition = 'none';
                     bar.style.width = '0%';
                     bar.style.opacity = '1';
 
-                    void bar.offsetWidth;
+                    void bar.offsetWidth; // Ép trình duyệt reset CSS ngay lập tức
 
-                    bar.style.transition = 'width 0.4s ease, opacity 0.4s ease';
-                    bar.style.width = '20%';
+                    bar.style.transition = 'width 0.3s ease, opacity 0.2s ease';
+                    bar.style.width = '30%'; // Phóng nhanh lên 30% cho mượt
 
-                    let progress = 20;
+                    let progress = 30;
                     app.loadingBar.interval = setInterval(() => {
-                        progress += Math.random() * 10;
-                        if (progress > 85) progress = 85;
+                        progress += (100 - progress) * 0.1; // Chạy chậm dần về 90%
+                        if (progress > 90) progress = 90;
                         bar.style.width = progress + '%';
-                    }, 500);
+                    }, 150);
                 },
                 finish: () => {
                     const bar = document.getElementById('top-loading-bar');
                     if (!bar) return;
 
                     clearInterval(app.loadingBar.interval);
+                    clearTimeout(app.loadingBar.timeout1);
+                    clearTimeout(app.loadingBar.timeout2);
 
-                    bar.style.width = '100%';
+                    bar.style.transition = 'width 0.2s ease-out, opacity 0.2s ease';
+                    bar.style.width = '100%'; // Phóng thẳng lên 100%
 
-                    setTimeout(() => {
-                        bar.style.opacity = '0';
-                        setTimeout(() => {
+                    app.loadingBar.timeout1 = setTimeout(() => {
+                        bar.style.opacity = '0'; // Mờ dần
+                        app.loadingBar.timeout2 = setTimeout(() => {
                             bar.style.transition = 'none';
-                            bar.style.width = '0%';
-                        }, 400);
-                    }, 300);
+                            bar.style.width = '0%'; // Reset ngầm
+                        }, 250);
+                    }, 250);
                 }
             },
 
