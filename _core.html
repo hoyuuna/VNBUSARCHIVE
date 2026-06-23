@@ -10175,10 +10175,10 @@ dropdown.innerHTML = `
                     document.getElementById('detail-title').innerText = 'Đang tải dữ liệu...';
                     document.getElementById('crumb-model').innerText = '...';
                     
-                    const imgEl = document.getElementById('detail-img');
-                    if (imgEl) {
-                        imgEl.style.opacity = '0';
-                        const wrapper = imgEl.closest('.img-wrapper');
+                    const tempImgEl = document.getElementById('detail-img');
+                    if (tempImgEl) {
+                        tempImgEl.style.opacity = '0';
+                        const wrapper = tempImgEl.closest('.img-wrapper');
                         if (wrapper) {
                             wrapper.querySelector('.img-error').classList.add('hidden');
                             wrapper.querySelector('.img-spinner').style.display = 'flex';
