@@ -4183,14 +4183,12 @@
 
                     <!-- BẢNG THỐNG KÊ DÒNG XE CỦA HÃNG NÀY -->
                     <div id="op-model-stats-wrapper" class="hidden mt-10">
-                        <!-- Tách tiêu đề ra khỏi khung bảng -->
                         <h3 class="text-lg font-bold uppercase text-black tracking-tight mb-3">
                             <i class="fa-solid fa-chart-pie mr-2 text-gray-500"></i> Cơ cấu Dòng xe
                         </h3>
                         
-                        <div class="border border-gray-200 rounded-xl overflow-hidden shadow-sm relative bg-white">
-                            <!-- Thiết lập max-h-[280px] cứng ở HTML để đảm bảo mặc định bị giới hạn -->
-                            <div id="op-model-table-container" class="relative max-h-[280px] overflow-hidden transition-all duration-500">
+                        <div class="border border-gray-200 rounded-xl overflow-hidden shadow-sm bg-white">
+                            <div class="overflow-x-auto">
                                 <table class="w-full text-left text-sm whitespace-nowrap">
                                     <thead class="bg-gray-50 border-b border-gray-200 text-gray-500 text-[11px] uppercase tracking-wider">
                                         <tr>
@@ -4201,24 +4199,21 @@
                                         </tr>
                                     </thead>
                                     <tbody id="op-model-tbody" class="divide-y divide-gray-100">
-                                        <!-- JS sẽ render dòng xe vào đây -->
+                                        <!-- JS sẽ render tối đa 5 dòng xe vào đây -->
                                     </tbody>
                                     <tfoot id="op-model-tfoot" class="bg-gray-50 font-bold text-black border-t border-gray-200">
                                         <tr>
                                             <td class="p-3 text-[11px] uppercase tracking-widest text-gray-500">Tổng cộng</td>
-                                            <td class="p-3 text-center" id="op-model-total-active">0</td>
-                                            <td class="p-3 text-center" id="op-model-total-inactive">0</td>
+                                            <td class="p-3 text-center" id="op-model-total-active"></td>
+                                            <td class="p-3 text-center" id="op-model-total-inactive"></td>
                                             <td class="p-3 text-center" id="op-model-total-all">0</td>
                                         </tr>
                                     </tfoot>
                                 </table>
                             </div>
                             
-                            <!-- Hiệu ứng Fade mờ dần khi danh sách quá dài (Nằm đè lên bảng) -->
-                            <div id="op-model-fade" class="absolute bottom-11 left-0 w-full h-16 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none"></div>
-                            
-                            <!-- Nút xem thêm (Màu đen/xám) -->
-                            <button id="btn-op-model-expand" onclick="app.operator.toggleModelTable()" class="w-full py-3 bg-white text-xs font-bold text-gray-600 hover:text-black hover:bg-gray-50 transition border-t border-gray-200 relative z-10">
+                            <!-- Nút xem thêm (Tự động ẩn nếu <= 5 dòng) -->
+                            <button id="btn-op-model-expand" onclick="app.operator.toggleModelTable()" class="hidden w-full py-3 bg-white text-xs font-bold text-gray-600 hover:text-black hover:bg-gray-50 transition border-t border-gray-200">
                                 Xem toàn bộ danh sách <i class="fa-solid fa-chevron-down ml-1"></i>
                             </button>
                         </div>
@@ -6786,24 +6781,55 @@
 
 
             operator: {
-                toggleModelTable: () => {
-                    const container = document.getElementById('op-model-table-container');
-                    const fade = document.getElementById('op-model-fade');
-                    const btn = document.getElementById('btn-op-model-expand');
+                modelStatsData: [],
+                modelStatsTotals: {},
+                isModelTableExpanded: false,
+
+                renderModelTable: () => {
+                    const tbody = document.getElementById('op-model-tbody');
+                    const btnExpand = document.getElementById('btn-op-model-expand');
                     
-                    if (container.classList.contains('max-h-[280px]')) {
-                        // Mở rộng bảng
-                        container.classList.remove('max-h-[280px]');
-                        container.classList.add('max-h-[3000px]'); 
-                        fade.classList.add('hidden');
-                        btn.innerHTML = 'Thu gọn danh sách <i class="fa-solid fa-chevron-up ml-1"></i>';
+                    const data = app.operator.modelStatsData;
+                    const totals = app.operator.modelStatsTotals;
+                    const isExpanded = app.operator.isModelTableExpanded;
+
+                    // Javascript cứng rắn: Cắt đúng 5 dòng nếu chưa bấm Xem thêm
+                    const displayData = isExpanded ? data : data.slice(0, 5);
+
+                    tbody.innerHTML = displayData.map(m => `
+                        <tr class="hover:bg-gray-50 transition group">
+                            <td class="p-3 font-medium text-gray-700 max-w-[200px] truncate" title="${app.utils.cleanText(m.name)}">
+                                <span onclick="app.utils.navigate('/model/${encodeURIComponent(m.name)}')" class="cursor-pointer hover:text-black hover:underline font-bold transition">
+                                    ${app.utils.cleanText(m.name)}
+                                </span>
+                            </td>
+                            <td class="p-3 text-center font-bold text-black">${m.active > 0 ? m.active : ''}</td>
+                            <td class="p-3 text-center font-bold text-black">${m.inactive > 0 ? m.inactive : ''}</td>
+                            <td class="p-3 text-center font-black text-black">${m.total}</td>
+                        </tr>
+                    `).join('');
+
+                    // Render dòng TỔNG CỘNG (Nếu = 0 thì làm rỗng trống trơn)
+                    document.getElementById('op-model-total-active').innerText = totals.active > 0 ? totals.active : '';
+                    document.getElementById('op-model-total-inactive').innerText = totals.inactive > 0 ? totals.inactive : '';
+                    document.getElementById('op-model-total-all').innerText = totals.all;
+
+                    // Xử lý nút Xem thêm
+                    if (data.length <= 5) {
+                        btnExpand.classList.add('hidden');
                     } else {
-                        // Thu gọn bảng
-                        container.classList.remove('max-h-[3000px]');
-                        container.classList.add('max-h-[280px]');
-                        fade.classList.remove('hidden');
-                        btn.innerHTML = 'Xem toàn bộ danh sách <i class="fa-solid fa-chevron-down ml-1"></i>';
+                        btnExpand.classList.remove('hidden');
+                        if (isExpanded) {
+                            btnExpand.innerHTML = 'Thu gọn danh sách <i class="fa-solid fa-chevron-up ml-1"></i>';
+                        } else {
+                            btnExpand.innerHTML = 'Xem toàn bộ danh sách <i class="fa-solid fa-chevron-down ml-1"></i>';
+                        }
                     }
+                },
+
+                toggleModelTable: () => {
+                    app.operator.isModelTableExpanded = !app.operator.isModelTableExpanded;
+                    app.operator.renderModelTable(); // Gọi lại hàm render để load Full mảng
                 },
                 openEditPrompt: async () => {
                     if (!app.user) return app.auth.check();
@@ -10968,95 +10994,85 @@ if (app.user && app.role === 'manager' && isDenied) {
 
                         // 1. TÍNH TOÁN 4 Ô THỐNG KÊ TRÊN CÙNG
                         let totalViews = 0;
+                        let uniquePlates = new Set();
                         let uniqueRoutes = new Set();
-                        
-                        // 2. TÍNH TOÁN BẢNG CƠ CẤU DÒNG XE
-                        const latestStatusByPlate = new Map();
 
                         allStatsData.forEach(p => {
-                            // Cộng dồn view và tuyến
                             totalViews += (p.views || 0);
+                            if (p.license_plate) uniquePlates.add(p.license_plate.toUpperCase());
                             if (p.route_no && p.route_no !== '---') uniqueRoutes.add(p.route_no.toLowerCase());
-
-                            // Lọc trạng thái xe (Do API đã order DESC, lần gặp đầu tiên luôn là mới nhất)
-                            const plate = p.license_plate;
-                            if (plate && !latestStatusByPlate.has(plate.toUpperCase())) {
-                                const route = p.route_no || '';
-                                const isInactive = ['Dừng hoạt động', 'Chưa hoạt động'].includes(route);
-                                const model = p.vehicles?.model || 'Chưa cập nhật';
-                                
-                                latestStatusByPlate.set(plate.toUpperCase(), {
-                                    model: model,
-                                    active: !isInactive
-                                });
-                            }
                         });
 
-                        // Ghi dữ liệu ra 4 ô Thống kê chung
                         document.getElementById('op-stat-photos').innerText = app.utils.formatCompact(allStatsData.length);
-                        document.getElementById('op-stat-vehicles').innerText = app.utils.formatCompact(latestStatusByPlate.size);
+                        document.getElementById('op-stat-vehicles').innerText = app.utils.formatCompact(uniquePlates.size);
                         document.getElementById('op-stat-routes').innerText = app.utils.formatCompact(uniqueRoutes.size);
                         document.getElementById('op-stat-views').innerText = app.utils.formatCompact(totalViews);
 
-                        // Tổng hợp dữ liệu cho bảng Dòng xe
+                        // 2. TÍNH TOÁN BẢNG CƠ CẤU DÒNG XE (CHÍNH XÁC TUYỆT ĐỐI)
+                        const absoluteLatestStatus = new Map();
+                        const uniquePlatesArr = Array.from(uniquePlates);
+
+                        // Truy vấn chunk (mỗi lần 150 BKS) để lấy trạng thái mới nhất của các xe này trên TOÀN BỘ database
+                        for (let i = 0; i < uniquePlatesArr.length; i += 150) {
+                            const chunk = uniquePlatesArr.slice(i, i + 150);
+                            const { data } = await window.sb.from('photos')
+                                .select('license_plate, operator, route_no, vehicles(model)')
+                                .in('license_plate', chunk)
+                                .eq('status', 'approved')
+                                .order('taken_at', { ascending: false, nullsFirst: false });
+
+                            if (data) {
+                                data.forEach(p => {
+                                    const pl = p.license_plate.toUpperCase();
+                                    // Vì DB đã order by DESC, thằng đầu tiên gặp chính là trạng thái tuyệt đối mới nhất của xe đó
+                                    if (!absoluteLatestStatus.has(pl)) {
+                                        absoluteLatestStatus.set(pl, p);
+                                    }
+                                });
+                            }
+                        }
+
                         const modelStats = {};
                         let totalActive = 0;
                         let totalInactive = 0;
 
-                        latestStatusByPlate.forEach((info) => {
-                            if (!modelStats[info.model]) {
-                                modelStats[info.model] = { active: 0, inactive: 0, total: 0 };
+                        absoluteLatestStatus.forEach((p) => {
+                            // KIỂM TRA ĐIỀU KIỆN QUAN TRỌNG: Xe này trạng thái hiện tại có còn thuộc Hãng này nữa không?
+                            const currentOp = p.operator || '';
+                            if (currentOp.toLowerCase() === operatorName.toLowerCase()) {
+                                const route = p.route_no || '';
+                                const isInactive = ['Dừng hoạt động', 'Chưa hoạt động'].includes(route);
+                                const model = p.vehicles?.model || 'Chưa cập nhật';
+
+                                if (!modelStats[model]) {
+                                    modelStats[model] = { active: 0, inactive: 0, total: 0 };
+                                }
+
+                                if (!isInactive) {
+                                    modelStats[model].active++;
+                                    totalActive++;
+                                } else {
+                                    modelStats[model].inactive++;
+                                    totalInactive++;
+                                }
+                                modelStats[model].total++;
                             }
-                            if (info.active) {
-                                modelStats[info.model].active++;
-                                totalActive++;
-                            } else {
-                                modelStats[info.model].inactive++;
-                                totalInactive++;
-                            }
-                            modelStats[info.model].total++;
                         });
 
                         const sortedModels = Object.entries(modelStats)
                             .map(([name, stats]) => ({ name, ...stats }))
                             .sort((a, b) => b.total - a.total);
 
-                        // Render bảng Dòng xe (Tone Đen/Trắng/Xám, Chỉ click vào Tên xe)
-                        const tbody = document.getElementById('op-model-tbody');
-                        tbody.innerHTML = sortedModels.map(m => `
-                            <tr class="hover:bg-gray-50 transition group">
-                                <td class="p-3 font-medium text-gray-700 max-w-[200px] truncate" title="${app.utils.cleanText(m.name)}">
-                                    <span onclick="app.utils.navigate('/model/${encodeURIComponent(m.name)}')" class="cursor-pointer hover:text-black hover:underline font-bold transition">
-                                        ${app.utils.cleanText(m.name)}
-                                    </span>
-                                </td>
-                                <td class="p-3 text-center font-bold ${m.active > 0 ? 'text-black' : 'text-gray-300'}">${m.active}</td>
-                                <td class="p-3 text-center font-bold ${m.inactive > 0 ? 'text-gray-500' : 'text-gray-300'}">${m.inactive}</td>
-                                <td class="p-3 text-center font-black text-black">${m.total}</td>
-                            </tr>
-                        `).join('');
+                        // Lưu dữ liệu vào State và gọi Render
+                        app.operator.modelStatsData = sortedModels;
+                        app.operator.modelStatsTotals = { active: totalActive, inactive: totalInactive, all: totalActive + totalInactive };
+                        app.operator.isModelTableExpanded = false;
 
-                        document.getElementById('op-model-total-active').innerText = totalActive;
-                        document.getElementById('op-model-total-inactive').innerText = totalInactive;
-                        document.getElementById('op-model-total-all').innerText = totalActive + totalInactive;
-
-                        // Hiệu ứng ẩn hiện bảng Dòng xe
-                        const wrapper = document.getElementById('op-model-stats-wrapper');
-                        const btnExpand = document.getElementById('btn-op-model-expand');
-                        const fadeEl = document.getElementById('op-model-fade');
-                        const tableContainer = document.getElementById('op-model-table-container');
-                        
-                        wrapper.classList.remove('hidden');
-
-                        if (sortedModels.length <= 5) {
-                            btnExpand.classList.add('hidden');
-                            fadeEl.classList.add('hidden');
-                            tableContainer.classList.replace('max-h-[280px]', 'max-h-[3000px]');
+                        if (sortedModels.length > 0) {
+                            document.getElementById('op-model-stats-wrapper').classList.remove('hidden');
+                            app.operator.renderModelTable();
                         } else {
-                            btnExpand.classList.remove('hidden');
-                            fadeEl.classList.remove('hidden');
-                            tableContainer.classList.replace('max-h-[3000px]', 'max-h-[280px]');
-                            btnExpand.innerHTML = 'Xem toàn bộ danh sách <i class="fa-solid fa-chevron-down ml-1"></i>';
+                            document.getElementById('op-model-stats-wrapper').classList.add('hidden');
                         }
                         // =========================================================
 
