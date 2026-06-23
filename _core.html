@@ -8713,8 +8713,12 @@ grid.innerHTML = tiers.map(tier => {
                         return;
                     }
 
-                    // ================= TẠO THẺ CARD GỢI Ý (CHẠY SONG SONG SIÊU TỐC) =================
-                    let cards = [];
+                    // ================= TẠO THẺ CARD GỢI Ý (CHẠY SONG SONG & ÉP THỨ TỰ ƯU TIÊN) =================
+                    // Tách riêng 4 giỏ chứa để không bị lộn xộn do tốc độ phản hồi của mạng
+                    let uploaderCards = [];
+                    let operatorCards = [];
+                    let modelCards = [];
+                    let plateCards = [];
                     
                     let normalizedQuery = query.toLowerCase()
                         .replace(/vin bus/g, 'vinbus')
@@ -8738,7 +8742,7 @@ grid.innerHTML = tiers.map(tier => {
                                         const { count } = await window.sb.from('photos').select('*', { count: 'exact', head: true }).eq('uploader_id', user.id).eq('status', 'approved');
                                         const avatarSrc = user.avatar_url ? app.utils.getProxiedUrl(user.avatar_url, 'avatar.jpg', 'avatar') : DEFAULT_AVATAR;
                                         const userBadges = app.utils.getBadgesHTML(user.id, user.role, user.subroles);
-                                        cards.push(`
+                                        uploaderCards.push(`
                                             <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.views.loadUserProfile('${user.username}')">
                                                 <img src="${avatarSrc}" onerror="this.onerror=null;this.src='${DEFAULT_AVATAR}';" class="w-12 h-12 rounded-full object-cover bg-gray-100 shrink-0">
                                                 <div class="overflow-hidden">
@@ -8767,7 +8771,7 @@ grid.innerHTML = tiers.map(tier => {
 
                                 const [infoRes, photoRes] = await Promise.all([
                                     opInfoQuery.limit(10),
-                                    opPhotoQuery.limit(200) // Giảm scope nhẹ lại để nhẹ RAM
+                                    opPhotoQuery.limit(200)
                                 ]);
 
                                 let uniqueOpsMap = new Map();
@@ -8812,7 +8816,7 @@ grid.innerHTML = tiers.map(tier => {
                                         ? `<img src="${logo}" class="w-12 h-12 object-contain shrink-0" onerror="this.outerHTML='<div class=&quot;w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0&quot;><i class=&quot;fa-solid fa-building&quot;></i></div>';">` 
                                         : `<div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0"><i class="fa-solid fa-building"></i></div>`;
 
-                                    cards.push(`
+                                    operatorCards.push(`
                                         <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.views.loadOperatorPage('${app.utils.escapeAttr(op)}')">
                                             ${iconHtml}
                                             <div class="overflow-hidden">
@@ -8898,7 +8902,7 @@ grid.innerHTML = tiers.map(tier => {
                                         ? `<img src="${logo}" class="w-12 h-12 object-contain shrink-0" onerror="this.outerHTML='<div class=&quot;w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0&quot;><i class=&quot;fa-solid fa-layer-group&quot;></i></div>';">` 
                                         : `<div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0"><i class="fa-solid fa-layer-group"></i></div>`;
 
-                                    cards.push(`
+                                    modelCards.push(`
                                         <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.model.loadModelPage('${app.utils.escapeAttr(m)}')">
                                             ${iconHtml}
                                             <div class="overflow-hidden">
@@ -8919,7 +8923,7 @@ grid.innerHTML = tiers.map(tier => {
                                 let selectStr = '*';
                                 if (app.preference.current !== 'both') selectStr = '*, photos!inner(type)';
 
-                                let vQuery = window.sb.from('vehicles').select(selectStr).limit(10); // Lấy 10 là đủ
+                                let vQuery = window.sb.from('vehicles').select(selectStr).limit(10);
                                 if (filterType === 'plate') {
                                     searchWords.forEach(w => { vQuery = vQuery.ilike('license_plate', `%${app.utils.normalizePlateQuery(w)}%`); });
                                 } else if (filterType === 'model') {
@@ -8943,7 +8947,7 @@ grid.innerHTML = tiers.map(tier => {
                                         const safeModel = app.utils.cleanText(v.model || 'Chưa rõ Model');
                                         const iconClass = (app.preference.current === 'coach') ? 'fa-van-shuttle' : 'fa-bus';
 
-                                        cards.push(`
+                                        plateCards.push(`
                                             <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.views.loadVehiclePage('${rawPlate}')">
                                                 <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0"><i class="fa-solid ${iconClass}"></i></div>
                                                 <div class="overflow-hidden">
@@ -8961,8 +8965,8 @@ grid.innerHTML = tiers.map(tier => {
                     // ÉP TRÌNH DUYỆT CHẠY 4 TIẾN TRÌNH TRÊN CÙNG 1 LÚC (TỐC ĐỘ X4)
                     await Promise.all(cardPromises);
 
-                    // XUẤT RA UI
-                    app.currentSearchCards = cards;
+                    // XUẤT RA UI THEO ĐÚNG THỨ TỰ ƯU TIÊN: Đơn Vị -> Dòng Xe -> Biển Số -> Người Đăng
+                    app.currentSearchCards = [...operatorCards, ...modelCards, ...plateCards, ...uploaderCards];
                     app.views.loadMoreSearchCards(true);
 
 
