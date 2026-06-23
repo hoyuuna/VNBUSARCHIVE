@@ -4141,10 +4141,14 @@
                 <div class="bg-white border border-vbs-border shadow-sm rounded-lg p-6 md:p-8 mb-6 relative overflow-hidden">
                     <div class="flex flex-col md:flex-row justify-between items-start mb-6 gap-4">
                         <div class="flex items-center gap-4 w-full md:w-auto">
-                            <img id="operator-logo" src="" class="hidden w-16 h-16 md:w-20 md:h-20 object-cover rounded-xl border border-gray-200 bg-white shadow-sm shrink-0">
-                            <div id="operator-logo-fallback" class="w-16 h-16 md:w-20 md:h-20 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center font-bold text-3xl border border-orange-100 shadow-sm shrink-0">
+                            <!-- NẾU CÓ LOGO: Hình vuông, dùng object-contain để hiển thị trọn vẹn logo trong suốt, bóng đổ bao quanh hình (drop-shadow) -->
+                            <img id="operator-logo" src="" class="hidden w-16 h-16 md:w-20 md:h-20 object-contain shrink-0 drop-shadow-sm">
+                            
+                            <!-- NẾU KHÔNG CÓ LOGO: Hình tròn, màu xanh dương (Giữ nguyên như default) -->
+                            <div id="operator-logo-fallback" class="w-16 h-16 md:w-20 md:h-20 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-3xl shrink-0 shadow-sm border border-blue-100">
                                 <i class="fa-solid fa-building"></i>
                             </div>
+                            
                             <div class="overflow-hidden">
                                 <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-widest font-bold mb-1">Đơn vị vận hành</p>
                                 <h2 id="operator-title" class="text-xl md:text-3xl font-black uppercase text-black tracking-tight leading-tight truncate">...</h2>
@@ -8316,9 +8320,11 @@ grid.innerHTML = tiers.map(tier => {
                             for (const op of uniqueOps) {
                                 const info = opInfoMap[op] || {};
                                 const logo = info.logo_url ? app.utils.escapeAttr(info.logo_url) : '';
+                                
+                                // NẾU CÓ LOGO: Hình vuông, object-contain. NẾU KHÔNG: Tròn màu xanh.
                                 const iconHtml = logo 
-                                    ? `<img src="${logo}" class="w-12 h-12 rounded object-cover bg-white border border-gray-200 shrink-0">` 
-                                    : `<div class="w-12 h-12 rounded bg-orange-50 text-orange-600 flex items-center justify-center font-bold text-xl shrink-0 border border-orange-100"><i class="fa-solid fa-building"></i></div>`;
+                                    ? `<img src="${logo}" class="w-12 h-12 object-contain shrink-0 drop-shadow-sm">` 
+                                    : `<div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0 shadow-sm border border-blue-100"><i class="fa-solid fa-building"></i></div>`;
 
                                 cards.push(`
                                     <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.views.loadOperatorPage('${app.utils.escapeAttr(op)}')">
