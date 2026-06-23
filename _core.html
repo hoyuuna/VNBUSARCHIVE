@@ -11011,25 +11011,27 @@ if (app.user && app.role === 'manager' && isDenied) {
                         document.getElementById('op-stat-routes').innerText = app.utils.formatCompact(uniqueRoutes.size);
                         document.getElementById('op-stat-views').innerText = app.utils.formatCompact(totalViews);
 
-                        // 2. TÍNH TOÁN BẢNG CƠ CẤU DÒNG XE (CHÍNH XÁC TUYỆT ĐỐI)
+                        // 2. TÍNH TOÁN BẢNG CƠ CẤU DÒNG XE TỪ LỊCH SỬ HOẠT ĐỘNG (VEHICLE_HISTORY)
+                        // Bảng này được ĐẶC QUYỀN chỉ lấy data từ Lịch sử, bỏ qua bảng Photos.
                         const absoluteLatestStatus = new Map();
                         const uniquePlatesArr = Array.from(uniquePlates);
 
-                        // Truy vấn chunk (mỗi lần 150 BKS) để lấy trạng thái mới nhất của các xe này trên TOÀN BỘ database
                         for (let i = 0; i < uniquePlatesArr.length; i += 150) {
                             const chunk = uniquePlatesArr.slice(i, i + 150);
-                            const { data } = await window.sb.from('photos')
-                                .select('license_plate, operator, route_no, vehicles(model)')
+                            
+                            // GỌI BẢNG LỊCH SỬ: Sắp xếp theo ngày hiệu lực (giảm dần) và ID/Order (giảm dần) 
+                            // Để đảm bảo dòng đầu tiên lấy được luôn là MỚI NHẤT
+                            const { data } = await window.sb.from('vehicle_history')
+                                .select('license_plate, operator, route, vehicles(model)')
                                 .in('license_plate', chunk)
-                                .eq('status', 'approved')
-                                .order('taken_at', { ascending: false, nullsFirst: false });
+                                .order('effective_date', { ascending: false, nullsFirst: false })
+                                .order('display_order', { ascending: false });
 
                             if (data) {
-                                data.forEach(p => {
-                                    const pl = p.license_plate.toUpperCase();
-                                    // Vì DB đã order by DESC, thằng đầu tiên gặp chính là trạng thái tuyệt đối mới nhất của xe đó
+                                data.forEach(h => {
+                                    const pl = h.license_plate.toUpperCase();
                                     if (!absoluteLatestStatus.has(pl)) {
-                                        absoluteLatestStatus.set(pl, p);
+                                        absoluteLatestStatus.set(pl, h);
                                     }
                                 });
                             }
@@ -11039,15 +11041,15 @@ if (app.user && app.role === 'manager' && isDenied) {
                         let totalActive = 0;
                         let totalInactive = 0;
 
-                        absoluteLatestStatus.forEach((p) => {
-                            // KIỂM TRA ĐIỀU KIỆN QUAN TRỌNG: Xe này trạng thái hiện tại có còn thuộc Hãng này nữa không?
-                            const currentOp = p.operator || '';
+                        absoluteLatestStatus.forEach((h) => {
+                            // KIỂM TRA ĐIỀU KIỆN 1: Ở mốc lịch sử CUỐI CÙNG, xe này có còn nằm trong Hãng này không?
+                            const currentOp = h.operator || '';
                             if (currentOp.toLowerCase() === operatorName.toLowerCase()) {
-                                const route = (p.route_no || '').trim();
-                                // CHỈ DUY NHẤT "Dừng hoạt động" mới bị tính là xe loại biên (Cột Đỏ)
-                                // "Chưa hoạt động" (xe mới) hay "Tạm dừng" đều sẽ rơi vào Đang HĐ (Cột Xanh)
+                                
+                                const route = (h.route || '').trim();
+                                // KIỂM TRA ĐIỀU KIỆN 2: Vì "Dừng hoạt động" giờ đã được lưu vào lịch sử, ta chỉ cần xét đúng chữ này
                                 const isInactive = route === 'Dừng hoạt động';
-                                const model = p.vehicles?.model || 'Chưa cập nhật';
+                                const model = h.vehicles?.model || 'Chưa cập nhật';
 
                                 if (!modelStats[model]) {
                                     modelStats[model] = { active: 0, inactive: 0, total: 0 };
@@ -12744,7 +12746,7 @@ app.admin.fetchManagerData('denied');
                         const photo = photoData || {};
 
 
-                        const specialRoutes =['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động'];
+                        const specialRoutes =['Ngoài giờ hoạt động', 'Chưa hoạt động'];
                         const isSpecialRoute = specialRoutes.includes(route);
 
                         if (!isSpecialRoute) {
@@ -14909,7 +14911,7 @@ app.admin.fetchManagerData('denied');
                     if (oldData.operator === newData.operator && oldData.route_no === newData.route_no) return;
 
                     const targetDate = takenAtIso.split('T')[0];
-                    const specialRoutes = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động'];
+                    const specialRoutes = ['Ngoài giờ hoạt động', 'Chưa hoạt động'];
                     const isSpecial = specialRoutes.includes(newData.route_no);
 
                     try {
