@@ -11042,28 +11042,33 @@ if (app.user && app.role === 'manager' && isDenied) {
                         let totalInactive = 0;
 
                         absoluteLatestStatus.forEach((h) => {
-                            // KIỂM TRA ĐIỀU KIỆN 1: Ở mốc lịch sử CUỐI CÙNG, xe này có còn nằm trong Hãng này không?
                             const currentOp = h.operator || '';
-                            if (currentOp.toLowerCase() === operatorName.toLowerCase()) {
-                                
-                                const route = (h.route || '').trim();
-                                // KIỂM TRA ĐIỀU KIỆN 2: Vì "Dừng hoạt động" giờ đã được lưu vào lịch sử, ta chỉ cần xét đúng chữ này
-                                const isInactive = route === 'Dừng hoạt động';
-                                const model = h.vehicles?.model || 'Chưa cập nhật';
+                            const route = (h.route || '').trim();
+                            const model = h.vehicles?.model || 'Chưa cập nhật';
+                            
+                            let isInactive = false;
 
-                                if (!modelStats[model]) {
-                                    modelStats[model] = { active: 0, inactive: 0, total: 0 };
-                                }
-
-                                if (!isInactive) {
-                                    modelStats[model].active++;
-                                    totalActive++;
-                                } else {
-                                    modelStats[model].inactive++;
-                                    totalInactive++;
-                                }
-                                modelStats[model].total++;
+                            // NẾU hãng ở mốc lịch sử MỚI NHẤT khác với hãng đang xem -> Xe đã bị thuyên chuyển -> Tính là Dừng HĐ
+                            if (currentOp.toLowerCase() !== operatorName.toLowerCase()) {
+                                isInactive = true;
+                            } 
+                            // NẾU vẫn là hãng đang xem, nhưng tuyến bị đánh dấu là 'Dừng hoạt động' -> Tính là Dừng HĐ
+                            else if (route === 'Dừng hoạt động') {
+                                isInactive = true;
                             }
+
+                            if (!modelStats[model]) {
+                                modelStats[model] = { active: 0, inactive: 0, total: 0 };
+                            }
+
+                            if (!isInactive) {
+                                modelStats[model].active++;
+                                totalActive++;
+                            } else {
+                                modelStats[model].inactive++;
+                                totalInactive++;
+                            }
+                            modelStats[model].total++;
                         });
 
                         const sortedModels = Object.entries(modelStats)
