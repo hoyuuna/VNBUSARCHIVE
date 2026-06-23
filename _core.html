@@ -6678,10 +6678,21 @@
                     if (!app.user) return app.auth.check();
                     const modal = document.getElementById('operator-edit-modal');
                     const content = document.getElementById('operator-edit-content');
+                    const btnSave = document.getElementById('btn-save-operator');
+                    const warningText = content.querySelector('p.text-xs');
                     
                     document.getElementById('op-edit-logo').value = '';
                     document.getElementById('op-edit-desc').value = '';
                     
+                    // Cập nhật UI theo Role (Quyền)
+                    if (app.role === 'admin' || app.role === 'manager') {
+                        btnSave.innerText = "Lưu ngay lập tức";
+                        warningText.innerHTML = "<span class='text-red-600 font-bold'>ADMIN MODE:</span> Bạn đang ghi đè thông tin trực tiếp vào cơ sở dữ liệu. Để trống cả 2 ô sẽ xóa dữ liệu hiện tại.";
+                    } else {
+                        btnSave.innerText = "Gửi yêu cầu";
+                        warningText.innerText = "Thông tin này sẽ được kiểm duyệt bởi Admin. Việc để trống cả 2 ô sẽ gửi yêu cầu xóa thông tin hiện tại.";
+                    }
+
                     try {
                         const { data: opInfo } = await window.sb.from('operator_info').select('*').eq('operator_name', app.currentOperator).maybeSingle();
                         if (opInfo) {
@@ -6717,11 +6728,14 @@
                         return app.ui.showAlert("Logo URL phải bắt đầu bằng http:// hoặc https://");
                     }
 
-                    try {
-                        await app.captcha.request();
-                    } catch (err) {
-                        if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha.");
-                        return;
+                    // User thường mới phải check Captcha
+                    if (app.role !== 'admin' && app.role !== 'manager') {
+                        try {
+                            await app.captcha.request();
+                        } catch (err) {
+                            if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha.");
+                            return;
+                        }
                     }
 
                     const origText = btn.innerHTML;
@@ -6729,33 +6743,58 @@
                     btn.disabled = true;
 
                     try {
-                        const { count, error: checkErr } = await window.sb.from('edit_requests')
-                            .select('*', { count: 'exact', head: true })
-                            .eq('status', 'pending')
-                            .contains('new_data', { request_type: 'update_operator_info', operator_name: app.currentOperator });
-                            
-                        if (checkErr) throw checkErr;
-                        if (count > 0) {
-                            throw new Error("Đã có một yêu cầu cập nhật thông tin cho đơn vị này đang chờ duyệt. Vui lòng đợi!");
-                        }
-
-                        const reqData = {
-                            requester_id: app.user.id,
-                            license_plate: 'OP_INFO', // Giả lập để vượt qua bắt buộc NOT NULL
-                            new_data: {
-                                request_type: 'update_operator_info',
+                        if (app.role === 'admin' || app.role === 'manager') {
+                            // ==========================================
+                            // LUỒNG DÀNH CHO ADMIN: LƯU THẲNG VÀO DB
+                            // ==========================================
+                            const { error } = await window.sb.from('operator_info').upsert({
                                 operator_name: app.currentOperator,
-                                description: desc,
-                                logo_url: logo
-                            },
-                            status: 'pending'
-                        };
+                                logo_url: logo || null,
+                                description: desc || null
+                            });
+                            if (error) throw error;
+                            
+                            app.toast.show('success', 'Thành công', 'Đã lưu thông tin Đơn vị vận hành!');
+                            app.operator.closeEditPrompt();
+                            app.views.loadOperatorPage(app.currentOperator); // Tải lại trang ngay lập tức
+                            
+                            // Ghi Log cho Admin
+                            if (app.admin && app.admin.logAction) {
+                                app.admin.logAction('update_operator_direct', app.currentOperator, { logo_url: logo, description: desc });
+                            }
+                            
+                        } else {
+                            // ==========================================
+                            // LUỒNG DÀNH CHO USER: GỬI YÊU CẦU DUYỆT
+                            // ==========================================
+                            const { count, error: checkErr } = await window.sb.from('edit_requests')
+                                .select('*', { count: 'exact', head: true })
+                                .eq('status', 'pending')
+                                .contains('new_data', { request_type: 'update_operator_info', operator_name: app.currentOperator });
+                                
+                            if (checkErr) throw checkErr;
+                            if (count > 0) {
+                                throw new Error("Đã có một yêu cầu cập nhật thông tin cho đơn vị này đang chờ duyệt. Vui lòng đợi!");
+                            }
 
-                        const { error } = await window.sb.from('edit_requests').insert(reqData);
-                        if (error) throw error;
+                            const reqData = {
+                                requester_id: app.user.id,
+                                license_plate: 'OP_INFO', // Giả lập để vượt qua bắt buộc NOT NULL (Nếu có)
+                                new_data: {
+                                    request_type: 'update_operator_info',
+                                    operator_name: app.currentOperator,
+                                    description: desc,
+                                    logo_url: logo
+                                },
+                                status: 'pending'
+                            };
 
-                        app.ui.showAlert("Đã gửi yêu cầu cập nhật thông tin đơn vị vận hành và đang chờ Admin duyệt.");
-                        app.operator.closeEditPrompt();
+                            const { error } = await window.sb.from('edit_requests').insert(reqData);
+                            if (error) throw error;
+
+                            app.ui.showAlert("Đã gửi yêu cầu cập nhật thông tin đơn vị vận hành và đang chờ Admin duyệt.");
+                            app.operator.closeEditPrompt();
+                        }
                     } catch (err) {
                         app.ui.showAlert("Lỗi: " + err.message);
                     } finally {
