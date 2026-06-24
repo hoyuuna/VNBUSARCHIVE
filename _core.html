@@ -15182,7 +15182,7 @@ app.admin.fetchManagerData('denied');
 
                             app.toast.show('success', 'Đã cập nhật', 'Lịch sử hoạt động của xe đã được lưu thành công.');
                             if (window.location.pathname.startsWith('/vehicle/')) {
-                                app.views.loadVehiclePage(app.currentPlate);
+                                app.views.loadVehiclePage(app.currentPlate, true);
                             } else {
                                 app.views.loadHistory(app.currentPlate);
                             }
@@ -15319,7 +15319,7 @@ app.admin.fetchManagerData('denied');
                             const { error } = await window.sb.from('vehicles').update(newData).eq('license_plate', plate);
                             if (error) throw error;
                             app.toast.show('success', 'Đã lưu thay đổi', 'Thông tin xe đã được cập nhật thành công.');
-                            app.views.loadVehiclePage(plate);
+                            app.views.loadVehiclePage(plate, true);
                         } else {
                             // [BẢO VỆ] Kiểm tra xem đã có yêu cầu nào đang chờ duyệt cho xe này chưa
                             const { count } = await window.sb.from('edit_requests').select('*', { count: 'exact', head: true }).eq('license_plate', plate).eq('status', 'pending').contains('new_data', { request_type: 'update_vehicle_details' });
