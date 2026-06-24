@@ -1,4 +1,4 @@
-﻿<!-- 
+<!-- 
 ====================================================================================================
    ⚠️ AGENT READ THIS BEFORE PROCEED ⚠️
 ====================================================================================================
@@ -9151,19 +9151,25 @@ grid.innerHTML = tiers.map(tier => {
                         // Kích hoạt tìm kiếm Model bằng INNER JOIN
                         searchWords.forEach(w => { photoQuery = photoQuery.ilike('vehicles.model', `%${w}%`); });
                     } else {
-                        // LỌC ALL (ĐÃ NỞI RỘNG LIMIT ĐỂ KHÔNG BỊ RỚT ẢNH CŨ)
+                                                // LỌC ALL (TỐI ƯU HÓA)
                         let mQ = window.sb.from('vehicles').select('license_plate');
+                        let uQ = window.sb.from('profiles').select('id');
+
                         searchWords.forEach(w => {
                             const safeW = w.replace(/"/g, '');
                             mQ = mQ.or(`model.ilike."%${safeW}%",note.ilike."%${safeW}%"`);
+                            uQ = uQ.ilike('username', `%${w}%`);
                         });
-                        const { data: mData } = await mQ.limit(800); // Lấy tới 800 xe thay vì 100
-                        const plates = mData ? mData.map(v => v.license_plate) : [];
 
-                        let uQ = window.sb.from('profiles').select('id');
-                        searchWords.forEach(w => { uQ = uQ.ilike('username', `%${w}%`); });
-                        const { data: uData } = await uQ.limit(20);
-                        const uploaderIds = uData ? uData.map(u => u.id) : [];
+                        // Chạy 2 truy vấn MỞ RỘNG CÙNG 1 LÚC để giảm nửa thời gian chờ
+                        // CHÚ Ý: Đã giảm limit(800) xuống 150 để URL API không bị quá tải do chuỗi IN() quá dài
+                        const [mRes, uRes] = await Promise.all([
+                            mQ.limit(150), 
+                            uQ.limit(10)
+                        ]);
+
+                        const plates = mRes.data ? mRes.data.map(v => v.license_plate) : [];
+                        const uploaderIds = uRes.data ? uRes.data.map(u => u.id) : [];
 
                         searchWords.forEach(w => {
                             const safeW = w.replace(/"/g, '');
