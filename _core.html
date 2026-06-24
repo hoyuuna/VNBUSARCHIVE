@@ -11281,7 +11281,7 @@ dropdown.innerHTML = `
                         });
 
                         let activeRoutesMap = new Map();
-                        const routeProvinceCount = {};
+                        const operatorProvinces = new Set();
 
                         absoluteLatestStatus.forEach((h) => {
                             const currentOp = h.operator || '';
@@ -11311,12 +11311,12 @@ dropdown.innerHTML = `
                                     rData.count++;
                                     rData.models[model] = (rData.models[model] || 0) + 1;
 
-                                    const lRoute = cleanRoute.toLowerCase();
-                                    if (!routeProvinceCount[lRoute]) routeProvinceCount[lRoute] = new Set();
-                                    if (prov) routeProvinceCount[lRoute].add(prov);
+                                    if (prov) operatorProvinces.add(prov);
                                 }
                             }
                         });
+
+                        const operatesInMultipleProvinces = operatorProvinces.size > 1;
 
                         let activeRoutes = [];
                         activeRoutesMap.forEach(rData => {
@@ -11329,10 +11329,9 @@ dropdown.innerHTML = `
                                 }
                             }
                             
-                            const lRoute = rData.route.toLowerCase();
                             let displayName = rData.route;
                             let prefix = '';
-                            if (routeProvinceCount[lRoute] && routeProvinceCount[lRoute].size > 1 && rData.prov) {
+                            if (operatesInMultipleProvinces && rData.prov) {
                                 displayName = `${rData.route} (${rData.prov})`;
                             }
                             
