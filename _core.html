@@ -6919,7 +6919,11 @@
                                 </span>
                             </td>
                             <td class="p-3 text-center font-bold text-black">${r.vehicleCount}</td>
-                            <td class="p-3 text-center"><span class="bg-gray-100 border border-gray-200 text-gray-700 px-2 py-1 rounded text-[11px] font-semibold whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px] inline-block align-middle" title="${r.mainModel || 'Chưa xác định'}">${r.mainModel || 'Chưa xác định'}</span></td>
+                            <td class="p-3 text-center font-medium text-gray-700 max-w-[150px] truncate" title="${r.mainModel || 'Chưa xác định'}">
+                                <span onclick="if('${r.mainModel || 'Chưa xác định'}' !== 'Chưa xác định') app.utils.navigate('/model/${encodeURIComponent(r.mainModel || '')}')" class="${r.mainModel && r.mainModel !== 'Chưa xác định' ? 'cursor-pointer hover:text-black hover:underline transition font-bold text-black' : ''}">
+                                    ${r.mainModel || 'Chưa xác định'}
+                                </span>
+                            </td>
                         </tr>
                     `).join('');
                     
@@ -11261,58 +11265,42 @@ dropdown.innerHTML = `
                         app.operator.modelStatsTotals = { active: totalActive, inactive: totalInactive, all: totalActive + totalInactive };
                         app.operator.isModelTableExpanded = false;
 
-                        // 3. TÍNH TOÁN CƠ CẤU TUYẾN CHUYẾN (THÔNG MINH)
+                        // 3. TÍNH TOÁN CƠ CẤU TUYẾN CHUYẾN (THÔNG MINH DỰA TRÊN XE ACTIVE)
                         const specialRoutes = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động', 'Hợp đồng', 'Xe hợp đồng / Đưa đón'];
-                        let validRoutes = Array.from(uniqueRoutes).filter(r => r && !specialRoutes.includes(r) && r !== '---');
                         
-                        let activeRoutes = [];
-                        
-                        // Quét lấy ảnh mới nhất của từng tuyến để xác định ai đang thầu (Bắn Fetch song song để lách qua Data lớn)
-                        const routePromises = validRoutes.map(async (route) => {
-                            try {
-                                const { data } = await window.sb.from('photos')
-                                    .select('operator')
-                                    .eq('route_no', route)
-                                    .eq('status', 'approved')
-                                    .order('taken_at', { ascending: false, nullsFirst: false })
-                                    .order('created_at', { ascending: false })
-                                    .limit(1);
-                                
-                                if (data && data.length > 0) {
-                                    const latestOp = data[0].operator || '';
-                                    // BẮT BUỘC: Nếu hãng ở ảnh chụp mới nhất chính là hãng này, thì Tuyến mới thuộc về hãng này
-                                    if (latestOp.toLowerCase() === operatorName.toLowerCase()) {
-                                        
-                                        // Đếm xem hãng này cắm bao nhiêu xe vào tuyến (Dựa trên lịch sử tổng ở AllStatsData)
-                                        const platesOnRoute = new Set();
-                                        allStatsData.forEach(p => {
-                                            if ((p.route_no || '').toLowerCase() === route.toLowerCase() && p.license_plate) {
-                                                platesOnRoute.add(p.license_plate.toUpperCase());
-                                            }
-                                        });
-                                        
-                                        // Tìm dòng xe phổ biến nhất
-                                        const modelCounts = {};
-                                        let maxModel = 'Chưa xác định';
-                                        let maxCount = 0;
-                                        
-                                        platesOnRoute.forEach(pl => {
-                                            const h = absoluteLatestStatus.get(pl);
-                                            const model = h?.vehicles?.model || 'Chưa xác định';
-                                            modelCounts[model] = (modelCounts[model] || 0) + 1;
-                                            if (modelCounts[model] > maxCount) {
-                                                maxCount = modelCounts[model];
-                                                maxModel = model;
-                                            }
-                                        });
+                        let activeRoutesMap = new Map();
 
-                                        activeRoutes.push({ route: route, vehicleCount: platesOnRoute.size, mainModel: maxModel });
-                                    }
+                        absoluteLatestStatus.forEach((h) => {
+                            const currentOp = h.operator || '';
+                            const route = (h.route || '').trim();
+                            const model = h.vehicles?.model || 'Chưa xác định';
+
+                            let isInactive = false;
+                            if (currentOp.toLowerCase() !== operatorName.toLowerCase()) isInactive = true;
+                            else if (route === 'Dừng hoạt động') isInactive = true;
+
+                            if (!isInactive && route && route !== '---' && !specialRoutes.includes(route)) {
+                                if (!activeRoutesMap.has(route)) {
+                                    activeRoutesMap.set(route, { route: route, count: 0, models: {} });
                                 }
-                            } catch(e) {}
+                                const rData = activeRoutesMap.get(route);
+                                rData.count++;
+                                rData.models[model] = (rData.models[model] || 0) + 1;
+                            }
                         });
-                        
-                        await Promise.all(routePromises);
+
+                        let activeRoutes = [];
+                        activeRoutesMap.forEach(rData => {
+                            let maxModel = 'Chưa xác định';
+                            let maxCount = 0;
+                            for (let m in rData.models) {
+                                if (rData.models[m] > maxCount) {
+                                    maxCount = rData.models[m];
+                                    maxModel = m;
+                                }
+                            }
+                            activeRoutes.push({ route: rData.route, vehicleCount: rData.count, mainModel: maxModel });
+                        });
                         
                         // Sắp xếp Tuyến theo trật tự tự nhiên (01, 02, 10...)
                         activeRoutes.sort((a, b) => a.route.localeCompare(b.route, undefined, {numeric: true}));
