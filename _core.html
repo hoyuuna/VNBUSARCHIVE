@@ -7591,8 +7591,15 @@
                             }
                             else if (id === 'info-route') {
                                 const plateValue = document.getElementById('info-plate').value;
-                                const provinceCode = plateValue ? plateValue.substring(0, 2) : '';
-                                app.searchRedirect(this.value, 'absolute_route', provinceCode);
+                                let routePrefix = '';
+                                const provName = app.utils.getProvinceFromPlate(plateValue);
+                                if (provName && app.utils.provinceData && app.utils.provinceData.length) {
+                                    const pData = app.utils.provinceData.find(p => p.ten === provName);
+                                    if (pData && pData.ky_hieu) {
+                                        routePrefix = Array.isArray(pData.ky_hieu) ? String(pData.ky_hieu[0]).trim() : String(pData.ky_hieu).split(',')[0].trim();
+                                    }
+                                }
+                                app.searchRedirect(this.value, 'absolute_route', routePrefix);
                             }
                             else {
                                 app.searchRedirect(this.value, fieldMap[id]);
@@ -10950,6 +10957,14 @@ dropdown.innerHTML = `
 
                         let rawHistory = historyRes.data || [];
 
+                        let vehPrefix = '';
+                        const vehProvName = app.utils.getProvinceFromPlate(vehicle.license_plate);
+                        if (vehProvName && app.utils.provinceData && app.utils.provinceData.length) {
+                            const pData = app.utils.provinceData.find(p => p.ten === vehProvName);
+                            if (pData && pData.ky_hieu) {
+                                vehPrefix = Array.isArray(pData.ky_hieu) ? String(pData.ky_hieu[0]).trim() : String(pData.ky_hieu).split(',')[0].trim();
+                            }
+                        }
 
                         let historyData = rawHistory.map(h => {
                             if (!h.effective_date && h.note) {
@@ -11046,7 +11061,7 @@ dropdown.innerHTML = `
                                             <div>
                                                 <label class="text-xs text-gray-500 font-bold block mb-1 uppercase">Tuyến hiện tại</label>
                                                 <div class="relative">
-                                                    <input type="text" id="vehicle-edit-route" value="${currentRouteClientSide}" autocomplete="off" class="info-input p-2 border border-gray-200 rounded-md bg-gray-50 w-full ${currentRouteClientSide ? 'clickable-search' : 'cursor-not-allowed'}" readonly ${currentRouteClientSide ? `onclick="if(this.readOnly && this.value && this.value!=='---') app.searchRedirect(this.value, 'absolute_route')"` : ''} onfocus="if(!this.readOnly) app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', '')" oninput="app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', this.value)">
+                                                    <input type="text" id="vehicle-edit-route" value="${currentRouteClientSide}" autocomplete="off" class="info-input p-2 border border-gray-200 rounded-md bg-gray-50 w-full ${currentRouteClientSide ? 'clickable-search' : 'cursor-not-allowed'}" readonly ${currentRouteClientSide ? `onclick="if(this.readOnly && this.value && this.value!=='---') app.searchRedirect(this.value, 'absolute_route', '${vehPrefix}')"` : ''} onfocus="if(!this.readOnly) app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', '')" oninput="app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', this.value)">
                                                     <div id="veh-sug-route" class="suggestion-box"></div>
                                                 </div>
                                             </div>
