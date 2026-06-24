@@ -4196,8 +4196,8 @@
                     <!-- BẢNG THỐNG KÊ CƠ CẤU (DÒNG XE & TUYẾN) -->
                     <div id="op-stats-tabs-wrapper" class="hidden mt-10">
                         <div class="flex gap-2 mb-5 overflow-x-auto custom-scrollbar pb-1">
-                            <button onclick="app.operator.switchTab('model')" id="op-tab-model" class="px-4 py-2 font-bold text-sm bg-black text-white rounded-full whitespace-nowrap transition-all shadow-sm">Cơ cấu Dòng xe</button>
-                            <button onclick="app.operator.switchTab('route')" id="op-tab-route" class="px-4 py-2 font-bold text-sm bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-black rounded-full whitespace-nowrap transition-all">Cơ cấu Tuyến</button>
+                            <button onclick="app.operator.switchTab('model')" id="op-tab-model" class="px-4 py-2 font-bold text-sm bg-black text-white rounded-md whitespace-nowrap transition-all shadow-sm">Cơ cấu Dòng xe</button>
+                            <button onclick="app.operator.switchTab('route')" id="op-tab-route" class="px-4 py-2 font-bold text-sm bg-transparent text-gray-500 hover:bg-gray-100 hover:text-black rounded-md whitespace-nowrap transition-all">Cơ cấu Tuyến</button>
                         </div>
                         
                         <!-- TAB: DÒNG XE -->
@@ -6890,13 +6890,13 @@
                     const contentRoute = document.getElementById('op-tab-content-route');
 
                     if (tab === 'model') {
-                        btnModel.className = "px-4 py-2 font-bold text-sm bg-black text-white rounded-full whitespace-nowrap transition-all shadow-sm";
-                        btnRoute.className = "px-4 py-2 font-bold text-sm bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-black rounded-full whitespace-nowrap transition-all";
+                        btnModel.className = "px-4 py-2 font-bold text-sm bg-black text-white rounded-md whitespace-nowrap transition-all shadow-sm";
+                        btnRoute.className = "px-4 py-2 font-bold text-sm bg-transparent text-gray-500 hover:bg-gray-100 hover:text-black rounded-md whitespace-nowrap transition-all";
                         contentModel.classList.remove('hidden');
                         contentRoute.classList.add('hidden');
                     } else {
-                        btnRoute.className = "px-4 py-2 font-bold text-sm bg-black text-white rounded-full whitespace-nowrap transition-all shadow-sm";
-                        btnModel.className = "px-4 py-2 font-bold text-sm bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-black rounded-full whitespace-nowrap transition-all";
+                        btnRoute.className = "px-4 py-2 font-bold text-sm bg-black text-white rounded-md whitespace-nowrap transition-all shadow-sm";
+                        btnModel.className = "px-4 py-2 font-bold text-sm bg-transparent text-gray-500 hover:bg-gray-100 hover:text-black rounded-md whitespace-nowrap transition-all";
                         contentRoute.classList.remove('hidden');
                         contentModel.classList.add('hidden');
                     }
