@@ -2646,7 +2646,7 @@
                 <!-- Header -->
                 <div class="border-b border-gray-200/50 p-3 md:p-4 flex justify-between items-center shrink-0 rounded-t-2xl">
                     <h2 class="font-bold text-base md:text-lg text-black uppercase tracking-tight"><i class="fa-solid fa-gear mr-2 text-gray-500"></i>Cài đặt</h2>
-                    <button onclick="app.settings.close()" class="text-gray-400 hover:text-red-500 transition text-xl px-2"><i class="fa-solid fa-xmark"></i></button>
+                    <button type="button" onclick="app.settings.close()" class="text-gray-400 hover:text-red-500 transition text-xl px-2"><i class="fa-solid fa-xmark"></i></button>
                 </div>
 
                 <div class="flex flex-col md:flex-row flex-1 overflow-hidden rounded-b-2xl">
@@ -2665,22 +2665,22 @@
                         <!-- MENU CHÍNH -->
                         <div id="set-menu-main" class="flex flex-col gap-2 overflow-y-auto h-full w-full pb-2 md:pb-0 pr-1">
                             <!-- Nút Tài khoản có mũi tên -->
-                            <button onclick="app.settings.openAccountMenu()" id="set-tab-account-trigger" class="account-only-btn w-full flex items-center justify-between text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 group shrink-0">
+                            <button type="button" onclick="app.settings.openAccountMenu()" id="set-tab-account-trigger" class="account-only-btn w-full flex items-center justify-between text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 group shrink-0">
                                 <div class="flex items-center"><i class="fa-solid fa-user-shield w-6 text-center mr-2"></i> Tài khoản</div>
                                 <i class="fa-solid fa-chevron-right text-gray-400 group-hover:text-black transition"></i>
                             </button>
-                            <button onclick="app.settings.switchTab('badges')" id="set-tab-badges" class="account-only-btn w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
+                            <button type="button" onclick="app.settings.switchTab('badges')" id="set-tab-badges" class="account-only-btn w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
                                 <i class="fa-brands fa-discord w-6 text-center mr-2"></i> Huy hiệu
                             </button>
 
-                            <button onclick="app.settings.switchTab('preference')" id="set-tab-preference" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
+                            <button type="button" onclick="app.settings.switchTab('preference')" id="set-tab-preference" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
                                 <i class="fa-solid fa-layer-group w-6 text-center mr-2"></i> Cá nhân hóa
                             </button>
 
 
 
                             <!-- Nút Tài liệu có mũi tên bên phải -->
-                            <button onclick="app.settings.openDocsMenu()" id="set-tab-docs-trigger" class="w-full flex items-center justify-between text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 group shrink-0">
+                            <button type="button" onclick="app.settings.openDocsMenu()" id="set-tab-docs-trigger" class="w-full flex items-center justify-between text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 group shrink-0">
                                 <div class="flex items-center"><i class="fa-solid fa-book-open w-6 text-center mr-2"></i> Tài liệu</div>
                                 <i class="fa-solid fa-chevron-right text-gray-400 group-hover:text-black transition"></i>
                             </button>
@@ -2689,16 +2689,16 @@
 
                         <!-- MENU TÀI KHOẢN (ẨN MẶC ĐỊNH) -->
                         <div id="set-menu-account" class="hidden flex-col gap-2 overflow-y-auto h-full w-full pb-2 md:pb-0 pr-1">
-                            <button onclick="app.settings.closeAccountMenu()" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-gray-100 text-gray-700 hover:bg-gray-200 border border-transparent shrink-0 mb-2">
+                            <button type="button" onclick="app.settings.closeAccountMenu()" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-gray-100 text-gray-700 hover:bg-gray-200 border border-transparent shrink-0 mb-2">
                                 <i class="fa-solid fa-arrow-left w-6 text-center mr-2"></i> Quay lại
                             </button>
-                            <button onclick="app.settings.switchTab('profile')" id="set-tab-profile" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-black text-white shadow-sm border border-black shrink-0">
+                            <button type="button" onclick="app.settings.switchTab('profile')" id="set-tab-profile" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-black text-white shadow-sm border border-black shrink-0">
                                 <i class="fa-solid fa-user-pen w-6 text-center mr-2"></i> Tùy chỉnh hồ sơ
                             </button>
-                            <button onclick="app.settings.switchTab('security')" id="set-tab-security" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
+                            <button type="button" onclick="app.settings.switchTab('security')" id="set-tab-security" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
                                 <i class="fa-solid fa-shield-halved w-6 text-center mr-2"></i> Bảo mật
                             </button>
-                            <button onclick="app.settings.switchTab('links')" id="set-tab-links" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
+                            <button type="button" onclick="app.settings.switchTab('links')" id="set-tab-links" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
                                 <i class="fa-solid fa-link w-6 text-center mr-2"></i> Liên kết
                             </button>
 
@@ -2706,19 +2706,19 @@
 
                         <!-- MENU TÀI LIỆU (ẨN MẶC ĐỊNH) -->
                         <div id="set-menu-docs" class="hidden flex-col gap-2 overflow-y-auto h-full w-full pb-2 md:pb-0 pr-1">
-                            <button onclick="app.settings.closeDocsMenu()" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-gray-100 text-gray-700 hover:bg-gray-200 border border-transparent shrink-0 mb-2">
+                            <button type="button" onclick="app.settings.closeDocsMenu()" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-gray-100 text-gray-700 hover:bg-gray-200 border border-transparent shrink-0 mb-2">
                                 <i class="fa-solid fa-arrow-left w-6 text-center mr-2"></i> Quay lại
                             </button>
-                            <button onclick="app.settings.switchTab('docs-intro')" id="set-tab-docs-intro" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-black text-white shadow-sm border border-black shrink-0">
+                            <button type="button" onclick="app.settings.switchTab('docs-intro')" id="set-tab-docs-intro" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-black text-white shadow-sm border border-black shrink-0">
                                 <i class="fa-brands fa-markdown w-6 text-center mr-2"></i> Giới thiệu
                             </button>
-                            <button onclick="app.settings.switchTab('docs-requirements')" id="set-tab-docs-requirements" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
+                            <button type="button" onclick="app.settings.switchTab('docs-requirements')" id="set-tab-docs-requirements" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
                                 <i class="fa-solid fa-list-check w-6 text-center mr-2"></i> Kiểm duyệt
                             </button>
-                            <button onclick="app.settings.switchTab('docs-policy')" id="set-tab-docs-policy" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
+                            <button type="button" onclick="app.settings.switchTab('docs-policy')" id="set-tab-docs-policy" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
                                 <i class="fa-solid fa-shield-halved w-6 text-center mr-2"></i> Chính sách
                             </button>
-                            <button onclick="app.settings.switchTab('docs-chatrule')" id="set-tab-docs-chatrule" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
+                            <button type="button" onclick="app.settings.switchTab('docs-chatrule')" id="set-tab-docs-chatrule" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
                                 <i class="fa-solid fa-comments w-6 text-center mr-2"></i> Tiêu chuẩn bình luận
                             </button>
                         </div>
@@ -8337,9 +8337,9 @@ grid.innerHTML = tiers.map(tier => {
         let btnHtml = '';
 
         if (hasCustomRole) {
-            btnHtml = `<button onclick="app.settings.openCustomRolePrompt()" class="px-4 py-2 bg-gray-100 text-gray-800 text-xs font-bold rounded border border-gray-300 hover:bg-gray-200 transition whitespace-nowrap"><i class="fa-solid fa-pen mr-1"></i> Sửa Role</button>`;
+            btnHtml = `<button type="button" onclick="app.settings.openCustomRolePrompt()" class="px-4 py-2 bg-gray-100 text-gray-800 text-xs font-bold rounded border border-gray-300 hover:bg-gray-200 transition whitespace-nowrap"><i class="fa-solid fa-pen mr-1"></i> Sửa Role</button>`;
         } else if (isEligible) {
-            btnHtml = `<button onclick="app.settings.openCustomRolePrompt()" class="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold rounded hover:opacity-90 transition shadow-sm border border-transparent whitespace-nowrap">Tạo Role Riêng</button>`;
+            btnHtml = `<button type="button" onclick="app.settings.openCustomRolePrompt()" class="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold rounded hover:opacity-90 transition shadow-sm border border-transparent whitespace-nowrap">Tạo Role Riêng</button>`;
         } else {
             btnHtml = `<button disabled class="px-4 py-2 bg-gray-50 text-gray-400 text-xs font-bold rounded cursor-not-allowed border border-gray-200 whitespace-nowrap"><i class="fa-solid fa-lock mr-1"></i> Chưa đủ đ/k</button>`;
         }
@@ -9315,7 +9315,7 @@ grid.innerHTML = tiers.map(tier => {
 
 dropdown.innerHTML = `
                          <a href="/profile" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-address-card w-5 text-center mr-1"></i> Hồ sơ của tôi</a>
-                         <button onclick="app.settings.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-gear w-5 text-center mr-1"></i> Cài đặt</button>
+                         <button type="button" onclick="app.settings.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-gear w-5 text-center mr-1"></i> Cài đặt</button>
                          <a href="/help" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-book-open w-5 text-center mr-1"></i> Trung tâm hỗ trợ</a>
                          <a href="/contact" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-headset w-5 text-center mr-1"></i> Liên hệ hỗ trợ</a>
                          <button onclick="app.auth.logout()" class="w-full text-left block px-4 py-3 text-sm text-red-600 hover:bg-red-50 font-bold"><i class="fa-solid fa-right-from-bracket w-5 text-center mr-1"></i> Đăng xuất</button>
@@ -9350,7 +9350,7 @@ dropdown.innerHTML = `
 dropdown.innerHTML = `
                          <a href="/auth" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-arrow-right-to-bracket w-5 text-center mr-1"></i> Đăng nhập</a>
                          <a href="/auth" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-user-plus w-5 text-center mr-1"></i> Tạo tài khoản</a>
-                         <button onclick="app.settings.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-gear w-5 text-center mr-1"></i> Cài đặt</button>
+                         <button type="button" onclick="app.settings.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-gear w-5 text-center mr-1"></i> Cài đặt</button>
                          <a href="/help" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-book-open w-5 text-center mr-1"></i> Trung tâm hỗ trợ</a>
                          <a href="/contact" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 font-bold"><i class="fa-solid fa-headset w-5 text-center mr-1"></i> Liên hệ hỗ trợ</a>
                      `;
