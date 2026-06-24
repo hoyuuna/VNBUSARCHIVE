@@ -7737,11 +7737,11 @@
                     const isRecovery = window.location.hash.includes('type=recovery') || app.auth.mode === 'recovery';
                     if (app.user && !isRecovery) app.utils.navigate('/');
                     else app.views.switch('auth', false);
-                } else if (path === '/setting' || path === '/settings') {
+                } else if (path === '/setting' || path === '/settings' || path === '/setting/' || path === '/settings/') {
                     app.views.switch('home', false);
                     app.views.loadHome();
-                    setTimeout(() => {
-                        app.settings.open();
+                    setTimeout(async () => {
+                        await app.settings.open();
                         const tab = searchParams.get('tab') || searchParams.get('caigido');
                         if (tab) {
                             app.settings.jumpTo(tab, 'account');
