@@ -2298,7 +2298,7 @@
                     </div>
                     <div class="space-y-2">
                         <p class="font-bold text-black border-b border-gray-100 pb-1">Tuyến</p>
-                        <p>Với xe buýt chỉ nhập mỗi số tuyến (VD: 01), có thể viết chi tiết lộ trình tại phần ghi chú.
+                        <p>Với xe buýt chỉ nhập mỗi mã số tuyến (VD: 01), có thể viết chi tiết lộ trình tại phần ghi chú.
                             Với xe khách ghi điểm đầu - điểm cuối (VD: Hà Nội - Cẩm Phả).</p>
                     </div>
                     <div class="space-y-2">
@@ -2606,7 +2606,7 @@
                                     <span>Biển kiểm soát</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
                                 </div>
                                 <div class="filter-item" onclick="app.search.setFilter('route')" data-filter="route">
-                                    <span>Số tuyến</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
+                                    <span>Mã số tuyến</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
                                 </div>
                                 <div class="filter-item" onclick="app.search.setFilter('operator')"
                                     data-filter="operator">
@@ -2982,7 +2982,7 @@
                                     <span>Biển kiểm soát</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
                                 </div>
                                 <div class="filter-item" onclick="app.search.setFilter('route')" data-filter="route">
-                                    <span>Số tuyến</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
+                                    <span>Mã số tuyến</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
                                 </div>
                                 <div class="filter-item" onclick="app.search.setFilter('operator')" data-filter="operator">
                                     <span>Đơn vị vận hành</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
@@ -3819,7 +3819,7 @@
                                 </div>
                                 <div>
                                     <label class="text-xs text-gray-500 font-bold block mb-1.5 uppercase"
-                                        id="lbl-route">Số tuyến<span class="text-red-500">*</span></label>
+                                        id="lbl-route">Mã số tuyến<span class="text-red-500">*</span></label>
                                     <div class="relative w-full">
                                         <input type="text" id="up-route" autocomplete="off" tabindex="3"
                                             onfocus="app.utils.triggerRouteSuggestion('up-route', 'up-route-suggestions', '')"
@@ -3827,7 +3827,7 @@
                                             class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition">
                                         <div id="up-route-suggestions" class="suggestion-box"></div>
                                     </div>
-                                    <p id="err-up-route" class="upload-req-err hidden text-[11px] mt-1 text-red-600 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Vui lòng nhập Số tuyến / Lộ trình</p>
+                                    <p id="err-up-route" class="upload-req-err hidden text-[11px] mt-1 text-red-600 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Vui lòng nhập Mã số tuyến / Lộ trình</p>
                                 </div>
 
 <!-- KHỐI CHỌN LOẠI XE -->
@@ -4246,7 +4246,7 @@
                                     <table class="w-full text-left text-sm whitespace-nowrap">
                                         <thead class="bg-gray-50 border-b border-gray-200 text-gray-500 text-[11px] uppercase tracking-wider">
                                             <tr>
-                                                <th class="p-3 font-bold">Số tuyến / Lộ trình</th>
+                                                <th class="p-3 font-bold">Mã số tuyến / Lộ trình</th>
                                                 <th class="p-3 font-bold text-center">Số lượng xe</th>
                                                 <th class="p-3 font-bold text-center">Dòng xe chính</th>
                                             </tr>
@@ -4254,7 +4254,7 @@
                                         <tbody id="op-route-tbody" class="divide-y divide-gray-100"></tbody>
                                         <tfoot id="op-route-tfoot" class="bg-gray-50 font-bold text-black border-t border-gray-200">
                                             <tr>
-                                                <td class="p-3 text-[11px] uppercase tracking-widest text-gray-500">Tổng số tuyến</td>
+                                                <td class="p-3 text-[11px] uppercase tracking-widest text-gray-500">Tổng mã số tuyến</td>
                                                 <td class="p-3 text-center" id="op-route-total-all">0</td>
                                                 <td class="p-3 text-center"></td>
                                             </tr>
@@ -8615,7 +8615,7 @@ grid.innerHTML = tiers.map(tier => {
                                                     text: prov ? `${r} (${prov})` : r,
                                                     label: label, // Chỉ để "Tuyến" bên dưới
                                                     prefix: prefix,
-                                                    rawRoute: r // Giữ lại số tuyến gốc để fill vào ô tìm kiếm
+                                                    rawRoute: r // Giữ lại mã số tuyến gốc để fill vào ô tìm kiếm
                                                 });
                                             }
                                         });
@@ -8722,7 +8722,7 @@ grid.innerHTML = tiers.map(tier => {
                                         filterKey = labelToFilter[item.label];
                                     }
 
-                                    // Xử lý lấy số tuyến nguyên bản thay vì nhét cả chữ "(Hà Nội)" vào ô search
+                                    // Xử lý lấy mã số tuyến nguyên bản thay vì nhét cả chữ "(Hà Nội)" vào ô search
                                     const safeRawJS = (item.rawRoute || item.text).replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
                                     let clickAction = `document.getElementById('${inputId}').value = '${safeRawJS}'; document.getElementById('${sugId}').classList.remove('active'); app.search.setFilter('${filterKey}', false); app.handleSearch(true);`;
@@ -11388,7 +11388,7 @@ dropdown.innerHTML = `
                             activeRoutes.push({ route: rData.route, displayName: displayName, prefix: prefix, vehicleCount: rData.count, mainModel: maxModel });
                         });
                         
-                        // Sắp xếp Tuyến theo số lượng xe giảm dần, nếu bằng thì theo tên tuyến
+                        // Sắp xếp Tuyến theo số lượng xe giảm dần, nếu bằng thì theo mã số tuyến
                         activeRoutes.sort((a, b) => {
                             if (b.vehicleCount !== a.vehicleCount) {
                                 return b.vehicleCount - a.vehicleCount;
@@ -11546,7 +11546,7 @@ formInputs.forEach(input => {
                     if (!payload.type) missingFields.push("Loại xe");
                     if (!payload.license_plate) missingFields.push("Biển kiểm soát");
                     if (!payload.taken_at) missingFields.push("Ngày chụp");
-                    if (!payload.route) missingFields.push("Số tuyến / Lộ trình");
+                    if (!payload.route) missingFields.push("Mã số tuyến / Lộ trình");
                     if (!payload.operator) missingFields.push("Đơn vị vận hành");
                     if (!payload.model) missingFields.push("Dòng xe (Model)");
                     if (!payload.location) missingFields.push("Vị trí chụp");
@@ -13470,7 +13470,7 @@ app.admin.fetchManagerData('denied');
                     try {
                         const prefixOrCond = relatedPrefixes.map(p => `license_plate.ilike.${p}%`).join(',');
 
-                        // Lấy 50 ảnh đã duyệt có cùng số tuyến và cùng tỉnh
+                        // Lấy 50 ảnh đã duyệt có cùng mã số tuyến và cùng tỉnh
                         const { data } = await window.sb.from('photos')
                             .select('operator, type, taken_at, created_at, vehicles(model)')
                             .eq('route_no', route)
@@ -14599,7 +14599,7 @@ app.admin.fetchManagerData('denied');
                     if (!valType) missingFields.push("Loại xe (Xe Buýt/Khách)");
                     if (!valPlate) missingFields.push("Biển kiểm soát");
                     if (!valDate) missingFields.push("Ngày chụp");
-                    if (!valRoute) missingFields.push("Số tuyến / Lộ trình");
+                    if (!valRoute) missingFields.push("Mã số tuyến / Lộ trình");
                     if (!valOp) missingFields.push("Đơn vị vận hành");
                     if (!valModel) missingFields.push("Dòng xe (Model)");
                     if (!valLoc) missingFields.push("Vị trí chụp");
