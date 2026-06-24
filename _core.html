@@ -4498,6 +4498,8 @@
                         iconHtml = '<div class="w-8 h-8 rounded-full bg-green-50 text-green-600 flex items-center justify-center shrink-0 border border-green-100 shadow-sm"><i class="fa-solid fa-check text-sm"></i></div>';
                     } else if (type === 'error' || type === 'offline') {
                         iconHtml = `<div class="w-8 h-8 rounded-full bg-red-50 text-red-600 flex items-center justify-center shrink-0 border border-red-100 shadow-sm"><i class="fa-solid ${type === 'offline' ? 'fa-wifi-slash' : 'fa-triangle-exclamation'} text-sm"></i></div>`;
+                    } else if (type === 'heart') {
+                        iconHtml = '<div class="w-8 h-8 rounded-full bg-red-50 text-red-600 flex items-center justify-center shrink-0 border border-red-100 shadow-sm"><i class="fa-solid fa-heart text-sm"></i></div>';
                     } else {
                         iconHtml = '<div class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100 shadow-sm"><i class="fa-solid fa-bell text-sm"></i></div>';
                     }
@@ -5825,7 +5827,7 @@
 
                     setTimeout(() => {
                         modal.classList.add('hidden');
-                        app.ui.unlockScroll();
+                        app.ui.lockScroll();
                     }, 200);
                 }
             },
@@ -7304,7 +7306,25 @@
                     document.getElementById('loading-screen').style.display = 'none';
                     const appContainer = document.getElementById('app-container');
                     appContainer.style.display = 'block';
-                    setTimeout(() => appContainer.style.opacity = '1', 50);
+                    setTimeout(() => {
+                        appContainer.style.opacity = '1';
+                        if (!localStorage.getItem('vnbus_donate_toast_shown')) {
+                            localStorage.setItem('vnbus_donate_toast_shown', 'true');
+                            setTimeout(() => {
+                                app.toast.show('heart', 'Website phi lợi nhuận', 'Không quảng cáo, không nguồn thu - VNBA duy trì bằng sự ủng hộ của các bạn. Nhấn vào đây để chia sẻ website nhé!', 0, async () => {
+                                    const shareText = 'Web lưu trữ hình ảnh xe buýt/khách Việt Nam phi lợi nhuận https://www.vnbusarchive.io.vn';
+                                    if (navigator.share) {
+                                        try { await navigator.share({ text: shareText }); } catch (err) {}
+                                    } else {
+                                        try {
+                                            await navigator.clipboard.writeText(shareText);
+                                            app.toast.show('success', 'Đã copy', 'Thiết bị không hỗ trợ chia sẻ, đã copy nội dung!');
+                                        } catch (e) {}
+                                    }
+                                });
+                            }, 1000);
+                        }
+                    }, 50);
                 }, 400);
 
                 await app.setUser(session ? session.user : null);
