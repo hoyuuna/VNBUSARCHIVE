@@ -11265,27 +11265,44 @@ dropdown.innerHTML = `
                         app.operator.modelStatsTotals = { active: totalActive, inactive: totalInactive, all: totalActive + totalInactive };
                         app.operator.isModelTableExpanded = false;
 
-                        // 3. TÍNH TOÁN CƠ CẤU TUYẾN CHUYẾN (THÔNG MINH DỰA TRÊN XE ACTIVE)
+                        // 3. TÍNH TOÁN CƠ CẤU TUYẾN CHUYẾN (THÔNG MINH DỰA TRÊN XE ACTIVE VÀ CLEAN ROUTE)
                         const specialRoutes = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động', 'Hợp đồng', 'Xe hợp đồng / Đưa đón'];
                         
+                        // Tìm clean route_no gần nhất cho mỗi xe (dựa trên ảnh duyệt)
+                        const latestCleanRouteMap = new Map();
+                        const sortedPhotos = [...allStatsData].sort((a,b) => new Date(b.taken_at || b.created_at || 0) - new Date(a.taken_at || a.created_at || 0));
+                        sortedPhotos.forEach(p => {
+                            if (p.license_plate && p.route_no && p.route_no !== '---') {
+                                const pl = p.license_plate.toUpperCase();
+                                if (!latestCleanRouteMap.has(pl)) {
+                                    latestCleanRouteMap.set(pl, p.route_no.trim());
+                                }
+                            }
+                        });
+
                         let activeRoutesMap = new Map();
 
                         absoluteLatestStatus.forEach((h) => {
                             const currentOp = h.operator || '';
-                            const route = (h.route || '').trim();
+                            const routeRaw = (h.route || '').trim();
                             const model = h.vehicles?.model || 'Chưa xác định';
+                            const pl = h.license_plate.toUpperCase();
 
                             let isInactive = false;
                             if (currentOp.toLowerCase() !== operatorName.toLowerCase()) isInactive = true;
-                            else if (route === 'Dừng hoạt động') isInactive = true;
+                            else if (routeRaw === 'Dừng hoạt động') isInactive = true;
 
-                            if (!isInactive && route && route !== '---' && !specialRoutes.includes(route)) {
-                                if (!activeRoutesMap.has(route)) {
-                                    activeRoutesMap.set(route, { route: route, count: 0, models: {} });
+                            if (!isInactive) {
+                                const cleanRoute = latestCleanRouteMap.get(pl);
+                                if (cleanRoute && cleanRoute !== '---' && !specialRoutes.includes(cleanRoute)) {
+                                    const routeKey = cleanRoute.toLowerCase();
+                                    if (!activeRoutesMap.has(routeKey)) {
+                                        activeRoutesMap.set(routeKey, { route: cleanRoute, count: 0, models: {} });
+                                    }
+                                    const rData = activeRoutesMap.get(routeKey);
+                                    rData.count++;
+                                    rData.models[model] = (rData.models[model] || 0) + 1;
                                 }
-                                const rData = activeRoutesMap.get(route);
-                                rData.count++;
-                                rData.models[model] = (rData.models[model] || 0) + 1;
                             }
                         });
 
