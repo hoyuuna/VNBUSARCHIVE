@@ -6919,8 +6919,8 @@
                                 </span>
                             </td>
                             <td class="p-3 text-center font-bold text-black">${r.vehicleCount}</td>
-                            <td class="p-3 text-center font-medium text-gray-700 max-w-[150px] truncate" title="${r.mainModel || 'Chưa xác định'}">
-                                <span onclick="if('${r.mainModel || 'Chưa xác định'}' !== 'Chưa xác định') app.utils.navigate('/model/${encodeURIComponent(r.mainModel || '')}')" class="${r.mainModel && r.mainModel !== 'Chưa xác định' ? 'cursor-pointer hover:text-black hover:underline transition font-bold text-black' : ''}">
+                            <td class="p-3 text-center text-black max-w-[150px] truncate" title="${r.mainModel || 'Chưa xác định'}">
+                                <span onclick="if('${r.mainModel || 'Chưa xác định'}' !== 'Chưa xác định') app.utils.navigate('/model/${encodeURIComponent(r.mainModel || '')}')" class="${r.mainModel && r.mainModel !== 'Chưa xác định' ? 'cursor-pointer hover:underline transition' : ''}">
                                     ${r.mainModel || 'Chưa xác định'}
                                 </span>
                             </td>
