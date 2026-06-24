@@ -6913,9 +6913,9 @@
 
                     tbody.innerHTML = displayData.map(r => `
                         <tr class="hover:bg-gray-50 transition group">
-                            <td class="p-3 font-medium text-gray-700 max-w-[200px] truncate" title="${app.utils.cleanText(r.route)}">
-                                <span onclick="app.searchRedirect('${app.utils.escapeAttr(r.route)}', 'absolute_route')" class="cursor-pointer hover:text-blue-600 hover:underline font-bold transition text-black">
-                                    ${app.utils.cleanText(r.route)}
+                            <td class="p-3 font-medium text-gray-700 max-w-[200px] truncate" title="${app.utils.cleanText(r.displayName || r.route)}">
+                                <span onclick="app.searchRedirect('${app.utils.escapeAttr(r.route)}', 'absolute_route', '${r.prefix || ''}')" class="cursor-pointer hover:text-blue-600 hover:underline font-bold transition text-black">
+                                    ${app.utils.cleanText(r.displayName || r.route)}
                                 </span>
                             </td>
                             <td class="p-3 text-center font-bold text-black">${r.vehicleCount}</td>
@@ -11281,6 +11281,7 @@ dropdown.innerHTML = `
                         });
 
                         let activeRoutesMap = new Map();
+                        const routeProvinceCount = {};
 
                         absoluteLatestStatus.forEach((h) => {
                             const currentOp = h.operator || '';
@@ -11295,13 +11296,24 @@ dropdown.innerHTML = `
                             if (!isInactive) {
                                 const cleanRoute = latestCleanRouteMap.get(pl);
                                 if (cleanRoute && cleanRoute !== '---' && !specialRoutes.includes(cleanRoute)) {
-                                    const routeKey = cleanRoute.toLowerCase();
+                                    
+                                    const extractedProv = app.utils.getProvinceFromPlate(pl);
+                                    let prov = '';
+                                    if (extractedProv && extractedProv !== 'Không xác định' && extractedProv !== 'Biển tạm') {
+                                        prov = extractedProv;
+                                    }
+
+                                    const routeKey = cleanRoute.toLowerCase() + '|' + prov;
                                     if (!activeRoutesMap.has(routeKey)) {
-                                        activeRoutesMap.set(routeKey, { route: cleanRoute, count: 0, models: {} });
+                                        activeRoutesMap.set(routeKey, { route: cleanRoute, prov: prov, count: 0, models: {} });
                                     }
                                     const rData = activeRoutesMap.get(routeKey);
                                     rData.count++;
                                     rData.models[model] = (rData.models[model] || 0) + 1;
+
+                                    const lRoute = cleanRoute.toLowerCase();
+                                    if (!routeProvinceCount[lRoute]) routeProvinceCount[lRoute] = new Set();
+                                    if (prov) routeProvinceCount[lRoute].add(prov);
                                 }
                             }
                         });
@@ -11316,11 +11328,33 @@ dropdown.innerHTML = `
                                     maxModel = m;
                                 }
                             }
-                            activeRoutes.push({ route: rData.route, vehicleCount: rData.count, mainModel: maxModel });
+                            
+                            const lRoute = rData.route.toLowerCase();
+                            let displayName = rData.route;
+                            let prefix = '';
+                            if (routeProvinceCount[lRoute] && routeProvinceCount[lRoute].size > 1 && rData.prov) {
+                                displayName = `${rData.route} (${rData.prov})`;
+                            }
+                            
+                            try {
+                                if (rData.prov && app.utils.provinceData && app.utils.provinceData.length) {
+                                    const provData = app.utils.provinceData.find(p => p.ten === rData.prov);
+                                    if (provData && provData.ky_hieu) {
+                                        prefix = Array.isArray(provData.ky_hieu) ? String(provData.ky_hieu[0]).trim() : String(provData.ky_hieu).split(',')[0].trim();
+                                    }
+                                }
+                            } catch (e) { }
+
+                            activeRoutes.push({ route: rData.route, displayName: displayName, prefix: prefix, vehicleCount: rData.count, mainModel: maxModel });
                         });
                         
-                        // Sắp xếp Tuyến theo trật tự tự nhiên (01, 02, 10...)
-                        activeRoutes.sort((a, b) => a.route.localeCompare(b.route, undefined, {numeric: true}));
+                        // Sắp xếp Tuyến theo số lượng xe giảm dần, nếu bằng thì theo tên tuyến
+                        activeRoutes.sort((a, b) => {
+                            if (b.vehicleCount !== a.vehicleCount) {
+                                return b.vehicleCount - a.vehicleCount;
+                            }
+                            return a.route.localeCompare(b.route, undefined, {numeric: true});
+                        });
                         
                         app.operator.routeStatsData = activeRoutes;
                         app.operator.isRouteTableExpanded = false;
