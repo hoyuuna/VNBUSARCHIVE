@@ -3858,8 +3858,7 @@
                                     <p id="err-up-operator" class="upload-req-err hidden text-[11px] mt-1 text-red-600 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Vui lòng nhập Đơn vị vận hành</p>
                                 </div>
                                 <div x-data>
-                                    <label class="text-xs text-gray-500 font-bold block mb-1.5 uppercase">Dòng xe
-                                        (Model) <span class="text-red-500">*</span></label>
+                                    <label class="text-xs text-gray-500 font-bold block mb-1.5 uppercase">Dòng xe <span class="text-red-500">*</span></label>
                                     <div class="relative w-full">
                                          <input type="text" id="up-model" placeholder="VD: Thaco Mobihome" tabindex="5"
                                             class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition"
@@ -3868,7 +3867,7 @@
                                             x-on:input.debounce.300ms="app.utils.triggerSuggestion('up-model', 'up-model-suggestions', $el.value, 'model'); app.upload.checkModelWarning && app.upload.checkModelWarning()">
                                         <div id="up-model-suggestions" class="suggestion-box"></div>
                                     </div>
-                                    <p id="err-up-model" class="upload-req-err hidden text-[11px] mt-1 text-red-600 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Vui lòng nhập Dòng xe (Model)</p>
+                                    <p id="err-up-model" class="upload-req-err hidden text-[11px] mt-1 text-red-600 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Vui lòng nhập Dòng xe</p>
 
                                     <p class="text-[11px] text-gray-500 mt-1.5 font-medium">
                                         Không chắc chắn? Tham khảo tại <a href="https://vnbusarchive.qzz.io/bus-route" target="_blank" class="text-blue-600 font-bold hover:underline">đây</a>.
