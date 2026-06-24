@@ -7738,8 +7738,8 @@
                     if (app.user && !isRecovery) app.utils.navigate('/');
                     else app.views.switch('auth', false);
                 } else if (path === '/setting' || path === '/settings') {
-                    app.views.switch('account', false);
-                    app.views.loadAccount();
+                    app.views.switch('home', false);
+                    app.views.loadHome();
                     setTimeout(() => {
                         app.settings.open();
                         const tab = searchParams.get('tab') || searchParams.get('caigido');
@@ -8053,6 +8053,13 @@
                 },
 
                 switchTab: (tab) => {
+                    const protectedTabs = ['profile', 'security', 'links', 'badges'];
+                    if (protectedTabs.includes(tab) && !app.user) {
+                        app.ui.showAlert('Bạn cần đăng nhập để truy cập tính năng này.', () => {
+                            app.settings.switchTab('preference');
+                        });
+                        return;
+                    }
                     if (app.settings.isOpen) {
                         if (window.location.pathname.startsWith('/setting')) {
                             window.history.replaceState({}, '', '/setting?tab=' + tab);
