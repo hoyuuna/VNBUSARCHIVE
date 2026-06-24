@@ -295,16 +295,19 @@
         }
 
         @keyframes slideInRightPage {
-            from { opacity: 0; transform: translateX(30px); }
-            to { opacity: 1; transform: translateX(0); }
+            0% { opacity: 0; transform: translateX(30px); }
+            99% { opacity: 1; transform: translateX(0); }
+            100% { opacity: 1; transform: none; }
         }
         @keyframes slideInLeftPage {
-            from { opacity: 0; transform: translateX(-30px); }
-            to { opacity: 1; transform: translateX(0); }
+            0% { opacity: 0; transform: translateX(-30px); }
+            99% { opacity: 1; transform: translateX(0); }
+            100% { opacity: 1; transform: none; }
         }
         @keyframes fadeZoomInPage {
-            from { opacity: 0; transform: scale(0.98); }
-            to { opacity: 1; transform: scale(1); }
+            0% { opacity: 0; transform: scale(0.98); }
+            99% { opacity: 1; transform: scale(1); }
+            100% { opacity: 1; transform: none; }
         }
 
         .auth-modal {
@@ -4192,9 +4195,9 @@
 
                     <!-- BẢNG THỐNG KÊ CƠ CẤU (DÒNG XE & TUYẾN) -->
                     <div id="op-stats-tabs-wrapper" class="hidden mt-10">
-                        <div class="flex gap-6 border-b border-gray-200 mb-5 overflow-x-auto custom-scrollbar">
-                            <button onclick="app.operator.switchTab('model')" id="op-tab-model" class="pb-3 font-bold text-sm border-b-2 border-black text-black whitespace-nowrap transition-colors">Cơ cấu Dòng xe</button>
-                            <button onclick="app.operator.switchTab('route')" id="op-tab-route" class="pb-3 font-bold text-sm border-b-2 border-transparent text-gray-500 hover:text-black whitespace-nowrap transition-colors">Cơ cấu Tuyến</button>
+                        <div class="flex gap-2 mb-5 overflow-x-auto custom-scrollbar pb-1">
+                            <button onclick="app.operator.switchTab('model')" id="op-tab-model" class="px-4 py-2 font-bold text-sm bg-black text-white rounded-full whitespace-nowrap transition-all shadow-sm">Cơ cấu Dòng xe</button>
+                            <button onclick="app.operator.switchTab('route')" id="op-tab-route" class="px-4 py-2 font-bold text-sm bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-black rounded-full whitespace-nowrap transition-all">Cơ cấu Tuyến</button>
                         </div>
                         
                         <!-- TAB: DÒNG XE -->
@@ -6887,13 +6890,13 @@
                     const contentRoute = document.getElementById('op-tab-content-route');
 
                     if (tab === 'model') {
-                        btnModel.className = "pb-3 font-bold text-sm border-b-2 border-black text-black whitespace-nowrap transition-colors";
-                        btnRoute.className = "pb-3 font-bold text-sm border-b-2 border-transparent text-gray-500 hover:text-black whitespace-nowrap transition-colors";
+                        btnModel.className = "px-4 py-2 font-bold text-sm bg-black text-white rounded-full whitespace-nowrap transition-all shadow-sm";
+                        btnRoute.className = "px-4 py-2 font-bold text-sm bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-black rounded-full whitespace-nowrap transition-all";
                         contentModel.classList.remove('hidden');
                         contentRoute.classList.add('hidden');
                     } else {
-                        btnRoute.className = "pb-3 font-bold text-sm border-b-2 border-black text-black whitespace-nowrap transition-colors";
-                        btnModel.className = "pb-3 font-bold text-sm border-b-2 border-transparent text-gray-500 hover:text-black whitespace-nowrap transition-colors";
+                        btnRoute.className = "px-4 py-2 font-bold text-sm bg-black text-white rounded-full whitespace-nowrap transition-all shadow-sm";
+                        btnModel.className = "px-4 py-2 font-bold text-sm bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-black rounded-full whitespace-nowrap transition-all";
                         contentRoute.classList.remove('hidden');
                         contentModel.classList.add('hidden');
                     }
@@ -9451,7 +9454,7 @@ dropdown.innerHTML = `
                     if (app.scrollPositions && app.scrollPositions[targetPath] !== undefined) {
                         window.scrollTo({ top: app.scrollPositions[targetPath], behavior: 'instant' });
                     } else {
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        window.scrollTo({ top: 0, behavior: 'instant' });
                     }
 
                     if (app.serverStatus) app.serverStatus.updateVisibility(id);
@@ -9875,7 +9878,7 @@ dropdown.innerHTML = `
                     const dateStr = p.taken_at ? p.taken_at.split('T')[0].split('-').reverse().join('/') : new Date(p.created_at).toLocaleDateString('vi-VN');
 
                     return `
-                        <div data-id="${p.id}" class="bg-white border border-gray-200 hover:border-gray-300 hover:shadow-lg cursor-pointer rounded-xl p-2 transition-all flex flex-col" onclick="app.views.loadDetail(${p.id})">
+                        <div data-id="${p.id}" class="bg-white border border-gray-200 hover:border-gray-300 hover:shadow-lg cursor-pointer rounded-xl p-2 transition-all flex flex-col fade-zoom-in-page" onclick="app.views.loadDetail(${p.id})">
                             <div class="img-wrapper relative w-full aspect-[4/3] bg-gray-100 rounded-lg overflow-hidden shrink-0 border border-gray-100">
                                 <div class="img-spinner absolute inset-0 flex items-center justify-center text-gray-400">
                                     <i class="fa-solid fa-circle-notch fa-spin text-2xl"></i>
