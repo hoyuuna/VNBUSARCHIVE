@@ -4203,7 +4203,7 @@
                         <!-- TAB: DÒNG XE -->
                         <div id="op-tab-content-model" class="block animate-fadeIn">
                             <div class="mb-3">
-                                <p class="text-[11px] text-gray-500 font-medium">Dữ liệu được hệ thống tổng hợp tự động dựa vào ảnh mới nhất. Có thể không phản ánh đúng 100% thực tế.</p>
+                                <p class="text-[11px] text-gray-500 font-medium">Dữ liệu được hệ thống tổng hợp tự động dựa vào dữ liệu ảnh. Có thể không phản ánh đúng 100% thực tế.</p>
                             </div>
                             <div class="border border-gray-200 rounded-xl overflow-hidden shadow-sm bg-white">
                                 <div class="overflow-x-auto">
@@ -4236,7 +4236,7 @@
                         <!-- TAB: TUYẾN CHUYẾN -->
                         <div id="op-tab-content-route" class="hidden animate-fadeIn">
                             <div class="mb-3">
-                                <p class="text-[11px] text-gray-500 font-medium">Danh sách các Tuyến mà đơn vị này đang thầu (Được xác định dựa vào ảnh duyệt mới nhất của Tuyến đó).</p>
+                                <p class="text-[11px] text-gray-500 font-medium">Dữ liệu được hệ thống tổng hợp tự động dựa vào dữ liệu ảnh. Có thể không phản ánh đúng 100% thực tế.</p>
                             </div>
                             <div class="border border-gray-200 rounded-xl overflow-hidden shadow-sm bg-white">
                                 <div class="overflow-x-auto">
@@ -4245,14 +4245,15 @@
                                             <tr>
                                                 <th class="p-3 font-bold">Số tuyến / Lộ trình</th>
                                                 <th class="p-3 font-bold text-center">Số lượng xe</th>
-                                                <th class="p-3 font-bold text-center">Trạng thái</th>
+                                                <th class="p-3 font-bold text-center">Dòng xe chính</th>
                                             </tr>
                                         </thead>
                                         <tbody id="op-route-tbody" class="divide-y divide-gray-100"></tbody>
                                         <tfoot id="op-route-tfoot" class="bg-gray-50 font-bold text-black border-t border-gray-200">
                                             <tr>
                                                 <td class="p-3 text-[11px] uppercase tracking-widest text-gray-500">Tổng số tuyến</td>
-                                                <td class="p-3 text-center" id="op-route-total-all" colspan="2">0</td>
+                                                <td class="p-3 text-center" id="op-route-total-all">0</td>
+                                                <td class="p-3 text-center"></td>
                                             </tr>
                                         </tfoot>
                                     </table>
@@ -6918,7 +6919,7 @@
                                 </span>
                             </td>
                             <td class="p-3 text-center font-bold text-black">${r.vehicleCount}</td>
-                            <td class="p-3 text-center"><span class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider shadow-sm"><i class="fa-solid fa-check"></i> Đang khai thác</span></td>
+                            <td class="p-3 text-center"><span class="bg-gray-100 border border-gray-200 text-gray-700 px-2 py-1 rounded text-[11px] font-semibold whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px] inline-block align-middle" title="${r.mainModel || 'Chưa xác định'}">${r.mainModel || 'Chưa xác định'}</span></td>
                         </tr>
                     `).join('');
                     
@@ -11289,7 +11290,23 @@ dropdown.innerHTML = `
                                                 platesOnRoute.add(p.license_plate.toUpperCase());
                                             }
                                         });
-                                        activeRoutes.push({ route: route, vehicleCount: platesOnRoute.size });
+                                        
+                                        // Tìm dòng xe phổ biến nhất
+                                        const modelCounts = {};
+                                        let maxModel = 'Chưa xác định';
+                                        let maxCount = 0;
+                                        
+                                        platesOnRoute.forEach(pl => {
+                                            const h = absoluteLatestStatus.get(pl);
+                                            const model = h?.vehicles?.model || 'Chưa xác định';
+                                            modelCounts[model] = (modelCounts[model] || 0) + 1;
+                                            if (modelCounts[model] > maxCount) {
+                                                maxCount = modelCounts[model];
+                                                maxModel = model;
+                                            }
+                                        });
+
+                                        activeRoutes.push({ route: route, vehicleCount: platesOnRoute.size, mainModel: maxModel });
                                     }
                                 }
                             } catch(e) {}
