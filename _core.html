@@ -7739,7 +7739,6 @@
                     else app.views.switch('auth', false);
                 } else if (path === '/setting' || path === '/settings' || path === '/setting/' || path === '/settings/') {
                     app.views.switch('home', false);
-                    app.views.loadHome();
                     setTimeout(async () => {
                         await app.settings.open();
                         const tab = searchParams.get('tab') || searchParams.get('caigido');
@@ -8053,13 +8052,6 @@
                 },
 
                 switchTab: (tab) => {
-                    const protectedTabs = ['profile', 'security', 'links', 'badges'];
-                    if (protectedTabs.includes(tab) && !app.user) {
-                        app.ui.showAlert('Bạn cần đăng nhập để truy cập tính năng này.', () => {
-                            app.settings.switchTab('preference');
-                        });
-                        return;
-                    }
                     if (app.settings.isOpen) {
                         if (window.location.pathname.startsWith('/setting')) {
                             window.history.replaceState({}, '', '/setting?tab=' + tab);
@@ -9405,9 +9397,6 @@ dropdown.innerHTML = `
                     app.views.fetchProfilePhotosPage(1);
                 },
                 switch: async (id, updateUrl = true) => {
-                    if (id === 'home' && window.location.pathname !== '/' && !window.location.pathname.startsWith('/search')) {
-                        app.utils.navigate('/'); return;
-                    }
                     if (id === 'upload' && window.location.pathname !== '/upload') {
                         app.utils.navigate('/upload'); return;
                     }
@@ -15378,6 +15367,14 @@ app.admin.fetchManagerData('denied');
             },
 
             utils: {
+                cleanupState: () => {
+                    app.ui.closeAlert(true);
+                    app.ui.unlockScroll();
+                    app.settings.close();
+                    if (window.location.pathname !== '/admin') app.admin.closeUserDetail();
+                    const mm = document.getElementById('mobile-menu');
+                    if (mm) mm.classList.replace('translate-x-0', '-translate-x-full');
+                },
                 stripMarkdown: (md) => {
                     if (!md) return '';
                     const html = marked.parse(md);
