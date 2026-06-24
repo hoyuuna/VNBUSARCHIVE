@@ -9376,6 +9376,14 @@ dropdown.innerHTML = `
                     document.querySelectorAll('.view-section').forEach(el => {
                         el.classList.remove('active', 'slide-in-right', 'slide-in-left', 'fade-zoom-in-page');
                     });
+
+                    const targetPath = window.location.pathname + window.location.search;
+                    if (app.scrollPositions && app.scrollPositions[targetPath] !== undefined) {
+                        window.scrollTo(0, app.scrollPositions[targetPath]);
+                    } else {
+                        window.scrollTo(0, 0);
+                    }
+
                     const targetEl = document.getElementById(id);
                     if (targetEl) {
                         targetEl.classList.add('active', animationClass);
@@ -9384,15 +9392,6 @@ dropdown.innerHTML = `
                             targetEl.onanimationend = null;
                         };
                     }
-
-                    const targetPath = window.location.pathname + window.location.search;
-                    if (app.scrollPositions && app.scrollPositions[targetPath] !== undefined) {
-                        window.scrollTo({ top: app.scrollPositions[targetPath], behavior: 'instant' });
-                    } else {
-                        window.scrollTo({ top: 0, behavior: 'instant' });
-                    }
-
-
                 },
 
                 loadUserProfile: (username) => {
