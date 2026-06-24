@@ -8851,7 +8851,7 @@ grid.innerHTML = tiers.map(tier => {
 
                 try {
                     // 1. TỰ ĐỘNG CHUYỂN HƯỚNG NẾU NHẬP LINK HOẶC ID ẢNH
-                    const isIdSearch = query.match(/\/photo\/(\d+)/i) || (query.match(/^#?(\d+)$/) && filterType === 'all');
+                    const isIdSearch = query.match(/\/photo\/(\d+)/i) || (filterType === 'all' ? query.match(/^#(\d+)$/) : null);
                     if (isIdSearch) {
                         const directId = isIdSearch[1];
                         app.loadingBar.finish();
