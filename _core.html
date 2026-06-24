@@ -277,23 +277,34 @@
 
         .view-section {
             display: none;
-            animation: fadeIn 0.3s ease-in-out;
         }
 
         .view-section.active {
             display: block;
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(5px);
-            }
+        /* ANIMATION TRƯỢT CHUYỂN TRANG */
+        .slide-in-right {
+            animation: slideInRightPage 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .slide-in-left {
+            animation: slideInLeftPage 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .fade-zoom-in-page {
+            animation: fadeZoomInPage 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
 
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        @keyframes slideInRightPage {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes slideInLeftPage {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes fadeZoomInPage {
+            from { opacity: 0; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1); }
         }
 
         .auth-modal {
@@ -4179,44 +4190,74 @@
                         </div>
                     </div>
 
-                    <!-- BẢNG THỐNG KÊ DÒNG XE CỦA HÃNG NÀY -->
-                    <div id="op-model-stats-wrapper" class="hidden mt-10">
-                        <div class="mb-3">
-                            <h3 class="text-base font-bold uppercase text-black tracking-tight mb-0.5">
-                                Cơ cấu Dòng xe
-                            </h3>
-                            <p class="text-[11px] text-gray-500 font-medium">Dữ liệu được hệ thống tổng hợp tự động dựa vào ảnh mới nhất. Có thể không phản ánh đúng 100% thực tế.</p>
+                    <!-- BẢNG THỐNG KÊ CƠ CẤU (DÒNG XE & TUYẾN) -->
+                    <div id="op-stats-tabs-wrapper" class="hidden mt-10">
+                        <div class="flex gap-6 border-b border-gray-200 mb-5 overflow-x-auto custom-scrollbar">
+                            <button onclick="app.operator.switchTab('model')" id="op-tab-model" class="pb-3 font-bold text-sm border-b-2 border-black text-black whitespace-nowrap transition-colors">Cơ cấu Dòng xe</button>
+                            <button onclick="app.operator.switchTab('route')" id="op-tab-route" class="pb-3 font-bold text-sm border-b-2 border-transparent text-gray-500 hover:text-black whitespace-nowrap transition-colors">Cơ cấu Tuyến</button>
                         </div>
                         
-                        <div class="border border-gray-200 rounded-xl overflow-hidden shadow-sm bg-white">
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-left text-sm whitespace-nowrap">
-                                    <thead class="bg-gray-50 border-b border-gray-200 text-gray-500 text-[11px] uppercase tracking-wider">
-                                        <tr>
-                                            <th class="p-3 font-bold">Dòng xe</th>
-                                            <th class="p-3 font-bold text-center">Đang HĐ</th>
-                                            <th class="p-3 font-bold text-center">Dừng HĐ</th>
-                                            <th class="p-3 font-bold text-center text-black">Tổng</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="op-model-tbody" class="divide-y divide-gray-100">
-                                        <!-- JS sẽ render tối đa 5 dòng xe vào đây -->
-                                    </tbody>
-                                    <tfoot id="op-model-tfoot" class="bg-gray-50 font-bold text-black border-t border-gray-200">
-                                        <tr>
-                                            <td class="p-3 text-[11px] uppercase tracking-widest text-gray-500">Tổng cộng</td>
-                                            <td class="p-3 text-center" id="op-model-total-active"></td>
-                                            <td class="p-3 text-center" id="op-model-total-inactive"></td>
-                                            <td class="p-3 text-center" id="op-model-total-all">0</td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
+                        <!-- TAB: DÒNG XE -->
+                        <div id="op-tab-content-model" class="block animate-fadeIn">
+                            <div class="mb-3">
+                                <p class="text-[11px] text-gray-500 font-medium">Dữ liệu được hệ thống tổng hợp tự động dựa vào ảnh mới nhất. Có thể không phản ánh đúng 100% thực tế.</p>
                             </div>
-                            
-                            <!-- Nút xem thêm (Tự động ẩn nếu <= 5 dòng) -->
-                            <button id="btn-op-model-expand" onclick="app.operator.toggleModelTable()" class="hidden w-full py-3 bg-white text-xs font-bold text-gray-600 hover:text-black hover:bg-gray-50 transition border-t border-gray-200">
-                                Xem toàn bộ danh sách <i class="fa-solid fa-chevron-down ml-1"></i>
-                            </button>
+                            <div class="border border-gray-200 rounded-xl overflow-hidden shadow-sm bg-white">
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left text-sm whitespace-nowrap">
+                                        <thead class="bg-gray-50 border-b border-gray-200 text-gray-500 text-[11px] uppercase tracking-wider">
+                                            <tr>
+                                                <th class="p-3 font-bold">Dòng xe</th>
+                                                <th class="p-3 font-bold text-center">Đang HĐ</th>
+                                                <th class="p-3 font-bold text-center">Dừng HĐ</th>
+                                                <th class="p-3 font-bold text-center text-black">Tổng</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="op-model-tbody" class="divide-y divide-gray-100"></tbody>
+                                        <tfoot id="op-model-tfoot" class="bg-gray-50 font-bold text-black border-t border-gray-200">
+                                            <tr>
+                                                <td class="p-3 text-[11px] uppercase tracking-widest text-gray-500">Tổng cộng</td>
+                                                <td class="p-3 text-center" id="op-model-total-active"></td>
+                                                <td class="p-3 text-center" id="op-model-total-inactive"></td>
+                                                <td class="p-3 text-center" id="op-model-total-all">0</td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                                <button id="btn-op-model-expand" onclick="app.operator.toggleModelTable()" class="hidden w-full py-3 bg-white text-xs font-bold text-gray-600 hover:text-black hover:bg-gray-50 transition border-t border-gray-200">
+                                    Xem toàn bộ danh sách <i class="fa-solid fa-chevron-down ml-1"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- TAB: TUYẾN CHUYẾN -->
+                        <div id="op-tab-content-route" class="hidden animate-fadeIn">
+                            <div class="mb-3">
+                                <p class="text-[11px] text-gray-500 font-medium">Danh sách các Tuyến mà đơn vị này đang thầu (Được xác định dựa vào ảnh duyệt mới nhất của Tuyến đó).</p>
+                            </div>
+                            <div class="border border-gray-200 rounded-xl overflow-hidden shadow-sm bg-white">
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left text-sm whitespace-nowrap">
+                                        <thead class="bg-gray-50 border-b border-gray-200 text-gray-500 text-[11px] uppercase tracking-wider">
+                                            <tr>
+                                                <th class="p-3 font-bold">Số tuyến / Lộ trình</th>
+                                                <th class="p-3 font-bold text-center">Số lượng xe</th>
+                                                <th class="p-3 font-bold text-center">Trạng thái</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="op-route-tbody" class="divide-y divide-gray-100"></tbody>
+                                        <tfoot id="op-route-tfoot" class="bg-gray-50 font-bold text-black border-t border-gray-200">
+                                            <tr>
+                                                <td class="p-3 text-[11px] uppercase tracking-widest text-gray-500">Tổng số tuyến</td>
+                                                <td class="p-3 text-center" id="op-route-total-all" colspan="2">0</td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                                <button id="btn-op-route-expand" onclick="app.operator.toggleRouteTable()" class="hidden w-full py-3 bg-white text-xs font-bold text-gray-600 hover:text-black hover:bg-gray-50 transition border-t border-gray-200">
+                                    Xem toàn bộ danh sách <i class="fa-solid fa-chevron-down ml-1"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -6838,6 +6879,64 @@
                     app.operator.isModelTableExpanded = !app.operator.isModelTableExpanded;
                     app.operator.renderModelTable(); // Gọi lại hàm render để load Full mảng
                 },
+
+                switchTab: (tab) => {
+                    const btnModel = document.getElementById('op-tab-model');
+                    const btnRoute = document.getElementById('op-tab-route');
+                    const contentModel = document.getElementById('op-tab-content-model');
+                    const contentRoute = document.getElementById('op-tab-content-route');
+
+                    if (tab === 'model') {
+                        btnModel.className = "pb-3 font-bold text-sm border-b-2 border-black text-black whitespace-nowrap transition-colors";
+                        btnRoute.className = "pb-3 font-bold text-sm border-b-2 border-transparent text-gray-500 hover:text-black whitespace-nowrap transition-colors";
+                        contentModel.classList.remove('hidden');
+                        contentRoute.classList.add('hidden');
+                    } else {
+                        btnRoute.className = "pb-3 font-bold text-sm border-b-2 border-black text-black whitespace-nowrap transition-colors";
+                        btnModel.className = "pb-3 font-bold text-sm border-b-2 border-transparent text-gray-500 hover:text-black whitespace-nowrap transition-colors";
+                        contentRoute.classList.remove('hidden');
+                        contentModel.classList.add('hidden');
+                    }
+                },
+
+                renderRouteTable: () => {
+                    const tbody = document.getElementById('op-route-tbody');
+                    const btnExpand = document.getElementById('btn-op-route-expand');
+                    const data = app.operator.routeStatsData || [];
+                    const isExpanded = app.operator.isRouteTableExpanded;
+
+                    const displayData = isExpanded ? data : data.slice(0, 5);
+
+                    tbody.innerHTML = displayData.map(r => `
+                        <tr class="hover:bg-gray-50 transition group">
+                            <td class="p-3 font-medium text-gray-700 max-w-[200px] truncate" title="${app.utils.cleanText(r.route)}">
+                                <span onclick="app.searchRedirect('${app.utils.escapeAttr(r.route)}', 'absolute_route')" class="cursor-pointer hover:text-blue-600 hover:underline font-bold transition text-black">
+                                    ${app.utils.cleanText(r.route)}
+                                </span>
+                            </td>
+                            <td class="p-3 text-center font-bold text-black">${r.vehicleCount}</td>
+                            <td class="p-3 text-center"><span class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider shadow-sm"><i class="fa-solid fa-check"></i> Đang khai thác</span></td>
+                        </tr>
+                    `).join('');
+                    
+                    document.getElementById('op-route-total-all').innerText = data.length;
+
+                    if (data.length <= 5) {
+                        btnExpand.classList.add('hidden');
+                    } else {
+                        btnExpand.classList.remove('hidden');
+                        if (isExpanded) {
+                            btnExpand.innerHTML = 'Thu gọn danh sách <i class="fa-solid fa-chevron-up ml-1"></i>';
+                        } else {
+                            btnExpand.innerHTML = 'Xem toàn bộ danh sách <i class="fa-solid fa-chevron-down ml-1"></i>';
+                        }
+                    }
+                },
+
+                toggleRouteTable: () => {
+                    app.operator.isRouteTableExpanded = !app.operator.isRouteTableExpanded;
+                    app.operator.renderRouteTable();
+                },
                 openEditPrompt: async () => {
                     if (!app.user) return app.auth.check();
                     const modal = document.getElementById('operator-edit-modal');
@@ -9323,10 +9422,30 @@ dropdown.innerHTML = `
                         app.upload.saveDraft();
                     }
 
-                    // --- CHUYỂN CLASS CSS NGAY LẬP TỨC ---
-                    document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+                    // --- LOGIC ANIMATION TRƯỢT NGANG ---
+                    // Cấp bậc trang để biết nên trượt tiến (phải -> trái) hay lùi (trái -> phải)
+                    const depths = {
+                        'home': 0,
+                        'search': 1, 'account': 1, 'upload': 1, 'mobile-upload': 1, 'admin': 1, 'contact': 1, 'help-list': 1, 'comment-dashboard': 1,
+                        'detail': 2, 'vehicle': 2, 'operator-view': 2, 'model-view': 2, 'help-detail': 2
+                    };
+
+                    const currentId = document.querySelector('.view-section.active')?.id || 'home';
+                    const currentDepth = depths[currentId] || 0;
+                    const targetDepth = depths[id] || 0;
+
+                    let animationClass = 'slide-in-right'; // Tiến tới
+                    if (targetDepth < currentDepth) {
+                        animationClass = 'slide-in-left';  // Quay lùi lại
+                    } else if (targetDepth === currentDepth) {
+                        animationClass = 'fade-zoom-in-page'; // Ngang cấp (Fade)
+                    }
+
+                    document.querySelectorAll('.view-section').forEach(el => {
+                        el.classList.remove('active', 'slide-in-right', 'slide-in-left', 'fade-zoom-in-page');
+                    });
                     const targetEl = document.getElementById(id);
-                    if (targetEl) targetEl.classList.add('active');
+                    if (targetEl) targetEl.classList.add('active', animationClass);
 
                     const targetPath = window.location.pathname + window.location.search;
                     if (app.scrollPositions && app.scrollPositions[targetPath] !== undefined) {
@@ -10908,19 +11027,19 @@ dropdown.innerHTML = `
                                         <div class="space-y-3">
                                             <div>
                                                 <label class="text-xs text-gray-500 font-bold block mb-1 uppercase">Đơn vị vận hành</label>
-                                                <input type="text" id="vehicle-edit-operator" value="${currentOpClientSide}" class="info-input p-2 border border-gray-200 rounded-md bg-gray-50 cursor-not-allowed" readonly>
+                                                <input type="text" id="vehicle-edit-operator" value="${currentOpClientSide}" class="info-input p-2 border border-gray-200 rounded-md bg-gray-50 ${currentOpClientSide ? 'clickable-search' : 'cursor-not-allowed'}" readonly ${currentOpClientSide ? `onclick="if(this.readOnly && this.value && this.value!=='---') app.utils.navigate('/operator/' + encodeURIComponent(this.value))"` : ''}>
                                             </div>
                                             <div>
                                                 <label class="text-xs text-gray-500 font-bold block mb-1 uppercase">Tuyến hiện tại</label>
                                                 <div class="relative">
-                                                    <input type="text" id="vehicle-edit-route" value="${currentRouteClientSide}" autocomplete="off" class="info-input p-2 border border-gray-200 rounded-md bg-gray-50 cursor-not-allowed w-full" readonly onfocus="if(!this.readOnly) app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', '')" oninput="app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', this.value)">
+                                                    <input type="text" id="vehicle-edit-route" value="${currentRouteClientSide}" autocomplete="off" class="info-input p-2 border border-gray-200 rounded-md bg-gray-50 w-full ${currentRouteClientSide ? 'clickable-search' : 'cursor-not-allowed'}" readonly ${currentRouteClientSide ? `onclick="if(this.readOnly && this.value && this.value!=='---') app.searchRedirect(this.value, 'absolute_route')"` : ''} onfocus="if(!this.readOnly) app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', '')" oninput="app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', this.value)">
                                                     <div id="veh-sug-route" class="suggestion-box"></div>
                                                 </div>
                                             </div>
                                             <div>
                                                 <label class="text-xs text-gray-500 font-bold block mb-1 uppercase">Dòng xe</label>
                                                 <div class="relative">
-                                                    <input type="text" id="vehicle-edit-model" value="${vehicle.model || ''}" autocomplete="off" class="info-input p-2 border border-gray-200 rounded-md bg-gray-50 cursor-not-allowed w-full" readonly oninput="app.utils.triggerSuggestion('vehicle-edit-model', 'veh-sug-model', this.value, 'model')">
+                                                    <input type="text" id="vehicle-edit-model" value="${vehicle.model || ''}" autocomplete="off" class="info-input p-2 border border-gray-200 rounded-md bg-gray-50 w-full ${vehicle.model ? 'clickable-search' : 'cursor-not-allowed'}" readonly ${vehicle.model ? `onclick="if(this.readOnly && this.value && this.value!=='---') app.utils.navigate('/model/' + encodeURIComponent(this.value))"` : ''} oninput="app.utils.triggerSuggestion('vehicle-edit-model', 'veh-sug-model', this.value, 'model')">
                                                     <div id="veh-sug-model" class="suggestion-box"></div>
                                                 </div>
                                             </div>
@@ -11090,15 +11209,11 @@ dropdown.innerHTML = `
                         document.getElementById('op-stat-views').innerText = app.utils.formatCompact(totalViews);
 
                         // 2. TÍNH TOÁN BẢNG CƠ CẤU DÒNG XE TỪ LỊCH SỬ HOẠT ĐỘNG (VEHICLE_HISTORY)
-                        // Bảng này được ĐẶC QUYỀN chỉ lấy data từ Lịch sử, bỏ qua bảng Photos.
                         const absoluteLatestStatus = new Map();
                         const uniquePlatesArr = Array.from(uniquePlates);
 
                         for (let i = 0; i < uniquePlatesArr.length; i += 150) {
                             const chunk = uniquePlatesArr.slice(i, i + 150);
-                            
-                            // GỌI BẢNG LỊCH SỬ: Sắp xếp theo ngày hiệu lực (giảm dần) và ID/Order (giảm dần) 
-                            // Để đảm bảo dòng đầu tiên lấy được luôn là MỚI NHẤT
                             const { data } = await window.sb.from('vehicle_history')
                                 .select('license_plate, operator, route, vehicles(model)')
                                 .in('license_plate', chunk)
@@ -11123,29 +11238,14 @@ dropdown.innerHTML = `
                             const currentOp = h.operator || '';
                             const route = (h.route || '').trim();
                             const model = h.vehicles?.model || 'Chưa cập nhật';
-                            
                             let isInactive = false;
 
-                            // NẾU hãng ở mốc lịch sử MỚI NHẤT khác với hãng đang xem -> Xe đã bị thuyên chuyển -> Tính là Dừng HĐ
-                            if (currentOp.toLowerCase() !== operatorName.toLowerCase()) {
-                                isInactive = true;
-                            } 
-                            // NẾU vẫn là hãng đang xem, nhưng tuyến bị đánh dấu là 'Dừng hoạt động' -> Tính là Dừng HĐ
-                            else if (route === 'Dừng hoạt động') {
-                                isInactive = true;
-                            }
+                            if (currentOp.toLowerCase() !== operatorName.toLowerCase()) isInactive = true;
+                            else if (route === 'Dừng hoạt động') isInactive = true;
 
-                            if (!modelStats[model]) {
-                                modelStats[model] = { active: 0, inactive: 0, total: 0 };
-                            }
-
-                            if (!isInactive) {
-                                modelStats[model].active++;
-                                totalActive++;
-                            } else {
-                                modelStats[model].inactive++;
-                                totalInactive++;
-                            }
+                            if (!modelStats[model]) modelStats[model] = { active: 0, inactive: 0, total: 0 };
+                            if (!isInactive) { modelStats[model].active++; totalActive++; } 
+                            else { modelStats[model].inactive++; totalInactive++; }
                             modelStats[model].total++;
                         });
 
@@ -11153,19 +11253,63 @@ dropdown.innerHTML = `
                             .map(([name, stats]) => ({ name, ...stats }))
                             .sort((a, b) => b.total - a.total);
 
-                        // Lưu dữ liệu vào State và gọi Render
                         app.operator.modelStatsData = sortedModels;
                         app.operator.modelStatsTotals = { active: totalActive, inactive: totalInactive, all: totalActive + totalInactive };
                         app.operator.isModelTableExpanded = false;
 
-                        if (sortedModels.length > 0) {
-                            document.getElementById('op-model-stats-wrapper').classList.remove('hidden');
-                            app.operator.renderModelTable();
-                        } else {
-                            document.getElementById('op-model-stats-wrapper').classList.add('hidden');
-                        }
-                        // =========================================================
+                        // 3. TÍNH TOÁN CƠ CẤU TUYẾN CHUYẾN (THÔNG MINH)
+                        const specialRoutes = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động', 'Hợp đồng', 'Xe hợp đồng / Đưa đón'];
+                        let validRoutes = Array.from(uniqueRoutes).filter(r => r && !specialRoutes.includes(r) && r !== '---');
+                        
+                        let activeRoutes = [];
+                        
+                        // Quét lấy ảnh mới nhất của từng tuyến để xác định ai đang thầu (Bắn Fetch song song để lách qua Data lớn)
+                        const routePromises = validRoutes.map(async (route) => {
+                            try {
+                                const { data } = await window.sb.from('photos')
+                                    .select('operator')
+                                    .eq('route_no', route)
+                                    .eq('status', 'approved')
+                                    .order('taken_at', { ascending: false, nullsFirst: false })
+                                    .order('created_at', { ascending: false })
+                                    .limit(1);
+                                
+                                if (data && data.length > 0) {
+                                    const latestOp = data[0].operator || '';
+                                    // BẮT BUỘC: Nếu hãng ở ảnh chụp mới nhất chính là hãng này, thì Tuyến mới thuộc về hãng này
+                                    if (latestOp.toLowerCase() === operatorName.toLowerCase()) {
+                                        
+                                        // Đếm xem hãng này cắm bao nhiêu xe vào tuyến (Dựa trên lịch sử tổng ở AllStatsData)
+                                        const platesOnRoute = new Set();
+                                        allStatsData.forEach(p => {
+                                            if ((p.route_no || '').toLowerCase() === route.toLowerCase() && p.license_plate) {
+                                                platesOnRoute.add(p.license_plate.toUpperCase());
+                                            }
+                                        });
+                                        activeRoutes.push({ route: route, vehicleCount: platesOnRoute.size });
+                                    }
+                                }
+                            } catch(e) {}
+                        });
+                        
+                        await Promise.all(routePromises);
+                        
+                        // Sắp xếp Tuyến theo trật tự tự nhiên (01, 02, 10...)
+                        activeRoutes.sort((a, b) => a.route.localeCompare(b.route, undefined, {numeric: true}));
+                        
+                        app.operator.routeStatsData = activeRoutes;
+                        app.operator.isRouteTableExpanded = false;
 
+                        // TỔNG HỢP VÀ MỞ TABS
+                        if (sortedModels.length > 0 || activeRoutes.length > 0) {
+                            document.getElementById('op-stats-tabs-wrapper').classList.remove('hidden');
+                            app.operator.renderModelTable();
+                            app.operator.renderRouteTable();
+                        } else {
+                            document.getElementById('op-stats-tabs-wrapper').classList.add('hidden');
+                        }
+
+                        // LOAD ẢNH...
                         let pQuery = window.sb.from('photos').select(`*, profiles(id, username, role, subroles), vehicles(model)`)
                             .eq('status', 'approved')
                             .ilike('operator', operatorName)
