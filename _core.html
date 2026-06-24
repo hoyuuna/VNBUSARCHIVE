@@ -9453,7 +9453,13 @@ dropdown.innerHTML = `
                         el.classList.remove('active', 'slide-in-right', 'slide-in-left', 'fade-zoom-in-page');
                     });
                     const targetEl = document.getElementById(id);
-                    if (targetEl) targetEl.classList.add('active', animationClass);
+                    if (targetEl) {
+                        targetEl.classList.add('active', animationClass);
+                        targetEl.onanimationend = () => {
+                            targetEl.classList.remove(animationClass);
+                            targetEl.onanimationend = null;
+                        };
+                    }
 
                     const targetPath = window.location.pathname + window.location.search;
                     if (app.scrollPositions && app.scrollPositions[targetPath] !== undefined) {
@@ -15361,7 +15367,10 @@ app.admin.fetchManagerData('denied');
                 },
 
                 navigate: (url) => {
-                    if (window.location.pathname + window.location.search === url) return;
+                    if (window.location.pathname + window.location.search === url) {
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        return;
+                    }
                     const prevPath = window.location.pathname;
                     const prevFull = prevPath + window.location.search;
 
