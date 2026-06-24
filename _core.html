@@ -2298,7 +2298,7 @@
                     </div>
                     <div class="space-y-2">
                         <p class="font-bold text-black border-b border-gray-100 pb-1">Tuyến</p>
-                        <p>Với xe buýt chỉ nhập mỗi mã số tuyến (VD: 01), có thể viết chi tiết lộ trình tại phần ghi chú.
+                        <p>Với xe buýt chỉ nhập mỗi số tuyến (VD: 01), có thể viết chi tiết lộ trình tại phần ghi chú.
                             Với xe khách ghi điểm đầu - điểm cuối (VD: Hà Nội - Cẩm Phả).</p>
                     </div>
                     <div class="space-y-2">
@@ -2606,7 +2606,7 @@
                                     <span>Biển kiểm soát</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
                                 </div>
                                 <div class="filter-item" onclick="app.search.setFilter('route')" data-filter="route">
-                                    <span>Mã số tuyến</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
+                                    <span>Số tuyến</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
                                 </div>
                                 <div class="filter-item" onclick="app.search.setFilter('operator')"
                                     data-filter="operator">
@@ -2646,7 +2646,7 @@
                 <!-- Header -->
                 <div class="border-b border-gray-200/50 p-3 md:p-4 flex justify-between items-center shrink-0 rounded-t-2xl">
                     <h2 class="font-bold text-base md:text-lg text-black uppercase tracking-tight"><i class="fa-solid fa-gear mr-2 text-gray-500"></i>Cài đặt</h2>
-                    <button type="button" onclick="app.settings.close()" class="text-gray-400 hover:text-red-500 transition text-xl px-2"><i class="fa-solid fa-xmark"></i></button>
+                    <button onclick="app.settings.close()" class="text-gray-400 hover:text-red-500 transition text-xl px-2"><i class="fa-solid fa-xmark"></i></button>
                 </div>
 
                 <div class="flex flex-col md:flex-row flex-1 overflow-hidden rounded-b-2xl">
@@ -2665,22 +2665,22 @@
                         <!-- MENU CHÍNH -->
                         <div id="set-menu-main" class="flex flex-col gap-2 overflow-y-auto h-full w-full pb-2 md:pb-0 pr-1">
                             <!-- Nút Tài khoản có mũi tên -->
-                            <button type="button" onclick="app.settings.openAccountMenu()" id="set-tab-account-trigger" class="account-only-btn w-full flex items-center justify-between text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 group shrink-0">
+                            <button onclick="app.settings.openAccountMenu()" id="set-tab-account-trigger" class="account-only-btn w-full flex items-center justify-between text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 group shrink-0">
                                 <div class="flex items-center"><i class="fa-solid fa-user-shield w-6 text-center mr-2"></i> Tài khoản</div>
                                 <i class="fa-solid fa-chevron-right text-gray-400 group-hover:text-black transition"></i>
                             </button>
-                            <button type="button" onclick="app.settings.switchTab('badges')" id="set-tab-badges" class="account-only-btn w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
+                            <button onclick="app.settings.switchTab('badges')" id="set-tab-badges" class="account-only-btn w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
                                 <i class="fa-brands fa-discord w-6 text-center mr-2"></i> Huy hiệu
                             </button>
 
-                            <button type="button" onclick="app.settings.switchTab('preference')" id="set-tab-preference" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
+                            <button onclick="app.settings.switchTab('preference')" id="set-tab-preference" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
                                 <i class="fa-solid fa-layer-group w-6 text-center mr-2"></i> Cá nhân hóa
                             </button>
 
 
 
                             <!-- Nút Tài liệu có mũi tên bên phải -->
-                            <button type="button" onclick="app.settings.openDocsMenu()" id="set-tab-docs-trigger" class="w-full flex items-center justify-between text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 group shrink-0">
+                            <button onclick="app.settings.openDocsMenu()" id="set-tab-docs-trigger" class="w-full flex items-center justify-between text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 group shrink-0">
                                 <div class="flex items-center"><i class="fa-solid fa-book-open w-6 text-center mr-2"></i> Tài liệu</div>
                                 <i class="fa-solid fa-chevron-right text-gray-400 group-hover:text-black transition"></i>
                             </button>
@@ -2689,16 +2689,16 @@
 
                         <!-- MENU TÀI KHOẢN (ẨN MẶC ĐỊNH) -->
                         <div id="set-menu-account" class="hidden flex-col gap-2 overflow-y-auto h-full w-full pb-2 md:pb-0 pr-1">
-                            <button type="button" onclick="app.settings.closeAccountMenu()" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-gray-100 text-gray-700 hover:bg-gray-200 border border-transparent shrink-0 mb-2">
+                            <button onclick="app.settings.closeAccountMenu()" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-gray-100 text-gray-700 hover:bg-gray-200 border border-transparent shrink-0 mb-2">
                                 <i class="fa-solid fa-arrow-left w-6 text-center mr-2"></i> Quay lại
                             </button>
-                            <button type="button" onclick="app.settings.switchTab('profile')" id="set-tab-profile" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-black text-white shadow-sm border border-black shrink-0">
+                            <button onclick="app.settings.switchTab('profile')" id="set-tab-profile" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-black text-white shadow-sm border border-black shrink-0">
                                 <i class="fa-solid fa-user-pen w-6 text-center mr-2"></i> Tùy chỉnh hồ sơ
                             </button>
-                            <button type="button" onclick="app.settings.switchTab('security')" id="set-tab-security" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
+                            <button onclick="app.settings.switchTab('security')" id="set-tab-security" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
                                 <i class="fa-solid fa-shield-halved w-6 text-center mr-2"></i> Bảo mật
                             </button>
-                            <button type="button" onclick="app.settings.switchTab('links')" id="set-tab-links" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
+                            <button onclick="app.settings.switchTab('links')" id="set-tab-links" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
                                 <i class="fa-solid fa-link w-6 text-center mr-2"></i> Liên kết
                             </button>
 
@@ -2706,19 +2706,19 @@
 
                         <!-- MENU TÀI LIỆU (ẨN MẶC ĐỊNH) -->
                         <div id="set-menu-docs" class="hidden flex-col gap-2 overflow-y-auto h-full w-full pb-2 md:pb-0 pr-1">
-                            <button type="button" onclick="app.settings.closeDocsMenu()" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-gray-100 text-gray-700 hover:bg-gray-200 border border-transparent shrink-0 mb-2">
+                            <button onclick="app.settings.closeDocsMenu()" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-gray-100 text-gray-700 hover:bg-gray-200 border border-transparent shrink-0 mb-2">
                                 <i class="fa-solid fa-arrow-left w-6 text-center mr-2"></i> Quay lại
                             </button>
-                            <button type="button" onclick="app.settings.switchTab('docs-intro')" id="set-tab-docs-intro" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-black text-white shadow-sm border border-black shrink-0">
+                            <button onclick="app.settings.switchTab('docs-intro')" id="set-tab-docs-intro" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-black text-white shadow-sm border border-black shrink-0">
                                 <i class="fa-brands fa-markdown w-6 text-center mr-2"></i> Giới thiệu
                             </button>
-                            <button type="button" onclick="app.settings.switchTab('docs-requirements')" id="set-tab-docs-requirements" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
+                            <button onclick="app.settings.switchTab('docs-requirements')" id="set-tab-docs-requirements" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
                                 <i class="fa-solid fa-list-check w-6 text-center mr-2"></i> Kiểm duyệt
                             </button>
-                            <button type="button" onclick="app.settings.switchTab('docs-policy')" id="set-tab-docs-policy" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
+                            <button onclick="app.settings.switchTab('docs-policy')" id="set-tab-docs-policy" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
                                 <i class="fa-solid fa-shield-halved w-6 text-center mr-2"></i> Chính sách
                             </button>
-                            <button type="button" onclick="app.settings.switchTab('docs-chatrule')" id="set-tab-docs-chatrule" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
+                            <button onclick="app.settings.switchTab('docs-chatrule')" id="set-tab-docs-chatrule" class="w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
                                 <i class="fa-solid fa-comments w-6 text-center mr-2"></i> Tiêu chuẩn bình luận
                             </button>
                         </div>
@@ -2982,7 +2982,7 @@
                                     <span>Biển kiểm soát</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
                                 </div>
                                 <div class="filter-item" onclick="app.search.setFilter('route')" data-filter="route">
-                                    <span>Mã số tuyến</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
+                                    <span>Số tuyến</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
                                 </div>
                                 <div class="filter-item" onclick="app.search.setFilter('operator')" data-filter="operator">
                                     <span>Đơn vị vận hành</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
@@ -3168,7 +3168,7 @@
                                         </td>
                                     </tr>
                                      <tr>
-                                         <td class="label" id="lbl-detail-route">Mã số tuyến</td>
+                                         <td class="label">Tuyến</td>
                                         <td class="value-cell" x-data>
                                             <div class="relative w-full h-full">
                                                 <input type="text" id="info-route" autocomplete="off"
@@ -3238,7 +3238,7 @@
                             <div class="flex flex-wrap sm:flex-nowrap gap-2 border-t border-amber-200 pt-3">
                                 <input type="text" id="hist-new-plate" placeholder="BKS" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-full sm:w-[18%] rounded bg-white" oninput="app.utils.formatPlateInput(this)">
                                 <input type="text" id="hist-new-op" placeholder="Đơn vị" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-[48%] sm:w-[22%] rounded bg-white" oninput="app.utils.formatNoPunctuation(this)">
-                                <input type="text" id="hist-new-route" placeholder="Mã số tuyến" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-[48%] sm:w-[18%] rounded bg-white">
+                                <input type="text" id="hist-new-route" placeholder="Tuyến" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-[48%] sm:w-[18%] rounded bg-white">
                                 <input type="date" id="hist-new-date" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-full sm:w-[22%] rounded bg-white text-gray-600" title="Ngày áp dụng">
                                 <button id="btn-hist-add" onclick="app.vehicle.addHistoryItem('')" class="bg-green-600 text-white p-2 text-xs rounded font-bold hover:bg-green-700 transition w-full sm:flex-1">Thêm Mới</button>
                             </div>
@@ -3819,7 +3819,7 @@
                                 </div>
                                 <div>
                                     <label class="text-xs text-gray-500 font-bold block mb-1.5 uppercase"
-                                        id="lbl-route">Mã số tuyến<span class="text-red-500">*</span></label>
+                                        id="lbl-route">Số tuyến<span class="text-red-500">*</span></label>
                                     <div class="relative w-full">
                                         <input type="text" id="up-route" autocomplete="off" tabindex="3"
                                             onfocus="app.utils.triggerRouteSuggestion('up-route', 'up-route-suggestions', '')"
@@ -3827,7 +3827,7 @@
                                             class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition">
                                         <div id="up-route-suggestions" class="suggestion-box"></div>
                                     </div>
-                                    <p id="err-up-route" class="upload-req-err hidden text-[11px] mt-1 text-red-600 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Vui lòng nhập Mã số tuyến / Lộ trình</p>
+                                    <p id="err-up-route" class="upload-req-err hidden text-[11px] mt-1 text-red-600 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Vui lòng nhập Số tuyến / Lộ trình</p>
                                 </div>
 
 <!-- KHỐI CHỌN LOẠI XE -->
@@ -4246,7 +4246,7 @@
                                     <table class="w-full text-left text-sm whitespace-nowrap">
                                         <thead class="bg-gray-50 border-b border-gray-200 text-gray-500 text-[11px] uppercase tracking-wider">
                                             <tr>
-                                                <th class="p-3 font-bold">Mã số tuyến / Lộ trình</th>
+                                                <th class="p-3 font-bold">Số tuyến / Lộ trình</th>
                                                 <th class="p-3 font-bold text-center">Số lượng xe</th>
                                                 <th class="p-3 font-bold text-center">Dòng xe chính</th>
                                             </tr>
@@ -4254,7 +4254,7 @@
                                         <tbody id="op-route-tbody" class="divide-y divide-gray-100"></tbody>
                                         <tfoot id="op-route-tfoot" class="bg-gray-50 font-bold text-black border-t border-gray-200">
                                             <tr>
-                                                <td class="p-3 text-[11px] uppercase tracking-widest text-gray-500">Tổng mã số tuyến</td>
+                                                <td class="p-3 text-[11px] uppercase tracking-widest text-gray-500">Tổng số tuyến</td>
                                                 <td class="p-3 text-center" id="op-route-total-all">0</td>
                                                 <td class="p-3 text-center"></td>
                                             </tr>
@@ -7737,10 +7737,11 @@
                     const isRecovery = window.location.hash.includes('type=recovery') || app.auth.mode === 'recovery';
                     if (app.user && !isRecovery) app.utils.navigate('/');
                     else app.views.switch('auth', false);
-                } else if (path === '/setting' || path === '/settings' || path === '/setting/' || path === '/settings/') {
-                    app.views.switch('home', false);
-                    setTimeout(async () => {
-                        await app.settings.open();
+                } else if (path === '/setting' || path === '/settings') {
+                    app.views.switch('account', false);
+                    app.views.loadAccount();
+                    setTimeout(() => {
+                        app.settings.open();
                         const tab = searchParams.get('tab') || searchParams.get('caigido');
                         if (tab) {
                             app.settings.jumpTo(tab, 'account');
@@ -7939,10 +7940,6 @@
                 },
 
                 open: async () => {
-                    if (window.location.pathname !== '/setting' && window.location.pathname !== '/settings') {
-                        app.settings.previousUrl = window.location.pathname + window.location.search;
-                    }
-                    app.settings.isOpen = true;
                     const modal = document.getElementById('settings-modal');
                     const content = document.getElementById('settings-content');
 
@@ -8006,12 +8003,6 @@
                     const content = document.getElementById('settings-content');
                     content.classList.remove('opacity-100', 'scale-100');
                     content.classList.add('opacity-0', 'scale-95');
-                    app.settings.isOpen = false;
-                    if (app.settings.previousUrl) {
-                        window.history.pushState({}, '', app.settings.previousUrl);
-                    } else {
-                        window.history.pushState({}, '', '/');
-                    }
                     setTimeout(() => {
                         modal.classList.add('hidden');
                         app.ui.unlockScroll();
@@ -8052,13 +8043,6 @@
                 },
 
                 switchTab: (tab) => {
-                    if (app.settings.isOpen) {
-                        if (window.location.pathname.startsWith('/setting')) {
-                            window.history.replaceState({}, '', '/setting?tab=' + tab);
-                        } else {
-                            window.history.pushState({}, '', '/setting?tab=' + tab);
-                        }
-                    }
                     const tabs = ['blank', 'profile', 'security', 'links', 'badges', 'preference', 'docs-intro', 'docs-requirements', 'docs-policy', 'docs-chatrule'];
                     const activeClasses = ['bg-black', 'text-white', 'border-black', 'shadow-sm'];
                     const inactiveClasses = ['bg-white', 'text-gray-600', 'hover:bg-gray-50', 'border-gray-200'];
@@ -8329,9 +8313,9 @@ grid.innerHTML = tiers.map(tier => {
         let btnHtml = '';
 
         if (hasCustomRole) {
-            btnHtml = `<button type="button" onclick="app.settings.openCustomRolePrompt()" class="px-4 py-2 bg-gray-100 text-gray-800 text-xs font-bold rounded border border-gray-300 hover:bg-gray-200 transition whitespace-nowrap"><i class="fa-solid fa-pen mr-1"></i> Sửa Role</button>`;
+            btnHtml = `<button onclick="app.settings.openCustomRolePrompt()" class="px-4 py-2 bg-gray-100 text-gray-800 text-xs font-bold rounded border border-gray-300 hover:bg-gray-200 transition whitespace-nowrap"><i class="fa-solid fa-pen mr-1"></i> Sửa Role</button>`;
         } else if (isEligible) {
-            btnHtml = `<button type="button" onclick="app.settings.openCustomRolePrompt()" class="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold rounded hover:opacity-90 transition shadow-sm border border-transparent whitespace-nowrap">Tạo Role Riêng</button>`;
+            btnHtml = `<button onclick="app.settings.openCustomRolePrompt()" class="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold rounded hover:opacity-90 transition shadow-sm border border-transparent whitespace-nowrap">Tạo Role Riêng</button>`;
         } else {
             btnHtml = `<button disabled class="px-4 py-2 bg-gray-50 text-gray-400 text-xs font-bold rounded cursor-not-allowed border border-gray-200 whitespace-nowrap"><i class="fa-solid fa-lock mr-1"></i> Chưa đủ đ/k</button>`;
         }
@@ -9307,7 +9291,7 @@ grid.innerHTML = tiers.map(tier => {
 
 dropdown.innerHTML = `
                          <a href="/profile" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-address-card w-5 text-center mr-1"></i> Hồ sơ của tôi</a>
-                         <button type="button" onclick="app.settings.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-gear w-5 text-center mr-1"></i> Cài đặt</button>
+                         <button onclick="app.settings.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-gear w-5 text-center mr-1"></i> Cài đặt</button>
                          <a href="/help" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-book-open w-5 text-center mr-1"></i> Trung tâm hỗ trợ</a>
                          <a href="/contact" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-headset w-5 text-center mr-1"></i> Liên hệ hỗ trợ</a>
                          <button onclick="app.auth.logout()" class="w-full text-left block px-4 py-3 text-sm text-red-600 hover:bg-red-50 font-bold"><i class="fa-solid fa-right-from-bracket w-5 text-center mr-1"></i> Đăng xuất</button>
@@ -9342,7 +9326,7 @@ dropdown.innerHTML = `
 dropdown.innerHTML = `
                          <a href="/auth" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-arrow-right-to-bracket w-5 text-center mr-1"></i> Đăng nhập</a>
                          <a href="/auth" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-user-plus w-5 text-center mr-1"></i> Tạo tài khoản</a>
-                         <button type="button" onclick="app.settings.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-gear w-5 text-center mr-1"></i> Cài đặt</button>
+                         <button onclick="app.settings.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-gear w-5 text-center mr-1"></i> Cài đặt</button>
                          <a href="/help" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-book-open w-5 text-center mr-1"></i> Trung tâm hỗ trợ</a>
                          <a href="/contact" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 font-bold"><i class="fa-solid fa-headset w-5 text-center mr-1"></i> Liên hệ hỗ trợ</a>
                      `;
@@ -9397,6 +9381,9 @@ dropdown.innerHTML = `
                     app.views.fetchProfilePhotosPage(1);
                 },
                 switch: async (id, updateUrl = true) => {
+                    if (id === 'home' && window.location.pathname !== '/' && !window.location.pathname.startsWith('/search')) {
+                        app.utils.navigate('/'); return;
+                    }
                     if (id === 'upload' && window.location.pathname !== '/upload') {
                         app.utils.navigate('/upload'); return;
                     }
@@ -10556,8 +10543,6 @@ dropdown.innerHTML = `
                     if (elInfoOperator) elInfoOperator.value = snapshot.operator || 'Đã bị xóa';
                     if (elInfoType) elInfoType.value = snapshot.type || 'bus';
                     if (elInfoRoute) elInfoRoute.value = snapshot.route_no || 'Đã bị xóa';
-                    const lblDetailRoute = document.getElementById('lbl-detail-route');
-                    if (lblDetailRoute) lblDetailRoute.innerText = snapshot.type === 'coach' ? 'Lộ trình' : 'Mã số tuyến';
                     if (elInfoModel) elInfoModel.value = snapshot.model || 'Đã bị xóa';
                     if (elInfoLocation) elInfoLocation.value = photo.location || '---';
                     if (elInfoNote) elInfoNote.value = photo.note || '---';
@@ -10953,7 +10938,6 @@ dropdown.innerHTML = `
                         app.vehiclePhotosCache = allPhotos;
                         // Lấy ảnh ở đầu danh sách (mới chụp nhất theo taken_at)
                         const topPhoto = allPhotos.length > 0 ? allPhotos[0] : null;
-                        const isCoach = topPhoto && topPhoto.type === 'coach';
 
 
                         const specialRoutes = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động'];
@@ -11013,7 +10997,7 @@ dropdown.innerHTML = `
                             historyHTML = `
                                 <div class="history-table-wrapper">
                                     <table class="history-table">
-                                        <thead><tr><th>Đơn vị</th><th>${isCoach ? 'Lộ trình' : 'Mã số tuyến'}</th><th>Ghi chú</th></tr></thead>
+                                        <thead><tr><th>Đơn vị</th><th>Tuyến</th><th>Ghi chú</th></tr></thead>
                                         <tbody>
                                             ${historyData.map(h => {
                                                 let displayNote = h.note || '';
@@ -11051,7 +11035,7 @@ dropdown.innerHTML = `
                                 <div class="flex flex-wrap sm:flex-nowrap gap-2">
                                     <input type="date" id="veh-hist-new-date" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-full sm:w-[18%] rounded bg-white text-gray-700" title="Ngày áp dụng">
                                     <input type="text" id="veh-hist-new-op" placeholder="Đơn vị vận hành" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-[48%] sm:w-[25%] rounded bg-white" oninput="app.utils.formatNoPunctuation(this)">
-                                    <input type="text" id="veh-hist-new-route" placeholder="Mã số tuyến" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-[48%] sm:w-[15%] rounded bg-white">
+                                    <input type="text" id="veh-hist-new-route" placeholder="Số tuyến" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-[48%] sm:w-[15%] rounded bg-white">
                                     <input type="text" id="veh-hist-new-note" placeholder="Ghi chú (BKS cũ...)" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-full sm:flex-1 rounded bg-white">
                                     <button onclick="app.vehicle.addHistoryItem('veh-')" class="bg-green-600 text-white p-2 text-xs rounded font-bold hover:bg-green-700 transition w-full sm:w-auto">Thêm Mới</button>
                                 </div>
@@ -11086,7 +11070,7 @@ dropdown.innerHTML = `
                                                 <input type="text" id="vehicle-edit-operator" value="${currentOpClientSide}" class="info-input p-2 border border-gray-200 rounded-md bg-gray-50 ${currentOpClientSide ? 'clickable-search' : 'cursor-not-allowed'}" readonly ${currentOpClientSide ? `onclick="if(this.readOnly && this.value && this.value!=='---') app.utils.navigate('/operator/' + encodeURIComponent(this.value))"` : ''}>
                                             </div>
                                             <div>
-                                                <label class="text-xs text-gray-500 font-bold block mb-1 uppercase">${isCoach ? 'Lộ trình' : 'Mã số tuyến'} hiện tại</label>
+                                                <label class="text-xs text-gray-500 font-bold block mb-1 uppercase">Tuyến hiện tại</label>
                                                 <div class="relative">
                                                     <input type="text" id="vehicle-edit-route" value="${currentRouteClientSide}" autocomplete="off" class="info-input p-2 border border-gray-200 rounded-md bg-gray-50 w-full ${currentRouteClientSide ? 'clickable-search' : 'cursor-not-allowed'}" readonly ${currentRouteClientSide ? `onclick="if(this.readOnly && this.value && this.value!=='---') app.searchRedirect(this.value, 'absolute_route', '${vehPrefix}')"` : ''} onfocus="if(!this.readOnly) app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', '')" oninput="app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', this.value)">
                                                     <div id="veh-sug-route" class="suggestion-box"></div>
@@ -14100,7 +14084,7 @@ app.admin.fetchManagerData('denied');
 
                 toggleRoute: (val) => {
                     const lbl = document.getElementById('lbl-route');
-                    if (val === 'bus') lbl.innerHTML = 'Mã số tuyến <span class="text-red-500">*</span>';
+                    if (val === 'bus') lbl.innerHTML = 'Số tuyến <span class="text-red-500">*</span>';
                     else lbl.innerHTML = 'Lộ trình <span class="text-red-500">*</span>';
                 },
 
@@ -14898,7 +14882,7 @@ app.admin.fetchManagerData('denied');
                 triggerEmptyWarnings: () => {
                     const fields = [
                         {id: 'up-plate', errId: 'plate-msg', name: 'Biển kiểm soát'},
-                        {id: 'up-route', errId: 'err-up-route', name: 'Mã số tuyến'},
+                        {id: 'up-route', errId: 'err-up-route', name: 'Số tuyến'},
                         {id: 'up-operator', errId: 'err-up-operator', name: 'Đơn vị vận hành'},
                         {id: 'up-model', errId: 'err-up-model', name: 'Dòng xe'},
                         {id: 'up-location', errId: 'err-up-location', name: 'Vị trí chụp'}
@@ -14941,7 +14925,7 @@ app.admin.fetchManagerData('denied');
                 initValidation: () => {
                     const fields = [
                         {id: 'up-plate', errId: 'plate-msg', name: 'Biển kiểm soát'},
-                        {id: 'up-route', errId: 'err-up-route', name: 'Mã số tuyến'},
+                        {id: 'up-route', errId: 'err-up-route', name: 'Số tuyến'},
                         {id: 'up-operator', errId: 'err-up-operator', name: 'Đơn vị vận hành'},
                         {id: 'up-model', errId: 'err-up-model', name: 'Dòng xe'},
                         {id: 'up-location', errId: 'err-up-location', name: 'Vị trí chụp'}
@@ -15367,14 +15351,6 @@ app.admin.fetchManagerData('denied');
             },
 
             utils: {
-                cleanupState: () => {
-                    app.ui.closeAlert(true);
-                    app.ui.unlockScroll();
-                    app.settings.close();
-                    if (window.location.pathname !== '/admin') app.admin.closeUserDetail();
-                    const mm = document.getElementById('mobile-menu');
-                    if (mm) mm.classList.replace('translate-x-0', '-translate-x-full');
-                },
                 stripMarkdown: (md) => {
                     if (!md) return '';
                     const html = marked.parse(md);
