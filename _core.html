@@ -2781,6 +2781,25 @@
 
                         <div id="set-content-links" class="space-y-4 md:space-y-6 hidden">
                              <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm"><h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Tài khoản liên kết</h3><div class="space-y-3" id="linked-accounts-container"><p class="text-xs text-gray-500"><i class="fa-solid fa-spinner fa-spin"></i> Đang kiểm tra...</p></div></div>
+                             
+                             <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm mt-4">
+                                <h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Xác minh Discord</h3>
+                                <p class="text-[11px] md:text-xs text-gray-500 mb-3 leading-relaxed">Mở khóa trò chuyện trong server Discord của VNBUSARCHIVE, bạn không cần tương tác nếu không có nhu cầu. <a href="https://www.vnbusarchive.io.vn/help/1519298010138411191" target="_blank" class="font-bold text-black hover:underline">Tìm hiểu thêm</a></p>
+                                <div class="flex items-center justify-between p-3 border border-gray-200 rounded-md bg-gray-50">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-full bg-[#5865F2]/10 flex items-center justify-center text-[#5865F2] shrink-0">
+                                            <i class="fa-brands fa-discord"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-xs text-gray-900">Quyền truy cập Server</p>
+                                            <p class="text-[10px] text-gray-500">Yêu cầu: Đã duyệt 1 ảnh</p>
+                                        </div>
+                                    </div>
+                                    <div id="discord-verify-action">
+                                        <button disabled class="px-4 py-2 bg-gray-200 text-gray-400 text-xs font-bold rounded cursor-not-allowed border border-gray-300 whitespace-nowrap"><i class="fa-solid fa-spinner fa-spin"></i></button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div id="set-content-badges" class="space-y-4 md:space-y-6 hidden">
@@ -7718,6 +7737,16 @@
                     const isRecovery = window.location.hash.includes('type=recovery') || app.auth.mode === 'recovery';
                     if (app.user && !isRecovery) app.utils.navigate('/');
                     else app.views.switch('auth', false);
+                } else if (path === '/setting' || path === '/settings') {
+                    app.views.switch('account', false);
+                    app.views.loadAccount();
+                    setTimeout(() => {
+                        app.settings.open();
+                        const tab = searchParams.get('tab') || searchParams.get('caigido');
+                        if (tab) {
+                            app.settings.jumpTo(tab, 'account');
+                        }
+                    }, 400);
                 } else if (path === '/profile/comments') {
                     app.comments.openDashboard();
                 } else if (path === '/profile') {
@@ -8047,8 +8076,74 @@
                         }
                     });
 
-                    if (tab === 'links') app.settings.loadIdentities();
+                    if (tab === 'links') {
+                        app.settings.loadIdentities();
+                        if (app.settings.loadDiscordVerifyStatus) app.settings.loadDiscordVerifyStatus();
+                    }
                     if (tab === 'badges') app.settings.loadBadges();
+                },
+                loadDiscordVerifyStatus: async () => {
+                    const actionBtn = document.getElementById('discord-verify-action');
+                    if (!actionBtn) return;
+                    actionBtn.innerHTML = `<button disabled class="px-4 py-2 bg-gray-200 text-gray-400 text-xs font-bold rounded cursor-not-allowed border border-gray-300 whitespace-nowrap"><i class="fa-solid fa-spinner fa-spin"></i></button>`;
+                    try {
+                        const { data: { session } } = await window.sb.auth.getSession();
+                        if (!session) return;
+                        
+                        const { count } = await window.sb.from('photos').select('*', { count: 'exact', head: true }).eq('uploader_id', app.user.id).eq('status', 'approved');
+                        
+                        const res = await fetch('/api/discord', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+                            body: JSON.stringify({ action: 'status' })
+                        });
+                        const data = await res.json();
+                        
+                        if (!data.linked) {
+                            actionBtn.innerHTML = `<button onclick="app.settings.jumpTo('badges', 'main')" class="px-4 py-2 bg-black text-white text-xs font-bold rounded hover:bg-gray-800 transition shadow-sm border border-black whitespace-nowrap">Liên kết Discord</button>`;
+                            return;
+                        }
+                        if (!data.inServer) {
+                            actionBtn.innerHTML = `<a href="https://discord.com/invite/BNWyqbuvwq" target="_blank" class="px-4 py-2 bg-[#5865F2] text-white text-xs font-bold rounded hover:bg-[#4752C4] transition shadow-sm border border-[#5865F2] whitespace-nowrap inline-block text-center">Tham gia Server</a>`;
+                            return;
+                        }
+                        
+                        const isClaimed = data.claimedRoles && data.claimedRoles.includes('1519296926477058203');
+                        const isEligible = (count || 0) >= 1;
+                        
+                        if (isClaimed) {
+                            actionBtn.innerHTML = `<button disabled class="px-4 py-2 bg-gray-100 text-gray-400 text-xs font-bold rounded cursor-not-allowed border border-gray-200 whitespace-nowrap"><i class="fa-solid fa-check mr-1"></i> Đã xác minh</button>`;
+                        } else if (isEligible) {
+                            actionBtn.innerHTML = `<button id="btn-claim-discord-1" onclick="app.settings.claimDiscordVerify()" class="px-4 py-2 bg-black text-white text-xs font-bold rounded hover:bg-gray-800 transition shadow-sm border border-black whitespace-nowrap">Xác minh ngay</button>`;
+                        } else {
+                            actionBtn.innerHTML = `<button disabled class="px-4 py-2 bg-gray-50 text-gray-400 text-xs font-bold rounded cursor-not-allowed border border-gray-200 whitespace-nowrap"><i class="fa-solid fa-lock mr-1"></i> Chưa đủ đ/k</button>`;
+                        }
+                    } catch (err) {
+                        actionBtn.innerHTML = `<p class="text-xs text-red-500">Lỗi: ${err.message}</p>`;
+                    }
+                },
+                claimDiscordVerify: async () => {
+                    const btn = document.getElementById('btn-claim-discord-1');
+                    if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
+                    try {
+                        const { data: { session } } = await window.sb.auth.getSession();
+                        const res = await fetch('/api/discord', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+                            body: JSON.stringify({ action: 'claim', tier: 1 })
+                        });
+                        const data = await res.json();
+                        if (res.ok) {
+                            app.ui.showAlert(data.message || 'Xác minh Discord thành công!');
+                            app.settings.loadDiscordVerifyStatus();
+                        } else {
+                            app.ui.showAlert(data.error || 'Lỗi xác minh.');
+                            app.settings.loadDiscordVerifyStatus();
+                        }
+                    } catch (err) {
+                        app.ui.showAlert('Lỗi: ' + err.message);
+                        app.settings.loadDiscordVerifyStatus();
+                    }
                 },
                 loadIdentities: async () => {
                     const container = document.getElementById('linked-accounts-container');

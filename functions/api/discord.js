@@ -100,6 +100,7 @@ async function handleNewsOrHelp(request, env) {
 
 async function handleRoleClaim(request, env) {
     const ROLE_MAP = {
+        1: '1519296926477058203',
         50: '1506239795175620728',
         100: '1505158627747561482',
         200: '1505158752372920320',
