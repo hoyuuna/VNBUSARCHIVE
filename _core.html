@@ -11122,7 +11122,7 @@ dropdown.innerHTML = `
                     document.getElementById('op-stat-vehicles').innerText = '...';
                     document.getElementById('op-stat-routes').innerText = '...';
                     document.getElementById('op-stat-views').innerText = '...';
-                    document.getElementById('op-model-stats-wrapper').classList.add('hidden');
+                    document.getElementById('op-stats-tabs-wrapper').classList.add('hidden');
                     
                     const grid = document.getElementById('operator-photo-grid');
                     grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tổng hợp dữ liệu...</div>';
@@ -11187,7 +11187,7 @@ dropdown.innerHTML = `
                             document.getElementById('op-stat-vehicles').innerText = '0';
                             document.getElementById('op-stat-routes').innerText = '0';
                             document.getElementById('op-stat-views').innerText = '0';
-                            document.getElementById('op-model-stats-wrapper').classList.add('hidden');
+                            document.getElementById('op-stats-tabs-wrapper').classList.add('hidden');
                             app.loadingBar.finish();
                             return;
                         }
