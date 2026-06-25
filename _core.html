@@ -3222,14 +3222,6 @@
                         
                         <h3 class="font-bold text-xs uppercase text-black tracking-wider mb-2.5 px-1">Lịch sử hoạt động</h3>
 
-                        <!-- Nút cập nhật được dời lên góc phải y hệt bảng Thông tin chi tiết -->
-                        <div class="absolute top-0 right-0 mt-2.5 mr-2.5 md:mt-3 md:mr-3 flex gap-2 z-10">
-                            <button id="btn-edit-history" onclick="app.vehicle.toggleEditHistory('')"
-                                class="text-[11px] md:text-xs text-black hover:bg-gray-100 bg-white px-2.5 py-1.5 md:px-3 border border-gray-200 rounded-md transition shadow-sm font-medium">
-                                <i class="fa-solid fa-clock-rotate-left mr-1"></i> Cập nhật
-                            </button>
-                        </div>
-
                         <div class="border border-gray-200 rounded-lg overflow-hidden bg-white">
                             <div class="history-table-wrapper">
                                 <!-- Ép bảng bỏ cằm -->
@@ -3245,6 +3237,14 @@
                                     <tbody id="history-list"></tbody>
                                 </table>
                             </div>
+                        </div>
+
+                        <!-- Nút cập nhật được dời xuống dưới, làm full viền giống các nút chức năng khác -->
+                        <div class="mt-3 pt-3 border-t border-gray-100">
+                            <button id="btn-edit-history" onclick="app.vehicle.toggleEditHistory('')"
+                                class="w-full bg-white border border-gray-300 text-gray-700 py-2.5 text-sm font-bold rounded-md hover:bg-gray-50 transition shadow-sm flex justify-center items-center gap-1.5">
+                                <i class="fa-solid fa-clock-rotate-left"></i> Cập nhật lịch sử
+                            </button>
                         </div>
 
                         <!-- Giao diện Edit Lịch sử (Chỉ hiện khi bấm nút) -->
