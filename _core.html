@@ -4622,7 +4622,11 @@ ticket: {
 
     loadTicketList: () => {
         const listEl = document.getElementById('ticket-list');
+<<<<<<< Updated upstream
         const isManager = (app.role === 'admin' || app.role === 'manager') && app.ticket.isAdminMode;
+=======
+        const isManager = false; // Luôn là false ở /ticket (Độc lập)
+>>>>>>> Stashed changes
         const ref = app.ticket.db.ref('tickets');
         if (app.ticket.listeners['list']) ref.off('value', app.ticket.listeners['list']);
 
@@ -4679,7 +4683,11 @@ ticket: {
 
     openChat: (ticketId) => {
         app.ticket.currentTicketId = ticketId;
+<<<<<<< Updated upstream
         const isManager = (app.role === 'admin' || app.role === 'manager') && app.ticket.isAdminMode;
+=======
+        const isManager = false; // Luôn là false ở /ticket (Độc lập)
+>>>>>>> Stashed changes
         const tData = app.ticket.ticketsData[ticketId];
 
         document.getElementById('ticket-empty-state').classList.add('hidden');
@@ -4758,7 +4766,11 @@ ticket: {
 
     updateChatHeader: (tData) => {
         if (!tData) return;
+<<<<<<< Updated upstream
         const isManager = (app.role === 'admin' || app.role === 'manager') && app.ticket.isAdminMode;
+=======
+        const isManager = false; // Luôn là false ở /ticket (Độc lập)
+>>>>>>> Stashed changes
         document.getElementById('ticket-chat-title').innerText = `#${tData.id}`;
         const statusEl = document.getElementById('ticket-chat-status');
         const formEl = document.getElementById('ticket-chat-form');
@@ -4784,7 +4796,11 @@ ticket: {
         const text = input.value.trim();
         const tId = app.ticket.currentTicketId;
         if (!text || !tId) return;
+<<<<<<< Updated upstream
         const isManager = (app.role === 'admin' || app.role === 'manager') && app.ticket.isAdminMode;
+=======
+        const isManager = false; // Luôn là false ở /ticket (Độc lập)
+>>>>>>> Stashed changes
         input.value = '';
 
         const msgRef = app.ticket.db.ref(`ticket_messages/${tId}`).push();
