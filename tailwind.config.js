@@ -2,6 +2,7 @@
 module.exports = {
   content: [
     "./index.html",               // File chính ở thư mục gốc
+    "./_core.html",               // Giao diện core
     "./public/**/*.html",         // Tất cả file html trong public và thư mục con (status, hbds-map...)
     "./public/**/*.js",           // Tất cả file js trong public
     "./api/**/*.js",              // Các script trong thư mục api
