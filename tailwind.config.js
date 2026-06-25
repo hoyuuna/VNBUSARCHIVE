@@ -1,13 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-<<<<<<< Updated upstream
     "./index.html",               // File chính ở thư mục gốc
-    "./_core.html",               // Giao diện core
-=======
-    "./index.html",
-    "./_core.html",               // File chính ở thư mục gốc
->>>>>>> Stashed changes
     "./public/**/*.html",         // Tất cả file html trong public và thư mục con (status, hbds-map...)
     "./public/**/*.js",           // Tất cả file js trong public
     "./api/**/*.js",              // Các script trong thư mục api
