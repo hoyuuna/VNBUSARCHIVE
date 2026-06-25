@@ -294,20 +294,18 @@
             animation: fadeZoomInPage 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
+        /* Đã xóa bỏ transform: none ở 100% để chống giật/bập bồng layout */
         @keyframes slideInRightPage {
-            0% { opacity: 0; transform: translateX(30px); }
-            99% { opacity: 1; transform: translateX(0); }
-            100% { opacity: 1; transform: none; }
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
         }
         @keyframes slideInLeftPage {
-            0% { opacity: 0; transform: translateX(-30px); }
-            99% { opacity: 1; transform: translateX(0); }
-            100% { opacity: 1; transform: none; }
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
         }
         @keyframes fadeZoomInPage {
-            0% { opacity: 0; transform: scale(0.98); }
-            99% { opacity: 1; transform: scale(1); }
-            100% { opacity: 1; transform: none; }
+            from { opacity: 0; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1); }
         }
 
         .auth-modal {
@@ -5827,7 +5825,8 @@
 
                     setTimeout(() => {
                         modal.classList.add('hidden');
-                        app.ui.lockScroll();
+                        // SỬA LỖI: Thay lockScroll thành unlockScroll
+                        app.ui.unlockScroll();
                     }, 200);
                 }
             },
