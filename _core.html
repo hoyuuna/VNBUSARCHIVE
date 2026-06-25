@@ -4513,7 +4513,6 @@
                     if (!container) return null;
 
                     const toast = document.createElement('div');
-                    // Đổi cursor thành pointer để người dùng biết có thể bấm
                     toast.className = 'toast-card toast-enter bg-white/90 backdrop-blur-xl border border-gray-200 shadow-2xl rounded-2xl p-4 flex items-start gap-3 w-11/12 max-w-sm cursor-pointer mx-auto';
 
                     let iconHtml = '';
@@ -4549,29 +4548,22 @@
                     let timeout;
                     if (duration > 0) timeout = setTimeout(removeToast, duration);
 
-                    // --- LOGIC VUỐT (SWIPE) & NHẤN (TAP) KẾT HỢP ---
                     let startX = 0, startY = 0, currentX = 0, currentY = 0;
                     let lastX = 0, lastY = 0, lastTime = 0;
                     let velocityX = 0, velocityY = 0;
                     let isDragging = false;
-                    let hasMoved = false; // Cờ nhận diện có đang vuốt hay không
+                    let hasMoved = false;
 
                     const onStart = (e) => {
                         isDragging = true;
                         hasMoved = false; 
                         startX = e.touches ? e.touches[0].clientX : e.clientX;
                         startY = e.touches ? e.touches[0].clientY : e.clientY;
-                        currentX = startX;
-                        currentY = startY;
-                        lastX = startX;
-                        lastY = startY;
+                        currentX = startX; currentY = startY; lastX = startX; lastY = startY;
                         lastTime = Date.now();
-                        
-                        // ANIMATION KHI CHẠM VÀO: Lún nhẹ thẻ xuống tạo cảm giác bấm thật
                         toast.style.transition = 'transform 0.15s cubic-bezier(0.16, 1, 0.3, 1)'; 
                         toast.style.animation = 'none';
                         toast.style.transform = 'scale(0.95)';
-
                         if (timeout) clearTimeout(timeout);
                     };
 
@@ -4579,20 +4571,17 @@
                         if (!isDragging) return;
                         currentX = e.touches ? e.touches[0].clientX : e.clientX;
                         currentY = e.touches ? e.touches[0].clientY : e.clientY;
-                        
                         const diffX = currentX - startX;
                         let diffY = currentY - startY;
 
-                        // Nếu di chuyển quá 5px, chuyển từ trạng thái "Nhấn" sang "Vuốt"
                         if (Math.abs(diffX) > 5 || Math.abs(diffY) > 5) {
                             hasMoved = true;
-                            toast.style.transition = 'none'; // Tắt độ trễ để thẻ bám ngón tay
+                            toast.style.transition = 'none'; 
                         }
 
                         if (hasMoved) {
-                            if (diffY > 0) diffY = diffY * 0.2; // Dây thun khi kéo xuống
+                            if (diffY > 0) diffY = diffY * 0.2; 
                             toast.style.transform = `translate(${diffX}px, ${diffY}px)`;
-                            
                             const distance = Math.sqrt(diffX * diffX + diffY * diffY);
                             toast.style.opacity = Math.max(0, 1 - distance / 200);
 
@@ -4602,9 +4591,7 @@
                                 velocityX = (currentX - lastX) / dt;
                                 velocityY = (currentY - lastY) / dt;
                             }
-                            lastX = currentX;
-                            lastY = currentY;
-                            lastTime = now;
+                            lastX = currentX; lastY = currentY; lastTime = now;
                         }
                     };
 
@@ -4615,26 +4602,20 @@
                         toast.style.transition = 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease-out';
                         void toast.offsetHeight;
 
-                        // KIỂM TRA XEM LÀ NHẤN HAY VUỐT
                         if (!hasMoved) {
-                            // ĐÂY LÀ NHẤN (TAP) -> Nảy thẻ lên lại
                             toast.style.transform = 'scale(1)';
                             toast.style.opacity = '1';
-                            
                             if (onClickAction) {
-                                onClickAction(); // Chạy lệnh (VD: chuyển trang)
-                                removeToast();   // Bấm xong thì đóng luôn thẻ
+                                onClickAction();
+                                removeToast();
                             } else {
-                                // Nếu bấm cho vui (ko có tính năng), thẻ nảy lên và tiếp tục đếm ngược
                                 if (duration > 0) timeout = setTimeout(removeToast, duration);
                             }
                             return;
                         }
 
-                        // ĐÂY LÀ VUỐT (SWIPE)
                         const diffX = currentX - startX;
                         const diffY = currentY - startY;
-
                         const isSwipeFastX = Math.abs(velocityX) > 0.5;
                         const isSwipeFastY = velocityY < -0.5; 
                         
@@ -4642,11 +4623,8 @@
                             let endX = diffX;
                             let endY = diffY < 0 ? diffY : 0;
 
-                            if (Math.abs(diffX) > 60 || isSwipeFastX) {
-                                endX = Math.sign(diffX || velocityX) * window.innerWidth;
-                            } else if (diffY < -40 || isSwipeFastY) {
-                                endY = -window.innerHeight;
-                            }
+                            if (Math.abs(diffX) > 60 || isSwipeFastX) endX = Math.sign(diffX || velocityX) * window.innerWidth;
+                            else if (diffY < -40 || isSwipeFastY) endY = -window.innerHeight;
                             
                             toast.style.transform = `translate(${endX}px, ${endY}px)`;
                             toast.style.opacity = '0';
@@ -4667,6 +4645,79 @@
                     toast.addEventListener('mouseup', onEnd);
 
                     return removeToast;
+                },
+
+                // [MỚI] TOAST ĐẶC BIỆT: KHÔNG THỂ TẮT, CHỈ DÙNG CHO TIẾN TRÌNH UPLOAD HÀNG ĐỢI
+                createProgress: (title) => {
+                    const container = document.getElementById('toast-container');
+                    if (!container) return null;
+
+                    const toastId = 'toast-prog-' + Date.now();
+                    const toast = document.createElement('div');
+                    toast.className = 'toast-card toast-enter bg-white/95 backdrop-blur-2xl border border-gray-200 shadow-2xl rounded-2xl p-4 flex items-center gap-3 w-11/12 max-w-sm mx-auto pointer-events-auto';
+                    toast.id = toastId;
+
+                    toast.innerHTML = `
+                        <div class="relative w-8 h-8 flex justify-center items-center shrink-0">
+                            <svg class="w-full h-full transform -rotate-90 absolute inset-0" viewBox="0 0 120 120">
+                                <circle cx="60" cy="60" r="54" fill="none" stroke="#e4e4e7" stroke-width="12" />
+                                <circle id="${toastId}-circle" class="transition-all duration-300 ease-out" cx="60" cy="60" r="54" fill="none" stroke="#000" stroke-width="12" stroke-dasharray="339.29" stroke-dashoffset="339.29" stroke-linecap="round" />
+                            </svg>
+                            <i class="fa-solid fa-cloud-arrow-up text-[11px] text-gray-800 relative z-10 animate-pulse"></i>
+                        </div>
+                        <div class="flex-1 overflow-hidden pointer-events-none select-none">
+                            <h4 id="${toastId}-title" class="text-sm font-bold text-gray-900 leading-tight">${title}</h4>
+                            <p id="${toastId}-desc" class="text-[12px] text-gray-500 mt-0.5 leading-relaxed truncate">Vui lòng đợi trong giây lát...</p>
+                        </div>
+                    `;
+
+                    container.prepend(toast);
+
+                    // Hiệu ứng "Díu lại" khi cố vuốt tắt Toast này
+                    let startY = 0, currentY = 0, isDragging = false;
+                    toast.addEventListener('touchstart', (e) => { 
+                        isDragging = true; startY = e.touches[0].clientY; 
+                        toast.style.transition = 'none'; 
+                    }, {passive: true});
+                    
+                    toast.addEventListener('touchmove', (e) => {
+                        if(!isDragging) return;
+                        currentY = e.touches[0].clientY;
+                        let diffY = currentY - startY;
+                        // Kháng cự lại lực kéo (Díu lại)
+                        if (diffY < 0) diffY = diffY * 0.25;
+                        else diffY = diffY * 0.1;
+                        toast.style.transform = `translateY(${diffY}px)`;
+                    }, {passive: true});
+                    
+                    toast.addEventListener('touchend', () => {
+                        isDragging = false;
+                        // Nảy đàn hồi về lại vị trí 0
+                        toast.style.transition = 'transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                        toast.style.transform = 'translateY(0) scale(1)';
+                    });
+
+                    return {
+                        id: toastId,
+                        element: toast,
+                        update: (percent, newTitle, newDesc) => {
+                            const circle = document.getElementById(`${toastId}-circle`);
+                            const titleEl = document.getElementById(`${toastId}-title`);
+                            const descEl = document.getElementById(`${toastId}-desc`);
+                            if(circle) {
+                                const offset = 339.29 * (1 - Math.min(100, Math.max(0, percent)) / 100);
+                                circle.style.strokeDashoffset = offset;
+                            }
+                            if(titleEl && newTitle) titleEl.innerText = newTitle;
+                            if(descEl && newDesc) descEl.innerText = newDesc;
+                        },
+                        remove: () => {
+                            toast.style.transition = 'transform 0.3s ease-in, opacity 0.3s ease-out';
+                            toast.style.transform = 'translateY(-40px) scale(0.95)';
+                            toast.style.opacity = '0';
+                            setTimeout(() => toast.remove(), 300);
+                        }
+                    };
                 }
             },
 
@@ -7432,9 +7483,13 @@
 
 
                 // Upload Form Auto-save Draft on Exit
-                window.addEventListener('beforeunload', () => {
+                window.addEventListener('beforeunload', (e) => {
                     if (app.currentViewMode === 'upload') {
                         app.upload.saveDraft();
+                    }
+                    if (app.upload && app.upload.isQueueProcessing) {
+                        e.preventDefault();
+                        e.returnValue = ''; // Chặn đóng tab nếu đang tải dữ liệu ngầm lên
                     }
                 });
 
@@ -13413,7 +13468,12 @@ app.admin.fetchManagerData('denied');
 
              upload: {
                  currentQuota: { limit: null, count: 0 },
-                 routeOpTimeout: null, // Thêm dòng này
+                 routeOpTimeout: null,
+                 
+                 // [MỚI] TRẠNG THÁI HÀNG ĐỢI
+                 uploadQueue: [],
+                 isQueueProcessing: false,
+                 activeProgressToast: null,
 
                  saveDraft: () => {
                      const plate = document.getElementById('up-plate')?.value || '';
@@ -13422,21 +13482,16 @@ app.admin.fetchManagerData('denied');
                      const model = document.getElementById('up-model')?.value || '';
                      const note = document.getElementById('up-note')?.value || '';
 
-                     // Chỉ lưu nháp nếu người dùng đã nhập ít nhất 1 thông tin quan trọng
                      if (!plate && !operator && !route && !model && !note) {
                          localStorage.removeItem('vnbus_upload_draft');
                          return;
                      }
 
                      const draft = {
-                         plate: plate,
-                         type: document.getElementById('up-type')?.value || '',
-                         route: route,
-                         operator: operator,
-                         model: model,
+                         plate: plate, type: document.getElementById('up-type')?.value || '',
+                         route: route, operator: operator, model: model,
                          location: document.getElementById('up-location')?.value || '',
-                         date: document.getElementById('up-date')?.value || '',
-                         note: note
+                         date: document.getElementById('up-date')?.value || '', note: note
                      };
                      localStorage.setItem('vnbus_upload_draft', JSON.stringify(draft));
                  },
@@ -13449,24 +13504,12 @@ app.admin.fetchManagerData('denied');
                                  const plateText = draft.plate ? `xe <b>${draft.plate}</b>` : "một xe chưa rõ BKS";
                                  app.ui.showAlert(
                                      `Bạn có bản nháp cho ${plateText}. Bạn có muốn tiếp tục không?<br><br><span class="text-[11px] text-gray-500 italic"><i class="fa-solid fa-circle-info mr-1"></i>Lưu ý: Do chính sách bảo mật của trình duyệt, bạn vẫn cần phải tự chọn lại file ảnh.</span>`,
-                                     () => {
-                                         // Bấm Tiếp tục
-                                         app.upload.loadDraft(draft);
-                                     },
-                                     () => {
-                                         // Bấm Bỏ qua
-                                         app.upload.clearDraft();
-                                     },
-                                     {
-                                         title: "Khôi phục bản nháp",
-                                         btnOkText: "Tiếp tục",
-                                         btnCancelText: "Bỏ qua"
-                                     }
+                                     () => { app.upload.loadDraft(draft); },
+                                     () => { app.upload.clearDraft(); },
+                                     { title: "Khôi phục bản nháp", btnOkText: "Tiếp tục", btnCancelText: "Bỏ qua" }
                                  );
                              }
-                         } catch (e) {
-                             app.upload.clearDraft();
-                         }
+                         } catch (e) { app.upload.clearDraft(); }
                      }
                  },
                  loadDraft: (draft) => {
@@ -13480,21 +13523,12 @@ app.admin.fetchManagerData('denied');
                          if(draft.date) document.getElementById('up-date').value = draft.date;
                          if(draft.note) document.getElementById('up-note').value = draft.note;
                          
-                         // Kích hoạt check khóa xe/gợi ý nếu có BKS
-                         if(draft.plate) {
-                             app.upload.checkPlate(draft.plate);
-                         }
-                     } catch (e) {
-                         console.warn("Lỗi load draft", e);
-                     }
+                         if(draft.plate) app.upload.checkPlate(draft.plate);
+                     } catch (e) { console.warn("Lỗi load draft", e); }
                  },
-                 clearDraft: () => {
-                     localStorage.removeItem('vnbus_upload_draft');
-                 },
+                 clearDraft: () => { localStorage.removeItem('vnbus_upload_draft'); },
 
-                 // THÊM HÀM NÀY VÀO ĐÂY
                  autoFillOperatorByRoute: async () => {
-                    // Nếu xe đã bị khóa thông tin (vì đã có ảnh duyệt), không tự điền đè lên
                     if (app.vehicleLocked) return;
 
                     const plateInput = document.getElementById('up-plate');
@@ -13507,7 +13541,6 @@ app.admin.fetchManagerData('denied');
                     const plate = plateInput.value.replace(/[^A-Z0-9-]/gi, '').toUpperCase();
                     const route = routeInput.value.trim();
 
-                    // Thêm trạng thái theo dõi autofill để không ghi đè dữ liệu user nhập tay
                     if (!app.upload.autoFilledData) app.upload.autoFilledData = { operator: '', model: '' };
 
                     const canOverwriteOp = !opInput.value || opInput.value === app.upload.autoFilledData.operator;
@@ -13515,14 +13548,12 @@ app.admin.fetchManagerData('denied');
 
                     const specialRoutes = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động', 'Xe hợp đồng / Đưa đón', 'Hợp đồng / Đưa đón'];
 
-                    // Nếu đổi tuyến rỗng hoặc nhập tuyến đặc biệt thì xóa autofill
                     if (!plate || plate.length < 2 || !route || specialRoutes.includes(route)) {
                         if (canOverwriteOp) { opInput.value = ''; app.upload.autoFilledData.operator = ''; }
                         if (canOverwriteModel) { modelInput.value = ''; app.upload.autoFilledData.model = ''; }
                         return;
                     }
 
-                    // Lấy mã tỉnh (2 số đầu)
                     const prefix = plate.substring(0, 2);
                     if (isNaN(prefix)) return;
 
@@ -13535,7 +13566,6 @@ app.admin.fetchManagerData('denied');
                     try {
                         const prefixOrCond = relatedPrefixes.map(p => `license_plate.ilike.${p}%`).join(',');
 
-                        // Lấy 50 ảnh đã duyệt có cùng mã số tuyến và cùng tỉnh
                         const { data } = await window.sb.from('photos')
                             .select('operator, type, taken_at, created_at, vehicles(model)')
                             .eq('route_no', route)
@@ -13562,18 +13592,12 @@ app.admin.fetchManagerData('denied');
                                 app.upload.autoFilledData.model = closest.vehicles.model;
                             }
 
-                            // Tự động chọn xe buýt
-                            if (closest.type === 'bus') {
-                                app.upload.selectType('bus');
-                            }
+                            if (closest.type === 'bus') app.upload.selectType('bus');
                         } else {
-                            // Nếu tuyến mới không tìm thấy dữ liệu, xóa giá trị autofill cũ
                             if (canOverwriteOp) { opInput.value = ''; app.upload.autoFilledData.operator = ''; }
                             if (canOverwriteModel) { modelInput.value = ''; app.upload.autoFilledData.model = ''; }
                         }
-                    } catch (e) {
-                        console.error("Lỗi Auto-fill đơn vị vận hành:", e);
-                    }
+                    } catch (e) { console.error("Lỗi Auto-fill đơn vị vận hành:", e); }
                 },
 
                  applyPreferenceUI: () => {
@@ -13608,7 +13632,7 @@ app.admin.fetchManagerData('denied');
                         if(warningEl) warningEl.classList.remove('hidden');
                         if(typeText) typeText.innerText = pref === 'bus' ? 'Xe Buýt' : 'Xe Khách';
 
-                        app.upload.performSelectType(pref); // Tự động click chọn
+                        app.upload.performSelectType(pref);
 
                         if (pref === 'bus' && btnCoach) {
                             btnCoach.classList.add('opacity-50', 'pointer-events-none');
@@ -13626,8 +13650,6 @@ app.admin.fetchManagerData('denied');
                         const res = await fetch('https://raw.githubusercontent.com/hoyuuna/VNBUSARCHIVE/refs/heads/main/Requirements.md');
                         if (!res.ok) throw new Error('Network error');
                         const text = await res.text();
-
-
                         const html = DOMPurify.sanitize(marked.parse(text));
                         container.innerHTML = html;
                         container.dataset.loaded = 'true';
@@ -13647,30 +13669,16 @@ app.admin.fetchManagerData('denied');
                     const rawPlate = plateInput.value.replace(/[^A-Z0-9-]/gi, '').toUpperCase();
                     const currentModel = modelInput.value.trim().toLowerCase();
 
-
-                    if (!rawPlate || !currentModel) {
-                        warningEl.classList.add('hidden');
-                        return;
-                    }
-
+                    if (!rawPlate || !currentModel) { warningEl.classList.add('hidden'); return; }
 
                     const parts = rawPlate.split('-');
-                    if (parts.length < 2) {
-                        warningEl.classList.add('hidden');
-                        return;
-                    }
+                    if (parts.length < 2) { warningEl.classList.add('hidden'); return; }
 
                     const basePlate = parts[0];
                     const existingVehicles = app.upload.existingVehiclesList ||[];
 
-
                     const exactVehicle = existingVehicles.find(v => v.license_plate === rawPlate);
-                    if (exactVehicle) {
-                        warningEl.classList.add('hidden');
-                        return;
-                    }
-
-
+                    if (exactVehicle) { warningEl.classList.add('hidden'); return; }
 
                     const baseVehicle = existingVehicles.find(v => v.license_plate === basePlate);
                     if (baseVehicle && baseVehicle.model) {
@@ -13684,10 +13692,8 @@ app.admin.fetchManagerData('denied');
                     warningEl.classList.add('hidden');
                 },
 
-
                 checkDuplicateRealtime: async () => {
                     if (!app.user) return;
-
                     const plateInput = document.getElementById('up-plate');
                     const dateInput = document.getElementById('up-date');
                     const btnSubmit = document.getElementById('btn-submit');
@@ -13697,11 +13703,9 @@ app.admin.fetchManagerData('denied');
                     const valPlate = plateInput.value.trim();
                     const valDate = dateInput.value;
 
-                    // Luôn xóa cảnh báo cũ mỗi khi gõ/kiểm tra lại
                     const oldWarning = document.getElementById('duplicate-warning-msg');
                     if (oldWarning) oldWarning.remove();
                     
-                    // Khôi phục nút submit (nếu nó không bị khóa bởi lý do khác như quota)
                     if (!document.getElementById('upload-quota-text')?.classList.contains('text-red-600')) {
                         btnSubmit.disabled = false;
                     }
@@ -13728,7 +13732,6 @@ app.admin.fetchManagerData('denied');
                                 btnSubmit.disabled = true;
                                 const displayDate = valDate.split('-').reverse().join('/');
 
-                                // Tạo UI Box Cảnh báo
                                 const warningEl = document.createElement('div');
                                 warningEl.id = 'duplicate-warning-msg';
                                 warningEl.className = 'mt-3 p-3 bg-red-50 border border-red-200 rounded-lg shadow-sm flex items-start gap-2.5 fade-zoom-in';
@@ -13739,7 +13742,6 @@ app.admin.fetchManagerData('denied');
                                     </p>
                                 `;
 
-                                // Xác định thẻ Div bọc ngoài của input BKS (thẻ div có x-data) và nhét vào cuối
                                 const plateContainer = plateInput.closest('div[x-data]') || plateInput.parentElement;
                                 plateContainer.appendChild(warningEl);
                             }
@@ -13767,11 +13769,9 @@ app.admin.fetchManagerData('denied');
 
                 addBlurPanel: () => {
                     const currentCount = document.querySelectorAll('.blur-panel').length;
-
                     if (currentCount >= 5) {
                         return app.ui.showAlert("Bạn chỉ được thêm tối đa 5 vùng làm mờ cho mỗi ảnh.");
                     }
-
                     app.upload.performAddBlurPanel();
                 },
 
@@ -13874,14 +13874,9 @@ app.admin.fetchManagerData('denied');
                     const endAction = () => {
                         isDragging = false;
                         isResizing = false;
-
-                        // Auto-reposition delete button if panel is too close to left edge
                         const deleteBtn = panel.querySelector('.delete-blur');
-                        if (panel.offsetLeft < 28) {
-                            deleteBtn.classList.add('right');
-                        } else {
-                            deleteBtn.classList.remove('right');
-                        }
+                        if (panel.offsetLeft < 28) deleteBtn.classList.add('right');
+                        else deleteBtn.classList.remove('right');
                     };
 
                     document.addEventListener('mousemove', handleMouseMove);
@@ -13913,11 +13908,8 @@ app.admin.fetchManagerData('denied');
                         const toolbar = document.getElementById('vnbus-editor-toolbar');
                         if (toolbar) toolbar.appendChild(warningBox);
                     }
-                    if (count > 0) {
-                        warningBox.classList.remove('hidden');
-                    } else {
-                        warningBox.classList.add('hidden');
-                    }
+                    if (count > 0) warningBox.classList.remove('hidden');
+                    else warningBox.classList.add('hidden');
                 },
 
                 checkPlate: async (val) => {
@@ -13931,14 +13923,10 @@ app.admin.fetchManagerData('denied');
 
                         ['up-operator', 'up-model', 'up-route'].forEach(id => {
                             const el = document.getElementById(id);
-                            if(el) {
-                                el.readOnly = false;
-                                el.classList.remove('bg-gray-100');
-                            }
+                            if(el) { el.readOnly = false; el.classList.remove('bg-gray-100'); }
                         });
 
                         document.getElementById('locked-msg')?.classList.add('hidden');
-
                         if(app.upload.applyPreferenceUI) app.upload.applyPreferenceUI();
 
                         const btnBus = document.getElementById('btn-type-bus');
@@ -13946,7 +13934,7 @@ app.admin.fetchManagerData('denied');
                         if(btnBus) btnBus.classList.remove('opacity-60', 'opacity-80', 'cursor-not-allowed');
                         if(btnCoach) btnCoach.classList.remove('opacity-60', 'opacity-80', 'cursor-not-allowed');
 
-                        if(btnSubmit) btnSubmit.disabled = false;
+                        if(btnSubmit && !document.getElementById('upload-quota-text')?.classList.contains('text-red-600')) btnSubmit.disabled = false;
                     };
 
                     if (rawPlate.startsWith('80')) {
@@ -14012,14 +14000,12 @@ app.admin.fetchManagerData('denied');
                                     msg.innerText = `Sai thứ tự định danh! Vui lòng nhập đúng tuần tự: ${basePlate}-${expectedNext} trước.`;
                                 }
                                 msg.className = "text-xs mt-1 text-red-600 font-bold";
-                                unlockUI(); // Mở khóa nếu sai thứ tự định danh
+                                unlockUI();
                                 return;
                             }
                         }
 
                         const exactVehicle = existingVehicles?.find(v => v.license_plate === rawPlate);
-
-                        // THÊM: Biến kiểm tra xem xe này đã có ảnh duyệt chưa
                         let hasApproved = false;
                         let recentPhotos = [];
 
@@ -14031,13 +14017,12 @@ app.admin.fetchManagerData('denied');
                                 .eq('status', 'approved')
                                 .order('taken_at', { ascending: false, nullsFirst: false })
                                 .order('created_at', { ascending: false })
-                                .limit(50); // Lấy 50 ảnh gần nhất đã duyệt
+                                .limit(50);
 
                             recentPhotos = data || [];
                             hasApproved = recentPhotos.length > 0;
                         }
 
-                        // CHỈ KHÓA THÔNG TIN KHI XE ĐÃ CÓ ÍT NHẤT 1 ẢNH DUYỆT
                         if (exactVehicle && hasApproved) {
                             app.vehicleLocked = true;
                             app.currentVehicle = exactVehicle;
@@ -14053,12 +14038,8 @@ app.admin.fetchManagerData('denied');
                                     return Math.abs(timeA - uploadDate) - Math.abs(timeB - uploadDate);
                                 });
 
-                                // Tìm ảnh gần nhất CÓ TUYẾN KHÁC "Ngoài giờ hoạt động"
                                 let validPhoto = recentPhotos.find(p => p.route_no !== 'Ngoài giờ hoạt động');
-
-                                if (!validPhoto) {
-                                    validPhoto = { operator: recentPhotos[0].operator, route_no: '', type: recentPhotos[0].type };
-                                }
+                                if (!validPhoto) validPhoto = { operator: recentPhotos[0].operator, route_no: '', type: recentPhotos[0].type };
 
                                 document.getElementById('up-operator').value = validPhoto.operator || '';
                                 document.getElementById('up-route').value = validPhoto.route_no || '';
@@ -14076,7 +14057,7 @@ app.admin.fetchManagerData('denied');
                                             if(btnCoach) btnCoach.classList.remove('opacity-50', 'pointer-events-none');
                                             app.upload.selectType(dbType, true);
                                             const submitBtn = document.getElementById('btn-submit');
-                                            if(submitBtn) submitBtn.disabled = false;
+                                            if(submitBtn && !document.getElementById('upload-quota-text')?.classList.contains('text-red-600')) submitBtn.disabled = false;
                                         },
                                         () => {
                                             const submitBtn = document.getElementById('btn-submit');
@@ -14112,13 +14093,9 @@ app.admin.fetchManagerData('denied');
                             let shootersText = "";
                             if (shootersData && shootersData.length > 0) {
                                 const uniqueUsers = [...new Set(shootersData.map(p => p.profiles?.username).filter(Boolean))];
-                                if (uniqueUsers.length === 1) {
-                                    shootersText = `Xe này cũng đã được chụp bởi <b>${uniqueUsers[0]}</b>.`;
-                                } else if (uniqueUsers.length === 2) {
-                                    shootersText = `Xe này cũng đã được chụp bởi <b>${uniqueUsers[0]}</b> và <b>${uniqueUsers[1]}</b>.`;
-                                } else if (uniqueUsers.length > 2) {
-                                    shootersText = `Xe này cũng đã được chụp bởi <b>${uniqueUsers[0]}</b>, <b>${uniqueUsers[1]}</b> và <b>${uniqueUsers.length - 2} người khác</b>.`;
-                                }
+                                if (uniqueUsers.length === 1) shootersText = `Xe này cũng đã được chụp bởi <b>${uniqueUsers[0]}</b>.`;
+                                else if (uniqueUsers.length === 2) shootersText = `Xe này cũng đã được chụp bởi <b>${uniqueUsers[0]}</b> và <b>${uniqueUsers[1]}</b>.`;
+                                else if (uniqueUsers.length > 2) shootersText = `Xe này cũng đã được chụp bởi <b>${uniqueUsers[0]}</b>, <b>${uniqueUsers[1]}</b> và <b>${uniqueUsers.length - 2} người khác</b>.`;
                             }
 
                             let suggestionHtml = '';
@@ -14133,21 +14110,15 @@ app.admin.fetchManagerData('denied');
                             msg.className = "text-xs mt-1 text-black";
 
                         } else {
-                            // NẾU XE CHƯA TỪNG ĐƯỢC DUYỆT LẦN NÀO -> MỞ KHÓA HOÀN TOÀN
                             unlockUI(); 
-                            
                             if (exactVehicle) {
-                                // Vẫn điền nhẹ cái Dòng xe có sẵn (của ảnh bị từ chối) để gợi ý, nhưng user vẫn có thể sửa đè lên
                                 document.getElementById('up-model').value = exactVehicle.model || '';
                             }
                             msg.innerText = "";
                             msg.className = "hidden";
-                            
-                            // Gọi hàm auto fill Đơn vị dựa theo Tuyến và Tỉnh
                             app.upload.autoFillOperatorByRoute();
                         }
 
-                        // Kích hoạt check trùng ngày chụp và biển số ngay sau khi load xong BKS
                         app.upload.checkDuplicateRealtime();
                     } catch (err) {
                         unlockUI();
@@ -14167,24 +14138,14 @@ app.admin.fetchManagerData('denied');
 
                     if (app.vehicleLocked && !isLocked && currentType && currentType !== type) {
                         const typeName = type === 'bus' ? 'Xe Buýt' : 'Xe Khách';
-
                         app.ui.showAlert(
                             `Bạn có chắc phương tiện này đã được chuyển đổi công năng thành <b>${typeName}</b>?`,
-                            () => {
-                                app.upload.performSelectType(type);
-                            },
-                            () => {
-                            },
-                            {
-                                countdown: true,
-                                btnOkText: "Tôi chắc chắn",
-                                btnCancelText: "Hủy",
-                                title: "Xác nhận chuyển đổi"
-                            }
+                            () => { app.upload.performSelectType(type); },
+                            () => {},
+                            { countdown: true, btnOkText: "Tôi chắc chắn", btnCancelText: "Hủy", title: "Xác nhận chuyển đổi" }
                         );
                         return;
                     }
-
                     app.upload.performSelectType(type);
                 },
 
@@ -14225,7 +14186,7 @@ app.admin.fetchManagerData('denied');
                     const el = document.getElementById('draggable-watermark');
                     if (isBlack) el.classList.add('wm-black');
                     else el.classList.remove('wm-black');
-                    // Đồng bộ UI Nút Dấu đen
+                    
                     const lbl = document.getElementById('btn-lbl-wm-black');
                     if (lbl) {
                         if (isBlack) {
@@ -14402,11 +14363,10 @@ app.admin.fetchManagerData('denied');
                         const fileInput = document.getElementById('up-file');
                         if (fileInput) fileInput.value = '';
                         if (app.upload.restoreDropZone) app.upload.restoreDropZone();
-                        if (app.webrtc && app.webrtc.resetMobile) app.webrtc.resetMobile(); // Báo mobile reset
+                        if (app.webrtc && app.webrtc.resetMobile) app.webrtc.resetMobile(); 
                         return;
                     }
 
-                    // 1. Tạo Promise để ĐỢI quá trình đọc EXIF hoàn tất
                     const checkExif = new Promise((resolve, reject) => {
                         EXIF.getData(file, function () {
                             const model = EXIF.getTag(this, "Model");
@@ -14420,31 +14380,15 @@ app.admin.fetchManagerData('denied');
                             const lon = EXIF.getTag(this, "GPSLongitude");
                             const lonRef = EXIF.getTag(this, "GPSLongitudeRef");
 
-                            // Biến chứa Link hướng dẫn khắc phục để tái sử dụng
                             const helpLinkHTML = `<br><br><a href="javascript:void(0)" onclick="app.ui.closeAlert(true); setTimeout(() => app.utils.navigate('/help/1516371307481272330'), 300)" class="text-black font-bold hover:text-gray-700 hover:underline transition-colors inline-flex items-center gap-1.5"><i class="fa-solid fa-circle-info"></i> Tìm hiểu thêm & hướng dẫn khắc phục</a>`;
 
-                            // 1. Kiểm tra Tên thiết bị (Model)
-                            if (!model) {
-                                reject("Ảnh không chứa thông tin EXIF thiết bị (Model máy ảnh). Vui lòng chọn ảnh gốc chưa qua chỉnh sửa." + helpLinkHTML);
-                                return;
-                            }
-
-                            // 2. Kiểm tra Ngày chụp
-                            if (!dateTimeOriginal) {
-                                reject("Ảnh không chứa thông tin ngày chụp (EXIF Date). Việc có ngày chụp gốc là bắt buộc. Vui lòng chọn file ảnh nguyên bản." + helpLinkHTML);
-                                return;
-                            }
-
-                            // 3. Kiểm tra Thông số kỹ thuật (Khẩu độ, Tốc độ màn trập, ISO)
-                            if (!fNumber || !exposureTime || !iso) {
-                                reject("Ảnh bị thiếu thông số kỹ thuật máy ảnh (Khẩu độ, Tốc độ, ISO). Hệ thống bắt buộc yêu cầu các thông số này để xác thực ảnh gốc." + helpLinkHTML);
-                                return;
-                            }
+                            if (!model) { reject("Ảnh không chứa thông tin EXIF thiết bị (Model máy ảnh). Vui lòng chọn ảnh gốc chưa qua chỉnh sửa." + helpLinkHTML); return; }
+                            if (!dateTimeOriginal) { reject("Ảnh không chứa thông tin ngày chụp (EXIF Date). Việc có ngày chụp gốc là bắt buộc. Vui lòng chọn file ảnh nguyên bản." + helpLinkHTML); return; }
+                            if (!fNumber || !exposureTime || !iso) { reject("Ảnh bị thiếu thông số kỹ thuật máy ảnh (Khẩu độ, Tốc độ, ISO). Hệ thống bắt buộc yêu cầu các thông số này để xác thực ảnh gốc." + helpLinkHTML); return; }
 
                             let shutter = exposureTime;
                             if (exposureTime && exposureTime < 1) shutter = `1/${Math.round(1 / exposureTime)}`;
 
-                            // Đóng gói dữ liệu trả về nếu thành công
                             resolve({
                                 camera: model,
                                 params: `f/${fNumber} | ${shutter}s | ISO ${iso}`,
@@ -14455,10 +14399,8 @@ app.admin.fetchManagerData('denied');
                     });
 
                     try {
-                        // 2. CHỜ lấy xong dữ liệu EXIF
                         const exifData = await checkExif;
 
-                        // 3. Nếu thành công, gán dữ liệu vào UI
                         app.currentExif = { camera: exifData.camera, params: exifData.params };
                         document.getElementById('up-camera').value = app.currentExif.camera;
                         document.getElementById('up-exif-params').value = app.currentExif.params;
@@ -14481,7 +14423,6 @@ app.admin.fetchManagerData('denied');
                             }
                         }
 
-                        // 4. CHỈ KHI EXIF HỢP LỆ MỚI ĐƯỢC LOAD ẢNH VÀ HIỂN THỊ CROP
                         const img = new Image();
                         const url = URL.createObjectURL(file);
 
@@ -14492,17 +14433,15 @@ app.admin.fetchManagerData('denied');
                                 app.ui.showAlert(`Độ phân giải ảnh quá thấp (${w}x${h}). Yêu cầu chiều cao tối thiểu 1080px.`);
                                 e.target.value = ''; URL.revokeObjectURL(url);
                                 if (app.upload.restoreDropZone) app.upload.restoreDropZone();
-                                if (app.webrtc && app.webrtc.resetMobile) app.webrtc.resetMobile(); // Báo mobile reset
+                                if (app.webrtc && app.webrtc.resetMobile) app.webrtc.resetMobile(); 
                                 return;
                             }
 
                             const ratio = w / h;
-                            // Cho phép sai số nhỏ do ảnh có thể bị lệch vài pixel
                             const is4by3 = Math.abs(ratio - (4/3)) < 0.05;
                             const is3by2 = Math.abs(ratio - (3/2)) < 0.05;
                             const is16by9 = Math.abs(ratio - (16/9)) < 0.05;
 
-                            // Nếu ảnh không khớp 1 trong 3 tỉ lệ chuẩn thì mới ép mở bảng Cắt
                             if (!is4by3 && !is3by2 && !is16by9) {
                                 app.crop.open('main', file, true);
                             } else {
@@ -14515,18 +14454,17 @@ app.admin.fetchManagerData('denied');
                             app.ui.showAlert("Định dạng ảnh không được hỗ trợ hoặc file bị hỏng.");
                             e.target.value = ''; URL.revokeObjectURL(url);
                             if (app.upload.restoreDropZone) app.upload.restoreDropZone();
-                            if (app.webrtc && app.webrtc.resetMobile) app.webrtc.resetMobile(); // Báo mobile reset
+                            if (app.webrtc && app.webrtc.resetMobile) app.webrtc.resetMobile(); 
                         };
 
                         img.src = url;
 
                     } catch (errorMsg) {
-                        // 5. NẾU LỖI EXIF: Hiển thị thông báo, DỪNG HOẠT ĐỘNG, không show ảnh
                         app.ui.showAlert(errorMsg);
                         const fileInput = document.getElementById('up-file');
-                        if (fileInput) fileInput.value = ''; // Xóa file rác trong input
+                        if (fileInput) fileInput.value = ''; 
                         if (app.upload.restoreDropZone) app.upload.restoreDropZone();
-                        if (app.webrtc && app.webrtc.resetMobile) app.webrtc.resetMobile(); // Báo mobile reset
+                        if (app.webrtc && app.webrtc.resetMobile) app.webrtc.resetMobile(); 
                         return;
                     }
                 },
@@ -14539,7 +14477,6 @@ app.admin.fetchManagerData('denied');
                     document.getElementById('preview-box').classList.remove('hidden');
                     document.getElementById('drop-zone').classList.add('hidden');
 
-                    // Giữ nguyên box xanh và khôi phục trạng thái chữ
                     if (app.upload.restoreDropZone) app.upload.restoreDropZone();
 
                     const name = app.username || "Guest";
@@ -14641,12 +14578,12 @@ app.admin.fetchManagerData('denied');
                     document.addEventListener('touchend', onEnd);
                 },
 
+                // [MỚI] TÁCH LOGIC SUBMIT SANG HÀNG ĐỢI
                 submit: async (e) => {
                     e.preventDefault();
                     if (!app.user) return app.auth.check();
                     if (!app.rawFile) return app.ui.showAlert("Vui lòng chọn ảnh!");
 
-                    // Check quota trước khi submit
                     const q = app.upload.currentQuota;
                     if (q.limit !== null && q.count >= q.limit) {
                         return app.ui.showAlert(`Hệ thống đã đạt giới hạn nhận ${q.limit} ảnh của ngày hôm nay. Vui lòng quay lại sau 7:00 sáng mai!`);
@@ -14675,38 +14612,28 @@ app.admin.fetchManagerData('denied');
                         return app.ui.showAlert(msg, null, null, { title: "Thiếu thông tin" });
                     }
 
-
-                    // Bật Popup xác thực Captcha
                     let captchaResponse;
                     try {
                         captchaResponse = await app.captcha.request();
                     } catch (err) {
-                        if (err.message === "CAPTCHA_CANCELLED") {
-                            return; // Hủy upload im lặng
-                        }
+                        if (err.message === "CAPTCHA_CANCELLED") return; 
                         return app.ui.showAlert("Lỗi xác thực Captcha.");
                     }
-
-                    const formData = new FormData(e.target);
-
-
-                    // Check duplicate đã được kiểm tra realtime trước đó
-
 
                     const btn = document.getElementById('btn-submit');
                     const originalText = btn.innerHTML;
 
-
                     btn.disabled = true;
-                    app.ui.showUploadProgress();
-                    app.ui.setUploadProgress(40, 800);
-                    document.getElementById('up-progress-title').innerText = 'Đang xử lý ảnh...';
+                    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang nén ảnh...`;
 
-                    // KHỞI TẠO BIẾN ĐỂ TRACK THÔNG TIN BUG REPORT TẠI ĐÂY
-                    let originalSizeKB = (app.rawFile.size / 1024).toFixed(2);
-                    let compressedSizeKB = null;
+                    // Giao tiếp qua Toast
+                    if (!app.upload.activeProgressToast) {
+                        app.upload.activeProgressToast = app.toast.createProgress('Đang chuẩn bị ảnh...');
+                    }
+                    app.upload.activeProgressToast.update(20, 'Đang chuẩn bị ảnh...', 'Áp dụng Watermark & Nén (Không chuyển trang)...');
 
                     try {
+                        let originalSizeKB = (app.rawFile.size / 1024).toFixed(2);
                         const username = app.username || "Guest";
                         let compressedFile = app.upload.readyBlob;
                         const targetMime = app.utils.getTargetMimeType();
@@ -14717,41 +14644,29 @@ app.admin.fetchManagerData('denied');
                             try {
                                 compressedFile = await imageCompression(finalBlob, compressOptions);
                             } catch (compressErr) {
-                                btn.innerHTML = originalText;
-                                btn.disabled = false;
-                                app.ui.closeUploadProgress();
                                 throw new Error("Lỗi nén ảnh (Image Compression): " + compressErr.message);
                             }
                         }
 
-                        compressedSizeKB = (compressedFile.size / 1024).toFixed(2);
+                        let compressedSizeKB = (compressedFile.size / 1024).toFixed(2);
 
                         if (compressedFile.type !== targetMime) {
-                            btn.innerHTML = originalText;
-                            btn.disabled = false;
-                            app.ui.closeUploadProgress();
                             throw new Error(`Trình duyệt của bạn không hỗ trợ định dạng ${targetMime}.`);
                         }
 
                         if (compressedFile.size > 1.5 * 1024 * 1024) {
-                            btn.innerHTML = originalText;
-                            btn.disabled = false;
-                            app.ui.closeUploadProgress();
-                            throw new Error("Ảnh quá phức tạp, không thể nén xuống mức an toàn (< 1.5MB). Vui lòng chọn ảnh khác!");
+                            throw new Error("Ảnh quá phức tạp, không thể nén xuống mức an toàn (< 1.5MB). Vui lòng chọn ảnh khác hoặc crop nhỏ lại!");
                         }
 
+                        // Gom dữ liệu để đẩy vào Hàng đợi (Queue)
                         const uploadData = new FormData();
-
-                        // 1. Thêm các trường cơ bản
                         uploadData.append('file', compressedFile);
                         uploadData.append('userId', app.user.id);
                         uploadData.append('captchaToken', captchaResponse);
                         uploadData.append('fileExtension', app.utils.getTargetExtension());
-
-                        // 2. Thêm TRỰC TIẾP từng trường metadata (Không dùng JSON.stringify nữa)
                         uploadData.append('meta_plate', valPlate.replace(/[^A-Z0-9-]/gi, '').toUpperCase());
                         uploadData.append('meta_operator', app.utils.fixUnicode(valOp));
-                        uploadData.append('meta_type', document.getElementById('up-type').value);
+                        uploadData.append('meta_type', valType);
                         uploadData.append('meta_route', app.utils.fixUnicode(valRoute));
                         uploadData.append('meta_model', app.utils.fixUnicode(valModel));
                         uploadData.append('meta_location', app.utils.fixUnicode(valLoc));
@@ -14761,38 +14676,233 @@ app.admin.fetchManagerData('denied');
                         uploadData.append('meta_camera_model', app.currentExif.camera);
                         uploadData.append('meta_exif_params', app.currentExif.params);
 
-                        const { data: { session } } = await window.sb.auth.getSession();
-                        let token = session?.access_token;
+                        app.upload.uploadQueue.push({
+                            formData: uploadData,
+                            plate: valPlate.replace(/[^A-Z0-9-]/gi, '').toUpperCase(),
+                            originalSizeKB: originalSizeKB,
+                            compressedSizeKB: compressedSizeKB,
+                            fileName: app.rawFile ? app.rawFile.name : 'N/A',
+                            fileType: app.rawFile ? app.rawFile.type : 'N/A'
+                        });
+
+                        // Ảo hóa Quota để chặn upload nếu đang trong hàng chờ
+                        if (app.upload.currentQuota.limit !== null) app.upload.currentQuota.count++;
+
+                        // Xóa sạch form ngay lập tức cho người dùng thao tác tiếp
+                        app.utils.cleanupState(); 
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                        app.upload.processQueue();
+
+                    } catch (err) {
+                        if (app.upload.activeProgressToast) {
+                            app.upload.activeProgressToast.remove();
+                            app.upload.activeProgressToast = null;
+                        }
+                        app.ui.showUploadProgress(); 
+                        app.ui.updateUploadError(err.message);
+                    } finally {
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                    }
+                },
+
+                triggerEmptyWarnings: () => {
+                    const fields = [
+                        {id: 'up-plate', errId: 'plate-msg', name: 'Biển kiểm soát'},
+                        {id: 'up-route', errId: 'err-up-route', name: 'Mã số tuyến'},
+                        {id: 'up-operator', errId: 'err-up-operator', name: 'Đơn vị vận hành'},
+                        {id: 'up-model', errId: 'err-up-model', name: 'Dòng xe'},
+                        {id: 'up-location', errId: 'err-up-location', name: 'Vị trí chụp'}
+                    ];
+
+                    fields.forEach(f => {
+                        const el = document.getElementById(f.id);
+                        const errEl = document.getElementById(f.errId);
+                        if (el && errEl && !el.readOnly) {
+                            if (!el.value.trim()) {
+                                if (f.id === 'up-plate') {
+                                    if (!errEl.innerText.includes("Định dạng")) {
+                                        errEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Vui lòng nhập ${f.name}`;
+                                        errEl.className = "text-xs mt-1 text-red-600 font-bold";
+                                    }
+                                } else {
+                                    errEl.classList.remove('hidden');
+                                }
+                                el.classList.remove('border-gray-300', 'focus:ring-black');
+                                el.classList.add('border-red-500', 'focus:ring-red-500');
+                            } else {
+                                if (f.id !== 'up-plate') errEl.classList.add('hidden');
+                                else if (errEl.innerText.includes("Vui lòng nhập")) errEl.innerText = "";
+                                el.classList.remove('border-red-500', 'focus:ring-red-500');
+                                el.classList.add('border-gray-300', 'focus:ring-black');
+                            }
+                        }
+                    });
+                    
+                    const typeMsg = document.getElementById('type-msg');
+                    if (typeMsg) {
+                        if (!document.getElementById('up-type').value) {
+                            typeMsg.classList.remove('hidden');
+                        } else {
+                            typeMsg.classList.add('hidden');
+                        }
+                    }
+                },
+                
+                initValidation: () => {
+                    const fields = [
+                        {id: 'up-plate', errId: 'plate-msg', name: 'Biển kiểm soát'},
+                        {id: 'up-route', errId: 'err-up-route', name: 'Mã số tuyến'},
+                        {id: 'up-operator', errId: 'err-up-operator', name: 'Đơn vị vận hành'},
+                        {id: 'up-model', errId: 'err-up-model', name: 'Dòng xe'},
+                        {id: 'up-location', errId: 'err-up-location', name: 'Vị trí chụp'}
+                    ];
+
+                    fields.forEach(f => {
+                        const el = document.getElementById(f.id);
+                        const errEl = document.getElementById(f.errId);
+                        if (el && errEl) {
+                            const clearError = () => {
+                                if (f.id !== 'up-plate') {
+                                    errEl.classList.add('hidden');
+                                } else if (errEl.innerText.includes("Vui lòng nhập")) {
+                                    errEl.innerText = "";
+                                }
+                                el.classList.remove('border-red-500', 'focus:ring-red-500');
+                                el.classList.add('border-gray-300', 'focus:ring-black');
+                            };
+
+                            el.addEventListener('blur', () => {
+                                if (!el.value.trim() && !el.readOnly) {
+                                    if (f.id === 'up-plate') {
+                                        if (!errEl.innerText.includes("Định dạng")) {
+                                            errEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Vui lòng nhập ${f.name}`;
+                                            errEl.className = "text-xs mt-1 text-red-600 font-bold";
+                                        }
+                                    } else {
+                                        errEl.classList.remove('hidden');
+                                    }
+                                    el.classList.remove('border-gray-300', 'focus:ring-black');
+                                    el.classList.add('border-red-500', 'focus:ring-red-500');
+                                } else {
+                                    clearError();
+                                }
+                            });
+                            
+                            el.addEventListener('input', clearError);
+                            el.addEventListener('change', clearError);
+                        }
+                    });
+                },
+                checkQuota: async () => {
+                    if (!app.user) return;
+
+                    const pill = document.getElementById('upload-quota-pill');
+                    const textEl = document.getElementById('upload-quota-text');
+                    const fileInput = document.getElementById('up-file');
+                    const btnSubmit = document.getElementById('btn-submit');
+
+                    if (!pill) return;
+                    pill.classList.remove('hidden');
+                    textEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-gray-400"></i>';
+
+                    try {
+                        const limitSetting = app.maintenance.settings['upload_quota']?.reason;
+                        const hasLimit = limitSetting && limitSetting.trim() !== '';
+                        const limitNum = hasLimit ? parseInt(limitSetting) : null;
+
+                        const last7AM = app.utils.getLast7AM_UTC7();
+                        const { count } = await window.sb.from('photos')
+                            .select('*', { count: 'exact', head: true })
+                            .gte('created_at', last7AM);
+
+                        app.upload.currentQuota = { limit: limitNum, count: count || 0 };
+
+                        textEl.classList.remove('text-black', 'text-amber-500', 'text-red-600');
+
+                        // Cộng dồn ảo hóa trong UI Queue
+                        const totalQueueAssumed = app.upload.uploadQueue.length;
+                        const realCount = (count || 0) + totalQueueAssumed;
+
+                        if (!hasLimit) {
+                            textEl.innerText = `${realCount} lượt (Không giới hạn)`;
+                            textEl.classList.add('text-black');
+                            fileInput.disabled = false;
+                            fileInput.classList.remove('opacity-50', 'cursor-not-allowed');
+                        } else {
+                            textEl.innerText = `${realCount}/${limitNum} lượt hôm nay`;
+                            const remaining = limitNum - realCount;
+
+                            if (limitNum === 0 || remaining <= 0) {
+                                textEl.classList.add('text-red-600');
+                                fileInput.disabled = true;
+                                btnSubmit.disabled = true;
+                                fileInput.classList.add('opacity-50', 'cursor-not-allowed');
+                                textEl.innerText = limitNum === 0 ? `Hệ thống tạm đóng upload` : `Hết slot hôm nay (${realCount}/${limitNum})`;
+                            } else if (remaining <= 3) {
+                                textEl.classList.add('text-amber-500');
+                                fileInput.disabled = false;
+                                fileInput.classList.remove('opacity-50', 'cursor-not-allowed');
+                            } else {
+                                textEl.classList.add('text-black');
+                                fileInput.disabled = false;
+                                fileInput.classList.remove('opacity-50', 'cursor-not-allowed');
+                            }
+                        }
+                    } catch (e) {
+                        textEl.innerText = "Lỗi kiểm tra giới hạn";
+                        textEl.classList.add('text-red-500');
+                    }
+                },
+                
+                // [MỚI] HÀM TIẾN TRÌNH XỬ LÝ HÀNG ĐỢI
+                processQueue: async () => {
+                    if (app.upload.isQueueProcessing || app.upload.uploadQueue.length === 0) return;
+                    app.upload.isQueueProcessing = true;
+
+                    while (app.upload.uploadQueue.length > 0) {
+                        const item = app.upload.uploadQueue[0];
+                        const remaining = app.upload.uploadQueue.length;
+
+                        if (!app.upload.activeProgressToast) {
+                            app.upload.activeProgressToast = app.toast.createProgress('Đang tải lên...');
+                        }
+
+                        const titleText = remaining > 1 ? `Đang xử lý tiếp (${remaining} ảnh xếp hàng)...` : `Đang tải lên máy chủ...`;
+                        app.upload.activeProgressToast.update(50, titleText, `BKS: ${item.plate}`);
+
+                        let token;
+                        try {
+                            const { data: { session } } = await window.sb.auth.getSession();
+                            token = session?.access_token;
+                        } catch (e) {}
 
                         let result = null;
                         let uploadAttempts = 0;
                         const maxUploadAttempts = 3;
                         let lastUploadErr = null;
-                        app.ui.setUploadProgress(80, 2000);
-                        document.getElementById('up-progress-title').innerText = 'Đang tải lên dữ liệu...';
-                        
+
                         while (uploadAttempts < maxUploadAttempts) {
                             uploadAttempts++;
                             try {
                                 const response = await fetch('/api/upload', {
                                     method: 'POST',
-                                    headers: {
-                                        'Authorization': `Bearer ${token}`
-                                    },
-                                    body: uploadData
+                                    headers: { 'Authorization': `Bearer ${token}` },
+                                    body: item.formData
                                 });
 
                                 result = await response.json();
 
                                 if (response.status === 401 || (result && result.error && result.error.message && result.error.message.includes('JWT'))) {
-                                    app.ui.showAlert('Phiên đăng nhập đã hết hạn. Đang cố gắng khôi phục...', null, null, { title: 'Đang kết nối lại' });
+                                    app.upload.activeProgressToast.update(60, 'Phiên hết hạn, đang kết nối lại...', `Thử lại lần ${uploadAttempts}`);
                                     const { data: { session: newSession } } = await window.sb.auth.refreshSession();
                                     if (newSession && newSession.access_token) {
                                         token = newSession.access_token;
                                         uploadAttempts--;
                                         continue;
                                     } else {
-                                        throw new Error('Phiên đã hết hạn. Vui lòng đăng nhập lại.');
+                                        throw new Error('Phiên đã hết hạn. Vui lòng tải lại trang và đăng nhập lại.');
                                     }
                                 }
 
@@ -14803,156 +14913,119 @@ app.admin.fetchManagerData('denied');
                                     }
                                     throw new Error(errorDetail || 'Máy chủ từ chối yêu cầu Upload.');
                                 }
-
-                                // Nếu thành công thì thoát vòng lặp
                                 break;
                             } catch (err) {
                                 lastUploadErr = err;
-                                console.warn(`Upload attempt ${uploadAttempts} failed:`, err.message);
                                 if (uploadAttempts < maxUploadAttempts) {
-                                    const text = document.getElementById('up-progress-title');
-                                    if (text) text.innerText = `Lỗi kết nối. Đang thử lại lần ${uploadAttempts + 1}/${maxUploadAttempts}...`;
-                                    await new Promise(r => setTimeout(r, 2000));
+                                    app.upload.activeProgressToast.update(50, `Lỗi mạng. Đang thử lại ${uploadAttempts}/${maxUploadAttempts}...`, `BKS: ${item.plate}`);
+                                    await new Promise(r => setTimeout(r, 2500));
                                 }
                             }
                         }
 
                         if (!result || !result.success) {
-                            // [MỚI] LOGIC TỰ ĐỘNG XÓA ẢNH IMAGEKIT NẾU LƯU VÀO DATABASE THẤT BẠI
+                            // FALLBACK XOÁ ẢNH KHI LỖI DB
                             if (result && result.url) {
                                 try {
-                                    console.log("Phát hiện lỗi Database, đang tự động thu hồi ảnh trên ImageKit...");
                                     await fetch('/api/delete-image', {
                                         method: 'POST',
-                                        headers: {
-                                            'Content-Type': 'application/json',
-                                            'Authorization': `Bearer ${token}`
-                                        },
+                                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                                         body: JSON.stringify({ imageUrl: result.url })
                                     });
-                                } catch (delErr) {
-                                    console.error("Lỗi khi rollback xóa ảnh ImageKit:", delErr);
-                                }
+                                } catch (delErr) {}
                             }
-                            throw lastUploadErr || new Error('Upload thất bại sau nhiều lần thử. Vui lòng kiểm tra lại mạng.');
+
+                            if (app.upload.activeProgressToast) {
+                                app.upload.activeProgressToast.remove();
+                                app.upload.activeProgressToast = null;
+                            }
+
+                            // Xóa ảnh lỗi khỏi queue
+                            app.upload.uploadQueue.shift();
+                            app.upload.isQueueProcessing = false;
+
+                            let displayError = lastUploadErr ? lastUploadErr.message : "Upload thất bại";
+                            if (displayError === '[object Object]') displayError = JSON.stringify(lastUploadErr);
+
+                            const localErrors = ["Trình duyệt của bạn không hỗ trợ", "Ảnh quá phức tạp", "Lỗi nén ảnh"];
+                            const shouldReport = !localErrors.some(eStr => displayError.includes(eStr));
+                            let actuallyReported = false;
+
+                            if (shouldReport) {
+                                try {
+                                    const reportRes = await fetch('/api/notify', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({
+                                            action: 'bug',
+                                            errorMessage: displayError,
+                                            fileInfo: { name: item.fileName, type: item.fileType, originalSize: item.originalSizeKB, compressedSize: item.compressedSizeKB },
+                                            consoleLogs: window._consoleErrors || [],
+                                            user: app.user ? { username: app.username, id: app.user.id } : null,
+                                            userAgent: navigator.userAgent
+                                        })
+                                    });
+                                    if (reportRes.ok) { const rData = await reportRes.json(); if (rData && rData.success) actuallyReported = true; }
+                                } catch (e) {}
+                            }
+
+                            const uiErrorMsg = actuallyReported ? displayError : `[NO_REPORT] ${displayError}`;
+                            app.ui.showUploadProgress(); 
+                            app.ui.updateUploadError(uiErrorMsg);
+                            break; // NGẮT TIẾN TRÌNH KHÔNG CHẠY CÁC ẢNH SAU CHO TỚI KHI USER THAO TÁC LẠI
                         }
 
+                        // --- THÀNH CÔNG ---
+                        app.upload.activeProgressToast.update(100, `Hoàn thành ${item.plate}!`, 'Đang đồng bộ dữ liệu...');
+                        app.upload.uploadQueue.shift(); 
 
-                        // Đã bỏ verifyImageLoaded để không block UI người dùng chờ CDN cache.
-
-                        app.upload.clearDraft(); // Xoá draft sau khi upload thành công
-                        
-                        // TÍNH TOÁN SỐ LƯỢNG HÀNG ĐỢI & LẤY ID ẢNH VỪA ÚP
                         let queueCount = '?';
-                        let newPhotoId = null; // Khởi tạo biến lưu ID ảnh mới
-                        
+                        let newPhotoId = null;
                         try {
                             const { data: pendingData } = await window.sb.from('photos').select('id, uploader_id, created_at, profiles(role)').eq('status', 'pending');
                             if (pendingData) {
                                 let ahead = 0;
                                 const isMePrivileged = (app.role === 'admin' || app.role === 'manager');
-                                
                                 const myPhotos = pendingData.filter(p => p.uploader_id === app.user.id).sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
-                                
                                 if (myPhotos.length > 0) {
                                     const myPhoto = myPhotos[0];
-                                    newPhotoId = myPhoto.id; // LƯU ID LẠI ĐỂ TRUYỀN VÀO TOAST
+                                    newPhotoId = myPhoto.id;
                                     const myTime = new Date(myPhoto.created_at).getTime();
 
                                     pendingData.forEach(p => {
-                                        if (p.id === myPhoto.id) return; 
+                                        if (p.id === myPhoto.id) return;
                                         const pRole = p.profiles?.role || 'user';
                                         const pPrivileged = (pRole === 'admin' || pRole === 'manager');
                                         const pTime = new Date(p.created_at).getTime();
 
-                                        if (isMePrivileged) {
-                                            if (pPrivileged && pTime < myTime) ahead++;
-                                        } else {
-                                            if (pPrivileged) ahead++;
-                                            else if (pTime < myTime) ahead++;
-                                        }
+                                        if (isMePrivileged) { if (pPrivileged && pTime < myTime) ahead++; }
+                                        else { if (pPrivileged) ahead++; else if (pTime < myTime) ahead++; }
                                     });
                                     queueCount = ahead;
-                                } else {
-                                    queueCount = Math.max(0, pendingData.length - 1);
-                                }
+                                } else { queueCount = Math.max(0, pendingData.length - 1); }
                             }
-                        } catch (e) {
-                            console.error("Lỗi đếm hàng đợi:", e);
-                        }
+                        } catch (e) {}
 
-                        // 1. Dọn dẹp form ngay lập tức
-                        app.utils.cleanupState(); 
-                        
-                        // 2. Cuộn mượt mà lên đầu trang
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                        
-                        // 3. Bắn Toast Notification kèm ID chuyển trang
                         app.toast.show(
-                            'success', 
-                            'Ảnh đã upload thành công!', 
-                            `Đã đưa vào hàng chờ kiểm duyệt. Chờ duyệt trước bạn: <b>${queueCount} ảnh</b>. Nhấn để xem chi tiết.`, 
-                            10000,
-                            newPhotoId ? () => { app.utils.navigate(`/photo/${newPhotoId}`); } : null // TRUYỀN HÀM CHUYỂN TRANG VÀO ĐÂY
+                            'success',
+                            `Đã tải lên xe ${item.plate}!`,
+                            `Chờ duyệt trước bạn: <b>${queueCount} ảnh</b>. Nhấn để xem chi tiết.`,
+                            7000,
+                            newPhotoId ? () => { app.utils.navigate(`/photo/${newPhotoId}`); } : null
                         );
-
-                    } catch (err) {
-                        let displayError = err.message;
-                        if (displayError === '[object Object]') {
-                            displayError = JSON.stringify(err);
-                        }
-
-                        // Danh sách các lỗi CỤC BỘ (Do thiết bị người dùng) KHÔNG cần gửi lên Discord gây rác hệ thống
-                        const localErrors = [
-                            "Trình duyệt của bạn không hỗ trợ",
-                            "Ảnh quá phức tạp",
-                            "Lỗi nén ảnh"
-                        ];
-                        
-                        const shouldReport = !localErrors.some(eStr => displayError.includes(eStr));
-
-                        let actuallyReported = false;
-
-                        // === BẮT ĐẦU GỬI BUG REPORT TỰ ĐỘNG VỀ API (NẾU HỢP LỆ) ===
-                        if (shouldReport) {
-                            try {
-                                const reportRes = await fetch('/api/notify', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({
-                                        action: 'bug',
-                                        errorMessage: displayError,
-                                        fileInfo: {
-                                            name: app.rawFile ? app.rawFile.name : 'N/A',
-                                            type: app.rawFile ? app.rawFile.type : 'N/A',
-                                            originalSize: originalSizeKB,
-                                            compressedSize: compressedSizeKB
-                                        },
-                                        consoleLogs: window._consoleErrors || [],
-                                        user: app.user ? { username: app.username, id: app.user.id } : null,
-                                        userAgent: navigator.userAgent
-                                    })
-                                });
-
-                                if (reportRes.ok) {
-                                    const reportData = await reportRes.json();
-                                    if (reportData && reportData.success) {
-                                        actuallyReported = true;
-                                    }
-                                }
-                            } catch (reportErr) {
-                                console.error("Không thể gửi bug report:", reportErr);
-                            }
-                        }
-
-                        // Nếu không report thành công, dán nhãn [NO_REPORT] để UI biết đường hiển thị
-                        const uiErrorMsg = actuallyReported ? displayError : `[NO_REPORT] ${displayError}`;
-                        app.ui.updateUploadError(uiErrorMsg);
-                    } finally {
-                        btn.innerHTML = originalText;
-                        btn.disabled = false;
                     }
-                },
+
+                    if (app.upload.uploadQueue.length === 0) {
+                        if (app.upload.activeProgressToast) {
+                            app.upload.activeProgressToast.remove();
+                            app.upload.activeProgressToast = null;
+                        }
+                        app.upload.isQueueProcessing = false;
+                        app.upload.checkQuota(); // Check quota thực tế lại khi vừa up xong
+                    }
+                }
+
+            },
                 triggerEmptyWarnings: () => {
                     const fields = [
                         {id: 'up-plate', errId: 'plate-msg', name: 'Biển kiểm soát'},
