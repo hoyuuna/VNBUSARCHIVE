@@ -33,7 +33,7 @@ try {
         // Tự động tìm thẻ <!-- INJECT_JS --> trong _core.html để chèn code vào
         const injectTag = '<!-- INJECT_JS -->';
         if (content.includes(injectTag)) {
-            content = content.replace(injectTag, `<script>\n${combinedJs}\n</script>`);
+            content = content.replace(injectTag, `\n${combinedJs}\n`);
             console.log('Đã gộp 5 file JS vào HTML thành công!');
         } else {
             console.warn('Không tìm thấy thẻ <!-- INJECT_JS --> trong _core.html. Bỏ qua gộp JS.');
