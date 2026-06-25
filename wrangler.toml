@@ -1,3 +1,7 @@
+name = "vnbusarchive"
+compatibility_date = "2024-06-20"
+pages_build_output_dir = "public"
+
 # Chứa các biến môi trường cấu hình công khai
 [vars]
 FIREBASE_API_KEY = "AIzaSyCqgJRig1MMrAAD6GD6gJirua2HM9yzQEg"
