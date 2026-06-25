@@ -3071,7 +3071,6 @@
                             </div>
                         </div>
 
-
                         <div id="denial-reason-box"
                             class="hidden bg-red-50 p-4 rounded-md border border-red-200 mt-4 mb-6 shadow-sm">
                             <div class="flex items-center gap-2 text-red-700 font-bold text-sm mb-1">
@@ -3116,24 +3115,27 @@
                             </p>
                         </div>
 
-                        <div class="bg-white mb-6 relative rounded-lg border border-vbs-border p-4 shadow-sm">
-                            <div class="absolute top-0 right-0 m-4 flex gap-2 z-10">
+                        <div class="bg-white mb-6 relative border border-gray-200 shadow-sm rounded-xl p-2.5 pt-3.5 pb-2.5 md:p-3 md:pt-4 md:pb-3 overflow-hidden">
+                            
+                            <!-- Bổ sung tiêu đề cho đồng bộ với cột bên phải -->
+                            <h3 class="font-bold text-xs uppercase text-black tracking-wider mb-2.5 px-1">Thông tin chi tiết</h3>
+
+                            <div class="absolute top-0 right-0 mt-2.5 mr-2.5 md:mt-3 md:mr-3 flex gap-2 z-10">
                                 <button id="btn-toggle-edit" onclick="app.edit.toggleInlineEdit()"
-                                    class="text-xs text-black hover:bg-gray-100 bg-white px-3 py-1.5 border border-gray-200 rounded-md transition shadow-sm font-medium">
-                                    <i class="fa-solid fa-pen-to-square mr-1"></i> <span id="btn-edit-label">Sửa thông
-                                        tin</span>
+                                    class="text-[11px] md:text-xs text-black hover:bg-gray-100 bg-white px-2.5 py-1.5 md:px-3 border border-gray-200 rounded-md transition shadow-sm font-medium">
+                                    <i class="fa-solid fa-pen-to-square mr-1"></i> <span id="btn-edit-label">Sửa thông tin</span>
                                 </button>
                             </div>
 
                             <div id="edit-mode-notice"
-                                class="hidden bg-amber-50 text-amber-800 text-xs p-3 border border-amber-200 rounded-md mb-4">
+                                class="hidden bg-amber-50 text-amber-800 text-xs p-3 border border-amber-200 rounded-lg mb-4">
                                 <i class="fa-solid fa-triangle-exclamation mr-1"></i>
-                                <span id="edit-notice-text">Bạn đang ở chế độ chỉnh sửa. Thay đổi sẽ được gửi yêu cầu
-                                    duyệt.</span>
+                                <span id="edit-notice-text">Bạn đang ở chế độ chỉnh sửa. Thay đổi sẽ được gửi yêu cầu duyệt.</span>
                             </div>
 
                             <form id="inline-edit-form">
-                                <table class="info-table">
+                                <!-- ÉP margin-bottom 0 để triệt tiêu cái cằm -->
+                                <table class="info-table border-gray-200" style="margin-bottom: 0 !important;">
                                     <tr>
                                         <td class="label">Biển kiểm soát</td>
                                         <td class="value-cell"><input type="text" id="info-plate"
@@ -3153,7 +3155,7 @@
                                                     oninput="app.utils.formatNoPunctuation(this)" x-on:input.debounce.300ms="app.utils.triggerSuggestion('info-operator', 'info-operator-suggestions', $el.value, 'operator')">
                                                 <div id="info-operator-suggestions" class="suggestion-box"></div>
                                             </div>
-</td>
+                                        </td>
                                      </tr>
                                     <!-- QUAY LẠI SELECT MẶC ĐỊNH CHO LOẠI XE -->
                                     <tr>
@@ -3166,7 +3168,7 @@
                                         </td>
                                     </tr>
                                      <tr>
-                                         <td class="label">Tuyến</td>
+                                         <td class="label" id="lbl-detail-route">Tuyến</td>
                                         <td class="value-cell" x-data>
                                             <div class="relative w-full h-full">
                                                 <input type="text" id="info-route" autocomplete="off"
