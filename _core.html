@@ -3404,14 +3404,17 @@
         #ticket-sidebar { display: flex; flex-direction: column; width: 100%; flex-shrink: 0; border-right: 1px solid #e5e7eb; background: rgba(249, 250, 251, 0.3); height: 100%; }
         #ticket-chat-area { display: none; flex-direction: column; width: 100%; height: 100%; position: relative; background: white; }
         
+        /* Giao diện Desktop: Luôn hiện 2 cột cạnh nhau */
         @media (min-width: 768px) {
             #ticket-sidebar { width: 33.33%; display: flex !important; }
             #ticket-chat-area { width: 66.67%; display: flex !important; }
         }
         
-        /* Class kích hoạt đổi màn hình trên Mobile */
-        .ticket-mobile-open #ticket-sidebar { display: none !important; }
-        .ticket-mobile-open #ticket-chat-area { display: flex !important; }
+        /* Giao diện Mobile: Ẩn hiện luân phiên khi có class ticket-mobile-open */
+        @media (max-width: 767px) {
+            .ticket-mobile-open #ticket-sidebar { display: none !important; }
+            .ticket-mobile-open #ticket-chat-area { display: flex !important; }
+        }
     </style>
 
     <div id="ticket-wrapper">
@@ -4667,7 +4670,7 @@ ticket: {
                             <div class="flex items-center">${statusBadge} ${unreadBadge}</div>
                         </div>
                         <div class="flex items-center gap-2">
-                            <img src="${avatarUrl}" class="w-6 h-6 rounded-full object-cover bg-gray-100 shrink-0">
+                            <img src="${avatarUrl}" class="w-8 h-8 min-w-[32px] min-h-[32px] rounded-full object-cover bg-gray-100 shrink-0 border border-gray-200">
                             <div class="overflow-hidden">
                                 <p class="text-xs font-bold text-gray-800 truncate">${app.utils.cleanText(displayName)}</p>
                                 <p class="text-[10px] text-gray-500 truncate mt-0.5">${app.utils.cleanText(t.last_message || '')}</p>
@@ -4690,7 +4693,7 @@ ticket: {
         document.getElementById('ticket-empty-state').classList.add('hidden');
         app.ticket.updateChatHeader(tData);
 
-        // KÍCH HOẠT MOBILE VIEW (SỬ DỤNG CSS CLASS THÔNG MINH)
+        // KÍCH HOẠT MOBILE VIEW (Chỉ tác dụng trên màn hình nhỏ nhờ CSS mới)
         document.getElementById('ticket-wrapper').classList.add('ticket-mobile-open');
 
         const msgContainer = document.getElementById('ticket-messages');
@@ -4705,7 +4708,9 @@ ticket: {
             const badge = msg.sender_role === 'manager' || msg.sender_role === 'admin' ? '<i class="fa-solid fa-shield-halved text-blue-500 ml-1 text-[10px]" title="Ban Quản Trị"></i>' : '';
             const alignClass = isMe ? 'justify-end' : 'justify-start';
             const bubbleClass = isMe ? 'bg-black text-white rounded-2xl rounded-tr-sm' : 'bg-white border border-gray-200 text-black rounded-2xl rounded-tl-sm shadow-sm';
-            const avatarHtml = `<img src="${msg.sender_avatar}" class="w-7 h-7 rounded-full object-cover bg-gray-100 shrink-0 mt-auto">`;
+            
+            // Fix cứng kích thước Avatar
+            const avatarHtml = `<img src="${msg.sender_avatar}" class="w-8 h-8 min-w-[32px] min-h-[32px] rounded-full object-cover bg-gray-100 shrink-0 mt-auto border border-gray-200">`;
             
             msgContainer.innerHTML += `
                 <div class="flex w-full ${alignClass} gap-2 mb-4 fade-zoom-in">
@@ -4750,7 +4755,7 @@ ticket: {
     },
 
     closeMobileChat: () => {
-        // TẮT MOBILE VIEW
+        // TẮT MOBILE VIEW (Chỉ tác dụng trên Mobile)
         document.getElementById('ticket-wrapper').classList.remove('ticket-mobile-open');
         app.ticket.currentTicketId = null;
         app.ticket.loadTicketList();
