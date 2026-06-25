@@ -3254,12 +3254,11 @@
                     <div class="w-full lg:w-1/3 space-y-4">
                         
                         <!-- BẢNG THÔNG TIN CƠ BẢN -->
-                        <div class="bg-white border border-gray-200 shadow-sm rounded-xl p-4 md:p-5">
-                            <h3 class="font-bold text-sm uppercase text-black tracking-wide mb-3">Thông tin</h3>
+                        <div class="bg-white border border-gray-200 shadow-sm rounded-xl p-2.5 pt-3.5 md:p-3 md:pt-4">
+                            <h3 class="font-bold text-xs uppercase text-black tracking-wider mb-2.5 px-1">Thông tin</h3>
                             
-                            <!-- Bảng được gói gọn vào trong, có viền bo góc riêng -->
-                            <div class="border border-gray-200 rounded-lg overflow-hidden">
-                                <table class="data-table">
+                            <div class="border border-gray-200 rounded-lg overflow-hidden bg-white">
+                                <table class="data-table w-full">
                                     <tr>
                                         <td class="label">Người đăng</td>
                                         <td class="value cursor-pointer hover:underline" id="stat-uploader">...</td>
@@ -3279,8 +3278,7 @@
                                 </table>
                             </div>
                             
-                            <!-- Nhóm nút bấm được cách điệu nhẹ nhàng -->
-                            <div class="mt-4 pt-4 border-t border-gray-100 flex flex-col gap-2">
+                            <div class="mt-3 pt-3 border-t border-gray-100 flex flex-col gap-2">
                                 <button id="btn-download" onclick="app.photo.downloadImage(event)"
                                     class="w-full bg-white border border-gray-300 text-gray-700 py-2.5 text-sm font-bold rounded-md hover:bg-gray-50 transition shadow-sm">
                                     <i class="fa-solid fa-download mr-1"></i> Tải hình ảnh
@@ -3301,11 +3299,10 @@
                         </div>
 
                         <!-- BẢNG THÔNG SỐ KỸ THUẬT -->
-                        <div class="bg-white border border-gray-200 shadow-sm rounded-xl p-4 md:p-5">
-                            <h3 class="font-bold text-sm uppercase text-black tracking-wide mb-3">Thông số kỹ thuật</h3>
+                        <div class="bg-white border border-gray-200 shadow-sm rounded-xl p-2.5 pt-3.5 md:p-3 md:pt-4">
+                            <h3 class="font-bold text-xs uppercase text-black tracking-wider mb-2.5 px-1">Thông số kỹ thuật</h3>
                             
-                            <!-- Bỏ class ép phẳng viền, trả bảng info-table về bo tròn tự nhiên -->
-                            <table class="info-table mb-0 shadow-sm border-gray-200">
+                            <table class="info-table mb-0 border-gray-200">
                                 <tr>
                                     <td class="label bg-gray-50 border-r border-b border-gray-200">Thiết bị</td>
                                     <td class="value-cell border-b border-gray-200">
