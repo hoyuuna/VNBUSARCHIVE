@@ -3398,7 +3398,7 @@
             </div>
 
 <div id="ticket" class="view-section">
-    <div id="ticket-ui-container" class="max-w-6xl mx-auto h-[85vh] min-h-[500px] flex rounded-2xl shadow-sm border border-gray-200 bg-white overflow-hidden">
+    <div class="max-w-6xl mx-auto h-[85vh] min-h-[500px] flex rounded-2xl shadow-sm border border-gray-200 bg-white overflow-hidden">
         
         <!-- CỘT TRÁI: DANH SÁCH TICKET -->
         <div id="ticket-sidebar" class="w-full md:w-[35%] lg:w-[30%] flex flex-col bg-gray-50/30 border-r border-gray-200 shrink-0 h-full">
@@ -4556,7 +4556,6 @@
 ticket: {
     db: null,
     isInitialized: false,
-    isAdminMode: false,
     currentTicketId: null,
     listeners: {},
     typingTimeout: null,
@@ -4577,10 +4576,6 @@ ticket: {
         if (!app.user) return app.utils.navigate('/auth');
         app.views.switch('ticket', false);
         document.title = 'Hỗ trợ trực tuyến | VNBUSARCHIVE';
-
-        const uiContainer = document.getElementById('ticket-ui-container');
-        if (uiContainer) document.getElementById('ticket').appendChild(uiContainer);
-        app.ticket.isAdminMode = false;
 
         try {
             await app.ticket.initFirebase();
@@ -4622,11 +4617,7 @@ ticket: {
 
     loadTicketList: () => {
         const listEl = document.getElementById('ticket-list');
-<<<<<<< Updated upstream
-        const isManager = (app.role === 'admin' || app.role === 'manager') && app.ticket.isAdminMode;
-=======
         const isManager = false; // Luôn là false ở /ticket (Độc lập)
->>>>>>> Stashed changes
         const ref = app.ticket.db.ref('tickets');
         if (app.ticket.listeners['list']) ref.off('value', app.ticket.listeners['list']);
 
@@ -4683,11 +4674,7 @@ ticket: {
 
     openChat: (ticketId) => {
         app.ticket.currentTicketId = ticketId;
-<<<<<<< Updated upstream
-        const isManager = (app.role === 'admin' || app.role === 'manager') && app.ticket.isAdminMode;
-=======
         const isManager = false; // Luôn là false ở /ticket (Độc lập)
->>>>>>> Stashed changes
         const tData = app.ticket.ticketsData[ticketId];
 
         document.getElementById('ticket-empty-state').classList.add('hidden');
@@ -4766,11 +4753,7 @@ ticket: {
 
     updateChatHeader: (tData) => {
         if (!tData) return;
-<<<<<<< Updated upstream
-        const isManager = (app.role === 'admin' || app.role === 'manager') && app.ticket.isAdminMode;
-=======
         const isManager = false; // Luôn là false ở /ticket (Độc lập)
->>>>>>> Stashed changes
         document.getElementById('ticket-chat-title').innerText = `#${tData.id}`;
         const statusEl = document.getElementById('ticket-chat-status');
         const formEl = document.getElementById('ticket-chat-form');
@@ -4796,11 +4779,7 @@ ticket: {
         const text = input.value.trim();
         const tId = app.ticket.currentTicketId;
         if (!text || !tId) return;
-<<<<<<< Updated upstream
-        const isManager = (app.role === 'admin' || app.role === 'manager') && app.ticket.isAdminMode;
-=======
         const isManager = false; // Luôn là false ở /ticket (Độc lập)
->>>>>>> Stashed changes
         input.value = '';
 
         const msgRef = app.ticket.db.ref(`ticket_messages/${tId}`).push();
@@ -12737,15 +12716,14 @@ dropdown.innerHTML = `
                             app.admin.renderCommentsData();
                         } else if (tab === 'tickets') {
                             content.className = "col-span-full";
-                            const uiContainer = document.getElementById('ticket-ui-container');
-                            if (uiContainer) {
-                                content.innerHTML = '';
-                                content.appendChild(uiContainer);
-                            }
-                            app.ticket.isAdminMode = true;
-                            app.ticket.initFirebase().then(() => {
-                                app.ticket.loadTicketList();
-                            });
+                            content.innerHTML = `
+                                <div class="col-span-full bg-white border border-gray-200 rounded-2xl p-8 md:p-12 text-center shadow-sm">
+                                    <div class="w-20 h-20 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-4xl mx-auto mb-6 shadow-sm border border-blue-100"><i class="fa-solid fa-headset"></i></div>
+                                    <h3 class="text-2xl font-black uppercase text-black mb-3">Hệ thống Trò chuyện Hỗ trợ</h3>
+                                    <p class="text-gray-600 text-sm mb-8 max-w-lg mx-auto leading-relaxed">Để đảm bảo trải nghiệm nhắn tin tốt nhất (Realtime, thông báo gõ phím), tính năng trò chuyện được thiết kế ở một <b>giao diện độc lập hoàn toàn</b>.</p>
+                                    <button onclick="app.utils.navigate('/ticket')" class="bg-black text-white px-8 py-3.5 rounded-xl font-bold shadow-lg hover:bg-gray-800 transition hover:-translate-y-0.5"><i class="fa-solid fa-up-right-from-square mr-2"></i> Mở không gian làm việc</button>
+                                </div>
+                            `;
                         } else if (tab === 'manager') {
                             if (app.role !== 'manager') {
                                 content.innerHTML = '<p class="p-4 text-red-500 font-bold">Bạn không có quyền truy cập khu vực này.</p>';
