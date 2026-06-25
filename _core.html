@@ -3398,25 +3398,38 @@
             </div>
 
 <div id="ticket" class="view-section">
-    <div class="max-w-6xl mx-auto h-[85vh] min-h-[500px] flex rounded-2xl shadow-sm border border-gray-200 bg-white overflow-hidden">
+    <!-- CSS nhúng cứng để đảo bảo bố cục PC/Mobile luôn chuẩn mà không phụ thuộc Tailwind -->
+    <style>
+        #ticket-wrapper { display: flex; width: 100%; height: 85vh; min-height: 500px; border-radius: 1rem; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); border: 1px solid #e5e7eb; background: white; overflow: hidden; max-width: 72rem; margin: 0 auto; }
+        #ticket-sidebar { display: flex; flex-direction: column; width: 100%; flex-shrink: 0; border-right: 1px solid #e5e7eb; background: rgba(249, 250, 251, 0.3); height: 100%; }
+        #ticket-chat-area { display: none; flex-direction: column; width: 100%; height: 100%; position: relative; background: white; }
         
+        @media (min-width: 768px) {
+            #ticket-sidebar { width: 33.33%; display: flex !important; }
+            #ticket-chat-area { width: 66.67%; display: flex !important; }
+        }
+        
+        /* Class kích hoạt đổi màn hình trên Mobile */
+        .ticket-mobile-open #ticket-sidebar { display: none !important; }
+        .ticket-mobile-open #ticket-chat-area { display: flex !important; }
+    </style>
+
+    <div id="ticket-wrapper">
         <!-- CỘT TRÁI: DANH SÁCH TICKET -->
-        <div id="ticket-sidebar" class="w-full md:w-[35%] lg:w-[30%] flex flex-col bg-gray-50/30 border-r border-gray-200 shrink-0 h-full">
+        <div id="ticket-sidebar">
             <div class="p-4 border-b border-gray-200 bg-white flex justify-between items-center shrink-0">
                 <h2 class="font-bold text-lg uppercase tracking-tight text-black">Hỗ trợ</h2>
                 <button onclick="app.ticket.createNew()" class="bg-black text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-800 transition shadow-sm">
                     <i class="fa-solid fa-plus mr-1"></i> Tạo mới
                 </button>
             </div>
-            
             <div id="ticket-list" class="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-2">
                 <p class="text-center text-gray-400 py-10 text-xs"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang kết nối...</p>
             </div>
         </div>
 
         <!-- CỘT PHẢI: KHUNG CHAT -->
-        <div id="ticket-chat-area" class="hidden md:flex flex-col flex-1 bg-white h-full relative w-full">
-            
+        <div id="ticket-chat-area">
             <!-- Trạng thái trống (Chưa chọn ticket) -->
             <div id="ticket-empty-state" class="absolute inset-0 flex flex-col items-center justify-center bg-gray-50/50 z-30">
                 <div class="w-16 h-16 bg-white border border-gray-200 rounded-full flex items-center justify-center text-2xl text-gray-300 mb-3 shadow-sm"><i class="fa-solid fa-comments"></i></div>
@@ -4561,7 +4574,6 @@ ticket: {
     typingTimeout: null,
     ticketsData: {},
 
-    // Tách riêng hàm kết nối Firebase để Admin có thể đếm số ngầm
     initFirebase: async () => {
         if (app.ticket.isInitialized) return;
         const res = await fetch('/api/firebase-config');
@@ -4581,10 +4593,8 @@ ticket: {
             await app.ticket.initFirebase();
             app.ticket.loadTicketList();
             
-            // Xử lý UI Mobile khởi tạo
-            document.getElementById('ticket-sidebar').classList.remove('hidden');
-            document.getElementById('ticket-chat-area').classList.remove('flex');
-            document.getElementById('ticket-chat-area').classList.add('hidden', 'md:flex');
+            // Xóa class mở mobile (nếu có lưu từ trước) để reset về list
+            document.getElementById('ticket-wrapper').classList.remove('ticket-mobile-open');
         } catch (err) {
             app.ui.showAlert("Lỗi kết nối hệ thống Chat: " + err.message);
         }
@@ -4617,7 +4627,7 @@ ticket: {
 
     loadTicketList: () => {
         const listEl = document.getElementById('ticket-list');
-        const isManager = false; // Luôn là false ở /ticket (Độc lập)
+        const isManager = app.role === 'admin' || app.role === 'manager';
         const ref = app.ticket.db.ref('tickets');
         if (app.ticket.listeners['list']) ref.off('value', app.ticket.listeners['list']);
 
@@ -4674,17 +4684,14 @@ ticket: {
 
     openChat: (ticketId) => {
         app.ticket.currentTicketId = ticketId;
-        const isManager = false; // Luôn là false ở /ticket (Độc lập)
+        const isManager = app.role === 'admin' || app.role === 'manager';
         const tData = app.ticket.ticketsData[ticketId];
 
         document.getElementById('ticket-empty-state').classList.add('hidden');
         app.ticket.updateChatHeader(tData);
 
-        // Đóng mở giao diện mượt mà trên Mobile (Sửa triệt để vụ đè Layout)
-        document.getElementById('ticket-sidebar').classList.add('hidden', 'md:flex');
-        const chatArea = document.getElementById('ticket-chat-area');
-        chatArea.classList.remove('hidden');
-        chatArea.classList.add('flex');
+        // KÍCH HOẠT MOBILE VIEW (SỬ DỤNG CSS CLASS THÔNG MINH)
+        document.getElementById('ticket-wrapper').classList.add('ticket-mobile-open');
 
         const msgContainer = document.getElementById('ticket-messages');
         msgContainer.innerHTML = '';
@@ -4743,17 +4750,15 @@ ticket: {
     },
 
     closeMobileChat: () => {
-        document.getElementById('ticket-sidebar').classList.remove('hidden', 'md:flex');
-        document.getElementById('ticket-sidebar').classList.add('flex');
-        document.getElementById('ticket-chat-area').classList.add('hidden');
-        document.getElementById('ticket-chat-area').classList.remove('flex');
+        // TẮT MOBILE VIEW
+        document.getElementById('ticket-wrapper').classList.remove('ticket-mobile-open');
         app.ticket.currentTicketId = null;
         app.ticket.loadTicketList();
     },
 
     updateChatHeader: (tData) => {
         if (!tData) return;
-        const isManager = false; // Luôn là false ở /ticket (Độc lập)
+        const isManager = app.role === 'admin' || app.role === 'manager';
         document.getElementById('ticket-chat-title').innerText = `#${tData.id}`;
         const statusEl = document.getElementById('ticket-chat-status');
         const formEl = document.getElementById('ticket-chat-form');
@@ -4779,7 +4784,7 @@ ticket: {
         const text = input.value.trim();
         const tId = app.ticket.currentTicketId;
         if (!text || !tId) return;
-        const isManager = false; // Luôn là false ở /ticket (Độc lập)
+        const isManager = app.role === 'admin' || app.role === 'manager';
         input.value = '';
 
         const msgRef = app.ticket.db.ref(`ticket_messages/${tId}`).push();
@@ -4806,7 +4811,7 @@ ticket: {
         catch (e) { app.ui.showAlert("Lỗi đổi trạng thái: " + e.message); }
     }
 },
-            toast: {
+                        toast: {
                 currentOfflineToast: null,
                 
                 show: (type, title, message, duration = 10000, onClickAction = null) => {
@@ -12720,8 +12725,8 @@ dropdown.innerHTML = `
                                 <div class="col-span-full bg-white border border-gray-200 rounded-2xl p-8 md:p-12 text-center shadow-sm">
                                     <div class="w-20 h-20 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-4xl mx-auto mb-6 shadow-sm border border-blue-100"><i class="fa-solid fa-headset"></i></div>
                                     <h3 class="text-2xl font-black uppercase text-black mb-3">Hệ thống Trò chuyện Hỗ trợ</h3>
-                                    <p class="text-gray-600 text-sm mb-8 max-w-lg mx-auto leading-relaxed">Để đảm bảo trải nghiệm nhắn tin tốt nhất (Realtime, thông báo gõ phím), tính năng trò chuyện được thiết kế ở một <b>giao diện độc lập hoàn toàn</b>.</p>
-                                    <button onclick="app.utils.navigate('/ticket')" class="bg-black text-white px-8 py-3.5 rounded-xl font-bold shadow-lg hover:bg-gray-800 transition hover:-translate-y-0.5"><i class="fa-solid fa-up-right-from-square mr-2"></i> Mở không gian làm việc</button>
+                                    <p class="text-gray-600 text-sm mb-8 max-w-lg mx-auto leading-relaxed">Để đảm bảo trải nghiệm nhắn tin realtime, tính năng hỗ trợ được đặt trong một không gian làm việc độc lập.</p>
+                                    <button onclick="app.utils.navigate('/ticket')" class="bg-black text-white px-8 py-3.5 rounded-xl font-bold shadow-lg hover:bg-gray-800 transition"><i class="fa-solid fa-up-right-from-square mr-2"></i> Đi đến Giao diện Trò chuyện</button>
                                 </div>
                             `;
                         } else if (tab === 'manager') {
@@ -12737,7 +12742,7 @@ dropdown.innerHTML = `
                                         <button onclick="app.admin.switchManagerTab('denied')" id="mgr-tab-denied" class="font-bold text-sm px-4 py-2 bg-black text-white rounded transition whitespace-nowrap">Ảnh bị từ chối</button>
                                          <button onclick="app.admin.switchManagerTab('logs')" id="mgr-tab-logs" class="font-bold text-sm px-4 py-2 bg-white text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition whitespace-nowrap">Nhật ký hoạt động</button>
                                         <button onclick="app.admin.switchManagerTab('bans')" id="mgr-tab-bans" class="font-bold text-sm px-4 py-2 bg-white text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition whitespace-nowrap"><i class="fa-solid fa-users mr-1"></i> Quản lý người dùng</button>
-                                        <button onclick="app.admin.switchManagerTab('tickets')" id="mgr-tab-tickets" class="font-bold text-sm px-4 py-2 bg-white text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition whitespace-nowrap"><i class="fa-solid fa-headset mr-1"></i> Quản lý Hỗ trợ</button>
+                                        
                                         <button onclick="app.admin.switchManagerTab('email')" id="mgr-tab-email" class="font-bold text-sm px-4 py-2 bg-white text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition whitespace-nowrap"><i class="fa-solid fa-envelope mr-1"></i> Gửi Email</button>
                                         <button onclick="app.admin.switchManagerTab('settings')" id="mgr-tab-settings" class="font-bold text-sm px-4 py-2 bg-white text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition whitespace-nowrap"><i class="fa-solid fa-sliders mr-1"></i> Cài đặt</button>
                                     </div>
