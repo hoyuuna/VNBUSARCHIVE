@@ -3218,38 +3218,52 @@
                             </form>
                         </div>
 
-                    <div class="mb-6">
-                        <h3 class="text-sm font-bold uppercase text-black border-b border-gray-200 pb-2 mb-3 tracking-wide">LỊCH SỬ HOẠT ĐỘNG</h3>
-                        <div class="bg-white border border-vbs-border rounded-lg overflow-hidden shadow-sm">
+                    <div class="bg-white mb-6 relative border border-gray-200 shadow-sm rounded-xl p-2.5 pt-3.5 pb-2.5 md:p-3 md:pt-4 md:pb-3 overflow-hidden">
+                        
+                        <h3 class="font-bold text-xs uppercase text-black tracking-wider mb-2.5 px-1">Lịch sử hoạt động</h3>
+
+                        <!-- Nút cập nhật được dời lên góc phải y hệt bảng Thông tin chi tiết -->
+                        <div class="absolute top-0 right-0 mt-2.5 mr-2.5 md:mt-3 md:mr-3 flex gap-2 z-10">
+                            <button id="btn-edit-history" onclick="app.vehicle.toggleEditHistory('')"
+                                class="text-[11px] md:text-xs text-black hover:bg-gray-100 bg-white px-2.5 py-1.5 md:px-3 border border-gray-200 rounded-md transition shadow-sm font-medium">
+                                <i class="fa-solid fa-clock-rotate-left mr-1"></i> Cập nhật
+                            </button>
+                        </div>
+
+                        <div class="border border-gray-200 rounded-lg overflow-hidden bg-white">
                             <div class="history-table-wrapper">
-                                <table class="history-table">
+                                <!-- Ép bảng bỏ cằm -->
+                                <table class="history-table" style="margin-bottom: 0 !important;">
                                     <thead>
-                                        <tr><th>BKS</th><th>Đơn vị</th><th>Tuyến</th><th>Ghi chú</th></tr>
+                                        <tr>
+                                            <th class="border-r border-gray-200">BKS</th>
+                                            <th class="border-r border-gray-200">Đơn vị</th>
+                                            <th class="border-r border-gray-200">Tuyến</th>
+                                            <th>Ghi chú</th>
+                                        </tr>
                                     </thead>
                                     <tbody id="history-list"></tbody>
                                 </table>
                             </div>
                         </div>
 
-                        <div id="history-edit-ui" class="hidden mt-4 bg-amber-50 p-4 border border-amber-200 rounded-lg">
+                        <!-- Giao diện Edit Lịch sử (Chỉ hiện khi bấm nút) -->
+                        <div id="history-edit-ui" class="hidden mt-3 bg-amber-50 p-3 border border-amber-200 rounded-lg">
                             <h4 class="font-bold text-sm mb-2 text-amber-900">Chỉnh sửa lịch sử (Mới nhất bên dưới)</h4>
-                            <p class="text-[10px] text-amber-700 mb-3">Kéo thả để sắp xếp lại. Thay đổi chỉ được lưu khi bấm "Lưu thay đổi". Để sửa một mục đã có, hãy bấm Xóa nó đi và Thêm lại.</p>
+                            <p class="text-[10px] text-amber-700 mb-3">Kéo thả để sắp xếp lại. Thay đổi chỉ được lưu khi bấm "Gửi yêu cầu". Để sửa một mục đã có, hãy bấm Xóa nó đi và Thêm lại.</p>
                             <ul id="sortable-history" class="space-y-2 mb-4"></ul>
                             <div class="flex flex-wrap sm:flex-nowrap gap-2 border-t border-amber-200 pt-3">
-                                <input type="text" id="hist-new-plate" placeholder="BKS" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-full sm:w-[18%] rounded bg-white" oninput="app.utils.formatPlateInput(this)">
-                                <input type="text" id="hist-new-op" placeholder="Đơn vị" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-[48%] sm:w-[22%] rounded bg-white" oninput="app.utils.formatNoPunctuation(this)">
-                                <input type="text" id="hist-new-route" placeholder="Tuyến" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-[48%] sm:w-[18%] rounded bg-white">
-                                <input type="date" id="hist-new-date" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-full sm:w-[22%] rounded bg-white text-gray-600" title="Ngày áp dụng">
-                                <button id="btn-hist-add" onclick="app.vehicle.addHistoryItem('')" class="bg-green-600 text-white p-2 text-xs rounded font-bold hover:bg-green-700 transition w-full sm:flex-1">Thêm Mới</button>
+                                <input type="text" id="hist-new-plate" placeholder="BKS" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-full sm:w-[18%] rounded bg-white focus:ring-1 focus:ring-amber-500 outline-none transition" oninput="app.utils.formatPlateInput(this)">
+                                <input type="text" id="hist-new-op" placeholder="Đơn vị" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-[48%] sm:w-[22%] rounded bg-white focus:ring-1 focus:ring-amber-500 outline-none transition" oninput="app.utils.formatNoPunctuation(this)">
+                                <input type="text" id="hist-new-route" placeholder="Tuyến" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-[48%] sm:w-[18%] rounded bg-white focus:ring-1 focus:ring-amber-500 outline-none transition">
+                                <input type="date" id="hist-new-date" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-full sm:w-[22%] rounded bg-white text-gray-700 focus:ring-1 focus:ring-amber-500 outline-none transition" title="Ngày áp dụng">
+                                <button id="btn-hist-add" onclick="app.vehicle.addHistoryItem('')" class="bg-green-600 text-white p-2 text-xs rounded font-bold hover:bg-green-700 transition w-full sm:flex-1 shadow-sm">Thêm Mới</button>
                             </div>
-                            <div class="mt-4 pt-3 border-t border-amber-200 flex justify-end gap-3">
+                            <div class="mt-3 pt-3 border-t border-amber-200 flex justify-end gap-3">
                                 <button onclick="app.vehicle.toggleEditHistory('')" class="text-xs text-gray-500 hover:text-black font-medium">Hủy bỏ</button>
-                                <button onclick="app.vehicle.saveHistory()" class="bg-black text-white px-4 py-2 text-xs font-bold rounded-md hover:bg-gray-800 transition">Lưu thay đổi / Gửi yêu cầu</button>
+                                <button onclick="app.vehicle.saveHistory()" class="bg-black text-white px-4 py-2 text-xs font-bold rounded-md hover:bg-gray-800 transition shadow-sm">Gửi yêu cầu</button>
                             </div>
                         </div>
-                        <button id="btn-edit-history" onclick="app.vehicle.toggleEditHistory('')" class="mt-3 text-xs text-gray-600 hover:text-black font-medium flex items-center gap-1">
-                            <i class="fa-solid fa-clock-rotate-left"></i> Cập nhật/Sắp xếp lịch sử
-                        </button>
                     </div>
                     </div>
 
