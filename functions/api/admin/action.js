@@ -7,8 +7,6 @@ export async function onRequestPost(context) {
         return new Response(JSON.stringify({ error: 'Server misconfiguration' }), { status: 500 });
     }
     
-    const sb = createClient(env.SUPABASE_URL, env.SUPABASE_KEY);
-    
     try {
         const authHeader = request.headers.get('Authorization');
         if (!authHeader) {
@@ -16,7 +14,21 @@ export async function onRequestPost(context) {
         }
         
         const token = authHeader.replace('Bearer ', '');
-        const { data: { user }, error: userError } = await sb.auth.getUser(token);
+
+        // Khởi tạo Supabase client với quyền của chính User (bằng token JWT của họ)
+        // Điều này giúp vượt qua RLS policy mà không cần dùng Service Role Key
+        const sb = createClient(env.SUPABASE_URL, env.SUPABASE_KEY, {
+            global: {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            },
+            auth: {
+                persistSession: false
+            }
+        });
+
+        const { data: { user }, error: userError } = await sb.auth.getUser();
         
         if (userError || !user) {
             return new Response(JSON.stringify({ error: 'Invalid token' }), { status: 401 });
