@@ -487,11 +487,11 @@ window.app.crop = {
                         }
                     }, 50);
                 }
-            },
+            };
 
-window.app.currentExif = { camera: 'N/A', params: 'N/A' }
+window.app.currentExif = { camera: 'N/A', params: 'N/A' };
 
-window.app.wmState = { x: 0.5, y: 0.5, color: 'white' }
+window.app.wmState = { x: 0.5, y: 0.5, color: 'white' };
 
 window.app.captcha = {
                 widgetId: null,
@@ -619,5 +619,5 @@ window.app.captcha = {
                         app.captcha.rejectPromise = null;
                     }
                 }
-            },
+            };
 

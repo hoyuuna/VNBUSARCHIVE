@@ -693,7 +693,6 @@ window.app.vehicle = {
 
 
                         const { data, error, deleted } = await window.callApiSearch('delete_vehicle', { plate });
-                        }
                     } catch (err) {}
                 },
 

@@ -218,9 +218,9 @@ window.app.comments = {
                         ${g.comments.map(c => {
                             // NẾU BÌNH LUẬN NÀY LÀ REPLY CHO BÌNH LUẬN CỦA USER, HIỂN THỊ THÊM BADGE "ĐÃ TRẢ LỜI BẠN"
                             const isReplyToMe = myCommentIds.includes(c.parent_id);
-                            const replyBadge = isReplyToMe ? \`<span class="bg-blue-100 text-blue-700 text-[9px] px-1.5 py-0.5 rounded ml-2 font-bold border border-blue-200 whitespace-nowrap"><i class="fa-solid fa-reply"></i> Trả lời bạn</span>\` : '';
+                            const replyBadge = isReplyToMe ? `<span class="bg-blue-100 text-blue-700 text-[9px] px-1.5 py-0.5 rounded ml-2 font-bold border border-blue-200 whitespace-nowrap"><i class="fa-solid fa-reply"></i> Trả lời bạn</span>` : '';
 
-                            return \`
+                            return `
                             <div class="flex justify-between items-start gap-3 bg-white border border-gray-200 p-3 rounded-xl shadow-sm hover:shadow-md transition cursor-pointer" onclick="app.utils.navigate('/photo/${g.info.id}'); setTimeout(()=> { const el = document.getElementById('comment-${c.id}'); if(el) el.scrollIntoView({behavior: 'smooth', block: 'center'}); }, 1000);">
                                 <div class="overflow-hidden flex-1">
                                     <div class="flex items-center">
@@ -232,7 +232,7 @@ window.app.comments = {
                                 </div>
                                 <button onclick="event.stopPropagation(); app.comments.delete('${c.id}')" class="text-red-400 hover:text-red-600 bg-red-50 p-2 rounded-lg transition shrink-0"><i class="fa-solid fa-trash-can text-sm"></i></button>
                             </div>
-                        \`}).join('')}
+                        `}).join('')}
                     </div>
                 </div>
             `).join('');

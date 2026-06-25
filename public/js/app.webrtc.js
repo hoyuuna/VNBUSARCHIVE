@@ -263,6 +263,7 @@ window.app = window.app || {};
             // Zoom Modal Logic (Wheel & Touch)
             const zoomImg = document.getElementById('admin-zoom-img');
             const zoomModal = document.getElementById('admin-zoom-modal');
+            if (!zoomModal || !zoomImg) return;
             let currentZoom = 1;
             let isPanning = false;
             let startX = 0, startY = 0;

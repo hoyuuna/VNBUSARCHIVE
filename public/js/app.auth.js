@@ -1307,7 +1307,6 @@ grid.innerHTML = tiers.map(tier => {
                         btn.innerHTML = originalText;
                         btn.disabled = false;
                     }
-}
                 },
 
                 openCustomRolePrompt: () => {
@@ -1387,9 +1386,9 @@ grid.innerHTML = tiers.map(tier => {
                             </div>
                         `;
                     }
-                }
-            },
-
+                } // end fetchContent
+            } // end docs
+}; // end app.settings
 
 window.app.profileIntro = {
                 previewedPhoto: null,
@@ -1743,9 +1742,9 @@ window.app.achievement = {
                         app.ui.unlockScroll();
                     }, 200);
                 }
-            },
+            };
 
-        newsboard: {
+        window.app.newsboard = {
             data: [],
             activeIndex: 0,
 
@@ -1873,6 +1872,4 @@ window.app.achievement = {
                         app.ui.unlockScroll();
                     }, 200);
                 }
-            },
-
-
+            };
