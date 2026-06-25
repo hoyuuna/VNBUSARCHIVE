@@ -4564,7 +4564,7 @@ ticket: {
     // Tách riêng hàm kết nối Firebase để Admin có thể đếm số ngầm
     initFirebase: async () => {
         if (app.ticket.isInitialized) return;
-        const res = await fetch('/firebase-config');
+        const res = await fetch('/api/firebase-config');
         if (!res.ok) throw new Error("Không lấy được cấu hình Firebase");
         const config = await res.json();
         if (!firebase.apps.length) firebase.initializeApp(config);
@@ -4805,7 +4805,7 @@ ticket: {
         try { await app.ticket.db.ref(`tickets/${app.ticket.currentTicketId}`).update({ status: newStatus }); } 
         catch (e) { app.ui.showAlert("Lỗi đổi trạng thái: " + e.message); }
     }
-};
+},
             toast: {
                 currentOfflineToast: null,
                 
