@@ -2875,6 +2875,24 @@
 
             <div id="home" class="view-section active">
 
+                <!-- Alert Sức khỏe (Hiển thị 8h - 16h VN) -->
+                <div id="health-alert" class="hidden bg-red-50 p-4 mb-8 border border-red-200 rounded-md flex gap-3 shadow-sm text-red-800">
+                    <i class="fa-solid fa-heart mt-0.5 text-red-600 text-lg"></i>
+                    <p class="text-sm font-medium leading-relaxed">
+                        Chúng mình rất trân trọng những bức ảnh tâm huyết từ bạn. Nhưng sức khỏe của bạn mới là ưu tiên số 1. Chỉ chụp khi tiện tay, hạn chế ra ngoài vào những ngày nắng nóng nhé!
+                    </p>
+                </div>
+                <script>
+                    (function() {
+                        const now = new Date();
+                        const vnTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Ho_Chi_Minh"}));
+                        const hour = vnTime.getHours();
+                        if (hour >= 8 && hour < 16) {
+                            document.getElementById('health-alert').classList.remove('hidden');
+                        }
+                    })();
+                </script>
+
                 <div class="bg-white border border-vbs-border mb-8 rounded-lg shadow-sm overflow-hidden"
                     id="hero-section">
                     <div class="bg-white px-4 py-3 border-b border-vbs-border">
@@ -3570,12 +3588,6 @@
                         </div>
                     </div>
 
-                    <div class="bg-red-50 p-4 mb-8 border border-red-200 rounded-md flex gap-3 shadow-sm text-red-800">
-                        <i class="fa-solid fa-heart mt-0.5 text-red-600 text-lg"></i>
-                        <p class="text-sm font-medium leading-relaxed">
-                            Chúng mình rất trân trọng những bức ảnh tâm huyết từ bạn. Nhưng sức khỏe của bạn mới là ưu tiên số 1. Chỉ chụp khi tiện tay, hạn chế ra ngoài vào những ngày nắng nóng nhé!
-                        </p>
-                    </div>
 
 <form id="upload-form" class="space-y-6">
 
