@@ -3370,6 +3370,9 @@ Object.assign(window.app, {
                 }
                 app.lastSearchQuery = query;
                 app.lastSearchFilter = filterType;
+                
+                const currentSearchToken = Date.now();
+                app.searchToken = currentSearchToken;
 
                 // Save recent search
                 let recents = JSON.parse(localStorage.getItem('vnbus_recent_searches') || '[]');
@@ -3657,6 +3660,8 @@ Object.assign(window.app, {
 
                     // ÉP TRÌNH DUYỆT CHẠY 4 TIẾN TRÌNH TRÊN CÙNG 1 LÚC (TỐC ĐỘ X4)
                     await Promise.all(cardPromises);
+                    
+                    if (app.searchToken !== currentSearchToken) return;
 
                     // XUẤT RA UI THEO ĐÚNG THỨ TỰ ƯU TIÊN: Đơn Vị -> Dòng Xe -> Biển Số -> Người Đăng
                     app.currentSearchCards = [...operatorCards, ...modelCards, ...plateCards, ...uploaderCards];
@@ -3714,6 +3719,8 @@ Object.assign(window.app, {
                             mQ.limit(150), 
                             uQ.limit(10)
                         ]);
+                        
+                        if (app.searchToken !== currentSearchToken) return;
 
                         const plates = mRes.data ? mRes.data.map(v => v.license_plate) : [];
                         const uploaderIds = uRes.data ? uRes.data.map(u => u.id) : [];
@@ -3749,7 +3756,7 @@ Object.assign(window.app, {
                         .order('created_at', { ascending: false })
                         .limit(500);
 
-                    if (app.currentViewMode !== 'search') return;
+                    if (app.currentViewMode !== 'search' || app.searchToken !== currentSearchToken) return;
                     if (error) throw error;
 
                     if (!results || results.length === 0) {
