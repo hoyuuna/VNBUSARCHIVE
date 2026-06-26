@@ -2875,23 +2875,7 @@
 
             <div id="home" class="view-section active">
 
-                <!-- Alert Sức khỏe (Hiển thị 8h - 16h VN) -->
-                <div id="health-alert" class="hidden bg-red-50 p-4 mb-8 border border-red-200 rounded-md flex gap-3 shadow-sm text-red-800">
-                    <i class="fa-solid fa-heart mt-0.5 text-red-600 text-lg"></i>
-                    <p class="text-sm font-medium leading-relaxed">
-                        Chúng mình rất trân trọng những bức ảnh tâm huyết từ bạn. Nhưng sức khỏe của bạn mới là ưu tiên số 1. Chỉ chụp khi tiện tay, hạn chế ra ngoài vào những ngày nắng nóng nhé!
-                    </p>
-                </div>
-                <script>
-                    (function() {
-                        const now = new Date();
-                        const vnTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Ho_Chi_Minh"}));
-                        const hour = vnTime.getHours();
-                        if (hour >= 8 && hour < 16) {
-                            document.getElementById('health-alert').classList.remove('hidden');
-                        }
-                    })();
-                </script>
+
 
                 <div class="bg-white border border-vbs-border mb-8 rounded-lg shadow-sm overflow-hidden"
                     id="hero-section">
@@ -3571,6 +3555,14 @@
                         <h3 class="font-bold mb-3 text-sm uppercase text-black border-b border-gray-200 pb-2 tracking-wide">
                             <i class="fa-solid fa-book text-blue-600 mr-1"></i> QUY ĐỊNH UPLOAD
                         </h3>
+
+                        <!-- Alert Sức khỏe -->
+                        <div id="health-alert" class="bg-red-50 p-4 mb-4 border border-red-200 rounded-md flex gap-3 shadow-sm text-red-800">
+                            <i class="fa-solid fa-heart mt-0.5 text-red-600 text-lg"></i>
+                            <p class="text-sm font-medium leading-relaxed">
+                                Chúng mình rất trân trọng những bức ảnh tâm huyết từ bạn. Nhưng sức khỏe của bạn mới là ưu tiên số 1. Chỉ chụp khi tiện tay, hạn chế ra ngoài vào những ngày thời tiết khắc nghiệt nhé!
+                            </p>
+                        </div>
 
 
                         <div id="upload-rules-content" class="markdown-body pr-3 overflow-y-auto max-h-[350px] mb-4 text-sm bg-white p-4 border border-gray-200 rounded shadow-sm">
