@@ -1039,9 +1039,12 @@ Object.assign(window.app, {
                         if (queueBox) queueBox.classList.add('hidden');
                     }
 
-                    const views = isDenied ? 0 : ((photo.views || 0) + 1);
+                    const isMyOwnPhoto = app.user && app.user.id === photo.uploader_id;
+                    const isValidViewer = app.user && !isMyOwnPhoto;
+                    
+                    const views = isDenied ? 0 : (isValidViewer ? ((photo.views || 0) + 1) : (photo.views || 0));
 
-                    if (!isDenied) {
+                    if (!isDenied && isValidViewer) {
                         await window.sb.from('photos').update({ views: views }).eq('id', photoId);
                     }
                     document.getElementById('detail-title').innerText = `${app.utils.displayPlate(photo.license_plate)} - ${snapshot.operator || 'Đã bị xóa'}`;
@@ -3059,3 +3062,4 @@ Object.assign(window.app, {
 Object.assign(window.app, {
   activeAnnouncements: []
 });
+
