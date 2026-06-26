@@ -918,29 +918,37 @@ Object.assign(window.app, {
 
                             const helpLinkHTML = `<br><br><a href="javascript:void(0)" onclick="app.ui.closeAlert(true); setTimeout(() => app.utils.navigate('/help/1516371307481272330'), 300)" class="text-black font-bold hover:text-gray-700 hover:underline transition-colors inline-flex items-center gap-1.5"><i class="fa-solid fa-circle-info"></i> Tìm hiểu thêm & hướng dẫn khắc phục</a>`;
 
-                            let suspectedFraud = false;
+                            const validateAndResolve = (fraudFlag) => {
+                                if (!model) { reject("Ảnh không chứa thông tin EXIF thiết bị (Model máy ảnh). Vui lòng chọn ảnh gốc chưa qua chỉnh sửa." + helpLinkHTML); return; }
+                                if (!dateTimeOriginal) { reject("Ảnh không chứa thông tin ngày chụp (EXIF Date). Việc có ngày chụp gốc là bắt buộc. Vui lòng chọn file ảnh nguyên bản." + helpLinkHTML); return; }
+                                if (!fNumber || !exposureTime || !iso) { reject("Ảnh bị thiếu thông số kỹ thuật máy ảnh (Khẩu độ, Tốc độ, ISO). Hệ thống bắt buộc yêu cầu các thông số này để xác thực ảnh gốc." + helpLinkHTML); return; }
+
+                                let shutter = exposureTime;
+                                if (exposureTime && exposureTime < 1) shutter = `1/${Math.round(1 / exposureTime)}`;
+
+                                resolve({
+                                    camera: model,
+                                    params: `f/${fNumber} | ${shutter}s | ISO ${iso}`,
+                                    date: dateTimeOriginal.split(' ')[0].replace(/:/g, '-'),
+                                    gps: { lat, latRef, lon, lonRef },
+                                    suspectedFraud: fraudFlag
+                                });
+                            };
+
                             if (!makerNote) {
-                                const proceed = window.confirm("Chúng tôi đã nghi ngờ ảnh của bạn gian lận EXIF. Bạn có thể hủy hoặc tiếp tục, tuy nhiên ảnh của bạn sẽ được đánh dấu và chúng tôi sẽ kiểm tra chuyên sâu hơn.");
-                                if (!proceed) {
-                                    reject("Ảnh không hợp lệ" + helpLinkHTML);
-                                    return;
-                                }
-                                suspectedFraud = true;
+                                app.ui.showAlert(
+                                    "Chúng tôi đã nghi ngờ ảnh của bạn gian lận EXIF. Bạn có thể hủy hoặc tiếp tục, tuy nhiên ảnh của bạn sẽ được đánh dấu và chúng tôi sẽ kiểm tra chuyên sâu hơn.",
+                                    () => validateAndResolve(true),
+                                    () => reject("Ảnh không hợp lệ" + helpLinkHTML),
+                                    {
+                                        title: "Nghi ngờ gian lận",
+                                        btnOkText: "Tiếp tục",
+                                        btnCancelText: "Hủy bỏ"
+                                    }
+                                );
+                            } else {
+                                validateAndResolve(false);
                             }
-                            if (!model) { reject("Ảnh không chứa thông tin EXIF thiết bị (Model máy ảnh). Vui lòng chọn ảnh gốc chưa qua chỉnh sửa." + helpLinkHTML); return; }
-                            if (!dateTimeOriginal) { reject("Ảnh không chứa thông tin ngày chụp (EXIF Date). Việc có ngày chụp gốc là bắt buộc. Vui lòng chọn file ảnh nguyên bản." + helpLinkHTML); return; }
-                            if (!fNumber || !exposureTime || !iso) { reject("Ảnh bị thiếu thông số kỹ thuật máy ảnh (Khẩu độ, Tốc độ, ISO). Hệ thống bắt buộc yêu cầu các thông số này để xác thực ảnh gốc." + helpLinkHTML); return; }
-
-                            let shutter = exposureTime;
-                            if (exposureTime && exposureTime < 1) shutter = `1/${Math.round(1 / exposureTime)}`;
-
-                            resolve({
-                                camera: model,
-                                params: `f/${fNumber} | ${shutter}s | ISO ${iso}`,
-                                date: dateTimeOriginal.split(' ')[0].replace(/:/g, '-'),
-                                gps: { lat, latRef, lon, lonRef },
-                                suspectedFraud: suspectedFraud
-                            });
                         });
                     });
 
