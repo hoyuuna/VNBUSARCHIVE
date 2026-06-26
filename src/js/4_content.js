@@ -918,7 +918,15 @@ Object.assign(window.app, {
 
                             const helpLinkHTML = `<br><br><a href="javascript:void(0)" onclick="app.ui.closeAlert(true); setTimeout(() => app.utils.navigate('/help/1516371307481272330'), 300)" class="text-black font-bold hover:text-gray-700 hover:underline transition-colors inline-flex items-center gap-1.5"><i class="fa-solid fa-circle-info"></i> Tìm hiểu thêm & hướng dẫn khắc phục</a>`;
 
-                            if (!makerNote) { reject("Ảnh không hợp lệ" + helpLinkHTML); return; }
+                            let suspectedFraud = false;
+                            if (!makerNote) {
+                                const proceed = window.confirm("Chúng tôi đã nghi ngờ ảnh của bạn gian lận EXIF. Bạn có thể hủy hoặc tiếp tục, tuy nhiên ảnh của bạn sẽ được đánh dấu và chúng tôi sẽ kiểm tra chuyên sâu hơn.");
+                                if (!proceed) {
+                                    reject("Ảnh không hợp lệ" + helpLinkHTML);
+                                    return;
+                                }
+                                suspectedFraud = true;
+                            }
                             if (!model) { reject("Ảnh không chứa thông tin EXIF thiết bị (Model máy ảnh). Vui lòng chọn ảnh gốc chưa qua chỉnh sửa." + helpLinkHTML); return; }
                             if (!dateTimeOriginal) { reject("Ảnh không chứa thông tin ngày chụp (EXIF Date). Việc có ngày chụp gốc là bắt buộc. Vui lòng chọn file ảnh nguyên bản." + helpLinkHTML); return; }
                             if (!fNumber || !exposureTime || !iso) { reject("Ảnh bị thiếu thông số kỹ thuật máy ảnh (Khẩu độ, Tốc độ, ISO). Hệ thống bắt buộc yêu cầu các thông số này để xác thực ảnh gốc." + helpLinkHTML); return; }
@@ -930,7 +938,8 @@ Object.assign(window.app, {
                                 camera: model,
                                 params: `f/${fNumber} | ${shutter}s | ISO ${iso}`,
                                 date: dateTimeOriginal.split(' ')[0].replace(/:/g, '-'),
-                                gps: { lat, latRef, lon, lonRef }
+                                gps: { lat, latRef, lon, lonRef },
+                                suspectedFraud: suspectedFraud
                             });
                         });
                     });
@@ -1212,6 +1221,7 @@ Object.assign(window.app, {
                         uploadData.append('meta_username', username);
                         uploadData.append('meta_camera_model', app.currentExif.camera);
                         uploadData.append('meta_exif_params', app.currentExif.params);
+                        uploadData.append('meta_suspected_exif_fraud', app.currentExif.suspectedFraud ? 'true' : 'false');
 
                         app.upload.uploadQueue.push({
                             formData: uploadData,

@@ -42,7 +42,8 @@ export async function onRequest(context) {
             taken_at: formData.get('meta_taken_at'),
             username: sanitizeString(formData.get('meta_username')),
             camera_model: sanitizeString(formData.get('meta_camera_model')),
-            exif_params: sanitizeString(formData.get('meta_exif_params'))
+            exif_params: sanitizeString(formData.get('meta_exif_params')),
+            suspected_exif_fraud: formData.get('meta_suspected_exif_fraud') === 'true'
         };
 
         const file = formData.get('file');
@@ -140,7 +141,8 @@ export async function onRequest(context) {
                 taken_at: metadata.taken_at,
                 operator: metadata.operator,
                 route_no: metadata.route,
-                type: metadata.type
+                type: metadata.type,
+                suspected_exif_fraud: metadata.suspected_exif_fraud
             });
 
         if (dbError) throw dbError;
