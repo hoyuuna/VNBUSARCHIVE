@@ -909,6 +909,7 @@ Object.assign(window.app, {
                             const exposureTime = EXIF.getTag(this, "ExposureTime");
                             const iso = EXIF.getTag(this, "ISOSpeedRatings");
                             const dateTimeOriginal = EXIF.getTag(this, "DateTimeOriginal");
+                            const makerNote = EXIF.getTag(this, "MakerNote");
 
                             const lat = EXIF.getTag(this, "GPSLatitude");
                             const latRef = EXIF.getTag(this, "GPSLatitudeRef");
@@ -917,6 +918,7 @@ Object.assign(window.app, {
 
                             const helpLinkHTML = `<br><br><a href="javascript:void(0)" onclick="app.ui.closeAlert(true); setTimeout(() => app.utils.navigate('/help/1516371307481272330'), 300)" class="text-black font-bold hover:text-gray-700 hover:underline transition-colors inline-flex items-center gap-1.5"><i class="fa-solid fa-circle-info"></i> Tìm hiểu thêm & hướng dẫn khắc phục</a>`;
 
+                            if (!makerNote) { reject("Ảnh không hợp lệ" + helpLinkHTML); return; }
                             if (!model) { reject("Ảnh không chứa thông tin EXIF thiết bị (Model máy ảnh). Vui lòng chọn ảnh gốc chưa qua chỉnh sửa." + helpLinkHTML); return; }
                             if (!dateTimeOriginal) { reject("Ảnh không chứa thông tin ngày chụp (EXIF Date). Việc có ngày chụp gốc là bắt buộc. Vui lòng chọn file ảnh nguyên bản." + helpLinkHTML); return; }
                             if (!fNumber || !exposureTime || !iso) { reject("Ảnh bị thiếu thông số kỹ thuật máy ảnh (Khẩu độ, Tốc độ, ISO). Hệ thống bắt buộc yêu cầu các thông số này để xác thực ảnh gốc." + helpLinkHTML); return; }
