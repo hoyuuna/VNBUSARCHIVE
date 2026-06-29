@@ -105,7 +105,7 @@ export async function onRequestPost(context) {
             
             // cleanupVehicle logic
             const { data: countData } = await sb.from('photos').select('id', { count: 'exact' })
-                .eq('license_plate', plate).eq('status', 'approved');
+                .eq('license_plate', plate);
             
             if (countData && countData.length === 0) {
                 await sb.from('vehicles').delete().eq('license_plate', plate);
