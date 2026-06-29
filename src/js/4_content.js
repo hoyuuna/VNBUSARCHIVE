@@ -83,9 +83,13 @@ Object.assign(window.app, {
 
                     const specialRoutes = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động', 'Xe hợp đồng / Đưa đón', 'Hợp đồng / Đưa đón'];
 
-                    if (!plate || plate.length < 2 || !route || specialRoutes.includes(route)) {
+                    if (!plate || plate.length < 2 || !route) {
                         if (canOverwriteOp) { opInput.value = ''; app.upload.autoFilledData.operator = ''; }
                         if (canOverwriteModel) { modelInput.value = ''; app.upload.autoFilledData.model = ''; }
+                        return;
+                    }
+
+                    if (specialRoutes.includes(route)) {
                         return;
                     }
 
