@@ -721,16 +721,43 @@ Object.assign(window.app, {
                     const el = document.getElementById('draggable-watermark');
                     if (isBlack) el.classList.add('wm-black');
                     else el.classList.remove('wm-black');
+                    if (app.upload.schedulePrepareBlob) app.upload.schedulePrepareBlob();
+                },
+                toggleWmPanel: () => {
+                    const panel = document.getElementById('wm-adjust-panel');
+                    if(panel) panel.classList.toggle('hidden');
+                },
+                updateWmScale: (val) => {
+                    app.wmState.scale = parseInt(val) / 100;
+                    const valEl = document.getElementById('wm-scale-val');
+                    if (valEl) valEl.innerText = val + '%';
                     
-                    const lbl = document.getElementById('btn-lbl-wm-black');
-                    if (lbl) {
-                        if (isBlack) {
-                            lbl.classList.add('bg-gray-200', 'border-gray-400', 'text-black');
-                            lbl.classList.remove('bg-white');
-                        } else {
-                            lbl.classList.remove('bg-gray-200', 'border-gray-400', 'text-black');
-                            lbl.classList.add('bg-white');
-                        }
+                    const el = document.getElementById('draggable-watermark');
+                    if (el) {
+                        const isDragging = el.classList.contains('wm-active');
+                        el.style.transform = isDragging ? `scale(${app.wmState.scale})` : `translate(-50%, -50%) scale(${app.wmState.scale})`;
+                    }
+                    if (app.upload.schedulePrepareBlob) app.upload.schedulePrepareBlob();
+                },
+                resetWm: () => {
+                    app.wmState.scale = 1.0;
+                    app.wmState.color = 'white';
+                    
+                    const slider = document.getElementById('wm-scale-slider');
+                    if (slider) slider.value = 100;
+                    
+                    const valEl = document.getElementById('wm-scale-val');
+                    if (valEl) valEl.innerText = '100%';
+                    
+                    const chk = document.getElementById('chk-wm-black');
+                    if (chk) chk.checked = false;
+                    
+                    app.upload.toggleColor(false);
+                    
+                    const el = document.getElementById('draggable-watermark');
+                    if (el) {
+                        const isDragging = el.classList.contains('wm-active');
+                        el.style.transform = isDragging ? `scale(1.0)` : `translate(-50%, -50%) scale(1.0)`;
                     }
                     if (app.upload.schedulePrepareBlob) app.upload.schedulePrepareBlob();
                 },
@@ -1052,7 +1079,7 @@ Object.assign(window.app, {
 
                     document.getElementById('chk-wm-black').checked = false;
                     app.upload.toggleColor(false);
-                    app.wmState = { x: 0.5, y: 0.5, color: 'white' };
+                    app.wmState = { x: 0.5, y: 0.5, color: 'white', scale: 1.0 };
                     if(app.upload.resetFilters) app.upload.resetFilters();
                 },
 
@@ -1080,7 +1107,7 @@ Object.assign(window.app, {
                         startY = e.clientY;
                         initialLeft = el.offsetLeft;
                         initialTop = el.offsetTop;
-                        el.style.transform = 'none';
+                        el.style.transform = `scale(${app.wmState.scale || 1.0})`;
                     });
 
                     el.addEventListener('touchstart', (e) => {
@@ -1091,7 +1118,7 @@ Object.assign(window.app, {
                         startY = e.touches[0].clientY;
                         initialLeft = el.offsetLeft;
                         initialTop = el.offsetTop;
-                        el.style.transform = 'none';
+                        el.style.transform = `scale(${app.wmState.scale || 1.0})`;
                     });
 
                     const onMove = (clientX, clientY) => {
@@ -1127,7 +1154,18 @@ Object.assign(window.app, {
                         if (isDragging) { e.preventDefault(); onMove(e.touches[0].clientX, e.touches[0].clientY); }
                     }, { passive: false });
 
-                    const onEnd = () => { isDragging = false; if (app.upload.schedulePrepareBlob) app.upload.schedulePrepareBlob(); };
+                    const onEnd = () => { 
+                        isDragging = false; 
+                        el.style.transform = `translate(-50%, -50%) scale(${app.wmState.scale || 1.0})`;
+                        
+                        // Cập nhật lại left, top khi thả chuột để bù trừ translate
+                        const currentCenterX = el.offsetLeft + el.offsetWidth / 2;
+                        const currentCenterY = el.offsetTop + el.offsetHeight / 2;
+                        el.style.left = currentCenterX + 'px';
+                        el.style.top = currentCenterY + 'px';
+                        
+                        if (app.upload.schedulePrepareBlob) app.upload.schedulePrepareBlob(); 
+                    };
                     document.addEventListener('mouseup', onEnd);
                     document.addEventListener('touchend', onEnd);
                 },
@@ -1719,7 +1757,7 @@ Object.assign(window.app, {
                                     document.querySelectorAll('.blur-panel').forEach(p => p.remove());
                                     if (app.upload.updateBlurBtn) app.upload.updateBlurBtn();
 
-                                    app.wmState = { x: 0.5, y: 0.5, color: 'white' };
+                                    app.wmState = { x: 0.5, y: 0.5, color: 'white', scale: 1.0 };
                     if(app.upload.resetFilters) app.upload.resetFilters();
                                     const chkWmBlack = document.getElementById('chk-wm-black');
                                     if (chkWmBlack) chkWmBlack.checked = false;

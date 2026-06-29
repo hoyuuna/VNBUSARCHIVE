@@ -378,25 +378,6 @@ Object.assign(window.app, {
                         app.alertCancelCallback = null;
                     }, 200);
                 },
-                showUploadInfo: () => {
-                    const modal = document.getElementById('upload-info-modal');
-                    const content = document.getElementById('upload-info-content');
-                    modal.classList.remove('hidden');
-                    content.classList.remove('modal-content-leave');
-                    content.classList.add('modal-content-enter');
-                    app.ui.lockScroll();
-                },
-                closeUploadInfo: () => {
-                    const modal = document.getElementById('upload-info-modal');
-                    const content = document.getElementById('upload-info-content');
-                    content.classList.remove('modal-content-enter');
-                    content.classList.add('modal-content-leave');
-                    setTimeout(() => {
-                        modal.classList.add('hidden');
-                        content.classList.remove('modal-content-leave');
-                        app.ui.unlockScroll();
-                    }, 200);
-                },
                 showQuotaInfo: () => {
                     const limitStr = app.maintenance.settings['upload_quota']?.reason;
                     const limitTxt = (limitStr && limitStr.trim() !== '') ? limitStr : 'không giới hạn';
@@ -1041,7 +1022,6 @@ cleanupState: () => {
                     app.ui.closeUploadProgress();
                     app.ui.closeAlert(false);
                     app.ui.closePrompt(false);
-                    app.ui.closeUploadInfo();
                     if(app.crop && app.crop.close) app.crop.close();
                     if(app.docs && app.docs.close) app.docs.close();
                     if(app.settings && app.settings.close) app.settings.close();
@@ -1491,7 +1471,8 @@ cleanupState: () => {
                                 ctx.save();
                                 ctx.globalAlpha = 0.5;
                                 ctx.fillStyle = pos.color === 'black' ? "black" : "white";
-                                ctx.font = `700 ${fontSize * 3}px ${fontFace}`;
+                                const scale = pos.scale || 1.0;
+                                ctx.font = `700 ${fontSize * 3 * scale}px ${fontFace}`;
                                 ctx.textAlign = 'center';
                                 ctx.textBaseline = 'middle';
 
