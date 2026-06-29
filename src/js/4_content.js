@@ -938,8 +938,6 @@ Object.assign(window.app, {
                             const exposureTime = EXIF.getTag(this, "ExposureTime");
                             const iso = EXIF.getTag(this, "ISOSpeedRatings");
                             const dateTimeOriginal = EXIF.getTag(this, "DateTimeOriginal");
-                            const makerNote = EXIF.getTag(this, "MakerNote");
-
                             const lat = EXIF.getTag(this, "GPSLatitude");
                             const latRef = EXIF.getTag(this, "GPSLatitudeRef");
                             const lon = EXIF.getTag(this, "GPSLongitude");
@@ -964,20 +962,7 @@ Object.assign(window.app, {
                                 });
                             };
 
-                            if (!makerNote) {
-                                app.ui.showAlert(
-                                    "Chúng tôi đã nghi ngờ ảnh của bạn gian lận EXIF. Bạn có thể hủy hoặc tiếp tục, tuy nhiên ảnh của bạn sẽ được đánh dấu và chúng tôi sẽ kiểm tra chuyên sâu hơn.",
-                                    () => validateAndResolve(true),
-                                    () => reject("Ảnh không hợp lệ" + helpLinkHTML),
-                                    {
-                                        title: "Nghi ngờ gian lận",
-                                        btnOkText: "Tiếp tục",
-                                        btnCancelText: "Hủy bỏ"
-                                    }
-                                );
-                            } else {
-                                validateAndResolve(false);
-                            }
+                            validateAndResolve(false);
                         });
                     });
 
