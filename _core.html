@@ -3729,15 +3729,21 @@
 
                                 <!-- BẢNG ĐIỀU CHỈNH WATERMARK -->
                                 <div id="wm-adjust-panel" class="hidden mt-3 p-4 bg-white border border-gray-200 rounded-xl shadow-sm relative z-50">
-                                    <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-start gap-2.5">
-                                        <i class="fa-solid fa-circle-info text-blue-500 mt-0.5 text-sm"></i>
-                                        <p class="text-[11px] font-bold text-blue-700 leading-snug">Bạn có thể <b>nhấn giữ & kéo</b> chữ bản quyền trên ảnh để di chuyển. Tuỳ chỉnh kích thước và màu sắc bên dưới.</p>
-                                    </div>
                                     <div class="grid grid-cols-1 gap-4">
-                                        <div class="flex items-center gap-3">
-                                            <label id="btn-lbl-wm-black-panel" class="flex items-center justify-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-100 hover:text-black font-bold text-[11px] sm:text-xs transition shadow-sm cursor-pointer select-none m-0">
-                                                <input type="checkbox" id="chk-wm-black" onchange="app.upload.toggleColor(this.checked)" class="hidden">
-                                                <i class="fa-solid fa-circle-half-stroke"></i> Dấu chìm màu đen
+                                        <!-- CÔNG TẮC DẤU CHÌM MÀU ĐEN -->
+                                        <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 flex items-center justify-between shadow-sm transition-all hover:border-gray-300 group">
+                                            <div class="flex items-start gap-3">
+                                                <div class="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center shrink-0 transition-colors shadow-sm group-hover:border-gray-300">
+                                                    <i class="fa-solid fa-circle-half-stroke text-lg text-black"></i>
+                                                </div>
+                                                <div class="mt-0.5">
+                                                    <h4 class="font-bold text-sm uppercase mb-1 text-black">Dấu chìm màu đen</h4>
+                                                    <p class="text-[10px] font-medium text-gray-500 leading-snug">Sử dụng chữ ký màu đen để dễ nhìn hơn trên ảnh sáng.</p>
+                                                </div>
+                                            </div>
+                                            <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-4 self-center">
+                                                <input type="checkbox" id="chk-wm-black" class="sr-only peer" onchange="app.upload.toggleColor(this.checked)">
+                                                <div class="w-11 h-6 bg-black rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all shadow-inner"></div>
                                             </label>
                                         </div>
                                         <div>
