@@ -734,14 +734,15 @@ Object.assign(window.app, {
                     
                     const el = document.getElementById('draggable-watermark');
                     if (el) {
-                        const isDragging = el.classList.contains('wm-active');
-                        el.style.transform = isDragging ? `scale(${app.wmState.scale})` : `translate(-50%, -50%) scale(${app.wmState.scale})`;
+                        el.style.transform = `translate(-50%, -50%) scale(${app.wmState.scale})`;
                     }
                     if (app.upload.schedulePrepareBlob) app.upload.schedulePrepareBlob();
                 },
                 resetWm: () => {
                     app.wmState.scale = 1.0;
                     app.wmState.color = 'white';
+                    app.wmState.x = 0.5;
+                    app.wmState.y = 0.5;
                     
                     const slider = document.getElementById('wm-scale-slider');
                     if (slider) slider.value = 100;
@@ -756,8 +757,9 @@ Object.assign(window.app, {
                     
                     const el = document.getElementById('draggable-watermark');
                     if (el) {
-                        const isDragging = el.classList.contains('wm-active');
-                        el.style.transform = isDragging ? `scale(1.0)` : `translate(-50%, -50%) scale(1.0)`;
+                        el.style.left = '50%';
+                        el.style.top = '50%';
+                        el.style.transform = `translate(-50%, -50%) scale(1.0)`;
                     }
                     if (app.upload.schedulePrepareBlob) app.upload.schedulePrepareBlob();
                 },
@@ -1107,7 +1109,6 @@ Object.assign(window.app, {
                         startY = e.clientY;
                         initialLeft = el.offsetLeft;
                         initialTop = el.offsetTop;
-                        el.style.transform = `scale(${app.wmState.scale || 1.0})`;
                     });
 
                     el.addEventListener('touchstart', (e) => {
@@ -1118,7 +1119,6 @@ Object.assign(window.app, {
                         startY = e.touches[0].clientY;
                         initialLeft = el.offsetLeft;
                         initialTop = el.offsetTop;
-                        el.style.transform = `scale(${app.wmState.scale || 1.0})`;
                     });
 
                     const onMove = (clientX, clientY) => {
@@ -1130,20 +1130,24 @@ Object.assign(window.app, {
                         let newLeft = initialLeft + dx;
                         let newTop = initialTop + dy;
 
-                        const maxLeft = Math.max(0, container.offsetWidth - el.offsetWidth);
-                        const maxTop = Math.max(0, container.offsetHeight - el.offsetHeight - (container.offsetHeight * 0.08));
+                        const scale = app.wmState.scale || 1.0;
+                        const wHalf = (el.offsetWidth * scale) / 2;
+                        const hHalf = (el.offsetHeight * scale) / 2;
 
-                        newLeft = Math.max(0, Math.min(newLeft, maxLeft));
-                        newTop = Math.max(0, Math.min(newTop, maxTop));
+                        const minLeft = wHalf;
+                        const maxLeft = Math.max(minLeft, container.offsetWidth - wHalf);
+                        
+                        const minTop = hHalf;
+                        const maxTop = Math.max(minTop, container.offsetHeight - hHalf - (container.offsetHeight * 0.08));
+
+                        newLeft = Math.max(minLeft, Math.min(newLeft, maxLeft));
+                        newTop = Math.max(minTop, Math.min(newTop, maxTop));
 
                         el.style.left = newLeft + 'px';
                         el.style.top = newTop + 'px';
 
-                        const centerX = newLeft + (el.offsetWidth / 2);
-                        const centerY = newTop + (el.offsetHeight / 2);
-
-                        app.wmState.x = centerX / container.offsetWidth;
-                        app.wmState.y = centerY / container.offsetHeight;
+                        app.wmState.x = newLeft / container.offsetWidth;
+                        app.wmState.y = newTop / container.offsetHeight;
                     };
 
                     document.addEventListener('mousemove', (e) => {
@@ -1156,14 +1160,6 @@ Object.assign(window.app, {
 
                     const onEnd = () => { 
                         isDragging = false; 
-                        el.style.transform = `translate(-50%, -50%) scale(${app.wmState.scale || 1.0})`;
-                        
-                        // Cập nhật lại left, top khi thả chuột để bù trừ translate
-                        const currentCenterX = el.offsetLeft + el.offsetWidth / 2;
-                        const currentCenterY = el.offsetTop + el.offsetHeight / 2;
-                        el.style.left = currentCenterX + 'px';
-                        el.style.top = currentCenterY + 'px';
-                        
                         if (app.upload.schedulePrepareBlob) app.upload.schedulePrepareBlob(); 
                     };
                     document.addEventListener('mouseup', onEnd);
