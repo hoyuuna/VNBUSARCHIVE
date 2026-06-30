@@ -767,6 +767,14 @@ Object.assign(window.app, {
                     }
                     if (app.upload.schedulePrepareBlob) app.upload.schedulePrepareBlob();
                 },
+                
+                previewBlob: () => {
+                    if (!app.upload.readyBlob) {
+                        return app.ui.showAlert("Ảnh chưa được xử lý xong, vui lòng đợi thêm 1 chút hoặc thử kéo/thả lại chữ ký!");
+                    }
+                    const url = URL.createObjectURL(app.upload.readyBlob);
+                    app.ui.showAlert(`<img src="${url}" class="w-full rounded-lg shadow-sm" style="max-height: 70vh; object-fit: contain;">`, null, null, { title: "Xem trước ảnh xuất ra", btnOkText: "Đóng" });
+                },
 
                 currentFilters: 'none',
                 readyBlob: null,
