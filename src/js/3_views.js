@@ -2011,12 +2011,12 @@ Object.assign(window.app, {
                 // Render danh sách tỉnh vào Dropdown
                 initExactRouteMenu: () => {
                     const renderHtml = `<div class="px-3 py-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100 mb-1 bg-gray-50">Tuyến thuộc tỉnh:</div>`
-                        + `<div class="filter-item ${!app.search.currentExactPrefix ? 'selected' : ''}" onclick="app.search.setExactRoute('')"><span><i class="fa-solid fa-power-off mr-1.5 opacity-50"></i> Bỏ lọc (Tắt)</span> <i class="fa-solid fa-check ${!app.search.currentExactPrefix ? '' : 'opacity-0'} check-icon"></i></div>` 
+                        + `<div class="filter-item ${!app.search.currentExactPrefix ? 'selected' : ''}" onclick="app.search.setExactRoute('')"><span>Tắt</span></div>` 
                         + app.utils.provinceData.map(p => {
                             const prefix = Array.isArray(p.ky_hieu) ? p.ky_hieu[0] : p.ky_hieu.split(',')[0];
                             const isSelected = app.search.currentExactPrefix === prefix;
                             return `<div class="filter-item ${isSelected ? 'selected' : ''}" onclick="app.search.setExactRoute('${prefix}', '${p.ten}')">
-                                <span>${p.ten}</span> <i class="fa-solid fa-check ${isSelected ? '' : 'opacity-0'} check-icon"></i>
+                                <span>${p.ten}</span>
                             </div>`;
                         }).join('');
                     
@@ -2041,7 +2041,7 @@ Object.assign(window.app, {
                     }
                 },
 
-                // Cập nhật UI (Đổi chữ, đổi màu Xanh/Xám)
+                // Cập nhật UI (Đổi chữ)
                 syncExactUI: (prefix) => {
                     app.search.currentExactPrefix = prefix || '';
                     let provName = 'Tắt';
@@ -2054,22 +2054,11 @@ Object.assign(window.app, {
                         if (prov) provName = prov.ten;
                     }
                     
-                    const updateBtnStyle = (labelId) => {
-                        const label = document.getElementById(labelId);
-                        if (!label) return;
-                        label.innerText = provName;
-                        const btn = label.parentElement;
-                        if (prefix) {
-                            btn.classList.remove('text-gray-500');
-                            btn.classList.add('text-blue-600', 'bg-blue-50/50');
-                        } else {
-                            btn.classList.add('text-gray-500');
-                            btn.classList.remove('text-blue-600', 'bg-blue-50/50');
-                        }
-                    };
-
-                    updateBtnStyle('exact-route-header-label');
-                    updateBtnStyle('exact-route-page-label');
+                    const hdLabel = document.getElementById('exact-route-header-label');
+                    const pgLabel = document.getElementById('exact-route-page-label');
+                    if (hdLabel) hdLabel.innerText = provName;
+                    if (pgLabel) pgLabel.innerText = provName;
+                    
                     app.search.initExactRouteMenu();
                 },
 
@@ -2082,10 +2071,10 @@ Object.assign(window.app, {
 
                     document.querySelectorAll('#search-filter-menu .filter-item, #page-search-filter-menu .filter-item').forEach(item => {
                         item.classList.remove('selected');
-                        item.querySelector('.check-icon').classList.add('opacity-0');
+                        item.querySelector('.check-icon')?.classList.add('opacity-0');
                         if (item.dataset.filter === type) {
                             item.classList.add('selected');
-                            item.querySelector('.check-icon').classList.remove('opacity-0');
+                            item.querySelector('.check-icon')?.classList.remove('opacity-0');
                         }
                     });
 

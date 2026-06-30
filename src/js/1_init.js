@@ -3365,7 +3365,9 @@ Object.assign(window.app, {
                 let prefixToUrl = app.search.currentExactPrefix || currentParams.get('prefix') || '';
                 if (filterType !== 'route') prefixToUrl = ''; // Chỉ áp dụng prefix cho route
 
-                if (!window.location.pathname.includes('/search') || currentParams.get('q') !== query || filterFromUrl !== filterType || currentParams.get('prefix') !== prefixToUrl) {
+                const currentUrlPrefix = currentParams.get('prefix') || '';
+
+                if (!window.location.pathname.includes('/search') || currentParams.get('q') !== query || filterFromUrl !== filterType || currentUrlPrefix !== prefixToUrl) {
                     let url = `/search?q=${encodeURIComponent(query)}&filter=${filterType}`;
                     if (prefixToUrl) url += `&prefix=${encodeURIComponent(prefixToUrl)}`;
                     app.utils.navigate(url);
