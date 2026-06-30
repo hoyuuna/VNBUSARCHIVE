@@ -1093,11 +1093,25 @@ Object.assign(window.app, {
                                 }
                             }
                             const exportedBaseFontSize = Math.max(16, exportWidth * 0.015);
+                            
+                            // 1. Draggable Watermark Size
                             const exportedWatermarkSize = exportedBaseFontSize * 3;
                             const watermarkRatio = exportedWatermarkSize / exportWidth;
-                            
                             const wmDrag = document.getElementById('draggable-watermark');
                             if (wmDrag) wmDrag.style.fontSize = (finalW * watermarkRatio) + 'px';
+                            
+                            // 2. Footer Bar Size
+                            const exportedSafeBarHeight = 30 + Math.max(0, (exportHeight - exportWidth) * 0.05);
+                            const barRatio = exportedSafeBarHeight / exportHeight;
+                            const footerBar = document.getElementById('preview-footer-bar');
+                            if (footerBar) footerBar.style.height = (finalH * barRatio) + 'px';
+                            
+                            // 3. Footer Text Size
+                            const footerRatio = exportedBaseFontSize / exportWidth;
+                            const leftText = document.querySelector('.footer-text-left');
+                            const rightText = document.getElementById('preview-footer-copy');
+                            if (leftText) leftText.style.fontSize = (finalW * footerRatio) + 'px';
+                            if (rightText) rightText.style.fontSize = (finalW * footerRatio) + 'px';
                         };
                         updateSize();
                         app.previewUpdateSize = updateSize;
