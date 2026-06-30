@@ -1057,7 +1057,6 @@ Object.assign(window.app, {
                 },
 
                 saveBio: async () => {
-                    // (Hàm này giữ nguyên)
                     const btn = document.getElementById('btn-save-bio');
                     const text = document.getElementById('bio-input-textarea').value.trim();
 
@@ -1072,10 +1071,38 @@ Object.assign(window.app, {
                         return;
                     }
 
-                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...';
+                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang kiểm duyệt nội dung...';
                     btn.disabled = true;
 
                     try {
+                        // ==========================================
+                        // [BƯỚC KIỂM DUYỆT AI]
+                        // ==========================================
+                        if (text !== '') { // Chỉ kiểm duyệt nếu người dùng có nhập chữ
+                            const aiResult = await app.ai.moderateBio(text);
+                            
+                            if (!aiResult.is_safe) {
+                                // Nếu AI báo không an toàn -> Dừng lại và hiện cảnh báo
+                                btn.innerHTML = 'Lưu tiểu sử';
+                                btn.disabled = false;
+                                return app.ui.showAlert(
+                                    `<div class="text-left">
+                                        <p class="text-sm font-bold text-red-600 mb-2"><i class="fa-solid fa-shield-halved mr-1"></i> Nội dung bị từ chối!</p>
+                                        <p class="text-xs text-gray-700 leading-relaxed mb-3">Hệ thống AI tự động đã phát hiện tiểu sử của bạn vi phạm tiêu chuẩn cộng đồng.</p>
+                                        <div class="bg-red-50 border border-red-200 p-3 rounded-lg">
+                                            <p class="text-[11px] font-bold text-red-800 uppercase tracking-widest mb-1">Lý do:</p>
+                                            <p class="text-xs text-red-700 italic">"${aiResult.reason}"</p>
+                                        </div>
+                                    </div>`,
+                                    null, null, { title: "Kiểm duyệt tự động" }
+                                );
+                            }
+                        }
+                        // ==========================================
+
+                        // Nếu AI cho qua (hoặc text rỗng) -> Tiến hành update Database
+                        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...';
+
                         const { error } = await window.sb.from('profiles').update({ bio: text || null }).eq('id', app.user.id);
                         if (error) throw error;
 
