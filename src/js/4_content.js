@@ -1091,6 +1091,15 @@ Object.assign(window.app, {
                     let isDragging = false;
                     let startX, startY, initialLeft, initialTop;
 
+                    const resizeObserver = new ResizeObserver(entries => {
+                        for (let entry of entries) {
+                            if (entry.contentRect.width > 0) {
+                                el.style.fontSize = (entry.contentRect.width * 0.045) + 'px';
+                            }
+                        }
+                    });
+                    resizeObserver.observe(container);
+
                     document.addEventListener('mousedown', (e) => {
                         if (!el.contains(e.target)) el.classList.remove('wm-active');
                     });
