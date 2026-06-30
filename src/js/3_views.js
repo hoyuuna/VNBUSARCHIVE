@@ -2019,17 +2019,16 @@ Object.assign(window.app, {
                             </div>`;
                         }).join('');
                     
-                    const hdMenu = document.getElementById('exact-route-header-menu');
                     const pgMenu = document.getElementById('exact-route-page-menu');
-                    if (hdMenu) hdMenu.innerHTML = renderHtml;
                     if (pgMenu) pgMenu.innerHTML = renderHtml;
                 },
 
                 setExactRoute: (prefix, name = 'Tắt') => {
                     app.search.currentExactPrefix = prefix;
-                    document.getElementById('exact-route-header-menu')?.classList.remove('active');
                     document.getElementById('exact-route-page-menu')?.classList.remove('active');
                     app.search.syncExactUI(prefix);
+                    
+                    // Lập tức trigger search để URL và kết quả thay đổi ngay
                     if (window.location.pathname.includes('/search')) {
                         app.handleSearch(true);
                     }
@@ -2046,25 +2045,19 @@ Object.assign(window.app, {
                         if (prov) provName = prov.ten;
                     }
                     
-                    const updateBtnStyle = (labelId) => {
-                        const label = document.getElementById(labelId);
-                        if (!label) return;
-                        label.innerText = provName;
-                        const btn = label.parentElement;
+                    const pgLabel = document.getElementById('exact-route-page-label');
+                    if (pgLabel) {
+                        pgLabel.innerText = provName;
+                        const btn = pgLabel.parentElement;
                         
                         if (prefix) {
-                            // Khi có chọn Tỉnh: Chữ đen, nền xám nhạt (thay vì màu xanh)
                             btn.classList.remove('text-gray-500');
                             btn.classList.add('text-black', 'bg-gray-100');
                         } else {
-                            // Khi chọn Tắt: Chữ xám mờ, bỏ nền
                             btn.classList.add('text-gray-500');
                             btn.classList.remove('text-black', 'bg-gray-100');
                         }
-                    };
-
-                    updateBtnStyle('exact-route-header-label');
-                    updateBtnStyle('exact-route-page-label');
+                    }
                     
                     app.search.initExactRouteMenu();
                 },
@@ -2088,15 +2081,13 @@ Object.assign(window.app, {
                     document.getElementById('search-filter-menu')?.classList.remove('active');
                     document.getElementById('page-search-filter-menu')?.classList.remove('active');
 
-                    const headerExact = document.getElementById('exact-route-header-box');
+                    // Chuyên biệt cho Page Search Box: Nếu Route thì hiện Dropdown Tỉnh, không thì Tắt đi
                     const pageExact = document.getElementById('exact-route-page-box');
                     
                     if (type === 'route') {
-                        if (headerExact) headerExact.classList.remove('hidden');
                         if (pageExact) pageExact.classList.remove('hidden');
                         if (app.utils.provinceData.length > 0) app.search.initExactRouteMenu();
                     } else {
-                        if (headerExact) headerExact.classList.add('hidden');
                         if (pageExact) pageExact.classList.add('hidden');
                         app.search.currentExactPrefix = ''; 
                         app.search.syncExactUI('');
