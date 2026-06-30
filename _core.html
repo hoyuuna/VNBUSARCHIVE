@@ -2885,9 +2885,10 @@
                             <input type="text" id="page-search-input" placeholder="Tìm kiếm..." autocomplete="one-time-code" class="peer px-3 py-2 text-base md:text-lg outline-none w-full bg-transparent placeholder-gray-400 font-medium h-full">
                             
                             <!-- PILL TỈNH THÀNH (NẰM TRONG THANH INPUT) -->
-                            <div id="exact-route-page-box" class="hidden relative h-full flex items-center shrink-0 pr-2">
-                                <button onclick="document.getElementById('exact-route-page-menu').classList.toggle('active')" class="h-7 px-2.5 text-[11px] font-bold text-gray-500 bg-white border border-gray-200 hover:border-gray-400 hover:text-black rounded-md transition-colors flex items-center max-w-[120px] shadow-sm cursor-pointer" title="Lọc theo tỉnh">
-                                    <span id="exact-route-page-label" class="truncate leading-none mt-[1px]">Tỉnh: Tắt</span>
+                            <div id="exact-route-page-box" class="hidden relative h-full flex items-center shrink-0 pr-3">
+                                <!-- Nút dạng Pill: Bo tròn 2 đầu, đệm lớn, bóng mượt -->
+                                <button onclick="document.getElementById('exact-route-page-menu').classList.toggle('active')" class="h-8 md:h-9 px-4 text-xs font-semibold text-gray-600 bg-white border border-gray-300 hover:border-gray-400 hover:text-black hover:bg-gray-50 rounded-full transition-all duration-200 flex items-center justify-center max-w-[140px] shadow-sm cursor-pointer" title="Lọc theo khu vực">
+                                    <span id="exact-route-page-label" class="truncate leading-none">Toàn quốc</span>
                                 </button>
                                 <div id="exact-route-page-menu" class="filter-menu !max-h-[250px] !w-56 right-0 origin-top-right mt-2">
                                     <!-- JS đổ dữ liệu vào -->
