@@ -1,5 +1,25 @@
 window.app = window.app || {};
 
+window.addEventListener('unhandledrejection', function(event) {
+    if (event.reason && event.reason.message && event.reason.message.includes("Unexpected token '<'")) {
+        if (window.app && window.app.toast) {
+            window.app.toast.show('error', 'Lỗi kết nối', 'Cloudflare hết hạn, vui lòng bấm vào đây để tải lại trang', 10000, () => {
+                window.location.reload(true);
+            });
+        }
+    }
+});
+
+window.addEventListener('error', function(event) {
+    if (event.message && event.message.includes("Unexpected token '<'")) {
+        if (window.app && window.app.toast) {
+            window.app.toast.show('error', 'Lỗi kết nối', 'Cloudflare hết hạn, vui lòng bấm vào đây để tải lại trang', 10000, () => {
+                window.location.reload(true);
+            });
+        }
+    }
+});
+
 Object.assign(window.app, {
   toast: {
                 currentOfflineToast: null,
