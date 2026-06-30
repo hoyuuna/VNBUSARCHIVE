@@ -1079,8 +1079,25 @@ Object.assign(window.app, {
                             container.style.width = finalW + 'px';
                             container.style.height = finalH + 'px';
                             
+                            // Simulate exact export math from 1_init.js
+                            let exportWidth = nw;
+                            let exportHeight = nh;
+                            const maxDim = 1920;
+                            if (exportWidth > maxDim || exportHeight > maxDim) {
+                                if (exportWidth > exportHeight) { 
+                                    exportHeight = Math.round(exportHeight * (maxDim / exportWidth)); 
+                                    exportWidth = maxDim; 
+                                } else { 
+                                    exportWidth = Math.round(exportWidth * (maxDim / exportHeight)); 
+                                    exportHeight = maxDim; 
+                                }
+                            }
+                            const exportedBaseFontSize = Math.max(16, exportWidth * 0.015);
+                            const exportedWatermarkSize = exportedBaseFontSize * 3;
+                            const watermarkRatio = exportedWatermarkSize / exportWidth;
+                            
                             const wmDrag = document.getElementById('draggable-watermark');
-                            if (wmDrag) wmDrag.style.fontSize = (finalW * 0.045) + 'px';
+                            if (wmDrag) wmDrag.style.fontSize = (finalW * watermarkRatio) + 'px';
                         };
                         updateSize();
                         app.previewUpdateSize = updateSize;
