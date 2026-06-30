@@ -2082,12 +2082,15 @@ Object.assign(window.app, {
                     document.getElementById('page-search-filter-menu')?.classList.remove('active');
 
                     const pageExact = document.getElementById('exact-route-page-box');
+                    const ctrlK = document.getElementById('page-search-ctrl-k');
                     
                     if (type === 'route') {
                         if (pageExact) pageExact.classList.remove('hidden');
+                        if (ctrlK) ctrlK.classList.add('!hidden');
                         if (app.utils.provinceData.length > 0) app.search.initExactRouteMenu();
                     } else {
                         if (pageExact) pageExact.classList.add('hidden');
+                        if (ctrlK) ctrlK.classList.remove('!hidden');
                         app.search.currentExactPrefix = ''; 
                         app.search.syncExactUI('');
                     }

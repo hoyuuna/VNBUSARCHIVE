@@ -3365,7 +3365,7 @@ Object.assign(window.app, {
                 // Bỏ qua legacy của URL cũ
                 if (filterFromUrl === 'absolute_route') filterFromUrl = 'route';
 
-                let prefixToUrl = app.search.currentExactPrefix || currentParams.get('prefix') || '';
+                let prefixToUrl = typeof app.search.currentExactPrefix === 'string' ? app.search.currentExactPrefix : (currentParams.get('prefix') || '');
                 if (filterType !== 'route') prefixToUrl = ''; // Chỉ áp dụng prefix cho route
 
                 const currentUrlPrefix = currentParams.get('prefix') || '';
