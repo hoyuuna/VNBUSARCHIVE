@@ -2010,7 +2010,8 @@ Object.assign(window.app, {
                 
                 // Render danh sách tỉnh vào Dropdown
                 initExactRouteMenu: () => {
-                    const renderHtml = `<div class="filter-item ${!app.search.currentExactPrefix ? 'selected' : ''}" onclick="app.search.setExactRoute('')"><span><i class="fa-solid fa-power-off mr-1.5"></i> Tắt</span> <i class="fa-solid fa-check opacity-0 check-icon"></i></div>` 
+                    const renderHtml = `<div class="px-3 py-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100 mb-1 bg-gray-50">Tuyến thuộc tỉnh:</div>`
+                        + `<div class="filter-item ${!app.search.currentExactPrefix ? 'selected' : ''}" onclick="app.search.setExactRoute('')"><span><i class="fa-solid fa-power-off mr-1.5 opacity-50"></i> Bỏ lọc (Tắt)</span> <i class="fa-solid fa-check ${!app.search.currentExactPrefix ? '' : 'opacity-0'} check-icon"></i></div>` 
                         + app.utils.provinceData.map(p => {
                             const prefix = Array.isArray(p.ky_hieu) ? p.ky_hieu[0] : p.ky_hieu.split(',')[0];
                             const isSelected = app.search.currentExactPrefix === prefix;
@@ -2029,27 +2030,22 @@ Object.assign(window.app, {
                 setExactRoute: (prefix, name = 'Tắt') => {
                     app.search.currentExactPrefix = prefix;
                     
-                    const hdLabel = document.getElementById('exact-route-header-label');
-                    const pgLabel = document.getElementById('exact-route-page-label');
-                    if (hdLabel) hdLabel.innerText = name;
-                    if (pgLabel) pgLabel.innerText = name;
-
                     document.getElementById('exact-route-header-menu')?.classList.remove('active');
                     document.getElementById('exact-route-page-menu')?.classList.remove('active');
                     
-                    // Render lại menu để cập nhật class 'selected'
-                    app.search.initExactRouteMenu();
+                    app.search.syncExactUI(prefix);
                     
-                    // Gọi lại hàm search để apply
+                    // Tự động load tìm kiếm nếu đang ở trang search
                     if (window.location.pathname.includes('/search')) {
                         app.handleSearch(true);
                     }
                 },
 
-                // Cập nhật UI Dropdown dựa theo URL hoặc gợi ý
+                // Cập nhật UI (Đổi chữ, đổi màu Xanh/Xám)
                 syncExactUI: (prefix) => {
                     app.search.currentExactPrefix = prefix || '';
                     let provName = 'Tắt';
+                    
                     if (prefix && app.utils.provinceData) {
                         const prov = app.utils.provinceData.find(p => {
                             const k = Array.isArray(p.ky_hieu) ? p.ky_hieu : p.ky_hieu.split(',');
@@ -2058,16 +2054,29 @@ Object.assign(window.app, {
                         if (prov) provName = prov.ten;
                     }
                     
-                    const hdLabel = document.getElementById('exact-route-header-label');
-                    const pgLabel = document.getElementById('exact-route-page-label');
-                    if (hdLabel) hdLabel.innerText = provName;
-                    if (pgLabel) pgLabel.innerText = provName;
+                    const updateBtnStyle = (labelId) => {
+                        const label = document.getElementById(labelId);
+                        if (!label) return;
+                        label.innerText = provName;
+                        const btn = label.parentElement;
+                        if (prefix) {
+                            btn.classList.remove('text-gray-500');
+                            btn.classList.add('text-blue-600', 'bg-blue-50/50');
+                        } else {
+                            btn.classList.add('text-gray-500');
+                            btn.classList.remove('text-blue-600', 'bg-blue-50/50');
+                        }
+                    };
+
+                    updateBtnStyle('exact-route-header-label');
+                    updateBtnStyle('exact-route-page-label');
                     app.search.initExactRouteMenu();
                 },
 
                 toggleFilter: (menuId = 'search-filter-menu') => {
                     document.getElementById(menuId).classList.toggle('active');
                 },
+                
                 setFilter: (type, updateUrl = true) => {
                     app.currentFilter = type;
 
@@ -2083,7 +2092,7 @@ Object.assign(window.app, {
                     document.getElementById('search-filter-menu')?.classList.remove('active');
                     document.getElementById('page-search-filter-menu')?.classList.remove('active');
 
-                    // HIỂN THỊ DROP DOWN NẾU LÀ ROUTE
+                    // ẨN / HIỆN NÚT CHỌN TỈNH NẰM TRONG THANH SEARCH
                     const headerExact = document.getElementById('exact-route-header-box');
                     const pageExact = document.getElementById('exact-route-page-box');
                     if (type === 'route') {
@@ -2093,7 +2102,7 @@ Object.assign(window.app, {
                     } else {
                         if (headerExact) headerExact.classList.add('hidden');
                         if (pageExact) pageExact.classList.add('hidden');
-                        app.search.currentExactPrefix = ''; // Tắt khi qua filter khác
+                        app.search.currentExactPrefix = ''; 
                         app.search.syncExactUI('');
                     }
 
@@ -2101,9 +2110,11 @@ Object.assign(window.app, {
                         app.handleSearch(true);
                     }
                 },
+                
                 triggerMainSuggestion: async (query, inputId = 'search-input', sugId = 'main-search-suggestions') => {
                     const box = document.getElementById(sugId);
                     if (app.suggestionTimeouts[inputId]) clearTimeout(app.suggestionTimeouts[inputId]);
+                    
                     if (query.length < 1) {
                         let recents = JSON.parse(localStorage.getItem('vnbus_recent_searches') || '[]');
                         if (recents.length > 0) {
@@ -2116,10 +2127,10 @@ Object.assign(window.app, {
                                 let setPrefixAction = r.prefix ? `app.search.syncExactUI('${r.prefix}');` : `app.search.syncExactUI('');`;
                                 let clickAction = `document.getElementById('${inputId}').value = '${safeRawJS}'; document.getElementById('${sugId}').classList.remove('active'); app.search.setFilter('${r.filter}', false); ${setPrefixAction} app.handleSearch(true);`;
                                 
-                                let extraLabel = (r.filter === 'route' && r.prefix) ? `<span class="text-[9px] bg-blue-100 text-blue-700 px-1 rounded ml-1 font-bold">Chính xác</span>` : '';
+                                let extraLabel = (r.filter === 'route' && r.prefix) ? `<span class="text-[9px] bg-blue-100 text-blue-700 px-1.5 rounded ml-1 font-bold whitespace-nowrap">Chính xác</span>` : '';
                                 
                                 return `<div class="suggestion-item border-b border-gray-100 last:border-0" onmousedown="event.preventDefault(); ${clickAction}">
-                                    <div class="text-[13px] text-black font-medium leading-snug break-words whitespace-normal flex items-center gap-2"><i class="fa-solid fa-clock-rotate-left text-gray-400"></i> ${r.query} ${extraLabel}</div>
+                                    <div class="text-[13px] text-black font-medium leading-snug break-words whitespace-normal flex items-center gap-2"><i class="fa-solid fa-clock-rotate-left text-gray-400"></i> <span class="truncate">${r.query}</span> ${extraLabel}</div>
                                 </div>`;
                             }).join('');
                             box.innerHTML = html;
@@ -2139,7 +2150,7 @@ Object.assign(window.app, {
 
                         try {
                             const filter = app.currentFilter;
-                            let results =[];
+                            let results = [];
 
                             let normalizedQuery = query.toLowerCase()
                                 .replace(/vin bus/g, 'vinbus')
@@ -2195,12 +2206,12 @@ Object.assign(window.app, {
                                     const plates = [...new Set(data.map(item => item[col]).filter(Boolean))];
                                     if (col === 'license_plate') {
                                         const basePlates = plates.filter(p => !/-\d+$/.test(p));
-                                        const uniqueBases =[...new Set(basePlates.map(p => p.replace(/-\d+$/, '')))];
+                                        const uniqueBases = [...new Set(basePlates.map(p => p.replace(/-\d+$/, '')))];
                                         return uniqueBases.map(val => ({ text: val, label }));
                                     }
                                     return plates.map(val => ({ text: val, label }));
                                 }
-                                return[];
+                                return [];
                             };
 
                             if (filter === 'all') {
@@ -2236,7 +2247,7 @@ Object.assign(window.app, {
                                 let sbQuery = window.sb.from('profiles').select('username');
                                 searchWords.forEach(word => { sbQuery = sbQuery.ilike('username', `%${word}%`); });
                                 const { data } = await sbQuery.limit(5).abortSignal(controller.signal);
-                                if (data) results =[...new Set(data.map(item => item.username).filter(Boolean))].map(val => ({ text: val, label: 'Người đăng' }));
+                                if (data) results = [...new Set(data.map(item => item.username).filter(Boolean))].map(val => ({ text: val, label: 'Người đăng' }));
                             }
 
                             if (results.length > 0) {
@@ -2261,11 +2272,12 @@ Object.assign(window.app, {
 
                                     const safeRawJS = (item.rawRoute || item.text).replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
-                                    let clickAction = `document.getElementById('${inputId}').value = '${safeRawJS}'; document.getElementById('${sugId}').classList.remove('active'); app.search.setFilter('${filterKey}', false); app.handleSearch(true);`;
-
-                                    if (filterKey === 'absolute_route' && item.prefix) {
-                                        clickAction = `document.getElementById('${inputId}').value = '${safeRawJS}'; document.getElementById('${sugId}').classList.remove('active'); app.searchRedirect('${safeRawJS}', 'absolute_route', '${item.prefix}');`;
+                                    let setPrefixAction = `app.search.syncExactUI('');`;
+                                    if (filterKey === 'route' && item.prefix) {
+                                        setPrefixAction = `app.search.syncExactUI('${item.prefix}');`;
                                     }
+                                    
+                                    let clickAction = `document.getElementById('${inputId}').value = '${safeRawJS}'; document.getElementById('${sugId}').classList.remove('active'); app.search.setFilter('${filterKey}', false); ${setPrefixAction} app.handleSearch(true);`;
 
                                     return `<div class="suggestion-item border-b border-gray-100 last:border-0" onmousedown="event.preventDefault(); ${clickAction}">
                                         <div class="text-[13px] text-black font-medium leading-snug break-words whitespace-normal">${displayHTML}</div>
