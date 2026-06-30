@@ -1458,15 +1458,18 @@ cleanupState: () => {
                                 ctx.fillRect(0, barY, width, 1.5);
 
                                 ctx.fillStyle = "white";
-                                ctx.font = `italic 900 ${fontSize}px ${fontFace}`;
-                                ctx.textBaseline = 'middle';
+                                ctx.textBaseline = 'alphabetic';
                                 ctx.textAlign = 'left';
-                                ctx.fillText("VNBUSARCHIVE", barHeight / 2, height - barHeight / 2);
+                                const textY = height - barHeight / 2 + (fontSize * 0.35);
+
+                                ctx.font = `italic 900 ${fontSize}px ${fontFace}`;
+                                ctx.fillText("VNBUSARCHIVE", barHeight / 2, textY);
                                 
                                 const vnbusWidth = ctx.measureText("VNBUSARCHIVE").width;
-                                ctx.font = `italic 700 ${fontSize}px ${fontFace}`;
-                                ctx.fillText(".io.vn", (barHeight / 2) + vnbusWidth, height - barHeight / 2);
+                                ctx.font = `italic 700 ${fontSize * 0.8}px ${fontFace}`;
+                                ctx.fillText(".io.vn", (barHeight / 2) + vnbusWidth, textY);
 
+                                ctx.textBaseline = 'middle'; // Reset textBaseline for the right text
                                 ctx.font = `700 ${fontSize}px ${fontFace}`;
                                 const rightText = `Bản quyền bởi ${username}`;
                                 const rightWidth = ctx.measureText(rightText).width;
