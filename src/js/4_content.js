@@ -1053,6 +1053,39 @@ Object.assign(window.app, {
                     app.rawFile = file;
                     const url = URL.createObjectURL(file);
                     const previewImg = document.getElementById('preview-img');
+                    
+                    previewImg.onload = () => {
+                        const updateSize = () => {
+                            const nw = previewImg.naturalWidth, nh = previewImg.naturalHeight;
+                            if (!nw || !nh) return;
+                            const container = document.getElementById('preview-container');
+                            const box = document.getElementById('preview-box');
+                            
+                            container.style.width = '100%';
+                            container.style.height = 'auto';
+                            
+                            const availableWidth = box.clientWidth;
+                            const availableHeight = window.innerHeight * 0.8;
+                            
+                            const ratio = nw / nh;
+                            let finalW = availableWidth;
+                            let finalH = finalW / ratio;
+                            
+                            if (finalH > availableHeight) {
+                                finalH = availableHeight;
+                                finalW = finalH * ratio;
+                            }
+                            
+                            container.style.width = finalW + 'px';
+                            container.style.height = finalH + 'px';
+                            
+                            const wmDrag = document.getElementById('draggable-watermark');
+                            if (wmDrag) wmDrag.style.fontSize = (finalW * 0.045) + 'px';
+                        };
+                        updateSize();
+                        app.previewUpdateSize = updateSize;
+                    };
+                    
                     previewImg.src = url;
                     document.getElementById('preview-box').classList.remove('hidden');
                     document.getElementById('drop-zone').classList.add('hidden');
@@ -1091,14 +1124,10 @@ Object.assign(window.app, {
                     let isDragging = false;
                     let startX, startY, initialLeft, initialTop;
 
-                    const resizeObserver = new ResizeObserver(entries => {
-                        for (let entry of entries) {
-                            if (entry.contentRect.width > 0) {
-                                el.style.fontSize = (entry.contentRect.width * 0.045) + 'px';
-                            }
-                        }
+                    const resizeObserver = new ResizeObserver(() => {
+                        if (app.previewUpdateSize) app.previewUpdateSize();
                     });
-                    resizeObserver.observe(container);
+                    resizeObserver.observe(document.getElementById('preview-box'));
 
                     document.addEventListener('mousedown', (e) => {
                         if (!el.contains(e.target)) el.classList.remove('wm-active');
