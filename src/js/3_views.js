@@ -2009,7 +2009,7 @@ Object.assign(window.app, {
                 currentExactPrefix: '', 
                 
                 initExactRouteMenu: () => {
-                    const renderHtml = `<div class="px-3 py-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100 mb-1 bg-gray-50 text-center">Tìm theo tỉnh</div>`
+                    const renderHtml = `<div class="px-3 py-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100 mb-1 bg-gray-50">Tìm theo tỉnh</div>`
                         + `<div class="filter-item ${!app.search.currentExactPrefix ? 'selected' : ''}" onclick="app.search.setExactRoute('')"><span>Tắt</span> <i class="fa-solid fa-check ${!app.search.currentExactPrefix ? '' : 'opacity-0'} check-icon"></i></div>` 
                         + app.utils.provinceData.map(p => {
                             const prefix = Array.isArray(p.ky_hieu) ? p.ky_hieu[0] : p.ky_hieu.split(',')[0];

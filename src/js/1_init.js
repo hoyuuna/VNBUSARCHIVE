@@ -1733,8 +1733,11 @@ cleanupState: () => {
                         if (plateEl) plateVal = plateEl.value.trim();
                     }
 
-                    // Nếu Query đang rỗng VÀ (không phải trường model HOẶC trường model mà không có tuyến) -> Ẩn box
-                    if (query.length < 1 && !(field === 'model' && routeVal.length > 0)) {
+                    const specialRoutes = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động', 'Xe hợp đồng / Đưa đón', 'Hợp đồng / Đưa đón', 'Hợp đồng'];
+                    const isSpecialRoute = specialRoutes.includes(routeVal);
+
+                    // Nếu Query đang rỗng VÀ (không phải trường model HOẶC trường model mà không có tuyến HOẶC tuyến đặc biệt) -> Ẩn box
+                    if (query.length < 1 && !(field === 'model' && routeVal.length > 0 && !isSpecialRoute)) {
                         box.classList.remove('active');
                         return;
                     }
@@ -1755,7 +1758,7 @@ cleanupState: () => {
                     try {
                         let data, error;
 
-                        if (query.length < 1 && field === 'model' && routeVal.length > 0) {
+                        if (query.length < 1 && field === 'model' && routeVal.length > 0 && !isSpecialRoute) {
                             // TRƯỜNG HỢP 1: Query rỗng nhưng có TUYẾN -> Fetch các dòng xe theo Tuyến từ Database
                             let sbQuery = window.sb.from('photos')
                                 .select('vehicles!inner(model)')
