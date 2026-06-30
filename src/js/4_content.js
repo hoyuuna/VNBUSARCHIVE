@@ -1065,7 +1065,8 @@ Object.assign(window.app, {
                             container.style.height = 'auto';
                             
                             const availableWidth = box.clientWidth;
-                            const availableHeight = window.innerHeight * 0.8;
+                            // Thu nhỏ khung hiển thị lại 1 chút để dễ bề thao tác trên Mobile/PC
+                            const availableHeight = window.innerHeight * 0.65;
                             
                             const ratio = nw / nh;
                             let finalW = availableWidth;
@@ -1079,39 +1080,39 @@ Object.assign(window.app, {
                             container.style.width = finalW + 'px';
                             container.style.height = finalH + 'px';
                             
-                            // Simulate exact export math from 1_init.js
-                            let exportWidth = nw;
-                            let exportHeight = nh;
-                            const maxDim = 1920;
-                            if (exportWidth > maxDim || exportHeight > maxDim) {
-                                if (exportWidth > exportHeight) { 
-                                    exportHeight = Math.round(exportHeight * (maxDim / exportWidth)); 
-                                    exportWidth = maxDim; 
-                                } else { 
-                                    exportWidth = Math.round(exportWidth * (maxDim / exportHeight)); 
-                                    exportHeight = maxDim; 
-                                }
-                            }
-                            const exportedBaseFontSize = Math.max(16, exportWidth * 0.015);
-                            
-                            // 1. Draggable Watermark Size
-                            const exportedWatermarkSize = exportedBaseFontSize * 3;
-                            const watermarkRatio = exportedWatermarkSize / exportWidth;
-                            const wmDrag = document.getElementById('draggable-watermark');
-                            if (wmDrag) wmDrag.style.fontSize = (finalW * watermarkRatio) + 'px';
-                            
-                            // 2. Footer Bar Size
-                            const exportedSafeBarHeight = 30 + Math.max(0, (exportHeight - exportWidth) * 0.05);
-                            const barRatio = exportedSafeBarHeight / exportHeight;
+                            // ========================================================
+                            // ĐỒNG BỘ 100% CÔNG THỨC TOÁN HỌC TỪ CANVAS MÀ BẠN ĐÃ VIẾT
+                            // ========================================================
+                            // barHeight = height * 0.08
+                            // fontSize = barHeight * 0.4 = height * 0.032
+                            // watermark = fontSize * 3 = height * 0.096
+
+                            const barHeight = finalH * 0.08;
+                            const baseFontSize = finalH * 0.032;
+                            const watermarkFontSize = finalH * 0.096;
+
+                            // 1. Kích thước & Lề của thanh Footer dưới đáy ảnh
                             const footerBar = document.getElementById('preview-footer-bar');
-                            if (footerBar) footerBar.style.height = (finalH * barRatio) + 'px';
+                            if (footerBar) {
+                                footerBar.style.height = barHeight + 'px';
+                                // Căn lề trái phải đúng bằng 1/2 chiều cao bar (chuẩn Canvas)
+                                footerBar.style.paddingLeft = (barHeight / 2) + 'px';
+                                footerBar.style.paddingRight = (barHeight / 2) + 'px';
+                            }
                             
-                            // 3. Footer Text Size
-                            const footerRatio = exportedBaseFontSize / exportWidth;
+                            // 2. Kích thước Text trong Footer
                             const leftText = document.querySelector('.footer-text-left');
                             const rightText = document.getElementById('preview-footer-copy');
-                            if (leftText) leftText.style.fontSize = (finalW * footerRatio) + 'px';
-                            if (rightText) rightText.style.fontSize = (finalW * footerRatio) + 'px';
+                            if (leftText) leftText.style.fontSize = baseFontSize + 'px';
+                            if (rightText) rightText.style.fontSize = baseFontSize + 'px';
+
+                            // 3. Kích thước Watermark kéo thả chính giữa
+                            const wmDrag = document.getElementById('draggable-watermark');
+                            if (wmDrag) {
+                                wmDrag.style.fontSize = watermarkFontSize + 'px';
+                                const currentScale = app.wmState ? (app.wmState.scale || 1.0) : 1.0;
+                                wmDrag.style.transform = `translate(-50%, -50%) scale(${currentScale})`;
+                            }
                         };
                         updateSize();
                         app.previewUpdateSize = updateSize;
@@ -1125,25 +1126,26 @@ Object.assign(window.app, {
 
                     const name = app.username || "Guest";
                     const wmName = document.getElementById('wm-username');
-                    wmName.innerText = name;
+                    if (wmName) wmName.innerText = name;
 
-                    document.getElementById('preview-footer-copy').innerText = `Bản quyền bởi ${name}`;
+                    const footerCopy = document.getElementById('preview-footer-copy');
+                    if (footerCopy) footerCopy.innerText = `Bản quyền bởi ${name}`;
 
-                    const container = document.getElementById('preview-container');
-                    const footerBar = document.getElementById('preview-footer-bar');
                     const wmDrag = document.getElementById('draggable-watermark');
+                    if (wmDrag) {
+                        wmDrag.classList.remove('hidden');
+                        wmDrag.style.top = '50%';
+                        wmDrag.style.left = '50%';
+                        wmDrag.style.transform = 'translate(-50%, -50%) scale(1.0)';
+                        wmDrag.classList.remove('wm-active');
+                    }
 
-                    footerBar.style.height = '8%';
-                    wmDrag.classList.remove('hidden');
-                    wmDrag.style.top = '50%';
-                    wmDrag.style.left = '50%';
-                    wmDrag.style.transform = 'translate(-50%, -50%)';
-                    wmDrag.classList.remove('wm-active');
+                    const chkWmBlack = document.getElementById('chk-wm-black');
+                    if (chkWmBlack) chkWmBlack.checked = false;
 
-                    document.getElementById('chk-wm-black').checked = false;
                     app.upload.toggleColor(false);
                     app.wmState = { x: 0.5, y: 0.5, color: 'white', scale: 1.0 };
-                    if(app.upload.resetFilters) app.upload.resetFilters();
+                    if (app.upload.resetFilters) app.upload.resetFilters();
                 },
 
                 initDraggable: () => {
