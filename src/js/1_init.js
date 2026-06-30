@@ -1462,6 +1462,10 @@ cleanupState: () => {
                                 ctx.textBaseline = 'middle';
                                 ctx.textAlign = 'left';
                                 ctx.fillText("VNBUSARCHIVE", barHeight / 2, height - barHeight / 2);
+                                
+                                const vnbusWidth = ctx.measureText("VNBUSARCHIVE").width;
+                                ctx.font = `italic 700 ${fontSize}px ${fontFace}`;
+                                ctx.fillText(".io.vn", (barHeight / 2) + vnbusWidth, height - barHeight / 2);
 
                                 ctx.font = `700 ${fontSize}px ${fontFace}`;
                                 const rightText = `Bản quyền bởi ${username}`;
