@@ -2560,6 +2560,18 @@
                             class="text-gray-500 px-3 py-2 hover:text-black transition-colors">
                             <i class="fa-solid fa-magnifying-glass"></i>
                         </button>
+                        <!-- DROPDOWN CHÍNH XÁC (HEADER) -->
+                        <div id="exact-route-header-box" class="hidden absolute top-[calc(100%+8px)] left-0 w-full md:w-64 bg-white/90 backdrop-blur-xl border border-gray-200 rounded-lg shadow-xl p-2.5 z-[60] animate-fadeIn">
+                            <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Tìm kiếm chính xác theo:</div>
+                            <div class="relative w-full">
+                                <button onclick="document.getElementById('exact-route-header-menu').classList.toggle('active')" class="w-full bg-white border border-gray-300 hover:border-black transition-colors rounded px-2.5 py-2 text-xs font-bold text-left flex justify-between items-center shadow-sm">
+                                    <span id="exact-route-header-label">Tắt</span> <i class="fa-solid fa-chevron-down text-[10px] text-gray-500"></i>
+                                </button>
+                                <div id="exact-route-header-menu" class="filter-menu w-full !max-h-[180px]">
+                                    <!-- JS Sẽ đổ dữ liệu vào đây -->
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <!-- 👇 DÁN VÀO ĐÂY: KHAY CHỨA TOAST NẰM NGAY MẶT DƯỚI HEADER 👇 -->
@@ -2936,6 +2948,19 @@
                         <button onclick="app.handleSearch(true)" class="text-gray-500 px-4 md:px-5 h-full hover:text-black transition-colors rounded-r-lg">
                             <i class="fa-solid fa-magnifying-glass text-lg"></i>
                         </button>
+                        
+                        <!-- DROPDOWN CHÍNH XÁC (PAGE SEARCH) -->
+                        <div id="exact-route-page-box" class="hidden absolute top-[calc(100%+8px)] left-0 w-full md:w-[60%] bg-white/90 backdrop-blur-xl border border-gray-200 rounded-lg shadow-xl p-3 z-[60] animate-fadeIn">
+                            <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Tìm kiếm chính xác theo:</div>
+                            <div class="relative w-full flex gap-2">
+                                <button onclick="document.getElementById('exact-route-page-menu').classList.toggle('active')" class="flex-1 bg-white border border-gray-300 hover:border-black transition-colors rounded-md px-3 py-2.5 text-sm font-bold text-left flex justify-between items-center shadow-sm">
+                                    <span id="exact-route-page-label">Tắt</span> <i class="fa-solid fa-chevron-down text-xs text-gray-500"></i>
+                                </button>
+                                <div id="exact-route-page-menu" class="filter-menu w-full !max-h-[220px]">
+                                    <!-- JS Sẽ đổ dữ liệu vào đây -->
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

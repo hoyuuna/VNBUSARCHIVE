@@ -1592,7 +1592,7 @@ Object.assign(window.app, {
                                                     <td class="label bg-gray-50 border-r border-b border-gray-200">${isCoach ? 'Lộ trình' : 'Mã số tuyến'} hiện tại</td>
                                                     <td class="value-cell border-b border-gray-200">
                                                         <div class="relative w-full h-full">
-                                                            <input type="text" id="vehicle-edit-route" value="${currentRouteClientSide}" autocomplete="off" class="info-input text-gray-700 w-full ${currentRouteClientSide ? 'clickable-search' : 'cursor-not-allowed'}" readonly ${currentRouteClientSide ? `onclick="if(this.readOnly && this.value && this.value!=='---') app.searchRedirect(this.value, 'absolute_route', '${vehPrefix}')"` : ''} onfocus="if(!this.readOnly) app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', '')" oninput="app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', this.value)">
+                                                            <input type="text" id="vehicle-edit-route" value="${currentRouteClientSide}" autocomplete="off" class="info-input text-gray-700 w-full ${currentRouteClientSide ? 'clickable-search' : 'cursor-not-allowed'}" readonly ${currentRouteClientSide ? `onclick="if(this.readOnly && this.value && this.value!=='---') app.searchRedirect(this.value, 'route', '${vehPrefix}')"` : ''} onfocus="if(!this.readOnly) app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', '')" oninput="app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', this.value)">
                                                             <div id="veh-sug-route" class="suggestion-box"></div>
                                                         </div>
                                                     </td>
@@ -2006,6 +2006,65 @@ Object.assign(window.app, {
 
 Object.assign(window.app, {
   search: {
+                currentExactPrefix: '', // Biến lưu prefix (mã tỉnh) cho Tuyến
+                
+                // Render danh sách tỉnh vào Dropdown
+                initExactRouteMenu: () => {
+                    const renderHtml = `<div class="filter-item ${!app.search.currentExactPrefix ? 'selected' : ''}" onclick="app.search.setExactRoute('')"><span><i class="fa-solid fa-power-off mr-1.5"></i> Tắt</span> <i class="fa-solid fa-check opacity-0 check-icon"></i></div>` 
+                        + app.utils.provinceData.map(p => {
+                            const prefix = Array.isArray(p.ky_hieu) ? p.ky_hieu[0] : p.ky_hieu.split(',')[0];
+                            const isSelected = app.search.currentExactPrefix === prefix;
+                            return `<div class="filter-item ${isSelected ? 'selected' : ''}" onclick="app.search.setExactRoute('${prefix}', '${p.ten}')">
+                                <span>${p.ten}</span> <i class="fa-solid fa-check ${isSelected ? '' : 'opacity-0'} check-icon"></i>
+                            </div>`;
+                        }).join('');
+                    
+                    const hdMenu = document.getElementById('exact-route-header-menu');
+                    const pgMenu = document.getElementById('exact-route-page-menu');
+                    if (hdMenu) hdMenu.innerHTML = renderHtml;
+                    if (pgMenu) pgMenu.innerHTML = renderHtml;
+                },
+
+                // Xử lý khi chọn 1 tỉnh (hoặc Tắt)
+                setExactRoute: (prefix, name = 'Tắt') => {
+                    app.search.currentExactPrefix = prefix;
+                    
+                    const hdLabel = document.getElementById('exact-route-header-label');
+                    const pgLabel = document.getElementById('exact-route-page-label');
+                    if (hdLabel) hdLabel.innerText = name;
+                    if (pgLabel) pgLabel.innerText = name;
+
+                    document.getElementById('exact-route-header-menu')?.classList.remove('active');
+                    document.getElementById('exact-route-page-menu')?.classList.remove('active');
+                    
+                    // Render lại menu để cập nhật class 'selected'
+                    app.search.initExactRouteMenu();
+                    
+                    // Gọi lại hàm search để apply
+                    if (window.location.pathname.includes('/search')) {
+                        app.handleSearch(true);
+                    }
+                },
+
+                // Cập nhật UI Dropdown dựa theo URL hoặc gợi ý
+                syncExactUI: (prefix) => {
+                    app.search.currentExactPrefix = prefix || '';
+                    let provName = 'Tắt';
+                    if (prefix && app.utils.provinceData) {
+                        const prov = app.utils.provinceData.find(p => {
+                            const k = Array.isArray(p.ky_hieu) ? p.ky_hieu : p.ky_hieu.split(',');
+                            return k.map(s => s.trim()).includes(prefix);
+                        });
+                        if (prov) provName = prov.ten;
+                    }
+                    
+                    const hdLabel = document.getElementById('exact-route-header-label');
+                    const pgLabel = document.getElementById('exact-route-page-label');
+                    if (hdLabel) hdLabel.innerText = provName;
+                    if (pgLabel) pgLabel.innerText = provName;
+                    app.search.initExactRouteMenu();
+                },
+
                 toggleFilter: (menuId = 'search-filter-menu') => {
                     document.getElementById(menuId).classList.toggle('active');
                 },
@@ -2024,6 +2083,20 @@ Object.assign(window.app, {
                     document.getElementById('search-filter-menu')?.classList.remove('active');
                     document.getElementById('page-search-filter-menu')?.classList.remove('active');
 
+                    // HIỂN THỊ DROP DOWN NẾU LÀ ROUTE
+                    const headerExact = document.getElementById('exact-route-header-box');
+                    const pageExact = document.getElementById('exact-route-page-box');
+                    if (type === 'route') {
+                        if (headerExact) headerExact.classList.remove('hidden');
+                        if (pageExact) pageExact.classList.remove('hidden');
+                        if (app.utils.provinceData.length > 0) app.search.initExactRouteMenu();
+                    } else {
+                        if (headerExact) headerExact.classList.add('hidden');
+                        if (pageExact) pageExact.classList.add('hidden');
+                        app.search.currentExactPrefix = ''; // Tắt khi qua filter khác
+                        app.search.syncExactUI('');
+                    }
+
                     if (updateUrl && window.location.pathname.includes('/search')) {
                         app.handleSearch(true);
                     }
@@ -2039,9 +2112,14 @@ Object.assign(window.app, {
                                 <button onmousedown="event.preventDefault(); localStorage.removeItem('vnbus_recent_searches'); document.getElementById('${sugId}').classList.remove('active')" class="hover:text-red-500 transition-colors p-1"><i class="fa-solid fa-trash"></i></button>
                             </div>` + recents.map(r => {
                                 let safeRawJS = r.query.replace(/'/g, "\\'").replace(/"/g, '\\"');
-                                let clickAction = `document.getElementById('${inputId}').value = '${safeRawJS}'; document.getElementById('${sugId}').classList.remove('active'); app.search.setFilter('${r.filter}', false); app.handleSearch(true);`;
+                                // Khôi phục lại trạng thái Prefix nếu lịch sử có lưu
+                                let setPrefixAction = r.prefix ? `app.search.syncExactUI('${r.prefix}');` : `app.search.syncExactUI('');`;
+                                let clickAction = `document.getElementById('${inputId}').value = '${safeRawJS}'; document.getElementById('${sugId}').classList.remove('active'); app.search.setFilter('${r.filter}', false); ${setPrefixAction} app.handleSearch(true);`;
+                                
+                                let extraLabel = (r.filter === 'route' && r.prefix) ? `<span class="text-[9px] bg-blue-100 text-blue-700 px-1 rounded ml-1 font-bold">Chính xác</span>` : '';
+                                
                                 return `<div class="suggestion-item border-b border-gray-100 last:border-0" onmousedown="event.preventDefault(); ${clickAction}">
-                                    <div class="text-[13px] text-black font-medium leading-snug break-words whitespace-normal flex items-center gap-2"><i class="fa-solid fa-clock-rotate-left text-gray-400"></i> ${r.query}</div>
+                                    <div class="text-[13px] text-black font-medium leading-snug break-words whitespace-normal flex items-center gap-2"><i class="fa-solid fa-clock-rotate-left text-gray-400"></i> ${r.query} ${extraLabel}</div>
                                 </div>`;
                             }).join('');
                             box.innerHTML = html;
@@ -2053,9 +2131,7 @@ Object.assign(window.app, {
                     }
 
                     app.suggestionTimeouts[inputId] = setTimeout(async () => {
-                        if (app.suggestionControllers && app.suggestionControllers[inputId]) {
-                            app.suggestionControllers[inputId].abort();
-                        }
+                        if (app.suggestionControllers && app.suggestionControllers[inputId]) app.suggestionControllers[inputId].abort();
 
                         const controller = new AbortController();
                         if (!app.suggestionControllers) app.suggestionControllers = {};
@@ -2072,71 +2148,45 @@ Object.assign(window.app, {
 
                             const searchWords = normalizedQuery.trim().split(/\s+/).filter(w => w.length > 0);
 
-                            const isBasePlate = (plate) => !/-\d+$/.test(plate);
-
                             const fetchSugs = async (table, col, label) => {
                                 let selectStr = col;
-                                if (table === 'vehicles' && app.preference.current !== 'both') {
-                                    selectStr = `${col}, photos!inner(type)`;
-                                }
-                                if (table === 'photos' && col === 'route_no') {
-                                    selectStr = 'route_no, license_plate';
-                                }
+                                if (table === 'vehicles' && app.preference.current !== 'both') selectStr = `${col}, photos!inner(type)`;
+                                if (table === 'photos' && col === 'route_no') selectStr = 'route_no, license_plate';
 
                                 let sbQuery = window.sb.from(table).select(selectStr);
-
-                                // CHỈ GỢI Ý TỪ ẢNH ĐÃ ĐƯỢC DUYỆT
-                                if (table === 'photos') {
-                                    sbQuery = sbQuery.eq('status', 'approved');
-                                }
+                                if (table === 'photos') sbQuery = sbQuery.eq('status', 'approved');
 
                                 searchWords.forEach(word => {
-                                    if (col === 'license_plate') {
-                                        sbQuery = sbQuery.ilike(col, `%${app.utils.normalizePlateQuery(word)}%`);
-                                    } else {
-                                        sbQuery = sbQuery.ilike(col, `%${word}%`);
-                                    }
+                                    if (col === 'license_plate') sbQuery = sbQuery.ilike(col, `%${app.utils.normalizePlateQuery(word)}%`);
+                                    else sbQuery = sbQuery.ilike(col, `%${word}%`);
                                 });
 
                                 sbQuery = app.preference.applyFilter(sbQuery, table);
-
                                 const { data } = await sbQuery.limit(30).abortSignal(controller.signal);
+                                
                                 if (data) {
-                                    // XỬ LÝ RIÊNG CHO TUYẾN: TÌM TỈNH HOẠT ĐỘNG (TÁCH THEO YÊU CẦU MỚI)
                                     if (col === 'route_no') {
                                         const routeProvSet = new Set();
                                         const routeResults = [];
                                         data.forEach(item => {
                                             const r = item.route_no;
                                             if (!r) return;
-
                                             let prov = '';
                                             if (item.license_plate) {
                                                 const extractedProv = app.utils.getProvinceFromPlate(item.license_plate);
-                                                if (extractedProv && extractedProv !== 'Không xác định' && extractedProv !== 'Biển tạm') {
-                                                    prov = extractedProv;
-                                                }
+                                                if (extractedProv && extractedProv !== 'Không xác định' && extractedProv !== 'Biển tạm') prov = extractedProv;
                                             }
-
                                             const key = r + '|' + prov;
                                             if (!routeProvSet.has(key)) {
                                                 routeProvSet.add(key);
                                                 let prefix = '';
-                                try {
-                                    if (prov && app.utils.provinceData && app.utils.provinceData.length) {
-                                        const provData = app.utils.provinceData.find(p => p.ten === prov);
-                                        if (provData && provData.ky_hieu) {
-                                            prefix = Array.isArray(provData.ky_hieu) ? String(provData.ky_hieu[0]).trim() : String(provData.ky_hieu).split(',')[0].trim();
-                                        }
-                                    }
-                                } catch (e) { }
-
-                                                routeResults.push({
-                                                    text: prov ? `${r} (${prov})` : r,
-                                                    label: label, // Chỉ để "Tuyến" bên dưới
-                                                    prefix: prefix,
-                                                    rawRoute: r // Giữ lại mã số tuyến gốc để fill vào ô tìm kiếm
-                                                });
+                                                try {
+                                                    if (prov && app.utils.provinceData) {
+                                                        const provData = app.utils.provinceData.find(p => p.ten === prov);
+                                                        if (provData && provData.ky_hieu) prefix = Array.isArray(provData.ky_hieu) ? String(provData.ky_hieu[0]).trim() : String(provData.ky_hieu).split(',')[0].trim();
+                                                    }
+                                                } catch (e) { }
+                                                routeResults.push({ text: prov ? `${r} (${prov})` : r, label: label, prefix: prefix, rawRoute: r });
                                             }
                                         });
                                         return routeResults;
@@ -2144,7 +2194,7 @@ Object.assign(window.app, {
 
                                     const plates = [...new Set(data.map(item => item[col]).filter(Boolean))];
                                     if (col === 'license_plate') {
-                                        const basePlates = plates.filter(p => isBasePlate(p));
+                                        const basePlates = plates.filter(p => !/-\d+$/.test(p));
                                         const uniqueBases =[...new Set(basePlates.map(p => p.replace(/-\d+$/, '')))];
                                         return uniqueBases.map(val => ({ text: val, label }));
                                     }
@@ -2161,23 +2211,9 @@ Object.assign(window.app, {
                                     fetchSugs('vehicles', 'model', 'Dòng xe')
                                 ]);
 
-                                // THUẬT TOÁN CHIA SLOT: Đảm bảo chừa chỗ cho các mục khác nếu có
                                 let out = [];
-                                let pools = [
-                                    { data: plates, limit: 4 }, // BKS ưu tiên 4 slot
-                                    { data: routes, limit: 2 }, // Tuyến 2 slot
-                                    { data: ops, limit: 2 },    // Đơn vị 2 slot
-                                    { data: models, limit: 2 }  // Model 2 slot
-                                ];
-
-                                // B1: Rút dữ liệu theo limit tối đa được phân bổ
-                                pools.forEach(p => {
-                                    p.added = p.data.slice(0, p.limit);
-                                    out.push(...p.added);
-                                    p.remain = p.data.slice(p.limit); // Phần dư chưa được hiển thị
-                                });
-
-                                // B2: Nếu tổng chưa tới 10, vớt phần dư từ các pool (BKS sẽ tràn xuống lấy hết nếu các mục kia rỗng)
+                                let pools = [ { data: plates, limit: 4 }, { data: routes, limit: 2 }, { data: ops, limit: 2 }, { data: models, limit: 2 } ];
+                                pools.forEach(p => { p.added = p.data.slice(0, p.limit); out.push(...p.added); p.remain = p.data.slice(p.limit); });
                                 let slotsLeft = 10 - out.length;
                                 if (slotsLeft > 0) {
                                     for (let p of pools) {
@@ -2190,19 +2226,13 @@ Object.assign(window.app, {
                                     }
                                 }
                                 results = out;
-                            } else if (filter === 'plate') {
-                                results = await fetchSugs('vehicles', 'license_plate', 'BKS');
-                            } else if (filter === 'route' || filter === 'absolute_route') {
-                                results = await fetchSugs('photos', 'route_no', 'Tuyến');
-                            } else if (filter === 'operator') {
-                                results = await fetchSugs('photos', 'operator', 'Đơn vị vận hành');
-                            } else if (filter === 'model') {
-                                results = await fetchSugs('vehicles', 'model', 'Dòng xe');
-                            } else if (filter === 'location') {
-                                results = await fetchSugs('photos', 'location', 'Vị trí');
-                            } else if (filter === 'camera') {
-                                results = await fetchSugs('photos', 'camera_model', 'Thiết bị');
-                            } else if (filter === 'uploader') {
+                            } else if (filter === 'plate') results = await fetchSugs('vehicles', 'license_plate', 'BKS');
+                            else if (filter === 'route') results = await fetchSugs('photos', 'route_no', 'Tuyến');
+                            else if (filter === 'operator') results = await fetchSugs('photos', 'operator', 'Đơn vị vận hành');
+                            else if (filter === 'model') results = await fetchSugs('vehicles', 'model', 'Dòng xe');
+                            else if (filter === 'location') results = await fetchSugs('photos', 'location', 'Vị trí');
+                            else if (filter === 'camera') results = await fetchSugs('photos', 'camera_model', 'Thiết bị');
+                            else if (filter === 'uploader') {
                                 let sbQuery = window.sb.from('profiles').select('username');
                                 searchWords.forEach(word => { sbQuery = sbQuery.ilike('username', `%${word}%`); });
                                 const { data } = await sbQuery.limit(5).abortSignal(controller.signal);
@@ -2210,16 +2240,7 @@ Object.assign(window.app, {
                             }
 
                             if (results.length > 0) {
-                                // TỪ ĐIỂN ĐỂ ÁNH XẠ LABEL SANG FILTER ID CỦA HỆ THỐNG
-                                const labelToFilter = {
-                                    'BKS': 'plate',
-                                    'Tuyến': 'route',
-                                    'Đơn vị vận hành': 'operator',
-                                    'Dòng xe': 'model',
-                                    'Vị trí': 'location',
-                                    'Thiết bị': 'camera',
-                                    'Người đăng': 'uploader'
-                                };
+                                const labelToFilter = { 'BKS': 'plate', 'Tuyến': 'route', 'Đơn vị vận hành': 'operator', 'Dòng xe': 'model', 'Vị trí': 'location', 'Thiết bị': 'camera', 'Người đăng': 'uploader' };
 
                                 box.innerHTML = results.slice(0, 10).map(item => {
                                     const safeText = app.utils.cleanText(item.text);
@@ -2234,15 +2255,10 @@ Object.assign(window.app, {
 
                                     const labelHTML = (filter === 'all' || item.label.includes('(')) ? `<div class=\"text-[10px] text-gray-400 font-normal mt-0.5\">${item.label}</div>` : '';
 
-                                    // LẤY FILTER KEY DỰA TRÊN LABEL (NẾU LÀ TUYẾN THÌ ÉP CHỌN absolute_route)
                                     let filterKey = filter;
-                                    if (item.label && item.label.startsWith('Tuyến')) {
-                                        filterKey = 'absolute_route';
-                                    } else if (labelToFilter[item.label]) {
-                                        filterKey = labelToFilter[item.label];
-                                    }
+                                    if (item.label && item.label.startsWith('Tuyến')) filterKey = 'route';
+                                    else if (labelToFilter[item.label]) filterKey = labelToFilter[item.label];
 
-                                    // Xử lý lấy mã số tuyến nguyên bản thay vì nhét cả chữ "(Hà Nội)" vào ô search
                                     const safeRawJS = (item.rawRoute || item.text).replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
                                     let clickAction = `document.getElementById('${inputId}').value = '${safeRawJS}'; document.getElementById('${sugId}').classList.remove('active'); app.search.setFilter('${filterKey}', false); app.handleSearch(true);`;
@@ -2351,7 +2367,7 @@ Object.assign(window.app, {
                     tbody.innerHTML = displayData.map(r => `
                         <tr class="hover:bg-gray-50 transition group">
                             <td class="font-medium text-gray-700 max-w-[200px] truncate border-r border-gray-200" title="${app.utils.cleanText(r.displayName || r.route)}">
-                                <span onclick="app.searchRedirect('${app.utils.escapeAttr(r.route)}', 'absolute_route', '${r.prefix || ''}')" class="cursor-pointer hover:text-blue-600 hover:underline font-bold transition text-black">
+                                <span onclick="app.searchRedirect('${app.utils.escapeAttr(r.route)}', 'route', '${r.prefix || ''}')" class="cursor-pointer hover:text-blue-600 hover:underline font-bold transition text-black">
                                     ${app.utils.cleanText(r.displayName || r.route)}
                                 </span>
                             </td>

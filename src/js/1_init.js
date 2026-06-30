@@ -2084,6 +2084,7 @@ Object.assign(window.app, {
                 app.lastLoadedUsername = '';
                 app.utils.updateBreadcrumbs();
                 await app.utils.loadProvinceData();
+                app.search.initExactRouteMenu();
                 await app.maintenance.fetch();
 
                 app.preference.load();
@@ -2215,7 +2216,7 @@ Object.assign(window.app, {
                                         routePrefix = Array.isArray(pData.ky_hieu) ? String(pData.ky_hieu[0]).trim() : String(pData.ky_hieu).split(',')[0].trim();
                                     }
                                 }
-                                app.searchRedirect(this.value, 'absolute_route', routePrefix);
+                                app.searchRedirect(this.value, 'route', routePrefix);
                             }
                             else {
                                 app.searchRedirect(this.value, fieldMap[id]);
@@ -2445,10 +2446,15 @@ Object.assign(window.app, {
                 } else if (path.startsWith('/search')) {
                     document.title = 'Tìm kiếm | VNBUSARCHIVE';
                     const q = searchParams.get('q');
-                    const filter = searchParams.get('filter') || 'all';
+                    let filter = searchParams.get('filter') || 'all';
 
-                    if (filter === 'absolute_route') app.currentFilter = 'absolute_route';
-                    else app.search.setFilter(filter, false);
+                    // Nếu gặp URL format cũ (còn lưu lại) thì ép chuyển qua chuẩn mới
+                    if (filter === 'absolute_route') filter = 'route'; 
+
+                    app.search.setFilter(filter, false);
+                    if (filter === 'route') {
+                        app.search.syncExactUI(searchParams.get('prefix') || '');
+                    }
 
                     if (q) {
                         document.getElementById('search-input').value = decodeURIComponent(q);
@@ -3303,11 +3309,9 @@ Object.assign(window.app, {
 
 Object.assign(window.app, {
   handleSearch: async (forceRefresh = false) => {
-                // Đồng bộ từ khóa giữa 2 ô input (header và page)
                 const headerInput = document.getElementById('search-input');
                 const pageInput = document.getElementById('page-search-input');
 
-                // Ưu tiên ô nào đang có giá trị nhập mới nhất
                 let query = '';
                 if (app.currentViewMode === 'search' && pageInput && document.activeElement === pageInput) {
                     query = pageInput.value.trim();
@@ -3317,9 +3321,7 @@ Object.assign(window.app, {
                     if(pageInput) pageInput.value = query;
                 }
 
-                // ==========================================
-                // TỰ ĐỘNG NHẬN DIỆN "01 (Hà Nội)" KHI NHẬP TAY
-                // ==========================================
+                // Nhận diện tự động chuỗi gõ bằng tay: ví dụ "01 (Hà Nội)"
                 let autoPrefix = null;
                 const provMatch = query.match(/^(.*?)\s*\((.+?)\)$/);
                 if (provMatch) {
@@ -3331,11 +3333,11 @@ Object.assign(window.app, {
                         if (prov && prov.ky_hieu) {
                             autoPrefix = Array.isArray(prov.ky_hieu) ? String(prov.ky_hieu[0]).trim() : String(prov.ky_hieu).split(',')[0].trim();
                             query = extractedRoute;
-
                             headerInput.value = query;
                             if (pageInput) pageInput.value = query;
-
-                            app.currentFilter = 'absolute_route';
+                            
+                            app.currentFilter = 'route';
+                            app.search.syncExactUI(autoPrefix); // Đồng bộ UI Dropdown mới
                         }
                     }
                 }
@@ -3357,39 +3359,37 @@ Object.assign(window.app, {
                 const currentParams = new URLSearchParams(window.location.search);
                 let filterFromUrl = currentParams.get('filter') || 'all';
 
-                if (filterFromUrl === 'absolute_route') {
-                    app.currentFilter = 'absolute_route';
-                }
+                // Bỏ qua legacy của URL cũ
+                if (filterFromUrl === 'absolute_route') filterFromUrl = 'route';
 
-                // Nếu autoPrefix phát hiện ra Tỉnh, lấy nó làm prefix để đẩy lên URL
-                let prefixToUrl = autoPrefix || currentParams.get('prefix');
+                let prefixToUrl = app.search.currentExactPrefix || currentParams.get('prefix') || '';
+                if (filterType !== 'route') prefixToUrl = ''; // Chỉ áp dụng prefix cho route
 
-                if (!window.location.pathname.includes('/search') || currentParams.get('q') !== query || filterFromUrl !== filterType || (filterType === 'absolute_route' && currentParams.get('prefix') !== prefixToUrl)) {
+                if (!window.location.pathname.includes('/search') || currentParams.get('q') !== query || filterFromUrl !== filterType || currentParams.get('prefix') !== prefixToUrl) {
                     let url = `/search?q=${encodeURIComponent(query)}&filter=${filterType}`;
                     if (prefixToUrl) url += `&prefix=${encodeURIComponent(prefixToUrl)}`;
                     app.utils.navigate(url);
                     return;
                 }
 
-                if (app.lastSearchQuery === query && app.lastSearchFilter === filterType && !forceRefresh) {
+                if (app.lastSearchQuery === query && app.lastSearchFilter === filterType && app.lastSearchPrefix === prefixToUrl && !forceRefresh) {
                     app.views.switch('search', false);
                     app.loadingBar.finish();
                     return;
                 }
                 app.lastSearchQuery = query;
                 app.lastSearchFilter = filterType;
+                app.lastSearchPrefix = prefixToUrl;
                 
                 const currentSearchToken = Date.now();
                 app.searchToken = currentSearchToken;
 
-                // Save recent search
                 let recents = JSON.parse(localStorage.getItem('vnbus_recent_searches') || '[]');
                 recents = recents.filter(r => r.query !== query);
-                recents.unshift({ query, filter: filterType });
+                recents.unshift({ query, filter: filterType, prefix: prefixToUrl });
                 if (recents.length > 5) recents.pop();
                 localStorage.setItem('vnbus_recent_searches', JSON.stringify(recents));
 
-                // Tách biệt hẳn ra tab search
                 app.views.switch('search', false);
                 app.currentViewMode = 'search';
                 document.title = 'Tìm kiếm | VNBUSARCHIVE';
@@ -3401,36 +3401,21 @@ Object.assign(window.app, {
                 app.currentSearchCards =[];
                 app.loadedSearchCardsCount = 0;
 
-                if (clearBtn) clearBtn.classList.remove('hidden');
-                if (pageClearBtn) pageClearBtn.classList.remove('hidden');
-
                 const grid = document.getElementById('search-photo-grid');
                 grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tìm kiếm...</div>';
 
                 try {
-                    // 1. TỰ ĐỘNG CHUYỂN HƯỚNG NẾU NHẬP LINK HOẶC ID ẢNH
                     const isIdSearch = query.match(/\/photo\/(\d+)/i) || (filterType === 'all' ? query.match(/^#(\d+)$/) : null);
                     if (isIdSearch) {
-                        const directId = isIdSearch[1];
                         app.loadingBar.finish();
-                        app.utils.navigate(`/photo/${directId}`);
+                        app.utils.navigate(`/photo/${isIdSearch[1]}`);
                         return;
                     }
 
-                    // ================= TẠO THẺ CARD GỢI Ý (CHẠY SONG SONG & ÉP THỨ TỰ ƯU TIÊN) =================
-                    // Tách riêng 4 giỏ chứa để không bị lộn xộn do tốc độ phản hồi của mạng
-                    let uploaderCards = [];
-                    let operatorCards = [];
-                    let modelCards = [];
-                    let plateCards = [];
-                    
-                    let normalizedQuery = query.toLowerCase()
-                        .replace(/vin bus/g, 'vinbus')
-                        .replace(/thanh buoi/g, 'thành bưởi')
-                        .replace(/phuong trang/g, 'phương trang');
+                    // Tái sử dụng logic lấy card như cũ (chỉ sửa tên filter)
+                    let uploaderCards = [], operatorCards = [], modelCards = [], plateCards = [];
+                    let normalizedQuery = query.toLowerCase().replace(/vin bus/g, 'vinbus').replace(/thanh buoi/g, 'thành bưởi').replace(/phuong trang/g, 'phương trang');
                     const searchWords = normalizedQuery.trim().split(/\s+/).filter(w => w.length > 0);
-
-                    // Mảng chứa các tiến trình lấy dữ liệu
                     const cardPromises = [];
 
                     // 1. LẤY UPLOADER
@@ -3624,9 +3609,7 @@ Object.assign(window.app, {
                     if (filterType === 'plate' || filterType === 'model' || filterType === 'all') {
                         cardPromises.push((async () => {
                             try {
-                                let selectStr = '*';
-                                if (app.preference.current !== 'both') selectStr = '*, photos!inner(type)';
-
+                                let selectStr = app.preference.current !== 'both' ? '*, photos!inner(type)' : '*';
                                 let vQuery = window.sb.from('vehicles').select(selectStr).limit(10);
                                 if (filterType === 'plate') {
                                     searchWords.forEach(w => { vQuery = vQuery.ilike('license_plate', `%${app.utils.normalizePlateQuery(w)}%`); });
@@ -3640,65 +3623,51 @@ Object.assign(window.app, {
                                         else vQuery = vQuery.or(`model.ilike."%${safeW}%",note.ilike."%${safeW}%"`);
                                     });
                                 }
-
                                 vQuery = app.preference.applyFilter(vQuery, 'vehicles');
                                 const { data: vData } = await vQuery;
-
-                                if (vData && vData.length > 0) {
-                                    for (const v of vData) {
-                                        const rawPlate = app.utils.cleanText(v.license_plate);
-                                        const displayPlate = app.utils.displayPlate(rawPlate);
-                                        const safeModel = app.utils.cleanText(v.model || 'Chưa rõ Model');
+                                if (vData) {
+                                    vData.forEach(v => {
                                         const iconClass = (app.preference.current === 'coach') ? 'fa-van-shuttle' : 'fa-bus';
-
                                         plateCards.push(`
-                                            <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.views.loadVehiclePage('${rawPlate}')">
+                                            <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.views.loadVehiclePage('${app.utils.cleanText(v.license_plate)}')">
                                                 <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0"><i class="fa-solid ${iconClass}"></i></div>
                                                 <div class="overflow-hidden">
-                                                    <div class="font-bold text-black text-sm truncate">${displayPlate}</div>
-                                                    <div class="text-xs text-gray-500 truncate" title="${safeModel}">${safeModel}</div>
+                                                    <div class="font-bold text-black text-sm truncate">${app.utils.displayPlate(app.utils.cleanText(v.license_plate))}</div>
+                                                    <div class="text-xs text-gray-500 truncate" title="${app.utils.cleanText(v.model || '')}">${app.utils.cleanText(v.model || 'Chưa rõ Model')}</div>
                                                 </div>
                                             </div>
                                         `);
-                                    }
+                                    });
                                 }
-                            } catch (e) { console.error("Lỗi tìm Xe:", e); }
+                            } catch (e) { }
                         })());
                     }
 
-                    // ÉP TRÌNH DUYỆT CHẠY 4 TIẾN TRÌNH TRÊN CÙNG 1 LÚC (TỐC ĐỘ X4)
                     await Promise.all(cardPromises);
-                    
                     if (app.searchToken !== currentSearchToken) return;
 
-                    // XUẤT RA UI THEO ĐÚNG THỨ TỰ ƯU TIÊN: Đơn Vị -> Dòng Xe -> Biển Số -> Người Đăng
                     app.currentSearchCards = [...operatorCards, ...modelCards, ...plateCards, ...uploaderCards];
                     app.views.loadMoreSearchCards(true);
 
 
                     // ================= TÌM KIẾM ẢNH CHÍNH =================
                     const profileSelect = (filterType === 'uploader') ? 'profiles!inner(id, username, role, subroles)' : 'profiles(id, username, role, subroles)';
-                    let photoQuery;
-
-                    // FIX LỖI: Dùng INNER JOIN cho 'model' để Database tự lọc mà không bị lỡ ảnh cũ
-                    if (filterType === 'model') {
-                        photoQuery = window.sb.from('photos').select(`*, ${profileSelect}, vehicles!inner(model)`).eq('status', 'approved');
-                    } else {
-                        photoQuery = window.sb.from('photos').select(`*, ${profileSelect}, vehicles(model)`).eq('status', 'approved');
-                    }
-
+                    let photoQuery = window.sb.from('photos').select(`*, ${profileSelect}, vehicles${filterType === 'model' ? '!inner' : ''}(model)`).eq('status', 'approved');
                     photoQuery = app.preference.applyFilter(photoQuery);
-                    let forceEmptyResult = false;
 
-                    if (filterType === 'absolute_route') {
-                        const prefix = prefixToUrl || currentParams.get('prefix') || '';
-                        const relatedPrefixes = app.utils.getRelatedPrefixes(prefix);
-                        const prefixOrCond = relatedPrefixes.map(p => `license_plate.ilike.${p}%`).join(',');
-                        photoQuery = photoQuery.eq('route_no', query).or(prefixOrCond);
+                    if (filterType === 'route') {
+                        const prefix = prefixToUrl;
+                        if (prefix) {
+                            // GIAI ĐOẠN 1: BẬT TÌM KIẾM CHÍNH XÁC (Giống absolute_route cũ)
+                            const relatedPrefixes = app.utils.getRelatedPrefixes(prefix);
+                            const prefixOrCond = relatedPrefixes.map(p => `license_plate.ilike.${p}%`).join(',');
+                            photoQuery = photoQuery.eq('route_no', query).or(prefixOrCond);
+                        } else {
+                            // GIAI ĐOẠN 2: TÌM KIẾM THEO CHỮ (TẮT)
+                            searchWords.forEach(w => { photoQuery = photoQuery.ilike('route_no', `%${w}%`); });
+                        }
                     } else if (filterType === 'plate') {
                         searchWords.forEach(w => { photoQuery = photoQuery.ilike('license_plate', `%${app.utils.normalizePlateQuery(w)}%`); });
-                    } else if (filterType === 'route') {
-                        searchWords.forEach(w => { photoQuery = photoQuery.ilike('route_no', `%${w}%`); });
                     } else if (filterType === 'operator') {
                         searchWords.forEach(w => { photoQuery = photoQuery.ilike('operator', `%${w}%`); });
                     } else if (filterType === 'camera') {
@@ -3708,10 +3677,9 @@ Object.assign(window.app, {
                     } else if (filterType === 'uploader') {
                         searchWords.forEach(w => { photoQuery = photoQuery.ilike('profiles.username', `%${w}%`); });
                     } else if (filterType === 'model') {
-                        // Kích hoạt tìm kiếm Model bằng INNER JOIN
                         searchWords.forEach(w => { photoQuery = photoQuery.ilike('vehicles.model', `%${w}%`); });
                     } else {
-                                                // LỌC ALL (TỐI ƯU HÓA)
+                        // All
                         let mQ = window.sb.from('vehicles').select('license_plate');
                         let uQ = window.sb.from('profiles').select('id');
 
@@ -3721,13 +3689,7 @@ Object.assign(window.app, {
                             uQ = uQ.ilike('username', `%${w}%`);
                         });
 
-                        // Chạy 2 truy vấn MỞ RỘNG CÙNG 1 LÚC để giảm nửa thời gian chờ
-                        // CHÚ Ý: Đã giảm limit(800) xuống 150 để URL API không bị quá tải do chuỗi IN() quá dài
-                        const [mRes, uRes] = await Promise.all([
-                            mQ.limit(150), 
-                            uQ.limit(10)
-                        ]);
-                        
+                        const [mRes, uRes] = await Promise.all([mQ.limit(150), uQ.limit(10)]);
                         if (app.searchToken !== currentSearchToken) return;
 
                         const plates = mRes.data ? mRes.data.map(v => v.license_plate) : [];
@@ -3739,7 +3701,6 @@ Object.assign(window.app, {
                             
                             let orConditions = [];
                             if (safeWPlate) orConditions.push(`license_plate.ilike."%${safeWPlate}%"`);
-                            
                             orConditions.push(`operator.ilike."%${safeW}%"`);
                             orConditions.push(`route_no.ilike."%${safeW}%"`);
                             orConditions.push(`camera_model.ilike."%${safeW}%"`);
@@ -3753,12 +3714,6 @@ Object.assign(window.app, {
                         });
                     }
 
-                    if (forceEmptyResult) {
-                        grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500">Không tìm thấy kết quả phù hợp.</div>';
-                        app.loadingBar.finish();
-                        return;
-                    }
-
                     const { data: results, error } = await photoQuery
                         .order('taken_at', { ascending: false, nullsFirst: false })
                         .order('created_at', { ascending: false })
@@ -3768,14 +3723,13 @@ Object.assign(window.app, {
                     if (error) throw error;
 
                     if (!results || results.length === 0) {
-                        grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500">Không tìm thấy ảnh nào trùng khớp.</div>';
+                        grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500">Không tìm thấy kết quả phù hợp.</div>';
                         return;
                     }
 
                     app.currentSearchResults = results;
                     app.loadedCount = 0;
                     grid.innerHTML = '';
-
                     app.views.loadMorePhotos();
 
                 } catch (err) {
