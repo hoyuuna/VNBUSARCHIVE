@@ -591,7 +591,7 @@
             transition: opacity 0.2s, border 0.2s, color 0.2s;
             padding: 5px 10px;
             border: 1px solid transparent;
-            font-size: clamp(10px, 4.5vw, 40px);
+            font-size: 4.5cqi;
         }
 
         .wm-draggable.wm-active {
@@ -3586,7 +3586,8 @@
                             <div id="preview-box" class="hidden mt-6 text-center">
                                 <p class="text-xs font-bold mb-2 text-gray-600 text-left">Xem trước (Đã đóng dấu bản quyền):</p>
                                 <div id="preview-container"
-                                    class="relative inline-block border border-gray-300 shadow-sm overflow-hidden no-select bg-gray-200 rounded-md max-w-full">
+                                    class="relative inline-block border border-gray-300 shadow-sm overflow-hidden no-select bg-gray-200 rounded-md max-w-full"
+                                    style="container-type: inline-size;">
                                     <img id="preview-img" class="block pointer-events-none max-w-full h-auto"
                                         style="max-height: 80vh;">
                                         
