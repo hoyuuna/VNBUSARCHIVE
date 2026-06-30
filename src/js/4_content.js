@@ -737,9 +737,43 @@ Object.assign(window.app, {
                     if (valEl) valEl.innerText = val + '%';
                     
                     const el = document.getElementById('draggable-watermark');
-                    if (el) {
+                    const container = document.getElementById('preview-container');
+                    
+                    if (el && container) {
+                        // 1. Cập nhật kích thước (Scale) mới
                         el.style.transform = `translate(-50%, -50%) scale(${app.wmState.scale})`;
+                        
+                        // 2. Tính toán lại ranh giới (Boundaries) với Scale mới
+                        // Lấy tọa độ tâm hiện tại theo pixel
+                        let currentLeft = app.wmState.x * container.offsetWidth;
+                        let currentTop = app.wmState.y * container.offsetHeight;
+                        
+                        // Tính nửa chiều rộng và nửa chiều cao thực tế của chữ ký sau khi scale
+                        const wHalf = (el.offsetWidth * app.wmState.scale) / 2;
+                        const hHalf = (el.offsetHeight * app.wmState.scale) / 2;
+
+                        // Ranh giới an toàn cho X (Trái/Phải)
+                        const minLeft = wHalf;
+                        const maxLeft = Math.max(minLeft, container.offsetWidth - wHalf);
+                        
+                        // Ranh giới an toàn cho Y (Trên/Dưới) - Trừ đi 8% của thanh Footer màu đen
+                        const minTop = hHalf;
+                        const maxTop = Math.max(minTop, container.offsetHeight - hHalf - (container.offsetHeight * 0.08));
+
+                        // 3. Ép tọa độ tâm lùi lại vào trong nếu bị tràn
+                        let newLeft = Math.max(minLeft, Math.min(currentLeft, maxLeft));
+                        let newTop = Math.max(minTop, Math.min(currentTop, maxTop));
+
+                        // 4. Nếu có sự điều chỉnh (bị đẩy vào), cập nhật lại CSS và State
+                        if (newLeft !== currentLeft || newTop !== currentTop) {
+                            el.style.left = newLeft + 'px';
+                            el.style.top = newTop + 'px';
+                            
+                            app.wmState.x = newLeft / container.offsetWidth;
+                            app.wmState.y = newTop / container.offsetHeight;
+                        }
                     }
+                    
                     if (app.upload.schedulePrepareBlob) app.upload.schedulePrepareBlob();
                 },
                 resetWm: () => {
