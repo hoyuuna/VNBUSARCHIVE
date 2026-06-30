@@ -2052,10 +2052,10 @@ Object.assign(window.app, {
                         
                         if (prefix) {
                             // CÓ TỈNH: Pill đen, chữ trắng, bo hơi vuông, bóng nổi nhẹ
-                            btn.className = "h-7 md:h-8 px-3 text-[11px] md:text-xs font-bold text-white bg-black border border-black rounded-md transition-all duration-200 flex items-center justify-center max-w-[140px] shadow-md cursor-pointer hover:bg-gray-800";
+                            btn.className = "py-1.5 px-3 md:py-2 md:px-3.5 text-[11px] md:text-xs font-bold text-white bg-black border border-black rounded-md transition-all duration-200 flex items-center justify-center max-w-[140px] shadow-md cursor-pointer hover:bg-gray-800";
                         } else {
                             // TOÀN QUỐC (TẮT): Pill trắng, viền xám, chữ xám, bo hơi vuông
-                            btn.className = "h-7 md:h-8 px-3 text-[11px] md:text-xs font-semibold text-gray-600 bg-white border border-gray-300 hover:border-gray-400 hover:text-black hover:bg-gray-50 rounded-md transition-all duration-200 flex items-center justify-center max-w-[140px] shadow-sm cursor-pointer";
+                            btn.className = "py-1.5 px-3 md:py-2 md:px-3.5 text-[11px] md:text-xs font-semibold text-gray-600 bg-white border border-gray-300 hover:border-gray-400 hover:text-black hover:bg-gray-50 rounded-md transition-all duration-200 flex items-center justify-center max-w-[140px] shadow-sm cursor-pointer";
                         }
                     }
                     
