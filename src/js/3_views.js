@@ -2027,8 +2027,6 @@ Object.assign(window.app, {
                     app.search.currentExactPrefix = prefix;
                     document.getElementById('exact-route-page-menu')?.classList.remove('active');
                     app.search.syncExactUI(prefix);
-                    
-                    // Lập tức trigger search để URL và kết quả thay đổi ngay
                     if (window.location.pathname.includes('/search')) {
                         app.handleSearch(true);
                     }
@@ -2036,7 +2034,7 @@ Object.assign(window.app, {
 
                 syncExactUI: (prefix) => {
                     app.search.currentExactPrefix = prefix || '';
-                    let provName = 'Tắt';
+                    let provName = 'Tỉnh: Tắt';
                     if (prefix && app.utils.provinceData) {
                         const prov = app.utils.provinceData.find(p => {
                             const k = Array.isArray(p.ky_hieu) ? p.ky_hieu : p.ky_hieu.split(',');
@@ -2051,11 +2049,11 @@ Object.assign(window.app, {
                         const btn = pgLabel.parentElement;
                         
                         if (prefix) {
-                            btn.classList.remove('text-gray-500');
-                            btn.classList.add('text-black', 'bg-gray-100');
+                            // Khi có chọn Tỉnh: Pill màu ĐEN, chữ TRẮNG
+                            btn.className = "h-7 px-2.5 text-[11px] font-bold text-white bg-black border border-black rounded-md transition-colors flex items-center max-w-[120px] shadow-sm cursor-pointer";
                         } else {
-                            btn.classList.add('text-gray-500');
-                            btn.classList.remove('text-black', 'bg-gray-100');
+                            // Khi Tắt: Pill màu TRẮNG, chữ XÁM
+                            btn.className = "h-7 px-2.5 text-[11px] font-bold text-gray-500 bg-white border border-gray-200 hover:border-gray-400 hover:text-black rounded-md transition-colors flex items-center max-w-[120px] shadow-sm cursor-pointer";
                         }
                     }
                     
@@ -2081,7 +2079,6 @@ Object.assign(window.app, {
                     document.getElementById('search-filter-menu')?.classList.remove('active');
                     document.getElementById('page-search-filter-menu')?.classList.remove('active');
 
-                    // Chuyên biệt cho Page Search Box: Nếu Route thì hiện Dropdown Tỉnh, không thì Tắt đi
                     const pageExact = document.getElementById('exact-route-page-box');
                     
                     if (type === 'route') {

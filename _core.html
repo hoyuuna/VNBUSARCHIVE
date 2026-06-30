@@ -2879,34 +2879,35 @@
             <div id="search" class="view-section">
                 <!-- KHUNG SEARCH GIỮA TRANG (Y HỆT HEADER NHƯNG TO HƠN) -->
                 <div class="max-w-2xl mx-auto mb-8 relative z-40">
-                     <div class="w-full flex items-center border border-gray-200 rounded-md bg-gray-50/50 relative focus-within:ring-2 focus-within:ring-black/10 focus-within:bg-white transition-all h-12 md:h-14">
+                    <div class="w-full flex items-center border border-gray-200 rounded-md bg-gray-50/50 relative focus-within:ring-2 focus-within:ring-black/10 focus-within:bg-white transition-all h-12 md:h-14">
 
-                         <div class="relative w-full flex items-center h-full">
-                             <input type="text" id="page-search-input" placeholder="Tìm kiếm..." autocomplete="one-time-code" class="peer px-4 py-2 md:pr-16 text-base md:text-lg outline-none w-full bg-transparent placeholder-gray-400 font-medium h-full">
-                             <!-- Icon Ctrl K của trang Search -->
-                             <div class="absolute right-3 hidden md:flex items-center gap-1 pointer-events-none transition-all duration-300 opacity-0 translate-x-2 peer-placeholder-shown:opacity-100 peer-placeholder-shown:translate-x-0 z-10">
-                                 <kbd class="bg-white border border-gray-200 rounded px-1.5 py-[2px] text-[10px] font-bold text-gray-400 shadow-sm font-sans">Ctrl</kbd>
-                                 <kbd class="bg-white border border-gray-200 rounded px-1.5 py-[2px] text-[10px] font-bold text-gray-400 shadow-sm font-sans">K</kbd>
-                             </div>
-                         </div>
-                         <!-- Hộp Gợi Ý -->
-                         <div id="page-search-suggestions" class="suggestion-box" style="top: calc(100% + 4px);"></div>
+                        <div class="relative w-full flex items-center h-full pl-1">
+                            <input type="text" id="page-search-input" placeholder="Tìm kiếm..." autocomplete="one-time-code" class="peer px-3 py-2 text-base md:text-lg outline-none w-full bg-transparent placeholder-gray-400 font-medium h-full">
+                            
+                            <!-- PILL TỈNH THÀNH (NẰM TRONG THANH INPUT) -->
+                            <div id="exact-route-page-box" class="hidden relative h-full flex items-center shrink-0 pr-2">
+                                <button onclick="document.getElementById('exact-route-page-menu').classList.toggle('active')" class="h-7 px-2.5 text-[11px] font-bold text-gray-500 bg-white border border-gray-200 hover:border-gray-400 hover:text-black rounded-md transition-colors flex items-center max-w-[120px] shadow-sm cursor-pointer" title="Lọc theo tỉnh">
+                                    <span id="exact-route-page-label" class="truncate leading-none mt-[1px]">Tỉnh: Tắt</span>
+                                </button>
+                                <div id="exact-route-page-menu" class="filter-menu !max-h-[250px] !w-56 right-0 origin-top-right mt-2">
+                                    <!-- JS đổ dữ liệu vào -->
+                                </div>
+                            </div>
 
-                        <!-- Nút Xóa Chữ (X) -->
-                        <button id="btn-page-clear-search" onclick="app.utils.navigate('/')" class="hidden text-gray-400 hover:text-red-500 px-3 md:px-4 h-full flex items-center justify-center">
-                            <i class="fa-solid fa-xmark text-lg"></i>
-                        </button>
-
-<!-- BỘ LỌC CHÍNH XÁC (NẰM GỌN TRONG THANH SEARCH TRANG CHỦ) -->
-                        <div id="exact-route-page-box" class="hidden relative border-l border-gray-200 h-full flex items-center max-w-[50%] md:max-w-[150px] shrink-0">
-                            <button onclick="document.getElementById('exact-route-page-menu').classList.toggle('active')" class="h-full px-3 py-1 text-[11px] md:text-xs font-bold uppercase tracking-wider text-gray-500 hover:text-black transition-colors flex flex-col items-center justify-center gap-0.5 w-full" title="Tìm theo tỉnh">
-                                <span id="exact-route-page-label" class="truncate w-full text-center leading-tight">Tắt</span>
-                                <i class="fa-solid fa-chevron-down text-[9px] shrink-0 opacity-70"></i>
-                            </button>
-                            <div id="exact-route-page-menu" class="filter-menu !max-h-[250px] !w-56 right-0 origin-top-right">
-                                <!-- JS đổ dữ liệu vào -->
+                            <!-- Icon Ctrl K của trang Search -->
+                            <div class="absolute right-3 hidden md:flex items-center gap-1 pointer-events-none transition-all duration-300 opacity-0 translate-x-2 peer-placeholder-shown:opacity-100 peer-placeholder-shown:translate-x-0 z-10">
+                                <kbd class="bg-white border border-gray-200 rounded px-1.5 py-[2px] text-[10px] font-bold text-gray-400 shadow-sm font-sans">Ctrl</kbd>
+                                <kbd class="bg-white border border-gray-200 rounded px-1.5 py-[2px] text-[10px] font-bold text-gray-400 shadow-sm font-sans">K</kbd>
                             </div>
                         </div>
+                        
+                        <!-- Hộp Gợi Ý -->
+                        <div id="page-search-suggestions" class="suggestion-box" style="top: calc(100% + 4px);"></div>
+
+                        <!-- Nút Xóa Chữ (X) -->
+                        <button id="btn-page-clear-search" onclick="app.utils.navigate('/')" class="hidden text-gray-400 hover:text-red-500 px-3 md:px-4 h-full flex items-center justify-center border-l border-transparent">
+                            <i class="fa-solid fa-xmark text-lg"></i>
+                        </button>
 
                         <!-- Bộ Lọc -->
                         <div class="relative border-l border-gray-200 h-full flex items-center">
@@ -2943,10 +2944,9 @@
                         </div>
 
                         <!-- Nút Tìm Kiếm -->
-                        <button onclick="app.handleSearch(true)" class="text-gray-500 px-4 md:px-5 h-full hover:text-black transition-colors rounded-r-lg">
+                        <button onclick="app.handleSearch(true)" class="text-gray-500 px-4 md:px-5 h-full hover:text-black transition-colors rounded-r-lg bg-gray-100/50 hover:bg-gray-200/50 border-l border-gray-200">
                             <i class="fa-solid fa-magnifying-glass text-lg"></i>
                         </button>
-                        
                     </div>
                 </div>
 
