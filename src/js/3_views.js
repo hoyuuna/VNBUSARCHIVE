@@ -536,7 +536,7 @@ Object.assign(window.app, {
                     document.getElementById('approval-rate-island').classList.add('hidden');
                     // --------------------------------------------------
 
-                    const { data: profile } = await window.sb.from('profiles').select('id, username, avatar_url, role, subroles, bio, favorite_photo_id').eq('username', targetUsername).single();
+                    const { data: profile } = await window.sb.from('profiles').select('id, username, avatar_url, role, subroles, favorite_photo_id, created_at').eq('username', targetUsername).single();
                     if (window.location.pathname !== (isOwnProfile ? '/profile' : `/user/${encodeURIComponent(targetUsername)}`)) return;
 
                     if (!profile) {
@@ -565,13 +565,14 @@ Object.assign(window.app, {
                     const bioContent = document.getElementById('profile-bio-content');
                     const bioControls = document.getElementById('profile-bio-controls');
                     
-                    if (profile.bio) bioContent.innerHTML = app.utils.cleanText(profile.bio);
-                    else bioContent.innerHTML = '<span class="text-gray-400 italic">Chưa có thông tin giới thiệu.</span>';
+                    // Lấy ngày tạo tài khoản, nếu không có thì để 'Không rõ'
+                    const createDateStr = profile.created_at ? new Date(profile.created_at).toLocaleDateString('vi-VN') : 'Không rõ';
+                    if (bioContent) {
+                        bioContent.innerHTML = `<span class="text-gray-700 font-medium leading-relaxed">Tài khoản tạo vào ngày <b>${createDateStr}</b>.</span>`;
+                    }
                     
-                    if (isOwnProfile) {
-                        bioControls.classList.remove('hidden');
-                        bioControls.classList.add('flex');
-                    } else {
+                    // Luôn ẩn nút chỉnh sửa tiểu sử
+                    if (bioControls) {
                         bioControls.classList.add('hidden');
                         bioControls.classList.remove('flex');
                     }

@@ -16,8 +16,7 @@ try {
             '2_auth.js',
             '3_views.js',
             '4_content.js',
-            '5_admin.js',
-            '6_ai.js'
+            '5_admin.js'
         ];
         
         let combinedJs = '';
