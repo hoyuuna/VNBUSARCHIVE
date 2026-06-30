@@ -2516,6 +2516,17 @@
                             <i class="fa-solid fa-xmark"></i>
                         </button>
 
+<!-- BỘ LỌC CHÍNH XÁC (NẰM GỌN TRONG THANH SEARCH HEADER) -->
+                        <div id="exact-route-header-box" class="hidden relative border-l border-gray-200 h-full max-w-[50%] md:max-w-[160px] shrink-0">
+                            <button onclick="document.getElementById('exact-route-header-menu').classList.toggle('active')" class="h-full px-3 text-[10px] md:text-[11px] font-bold uppercase tracking-wider text-gray-500 hover:text-black transition-colors flex items-center justify-between gap-2 w-full" title="Tỉnh thành">
+                                <span id="exact-route-header-label" class="truncate">Tắt</span>
+                                <i class="fa-solid fa-chevron-down text-[9px] shrink-0 mt-[1px]"></i>
+                            </button>
+                            <div id="exact-route-header-menu" class="filter-menu !max-h-[250px] !w-48 right-0 origin-top-right">
+                                <!-- JS đổ dữ liệu vào -->
+                            </div>
+                        </div>
+
                         <div class="relative border-l border-gray-200">
                             <button id="btn-filter-toggle" onclick="app.search.toggleFilter()"
                                 class="text-gray-500 hover:text-black px-3 py-2 h-full transition-colors"
@@ -2898,10 +2909,11 @@
                         </button>
 
 <!-- BỘ LỌC CHÍNH XÁC (NẰM GỌN TRONG THANH SEARCH TRANG CHỦ) -->
+<!-- BỘ LỌC CHÍNH XÁC (NẰM GỌN TRONG THANH SEARCH TRANG CHỦ) -->
                         <div id="exact-route-page-box" class="hidden relative border-l border-gray-200 h-full flex items-center max-w-[50%] md:max-w-[200px] shrink-0">
-                            <button onclick="document.getElementById('exact-route-page-menu').classList.toggle('active')" class="h-full px-3 md:px-4 text-[11px] md:text-xs font-bold uppercase tracking-wider text-gray-500 hover:text-black transition-colors flex items-center gap-1.5 w-full" title="Tỉnh thành">
-                                <span id="exact-route-page-label" class="truncate block">Tắt</span>
-                                <i class="fa-solid fa-chevron-down text-[10px] shrink-0"></i>
+                            <button onclick="document.getElementById('exact-route-page-menu').classList.toggle('active')" class="h-full px-4 text-[11px] md:text-xs font-bold uppercase tracking-wider text-gray-500 hover:text-black transition-colors flex items-center justify-between gap-2 w-full" title="Tỉnh thành">
+                                <span id="exact-route-page-label" class="truncate">Tắt</span>
+                                <i class="fa-solid fa-chevron-down text-[10px] shrink-0 mt-[1px]"></i>
                             </button>
                             <div id="exact-route-page-menu" class="filter-menu !max-h-[250px] !w-56 right-0 origin-top-right">
                                 <!-- JS đổ dữ liệu vào -->
