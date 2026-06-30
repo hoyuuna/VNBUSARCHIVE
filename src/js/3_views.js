@@ -2006,46 +2006,35 @@ Object.assign(window.app, {
 
 Object.assign(window.app, {
   search: {
-                currentExactPrefix: '', // Biến lưu prefix (mã tỉnh) cho Tuyến
+                currentExactPrefix: '', 
                 
-                // Render danh sách tỉnh vào Dropdown
                 initExactRouteMenu: () => {
                     const renderHtml = `<div class="px-3 py-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100 mb-1 bg-gray-50">Tuyến thuộc tỉnh:</div>`
-                        + `<div class="filter-item ${!app.search.currentExactPrefix ? 'selected' : ''}" onclick="app.search.setExactRoute('')"><span>Tắt</span></div>` 
+                        + `<div class="filter-item ${!app.search.currentExactPrefix ? 'selected' : ''}" onclick="app.search.setExactRoute('')"><span>Tắt</span> <i class="fa-solid fa-check ${!app.search.currentExactPrefix ? '' : 'opacity-0'} check-icon"></i></div>` 
                         + app.utils.provinceData.map(p => {
                             const prefix = Array.isArray(p.ky_hieu) ? p.ky_hieu[0] : p.ky_hieu.split(',')[0];
                             const isSelected = app.search.currentExactPrefix === prefix;
                             return `<div class="filter-item ${isSelected ? 'selected' : ''}" onclick="app.search.setExactRoute('${prefix}', '${p.ten}')">
-                                <span>${p.ten}</span>
+                                <span>${p.ten}</span> <i class="fa-solid fa-check ${isSelected ? '' : 'opacity-0'} check-icon"></i>
                             </div>`;
                         }).join('');
                     
-                    const hdMenu = document.getElementById('exact-route-header-menu');
                     const pgMenu = document.getElementById('exact-route-page-menu');
-                    if (hdMenu) hdMenu.innerHTML = renderHtml;
                     if (pgMenu) pgMenu.innerHTML = renderHtml;
                 },
 
-                // Xử lý khi chọn 1 tỉnh (hoặc Tắt)
                 setExactRoute: (prefix, name = 'Tắt') => {
                     app.search.currentExactPrefix = prefix;
-                    
-                    document.getElementById('exact-route-header-menu')?.classList.remove('active');
                     document.getElementById('exact-route-page-menu')?.classList.remove('active');
-                    
                     app.search.syncExactUI(prefix);
-                    
-                    // Tự động load tìm kiếm nếu đang ở trang search
                     if (window.location.pathname.includes('/search')) {
                         app.handleSearch(true);
                     }
                 },
 
-                // Cập nhật UI (Đổi chữ)
                 syncExactUI: (prefix) => {
                     app.search.currentExactPrefix = prefix || '';
                     let provName = 'Tắt';
-                    
                     if (prefix && app.utils.provinceData) {
                         const prov = app.utils.provinceData.find(p => {
                             const k = Array.isArray(p.ky_hieu) ? p.ky_hieu : p.ky_hieu.split(',');
@@ -2054,10 +2043,18 @@ Object.assign(window.app, {
                         if (prov) provName = prov.ten;
                     }
                     
-                    const hdLabel = document.getElementById('exact-route-header-label');
                     const pgLabel = document.getElementById('exact-route-page-label');
-                    if (hdLabel) hdLabel.innerText = provName;
-                    if (pgLabel) pgLabel.innerText = provName;
+                    if (pgLabel) {
+                        pgLabel.innerText = provName;
+                        const btn = pgLabel.parentElement;
+                        if (prefix) {
+                            btn.classList.remove('text-gray-500');
+                            btn.classList.add('text-blue-600', 'bg-blue-50/50');
+                        } else {
+                            btn.classList.add('text-gray-500');
+                            btn.classList.remove('text-blue-600', 'bg-blue-50/50');
+                        }
+                    }
                     
                     app.search.initExactRouteMenu();
                 },
@@ -2081,15 +2078,12 @@ Object.assign(window.app, {
                     document.getElementById('search-filter-menu')?.classList.remove('active');
                     document.getElementById('page-search-filter-menu')?.classList.remove('active');
 
-                    // ẨN / HIỆN NÚT CHỌN TỈNH NẰM TRONG THANH SEARCH
-                    const headerExact = document.getElementById('exact-route-header-box');
                     const pageExact = document.getElementById('exact-route-page-box');
+                    
                     if (type === 'route') {
-                        if (headerExact) headerExact.classList.remove('hidden');
                         if (pageExact) pageExact.classList.remove('hidden');
                         if (app.utils.provinceData.length > 0) app.search.initExactRouteMenu();
                     } else {
-                        if (headerExact) headerExact.classList.add('hidden');
                         if (pageExact) pageExact.classList.add('hidden');
                         app.search.currentExactPrefix = ''; 
                         app.search.syncExactUI('');
@@ -2112,14 +2106,11 @@ Object.assign(window.app, {
                                 <button onmousedown="event.preventDefault(); localStorage.removeItem('vnbus_recent_searches'); document.getElementById('${sugId}').classList.remove('active')" class="hover:text-red-500 transition-colors p-1"><i class="fa-solid fa-trash"></i></button>
                             </div>` + recents.map(r => {
                                 let safeRawJS = r.query.replace(/'/g, "\\'").replace(/"/g, '\\"');
-                                // Khôi phục lại trạng thái Prefix nếu lịch sử có lưu
                                 let setPrefixAction = r.prefix ? `app.search.syncExactUI('${r.prefix}');` : `app.search.syncExactUI('');`;
                                 let clickAction = `document.getElementById('${inputId}').value = '${safeRawJS}'; document.getElementById('${sugId}').classList.remove('active'); app.search.setFilter('${r.filter}', false); ${setPrefixAction} app.handleSearch(true);`;
                                 
-                                let extraLabel = (r.filter === 'route' && r.prefix) ? `<span class="text-[9px] bg-blue-100 text-blue-700 px-1.5 rounded ml-1 font-bold whitespace-nowrap">Chính xác</span>` : '';
-                                
                                 return `<div class="suggestion-item border-b border-gray-100 last:border-0" onmousedown="event.preventDefault(); ${clickAction}">
-                                    <div class="text-[13px] text-black font-medium leading-snug break-words whitespace-normal flex items-center gap-2"><i class="fa-solid fa-clock-rotate-left text-gray-400"></i> <span class="truncate">${r.query}</span> ${extraLabel}</div>
+                                    <div class="text-[13px] text-black font-medium leading-snug break-words whitespace-normal flex items-center gap-2"><i class="fa-solid fa-clock-rotate-left text-gray-400"></i> <span class="truncate">${r.query}</span></div>
                                 </div>`;
                             }).join('');
                             box.innerHTML = html;
