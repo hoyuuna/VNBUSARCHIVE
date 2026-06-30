@@ -3583,12 +3583,12 @@
                                 </button>
                             </div>
 
-                            <div id="preview-box" class="hidden mt-6">
-                                <p class="text-xs font-bold mb-2 text-gray-600">Xem trước (Đã đóng dấu bản quyền):</p>
+                            <div id="preview-box" class="hidden mt-6 text-center">
+                                <p class="text-xs font-bold mb-2 text-gray-600 text-left">Xem trước (Đã đóng dấu bản quyền):</p>
                                 <div id="preview-container"
-                                    class="relative w-full border border-gray-300 shadow-sm overflow-hidden no-select bg-gray-200 rounded-md">
-                                    <img id="preview-img" class="w-full h-auto block pointer-events-none"
-                                        style="max-height: 80vh; object-fit: contain;">
+                                    class="relative inline-block border border-gray-300 shadow-sm overflow-hidden no-select bg-gray-200 rounded-md max-w-full">
+                                    <img id="preview-img" class="block pointer-events-none max-w-full h-auto"
+                                        style="max-height: 80vh;">
                                         
                                     <!-- [MỚI] NÚT ZOOM ẢNH BÊ TỪ ADMIN SANG -->
                                     <button type="button" onclick="app.admin.openZoom(document.getElementById('preview-img').src, false)" 
@@ -3762,7 +3762,7 @@
                                         <i class="fa-solid fa-circle-info text-blue-500 mt-0.5 text-xs"></i>
                                         <p class="text-[11px] text-blue-800 font-medium leading-relaxed m-0">Bạn có thể <b>nhấn giữ & kéo</b> chữ bản quyền hoặc khung làm mờ trên ảnh để di chuyển. Kéo góc phải dưới khung làm mờ để thay đổi kích thước.</p>
                                     </div>
-                                    <button type="button" onclick="app.upload.previewBlob()" class="w-full flex items-center justify-center gap-1.5 bg-white border border-blue-300 text-blue-600 px-3 py-2 rounded-lg hover:bg-blue-50 hover:text-blue-700 font-bold text-[11px] sm:text-xs transition shadow-sm focus:ring-2 focus:ring-blue-500 mt-1"><i class="fa-solid fa-eye"></i> Xem trước bản xuất ra</button>
+                                    <button type="button" onclick="app.upload.previewBlob()" class="w-full flex items-center justify-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-100 hover:text-black font-bold text-[11px] sm:text-xs transition shadow-sm focus:ring-2 focus:ring-black mt-1"><i class="fa-solid fa-image"></i> Xem trước bản xuất ra</button>
                                 </div>
                             </div>
                             </div>
