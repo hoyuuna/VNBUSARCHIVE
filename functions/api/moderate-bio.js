@@ -7,28 +7,16 @@ export async function onRequestPost(context) {
             return Response.json({ is_safe: true, reason: "" });
         }
 
-        // PROMPT ĐÃ ĐƯỢC TỐI ƯU HÓA LẠI
-        const systemPrompt = `Bạn là một AI kiểm duyệt nội dung (Content Moderator) nghiêm ngặt và khách quan.
-Nhiệm vụ của bạn là đánh giá mô tả hồ sơ (bio) của người dùng và phát hiện vi phạm.
+        const systemPrompt = `Bạn là AI kiểm duyệt nội dung. Đánh giá tiểu sử (bio) này và phát hiện vi phạm.
+Tiêu chí cấm: Tục tĩu, thù ghét, đe dọa, quảng cáo/spam, dẫn dụ người dùng sang mạng xã hội/nền tảng/app khác, 18+, hoặc có chứa Link.
 
-[TIÊU CHÍ VI PHẠM]
-1. Ngôn từ tục tĩu, chửi thề, xúc phạm (chỉ khi quá nghiêm trọng).
-2. Nội dung thù ghét, phân biệt đối xử (vùng miền, tôn giáo, giới tính...).
-3. Quấy rối, đe dọa, hoặc bạo lực.
-4. Spam, quảng cáo, cờ bạc, lừa đảo (scam).
-5. Kéo kéo, dẫn dụ người dùng sang mạng xã hội, ứng dụng hoặc nền tảng khác (VD: kêu gọi qua Discord, Facebook, Zalo...).
-6. Nội dung người lớn (18+), khiêu dâm.
-7. Gắn link (URL) bất kỳ.
-
-[ĐỊNH DẠNG ĐẦU RA BẮT BUỘC]
-Bạn CHỈ ĐƯỢC PHÉP trả về duy nhất một đối tượng JSON hợp lệ. KHÔNG dùng markdown (như \`\`\`json), KHÔNG thêm lời chào.
-Cấu trúc JSON:
+TRẢ VỀ DUY NHẤT MỘT ĐỐI TƯỢNG JSON, KHÔNG CÓ MARKDOWN (\`\`\`json).
+Cấu trúc:
 {
   "is_safe": true/false,
-  "reason": "Giải thích ngắn gọn bằng tiếng Việt lý do vi phạm nếu is_safe = false. Nếu is_safe = true, hãy để chuỗi rỗng."
+  "reason": "Lý do ngắn gọn bằng tiếng Việt nếu is_safe là false."
 }`;
 
-        // Gọi thẳng API Groq bằng Fetch (Chuẩn Serverless Cloudflare)
         const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
             headers: {
@@ -36,27 +24,21 @@ Cấu trúc JSON:
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                model: "llama-3.3-70b-versatile", // Model cực nhanh và thông minh của Groq
+                model: "llama-3.3-70b-versatile",
                 messages: [
                     { role: "system", content: systemPrompt },
-                    { role: "user", content: `Hãy kiểm duyệt bio này: "${bioText}"` }
+                    { role: "user", content: `Bio: "${bioText}"` }
                 ],
-                temperature: 0.1, // Cực kỳ nguyên tắc, không bay bổng
-                response_format: { type: "json_object" } // Ép AI trả về JSON chuẩn 100%
+                temperature: 0.1,
+                response_format: { type: "json_object" }
             })
         });
 
         const result = await response.json();
-        
-        // Bóc tách JSON từ AI
-        const aiResponseText = result.choices[0].message.content;
-        const aiAssessment = JSON.parse(aiResponseText);
-
-        return Response.json(aiAssessment);
+        return Response.json(JSON.parse(result.choices[0].message.content));
 
     } catch (error) {
-        console.error("AI Moderation Error:", error);
-        // Fallback: Nếu AI lỗi mạng, tạm cho qua để không kẹt UX, hoặc bạn có thể đổi thành false
-        return Response.json({ is_safe: true, reason: "" }); 
+        // Trả về lỗi server 500 để Frontend bắt catch(e) và cấm người dùng lưu
+        return new Response(JSON.stringify({ error: "Lỗi Backend AI" }), { status: 500 });
     }
 }

@@ -4,7 +4,7 @@ Object.assign(window.app, {
     ai: {
         moderateBio: async (text) => {
             try {
-                // Lấy Token của user để chống spam API (nếu cần)
+                // Lấy Token của user để chống spam API (Nếu Backend của bạn có check JWT)
                 const { data: { session } } = await window.sb.auth.getSession();
                 const token = session?.access_token;
 
@@ -12,20 +12,23 @@ Object.assign(window.app, {
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}` // Tùy chọn bảo mật thêm
+                        'Authorization': `Bearer ${token}` 
                     },
                     body: JSON.stringify({ text: text })
                 });
 
-                if (!res.ok) throw new Error('Không thể kết nối đến máy chủ kiểm duyệt.');
+                if (!res.ok) throw new Error('Máy chủ từ chối kết nối.');
 
                 const data = await res.json();
-                return data; // Trả về dạng { is_safe: boolean, reason: string }
+                return data;
 
             } catch (e) {
                 console.error("AI Check failed:", e);
-                // Nếu lỗi mạng, mặc định cho qua để không làm kẹt tính năng
-                return { is_safe: true, reason: "" }; 
+                // ĐÚNG YÊU CẦU: Nếu AI lỗi (rớt mạng, hết quota...), chặn luôn không cho qua
+                return { 
+                    is_safe: false, 
+                    reason: "Hệ thống kiểm duyệt AI đang bận hoặc mất kết nối. Vui lòng thử lại sau." 
+                }; 
             }
         }
     }

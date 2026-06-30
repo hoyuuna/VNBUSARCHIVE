@@ -1064,31 +1064,37 @@ Object.assign(window.app, {
                     const hasLink = /https?:\/\/|www\.|\.com|\.vn|\.io|\.net|\.org/i.test(text);
                     if (hasLink) return app.ui.showAlert("Không được phép chèn đường dẫn (link) vào tiểu sử.");
 
+                    // ==========================================
+                    // 1. CHẠY CAPTCHA TRƯỚC TIÊN (Chống Spam)
+                    // ==========================================
                     try {
                         await app.captcha.request();
                     } catch (err) {
                         if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha.");
-                        return;
+                        return; // Dừng lập tức nếu không qua Captcha
                     }
 
-                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang kiểm duyệt nội dung...';
+                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang kiểm duyệt...';
                     btn.disabled = true;
 
                     try {
+                        // Bắt lỗi nếu quên nhúng file 6_ai.js vào HTML
+                        if (!app.ai) throw new Error("Thư viện AI chưa được nạp. Vui lòng tải lại trang hoặc kiểm tra file 6_ai.js");
+
                         // ==========================================
-                        // [BƯỚC KIỂM DUYỆT AI]
+                        // 2. GỬI TEXT CHO AI KIỂM DUYỆT (Chỉ gửi khi có chữ)
                         // ==========================================
-                        if (text !== '') { // Chỉ kiểm duyệt nếu người dùng có nhập chữ
+                        if (text !== '') {
                             const aiResult = await app.ai.moderateBio(text);
                             
                             if (!aiResult.is_safe) {
-                                // Nếu AI báo không an toàn -> Dừng lại và hiện cảnh báo
+                                // AI TỪ CHỐI (hoặc AI bị lỗi mạng) -> Mở lại nút và báo đỏ
                                 btn.innerHTML = 'Lưu tiểu sử';
                                 btn.disabled = false;
                                 return app.ui.showAlert(
                                     `<div class="text-left">
                                         <p class="text-sm font-bold text-red-600 mb-2"><i class="fa-solid fa-shield-halved mr-1"></i> Nội dung bị từ chối!</p>
-                                        <p class="text-xs text-gray-700 leading-relaxed mb-3">Hệ thống AI tự động đã phát hiện tiểu sử của bạn vi phạm tiêu chuẩn cộng đồng.</p>
+                                        <p class="text-xs text-gray-700 leading-relaxed mb-3">Hệ thống AI tự động đã phát hiện tiểu sử của bạn có vấn đề.</p>
                                         <div class="bg-red-50 border border-red-200 p-3 rounded-lg">
                                             <p class="text-[11px] font-bold text-red-800 uppercase tracking-widest mb-1">Lý do:</p>
                                             <p class="text-xs text-red-700 italic">"${aiResult.reason}"</p>
@@ -1098,9 +1104,10 @@ Object.assign(window.app, {
                                 );
                             }
                         }
-                        // ==========================================
 
-                        // Nếu AI cho qua (hoặc text rỗng) -> Tiến hành update Database
+                        // ==========================================
+                        // 3. AI CHO QUA -> TIẾN HÀNH LƯU VÀO DATABASE
+                        // ==========================================
                         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...';
 
                         const { error } = await window.sb.from('profiles').update({ bio: text || null }).eq('id', app.user.id);
@@ -1114,7 +1121,7 @@ Object.assign(window.app, {
                         else bioContent.innerHTML = '<span class="text-gray-400 italic">Chưa có thông tin giới thiệu.</span>';
 
                     } catch (e) {
-                        app.ui.showAlert("Lỗi lưu tiểu sử: " + e.message);
+                        app.ui.showAlert("Lỗi hệ thống: " + e.message);
                     } finally {
                         btn.innerHTML = 'Lưu tiểu sử';
                         btn.disabled = false;
