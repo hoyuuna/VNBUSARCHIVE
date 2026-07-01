@@ -2445,89 +2445,92 @@ Object.assign(window.app, {
                     const logo = document.getElementById('op-edit-logo').value.trim();
                     const desc = document.getElementById('op-edit-desc').value.trim();
                     const btn = document.getElementById('btn-save-operator');
-                    
-                    if (!logo && !desc) {
-                        if (!confirm("Bạn đã để trống cả 2 ô. Điều này sẽ XÓA thông tin của Đơn vị vận hành hiện tại (trở về mặc định). Bạn có chắc chắn muốn tiếp tục?")) {
-                            return;
+
+                    const executeSave = async () => {
+                        if (logo && !/^https?:\/\//i.test(logo)) {
+                            return app.ui.showAlert("Logo URL phải bắt đầu bằng http:// hoặc https://");
                         }
-                    }
 
-                    if (logo && !/^https?:\/\//i.test(logo)) {
-                        return app.ui.showAlert("Logo URL phải bắt đầu bằng http:// hoặc https://");
-                    }
+                        if (app.role !== 'admin' && app.role !== 'manager') {
+                            try {
+                                await app.captcha.request();
+                            } catch (err) {
+                                if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha.");
+                                return;
+                            }
+                        }
 
-                    // User thường mới phải check Captcha
-                    if (app.role !== 'admin' && app.role !== 'manager') {
+                        const origText = btn.innerHTML;
+                        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
+                        btn.disabled = true;
+
                         try {
-                            await app.captcha.request();
-                        } catch (err) {
-                            if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha.");
-                            return;
-                        }
-                    }
-
-                    const origText = btn.innerHTML;
-                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
-                    btn.disabled = true;
-
-                    try {
-                        if (app.role === 'admin' || app.role === 'manager') {
-                            // ==========================================
-                            // LUỒNG DÀNH CHO ADMIN: LƯU THẲNG VÀO DB
-                            // ==========================================
-                            const { error } = await window.sb.from('operator_info').upsert({
-                                operator_name: app.currentOperator,
-                                logo_url: logo || null,
-                                description: desc || null
-                            });
-                            if (error) throw error;
-                            
-                            app.toast.show('success', 'Thành công', 'Đã lưu thông tin Đơn vị vận hành!');
-                            app.operator.closeEditPrompt();
-                            app.views.loadOperatorPage(app.currentOperator); // Tải lại trang ngay lập tức
-                            
-                            // Ghi Log cho Admin
-                            if (app.admin && app.admin.logAction) {
-                                app.admin.logAction('update_operator_direct', app.currentOperator, { logo_url: logo, description: desc });
-                            }
-                            
-                        } else {
-                            // ==========================================
-                            // LUỒNG DÀNH CHO USER: GỬI YÊU CẦU DUYỆT
-                            // ==========================================
-                            const { count, error: checkErr } = await window.sb.from('edit_requests')
-                                .select('*', { count: 'exact', head: true })
-                                .eq('status', 'pending')
-                                .contains('new_data', { request_type: 'update_operator_info', operator_name: app.currentOperator });
+                            if (app.role === 'admin' || app.role === 'manager') {
+                                if (!logo && !desc) {
+                                    const { error } = await window.sb.from('operator_info').delete().eq('operator_name', app.currentOperator);
+                                    if (error) throw error;
+                                } else {
+                                    const { error } = await window.sb.from('operator_info').upsert({
+                                        operator_name: app.currentOperator,
+                                        logo_url: logo || null,
+                                        description: desc || null
+                                    });
+                                    if (error) throw error;
+                                }
                                 
-                            if (checkErr) throw checkErr;
-                            if (count > 0) {
-                                throw new Error("Đã có một yêu cầu cập nhật thông tin cho đơn vị này đang chờ duyệt. Vui lòng đợi!");
+                                app.toast.show('success', 'Thành công', 'Đã lưu thông tin Đơn vị vận hành!');
+                                app.operator.closeEditPrompt();
+                                app.views.loadOperatorPage(app.currentOperator);
+                                
+                                if (app.admin && app.admin.logAction) {
+                                    app.admin.logAction('update_operator_direct', app.currentOperator, { logo_url: logo, description: desc });
+                                }
+                            } else {
+                                const { count, error: checkErr } = await window.sb.from('edit_requests')
+                                    .select('*', { count: 'exact', head: true })
+                                    .eq('status', 'pending')
+                                    .contains('new_data', { request_type: 'update_operator_info', operator_name: app.currentOperator });
+                                    
+                                if (checkErr) throw checkErr;
+                                if (count > 0) {
+                                    throw new Error("Đã có một yêu cầu cập nhật thông tin cho đơn vị này đang chờ duyệt. Vui lòng đợi!");
+                                }
+
+                                const reqData = {
+                                    requester_id: app.user.id,
+                                    license_plate: 'OP_INFO',
+                                    new_data: {
+                                        request_type: 'update_operator_info',
+                                        operator_name: app.currentOperator,
+                                        description: desc,
+                                        logo_url: logo
+                                    },
+                                    status: 'pending'
+                                };
+
+                                const { error } = await window.sb.from('edit_requests').insert(reqData);
+                                if (error) throw error;
+
+                                app.ui.showAlert("Đã gửi yêu cầu cập nhật thông tin đơn vị vận hành và đang chờ Admin duyệt.");
+                                app.operator.closeEditPrompt();
                             }
-
-                            const reqData = {
-                                requester_id: app.user.id,
-                                license_plate: 'OP_INFO', // Giả lập để vượt qua bắt buộc NOT NULL (Nếu có)
-                                new_data: {
-                                    request_type: 'update_operator_info',
-                                    operator_name: app.currentOperator,
-                                    description: desc,
-                                    logo_url: logo
-                                },
-                                status: 'pending'
-                            };
-
-                            const { error } = await window.sb.from('edit_requests').insert(reqData);
-                            if (error) throw error;
-
-                            app.ui.showAlert("Đã gửi yêu cầu cập nhật thông tin đơn vị vận hành và đang chờ Admin duyệt.");
-                            app.operator.closeEditPrompt();
+                        } catch (err) {
+                            app.ui.showAlert("Lỗi: " + err.message);
+                        } finally {
+                            btn.innerHTML = origText;
+                            btn.disabled = false;
                         }
-                    } catch (err) {
-                        app.ui.showAlert("Lỗi: " + err.message);
-                    } finally {
-                        btn.innerHTML = origText;
-                        btn.disabled = false;
+                    };
+
+                    if (!logo && !desc) {
+                        app.ui.showAlert(
+                            "Bạn đã để trống cả 2 ô. Điều này sẽ XÓA thông tin của Đơn vị vận hành hiện tại (trở về mặc định). Bạn có chắc chắn muốn tiếp tục?",
+                            () => { executeSave(); },
+                            () => {},
+                            { title: "Xác nhận xóa", btnOkText: "Đồng ý", btnCancelText: "Hủy" }
+                        );
+                    } else {
+                        executeSave();
                     }
                 }
             }
@@ -2718,83 +2721,91 @@ Object.assign(window.app, {
                     const logo = document.getElementById('mdl-edit-logo').value.trim();
                     const desc = document.getElementById('mdl-edit-desc').value.trim();
                     const btn = document.getElementById('btn-save-model');
-                    
-                    if (!logo && !desc) {
-                        if (!confirm("Bạn đã để trống cả 2 ô. Bạn có chắc chắn muốn XÓA thông tin của Dòng xe hiện tại không?")) {
-                            return;
+
+                    const executeSave = async () => {
+                        if (logo && !/^https?:\/\//i.test(logo)) {
+                            return app.ui.showAlert("Logo URL phải bắt đầu bằng http:// hoặc https://");
                         }
-                    }
 
-                    if (logo && !/^https?:\/\//i.test(logo)) {
-                        return app.ui.showAlert("Logo URL phải bắt đầu bằng http:// hoặc https://");
-                    }
+                        if (app.role !== 'admin' && app.role !== 'manager') {
+                            try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
+                        }
 
-                    if (app.role !== 'admin' && app.role !== 'manager') {
-                        try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
-                    }
+                        const origText = btn.innerHTML;
+                        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
+                        btn.disabled = true;
 
-                    const origText = btn.innerHTML;
-                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
-                    btn.disabled = true;
+                        try {
+                            const brandName = app.model.currentModel.split(' ')[0];
 
-                    try {
-                        const brandName = app.model.currentModel.split(' ')[0];
+                            if (app.role === 'admin' || app.role === 'manager') {
+                                if (!logo && !desc) {
+                                    const { error: delErr } = await window.sb.from('model_info').delete().eq('model_name', app.model.currentModel);
+                                    if (delErr) throw delErr;
+                                } else {
+                                    const { error: upsertErr } = await window.sb.from('model_info').upsert({
+                                        model_name: app.model.currentModel,
+                                        logo_url: logo || null,
+                                        description: desc || null
+                                    });
+                                    if (upsertErr) throw upsertErr;
+                                }
 
-                        if (app.role === 'admin' || app.role === 'manager') {
-                            // BƯỚC 1: Lưu (Upsert) thông tin cho dòng xe hiện tại
-                            const { error: upsertErr } = await window.sb.from('model_info').upsert({
-                                model_name: app.model.currentModel,
-                                logo_url: logo || null,
-                                description: desc || null
-                            });
-                            if (upsertErr) throw upsertErr;
-
-                            // BƯỚC 2: Đồng bộ Logo cho tất cả dòng xe cùng hãng (Nếu có thay đổi Logo)
-                            // Sử dụng .ilike để bao quát (Ví dụ: Thaco Mobihome, Thaco County...)
-                            await window.sb.from('model_info')
-                                .update({ logo_url: logo || null })
-                                .ilike('model_name', `${brandName}%`);
-                            
-                            app.toast.show('success', 'Thành công', 'Đã lưu và đồng bộ thông tin Dòng xe!');
-                            app.model.closeEditPrompt();
-                            app.model.loadModelPage(app.model.currentModel);
-                            
-                            if (app.admin && app.admin.logAction) {
-                                app.admin.logAction('update_model_direct', app.model.currentModel, { logo_url: logo, description: desc, brand_sync: brandName });
-                            }
-                        } else {
-                            // GỬI YÊU CẦU DUYỆT (CHO USER THƯỜNG)
-                            const { count, error: checkErr } = await window.sb.from('edit_requests')
-                                .select('*', { count: 'exact', head: true })
-                                .eq('status', 'pending')
-                                .contains('new_data', { request_type: 'update_model_info', model_name: app.model.currentModel });
+                                await window.sb.from('model_info')
+                                    .update({ logo_url: logo || null })
+                                    .ilike('model_name', `${brandName}%`);
                                 
-                            if (checkErr) throw checkErr;
-                            if (count > 0) throw new Error("Đã có một yêu cầu cập nhật thông tin cho dòng xe này đang chờ duyệt. Vui lòng đợi!");
+                                app.toast.show('success', 'Thành công', 'Đã lưu và đồng bộ thông tin Dòng xe!');
+                                app.model.closeEditPrompt();
+                                app.model.loadModelPage(app.model.currentModel);
+                                
+                                if (app.admin && app.admin.logAction) {
+                                    app.admin.logAction('update_model_direct', app.model.currentModel, { logo_url: logo, description: desc, brand_sync: brandName });
+                                }
+                            } else {
+                                const { count, error: checkErr } = await window.sb.from('edit_requests')
+                                    .select('*', { count: 'exact', head: true })
+                                    .eq('status', 'pending')
+                                    .contains('new_data', { request_type: 'update_model_info', model_name: app.model.currentModel });
+                                    
+                                if (checkErr) throw checkErr;
+                                if (count > 0) throw new Error("Đã có một yêu cầu cập nhật thông tin cho dòng xe này đang chờ duyệt. Vui lòng đợi!");
 
-                            const reqData = {
-                                requester_id: app.user.id,
-                                license_plate: 'MODEL_INFO', // Giả lập để qua Validate
-                                new_data: {
-                                    request_type: 'update_model_info',
-                                    model_name: app.model.currentModel,
-                                    description: desc,
-                                    logo_url: logo
-                                },
-                                status: 'pending'
-                            };
+                                const reqData = {
+                                    requester_id: app.user.id,
+                                    license_plate: 'MODEL_INFO',
+                                    new_data: {
+                                        request_type: 'update_model_info',
+                                        model_name: app.model.currentModel,
+                                        description: desc,
+                                        logo_url: logo
+                                    },
+                                    status: 'pending'
+                                };
 
-                            const { error } = await window.sb.from('edit_requests').insert(reqData);
-                            if (error) throw error;
+                                const { error } = await window.sb.from('edit_requests').insert(reqData);
+                                if (error) throw error;
 
-                            app.ui.showAlert("Đã gửi yêu cầu cập nhật thông tin Dòng xe và đang chờ Admin duyệt.");
-                            app.model.closeEditPrompt();
+                                app.ui.showAlert("Đã gửi yêu cầu cập nhật thông tin Dòng xe và đang chờ Admin duyệt.");
+                                app.model.closeEditPrompt();
+                            }
+                        } catch (err) {
+                            app.ui.showAlert("Lỗi: " + err.message);
+                        } finally {
+                            btn.innerHTML = origText;
+                            btn.disabled = false;
                         }
-                    } catch (err) {
-                        app.ui.showAlert("Lỗi: " + err.message);
-                    } finally {
-                        btn.innerHTML = origText;
-                        btn.disabled = false;
+                    };
+
+                    if (!logo && !desc) {
+                        app.ui.showAlert(
+                            "Bạn đã để trống cả 2 ô. Bạn có chắc chắn muốn XÓA thông tin của Dòng xe hiện tại không?",
+                            () => { executeSave(); },
+                            () => {},
+                            { title: "Xác nhận xóa", btnOkText: "Đồng ý", btnCancelText: "Hủy" }
+                        );
+                    } else {
+                        executeSave();
                     }
                 }
             }

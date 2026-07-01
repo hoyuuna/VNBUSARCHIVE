@@ -2549,73 +2549,83 @@ Object.assign(window.app, {
                 },
 
                 saveHistory: async () => {
-                    if (app.vehicle.tempHistory.length === 0 && !confirm("Danh sách lịch sử đang trống. Bạn có muốn xóa hết lịch sử không?")) return;
+                    const proceedSave = async () => {
+                        app.vehicle.sortTempHistory();
 
-                    app.vehicle.sortTempHistory();
-
-                    for (let i = 1; i < app.vehicle.tempHistory.length; i++) {
-                        const prev = app.vehicle.tempHistory[i - 1];
-                        const curr = app.vehicle.tempHistory[i];
-                        if (prev.operator === curr.operator && prev.route === curr.route && prev.note === curr.note) {
-                            return app.ui.showAlert(`Lỗi: Có 2 mốc lịch sử cạnh nhau có thông tin (Đơn vị, Tuyến, Ghi chú) giống hệt nhau. Hệ thống đã chặn để tránh rác dữ liệu. Vui lòng gộp chung hoặc xóa bớt 1 mục.`);
-                        }
-                    }
-
-
-                    // [BẢO VỆ] Kiểm tra dữ liệu lịch sử có thực sự thay đổi không
-                    const origClean = JSON.stringify((app.vehicle.currentHistoryData || []).map(h => ({op: h.operator, rt: h.route, nt: h.note, dt: h.effective_date})));
-                    const tempClean = JSON.stringify(app.vehicle.tempHistory.map(h => ({op: h.operator, rt: h.route, nt: h.note, dt: h.effective_date})));
-                    if (origClean === tempClean) {
-                        return app.ui.showAlert("Không có sự thay đổi nào so với dữ liệu gốc. Yêu cầu bị hủy.");
-                    }
-
-                    if (app.role !== 'admin' && app.role !== 'manager') {
-                        try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
-                    }
-
-                    const payload = app.vehicle.tempHistory.map((h, i) => ({
-                        license_plate: app.currentPlate,
-                        operator: h.operator,
-                        route: h.route,
-                        note: h.note,
-                        effective_date: h.effective_date || null,
-                        display_order: i
-                    }));
-
-                    if(app.role === 'admin' || app.role === 'manager') {
-                        try {
-                            await window.sb.from('vehicle_history').delete().eq('license_plate', app.currentPlate);
-                            if (payload.length > 0) await window.sb.from('vehicle_history').insert(payload);
-
-                            app.toast.show('success', 'Đã cập nhật', 'Lịch sử hoạt động của xe đã được lưu thành công.');
-                            if (window.location.pathname.startsWith('/vehicle/')) {
-                                app.views.loadVehiclePage(app.currentPlate, true);
-                            } else {
-                                app.views.loadHistory(app.currentPlate);
+                        for (let i = 1; i < app.vehicle.tempHistory.length; i++) {
+                            const prev = app.vehicle.tempHistory[i - 1];
+                            const curr = app.vehicle.tempHistory[i];
+                            if (prev.operator === curr.operator && prev.route === curr.route && prev.note === curr.note) {
+                                return app.ui.showAlert(`Lỗi: Có 2 mốc lịch sử cạnh nhau có thông tin (Đơn vị, Tuyến, Ghi chú) giống hệt nhau. Hệ thống đã chặn để tránh rác dữ liệu. Vui lòng gộp chung hoặc xóa bớt 1 mục.`);
                             }
-                        } catch (err) {
-                            app.ui.showAlert("Lỗi khi lưu: " + err.message);
                         }
+
+                        // [BẢO VỆ] Kiểm tra dữ liệu lịch sử có thực sự thay đổi không
+                        const origClean = JSON.stringify((app.vehicle.currentHistoryData || []).map(h => ({op: h.operator, rt: h.route, nt: h.note, dt: h.effective_date})));
+                        const tempClean = JSON.stringify(app.vehicle.tempHistory.map(h => ({op: h.operator, rt: h.route, nt: h.note, dt: h.effective_date})));
+                        if (origClean === tempClean) {
+                            return app.ui.showAlert("Không có sự thay đổi nào so với dữ liệu gốc. Yêu cầu bị hủy.");
+                        }
+
+                        if (app.role !== 'admin' && app.role !== 'manager') {
+                            try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
+                        }
+
+                        const payload = app.vehicle.tempHistory.map((h, i) => ({
+                            license_plate: app.currentPlate,
+                            operator: h.operator,
+                            route: h.route,
+                            note: h.note,
+                            effective_date: h.effective_date || null,
+                            display_order: i
+                        }));
+
+                        if(app.role === 'admin' || app.role === 'manager') {
+                            try {
+                                await window.sb.from('vehicle_history').delete().eq('license_plate', app.currentPlate);
+                                if (payload.length > 0) await window.sb.from('vehicle_history').insert(payload);
+
+                                app.toast.show('success', 'Đã cập nhật', 'Lịch sử hoạt động của xe đã được lưu thành công.');
+                                if (window.location.pathname.startsWith('/vehicle/')) {
+                                    app.views.loadVehiclePage(app.currentPlate, true);
+                                } else {
+                                    app.views.loadHistory(app.currentPlate);
+                                }
+                            } catch (err) {
+                                app.ui.showAlert("Lỗi khi lưu: " + err.message);
+                            }
+                        } else {
+                            try {
+                                // [BẢO VỆ] Kiểm tra xem đã có yêu cầu nào đang chờ duyệt cho xe này chưa
+                                const { count, error: checkErr } = await window.sb.from('edit_requests').select('*', { count: 'exact', head: true }).eq('license_plate', app.currentPlate).eq('status', 'pending').contains('new_data', { request_type: 'update_history' });
+                                if (count > 0) return app.ui.showAlert("Có yêu cầu chỉnh sửa lịch sử khác đang chờ duyệt cho xe này. Vui lòng thử lại sau.");
+
+                                const reqData = {
+                                    requester_id: app.user.id,
+                                    license_plate: app.currentPlate,
+                                    new_data: { request_type: 'update_history', history_items: payload },
+                                    status: 'pending'
+                                };
+                                const { error } = await window.sb.from('edit_requests').insert(reqData);
+                                if (error) throw error;
+
+                                app.ui.showAlert("Yêu cầu cập nhật lịch sử đã được gửi và chờ Admin duyệt.");
+                                app.vehicle.toggleEditHistory(app.vehicle.currentHistoryPrefix);
+                            } catch (err) {
+                                app.ui.showAlert("Lỗi gửi yêu cầu: " + err.message);
+                            }
+                        }
+                    };
+
+                    if (app.vehicle.tempHistory.length === 0) {
+                        app.ui.showAlert(
+                            "Danh sách lịch sử đang trống. Bạn có muốn xóa hết lịch sử không?",
+                            () => { proceedSave(); },
+                            () => {},
+                            { title: "Xác nhận xóa", btnOkText: "Đồng ý", btnCancelText: "Hủy" }
+                        );
                     } else {
-                        try {
-                            // [BẢO VỆ] Kiểm tra xem đã có yêu cầu nào đang chờ duyệt cho xe này chưa
-                            const { count, error: checkErr } = await window.sb.from('edit_requests').select('*', { count: 'exact', head: true }).eq('license_plate', app.currentPlate).eq('status', 'pending').contains('new_data', { request_type: 'update_history' });
-                            if (count > 0) return app.ui.showAlert("Có yêu cầu chỉnh sửa lịch sử khác đang chờ duyệt cho xe này. Vui lòng thử lại sau.");
-
-                            const reqData = {
-                                requester_id: app.user.id,
-                                license_plate: app.currentPlate,
-                                new_data: { request_type: 'update_history', history_items: payload },
-                                status: 'pending'
-                            };
-                            const { error } = await window.sb.from('edit_requests').insert(reqData);
-                            if (error) throw error;
-
-                            app.ui.showAlert("Yêu cầu cập nhật lịch sử đã được gửi và chờ Admin duyệt.");
-                            app.vehicle.toggleEditHistory(app.vehicle.currentHistoryPrefix);
-                        } catch (err) {
-                            app.ui.showAlert("Lỗi gửi yêu cầu: " + err.message);
-                        }
+                        proceedSave();
                     }
                 },
 

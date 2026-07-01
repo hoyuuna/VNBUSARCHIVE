@@ -1455,12 +1455,17 @@ app.admin.fetchManagerData('denied');
                             const logo = document.getElementById(`req-op-logo-${id}`).value.trim();
                             const desc = document.getElementById(`req-op-desc-${id}`).value.trim();
                             
-                            const { error } = await window.sb.from('operator_info').upsert({
-                                operator_name: req.new_data.operator_name,
-                                logo_url: logo || null,
-                                description: desc || null
-                            });
-                            if (error) throw error;
+                            if (!logo && !desc) {
+                                const { error } = await window.sb.from('operator_info').delete().eq('operator_name', req.new_data.operator_name);
+                                if (error) throw error;
+                            } else {
+                                const { error } = await window.sb.from('operator_info').upsert({
+                                    operator_name: req.new_data.operator_name,
+                                    logo_url: logo || null,
+                                    description: desc || null
+                                });
+                                if (error) throw error;
+                            }
                         }
 
                         else if (reqType === 'model_info' || req.new_data.request_type === 'update_model_info') {
@@ -1468,13 +1473,18 @@ app.admin.fetchManagerData('denied');
                             const desc = document.getElementById(`req-mdl-desc-${id}`).value.trim();
                             const brandName = req.new_data.model_name.split(' ')[0];
                             
-                            // 1. Lưu thông tin cho dòng xe cụ thể
-                            const { error: upsertErr } = await window.sb.from('model_info').upsert({
-                                model_name: req.new_data.model_name,
-                                logo_url: logo || null,
-                                description: desc || null
-                            });
-                            if (upsertErr) throw upsertErr;
+                            if (!logo && !desc) {
+                                const { error: delErr } = await window.sb.from('model_info').delete().eq('model_name', req.new_data.model_name);
+                                if (delErr) throw delErr;
+                            } else {
+                                // 1. Lưu thông tin cho dòng xe cụ thể
+                                const { error: upsertErr } = await window.sb.from('model_info').upsert({
+                                    model_name: req.new_data.model_name,
+                                    logo_url: logo || null,
+                                    description: desc || null
+                                });
+                                if (upsertErr) throw upsertErr;
+                            }
 
                             // 2. Tự động đồng bộ Logo cho toàn bộ hãng
                             await window.sb.from('model_info')
