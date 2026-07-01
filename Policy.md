@@ -96,5 +96,3 @@ Chúng tôi tuyệt đối không bán hoặc trao đổi dữ liệu cá nhân 
 Nền tảng yêu cầu ý thức đóng góp dữ liệu nghiêm túc. Bạn bắt buộc phải từ đủ 14 tuổi trở lên mới được phép sử dụng hệ thống. Nếu ban quản trị phát hiện người dùng dưới độ tuổi quy định thông qua hành vi ứng xử, tài khoản sẽ bị khóa vĩnh viễn và dữ liệu cá nhân liên đới sẽ bị xóa bỏ ngay lập tức để tuân thủ các quy định về an toàn trẻ em trên không gian mạng. Quyết định này là không thể kháng cáo.
 
 ---
-
-*Cảm ơn bạn đã đọc, tôn trọng các quy định và đồng hành cùng sự phát triển của hệ thống!*
