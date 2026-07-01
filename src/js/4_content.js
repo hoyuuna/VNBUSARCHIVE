@@ -918,6 +918,7 @@ Object.assign(window.app, {
                     const upDate = document.getElementById('up-date');
                     if (upDate) upDate.value = '';
 
+                    if(app.upload.resetWm) app.upload.resetWm();
                     if(app.upload.resetFilters) app.upload.resetFilters();
 
                     document.querySelectorAll('.blur-panel').forEach(p => p.remove());
@@ -1168,17 +1169,10 @@ Object.assign(window.app, {
                     const wmDrag = document.getElementById('draggable-watermark');
                     if (wmDrag) {
                         wmDrag.classList.remove('hidden');
-                        wmDrag.style.top = '50%';
-                        wmDrag.style.left = '50%';
-                        wmDrag.style.transform = 'translate(-50%, -50%) scale(1.0)';
                         wmDrag.classList.remove('wm-active');
                     }
 
-                    const chkWmBlack = document.getElementById('chk-wm-black');
-                    if (chkWmBlack) chkWmBlack.checked = false;
-
-                    app.upload.toggleColor(false);
-                    app.wmState = { x: 0.5, y: 0.5, color: 'white', scale: 1.0 };
+                    if (app.upload.resetWm) app.upload.resetWm();
                     if (app.upload.resetFilters) app.upload.resetFilters();
                 },
 
@@ -1855,18 +1849,8 @@ Object.assign(window.app, {
                                     document.querySelectorAll('.blur-panel').forEach(p => p.remove());
                                     if (app.upload.updateBlurBtn) app.upload.updateBlurBtn();
 
-                                    app.wmState = { x: 0.5, y: 0.5, color: 'white', scale: 1.0 };
-                    if(app.upload.resetFilters) app.upload.resetFilters();
-                                    const chkWmBlack = document.getElementById('chk-wm-black');
-                                    if (chkWmBlack) chkWmBlack.checked = false;
-                                    if (app.upload.toggleColor) app.upload.toggleColor(false);
-
-                                    const wmDrag = document.getElementById('draggable-watermark');
-                                    if (wmDrag) {
-                                        wmDrag.style.top = '50%';
-                                        wmDrag.style.left = '50%';
-                                        wmDrag.style.transform = 'translate(-50%, -50%)';
-                                    }
+                                    if(app.upload.resetWm) app.upload.resetWm();
+                                    if(app.upload.resetFilters) app.upload.resetFilters();
                                 }
 
                                 btn.innerHTML = originalText;
