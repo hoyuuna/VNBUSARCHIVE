@@ -3089,3 +3089,281 @@ Object.assign(window.app, {
   activeAnnouncements: []
 });
 
+Object.assign(window.app, {
+    contact: {
+        currentPreviewId: null,
+        isExternalLink: false,
+
+        init: () => {
+            document.getElementById('contact-form').reset();
+            document.getElementById('contact-topic').value = "";
+            document.getElementById('contact-dynamic-area').classList.add('hidden');
+            app.contact.onMethodChange(); // Thiết lập giao diện input ban đầu
+            app.contact.currentPreviewId = null;
+            app.contact.isExternalLink = false;
+        },
+
+        onTopicChange: () => {
+            const topic = document.getElementById('contact-topic').value;
+            const dynamicArea = document.getElementById('contact-dynamic-area');
+            const photoSection = document.getElementById('contact-photo-section');
+            const originalWorkSection = document.getElementById('contact-original-work-section');
+            const descLabel = document.getElementById('contact-desc-label');
+            const extLinkBtn = document.getElementById('contact-external-link-toggle');
+            const photoUrlInput = document.getElementById('contact-photo-url');
+
+            // --- YÊU CẦU ĐĂNG NHẬP ---
+            if ((topic === 'appeal' || topic === 'account') && !app.user) {
+                app.ui.showAlert("Bạn cần đăng nhập để sử dụng chức năng Kháng cáo.", () => {
+                    app.utils.navigate('/auth');
+                });
+                document.getElementById('contact-topic').value = "";
+                dynamicArea.classList.add('hidden');
+                return;
+            }
+
+            // --- XỬ LÝ GIAO DIỆN ---
+            dynamicArea.classList.remove('hidden');
+            
+            // Reset ảnh/link
+            photoUrlInput.value = '';
+            app.contact.currentPreviewId = null;
+            app.contact.isExternalLink = false;
+            document.getElementById('contact-photo-preview').classList.add('hidden');
+            document.getElementById('contact-photo-error').classList.add('hidden');
+
+            if (topic === 'copyright') {
+                photoSection.classList.remove('hidden');
+                originalWorkSection.classList.remove('hidden');
+                extLinkBtn.classList.remove('hidden');
+                descLabel.innerHTML = 'Mô tả chi tiết vi phạm <span class="text-red-500">*</span>';
+                photoUrlInput.placeholder = "Paste link ảnh trên VNBUSARCHIVE vào đây...";
+            } 
+            else if (topic === 'appeal') {
+                photoSection.classList.remove('hidden');
+                originalWorkSection.classList.add('hidden');
+                extLinkBtn.classList.add('hidden');
+                descLabel.innerHTML = 'Lý do bạn cho rằng ảnh hợp lệ <span class="text-red-500">*</span>';
+                photoUrlInput.placeholder = "Paste link ảnh BỊ TỪ CHỐI của bạn vào đây...";
+            } 
+            else {
+                photoSection.classList.add('hidden');
+                originalWorkSection.classList.add('hidden');
+                descLabel.innerHTML = 'Mô tả chi tiết vấn đề <span class="text-red-500">*</span>';
+            }
+
+            // Scroll nhẹ xuống để form nằm trọn trong màn hình
+            setTimeout(() => {
+                document.getElementById('contact-dynamic-area').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        },
+
+        toggleExternalLink: () => {
+            app.contact.isExternalLink = !app.contact.isExternalLink;
+            const input = document.getElementById('contact-photo-url');
+            const btn = document.querySelector('#contact-external-link-toggle button');
+            const preview = document.getElementById('contact-photo-preview');
+            const errBox = document.getElementById('contact-photo-error');
+
+            input.value = '';
+            preview.classList.add('hidden');
+            errBox.classList.add('hidden');
+            app.contact.currentPreviewId = null;
+
+            if (app.contact.isExternalLink) {
+                input.placeholder = "Nhập link nền tảng vi phạm (Facebook, TikTok...)";
+                btn.innerText = "Hủy bỏ / Quay lại sử dụng link VNBUSARCHIVE";
+            } else {
+                input.placeholder = "Paste link ảnh trên VNBUSARCHIVE vào đây...";
+                btn.innerText = "Ảnh vi phạm không nằm trên VNBUSARCHIVE?";
+            }
+        },
+
+        onLinkInput: async () => {
+            const topic = document.getElementById('contact-topic').value;
+            const url = document.getElementById('contact-photo-url').value.trim();
+            const previewBox = document.getElementById('contact-photo-preview');
+            const errBox = document.getElementById('contact-photo-error');
+            const errTxt = document.getElementById('contact-photo-err-txt');
+            const imgEl = document.getElementById('contact-preview-img');
+
+            if (app.contact.isExternalLink || !url) {
+                previewBox.classList.add('hidden');
+                errBox.classList.add('hidden');
+                app.contact.currentPreviewId = null;
+                return;
+            }
+
+            const match = url.match(/\/photo\/(\d+)/i);
+            if (!match) {
+                previewBox.classList.add('hidden');
+                errTxt.innerText = "Đường dẫn không hợp lệ. Vui lòng copy đúng link ảnh của VNBUSARCHIVE.";
+                errBox.classList.remove('hidden');
+                app.contact.currentPreviewId = null;
+                return;
+            }
+
+            const photoId = match[1];
+            errBox.classList.add('hidden');
+            previewBox.classList.remove('hidden');
+            imgEl.src = 'https://placehold.co/400x300/f3f4f6/a1a1aa?text=Dang+tai...';
+
+            try {
+                const { data, error } = await window.sb.from('photos').select('id, url, status, uploader_id, license_plate, operator').eq('id', photoId).single();
+                if (error || !data) throw new Error("Ảnh không tồn tại trên hệ thống.");
+
+                // Validate Rule
+                if (topic === 'appeal') {
+                    if (data.status !== 'denied') throw new Error("Kháng cáo thất bại: Ảnh này KHÔNG ở trạng thái Bị từ chối.");
+                    if (data.uploader_id !== app.user.id) throw new Error("Kháng cáo thất bại: Đây không phải là ảnh do bạn đăng tải.");
+                }
+
+                app.contact.currentPreviewId = photoId;
+                imgEl.src = app.utils.getProxiedUrl(data.url, 'preview.jpg', 'thumb');
+                document.getElementById('contact-preview-plate').innerText = app.utils.displayPlate(data.license_plate);
+                document.getElementById('contact-preview-op').innerText = data.operator || 'N/A';
+
+            } catch (err) {
+                previewBox.classList.add('hidden');
+                app.contact.currentPreviewId = null;
+                errTxt.innerText = err.message;
+                errBox.classList.remove('hidden');
+            }
+        },
+
+        onMethodChange: () => {
+            const method = document.querySelector('input[name="contact_method"]:checked').value;
+            const input = document.getElementById('contact-method-value');
+            const prefix = document.getElementById('contact-discord-prefix');
+            const fbWarning = document.getElementById('contact-fb-warning');
+
+            input.value = '';
+            fbWarning.classList.add('hidden');
+
+            if (method === 'discord') {
+                prefix.classList.remove('hidden');
+                input.classList.add('pl-8');
+                input.classList.remove('pl-3');
+                input.placeholder = "Tên đăng nhập (VD: vnba_user)";
+            } else if (method === 'facebook') {
+                prefix.classList.add('hidden');
+                input.classList.remove('pl-8');
+                input.classList.add('pl-3');
+                input.placeholder = "Link trang cá nhân Facebook của bạn";
+                fbWarning.classList.remove('hidden');
+            } else {
+                prefix.classList.add('hidden');
+                input.classList.remove('pl-8');
+                input.classList.add('pl-3');
+                input.placeholder = "Địa chỉ Email liên hệ";
+            }
+        },
+
+        submit: async (e) => {
+            e.preventDefault();
+            
+            const topic = document.getElementById('contact-topic').value;
+            const desc = document.getElementById('contact-description').value.trim();
+            const method = document.querySelector('input[name="contact_method"]:checked').value;
+            let methodVal = document.getElementById('contact-method-value').value.trim();
+            const originalWork = document.getElementById('contact-original-work').value.trim();
+            const btn = document.getElementById('btn-submit-contact');
+
+            // --- VALIDATE ---
+            if (!topic) return app.ui.showAlert("Vui lòng chọn Chủ đề cần hỗ trợ!");
+            
+            if (topic === 'copyright' || topic === 'appeal') {
+                if (!app.contact.isExternalLink && !app.contact.currentPreviewId) {
+                    return app.ui.showAlert("Vui lòng nhập Link ảnh hợp lệ.");
+                }
+                if (topic === 'copyright' && !originalWork) {
+                    return app.ui.showAlert("Vui lòng nhập Link minh chứng / tác phẩm gốc của bạn.");
+                }
+            }
+
+            if (!desc || desc.length < 10) return app.ui.showAlert("Vui lòng mô tả chi tiết vấn đề (Ít nhất 10 ký tự).");
+            if (!methodVal) return app.ui.showAlert("Vui lòng nhập thông tin liên hệ.");
+
+            // Formatting method input
+            if (method === 'discord') {
+                if (methodVal.includes('@')) methodVal = methodVal.replace('@', '');
+                if (!/^[a-z0-9_.]{2,32}$/i.test(methodVal)) {
+                    return app.ui.showAlert("Tên Discord không hợp lệ. Chỉ gồm 2-32 ký tự chữ, số, dấu chấm, gạch dưới.");
+                }
+                methodVal = '@' + methodVal;
+            } else if (method === 'email') {
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(methodVal)) return app.ui.showAlert("Email không hợp lệ.");
+            } else if (method === 'facebook') {
+                if (!methodVal.includes('facebook.com') && !methodVal.includes('fb.com')) {
+                    return app.ui.showAlert("Vui lòng nhập đường dẫn (Link) Facebook hợp lệ.");
+                }
+            }
+
+            // --- GO CAPTCHA ---
+            let captchaResponse;
+            try {
+                captchaResponse = await app.captcha.request();
+            } catch (err) {
+                if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha.");
+                return;
+            }
+
+            const origHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi...';
+            btn.disabled = true;
+
+            // Xây dựng Payload
+            const payload = {
+                action: 'contact_submit',
+                topic: topic,
+                description: desc,
+                contactMethod: method,
+                contactInfo: methodVal,
+                captcha: captchaResponse,
+                userId: app.user ? app.user.id : null,
+                userName: app.username || 'Khách (Chưa đăng nhập)',
+                photoId: app.contact.currentPreviewId,
+                externalLink: app.contact.isExternalLink ? document.getElementById('contact-photo-url').value.trim() : null,
+                originalWork: originalWork
+            };
+
+            try {
+                const reqOpts = {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                };
+                
+                // Kẹp token nếu có để backend log (bảo mật)
+                if (app.user) {
+                    const { data: { session } } = await window.sb.auth.getSession();
+                    if (session) reqOpts.headers['Authorization'] = `Bearer ${session.access_token}`;
+                }
+
+                const res = await fetch('/api/discord', reqOpts);
+                const data = await res.json();
+
+                if (!res.ok) throw new Error(data.error || "Gửi thất bại.");
+
+                app.toast.show('success', 'Đã gửi yêu cầu', 'Ban Quản Trị đã ghi nhận thông tin và sẽ phản hồi qua phương thức bạn đã chọn.');
+                app.contact.init(); // Reset
+
+            } catch (err) {
+                app.ui.showAlert("Lỗi hệ thống: " + err.message);
+                if (window.turnstile) app.utils.resetTurnstile();
+            } finally {
+                btn.innerHTML = origHTML;
+                btn.disabled = false;
+            }
+        }
+    }
+});
+
+// Chèn kích hoạt contact.init() vào Router của app.views.loadContact
+const origLoadContact = app.views.loadContact;
+app.views.loadContact = () => {
+    origLoadContact();
+    app.contact.init();
+};
+
+

@@ -261,12 +261,101 @@ async function handleRoleClaim(request, env) {
     }
 }
 
+async function handleContactSubmit(request, env) {
+    const body = await request.json();
+    const { topic, description, contactMethod, contactInfo, captcha, userId, userName, photoId, externalLink, originalWork } = body;
+
+    // 1. Validate CAPTCHA (Bảo mật backend)
+    if (!captcha) return new Response(JSON.stringify({ error: 'Thiếu mã Captcha' }), { status: 400 });
+    
+    const captchaVerify = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `secret=${env.TURNSTILE_SECRET_KEY}&response=${captcha}`
+    });
+    const captchaResult = await captchaVerify.json();
+    if (!captchaResult.success) return new Response(JSON.stringify({ error: 'Captcha không hợp lệ' }), { status: 400 });
+
+    // 2. Chuyển đổi ID Kênh và Màu sắc theo chủ đề
+    const reportChannelId = env.DISCORD_REPORT_CHANNEL_ID;
+    if (!reportChannelId) return new Response(JSON.stringify({ error: 'Thiếu config kênh Report' }), { status: 500 });
+
+    const TOPIC_CONFIG = {
+        'bug': { title: 'Lỗi hệ thống', color: 0xff4444 }, // Đỏ
+        'scam': { title: 'Báo cáo Scam/Hành vi', color: 0xff4444 }, // Đỏ
+        'copyright': { title: 'Vi phạm bản quyền', color: 0xffaa00 }, // Cam
+        'appeal': { title: 'Kháng cáo kiểm duyệt', color: 0x00ccff }, // Xanh
+        'account': { title: 'Hỗ trợ Tài khoản', color: 0x00ccff },
+        'general': { title: 'Hỗ trợ Chung', color: 0x999999 }, // Xám
+        'other': { title: 'Vấn đề Khác', color: 0x999999 }
+    };
+    
+    const config = TOPIC_CONFIG[topic] || TOPIC_CONFIG['other'];
+
+    // 3. Xây dựng Embed
+    const embed = {
+        title: `🚨 [Ticket] ${config.title}`,
+        color: config.color,
+        fields: [
+            { name: "👤 Người gửi", value: `${userName} ${userId ? `(\`${userId}\`)` : '(Guest)'}`, inline: false },
+            { name: "📱 Phương thức LH", value: `**${contactMethod.toUpperCase()}**: ${contactInfo}`, inline: false }
+        ],
+        description: `**Mô tả chi tiết:**\n>>> ${description}`,
+        timestamp: new Date().toISOString()
+    };
+
+    // Chèn dữ liệu động theo format
+    if (photoId) {
+        embed.fields.splice(2, 0, { name: "🔗 ID Ảnh liên quan", value: `[Xem ảnh trên Web](https://vnbusarchive.io.vn/photo/${photoId}) (\`ID: ${photoId}\`)`, inline: false });
+    }
+    if (externalLink) {
+        embed.fields.splice(2, 0, { name: "🔗 Nguồn vi phạm ngoài", value: externalLink, inline: false });
+    }
+    if (originalWork) {
+        embed.fields.splice(3, 0, { name: "📜 Tác phẩm gốc", value: originalWork, inline: false });
+    }
+
+    // 4. Gửi Request Discord
+    const discordRes = await fetch(`https://discord.com/api/v10/channels/${reportChannelId}/messages`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bot ${env.DISCORD_BOT_TOKEN}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ embeds: [embed] })
+    });
+
+    if (!discordRes.ok) {
+        const dErr = await discordRes.text();
+        console.error("Lỗi gửi Discord:", dErr);
+        return new Response(JSON.stringify({ error: 'Không thể kết nối máy chủ Discord.' }), { status: 500 });
+    }
+
+    return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json' }});
+}
+
 export async function onRequest(context) {
     const { request, env } = context;
+    const url = new URL(request.url);
+    
     if (request.method === 'GET') {
         return handleNewsOrHelp(request, env);
     } else if (request.method === 'POST') {
-        return handleRoleClaim(request, env);
+        try {
+            // Đọc body một lần duy nhất để phân luồng (Tránh lỗi body already read)
+            const clonedReq = request.clone();
+            const body = await clonedReq.json();
+            
+            if (body.action === 'contact_submit') {
+                return handleContactSubmit(request, env);
+            } else if (body.action === 'claim' || body.action === 'status') {
+                return handleRoleClaim(request, env);
+            } else {
+                return new Response(JSON.stringify({ error: 'Action không hợp lệ' }), { status: 400 });
+            }
+        } catch(e) {
+            return new Response(JSON.stringify({ error: 'Yêu cầu không hợp lệ' }), { status: 400 });
+        }
     }
     
     return new Response(JSON.stringify({ error: 'Method Not Allowed' }), { status: 405, headers: { 'Content-Type': 'application/json' }});

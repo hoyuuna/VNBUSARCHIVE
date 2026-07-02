@@ -3339,74 +3339,128 @@
             </div>
 
             <div id="contact" class="view-section">
-                <div class="max-w-3xl mx-auto">
-                    <div class="text-[11px] sm:text-xs text-gray-500 mb-4 bg-white px-3 py-2 border border-vbs-border rounded-md shadow-sm flex items-center gap-1.5 sm:gap-2 w-max max-w-full">
+                <div class="max-w-2xl mx-auto">
+                    <div class="text-[11px] sm:text-xs text-gray-500 mb-4 bg-white px-3 py-2 border border-vbs-border rounded-md shadow-sm flex items-center gap-1.5 w-max max-w-full">
                         <span class="crumb-back cursor-pointer hover:text-black font-medium transition-colors truncate shrink min-w-0">Trang chủ</span>
                         <i class="fa-solid fa-chevron-right text-[8px] sm:text-[10px] shrink-0 text-gray-400"></i>
                         <span class="font-bold text-black truncate shrink min-w-0">Liên hệ hỗ trợ</span>
                     </div>
 
-                    <div
-                        class="bg-white border border-vbs-border rounded-lg shadow-sm overflow-hidden p-6 md:p-8 flex flex-col items-center justify-center min-h-[500px] text-center">
-
-                        <div
-                            class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-3xl mb-4 border border-blue-100 shadow-sm">
-                            <i class="fa-solid fa-headset"></i>
+                    <div class="bg-white border border-vbs-border rounded-xl shadow-sm overflow-hidden p-6 md:p-8 min-h-[500px]">
+                        <div class="text-center mb-8">
+                            <div class="w-14 h-14 bg-gray-50 text-black rounded-full flex items-center justify-center text-2xl mb-4 border border-gray-200 shadow-sm mx-auto">
+                                <i class="fa-solid fa-headset"></i>
+                            </div>
+                            <h2 class="text-2xl font-black text-black uppercase tracking-tight mb-2">Gửi Yêu Cầu Hỗ Trợ</h2>
+                            <p class="text-sm text-gray-500 font-medium leading-relaxed">Vui lòng chọn chủ đề để Ban Quản Trị có thể hỗ trợ bạn nhanh nhất.</p>
                         </div>
 
-                        <h2 class="text-2xl font-bold text-black mb-2 uppercase tracking-tight">Hỗ trợ trực tuyến</h2>
-                        <p class="text-sm text-gray-500 mb-8 max-w-md leading-relaxed">
-                            Vui lòng chọn một trong các phương thức dưới đây để liên hệ với Ban Quản Trị.
-                        </p>
-
-                        <div class="w-full max-w-lg flex flex-col gap-4 text-left">
-                            <!-- Giải pháp 1: Discord -->
-                            <div class="border border-indigo-200 rounded-lg p-4 bg-indigo-50 flex items-start gap-4">
-                                <div class="w-10 h-10 bg-[#5865F2] text-white rounded-full flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
-                                    <i class="fa-brands fa-discord text-lg"></i>
-                                </div>
-                                <div>
-                                    <h3 class="font-bold text-black text-sm">1. Mở Ticket trên Discord (Khuyên dùng)</h3>
-                                    <p class="text-xs text-gray-600 mt-1.5 leading-relaxed">
-                                        <b>Bước 1:</b> Tham gia máy chủ Discord qua <a href="https://discord.com/invite/BNWyqbuvwq" target="_blank" class="font-bold text-[#5865F2] hover:underline">liên kết này</a>.<br>
-                                        <span class="inline-block mt-1"><b>Bước 2:</b> Truy cập <a href="https://discord.com/channels/1456943549546364940/1485596300862029944" target="_blank" class="font-bold text-[#5865F2] hover:underline">kênh Hỗ trợ</a> để tạo Ticket trò chuyện riêng tư với Ban Quản Trị.</span>
-                                    </p>
-                                </div>
+                        <form id="contact-form" onsubmit="app.contact.submit(event)" class="space-y-6">
+                            <!-- DROPDOWN CHỦ ĐỀ -->
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 uppercase mb-2">1. Chủ đề cần hỗ trợ <span class="text-red-500">*</span></label>
+                                <select id="contact-topic" onchange="app.contact.onTopicChange()" class="w-full bg-gray-50 border border-gray-300 rounded-xl p-3.5 text-sm font-bold text-black focus:ring-2 focus:ring-black outline-none transition-all shadow-sm cursor-pointer hover:bg-gray-100 appearance-none">
+                                    <option value="" disabled selected>-- Chọn chủ đề --</option>
+                                    <option value="bug">Báo cáo lỗi hệ thống</option>
+                                    <option value="scam">Báo cáo lừa đảo / Hành vi xấu</option>
+                                    <option value="copyright">Báo cáo vi phạm bản quyền ảnh</option>
+                                    <option value="appeal">Thắc mắc kiểm duyệt / Kháng cáo ảnh từ chối</option>
+                                    <option value="account">Hỗ trợ hoặc kháng cáo về tài khoản</option>
+                                    <option value="general">Hỗ trợ chung</option>
+                                    <option value="other">Vấn đề khác</option>
+                                </select>
                             </div>
 
-                            <!-- Giải pháp 2: Facebook -->
-                            <a href="https://www.facebook.com/vnbusarchive/" target="_blank" class="border border-blue-200 rounded-lg p-4 bg-blue-50/50 flex items-start gap-4 hover:bg-blue-50 transition group cursor-pointer block">
-                                <div class="w-10 h-10 bg-[#1877F2] text-white rounded-full flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-105 transition-transform shadow-sm">
-                                    <i class="fa-brands fa-facebook-f text-lg"></i>
-                                </div>
-                                <div>
-                                    <h3 class="font-bold text-black text-sm group-hover:text-[#1877F2] transition-colors">2. Facebook Messenger</h3>
-                                    <p class="text-xs text-gray-600 mt-1 leading-relaxed">Nhắn tin cho Fanpage chính thức của VNBUSARCHIVE.</p>
-                                </div>
-                            </a>
+                            <!-- KHU VỰC HIỂN THỊ ĐỘNG (Sẽ có animation trượt/hiện ra) -->
+                            <div id="contact-dynamic-area" class="hidden fade-zoom-in space-y-6 bg-gray-50 border border-gray-200 rounded-xl p-5 md:p-6 shadow-inner">
+                                
+                                <!-- Dành riêng cho Bản quyền / Kháng cáo: Nhập Link Ảnh -->
+                                <div id="contact-photo-section" class="hidden space-y-4">
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Đường dẫn ảnh trên VNBUSARCHIVE <span class="text-red-500">*</span></label>
+                                        <input type="text" id="contact-photo-url" oninput="app.contact.onLinkInput()" placeholder="Paste link ảnh vào đây (VD: vnbusarchive.io.vn/photo/123)" class="w-full bg-white border border-gray-300 rounded-lg p-3 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all shadow-sm text-black">
+                                        
+                                        <!-- Nút chuyển đổi chế độ nhập link (Chỉ hiện ở mục bản quyền) -->
+                                        <div id="contact-external-link-toggle" class="hidden mt-2 text-right">
+                                            <button type="button" onclick="app.contact.toggleExternalLink()" class="text-[11px] font-bold text-gray-500 hover:text-black underline decoration-gray-300 transition-colors">Ảnh vi phạm không nằm trên VNBUSARCHIVE?</button>
+                                        </div>
+                                    </div>
 
-                            <!-- Giải pháp 3: Email -->
-                            <div class="border border-gray-200 rounded-lg p-4 flex items-start gap-4">
-                                <div class="w-10 h-10 bg-white text-gray-600 rounded-full flex items-center justify-center shrink-0 border border-gray-200 mt-0.5 shadow-sm">
-                                    <i class="fa-solid fa-envelope"></i>
-                                </div>
-                                <div>
-                                    <h3 class="font-bold text-black text-sm">3. Qua Email</h3>
-                                    <p class="text-xs text-gray-600 mt-1 mb-2.5 leading-relaxed">
-                                        Gửi email về địa chỉ: <a href="mailto:lienhe@vnbusarchive.io.vn" class="font-bold text-blue-600 hover:underline">lienhe@vnbusarchive.io.vn</a><br>
-                                        Sử dụng cho các trường hợp cần trao đổi thông tin quan trọng (khiếu nại, cấp quyền,...).
-                                    </p>
-                                    <div class="bg-amber-50 border border-amber-200 p-2.5 rounded-md text-[11px] text-amber-800 leading-relaxed">
-                                        <i class="fa-solid fa-triangle-exclamation mr-1 text-amber-600"></i>
-                                        <b>Lưu ý:</b> Khi được admin trả lời, bạn sẽ nhận được thư từ địa chỉ <strong>ng********tuann@gmail.com</strong>. Chúng tôi <b>từ chối tiếp nhận</b> các email gửi trực tiếp vào địa chỉ gmail này ở lần đầu tiên.
+                                    <!-- Khung Preview Ảnh -->
+                                    <div id="contact-photo-preview" class="hidden w-full flex flex-col items-center">
+                                        <div class="relative w-full max-w-sm aspect-[4/3] rounded-xl overflow-hidden shadow-md border border-gray-300 bg-gray-200">
+                                            <img id="contact-preview-img" src="" class="w-full h-full object-cover transition-opacity duration-300">
+                                            <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 to-transparent p-3 pt-8 text-white">
+                                                <p id="contact-preview-plate" class="text-sm font-bold truncate drop-shadow-md"></p>
+                                                <p id="contact-preview-op" class="text-[11px] font-medium truncate drop-shadow-md"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="contact-photo-error" class="hidden text-xs text-red-600 font-bold bg-red-50 border border-red-200 p-2 rounded-md"><i class="fa-solid fa-triangle-exclamation mr-1"></i> <span id="contact-photo-err-txt"></span></div>
+
+                                    <!-- Ô nhập tác phẩm gốc (Chỉ Bản quyền) -->
+                                    <div id="contact-original-work-section" class="hidden">
+                                        <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Minh chứng / Tác phẩm gốc của bạn <span class="text-red-500">*</span></label>
+                                        <input type="text" id="contact-original-work" placeholder="Link ảnh gốc, bài viết gốc của bạn..." class="w-full bg-white border border-gray-300 rounded-lg p-3 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all shadow-sm text-black">
                                     </div>
                                 </div>
-                            </div>
-                        </div>
 
-                        <p class="text-[11px] text-gray-400 mt-8 italic">
-                            Thời gian phản hồi dự kiến: Vài giờ (Trong giờ hành chính).
-                        </p>
+                                <!-- Ô Mô tả chi tiết (Chung cho tất cả) -->
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-700 uppercase mb-2" id="contact-desc-label">Mô tả chi tiết vấn đề <span class="text-red-500">*</span></label>
+                                    <textarea id="contact-description" rows="5" placeholder="Mô tả cụ thể vấn đề bạn đang gặp phải..." class="w-full bg-white border border-gray-300 rounded-lg p-3 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all shadow-sm resize-none custom-scrollbar text-black"></textarea>
+                                </div>
+
+                                <!-- PHƯƠNG THỨC LIÊN HỆ -->
+                                <div class="border-t border-gray-200 pt-5">
+                                    <label class="block text-xs font-bold text-gray-700 uppercase mb-2">2. Phương thức nhận phản hồi <span class="text-red-500">*</span></label>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+                                        <label class="cursor-pointer">
+                                            <input type="radio" name="contact_method" value="discord" class="peer sr-only" onchange="app.contact.onMethodChange()" checked>
+                                            <div class="bg-white border border-gray-300 peer-checked:border-black peer-checked:bg-black peer-checked:text-white rounded-xl p-3 text-center transition-all shadow-sm">
+                                                <i class="fa-brands fa-discord text-lg mb-1"></i>
+                                                <p class="text-[11px] font-bold uppercase tracking-wider">Discord</p>
+                                            </div>
+                                        </label>
+                                        <label class="cursor-pointer">
+                                            <input type="radio" name="contact_method" value="facebook" class="peer sr-only" onchange="app.contact.onMethodChange()">
+                                            <div class="bg-white border border-gray-300 peer-checked:border-black peer-checked:bg-black peer-checked:text-white rounded-xl p-3 text-center transition-all shadow-sm">
+                                                <i class="fa-brands fa-facebook-messenger text-lg mb-1"></i>
+                                                <p class="text-[11px] font-bold uppercase tracking-wider">Messenger</p>
+                                            </div>
+                                        </label>
+                                        <label class="cursor-pointer">
+                                            <input type="radio" name="contact_method" value="email" class="peer sr-only" onchange="app.contact.onMethodChange()">
+                                            <div class="bg-white border border-gray-300 peer-checked:border-black peer-checked:bg-black peer-checked:text-white rounded-xl p-3 text-center transition-all shadow-sm">
+                                                <i class="fa-solid fa-envelope text-lg mb-1"></i>
+                                                <p class="text-[11px] font-bold uppercase tracking-wider">Email</p>
+                                            </div>
+                                        </label>
+                                    </div>
+
+                                    <!-- Ô Nhập Data Liên hệ -->
+                                    <div id="contact-method-input-area" class="space-y-3">
+                                        <!-- Input thay đổi dựa theo loại radio -->
+                                        <div class="relative w-full">
+                                            <div id="contact-discord-prefix" class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none font-bold text-gray-500">@</div>
+                                            <input type="text" id="contact-method-value" placeholder="Tên đăng nhập (VD: username)" class="w-full bg-white border border-gray-300 rounded-lg py-3 pr-3 pl-8 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all shadow-sm text-black">
+                                        </div>
+                                        
+                                        <!-- Warning Messenger -->
+                                        <div id="contact-fb-warning" class="hidden bg-yellow-50 border border-yellow-200 rounded-md p-3">
+                                            <p class="text-[11px] font-bold text-yellow-800 leading-relaxed m-0">
+                                                <i class="fa-solid fa-triangle-exclamation mr-1"></i>
+                                                Để nhận được tin nhắn, bạn <b>bắt buộc</b> phải nhắn tin cho Fanpage của chúng tôi trước với nội dung <i>"Nhận phản hồi hỗ trợ"</i>. Nếu không, hệ thống sẽ không thể gửi tin nhắn cho bạn do chính sách chống Spam của Facebook.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button type="submit" id="btn-submit-contact" class="w-full bg-black text-white px-6 py-3.5 rounded-xl font-bold uppercase text-sm shadow-sm hover:bg-gray-800 transition-all flex items-center justify-center gap-2 mt-4">
+                                    <i class="fa-solid fa-paper-plane"></i> Gửi yêu cầu
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
