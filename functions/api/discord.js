@@ -265,12 +265,18 @@ async function handleContactSubmit(request, env) {
     const body = await request.json();
     const { topic, description, contactMethod, contactInfo, captcha, userId, userName, photoId, externalLink, originalWork } = body;
 
-    // 1. Validate CAPTCHA (Đã fix lỗi mã hóa chuỗi Token)
+    // 1. Validate CAPTCHA (Đồng bộ cấu hình với upload.js)
     if (!captcha) return new Response(JSON.stringify({ error: 'Thiếu mã Captcha' }), { status: 400 });
     
-    // SỬ DỤNG URLSearchParams ĐỂ MÃ HÓA KÝ TỰ ĐẶC BIỆT CỦA TOKEN
+    // Sử dụng chung biến env.CAPTCHA_SECRET với chức năng upload ảnh (hoặc TURNSTILE_SECRET_KEY nếu có)
+    const secretKey = env.CAPTCHA_SECRET || env.TURNSTILE_SECRET_KEY;
+    if (!secretKey) {
+        console.error("Lỗi cấu hình: Thiếu biến môi trường CAPTCHA_SECRET hoặc TURNSTILE_SECRET_KEY");
+        return new Response(JSON.stringify({ error: 'Lỗi cấu hình máy chủ: Thiếu Secret Key của Captcha.' }), { status: 500 });
+    }
+
     const formData = new URLSearchParams();
-    formData.append('secret', env.TURNSTILE_SECRET_KEY);
+    formData.append('secret', secretKey);
     formData.append('response', captcha);
 
     const captchaVerify = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
