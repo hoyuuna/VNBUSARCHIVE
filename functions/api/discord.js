@@ -309,26 +309,26 @@ async function handleContactSubmit(request, env) {
     
     const config = TOPIC_CONFIG[topic] || TOPIC_CONFIG['other'];
 
-    // 3. Xây dựng nội dung RAW chuẩn thứ tự người dùng nhập trên form
+    // 3. Xây dựng nội dung RAW chuẩn thứ tự người dùng nhập trên form (Có in đậm tiêu đề và xuống dòng dễ nhìn)
     const requesterStr = userId ? `${userName}/${userId}` : `${userName}`;
-    let rawText = `Người yêu cầu:\n${requesterStr}\n`;
-    rawText += `1. Chủ đề cần hỗ trợ *\n${config.title}\n`;
+    let rawText = `**Người yêu cầu:**\n${requesterStr}\n\n`;
+    rawText += `**1. Chủ đề cần hỗ trợ \\***\n${config.title}\n\n`;
 
     if (photoId) {
-        rawText += `Ảnh liên quan *\nhttps://vnbusarchive.io.vn/photo/${photoId}\n`;
+        rawText += `**Ảnh liên quan \\***\nhttps://vnbusarchive.io.vn/photo/${photoId}\n\n`;
     } else if (externalLink) {
-        rawText += `Ảnh liên quan *\n${externalLink}\n`;
+        rawText += `**Ảnh liên quan \\***\n${externalLink}\n\n`;
     }
 
     if (originalWork) {
-        rawText += `Minh chứng / Tác phẩm gốc của bạn *\n${originalWork}\n`;
+        rawText += `**Minh chứng / Tác phẩm gốc của bạn \\***\n${originalWork}\n\n`;
     }
 
-    let descLabel = 'Mô tả chi tiết vấn đề *';
-    if (topic === 'copyright') descLabel = 'Mô tả chi tiết vi phạm *';
-    else if (topic === 'appeal') descLabel = 'Lý do bạn cho rằng ảnh hợp lệ *';
+    let descLabel = 'Mô tả chi tiết vấn đề \\*';
+    if (topic === 'copyright') descLabel = 'Mô tả chi tiết vi phạm \\*';
+    else if (topic === 'appeal') descLabel = 'Lý do bạn cho rằng ảnh hợp lệ \\*';
 
-    rawText += `${descLabel}\n${description}\n`;
+    rawText += `**${descLabel}**\n${description}\n\n`;
 
     const METHOD_NAMES = {
         'discord': 'Discord',
@@ -337,7 +337,7 @@ async function handleContactSubmit(request, env) {
     };
     const methodName = METHOD_NAMES[contactMethod] || (contactMethod ? contactMethod.toUpperCase() : 'Khác');
 
-    rawText += `2. Phương thức nhận phản hồi *\n${methodName}\n\n\n${contactInfo}`;
+    rawText += `**2. Phương thức nhận phản hồi \\***\n${methodName}\n${contactInfo}`;
 
     const embed = {
         title: `🚨 [Ticket] ${config.title}`,
