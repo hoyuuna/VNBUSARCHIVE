@@ -2290,7 +2290,7 @@
         </div>
 
         <div id="auth"
-            class="view-section fixed inset-0 z-[100] h-[100dvh] w-screen overflow-y-auto overflow-x-hidden bg-[#121212]"
+            class="view-section fixed inset-0 z-[1600] h-[100dvh] w-screen overflow-y-auto overflow-x-hidden bg-[#121212]"
             x-data="authForm"
             @auth-opened.window="loadRandomBg()"
             @set-auth-mode.window="mode = $event.detail">
@@ -2456,7 +2456,7 @@
 
         </div>
 
-        <header class="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4 px-4 pointer-events-none">
+        <header class="fixed top-0 left-0 right-0 z-[1500] flex justify-center pt-4 px-4 pointer-events-none">
             <div
                 class="w-full max-w-7xl bg-white/80 backdrop-blur-md border border-white/20 shadow-island rounded-2xl pointer-events-auto transition-all duration-300 relative">
                 <div class="flex flex-wrap md:flex-nowrap justify-between items-center px-4 py-2 md:h-16">
@@ -2483,7 +2483,7 @@
                                 <i class="fa-solid fa-circle-user md:mr-1"></i>
                                 <span id="nav-username" class="hidden md:inline">Tài khoản</span>
                             </button>
-                            <div id="user-dropdown" class="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 border border-white/50 rounded-lg shadow-xl z-[70] overflow-hidden transform opacity-0 -translate-y-4 pointer-events-none transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] origin-top">
+                            <div id="user-dropdown" class="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 border border-white/50 rounded-lg shadow-xl z-[1510] overflow-hidden transform opacity-0 -translate-y-4 pointer-events-none transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] origin-top">
 
                             </div>
                         </div>
@@ -2562,7 +2562,7 @@
                     </div>
                 </div>
                 <!-- 👇 DÁN VÀO ĐÂY: KHAY CHỨA TOAST NẰM NGAY MẶT DƯỚI HEADER 👇 -->
-                <div id="toast-container" class="absolute top-full left-0 w-full mt-3 flex flex-col items-center gap-2 pointer-events-none z-50"></div>
+                <div id="toast-container" class="absolute top-full left-0 w-full mt-3 flex flex-col items-center gap-2 pointer-events-none z-[1510]"></div>
             </div>
         </header>
 
@@ -3359,7 +3359,7 @@
 
                         <form id="contact-form" onsubmit="app.contact.submit(event)">
                             <!-- 1. CHỦ ĐỀ CẦN HỖ TRỢ -->
-                            <div class="relative z-[70] mb-6">
+                            <div class="relative z-30 mb-6">
                                 <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-2">1. Chủ đề cần hỗ trợ <span class="text-red-500">*</span></label>
                                 <input type="hidden" id="contact-topic" value="">
                                 
@@ -3369,7 +3369,7 @@
                                 </button>
 
                                 <!-- ÉP CỨNG style="width: 100% !important" ĐỂ ĐÈ CSS GỐC CỦA FILTER-MENU VÀ XÓA ICON CHECK -->
-                                <div id="contact-topic-menu" class="filter-menu left-0 right-0 origin-top mt-2 !max-h-[300px] z-[80]" style="width: 100% !important;">
+                                <div id="contact-topic-menu" class="filter-menu left-0 right-0 origin-top mt-2 !max-h-[300px] z-40" style="width: 100% !important;">
                                     <div class="filter-item" onclick="app.contact.selectTopic('bug', 'Báo cáo lỗi hệ thống', this)">
                                         <span class="font-bold">Báo cáo lỗi hệ thống</span>
                                     </div>
