@@ -11,3 +11,6 @@
 ## Design System & UI Reference
 - The design system, HoyuUI, is fully documented at `/public/design.md`. 
 - **Rule:** Before creating new UI components or layouts, ALWAYS read `/public/design.md` and use the exact design tokens, CSS values, and HTML structures specified there.
+
+## Git Workflow
+- **Rule:** Always automatically commit and push git changes (`git add -A; git commit -m "..."; git push`) after successfully completing user requests or modifying code.
