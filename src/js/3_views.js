@@ -3108,16 +3108,30 @@ Object.assign(window.app, {
         },
 
         // Click chọn từ Dropdown Custom
-        selectTopic: (value, label) => {
+        selectTopic: (value, label, el) => {
             document.getElementById('contact-topic').value = value;
             const labelEl = document.getElementById('contact-topic-label');
             labelEl.innerText = label;
-            labelEl.classList.add('text-black'); // Đổi màu chữ đậm lên khi đã chọn
+            labelEl.classList.add('text-black');
+            
+            // Xóa background đen của tất cả các mục khác
+            document.querySelectorAll('#contact-topic-menu .filter-item').forEach(item => {
+                item.classList.remove('selected');
+                const icon = item.querySelector('.check-icon');
+                if (icon) icon.classList.add('opacity-0');
+            });
+            
+            // Bật background đen (class .selected) cho mục vừa click
+            if (el) {
+                el.classList.add('selected');
+                const icon = el.querySelector('.check-icon');
+                if (icon) icon.classList.remove('opacity-0');
+            }
             
             // Đóng menu
             document.getElementById('contact-topic-menu').classList.remove('active');
             
-            // Kích hoạt logic đổi giao diện
+            // Kích hoạt logic đổi giao diện bên dưới
             app.contact.onTopicChange();
         },
 

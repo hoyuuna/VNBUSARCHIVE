@@ -3347,7 +3347,8 @@
                         <span class="font-bold text-black truncate shrink min-w-0">Liên hệ hỗ trợ</span>
                     </div>
 
-                    <div class="bg-white border border-vbs-border rounded-2xl shadow-sm overflow-hidden p-6 md:p-10 min-h-[500px]">
+                    <!-- Đã xóa min-h-[500px] để khung tự động co lại cho vừa vặn khi chưa chọn Dropdown -->
+                    <div class="bg-white border border-vbs-border rounded-2xl shadow-sm overflow-hidden p-6 md:p-10 mb-8">
                         <div class="text-center mb-10">
                             <div class="w-16 h-16 bg-gray-50 text-black rounded-full flex items-center justify-center text-3xl mb-4 border border-gray-200 shadow-sm mx-auto">
                                 <i class="fa-solid fa-headset"></i>
@@ -3358,7 +3359,7 @@
 
                         <form id="contact-form" onsubmit="app.contact.submit(event)" class="space-y-6">
                             <!-- 1. CHỦ ĐỀ CẦN HỖ TRỢ (CUSTOM DROPDOWN UI) -->
-                            <div class="relative z-50">
+                            <div class="relative z-[60]">
                                 <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-2">1. Chủ đề cần hỗ trợ <span class="text-red-500">*</span></label>
                                 <input type="hidden" id="contact-topic" value="">
                                 
@@ -3367,34 +3368,34 @@
                                     <i class="fa-solid fa-chevron-down text-gray-400"></i>
                                 </button>
 
-                                <!-- Menu trượt xuống -->
-                                <div id="contact-topic-menu" class="filter-menu w-full left-0 origin-top mt-2 !max-h-[300px]">
-                                    <div class="filter-item" onclick="app.contact.selectTopic('bug', 'Báo cáo lỗi hệ thống')">
-                                        <span class="font-bold">Báo cáo lỗi hệ thống</span>
+                                <!-- Menu trượt xuống: Ép w-full, z-[70] để đè lên mọi thứ bên dưới -->
+                                <div id="contact-topic-menu" class="filter-menu w-full left-0 origin-top mt-2 !max-h-[300px] z-[70]">
+                                    <div class="filter-item" onclick="app.contact.selectTopic('bug', 'Báo cáo lỗi hệ thống', this)">
+                                        <span class="font-bold">Báo cáo lỗi hệ thống</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
                                     </div>
-                                    <div class="filter-item" onclick="app.contact.selectTopic('scam', 'Báo cáo lừa đảo / Hành vi xấu')">
-                                        <span class="font-bold">Báo cáo lừa đảo / Hành vi xấu</span>
+                                    <div class="filter-item" onclick="app.contact.selectTopic('scam', 'Báo cáo lừa đảo / Hành vi xấu', this)">
+                                        <span class="font-bold">Báo cáo lừa đảo / Hành vi xấu</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
                                     </div>
-                                    <div class="filter-item" onclick="app.contact.selectTopic('copyright', 'Báo cáo vi phạm bản quyền ảnh')">
-                                        <span class="font-bold">Báo cáo vi phạm bản quyền ảnh</span>
+                                    <div class="filter-item" onclick="app.contact.selectTopic('copyright', 'Báo cáo vi phạm bản quyền ảnh', this)">
+                                        <span class="font-bold">Báo cáo vi phạm bản quyền ảnh</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
                                     </div>
-                                    <div class="filter-item" onclick="app.contact.selectTopic('appeal', 'Thắc mắc kiểm duyệt / Kháng cáo ảnh từ chối')">
-                                        <span class="font-bold">Thắc mắc kiểm duyệt / Kháng cáo ảnh từ chối</span>
+                                    <div class="filter-item" onclick="app.contact.selectTopic('appeal', 'Thắc mắc kiểm duyệt / Kháng cáo ảnh từ chối', this)">
+                                        <span class="font-bold">Thắc mắc kiểm duyệt / Kháng cáo ảnh từ chối</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
                                     </div>
-                                    <div class="filter-item" onclick="app.contact.selectTopic('account', 'Hỗ trợ hoặc kháng cáo về tài khoản')">
-                                        <span class="font-bold">Hỗ trợ hoặc kháng cáo về tài khoản</span>
+                                    <div class="filter-item" onclick="app.contact.selectTopic('account', 'Hỗ trợ hoặc kháng cáo về tài khoản', this)">
+                                        <span class="font-bold">Hỗ trợ hoặc kháng cáo về tài khoản</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
                                     </div>
-                                    <div class="filter-item" onclick="app.contact.selectTopic('general', 'Hỗ trợ chung')">
-                                        <span class="font-bold">Hỗ trợ chung</span>
+                                    <div class="filter-item" onclick="app.contact.selectTopic('general', 'Hỗ trợ chung', this)">
+                                        <span class="font-bold">Hỗ trợ chung</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
                                     </div>
-                                    <div class="filter-item" onclick="app.contact.selectTopic('other', 'Vấn đề khác')">
-                                        <span class="font-bold">Vấn đề khác</span>
+                                    <div class="filter-item" onclick="app.contact.selectTopic('other', 'Vấn đề khác', this)">
+                                        <span class="font-bold">Vấn đề khác</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- KHU VỰC HIỂN THỊ ĐỘNG (Bị ẩn ban đầu, không tạo khoảng trống) -->
-                            <div id="contact-dynamic-area" class="hidden fade-zoom-in space-y-6">
+                            <!-- KHU VỰC HIỂN THỊ ĐỘNG -->
+                            <div id="contact-dynamic-area" class="hidden fade-zoom-in space-y-6 relative z-10">
                                 
                                 <div class="bg-gray-50/50 border border-gray-200 rounded-xl p-5 md:p-6 shadow-sm space-y-6">
                                     <!-- SECTION BẢN QUYỀN / KHÁNG CÁO: Nhập Link Ảnh -->
@@ -3731,7 +3732,7 @@
                                 </div>
 
                                 <!-- BẢNG CHỈNH MÀU SẼ ĐƯỢC CHÈN LẠI VÀO ĐÂY -->
-                                <div id="color-adjust-panel" class="hidden mt-3 p-4 bg-white border border-gray-200 rounded-xl shadow-sm relative z-50">
+                                <div id="color-adjust-panel" class="hidden mt-3 p-4 bg-white border border-gray-200 rounded-xl shadow-sm relative z-30">
                                 <!-- Cảnh báo đỏ -->
                                 <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2.5">
                                     <i class="fa-solid fa-triangle-exclamation text-red-500 mt-0.5 text-sm"></i>
@@ -3819,7 +3820,7 @@
                             </div>
 
                                 <!-- BẢNG ĐIỀU CHỈNH WATERMARK -->
-                                <div id="wm-adjust-panel" class="hidden mt-3 p-4 bg-white border border-gray-200 rounded-xl shadow-sm relative z-50">
+                                <div id="wm-adjust-panel" class="hidden mt-3 p-4 bg-white border border-gray-200 rounded-xl shadow-sm relative z-30">
                                     <div class="grid grid-cols-1 gap-4">
                                         <!-- CÔNG TẮC DẤU CHÌM MÀU ĐEN -->
                                         <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 flex items-center justify-between shadow-sm transition-all hover:border-gray-300 group">
