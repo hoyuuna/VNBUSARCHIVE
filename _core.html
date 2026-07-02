@@ -2262,7 +2262,7 @@
             </div>
 
             <!-- Floating Toolbar Kính Mờ Hình Nút Bo Góc (Animation Trượt) -->
-            <div id="zoom-toolbar" class="w-max max-w-[95vw] rounded-xl p-2 md:p-2.5 flex gap-1.5 md:gap-2 items-center justify-center z-[2005] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] opacity-0 translate-y-8 pointer-events-none" onclick="event.stopPropagation()">
+            <div id="zoom-toolbar" class="w-max max-w-[95vw] rounded-xl p-2 md:p-2.5 flex gap-1.5 md:gap-2 items-center justify-center z-[2005] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] opacity-0 translate-y-8 pointer-events-none" style="z-index: 2005 !important;" onclick="event.stopPropagation()">
 
                 <!-- Nút Thích -->
                 <button id="zoom-btn-like" onclick="app.utils.handleLike()" class="flex items-center justify-center gap-1.5 text-gray-800 bg-transparent hover:bg-black hover:text-white px-3 py-2 md:px-4 md:py-2.5 rounded-lg font-bold text-[11px] md:text-sm transition-colors whitespace-nowrap">
@@ -2291,6 +2291,7 @@
 
         <div id="auth"
             class="view-section fixed inset-0 z-[1600] h-[100dvh] w-screen overflow-y-auto overflow-x-hidden bg-[#121212]"
+            style="z-index: 1600 !important;"
             x-data="authForm"
             @auth-opened.window="loadRandomBg()"
             @set-auth-mode.window="mode = $event.detail">
@@ -2456,7 +2457,7 @@
 
         </div>
 
-        <header class="fixed top-0 left-0 right-0 z-[1500] flex justify-center pt-4 px-4 pointer-events-none">
+        <header class="fixed top-0 left-0 right-0 z-[1500] flex justify-center pt-4 px-4 pointer-events-none" style="z-index: 1500 !important;">
             <div
                 class="w-full max-w-7xl bg-white/80 backdrop-blur-md border border-white/20 shadow-island rounded-2xl pointer-events-auto transition-all duration-300 relative">
                 <div class="flex flex-wrap md:flex-nowrap justify-between items-center px-4 py-2 md:h-16">
@@ -2483,7 +2484,7 @@
                                 <i class="fa-solid fa-circle-user md:mr-1"></i>
                                 <span id="nav-username" class="hidden md:inline">Tài khoản</span>
                             </button>
-                            <div id="user-dropdown" class="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 border border-white/50 rounded-lg shadow-xl z-[1510] overflow-hidden transform opacity-0 -translate-y-4 pointer-events-none transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] origin-top">
+                            <div id="user-dropdown" class="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 border border-white/50 rounded-lg shadow-xl z-[1510] overflow-hidden transform opacity-0 -translate-y-4 pointer-events-none transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] origin-top" style="z-index: 1510 !important;">
 
                             </div>
                         </div>
@@ -2562,7 +2563,7 @@
                     </div>
                 </div>
                 <!-- 👇 DÁN VÀO ĐÂY: KHAY CHỨA TOAST NẰM NGAY MẶT DƯỚI HEADER 👇 -->
-                <div id="toast-container" class="absolute top-full left-0 w-full mt-3 flex flex-col items-center gap-2 pointer-events-none z-[1510]"></div>
+                <div id="toast-container" class="absolute top-full left-0 w-full mt-3 flex flex-col items-center gap-2 pointer-events-none z-[1510]" style="z-index: 1510 !important;"></div>
             </div>
         </header>
 
