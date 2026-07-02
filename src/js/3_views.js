@@ -3093,14 +3093,32 @@ Object.assign(window.app, {
     contact: {
         currentPreviewId: null,
         isExternalLink: false,
+        currentMethod: 'discord', // Lưu trạng thái method hiện tại
 
         init: () => {
             document.getElementById('contact-form').reset();
             document.getElementById('contact-topic').value = "";
+            document.getElementById('contact-topic-label').innerText = "-- Vui lòng chọn một chủ đề --";
+            document.getElementById('contact-topic-label').classList.remove('text-black');
             document.getElementById('contact-dynamic-area').classList.add('hidden');
-            app.contact.onMethodChange(); // Thiết lập giao diện input ban đầu
+            
             app.contact.currentPreviewId = null;
             app.contact.isExternalLink = false;
+            app.contact.setMethod('discord'); // Khởi tạo mặc định là discord
+        },
+
+        // Click chọn từ Dropdown Custom
+        selectTopic: (value, label) => {
+            document.getElementById('contact-topic').value = value;
+            const labelEl = document.getElementById('contact-topic-label');
+            labelEl.innerText = label;
+            labelEl.classList.add('text-black'); // Đổi màu chữ đậm lên khi đã chọn
+            
+            // Đóng menu
+            document.getElementById('contact-topic-menu').classList.remove('active');
+            
+            // Kích hoạt logic đổi giao diện
+            app.contact.onTopicChange();
         },
 
         onTopicChange: () => {
@@ -3114,18 +3132,17 @@ Object.assign(window.app, {
 
             // --- YÊU CẦU ĐĂNG NHẬP ---
             if ((topic === 'appeal' || topic === 'account') && !app.user) {
-                app.ui.showAlert("Bạn cần đăng nhập để sử dụng chức năng Kháng cáo.", () => {
+                app.ui.showAlert("Chủ đề này yêu cầu bạn phải đăng nhập vào hệ thống để xác thực quyền sở hữu.", () => {
                     app.utils.navigate('/auth');
                 });
-                document.getElementById('contact-topic').value = "";
-                dynamicArea.classList.add('hidden');
+                app.contact.init(); // Reset lại form
                 return;
             }
 
-            // --- XỬ LÝ GIAO DIỆN ---
+            // --- HIỂN THỊ GIAO DIỆN ---
             dynamicArea.classList.remove('hidden');
             
-            // Reset ảnh/link
+            // Reset ảnh/link mỗi khi đổi chủ đề
             photoUrlInput.value = '';
             app.contact.currentPreviewId = null;
             app.contact.isExternalLink = false;
@@ -3138,6 +3155,7 @@ Object.assign(window.app, {
                 extLinkBtn.classList.remove('hidden');
                 descLabel.innerHTML = 'Mô tả chi tiết vi phạm <span class="text-red-500">*</span>';
                 photoUrlInput.placeholder = "Paste link ảnh trên VNBUSARCHIVE vào đây...";
+                document.querySelector('#contact-external-link-toggle button').innerHTML = '<i class="fa-solid fa-arrow-right-arrow-left mr-1"></i> Ảnh vi phạm không nằm trên VNBUSARCHIVE?';
             } 
             else if (topic === 'appeal') {
                 photoSection.classList.remove('hidden');
@@ -3151,11 +3169,6 @@ Object.assign(window.app, {
                 originalWorkSection.classList.add('hidden');
                 descLabel.innerHTML = 'Mô tả chi tiết vấn đề <span class="text-red-500">*</span>';
             }
-
-            // Scroll nhẹ xuống để form nằm trọn trong màn hình
-            setTimeout(() => {
-                document.getElementById('contact-dynamic-area').scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 100);
         },
 
         toggleExternalLink: () => {
@@ -3172,10 +3185,10 @@ Object.assign(window.app, {
 
             if (app.contact.isExternalLink) {
                 input.placeholder = "Nhập link nền tảng vi phạm (Facebook, TikTok...)";
-                btn.innerText = "Hủy bỏ / Quay lại sử dụng link VNBUSARCHIVE";
+                btn.innerHTML = '<i class="fa-solid fa-rotate-left mr-1"></i> Quay lại sử dụng link VNBUSARCHIVE';
             } else {
                 input.placeholder = "Paste link ảnh trên VNBUSARCHIVE vào đây...";
-                btn.innerText = "Ảnh vi phạm không nằm trên VNBUSARCHIVE?";
+                btn.innerHTML = '<i class="fa-solid fa-arrow-right-arrow-left mr-1"></i> Ảnh vi phạm không nằm trên VNBUSARCHIVE?';
             }
         },
 
@@ -3197,7 +3210,7 @@ Object.assign(window.app, {
             const match = url.match(/\/photo\/(\d+)/i);
             if (!match) {
                 previewBox.classList.add('hidden');
-                errTxt.innerText = "Đường dẫn không hợp lệ. Vui lòng copy đúng link ảnh của VNBUSARCHIVE.";
+                errTxt.innerText = "Đường dẫn không hợp lệ. Vui lòng copy đúng link truy cập ảnh của VNBUSARCHIVE.";
                 errBox.classList.remove('hidden');
                 app.contact.currentPreviewId = null;
                 return;
@@ -3231,30 +3244,37 @@ Object.assign(window.app, {
             }
         },
 
-        onMethodChange: () => {
-            const method = document.querySelector('input[name="contact_method"]:checked').value;
+        // Quản lý trạng thái Custom Radio Button (Đảm bảo luôn lên màu)
+        setMethod: (method) => {
+            app.contact.currentMethod = method;
+            const methods = ['discord', 'facebook', 'email'];
+            
             const input = document.getElementById('contact-method-value');
             const prefix = document.getElementById('contact-discord-prefix');
             const fbWarning = document.getElementById('contact-fb-warning');
 
+            // Reset Input
             input.value = '';
             fbWarning.classList.add('hidden');
 
+            methods.forEach(m => {
+                const box = document.getElementById(`method-box-${m}`);
+                if (m === method) {
+                    box.className = "cursor-pointer bg-black text-white border-black border-2 rounded-xl p-3.5 text-center transition-all shadow-sm";
+                } else {
+                    box.className = "cursor-pointer bg-white text-gray-700 border-gray-300 border hover:border-black rounded-xl p-3.5 text-center transition-all shadow-sm";
+                }
+            });
+
             if (method === 'discord') {
                 prefix.classList.remove('hidden');
-                input.classList.add('pl-8');
-                input.classList.remove('pl-3');
                 input.placeholder = "Tên đăng nhập (VD: vnba_user)";
             } else if (method === 'facebook') {
                 prefix.classList.add('hidden');
-                input.classList.remove('pl-8');
-                input.classList.add('pl-3');
                 input.placeholder = "Link trang cá nhân Facebook của bạn";
                 fbWarning.classList.remove('hidden');
             } else {
                 prefix.classList.add('hidden');
-                input.classList.remove('pl-8');
-                input.classList.add('pl-3');
                 input.placeholder = "Địa chỉ Email liên hệ";
             }
         },
@@ -3264,7 +3284,7 @@ Object.assign(window.app, {
             
             const topic = document.getElementById('contact-topic').value;
             const desc = document.getElementById('contact-description').value.trim();
-            const method = document.querySelector('input[name="contact_method"]:checked').value;
+            const method = app.contact.currentMethod;
             let methodVal = document.getElementById('contact-method-value').value.trim();
             const originalWork = document.getElementById('contact-original-work').value.trim();
             const btn = document.getElementById('btn-submit-contact');
@@ -3282,7 +3302,7 @@ Object.assign(window.app, {
             }
 
             if (!desc || desc.length < 10) return app.ui.showAlert("Vui lòng mô tả chi tiết vấn đề (Ít nhất 10 ký tự).");
-            if (!methodVal) return app.ui.showAlert("Vui lòng nhập thông tin liên hệ.");
+            if (!methodVal) return app.ui.showAlert("Vui lòng nhập thông tin liên lạc để chúng tôi có thể phản hồi.");
 
             // Formatting method input
             if (method === 'discord') {
@@ -3295,7 +3315,7 @@ Object.assign(window.app, {
                 if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(methodVal)) return app.ui.showAlert("Email không hợp lệ.");
             } else if (method === 'facebook') {
                 if (!methodVal.includes('facebook.com') && !methodVal.includes('fb.com')) {
-                    return app.ui.showAlert("Vui lòng nhập đường dẫn (Link) Facebook hợp lệ.");
+                    return app.ui.showAlert("Vui lòng nhập đường dẫn (Link) Facebook cá nhân hợp lệ.");
                 }
             }
 
@@ -3309,7 +3329,7 @@ Object.assign(window.app, {
             }
 
             const origHTML = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi...';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi yêu cầu...';
             btn.disabled = true;
 
             // Xây dựng Payload
@@ -3334,7 +3354,6 @@ Object.assign(window.app, {
                     body: JSON.stringify(payload)
                 };
                 
-                // Kẹp token nếu có để backend log (bảo mật)
                 if (app.user) {
                     const { data: { session } } = await window.sb.auth.getSession();
                     if (session) reqOpts.headers['Authorization'] = `Bearer ${session.access_token}`;
@@ -3345,12 +3364,11 @@ Object.assign(window.app, {
 
                 if (!res.ok) throw new Error(data.error || "Gửi thất bại.");
 
-                app.toast.show('success', 'Đã gửi yêu cầu', 'Ban Quản Trị đã ghi nhận thông tin và sẽ phản hồi qua phương thức bạn đã chọn.');
-                app.contact.init(); // Reset
+                app.toast.show('success', 'Đã gửi yêu cầu', 'Ban Quản Trị đã ghi nhận thông tin và sẽ sớm phản hồi cho bạn.');
+                app.contact.init(); // Reset Form
 
             } catch (err) {
                 app.ui.showAlert("Lỗi hệ thống: " + err.message);
-                if (window.turnstile) app.utils.resetTurnstile();
             } finally {
                 btn.innerHTML = origHTML;
                 btn.disabled = false;
@@ -3359,7 +3377,7 @@ Object.assign(window.app, {
     }
 });
 
-// Chèn kích hoạt contact.init() vào Router của app.views.loadContact
+// Ghi đè bộ khởi tạo khi bấm Load Contact
 const origLoadContact = app.views.loadContact;
 app.views.loadContact = () => {
     origLoadContact();
