@@ -3347,29 +3347,31 @@
                         <span class="font-bold text-black truncate shrink min-w-0">Liên hệ hỗ trợ</span>
                     </div>
 
-                    <!-- Đã xóa min-h-[500px] để khung tự động co lại cho vừa vặn khi chưa chọn Dropdown -->
-                    <div class="bg-white border border-vbs-border rounded-2xl shadow-sm overflow-hidden p-6 md:p-10 mb-8">
-                        <div class="text-center mb-10">
-                            <div class="w-16 h-16 bg-gray-50 text-black rounded-full flex items-center justify-center text-3xl mb-4 border border-gray-200 shadow-sm mx-auto">
+                    <!-- 1. ĐÃ XÓA 'overflow-hidden' ĐỂ DROPDOWN KHÔNG BỊ CẮT XÉN, GIẢM PADDING XUỐNG MỘT CHÚT -->
+                    <div class="bg-white border border-vbs-border rounded-2xl shadow-sm p-5 md:p-8 mb-8">
+                        
+                        <!-- 2. ĐÃ GIẢM Khoảng trống (mb-10 -> mb-6) và thu nhỏ Icon (w-16 -> w-12) cho gọn gàng -->
+                        <div class="text-center mb-6">
+                            <div class="w-12 h-12 bg-gray-50 text-black rounded-full flex items-center justify-center text-xl mb-3 border border-gray-200 shadow-sm mx-auto">
                                 <i class="fa-solid fa-headset"></i>
                             </div>
-                            <h2 class="text-2xl md:text-3xl font-black text-black uppercase tracking-tight mb-2">Gửi Yêu Cầu Hỗ Trợ</h2>
-                            <p class="text-sm text-gray-500 font-medium leading-relaxed">Vui lòng chọn chủ đề để Ban Quản Trị có thể hỗ trợ bạn nhanh nhất.</p>
+                            <h2 class="text-2xl font-black text-black uppercase tracking-tight mb-2">Gửi Yêu Cầu Hỗ Trợ</h2>
+                            <p class="text-[13px] text-gray-500 font-medium leading-relaxed max-w-md mx-auto">Vui lòng chọn chủ đề để Ban Quản Trị có thể hỗ trợ bạn nhanh nhất.</p>
                         </div>
 
                         <form id="contact-form" onsubmit="app.contact.submit(event)" class="space-y-6">
-                            <!-- 1. CHỦ ĐỀ CẦN HỖ TRỢ (CUSTOM DROPDOWN UI) -->
-                            <div class="relative z-[60]">
+                            <!-- CHỦ ĐỀ CẦN HỖ TRỢ (CUSTOM DROPDOWN UI) -->
+                            <div class="relative z-[70]">
                                 <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-2">1. Chủ đề cần hỗ trợ <span class="text-red-500">*</span></label>
                                 <input type="hidden" id="contact-topic" value="">
                                 
-                                <button type="button" id="contact-topic-btn" onclick="document.getElementById('contact-topic-menu').classList.toggle('active')" class="w-full flex items-center justify-between bg-white border border-gray-300 hover:border-black hover:bg-gray-50 rounded-xl p-4 text-sm font-bold text-gray-700 transition-all shadow-sm">
-                                    <span id="contact-topic-label">-- Vui lòng chọn một chủ đề --</span>
-                                    <i class="fa-solid fa-chevron-down text-gray-400"></i>
+                                <button type="button" id="contact-topic-btn" onclick="document.getElementById('contact-topic-menu').classList.toggle('active')" class="w-full flex items-center justify-between bg-white border border-gray-300 hover:border-black hover:bg-gray-50 rounded-xl p-4 text-sm font-bold text-gray-700 transition-all shadow-sm focus:ring-2 focus:ring-black outline-none">
+                                    <span id="contact-topic-label" class="truncate pr-4">-- Vui lòng chọn một chủ đề --</span>
+                                    <i class="fa-solid fa-chevron-down text-gray-400 shrink-0"></i>
                                 </button>
 
-                                <!-- Menu trượt xuống: Ép w-full, z-[70] để đè lên mọi thứ bên dưới -->
-                                <div id="contact-topic-menu" class="filter-menu w-full left-0 origin-top mt-2 !max-h-[300px] z-[70]">
+                                <!-- 3. ĐÃ THÊM '!w-full' ĐỂ ÉP DROPDOWN DÀI BẰNG ĐÚNG NÚT BẤM -->
+                                <div id="contact-topic-menu" class="filter-menu !w-full left-0 origin-top mt-2 !max-h-[300px] z-[80]">
                                     <div class="filter-item" onclick="app.contact.selectTopic('bug', 'Báo cáo lỗi hệ thống', this)">
                                         <span class="font-bold">Báo cáo lỗi hệ thống</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
                                     </div>
@@ -3394,7 +3396,8 @@
                                 </div>
                             </div>
 
-                            <!-- KHU VỰC HIỂN THỊ ĐỘNG -->
+                            <!-- KHU VỰC HIỂN THỊ ĐỘNG (Form xám) -->
+                            <!-- 4. Để z-10 để chắc chắn nó nằm dưới z-70 của Dropdown -->
                             <div id="contact-dynamic-area" class="hidden fade-zoom-in space-y-6 relative z-10">
                                 
                                 <div class="bg-gray-50/50 border border-gray-200 rounded-xl p-5 md:p-6 shadow-sm space-y-6">
@@ -3463,10 +3466,10 @@
                                         </div>
                                     </div>
 
-                                    <!-- Ô Nhập Data Liên hệ (Giải quyết chống lẹm chữ bằng Flex) -->
+                                    <!-- Ô Nhập Data Liên hệ -->
                                     <div id="contact-method-input-area" class="space-y-3">
                                         <div class="flex items-stretch border border-gray-300 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-black shadow-inner transition-all bg-white">
-                                            <!-- Khối Prefix màu xám tách biệt hoàn toàn -->
+                                            <!-- Khối Prefix -->
                                             <div id="contact-discord-prefix" class="bg-gray-100 px-4 flex items-center justify-center border-r border-gray-300 text-gray-500 font-black text-lg select-none">
                                                 @
                                             </div>
