@@ -1946,6 +1946,18 @@ cleanupState: () => {
 
 Object.assign(window.app, {
   init: async () => {
+        window.onpopstate = () => app.handleRoute();
+        if (!window._spaClickListenerRegistered) {
+            window._spaClickListenerRegistered = true;
+            document.body.addEventListener('click', e => {
+                const a = e.target.closest('a');
+                if (a && a.getAttribute('href') && a.getAttribute('href').startsWith('/') && !a.getAttribute('target')) {
+                    e.preventDefault();
+                    app.utils.navigate(a.getAttribute('href'));
+                }
+            });
+        }
+
             let session = null;
 
             try {
@@ -2041,8 +2053,6 @@ Object.assign(window.app, {
                     }
                     await app.setUser(null);
                 }
-
-                window.onpopstate = () => app.handleRoute();
 
                 // Network Resilience (Tích hợp Toast mới)
                 window.addEventListener('offline', () => {
@@ -2301,7 +2311,7 @@ Object.assign(window.app, {
 
                 app.upload.initMap();
                 app.utils.loadAnnouncements();
-                await app.utils.fetchTopUploaders();
+                app.utils.fetchTopUploaders();
 
 
                 if (app.realtimeChannel) {
@@ -2351,14 +2361,6 @@ Object.assign(window.app, {
                             if (app.realtimeChannel) window.sb.removeChannel(app.realtimeChannel);
                             window.sb.realtime.connect();
                         }
-                    }
-                });
-
-                document.body.addEventListener('click', e => {
-                    const a = e.target.closest('a');
-                    if (a && a.getAttribute('href') && a.getAttribute('href').startsWith('/') && !a.getAttribute('target')) {
-                        e.preventDefault();
-                        app.utils.navigate(a.getAttribute('href'));
                     }
                 });
             }
