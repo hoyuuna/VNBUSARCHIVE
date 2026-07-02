@@ -298,39 +298,53 @@ async function handleContactSubmit(request, env) {
     if (!reportChannelId) return new Response(JSON.stringify({ error: 'Thiếu config kênh Report' }), { status: 500 });
 
     const TOPIC_CONFIG = {
-        'bug': { title: 'Lỗi hệ thống', color: 0xff4444 }, 
-        'scam': { title: 'Báo cáo Scam/Hành vi', color: 0xff4444 }, 
-        'copyright': { title: 'Vi phạm bản quyền', color: 0xffaa00 }, 
-        'appeal': { title: 'Kháng cáo kiểm duyệt', color: 0x00ccff }, 
-        'account': { title: 'Hỗ trợ Tài khoản', color: 0x00ccff },
-        'general': { title: 'Hỗ trợ Chung', color: 0x999999 }, 
-        'other': { title: 'Vấn đề Khác', color: 0x999999 }
+        'bug': { title: 'Báo cáo lỗi hệ thống', color: 0xff4444 }, 
+        'scam': { title: 'Báo cáo lừa đảo / Hành vi xấu', color: 0xff4444 }, 
+        'copyright': { title: 'Báo cáo vi phạm bản quyền ảnh', color: 0xffaa00 }, 
+        'appeal': { title: 'Thắc mắc kiểm duyệt / Kháng cáo ảnh từ chối', color: 0x00ccff }, 
+        'account': { title: 'Hỗ trợ hoặc kháng cáo về tài khoản', color: 0x00ccff },
+        'general': { title: 'Hỗ trợ chung', color: 0x999999 }, 
+        'other': { title: 'Vấn đề khác', color: 0x999999 }
     };
     
     const config = TOPIC_CONFIG[topic] || TOPIC_CONFIG['other'];
 
-    // 3. Xây dựng Embed
+    // 3. Xây dựng nội dung RAW chuẩn thứ tự người dùng nhập trên form
+    const requesterStr = userId ? `${userName}/${userId}` : `${userName}`;
+    let rawText = `Người yêu cầu:\n${requesterStr}\n`;
+    rawText += `1. Chủ đề cần hỗ trợ *\n${config.title}\n`;
+
+    if (photoId) {
+        rawText += `Ảnh liên quan *\nhttps://vnbusarchive.io.vn/photo/${photoId}\n`;
+    } else if (externalLink) {
+        rawText += `Ảnh liên quan *\n${externalLink}\n`;
+    }
+
+    if (originalWork) {
+        rawText += `Minh chứng / Tác phẩm gốc của bạn *\n${originalWork}\n`;
+    }
+
+    let descLabel = 'Mô tả chi tiết vấn đề *';
+    if (topic === 'copyright') descLabel = 'Mô tả chi tiết vi phạm *';
+    else if (topic === 'appeal') descLabel = 'Lý do bạn cho rằng ảnh hợp lệ *';
+
+    rawText += `${descLabel}\n${description}\n`;
+
+    const METHOD_NAMES = {
+        'discord': 'Discord',
+        'email': 'Email',
+        'facebook': 'Facebook'
+    };
+    const methodName = METHOD_NAMES[contactMethod] || (contactMethod ? contactMethod.toUpperCase() : 'Khác');
+
+    rawText += `2. Phương thức nhận phản hồi *\n${methodName}\n\n\n${contactInfo}`;
+
     const embed = {
         title: `🚨 [Ticket] ${config.title}`,
         color: config.color,
-        fields: [
-            { name: "👤 Người gửi", value: `${userName} ${userId ? `(\`${userId}\`)` : '(Guest)'}`, inline: false },
-            { name: "📱 Phương thức LH", value: `**${contactMethod.toUpperCase()}**: ${contactInfo}`, inline: false }
-        ],
-        description: `**Mô tả chi tiết:**\n>>> ${description}`,
+        description: rawText,
         timestamp: new Date().toISOString()
     };
-
-    // Chèn dữ liệu động theo format
-    if (photoId) {
-        embed.fields.splice(2, 0, { name: "🔗 ID Ảnh liên quan", value: `[Xem ảnh trên Web](https://vnbusarchive.io.vn/photo/${photoId}) (\`ID: ${photoId}\`)`, inline: false });
-    }
-    if (externalLink) {
-        embed.fields.splice(2, 0, { name: "🔗 Nguồn vi phạm ngoài", value: externalLink, inline: false });
-    }
-    if (originalWork) {
-        embed.fields.splice(3, 0, { name: "📜 Tác phẩm gốc", value: originalWork, inline: false });
-    }
 
     // 4. Gửi Request Discord
     const discordRes = await fetch(`https://discord.com/api/v10/channels/${reportChannelId}/messages`, {
