@@ -3096,15 +3096,24 @@ Object.assign(window.app, {
         currentMethod: 'discord', // Lưu trạng thái method hiện tại
 
         init: () => {
-            document.getElementById('contact-form').reset();
-            document.getElementById('contact-topic').value = "";
-            document.getElementById('contact-topic-label').innerText = "-- Vui lòng chọn một chủ đề --";
-            document.getElementById('contact-topic-label').classList.remove('text-black');
-            document.getElementById('contact-dynamic-area').classList.add('hidden');
+            const form = document.getElementById('contact-form');
+            if(form) form.reset();
+            
+            const topicInput = document.getElementById('contact-topic');
+            if(topicInput) topicInput.value = "";
+            
+            const topicLabel = document.getElementById('contact-topic-label');
+            if(topicLabel) {
+                topicLabel.innerText = "-- Vui lòng chọn một chủ đề --";
+                topicLabel.classList.remove('text-black');
+            }
+            
+            const dynamicArea = document.getElementById('contact-dynamic-area');
+            if(dynamicArea) dynamicArea.classList.add('hidden');
             
             app.contact.currentPreviewId = null;
             app.contact.isExternalLink = false;
-            app.contact.setMethod('discord'); // Khởi tạo mặc định là discord
+            app.contact.setMethod('discord'); // Khởi tạo mặc định
         },
 
         // Click chọn từ Dropdown Custom
@@ -3127,7 +3136,7 @@ Object.assign(window.app, {
             // Đóng menu
             document.getElementById('contact-topic-menu').classList.remove('active');
             
-            // Kích hoạt logic đổi giao diện
+            // Kích hoạt logic đổi giao diện bên dưới
             app.contact.onTopicChange();
         },
 
@@ -3254,7 +3263,6 @@ Object.assign(window.app, {
             }
         },
 
-        // Quản lý trạng thái Custom Radio Button (Đảm bảo luôn lên màu)
         setMethod: (method) => {
             app.contact.currentMethod = method;
             const methods = ['discord', 'facebook', 'email'];
@@ -3263,22 +3271,23 @@ Object.assign(window.app, {
             const prefix = document.getElementById('contact-discord-prefix');
             const fbWarning = document.getElementById('contact-fb-warning');
 
-            // Reset Input
             input.value = '';
             fbWarning.classList.add('hidden');
 
             methods.forEach(m => {
                 const box = document.getElementById(`method-box-${m}`);
-                if (m === method) {
-                    box.className = "cursor-pointer bg-black text-white border-black border-2 rounded-xl p-3.5 text-center transition-all shadow-sm";
-                } else {
-                    box.className = "cursor-pointer bg-white text-gray-700 border-gray-300 border hover:border-black rounded-xl p-3.5 text-center transition-all shadow-sm";
+                if (box) {
+                    if (m === method) {
+                        box.className = "cursor-pointer bg-black text-white border-black border-2 rounded-xl p-3 text-center transition-all shadow-sm";
+                    } else {
+                        box.className = "cursor-pointer bg-white text-gray-700 border-gray-300 border hover:border-black rounded-xl p-3 text-center transition-all shadow-sm";
+                    }
                 }
             });
 
             if (method === 'discord') {
                 prefix.classList.remove('hidden');
-                input.placeholder = "Tên đăng nhập (VD: vnba_user)";
+                input.placeholder = "Tên đăng nhập (VD: username)";
             } else if (method === 'facebook') {
                 prefix.classList.add('hidden');
                 input.placeholder = "Link trang cá nhân Facebook của bạn";
@@ -3296,10 +3305,9 @@ Object.assign(window.app, {
             const desc = document.getElementById('contact-description').value.trim();
             const method = app.contact.currentMethod;
             let methodVal = document.getElementById('contact-method-value').value.trim();
-            const originalWork = document.getElementById('contact-original-work').value.trim();
+            const originalWork = document.getElementById('contact-original-work')?.value.trim();
             const btn = document.getElementById('btn-submit-contact');
 
-            // --- VALIDATE ---
             if (!topic) return app.ui.showAlert("Vui lòng chọn Chủ đề cần hỗ trợ!");
             
             if (topic === 'copyright' || topic === 'appeal') {
@@ -3314,7 +3322,6 @@ Object.assign(window.app, {
             if (!desc || desc.length < 10) return app.ui.showAlert("Vui lòng mô tả chi tiết vấn đề (Ít nhất 10 ký tự).");
             if (!methodVal) return app.ui.showAlert("Vui lòng nhập thông tin liên lạc để chúng tôi có thể phản hồi.");
 
-            // Formatting method input
             if (method === 'discord') {
                 if (methodVal.includes('@')) methodVal = methodVal.replace('@', '');
                 if (!/^[a-z0-9_.]{2,32}$/i.test(methodVal)) {
@@ -3329,7 +3336,6 @@ Object.assign(window.app, {
                 }
             }
 
-            // --- GO CAPTCHA ---
             let captchaResponse;
             try {
                 captchaResponse = await app.captcha.request();
@@ -3342,7 +3348,6 @@ Object.assign(window.app, {
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi yêu cầu...';
             btn.disabled = true;
 
-            // Xây dựng Payload
             const payload = {
                 action: 'contact_submit',
                 topic: topic,
@@ -3354,7 +3359,7 @@ Object.assign(window.app, {
                 userName: app.username || 'Khách (Chưa đăng nhập)',
                 photoId: app.contact.currentPreviewId,
                 externalLink: app.contact.isExternalLink ? document.getElementById('contact-photo-url').value.trim() : null,
-                originalWork: originalWork
+                originalWork: originalWork || null
             };
 
             try {
@@ -3375,7 +3380,7 @@ Object.assign(window.app, {
                 if (!res.ok) throw new Error(data.error || "Gửi thất bại.");
 
                 app.toast.show('success', 'Đã gửi yêu cầu', 'Ban Quản Trị đã ghi nhận thông tin và sẽ sớm phản hồi cho bạn.');
-                app.contact.init(); // Reset Form
+                app.contact.init(); 
 
             } catch (err) {
                 app.ui.showAlert("Lỗi hệ thống: " + err.message);
@@ -3387,11 +3392,22 @@ Object.assign(window.app, {
     }
 });
 
-// Ghi đè bộ khởi tạo khi bấm Load Contact
-const origLoadContact = app.views.loadContact;
-app.views.loadContact = () => {
-    origLoadContact();
-    app.contact.init();
-};
+// THUẬT TOÁN AN TOÀN TUYỆT ĐỐI CHỐNG CRASH JS
+// Đợi bộ định tuyến của trang nạp xong thì mới âm thầm chèn chức năng Liên hệ vào.
+document.addEventListener('DOMContentLoaded', () => {
+    const checkRouter = setInterval(() => {
+        if (window.app && window.app.views && window.app.views.loadContact) {
+            clearInterval(checkRouter); // Đã tìm thấy, dừng vòng lặp
+            
+            const origLoadContact = window.app.views.loadContact;
+            window.app.views.loadContact = () => {
+                origLoadContact(); // Chạy bộ load trang mặc định
+                if (window.app.contact && window.app.contact.init) {
+                    window.app.contact.init(); // Reset Form Contact
+                }
+            };
+        }
+    }, 100);
+});
 
 

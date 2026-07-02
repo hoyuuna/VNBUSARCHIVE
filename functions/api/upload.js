@@ -55,10 +55,20 @@ export async function onRequest(context) {
         if (!isAvatar) {
             if (!captchaToken) return new Response(JSON.stringify({ success: false, error: 'Thiếu mã xác thực (Captcha).' }), { status: 400, headers: { 'Content-Type': 'application/json' }});
 
+            const secretKey = env.CAPTCHA_SECRET || env.TURNSTILE_SECRET_KEY;
+            if (!secretKey) {
+                console.error("Lỗi cấu hình: Thiếu biến môi trường CAPTCHA_SECRET hoặc TURNSTILE_SECRET_KEY");
+                return new Response(JSON.stringify({ success: false, error: 'Lỗi cấu hình máy chủ: Thiếu Secret Key của Captcha.' }), { status: 500, headers: { 'Content-Type': 'application/json' }});
+            }
+
+            const formData = new URLSearchParams();
+            formData.append('secret', secretKey);
+            formData.append('response', captchaToken);
+
             const verifyRes = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `secret=${env.CAPTCHA_SECRET}&response=${captchaToken}`,
+                body: formData.toString(),
             });
 
             const verifyData = await verifyRes.json();
