@@ -265,28 +265,39 @@ async function handleContactSubmit(request, env) {
     const body = await request.json();
     const { topic, description, contactMethod, contactInfo, captcha, userId, userName, photoId, externalLink, originalWork } = body;
 
-    // 1. Validate CAPTCHA (Bảo mật backend)
+    // 1. Validate CAPTCHA (Đã fix lỗi mã hóa chuỗi Token)
     if (!captcha) return new Response(JSON.stringify({ error: 'Thiếu mã Captcha' }), { status: 400 });
     
+    // SỬ DỤNG URLSearchParams ĐỂ MÃ HÓA KÝ TỰ ĐẶC BIỆT CỦA TOKEN
+    const formData = new URLSearchParams();
+    formData.append('secret', env.TURNSTILE_SECRET_KEY);
+    formData.append('response', captcha);
+
     const captchaVerify = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `secret=${env.TURNSTILE_SECRET_KEY}&response=${captcha}`
+        body: formData.toString()
     });
+    
     const captchaResult = await captchaVerify.json();
-    if (!captchaResult.success) return new Response(JSON.stringify({ error: 'Captcha không hợp lệ' }), { status: 400 });
+    
+    // Bắt lỗi chi tiết nếu Cloudflare từ chối để dễ debug
+    if (!captchaResult.success) {
+        console.error("Turnstile Error Codes:", captchaResult['error-codes']);
+        return new Response(JSON.stringify({ error: 'Captcha không hợp lệ hoặc đã hết hạn.' }), { status: 400 });
+    }
 
     // 2. Chuyển đổi ID Kênh và Màu sắc theo chủ đề
     const reportChannelId = env.DISCORD_REPORT_CHANNEL_ID;
     if (!reportChannelId) return new Response(JSON.stringify({ error: 'Thiếu config kênh Report' }), { status: 500 });
 
     const TOPIC_CONFIG = {
-        'bug': { title: 'Lỗi hệ thống', color: 0xff4444 }, // Đỏ
-        'scam': { title: 'Báo cáo Scam/Hành vi', color: 0xff4444 }, // Đỏ
-        'copyright': { title: 'Vi phạm bản quyền', color: 0xffaa00 }, // Cam
-        'appeal': { title: 'Kháng cáo kiểm duyệt', color: 0x00ccff }, // Xanh
+        'bug': { title: 'Lỗi hệ thống', color: 0xff4444 }, 
+        'scam': { title: 'Báo cáo Scam/Hành vi', color: 0xff4444 }, 
+        'copyright': { title: 'Vi phạm bản quyền', color: 0xffaa00 }, 
+        'appeal': { title: 'Kháng cáo kiểm duyệt', color: 0x00ccff }, 
         'account': { title: 'Hỗ trợ Tài khoản', color: 0x00ccff },
-        'general': { title: 'Hỗ trợ Chung', color: 0x999999 }, // Xám
+        'general': { title: 'Hỗ trợ Chung', color: 0x999999 }, 
         'other': { title: 'Vấn đề Khác', color: 0x999999 }
     };
     
