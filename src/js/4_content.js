@@ -826,14 +826,14 @@ Object.assign(window.app, {
                         const finalBlob = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none');
                         const targetMime = app.utils.getTargetMimeType();
                         const compressOptions = {
-                            maxSizeMB: 0.8,
+                            maxSizeMB: 0.24,
                             maxWidthOrHeight: 1920,
                             useWebWorker: true,
                             fileType: targetMime,
-                            initialQuality: 0.85
+                            initialQuality: 0.8
                         };
                         const compressedFile = await imageCompression(finalBlob, compressOptions);
-                        if (compressedFile.size <= 1.5 * 1024 * 1024) {
+                        if (compressedFile.size <= 250 * 1024) {
                             app.upload.readyBlob = compressedFile;
                         } else {
                             app.upload.readyBlob = null;
@@ -969,8 +969,8 @@ Object.assign(window.app, {
                         if (cSub) cSub.innerText = 'Vui lòng chọn ảnh trên thiết bị còn lại';
                     };
 
-                    if (file.size > 20 * 1024 * 1024) {
-                        app.ui.showAlert("File quá lớn (>20MB). Vui lòng chọn ảnh nhỏ hơn.");
+                    if (file.size > 30 * 1024 * 1024) {
+                        app.ui.showAlert("File quá lớn (>30MB). Vui lòng chọn ảnh nhỏ hơn.");
                         const fileInput = document.getElementById('up-file');
                         if (fileInput) fileInput.value = '';
                         if (app.upload.restoreDropZone) app.upload.restoreDropZone();
@@ -1065,11 +1065,51 @@ Object.assign(window.app, {
                             URL.revokeObjectURL(url);
                         };
 
-                        img.onerror = () => {
-                            app.ui.showAlert("Định dạng ảnh không được hỗ trợ hoặc file bị hỏng.");
-                            e.target.value = ''; URL.revokeObjectURL(url);
-                            if (app.upload.restoreDropZone) app.upload.restoreDropZone();
-                            if (app.webrtc && app.webrtc.resetMobile) app.webrtc.resetMobile(); 
+                        img.onerror = async () => {
+                            try {
+                                const targetMime = app.utils.getTargetMimeType();
+                                const convertedBlob = await imageCompression(file, { maxSizeMB: 0.24, maxWidthOrHeight: 1920, useWebWorker: true, fileType: targetMime, initialQuality: 0.8 });
+                                const newUrl = URL.createObjectURL(convertedBlob);
+                                const newImg = new Image();
+                                newImg.onload = () => {
+                                    const w = newImg.width; const h = newImg.height;
+                                    if (h < 1080 && w < 1080) {
+                                        app.ui.showAlert(`Độ phân giải ảnh quá thấp (${w}x${h}). Yêu cầu chiều cao tối thiểu 1080px.`);
+                                        const fileInput = document.getElementById('up-file');
+                                        if (fileInput) fileInput.value = ''; URL.revokeObjectURL(newUrl); URL.revokeObjectURL(url);
+                                        if (app.upload.restoreDropZone) app.upload.restoreDropZone();
+                                        if (app.webrtc && app.webrtc.resetMobile) app.webrtc.resetMobile(); 
+                                        return;
+                                    }
+                                    const convertedFile = new File([convertedBlob], file.name.replace(/\.[^/.]+$/, "") + "." + app.utils.getTargetExtension(), { type: targetMime });
+                                    const ratio = w / h;
+                                    const is4by3 = Math.abs(ratio - (4/3)) < 0.05;
+                                    const is3by2 = Math.abs(ratio - (3/2)) < 0.05;
+                                    const is16by9 = Math.abs(ratio - (16/9)) < 0.05;
+
+                                    if (!is4by3 && !is3by2 && !is16by9) {
+                                        app.crop.open('main', convertedFile, true);
+                                    } else {
+                                        app.upload.setupPreview(convertedFile);
+                                    }
+                                    URL.revokeObjectURL(newUrl);
+                                    URL.revokeObjectURL(url);
+                                };
+                                newImg.onerror = () => {
+                                    app.ui.showAlert("Định dạng ảnh (RAW/JPG) không được hỗ trợ hoặc file bị hỏng.");
+                                    const fileInput = document.getElementById('up-file');
+                                    if (fileInput) fileInput.value = ''; URL.revokeObjectURL(newUrl); URL.revokeObjectURL(url);
+                                    if (app.upload.restoreDropZone) app.upload.restoreDropZone();
+                                    if (app.webrtc && app.webrtc.resetMobile) app.webrtc.resetMobile(); 
+                                };
+                                newImg.src = newUrl;
+                            } catch (err) {
+                                app.ui.showAlert("Định dạng ảnh không được hỗ trợ hoặc file bị hỏng.");
+                                const fileInput = document.getElementById('up-file');
+                                if (fileInput) fileInput.value = ''; URL.revokeObjectURL(url);
+                                if (app.upload.restoreDropZone) app.upload.restoreDropZone();
+                                if (app.webrtc && app.webrtc.resetMobile) app.webrtc.resetMobile(); 
+                            }
                         };
 
                         img.src = url;
@@ -1324,12 +1364,19 @@ Object.assign(window.app, {
 
                         if (!compressedFile) {
                             const finalBlob = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none');
-                            const compressOptions = { maxSizeMB: 0.8, maxWidthOrHeight: 1920, useWebWorker: true, fileType: targetMime, initialQuality: 0.85 };
+                            const compressOptions = { maxSizeMB: 0.24, maxWidthOrHeight: 1920, useWebWorker: true, fileType: targetMime, initialQuality: 0.8 };
                             try {
                                 compressedFile = await imageCompression(finalBlob, compressOptions);
                             } catch (compressErr) {
                                 throw new Error("Lỗi nén ảnh (Image Compression): " + compressErr.message);
                             }
+                        }
+
+                        if (compressedFile.size > 250 * 1024) {
+                            try {
+                                const fallbackOptions = { maxSizeMB: 0.22, maxWidthOrHeight: 1600, useWebWorker: true, fileType: targetMime, initialQuality: 0.7 };
+                                compressedFile = await imageCompression(compressedFile, fallbackOptions);
+                            } catch(e) {}
                         }
 
                         let compressedSizeKB = (compressedFile.size / 1024).toFixed(2);
@@ -1338,8 +1385,8 @@ Object.assign(window.app, {
                             throw new Error(`Trình duyệt của bạn không hỗ trợ định dạng ${targetMime}.`);
                         }
 
-                        if (compressedFile.size > 1.5 * 1024 * 1024) {
-                            throw new Error("Ảnh quá phức tạp, không thể nén xuống mức an toàn (< 1.5MB). Vui lòng chọn ảnh khác hoặc crop nhỏ lại!");
+                        if (compressedFile.size > 250 * 1024) {
+                            throw new Error("Ảnh quá phức tạp, không thể nén xuống mức tối đa 250KB. Vui lòng chọn ảnh khác hoặc crop nhỏ lại!");
                         }
 
                         // Gom dữ liệu để đẩy vào Hàng đợi (Queue)

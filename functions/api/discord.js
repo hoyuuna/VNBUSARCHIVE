@@ -301,6 +301,7 @@ async function handleContactSubmit(request, env) {
         'bug': { title: 'Báo cáo lỗi hệ thống', color: 0xff4444 }, 
         'scam': { title: 'Báo cáo lừa đảo / Hành vi xấu', color: 0xff4444 }, 
         'copyright': { title: 'Báo cáo vi phạm bản quyền ảnh', color: 0xffaa00 }, 
+        'report_violation': { title: 'Báo cáo ảnh / bình luận / hồ sơ vi phạm', color: 0xff4444 },
         'appeal': { title: 'Thắc mắc kiểm duyệt / Kháng cáo ảnh từ chối', color: 0x00ccff }, 
         'account': { title: 'Hỗ trợ hoặc kháng cáo về tài khoản', color: 0x00ccff },
         'general': { title: 'Hỗ trợ chung', color: 0x999999 }, 
@@ -315,9 +316,16 @@ async function handleContactSubmit(request, env) {
     rawText += `**1. Chủ đề cần hỗ trợ \\***\n${config.title}\n\n`;
 
     if (photoId) {
-        rawText += `**Ảnh liên quan \\***\nhttps://vnbusarchive.io.vn/photo/${photoId}\n\n`;
+        if (String(photoId).startsWith('user:')) {
+            const uName = String(photoId).replace('user:', '');
+            rawText += `**Hồ sơ User vi phạm \\***\nhttps://vnbusarchive.io.vn/user/${encodeURIComponent(uName)}\n\n`;
+        } else {
+            rawText += `**Ảnh liên quan \\***\nhttps://vnbusarchive.io.vn/photo/${photoId}\n\n`;
+        }
     } else if (externalLink) {
-        rawText += `**Ảnh liên quan \\***\n${externalLink}\n\n`;
+        let linkTitle = 'Ảnh liên quan \\*';
+        if (topic === 'report_violation') linkTitle = 'Link ảnh / bình luận / hồ sơ vi phạm \\*';
+        rawText += `**${linkTitle}**\n${externalLink}\n\n`;
     }
 
     if (originalWork) {
@@ -325,7 +333,7 @@ async function handleContactSubmit(request, env) {
     }
 
     let descLabel = 'Mô tả chi tiết vấn đề \\*';
-    if (topic === 'copyright') descLabel = 'Mô tả chi tiết vi phạm \\*';
+    if (topic === 'copyright' || topic === 'report_violation') descLabel = 'Mô tả chi tiết vi phạm \\*';
     else if (topic === 'appeal') descLabel = 'Lý do bạn cho rằng ảnh hợp lệ \\*';
 
     rawText += `**${descLabel}**\n${description}\n\n`;
