@@ -17,48 +17,22 @@ const cleanLicensePlateForDisplay = (plate) => {
 
 async function fetchAllData(supabase, table, select, conditions = {}) {
   const step = 1000;
-  try {
-    let countQuery = supabase.from(table).select('*', { count: 'exact', head: true });
-    if (conditions.column && conditions.value !== undefined) {
-      countQuery = countQuery.eq(conditions.column, conditions.value);
-    }
-    const { count, error: countError } = await countQuery;
-    if (!countError && count && count > 0) {
-      const promises = [];
-      for (let from = 0; from < count; from += step) {
-        let query = supabase.from(table).select(select).range(from, from + step - 1);
-        if (conditions.column && conditions.value !== undefined) {
-          query = query.eq(conditions.column, conditions.value);
-        }
-        promises.push(query);
-      }
-      const results = await Promise.all(promises);
-      const allData = [];
-      for (const res of results) {
-        if (res.data) allData.push(...res.data);
-      }
-      return allData;
-    }
-  } catch (e) {
-    console.warn(`Lỗi đếm song song bảng ${table}, chuyển sang tải tuần tự:`, e);
-  }
-
-  let allData = [];
-  let from = 0;
-  while (true) {
+  const maxBatches = 20;
+  const promises = [];
+  for (let i = 0; i < maxBatches; i++) {
+    const from = i * step;
     let query = supabase.from(table).select(select).range(from, from + step - 1);
     if (conditions.column && conditions.value !== undefined) {
       query = query.eq(conditions.column, conditions.value);
     }
-    const { data, error } = await query;
-    if (error) {
-      console.error(`Lỗi lấy dữ liệu ${table} range ${from}-${from+step-1}:`, error);
-      break;
+    promises.push(query);
+  }
+  const results = await Promise.all(promises);
+  const allData = [];
+  for (const res of results) {
+    if (res && res.data && Array.isArray(res.data) && res.data.length > 0) {
+      allData.push(...res.data);
     }
-    if (!data || data.length === 0) break;
-    allData.push(...data);
-    if (data.length < step) break;
-    from += step;
   }
   return allData;
 }
@@ -154,7 +128,7 @@ export async function onRequest(context) {
     return new Response(finalXML, {
       status: 200,
       headers: {
-        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
         'Content-Type': 'application/xml; charset=utf-8'
       }
     });
