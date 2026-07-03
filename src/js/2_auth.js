@@ -383,12 +383,23 @@ changePassword: async () => {
 
                     const fileInput = document.createElement('input');
                     fileInput.type = 'file';
-                    fileInput.accept = 'image/jpeg, image/png, image/webp';
+                    fileInput.accept = 'image/jpeg, image/png, image/webp, image/heic, image/heif, .heic, .heif';
 
                     fileInput.onchange = async (e) => {
-                        const file = e.target.files[0];
+                        let file = e.target.files[0];
                         if (!file) return;
 
+                        const isHeic = /\.(heic|heif)$/i.test(file.name) || file.type === 'image/heic' || file.type === 'image/heif';
+                        if (isHeic) {
+                            try {
+                                const progToast = app.toast.createProgress('Đang xử lý ảnh HEIF/HEIC...');
+                                if (progToast) progToast.update(50, 'Đang giải mã HEIF/HEIC...', 'Đang chuyển đổi ảnh đại diện...');
+                                file = await app.utils.decodeHeic(file);
+                                if (progToast && progToast.remove) progToast.remove();
+                            } catch (err) {
+                                console.warn("Lỗi chuyển đổi avatar HEIF/HEIC:", err);
+                            }
+                        }
 
                         app.crop.open('avatar', file);
                     };

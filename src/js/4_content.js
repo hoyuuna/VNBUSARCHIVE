@@ -1129,9 +1129,21 @@ Object.assign(window.app, {
 
                         let fileToLoad = file;
                         const isRawFile = /\.(cr2|cr3|nef|arw|dng|rw2|orf|pef|raf|raw)$/i.test(file.name);
+                        const isHeicFile = /\.(heic|heif)$/i.test(file.name) || file.type === 'image/heic' || file.type === 'image/heif';
                         let isRawExtracted = false;
 
-                        if (isRawFile) {
+                        if (isHeicFile) {
+                            const progToast = app.toast.createProgress('Đang chuyển đổi định dạng ảnh HEIF/HEIC...');
+                            if (progToast) progToast.update(50, 'Đang giải mã HEIF/HEIC...', 'Đang tối ưu hóa định dạng ảnh...');
+                            try {
+                                fileToLoad = await app.utils.decodeHeic(file);
+                                isRawExtracted = true;
+                            } catch (e) {
+                                console.warn("Giải mã HEIF/HEIC trước khi load preview thất bại, thử lại trong fallback:", e);
+                            } finally {
+                                if (progToast && progToast.remove) progToast.remove();
+                            }
+                        } else if (isRawFile) {
                             const progToast = app.toast.createProgress('Đang giải mã ảnh RAW nét gốc (Full Resolution)...');
                             if (progToast) progToast.update(40, 'Đang giải mã ảnh RAW nét gốc...', 'Đang xử lý dữ liệu cảm biến 100% độ phân giải...');
                             try {
@@ -1194,7 +1206,12 @@ Object.assign(window.app, {
                         img.onerror = async () => {
                             try {
                                 let fileToCompress = fileToLoad;
-                                if (isRawFile && !isRawExtracted) {
+                                if (isHeicFile && !isRawExtracted) {
+                                    try {
+                                        fileToCompress = await app.utils.decodeHeic(file);
+                                        isRawExtracted = true;
+                                    } catch (ex) {}
+                                } else if (isRawFile && !isRawExtracted) {
                                     try {
                                         fileToCompress = await decodeFullRaw(file);
                                         isRawExtracted = true;
@@ -1913,12 +1930,26 @@ Object.assign(window.app, {
                 originalFile: null,
                 isMandatory: false, // Thêm cờ đánh dấu bắt buộc cắt
 
-                open: (mode, file = null, isMandatory = false) => {
+                open: async (mode, file = null, isMandatory = false) => {
                     app.crop.mode = mode;
-                    app.crop.originalFile = file || app.rawFile;
-                    app.crop.isMandatory = isMandatory;
+                    let targetFile = file || app.rawFile;
+                    if (!targetFile) return;
 
-                    if (!app.crop.originalFile) return;
+                    const isHeic = /\.(heic|heif)$/i.test(targetFile.name) || targetFile.type === 'image/heic' || targetFile.type === 'image/heif';
+                    if (isHeic) {
+                        try {
+                            const progToast = app.toast.createProgress('Đang xử lý ảnh HEIF/HEIC...');
+                            if (progToast) progToast.update(50, 'Đang giải mã HEIF/HEIC...', 'Đang chuyển đổi định dạng ảnh...');
+                            targetFile = await app.utils.decodeHeic(targetFile);
+                            if (mode === 'main') app.rawFile = targetFile;
+                            if (progToast && progToast.remove) progToast.remove();
+                        } catch (err) {
+                            console.warn("Lỗi chuyển đổi HEIF/HEIC trong cropper:", err);
+                        }
+                    }
+
+                    app.crop.originalFile = targetFile;
+                    app.crop.isMandatory = isMandatory;
 
                     const url = URL.createObjectURL(app.crop.originalFile);
                     const img = document.getElementById('crop-image');

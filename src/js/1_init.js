@@ -960,6 +960,23 @@ Object.assign(window.app, {
                 getTargetExtension: () => {
                     return 'webp';
                 },
+                decodeHeic: async (file) => {
+                    if (!file) return null;
+                    const isHeic = /\.(heic|heif)$/i.test(file.name) || file.type === 'image/heic' || file.type === 'image/heif';
+                    if (!isHeic) return file;
+
+                    let heicBlob = null;
+                    if (window.heic2any) {
+                        const result = await window.heic2any({ blob: file, toType: 'image/jpeg', quality: 0.95 });
+                        heicBlob = Array.isArray(result) ? result[0] : result;
+                    } else {
+                        const { default: heic2any } = await import("https://esm.sh/heic2any@0.0.4");
+                        const result = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.95 });
+                        heicBlob = Array.isArray(result) ? result[0] : result;
+                    }
+                    if (!heicBlob) throw new Error("Không thể chuyển đổi ảnh HEIC/HEIF sang JPEG.");
+                    return new File([heicBlob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", { type: "image/jpeg" });
+                },
                 convertToWebpCpu: async (imageSource, initialQuality = 0.8) => {
                     try {
                         const { encode } = await import("https://esm.sh/@jsquash/webp@1.2.0");

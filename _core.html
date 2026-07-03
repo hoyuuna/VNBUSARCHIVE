@@ -65,6 +65,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/exifr/dist/full.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dcraw@1.0.3/dist/dcraw.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/utif@3.1.0/UTIF.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
@@ -3710,7 +3711,7 @@
                                     </button>
                                 </div>
 
-                                <input type="file" id="up-file" accept="image/jpeg,image/png,image/webp,.nef,.cr2,.cr3,.arw,.dng,.orf,.rw2,.pef,.raf,.srw,.raw" class="hidden" />
+                                <input type="file" id="up-file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif,.nef,.cr2,.cr3,.arw,.dng,.orf,.rw2,.pef,.raf,.srw,.raw" class="hidden" />
                             </div>
 
                             <!-- GIAO DIỆN THIẾT BỊ ĐÃ KẾT NỐI (THAY THẾ DROPZONE) -->
@@ -4479,7 +4480,7 @@
                         <p class="text-sm font-bold text-gray-700">Đang thiết lập kết nối...</p>
                     </div>
 
-                    <input type="file" id="webrtc-mobile-file" accept="image/jpeg,image/png,image/webp,.nef,.cr2,.cr3,.arw,.dng,.orf,.rw2,.pef,.raf,.srw,.raw" class="hidden">
+                    <input type="file" id="webrtc-mobile-file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif,.nef,.cr2,.cr3,.arw,.dng,.orf,.rw2,.pef,.raf,.srw,.raw" class="hidden">
 
                     <!-- Box Dropzone chuẩn form PC -->
                     <div id="webrtc-mobile-btn" onclick="document.getElementById('webrtc-mobile-file').click()" class="hidden w-full bg-gray-50 border-2 border-gray-300 rounded-2xl p-10 flex-col items-center justify-center gap-3 shadow-md hover:bg-gray-100 hover:border-black hover:shadow-lg transition-all cursor-pointer group relative overflow-hidden mb-2">
