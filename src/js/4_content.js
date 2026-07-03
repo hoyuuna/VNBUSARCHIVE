@@ -980,7 +980,10 @@ Object.assign(window.app, {
 
                     const checkExif = new Promise((resolve, reject) => {
                         EXIF.getData(file, function () {
-                            const model = EXIF.getTag(this, "Model");
+                            let model = EXIF.getTag(this, "Model");
+                            const make = EXIF.getTag(this, "Make");
+                            const lens = EXIF.getTag(this, "LensModel") || EXIF.getTag(this, "LensInfo");
+                            const software = EXIF.getTag(this, "Software");
                             const fNumber = EXIF.getTag(this, "FNumber");
                             const exposureTime = EXIF.getTag(this, "ExposureTime");
                             const iso = EXIF.getTag(this, "ISOSpeedRatings");
@@ -989,6 +992,15 @@ Object.assign(window.app, {
                             const latRef = EXIF.getTag(this, "GPSLatitudeRef");
                             const lon = EXIF.getTag(this, "GPSLongitude");
                             const lonRef = EXIF.getTag(this, "GPSLongitudeRef");
+
+                            if (model && typeof model === 'string') model = model.trim();
+                            if (!model) {
+                                if (make || lens || software) {
+                                    model = make ? (lens ? `${make} (${lens})` : `${make} Camera`) : (lens || software);
+                                } else if (fNumber && exposureTime && iso && dateTimeOriginal) {
+                                    model = "Camera (Đã ẩn Model)";
+                                }
+                            }
 
                             const helpLinkHTML = `<br><br><a href="javascript:void(0)" onclick="app.ui.closeAlert(true); setTimeout(() => app.utils.navigate('/help/1516371307481272330'), 300)" class="text-black font-bold hover:text-gray-700 hover:underline transition-colors inline-flex items-center gap-1.5"><i class="fa-solid fa-circle-info"></i> Tìm hiểu thêm & hướng dẫn khắc phục</a>`;
 
