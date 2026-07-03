@@ -1096,34 +1096,65 @@ Object.assign(window.app, {
                             }
                         }
 
+                        const decodeFullRaw = async (rawFile) => {
+                            if (!window.dcraw || !window.UTIF) {
+                                throw new Error("Thiếu thư viện giải mã RAW nét gốc.");
+                            }
+                            const arrayBuffer = await rawFile.arrayBuffer();
+                            const buf = new Uint8Array(arrayBuffer);
+                            const tiffBuffer = window.dcraw(buf, { exportAsTiff: true });
+                            const tiffData = tiffBuffer.buffer || tiffBuffer;
+                            const ifds = window.UTIF.decode(tiffData);
+                            if (!ifds || !ifds[0]) throw new Error("Không thể đọc định dạng TIFF sau giải mã RAW.");
+                            window.UTIF.decodeImage(tiffData, ifds[0]);
+                            const rgba = window.UTIF.toRGBA8(ifds[0]);
+
+                            const canvas = document.createElement('canvas');
+                            canvas.width = ifds[0].width;
+                            canvas.height = ifds[0].height;
+                            const ctx = canvas.getContext('2d');
+                            const imgData = ctx.createImageData(canvas.width, canvas.height);
+                            imgData.data.set(new Uint8ClampedArray(rgba));
+                            ctx.putImageData(imgData, 0, 0);
+
+                            const fullResBlob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.95));
+                            return new File([fullResBlob], rawFile.name.replace(/\.[^/.]+$/, "") + ".jpg", { type: "image/jpeg" });
+                        };
+
                         let fileToLoad = file;
                         const isRawFile = /\.(cr2|cr3|nef|arw|dng|rw2|orf|pef|raf|raw)$/i.test(file.name);
                         let isRawExtracted = false;
 
                         if (isRawFile) {
-                            if (window.exifr) {
-                                try {
-                                    const thumbBuffer = await window.exifr.thumbnail(file);
-                                    if (thumbBuffer && (thumbBuffer.byteLength > 0 || thumbBuffer.length > 0)) {
-                                        fileToLoad = new File([thumbBuffer], file.name.replace(/\.[^/.]+$/, "") + ".jpg", { type: "image/jpeg" });
-                                        isRawExtracted = true;
-                                    }
-                                } catch (e) {
-                                    console.warn("exifr.thumbnail không trích xuất được preview:", e);
+                            const progToast = app.toast.createProgress('Đang giải mã ảnh RAW nét gốc (Full Resolution)...');
+                            if (progToast) progToast.update(40, 'Đang giải mã ảnh RAW nét gốc...', 'Đang xử lý dữ liệu cảm biến 100% độ phân giải...');
+                            try {
+                                fileToLoad = await decodeFullRaw(file);
+                                isRawExtracted = true;
+                            } catch (e) {
+                                console.warn("Giải mã RAW nét gốc thất bại, thử phương án fallback preview:", e);
+                                if (window.exifr) {
+                                    try {
+                                        const thumbBuffer = await window.exifr.thumbnail(file);
+                                        if (thumbBuffer && (thumbBuffer.byteLength > 0 || thumbBuffer.length > 0)) {
+                                            fileToLoad = new File([thumbBuffer], file.name.replace(/\.[^/.]+$/, "") + ".jpg", { type: "image/jpeg" });
+                                            isRawExtracted = true;
+                                        }
+                                    } catch (ex) {}
                                 }
-                            }
-                            if (!isRawExtracted && window.dcraw) {
-                                try {
-                                    const arrayBuffer = await file.arrayBuffer();
-                                    const buf = new Uint8Array(arrayBuffer);
-                                    const thumb = window.dcraw(buf, { extractThumbnail: true });
-                                    if (thumb && (thumb.byteLength > 0 || thumb.length > 0)) {
-                                        fileToLoad = new File([thumb], file.name.replace(/\.[^/.]+$/, "") + ".jpg", { type: "image/jpeg" });
-                                        isRawExtracted = true;
-                                    }
-                                } catch (e) {
-                                    console.warn("dcraw thumbnail extraction failed:", e);
+                                if (!isRawExtracted && window.dcraw) {
+                                    try {
+                                        const arrayBuffer = await file.arrayBuffer();
+                                        const buf = new Uint8Array(arrayBuffer);
+                                        const thumb = window.dcraw(buf, { extractThumbnail: true });
+                                        if (thumb && (thumb.byteLength > 0 || thumb.length > 0)) {
+                                            fileToLoad = new File([thumb], file.name.replace(/\.[^/.]+$/, "") + ".jpg", { type: "image/jpeg" });
+                                            isRawExtracted = true;
+                                        }
+                                    } catch (ex) {}
                                 }
+                            } finally {
+                                if (progToast && progToast.remove) progToast.remove();
                             }
                         }
 
@@ -1158,25 +1189,19 @@ Object.assign(window.app, {
                             try {
                                 let fileToCompress = fileToLoad;
                                 if (isRawFile && !isRawExtracted) {
-                                    if (window.exifr) {
-                                        try {
-                                            const thumbBuffer = await window.exifr.thumbnail(file);
-                                            if (thumbBuffer && (thumbBuffer.byteLength > 0 || thumbBuffer.length > 0)) {
-                                                fileToCompress = new File([thumbBuffer], file.name.replace(/\.[^/.]+$/, "") + ".jpg", { type: "image/jpeg" });
-                                                isRawExtracted = true;
-                                            }
-                                        } catch (e) {}
-                                    }
-                                    if (!isRawExtracted && window.dcraw) {
-                                        try {
-                                            const arrayBuffer = await file.arrayBuffer();
-                                            const buf = new Uint8Array(arrayBuffer);
-                                            const thumb = window.dcraw(buf, { extractThumbnail: true });
-                                            if (thumb && (thumb.byteLength > 0 || thumb.length > 0)) {
-                                                fileToCompress = new File([thumb], file.name.replace(/\.[^/.]+$/, "") + ".jpg", { type: "image/jpeg" });
-                                                isRawExtracted = true;
-                                            }
-                                        } catch (e) {}
+                                    try {
+                                        fileToCompress = await decodeFullRaw(file);
+                                        isRawExtracted = true;
+                                    } catch (e) {
+                                        if (window.exifr) {
+                                            try {
+                                                const thumbBuffer = await window.exifr.thumbnail(file);
+                                                if (thumbBuffer && (thumbBuffer.byteLength > 0 || thumbBuffer.length > 0)) {
+                                                    fileToCompress = new File([thumbBuffer], file.name.replace(/\.[^/.]+$/, "") + ".jpg", { type: "image/jpeg" });
+                                                    isRawExtracted = true;
+                                                }
+                                            } catch (ex) {}
+                                        }
                                     }
                                 }
                                 const targetMime = app.utils.getTargetMimeType();
