@@ -105,7 +105,7 @@ async function handleSendEmail(request, env, body) {
                                 <div style="height: 1px; background-color: #f4f4f5; width: 100%; margin-bottom: 20px;"></div>
 
                                 <p style="margin: 0; font-size: 12px; line-height: 1.5; color: #a1a1aa; font-style: italic;">
-                                    Bạn không thể trả lời email này, vui lòng <a href="https://www.vnbusarchive.io.vn/contact" target="_blank" style="color: #71717a; text-decoration: underline;">liên hệ hỗ trợ</a> để tiếp tục.
+                                    Bạn không thể trả lời email này, vui lòng liên hệ qua email <a href="mailto:lienhe@vnbusarchive.io.vn" style="color: #71717a; text-decoration: underline;">lienhe@vnbusarchive.io.vn</a> để tiếp tục.
                                 </p>
                             </td>
                         </tr>
