@@ -32,6 +32,7 @@ Khi tải ảnh lên hệ thống, bạn cam kết tuân thủ tuyệt đối qu
 ### 4. Quyền Sở hữu Trí tuệ và Cấp phép
 * **Đối với người dùng:** Bạn giữ toàn bộ bản quyền gốc đối với hình ảnh của mình. Khi tải lên, bạn cấp cho chúng tôi giấy phép không độc quyền, miễn phí, vĩnh viễn để hiển thị, lưu trữ, tối ưu hóa và phân phối hình ảnh qua hệ thống mở cho cộng đồng.
 * **Đối với cộng đồng:** Việc sử dụng lại dữ liệu và hình ảnh từ hệ thống phải đi kèm với việc ghi nguồn đầy đủ. Nghiêm cấm cào dữ liệu tự động quy mô lớn để thương mại hóa.
+* **Quy định chống giả mạo và xuyên tạc thông tin:** Nghiêm cấm việc sử dụng hình ảnh, dữ liệu tải về từ VNBUSARCHIVE để cắt ghép, chỉnh sửa, lồng ghép vào các thông tin sai sự thật, tin đồn thất thiệt, hoặc nội dung kích động bôi nhọ trên các nền tảng mạng xã hội. VNBUSARCHIVE hoàn toàn không liên quan và không chịu bất kỳ trách nhiệm pháp lý nào đối với hành vi giả mạo thông tin của các bên thứ ba này.
 
 ### 5. Kiểm duyệt và Chỉnh sửa Dữ liệu
 * Toàn bộ hình ảnh, yêu cầu chỉnh sửa thông tin xe và lịch sử hoạt động đều được kiểm duyệt thủ công.
