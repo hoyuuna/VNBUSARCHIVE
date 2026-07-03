@@ -2831,7 +2831,7 @@ Object.assign(window.app, {
                     }
                 },
 
-                open: async () => {
+                open: async (targetTab = null, targetParent = null) => {
                     const modal = document.getElementById('settings-modal');
                     const content = document.getElementById('settings-content');
 
@@ -2840,6 +2840,9 @@ Object.assign(window.app, {
                     // Reset menu trượt về menu chính
                     app.settings.closeDocsMenu(true);
                     app.settings.closeAccountMenu(true);
+
+                    if (targetParent === 'account') app.settings.openAccountMenu();
+                    else if (targetParent === 'docs') app.settings.openDocsMenu();
 
                     if (app.user) {
                         document.querySelectorAll('.account-only-btn').forEach(el => el.style.display = '');
@@ -2859,7 +2862,7 @@ Object.assign(window.app, {
                             if (currentEmailEl) currentEmailEl.innerText = app.user.email;
                         }
 
-                        app.settings.switchTab('blank');
+                        app.settings.switchTab(targetTab || 'blank');
                         app.settings.loadIdentities();
 
                         const avatarImg = document.getElementById('set-avatar-img');
@@ -2878,7 +2881,7 @@ Object.assign(window.app, {
                     } else {
                         // Khách ẩn phần Tài khoản, mở thẳng Cá nhân hóa
                         document.querySelectorAll('.account-only-btn').forEach(el => el.style.display = 'none');
-                        app.settings.switchTab('blank');
+                        app.settings.switchTab(targetTab || 'blank');
                         app.preference.updateUI();
                     }
 
