@@ -2033,10 +2033,15 @@ Object.assign(window.app, {
                     btn.disabled = true;
 
                     setTimeout(() => {
-                        const canvas = app.crop.cropper.getCroppedCanvas({
+                        const cropOptions = {
                             imageSmoothingEnabled: true,
                             imageSmoothingQuality: 'high',
-                        });
+                        };
+                        if (app.crop.mode === 'avatar') {
+                            cropOptions.width = 360;
+                            cropOptions.height = 360;
+                        }
+                        const canvas = app.crop.cropper.getCroppedCanvas(cropOptions);
 
                         if (app.crop.mode === 'main') {
                             const h = canvas.height;
