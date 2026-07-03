@@ -17,22 +17,22 @@ const cleanLicensePlateForDisplay = (plate) => {
 
 async function fetchAllData(supabase, table, select, conditions = {}) {
   const step = 1000;
-  const maxBatches = 20;
-  const promises = [];
-  for (let i = 0; i < maxBatches; i++) {
-    const from = i * step;
+  let allData = [];
+  let from = 0;
+  while (true) {
     let query = supabase.from(table).select(select).range(from, from + step - 1);
     if (conditions.column && conditions.value !== undefined) {
       query = query.eq(conditions.column, conditions.value);
     }
-    promises.push(query);
-  }
-  const results = await Promise.all(promises);
-  const allData = [];
-  for (const res of results) {
-    if (res && res.data && Array.isArray(res.data) && res.data.length > 0) {
-      allData.push(...res.data);
+    const { data, error } = await query;
+    if (error) {
+      console.error(`Lỗi lấy dữ liệu bảng ${table} range ${from}:`, JSON.stringify(error));
+      break;
     }
+    if (!data || data.length === 0) break;
+    allData = allData.concat(data);
+    if (data.length < step) break;
+    from += step;
   }
   return allData;
 }
@@ -57,7 +57,7 @@ export async function onRequest(context) {
       fetchAllData(
         supabase,
         'photos', 
-        'id, url, license_plate, location, note, route_no, operator, type, model', 
+        'id, url, license_plate, location, note, route_no, operator, type', 
         { column: 'status', value: 'approved' }
       ),
       fetchAllData(supabase, 'vehicles', 'license_plate, route_no, operator, model') 
