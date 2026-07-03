@@ -1096,13 +1096,44 @@ Object.assign(window.app, {
                             }
                         }
 
+                        let fileToLoad = file;
+                        const isRawFile = /\.(cr2|cr3|nef|arw|dng|rw2|orf|pef|raf|raw)$/i.test(file.name);
+                        let isRawExtracted = false;
+
+                        if (isRawFile) {
+                            if (window.exifr) {
+                                try {
+                                    const thumbBuffer = await window.exifr.thumbnail(file);
+                                    if (thumbBuffer && (thumbBuffer.byteLength > 0 || thumbBuffer.length > 0)) {
+                                        fileToLoad = new File([thumbBuffer], file.name.replace(/\.[^/.]+$/, "") + ".jpg", { type: "image/jpeg" });
+                                        isRawExtracted = true;
+                                    }
+                                } catch (e) {
+                                    console.warn("exifr.thumbnail không trích xuất được preview:", e);
+                                }
+                            }
+                            if (!isRawExtracted && window.dcraw) {
+                                try {
+                                    const arrayBuffer = await file.arrayBuffer();
+                                    const buf = new Uint8Array(arrayBuffer);
+                                    const thumb = window.dcraw(buf, { extractThumbnail: true });
+                                    if (thumb && (thumb.byteLength > 0 || thumb.length > 0)) {
+                                        fileToLoad = new File([thumb], file.name.replace(/\.[^/.]+$/, "") + ".jpg", { type: "image/jpeg" });
+                                        isRawExtracted = true;
+                                    }
+                                } catch (e) {
+                                    console.warn("dcraw thumbnail extraction failed:", e);
+                                }
+                            }
+                        }
+
                         const img = new Image();
-                        const url = URL.createObjectURL(file);
+                        const url = URL.createObjectURL(fileToLoad);
 
                         img.onload = () => {
                             const w = img.width; const h = img.height;
 
-                            if (h < 1080 && w < 1080) {
+                            if (!isRawFile && !isRawExtracted && h < 1080 && w < 1080) {
                                 app.ui.showAlert(`Độ phân giải ảnh quá thấp (${w}x${h}). Yêu cầu chiều cao tối thiểu 1080px.`);
                                 e.target.value = ''; URL.revokeObjectURL(url);
                                 if (app.upload.restoreDropZone) app.upload.restoreDropZone();
@@ -1116,22 +1147,45 @@ Object.assign(window.app, {
                             const is16by9 = Math.abs(ratio - (16/9)) < 0.05;
 
                             if (!is4by3 && !is3by2 && !is16by9) {
-                                app.crop.open('main', file, true);
+                                app.crop.open('main', fileToLoad, true);
                             } else {
-                                app.upload.setupPreview(file);
+                                app.upload.setupPreview(fileToLoad);
                             }
                             URL.revokeObjectURL(url);
                         };
 
                         img.onerror = async () => {
                             try {
+                                let fileToCompress = fileToLoad;
+                                if (isRawFile && !isRawExtracted) {
+                                    if (window.exifr) {
+                                        try {
+                                            const thumbBuffer = await window.exifr.thumbnail(file);
+                                            if (thumbBuffer && (thumbBuffer.byteLength > 0 || thumbBuffer.length > 0)) {
+                                                fileToCompress = new File([thumbBuffer], file.name.replace(/\.[^/.]+$/, "") + ".jpg", { type: "image/jpeg" });
+                                                isRawExtracted = true;
+                                            }
+                                        } catch (e) {}
+                                    }
+                                    if (!isRawExtracted && window.dcraw) {
+                                        try {
+                                            const arrayBuffer = await file.arrayBuffer();
+                                            const buf = new Uint8Array(arrayBuffer);
+                                            const thumb = window.dcraw(buf, { extractThumbnail: true });
+                                            if (thumb && (thumb.byteLength > 0 || thumb.length > 0)) {
+                                                fileToCompress = new File([thumb], file.name.replace(/\.[^/.]+$/, "") + ".jpg", { type: "image/jpeg" });
+                                                isRawExtracted = true;
+                                            }
+                                        } catch (e) {}
+                                    }
+                                }
                                 const targetMime = app.utils.getTargetMimeType();
-                                const convertedBlob = await imageCompression(file, { maxSizeMB: 0.24, maxWidthOrHeight: 1920, useWebWorker: true, fileType: targetMime, initialQuality: 0.8 });
+                                const convertedBlob = await imageCompression(fileToCompress, { maxSizeMB: 0.24, maxWidthOrHeight: 1920, useWebWorker: true, fileType: targetMime, initialQuality: 0.8 });
                                 const newUrl = URL.createObjectURL(convertedBlob);
                                 const newImg = new Image();
                                 newImg.onload = () => {
                                     const w = newImg.width; const h = newImg.height;
-                                    if (h < 1080 && w < 1080) {
+                                    if (!isRawFile && !isRawExtracted && h < 1080 && w < 1080) {
                                         app.ui.showAlert(`Độ phân giải ảnh quá thấp (${w}x${h}). Yêu cầu chiều cao tối thiểu 1080px.`);
                                         const fileInput = document.getElementById('up-file');
                                         if (fileInput) fileInput.value = ''; URL.revokeObjectURL(newUrl); URL.revokeObjectURL(url);
