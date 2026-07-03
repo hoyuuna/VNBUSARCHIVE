@@ -833,7 +833,7 @@ Object.assign(window.app, {
                             initialQuality: 0.8
                         };
                         let compressedFile = await imageCompression(finalBlob, compressOptions);
-                        if (!compressedFile || compressedFile.type !== targetMime || compressedFile.size > 250 * 1024) {
+                        if (!compressedFile || compressedFile.type !== targetMime) {
                             const cpuBlob = await app.utils.convertToWebpCpu(compressedFile || finalBlob, 0.8);
                             if (cpuBlob && cpuBlob.size > 0) {
                                 compressedFile = new File([cpuBlob], app.rawFile.name.replace(/\.[^/.]+$/, "") + ".webp", { type: 'image/webp' });
@@ -1212,9 +1212,17 @@ Object.assign(window.app, {
                                 }
                                 const targetMime = app.utils.getTargetMimeType();
                                 let convertedBlob = await imageCompression(fileToCompress, { maxSizeMB: 0.24, maxWidthOrHeight: 1920, useWebWorker: true, fileType: targetMime, initialQuality: 0.8 });
-                                if (!convertedBlob || convertedBlob.type !== targetMime || convertedBlob.size > 250 * 1024) {
+                                if (!convertedBlob || convertedBlob.type !== targetMime) {
                                     const cpuBlob = await app.utils.convertToWebpCpu(convertedBlob || fileToCompress, 0.8);
                                     if (cpuBlob && cpuBlob.size > 0) convertedBlob = cpuBlob;
+                                }
+                                if (convertedBlob && convertedBlob.size > 250 * 1024) {
+                                    app.ui.showAlert("Ảnh quá phức tạp, không thể nén xuống dưới 250KB với mức chất lượng chuẩn (80%). Vui lòng crop nhỏ ảnh lại hoặc chọn bức ảnh khác!");
+                                    const fileInput = document.getElementById('up-file');
+                                    if (fileInput) fileInput.value = ''; URL.revokeObjectURL(url);
+                                    if (app.upload.restoreDropZone) app.upload.restoreDropZone();
+                                    if (app.webrtc && app.webrtc.resetMobile) app.webrtc.resetMobile(); 
+                                    return;
                                 }
                                 const newUrl = URL.createObjectURL(convertedBlob);
                                 const newImg = new Image();
@@ -1517,21 +1525,12 @@ Object.assign(window.app, {
                             } catch (compressErr) {
                                 console.warn("imageCompression lỗi, thử chuyển sang WASM CPU encoder:", compressErr);
                             }
-                            if (!compressedFile || compressedFile.type !== targetMime || compressedFile.size > 250 * 1024) {
+                            if (!compressedFile || compressedFile.type !== targetMime) {
                                 const cpuBlob = await app.utils.convertToWebpCpu(compressedFile || finalBlob, 0.8);
                                 if (cpuBlob && cpuBlob.size > 0) {
                                     compressedFile = new File([cpuBlob], app.rawFile.name.replace(/\.[^/.]+$/, "") + ".webp", { type: 'image/webp' });
                                 }
                             }
-                        }
-
-                        if (compressedFile && (compressedFile.size > 250 * 1024 || compressedFile.type !== targetMime)) {
-                            try {
-                                const cpuBlob = await app.utils.convertToWebpCpu(compressedFile, 0.7);
-                                if (cpuBlob && cpuBlob.size > 0) {
-                                    compressedFile = new File([cpuBlob], app.rawFile.name.replace(/\.[^/.]+$/, "") + ".webp", { type: 'image/webp' });
-                                }
-                            } catch(e) {}
                         }
 
                         if (!compressedFile) {
@@ -1545,7 +1544,7 @@ Object.assign(window.app, {
                         }
 
                         if (compressedFile.size > 250 * 1024) {
-                            throw new Error("Ảnh quá phức tạp, không thể nén xuống dưới 250KB với mức chất lượng tối thiểu (60%). Vui lòng crop nhỏ ảnh lại hoặc chọn bức ảnh khác!");
+                            throw new Error("Ảnh quá phức tạp, không thể nén xuống dưới 250KB với mức chất lượng chuẩn (80%). Vui lòng crop nhỏ ảnh lại hoặc chọn bức ảnh khác!");
                         }
 
                         // Gom dữ liệu để đẩy vào Hàng đợi (Queue)
