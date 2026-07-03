@@ -76,6 +76,42 @@ Object.assign(window.app, {
                 },
                 // ----------------------------------
 
+                saveEmailDraft: () => {
+                    try {
+                        const draft = {
+                            targetUser: document.getElementById('email-target-user')?.value || '',
+                            customAddress: document.getElementById('email-custom-address')?.value || '',
+                            subject: document.getElementById('email-subject')?.value || '',
+                            content: document.getElementById('email-content')?.value || '',
+                            isAnonymous: document.getElementById('email-is-anonymous')?.checked || false
+                        };
+                        localStorage.setItem('vbs_manager_email_draft', JSON.stringify(draft));
+                    } catch (e) {}
+                },
+
+                restoreEmailDraft: () => {
+                    try {
+                        const savedStr = localStorage.getItem('vbs_manager_email_draft');
+                        if (!savedStr) return;
+                        const saved = JSON.parse(savedStr);
+                        const sel = document.getElementById('email-target-user');
+                        if (sel && saved.targetUser !== undefined) sel.value = saved.targetUser;
+                        const cust = document.getElementById('email-custom-address');
+                        if (cust && saved.customAddress !== undefined) cust.value = saved.customAddress;
+                        if (app.admin.toggleEmailCustom) app.admin.toggleEmailCustom();
+                        const sub = document.getElementById('email-subject');
+                        if (sub && saved.subject !== undefined) sub.value = saved.subject;
+                        const cnt = document.getElementById('email-content');
+                        if (cnt && saved.content !== undefined) cnt.value = saved.content;
+                        const anon = document.getElementById('email-is-anonymous');
+                        if (anon && saved.isAnonymous !== undefined) anon.checked = saved.isAnonymous;
+                    } catch (e) {}
+                },
+
+                clearEmailDraft: () => {
+                    try { localStorage.removeItem('vbs_manager_email_draft'); } catch (e) {}
+                },
+
                 logAction: async (actionType, targetId, details) => {
                     if (!app.user) return;
                     try {
@@ -207,6 +243,21 @@ Object.assign(window.app, {
                     app.admin.refreshCounts().then(total => app.admin.checkNotification());
 
                     const content = document.getElementById('admin-content');
+                    if (tab === 'manager' && document.getElementById('mgr-sec-denied')) {
+                        ['photos', 'requests', 'delete', 'manager', 'comments'].forEach(t => {
+                            const btn = document.getElementById(`adm-tab-${t}`);
+                            if(!btn) return;
+                            if(t === tab) {
+                                btn.className = "px-5 py-2 bg-black text-white font-bold rounded-md text-sm shadow-sm transition whitespace-nowrap";
+                            } else {
+                                btn.className = "px-5 py-2 bg-white border border-gray-300 text-gray-600 font-bold rounded-md text-sm hover:bg-gray-50 transition whitespace-nowrap";
+                            }
+                        });
+                        let activeSub = app.admin.manager?.activeTab || 'denied';
+                        try { activeSub = sessionStorage.getItem('vbs_mgr_active_tab') || activeSub; } catch(e){}
+                        app.admin.switchManagerTab(activeSub);
+                        return;
+                    }
                     content.innerHTML = '<p class="text-gray-500 italic p-4">Đang tải...</p>';
 
                     // Update UI Buttons
@@ -662,23 +713,26 @@ Object.assign(window.app, {
                                     <!-- TAB: GỬI EMAIL -->
                                     <div id="mgr-sec-email" class="hidden">
                                         <div class="max-w-3xl border border-gray-200 rounded-lg p-5 bg-white shadow-sm">
-                                            <h3 class="font-bold text-lg mb-4 text-black border-b border-gray-100 pb-3"><i class="fa-solid fa-paper-plane mr-2 text-blue-600"></i>Soạn Email Mới</h3>
+                                            <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-3">
+                                                <h3 class="font-bold text-lg text-black"><i class="fa-solid fa-paper-plane mr-2 text-blue-600"></i>Soạn Email Mới</h3>
+                                                <button type="button" onclick="if(confirm('Bạn có chắc muốn xóa bản nháp email này?')) { app.admin.clearEmailDraft(); document.getElementById('admin-email-form').reset(); app.admin.toggleEmailCustom(); }" class="text-xs bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 px-3 py-1.5 rounded-md font-bold transition flex items-center gap-1"><i class="fa-solid fa-trash-can"></i> Xóa bản nháp</button>
+                                            </div>
 
                                             <form id="admin-email-form" onsubmit="app.admin.submitEmail(event)">
                                                 <div class="mb-4">
                                                     <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Gửi tới <span class="text-red-500">*</span></label>
                                                     <div class="flex gap-2">
-                                                        <select id="email-target-user" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none" onchange="app.admin.toggleEmailCustom()">
+                                                        <select id="email-target-user" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none" onchange="app.admin.toggleEmailCustom(); app.admin.saveEmailDraft();">
                                                             <option value="">-- Chọn thành viên trong hệ thống --</option>
                                                             <option value="custom">Gửi tới một Email tùy chỉnh khác...</option>
                                                         </select>
                                                     </div>
-                                                    <input type="email" id="email-custom-address" placeholder="Nhập địa chỉ email..." class="hidden w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none mt-2">
+                                                    <input type="email" id="email-custom-address" placeholder="Nhập địa chỉ email..." class="hidden w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none mt-2" oninput="app.admin.saveEmailDraft()">
                                                 </div>
 
                                                 <div class="mb-4">
                                                     <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Tiêu đề (Subject) <span class="text-red-500">*</span></label>
-                                                    <input type="text" id="email-subject" placeholder="VD: Thông báo cập nhật quy định..." required class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none">
+                                                    <input type="text" id="email-subject" placeholder="VD: Thông báo cập nhật quy định..." required class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none" oninput="app.admin.saveEmailDraft()">
                                                 </div>
 
                                                 <div class="mb-4">
@@ -686,12 +740,12 @@ Object.assign(window.app, {
                                                         <label class="block text-xs font-bold text-gray-700 uppercase">Nội dung (Hỗ trợ Markdown) <span class="text-red-500">*</span></label>
                                                         <button type="button" onclick="app.admin.previewEmailMd()" class="text-[11px] bg-gray-100 border border-gray-300 px-2 py-1 rounded text-gray-700 font-bold hover:bg-gray-200 transition"><i class="fa-brands fa-markdown mr-1"></i> Xem trước</button>
                                                     </div>
-                                                    <textarea id="email-content" rows="8" required placeholder="Nhập nội dung email tại đây..." class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none font-mono"></textarea>
+                                                    <textarea id="email-content" rows="8" required placeholder="Nhập nội dung email tại đây..." class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none font-mono" oninput="app.admin.saveEmailDraft()"></textarea>
                                                     <div id="email-md-preview" class="hidden markdown-body w-full border border-blue-200 bg-blue-50 p-4 mt-2 rounded-md text-sm min-h-[100px]"></div>
                                                 </div>
 
                                                 <div class="mb-6 flex items-center gap-2 bg-gray-50 border border-gray-200 p-3 rounded-md">
-                                                    <input type="checkbox" id="email-is-anonymous" class="w-4 h-4 rounded border-gray-300 text-black focus:ring-black cursor-pointer">
+                                                    <input type="checkbox" id="email-is-anonymous" class="w-4 h-4 rounded border-gray-300 text-black focus:ring-black cursor-pointer" onchange="app.admin.saveEmailDraft()">
                                                     <label for="email-is-anonymous" class="text-sm font-bold text-gray-800 cursor-pointer select-none">Gửi ẩn danh (Người gửi sẽ hiển thị là "Quản trị VNBUSARCHIVE")</label>
                                                 </div>
 
@@ -754,6 +808,9 @@ app.admin.fetchManagerData('denied');
                              app.admin.fetchManagerData('logs');
                              app.admin.fetchManagerData('bans');
                              app.admin.fetchUsersForEmail();
+                             let activeSub = app.admin.manager?.activeTab || 'denied';
+                             try { activeSub = sessionStorage.getItem('vbs_mgr_active_tab') || activeSub; } catch(e){}
+                             app.admin.switchManagerTab(activeSub);
                         }
 
                     } catch (err) {
@@ -764,6 +821,7 @@ app.admin.fetchManagerData('denied');
                 // --- PHẦN QUẢN LÝ TAB MANAGER ---
                 switchManagerTab: (subTab) => {
                     app.admin.manager.activeTab = subTab;
+                    try { sessionStorage.setItem('vbs_mgr_active_tab', subTab); } catch(e){}
 
                     ['denied', 'logs', 'email', 'settings', 'bans'].forEach(t => {
                         const btn = document.getElementById('mgr-tab-' + t);
@@ -781,6 +839,8 @@ app.admin.fetchManagerData('denied');
 
                     if (subTab === 'settings') {
                         app.admin.renderManagerSettings();
+                    } else if (subTab === 'email') {
+                        app.admin.restoreEmailDraft();
                     }
                 },
 
@@ -1115,6 +1175,9 @@ app.admin.fetchManagerData('denied');
                                 opt.innerText = u.username;
                                 select.appendChild(opt);
                             });
+                            if (app.admin.manager?.activeTab === 'email') {
+                                app.admin.restoreEmailDraft();
+                            }
                         }
                     } catch (e) { console.error("Lỗi lấy danh sách user:", e); }
                 },
@@ -1190,6 +1253,7 @@ app.admin.fetchManagerData('denied');
                         document.getElementById('admin-email-form').reset();
                         document.getElementById('email-md-preview').classList.add('hidden');
                         app.admin.toggleEmailCustom();
+                        app.admin.clearEmailDraft();
                         app.admin.logAction('send_email', selectVal === 'custom' ? customEmail : selectVal, { subject: subject, isAnonymous: isAnonymous });
 
                     } catch (err) {
