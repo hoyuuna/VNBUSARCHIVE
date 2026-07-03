@@ -30,7 +30,7 @@ Khi tải ảnh lên hệ thống, bạn cam kết tuân thủ tuyệt đối qu
 * **Giới hạn tải lên:** Nhằm bảo vệ hạ tầng máy chủ, mỗi người dùng bị giới hạn số lượng ảnh tải lên trong ngày. Hạn mức này tự động làm mới vào lúc 7:00 sáng hàng ngày (theo giờ Việt Nam) và được quản trị viên điều chỉnh tùy theo tình hình thực tế.
 
 ### 4. Quyền Sở hữu Trí tuệ và Cấp phép
-* **Đối với người dùng:** Bạn giữ toàn bộ bản quyền gốc đối với hình ảnh của mình. Khi tải lên, bạn cấp cho chúng tôi giấy phép không độc quyền, miễn phí, vĩnh viễn để hiển thị, lưu trữ, tối ưu hóa và phân phối hình ảnh qua hệ thống mở cho cộng đồng.
+* **Đối với người dùng:** Bạn giữ toàn bộ bản quyền gốc đối với hình ảnh gốc ban đầu của mình. Khi tải lên, bạn cấp cho chúng tôi giấy phép không độc quyền, miễn phí, vĩnh viễn để hiển thị, lưu trữ, tối ưu hóa và phân phối hình ảnh đã được gán nhãn VNBUSARCHIVE cho cộng đồng.
 * **Đối với cộng đồng:** Việc sử dụng lại dữ liệu và hình ảnh từ hệ thống phải đi kèm với việc ghi nguồn đầy đủ. Nghiêm cấm cào dữ liệu tự động quy mô lớn để thương mại hóa.
 * **Quy định chống giả mạo và xuyên tạc thông tin:** Nghiêm cấm việc sử dụng hình ảnh, dữ liệu tải về từ VNBUSARCHIVE để cắt ghép, chỉnh sửa, lồng ghép vào các thông tin sai sự thật, tin đồn thất thiệt, hoặc nội dung kích động bôi nhọ trên các nền tảng mạng xã hội. VNBUSARCHIVE hoàn toàn không liên quan và không chịu bất kỳ trách nhiệm pháp lý nào đối với hành vi giả mạo thông tin của các bên thứ ba này.
 
