@@ -3123,6 +3123,7 @@ Object.assign(window.app, {
             } else {
                 app.contact.setMethod('custom_email');
             }
+            if (app.auth && app.auth.updateUUIDBox) app.auth.updateUUIDBox();
         },
 
         // Click chọn từ Dropdown Custom

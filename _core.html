@@ -2693,21 +2693,15 @@
                         <div id="set-content-security" class="space-y-4 md:space-y-6 hidden">
                             <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm"><h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Đổi Email</h3><p class="text-[11px] md:text-xs text-gray-500 mb-3 leading-relaxed">Yêu cầu xác nhận mật khẩu hiện tại. Email đang sử dụng: <b id="set-current-email" class="text-black">...</b></p><div class="space-y-3"><input type="email" id="set-ce-new" placeholder="Nhập địa chỉ email mới" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none"><input type="password" id="set-ce-password" placeholder="Mật khẩu hiện tại" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none"><button onclick="app.auth.changeEmail(this)" class="w-full bg-black text-white px-4 py-2.5 text-xs font-bold rounded-md hover:bg-gray-800">Cập nhật Email</button></div></div>
                             <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm"><h3 class="font-bold text-xs md:text-sm text-black mb-3 uppercase tracking-wide">Đổi mật khẩu</h3><div class="space-y-3"><input type="password" id="set-cp-old" placeholder="Mật khẩu hiện tại" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none"><input type="password" id="set-cp-new" placeholder="Mật khẩu mới (Tối thiểu 6 ký tự)" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none"><button onclick="app.auth.changePassword()" class="w-full bg-black text-white px-4 py-2.5 text-xs font-bold rounded-md hover:bg-gray-800">Đổi mật khẩu</button></div></div>
-                            <div class="bg-red-50 p-4 md:p-5 rounded-lg border border-red-200 shadow-sm"><h3 class="font-bold text-xs md:text-sm text-red-600 mb-2 uppercase tracking-wide"><i class="fa-solid fa-triangle-exclamation mr-1.5"></i>Mã định danh (UUID)</h3><div class="flex gap-2"><input type="password" id="set-uuid-input" readonly class="w-full border border-red-200 p-2.5 text-xs rounded-md bg-white font-mono text-center cursor-not-allowed text-red-800 tracking-widest"><button onclick="app.auth.revealUUID()" id="set-reveal-uuid" class="bg-white border border-red-200 text-red-600 px-3 py-2.5 text-xs font-bold rounded-md hover:bg-red-50"><i class="fa-solid fa-eye"></i></button><button onclick="app.auth.copyUUID()" id="set-copy-uuid" class="bg-red-600 text-white px-3 py-2.5 text-xs font-bold rounded-md hover:bg-red-700"><i class="fa-solid fa-copy"></i></button></div></div>
-                            <div class="mt-6 bg-red-50/50 border border-red-200 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between shadow-sm transition-all hover:border-red-300 group">
-                                    <div class="flex items-start gap-3 w-full">
-                                        <div class="w-10 h-10 rounded-full bg-white border border-red-200 flex items-center justify-center shrink-0 transition-colors shadow-sm group-hover:border-red-300">
-                                            <i class="fa-solid fa-right-from-bracket text-lg text-red-600"></i>
-                                        </div>
-                                        <div class="mt-0.5">
-                                            <h4 class="font-bold text-sm uppercase mb-1 text-red-700">Đăng xuất từ xa</h4>
-                                            <p class="text-[10px] font-medium text-red-600 leading-snug">Hủy bỏ toàn bộ phiên đăng nhập trên các trình duyệt và thiết bị khác để bảo mật.</p>
-                                        </div>
-                                    </div>
-                                    <button onclick="app.auth.logoutAll()" class="w-full sm:w-auto mt-4 sm:mt-0 bg-red-600 text-white px-5 py-2.5 text-xs font-bold rounded-lg hover:bg-red-700 transition shadow-md whitespace-nowrap shrink-0">
-                                        <i class="fa-solid fa-power-off mr-1"></i> Đăng xuất tất cả
-                                    </button>
+                            <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+                                <div>
+                                    <h3 class="font-bold text-xs md:text-sm text-black mb-1.5 uppercase tracking-wide">Đăng xuất từ xa</h3>
+                                    <p class="text-[11px] md:text-xs text-gray-500 leading-relaxed">Hủy bỏ toàn bộ phiên đăng nhập trên các trình duyệt và thiết bị khác để bảo mật.</p>
                                 </div>
+                                <button onclick="app.auth.logoutAll()" class="w-full sm:w-auto bg-black text-white px-5 py-2.5 text-xs font-bold rounded-lg hover:bg-gray-800 transition shadow-sm whitespace-nowrap shrink-0">
+                                    <i class="fa-solid fa-power-off mr-1.5"></i>Đăng xuất tất cả
+                                </button>
+                            </div>
                         </div>
 
                         <div id="set-content-links" class="space-y-4 md:space-y-6 hidden">
@@ -3508,6 +3502,18 @@
                                 </div>
                             </div>
                         </form>
+                    </div>
+
+                    <!-- Box Mã định danh (UUID) bên dưới hộp hỗ trợ (ẩn khi chưa đăng nhập) -->
+                    <div id="contact-uuid-box" class="hidden bg-white border border-vbs-border rounded-2xl shadow-sm p-5 md:p-8 mb-8">
+                        <h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Mã định danh (UUID)</h3>
+                        <p class="text-[11px] md:text-xs text-gray-500 mb-4 leading-relaxed">Mã định danh duy nhất dùng để xác minh tài khoản của bạn với quản trị viên khi cần hỗ trợ.</p>
+                        <div class="flex gap-2">
+                            <input type="text" id="contact-uuid-input" readonly class="w-full border border-gray-300 p-2.5 text-xs md:text-sm rounded-lg bg-gray-50 font-mono text-center text-black select-all outline-none">
+                            <button onclick="app.auth.copyUUID()" id="contact-copy-uuid" class="bg-black text-white px-4 py-2.5 text-xs font-bold rounded-lg hover:bg-gray-800 transition shrink-0 flex items-center gap-1.5 shadow-sm">
+                                <i class="fa-solid fa-copy"></i> Sao chép
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

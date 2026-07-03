@@ -2847,16 +2847,6 @@ Object.assign(window.app, {
                     if (app.user) {
                         document.querySelectorAll('.account-only-btn').forEach(el => el.style.display = '');
 
-                        const uuidInput = document.getElementById('set-uuid-input');
-                        if(uuidInput) {
-                            uuidInput.value = app.user.id;
-                            uuidInput.type = 'password';
-                            uuidInput.classList.add('tracking-widest');
-                        }
-                        const revealBtn = document.getElementById('set-reveal-uuid');
-                        if(revealBtn) revealBtn.innerHTML = '<i class="fa-solid fa-eye"></i>';
-                        if (app.auth.uuidTimeout) clearTimeout(app.auth.uuidTimeout);
-
                         if (app.user.email) {
                             const currentEmailEl = document.getElementById('set-current-email');
                             if (currentEmailEl) currentEmailEl.innerText = app.user.email;
@@ -3940,5 +3930,6 @@ dropdown.innerHTML = `
                     // Đã tắt tự động nhảy sang Telegram
 
                 }
+                if (app.auth && app.auth.updateUUIDBox) app.auth.updateUUIDBox();
             }
 });

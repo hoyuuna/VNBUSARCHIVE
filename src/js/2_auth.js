@@ -74,28 +74,7 @@ Object.assign(window.app, {
                     }
                 },
 
-                revealUUID: () => {
-                    const uuidInput = document.getElementById('set-uuid-input');
-                    const revealBtn = document.getElementById('set-reveal-uuid');
-
-                    if (uuidInput.type === 'password') {
-                        uuidInput.type = 'text';
-                        uuidInput.classList.remove('tracking-widest');
-                        revealBtn.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
-
-                        if (app.auth.uuidTimeout) clearTimeout(app.auth.uuidTimeout);
-                        app.auth.uuidTimeout = setTimeout(() => {
-                            uuidInput.type = 'password';
-                            uuidInput.classList.add('tracking-widest');
-                            revealBtn.innerHTML = '<i class="fa-solid fa-eye"></i>';
-                        }, 3000);
-                    } else {
-                        uuidInput.type = 'password';
-                        uuidInput.classList.add('tracking-widest');
-                        revealBtn.innerHTML = '<i class="fa-solid fa-eye"></i>';
-                        if (app.auth.uuidTimeout) clearTimeout(app.auth.uuidTimeout);
-                    }
-                },
+                revealUUID: () => {},
 
                 submitForm: async (e) => {
                     e.preventDefault();
@@ -585,22 +564,36 @@ changePassword: async () => {
                     );
                 },
 
-                copyUUID: () => {
-                    const uuidInput = document.getElementById('set-uuid-input');
-                    const copyBtn = document.getElementById('set-copy-uuid');
+                updateUUIDBox: () => {
+                    const uuidBox = document.getElementById('contact-uuid-box');
+                    const uuidInput = document.getElementById('contact-uuid-input');
+                    if (uuidBox && uuidInput) {
+                        if (app.user) {
+                            uuidBox.classList.remove('hidden');
+                            uuidInput.value = app.user.id;
+                        } else {
+                            uuidBox.classList.add('hidden');
+                            uuidInput.value = '';
+                        }
+                    }
+                },
 
-                    if (!uuidInput.value) return;
+                copyUUID: () => {
+                    const uuidInput = document.getElementById('contact-uuid-input') || document.getElementById('set-uuid-input');
+                    const copyBtn = document.getElementById('contact-copy-uuid') || document.getElementById('set-copy-uuid');
+
+                    if (!uuidInput || !uuidInput.value) return;
 
                     navigator.clipboard.writeText(uuidInput.value).then(() => {
                         const originalHTML = copyBtn.innerHTML;
-                        copyBtn.innerHTML = '<i class="fa-solid fa-check"></i>';
-                        copyBtn.classList.replace('bg-red-600', 'bg-green-600');
-                        copyBtn.classList.replace('hover:bg-red-700', 'hover:bg-green-700');
+                        copyBtn.innerHTML = '<i class="fa-solid fa-check"></i> Đã chép';
+                        copyBtn.classList.replace('bg-black', 'bg-green-600');
+                        copyBtn.classList.replace('hover:bg-gray-800', 'hover:bg-green-700');
 
                         setTimeout(() => {
                             copyBtn.innerHTML = originalHTML;
-                            copyBtn.classList.replace('bg-green-600', 'bg-red-600');
-                            copyBtn.classList.replace('hover:bg-green-700', 'hover:bg-red-700');
+                            copyBtn.classList.replace('bg-green-600', 'bg-black');
+                            copyBtn.classList.replace('hover:bg-green-700', 'hover:bg-gray-800');
                         }, 2000);
                     }).catch(() => {
                         app.ui.showAlert("Trình duyệt không hỗ trợ sao chép tự động. Vui lòng sao chép thủ công.");
