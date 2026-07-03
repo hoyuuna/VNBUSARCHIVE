@@ -17,6 +17,32 @@ const cleanLicensePlateForDisplay = (plate) => {
 
 async function fetchAllData(supabase, table, select, conditions = {}) {
   const step = 1000;
+  try {
+    let countQuery = supabase.from(table).select('*', { count: 'exact', head: true });
+    if (conditions.column && conditions.value !== undefined) {
+      countQuery = countQuery.eq(conditions.column, conditions.value);
+    }
+    const { count, error: countError } = await countQuery;
+    if (!countError && count && count > 0) {
+      const promises = [];
+      for (let from = 0; from < count; from += step) {
+        let query = supabase.from(table).select(select).range(from, from + step - 1);
+        if (conditions.column && conditions.value !== undefined) {
+          query = query.eq(conditions.column, conditions.value);
+        }
+        promises.push(query);
+      }
+      const results = await Promise.all(promises);
+      const allData = [];
+      for (const res of results) {
+        if (res.data) allData.push(...res.data);
+      }
+      return allData;
+    }
+  } catch (e) {
+    console.warn(`Lỗi đếm song song bảng ${table}, chuyển sang tải tuần tự:`, e);
+  }
+
   let allData = [];
   let from = 0;
   while (true) {
@@ -57,11 +83,16 @@ export async function onRequest(context) {
       fetchAllData(
         supabase,
         'photos', 
-        'id, url, license_plate, location, note, route_no, operator, type, model, vehicles(route_no, operator, model, type)', 
+        'id, url, license_plate, location, note, route_no, operator, type, model', 
         { column: 'status', value: 'approved' }
       ),
-      fetchAllData(supabase, 'vehicles', 'license_plate') 
+      fetchAllData(supabase, 'vehicles', 'license_plate, route_no, operator, model') 
     ]);
+
+    const vehicleMap = new Map();
+    vehicles.forEach(v => {
+      if (v && v.license_plate) vehicleMap.set(v.license_plate, v);
+    });
 
     const xmlChunks = [];
 
@@ -75,7 +106,7 @@ export async function onRequest(context) {
       </url>`);
 
     photos.forEach(p => {
-      const vData = p.vehicles || {}; 
+      const vData = vehicleMap.get(p.license_plate) || {}; 
       const routeInfo = p.route_no || vData.route_no;
       const operatorInfo = p.operator || vData.operator;
       const modelInfo = p.model || vData.model;
