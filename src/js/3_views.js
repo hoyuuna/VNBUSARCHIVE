@@ -1484,8 +1484,12 @@ Object.assign(window.app, {
                             }
                         }
 
-                        const pageDesc = `Lịch sử hoạt động và thư viện ảnh của xe ${vehicle.license_plate}${currentOpClientSide ? ' - ' + currentOpClientSide : ''}`;
-                        app.utils.updateMetaTags(pageTitle, pageDesc, topPhoto ? app.utils.getProxiedUrl(topPhoto.url) : 'https://files.catbox.moe/ddvw49.png');
+                        const baseDescClient = `Lịch sử hoạt động và thư viện ảnh của xe ${vehicle.model ? vehicle.model + ' ' : ''}biển kiểm soát ${vehicle.license_plate}`;
+                        const tailPartsClient = [];
+                        if (currentOpClientSide) tailPartsClient.push(currentOpClientSide);
+                        if (currentRouteClientSide && currentRouteClientSide !== '---') tailPartsClient.push(`Tuyến ${currentRouteClientSide}`);
+                        const pageDesc = tailPartsClient.length > 0 ? `${baseDescClient} - ${tailPartsClient.join(' - ')}.` : `${baseDescClient}.`;
+                        app.utils.updateMetaTags(pageTitle, pageDesc, topPhoto ? app.utils.getProxiedUrl(topPhoto.url) : '');
 
 
                         let rawHistory = historyRes.data || [];

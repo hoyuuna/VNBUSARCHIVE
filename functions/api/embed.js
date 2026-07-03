@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 
 const DEFAULT_TITLE = 'VNBUSARCHIVE';
 const DEFAULT_DESCRIPTION = 'Dự án lưu trữ ảnh xe buýt phi lợi nhuận';
-const DEFAULT_IMAGE = 'https://files.catbox.moe/ddvw49.png';
+const DEFAULT_IMAGE = '';
 
 const escapeHtml = (value) => String(value ?? '')
     .replace(/&/g, '&amp;')
@@ -113,14 +113,15 @@ const fetchVehicleEmbed = async (plate, baseUrl, env) => {
     const route = photo?.route_no || vehicle?.route_no || '';
 
     const title = `Hồ sơ xe ${displayPlate || resolvedPlate} | VNBUSARCHIVE`;
-    const descParts = [`Lịch sử hoạt động và thư viện ảnh của xe ${displayPlate || resolvedPlate}`];
-    if (operator) descParts.push(operator);
-    if (route && route !== '---') descParts.push(`Tuyến ${route}`);
-    if (model) descParts.push(`Dòng xe: ${model}`);
+    const baseDesc = `Lịch sử hoạt động và thư viện ảnh của xe ${model ? model + ' ' : ''}biển kiểm soát ${displayPlate || resolvedPlate}`;
+    const tailParts = [];
+    if (operator) tailParts.push(operator);
+    if (route && route !== '---') tailParts.push(`Tuyến ${route}`);
+    const fullDesc = tailParts.length > 0 ? `${baseDesc} - ${tailParts.join(' - ')}.` : `${baseDesc}.`;
 
     return {
         title,
-        description: truncate(descParts.join(' - '), 190),
+        description: truncate(fullDesc, 190),
         image: getImageProxyUrl(photo?.url, `${displayPlate || resolvedPlate || 'image'}.jpg`),
         url: `${baseUrl}/vehicle/${encodeURIComponent(resolvedPlate)}`
     };
@@ -153,11 +154,15 @@ const applyMeta = (html, meta) => {
     output = setMetaAttribute(output, 'og-url', 'content', meta.url);
     output = setMetaContent(output, 'og-title', meta.title);
     output = setMetaContent(output, 'og-desc', meta.description);
-    output = setMetaContent(output, 'og-image', meta.image);
+    if (meta.image) {
+        output = setMetaContent(output, 'og-image', meta.image);
+        output = setMetaContent(output, 'tw-image', meta.image);
+    } else {
+        output = output.replace(/<meta\s+[^>]*(?:id|property)=["'](?:og|tw|twitter):?image["'][^>]*>\s*/gi, '');
+    }
     output = setMetaAttribute(output, 'tw-url', 'content', meta.url);
     output = setMetaContent(output, 'tw-title', meta.title);
     output = setMetaContent(output, 'tw-desc', meta.description);
-    output = setMetaContent(output, 'tw-image', meta.image);
     return output;
 };
 
