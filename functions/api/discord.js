@@ -1,4 +1,133 @@
 import { createClient } from '@supabase/supabase-js';
+import { Resend } from 'resend';
+
+const generateTicketId = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    for (let i = 0; i < 6; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+};
+
+const escapeHtml = (str) => String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+
+const buildContactEmailHtml = ({ name, ticketId, supportType, message }) => {
+    return `<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông tin hỗ trợ của bạn đã được gửi - VNBUSARCHIVE</title>
+    <!-- Nhúng font chữ -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Montserrat:ital,wght@0,800;1,800&display=swap" rel="stylesheet">
+    <style>
+        /* CSS Reset cho Email */
+        body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+        table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+        img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
+        table { border-collapse: collapse !important; }
+        body { height: 100% !important; margin: 0 !important; padding: 0 !important; width: 100% !important; }
+        a[x-apple-data-detectors] { color: inherit !important; text-decoration: none !important; font-size: inherit !important; font-family: inherit !important; font-weight: inherit !important; line-height: inherit !important; }
+    </style>
+</head>
+<body style="background-color: #fafafa; margin: 0 !important; padding: 0 !important; font-family: 'Be Vietnam Pro', Arial, sans-serif; color: #09090b;">
+
+    <!-- Wrapper nền xám nhạt -->
+    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #fafafa;">
+        <tr>
+            <!-- Đẩy padding (cách lề) trên-dưới 50px, trái-phải 20px để khung không dính sát vào viền màn hình -->
+            <td align="center" style="padding: 50px 20px;">
+                
+                <!-- Khung Modal màu trắng -->
+                <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 500px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e4e4e7; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); overflow: hidden;">
+                    
+                    <!-- Header: Logo & Tên thương hiệu -->
+                    <tr>
+                        <td align="center" style="padding: 40px 30px 20px;">
+                            <table border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+                                <tr>
+                                    <!-- Logo ảnh -->
+                                    <td align="right" valign="middle" style="padding-right: 12px;">
+                                        <img src="https://files.catbox.moe/crxvn6.png" alt="VNBUSARCHIVE Logo" width="45" style="display: block;">
+                                    </td>
+                                    <!-- Logo chữ -->
+                                    <td align="left" valign="middle">
+                                        <h1 style="margin: 0; font-family: 'Montserrat', Arial, sans-serif; font-size: 20px; font-weight: 800; font-style: italic; letter-spacing: 1.5px; color: #000000; line-height: 1;">
+                                            VNBUSARCHIVE
+                                        </h1>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Đường kẻ ngang mờ -->
+                    <tr>
+                        <td align="center" style="padding: 0 30px;">
+                            <div style="height: 1px; background-color: #f4f4f5; width: 100%;"></div>
+                        </td>
+                    </tr>
+
+                    <!-- Nội dung chính -->
+                    <tr>
+                        <td align="left" style="padding: 30px;">
+                            <h2 style="margin: 0 0 15px; font-size: 18px; font-weight: 700; color: #09090b; text-transform: uppercase; letter-spacing: -0.5px;">
+                                THÔNG TIN HỖ TRỢ ĐÃ ĐƯỢC GỬI
+                            </h2>
+                            <p style="margin: 0 0 15px; font-size: 14px; line-height: 1.6; color: #52525b; font-weight: 500;">
+                                Xin chào <strong>${escapeHtml(name)}</strong>,
+                            </p>
+                            <p style="margin: 0 0 20px; font-size: 14px; line-height: 1.6; color: #52525b;">
+                                Cảm ơn bạn đã liên hệ với VNBUSARCHIVE, dưới đây là thông tin bạn đã cung cấp:
+                            </p>
+                            
+                            <!-- Khung chứa thông tin gửi lên (Background xám nhạt để nổi bật) -->
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f4f4f5; border-radius: 8px; margin-bottom: 25px;">
+                                <tr>
+                                    <td style="padding: 20px;">
+                                        <p style="margin: 0 0 10px; font-size: 14px; color: #09090b;"><strong>ID:</strong> <span style="color: #52525b;">${escapeHtml(ticketId)}</span></p>
+                                        <p style="margin: 0 0 10px; font-size: 14px; color: #09090b;"><strong>Loại hình:</strong> <span style="color: #52525b;">${escapeHtml(supportType)}</span></p>
+                                        <p style="margin: 0 0 8px; font-size: 14px; color: #09090b;"><strong>Nội dung:</strong></p>
+                                        <!-- white-space: pre-wrap giúp giữ nguyên các khoảng xuống dòng của nội dung -->
+                                        <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #52525b; white-space: pre-wrap;">${escapeHtml(message)}</p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Lời nhắn và lưu ý -->
+                            <p style="margin: 0 0 15px; font-size: 14px; line-height: 1.6; color: #52525b;">
+                                Email này là email được cung cấp để phản hồi, chúng tôi thường phản hồi sau <strong>6-24 giờ</strong>.
+                            </p>
+                            <p style="margin: 0 0 15px; font-size: 14px; line-height: 1.6; color: #52525b;">
+                                <strong>Lưu ý:</strong> Các yêu cầu đơn giản có thể sẽ không nhận được phản hồi, tuy nhiên chúng tôi vẫn tiến hành xử lý như thông thường.
+                            </p>
+                            <p style="margin: 0 0 30px; font-size: 14px; line-height: 1.6; color: #52525b;">
+                                Vui lòng <strong>KHÔNG</strong> tạo quá nhiều yêu cầu, nếu phát hiện thông tin sai sót hoặc muốn bổ sung, hủy yêu cầu vui lòng phản hồi lại chúng tôi bằng email bên dưới cùng với thông tin ID được nêu bên trên.
+                            </p>
+
+                            <!-- Đường kẻ ngang phân cách phần footer -->
+                            <div style="height: 1px; background-color: #e4e4e7; width: 100%; margin-bottom: 20px;"></div>
+
+                            <!-- Ghi chú & Hỗ trợ (Footer) -->
+                            <p style="margin: 0; font-size: 13px; line-height: 1.6; color: #71717a; text-align: center;">
+                                <em>Bạn không thể trả lời email này, vui lòng liên hệ qua email <a href="mailto:lienhe@vnbusarchive.io.vn" style="color: #09090b; text-decoration: underline; font-weight: 600;">lienhe@vnbusarchive.io.vn</a> để tiếp tục.</em>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>`;
+};
 
 async function handleNewsOrHelp(request, env) {
     const url = new URL(request.url);
@@ -311,8 +440,9 @@ async function handleContactSubmit(request, env) {
     const config = TOPIC_CONFIG[topic] || TOPIC_CONFIG['other'];
 
     // 3. Xây dựng nội dung RAW chuẩn thứ tự người dùng nhập trên form (Có in đậm tiêu đề và xuống dòng dễ nhìn)
+    const ticketId = generateTicketId();
     const requesterStr = userId ? `${userName}/${userId}` : `${userName}`;
-    let rawText = `**Người yêu cầu:**\n${requesterStr}\n\n`;
+    let rawText = `**ID Yêu Cầu:** #${ticketId}\n**Người yêu cầu:**\n${requesterStr}\n\n`;
     rawText += `**1. Chủ đề cần hỗ trợ \\***\n${config.title}\n\n`;
 
     if (photoId) {
@@ -350,14 +480,14 @@ async function handleContactSubmit(request, env) {
     rawText += `**2. Phương thức nhận phản hồi \\***\n${methodName}\n${contactInfo}`;
 
     const embed = {
-        title: `🚨 [Ticket] ${config.title}`,
+        title: `🚨 [Ticket #${ticketId}] ${config.title}`,
         color: config.color,
         description: rawText,
         timestamp: new Date().toISOString()
     };
 
     // 4. Gửi Request Discord
-    const discordRes = await fetch(`https://discord.com/api/v10/channels/${reportChannelId}/messages`, {
+    const discordPromise = fetch(`https://discord.com/api/v10/channels/${reportChannelId}/messages`, {
         method: 'POST',
         headers: {
             'Authorization': `Bot ${env.DISCORD_BOT_TOKEN}`,
@@ -366,13 +496,61 @@ async function handleContactSubmit(request, env) {
         body: JSON.stringify({ embeds: [embed] })
     });
 
+    // 5. Gửi Email tự động cho User qua Resend
+    let resendPromise = Promise.resolve();
+    if (env.RESEND_API_KEY && contactInfo && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactInfo)) {
+        try {
+            const resend = new Resend(env.RESEND_API_KEY);
+            
+            let userMsg = description || '';
+            if (photoId) {
+                if (String(photoId).startsWith('user:')) {
+                    const uName = String(photoId).replace('user:', '');
+                    userMsg = `Hồ sơ User liên quan: https://vnbusarchive.io.vn/user/${encodeURIComponent(uName)}\n\n${userMsg}`;
+                } else {
+                    userMsg = `Ảnh liên quan: https://vnbusarchive.io.vn/photo/${photoId}\n\n${userMsg}`;
+                }
+            } else if (externalLink) {
+                userMsg = `Link liên quan: ${externalLink}\n\n${userMsg}`;
+            }
+            if (originalWork) {
+                userMsg += `\n\nMinh chứng / Tác phẩm gốc: ${originalWork}`;
+            }
+
+            const recipientName = (userName && userName !== 'Khách (Chưa đăng nhập)') ? userName : 'bạn';
+            const emailHtml = buildContactEmailHtml({
+                name: recipientName,
+                ticketId: `#${ticketId}`,
+                supportType: config.title,
+                message: userMsg
+            });
+
+            resendPromise = resend.emails.send({
+                from: 'VNBUSARCHIVE <noreply@vnbusarchive.io.vn>',
+                to: [contactInfo],
+                subject: `[Ticket #${ticketId}] Thông tin hỗ trợ của bạn đã được gửi - VNBUSARCHIVE`,
+                html: emailHtml
+            });
+        } catch (emailErr) {
+            console.error("Lỗi khởi tạo Resend email:", emailErr);
+        }
+    }
+
+    const [discordRes] = await Promise.all([
+        discordPromise,
+        resendPromise.catch(e => console.error("Lỗi gửi email Resend:", e))
+    ]);
+
+    if (!discordRes) {
+        return new Response(JSON.stringify({ error: 'Lỗi hệ thống.' }), { status: 500 });
+    }
     if (!discordRes.ok) {
         const dErr = await discordRes.text();
         console.error("Lỗi gửi Discord:", dErr);
         return new Response(JSON.stringify({ error: 'Không thể kết nối máy chủ Discord.' }), { status: 500 });
     }
 
-    return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json' }});
+    return new Response(JSON.stringify({ success: true, ticketId: `#${ticketId}` }), { status: 200, headers: { 'Content-Type': 'application/json' }});
 }
 
 export async function onRequest(context) {

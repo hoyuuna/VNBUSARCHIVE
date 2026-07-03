@@ -3458,7 +3458,10 @@ Object.assign(window.app, {
 
                 if (!res.ok) throw new Error(data.error || "Gửi thất bại.");
 
-                app.toast.show('success', 'Đã gửi yêu cầu', 'Ban Quản Trị đã ghi nhận thông tin và sẽ sớm phản hồi cho bạn.');
+                const msgDetail = data.ticketId
+                    ? `Yêu cầu (ID: ${data.ticketId}) đã được ghi nhận và email xác nhận đã được gửi. Chúng tôi sẽ phản hồi sau 6-24 giờ.`
+                    : 'Ban Quản Trị đã ghi nhận thông tin và sẽ sớm phản hồi cho bạn.';
+                app.toast.show('success', 'Đã gửi yêu cầu', msgDetail);
                 app.contact.init(); 
 
             } catch (err) {
