@@ -3115,6 +3115,10 @@ Object.assign(window.app, {
                 topicLabel.classList.remove('text-black');
             }
             
+            document.querySelectorAll('#contact-topic-menu .filter-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
             const dynamicArea = document.getElementById('contact-dynamic-area');
             if(dynamicArea) dynamicArea.classList.add('hidden');
             const directBanner = document.getElementById('contact-direct-links-banner');
