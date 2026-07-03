@@ -17,40 +17,23 @@ const cleanLicensePlateForDisplay = (plate) => {
 
 async function fetchAllData(supabase, table, select, conditions = {}) {
   const step = 1000;
-  let countQuery = supabase.from(table).select('*', { count: 'exact', head: true });
-  if (conditions.column && conditions.value !== undefined) {
-    countQuery = countQuery.eq(conditions.column, conditions.value);
-  }
-  
-  const { count, error: countError } = await countQuery;
-  
-  if (countError || count === null) {
-    console.error(`Lỗi đếm số lượng bảng ${table}:`, countError);
-    return [];
-  }
-
-  if (count === 0) return [];
-
-  const promises = [];
-  for (let from = 0; from < count; from += step) {
+  let allData = [];
+  let from = 0;
+  while (true) {
     let query = supabase.from(table).select(select).range(from, from + step - 1);
     if (conditions.column && conditions.value !== undefined) {
       query = query.eq(conditions.column, conditions.value);
     }
-    promises.push(query);
-  }
-
-  const results = await Promise.all(promises);
-
-  let allData = [];
-  for (const res of results) {
-    if (res.error) {
-      console.error(`Lỗi khi lấy 1 phần dữ liệu bảng ${table}:`, res.error);
-    } else if (res.data) {
-      allData.push(...res.data);
+    const { data, error } = await query;
+    if (error) {
+      console.error(`Lỗi lấy dữ liệu ${table} range ${from}-${from+step-1}:`, error);
+      break;
     }
+    if (!data || data.length === 0) break;
+    allData.push(...data);
+    if (data.length < step) break;
+    from += step;
   }
-
   return allData;
 }
 
@@ -62,10 +45,12 @@ export async function onRequest(context) {
   const host = request.headers.get('host') || requestUrl.host;
   const baseUrl = `${protocol}://${host}`;
 
-  const supabase = createClient(
-    env.SUPABASE_URL, 
-    env.SUPABASE_ANON_KEY
-  );
+  const key = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_KEY || env.SUPABASE_ANON_KEY;
+  if (!env.SUPABASE_URL || !key) {
+    console.error("Thiếu SUPABASE_URL hoặc SUPABASE_KEY cho sitemap");
+    return new Response('', { status: 500 });
+  }
+  const supabase = createClient(env.SUPABASE_URL, key);
 
   try {
     const [photos, vehicles] = await Promise.all([
