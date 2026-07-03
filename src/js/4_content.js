@@ -1545,7 +1545,7 @@ Object.assign(window.app, {
                         }
 
                         if (compressedFile.size > 250 * 1024) {
-                            throw new Error("Ảnh quá phức tạp, không thể nén xuống mức tối đa 250KB. Vui lòng chọn ảnh khác hoặc crop nhỏ lại!");
+                            throw new Error("Ảnh quá phức tạp, không thể nén xuống dưới 250KB với mức chất lượng tối thiểu (60%). Vui lòng crop nhỏ ảnh lại hoặc chọn bức ảnh khác!");
                         }
 
                         // Gom dữ liệu để đẩy vào Hàng đợi (Queue)

@@ -969,9 +969,13 @@ Object.assign(window.app, {
                             const imageData = ctx.getImageData(0, 0, imageSource.width, imageSource.height);
                             let q = Math.round(initialQuality * 100);
                             let webpBuffer = await encode(imageData, { quality: q });
-                            while (webpBuffer.byteLength > 240 * 1024 && q > 20) {
-                                q -= 15;
+                            while (webpBuffer.byteLength > 240 * 1024 && q > 60) {
+                                q -= 3;
+                                if (q < 60) q = 60;
                                 webpBuffer = await encode(imageData, { quality: q });
+                            }
+                            if (webpBuffer.byteLength > 250 * 1024) {
+                                throw new Error("Ảnh quá phức tạp, không thể nén đạt ngưỡng dưới 250KB với mức chất lượng tối thiểu (60%). Vui lòng crop nhỏ ảnh lại hoặc chọn bức ảnh khác!");
                             }
                             return new Blob([webpBuffer], { type: 'image/webp' });
                         } else {
@@ -1001,14 +1005,21 @@ Object.assign(window.app, {
 
                             let q = Math.round(initialQuality * 100);
                             let webpBuffer = await encode(imageData, { quality: q });
-                            while (webpBuffer.byteLength > 240 * 1024 && q > 20) {
-                                q -= 15;
+                            while (webpBuffer.byteLength > 240 * 1024 && q > 60) {
+                                q -= 3;
+                                if (q < 60) q = 60;
                                 webpBuffer = await encode(imageData, { quality: q });
+                            }
+                            if (webpBuffer.byteLength > 250 * 1024) {
+                                throw new Error("Ảnh quá phức tạp, không thể nén đạt ngưỡng dưới 250KB với mức chất lượng tối thiểu (60%). Vui lòng crop nhỏ ảnh lại hoặc chọn bức ảnh khác!");
                             }
                             return new Blob([webpBuffer], { type: 'image/webp' });
                         }
                     } catch (err) {
                         console.warn("WASM WebP encode bằng CPU lỗi, fallback:", err);
+                        if (err && err.message && err.message.includes("chất lượng tối thiểu")) {
+                            throw err;
+                        }
                         return null;
                     }
                 },
@@ -1019,6 +1030,9 @@ Object.assign(window.app, {
                             if (cpuBlob && cpuBlob.size > 0) return cpuBlob;
                         } catch (e) {
                             console.warn("WASM WebP encode canvas lỗi:", e);
+                            if (e && e.message && e.message.includes("chất lượng tối thiểu")) {
+                                throw e;
+                            }
                         }
                     }
                     return new Promise((resolve) => {
