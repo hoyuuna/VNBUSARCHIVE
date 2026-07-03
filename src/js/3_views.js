@@ -3181,8 +3181,10 @@ Object.assign(window.app, {
             const directBanner = document.getElementById('contact-direct-links-banner');
             if(directBanner) directBanner.classList.add('hidden');
             
-            // Reset ảnh/link mỗi khi đổi chủ đề
+            // Reset ảnh/link và minh chứng mỗi khi đổi chủ đề
             photoUrlInput.value = '';
+            const origWorkInput = document.getElementById('contact-original-work');
+            if (origWorkInput) origWorkInput.value = '';
             const commentNote = document.getElementById('contact-comment-note');
             if (commentNote) {
                 if (topic === 'report_violation') commentNote.classList.remove('hidden');
@@ -3436,9 +3438,9 @@ Object.assign(window.app, {
                 captcha: captchaResponse,
                 userId: app.user ? app.user.id : null,
                 userName: app.username || 'Khách (Chưa đăng nhập)',
-                photoId: app.contact.currentPreviewId,
-                externalLink: (app.contact.isExternalLink || (topic === 'report_violation' && !app.contact.currentPreviewId)) ? document.getElementById('contact-photo-url').value.trim() : null,
-                originalWork: originalWork || null
+                photoId: (topic === 'copyright' || topic === 'appeal' || topic === 'report_violation') ? app.contact.currentPreviewId : null,
+                externalLink: (topic === 'copyright' || topic === 'appeal' || topic === 'report_violation') ? ((app.contact.isExternalLink || (topic === 'report_violation' && !app.contact.currentPreviewId)) ? document.getElementById('contact-photo-url').value.trim() : null) : null,
+                originalWork: (topic === 'copyright') ? (originalWork || null) : null
             };
 
             try {
