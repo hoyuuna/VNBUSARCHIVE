@@ -17,22 +17,29 @@ const cleanLicensePlateForDisplay = (plate) => {
 
 async function fetchAllData(supabase, table, select, conditions = {}) {
   const step = 1000;
-  let allData = [];
-  let from = 0;
-  while (true) {
-    let query = supabase.from(table).select(select).range(from, from + step - 1);
+  const maxPages = 15; // Hỗ trợ tới 15,000 bản ghi mỗi bảng
+  const pagePromises = [];
+
+  for (let i = 0; i < maxPages; i++) {
+    const from = i * step;
+    const to = from + step - 1;
+    let query = supabase.from(table).select(select).range(from, to);
     if (conditions.column && conditions.value !== undefined) {
       query = query.eq(conditions.column, conditions.value);
     }
-    const { data, error } = await query;
-    if (error) {
-      console.error(`Lỗi lấy dữ liệu bảng ${table} range ${from}:`, JSON.stringify(error));
+    pagePromises.push(query);
+  }
+
+  const results = await Promise.all(pagePromises);
+  let allData = [];
+  for (const res of results) {
+    if (res.error) {
+      console.error(`Lỗi lấy dữ liệu bảng ${table}:`, JSON.stringify(res.error));
       break;
     }
-    if (!data || data.length === 0) break;
-    allData = allData.concat(data);
-    if (data.length < step) break;
-    from += step;
+    if (!res.data || res.data.length === 0) break;
+    allData = allData.concat(res.data);
+    if (res.data.length < step) break;
   }
   return allData;
 }
@@ -128,7 +135,7 @@ export async function onRequest(context) {
     return new Response(finalXML, {
       status: 200,
       headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Cache-Control': 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400',
         'Content-Type': 'application/xml; charset=utf-8'
       }
     });

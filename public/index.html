@@ -99,7 +99,9 @@
             }
         });
         
-        if (sessionStorage.getItem('VNBA_SESS_AUTH') === 'active') return;
+        const ua = (navigator.userAgent || '').toLowerCase();
+        const isBot = /bot|crawler|spider|lighthouse|inspection|google|bing|yandex|baidu|slurp|facebook|twitter|discord|telegram|applebot|page-speed|gtmetrix|headless|chrome-lighthouse/i.test(ua) || navigator.webdriver;
+        if (isBot || sessionStorage.getItem('VNBA_SESS_AUTH') === 'active') return;
 
         _pInt = setInterval(function() {
             const before = new Date().getTime();
