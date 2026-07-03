@@ -3185,6 +3185,8 @@ Object.assign(window.app, {
             photoUrlInput.value = '';
             const origWorkInput = document.getElementById('contact-original-work');
             if (origWorkInput) origWorkInput.value = '';
+            const legalNameInput = document.getElementById('contact-legal-name');
+            if (legalNameInput) legalNameInput.value = '';
             const commentNote = document.getElementById('contact-comment-note');
             if (commentNote) {
                 if (topic === 'report_violation') commentNote.classList.remove('hidden');
@@ -3394,8 +3396,9 @@ Object.assign(window.app, {
             const topic = document.getElementById('contact-topic').value;
             const desc = document.getElementById('contact-description').value.trim();
             const method = app.contact.currentMethod;
-            let methodVal = document.getElementById('contact-method-value').value.trim();
+            const methodVal = document.getElementById('contact-method-value').value.trim();
             const originalWork = document.getElementById('contact-original-work')?.value.trim();
+            const legalName = document.getElementById('contact-legal-name')?.value.trim();
             const btn = document.getElementById('btn-submit-contact');
 
             if (!topic) return app.ui.showAlert("Vui lòng chọn Chủ đề cần hỗ trợ!");
@@ -3405,8 +3408,13 @@ Object.assign(window.app, {
                     const msg = (topic === 'report_violation') ? "Vui lòng nhập Link ảnh / bình luận / hồ sơ hợp lệ." : "Vui lòng nhập Link ảnh hợp lệ.";
                     return app.ui.showAlert(msg);
                 }
-                if (topic === 'copyright' && !originalWork) {
-                    return app.ui.showAlert("Vui lòng nhập Link minh chứng / tác phẩm gốc của bạn.");
+                if (topic === 'copyright') {
+                    if (!legalName) {
+                        return app.ui.showAlert("Vui lòng nhập Họ và tên hợp pháp của bạn.");
+                    }
+                    if (!originalWork) {
+                        return app.ui.showAlert("Vui lòng nhập Link minh chứng / tác phẩm gốc của bạn.");
+                    }
                 }
             }
 
@@ -3440,7 +3448,8 @@ Object.assign(window.app, {
                 userName: app.username || 'Khách (Chưa đăng nhập)',
                 photoId: (topic === 'copyright' || topic === 'appeal' || topic === 'report_violation') ? app.contact.currentPreviewId : null,
                 externalLink: (topic === 'copyright' || topic === 'appeal' || topic === 'report_violation') ? ((app.contact.isExternalLink || (topic === 'report_violation' && !app.contact.currentPreviewId)) ? document.getElementById('contact-photo-url').value.trim() : null) : null,
-                originalWork: (topic === 'copyright') ? (originalWork || null) : null
+                originalWork: (topic === 'copyright') ? (originalWork || null) : null,
+                legalName: (topic === 'copyright') ? (legalName || null) : null
             };
 
             try {

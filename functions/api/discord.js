@@ -392,7 +392,7 @@ async function handleRoleClaim(request, env) {
 
 async function handleContactSubmit(request, env) {
     const body = await request.json();
-    const { topic, description, contactMethod, contactInfo, captcha, userId, userName, photoId, externalLink, originalWork } = body;
+    const { topic, description, contactMethod, contactInfo, captcha, userId, userName, photoId, externalLink, originalWork, legalName } = body;
 
     // 1. Validate CAPTCHA (Đồng bộ cấu hình với upload.js)
     if (!captcha) return new Response(JSON.stringify({ error: 'Thiếu mã Captcha' }), { status: 400 });
@@ -458,6 +458,9 @@ async function handleContactSubmit(request, env) {
         rawText += `**${linkTitle}**\n${externalLink}\n\n`;
     }
 
+    if (legalName) {
+        rawText += `**Họ và tên hợp pháp \\***\n${legalName}\n\n`;
+    }
     if (originalWork) {
         rawText += `**Minh chứng / Tác phẩm gốc của bạn \\***\n${originalWork}\n\n`;
     }
@@ -512,6 +515,9 @@ async function handleContactSubmit(request, env) {
                 }
             } else if (externalLink) {
                 userMsg = `Link liên quan: ${externalLink}\n\n${userMsg}`;
+            }
+            if (legalName) {
+                userMsg += `\n\nHọ và tên hợp pháp: ${legalName}`;
             }
             if (originalWork) {
                 userMsg += `\n\nMinh chứng / Tác phẩm gốc: ${originalWork}`;
