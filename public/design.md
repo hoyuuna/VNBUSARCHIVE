@@ -356,6 +356,7 @@ Apply these exact class names for standardized enter/exit transitions. They rely
 
 - **Do** strip out solid `bg-white` or `bg-gray-50` background classes from elements inside modals to ensure the glassmorphism blur effect penetrates the entire modal structure.
 - **Do** use `Be Vietnam Pro` for all general text to prevent diacritic clipping in Vietnamese.
+- **Do** maintain square-rounded button aesthetics (`rounded-md` or `rounded-lg`) for all general control buttons to preserve UI consistency. Avoid `rounded-full` unless designing pill tags or circular icon buttons.
 - **Don't** use Red, Blue, or Yellow for structural borders or general backgrounds. They are only for intent (Errors, Information, Warnings/Badges).
 - **Don't** nest backdrop filters without ensuring parent containers don't block the blur context. Use `::before` pseudo-elements if necessary to apply blur to headers without breaking z-index contexts for dropdowns.
 - **Don't** add drop shadows directly to text unless it's a micro-shadow (`text-shadow: 0 0 0.5px rgba(0, 0, 0, 0.15)`) applied to the `body` to enforce anti-aliasing.
