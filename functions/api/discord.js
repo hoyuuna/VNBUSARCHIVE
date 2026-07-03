@@ -320,10 +320,10 @@ async function handleContactSubmit(request, env) {
             const uName = String(photoId).replace('user:', '');
             rawText += `**Hồ sơ User vi phạm \\***\nhttps://vnbusarchive.io.vn/user/${encodeURIComponent(uName)}\n\n`;
         } else {
-            rawText += `**Ảnh liên quan \\***\nhttps://vnbusarchive.io.vn/photo/${photoId}\n\n`;
+            rawText += `**Nội dung liên quan \\***\nhttps://vnbusarchive.io.vn/photo/${photoId}\n\n`;
         }
     } else if (externalLink) {
-        let linkTitle = 'Ảnh liên quan \\*';
+        let linkTitle = 'Nội dung liên quan \\*';
         if (topic === 'report_violation') linkTitle = 'Link ảnh / bình luận / hồ sơ vi phạm \\*';
         rawText += `**${linkTitle}**\n${externalLink}\n\n`;
     }

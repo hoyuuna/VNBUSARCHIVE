@@ -3170,6 +3170,8 @@ Object.assign(window.app, {
             
             // Reset ảnh/link mỗi khi đổi chủ đề
             photoUrlInput.value = '';
+            const commentNote = document.getElementById('contact-comment-note');
+            if (commentNote) commentNote.classList.remove('hidden');
             app.contact.currentPreviewId = null;
             app.contact.isExternalLink = false;
             document.getElementById('contact-photo-preview').classList.add('hidden');
@@ -3215,6 +3217,8 @@ Object.assign(window.app, {
             const errBox = document.getElementById('contact-photo-error');
 
             input.value = '';
+            const commentNote = document.getElementById('contact-comment-note');
+            if (commentNote) commentNote.classList.remove('hidden');
             preview.classList.add('hidden');
             if (userPreview) userPreview.classList.add('hidden');
             errBox.classList.add('hidden');
@@ -3232,6 +3236,11 @@ Object.assign(window.app, {
         onLinkInput: async () => {
             const topic = document.getElementById('contact-topic').value;
             const url = document.getElementById('contact-photo-url').value.trim();
+            const commentNote = document.getElementById('contact-comment-note');
+            if (commentNote) {
+                if (url) commentNote.classList.add('hidden');
+                else commentNote.classList.remove('hidden');
+            }
             const previewBox = document.getElementById('contact-photo-preview');
             const userPreviewBox = document.getElementById('contact-user-preview');
             const errBox = document.getElementById('contact-photo-error');
