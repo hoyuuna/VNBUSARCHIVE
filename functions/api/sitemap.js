@@ -60,72 +60,27 @@ export async function onRequest(context) {
   const supabase = createClient(env.SUPABASE_URL, key);
 
   try {
-    const [photos, vehicles] = await Promise.all([
-      fetchAllData(
-        supabase,
-        'photos', 
-        'id, url, license_plate, location, note, route_no, operator, type', 
-        { column: 'status', value: 'approved' }
-      ),
-      fetchAllData(supabase, 'vehicles', 'license_plate, route_no, operator, model') 
-    ]);
-
-    const vehicleMap = new Map();
-    vehicles.forEach(v => {
-      if (v && v.license_plate) vehicleMap.set(v.license_plate, v);
-    });
+    const vehicles = await fetchAllData(supabase, 'vehicles', 'license_plate');
 
     const xmlChunks = [];
 
     xmlChunks.push(`<?xml version="1.0" encoding="UTF-8"?>
-    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-            xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
       <url>
         <loc>${escapeXML(baseUrl)}/</loc>
         <priority>1.0</priority>
         <changefreq>daily</changefreq>
       </url>`);
 
-    photos.forEach(p => {
-      const vData = vehicleMap.get(p.license_plate) || {}; 
-      const routeInfo = p.route_no || vData.route_no;
-      const operatorInfo = p.operator || vData.operator;
-      const modelInfo = p.model || vData.model;
-      
-      const displayPlate = cleanLicensePlateForDisplay(p.license_plate);
-      
-      let titleParts = [`Xe buýt ${displayPlate}`];
-      if (routeInfo) titleParts.push(`Tuyến ${routeInfo}`);
-      if (modelInfo) titleParts.push(modelInfo);
-      const title = titleParts.join(' - '); 
-
-      let captionParts = [];
-      if (operatorInfo) captionParts.push(`Đơn vị vận hành: ${operatorInfo}`);
-      if (modelInfo) captionParts.push(`Model xe: ${modelInfo}`); 
-      if (p.note) captionParts.push(`Ghi chú: ${p.note}`);
-      const caption = captionParts.join('. '); 
-
-      xmlChunks.push(`
-      <url>
-        <loc>${escapeXML(baseUrl)}/photo/${p.id}</loc>
-        <priority>0.8</priority>
-        <changefreq>weekly</changefreq>
-        <image:image>
-          <image:loc>${escapeXML(p.url)}</image:loc>
-          <image:title>${escapeXML(title)}</image:title>
-          ${caption ? `<image:caption>${escapeXML(caption)}</image:caption>` : ''}
-          ${p.location ? `<image:geo_location>${escapeXML(p.location)}</image:geo_location>` : ''}
-        </image:image>
-      </url>`);
-    });
-
     vehicles.forEach(v => {
-      xmlChunks.push(`
+      if (v && v.license_plate) {
+        xmlChunks.push(`
       <url>
         <loc>${escapeXML(baseUrl)}/vehicle/${encodeURIComponent(v.license_plate)}</loc>
-        <priority>0.9</priority>
+        <priority>0.8</priority>
         <changefreq>weekly</changefreq>
       </url>`);
+      }
     });
 
     xmlChunks.push(`\n    </urlset>`);
