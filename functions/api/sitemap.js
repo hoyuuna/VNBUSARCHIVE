@@ -72,7 +72,6 @@ export async function onRequest(context) {
         <priority>1.0</priority>
         <changefreq>daily</changefreq>
         <image:image>
-          <image:loc>https://files.catbox.moe/ddvw49.png</image:loc>
           <image:title>VNBUSARCHIVE - Dự án lưu trữ ảnh xe buýt phi lợi nhuận</image:title>
           <image:caption>Dự án lưu trữ ảnh xe buýt phi lợi nhuận</image:caption>
         </image:image>
@@ -87,7 +86,6 @@ export async function onRequest(context) {
         <priority>0.8</priority>
         <changefreq>weekly</changefreq>
         <image:image>
-          <image:loc>https://files.catbox.moe/ddvw49.png</image:loc>
           <image:title>Xem ảnh xe buýt ${escapeXML(displayPlate)} trên VNBUSARCHIVE</image:title>
           <image:caption>Xem ảnh xe buýt ${escapeXML(displayPlate)} trên VNBUSARCHIVE - Dự án lưu trữ ảnh xe buýt phi lợi nhuận</image:caption>
         </image:image>
