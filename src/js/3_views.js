@@ -3096,7 +3096,7 @@ Object.assign(window.app, {
     contact: {
         currentPreviewId: null,
         isExternalLink: false,
-        currentMethod: 'discord', // Lưu trạng thái method hiện tại
+        currentMethod: 'account_email', // Lưu trạng thái method hiện tại
 
         init: () => {
             const form = document.getElementById('contact-form');
@@ -3118,7 +3118,11 @@ Object.assign(window.app, {
             
             app.contact.currentPreviewId = null;
             app.contact.isExternalLink = false;
-            app.contact.setMethod('discord'); // Khởi tạo mặc định
+            if (app.user && app.user.email) {
+                app.contact.setMethod('account_email');
+            } else {
+                app.contact.setMethod('custom_email');
+            }
         },
 
         // Click chọn từ Dropdown Custom
@@ -3330,37 +3334,46 @@ Object.assign(window.app, {
         },
 
         setMethod: (method) => {
+            if (method === 'account_email' && (!app.user || !app.user.email)) {
+                method = 'custom_email';
+            }
             app.contact.currentMethod = method;
-            const methods = ['discord', 'facebook', 'email'];
+            const methods = ['account_email', 'custom_email'];
             
             const input = document.getElementById('contact-method-value');
-            const prefix = document.getElementById('contact-discord-prefix');
-            const fbWarning = document.getElementById('contact-fb-warning');
+            const subText = document.getElementById('method-account-email-sub');
+            const accountBox = document.getElementById('method-box-account_email');
 
-            input.value = '';
-            fbWarning.classList.add('hidden');
+            if (accountBox) {
+                if (app.user && app.user.email) {
+                    accountBox.classList.remove('opacity-50', 'pointer-events-none', 'bg-gray-100', 'border-gray-200', 'text-gray-400');
+                    if (subText) subText.innerText = `(${app.user.email})`;
+                } else {
+                    accountBox.classList.add('opacity-50', 'pointer-events-none');
+                    if (subText) subText.innerText = "(Chưa đăng nhập)";
+                }
+            }
 
             methods.forEach(m => {
                 const box = document.getElementById(`method-box-${m}`);
                 if (box) {
+                    const isDisabledAccount = (m === 'account_email' && (!app.user || !app.user.email));
                     if (m === method) {
-                        box.className = "cursor-pointer bg-black text-white border-black border-2 rounded-xl p-3 text-center transition-all shadow-sm";
+                        box.className = "cursor-pointer bg-black text-white border-black border-2 rounded-xl p-3 text-center transition-all shadow-sm flex flex-col items-center justify-center " + (isDisabledAccount ? 'opacity-50 pointer-events-none' : '');
                     } else {
-                        box.className = "cursor-pointer bg-white text-gray-700 border-gray-300 border hover:border-black rounded-xl p-3 text-center transition-all shadow-sm";
+                        box.className = "cursor-pointer bg-white text-gray-700 border-gray-300 border hover:border-black rounded-xl p-3 text-center transition-all shadow-sm flex flex-col items-center justify-center " + (isDisabledAccount ? 'opacity-50 pointer-events-none bg-gray-100 border-gray-200 text-gray-400' : '');
                     }
                 }
             });
 
-            if (method === 'discord') {
-                prefix.classList.remove('hidden');
-                input.placeholder = "Tên đăng nhập (VD: username)";
-            } else if (method === 'facebook') {
-                prefix.classList.add('hidden');
-                input.placeholder = "Link trang cá nhân Facebook của bạn";
-                fbWarning.classList.remove('hidden');
+            if (method === 'account_email') {
+                input.value = (app.user && app.user.email) ? app.user.email : '';
+                input.disabled = true;
+                input.placeholder = "Email của tài khoản";
             } else {
-                prefix.classList.add('hidden');
-                input.placeholder = "Địa chỉ Email liên hệ";
+                if (input.disabled) input.value = '';
+                input.disabled = false;
+                input.placeholder = "Nhập địa chỉ email của bạn (VD: name@example.com)";
             }
         },
 
@@ -3387,20 +3400,10 @@ Object.assign(window.app, {
             }
 
             if (!desc || desc.length < 10) return app.ui.showAlert("Vui lòng mô tả chi tiết vấn đề (Ít nhất 10 ký tự).");
-            if (!methodVal) return app.ui.showAlert("Vui lòng nhập thông tin liên lạc để chúng tôi có thể phản hồi.");
+            if (!methodVal) return app.ui.showAlert("Vui lòng nhập địa chỉ email để chúng tôi có thể phản hồi.");
 
-            if (method === 'discord') {
-                if (methodVal.includes('@')) methodVal = methodVal.replace('@', '');
-                if (!/^[a-z0-9_.]{2,32}$/i.test(methodVal)) {
-                    return app.ui.showAlert("Tên Discord không hợp lệ. Chỉ gồm 2-32 ký tự chữ, số, dấu chấm, gạch dưới.");
-                }
-                methodVal = '@' + methodVal;
-            } else if (method === 'email') {
-                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(methodVal)) return app.ui.showAlert("Email không hợp lệ.");
-            } else if (method === 'facebook') {
-                if (!methodVal.includes('facebook.com') && !methodVal.includes('fb.com')) {
-                    return app.ui.showAlert("Vui lòng nhập đường dẫn (Link) Facebook cá nhân hợp lệ.");
-                }
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(methodVal)) {
+                return app.ui.showAlert("Email không hợp lệ.");
             }
 
             let captchaResponse;

@@ -3462,35 +3462,25 @@
                                 <div class="border-t border-gray-200 pt-6">
                                     <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-3">2. Phương thức nhận phản hồi <span class="text-red-500">*</span></label>
                                     
-                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-                                        <div id="method-box-discord" onclick="app.contact.setMethod('discord')" class="cursor-pointer bg-black text-white border-black border-2 rounded-xl p-3 text-center transition-all shadow-sm">
-                                            <i class="fa-brands fa-discord text-xl mb-1"></i>
-                                            <p class="text-[11px] font-bold uppercase tracking-wider">Discord</p>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                                        <div id="method-box-account_email" onclick="app.contact.setMethod('account_email')" class="cursor-pointer bg-black text-white border-black border-2 rounded-xl p-3 text-center transition-all shadow-sm flex flex-col items-center justify-center">
+                                            <i class="fa-solid fa-user-check text-xl mb-1"></i>
+                                            <p class="text-[11px] font-bold uppercase tracking-wider">Dùng Email Tài Khoản</p>
+                                            <p id="method-account-email-sub" class="text-[10px] opacity-80 font-normal mt-0.5 truncate max-w-full">(Chưa đăng nhập)</p>
                                         </div>
-                                        <div id="method-box-facebook" onclick="app.contact.setMethod('facebook')" class="cursor-pointer bg-white text-gray-700 border-gray-300 border hover:border-black rounded-xl p-3 text-center transition-all shadow-sm">
-                                            <i class="fa-brands fa-facebook-messenger text-xl mb-1"></i>
-                                            <p class="text-[11px] font-bold uppercase tracking-wider">Messenger</p>
-                                        </div>
-                                        <div id="method-box-email" onclick="app.contact.setMethod('email')" class="cursor-pointer bg-white text-gray-700 border-gray-300 border hover:border-black rounded-xl p-3 text-center transition-all shadow-sm">
+                                        <div id="method-box-custom_email" onclick="app.contact.setMethod('custom_email')" class="cursor-pointer bg-white text-gray-700 border-gray-300 border hover:border-black rounded-xl p-3 text-center transition-all shadow-sm flex flex-col items-center justify-center">
                                             <i class="fa-solid fa-envelope text-xl mb-1"></i>
-                                            <p class="text-[11px] font-bold uppercase tracking-wider">Email</p>
+                                            <p class="text-[11px] font-bold uppercase tracking-wider">Email Tùy Chỉnh</p>
+                                            <p class="text-[10px] text-gray-400 font-normal mt-0.5">Nhập email khác</p>
                                         </div>
                                     </div>
 
                                     <div id="contact-method-input-area">
                                         <div class="flex items-stretch border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-black shadow-sm transition-all bg-white">
-                                            <!-- Khối Prefix được cố định chiều rộng bằng Flex -->
-                                            <div id="contact-discord-prefix" class="bg-gray-100 w-10 flex items-center justify-center border-r border-gray-300 text-gray-500 font-black text-sm select-none shrink-0">
-                                                @
+                                            <div class="bg-gray-100 w-10 flex items-center justify-center border-r border-gray-300 text-gray-500 font-black text-sm select-none shrink-0">
+                                                <i class="fa-solid fa-envelope"></i>
                                             </div>
-                                            <input type="text" id="contact-method-value" placeholder="Tên đăng nhập (VD: username)" class="w-full py-2.5 px-3 text-sm font-medium outline-none text-black bg-transparent">
-                                        </div>
-                                        
-                                        <div id="contact-fb-warning" class="hidden bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-3 fade-zoom-in">
-                                            <p class="text-[11px] font-bold text-yellow-800 leading-relaxed m-0">
-                                                <i class="fa-solid fa-triangle-exclamation mr-1"></i>
-                                                Để nhận được tin nhắn, bạn <b>bắt buộc</b> phải nhắn tin cho Fanpage của chúng tôi trước với nội dung <i>"Nhận phản hồi hỗ trợ"</i>.
-                                            </p>
+                                            <input type="email" id="contact-method-value" placeholder="Email của tài khoản" class="w-full py-2.5 px-3 text-sm font-medium outline-none text-black bg-transparent disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed">
                                         </div>
                                     </div>
                                 <p class="text-[11px] sm:text-xs text-gray-500 font-medium text-center mt-6 mb-3 leading-relaxed px-2">

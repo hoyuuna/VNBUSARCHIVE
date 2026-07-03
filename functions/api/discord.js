@@ -339,8 +339,10 @@ async function handleContactSubmit(request, env) {
     rawText += `**${descLabel}**\n${description}\n\n`;
 
     const METHOD_NAMES = {
-        'discord': 'Discord',
+        'account_email': 'Email tài khoản',
+        'custom_email': 'Email tùy chỉnh',
         'email': 'Email',
+        'discord': 'Discord',
         'facebook': 'Facebook'
     };
     const methodName = METHOD_NAMES[contactMethod] || (contactMethod ? contactMethod.toUpperCase() : 'Khác');
