@@ -3171,7 +3171,10 @@ Object.assign(window.app, {
             // Reset ảnh/link mỗi khi đổi chủ đề
             photoUrlInput.value = '';
             const commentNote = document.getElementById('contact-comment-note');
-            if (commentNote) commentNote.classList.remove('hidden');
+            if (commentNote) {
+                if (topic === 'report_violation') commentNote.classList.remove('hidden');
+                else commentNote.classList.add('hidden');
+            }
             app.contact.currentPreviewId = null;
             app.contact.isExternalLink = false;
             document.getElementById('contact-photo-preview').classList.add('hidden');
@@ -3218,7 +3221,7 @@ Object.assign(window.app, {
 
             input.value = '';
             const commentNote = document.getElementById('contact-comment-note');
-            if (commentNote) commentNote.classList.remove('hidden');
+            if (commentNote) commentNote.classList.add('hidden');
             preview.classList.add('hidden');
             if (userPreview) userPreview.classList.add('hidden');
             errBox.classList.add('hidden');
@@ -3238,7 +3241,7 @@ Object.assign(window.app, {
             const url = document.getElementById('contact-photo-url').value.trim();
             const commentNote = document.getElementById('contact-comment-note');
             if (commentNote) {
-                if (url) commentNote.classList.add('hidden');
+                if (url || topic !== 'report_violation') commentNote.classList.add('hidden');
                 else commentNote.classList.remove('hidden');
             }
             const previewBox = document.getElementById('contact-photo-preview');
@@ -3256,7 +3259,7 @@ Object.assign(window.app, {
             }
 
             const match = url.match(/\/photo\/(\d+)/i);
-            const userMatch = url.match(/\/user\/([^\/\?#]+)/i) || url.match(/\/profile/i);
+            const userMatch = (topic === 'report_violation') ? (url.match(/\/user\/([^\/\?#]+)/i) || url.match(/\/profile/i)) : null;
 
             if (!match && !userMatch) {
                 previewBox.classList.add('hidden');
@@ -3375,7 +3378,8 @@ Object.assign(window.app, {
             
             if (topic === 'copyright' || topic === 'appeal' || topic === 'report_violation') {
                 if (!app.contact.isExternalLink && !app.contact.currentPreviewId && !(topic === 'report_violation' && document.getElementById('contact-photo-url').value.trim())) {
-                    return app.ui.showAlert("Vui lòng nhập Link ảnh / bình luận / hồ sơ hợp lệ.");
+                    const msg = (topic === 'report_violation') ? "Vui lòng nhập Link ảnh / bình luận / hồ sơ hợp lệ." : "Vui lòng nhập Link ảnh hợp lệ.";
+                    return app.ui.showAlert(msg);
                 }
                 if (topic === 'copyright' && !originalWork) {
                     return app.ui.showAlert("Vui lòng nhập Link minh chứng / tác phẩm gốc của bạn.");
