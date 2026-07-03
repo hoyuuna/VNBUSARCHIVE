@@ -55,8 +55,13 @@ async function fetchAllData(supabase, table, select, conditions = {}) {
 }
 
 export async function onRequest(context) {
-  const { env } = context;
+  const { request, env } = context;
   
+  const requestUrl = new URL(request.url);
+  const protocol = request.headers.get('x-forwarded-proto') || 'https';
+  const host = request.headers.get('host') || requestUrl.host;
+  const baseUrl = `${protocol}://${host}`;
+
   const supabase = createClient(
     env.SUPABASE_URL, 
     env.SUPABASE_ANON_KEY
@@ -79,8 +84,9 @@ export async function onRequest(context) {
     <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
             xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
       <url>
-        <loc>https://vnbusarchive.qzz.io/</loc>
+        <loc>${escapeXML(baseUrl)}/</loc>
         <priority>1.0</priority>
+        <changefreq>daily</changefreq>
       </url>`);
 
     photos.forEach(p => {
@@ -104,8 +110,9 @@ export async function onRequest(context) {
 
       xmlChunks.push(`
       <url>
-        <loc>https://vnbusarchive.qzz.io/photo/${p.id}</loc>
+        <loc>${escapeXML(baseUrl)}/photo/${p.id}</loc>
         <priority>0.8</priority>
+        <changefreq>weekly</changefreq>
         <image:image>
           <image:loc>${escapeXML(p.url)}</image:loc>
           <image:title>${escapeXML(title)}</image:title>
@@ -118,8 +125,9 @@ export async function onRequest(context) {
     vehicles.forEach(v => {
       xmlChunks.push(`
       <url>
-        <loc>https://vnbusarchive.qzz.io/vehicle/${encodeURIComponent(v.license_plate)}</loc>
+        <loc>${escapeXML(baseUrl)}/vehicle/${encodeURIComponent(v.license_plate)}</loc>
         <priority>0.9</priority>
+        <changefreq>weekly</changefreq>
       </url>`);
     });
 
@@ -130,8 +138,8 @@ export async function onRequest(context) {
     return new Response(finalXML, {
       status: 200,
       headers: {
-        'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=86400',
-        'Content-Type': 'text/xml'
+        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+        'Content-Type': 'application/xml; charset=utf-8'
       }
     });
 
