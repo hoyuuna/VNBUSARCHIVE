@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 
 const DEFAULT_TITLE = 'VNBUSARCHIVE';
-const DEFAULT_DESCRIPTION = 'Hệ thống database xe buýt/khách';
+const DEFAULT_DESCRIPTION = 'Dự án lưu trữ ảnh xe buýt phi lợi nhuận';
 const DEFAULT_IMAGE = 'https://files.catbox.moe/ddvw49.png';
 
 const escapeHtml = (value) => String(value ?? '')
