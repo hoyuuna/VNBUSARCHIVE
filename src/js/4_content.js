@@ -978,20 +978,41 @@ Object.assign(window.app, {
                         return;
                     }
 
-                    const checkExif = new Promise((resolve, reject) => {
-                        EXIF.getData(file, function () {
-                            let model = EXIF.getTag(this, "Model");
-                            const make = EXIF.getTag(this, "Make");
-                            const lens = EXIF.getTag(this, "LensModel") || EXIF.getTag(this, "LensInfo");
-                            const software = EXIF.getTag(this, "Software");
-                            const fNumber = EXIF.getTag(this, "FNumber");
-                            const exposureTime = EXIF.getTag(this, "ExposureTime");
-                            const iso = EXIF.getTag(this, "ISOSpeedRatings");
-                            const dateTimeOriginal = EXIF.getTag(this, "DateTimeOriginal");
-                            const lat = EXIF.getTag(this, "GPSLatitude");
-                            const latRef = EXIF.getTag(this, "GPSLatitudeRef");
-                            const lon = EXIF.getTag(this, "GPSLongitude");
-                            const lonRef = EXIF.getTag(this, "GPSLongitudeRef");
+                    const checkExif = new Promise(async (resolve, reject) => {
+                        try {
+                            let tags = {};
+                            if (window.exifr) {
+                                tags = await window.exifr.parse(file, { tiff: true, exif: true, gps: true }) || {};
+                            } else if (window.EXIF) {
+                                await new Promise((res) => window.EXIF.getData(file, function() {
+                                    tags = {
+                                        Model: EXIF.getTag(this, "Model"),
+                                        Make: EXIF.getTag(this, "Make"),
+                                        LensModel: EXIF.getTag(this, "LensModel") || EXIF.getTag(this, "LensInfo"),
+                                        Software: EXIF.getTag(this, "Software"),
+                                        FNumber: EXIF.getTag(this, "FNumber"),
+                                        ExposureTime: EXIF.getTag(this, "ExposureTime"),
+                                        ISO: EXIF.getTag(this, "ISOSpeedRatings"),
+                                        DateTimeOriginal: EXIF.getTag(this, "DateTimeOriginal"),
+                                        GPSLatitude: EXIF.getTag(this, "GPSLatitude"),
+                                        GPSLatitudeRef: EXIF.getTag(this, "GPSLatitudeRef"),
+                                        GPSLongitude: EXIF.getTag(this, "GPSLongitude"),
+                                        GPSLongitudeRef: EXIF.getTag(this, "GPSLongitudeRef")
+                                    };
+                                    res();
+                                }));
+                            } else {
+                                reject("Không tìm thấy thư viện xử lý EXIF."); return;
+                            }
+
+                            let model = tags.Model;
+                            const make = tags.Make;
+                            const lens = tags.LensModel || tags.LensInfo;
+                            const software = tags.Software;
+                            const fNumber = tags.FNumber || tags.fNumber;
+                            const exposureTime = tags.ExposureTime || tags.exposureTime;
+                            const iso = tags.ISO || tags.ISOSpeedRatings || tags.iso || tags.PhotographicSensitivity;
+                            const dateTimeOriginal = tags.DateTimeOriginal || tags.CreateDate || tags.ModifyDate;
 
                             if (model && typeof model === 'string') model = model.trim();
                             if (!model) {
@@ -1012,17 +1033,38 @@ Object.assign(window.app, {
                                 let shutter = exposureTime;
                                 if (exposureTime && exposureTime < 1) shutter = `1/${Math.round(1 / exposureTime)}`;
 
+                                let dateStr = "";
+                                if (dateTimeOriginal instanceof Date && !isNaN(dateTimeOriginal)) {
+                                    const yyyy = dateTimeOriginal.getFullYear();
+                                    const mm = String(dateTimeOriginal.getMonth() + 1).padStart(2, '0');
+                                    const dd = String(dateTimeOriginal.getDate()).padStart(2, '0');
+                                    dateStr = `${yyyy}-${mm}-${dd}`;
+                                } else if (typeof dateTimeOriginal === 'string') {
+                                    dateStr = dateTimeOriginal.split(' ')[0].replace(/:/g, '-');
+                                } else if (dateTimeOriginal) {
+                                    dateStr = String(dateTimeOriginal).split(' ')[0].replace(/:/g, '-');
+                                }
+
                                 resolve({
                                     camera: model,
                                     params: `f/${fNumber} | ${shutter}s | ISO ${iso}`,
-                                    date: dateTimeOriginal.split(' ')[0].replace(/:/g, '-'),
-                                    gps: { lat, latRef, lon, lonRef },
+                                    date: dateStr,
+                                    gps: {
+                                        latDec: tags.latitude,
+                                        lonDec: tags.longitude,
+                                        lat: tags.GPSLatitude,
+                                        latRef: tags.GPSLatitudeRef,
+                                        lon: tags.GPSLongitude,
+                                        lonRef: tags.GPSLongitudeRef
+                                    },
                                     suspectedFraud: fraudFlag
                                 });
                             };
 
                             validateAndResolve(false);
-                        });
+                        } catch (err) {
+                            reject("Lỗi đọc dữ liệu EXIF của ảnh: " + (err.message || err));
+                        }
                     });
 
                     try {
@@ -1035,14 +1077,18 @@ Object.assign(window.app, {
 
                         app.upload.checkDuplicateRealtime();
 
-                        if (exifData.gps.lat && exifData.gps.lon && exifData.gps.latRef && exifData.gps.lonRef) {
-                            const toDecimal = (gps, ref) => {
-                                let dec = gps[0] + gps[1] / 60 + gps[2] / 3600;
-                                if (ref === "S" || ref === "W") dec = dec * -1;
-                                return dec;
-                            };
-                            const latDec = toDecimal(exifData.gps.lat, exifData.gps.latRef);
-                            const lonDec = toDecimal(exifData.gps.lon, exifData.gps.lonRef);
+                        if ((exifData.gps.latDec !== undefined && exifData.gps.lonDec !== undefined) || (exifData.gps.lat && exifData.gps.lon && exifData.gps.latRef && exifData.gps.lonRef)) {
+                            let latDec = exifData.gps.latDec;
+                            let lonDec = exifData.gps.lonDec;
+                            if (latDec === undefined || lonDec === undefined || isNaN(latDec) || isNaN(lonDec)) {
+                                const toDecimal = (gps, ref) => {
+                                    let dec = gps[0] + gps[1] / 60 + gps[2] / 3600;
+                                    if (ref === "S" || ref === "W") dec = dec * -1;
+                                    return dec;
+                                };
+                                latDec = toDecimal(exifData.gps.lat, exifData.gps.latRef);
+                                lonDec = toDecimal(exifData.gps.lon, exifData.gps.lonRef);
+                            }
                             const address = await app.utils.reverseGeocode(latDec, lonDec);
                             if (address && address !== "Vị trí không xác định") {
                                 document.getElementById('up-location').value = address;
