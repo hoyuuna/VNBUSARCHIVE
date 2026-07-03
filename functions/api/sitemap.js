@@ -65,20 +65,32 @@ export async function onRequest(context) {
     const xmlChunks = [];
 
     xmlChunks.push(`<?xml version="1.0" encoding="UTF-8"?>
-    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+            xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
       <url>
         <loc>${escapeXML(baseUrl)}/</loc>
         <priority>1.0</priority>
         <changefreq>daily</changefreq>
+        <image:image>
+          <image:loc>https://files.catbox.moe/ddvw49.png</image:loc>
+          <image:title>VNBUSARCHIVE - Dự án lưu trữ ảnh xe buýt phi lợi nhuận</image:title>
+          <image:caption>Dự án lưu trữ ảnh xe buýt phi lợi nhuận</image:caption>
+        </image:image>
       </url>`);
 
     vehicles.forEach(v => {
       if (v && v.license_plate) {
+        const displayPlate = cleanLicensePlateForDisplay(v.license_plate);
         xmlChunks.push(`
       <url>
         <loc>${escapeXML(baseUrl)}/vehicle/${encodeURIComponent(v.license_plate)}</loc>
         <priority>0.8</priority>
         <changefreq>weekly</changefreq>
+        <image:image>
+          <image:loc>https://files.catbox.moe/ddvw49.png</image:loc>
+          <image:title>Xem ảnh xe buýt ${escapeXML(displayPlate)} trên VNBUSARCHIVE</image:title>
+          <image:caption>Xem ảnh xe buýt ${escapeXML(displayPlate)} trên VNBUSARCHIVE - Dự án lưu trữ ảnh xe buýt phi lợi nhuận</image:caption>
+        </image:image>
       </url>`);
       }
     });
