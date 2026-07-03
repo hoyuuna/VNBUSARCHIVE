@@ -2,6 +2,19 @@ import { Resend } from 'resend';
 import { createClient } from '@supabase/supabase-js';
 import { marked } from 'marked';
 
+function formatEmailMarkdown(text) {
+    if (!text) return '';
+    let processed = text;
+    processed = processed.replace(/(^[ \t]*(?:[-*+]|\d+\.)[ \t]+.*)\n([ \t]*[^-*+\d\s])/gm, '$1\n\n$2');
+    processed = processed.replace(/\n(\s*\n)+/g, (match) => {
+        const count = (match.match(/\n/g) || []).length;
+        if (count <= 2) return '\n\n';
+        const extraBreaks = '<br>'.repeat(count - 2);
+        return `\n\n${extraBreaks}\n\n`;
+    });
+    return marked.parse(processed, { breaks: true, gfm: true });
+}
+
 async function handleSendEmail(request, env, body) {
     const authHeader = request.headers.get('authorization');
     const token = authHeader?.split(' ')[1];
@@ -41,7 +54,7 @@ async function handleSendEmail(request, env, body) {
     const adminName = isAnonymous ? 'Quản trị VNBUSARCHIVE' : profile.username;
     const senderLine = isAnonymous ? 'VNBUSARCHIVE <noreply@vnbusarchive.io.vn>' : `${profile.username} via VNBUSARCHIVE <noreply@vnbusarchive.io.vn>`;
 
-    const htmlContent = marked.parse(markdownContent);
+    const htmlContent = formatEmailMarkdown(markdownContent);
 
     const emailTemplate = `
     <!DOCTYPE html>

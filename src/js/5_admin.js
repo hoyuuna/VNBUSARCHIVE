@@ -1195,12 +1195,25 @@ app.admin.fetchManagerData('denied');
                     }
                 },
 
+                formatEmailMarkdown: (text) => {
+                    if (!text) return '';
+                    let processed = text;
+                    processed = processed.replace(/(^[ \t]*(?:[-*+]|\d+\.)[ \t]+.*)\n([ \t]*[^-*+\d\s])/gm, '$1\n\n$2');
+                    processed = processed.replace(/\n(\s*\n)+/g, (match) => {
+                        const count = (match.match(/\n/g) || []).length;
+                        if (count <= 2) return '\n\n';
+                        const extraBreaks = '<br>'.repeat(count - 2);
+                        return `\n\n${extraBreaks}\n\n`;
+                    });
+                    return marked.parse(processed, { breaks: true, gfm: true });
+                },
+
                 previewEmailMd: () => {
                     const content = document.getElementById('email-content').value;
                     const previewBox = document.getElementById('email-md-preview');
                     if (previewBox.classList.contains('hidden')) {
                         previewBox.classList.remove('hidden');
-                        previewBox.innerHTML = DOMPurify.sanitize(marked.parse(content || '*Chưa có nội dung*'));
+                        previewBox.innerHTML = DOMPurify.sanitize(app.admin.formatEmailMarkdown(content || '*Chưa có nội dung*'));
                     } else {
                         previewBox.classList.add('hidden');
                     }
