@@ -955,10 +955,77 @@ Object.assign(window.app, {
                     return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
                 },
                 getTargetMimeType: () => {
-                    return app.utils.isIOS() ? 'image/jpeg' : 'image/webp';
+                    return 'image/webp';
                 },
                 getTargetExtension: () => {
-                    return app.utils.isIOS() ? 'jpg' : 'webp';
+                    return 'webp';
+                },
+                convertToWebpCpu: async (imageSource, initialQuality = 0.8) => {
+                    try {
+                        const { encode } = await import("https://esm.sh/@jsquash/webp@1.2.0");
+                        let img;
+                        if (imageSource instanceof HTMLCanvasElement) {
+                            const ctx = imageSource.getContext('2d');
+                            const imageData = ctx.getImageData(0, 0, imageSource.width, imageSource.height);
+                            let q = Math.round(initialQuality * 100);
+                            let webpBuffer = await encode(imageData, { quality: q });
+                            while (webpBuffer.byteLength > 240 * 1024 && q > 20) {
+                                q -= 15;
+                                webpBuffer = await encode(imageData, { quality: q });
+                            }
+                            return new Blob([webpBuffer], { type: 'image/webp' });
+                        } else {
+                            img = new Image();
+                            const url = imageSource instanceof Blob || imageSource instanceof File ? URL.createObjectURL(imageSource) : imageSource;
+                            img.src = url;
+                            await new Promise((resolve, reject) => {
+                                img.onload = resolve;
+                                img.onerror = () => reject(new Error("Lỗi tải ảnh để encode WebP CPU"));
+                            });
+                            if (imageSource instanceof Blob || imageSource instanceof File) URL.revokeObjectURL(url);
+
+                            let w = img.naturalWidth || img.width;
+                            let h = img.naturalHeight || img.height;
+                            if (w > 1920 || h > 1920) {
+                                const ratio = Math.min(1920 / w, 1920 / h);
+                                w = Math.round(w * ratio);
+                                h = Math.round(h * ratio);
+                            }
+
+                            const canvas = document.createElement('canvas');
+                            canvas.width = w;
+                            canvas.height = h;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, w, h);
+                            const imageData = ctx.getImageData(0, 0, w, h);
+
+                            let q = Math.round(initialQuality * 100);
+                            let webpBuffer = await encode(imageData, { quality: q });
+                            while (webpBuffer.byteLength > 240 * 1024 && q > 20) {
+                                q -= 15;
+                                webpBuffer = await encode(imageData, { quality: q });
+                            }
+                            return new Blob([webpBuffer], { type: 'image/webp' });
+                        }
+                    } catch (err) {
+                        console.warn("WASM WebP encode bằng CPU lỗi, fallback:", err);
+                        return null;
+                    }
+                },
+                canvasToBlobUniversal: async (canvas, targetMime = 'image/webp', quality = 0.82) => {
+                    if (targetMime === 'image/webp') {
+                        try {
+                            const cpuBlob = await app.utils.convertToWebpCpu(canvas, quality);
+                            if (cpuBlob && cpuBlob.size > 0) return cpuBlob;
+                        } catch (e) {
+                            console.warn("WASM WebP encode canvas lỗi:", e);
+                        }
+                    }
+                    return new Promise((resolve) => {
+                        canvas.toBlob((blob) => {
+                            resolve(blob);
+                        }, targetMime, quality);
+                    });
                 },
 
                 handleImgLoad: (img) => {
@@ -1507,10 +1574,13 @@ cleanupState: () => {
                                 ctx.fillText(`© ${username}`, 0, 0);
                                 ctx.restore();
 
-                                canvas.toBlob((blob) => {
+                                try {
+                                    const blob = await app.utils.canvasToBlobUniversal(canvas, app.utils.getTargetMimeType(), 0.80);
                                     if (blob) resolve(blob);
                                     else reject(new Error("Canvas failed to blob"));
-                                }, app.utils.getTargetMimeType(), 0.80);
+                                } catch (errBlob) {
+                                    reject(errBlob);
+                                }
                             } catch (e) {
                                 reject(e);
                             } finally {

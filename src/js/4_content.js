@@ -832,8 +832,14 @@ Object.assign(window.app, {
                             fileType: targetMime,
                             initialQuality: 0.8
                         };
-                        const compressedFile = await imageCompression(finalBlob, compressOptions);
-                        if (compressedFile.size <= 250 * 1024) {
+                        let compressedFile = await imageCompression(finalBlob, compressOptions);
+                        if (!compressedFile || compressedFile.type !== targetMime || compressedFile.size > 250 * 1024) {
+                            const cpuBlob = await app.utils.convertToWebpCpu(compressedFile || finalBlob, 0.8);
+                            if (cpuBlob && cpuBlob.size > 0) {
+                                compressedFile = new File([cpuBlob], app.rawFile.name.replace(/\.[^/.]+$/, "") + ".webp", { type: 'image/webp' });
+                            }
+                        }
+                        if (compressedFile && compressedFile.size <= 250 * 1024) {
                             app.upload.readyBlob = compressedFile;
                         } else {
                             app.upload.readyBlob = null;
@@ -1205,7 +1211,11 @@ Object.assign(window.app, {
                                     }
                                 }
                                 const targetMime = app.utils.getTargetMimeType();
-                                const convertedBlob = await imageCompression(fileToCompress, { maxSizeMB: 0.24, maxWidthOrHeight: 1920, useWebWorker: true, fileType: targetMime, initialQuality: 0.8 });
+                                let convertedBlob = await imageCompression(fileToCompress, { maxSizeMB: 0.24, maxWidthOrHeight: 1920, useWebWorker: true, fileType: targetMime, initialQuality: 0.8 });
+                                if (!convertedBlob || convertedBlob.type !== targetMime || convertedBlob.size > 250 * 1024) {
+                                    const cpuBlob = await app.utils.convertToWebpCpu(convertedBlob || fileToCompress, 0.8);
+                                    if (cpuBlob && cpuBlob.size > 0) convertedBlob = cpuBlob;
+                                }
                                 const newUrl = URL.createObjectURL(convertedBlob);
                                 const newImg = new Image();
                                 newImg.onload = () => {
@@ -1505,21 +1515,33 @@ Object.assign(window.app, {
                             try {
                                 compressedFile = await imageCompression(finalBlob, compressOptions);
                             } catch (compressErr) {
-                                throw new Error("Lỗi nén ảnh (Image Compression): " + compressErr.message);
+                                console.warn("imageCompression lỗi, thử chuyển sang WASM CPU encoder:", compressErr);
+                            }
+                            if (!compressedFile || compressedFile.type !== targetMime || compressedFile.size > 250 * 1024) {
+                                const cpuBlob = await app.utils.convertToWebpCpu(compressedFile || finalBlob, 0.8);
+                                if (cpuBlob && cpuBlob.size > 0) {
+                                    compressedFile = new File([cpuBlob], app.rawFile.name.replace(/\.[^/.]+$/, "") + ".webp", { type: 'image/webp' });
+                                }
                             }
                         }
 
-                        if (compressedFile.size > 250 * 1024) {
+                        if (compressedFile && (compressedFile.size > 250 * 1024 || compressedFile.type !== targetMime)) {
                             try {
-                                const fallbackOptions = { maxSizeMB: 0.22, maxWidthOrHeight: 1600, useWebWorker: true, fileType: targetMime, initialQuality: 0.7 };
-                                compressedFile = await imageCompression(compressedFile, fallbackOptions);
+                                const cpuBlob = await app.utils.convertToWebpCpu(compressedFile, 0.7);
+                                if (cpuBlob && cpuBlob.size > 0) {
+                                    compressedFile = new File([cpuBlob], app.rawFile.name.replace(/\.[^/.]+$/, "") + ".webp", { type: 'image/webp' });
+                                }
                             } catch(e) {}
+                        }
+
+                        if (!compressedFile) {
+                            throw new Error("Không thể xử lý và nén ảnh. Vui lòng thử lại!");
                         }
 
                         let compressedSizeKB = (compressedFile.size / 1024).toFixed(2);
 
-                        if (compressedFile.type !== targetMime) {
-                            throw new Error(`Trình duyệt của bạn không hỗ trợ định dạng ${targetMime}.`);
+                        if (compressedFile.type !== targetMime && compressedFile.type !== 'image/webp') {
+                            throw new Error(`Trình duyệt của bạn không hỗ trợ định dạng WebP.`);
                         }
 
                         if (compressedFile.size > 250 * 1024) {
@@ -2009,11 +2031,11 @@ Object.assign(window.app, {
                                 return;
                             }
 
-                            canvas.toBlob((blob) => {
+                            app.utils.canvasToBlobUniversal(canvas, app.utils.getTargetMimeType(), 0.85).then((blob) => {
                                 if (app.crop.originalFile && app.crop.originalFile.name) {
                                     blob.name = app.crop.originalFile.name;
                                 } else {
-                                    blob.name = 'cropped_image.jpg';
+                                    blob.name = 'cropped_image.webp';
                                 }
 
                                 const wasMandatory = app.crop.isMandatory;
@@ -2039,10 +2061,10 @@ Object.assign(window.app, {
 
                                 btn.innerHTML = originalText;
                                 btn.disabled = false;
-                            }, app.utils.getTargetMimeType(), 0.85);
+                            });
 
                         } else if (app.crop.mode === 'avatar') {
-                            canvas.toBlob(async (blob) => {
+                            app.utils.canvasToBlobUniversal(canvas, app.utils.getTargetMimeType(), 0.8).then(async (blob) => {
                                 if (blob.size > 3 * 1024 * 1024) {
                                     app.ui.showAlert('Ảnh sau khi cắt vẫn quá lớn (>3MB)! Vui lòng chọn ảnh/vùng nhỏ hơn.');
                                     btn.innerHTML = originalText;
@@ -2055,7 +2077,7 @@ Object.assign(window.app, {
                                 btn.disabled = false;
 
                                 app.auth.uploadAvatarBlob(blob);
-                            }, app.utils.getTargetMimeType(), 0.8);
+                            });
                         }
                     }, 50);
                 }
