@@ -103,13 +103,10 @@ const buildContactEmailHtml = ({ name, ticketId, supportType, message }) => {
 
                             <!-- Lời nhắn và lưu ý -->
                             <p style="margin: 0 0 15px; font-size: 14px; line-height: 1.6; color: #52525b;">
-                                Email này là email được cung cấp để phản hồi, chúng tôi thường phản hồi sau <strong>6-24 giờ</strong>.
-                            </p>
-                            <p style="margin: 0 0 15px; font-size: 14px; line-height: 1.6; color: #52525b;">
                                 <strong>Lưu ý:</strong> Các yêu cầu đơn giản có thể sẽ không nhận được phản hồi, tuy nhiên chúng tôi vẫn tiến hành xử lý như thông thường.
                             </p>
                             <p style="margin: 0 0 30px; font-size: 14px; line-height: 1.6; color: #52525b;">
-                                Vui lòng <strong>KHÔNG</strong> tạo quá nhiều yêu cầu, nếu phát hiện thông tin sai sót hoặc muốn bổ sung, hủy yêu cầu vui lòng phản hồi lại chúng tôi bằng email bên dưới cùng với thông tin ID được nêu bên trên.
+                                Vui lòng <strong>KHÔNG</strong> tạo quá nhiều yêu cầu, nếu phát hiện thông tin sai sót, muốn bổ sung hoặc hủy yêu cầu vui lòng phản hồi lại chúng tôi bằng email bên dưới cùng với thông tin ID được nêu bên trên.
                             </p>
 
                             <!-- Đường kẻ ngang phân cách phần footer -->
