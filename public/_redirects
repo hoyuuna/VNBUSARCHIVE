@@ -1,3 +1,4 @@
 /photo/:id /api/embed?type=photo&id=:id 200
 /vehicle/:plate /api/embed?type=vehicle&plate=:plate 200
+/sitemap.xml /api/sitemap 200
 /* /index.html 200
