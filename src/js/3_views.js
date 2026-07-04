@@ -3176,7 +3176,7 @@ Object.assign(window.app, {
 
             // --- YÊU CẦU ĐĂNG NHẬP ---
             if ((topic === 'appeal' || topic === 'account') && !app.user) {
-                app.ui.showAlert("Chủ đề này yêu cầu bạn phải đăng nhập vào hệ thống để xác thực quyền sở hữu.", () => {
+                app.ui.showAlert("Chức năng này yêu cầu bạn phải đăng nhập vào hệ thống để xác thực quyền sở hữu.", () => {
                     app.utils.navigate('/auth');
                 });
                 app.contact.init(); // Reset lại form
@@ -3289,7 +3289,10 @@ Object.assign(window.app, {
             if (val === 'external' && !app.user) {
                 const menuEl = document.getElementById('contact-copyright-menu');
                 if (menuEl) menuEl.classList.remove('active');
-                return app.ui.showAlert("Vui lòng đăng nhập tài khoản VNBUSARCHIVE để sử dụng chức năng báo cáo ảnh của bạn trên hệ thống bị đăng tải ra bên ngoài.");
+                app.ui.showAlert("Chức năng này yêu cầu bạn phải đăng nhập vào hệ thống để xác thực quyền sở hữu.", () => {
+                    app.utils.navigate('/auth');
+                });
+                return;
             }
 
             const typeInput = document.getElementById('contact-copyright-type');
