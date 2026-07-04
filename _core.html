@@ -3416,7 +3416,7 @@
 
                         <form id="contact-form" onsubmit="app.contact.submit(event)">
                             <!-- 1. CHỦ ĐỀ CẦN HỖ TRỢ -->
-                            <div class="relative z-50 mb-6">
+                            <div class="relative mb-6">
                                 <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Chủ đề cần hỗ trợ <span class="text-red-500">*</span></label>
                                 <input type="hidden" id="contact-topic" value="">
                                 
@@ -3426,7 +3426,7 @@
                                 </button>
 
                                 <!-- ÉP CỨNG style="width: 100% !important" ĐỂ ĐÈ CSS GỐC CỦA FILTER-MENU VÀ XÓA ICON CHECK -->
-                                <div id="contact-topic-menu" class="filter-menu left-0 right-0 origin-top mt-2 !max-h-[300px] z-50" style="width: 100% !important;">
+                                <div id="contact-topic-menu" class="filter-menu left-0 right-0 origin-top mt-2 !max-h-[300px] !z-[999]" style="width: 100% !important;">
                                     <div class="filter-item" onclick="app.contact.selectTopic('bug', 'Báo cáo lỗi hệ thống', this)">
                                         <span class="font-bold">Báo cáo lỗi hệ thống</span>
                                     </div>
@@ -3455,12 +3455,12 @@
                             </div>
 
                             <!-- KHU VỰC HIỂN THỊ ĐỘNG -->
-                            <div id="contact-dynamic-area" class="hidden relative z-40">
+                            <div id="contact-dynamic-area" class="hidden relative">
                                 
                                 <!-- Khung Nhập Link Ảnh (Chỉ hiện khi bản quyền/kháng cáo) -->
                                 <div id="contact-photo-section" class="hidden mb-6">
                                     <!-- DROPDOWN HÌNH THỨC VI PHẠM BẢN QUYỀN -->
-                                    <div id="contact-copyright-type-section" class="hidden relative z-40 mb-6">
+                                    <div id="contact-copyright-type-section" class="hidden relative mb-6">
                                         <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Hình thức vi phạm bản quyền <span class="text-red-500">*</span></label>
                                         <input type="hidden" id="contact-copyright-type" value="internal">
                                         
@@ -3469,7 +3469,7 @@
                                             <i class="fa-solid fa-chevron-down text-gray-400 shrink-0"></i>
                                         </button>
 
-                                        <div id="contact-copyright-menu" class="filter-menu left-0 right-0 origin-top mt-2 !max-h-[300px] z-50" style="width: 100% !important;">
+                                        <div id="contact-copyright-menu" class="filter-menu left-0 right-0 origin-top mt-2 !max-h-[300px] !z-[999]" style="width: 100% !important;">
                                             <div class="filter-item selected" onclick="app.contact.selectCopyrightType('internal', 'Ảnh của tôi bị đăng trái luật lên nền tảng', this)">
                                                 <span class="font-bold">Ảnh của tôi bị đăng trái luật lên nền tảng</span>
                                             </div>
@@ -3543,17 +3543,6 @@
                                                     <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 to-transparent p-3 pt-8 text-white">
                                                         <p id="contact-orig-preview-plate" class="text-sm font-bold truncate drop-shadow-md"></p>
                                                         <p id="contact-orig-preview-op" class="text-[11px] font-medium truncate drop-shadow-md"></p>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <!-- Khung Preview User Profile cho Tác phẩm gốc -->
-                                            <div id="contact-orig-user-preview" class="hidden w-full mt-3">
-                                                <div class="bg-white border border-gray-200 rounded-xl p-4 flex items-center gap-4 shadow-sm w-full">
-                                                    <img id="contact-orig-preview-user-avatar" src="" class="w-14 h-14 rounded-full object-cover bg-gray-100 shrink-0 border border-gray-200">
-                                                    <div class="overflow-hidden flex-1">
-                                                        <div id="contact-orig-preview-user-name" class="font-bold text-black text-base flex items-center gap-1.5 truncate"></div>
-                                                        <div id="contact-orig-preview-user-stats" class="text-xs text-gray-500 mt-0.5"></div>
                                                     </div>
                                                 </div>
                                             </div>
