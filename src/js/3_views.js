@@ -3119,12 +3119,13 @@ Object.assign(window.app, {
                 item.classList.remove('selected');
             });
             
+            if (app.contact._animTimeout) clearTimeout(app.contact._animTimeout);
             const dynamicArea = document.getElementById('contact-dynamic-area');
-            if(dynamicArea) dynamicArea.classList.add('hidden');
+            if(dynamicArea) { dynamicArea.classList.add('hidden'); dynamicArea.classList.remove('fade-zoom-in'); }
             const directBanner = document.getElementById('contact-direct-links-banner');
             if(directBanner) directBanner.classList.remove('hidden');
             const noticeEl = document.getElementById('contact-incorrect-info-notice');
-            if(noticeEl) noticeEl.classList.add('hidden');
+            if(noticeEl) { noticeEl.classList.add('hidden'); noticeEl.classList.remove('fade-zoom-in'); }
             
             app.contact.currentPreviewId = null;
             app.contact.isExternalLink = false;
@@ -3182,23 +3183,37 @@ Object.assign(window.app, {
             const directBanner = document.getElementById('contact-direct-links-banner');
             const noticeEl = document.getElementById('contact-incorrect-info-notice');
 
+            if (app.contact._animTimeout) clearTimeout(app.contact._animTimeout);
+
             if (topic === 'incorrect_info') {
-                if (dynamicArea) dynamicArea.classList.add('hidden');
+                if (dynamicArea) {
+                    dynamicArea.classList.add('hidden');
+                    dynamicArea.classList.remove('fade-zoom-in');
+                }
                 if (directBanner) directBanner.classList.add('hidden');
                 if (noticeEl) {
                     noticeEl.classList.remove('hidden');
                     noticeEl.classList.remove('fade-zoom-in');
                     void noticeEl.offsetWidth;
                     noticeEl.classList.add('fade-zoom-in');
+                    app.contact._animTimeout = setTimeout(() => {
+                        noticeEl.classList.remove('fade-zoom-in');
+                    }, 500);
                 }
                 return;
             } else {
-                if (noticeEl) noticeEl.classList.add('hidden');
+                if (noticeEl) {
+                    noticeEl.classList.add('hidden');
+                    noticeEl.classList.remove('fade-zoom-in');
+                }
                 if (dynamicArea) {
                     dynamicArea.classList.remove('hidden');
                     dynamicArea.classList.remove('fade-zoom-in');
                     void dynamicArea.offsetWidth;
                     dynamicArea.classList.add('fade-zoom-in');
+                    app.contact._animTimeout = setTimeout(() => {
+                        dynamicArea.classList.remove('fade-zoom-in');
+                    }, 500);
                 }
                 if (directBanner) directBanner.classList.add('hidden');
             }
