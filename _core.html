@@ -3455,21 +3455,21 @@
                             </div>
 
                             <!-- KHU VỰC HIỂN THỊ ĐỘNG -->
-                            <div id="contact-dynamic-area" class="hidden fade-zoom-in relative z-40">
+                            <div id="contact-dynamic-area" class="hidden relative z-40">
                                 
                                 <!-- Khung Nhập Link Ảnh (Chỉ hiện khi bản quyền/kháng cáo) -->
                                 <div id="contact-photo-section" class="hidden mb-6">
                                     <!-- DROPDOWN HÌNH THỨC VI PHẠM BẢN QUYỀN -->
-                                    <div id="contact-copyright-type-section" class="hidden relative z-40 mb-6 fade-zoom-in">
+                                    <div id="contact-copyright-type-section" class="hidden relative z-40 mb-6">
                                         <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Hình thức vi phạm bản quyền <span class="text-red-500">*</span></label>
                                         <input type="hidden" id="contact-copyright-type" value="internal">
                                         
-                                        <button type="button" id="contact-copyright-btn" onclick="document.getElementById('contact-copyright-menu').classList.toggle('active')" class="w-full flex items-center justify-between bg-gray-50 border border-gray-200 hover:border-black rounded-lg p-2.5 text-sm font-bold text-gray-700 transition-all focus:ring-2 focus:ring-black outline-none">
+                                        <button type="button" id="contact-copyright-btn" onclick="document.getElementById('contact-copyright-menu').classList.toggle('active')" class="w-full flex items-center justify-between bg-white border border-gray-300 hover:border-black hover:bg-gray-50 rounded-xl p-3.5 text-sm font-bold text-gray-700 transition-all shadow-sm focus:ring-2 focus:ring-black outline-none">
                                             <span id="contact-copyright-label" class="truncate pr-4 text-black">Ảnh của tôi bị đăng trái luật lên nền tảng</span>
                                             <i class="fa-solid fa-chevron-down text-gray-400 shrink-0"></i>
                                         </button>
 
-                                        <div id="contact-copyright-menu" class="filter-menu left-0 right-0 origin-top mt-1 !max-h-[300px] z-50" style="width: 100% !important;">
+                                        <div id="contact-copyright-menu" class="filter-menu left-0 right-0 origin-top mt-2 !max-h-[300px] z-50" style="width: 100% !important;">
                                             <div class="filter-item selected" onclick="app.contact.selectCopyrightType('internal', 'Ảnh của tôi bị đăng trái luật lên nền tảng', this)">
                                                 <span class="font-bold">Ảnh của tôi bị đăng trái luật lên nền tảng</span>
                                             </div>
@@ -3489,12 +3489,12 @@
                                         <input type="text" id="contact-photo-url" oninput="app.contact.onLinkInput()" placeholder="Paste link ảnh vào đây (VD: vnbusarchive.io.vn/photo/123)" class="w-full bg-gray-50 border border-gray-200 rounded-lg py-2.5 pr-3 pl-10 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all text-black">
                                     </div>
 
-                                    <p id="contact-comment-note" class="text-[11px] text-gray-500 italic mt-2 px-1 leading-relaxed fade-zoom-in">
+                                    <p id="contact-comment-note" class="text-[11px] text-gray-500 italic mt-2 px-1 leading-relaxed">
                                         <i class="fa-solid fa-circle-info mr-1 text-gray-400"></i> Đối với bình luận vui lòng sử dụng link ảnh mà nội dung vi phạm xuất hiện
                                     </p>
 
                                     <!-- Khung Preview Ảnh -->
-                                    <div id="contact-photo-preview" class="hidden w-full flex flex-col items-center mt-3 fade-zoom-in">
+                                    <div id="contact-photo-preview" class="hidden w-full flex flex-col items-center mt-3">
                                         <div class="relative w-full max-w-sm aspect-[4/3] rounded-xl overflow-hidden shadow-sm border border-gray-200 bg-gray-100">
                                             <img id="contact-preview-img" src="" class="w-full h-full object-cover transition-opacity duration-300">
                                             <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 to-transparent p-3 pt-8 text-white">
@@ -3505,7 +3505,7 @@
                                     </div>
 
                                     <!-- Khung Preview User Profile (Kéo dài ra) -->
-                                    <div id="contact-user-preview" class="hidden w-full mt-3 fade-zoom-in">
+                                    <div id="contact-user-preview" class="hidden w-full mt-3">
                                         <div class="bg-white border border-gray-200 rounded-xl p-4 flex items-center gap-4 shadow-sm w-full">
                                             <img id="contact-preview-user-avatar" src="" class="w-14 h-14 rounded-full object-cover bg-gray-100 shrink-0 border border-gray-200">
                                             <div class="overflow-hidden flex-1">
@@ -3514,17 +3514,50 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div id="contact-photo-error" class="hidden mt-3 text-[11px] text-red-600 font-bold bg-red-50 border border-red-200 p-2.5 rounded-lg fade-zoom-in"><i class="fa-solid fa-triangle-exclamation mr-1.5"></i> <span id="contact-photo-err-txt"></span></div>
+                                    <div id="contact-photo-error" class="hidden mt-3 text-[11px] text-red-600 font-bold bg-red-50 border border-red-200 p-2.5 rounded-lg"><i class="fa-solid fa-triangle-exclamation mr-1.5"></i> <span id="contact-photo-err-txt"></span></div>
 
                                     <!-- Ô nhập tác phẩm gốc (Chỉ Bản quyền) -->
                                     <div id="contact-original-work-section" class="hidden mt-6">
                                         <div class="mb-6">
                                             <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Họ và tên hợp pháp <span class="text-red-500">*</span></label>
-                                            <input type="text" id="contact-legal-name" placeholder="Nhập họ tên thật / pháp lý của bạn..." class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all text-black">
+                                            <div class="relative w-full">
+                                                <span class="absolute inset-y-0 left-0 flex items-center justify-center w-10 text-gray-400 pointer-events-none">
+                                                    <i class="fa-solid fa-user"></i>
+                                                </span>
+                                                <input type="text" id="contact-legal-name" placeholder="Nhập họ tên thật / pháp lý của bạn..." class="w-full bg-gray-50 border border-gray-200 rounded-lg py-2.5 pr-3 pl-10 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all text-black">
+                                            </div>
                                         </div>
                                         <div>
                                             <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Minh chứng / Tác phẩm gốc của bạn <span class="text-red-500">*</span></label>
-                                            <input type="text" id="contact-original-work" placeholder="Link ảnh gốc, link bài đăng gốc của bạn..." class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all text-black">
+                                            <div class="relative w-full">
+                                                <span class="absolute inset-y-0 left-0 flex items-center justify-center w-10 text-gray-400 pointer-events-none">
+                                                    <i class="fa-solid fa-link"></i>
+                                                </span>
+                                                <input type="text" id="contact-original-work" oninput="app.contact.onOrigWorkInput()" placeholder="Link ảnh gốc, link bài đăng gốc của bạn..." class="w-full bg-gray-50 border border-gray-200 rounded-lg py-2.5 pr-3 pl-10 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all text-black">
+                                            </div>
+
+                                            <!-- Khung Preview Ảnh cho Tác phẩm gốc -->
+                                            <div id="contact-orig-preview" class="hidden w-full flex flex-col items-center mt-3">
+                                                <div class="relative w-full max-w-sm aspect-[4/3] rounded-xl overflow-hidden shadow-sm border border-gray-200 bg-gray-100">
+                                                    <img id="contact-orig-preview-img" src="" class="w-full h-full object-cover transition-opacity duration-300">
+                                                    <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 to-transparent p-3 pt-8 text-white">
+                                                        <p id="contact-orig-preview-plate" class="text-sm font-bold truncate drop-shadow-md"></p>
+                                                        <p id="contact-orig-preview-op" class="text-[11px] font-medium truncate drop-shadow-md"></p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Khung Preview User Profile cho Tác phẩm gốc -->
+                                            <div id="contact-orig-user-preview" class="hidden w-full mt-3">
+                                                <div class="bg-white border border-gray-200 rounded-xl p-4 flex items-center gap-4 shadow-sm w-full">
+                                                    <img id="contact-orig-preview-user-avatar" src="" class="w-14 h-14 rounded-full object-cover bg-gray-100 shrink-0 border border-gray-200">
+                                                    <div class="overflow-hidden flex-1">
+                                                        <div id="contact-orig-preview-user-name" class="font-bold text-black text-base flex items-center gap-1.5 truncate"></div>
+                                                        <div id="contact-orig-preview-user-stats" class="text-xs text-gray-500 mt-0.5"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div id="contact-orig-error" class="hidden mt-3 text-[11px] text-red-600 font-bold bg-red-50 border border-red-200 p-2.5 rounded-lg"><i class="fa-solid fa-triangle-exclamation mr-1.5"></i> <span id="contact-orig-err-txt"></span></div>
                                         </div>
                                     </div>
                                 </div>
@@ -3571,7 +3604,7 @@
                             </div> <!-- Đóng contact-dynamic-area -->
 
                             <!-- PHƯƠNG THỨC LIÊN HỆ TRỰC TIẾP (Chỉ hiện khi chưa chọn chủ đề nào) -->
-                            <div id="contact-direct-links-banner" class="mt-6 fade-zoom-in">
+                            <div id="contact-direct-links-banner" class="mt-6">
                                 <p class="text-[11px] font-bold text-gray-500 uppercase tracking-widest text-center mb-4">Hoặc liên hệ trực tiếp với chúng tôi qua</p>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <a href="https://www.facebook.com/vnbusarchive/" target="_blank" class="flex items-center justify-center gap-2 bg-white hover:bg-gray-50 border border-gray-300 hover:border-black text-gray-800 py-3.5 px-4 rounded-xl font-bold text-xs uppercase tracking-wider transition shadow-sm">

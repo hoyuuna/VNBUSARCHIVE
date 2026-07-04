@@ -3193,11 +3193,18 @@ Object.assign(window.app, {
                 else commentNote.classList.add('hidden');
             }
             app.contact.currentPreviewId = null;
+            app.contact.currentOrigPreviewId = null;
             app.contact.isExternalLink = false;
             document.getElementById('contact-photo-preview').classList.add('hidden');
             const userPreviewBox = document.getElementById('contact-user-preview');
             if(userPreviewBox) userPreviewBox.classList.add('hidden');
             document.getElementById('contact-photo-error').classList.add('hidden');
+            const origPreview = document.getElementById('contact-orig-preview');
+            const origUserPreview = document.getElementById('contact-orig-user-preview');
+            const origErrBox = document.getElementById('contact-orig-error');
+            if (origPreview) origPreview.classList.add('hidden');
+            if (origUserPreview) origUserPreview.classList.add('hidden');
+            if (origErrBox) origErrBox.classList.add('hidden');
 
             const copySection = document.getElementById('contact-copyright-type-section');
             const titleEl = document.getElementById('contact-content-title');
@@ -3260,13 +3267,20 @@ Object.assign(window.app, {
             const preview = document.getElementById('contact-photo-preview');
             const userPreview = document.getElementById('contact-user-preview');
             const errBox = document.getElementById('contact-photo-error');
+            const origPreview = document.getElementById('contact-orig-preview');
+            const origUserPreview = document.getElementById('contact-orig-user-preview');
+            const origErrBox = document.getElementById('contact-orig-error');
 
             if (photoUrlInput) photoUrlInput.value = '';
             if (origWorkInput) origWorkInput.value = '';
             if (preview) preview.classList.add('hidden');
             if (userPreview) userPreview.classList.add('hidden');
             if (errBox) errBox.classList.add('hidden');
+            if (origPreview) origPreview.classList.add('hidden');
+            if (origUserPreview) origUserPreview.classList.add('hidden');
+            if (origErrBox) origErrBox.classList.add('hidden');
             app.contact.currentPreviewId = null;
+            app.contact.currentOrigPreviewId = null;
 
             if (val === 'internal') {
                 if (photoUrlInput) photoUrlInput.placeholder = "Paste link ảnh vào đây (VD: vnbusarchive.io.vn/photo/123)";
@@ -3370,6 +3384,82 @@ Object.assign(window.app, {
             }
         },
 
+        onOrigWorkInput: async () => {
+            const url = document.getElementById('contact-original-work').value.trim();
+            const previewBox = document.getElementById('contact-orig-preview');
+            const userPreviewBox = document.getElementById('contact-orig-user-preview');
+            const errBox = document.getElementById('contact-orig-error');
+            const errTxt = document.getElementById('contact-orig-err-txt');
+            const imgEl = document.getElementById('contact-orig-preview-img');
+
+            if (!app.contact.isExternalLink || !url) {
+                if (previewBox) previewBox.classList.add('hidden');
+                if (userPreviewBox) userPreviewBox.classList.add('hidden');
+                if (errBox) errBox.classList.add('hidden');
+                app.contact.currentOrigPreviewId = null;
+                return;
+            }
+
+            const match = url.match(/\/photo\/(\d+)/i);
+            const userMatch = url.match(/\/user\/([^\/\?#]+)/i) || url.match(/\/profile/i);
+
+            if (!match && !userMatch) {
+                if (previewBox) previewBox.classList.add('hidden');
+                if (userPreviewBox) userPreviewBox.classList.add('hidden');
+                errTxt.innerText = "Đường dẫn không hợp lệ. Vui lòng copy đúng link truy cập ảnh hoặc hồ sơ của VNBUSARCHIVE.";
+                if (errBox) errBox.classList.remove('hidden');
+                app.contact.currentOrigPreviewId = null;
+                return;
+            }
+
+            if (userMatch) {
+                if (previewBox) previewBox.classList.add('hidden');
+                if (errBox) errBox.classList.add('hidden');
+                let targetUsername = userMatch[1] ? decodeURIComponent(userMatch[1]) : (app.username || '');
+                if (!targetUsername) return;
+                try {
+                    const { data: uData, error: uErr } = await window.sb.from('profiles').select('id, username, avatar_url, role, subroles').eq('username', targetUsername).single();
+                    if (uErr || !uData) throw new Error("Hồ sơ người dùng không tồn tại.");
+                    const { count } = await window.sb.from('photos').select('*', { count: 'exact', head: true }).eq('uploader_id', uData.id).eq('status', 'approved');
+                    const avatarSrc = uData.avatar_url ? app.utils.getProxiedUrl(uData.avatar_url.replace(/"/g, ''), 'avatar.jpg', 'avatar') : 'https://files.catbox.moe/zzh1q1.png';
+                    const badges = app.utils.getBadgesHTML(uData.id, uData.role, uData.subroles);
+                    document.getElementById('contact-orig-preview-user-avatar').src = avatarSrc;
+                    document.getElementById('contact-orig-preview-user-name').innerHTML = `${uData.username} ${badges}`;
+                    document.getElementById('contact-orig-preview-user-stats').innerText = `${count || 0} ảnh đã đăng trên hệ thống`;
+                    if (userPreviewBox) userPreviewBox.classList.remove('hidden');
+                    app.contact.currentOrigPreviewId = 'user:' + uData.username;
+                } catch (err) {
+                    if (userPreviewBox) userPreviewBox.classList.add('hidden');
+                    app.contact.currentOrigPreviewId = null;
+                    errTxt.innerText = err.message;
+                    if (errBox) errBox.classList.remove('hidden');
+                }
+                return;
+            }
+
+            if (userPreviewBox) userPreviewBox.classList.add('hidden');
+            const photoId = match[1];
+            if (errBox) errBox.classList.add('hidden');
+            if (previewBox) previewBox.classList.remove('hidden');
+            if (imgEl) imgEl.src = 'https://placehold.co/400x300/f3f4f6/a1a1aa?text=Dang+tai...';
+
+            try {
+                const { data, error } = await window.sb.from('photos').select('id, url, status, uploader_id, license_plate, operator').eq('id', photoId).single();
+                if (error || !data) throw new Error("Ảnh không tồn tại trên hệ thống.");
+
+                app.contact.currentOrigPreviewId = photoId;
+                if (imgEl) imgEl.src = app.utils.getProxiedUrl(data.url, 'preview.jpg', 'thumb');
+                document.getElementById('contact-orig-preview-plate').innerText = app.utils.displayPlate(data.license_plate);
+                document.getElementById('contact-orig-preview-op').innerText = data.operator || 'N/A';
+
+            } catch (err) {
+                if (previewBox) previewBox.classList.add('hidden');
+                app.contact.currentOrigPreviewId = null;
+                errTxt.innerText = err.message;
+                if (errBox) errBox.classList.remove('hidden');
+            }
+        },
+
         setMethod: (method) => {
             if (method === 'account_email' && (!app.user || !app.user.email)) {
                 method = 'custom_email';
@@ -3442,6 +3532,9 @@ Object.assign(window.app, {
                     if (!originalWork) {
                         return app.ui.showAlert("Vui lòng nhập Link minh chứng / tác phẩm gốc của bạn.");
                     }
+                    if (app.contact.isExternalLink && !app.contact.currentOrigPreviewId) {
+                        return app.ui.showAlert("Vui lòng nhập Link minh chứng VNBUSARCHIVE hợp lệ (ảnh hoặc hồ sơ của bạn trên hệ thống).");
+                    }
                 }
             }
 
@@ -3473,9 +3566,9 @@ Object.assign(window.app, {
                 captcha: captchaResponse,
                 userId: app.user ? app.user.id : null,
                 userName: app.username || 'Khách (Chưa đăng nhập)',
-                photoId: (topic === 'copyright' || topic === 'appeal' || topic === 'report_violation') ? app.contact.currentPreviewId : null,
+                photoId: (topic === 'copyright' || topic === 'appeal' || topic === 'report_violation') ? (!app.contact.isExternalLink ? app.contact.currentPreviewId : null) : null,
                 externalLink: (topic === 'copyright' || topic === 'appeal' || topic === 'report_violation') ? ((app.contact.isExternalLink || (topic === 'report_violation' && !app.contact.currentPreviewId)) ? document.getElementById('contact-photo-url').value.trim() : null) : null,
-                originalWork: (topic === 'copyright') ? (originalWork || null) : null,
+                originalWork: (topic === 'copyright') ? (app.contact.isExternalLink && app.contact.currentOrigPreviewId ? (String(app.contact.currentOrigPreviewId).startsWith('user:') ? `https://www.vnbusarchive.io.vn/user/${encodeURIComponent(String(app.contact.currentOrigPreviewId).replace('user:', ''))}` : `https://www.vnbusarchive.io.vn/photo/${app.contact.currentOrigPreviewId}`) : (originalWork || null)) : null,
                 legalName: (topic === 'copyright') ? (legalName || null) : null,
                 copyrightType: (topic === 'copyright') ? (document.getElementById('contact-copyright-type')?.value || 'internal') : null
             };
