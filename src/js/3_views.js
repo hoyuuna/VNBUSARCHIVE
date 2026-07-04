@@ -3123,6 +3123,8 @@ Object.assign(window.app, {
             if(dynamicArea) dynamicArea.classList.add('hidden');
             const directBanner = document.getElementById('contact-direct-links-banner');
             if(directBanner) directBanner.classList.remove('hidden');
+            const noticeEl = document.getElementById('contact-incorrect-info-notice');
+            if(noticeEl) noticeEl.classList.add('hidden');
             
             app.contact.currentPreviewId = null;
             app.contact.isExternalLink = false;
@@ -3177,9 +3179,19 @@ Object.assign(window.app, {
             }
 
             // --- HIỂN THỊ GIAO DIỆN ---
-            dynamicArea.classList.remove('hidden');
             const directBanner = document.getElementById('contact-direct-links-banner');
-            if(directBanner) directBanner.classList.add('hidden');
+            const noticeEl = document.getElementById('contact-incorrect-info-notice');
+
+            if (topic === 'incorrect_info') {
+                if (dynamicArea) dynamicArea.classList.add('hidden');
+                if (directBanner) directBanner.classList.add('hidden');
+                if (noticeEl) noticeEl.classList.remove('hidden');
+                return;
+            } else {
+                if (noticeEl) noticeEl.classList.add('hidden');
+                if (dynamicArea) dynamicArea.classList.remove('hidden');
+                if (directBanner) directBanner.classList.add('hidden');
+            }
             
             // Reset ảnh/link và minh chứng mỗi khi đổi chủ đề
             photoUrlInput.value = '';
