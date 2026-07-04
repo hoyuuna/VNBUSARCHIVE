@@ -2355,10 +2355,10 @@
 
         <div id="admin-zoom-modal" class="hidden fixed inset-0 z-[2000] bg-black/95 flex flex-col items-center justify-center px-4 pt-4 pb-20 md:pb-24" onclick="app.admin.closeZoom()">
             <img id="admin-zoom-img" src="" class="max-w-full max-h-full object-contain transition-transform duration-300 zoom-img-cursor" onclick="event.stopPropagation();">
-            <button onclick="app.admin.closeZoom()" class="absolute top-4 right-4 text-white hover:text-red-500 text-3xl z-[2001]"><i class="fa-solid fa-xmark"></i></button>
+            <button onclick="app.admin.closeZoom()" title="Đóng (ESC)" class="absolute top-4 right-4 text-white hover:text-red-500 text-3xl z-[2001] p-2 transition-transform active:scale-90"><i class="fa-solid fa-xmark"></i></button>
 
             <div id="zoom-hint" class="absolute bottom-4 left-0 w-full text-center text-white/50 text-xs pointer-events-none transition-opacity">
-                Click vào ảnh để phóng to/thu nhỏ
+                Click / Cuộn chuột để phóng to • Nhấn ESC để đóng
             </div>
 
             <!-- Floating Toolbar Kính Mờ Hình Nút Bo Góc (Animation Trượt) -->
@@ -5400,6 +5400,16 @@
 
             window.addEventListener('mouseup', () => {
                 isPanning = false;
+            });
+
+            // [MỚI] Cho phép nhấn phím ESC để tắt/đóng ảnh phóng to (Zoom Modal) trên PC
+            document.addEventListener('keydown', (e) => {
+                if ((e.key === 'Escape' || e.key === 'Esc') && zoomModal && !zoomModal.classList.contains('hidden')) {
+                    e.preventDefault();
+                    if (app && app.admin && app.admin.closeZoom) {
+                        app.admin.closeZoom();
+                    }
+                }
             });
 
             // Override app.admin functions to hook zoom reset
