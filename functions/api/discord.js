@@ -429,7 +429,7 @@ async function handleContactSubmit(request, env) {
         'copyright': { title: 'Báo cáo vi phạm bản quyền ảnh', color: 0xffaa00 }, 
         'report_violation': { title: 'Báo cáo ảnh / bình luận / hồ sơ vi phạm', color: 0xff4444 },
         'appeal': { title: 'Thắc mắc kiểm duyệt / Kháng cáo ảnh từ chối', color: 0x00ccff }, 
-        'account': { title: 'Hỗ trợ hoặc kháng cáo về tài khoản', color: 0x00ccff },
+        'account': { title: 'Hỗ trợ / Kháng cáo về tài khoản', color: 0x00ccff },
         'general': { title: 'Hỗ trợ chung', color: 0x999999 }, 
         'other': { title: 'Vấn đề khác', color: 0x999999 }
     };
