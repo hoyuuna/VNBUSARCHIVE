@@ -1378,6 +1378,44 @@
             transform: translateX(-50%) translateY(-16px) !important;
         }
 
+        /* 3. CUSTOM BLACK CHECKBOX (DÀNH CHO FORM HỖ TRỢ & TUYÊN BỐ) */
+        .custom-cb-input:checked ~ .custom-cb-box {
+            background-color: #000 !important;
+            border-color: #000 !important;
+            color: #fff !important;
+        }
+        .custom-cb-input:checked ~ .custom-cb-box i {
+            opacity: 1 !important;
+            transform: scale(1) !important;
+        }
+        .custom-cb-box {
+            width: 20px !important;
+            height: 20px !important;
+            min-width: 20px !important;
+            min-height: 20px !important;
+            background-color: #fff !important;
+            border: 2px solid #555 !important;
+            border-radius: 4px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            margin-top: 1px !important;
+            margin-right: 16px !important;
+            transition: all 0.15s ease-in-out !important;
+            color: transparent !important;
+            cursor: pointer !important;
+        }
+        .custom-cb-box:hover {
+            border-color: #000 !important;
+        }
+        .custom-cb-box i {
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 0.15s ease-in-out !important;
+            font-size: 12px !important;
+            font-weight: 900 !important;
+        }
+
         /* Làm trong suốt các nút bấm bên trong để không che mất kính */
         #user-dropdown a, #user-dropdown button {
             background-color: transparent !important;
@@ -3571,20 +3609,20 @@
                                 </div>
 
                                 <!-- TUYÊN BỐ / CAM KẾT (BẮT BUỘC) -->
-                                <div class="mb-6 space-y-3.5 text-left bg-gray-50 border border-gray-200 rounded-xl p-4 shadow-sm">
-                                    <label class="flex items-start gap-3.5 cursor-pointer group select-none">
-                                        <input type="checkbox" id="contact-declare-1" required class="sr-only peer">
-                                        <div class="mt-0.5 w-5 h-5 bg-white border-2 border-gray-300 rounded-md peer-checked:bg-black peer-checked:border-black peer-focus:ring-2 peer-focus:ring-black/20 flex items-center justify-center text-white transition-all shrink-0 group-hover:border-gray-500 shadow-xs">
-                                            <i class="fa-solid fa-check text-[10px] opacity-0 peer-checked:opacity-100 transition-opacity"></i>
+                                <div class="mb-6 space-y-4 text-left bg-white border border-gray-300 rounded-xl p-4 sm:p-5 shadow-sm">
+                                    <label class="flex items-start cursor-pointer group select-none">
+                                        <input type="checkbox" id="contact-declare-1" required class="custom-cb-input sr-only">
+                                        <div class="custom-cb-box shrink-0 shadow-sm">
+                                            <i class="fa-solid fa-check"></i>
                                         </div>
-                                        <span class="text-xs font-medium text-gray-700 group-hover:text-black transition leading-relaxed">Tôi đảm bảo rằng đã đọc kĩ chính sách, quy định hoặc tài liệu liên quan tới thông tin bên trên. <span class="text-red-500">*</span></span>
+                                        <span class="text-xs font-semibold text-gray-800 group-hover:text-black transition leading-relaxed pt-0.5">Tôi đảm bảo rằng đã đọc kĩ chính sách, quy định hoặc tài liệu liên quan tới thông tin bên trên. <span class="text-red-500">*</span></span>
                                     </label>
-                                    <label class="flex items-start gap-3.5 cursor-pointer group select-none">
-                                        <input type="checkbox" id="contact-declare-2" required class="sr-only peer">
-                                        <div class="mt-0.5 w-5 h-5 bg-white border-2 border-gray-300 rounded-md peer-checked:bg-black peer-checked:border-black peer-focus:ring-2 peer-focus:ring-black/20 flex items-center justify-center text-white transition-all shrink-0 group-hover:border-gray-500 shadow-xs">
-                                            <i class="fa-solid fa-check text-[10px] opacity-0 peer-checked:opacity-100 transition-opacity"></i>
+                                    <label class="flex items-start cursor-pointer group select-none">
+                                        <input type="checkbox" id="contact-declare-2" required class="custom-cb-input sr-only">
+                                        <div class="custom-cb-box shrink-0 shadow-sm">
+                                            <i class="fa-solid fa-check"></i>
                                         </div>
-                                        <span class="text-xs font-medium text-gray-700 group-hover:text-black transition leading-relaxed">Tôi đảm bảo rằng thông tin bên trên là chính xác và chấp nhận chịu hành phạt nếu khai man hoặc spam. <span class="text-red-500">*</span></span>
+                                        <span class="text-xs font-semibold text-gray-800 group-hover:text-black transition leading-relaxed pt-0.5">Tôi đảm bảo rằng thông tin bên trên là chính xác và chấp nhận chịu hành phạt nếu khai man hoặc spam. <span class="text-red-500">*</span></span>
                                     </label>
                                 </div>
 
