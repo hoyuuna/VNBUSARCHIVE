@@ -3185,11 +3185,21 @@ Object.assign(window.app, {
             if (topic === 'incorrect_info') {
                 if (dynamicArea) dynamicArea.classList.add('hidden');
                 if (directBanner) directBanner.classList.add('hidden');
-                if (noticeEl) noticeEl.classList.remove('hidden');
+                if (noticeEl) {
+                    noticeEl.classList.remove('hidden');
+                    noticeEl.classList.remove('fade-zoom-in');
+                    void noticeEl.offsetWidth;
+                    noticeEl.classList.add('fade-zoom-in');
+                }
                 return;
             } else {
                 if (noticeEl) noticeEl.classList.add('hidden');
-                if (dynamicArea) dynamicArea.classList.remove('hidden');
+                if (dynamicArea) {
+                    dynamicArea.classList.remove('hidden');
+                    dynamicArea.classList.remove('fade-zoom-in');
+                    void dynamicArea.offsetWidth;
+                    dynamicArea.classList.add('fade-zoom-in');
+                }
                 if (directBanner) directBanner.classList.add('hidden');
             }
             
