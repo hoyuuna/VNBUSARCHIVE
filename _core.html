@@ -3460,7 +3460,27 @@
                                 <!-- Khung Nhập Link Ảnh (Chỉ hiện khi bản quyền/kháng cáo) -->
                                 <!-- Cấu trúc Box trắng bo góc y hệt bảng Thông tin chi tiết ảnh -->
                                 <div id="contact-photo-section" class="hidden bg-white border border-gray-200 shadow-sm rounded-xl p-3 md:p-4 mb-6">
-                                    <h3 id="contact-content-title" class="font-bold text-xs uppercase text-black tracking-wider mb-3 px-1">Nội dung liên quan <span class="text-red-500">*</span></h3>
+                                    <!-- DROPDOWN HÌNH THỨC VI PHẠM BẢN QUYỀN -->
+                                    <div id="contact-copyright-type-section" class="hidden relative z-20 mb-4 fade-zoom-in">
+                                        <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Hình thức vi phạm bản quyền <span class="text-red-500">*</span></label>
+                                        <input type="hidden" id="contact-copyright-type" value="internal">
+                                        
+                                        <button type="button" id="contact-copyright-btn" onclick="document.getElementById('contact-copyright-menu').classList.toggle('active')" class="w-full flex items-center justify-between bg-gray-50 border border-gray-200 hover:border-black rounded-lg p-2.5 text-sm font-bold text-gray-700 transition-all focus:ring-2 focus:ring-black outline-none">
+                                            <span id="contact-copyright-label" class="truncate pr-4 text-black">Ảnh của tôi bị đăng trái luật lên nền tảng</span>
+                                            <i class="fa-solid fa-chevron-down text-gray-400 shrink-0"></i>
+                                        </button>
+
+                                        <div id="contact-copyright-menu" class="filter-menu left-0 right-0 origin-top mt-1 !max-h-[300px] z-30" style="width: 100% !important;">
+                                            <div class="filter-item selected" onclick="app.contact.selectCopyrightType('internal', 'Ảnh của tôi bị đăng trái luật lên nền tảng', this)">
+                                                <span class="font-bold">Ảnh của tôi bị đăng trái luật lên nền tảng</span>
+                                            </div>
+                                            <div class="filter-item" onclick="app.contact.selectCopyrightType('external', 'Ảnh trên nền tảng của tôi bị đăng trái luật lên nền tảng bên ngoài', this)">
+                                                <span class="font-bold">Ảnh trên nền tảng của tôi bị đăng trái luật lên nền tảng bên ngoài</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <label id="contact-content-title" class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Nội dung liên quan <span class="text-red-500">*</span></label>
                                     
                                     <div class="relative w-full">
                                         <!-- FIX ICON ĐÈ CHỮ: Cố định ô icon w-10 và input pl-10 -->
@@ -3468,10 +3488,6 @@
                                             <i class="fa-solid fa-link"></i>
                                         </span>
                                         <input type="text" id="contact-photo-url" oninput="app.contact.onLinkInput()" placeholder="Paste link ảnh vào đây (VD: vnbusarchive.io.vn/photo/123)" class="w-full bg-gray-50 border border-gray-200 rounded-lg py-2.5 pr-3 pl-10 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all text-black">
-                                    </div>
-                                    
-                                    <div id="contact-external-link-toggle" class="hidden mt-2 text-right">
-                                        <button type="button" onclick="app.contact.toggleExternalLink()" class="text-[11px] font-bold text-gray-500 hover:text-black transition-colors"><i class="fa-solid fa-arrow-right-arrow-left mr-1"></i> Ảnh vi phạm không nằm trên VNBUSARCHIVE?</button>
                                     </div>
 
                                     <p id="contact-comment-note" class="text-[11px] text-gray-500 italic mt-3 -mb-2 px-1 leading-relaxed fade-zoom-in">

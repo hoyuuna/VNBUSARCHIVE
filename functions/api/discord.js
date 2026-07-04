@@ -392,7 +392,7 @@ async function handleRoleClaim(request, env) {
 
 async function handleContactSubmit(request, env) {
     const body = await request.json();
-    const { topic, description, contactMethod, contactInfo, captcha, userId, userName, photoId, externalLink, originalWork, legalName } = body;
+    const { topic, description, contactMethod, contactInfo, captcha, userId, userName, photoId, externalLink, originalWork, legalName, copyrightType } = body;
 
     // 1. Validate CAPTCHA (Đồng bộ cấu hình với upload.js)
     if (!captcha) return new Response(JSON.stringify({ error: 'Thiếu mã Captcha' }), { status: 400 });
@@ -445,16 +445,22 @@ async function handleContactSubmit(request, env) {
     let rawText = `**ID Yêu Cầu:** #${ticketId}\n**Người yêu cầu:**\n${requesterStr}\n\n`;
     rawText += `**1. Chủ đề cần hỗ trợ \\***\n${config.title}\n\n`;
 
+    if (topic === 'copyright') {
+        const typeStr = (copyrightType === 'external') ? 'Ảnh trên nền tảng của tôi bị đăng trái luật lên nền tảng bên ngoài' : 'Ảnh của tôi bị đăng trái luật lên nền tảng';
+        rawText += `**Hình thức vi phạm \\***\n${typeStr}\n\n`;
+    }
+
     if (photoId) {
         if (String(photoId).startsWith('user:')) {
             const uName = String(photoId).replace('user:', '');
-            rawText += `**Hồ sơ User vi phạm \\***\nhttps://vnbusarchive.io.vn/user/${encodeURIComponent(uName)}\n\n`;
+            rawText += `**Hồ sơ User vi phạm \\***\nhttps://www.vnbusarchive.io.vn/user/${encodeURIComponent(uName)}\n\n`;
         } else {
-            rawText += `**Nội dung liên quan \\***\nhttps://vnbusarchive.io.vn/photo/${photoId}\n\n`;
+            const titleStr = (topic === 'copyright' || topic === 'report_violation') ? 'Nội dung vi phạm \\*' : 'Nội dung liên quan \\*';
+            rawText += `**${titleStr}**\nhttps://www.vnbusarchive.io.vn/photo/${photoId}\n\n`;
         }
     } else if (externalLink) {
         let linkTitle = 'Nội dung liên quan \\*';
-        if (topic === 'report_violation') linkTitle = 'Link ảnh / bình luận / hồ sơ vi phạm \\*';
+        if (topic === 'report_violation' || topic === 'copyright') linkTitle = 'Nội dung vi phạm \\*';
         rawText += `**${linkTitle}**\n${externalLink}\n\n`;
     }
 
@@ -506,15 +512,21 @@ async function handleContactSubmit(request, env) {
             const resend = new Resend(env.RESEND_API_KEY);
             
             let userMsg = description || '';
+            if (topic === 'copyright') {
+                const typeStr = (copyrightType === 'external') ? 'Ảnh trên nền tảng của tôi bị đăng trái luật lên nền tảng bên ngoài' : 'Ảnh của tôi bị đăng trái luật lên nền tảng';
+                userMsg = `Hình thức vi phạm: ${typeStr}\n\n${userMsg}`;
+            }
             if (photoId) {
                 if (String(photoId).startsWith('user:')) {
                     const uName = String(photoId).replace('user:', '');
-                    userMsg = `Hồ sơ User liên quan: https://vnbusarchive.io.vn/user/${encodeURIComponent(uName)}\n\n${userMsg}`;
+                    userMsg = `Hồ sơ User liên quan: https://www.vnbusarchive.io.vn/user/${encodeURIComponent(uName)}\n\n${userMsg}`;
                 } else {
-                    userMsg = `Ảnh liên quan: https://vnbusarchive.io.vn/photo/${photoId}\n\n${userMsg}`;
+                    const titleStr = (topic === 'copyright' || topic === 'report_violation') ? 'Nội dung vi phạm' : 'Ảnh liên quan';
+                    userMsg = `${titleStr}: https://www.vnbusarchive.io.vn/photo/${photoId}\n\n${userMsg}`;
                 }
             } else if (externalLink) {
-                userMsg = `Link liên quan: ${externalLink}\n\n${userMsg}`;
+                const titleStr = (topic === 'copyright' || topic === 'report_violation') ? 'Nội dung vi phạm' : 'Link liên quan';
+                userMsg = `${titleStr}: ${externalLink}\n\n${userMsg}`;
             }
             if (legalName) {
                 userMsg += `\n\nHọ và tên hợp pháp: ${legalName}`;
