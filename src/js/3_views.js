@@ -3135,6 +3135,10 @@ Object.assign(window.app, {
                 app.contact.setMethod('custom_email');
             }
             if (app.auth && app.auth.updateUUIDBox) app.auth.updateUUIDBox();
+            const chk1 = document.getElementById('contact-declare-1');
+            const chk2 = document.getElementById('contact-declare-2');
+            if (chk1) chk1.checked = false;
+            if (chk2) chk2.checked = false;
         },
 
         // Click chọn từ Dropdown Custom
@@ -3531,6 +3535,12 @@ Object.assign(window.app, {
             const btn = document.getElementById('btn-submit-contact');
 
             if (!topic) return app.ui.showAlert("Vui lòng chọn Chủ đề cần hỗ trợ!");
+            
+            const chk1 = document.getElementById('contact-declare-1');
+            const chk2 = document.getElementById('contact-declare-2');
+            if ((chk1 && !chk1.checked) || (chk2 && !chk2.checked)) {
+                return app.ui.showAlert("Vui lòng xác nhận và đồng ý với các mục tuyên bố cam kết bắt buộc!");
+            }
             
             if (topic === 'copyright' || topic === 'appeal' || topic === 'report_violation') {
                 if (!app.contact.isExternalLink && !app.contact.currentPreviewId && !(topic === 'report_violation' && document.getElementById('contact-photo-url').value.trim())) {
