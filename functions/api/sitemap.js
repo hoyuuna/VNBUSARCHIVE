@@ -60,11 +60,7 @@ export async function onRequest(context) {
   const supabase = createClient(env.SUPABASE_URL, key);
 
   try {
-    const [vehicles, photos, profiles] = await Promise.all([
-      fetchAllData(supabase, 'vehicles', 'license_plate'),
-      fetchAllData(supabase, 'photos', 'id', { column: 'status', value: 'approved' }),
-      fetchAllData(supabase, 'profiles', 'username')
-    ]);
+    const vehicles = await fetchAllData(supabase, 'vehicles', 'license_plate');
 
     const xmlChunks = [];
 
@@ -82,28 +78,6 @@ export async function onRequest(context) {
       <url>
         <loc>${escapeXML(baseUrl)}/vehicle/${encodeURIComponent(v.license_plate)}</loc>
         <priority>0.8</priority>
-        <changefreq>weekly</changefreq>
-      </url>`);
-      }
-    });
-
-    photos.forEach(p => {
-      if (p && p.id) {
-        xmlChunks.push(`
-      <url>
-        <loc>${escapeXML(baseUrl)}/photo/${p.id}</loc>
-        <priority>0.9</priority>
-        <changefreq>weekly</changefreq>
-      </url>`);
-      }
-    });
-
-    profiles.forEach(u => {
-      if (u && u.username) {
-        xmlChunks.push(`
-      <url>
-        <loc>${escapeXML(baseUrl)}/user/${encodeURIComponent(u.username)}</loc>
-        <priority>0.7</priority>
         <changefreq>weekly</changefreq>
       </url>`);
       }

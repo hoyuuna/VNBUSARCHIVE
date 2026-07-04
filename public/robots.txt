@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://www.vnbusarchive.io.vn/api/sitemap
