@@ -43,10 +43,55 @@
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "WebSite",
-      "name": "VNBUSARCHIVE",
-      "url": "https://vnbusarchive.io.vn/",
-      "description": "Dự án lưu trữ ảnh xe buýt phi lợi nhuận"
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://vnbusarchive.io.vn/#website",
+          "url": "https://vnbusarchive.io.vn/",
+          "name": "VNBUSARCHIVE",
+          "alternateName": ["Vietnam Bus Archive", "VNBUS ARCHIVE", "Vietnam Bus Spotter", "Tra cứu xe buýt Việt Nam"],
+          "description": "Dự án lưu trữ ảnh xe buýt phi lợi nhuận, cơ sở dữ liệu tra cứu phương tiện giao thông công cộng tại Việt Nam.",
+          "inLanguage": "vi-VN",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": "https://vnbusarchive.io.vn/?q={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://vnbusarchive.io.vn/#organization",
+          "name": "VNBUSARCHIVE Team",
+          "url": "https://vnbusarchive.io.vn/",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://vnbusarchive.io.vn/media/vnba.png",
+            "width": "512",
+            "height": "512"
+          },
+          "sameAs": [
+            "https://discord.gg/E5EhnP455X"
+          ],
+          "description": "Cộng đồng đam mê giao thông công cộng và lưu trữ dữ liệu xe buýt, xe khách Việt Nam phi lợi nhuận."
+        },
+        {
+          "@type": "CollectionPage",
+          "@id": "https://vnbusarchive.io.vn/#webpage",
+          "url": "https://vnbusarchive.io.vn/",
+          "name": "VNBUSARCHIVE - Kho lưu trữ ảnh xe buýt và giao thông công cộng Việt Nam",
+          "isPartOf": {
+            "@id": "https://vnbusarchive.io.vn/#website"
+          },
+          "about": {
+            "@id": "https://vnbusarchive.io.vn/#organization"
+          },
+          "description": "Khám phá hàng ngàn hình ảnh xe buýt, xe khách, tra cứu thông tin biển số xe, tuyến xe và lịch sử phương tiện trên khắp Việt Nam.",
+          "inLanguage": "vi-VN"
+        }
+      ]
     }
     </script>
     <meta name="theme-color" content="#FFFFFF">
