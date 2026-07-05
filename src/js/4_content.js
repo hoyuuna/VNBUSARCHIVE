@@ -1549,6 +1549,7 @@ Object.assign(window.app, {
 
                     try {
                         let originalSizeKB = (app.rawFile.size / 1024).toFixed(2);
+                        const username = app.username || "Guest";
                         const targetMime = app.utils.getTargetMimeType();
 
                         // Lấy kết quả từ tiến trình nền (thường đã hoàn tất hoặc gần hoàn tất trong lúc giải captcha)
