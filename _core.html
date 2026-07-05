@@ -1047,8 +1047,8 @@
             font-weight: 700;
             margin-bottom: 0.75rem;
             margin-top: 1.25rem;
-            border-bottom: 1px solid #e4e4e7;
-            padding-bottom: 0.3rem;
+            border-bottom: none;
+            padding-bottom: 0;
         }
 
         .markdown-body h3 {
@@ -1117,9 +1117,21 @@
         }
 
         .markdown-body hr {
-            border: 0;
-            border-top: 1px solid #e4e4e7;
-            margin: 1.5rem 0;
+            display: none;
+        }
+
+        /* Loại bỏ hoàn toàn các đường kẻ phân cách dưới tiêu đề và trên nút bấm theo yêu cầu */
+        .view-section h1,
+        .view-section h2,
+        .view-section h3,
+        .view-section h4 {
+            border-bottom: none !important;
+            padding-bottom: 0 !important;
+        }
+        .view-section .border-t:not(table):not(tr):not(td),
+        .view-section .border-b:not(table):not(tr):not(td):not(.border-b-2) {
+            border-top: none !important;
+            border-bottom: none !important;
         }
 
         .markdown-body code {
@@ -3796,12 +3808,12 @@
             <div id="upload" class="view-section">
                 <div class="max-w-3xl mx-auto bg-white border border-vbs-border p-8 rounded-lg shadow-sm">
                     <h2
-                        class="text-2xl font-bold font-logo mb-6 border-b border-gray-200 pb-4 uppercase tracking-tight">
+                        class="text-2xl font-bold font-logo mb-6 uppercase tracking-tight">
                         Đăng tải ảnh</h2>
 
 
                     <div class="bg-gray-50 p-5 mb-8 border border-gray-200 rounded-md shadow-inner">
-                        <h3 class="font-bold mb-3 text-sm uppercase text-black border-b border-gray-200 pb-2 tracking-wide">
+                        <h3 class="font-bold mb-3 text-sm uppercase text-black tracking-wide">
                             <i class="fa-solid fa-book text-blue-600 mr-1"></i> QUY ĐỊNH UPLOAD
                         </h3>
 
@@ -4219,7 +4231,7 @@
 
                         <!-- Turnstile moved to popup -->
 
-                        <div class="pt-6 border-t border-gray-200">
+                        <div class="pt-6">
                             <button type="submit" id="btn-submit"
                                 class="bg-black text-white px-8 py-3 font-bold uppercase text-sm rounded-md hover:bg-gray-800 transition w-full md:w-auto shadow-sm">Gửi
                                 ảnh</button>
@@ -4229,7 +4241,7 @@
             </div>
 
             <div id="admin" class="view-section">
-                <h2 class="text-2xl font-bold font-logo mb-6 border-b border-gray-200 pb-4 uppercase tracking-tight">
+                <h2 class="text-2xl font-bold font-logo mb-6 uppercase tracking-tight">
                     Quản trị hệ thống</h2>
 
                 <div class="flex gap-3 mb-6 overflow-x-auto pb-2">
