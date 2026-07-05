@@ -49,7 +49,10 @@ export async function onRequest(context) {
   
   const requestUrl = new URL(request.url);
   const protocol = request.headers.get('x-forwarded-proto') || 'https';
-  const host = request.headers.get('host') || requestUrl.host;
+  let host = request.headers.get('host') || requestUrl.host;
+  if (host === 'vnbusarchive.io.vn') {
+    host = 'www.vnbusarchive.io.vn';
+  }
   const baseUrl = `${protocol}://${host}`;
 
   const key = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_KEY || env.SUPABASE_ANON_KEY;

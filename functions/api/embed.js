@@ -148,9 +148,18 @@ const setMetaAttribute = (html, id, attribute, value) => {
     );
 };
 
+const setCanonical = (html, url) => {
+    const escaped = escapeAttr(url);
+    return html.replace(
+        /(<link\b(?=[^>]*\brel=["']canonical["'])[^>]*\bhref=["'])(?:[^"']*)(["'])/i,
+        `$1${escaped}$2`
+    );
+};
+
 const applyMeta = (html, meta) => {
     let output = setTitle(html, meta.title);
     output = setMetaContent(output, 'meta-desc', meta.description);
+    output = setCanonical(output, meta.url);
     output = setMetaAttribute(output, 'og-url', 'content', meta.url);
     output = setMetaContent(output, 'og-title', meta.title);
     output = setMetaContent(output, 'og-desc', meta.description);
@@ -185,7 +194,10 @@ export async function onRequest(context) {
     try {
         const requestUrl = new URL(request.url);
         const protocol = request.headers.get('x-forwarded-proto') || 'https';
-        const host = request.headers.get('host') || requestUrl.host;
+        let host = request.headers.get('host') || requestUrl.host;
+        if (host === 'vnbusarchive.io.vn') {
+            host = 'www.vnbusarchive.io.vn';
+        }
         const baseUrl = `${protocol}://${host}`;
 
         const type = requestUrl.searchParams.get('type');

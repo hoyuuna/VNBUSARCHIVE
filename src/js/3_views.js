@@ -150,6 +150,7 @@ Object.assign(window.app, {
                             targetEl.onanimationend = null;
                         };
                     }
+                    if (app.utils && app.utils.updateCanonical) app.utils.updateCanonical();
                 },
 
                 loadUserProfile: (username) => {

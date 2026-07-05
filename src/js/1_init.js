@@ -940,6 +940,19 @@ Object.assign(window.app, {
 
 Object.assign(window.app, {
   utils: {
+                updateCanonical: (customPath = null) => {
+                    let link = document.querySelector('link[rel="canonical"]');
+                    if (!link) {
+                        link = document.createElement('link');
+                        link.setAttribute('rel', 'canonical');
+                        document.head.appendChild(link);
+                    }
+                    let path = customPath || window.location.pathname;
+                    if (path !== '/' && path.endsWith('/')) {
+                        path = path.slice(0, -1);
+                    }
+                    link.setAttribute('href', `https://www.vnbusarchive.io.vn${path}`);
+                },
                 stripMarkdown: (md) => {
                     if (!md) return '';
                     const html = marked.parse(md);
@@ -2449,6 +2462,7 @@ Object.assign(window.app, {
   handleRoute: () => {
                 app.loadingBar.start(); // Bật thanh loading ngay lập tức
                 app.utils.cleanupState();
+                if (app.utils && app.utils.updateCanonical) app.utils.updateCanonical();
 
                 const path = window.location.pathname;
                 const searchParams = new URLSearchParams(window.location.search);
