@@ -120,20 +120,39 @@ export async function onRequest(context) {
         }
 
         if (isAvatar) {
+            let oldAvatarUrl = null;
             const { data: oldProfile } = await supabase.from('profiles').select('avatar_url').eq('id', userId).single();
-            if (oldProfile && oldProfile.avatar_url && oldProfile.avatar_url.includes('vnbusarchive')) {
+            if (oldProfile && oldProfile.avatar_url) {
+                oldAvatarUrl = oldProfile.avatar_url;
+            } else {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user && user.user_metadata && user.user_metadata.avatar_url) {
+                    oldAvatarUrl = user.user_metadata.avatar_url;
+                }
+            }
+
+            if (oldAvatarUrl && oldAvatarUrl !== finalOptimizedUrl && oldAvatarUrl.includes('vnbusarchive')) {
                 try {
-                    const oldUrlObj = new URL(oldProfile.avatar_url);
-                    const oldFileName = encodeURIComponent(oldUrlObj.pathname.split('/').pop());
-                    fetch(`https://cdn.vnbusarchive.io.vn/api/manage/delete/${oldFileName}`, {
-                        method: 'GET',
-                        headers: { 'Authorization': `Bearer ${env.CF_IMGBED_TOKEN}` }
-                    }).catch(() => {});
-                } catch (delErr) {}
+                    const oldUrlObj = new URL(oldAvatarUrl);
+                    const oldFileName = oldUrlObj.pathname.split('/').pop();
+                    if (oldFileName) {
+                        const safeFileName = encodeURIComponent(oldFileName);
+                        console.log(`[DEBUG] Đang xóa avatar cũ khỏi CDN: ${safeFileName}`);
+                        await fetch(`https://cdn.vnbusarchive.io.vn/api/manage/delete/${safeFileName}`, {
+                            method: 'GET',
+                            headers: { 'Authorization': `Bearer ${env.CF_IMGBED_TOKEN}` }
+                        }).catch(e => console.warn('[WARN] Lỗi mạng khi xóa avatar cũ:', e));
+                    }
+                } catch (delErr) {
+                    console.warn('[WARN] Lỗi khi xử lý xóa avatar cũ:', delErr);
+                }
             }
 
             const { error: profileErr } = await supabase.from('profiles').update({ avatar_url: finalOptimizedUrl }).eq('id', userId);
             if (profileErr) throw profileErr;
+
+            await supabase.auth.updateUser({ data: { avatar_url: finalOptimizedUrl } }).catch(() => {});
+
             return new Response(JSON.stringify({ success: true, url: finalOptimizedUrl }), { status: 200, headers: { 'Content-Type': 'application/json' }});
         }
 

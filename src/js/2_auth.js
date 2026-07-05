@@ -453,6 +453,7 @@ changePassword: async () => {
 
                             app.user.user_metadata = app.user.user_metadata || {};
                             app.user.user_metadata.avatar_url = data.url;
+                            window.sb.auth.updateUser({ data: { avatar_url: data.url } }).catch(() => {});
 
                             const proxiedUrl = app.utils.getProxiedUrl(data.url, 'avatar.jpg', 'avatar');
                             const avatarImg = document.getElementById('acc-avatar-img');
@@ -485,8 +486,31 @@ changePassword: async () => {
                 resetAvatar: async () => {
                     if (!app.user) return;
                     try {
+                        const { data: profile } = await window.sb.from('profiles').select('avatar_url').eq('id', app.user.id).single();
+                        const oldAvatar = profile?.avatar_url || app.user?.user_metadata?.avatar_url;
+                        if (oldAvatar && oldAvatar.includes('vnbusarchive')) {
+                            try {
+                                const { data: { session } } = await window.sb.auth.getSession();
+                                if (session) {
+                                    await fetch('/api/delete-image', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'Authorization': `Bearer ${session.access_token}`
+                                        },
+                                        body: JSON.stringify({ imageUrl: oldAvatar })
+                                    });
+                                }
+                            } catch (delErr) {
+                                console.warn('Lỗi khi xóa ảnh avatar cũ khỏi CDN:', delErr);
+                            }
+                        }
+
                         const { error } = await window.sb.from('profiles').update({ avatar_url: null }).eq('id', app.user.id);
                         if (error) throw error;
+
+                        window.sb.auth.updateUser({ data: { avatar_url: null } }).catch(() => {});
+                        if (app.user.user_metadata) app.user.user_metadata.avatar_url = null;
 
                         app.ui.showAlert("Đã reset Avatar về mặc định!");
                         app.views.loadAccount();

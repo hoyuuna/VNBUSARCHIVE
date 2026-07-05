@@ -2060,8 +2060,8 @@ Object.assign(window.app, {
                             imageSmoothingQuality: 'high',
                         };
                         if (app.crop.mode === 'avatar') {
-                            cropOptions.width = 360;
-                            cropOptions.height = 360;
+                            cropOptions.width = 200;
+                            cropOptions.height = 200;
                         }
                         const canvas = app.crop.cropper.getCroppedCanvas(cropOptions);
 
