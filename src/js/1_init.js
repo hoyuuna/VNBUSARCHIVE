@@ -1408,6 +1408,29 @@ cleanupState: () => {
                     if (!plate) return '';
                     return plate.replace(/-\d+$/, '');
                 },
+                formatPlateVariations: (plate) => {
+                    if (!plate) return '';
+                    const p = String(plate).trim().replace(/-\d+$/, '');
+                    if (!p) return '';
+                    const clean = p.replace(/[\s.,_-]/g, '').toUpperCase();
+                    const match = clean.match(/^([A-Z0-9]*[A-Z])(\d{4,5})$/);
+                    if (!match) return p;
+                    const prefix = match[1];
+                    const num = match[2];
+                    if (num.length === 5) {
+                        return [...new Set([
+                            `${prefix}${num}`,
+                            `${prefix}-${num.slice(0, 3)}.${num.slice(3)}`,
+                            `${prefix}-${num}`
+                        ])].join(' / ');
+                    } else if (num.length === 4) {
+                        return [...new Set([
+                            `${prefix}${num}`,
+                            `${prefix}-${num}`
+                        ])].join(' / ');
+                    }
+                    return p;
+                },
 
                 escapeAttr: (str) => {
                     if (!str) return '';
@@ -1450,20 +1473,22 @@ cleanupState: () => {
 
                 updateMetaTags: (title, description, imageUrl) => {
                     document.title = title;
-
-
-                    let metaDesc = document.querySelector('meta[name="description"]');
-                    if (metaDesc) metaDesc.setAttribute("content", description);
-
-
-                    let ogTitle = document.querySelector('meta[property="og:title"]');
-                    if (ogTitle) ogTitle.setAttribute("content", title);
-
-                    let ogDesc = document.querySelector('meta[property="og:description"]');
-                    if (ogDesc) ogDesc.setAttribute("content", description);
-
-                    let ogImage = document.querySelector('meta[property="og:image"]');
-                    if (ogImage && imageUrl) ogImage.setAttribute("content", imageUrl);
+                    const setContent = (selector, content) => {
+                        const el = document.querySelector(selector);
+                        if (el) el.setAttribute("content", content);
+                    };
+                    setContent('meta[name="description"]', description);
+                    setContent('meta[property="og:title"]', title);
+                    setContent('meta[property="og:description"]', description);
+                    if (imageUrl) setContent('meta[property="og:image"]', imageUrl);
+                    setContent('meta[property="twitter:title"]', title);
+                    setContent('meta[name="twitter:title"]', title);
+                    setContent('meta[property="twitter:description"]', description);
+                    setContent('meta[name="twitter:description"]', description);
+                    if (imageUrl) {
+                        setContent('meta[property="twitter:image"]', imageUrl);
+                        setContent('meta[name="twitter:image"]', imageUrl);
+                    }
                 },
 
                 promiseWithTimeout: (promise, ms = 3000) => {

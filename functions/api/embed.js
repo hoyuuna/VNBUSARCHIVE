@@ -16,6 +16,30 @@ const cleanLicensePlateForDisplay = (plate) => {
     return String(plate).replace(/-\d+$/, '');
 };
 
+const formatPlateVariations = (plate) => {
+    if (!plate) return '';
+    const p = String(plate).trim().replace(/-\d+$/, '');
+    if (!p) return '';
+    const clean = p.replace(/[\s.,_-]/g, '').toUpperCase();
+    const match = clean.match(/^([A-Z0-9]*[A-Z])(\d{4,5})$/);
+    if (!match) return p;
+    const prefix = match[1];
+    const num = match[2];
+    if (num.length === 5) {
+        return [...new Set([
+            `${prefix}${num}`,
+            `${prefix}-${num.slice(0, 3)}.${num.slice(3)}`,
+            `${prefix}-${num}`
+        ])].join(' / ');
+    } else if (num.length === 4) {
+        return [...new Set([
+            `${prefix}${num}`,
+            `${prefix}-${num}`
+        ])].join(' / ');
+    }
+    return p;
+};
+
 const truncate = (value, max) => {
     const text = String(value || '').replace(/\s+/g, ' ').trim();
     return text.length > max ? `${text.slice(0, max - 1).trimEnd()}…` : text;
@@ -64,7 +88,7 @@ const fetchPhotoEmbed = async (photoId, baseUrl, env) => {
 
     const title = `${truncate(titleParts.join(' - '), 110)} | VNBUSARCHIVE`;
 
-    const descParts = [`Ảnh chụp chi tiết xe ${displayPlate || data.license_plate || 'xe buýt'}`];
+    const descParts = [`Ảnh chụp chi tiết xe buýt/xe khách ${formatPlateVariations(displayPlate || data.license_plate || 'xe buýt')}`];
     if (operator) descParts.push(`Đơn vị: ${operator}`);
     if (route) descParts.push(route);
     if (model) descParts.push(`Dòng xe: ${model}`);
@@ -72,7 +96,7 @@ const fetchPhotoEmbed = async (photoId, baseUrl, env) => {
 
     return {
         title,
-        description: truncate(descParts.join('. '), 190),
+        description: truncate(descParts.join('. '), 260),
         image: getImageProxyUrl(data.url, `${displayPlate || data.license_plate || 'image'}.jpg`),
         url: `${baseUrl}/photo/${data.id}`
     };
@@ -113,7 +137,7 @@ const fetchVehicleEmbed = async (plate, baseUrl, env) => {
     const route = photo?.route_no || vehicle?.route_no || '';
 
     const title = `Hồ sơ xe ${displayPlate || resolvedPlate} | VNBUSARCHIVE`;
-    const baseDesc = `Lịch sử hoạt động và thư viện ảnh của xe ${model ? model + ' ' : ''}biển kiểm soát ${displayPlate || resolvedPlate}`;
+    const baseDesc = `Lịch sử hoạt động và thư viện ảnh của xe ${model ? model + ' ' : ''}biển kiểm soát ${formatPlateVariations(displayPlate || resolvedPlate)}`;
     const tailParts = [];
     if (operator) tailParts.push(operator);
     if (route && route !== '---') tailParts.push(`Tuyến ${route}`);
@@ -121,7 +145,7 @@ const fetchVehicleEmbed = async (plate, baseUrl, env) => {
 
     return {
         title,
-        description: truncate(fullDesc, 190),
+        description: truncate(fullDesc, 260),
         image: getImageProxyUrl(photo?.url, `${displayPlate || resolvedPlate || 'image'}.jpg`),
         url: `${baseUrl}/vehicle/${encodeURIComponent(resolvedPlate)}`
     };

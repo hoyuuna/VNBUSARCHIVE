@@ -1055,7 +1055,7 @@ Object.assign(window.app, {
                     document.getElementById('detail-title').innerText = `${app.utils.displayPlate(photo.license_plate)} - ${snapshot.operator || 'Đã bị xóa'}`;
 
                     const pageTitle = `${app.utils.displayPlate(photo.license_plate)} - ${snapshot.operator || 'Đã bị xóa'} | VNBUSARCHIVE`;
-                    const pageDesc = `Ảnh chụp chi tiết xe buýt/xe khách ${app.utils.displayPlate(photo.license_plate)} thuộc đơn vị ${snapshot.operator}, dòng xe ${snapshot.model}.`;
+                    const pageDesc = `Ảnh chụp chi tiết xe buýt/xe khách ${app.utils.formatPlateVariations(photo.license_plate)} thuộc đơn vị ${snapshot.operator}, dòng xe ${snapshot.model}.`;
                     const pageImg = app.utils.getProxiedUrl(photo.url);
                     if (window.location.pathname === `/photo/${photoId}`) {
                         app.utils.updateMetaTags(pageTitle, pageDesc, pageImg);
@@ -1485,7 +1485,7 @@ Object.assign(window.app, {
                             }
                         }
 
-                        const baseDescClient = `Lịch sử hoạt động và thư viện ảnh của xe ${vehicle.model ? vehicle.model + ' ' : ''}biển kiểm soát ${vehicle.license_plate}`;
+                        const baseDescClient = `Lịch sử hoạt động và thư viện ảnh của xe ${vehicle.model ? vehicle.model + ' ' : ''}biển kiểm soát ${app.utils.formatPlateVariations(vehicle.license_plate)}`;
                         const tailPartsClient = [];
                         if (currentOpClientSide) tailPartsClient.push(currentOpClientSide);
                         if (currentRouteClientSide && currentRouteClientSide !== '---') tailPartsClient.push(`Tuyến ${currentRouteClientSide}`);
