@@ -1564,8 +1564,23 @@ cleanupState: () => {
                                 const barHeight = height * 0.08;
                                 const barY = height - barHeight;
                                 const fontSize = barHeight * 0.4;
+                                const scale = pos.scale || 1.0;
+                                const wmFontSize = fontSize * 3 * scale;
+                                const fontFace = '"Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+
+                                try {
+                                    if (document.fonts && document.fonts.load) {
+                                        await Promise.all([
+                                            document.fonts.load(`italic 900 ${fontSize}px "Montserrat"`),
+                                            document.fonts.load(`italic 700 ${fontSize * 0.8}px "Montserrat"`),
+                                            document.fonts.load(`700 ${fontSize}px "Montserrat"`),
+                                            document.fonts.load(`700 ${wmFontSize}px "Montserrat"`)
+                                        ]);
+                                    }
+                                } catch (e) {
+                                    console.warn("Font preloading error:", e);
+                                }
                                 await document.fonts.ready;
-                                const fontFace = 'Montserrat, Arial, sans-serif';
 
                                 const safeBarY = Math.floor(barY);
                                 const safeBarHeight = Math.ceil(barHeight);
@@ -1609,8 +1624,7 @@ cleanupState: () => {
                                 ctx.save();
                                 ctx.globalAlpha = 0.5;
                                 ctx.fillStyle = pos.color === 'black' ? "black" : "white";
-                                const scale = pos.scale || 1.0;
-                                ctx.font = `700 ${fontSize * 3 * scale}px ${fontFace}`;
+                                ctx.font = `700 ${wmFontSize}px ${fontFace}`;
                                 ctx.textAlign = 'center';
                                 ctx.textBaseline = 'middle';
 

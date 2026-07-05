@@ -11,8 +11,8 @@ module.exports = {
     extend: {
       fontFamily: {
         sans: ['"Be Vietnam Pro"', 'sans-serif'],
-        logo: ['"Montserrat"', 'sans-serif'],
-        watermark: ['"Montserrat"', 'sans-serif'],
+        logo: ['"Montserrat"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', 'sans-serif'],
+        watermark: ['"Montserrat"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', 'sans-serif'],
       },
       colors: {
         'vbs-dark': '#09090b',
