@@ -2155,11 +2155,17 @@ Object.assign(window.app, {
 
                             const fetchSugs = async (table, col, label) => {
                                 let selectStr = col;
-                                if (table === 'vehicles' && app.preference.current !== 'both') selectStr = `${col}, photos!inner(type)`;
+                                if (table === 'vehicles') {
+                                    selectStr = `${col}, photos!inner(status${app.preference.current !== 'both' ? ', type' : ''})`;
+                                }
                                 if (table === 'photos' && col === 'route_no') selectStr = 'route_no, license_plate';
 
                                 let sbQuery = window.sb.from(table).select(selectStr);
-                                if (table === 'photos') sbQuery = sbQuery.eq('status', 'approved');
+                                if (table === 'photos') {
+                                    sbQuery = sbQuery.eq('status', 'approved');
+                                } else if (table === 'vehicles') {
+                                    sbQuery = sbQuery.eq('photos.status', 'approved');
+                                }
 
                                 searchWords.forEach(word => {
                                     if (col === 'license_plate') sbQuery = sbQuery.ilike(col, `%${app.utils.normalizePlateQuery(word)}%`);

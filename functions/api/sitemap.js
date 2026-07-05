@@ -63,7 +63,7 @@ export async function onRequest(context) {
   const supabase = createClient(env.SUPABASE_URL, key);
 
   try {
-    const vehicles = await fetchAllData(supabase, 'vehicles', 'license_plate');
+    const vehicles = await fetchAllData(supabase, 'vehicles', 'license_plate, photos!inner(status)', { column: 'photos.status', value: 'approved' });
 
     const xmlChunks = [];
 

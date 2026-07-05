@@ -1911,15 +1911,17 @@ cleanupState: () => {
                         } else {
                             // TRƯỜNG HỢP 2: Gợi ý bình thường theo Text nhập vào
                             let selectStr = selectField;
-                            if (table === 'vehicles' && (app.preference.current !== 'both' || currentType)) {
-                                selectStr = `${selectField}, photos!inner(type)`;
+                            if (table === 'vehicles') {
+                                selectStr = `${selectField}, photos!inner(status${(app.preference.current !== 'both' || currentType) ? ', type' : ''})`;
                             }
 
                             let sbQuery = window.sb.from(table).select(selectStr);
 
-                            // CHỈ GỢI Ý TỪ ẢNH ĐÃ ĐƯỢC DUYỆT (Áp dụng cho bảng photos: Đơn vị)
+                            // CHỈ GỢI Ý TỪ ẢNH ĐÃ ĐƯỢC DUYỆT
                             if (table === 'photos') {
                                 sbQuery = sbQuery.eq('status', 'approved');
+                            } else if (table === 'vehicles') {
+                                sbQuery = sbQuery.eq('photos.status', 'approved');
                             }
 
                             if (currentType) {
@@ -3639,7 +3641,7 @@ Object.assign(window.app, {
                         cardPromises.push((async () => {
                             try {
                                 let mdlInfoQuery = window.sb.from('model_info').select('*');
-                                let mdlVehicleQuery = window.sb.from('vehicles').select('model');
+                                let mdlVehicleQuery = window.sb.from('vehicles').select('model, photos!inner(status)').eq('photos.status', 'approved');
                                 
                                 searchWords.forEach(w => { 
                                     mdlInfoQuery = mdlInfoQuery.ilike('model_name', `%${w}%`); 
@@ -3658,7 +3660,6 @@ Object.assign(window.app, {
                                     infoRes.data.forEach(info => {
                                         if (info.model_name) {
                                             const key = info.model_name.toLowerCase();
-                                            uniqueModelsMap.set(key, info.model_name);
                                             mdlInfoMap[key] = info;
                                         }
                                     });
@@ -3669,7 +3670,8 @@ Object.assign(window.app, {
                                         if (v.model) {
                                             const key = v.model.toLowerCase();
                                             if (!uniqueModelsMap.has(key)) {
-                                                uniqueModelsMap.set(key, v.model);
+                                                const matchedName = mdlInfoMap[key] ? mdlInfoMap[key].model_name : v.model;
+                                                uniqueModelsMap.set(key, matchedName);
                                             }
                                         }
                                     });
@@ -3724,8 +3726,8 @@ Object.assign(window.app, {
                     if (filterType === 'plate' || filterType === 'model' || filterType === 'all') {
                         cardPromises.push((async () => {
                             try {
-                                let selectStr = app.preference.current !== 'both' ? '*, photos!inner(type)' : '*';
-                                let vQuery = window.sb.from('vehicles').select(selectStr).limit(10);
+                                let selectStr = app.preference.current !== 'both' ? '*, photos!inner(type, status)' : '*, photos!inner(status)';
+                                let vQuery = window.sb.from('vehicles').select(selectStr).eq('photos.status', 'approved').limit(10);
                                 if (filterType === 'plate') {
                                     searchWords.forEach(w => { vQuery = vQuery.ilike('license_plate', `%${app.utils.normalizePlateQuery(w)}%`); });
                                 } else if (filterType === 'model') {
@@ -3795,7 +3797,7 @@ Object.assign(window.app, {
                         searchWords.forEach(w => { photoQuery = photoQuery.ilike('vehicles.model', `%${w}%`); });
                     } else {
                         // All
-                        let mQ = window.sb.from('vehicles').select('license_plate');
+                        let mQ = window.sb.from('vehicles').select('license_plate, photos!inner(status)').eq('photos.status', 'approved');
                         let uQ = window.sb.from('profiles').select('id');
 
                         searchWords.forEach(w => {
