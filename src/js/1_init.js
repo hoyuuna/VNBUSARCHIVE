@@ -1035,18 +1035,15 @@ Object.assign(window.app, {
                     }
                 },
                 canvasToBlobUniversal: async (canvas, targetMime = 'image/webp', quality = 0.82) => {
-                    if (targetMime === 'image/webp') {
-                        try {
-                            const cpuBlob = await app.utils.convertToWebpCpu(canvas, quality);
-                            if (cpuBlob && cpuBlob.size > 0) return cpuBlob;
-                        } catch (e) {
-                            console.warn("WASM WebP encode canvas lỗi:", e);
-                        }
+                    const nativeBlob = await new Promise((resolve) => {
+                        canvas.toBlob((blob) => resolve(blob), targetMime, quality);
+                    });
+                    if (nativeBlob && (nativeBlob.type === targetMime || targetMime !== 'image/webp')) {
+                        return nativeBlob;
                     }
+                    if (nativeBlob) return nativeBlob;
                     return new Promise((resolve) => {
-                        canvas.toBlob((blob) => {
-                            resolve(blob);
-                        }, targetMime, quality);
+                        canvas.toBlob((blob) => resolve(blob), 'image/jpeg', quality);
                     });
                 },
 

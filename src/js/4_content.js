@@ -833,17 +833,8 @@ Object.assign(window.app, {
                             initialQuality: 0.8
                         };
                         let compressedFile = await imageCompression(finalBlob, compressOptions);
-                        if (!compressedFile || compressedFile.type !== targetMime) {
-                            const cpuBlob = await app.utils.convertToWebpCpu(compressedFile || finalBlob, 0.8);
-                            if (cpuBlob && cpuBlob.size > 0) {
-                                compressedFile = new File([cpuBlob], app.rawFile.name.replace(/\.[^/.]+$/, "") + ".webp", { type: 'image/webp' });
-                            }
-                        }
-                        if (compressedFile) {
-                            app.upload.readyBlob = compressedFile;
-                        } else {
-                            app.upload.readyBlob = null;
-                        }
+                        if (!compressedFile) compressedFile = finalBlob;
+                        app.upload.readyBlob = compressedFile;
                     } catch (err) {
                         console.error("Lỗi prepareFinalBlob:", err);
                         app.upload.readyBlob = null;
@@ -1229,10 +1220,7 @@ Object.assign(window.app, {
                                 }
                                 const targetMime = app.utils.getTargetMimeType();
                                 let convertedBlob = await imageCompression(fileToCompress, { maxSizeMB: 10, maxWidthOrHeight: 1920, useWebWorker: true, fileType: targetMime, initialQuality: 0.8 });
-                                if (!convertedBlob || convertedBlob.type !== targetMime) {
-                                    const cpuBlob = await app.utils.convertToWebpCpu(convertedBlob || fileToCompress, 0.8);
-                                    if (cpuBlob && cpuBlob.size > 0) convertedBlob = cpuBlob;
-                                }
+                                if (!convertedBlob) convertedBlob = fileToCompress;
                                 const newUrl = URL.createObjectURL(convertedBlob);
                                 const newImg = new Image();
                                 newImg.onload = () => {
@@ -1245,7 +1233,9 @@ Object.assign(window.app, {
                                         if (app.webrtc && app.webrtc.resetMobile) app.webrtc.resetMobile(); 
                                         return;
                                     }
-                                    const convertedFile = new File([convertedBlob], file.name.replace(/\.[^/.]+$/, "") + "." + app.utils.getTargetExtension(), { type: targetMime });
+                                    const actualMime = convertedBlob.type || targetMime;
+                                    const actualExt = actualMime === 'image/webp' ? 'webp' : (actualMime === 'image/png' ? 'png' : 'jpg');
+                                    const convertedFile = new File([convertedBlob], file.name.replace(/\.[^/.]+$/, "") + "." + actualExt, { type: actualMime });
                                     const ratio = w / h;
                                     const is4by3 = Math.abs(ratio - (4/3)) < 0.05;
                                     const is3by2 = Math.abs(ratio - (3/2)) < 0.05;
@@ -1500,6 +1490,43 @@ Object.assign(window.app, {
                         return app.ui.showAlert(msg, null, null, { title: "Thiếu thông tin" });
                     }
 
+                    // Đẩy bước chuẩn bị & convert WebP (chỉ bước convert webp dùng thư viện CPU) vào tiến trình nền
+                    // Chạy song song ngay khi người dùng bấm nút gửi và bắt đầu giải Captcha
+                    const bgWebpPromise = (async () => {
+                        try {
+                            const username = app.username || "Guest";
+                            let blobToProcess = app.upload.readyBlob;
+                            const targetMime = app.utils.getTargetMimeType();
+
+                            if (!blobToProcess) {
+                                const finalBlob = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none');
+                                const compressOptions = { maxSizeMB: 10, maxWidthOrHeight: 1920, useWebWorker: true, fileType: targetMime, initialQuality: 0.8 };
+                                try {
+                                    blobToProcess = await imageCompression(finalBlob, compressOptions);
+                                } catch (e) {
+                                    console.warn("imageCompression lỗi:", e);
+                                }
+                                if (!blobToProcess) blobToProcess = finalBlob;
+                            }
+
+                            // Chạy convertToWebpCpu trong nền trong lúc giải captcha
+                            if (blobToProcess && blobToProcess.type !== targetMime) {
+                                const cpuBlob = await app.utils.convertToWebpCpu(blobToProcess, 0.8);
+                                if (cpuBlob && cpuBlob.size > 0) {
+                                    return new File([cpuBlob], app.rawFile.name.replace(/\.[^/.]+$/, "") + ".webp", { type: 'image/webp' });
+                                }
+                            }
+                            if (blobToProcess && blobToProcess instanceof Blob && !(blobToProcess instanceof File)) {
+                                const ext = blobToProcess.type === 'image/webp' ? 'webp' : 'jpg';
+                                return new File([blobToProcess], app.rawFile.name.replace(/\.[^/.]+$/, "") + "." + ext, { type: blobToProcess.type || targetMime });
+                            }
+                            return blobToProcess;
+                        } catch (err) {
+                            console.warn("Lỗi tiến trình nền xử lý ảnh:", err);
+                            return app.upload.readyBlob || app.rawFile;
+                        }
+                    })();
+
                     let captchaResponse;
                     try {
                         captchaResponse = await app.captcha.request();
@@ -1522,23 +1549,17 @@ Object.assign(window.app, {
 
                     try {
                         let originalSizeKB = (app.rawFile.size / 1024).toFixed(2);
-                        const username = app.username || "Guest";
-                        let compressedFile = app.upload.readyBlob;
                         const targetMime = app.utils.getTargetMimeType();
 
-                        if (!compressedFile) {
-                            const finalBlob = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none');
-                            const compressOptions = { maxSizeMB: 10, maxWidthOrHeight: 1920, useWebWorker: true, fileType: targetMime, initialQuality: 0.8 };
-                            try {
-                                compressedFile = await imageCompression(finalBlob, compressOptions);
-                            } catch (compressErr) {
-                                console.warn("imageCompression lỗi, thử chuyển sang WASM CPU encoder:", compressErr);
-                            }
-                            if (!compressedFile || compressedFile.type !== targetMime) {
-                                const cpuBlob = await app.utils.convertToWebpCpu(compressedFile || finalBlob, 0.8);
-                                if (cpuBlob && cpuBlob.size > 0) {
-                                    compressedFile = new File([cpuBlob], app.rawFile.name.replace(/\.[^/.]+$/, "") + ".webp", { type: 'image/webp' });
-                                }
+                        // Lấy kết quả từ tiến trình nền (thường đã hoàn tất hoặc gần hoàn tất trong lúc giải captcha)
+                        let compressedFile = await bgWebpPromise;
+
+                        // Nếu tiến trình nền chưa ra webp thì chạy fallback lần cuối
+                        if (!compressedFile || (compressedFile.type !== targetMime && compressedFile.type !== 'image/webp')) {
+                            const fallbackBlob = compressedFile || app.rawFile;
+                            const cpuBlob = await app.utils.convertToWebpCpu(fallbackBlob, 0.8);
+                            if (cpuBlob && cpuBlob.size > 0) {
+                                compressedFile = new File([cpuBlob], app.rawFile.name.replace(/\.[^/.]+$/, "") + ".webp", { type: 'image/webp' });
                             }
                         }
 
