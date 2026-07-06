@@ -3639,8 +3639,8 @@ Object.assign(window.app, {
                                     operatorCards.push(`
                                         <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.views.loadOperatorPage('${app.utils.escapeAttr(op)}')">
                                             ${iconHtml}
-                                            <div class="overflow-hidden">
-                                                <div class="font-bold text-black text-sm truncate">${app.utils.cleanText(op)}</div>
+                                            <div class="overflow-hidden min-w-0 flex-1">
+                                                <div class="font-bold text-black text-sm overflow-x-auto whitespace-nowrap no-scrollbar">${app.utils.cleanText(op)}</div>
                                                 <div class="text-[10px] text-gray-500 uppercase tracking-widest mt-0.5 font-bold">Đơn vị vận hành</div>
                                             </div>
                                         </div>
@@ -3725,8 +3725,8 @@ Object.assign(window.app, {
                                     modelCards.push(`
                                         <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.model.loadModelPage('${app.utils.escapeAttr(m)}')">
                                             ${iconHtml}
-                                            <div class="overflow-hidden">
-                                                <div class="font-bold text-black text-sm truncate">${app.utils.cleanText(m)}</div>
+                                            <div class="overflow-hidden min-w-0 flex-1">
+                                                <div class="font-bold text-black text-sm overflow-x-auto whitespace-nowrap no-scrollbar">${app.utils.cleanText(m)}</div>
                                                 <div class="text-[10px] text-gray-500 uppercase tracking-widest mt-0.5 font-bold">Dòng xe</div>
                                             </div>
                                         </div>

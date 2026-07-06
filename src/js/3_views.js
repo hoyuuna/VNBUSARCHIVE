@@ -2315,10 +2315,12 @@ Object.assign(window.app, {
 
                     tbody.innerHTML = displayData.map(m => `
                         <tr class="hover:bg-gray-50 transition group">
-                            <td class="font-medium text-gray-700 max-w-[200px] truncate border-r border-gray-200" title="${app.utils.cleanText(m.name)}">
-                                <span onclick="app.utils.navigate('/model/${encodeURIComponent(m.name)}')" class="cursor-pointer hover:text-black hover:underline font-bold transition">
-                                    ${app.utils.cleanText(m.name)}
-                                </span>
+                            <td class="font-medium text-gray-700 max-w-[200px] border-r border-gray-200" title="${app.utils.cleanText(m.name)}">
+                                <div class="overflow-x-auto whitespace-nowrap no-scrollbar">
+                                    <span onclick="app.utils.navigate('/model/${encodeURIComponent(m.name)}')" class="cursor-pointer hover:text-black hover:underline font-bold transition">
+                                        ${app.utils.cleanText(m.name)}
+                                    </span>
+                                </div>
                             </td>
                             <td class="text-center font-bold text-black border-r border-gray-200">${m.active > 0 ? m.active : ''}</td>
                             <td class="text-center font-bold text-black border-r border-gray-200">${m.inactive > 0 ? m.inactive : ''}</td>
@@ -2378,16 +2380,20 @@ Object.assign(window.app, {
 
                     tbody.innerHTML = displayData.map(r => `
                         <tr class="hover:bg-gray-50 transition group">
-                            <td class="font-medium text-gray-700 max-w-[200px] truncate border-r border-gray-200" title="${app.utils.cleanText(r.displayName || r.route)}">
-                                <span onclick="app.searchRedirect('${app.utils.escapeAttr(r.route)}', 'route', '${r.prefix || ''}')" class="cursor-pointer hover:text-blue-600 hover:underline font-bold transition text-black">
-                                    ${app.utils.cleanText(r.displayName || r.route)}
-                                </span>
+                            <td class="font-medium text-gray-700 max-w-[200px] border-r border-gray-200" title="${app.utils.cleanText(r.displayName || r.route)}">
+                                <div class="overflow-x-auto whitespace-nowrap no-scrollbar">
+                                    <span onclick="app.searchRedirect('${app.utils.escapeAttr(r.route)}', 'route', '${r.prefix || ''}')" class="cursor-pointer hover:text-blue-600 hover:underline font-bold transition text-black">
+                                        ${app.utils.cleanText(r.displayName || r.route)}
+                                    </span>
+                                </div>
                             </td>
                             <td class="text-center font-bold text-black border-r border-gray-200">${r.vehicleCount}</td>
-                            <td class="text-center text-black max-w-[150px] truncate" title="${r.mainModel || 'Chưa xác định'}">
-                                <span onclick="if('${r.mainModel || 'Chưa xác định'}' !== 'Chưa xác định') app.utils.navigate('/model/${encodeURIComponent(r.mainModel || '')}')" class="${r.mainModel && r.mainModel !== 'Chưa xác định' ? 'cursor-pointer hover:underline transition' : ''}">
-                                    ${r.mainModel || 'Chưa xác định'}
-                                </span>
+                            <td class="text-center text-black max-w-[150px]" title="${r.mainModel || 'Chưa xác định'}">
+                                <div class="overflow-x-auto whitespace-nowrap no-scrollbar">
+                                    <span onclick="if('${r.mainModel || 'Chưa xác định'}' !== 'Chưa xác định') app.utils.navigate('/model/${encodeURIComponent(r.mainModel || '')}')" class="${r.mainModel && r.mainModel !== 'Chưa xác định' ? 'cursor-pointer hover:underline transition' : ''}">
+                                        ${r.mainModel || 'Chưa xác định'}
+                                    </span>
+                                </div>
                             </td>
                         </tr>
                     `).join('');
