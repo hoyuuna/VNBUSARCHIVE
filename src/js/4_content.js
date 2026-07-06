@@ -2502,8 +2502,8 @@ Object.assign(window.app, {
                         });
 
                         const html = Object.values(groups).map(g => `
-                            <div class="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
-                                <div class="bg-gray-50 px-4 py-3 flex items-center gap-3 border-b border-gray-100 cursor-pointer hover:bg-gray-100 transition" onclick="app.views.loadDetail('${g.info.id}')">
+                            <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                                <div class="bg-gray-50 px-4 py-3 flex items-center gap-3 cursor-pointer hover:bg-gray-100 transition" onclick="app.views.loadDetail('${g.info.id}')">
                                     <img src="${app.utils.getProxiedUrl(g.info.url, 'thumb.jpg', 'thumb')}" class="w-12 h-8 object-cover rounded shadow-sm border border-white">
                                     <span class="font-black text-sm text-black uppercase">${g.info.license_plate}</span>
                                     <span class="text-[10px] text-gray-400 font-bold ml-auto">${g.comments.length} TƯƠNG TÁC</span>

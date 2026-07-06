@@ -29,7 +29,7 @@ Object.assign(window.app, {
                     if (!container) return null;
 
                     const toast = document.createElement('div');
-                    toast.className = 'toast-card toast-enter bg-white/90 backdrop-blur-xl border border-gray-200 shadow-2xl rounded-2xl p-4 flex items-start gap-3 w-11/12 max-w-sm cursor-pointer mx-auto';
+                    toast.className = 'toast-card toast-enter bg-white/90 backdrop-blur-xl border border-gray-200 shadow-2xl rounded-xl p-4 flex items-start gap-3 w-11/12 max-w-sm cursor-pointer mx-auto';
 
                     let iconHtml = '';
                     if (type === 'success') {
@@ -170,7 +170,7 @@ Object.assign(window.app, {
 
                     const toastId = 'toast-prog-' + Date.now();
                     const toast = document.createElement('div');
-                    toast.className = 'toast-card toast-enter bg-white/95 backdrop-blur-2xl border border-gray-200 shadow-2xl rounded-2xl p-4 flex items-center gap-3 w-11/12 max-w-sm mx-auto pointer-events-auto';
+                    toast.className = 'toast-card toast-enter bg-white/95 backdrop-blur-2xl border border-gray-200 shadow-2xl rounded-xl p-4 flex items-center gap-3 w-11/12 max-w-sm mx-auto pointer-events-auto';
                     toast.id = toastId;
 
                     toast.innerHTML = `
