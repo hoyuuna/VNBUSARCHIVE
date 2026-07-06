@@ -133,7 +133,7 @@ components:
     backdropFilter: "{colors.glass-surface-blur}"
     border: "1px solid {colors.glass-border-100}"
     boxShadow: "0 10px 30px rgba(0, 0, 0, 0.1)"
-    rounded: "{rounded.xl}"
+    rounded: "{rounded.lg}"
   modal-overlay:
     backgroundColor: "{colors.glass-surface-overlay}"
     backdropFilter: "{colors.glass-overlay-blur}"
@@ -142,7 +142,7 @@ components:
     backdropFilter: "{colors.glass-surface-blur}"
     border: "1px solid {colors.glass-border-100}"
     boxShadow: "0 10px 30px rgba(0, 0, 0, 0.15)"
-    rounded: "{rounded.xl}"
+    rounded: "{rounded.lg}"
   input:
     backgroundColor: "transparent"
     textColor: "{colors.primary}"
@@ -199,7 +199,7 @@ The backdrop overlay must be completely transparent but apply a strong blur (`bl
      style="background-color: rgba(0, 0, 0, 0) !important; backdrop-filter: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important;">
     
     <!-- Modal Content -->
-    <div class="rounded-xl p-6 flex flex-col items-center max-w-sm w-full transform scale-95 transition-transform duration-300 opacity-0"
+    <div class="rounded-2xl p-6 flex flex-col items-center max-w-sm w-full transform scale-95 transition-transform duration-300 opacity-0"
          style="background-color: rgba(255, 255, 255, 0.7) !important; backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important; border: 1px solid rgba(255, 255, 255, 0.6) !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;">
         
         <!-- Inner elements MUST NOT have solid backgrounds (bg-white) that block the glass effect -->

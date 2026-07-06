@@ -1720,7 +1720,7 @@
 
     <!-- MODAL CAPTCHA POPUP -->
     <div id="captcha-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 transition-opacity duration-300 opacity-0" style="z-index: 99999;">
-        <div class="bg-white rounded-xl shadow-2xl p-6 flex flex-col items-center max-w-sm w-full transform scale-95 transition-transform duration-300" id="captcha-content">
+        <div class="bg-white rounded-2xl shadow-2xl p-6 flex flex-col items-center max-w-sm w-full transform scale-95 transition-transform duration-300" id="captcha-content">
             <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-xl mb-4 shadow-inner border border-blue-100">
                 <i class="fa-solid fa-shield-halved"></i>
             </div>
@@ -1740,7 +1740,7 @@
 
     <!-- MODAL YÊU CẦU XÁC MINH EMAIL (CHUẨN UI KÍNH MỜ CỦA SYSTEM) -->
     <div id="email-verify-modal" class="hidden fixed inset-0 flex items-center justify-center p-4" style="z-index: 99999; background-color: rgba(0, 0, 0, 0) !important; backdrop-filter: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important;">
-        <div id="email-verify-content" class="rounded-xl shadow-2xl max-w-sm w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col" style="background-color: rgba(255, 255, 255, 0.7) !important; backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important; border: 1px solid rgba(255, 255, 255, 0.6) !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;">
+        <div id="email-verify-content" class="rounded-lg shadow-2xl max-w-sm w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col" style="background-color: rgba(255, 255, 255, 0.7) !important; backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important; border: 1px solid rgba(255, 255, 255, 0.6) !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;">
             
             <div class="p-5 text-center" style="background-color: transparent !important;">
                 <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full mb-4" style="background-color: rgba(0, 0, 0, 0.05);">
@@ -1773,7 +1773,7 @@
 
         <!-- POPUP ONBOARDING (CHÀO MỪNG NGƯỜI MỚI - GLASSMORPHISM ĐỒNG BỘ) -->
         <div id="onboarding-modal" class="hidden fixed inset-0 z-[10000] flex items-center justify-center p-4" style="background-color: rgba(0, 0, 0, 0) !important; backdrop-filter: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important;">
-            <div id="onboarding-content" class="rounded-xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col relative" style="max-width: 420px; background-color: rgba(255, 255, 255, 0.7) !important; backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important; border: 1px solid rgba(255, 255, 255, 0.6) !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;">
+            <div id="onboarding-content" class="rounded-2xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col relative" style="max-width: 420px; background-color: rgba(255, 255, 255, 0.7) !important; backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important; border: 1px solid rgba(255, 255, 255, 0.6) !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;">
 
                 <!-- Thanh tiến trình (Progress Bar) -->
                 <div class="px-6 pt-6">
@@ -1898,7 +1898,6 @@
 
         <!-- ICON VÀ TIÊU ĐỀ -->
         <div class="w-16 h-16 bg-gray-50 text-gray-400 rounded-full flex items-center justify-center text-2xl mx-auto mb-4 border border-gray-100">
-        <div class="w-16 h-16 bg-gray-50 text-gray-400 rounded-xl flex items-center justify-center text-2xl mx-auto mb-4 border border-gray-100">
             <i class="fa-solid fa-wrench"></i>
         </div>
         <h1 id="mt-title" class="font-bold text-xl text-black uppercase tracking-tighter mb-2">Hệ thống tạm đóng</h1>
@@ -1907,14 +1906,14 @@
         <p id="mt-reason" class="text-gray-500 text-sm font-medium mb-8 px-4 leading-relaxed">Đang tiến hành bảo trì định kỳ...</p>
 
         <!-- Ô THỜI GIAN (NỀN TRẮNG) -->
-        <div class="bg-white border border-gray-200 rounded-xl p-5 mb-10 shadow-sm">
+        <div class="bg-white border border-gray-200 rounded-2xl p-5 mb-10 shadow-sm">
             <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest block mb-2">Thời gian dự kiến mở lại</span>
             <span id="mt-countdown" class="text-3xl font-black font-mono tracking-tighter text-black">--:--:--</span>
         </div>
 
         <!-- CỤM NÚT CẬP NHẬT THÔNG TIN -->
         <div class="space-y-3">
-            <img src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExb3RwdzZlNTZ4OWc4ZXppMmN0c3M2cGNhNzFvd3Z0cjhzejU0OGxvYyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/TJYEwHcXmpiipNdna3/giphy.gif" alt="Maintenance Status" class="w-48 h-48 aspect-square mx-auto mb-5 rounded-xl shadow-sm object-cover">
+            <img src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExb3RwdzZlNTZ4OWc4ZXppMmN0c3M2cGNhNzFvd3Z0cjhzejU0OGxvYyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/TJYEwHcXmpiipNdna3/giphy.gif" alt="Maintenance Status" class="w-48 h-48 aspect-square mx-auto mb-5 rounded-2xl shadow-sm object-cover">
 
             <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-4">Cập nhật thông tin tại</p>
 
@@ -1935,7 +1934,7 @@
         <div id="custom-alert-modal"
             class="hidden fixed inset-0 z-[5000] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
             <div id="custom-alert-content"
-                class="bg-white rounded-xl shadow-2xl max-w-sm w-full border border-gray-200 overflow-hidden transform transition-all">
+                class="bg-white rounded-lg shadow-2xl max-w-sm w-full border border-gray-200 overflow-hidden transform transition-all">
                 <div class="p-5 text-center">
                     <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-gray-100 mb-4"
                         id="custom-alert-icon">
@@ -2003,7 +2002,7 @@
 
         <div id="crop-modal" class="hidden fixed inset-0 z-[7000] bg-black/90 backdrop-blur-sm flex flex-col items-center justify-center p-2 sm:p-4">
             <div class="bg-white w-full max-w-4xl rounded-xl shadow-2xl flex flex-col overflow-hidden transform transition-all">
-                <div class="p-3 md:p-4 flex justify-between items-center bg-gray-50">
+                <div class="p-3 md:p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
                     <h3 class="font-bold text-sm md:text-base uppercase text-black"><i class="fa-solid fa-crop-simple mr-2"></i> Cắt ảnh</h3>
                     <button onclick="app.crop.close()" class="text-gray-500 hover:text-red-600 transition"><i class="fa-solid fa-xmark text-lg"></i></button>
                 </div>
@@ -2029,7 +2028,7 @@
         <div id="custom-prompt-modal"
             class="hidden fixed inset-0 z-[5000] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
             <div id="custom-prompt-content"
-                class="bg-white rounded-xl shadow-2xl max-w-sm w-full border border-gray-200 overflow-hidden transform transition-all opacity-0 scale-95">
+                class="bg-white rounded-lg shadow-2xl max-w-sm w-full border border-gray-200 overflow-hidden transform transition-all opacity-0 scale-95">
                 <div class="p-5">
                     <h3 id="custom-prompt-title" class="text-lg font-bold text-gray-900 mb-2">Nhập thông tin</h3>
                     <p id="custom-prompt-msg" class="text-sm text-gray-500 mb-3"></p>
@@ -2092,7 +2091,7 @@
 
         <div id="ban-prompt-modal" class="hidden fixed inset-0 z-[5000] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
             <div id="ban-prompt-content" class="bg-gray-50 rounded-xl shadow-2xl max-w-lg w-full border border-gray-200 overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col max-h-[90vh]">
-                <div class="p-5 shrink-0 bg-white rounded-t-xl">
+                <div class="p-5 border-b border-gray-200 shrink-0 bg-white rounded-t-xl">
                     <h3 id="ban-prompt-title" class="text-lg font-bold text-red-600 mb-1"><i class="fa-solid fa-ban mr-2"></i>Cấm Tài Khoản</h3>
                     <p class="text-xs text-gray-500">Vui lòng chọn 1 trong 2 phương thức nhập lí do dưới đây.</p>
                 </div>
@@ -2204,7 +2203,7 @@
                 class="bg-gray-50 rounded-xl shadow-2xl max-w-lg w-full border border-gray-200 overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col max-h-[90vh]">
 
 
-                <div class="p-5 shrink-0 bg-white rounded-t-xl">
+                <div class="p-5 border-b border-gray-200 shrink-0 bg-white rounded-t-xl">
                     <h3 id="deny-prompt-title" class="text-lg font-bold text-red-600 mb-1"><i
                             class="fa-solid fa-triangle-exclamation mr-2"></i>Từ chối ảnh</h3>
                     <p class="text-xs text-gray-500">Vui lòng chọn 1 trong 2 phương thức nhập lí do dưới đây.</p>
@@ -2351,11 +2350,12 @@
 
         <div id="newsboard-modal"
             class="hidden fixed inset-0 z-[10000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 md:p-6">
+            <!-- Đã đổi rounded-xl thành rounded-2xl để đồng bộ -->
             <div id="newsboard-content"
-                class="rounded-xl shadow-2xl w-full max-w-4xl h-[85vh] md:h-[75vh] min-h-[400px] flex flex-col overflow-hidden transform transition-all opacity-0 scale-95 relative z-50">
+                class="rounded-2xl shadow-2xl w-full max-w-4xl h-[85vh] md:h-[75vh] min-h-[400px] flex flex-col overflow-hidden transform transition-all opacity-0 scale-95 relative z-50">
 
                 <!-- Header trắng/trong suốt giống Cài đặt, có icon xám -->
-                <div class="p-3 md:p-4 flex justify-between items-center shrink-0 rounded-t-xl">
+                <div class="border-b border-gray-200/50 p-3 md:p-4 flex justify-between items-center shrink-0 rounded-t-2xl">
                     <h2 class="font-bold text-base md:text-lg text-black uppercase tracking-tight">
                         <i class="fa-solid fa-newspaper mr-2 text-gray-500"></i>BẢNG TIN HỆ THỐNG
                     </h2>
@@ -2365,7 +2365,7 @@
                 </div>
 
                 <!-- Nội dung -->
-                <div class="flex flex-col md:flex-row flex-1 overflow-hidden rounded-b-xl">
+                <div class="flex flex-col md:flex-row flex-1 overflow-hidden rounded-b-2xl">
 
                     <!-- Sidebar mục lục -->
                     <div class="w-full md:w-1/3 border-b md:border-b-0 md:border-r border-gray-200/50 overflow-y-auto p-3 shrink-0 h-1/3 md:h-full bg-white/30" id="newsboard-toc">
@@ -2451,7 +2451,7 @@
 
                     <!-- Khung Modal Trắng -->
                     <div
-                        class="w-full bg-white/70 backdrop-blur-2xl border border-white/60 rounded-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.2)] flex flex-col fade-zoom-in transform-gpu shrink-0 mb-6">
+                        class="w-full bg-white/70 backdrop-blur-2xl border border-white/60 rounded-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.2)] flex flex-col fade-zoom-in transform-gpu shrink-0 mb-6">
 
                 <div class="p-8 md:p-10">
 
@@ -2602,7 +2602,7 @@
 
         <header class="fixed top-0 left-0 right-0 z-[1500] flex justify-center pt-4 px-4 pointer-events-none" style="z-index: 1500 !important;">
             <div
-                class="w-full max-w-7xl bg-white/80 backdrop-blur-md border border-white/20 shadow-island rounded-xl pointer-events-auto transition-all duration-300 relative">
+                class="w-full max-w-7xl bg-white/80 backdrop-blur-md border border-white/20 shadow-island rounded-2xl pointer-events-auto transition-all duration-300 relative">
                 <div class="flex flex-wrap md:flex-nowrap justify-between items-center px-4 py-2 md:h-16">
                     <a href="/" class="flex items-center gap-2 cursor-pointer md:mb-0 mr-auto no-underline shrink-0">
                         <!-- TODO: Change back to previous logo later: https://ik.imagekit.io/hoyuuna/Logo/logo304.png -->
@@ -2712,15 +2712,15 @@
 
 
         <div id="settings-modal" class="hidden fixed inset-0 z-[4000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 md:p-6">
-            <div id="settings-content" class="rounded-xl shadow-2xl w-full max-w-4xl h-[85vh] md:h-[70vh] min-h-[450px] flex flex-col overflow-hidden transform transition-all opacity-0 scale-95 relative z-50">
+            <div id="settings-content" class="rounded-2xl shadow-2xl w-full max-w-4xl h-[85vh] md:h-[70vh] min-h-[450px] flex flex-col overflow-hidden transform transition-all opacity-0 scale-95 relative z-50">
 
                 <!-- Header -->
-                <div class="p-3 md:p-4 flex justify-between items-center shrink-0 rounded-t-xl">
+                <div class="border-b border-gray-200/50 p-3 md:p-4 flex justify-between items-center shrink-0 rounded-t-2xl">
                     <h2 class="font-bold text-base md:text-lg text-black uppercase tracking-tight"><i class="fa-solid fa-gear mr-2 text-gray-500"></i>Cài đặt</h2>
                     <button onclick="app.settings.close()" class="text-gray-400 hover:text-red-500 transition text-xl px-2"><i class="fa-solid fa-xmark"></i></button>
                 </div>
 
-                <div class="flex flex-col md:flex-row flex-1 overflow-hidden rounded-b-xl">
+                <div class="flex flex-col md:flex-row flex-1 overflow-hidden rounded-b-2xl">
                     <!-- SIDEBAR ĐIỀU HƯỚNG -->
                     <div class="w-full md:w-1/4 h-1/3 md:h-full border-b md:border-b-0 md:border-r border-gray-200/50 p-2 md:p-3 shrink-0 bg-gray-50/30 flex flex-col relative z-20">
 
@@ -2807,7 +2807,7 @@
                         </div>
 
                         <div id="set-content-profile" class="space-y-4 md:space-y-6 hidden">
-                            <div class="bg-white p-4 md:p-5 rounded-xl border border-gray-200 shadow-sm">
+                            <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm">
                                 <h3 class="font-bold text-xs md:text-sm text-black mb-3 md:mb-4 uppercase tracking-wide">Ảnh đại diện</h3>
                                 <div class="flex flex-col sm:flex-row items-center gap-4">
                                     <img id="set-avatar-img" src="" class="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover border border-gray-200 bg-gray-100 shadow-inner shrink-0">
@@ -2820,7 +2820,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="bg-white p-4 md:p-5 rounded-xl border border-gray-200 shadow-sm">
+                            <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm">
                                 <h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Đổi tên hiển thị</h3>
                                 <p class="text-[11px] md:text-xs text-gray-500 mb-3 leading-relaxed">Tên hiển thị công khai trên hồ sơ của bạn. Tên đăng nhập email vẫn được giữ nguyên.</p>
                                 <div class="flex flex-col sm:flex-row gap-2">
@@ -2831,9 +2831,9 @@
                         </div>
 
                         <div id="set-content-security" class="space-y-4 md:space-y-6 hidden">
-                            <div class="bg-white p-4 md:p-5 rounded-xl border border-gray-200 shadow-sm"><h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Đổi Email</h3><p class="text-[11px] md:text-xs text-gray-500 mb-3 leading-relaxed">Yêu cầu xác nhận mật khẩu hiện tại. Email đang sử dụng: <b id="set-current-email" class="text-black">...</b></p><div class="space-y-3"><input type="email" id="set-ce-new" placeholder="Nhập địa chỉ email mới" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none"><input type="password" id="set-ce-password" placeholder="Mật khẩu hiện tại" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none"><button onclick="app.auth.changeEmail(this)" class="w-full bg-black text-white px-4 py-2.5 text-xs font-bold rounded-md hover:bg-gray-800">Cập nhật Email</button></div></div>
-                            <div class="bg-white p-4 md:p-5 rounded-xl border border-gray-200 shadow-sm"><h3 class="font-bold text-xs md:text-sm text-black mb-3 uppercase tracking-wide">Đổi mật khẩu</h3><div class="space-y-3"><input type="password" id="set-cp-old" placeholder="Mật khẩu hiện tại" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none"><input type="password" id="set-cp-new" placeholder="Mật khẩu mới (Tối thiểu 6 ký tự)" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none"><button onclick="app.auth.changePassword()" class="w-full bg-black text-white px-4 py-2.5 text-xs font-bold rounded-md hover:bg-gray-800">Đổi mật khẩu</button></div></div>
-                            <div class="bg-white p-4 md:p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm"><h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Đổi Email</h3><p class="text-[11px] md:text-xs text-gray-500 mb-3 leading-relaxed">Yêu cầu xác nhận mật khẩu hiện tại. Email đang sử dụng: <b id="set-current-email" class="text-black">...</b></p><div class="space-y-3"><input type="email" id="set-ce-new" placeholder="Nhập địa chỉ email mới" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none"><input type="password" id="set-ce-password" placeholder="Mật khẩu hiện tại" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none"><button onclick="app.auth.changeEmail(this)" class="w-full bg-black text-white px-4 py-2.5 text-xs font-bold rounded-md hover:bg-gray-800">Cập nhật Email</button></div></div>
+                            <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm"><h3 class="font-bold text-xs md:text-sm text-black mb-3 uppercase tracking-wide">Đổi mật khẩu</h3><div class="space-y-3"><input type="password" id="set-cp-old" placeholder="Mật khẩu hiện tại" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none"><input type="password" id="set-cp-new" placeholder="Mật khẩu mới (Tối thiểu 6 ký tự)" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none"><button onclick="app.auth.changePassword()" class="w-full bg-black text-white px-4 py-2.5 text-xs font-bold rounded-md hover:bg-gray-800">Đổi mật khẩu</button></div></div>
+                            <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
                                 <div>
                                     <h3 class="font-bold text-xs md:text-sm text-black mb-1.5 uppercase tracking-wide">Đăng xuất từ xa</h3>
                                     <p class="text-[11px] md:text-xs text-gray-500 leading-relaxed">Hủy bỏ toàn bộ phiên đăng nhập trên các trình duyệt và thiết bị khác để bảo mật.</p>
@@ -2845,9 +2845,9 @@
                         </div>
 
                         <div id="set-content-links" class="space-y-4 md:space-y-6 hidden">
-                             <div class="bg-white p-4 md:p-5 rounded-xl border border-gray-200 shadow-sm"><h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Tài khoản liên kết</h3><div class="space-y-3" id="linked-accounts-container"><p class="text-xs text-gray-500"><i class="fa-solid fa-spinner fa-spin"></i> Đang kiểm tra...</p></div></div>
+                             <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm"><h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Tài khoản liên kết</h3><div class="space-y-3" id="linked-accounts-container"><p class="text-xs text-gray-500"><i class="fa-solid fa-spinner fa-spin"></i> Đang kiểm tra...</p></div></div>
                              
-                             <div class="bg-white p-4 md:p-5 rounded-xl border border-gray-200 shadow-sm mt-4">
+                             <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm mt-4">
                                 <h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Xác minh Discord</h3>
                                 <p class="text-[11px] md:text-xs text-gray-500 mb-3 leading-relaxed">Mở khóa trò chuyện trong server Discord của VNBUSARCHIVE, bạn không cần tương tác nếu không có nhu cầu. <a href="https://www.vnbusarchive.io.vn/help/1519298010138411191" target="_blank" class="font-bold text-black hover:underline">Tìm hiểu thêm</a></p>
                                 <div class="flex items-center justify-between p-3 border border-gray-200 rounded-md bg-gray-50">
@@ -2868,12 +2868,12 @@
                         </div>
 
                         <div id="set-content-badges" class="space-y-4 md:space-y-6 hidden">
-                            <div class="bg-white p-4 md:p-5 rounded-xl border border-gray-200 shadow-sm"><h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Nhận Huy hiệu Discord</h3><div id="badge-loading" class="py-6 text-center text-gray-500 text-sm"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang kiểm tra...</div><div id="badge-requirements" class="hidden space-y-3"><div id="req-link-container" class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-lg"><div id="req-link-status"></div><button id="req-link-action" onclick="app.settings.switchTab('links')" class="text-xs bg-black text-white px-4 py-2 rounded font-bold">Liên kết</button></div><div id="req-server-container" class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-lg"><div id="req-server-status"></div><a id="req-server-action" href="https://discord.com/invite/BNWyqbuvwq" target="_blank" class="text-xs bg-[#5865F2] text-white px-4 py-2 rounded font-bold text-center">Tham gia</a></div></div><div id="badge-claim-list" class="hidden space-y-3"><div class="bg-blue-50 text-blue-800 text-xs p-3 rounded-md border border-blue-200 mb-4 font-medium flex items-center justify-between"><span>Số ảnh đã duyệt: <b id="badge-photo-count" class="text-lg ml-1">0</b></span></div><div id="badges-grid" class="grid grid-cols-1 gap-3"></div></div></div>
+                            <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm"><h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Nhận Huy hiệu Discord</h3><div id="badge-loading" class="py-6 text-center text-gray-500 text-sm"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang kiểm tra...</div><div id="badge-requirements" class="hidden space-y-3"><div id="req-link-container" class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-lg"><div id="req-link-status"></div><button id="req-link-action" onclick="app.settings.switchTab('links')" class="text-xs bg-black text-white px-4 py-2 rounded font-bold">Liên kết</button></div><div id="req-server-container" class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-lg"><div id="req-server-status"></div><a id="req-server-action" href="https://discord.com/invite/BNWyqbuvwq" target="_blank" class="text-xs bg-[#5865F2] text-white px-4 py-2 rounded font-bold text-center">Tham gia</a></div></div><div id="badge-claim-list" class="hidden space-y-3"><div class="bg-blue-50 text-blue-800 text-xs p-3 rounded-md border border-blue-200 mb-4 font-medium flex items-center justify-between"><span>Số ảnh đã duyệt: <b id="badge-photo-count" class="text-lg ml-1">0</b></span></div><div id="badges-grid" class="grid grid-cols-1 gap-3"></div></div></div>
                         </div>
 
                         <!-- TAB CÁ NHÂN HÓA -->
                         <div id="set-content-preference" class="space-y-4 md:space-y-6 hidden">
-                            <div class="bg-white p-4 md:p-6 rounded-xl border border-gray-200 shadow-sm">
+                            <div class="bg-white p-4 md:p-6 rounded-lg border border-gray-200 shadow-sm">
                                 <h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Cá nhân hóa nội dung</h3>
                                 <p class="text-[11px] md:text-xs text-gray-500 mb-5 leading-relaxed">Chọn loại phương tiện bạn quan tâm. Hệ thống sẽ tự động lọc và ẩn các nội dung còn lại. Thiết lập này áp dụng cho toàn bộ thiết bị.</p>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
@@ -2944,9 +2944,9 @@
 
 
 
-                <div class="bg-white border border-vbs-border mb-8 rounded-xl shadow-sm overflow-hidden"
+                <div class="bg-white border border-vbs-border mb-8 rounded-lg shadow-sm overflow-hidden"
                     id="hero-section">
-                    <div class="bg-white px-4 py-3">
+                    <div class="bg-white px-4 py-3 border-b border-vbs-border">
                         <h3 class="font-bold text-sm uppercase text-black tracking-wide">Ảnh được xem nhiều nhất</h3>
                     </div>
                     <div class="p-3 flex flex-col md:flex-row gap-3">
@@ -2961,7 +2961,7 @@
 
 
                 <div id="recommendation-section"
-                    class="hidden bg-gradient-animated border border-white/50 mb-8 rounded-xl shadow-md overflow-hidden p-4">
+                    class="hidden bg-gradient-animated border border-white/50 mb-8 rounded-lg shadow-md overflow-hidden p-4">
                     <h3
                         class="font-bold text-lg mb-3 tracking-tight text-gray-800 uppercase flex items-center gap-2 drop-shadow-sm">
                         <i class="fa-solid fa-sparkles text-pink-600"></i> Dành cho bạn
@@ -2989,9 +2989,9 @@
                     </button>
                 </div>
 
-                <div id="db-stats-section" class="mt-12 bg-white border border-vbs-border p-6 rounded-xl shadow-sm">
+                <div id="db-stats-section" class="mt-12 bg-white border border-vbs-border p-6 rounded-lg shadow-sm">
                     <h3
-                        class="font-bold text-lg mb-4 tracking-tight uppercase text-center text-gray-800">
+                        class="font-bold text-lg border-b border-gray-200 pb-3 mb-4 tracking-tight uppercase text-center text-gray-800">
                         THỐNG KÊ DATABASE</h3>
                     <div class="stats-grid max-w-3xl mx-auto">
                         <div class="stat-item">
@@ -3122,7 +3122,7 @@
                             </h2>
                         </div>
 
-                        <div class="bg-white p-1.5 border border-vbs-border shadow-sm mb-6 rounded-xl">
+                        <div class="bg-white p-1.5 border border-vbs-border shadow-sm mb-6 rounded-lg">
                             <!-- KHUNG ẢNH CHI TIẾT SỬ DỤNG SKELETON -->
                             <div class="img-wrapper relative w-full aspect-[4/3] bg-gray-100 rounded-md overflow-hidden">
                                 <div class="img-spinner absolute inset-0 flex items-center justify-center text-gray-400">
@@ -3409,8 +3409,8 @@
 
 
                 <!-- BÌNH LUẬN -->
-                <div id="comment-section" class="mt-8 mb-6 bg-white border border-vbs-border p-4 md:p-6 rounded-xl shadow-sm block">
-                    <h3 class="font-bold text-lg mb-4 tracking-tight uppercase text-black flex items-center">
+                <div id="comment-section" class="mt-8 mb-6 bg-white border border-vbs-border p-4 md:p-6 rounded-lg shadow-sm block">
+                    <h3 class="font-bold text-lg border-b border-gray-200 pb-3 mb-4 tracking-tight uppercase text-black flex items-center">
                         <i class="fa-regular fa-comments mr-2 text-black"></i>Bình luận (<span id="comment-count" class="mr-1">0</span>)
 
                     </h3>
@@ -3421,7 +3421,7 @@
                     </div>
 
                     <!-- Form gửi (Đẩy lên trên, ngăn cách với danh sách bên dưới) -->
-                    <div id="comment-form-wrapper" class="hidden mb-4">
+                    <div id="comment-form-wrapper" class="hidden border-b border-gray-100 pb-4 mb-4">
                         <div id="comment-warning" class="hidden mb-3 p-3 bg-red-50 border border-red-100 rounded-xl flex items-start gap-2">
                             <i class="fa-solid fa-triangle-exclamation text-red-500 mt-0.5 text-xs"></i>
                             <p class="text-[11px] text-red-700 font-bold leading-tight">Bình luận không phù hợp có thể dẫn tới đình chỉ tài khoản. HÃY CÓ Ý THỨC!</p>
@@ -3454,7 +3454,7 @@
 
                 <!-- MỤC CÓ THỂ BẠN QUAN TÂM -->
                 <div id="detail-recommendation-section" class="mt-12 hidden">
-                    <div class="flex items-center gap-2 mb-4">
+                    <div class="flex items-center gap-2 mb-4 border-b border-gray-200 pb-2">
                         <i class="fa-solid fa-sparkles text-pink-600 text-lg"></i>
                         <h3 class="text-lg font-bold uppercase text-black tracking-tight">Có thể bạn quan tâm</h3>
                     </div>
@@ -3485,7 +3485,7 @@
                         <span class="font-bold text-black truncate shrink min-w-0">Liên hệ hỗ trợ</span>
                     </div>
 
-                    <div class="bg-white border border-vbs-border rounded-xl shadow-sm p-5 md:p-8 mb-8">
+                    <div class="bg-white border border-vbs-border rounded-2xl shadow-sm p-5 md:p-8 mb-8">
                         
                         <div class="text-center mb-6">
                             <div class="w-12 h-12 bg-gray-50 text-black rounded-full flex items-center justify-center text-xl mb-3 border border-gray-200 shadow-sm mx-auto">
@@ -3720,7 +3720,7 @@
                     </div>
 
                     <!-- Box Mã định danh (UUID) riêng biệt bên dưới hộp hỗ trợ (ẩn khi chưa đăng nhập) -->
-                    <div id="contact-uuid-box" class="hidden bg-white border border-gray-200 rounded-xl shadow-sm p-5 md:p-8 mb-8 relative overflow-hidden">
+                    <div id="contact-uuid-box" class="hidden bg-white border border-gray-200 rounded-2xl shadow-sm p-5 md:p-8 mb-8 relative overflow-hidden">
                         <div class="flex items-start sm:items-center gap-5 md:gap-6 mb-5">
                             <div class="w-12 h-12 min-w-[3rem] min-h-[3rem] max-w-[3rem] max-h-[3rem] aspect-square bg-gray-50 text-black rounded-full flex items-center justify-center text-lg border border-gray-200 shadow-sm shrink-0">
                                 <i class="fa-solid fa-fingerprint"></i>
@@ -3744,7 +3744,7 @@
             <div id="help-list" class="view-section">
                 <div class="max-w-4xl mx-auto">
                     <!-- Banner Tối giản -->
-                    <div class="bg-white border border-gray-200 rounded-xl p-6 md:p-10 mb-8 shadow-sm text-center relative overflow-hidden flex flex-col items-center justify-center">
+                    <div class="bg-white border border-gray-200 rounded-2xl p-6 md:p-10 mb-8 shadow-sm text-center relative overflow-hidden flex flex-col items-center justify-center">
                         <div class="w-16 h-16 bg-gray-50 text-black border border-gray-200 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 shadow-sm">
                             <i class="fa-solid fa-book-open"></i>
                         </div>
@@ -3770,7 +3770,7 @@
                         <span class="font-bold text-black truncate shrink min-w-0" id="help-breadcrumb-title">...</span>
                     </div>
 
-                    <div class="bg-white border border-vbs-border rounded-xl shadow-sm overflow-hidden p-6 md:p-10 min-h-[500px]">
+                    <div class="bg-white border border-vbs-border rounded-2xl shadow-sm overflow-hidden p-6 md:p-10 min-h-[500px]">
                         <div id="help-detail-loading" class="text-center py-20 text-gray-500">
                             <i class="fa-solid fa-circle-notch fa-spin text-3xl mb-3 text-black"></i>
                             <p class="font-medium">Đang tải bài viết...</p>
@@ -3789,7 +3789,7 @@
                             </div>
 
                             <!-- MỤC LỤC TỰ ĐỘNG (THÊM MỚI) -->
-                            <div id="help-toc-box" class="mb-8 bg-gray-50 border border-gray-200 rounded-xl p-5 hidden">
+                            <div id="help-toc-box" class="mb-8 bg-gray-50 border border-gray-200 rounded-2xl p-5 hidden">
                                 <h3 class="text-[11px] font-bold text-gray-500 mb-3 flex items-center gap-1.5 uppercase tracking-widest">
                                     <i class="fa-solid fa-list-ul text-black"></i> Nội dung được đề cập:
                                 </h3>
@@ -3816,7 +3816,7 @@
             </div>
 
             <div id="upload" class="view-section">
-                <div class="max-w-3xl mx-auto bg-white border border-vbs-border p-8 rounded-xl shadow-sm">
+                <div class="max-w-3xl mx-auto bg-white border border-vbs-border p-8 rounded-lg shadow-sm">
                     <h2
                         class="text-2xl font-bold font-logo mb-6 uppercase tracking-tight">
                         Đăng tải ảnh</h2>
@@ -3889,7 +3889,7 @@
 
                             <!-- DROP ZONE UI MỚI -->
                             <div id="drop-zone" onclick="document.getElementById('up-file').click()"
-                                 class="w-full bg-gray-50 border-2 border-gray-300 rounded-xl p-10 flex flex-col items-center justify-center gap-3 shadow-md hover:bg-gray-100 hover:border-black hover:shadow-lg transition-all cursor-pointer group relative overflow-hidden">
+                                 class="w-full bg-gray-50 border-2 border-gray-300 rounded-2xl p-10 flex flex-col items-center justify-center gap-3 shadow-md hover:bg-gray-100 hover:border-black hover:shadow-lg transition-all cursor-pointer group relative overflow-hidden">
                                 <div class="pointer-events-none flex flex-col items-center gap-3">
                                     <div class="w-16 h-16 bg-white border border-gray-300 rounded-full flex items-center justify-center group-hover:border-black group-hover:bg-gray-50 transition-colors shadow-md">
                                         <i class="fa-solid fa-cloud-arrow-up text-2xl text-gray-400 group-hover:text-black"></i>
@@ -3900,7 +3900,7 @@
                                     </div>
                                 </div>
                                 <div id="qr-btn-wrapper" class="flex flex-col items-center relative z-20 mt-1">
-                                    <button type="button" onclick="event.stopPropagation(); app.webrtc.startHost()" class="bg-white hover:bg-gray-50 border border-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg text-xs transition shadow-sm flex items-center gap-2">
+                                    <button type="button" onclick="event.stopPropagation(); app.webrtc.startHost()" class="bg-white hover:bg-gray-50 border border-gray-300 text-gray-800 font-bold py-2 px-4 rounded-full text-xs transition shadow-sm flex items-center gap-2">
                                         <i class="fa-solid fa-qrcode text-sm"></i> Quét QR truyền tải ảnh từ thiết bị khác
                                     </button>
                                 </div>
@@ -3909,7 +3909,7 @@
                             </div>
 
                             <!-- GIAO DIỆN THIẾT BỊ ĐÃ KẾT NỐI (THAY THẾ DROPZONE) -->
-                            <div id="webrtc-connected-zone" class="hidden w-full bg-gray-100 border border-gray-200 rounded-xl p-4 flex flex-row items-center justify-between shadow-sm relative overflow-hidden transition-all fade-zoom-in mt-2">
+                            <div id="webrtc-connected-zone" class="hidden w-full bg-gray-100 border border-gray-200 rounded-2xl p-4 flex flex-row items-center justify-between shadow-sm relative overflow-hidden transition-all fade-zoom-in mt-2">
                                 <div class="flex items-center gap-3">
                                     <div id="webrtc-connected-icon" class="bg-white border border-gray-200 text-gray-700 rounded-full flex shrink-0 items-center justify-center shadow-sm" style="width: 44px; height: 44px; min-width: 44px; min-height: 44px;">
                                         <i class="fa-solid fa-mobile-screen-button text-lg animate-pulse"></i>
@@ -4278,7 +4278,7 @@
                 <div class="flex flex-col md:flex-row gap-6">
                     <div class="w-full md:w-1/4">
                         <div
-                            class="bg-white border border-vbs-border shadow-sm p-6 text-center rounded-xl relative overflow-hidden">
+                            class="bg-white border border-vbs-border shadow-sm p-6 text-center rounded-lg relative overflow-hidden">
                             <div
                                 class="w-24 h-24 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center text-4xl text-gray-400 border border-gray-200 overflow-hidden relative group">
                                 <i id="acc-avatar-icon" class="fa-solid fa-user"></i>
@@ -4298,8 +4298,8 @@
                         </div>
                     </div>
                     <div class="w-full md:w-3/4">
-                        <div class="bg-white border border-vbs-border shadow-sm p-6 rounded-xl">
-                            <div class="mb-4">
+                        <div class="bg-white border border-vbs-border shadow-sm p-6 rounded-lg">
+                            <div class="border-b border-gray-200 pb-3 mb-4">
                                 <h3 class="font-bold text-lg tracking-tight uppercase text-gray-800" id="profile-stats-title">THỐNG KÊ HOẠT ĐỘNG</h3>
                             </div>
                             <div class="stats-grid mb-4">
@@ -4331,7 +4331,7 @@
                                     Giới thiệu bản thân
                                 </h3>
                                 
-                                <div class="bg-white border border-[#e4e4e7] shadow-sm rounded-xl overflow-hidden flex flex-col md:flex-row items-stretch">
+                                <div class="bg-white border border-[#e4e4e7] shadow-sm rounded-2xl overflow-hidden flex flex-col md:flex-row items-stretch">
                                     
                                     <!-- CỘT TRÁI: ẢNH TÂM ĐẮC -->
                                     <div class="w-full md:w-5/12 p-4 md:p-5 border-b md:border-b-0 md:border-r border-[#e4e4e7] bg-gray-50/50 flex flex-col">
@@ -4390,7 +4390,7 @@
                             </div>
                             <!-- KẾT THÚC ĐOẠN CODE -->
 
-                            <div id="approval-rate-island" class="hidden mt-4 relative overflow-hidden bg-white border border-vbs-border rounded-xl shadow-sm p-3 sm:p-4">
+                            <div id="approval-rate-island" class="hidden mt-4 relative overflow-hidden bg-white border border-vbs-border rounded-lg shadow-sm p-3 sm:p-4">
                                 <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 relative z-10">Tỉ lệ duyệt ảnh</p>
                                 <div class="flex items-center">
 
@@ -4466,7 +4466,7 @@
                     <span id="crumb-operator" class="font-bold text-black overflow-x-auto whitespace-nowrap no-scrollbar shrink min-w-0 block">...</span>
                 </div>
 
-                <div class="bg-white border border-vbs-border shadow-sm rounded-xl p-6 md:p-8 mb-6 relative overflow-hidden">
+                <div class="bg-white border border-vbs-border shadow-sm rounded-lg p-6 md:p-8 mb-6 relative overflow-hidden">
                     <div class="flex flex-col md:flex-row justify-between items-start mb-6 gap-4">
                         <div class="flex items-center gap-4 w-full md:w-auto min-w-0 max-w-full">
                             <!-- NẾU CÓ LOGO: Hình vuông, dùng object-contain để hiển thị trọn vẹn logo trong suốt -->
@@ -4582,7 +4582,7 @@
                     </div>
                 </div>
 
-                <div class="flex items-center gap-2 mb-4">
+                <div class="flex items-center gap-2 mb-4 border-b border-gray-200 pb-2">
                     <h3 class="text-lg font-bold uppercase text-black tracking-tight">Thư viện ảnh</h3>
                 </div>
                 
@@ -4604,7 +4604,7 @@
                     <span id="crumb-model-profile" class="font-bold text-black overflow-x-auto whitespace-nowrap no-scrollbar shrink min-w-0 block">...</span>
                 </div>
 
-                <div class="bg-white border border-vbs-border shadow-sm rounded-xl p-6 md:p-8 mb-6 relative overflow-hidden">
+                <div class="bg-white border border-vbs-border shadow-sm rounded-lg p-6 md:p-8 mb-6 relative overflow-hidden">
                     <div class="flex flex-col md:flex-row justify-between items-start mb-6 gap-4">
                         <div class="flex items-center gap-4 w-full md:w-auto min-w-0 max-w-full">
                             <!-- LOGO DÒNG XE (ĐỒNG BỘ THEO HÃNG) -->
@@ -4647,7 +4647,7 @@
                     </div>
                 </div>
 
-                <div class="flex items-center gap-2 mb-4">
+                <div class="flex items-center gap-2 mb-4 border-b border-gray-200 pb-2">
                     <h3 class="text-lg font-bold uppercase text-black tracking-tight">Thư viện ảnh</h3>
                 </div>
                 
@@ -4663,7 +4663,7 @@
 
             <!-- VIEW MỚI: TRUYỀN TẢI DỮ LIỆU -->
             <div id="mobile-upload" class="view-section">
-                <div class="max-w-md mx-auto bg-white border border-vbs-border p-6 sm:p-8 rounded-xl shadow-sm text-center flex flex-col items-center mt-6 min-h-[55vh] justify-center">
+                <div class="max-w-md mx-auto bg-white border border-vbs-border p-6 sm:p-8 rounded-2xl shadow-sm text-center flex flex-col items-center mt-6 min-h-[55vh] justify-center">
                     <div class="flex items-center gap-2 mb-8 opacity-70">
                         <img src="/media/vnba.png" alt="Logo" class="h-6 w-auto object-contain">
                         <h2 class="text-lg font-black italic tracking-wider text-black m-0" style="font-family: 'Montserrat', sans-serif;">VNBUSARCHIVE</h2>
@@ -4677,7 +4677,7 @@
                     <input type="file" id="webrtc-mobile-file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif,.nef,.cr2,.cr3,.arw,.dng,.orf,.rw2,.pef,.raf,.srw,.raw" class="hidden">
 
                     <!-- Box Dropzone chuẩn form PC -->
-                    <div id="webrtc-mobile-btn" onclick="document.getElementById('webrtc-mobile-file').click()" class="hidden w-full bg-gray-50 border-2 border-gray-300 rounded-xl p-10 flex-col items-center justify-center gap-3 shadow-md hover:bg-gray-100 hover:border-black hover:shadow-lg transition-all cursor-pointer group relative overflow-hidden mb-2">
+                    <div id="webrtc-mobile-btn" onclick="document.getElementById('webrtc-mobile-file').click()" class="hidden w-full bg-gray-50 border-2 border-gray-300 rounded-2xl p-10 flex-col items-center justify-center gap-3 shadow-md hover:bg-gray-100 hover:border-black hover:shadow-lg transition-all cursor-pointer group relative overflow-hidden mb-2">
                         <div class="pointer-events-none flex flex-col items-center gap-3">
                             <div class="w-16 h-16 bg-white border border-gray-300 rounded-full flex items-center justify-center group-hover:border-black group-hover:bg-gray-50 transition-colors shadow-md">
                                 <i class="fa-solid fa-cloud-arrow-up text-2xl text-gray-400 group-hover:text-black"></i>
@@ -4699,7 +4699,7 @@
 
         <div class="max-w-7xl mx-auto px-4 pb-8 mt-12">
             <footer
-                class="bg-white/80 backdrop-blur-md border border-gray-200 shadow-island rounded-xl p-5 md:p-6 flex flex-col md:flex-row justify-between items-center transition-all duration-300">
+                class="bg-white/80 backdrop-blur-md border border-gray-200 shadow-island rounded-2xl p-5 md:p-6 flex flex-col md:flex-row justify-between items-center transition-all duration-300">
 
                 <div class="flex flex-col items-center md:items-start gap-1">
                     <div class="flex items-center gap-2">
@@ -4892,7 +4892,7 @@
     <!-- MODALS ĐĂNG NHẬP QR -->
     <!-- 1. Modal Host (Máy B - Hiển thị QR) -->
     <div id="qr-login-host-modal" class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm flex flex-col items-center justify-center p-4" style="z-index: 99999;">
-        <div id="qr-login-host-content" class="bg-white rounded-xl shadow-2xl p-6 md:p-8 max-w-sm w-full text-center flex flex-col items-center transform transition-all fade-zoom-in">
+        <div id="qr-login-host-content" class="bg-white rounded-2xl shadow-2xl p-6 md:p-8 max-w-sm w-full text-center flex flex-col items-center transform transition-all fade-zoom-in">
             <div class="w-12 h-12 bg-black text-white rounded-full flex items-center justify-center text-xl mb-4 shadow-md">
                 <i class="fa-solid fa-qrcode"></i>
             </div>
@@ -4920,7 +4920,7 @@
 
     <!-- 2. Modal Client (Máy A - Xác nhận đăng nhập) -->
     <div id="qr-login-confirm-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-md flex flex-col items-center justify-center p-4" style="z-index: 100000;">
-        <div id="qr-login-confirm-content" class="bg-white rounded-xl shadow-2xl p-6 max-w-sm w-full transform transition-all fade-zoom-in">
+        <div id="qr-login-confirm-content" class="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full transform transition-all fade-zoom-in">
             <div class="text-center mb-5">
                 <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center text-2xl mb-3 shadow-md mx-auto border border-red-100">
                     <i class="fa-solid fa-shield-halved"></i>
@@ -4930,7 +4930,7 @@
             </div>
 
             <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-4">
-                <div class="flex items-center gap-3 mb-3">
+                <div class="flex items-center gap-3 mb-3 border-b border-gray-200 pb-3">
                     <img id="qr-confirm-avatar" src="" class="w-10 h-10 rounded-full object-cover border border-gray-300">
                     <div class="overflow-hidden">
                         <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-0.5">Tài khoản</p>
@@ -4975,7 +4975,7 @@
 
     <!-- UI MODAL HIỂN THỊ MÃ QR TẠI PC -->
     <div id="webrtc-qr-modal" class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm flex flex-col items-center justify-center p-4" style="z-index: 99999;">
-        <div id="webrtc-qr-content" class="bg-white rounded-xl shadow-2xl p-6 md:p-8 max-w-sm w-full text-center flex flex-col items-center transform transition-all fade-zoom-in">
+        <div id="webrtc-qr-content" class="bg-white rounded-2xl shadow-2xl p-6 md:p-8 max-w-sm w-full text-center flex flex-col items-center transform transition-all fade-zoom-in">
             <div class="w-12 h-12 bg-black text-white rounded-full flex items-center justify-center text-xl mb-4 shadow-md">
                 <i class="fa-solid fa-mobile-screen-button"></i>
             </div>
@@ -5473,9 +5473,9 @@
 
     <!-- MODAL SỬA BIO (Glassmorphism 100% Sync) -->
     <div id="bio-edit-modal" class="hidden fixed inset-0 z-[10000] flex items-center justify-center p-4" style="background-color: rgba(0, 0, 0, 0) !important; backdrop-filter: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important;">
-        <div id="bio-edit-content" class="rounded-xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col" style="max-width: 450px; background-color: rgba(255, 255, 255, 0.7) !important; backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important; border: 1px solid rgba(255, 255, 255, 0.6) !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;">
+        <div id="bio-edit-content" class="rounded-2xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col" style="max-width: 450px; background-color: rgba(255, 255, 255, 0.7) !important; backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important; border: 1px solid rgba(255, 255, 255, 0.6) !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;">
 
-            <div class="p-5 md:p-6 flex justify-between items-center shrink-0">
+            <div class="p-5 md:p-6 border-b border-gray-200/50 flex justify-between items-center shrink-0">
                 <h3 class="text-lg font-bold text-black tracking-tight"><i class="fa-solid fa-pen-nib mr-2 text-gray-500"></i>Cập nhật tiểu sử</h3>
                 <button onclick="app.profileIntro.closeBioEditor()" class="text-gray-400 hover:text-red-500 transition text-xl px-2"><i class="fa-solid fa-xmark"></i></button>
             </div>
@@ -5495,8 +5495,8 @@
 
     <!-- MODAL CẬP NHẬT ĐƠN VỊ VẬN HÀNH -->
     <div id="operator-edit-modal" class="hidden fixed inset-0 z-[10000] flex items-center justify-center p-4" style="background-color: rgba(0, 0, 0, 0) !important; backdrop-filter: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important;">
-        <div id="operator-edit-content" class="rounded-xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col" style="max-width: 450px; background-color: rgba(255, 255, 255, 0.7) !important; backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important; border: 1px solid rgba(255, 255, 255, 0.6) !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;">
-            <div class="p-5 flex justify-between items-center shrink-0">
+        <div id="operator-edit-content" class="rounded-2xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col" style="max-width: 450px; background-color: rgba(255, 255, 255, 0.7) !important; backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important; border: 1px solid rgba(255, 255, 255, 0.6) !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;">
+            <div class="p-5 border-b border-gray-200/50 flex justify-between items-center shrink-0">
                 <h3 class="text-lg font-bold text-black tracking-tight"><i class="fa-solid fa-building mr-2 text-gray-500"></i>Cập nhật Đơn vị vận hành</h3>
                 <button onclick="app.operator.closeEditPrompt()" class="text-gray-400 hover:text-red-500 transition text-xl px-2"><i class="fa-solid fa-xmark"></i></button>
             </div>
@@ -5524,8 +5524,8 @@
 
     <!-- MODAL CẬP NHẬT DÒNG XE (MODEL) -->
     <div id="model-edit-modal" class="hidden fixed inset-0 z-[10000] flex items-center justify-center p-4" style="background-color: rgba(0, 0, 0, 0) !important; backdrop-filter: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important;">
-        <div id="model-edit-content" class="rounded-xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col" style="max-width: 450px; background-color: rgba(255, 255, 255, 0.7) !important; backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important; border: 1px solid rgba(255, 255, 255, 0.6) !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;">
-            <div class="p-5 flex justify-between items-center shrink-0">
+        <div id="model-edit-content" class="rounded-2xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col" style="max-width: 450px; background-color: rgba(255, 255, 255, 0.7) !important; backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important; border: 1px solid rgba(255, 255, 255, 0.6) !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;">
+            <div class="p-5 border-b border-gray-200/50 flex justify-between items-center shrink-0">
                 <h3 class="text-lg font-bold text-black tracking-tight"><i class="fa-solid fa-layer-group mr-2 text-gray-500"></i>Cập nhật Dòng xe</h3>
                 <button onclick="app.model.closeEditPrompt()" class="text-gray-400 hover:text-red-500 transition text-xl px-2"><i class="fa-solid fa-xmark"></i></button>
             </div>
@@ -5553,9 +5553,9 @@
 
     <!-- MODAL CHỌN ẢNH TÂM ĐẮC (Glassmorphism 100% Sync) -->
     <div id="fav-photo-modal" class="hidden fixed inset-0 z-[10000] flex items-center justify-center p-2 md:p-6" style="background-color: rgba(0, 0, 0, 0) !important; backdrop-filter: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important;">
-        <div id="fav-photo-content" class="rounded-xl w-full max-w-md flex flex-col overflow-hidden transform transition-all opacity-0 scale-95 relative" style="background-color: rgba(255, 255, 255, 0.7) !important; backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important; border: 1px solid rgba(255, 255, 255, 0.6) !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;">
+        <div id="fav-photo-content" class="rounded-2xl w-full max-w-md flex flex-col overflow-hidden transform transition-all opacity-0 scale-95 relative" style="background-color: rgba(255, 255, 255, 0.7) !important; backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important; border: 1px solid rgba(255, 255, 255, 0.6) !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;">
 
-            <div class="p-4 md:p-5 flex justify-between items-center shrink-0 rounded-t-xl bg-white/40">
+            <div class="border-b border-gray-200/50 p-4 md:p-5 flex justify-between items-center shrink-0 rounded-t-2xl bg-white/40">
                 <h2 class="font-bold text-base md:text-lg text-black uppercase tracking-tight"><i class="fa-solid fa-link mr-2 text-gray-500"></i>Đặt ảnh tâm đắc</h2>
                 <button onclick="app.profileIntro.closePhotoSelector()" class="text-gray-400 hover:text-red-500 transition text-xl px-2"><i class="fa-solid fa-xmark"></i></button>
             </div>
@@ -5592,7 +5592,7 @@
             </div>
 
             <!-- NÚT XÁC NHẬN -->
-            <div class="bg-gray-50/50 px-5 py-4 border-t border-gray-200/50 flex gap-3 rounded-b-xl shrink-0">
+            <div class="bg-gray-50/50 px-5 py-4 border-t border-gray-200/50 flex gap-3 rounded-b-2xl shrink-0">
                 <button type="button" onclick="app.profileIntro.closePhotoSelector()" class="flex-1 rounded-xl shadow-sm px-4 py-2.5 bg-white border border-gray-300 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all">Hủy</button>
                 <button type="button" id="btn-save-fav-photo" onclick="app.profileIntro.confirmSaveFavPhoto()" disabled class="flex-1 rounded-xl shadow-sm px-4 py-2.5 bg-black border border-black text-sm font-bold text-white hover:bg-gray-800 transition-all opacity-50 cursor-not-allowed">Xác nhận đặt ảnh</button>
             </div>
@@ -5601,7 +5601,7 @@
 
     <!-- MODAL THÔNG SỐ CHI TIẾT -->
     <div id="achievement-modal" class="hidden fixed inset-0 flex items-center justify-center p-4" style="z-index: 999999 !important; background-color: rgba(0, 0, 0, 0) !important; backdrop-filter: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important;">
-        <div id="achievement-content" class="rounded-xl shadow-2xl w-full transform transition-all opacity-0 scale-95 overflow-hidden" style="max-width: 380px !important; background-color: rgba(255, 255, 255, 0.7) !important; backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important; border: 1px solid rgba(255, 255, 255, 0.6) !important;">
+        <div id="achievement-content" class="rounded-2xl shadow-2xl w-full transform transition-all opacity-0 scale-95 overflow-hidden" style="max-width: 380px !important; background-color: rgba(255, 255, 255, 0.7) !important; backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important; border: 1px solid rgba(255, 255, 255, 0.6) !important;">
             <div class="p-6" style="background-color: transparent !important;">
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="font-bold text-sm uppercase tracking-widest text-gray-800"><i class="fa-solid fa-chart-pie mr-2 text-black"></i>Chỉ số chi tiết</h3>
