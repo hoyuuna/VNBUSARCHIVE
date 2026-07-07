@@ -2069,11 +2069,11 @@ Object.assign(window.app, {
                     document.querySelectorAll('.crop-ratio-btn').forEach(btn => {
                         const r = parseFloat(btn.dataset.ratio);
                         if (Math.abs(r - activeRatio) < 0.01) {
-                            btn.classList.add('bg-black', 'text-white', 'border-black');
-                            btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300', 'hover:bg-gray-100');
+                            btn.classList.add('bg-white', 'text-black', 'border-white', 'font-bold', 'shadow-md');
+                            btn.classList.remove('bg-[#222222]', 'text-gray-300', 'border-gray-700', 'hover:bg-gray-700', 'hover:text-white', 'font-semibold');
                         } else {
-                            btn.classList.remove('bg-black', 'text-white', 'border-black');
-                            btn.classList.add('bg-white', 'text-gray-700', 'border-gray-300', 'hover:bg-gray-100');
+                            btn.classList.remove('bg-white', 'text-black', 'border-white', 'font-bold', 'shadow-md');
+                            btn.classList.add('bg-[#222222]', 'text-gray-300', 'border-gray-700', 'hover:bg-gray-700', 'hover:text-white', 'font-semibold');
                         }
                     });
                 },
