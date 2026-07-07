@@ -2697,7 +2697,7 @@ Object.assign(window.app, {
                 currentHistoryPrefix: '',
 
                 cleanupVehicle: async (plate) => {
-                    if (!plate) return;
+                    if (!plate || !app.user) return;
                     try {
 
 

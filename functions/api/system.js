@@ -1,23 +1,29 @@
 import { createClient } from '@supabase/supabase-js';
 import { coreBase64 } from './_core.js';
 
-function handleConfig(request, env) {
+function validateOriginAndReferer(request) {
     const referer = request.headers.get('referer') || '';
     const origin = request.headers.get('origin') || '';
-
-    const allowedDomains =[
-        'vnbusarchive.io.vn'
-    ];
-
-    const isAllowed = allowedDomains.some(domain => 
-        origin.includes(domain) || referer.includes(domain)
-    );
-
     const host = request.headers.get('host') || '';
     const isProduction = host.includes('vnbusarchive.io.vn');
+    
+    if (!isProduction) return true;
+    if (!origin && !referer) return true;
+    
+    function checkDomain(str) {
+        if (!str) return false;
+        try {
+            const u = new URL(str);
+            return u.hostname === 'vnbusarchive.io.vn' || u.hostname.endsWith('.vnbusarchive.io.vn');
+        } catch (e) {
+            return false;
+        }
+    }
+    return checkDomain(origin) || checkDomain(referer);
+}
 
-    if (isProduction && !isAllowed) {
-        console.log("Bị chặn! Origin:", origin, "Referer:", referer);
+function handleConfig(request, env) {
+    if (!validateOriginAndReferer(request)) {
         return new Response(JSON.stringify({ error: 'Forbidden - Domain không hợp lệ' }), { status: 403, headers: { 'Content-Type': 'application/json' }});
     }
 
@@ -90,6 +96,14 @@ async function handleQrLoginGenerate(request, env) {
             return new Response(JSON.stringify({ error: 'Tài khoản của bạn không có Email, không thể sử dụng chức năng đăng nhập QR.' }), { status: 400, headers: { 'Content-Type': 'application/json' }});
         }
 
+        const { data: profile } = await supabaseAdmin.from('profiles').select('ban_status').eq('id', user.id).single();
+        if (profile && profile.ban_status) {
+            const banInfo = typeof profile.ban_status === 'string' ? JSON.parse(profile.ban_status) : profile.ban_status;
+            if (banInfo && banInfo.banned) {
+                return new Response(JSON.stringify({ error: `Tài khoản đã bị cấm: ${banInfo.reason || 'Không rõ'}` }), { status: 403, headers: { 'Content-Type': 'application/json' }});
+            }
+        }
+
         const { data: linkData, error: linkErr } = await supabaseAdmin.auth.admin.generateLink({
             type: 'magiclink',
             email: user.email,
@@ -110,6 +124,10 @@ async function handleQrLoginGenerate(request, env) {
 
 export async function onRequest(context) {
     const { request, env } = context;
+
+    if (!validateOriginAndReferer(request)) {
+        return new Response(JSON.stringify({ error: 'Forbidden - Domain không hợp lệ' }), { status: 403, headers: { 'Content-Type': 'application/json' }});
+    }
 
     if (request.method === 'GET') {
         return handleConfig(request, env);

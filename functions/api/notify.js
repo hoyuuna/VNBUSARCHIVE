@@ -158,6 +158,7 @@ async function handleBugReport(request, env, body) {
     }
 
     const { errorMessage, fileInfo, consoleLogs, user, userAgent } = body;
+    const sanitizeMentions = (str) => String(str ?? '').replace(/@(everyone|here)/gi, '@\u200b$1').replace(/<@&?\d+>/g, '[mention]');
 
     const embed = {
         title: "🚨 Báo cáo lỗi Upload tự động",
@@ -165,17 +166,17 @@ async function handleBugReport(request, env, body) {
         fields:[
             { 
                 name: "📝 Chi tiết lỗi", 
-                value: "```\n" + (errorMessage || "Không có thông báo lỗi cụ thể") + "\n```", 
+                value: "```\n" + sanitizeMentions(errorMessage || "Không có thông báo lỗi cụ thể") + "\n```", 
                 inline: false 
             },
             { 
                 name: "👤 Người dùng", 
-                value: user ? "**" + user.username + "**\n`" + user.id + "`" : "Guest / Khách", 
+                value: user ? "**" + sanitizeMentions(user.username) + "**\n`" + user.id + "`" : "Guest / Khách", 
                 inline: true 
             },
             { 
                 name: "🌐 Trình duyệt / Thiết bị", 
-                value: "`" + (userAgent || "Unknown") + "`", 
+                value: "`" + sanitizeMentions(userAgent || "Unknown") + "`", 
                 inline: false 
             }
         ],
@@ -185,7 +186,7 @@ async function handleBugReport(request, env, body) {
     if (fileInfo) {
         embed.fields.splice(1, 0, {
             name: "📁 Thông tin File",
-            value: "**Tên file:** " + (fileInfo.name || 'N/A') + "\n**Loại:** " + (fileInfo.type || 'N/A') + "\n**Cỡ gốc:** " + (fileInfo.originalSize ? fileInfo.originalSize + ' KB' : 'N/A') + "\n**Cỡ sau nén:** " + (fileInfo.compressedSize ? fileInfo.compressedSize + ' KB' : 'Chưa kịp nén (Lỗi trước đó)'),
+            value: "**Tên file:** " + sanitizeMentions(fileInfo.name || 'N/A') + "\n**Loại:** " + sanitizeMentions(fileInfo.type || 'N/A') + "\n**Cỡ gốc:** " + (fileInfo.originalSize ? fileInfo.originalSize + ' KB' : 'N/A') + "\n**Cỡ sau nén:** " + (fileInfo.compressedSize ? fileInfo.compressedSize + ' KB' : 'Chưa kịp nén (Lỗi trước đó)'),
             inline: true
         });
     }
@@ -194,7 +195,7 @@ async function handleBugReport(request, env, body) {
         const logsStr = consoleLogs.slice(-5).join('\n').substring(0, 1000);
         embed.fields.push({
             name: "🔴 Console Errors (Cảnh báo đỏ)",
-            value: "```js\n" + logsStr + "\n```",
+            value: "```js\n" + sanitizeMentions(logsStr) + "\n```",
             inline: false
         });
     }
@@ -216,8 +217,28 @@ async function handleBugReport(request, env, body) {
     return new Response(JSON.stringify({ success: true, message: "Bug reported successfully" }), { status: 200, headers: { 'Content-Type': 'application/json' }});
 }
 
+function validateOriginAndReferer(request) {
+    const referer = request.headers.get('referer') || '';
+    const origin = request.headers.get('origin') || '';
+    const host = request.headers.get('host') || '';
+    const isProduction = host.includes('vnbusarchive.io.vn');
+    if (!isProduction) return true;
+    if (!origin && !referer) return true;
+    function checkDomain(str) {
+        if (!str) return false;
+        try {
+            const u = new URL(str);
+            return u.hostname === 'vnbusarchive.io.vn' || u.hostname.endsWith('.vnbusarchive.io.vn');
+        } catch (e) {
+            return false;
+        }
+    }
+    return checkDomain(origin) || checkDomain(referer);
+}
+
 export async function onRequest(context) {
     const { request, env } = context;
+    if (!validateOriginAndReferer(request)) return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: { 'Content-Type': 'application/json' }});
     if (request.method !== 'POST') return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers: { 'Content-Type': 'application/json' }});
 
     try {

@@ -22,6 +22,30 @@ export async function onRequest(context) {
         const { imageUrl } = body;
         if (!imageUrl) return new Response(JSON.stringify({ success: false, error: 'Thiếu URL ảnh.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
 
+        // [BẢO MẬT - IDOR DEFENSE] Kiểm tra quyền sở hữu ảnh trước khi xóa khỏi CDN
+        const supabaseAdmin = createClient(
+            env.SUPABASE_URL,
+            env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_KEY
+        );
+        const { data: profile } = await supabaseAdmin.from('profiles').select('role').eq('id', user.id).single();
+        const isManagerOrAdmin = profile && (profile.role === 'admin' || profile.role === 'manager');
+
+        if (!isManagerOrAdmin) {
+            // 1. Kiểm tra trong bảng photos
+            const { data: photo } = await supabaseAdmin.from('photos').select('uploader_id').eq('url', imageUrl).maybeSingle();
+            if (photo) {
+                if (photo.uploader_id !== user.id) {
+                    return new Response(JSON.stringify({ success: false, error: 'Bạn không có quyền xóa ảnh này.' }), { status: 403, headers: { 'Content-Type': 'application/json' } });
+                }
+            } else {
+                // 2. Nếu không thuộc bảng photos, kiểm tra xem có phải avatar của user khác trong profiles không
+                const { data: avatarOwner } = await supabaseAdmin.from('profiles').select('id').eq('avatar_url', imageUrl).maybeSingle();
+                if (avatarOwner && avatarOwner.id !== user.id) {
+                    return new Response(JSON.stringify({ success: false, error: 'Bạn không có quyền xóa ảnh này.' }), { status: 403, headers: { 'Content-Type': 'application/json' } });
+                }
+            }
+        }
+
         const urlObj = new URL(imageUrl);
         const fileName = urlObj.pathname.split('/').pop();
         const safeFileName = encodeURIComponent(fileName);

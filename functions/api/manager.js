@@ -21,8 +21,21 @@ export async function onRequest(context) {
         if (authError || !user) throw new Error("Xác thực thất bại, token không hợp lệ.");
 
         const { data: profile } = await supabaseAdmin.from('profiles').select('role').eq('id', user.id).single();
-        if (!profile || profile.role !== 'manager') {
-            throw new Error("Truy cập bị từ chối: Bạn không phải là Manager.");
+        if (!profile || (profile.role !== 'manager' && profile.role !== 'admin')) {
+            throw new Error("Truy cập bị từ chối: Bạn không có quyền truy cập.");
+        }
+
+        // [BẢO MẬT - SEPARATION OF DUTIES] Kiểm tra quyền phân cấp khi thao tác lên tài khoản khác
+        if (targetUserId) {
+            const { data: targetProfile } = await supabaseAdmin.from('profiles').select('role').eq('id', targetUserId).single();
+            if (targetProfile) {
+                if (profile.role === 'manager' && (targetProfile.role === 'admin' || targetProfile.role === 'manager')) {
+                    throw new Error("Truy cập bị từ chối: Manager không thể tác động lên tài khoản ngang hàng hoặc Admin.");
+                }
+                if (profile.role === 'admin' && targetProfile.role === 'admin' && targetUserId !== user.id) {
+                    throw new Error("Truy cập bị từ chối: Không thể chỉnh sửa hoặc xóa tài khoản Admin khác.");
+                }
+            }
         }
 
         if (action === 'get_users') {
@@ -122,6 +135,11 @@ export async function onRequest(context) {
             if (deleteErr) throw deleteErr;
             
             return new Response(JSON.stringify({ success: true, message: "Đã xóa tài khoản vĩnh viễn (các ảnh đã tải lên vẫn được giữ lại)!" }), { status: 200, headers: { 'Content-Type': 'application/json' }});
+        }
+
+        if (!targetUserId) throw new Error("Thiếu targetUserId.");
+        if (newRole && ['admin', 'manager'].includes(newRole) && profile.role === 'manager') {
+            throw new Error("Truy cập bị từ chối: Manager không có quyền cấp vai trò Admin hoặc Manager.");
         }
 
         const { error: profileError } = await supabaseAdmin.from('profiles').update({

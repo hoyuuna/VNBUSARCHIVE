@@ -16,6 +16,10 @@ const escapeHtml = (str) => String(str ?? '')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 
+const sanitizeMentions = (str) => String(str ?? '')
+    .replace(/@(everyone|here)/gi, '@\u200b$1')
+    .replace(/<@&?\d+>/g, '[mention]');
+
 const buildContactEmailHtml = ({ name, ticketId, supportType, message }) => {
     return `<!DOCTYPE html>
 <html lang="vi">
@@ -83,6 +87,9 @@ const buildContactEmailHtml = ({ name, ticketId, supportType, message }) => {
                             </h2>
                             <p style="margin: 0 0 15px; font-size: 14px; line-height: 1.6; color: #52525b; font-weight: 500;">
                                 Xin chào <strong>${escapeHtml(name)}</strong>,
+                            </p>
+                            <p style="margin: 0 0 15px; font-size: 12px; line-height: 1.5; color: #a1a1aa; font-style: italic; background-color: #f4f4f5; padding: 10px; border-radius: 6px;">
+                                ⚠️ <strong>Lưu ý bảo mật:</strong> Đây là email tự động xác nhận yêu cầu hỗ trợ từ VNBUSARCHIVE. Nếu bạn không gửi yêu cầu này, vui lòng bỏ qua email.
                             </p>
                             <p style="margin: 0 0 20px; font-size: 14px; line-height: 1.6; color: #52525b;">
                                 Cảm ơn bạn đã liên hệ với VNBUSARCHIVE, dưới đây là thông tin bạn đã cung cấp:
@@ -488,7 +495,7 @@ async function handleContactSubmit(request, env) {
     const embed = {
         title: `🚨 [Ticket #${ticketId}] ${config.title}`,
         color: config.color,
-        description: rawText,
+        description: sanitizeMentions(rawText),
         timestamp: new Date().toISOString()
     };
 

@@ -1002,8 +1002,8 @@ app.admin.fetchManagerData('denied');
                     contentEl.innerHTML = slice.map(c => `
                         <tr class="hover:bg-gray-50 transition">
                             <td class="p-3 text-[11px] text-gray-500">${new Date(c.created_at).toLocaleString('vi-VN')}</td>
-                            <td class="p-3 font-bold text-black text-[12px]">${c.profiles?.username || 'Ẩn danh'}</td>
-                            <td class="p-3 text-blue-600 font-black cursor-pointer" onclick="app.views.loadDetail(${c.photo_id})">${c.photos?.license_plate || 'N/A'}</td>
+                            <td class="p-3 font-bold text-black text-[12px]">${app.utils.cleanText(c.profiles?.username || 'Ẩn danh')}</td>
+                            <td class="p-3 text-blue-600 font-black cursor-pointer" onclick="app.views.loadDetail(${c.photo_id})">${app.utils.cleanText(c.photos?.license_plate || 'N/A')}</td>
                             <td class="p-3 text-[12px] text-gray-700 whitespace-normal min-w-[200px] break-words">${app.utils.cleanText(c.content)}</td>
                             <td class="p-3 text-center">
                                 <button onclick="app.comments.delete('${c.id}')" class="text-red-600 hover:scale-110 transition p-1"><i class="fa-solid fa-trash-can"></i></button>
@@ -1040,7 +1040,7 @@ app.admin.fetchManagerData('denied');
                             return `<div class="flex gap-4 p-3 bg-white border border-gray-200 rounded-lg hover:shadow-md cursor-pointer transition items-start" onclick="app.views.loadDetail('${p.id}')">
                                 <img src="${proxyUrl}" class="w-24 h-24 object-cover rounded bg-gray-100 shrink-0 border border-gray-200">
                                 <div class="flex flex-col h-24 justify-between overflow-hidden w-full">
-                                    <div><h4 class="font-bold text-sm text-black truncate uppercase">${p.license_plate}</h4><p class="text-xs text-red-600 font-medium line-clamp-2 mt-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i> ${p.denial_reason}</p></div>
+                                    <div><h4 class="font-bold text-sm text-black truncate uppercase">${app.utils.cleanText(p.license_plate)}</h4><p class="text-xs text-red-600 font-medium line-clamp-2 mt-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i> ${app.utils.cleanText(p.denial_reason)}</p></div>
                                     <div class="text-[10px] text-gray-500 truncate bg-gray-50 p-1.5 rounded">Đăng: <b class="text-gray-700">${uploader}</b> | Khóa: <b class="text-red-700">${denier}</b> | ${time}</div>
                                 </div>
                             </div>`;
@@ -1090,7 +1090,7 @@ app.admin.fetchManagerData('denied');
                     } else {
                         contentEl.innerHTML = slice.map(log => {
                             const time = new Date(log.created_at).toLocaleString('vi-VN');
-                            return `<tr class="hover:bg-gray-50 transition"><td class="p-3 text-[11px] text-gray-500">${time}</td><td class="p-3 font-bold text-black text-[12px]">${log.profiles?.username || 'Unknown'}</td><td class="p-3">${log.action_type}</td><td class="p-3 text-[10px] font-mono">${log.target_id || '-'}</td><td class="p-3 text-[11px]">${JSON.stringify(log.details)}</td></tr>`;
+                            return `<tr class="hover:bg-gray-50 transition"><td class="p-3 text-[11px] text-gray-500">${time}</td><td class="p-3 font-bold text-black text-[12px]">${app.utils.cleanText(log.profiles?.username || 'Unknown')}</td><td class="p-3">${app.utils.cleanText(log.action_type)}</td><td class="p-3 text-[10px] font-mono">${app.utils.cleanText(log.target_id || '-')}</td><td class="p-3 text-[11px] break-all">${app.utils.cleanText(JSON.stringify(log.details))}</td></tr>`;
                         }).join('');
                     }
                     app.utils.renderPagination(pagerElId, state.page, totalPages, (newPage) => {
