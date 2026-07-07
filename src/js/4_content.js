@@ -1950,87 +1950,7 @@ Object.assign(window.app, {
                 cropper: null,
                 mode: 'main',
                 originalFile: null,
-                isMandatory: false,
-                fineRotation: 0,
-                isAdjusting: false,
-
-                // [MỚI] TOÁN HỌC: Tính mức Zoom tối thiểu để ảnh gốc bao phủ hoàn toàn CropBox dù xoay ở bất kỳ góc nào
-                getMinSafeScale: () => {
-                    if (!app.crop.cropper) return 0;
-                    const deg = app.crop.fineRotation || 0;
-                    const absRad = Math.abs(deg) * Math.PI / 180;
-                    const cropBox = app.crop.cropper.getCropBoxData();
-                    const imgData = app.crop.cropper.getImageData();
-
-                    const B_w = cropBox.width * Math.cos(absRad) + cropBox.height * Math.sin(absRad);
-                    const B_h = cropBox.width * Math.sin(absRad) + cropBox.height * Math.cos(absRad);
-
-                    return Math.max(B_w / (imgData.naturalWidth || 1), B_h / (imgData.naturalHeight || 1)) * 1.01; // Thêm 1% bù trừ sai số pixel
-                },
-
-                // [MỚI] TOÁN HỌC: Khóa tọa độ giới hạn (Chống kéo tràn viền)
-                clampCanvas: () => {
-                    if (app.crop.isAdjusting) return; // Chống lặp vô hạn
-                    const cropper = app.crop.cropper;
-                    if (!cropper) return;
-
-                    const deg = app.crop.fineRotation || 0;
-                    if (deg === 0) return; // Nếu không xoay thì viewMode: 1 của Cropper tự lo
-
-                    const rad = deg * Math.PI / 180;
-                    const cos = Math.cos(rad);
-                    const sin = Math.sin(rad);
-
-                    const canvasData = cropper.getCanvasData();
-                    const cropBoxData = cropper.getCropBoxData();
-                    const imgData = cropper.getImageData();
-
-                    const S = canvasData.width / (imgData.naturalWidth || 1);
-
-                    const absRad = Math.abs(rad);
-                    const B_w = cropBoxData.width * Math.cos(absRad) + cropBoxData.height * Math.sin(absRad);
-                    const B_h = cropBoxData.width * Math.sin(absRad) + cropBoxData.height * Math.cos(absRad);
-
-                    const I_w_scaled = imgData.naturalWidth * S;
-                    const I_h_scaled = imgData.naturalHeight * S;
-
-                    // Giới hạn biên độ khoảng cách tối đa giữa tâm Canvas và tâm CropBox
-                    const MaxX = Math.max(0, (I_w_scaled - B_w) / 2);
-                    const MaxY = Math.max(0, (I_h_scaled - B_h) / 2);
-
-                    const cx = canvasData.left + canvasData.width / 2;
-                    const cy = canvasData.top + canvasData.height / 2;
-                    const cbx = cropBoxData.left + cropBoxData.width / 2;
-                    const cby = cropBoxData.top + cropBoxData.height / 2;
-
-                    const dx = cbx - cx;
-                    const dy = cby - cy;
-
-                    // Ánh xạ sang tọa độ chưa xoay
-                    const udx = dx * cos + dy * (-sin);
-                    const udy = dx * sin + dy * cos;
-
-                    // Ép tọa độ trong giới hạn ảnh thực
-                    const udx_clamped = Math.max(-MaxX, Math.min(MaxX, udx));
-                    const udy_clamped = Math.max(-MaxY, Math.min(MaxY, udy));
-
-                    // Nếu không vượt giới hạn thì bỏ qua
-                    if (Math.abs(udx - udx_clamped) < 0.5 && Math.abs(udy - udy_clamped) < 0.5) return;
-
-                    // Khôi phục lại tọa độ gốc
-                    const dx_clamped = udx_clamped * cos - udy_clamped * sin;
-                    const dy_clamped = udx_clamped * sin + udy_clamped * cos;
-
-                    const new_cx = cbx - dx_clamped;
-                    const new_cy = cby - dy_clamped;
-
-                    app.crop.isAdjusting = true;
-                    cropper.setCanvasData({
-                        left: new_cx - canvasData.width / 2,
-                        top: new_cy - canvasData.height / 2
-                    });
-                    setTimeout(() => { app.crop.isAdjusting = false; }, 0);
-                },
+                isMandatory: false, // Thêm cờ đánh dấu bắt buộc cắt
 
                 open: async (mode, file = null, isMandatory = false) => {
                     app.crop.mode = mode;
@@ -2067,40 +1987,25 @@ Object.assign(window.app, {
                             app.crop.cropper.destroy();
                         }
 
-                        app.crop.fineRotation = 0;
-                        const slider = document.getElementById('crop-rotate-slider');
-                        if (slider) slider.value = 0;
-                        const valEl = document.getElementById('crop-rotate-val');
-                        if (valEl) valEl.innerText = '0°';
-
-                        // Cấu hình xài chung cho Main và Avatar
-                        const cropperOptions = {
-                            viewMode: 1,
-                            autoCropArea: 1,
-                            ready: () => {
-                                if (app.crop.fineRotation) app.crop.applyRotation();
-                            },
-                            zoom: (e) => {
-                                // Tự động chặn hành vi Zoom Out ra khỏi giới hạn an toàn
-                                const minScale = app.crop.getMinSafeScale();
-                                if (e.detail.ratio < minScale) {
-                                    e.preventDefault();
-                                    app.crop.cropper.zoomTo(minScale);
-                                }
-                            },
-                            crop: (e) => {
-                                // Clamp: Khóa mọi tương tác kéo thả tràn viền
-                                app.crop.clampCanvas();
-                            }
-                        };
-
                         if (mode === 'main') {
+                            // Hiện lại thanh chọn tỉ lệ (16:9, 3:2, 4:3)
                             if(ratioContainer) ratioContainer.classList.remove('hidden');
-                            app.crop.cropper = new Cropper(img, { ...cropperOptions, aspectRatio: 4/3 });
+
+                            app.crop.cropper = new Cropper(img, {
+                                aspectRatio: 4/3, // Tỉ lệ mặc định ban đầu là 4:3, nhưng được phép chọn cái khác
+                                viewMode: 1,
+                                autoCropArea: 1,
+                            });
+
+                            // Highlight đúng nút 4:3 lúc mới mở
                             app.crop.updateRatioButtons(4/3);
                         } else if (mode === 'avatar') {
                             if(ratioContainer) ratioContainer.classList.add('hidden');
-                            app.crop.cropper = new Cropper(img, { ...cropperOptions, aspectRatio: 1 });
+                            app.crop.cropper = new Cropper(img, {
+                                aspectRatio: 1,
+                                viewMode: 1,
+                                autoCropArea: 1,
+                            });
                         }
                     };
                     img.src = url;
@@ -2110,15 +2015,6 @@ Object.assign(window.app, {
                     if (app.crop.cropper) {
                         app.crop.cropper.setAspectRatio(ratio);
                         app.crop.updateRatioButtons(ratio);
-                        setTimeout(() => {
-                            if (!app.crop.cropper) return;
-                            const minScale = app.crop.getMinSafeScale();
-                            const currentScale = app.crop.cropper.getCanvasData().width / (app.crop.cropper.getImageData().naturalWidth || 1);
-                            
-                            // Nếu đổi Aspect Ratio khiến góc bị hụt thì ép Zoom lên
-                            if (currentScale < minScale) app.crop.cropper.zoomTo(minScale);
-                            app.crop.clampCanvas();
-                        }, 50);
                     }
                 },
 
@@ -2126,58 +2022,13 @@ Object.assign(window.app, {
                     document.querySelectorAll('.crop-ratio-btn').forEach(btn => {
                         const r = parseFloat(btn.dataset.ratio);
                         if (Math.abs(r - activeRatio) < 0.01) {
-                            btn.classList.add('bg-black', 'text-white', 'border-black', 'font-bold', 'shadow-md');
-                            btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300', 'hover:bg-gray-100', 'shadow-sm');
+                            btn.classList.add('bg-black', 'text-white', 'border-black');
+                            btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300', 'hover:bg-gray-100');
                         } else {
-                            btn.classList.remove('bg-black', 'text-white', 'border-black', 'font-bold', 'shadow-md');
-                            btn.classList.add('bg-white', 'text-gray-700', 'border-gray-300', 'hover:bg-gray-100', 'font-bold', 'shadow-sm');
+                            btn.classList.remove('bg-black', 'text-white', 'border-black');
+                            btn.classList.add('bg-white', 'text-gray-700', 'border-gray-300', 'hover:bg-gray-100');
                         }
                     });
-                },
-
-                rotateBy: (degree) => {
-                    if (!app.crop.cropper) return;
-                    let currentFine = parseFloat(document.getElementById('crop-rotate-slider')?.value || 0) + degree;
-                    currentFine = Math.max(-45, Math.min(45, currentFine));
-                    app.crop.onSliderChange(currentFine);
-                },
-
-                onSliderChange: (val) => {
-                    if (!app.crop.cropper) return;
-                    app.crop.fineRotation = parseFloat(val) || 0;
-                    const slider = document.getElementById('crop-rotate-slider');
-                    if (slider && slider.value != app.crop.fineRotation) slider.value = app.crop.fineRotation;
-                    app.crop.applyRotation();
-                },
-
-                resetRotation: () => {
-                    if (!app.crop.cropper) return;
-                    app.crop.fineRotation = 0;
-                    const slider = document.getElementById('crop-rotate-slider');
-                    if (slider) slider.value = 0;
-                    app.crop.applyRotation();
-                },
-
-                applyRotation: () => {
-                    if (!app.crop.cropper) return;
-                    const deg = app.crop.fineRotation || 0;
-                    app.crop.cropper.rotateTo(deg);
-
-                    const minScale = app.crop.getMinSafeScale();
-                    const currentScale = app.crop.cropper.getCanvasData().width / (app.crop.cropper.getImageData().naturalWidth || 1);
-
-                    // Auto-Zoom: Bắt buộc phóng to nếu Scale hiện tại bị hụt so với CropBox
-                    if (currentScale < minScale) {
-                        app.crop.cropper.zoomTo(minScale);
-                    }
-
-                    // Ép không cho kéo vượt qua ranh giới an toàn
-                    app.crop.clampCanvas();
-
-                    const valEl = document.getElementById('crop-rotate-val');
-                    if (valEl) {
-                        valEl.innerText = `${deg > 0 ? '+' : ''}${Math.abs(deg) < 0.01 ? '0' : deg.toFixed(1).replace('.0', '')}°`;
-                    }
                 },
 
                 close: () => {
@@ -2188,6 +2039,7 @@ Object.assign(window.app, {
                     }
                     app.ui.unlockScroll();
 
+                    // Nếu là lần cắt bắt buộc mà user bấm Hủy -> Xóa trắng để chọn ảnh khác
                     if (app.crop.isMandatory) {
                         app.upload.removeImage();
                         app.crop.isMandatory = false;
@@ -2232,12 +2084,14 @@ Object.assign(window.app, {
                                 }
 
                                 const wasMandatory = app.crop.isMandatory;
-                                app.crop.isMandatory = false; 
+                                app.crop.isMandatory = false; // Tắt cờ để hàm close() không xóa ảnh
                                 app.crop.close();
 
                                 if (wasMandatory) {
+                                    // Nếu là bước cắt đầu tiên bắt buộc -> thiết lập preview hoàn chỉnh
                                     app.upload.setupPreview(blob);
                                 } else {
+                                    // Nếu là cắt thủ công lại sau này -> chỉ thay thế ảnh hiện tại
                                     app.rawFile = blob;
                                     const url = URL.createObjectURL(blob);
                                     const previewImg = document.getElementById('preview-img');

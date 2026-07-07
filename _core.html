@@ -1462,7 +1462,7 @@
         #custom-image-menu-overlay,
         #custom-alert-modal, #settings-modal, #newsboard-modal, #docs-modal,
         #upload-info-modal, #custom-prompt-modal, #custom-role-modal, #deny-prompt-modal, #ban-prompt-modal,
-        #upload-progress-modal, #crop-modal,
+        #upload-progress-modal,
         #captcha-modal,
         #webrtc-qr-modal,
         #qr-login-host-modal, #qr-login-confirm-modal,
@@ -1475,7 +1475,7 @@
         /* 4. BẢN THÂN CÁC KHUNG POPUP CŨNG LÀ KÍNH - Cùng mức với dropdown */
         #custom-alert-content, #settings-content, #newsboard-content, #docs-content,
         #upload-info-content, #custom-prompt-content, #custom-role-content, #deny-prompt-content, #ban-prompt-content,
-        #up-progress-content, #crop-content,
+        #up-progress-content,
         #captcha-content,
         #webrtc-qr-content,
         #qr-login-host-content, #qr-login-confirm-content,
@@ -1495,7 +1495,6 @@
         #upload-info-content > div,
         #settings-content > div,
         #newsboard-content > div,
-        #crop-content > div,
         #docs-content > div {
             background-color: transparent !important;
             border-color: rgba(0, 0, 0, 0.05) !important;
@@ -2013,46 +2012,25 @@
         </div>
 
 
-        <div id="crop-modal" class="hidden fixed inset-0 z-[7000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 md:p-6">
-            <div id="crop-content" class="rounded-2xl shadow-2xl w-full max-w-4xl h-[85vh] md:h-[75vh] min-h-[400px] flex flex-col overflow-hidden transform transition-all relative z-50">
-                <div class="border-b border-gray-200/50 p-3 md:p-4 flex justify-between items-center shrink-0 rounded-t-2xl">
-                    <h2 class="font-bold text-base md:text-lg text-black uppercase tracking-tight">
-                        <i class="fa-solid fa-crop-simple mr-2 text-gray-500"></i>CẮT & XOAY ẢNH
-                    </h2>
-                    <button onclick="app.crop.close()" class="text-gray-400 hover:text-red-500 transition text-xl px-2">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
+        <div id="crop-modal" class="hidden fixed inset-0 z-[7000] bg-black/90 backdrop-blur-sm flex flex-col items-center justify-center p-2 sm:p-4">
+            <div class="bg-white w-full max-w-4xl rounded-xl shadow-2xl flex flex-col overflow-hidden transform transition-all">
+                <div class="p-3 md:p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+                    <h3 class="font-bold text-sm md:text-base uppercase text-black"><i class="fa-solid fa-crop-simple mr-2"></i> Cắt ảnh</h3>
+                    <button onclick="app.crop.close()" class="text-gray-500 hover:text-red-600 transition"><i class="fa-solid fa-xmark text-lg"></i></button>
                 </div>
-                <div class="w-full relative flex items-center justify-center select-none flex-1 overflow-hidden bg-white/30" style="-webkit-touch-callout: none;" oncontextmenu="return false;">
+                <div class="w-full bg-[#121212] relative flex items-center justify-center select-none" style="height: 60vh; min-height: 300px; -webkit-touch-callout: none;" oncontextmenu="return false;">
                     <img id="crop-image" src="" style="max-width: 100%; max-height: 100%; display: block; -webkit-touch-callout: none;" draggable="false">
                 </div>
-                <div class="p-4 md:p-5 border-t border-gray-200/50 flex flex-col gap-4 rounded-b-2xl shrink-0 bg-white/30">
-                    <!-- Slider Xoay ảnh -->
-                    <div class="bg-white/60 border border-gray-200/80 rounded-xl p-3.5 md:p-4 shadow-sm">
-                        <div class="flex justify-between items-center mb-2">
-                            <label class="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-1.5">
-                                <i class="fa-solid fa-rotate text-gray-500"></i> Xoay ảnh
-                            </label>
-                            <span id="crop-rotate-val" class="text-xs font-mono font-bold text-gray-600 bg-gray-100 px-2.5 py-1 rounded border border-gray-200 min-w-[44px] text-center shadow-sm">0°</span>
-                        </div>
-                        <input type="range" id="crop-rotate-slider" min="-45" max="45" value="0" step="0.5" class="vnbus-slider w-full mt-1" oninput="app.crop.onSliderChange(this.value)" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
-                        <div class="text-right mt-3">
-                            <button type="button" onclick="app.crop.resetRotation()" class="text-xs bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-800 px-4 py-1.5 rounded-md font-bold transition shadow-sm inline-flex items-center gap-1.5" title="Đặt lại góc xoay"><i class="fa-solid fa-rotate-left"></i> Đặt lại</button>
-                        </div>
+                <div class="p-4 bg-white border-t border-gray-200 flex flex-col sm:flex-row gap-4 justify-between items-center">
+                    <div id="crop-ratios" class="flex flex-wrap gap-2 w-full sm:w-auto justify-center">
+                        <span class="text-xs font-bold text-gray-500 self-center hidden sm:inline-block mr-1">Tỉ lệ:</span>
+                        <button type="button" onclick="app.crop.setRatio(16/9)" class="crop-ratio-btn px-3 py-1.5 text-xs border border-gray-300 rounded hover:bg-gray-100 font-bold transition" data-ratio="1.7777777777777777">16:9</button>
+                        <button type="button" onclick="app.crop.setRatio(3/2)" class="crop-ratio-btn px-3 py-1.5 text-xs border border-gray-300 rounded hover:bg-gray-100 font-bold transition" data-ratio="1.5">3:2</button>
+                        <button type="button" onclick="app.crop.setRatio(4/3)" class="crop-ratio-btn px-3 py-1.5 text-xs border border-gray-300 rounded hover:bg-gray-100 font-bold transition" data-ratio="1.3333333333333333">4:3</button>
                     </div>
-
-                    <!-- Tỉ lệ cắt & Nút hành động -->
-                    <div class="flex flex-col sm:flex-row gap-3 md:gap-4 justify-between items-center pt-1">
-                        <div id="crop-ratios" class="flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-2.5 w-full sm:w-auto">
-                            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider mr-1 hidden sm:inline-block">Tỉ lệ:</span>
-                            <button type="button" onclick="app.crop.setRatio(16/9)" class="crop-ratio-btn px-4 py-2 text-xs md:text-sm font-bold border border-gray-300 bg-white text-gray-700 rounded-md hover:bg-gray-100 transition shadow-sm shrink-0" data-ratio="1.7777777777777777">16 : 9</button>
-                            <button type="button" onclick="app.crop.setRatio(3/2)" class="crop-ratio-btn px-4 py-2 text-xs md:text-sm font-bold border border-gray-300 bg-white text-gray-700 rounded-md hover:bg-gray-100 transition shadow-sm shrink-0" data-ratio="1.5">3 : 2</button>
-                            <button type="button" onclick="app.crop.setRatio(4/3)" class="crop-ratio-btn px-4 py-2 text-xs md:text-sm font-bold border border-gray-300 bg-white text-gray-700 rounded-md hover:bg-gray-100 transition shadow-sm shrink-0" data-ratio="1.3333333333333333">4 : 3</button>
-                        </div>
-                        <div class="flex items-center justify-end gap-3 md:gap-4 w-full sm:w-auto mt-1 sm:mt-0">
-                            <button type="button" onclick="app.crop.close()" class="flex-1 sm:flex-none px-6 py-2 bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-700 text-xs md:text-sm font-bold rounded-md transition text-center shadow-sm shrink-0">Hủy</button>
-                            <button type="button" onclick="app.crop.apply()" class="flex-1 sm:flex-none px-6 py-2 bg-black hover:bg-gray-800 text-white text-xs md:text-sm font-bold rounded-md transition shadow-sm flex items-center justify-center gap-2 shrink-0"><i class="fa-solid fa-check"></i> Áp dụng</button>
-                        </div>
+                    <div class="flex gap-2 w-full sm:w-auto justify-end">
+                        <button type="button" onclick="app.crop.close()" class="px-5 py-2.5 bg-gray-100 border border-gray-300 text-gray-700 text-xs font-bold rounded-md hover:bg-gray-200 transition">Hủy</button>
+                        <button type="button" onclick="app.crop.apply()" class="px-5 py-2.5 bg-black text-white text-xs font-bold rounded-md hover:bg-gray-800 transition shadow-sm"><i class="fa-solid fa-check mr-1"></i> Áp dụng</button>
                     </div>
                 </div>
             </div>
