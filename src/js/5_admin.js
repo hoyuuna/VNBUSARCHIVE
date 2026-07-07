@@ -4,6 +4,36 @@ Object.assign(window.app, {
   admin: {
                 adminInterval: null,
                 commentsData: { data: [], page: 1 },
+                is3x3Enabled: localStorage.getItem('vbs_admin_grid_3x3') === 'true',
+
+                toggle3x3Grid: () => {
+                    app.admin.is3x3Enabled = !app.admin.is3x3Enabled;
+                    localStorage.setItem('vbs_admin_grid_3x3', app.admin.is3x3Enabled ? 'true' : 'false');
+                    app.admin.update3x3UI();
+                },
+
+                update3x3UI: () => {
+                    const btn = document.getElementById('btn-toggle-3x3');
+                    const statusText = document.getElementById('status-3x3');
+                    if (btn && statusText) {
+                        if (app.admin.is3x3Enabled) {
+                            btn.className = "inline-flex items-center gap-2 px-3.5 py-1.5 bg-black border border-black rounded-md text-xs font-bold text-white hover:bg-gray-800 transition shadow-sm";
+                            statusText.innerText = "BẬT";
+                        } else {
+                            btn.className = "inline-flex items-center gap-2 px-3.5 py-1.5 bg-white border border-gray-300 rounded-md text-xs font-bold text-gray-700 hover:bg-gray-50 hover:text-black transition shadow-sm";
+                            statusText.innerText = "TẮT";
+                        }
+                    }
+                    document.querySelectorAll('.admin-photo-grid-overlay').forEach(el => {
+                        if (app.admin.is3x3Enabled) el.classList.remove('hidden');
+                        else el.classList.add('hidden');
+                    });
+                    const zoomGrid = document.getElementById('admin-zoom-grid-overlay');
+                    if (zoomGrid) {
+                        if (app.admin.is3x3Enabled) zoomGrid.classList.remove('hidden');
+                        else zoomGrid.classList.add('hidden');
+                    }
+                },
 
                 originalData: {},
                 checkPlateAdmin: async (inputEl, id, type) => {
@@ -169,15 +199,25 @@ Object.assign(window.app, {
                     } catch (err) { console.error("Lỗi đếm:", err); return 0; }
                 },
 
-                openZoom: (url, showToolbar = false) => {
+                openZoom: (url, showToolbar = false, isFromAdminReview = false) => {
                     const modal = document.getElementById('admin-zoom-modal');
                     const img = document.getElementById('admin-zoom-img');
+                    const container = document.getElementById('admin-zoom-container') || img;
                     img.src = url;
-                    img.classList.remove('zoom-img-active');
+                    container.classList.remove('zoom-img-active');
                     modal.classList.remove('hidden');
                     app.ui.lockScroll();
-                    img.classList.remove('modal-content-leave');
-                    img.classList.add('modal-content-enter');
+                    container.classList.remove('modal-content-leave');
+                    container.classList.add('modal-content-enter');
+
+                    const zoomGrid = document.getElementById('admin-zoom-grid-overlay');
+                    if (zoomGrid) {
+                        if (isFromAdminReview && app.admin.is3x3Enabled) {
+                            zoomGrid.classList.remove('hidden');
+                        } else {
+                            zoomGrid.classList.add('hidden');
+                        }
+                    }
 
                     // Logic hiển thị Toolbar với Animation Trượt
                     const toolbar = document.getElementById('zoom-toolbar');
@@ -220,10 +260,11 @@ Object.assign(window.app, {
                 closeZoom: () => {
                     const modal = document.getElementById('admin-zoom-modal');
                     const img = document.getElementById('admin-zoom-img');
+                    const container = document.getElementById('admin-zoom-container') || img;
                     const toolbar = document.getElementById('zoom-toolbar');
 
-                    img.classList.remove('modal-content-enter');
-                    img.classList.add('modal-content-leave');
+                    container.classList.remove('modal-content-enter');
+                    container.classList.add('modal-content-leave');
 
                     if (toolbar) {
                         toolbar.classList.add('opacity-0', 'translate-y-8', 'pointer-events-none');
@@ -270,6 +311,13 @@ Object.assign(window.app, {
                             btn.className = "px-5 py-2 bg-white border border-gray-300 text-gray-600 font-bold rounded-md text-sm hover:bg-gray-50 transition whitespace-nowrap";
                         }
                     });
+
+                    const toggleBar = document.getElementById('adm-photo-grid-toggle-bar');
+                    if (toggleBar) {
+                        if (tab === 'photos') toggleBar.classList.remove('hidden');
+                        else toggleBar.classList.add('hidden');
+                    }
+                    if (app.admin.update3x3UI) app.admin.update3x3UI();
 
                     try {
                         if (tab === 'photos') {
@@ -347,9 +395,15 @@ Object.assign(window.app, {
                                         </div>
                                         <span class="text-xs text-gray-500">${safeUsername}</span>
                                     </div>
-                                    <div class="relative w-full bg-gray-200 border-y border-gray-200">
+                                    <div class="relative w-full bg-gray-200 border-y border-gray-200 overflow-hidden">
                                         <img loading="lazy" src="${app.utils.getProxiedUrl(p.url)}" class="w-full h-auto object-contain">
-                                        <button onclick="app.admin.openZoom('${app.utils.getProxiedUrl(p.url)}')" class="absolute top-2 right-2 bg-black/50 text-white w-8 h-8 rounded hover:bg-black flex items-center justify-center transition" title="Soi ảnh"><i class="fa-solid fa-expand"></i></button>
+                                        <div class="admin-photo-grid-overlay grid-3x3-overlay ${app.admin.is3x3Enabled ? '' : 'hidden'}">
+                                            <div class="grid-3x3-line-v" style="left: 33.3333%;"></div>
+                                            <div class="grid-3x3-line-v" style="left: 66.6666%;"></div>
+                                            <div class="grid-3x3-line-h" style="top: 33.3333%;"></div>
+                                            <div class="grid-3x3-line-h" style="top: 66.6666%;"></div>
+                                        </div>
+                                        <button onclick="app.admin.openZoom('${app.utils.getProxiedUrl(p.url)}', false, true)" class="absolute top-2 right-2 bg-black/50 text-white w-8 h-8 rounded hover:bg-black flex items-center justify-center transition z-20" title="Soi ảnh"><i class="fa-solid fa-expand"></i></button>
                                     </div>
                                     <div class="admin-card-body">
                                         <p class="text-[10px] text-gray-500 mb-2"><b>Ngày chụp:</b> ${p.taken_at ? p.taken_at.split('T')[0] : 'Không rõ'} | <b>Camera:</b> ${p.camera_model}</p>
@@ -407,6 +461,7 @@ Object.assign(window.app, {
                                     </div>
                                 </div>`
                             }).join('');
+                            if (app.admin.update3x3UI) app.admin.update3x3UI();
                         } else if (tab === 'delete') {
                             let html = '';
 
@@ -455,9 +510,15 @@ Object.assign(window.app, {
                                         <span class="font-bold text-xs uppercase text-red-600">YÊU CẦU XÓA</span>
                                         <span class="text-xs text-gray-500">${username}</span>
                                     </div>
-                                    <div class="relative w-full bg-gray-200 border-y border-gray-200">
+                                    <div class="relative w-full bg-gray-200 border-y border-gray-200 overflow-hidden">
                                         <img loading="lazy" src="${app.utils.getProxiedUrl(photo?.url)}" class="w-full h-auto object-contain">
-                                        <button onclick="app.admin.openZoom('${app.utils.getProxiedUrl(photo?.url)}')" class="absolute top-2 right-2 bg-black/50 text-white w-8 h-8 rounded hover:bg-black flex items-center justify-center transition" title="Soi ảnh"><i class="fa-solid fa-expand"></i></button>
+                                        <div class="admin-photo-grid-overlay grid-3x3-overlay ${app.admin.is3x3Enabled ? '' : 'hidden'}">
+                                            <div class="grid-3x3-line-v" style="left: 33.3333%;"></div>
+                                            <div class="grid-3x3-line-v" style="left: 66.6666%;"></div>
+                                            <div class="grid-3x3-line-h" style="top: 33.3333%;"></div>
+                                            <div class="grid-3x3-line-h" style="top: 66.6666%;"></div>
+                                        </div>
+                                        <button onclick="app.admin.openZoom('${app.utils.getProxiedUrl(photo?.url)}', false, true)" class="absolute top-2 right-2 bg-black/50 text-white w-8 h-8 rounded hover:bg-black flex items-center justify-center transition z-20" title="Soi ảnh"><i class="fa-solid fa-expand"></i></button>
                                     </div>
                                     <div class="admin-card-body text-xs">
                                         <p class="font-bold text-sm mb-1">${photo?.license_plate || 'Đã mất dữ liệu'}</p>
@@ -471,6 +532,7 @@ Object.assign(window.app, {
                             }).join('');
 
                             content.innerHTML = html;
+                            if (app.admin.update3x3UI) app.admin.update3x3UI();
                         } else if (tab === 'requests') {
                             let { data: reqs, error } = await window.sb.from('edit_requests').select('*').eq('status', 'pending');
                             if (error) throw error;
@@ -621,6 +683,7 @@ Object.assign(window.app, {
                                     </div>`;
                                 }
                             }).join('');
+                            if (app.admin.update3x3UI) app.admin.update3x3UI();
                         }
 
 

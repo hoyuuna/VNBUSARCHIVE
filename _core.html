@@ -1674,6 +1674,30 @@
             from { opacity: 0; transform: translateX(-20px); }
             to { opacity: 1; transform: translateX(0); }
         }
+
+        /* Lưới tham chiếu 3x3 cho Admin duyệt ảnh */
+        .grid-3x3-overlay {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 15;
+        }
+        .grid-3x3-line-v {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: rgba(255, 255, 255, 0.85);
+            box-shadow: 0 0 2px rgba(0, 0, 0, 0.9), 0 0 1px rgba(0, 0, 0, 1);
+        }
+        .grid-3x3-line-h {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.85);
+            box-shadow: 0 0 2px rgba(0, 0, 0, 0.9), 0 0 1px rgba(0, 0, 0, 1);
+        }
     </style>
     <style>
         body.is-offline button[type="submit"], body.is-offline .submit-btn, body.is-offline #btn-submit, body.is-offline #btn-post-comment, body.is-offline #btn-like { pointer-events: none !important; opacity: 0.5 !important; }
@@ -2395,7 +2419,15 @@
 
 
         <div id="admin-zoom-modal" class="hidden fixed inset-0 z-[2000] bg-black/95 flex flex-col items-center justify-center px-4 pt-4 pb-20 md:pb-24" onclick="app.admin.closeZoom()">
-            <img id="admin-zoom-img" src="" class="max-w-full max-h-full object-contain transition-transform duration-300 zoom-img-cursor" onclick="event.stopPropagation();">
+            <div id="admin-zoom-container" class="relative inline-flex items-center justify-center max-w-full max-h-full transition-transform duration-300 zoom-img-cursor" onclick="event.stopPropagation();">
+                <img id="admin-zoom-img" src="" class="max-w-full max-h-full object-contain pointer-events-none">
+                <div id="admin-zoom-grid-overlay" class="grid-3x3-overlay hidden">
+                    <div class="grid-3x3-line-v" style="left: 33.3333%;"></div>
+                    <div class="grid-3x3-line-v" style="left: 66.6666%;"></div>
+                    <div class="grid-3x3-line-h" style="top: 33.3333%;"></div>
+                    <div class="grid-3x3-line-h" style="top: 66.6666%;"></div>
+                </div>
+            </div>
             <button onclick="app.admin.closeZoom()" title="Đóng (ESC)" class="absolute top-4 right-4 text-white hover:text-red-500 text-3xl z-[2001] p-2 transition-transform active:scale-90"><i class="fa-solid fa-xmark"></i></button>
 
             <div id="zoom-hint" class="absolute bottom-4 left-0 w-full text-center text-white/50 text-xs pointer-events-none transition-opacity">
@@ -4265,6 +4297,14 @@
                     <button onclick="app.admin.loadTab('manager')" id="adm-tab-manager" class="hidden px-5 py-2 bg-white border border-gray-300 text-gray-600 font-bold rounded-md text-sm hover:bg-gray-50 transition whitespace-nowrap">Quản lý (Manager)</button>
                 </div>
 
+                <!-- Nút bật tắt đường tham chiếu 3x3 (Chỉ hiện ở tab Duyệt ảnh) -->
+                <div id="adm-photo-grid-toggle-bar" class="hidden mb-4 flex justify-end">
+                    <button type="button" id="btn-toggle-3x3" onclick="app.admin.toggle3x3Grid()" class="inline-flex items-center gap-2 px-3.5 py-1.5 bg-white border border-gray-300 rounded-md text-xs font-bold text-gray-700 hover:bg-gray-50 hover:text-black transition shadow-sm">
+                        <i class="fa-solid fa-table-cells text-gray-500"></i>
+                        <span>Đường tham chiếu 3x3: <b id="status-3x3">TẮT</b></span>
+                    </button>
+                </div>
+
                 <div id="admin-content" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                     <p class="text-gray-500 italic p-4">Đang tải dữ liệu...</p>
                 </div>
@@ -5270,7 +5310,7 @@
             app.webrtc.init();
 
             // Zoom Modal Logic (Wheel & Touch)
-            const zoomImg = document.getElementById('admin-zoom-img');
+            const zoomImg = document.getElementById('admin-zoom-container') || document.getElementById('admin-zoom-img');
             const zoomModal = document.getElementById('admin-zoom-modal');
             let currentZoom = 1;
             let isPanning = false;
@@ -5457,9 +5497,9 @@
                     setTimeout(resetZoom, 300);
                 };
                 const originalOpenZoom = app.admin.openZoom;
-                app.admin.openZoom = (url, showToolbar = false) => {
+                app.admin.openZoom = (url, showToolbar = false, isFromAdminReview = false) => {
                     resetZoom();
-                    originalOpenZoom(url, showToolbar);
+                    originalOpenZoom(url, showToolbar, isFromAdminReview);
                 };
             }
         });
