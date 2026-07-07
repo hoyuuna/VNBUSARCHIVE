@@ -1951,7 +1951,6 @@ Object.assign(window.app, {
                 mode: 'main',
                 originalFile: null,
                 isMandatory: false, // Thêm cờ đánh dấu bắt buộc cắt
-                baseRotation: 0,
                 fineRotation: 0,
 
                 open: async (mode, file = null, isMandatory = false) => {
@@ -1989,7 +1988,6 @@ Object.assign(window.app, {
                             app.crop.cropper.destroy();
                         }
 
-                        app.crop.baseRotation = 0;
                         app.crop.fineRotation = 0;
                         const slider = document.getElementById('crop-rotate-slider');
                         if (slider) slider.value = 0;
@@ -2042,15 +2040,9 @@ Object.assign(window.app, {
 
                 rotateBy: (degree) => {
                     if (!app.crop.cropper) return;
-                    if (degree === 90 || degree === -90) {
-                        app.crop.baseRotation = ((app.crop.baseRotation || 0) + degree) % 360;
-                    } else {
-                        let currentFine = parseFloat(document.getElementById('crop-rotate-slider')?.value || 0) + degree;
-                        currentFine = Math.max(-45, Math.min(45, currentFine));
-                        app.crop.onSliderChange(currentFine);
-                        return;
-                    }
-                    app.crop.applyRotation();
+                    let currentFine = parseFloat(document.getElementById('crop-rotate-slider')?.value || 0) + degree;
+                    currentFine = Math.max(-45, Math.min(45, currentFine));
+                    app.crop.onSliderChange(currentFine);
                 },
 
                 onSliderChange: (val) => {
@@ -2063,7 +2055,6 @@ Object.assign(window.app, {
 
                 resetRotation: () => {
                     if (!app.crop.cropper) return;
-                    app.crop.baseRotation = 0;
                     app.crop.fineRotation = 0;
                     const slider = document.getElementById('crop-rotate-slider');
                     if (slider) slider.value = 0;
@@ -2072,14 +2063,19 @@ Object.assign(window.app, {
 
                 applyRotation: () => {
                     if (!app.crop.cropper) return;
-                    const total = (app.crop.baseRotation || 0) + (app.crop.fineRotation || 0);
-                    app.crop.cropper.rotateTo(total);
+                    const deg = app.crop.fineRotation || 0;
+                    app.crop.cropper.rotateTo(deg);
+
+                    // Tự động scale (zoom) ảnh khi xoay để bắt buộc crop vào bên trong ảnh, tránh bị viền đen ở các góc
+                    const rad = Math.abs(deg) * (Math.PI / 180);
+                    const imgData = app.crop.cropper.getImageData();
+                    const R = Math.max((imgData.naturalWidth || 4) / (imgData.naturalHeight || 3), (imgData.naturalHeight || 3) / (imgData.naturalWidth || 4));
+                    const scaleFactor = (Math.cos(rad) + Math.sin(rad) * R) * 1.01;
+                    app.crop.cropper.scale(scaleFactor, scaleFactor);
+
                     const valEl = document.getElementById('crop-rotate-val');
                     if (valEl) {
-                        let displayVal = (total % 360);
-                        if (displayVal > 180) displayVal -= 360;
-                        if (displayVal <= -180) displayVal += 360;
-                        valEl.innerText = `${displayVal > 0 ? '+' : ''}${Math.abs(displayVal) < 0.01 ? '0' : displayVal.toFixed(1).replace('.0', '')}°`;
+                        valEl.innerText = `${deg > 0 ? '+' : ''}${Math.abs(deg) < 0.01 ? '0' : deg.toFixed(1).replace('.0', '')}°`;
                     }
                 },
 
