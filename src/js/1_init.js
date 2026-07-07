@@ -2039,8 +2039,8 @@ cleanupState: () => {
 
                     if (role === 'admin' || role === 'manager') {
                         const badgeClass = role === 'manager' ? 'badge-manager' : 'badge-admin';
-                        const badgeText = role === 'manager' ? 'Manager' : 'Admin';
-                        const badgeTitle = role === 'manager' ? 'Quản lý hệ thống' : 'Administrator';
+                        const badgeText = role === 'manager' ? 'Quản lý' : 'Kiểm duyệt';
+                        const badgeTitle = role === 'manager' ? 'Quản lý hệ thống (Quyền cao nhất)' : 'Kiểm duyệt viên';
                         html += `<span class="badge-shiny ${badgeClass}" title="${badgeTitle}"><i class="fa-solid fa-shield-halved mr-1 text-[10px]"></i> ${badgeText}</span>`;
                     }
 

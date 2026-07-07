@@ -469,7 +469,7 @@ Object.assign(window.app, {
                             if (app.role === 'manager') {
                                 html += `
                                 <div class="col-span-full mb-6 p-5 bg-red-50 border border-red-200 rounded-lg shadow-sm">
-                                    <h3 class="font-bold text-sm mb-3 text-red-700 uppercase"><i class="fa-solid fa-triangle-exclamation"></i> Manager Xóa ảnh trực tiếp</h3>
+                                    <h3 class="font-bold text-sm mb-3 text-red-700 uppercase"><i class="fa-solid fa-triangle-exclamation"></i> Quản lý Xóa ảnh trực tiếp</h3>
                                     <div class="flex flex-col md:flex-row gap-3">
                                         <input type="text" id="adm-direct-delete-id" placeholder="ID ảnh hoặc Link ảnh..." class="flex-1 border border-red-200 p-2.5 text-sm rounded-md outline-none focus:ring-2 focus:ring-red-500">
                                         <input type="text" id="adm-direct-delete-reason" placeholder="Lý do xóa..." class="flex-1 border border-red-200 p-2.5 text-sm rounded-md outline-none focus:ring-2 focus:ring-red-500">
@@ -1119,7 +1119,7 @@ app.admin.fetchManagerData('denied');
                 },
 
                 managerBanUser: (userId) => {
-                    if (app.role !== 'manager') return app.ui.showAlert("Chỉ Manager mới có quyền này.");
+                    if (app.role !== 'manager') return app.ui.showAlert("Chỉ Quản lý mới có quyền này.");
                     document.getElementById('ban-target-id').value = userId;
                     
                     app.admin.toggleBanSection('quick');
@@ -1142,7 +1142,7 @@ app.admin.fetchManagerData('denied');
                 },
 
                 submitBanUser: async () => {
-                    if (app.role !== 'manager') return app.ui.showAlert("Chỉ Manager mới có quyền này.");
+                    if (app.role !== 'manager') return app.ui.showAlert("Chỉ Quản lý mới có quyền này.");
                     const userId = document.getElementById('ban-target-id').value;
                     let reason = '';
                     if (app.admin.activeBanSection === 'custom') {
@@ -1178,7 +1178,7 @@ app.admin.fetchManagerData('denied');
                 },
 
                 managerUnbanUser: async (userId) => {
-                    if (app.role !== 'manager') return app.ui.showAlert("Chỉ Manager mới có quyền này.");
+                    if (app.role !== 'manager') return app.ui.showAlert("Chỉ Quản lý mới có quyền này.");
                     
                     app.ui.showAlert("Bạn có chắc muốn gỡ cấm tài khoản này không?", async () => {
                         try {
@@ -1202,7 +1202,7 @@ app.admin.fetchManagerData('denied');
                 },
 
                 managerDeleteUser: async (userId) => {
-                    if (app.role !== 'manager') return app.ui.showAlert("Chỉ Manager mới có quyền này.");
+                    if (app.role !== 'manager') return app.ui.showAlert("Chỉ Quản lý mới có quyền này.");
                     
                     app.ui.showAlert("LƯU Ý: Hành động này sẽ XÓA VĨNH VIỄN tài khoản người dùng và không thể khôi phục. Bạn có chắc chắn muốn xóa không?", async () => {
                         try {
@@ -1284,7 +1284,7 @@ app.admin.fetchManagerData('denied');
 
                 submitEmail: async (e) => {
                     e.preventDefault();
-                    if (app.role !== 'manager') return app.ui.showAlert("Chỉ Manager mới có thể sử dụng chức năng này.");
+                    if (app.role !== 'manager') return app.ui.showAlert("Chỉ Quản lý mới có thể sử dụng chức năng này.");
 
                     const selectVal = document.getElementById('email-target-user').value;
                     const customEmail = document.getElementById('email-custom-address').value.trim();
@@ -1492,7 +1492,7 @@ app.admin.fetchManagerData('denied');
                 },
                 denyPhoto: async (id, uploaderId, btn) => {
                     if (app.role !== 'manager' && app.role !== 'admin') {
-                        return app.ui.showAlert("Chỉ Admin/Manager mới có quyền từ chối ảnh!");
+                        return app.ui.showAlert("Chỉ Kiểm duyệt/Quản lý mới có quyền từ chối ảnh!");
                     }
                     if (app.user.id === uploaderId && app.role !== 'manager') {
                         return app.ui.showAlert("Bạn không thể tự từ chối ảnh của chính mình!");
@@ -1654,7 +1654,7 @@ app.admin.fetchManagerData('denied');
                     } catch (err) { app.ui.showAlert("Lỗi: " + err.message); } finally { btn.innerText = "DUYỆT"; btn.disabled = false; btn.classList.remove('btn-loading'); }
                 },
                 directDeleteInput: async (btn) => {
-                    if (app.role !== 'manager') return app.ui.showAlert("Chỉ Manager mới có quyền sử dụng tính năng này!");
+                    if (app.role !== 'manager') return app.ui.showAlert("Chỉ Quản lý mới có quyền sử dụng tính năng này!");
                     const input = document.getElementById('adm-direct-delete-id').value.trim();
                     const reason = document.getElementById('adm-direct-delete-reason').value.trim();
 
@@ -1686,7 +1686,7 @@ app.admin.fetchManagerData('denied');
 
                 approveDeleteReq: async (reqId, photoId, requesterId, userReason, btn) => {
                     if (app.role !== 'manager') {
-                        return app.ui.showAlert("Chỉ Manager mới có quyền duyệt lệnh xóa ảnh khỏi hệ thống!");
+                        return app.ui.showAlert("Chỉ Quản lý mới có quyền duyệt lệnh xóa ảnh khỏi hệ thống!");
                     }
                     btn.innerText = "Đang xử lý...";
                     btn.disabled = true;

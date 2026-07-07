@@ -1183,10 +1183,10 @@ Object.assign(window.app, {
                     }
                     else if (app.user && app.role === 'manager' && !isDenied) {
                         deleteBtn.classList.remove('hidden');
-                        deleteBtn.innerHTML = '<i class="fa-solid fa-radiation mr-1"></i> Manager: Xóa ảnh này';
+                        deleteBtn.innerHTML = '<i class="fa-solid fa-radiation mr-1"></i> Quản lý: Xóa ảnh này';
                         deleteBtn.className = "w-full bg-red-600 border border-red-600 text-white py-2.5 text-sm font-bold rounded-md hover:bg-red-700 transition shadow-sm";
                         deleteBtn.onclick = () => {
-                            app.ui.showDenyPrompt("ADMIN - Xóa ảnh này", async (reason) => {
+                            app.ui.showDenyPrompt("QUẢN LÝ - Xóa ảnh này", async (reason) => {
                                 try {
                                     await window.sb.from('photos').update({ status: 'denied', denial_reason: reason }).eq('id', photo.id);
                                     app.admin.logAction('admin_delete_from_detail', photo.id, { plate: photo.license_plate, reason: reason });
@@ -1215,7 +1215,7 @@ Object.assign(window.app, {
                                         app.views.loadDetail(photo.id);
                                     } catch (e) {
                                         app.ui.showAlert("Lỗi: " + e.message);
-                                        reapproveBtn.innerHTML = '<i class="fa-solid fa-rotate-left mr-1"></i> Manager: Duyệt lại ảnh này';
+                                        reapproveBtn.innerHTML = '<i class="fa-solid fa-rotate-left mr-1"></i> Quản lý: Duyệt lại ảnh này';
                                         reapproveBtn.disabled = false;
                                     }
                                 });

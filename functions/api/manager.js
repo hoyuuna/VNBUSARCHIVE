@@ -29,11 +29,11 @@ export async function onRequest(context) {
         if (targetUserId) {
             const { data: targetProfile } = await supabaseAdmin.from('profiles').select('role').eq('id', targetUserId).single();
             if (targetProfile) {
-                if (profile.role === 'manager' && (targetProfile.role === 'admin' || targetProfile.role === 'manager')) {
-                    throw new Error("Truy cập bị từ chối: Manager không thể tác động lên tài khoản ngang hàng hoặc Admin.");
+                if (profile.role === 'admin' && (targetProfile.role === 'manager' || (targetProfile.role === 'admin' && targetUserId !== user.id))) {
+                    throw new Error("Truy cập bị từ chối: Kiểm duyệt viên (Admin) không thể thao tác lên Quản lý (Manager) hoặc Kiểm duyệt viên khác.");
                 }
-                if (profile.role === 'admin' && targetProfile.role === 'admin' && targetUserId !== user.id) {
-                    throw new Error("Truy cập bị từ chối: Không thể chỉnh sửa hoặc xóa tài khoản Admin khác.");
+                if (profile.role === 'manager' && targetProfile.role === 'manager' && targetUserId !== user.id) {
+                    throw new Error("Truy cập bị từ chối: Quản lý (Manager) không thể thao tác lên tài khoản Quản lý khác.");
                 }
             }
         }
@@ -138,8 +138,8 @@ export async function onRequest(context) {
         }
 
         if (!targetUserId) throw new Error("Thiếu targetUserId.");
-        if (newRole && ['admin', 'manager'].includes(newRole) && profile.role === 'manager') {
-            throw new Error("Truy cập bị từ chối: Manager không có quyền cấp vai trò Admin hoặc Manager.");
+        if (newRole && ['admin', 'manager'].includes(newRole) && profile.role === 'admin') {
+            throw new Error("Truy cập bị từ chối: Kiểm duyệt viên (Admin) không có quyền cấp vai trò Kiểm duyệt hoặc Quản lý.");
         }
 
         const { error: profileError } = await supabaseAdmin.from('profiles').update({
