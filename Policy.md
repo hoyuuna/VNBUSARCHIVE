@@ -36,6 +36,7 @@ Khi tải ảnh lên hệ thống, bạn cam kết tuân thủ tuyệt đối qu
   * Quyền của Người dùng: Bạn có quyền tự mình khiếu nại bản quyền (DMCA) bất kỳ bên thứ ba nào sử dụng hình ảnh có nhãn VNBUSARCHIVE mà chưa được sự đồng ý của bạn.
   * Quyền của Nền tảng (VNBUSARCHIVE): Để bảo vệ uy tín của dự án và tránh việc hình ảnh bị lợi dụng vào mục đích xấu (xuyên tạc, thương mại hóa trái phép), VNBUSARCHIVE bảo lưu quyền chủ động gỡ bỏ hoặc đánh bản quyền (DMCA) đối với các hành vi sử dụng ảnh có logo của hệ thống vi phạm nghiêm trọng điều khoản (như xóa watermark, bôi nhọ, thương mại hóa), ngay cả khi chưa có sự phản hồi kịp thời từ tác giả.
 * **Quy định chống giả mạo và xuyên tạc thông tin:** Nghiêm cấm việc sử dụng hình ảnh, dữ liệu tải về từ VNBUSARCHIVE để cắt ghép, chỉnh sửa, lồng ghép vào các thông tin sai sự thật, tin đồn thất thiệt, hoặc nội dung kích động bôi nhọ trên các nền tảng mạng xã hội. VNBUSARCHIVE hoàn toàn không liên quan và không chịu bất kỳ trách nhiệm pháp lý nào đối với hành vi giả mạo thông tin của các bên thứ ba này.
+* VNBUSARCHIVE tuyệt đối bảo vệ hình ảnh và danh dự của nhân viên vận tải (tài xế, tiếp viên, điều hành) là những người lao động trực tiếp trên tuyến.
 
 ### 5. Kiểm duyệt và Chỉnh sửa Dữ liệu
 * Toàn bộ hình ảnh, yêu cầu chỉnh sửa thông tin xe và lịch sử hoạt động đều được kiểm duyệt thủ công.
