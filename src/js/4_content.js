@@ -1951,6 +1951,8 @@ Object.assign(window.app, {
                 mode: 'main',
                 originalFile: null,
                 isMandatory: false, // Thêm cờ đánh dấu bắt buộc cắt
+                baseRotation: 0,
+                fineRotation: 0,
 
                 open: async (mode, file = null, isMandatory = false) => {
                     app.crop.mode = mode;
@@ -1986,6 +1988,13 @@ Object.assign(window.app, {
                         if (app.crop.cropper) {
                             app.crop.cropper.destroy();
                         }
+
+                        app.crop.baseRotation = 0;
+                        app.crop.fineRotation = 0;
+                        const slider = document.getElementById('crop-rotate-slider');
+                        if (slider) slider.value = 0;
+                        const valEl = document.getElementById('crop-rotate-val');
+                        if (valEl) valEl.innerText = '0°';
 
                         if (mode === 'main') {
                             // Hiện lại thanh chọn tỉ lệ (16:9, 3:2, 4:3)
@@ -2029,6 +2038,49 @@ Object.assign(window.app, {
                             btn.classList.add('bg-white', 'text-gray-700', 'border-gray-300', 'hover:bg-gray-100');
                         }
                     });
+                },
+
+                rotateBy: (degree) => {
+                    if (!app.crop.cropper) return;
+                    if (degree === 90 || degree === -90) {
+                        app.crop.baseRotation = ((app.crop.baseRotation || 0) + degree) % 360;
+                    } else {
+                        let currentFine = parseFloat(document.getElementById('crop-rotate-slider')?.value || 0) + degree;
+                        currentFine = Math.max(-45, Math.min(45, currentFine));
+                        app.crop.onSliderChange(currentFine);
+                        return;
+                    }
+                    app.crop.applyRotation();
+                },
+
+                onSliderChange: (val) => {
+                    if (!app.crop.cropper) return;
+                    app.crop.fineRotation = parseFloat(val) || 0;
+                    const slider = document.getElementById('crop-rotate-slider');
+                    if (slider && slider.value != app.crop.fineRotation) slider.value = app.crop.fineRotation;
+                    app.crop.applyRotation();
+                },
+
+                resetRotation: () => {
+                    if (!app.crop.cropper) return;
+                    app.crop.baseRotation = 0;
+                    app.crop.fineRotation = 0;
+                    const slider = document.getElementById('crop-rotate-slider');
+                    if (slider) slider.value = 0;
+                    app.crop.applyRotation();
+                },
+
+                applyRotation: () => {
+                    if (!app.crop.cropper) return;
+                    const total = (app.crop.baseRotation || 0) + (app.crop.fineRotation || 0);
+                    app.crop.cropper.rotateTo(total);
+                    const valEl = document.getElementById('crop-rotate-val');
+                    if (valEl) {
+                        let displayVal = (total % 360);
+                        if (displayVal > 180) displayVal -= 360;
+                        if (displayVal <= -180) displayVal += 360;
+                        valEl.innerText = `${displayVal > 0 ? '+' : ''}${Math.abs(displayVal) < 0.01 ? '0' : displayVal.toFixed(1).replace('.0', '')}°`;
+                    }
                 },
 
                 close: () => {
