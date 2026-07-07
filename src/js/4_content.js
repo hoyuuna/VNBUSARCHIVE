@@ -1977,10 +1977,17 @@ Object.assign(window.app, {
                     const img = document.getElementById('crop-image');
 
                     const modal = document.getElementById('crop-modal');
+                    const content = document.getElementById('crop-content');
                     const ratioContainer = document.getElementById('crop-ratios');
 
                     modal.classList.remove('hidden');
                     app.ui.lockScroll();
+                    setTimeout(() => {
+                        if (content) {
+                            content.classList.remove('opacity-0', 'scale-95');
+                            content.classList.add('opacity-100', 'scale-100');
+                        }
+                    }, 10);
 
                     img.onload = () => {
                         if (app.crop.cropper) {
@@ -2032,18 +2039,26 @@ Object.assign(window.app, {
                 },
 
                 close: () => {
-                    document.getElementById('crop-modal').classList.add('hidden');
-                    if (app.crop.cropper) {
-                        app.crop.cropper.destroy();
-                        app.crop.cropper = null;
+                    const modal = document.getElementById('crop-modal');
+                    const content = document.getElementById('crop-content');
+                    if (content) {
+                        content.classList.remove('opacity-100', 'scale-100');
+                        content.classList.add('opacity-0', 'scale-95');
                     }
-                    app.ui.unlockScroll();
+                    setTimeout(() => {
+                        modal.classList.add('hidden');
+                        if (app.crop.cropper) {
+                            app.crop.cropper.destroy();
+                            app.crop.cropper = null;
+                        }
+                        app.ui.unlockScroll();
 
-                    // Nếu là lần cắt bắt buộc mà user bấm Hủy -> Xóa trắng để chọn ảnh khác
-                    if (app.crop.isMandatory) {
-                        app.upload.removeImage();
-                        app.crop.isMandatory = false;
-                    }
+                        // Nếu là lần cắt bắt buộc mà user bấm Hủy -> Xóa trắng để chọn ảnh khác
+                        if (app.crop.isMandatory) {
+                            app.upload.removeImage();
+                            app.crop.isMandatory = false;
+                        }
+                    }, 200);
                 },
 
                 apply: () => {
