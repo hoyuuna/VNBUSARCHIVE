@@ -2002,6 +2002,23 @@ Object.assign(window.app, {
                                 aspectRatio: 4/3, // Tỉ lệ mặc định ban đầu là 4:3, nhưng được phép chọn cái khác
                                 viewMode: 1,
                                 autoCropArea: 1,
+                                ready: () => {
+                                    const imgData = app.crop.cropper.getImageData();
+                                    app.crop.baseZoom = imgData.width / (imgData.naturalWidth || 1);
+                                    if (app.crop.fineRotation) app.crop.applyRotation();
+                                },
+                                zoom: (e) => {
+                                    const deg = app.crop.fineRotation || 0;
+                                    if (deg !== 0 && app.crop.baseZoom) {
+                                        const rad = Math.abs(deg) * (Math.PI / 180);
+                                        const imgData = app.crop.cropper.getImageData();
+                                        const R = Math.max((imgData.naturalWidth || 4) / (imgData.naturalHeight || 3), (imgData.naturalHeight || 3) / (imgData.naturalWidth || 4));
+                                        const minSafeZoom = app.crop.baseZoom * (Math.cos(rad) + Math.sin(rad) * R) * 1.03;
+                                        if (e.detail.ratio < minSafeZoom) {
+                                            e.preventDefault(); // Chặn tuyệt đối không cho phép zoom nhỏ hơn giới hạn an toàn để tránh lộ góc
+                                        }
+                                    }
+                                }
                             });
 
                             // Highlight đúng nút 4:3 lúc mới mở
@@ -2012,6 +2029,23 @@ Object.assign(window.app, {
                                 aspectRatio: 1,
                                 viewMode: 1,
                                 autoCropArea: 1,
+                                ready: () => {
+                                    const imgData = app.crop.cropper.getImageData();
+                                    app.crop.baseZoom = imgData.width / (imgData.naturalWidth || 1);
+                                    if (app.crop.fineRotation) app.crop.applyRotation();
+                                },
+                                zoom: (e) => {
+                                    const deg = app.crop.fineRotation || 0;
+                                    if (deg !== 0 && app.crop.baseZoom) {
+                                        const rad = Math.abs(deg) * (Math.PI / 180);
+                                        const imgData = app.crop.cropper.getImageData();
+                                        const R = Math.max((imgData.naturalWidth || 4) / (imgData.naturalHeight || 3), (imgData.naturalHeight || 3) / (imgData.naturalWidth || 4));
+                                        const minSafeZoom = app.crop.baseZoom * (Math.cos(rad) + Math.sin(rad) * R) * 1.03;
+                                        if (e.detail.ratio < minSafeZoom) {
+                                            e.preventDefault();
+                                        }
+                                    }
+                                }
                             });
                         }
                     };
@@ -2022,6 +2056,12 @@ Object.assign(window.app, {
                     if (app.crop.cropper) {
                         app.crop.cropper.setAspectRatio(ratio);
                         app.crop.updateRatioButtons(ratio);
+                        setTimeout(() => {
+                            if (!app.crop.cropper) return;
+                            const imgData = app.crop.cropper.getImageData();
+                            app.crop.baseZoom = imgData.width / (imgData.naturalWidth || 1);
+                            app.crop.applyRotation();
+                        }, 50);
                     }
                 },
 
@@ -2066,12 +2106,16 @@ Object.assign(window.app, {
                     const deg = app.crop.fineRotation || 0;
                     app.crop.cropper.rotateTo(deg);
 
-                    // Tự động scale (zoom) ảnh khi xoay để bắt buộc crop vào bên trong ảnh, tránh bị viền đen ở các góc
+                    // Tự động zoom canvas (zoomTo) theo góc xoay để BẮT BUỘC KHÔNG ĐƯỢC PHÉP bất cứ mili pixel nào ra ngoài viền ảnh chính
                     const rad = Math.abs(deg) * (Math.PI / 180);
                     const imgData = app.crop.cropper.getImageData();
                     const R = Math.max((imgData.naturalWidth || 4) / (imgData.naturalHeight || 3), (imgData.naturalHeight || 3) / (imgData.naturalWidth || 4));
-                    const scaleFactor = (Math.cos(rad) + Math.sin(rad) * R) * 1.01;
-                    app.crop.cropper.scale(scaleFactor, scaleFactor);
+                    const scaleFactor = (Math.cos(rad) + Math.sin(rad) * R) * 1.03; // Thêm 3% an toàn tuyệt đối
+
+                    if (!app.crop.baseZoom || deg === 0) {
+                        app.crop.baseZoom = imgData.width / (imgData.naturalWidth || 1);
+                    }
+                    app.crop.cropper.zoomTo(app.crop.baseZoom * scaleFactor);
 
                     const valEl = document.getElementById('crop-rotate-val');
                     if (valEl) {

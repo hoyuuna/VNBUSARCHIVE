@@ -2015,22 +2015,22 @@
         <div id="crop-modal" class="hidden fixed inset-0 z-[7000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 md:p-6">
             <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl flex flex-col overflow-hidden transform transition-all relative z-50">
                 <div class="border-b border-gray-200/50 p-3 md:p-4 flex justify-between items-center shrink-0 rounded-t-2xl bg-white">
-                    <h2 class="font-bold text-base md:text-lg text-black uppercase tracking-tight"><i class="fa-solid fa-crop-simple mr-2 text-gray-500"></i>Cắt ảnh & Cân bằng góc</h2>
+                    <h2 class="font-bold text-base md:text-lg text-black uppercase tracking-tight"><i class="fa-solid fa-crop-simple mr-2 text-gray-500"></i>Cắt & Xoay ảnh</h2>
                     <button onclick="app.crop.close()" class="text-gray-400 hover:text-red-500 transition text-xl px-2"><i class="fa-solid fa-xmark"></i></button>
                 </div>
                 <div class="w-full bg-[#121212] relative flex items-center justify-center select-none" style="height: 60vh; min-height: 300px; -webkit-touch-callout: none;" oncontextmenu="return false;">
                     <img id="crop-image" src="" style="max-width: 100%; max-height: 100%; display: block; -webkit-touch-callout: none;" draggable="false">
                 </div>
                 <div class="p-4 md:p-5 bg-white border-t border-gray-200/50 flex flex-col gap-4 rounded-b-2xl">
-                    <!-- Slider Cân bằng đường chân trời (Góc xoay) -->
+                    <!-- Slider Xoay ảnh -->
                     <div class="bg-gray-50/80 border border-gray-200/80 rounded-xl p-3.5 md:p-4 shadow-sm">
                         <div class="flex justify-between items-center mb-2.5">
-                            <label class="text-[11px] font-bold text-gray-700 uppercase tracking-wider flex items-center gap-1.5">
-                                <i class="fa-solid fa-compass text-gray-500"></i> Cân bằng đường chân trời (Góc xoay)
+                            <label class="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-1.5">
+                                <i class="fa-solid fa-rotate text-gray-500"></i> Xoay ảnh
                             </label>
                             <div class="flex items-center gap-2">
-                                <span id="crop-rotate-val" class="text-[11px] font-mono font-bold text-gray-700 bg-white px-2 py-0.5 rounded border border-gray-300 shadow-sm min-w-[40px] text-center">0°</span>
-                                <button type="button" onclick="app.crop.resetRotation()" class="text-[11px] bg-white hover:bg-gray-100 border border-gray-300 text-gray-700 px-2.5 py-0.5 rounded font-bold transition shadow-sm flex items-center gap-1" title="Đặt lại góc xoay"><i class="fa-solid fa-rotate-left"></i> Đặt lại</button>
+                                <span id="crop-rotate-val" class="text-xs font-mono font-bold text-gray-700 bg-white px-2 py-0.5 rounded border border-gray-300 shadow-sm min-w-[40px] text-center">0°</span>
+                                <button type="button" onclick="app.crop.resetRotation()" class="px-3 py-1 bg-white hover:bg-gray-100 border border-gray-300 text-gray-700 rounded-md text-xs font-bold transition shadow-sm flex items-center gap-1.5 shrink-0" title="Đặt lại góc xoay"><i class="fa-solid fa-rotate-left"></i> Đặt lại</button>
                             </div>
                         </div>
                         <input type="range" id="crop-rotate-slider" min="-45" max="45" value="0" step="0.5" class="vnbus-slider" oninput="app.crop.onSliderChange(this.value)" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
