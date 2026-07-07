@@ -424,7 +424,7 @@ Object.assign(window.app, {
                                 `;
                             }
 
-                            html += '<div class="col-span-full"><h3 class="font-bold text-sm mb-3 uppercase border-b pb-2">Danh sách user yêu cầu xóa</h3></div>';
+                            html += '<div class="col-span-full"><h3 class="font-bold text-sm mb-3 uppercase">Danh sách user yêu cầu xóa</h3></div>';
 
                             let { data: reqs, error } = await window.sb.from('edit_requests').select('*').eq('status', 'pending');
                             if (error) throw error;
@@ -665,7 +665,7 @@ Object.assign(window.app, {
                             content.className = "col-span-full";
                             content.innerHTML = `
                                 <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-4 md:p-6 mb-6">
-                                    <div class="flex gap-2 mb-6 border-b border-gray-200 pb-3 overflow-x-auto">
+                                    <div class="flex gap-2 mb-4 overflow-x-auto">
                                         <button onclick="app.admin.switchManagerTab('denied')" id="mgr-tab-denied" class="font-bold text-sm px-4 py-2 bg-black text-white rounded transition whitespace-nowrap">Ảnh bị từ chối</button>
                                          <button onclick="app.admin.switchManagerTab('logs')" id="mgr-tab-logs" class="font-bold text-sm px-4 py-2 bg-white text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition whitespace-nowrap">Nhật ký hoạt động</button>
                                         <button onclick="app.admin.switchManagerTab('bans')" id="mgr-tab-bans" class="font-bold text-sm px-4 py-2 bg-white text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition whitespace-nowrap"><i class="fa-solid fa-users mr-1"></i> Quản lý người dùng</button>
@@ -713,7 +713,7 @@ Object.assign(window.app, {
                                     <!-- TAB: GỬI EMAIL -->
                                     <div id="mgr-sec-email" class="hidden">
                                         <div class="max-w-3xl border border-gray-200 rounded-lg p-5 bg-white shadow-sm">
-                                            <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-3">
+                                            <div class="flex justify-between items-center mb-4">
                                                 <h3 class="font-bold text-lg text-black"><i class="fa-solid fa-paper-plane mr-2 text-blue-600"></i>Soạn Email Mới</h3>
                                                 <button type="button" onclick="if(confirm('Bạn có chắc muốn xóa bản nháp email này?')) { app.admin.clearEmailDraft(); document.getElementById('admin-email-form').reset(); app.admin.toggleEmailCustom(); }" class="text-xs bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 px-3 py-1.5 rounded-md font-bold transition flex items-center gap-1"><i class="fa-solid fa-trash-can"></i> Xóa bản nháp</button>
                                             </div>
@@ -1301,7 +1301,7 @@ app.admin.fetchManagerData('denied');
                         }
 
                         html += `<div class="border border-gray-200 rounded-lg p-5 bg-white mb-4">
-                            <div class="flex justify-between items-center mb-4 border-b pb-3">
+                            <div class="flex justify-between items-center mb-4">
                                 <h3 class="font-bold text-${cfg.color}-600 uppercase text-sm"><i class="fa-solid ${cfg.icon} mr-2"></i>${cfg.title}</h3>
                                 <label class="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox" id="mt-active-${cfg.id}" class="sr-only peer" ${data.is_active ? 'checked' : ''}>
@@ -1323,7 +1323,7 @@ app.admin.fetchManagerData('denied');
 
                     html += `
                     <div class="border border-blue-200 rounded-lg p-5 bg-blue-50/50 mt-6 relative shadow-sm">
-                        <div class="flex items-center gap-2 mb-3 border-b border-blue-200 pb-3">
+                        <div class="flex items-center gap-2 mb-3">
                             <i class="fa-solid fa-cloud-arrow-up text-blue-600 text-lg"></i>
                             <h3 class="font-bold text-blue-800 uppercase text-sm">Giới hạn Upload hàng ngày (Quota)</h3>
                         </div>
