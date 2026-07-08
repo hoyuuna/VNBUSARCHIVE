@@ -94,6 +94,12 @@ async function handleGetCore(request, env) {
                     try {
                         const banInfo = typeof profile.ban_status === 'string' ? JSON.parse(profile.ban_status) : profile.ban_status;
                         if (banInfo && banInfo.banned) {
+                            if (clientIp) {
+                                const knownIps = Array.isArray(profile.known_ips) ? profile.known_ips : [];
+                                if (!knownIps.includes(clientIp)) {
+                                    await supabaseAdmin.from('profiles').update({ known_ips: [...knownIps, clientIp] }).eq('id', user.id).catch(()=>{});
+                                }
+                            }
                             if (!isLocalOrInvalidIp) {
                                 await supabaseAdmin.from('banned_ips').upsert({ ip: clientIp, reason: `Tài khoản ${profile.username || user.email} bị cấm` }, { onConflict: 'ip' }).catch(()=>{});
                             }
@@ -188,11 +194,18 @@ async function handleLogIp(request, env) {
             const { data: { user }, error: userErr } = await supabaseAdmin.auth.getUser(token);
 
             if (!userErr && user) {
-                const { data: profile } = await supabaseAdmin.from('profiles').select('known_ips').eq('id', user.id).single();
+                const { data: profile } = await supabaseAdmin.from('profiles').select('known_ips, ban_status, username').eq('id', user.id).single();
                 if (profile) {
                     const knownIps = Array.isArray(profile.known_ips) ? profile.known_ips : [];
                     if (!knownIps.includes(clientIp)) {
                         await supabaseAdmin.from('profiles').update({ known_ips: [...knownIps, clientIp] }).eq('id', user.id);
+                    }
+                    let banInfo = null;
+                    if (profile.ban_status) {
+                        try { banInfo = typeof profile.ban_status === 'string' ? JSON.parse(profile.ban_status) : profile.ban_status; } catch(e){}
+                    }
+                    if (banInfo && banInfo.banned) {
+                        await supabaseAdmin.from('banned_ips').upsert({ ip: clientIp, reason: `Tài khoản ${profile.username || user.email} bị cấm` }, { onConflict: 'ip' }).catch(()=>{});
                     }
                 }
             }
