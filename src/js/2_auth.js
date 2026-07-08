@@ -145,6 +145,10 @@ Object.assign(window.app, {
                             const username = document.getElementById('auth-username').value.trim();
                             if (!username) throw new Error("Vui lòng nhập tên hiển thị.");
                             if (username.length < 3 || username.length > 20) throw new Error("Tên hiển thị từ 3 đến 20 ký tự.");
+                            const lowerName = username.toLowerCase();
+                            if (lowerName === 'người dùng bị cấm' || lowerName === 'nguoi dung bi cam' || lowerName.includes('bị cấm') || lowerName.includes('bi cam')) {
+                                throw new Error("Tên hiển thị này thuộc danh sách hạn chế. Vui lòng chọn tên khác!");
+                            }
 
                             const { data: existingUser } = await window.sb.from('profiles')
                                 .select('username')
@@ -526,6 +530,10 @@ changePassword: async () => {
                     if (!newName) return app.ui.showAlert("Vui lòng nhập Tên hiển thị mới.");
                     if (newName.length < 3) return app.ui.showAlert("Tên hiển thị phải dài từ 3 ký tự trở lên.");
                     if (newName.length > 20) return app.ui.showAlert("Tên hiển thị quá dài (Tối đa 20 ký tự).");
+                    const lowerNewName = newName.toLowerCase();
+                    if (lowerNewName === 'người dùng bị cấm' || lowerNewName === 'nguoi dung bi cam' || lowerNewName.includes('bị cấm') || lowerNewName.includes('bi cam')) {
+                        return app.ui.showAlert("Tên hiển thị này thuộc danh sách hạn chế. Vui lòng chọn tên khác!");
+                    }
 
                     const { data: existingUser } = await window.sb.from('profiles')
                         .select('username')

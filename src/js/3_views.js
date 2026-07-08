@@ -537,7 +537,7 @@ Object.assign(window.app, {
                     document.getElementById('approval-rate-island').classList.add('hidden');
                     // --------------------------------------------------
 
-                    const { data: profile } = await window.sb.from('profiles').select('id, username, avatar_url, role, subroles, favorite_photo_id, created_at').eq('username', targetUsername).single();
+                    const { data: profile } = await window.sb.from('profiles').select('id, username, avatar_url, role, subroles, favorite_photo_id, created_at, ban_status').eq('username', targetUsername).single();
                     if (window.location.pathname !== (isOwnProfile ? '/profile' : `/user/${encodeURIComponent(targetUsername)}`)) return;
 
                     if (!profile) {
@@ -545,22 +545,53 @@ Object.assign(window.app, {
                         return app.views.loadHome();
                     }
 
+                    let banInfo = null;
+                    if (profile.ban_status) {
+                        try { banInfo = typeof profile.ban_status === 'string' ? JSON.parse(profile.ban_status) : profile.ban_status; } catch(e){}
+                    }
+                    const isBannedUser = banInfo && banInfo.banned;
+                    const displayUsername = isBannedUser ? 'Người dùng bị cấm' : profile.username;
+
                     const targetUserId = profile.id;
                     app.currentProfileId = targetUserId;
 
                     if (Object.keys(app.topUploaders).length === 0) await app.utils.fetchTopUploaders();
 
                     const badges = app.utils.getBadgesHTML(profile.id, profile.role, profile.subroles);
-                    document.getElementById('acc-name').innerHTML = `${profile.username} ${badges}`;
+                    document.getElementById('acc-name').innerHTML = isBannedUser 
+                        ? '<span class="text-red-600 font-bold">Người dùng bị cấm</span>' 
+                        : `${profile.username} ${badges}`;
 
                     const avatarIcon = document.getElementById('acc-avatar-icon');
                     const avatarImg = document.getElementById('acc-avatar-img');
-                    const safeAvatar = profile.avatar_url ? app.utils.getProxiedUrl(profile.avatar_url, 'avatar.jpg', 'avatar') : DEFAULT_AVATAR;
+                    const safeAvatar = isBannedUser 
+                        ? DEFAULT_AVATAR 
+                        : (profile.avatar_url ? app.utils.getProxiedUrl(profile.avatar_url, 'avatar.jpg', 'avatar') : DEFAULT_AVATAR);
 
                     avatarImg.src = safeAvatar;
                     avatarImg.onerror = () => { avatarImg.src = DEFAULT_AVATAR; };
                     avatarImg.classList.remove('hidden');
                     avatarIcon.classList.add('hidden');
+
+                    // --- RENDER THÔNG BÁO TÀI KHOẢN BỊ CẤM TRÊN PHẦN GIỚI THIỆU ---
+                    const banAlertContainer = document.getElementById('profile-ban-alert-container');
+                    if (banAlertContainer) {
+                        if (isBannedUser) {
+                            banAlertContainer.innerHTML = `
+                                <div class="p-4 bg-red-950/30 border border-red-500/40 rounded-xl text-red-200 flex items-start gap-3 shadow-sm">
+                                    <i class="fa-solid fa-ban text-red-500 mt-0.5 text-base shrink-0"></i>
+                                    <div>
+                                        <h4 class="font-bold text-sm text-red-400 uppercase tracking-wide">Tài khoản bị cấm</h4>
+                                        <p class="text-xs text-gray-300 mt-1 leading-relaxed">Tài khoản này đã bị cấm với lí do: <b class="text-white">${app.utils.escapeHtml(banInfo.reason || 'Vi phạm quy định của VNBUSARCHIVE')}</b></p>
+                                    </div>
+                                </div>
+                            `;
+                            banAlertContainer.classList.remove('hidden');
+                        } else {
+                            banAlertContainer.innerHTML = '';
+                            banAlertContainer.classList.add('hidden');
+                        }
+                    }
 
                     // --- RENDER GIAO DIỆN GIỚI THIỆU (BIO & FAV PHOTO) ---
                     const bioContent = document.getElementById('profile-bio-content');
@@ -654,11 +685,15 @@ Object.assign(window.app, {
                         document.getElementById('profile-photos-title').innerText = "Ảnh của bạn";
                     } else {
                         likedSection.classList.add('hidden');
-                        reportBtn.classList.remove('hidden');
+                        if (isBannedUser) {
+                            reportBtn.classList.add('hidden');
+                        } else {
+                            reportBtn.classList.remove('hidden');
+                        }
                         if (editProfileBtn) { editProfileBtn.classList.add('hidden'); editProfileBtn.classList.remove('flex'); }
                         if (document.getElementById('btn-detailed-stats')) document.getElementById('btn-detailed-stats').classList.add('hidden');
                         if (manageCommentBtn) manageCommentBtn.classList.add('hidden'); // ẨN NÚT
-                        document.getElementById('profile-stats-title').innerText = "THỐNG KÊ CỦA " + profile.username.toUpperCase();
+                        document.getElementById('profile-stats-title').innerText = "THỐNG KÊ CỦA " + displayUsername.toUpperCase();
                         document.getElementById('profile-photos-title').innerText = "Ảnh đã đăng";
                     }
 
