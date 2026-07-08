@@ -1364,7 +1364,7 @@ Object.assign(window.app, {
                     tbody.innerHTML = '';
 
                     if (parsedHistory.length > 0) {
-                        parsedHistory.forEach(h => {
+                        parsedHistory.forEach((h, idx) => {
                             let displayPlate = h.license_plate;
                             let displayNote = h.note || '';
 
@@ -1380,9 +1380,14 @@ Object.assign(window.app, {
                             const safeRoute = app.utils.cleanText(h.route || '-');
                             const safeNote = app.utils.cleanText(displayNote);
 
+                            const isLatest = idx === parsedHistory.length - 1;
+                            const textCheck = `${h.operator || ''} ${h.route || ''} ${h.note || ''}`.toLowerCase();
+                            const isStopped = textCheck.includes('dừng hoạt động') || textCheck.includes('ngừng hoạt động') || textCheck.includes('thanh lý') || textCheck.includes('thu hồi');
+                            const barColor = !isLatest ? '#9ca3af' : (isStopped ? '#ef4444' : '#22c55e');
+
                             tbody.innerHTML += `
                                 <tr>
-                                    <td class="font-bold">${safePlate}</td>
+                                    <td class="font-bold" style="border-left: 4px solid ${barColor} !important;">${safePlate}</td>
                                     <td>${safeOp}</td>
                                     <td>${safeRoute}</td>
                                     <td class="text-xs text-gray-500">${safeNote}</td>
@@ -1530,7 +1535,12 @@ Object.assign(window.app, {
                                             <th>Ghi chú</th>
                                         </tr></thead>
                                         <tbody>
-                                            ${historyData.map(h => {
+                                            ${historyData.map((h, idx) => {
+                                                const isLatest = idx === historyData.length - 1;
+                                                const textCheck = `${h.operator || ''} ${h.route || ''} ${h.note || ''}`.toLowerCase();
+                                                const isStopped = textCheck.includes('dừng hoạt động') || textCheck.includes('ngừng hoạt động') || textCheck.includes('thanh lý') || textCheck.includes('thu hồi');
+                                                const barColor = !isLatest ? '#9ca3af' : (isStopped ? '#ef4444' : '#22c55e');
+
                                                 let displayNote = h.note || '';
                                                 const oldBksMatch = displayNote.match(/BKS cũ:\s*([A-Z0-9.-]+)/i);
                                                 let bksHtml = '';
@@ -1542,7 +1552,7 @@ Object.assign(window.app, {
 
                                                 return `
                                                 <tr>
-                                                    <td class="font-bold border-r border-gray-200">${h.operator}${bksHtml}</td>
+                                                    <td class="font-bold border-r border-gray-200" style="border-left: 4px solid ${barColor} !important;">${h.operator}${bksHtml}</td>
                                                     <td class="font-bold border-r border-gray-200">${h.route || '-'}</td>
                                                     <td class="text-xs text-gray-500">${displayNote}</td>
                                                 </tr>`;
