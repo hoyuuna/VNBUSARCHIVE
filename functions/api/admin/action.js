@@ -65,7 +65,7 @@ export async function onRequestPost(context) {
                             return mLower === currentModelLower || mLower.includes(currentModelLower) || currentModelLower.includes(mLower);
                         });
                         if (duplicateVehicle) {
-                            return new Response(JSON.stringify({ error: `Từ chối duyệt: Vi phạm chính sách chống gian lận (Fraud). Xe định danh phụ (${plate}) không được trùng dòng xe với xe khác cùng biển kiểm soát (${duplicateVehicle.license_plate}: ${duplicateVehicle.model}).` }), { status: 400 });
+                            return new Response(JSON.stringify({ error: "Xe định danh phụ không được trùng dòng xe với xe khác cùng biển kiểm soát." }), { status: 400 });
                         }
                     }
                 }

@@ -1416,7 +1416,7 @@ cleanupState: () => {
                                 return mLower === currentModelLower || mLower.includes(currentModelLower) || currentModelLower.includes(mLower);
                             });
                             if (duplicateVehicle) {
-                                app.ui.showAlert(`CẢNH BÁO GIAN LẬN (FRAUD): Xe định danh phụ (${plate}) không được trùng dòng xe với xe khác cùng biển kiểm soát (${duplicateVehicle.license_plate}: ${duplicateVehicle.model})! Việc tạo hồ sơ mới hoặc cập nhật cho cùng một xe là vi phạm chính sách chống gian lận!`, null, null, { title: "Vi phạm chính sách (Fraud)" });
+                                app.ui.showAlert("Xe định danh phụ không được trùng dòng xe với xe khác cùng biển kiểm soát.", null, null, { title: "Vi phạm chính sách" });
                                 return true;
                             }
                         }

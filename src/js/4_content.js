@@ -211,6 +211,7 @@ Object.assign(window.app, {
 
                     const resetWarning = () => {
                         warningEl.classList.add('hidden');
+                        warningEl.classList.remove('flex');
                         if (app.upload.isBlockedByModelDuplicate) {
                             app.upload.isBlockedByModelDuplicate = false;
                             if (btnSubmit && !document.getElementById('upload-quota-text')?.classList.contains('text-red-600') && !document.getElementById('duplicate-warning-msg')) {
@@ -243,8 +244,14 @@ Object.assign(window.app, {
                     if (duplicateVehicle) {
                         app.upload.isBlockedByModelDuplicate = true;
                         if (btnSubmit) btnSubmit.disabled = true;
-                        warningEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> CẢNH BÁO GIAN LẬN (FRAUD): Xe định danh phụ (${rawPlate}) không được trùng dòng xe với xe khác cùng biển kiểm soát (${duplicateVehicle.license_plate}: ${duplicateVehicle.model})! Việc cố tình tạo hồ sơ mới cho xe đã tồn tại là vi phạm chính sách. Không thể tải lên!`;
+                        warningEl.innerHTML = `
+                            <i class="fa-solid fa-triangle-exclamation text-red-500 mt-0.5 text-sm"></i>
+                            <p class="text-[11px] font-bold text-red-700 leading-snug m-0">
+                                Xe định danh phụ không được trùng dòng xe với xe khác cùng biển kiểm soát.
+                            </p>
+                        `;
                         warningEl.classList.remove('hidden');
+                        warningEl.classList.add('flex');
                         return;
                     }
 
@@ -1484,7 +1491,7 @@ Object.assign(window.app, {
 
                     app.upload.checkModelWarning && app.upload.checkModelWarning();
                     if (app.upload.isBlockedByModelDuplicate) {
-                        return app.ui.showAlert("Cảnh báo chính sách: Không thể tải lên hoặc tạo hồ sơ xe mới do trùng dòng xe với xe gốc! Việc tạo hồ sơ định danh phụ (-1, -2...) cho xe có cùng dòng xe là vi phạm chính sách chống gian lận (Fraud).", null, null, { title: "Từ chối tải lên" });
+                        return app.ui.showAlert("Xe định danh phụ không được trùng dòng xe với xe khác cùng biển kiểm soát.", null, null, { title: "Từ chối tải lên" });
                     }
 
                     const q = app.upload.currentQuota;
