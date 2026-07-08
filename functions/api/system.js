@@ -36,27 +36,60 @@ function handleConfig(request, env) {
 
 async function handleGetCore(request, env) {
     try {
+        const clientIp = (request.headers.get('CF-Connecting-IP') || request.headers.get('x-real-ip') || (request.headers.get('x-forwarded-for') || '').split(',')[0]).trim();
+        const supabaseUrl = env.SUPABASE_URL;
+        const supabaseServiceRole = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_KEY;
+        let supabaseAdmin = null;
+
+        if (supabaseUrl && supabaseServiceRole) {
+            supabaseAdmin = createClient(supabaseUrl, supabaseServiceRole);
+        }
+
+        if (supabaseAdmin && clientIp) {
+            const { data: ipBan } = await supabaseAdmin.from('banned_ips').select('ip').eq('ip', clientIp).maybeSingle();
+            if (ipBan) {
+                return new Response(JSON.stringify({ ip_banned: true }), { status: 403, headers: { 'Content-Type': 'application/json' }});
+            }
+
+            const { data: bannedProfiles } = await supabaseAdmin.from('profiles').select('ban_status').contains('known_ips', [clientIp]);
+            if (bannedProfiles && bannedProfiles.length > 0) {
+                const isIpBanned = bannedProfiles.some(p => {
+                    if (!p.ban_status) return false;
+                    const b = typeof p.ban_status === 'string' ? JSON.parse(p.ban_status) : p.ban_status;
+                    return b && b.banned;
+                });
+                if (isIpBanned) {
+                    await supabaseAdmin.from('banned_ips').upsert({ ip: clientIp, reason: 'IP thuộc tài khoản bị cấm' }, { onConflict: 'ip' }).catch(()=>{});
+                    return new Response(JSON.stringify({ ip_banned: true }), { status: 403, headers: { 'Content-Type': 'application/json' }});
+                }
+            }
+        }
+
         const authHeader = request.headers.get('authorization');
-        if (authHeader && authHeader.startsWith('Bearer ')) {
+        if (authHeader && authHeader.startsWith('Bearer ') && supabaseAdmin) {
             const token = authHeader.replace('Bearer ', '');
-            const supabaseUrl = env.SUPABASE_URL;
-            const supabaseServiceRole = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_KEY;
+            const { data: { user }, error: userErr } = await supabaseAdmin.auth.getUser(token);
             
-            if (supabaseUrl && supabaseServiceRole) {
-                const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRole);
-                const { data: { user }, error: userErr } = await supabaseAdmin.auth.getUser(token);
-                
-                if (!userErr && user) {
-                    const { data: profile } = await supabaseAdmin.from('profiles').select('ban_status, username').eq('id', user.id).single();
-                    if (profile && profile.ban_status) {
-                        try {
-                            const banInfo = typeof profile.ban_status === 'string' ? JSON.parse(profile.ban_status) : profile.ban_status;
-                            if (banInfo && banInfo.banned) {
-                                return new Response(JSON.stringify({ banned: true, reason: banInfo.reason, name: profile.username || user.email, uuid: user.id }), { status: 403, headers: { 'Content-Type': 'application/json' }});
+            if (!userErr && user) {
+                const { data: profile } = await supabaseAdmin.from('profiles').select('ban_status, username, known_ips').eq('id', user.id).single();
+                if (profile && profile.ban_status) {
+                    try {
+                        const banInfo = typeof profile.ban_status === 'string' ? JSON.parse(profile.ban_status) : profile.ban_status;
+                        if (banInfo && banInfo.banned) {
+                            if (clientIp) {
+                                await supabaseAdmin.from('banned_ips').upsert({ ip: clientIp, reason: `Tài khoản ${profile.username || user.email} bị cấm` }, { onConflict: 'ip' }).catch(()=>{});
                             }
-                        } catch (e) {
-                            console.error("Lỗi parse ban_status", e);
+                            return new Response(JSON.stringify({ banned: true, reason: banInfo.reason, name: profile.username || user.email, uuid: user.id }), { status: 403, headers: { 'Content-Type': 'application/json' }});
                         }
+                    } catch (e) {
+                        console.error("Lỗi parse ban_status", e);
+                    }
+                }
+
+                if (clientIp && profile) {
+                    const knownIps = Array.isArray(profile.known_ips) ? profile.known_ips : [];
+                    if (!knownIps.includes(clientIp)) {
+                        await supabaseAdmin.from('profiles').update({ known_ips: [...knownIps, clientIp] }).eq('id', user.id).catch(()=>{});
                     }
                 }
             }

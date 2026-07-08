@@ -1075,6 +1075,7 @@ app.admin.fetchManagerData('denied');
                                 <td class="p-3">
                                     <div class="font-bold text-black text-[12px]">${app.utils.cleanText(u.username || 'Unknown')}</div>
                                     <div class="text-[10px] text-gray-500 font-mono" title="Click để copy UUID" style="cursor:pointer;" onclick="navigator.clipboard.writeText('${u.id}'); app.ui.showAlert('Đã copy UUID: ' + '${u.id}')">${u.id}</div>
+                                    ${Array.isArray(u.known_ips) && u.known_ips.length > 0 ? `<div class="text-[10px] text-gray-600 font-mono mt-0.5 truncate max-w-[180px]" title="IPs: ${u.known_ips.join(', ')}"><i class="fa-solid fa-network-wired text-gray-400 mr-1"></i>${u.known_ips.join(', ')}</div>` : ''}
                                 </td>
                                 <td class="p-3 text-center">
                                     <span class="font-bold text-black bg-gray-100 px-2 py-1 rounded-md text-xs">${u.photo_count}</span>

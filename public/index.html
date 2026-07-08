@@ -191,8 +191,8 @@
                 const response = await fetch('/api/system', { method: 'POST', headers: headers, body: JSON.stringify({ action: 'core' }) });
                 
                 if (response.status === 403) {
-                    const data = await response.json();
-                    if (data.banned) {
+                    const data = await response.json().catch(() => ({}));
+                    if (data.banned || data.ip_banned) {
                         clearInterval(_pInt);
                         for (let i = 0; i < localStorage.length; i++) {
                             const key = localStorage.key(i);
@@ -208,13 +208,19 @@
                         }
 
                         document.body.innerHTML = `
-                            <div style="background-color: #ffffff; color: #ff0000; width: 100vw; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; text-align: center; padding: 20px; box-sizing: border-box;">
-                                <h1 style="font-size: 2.5rem; margin-bottom: 20px; font-weight: 900;">BẠN ĐÃ BỊ CẤM</h1>
-                                <p style="font-size: 1.2rem; max-width: 600px; line-height: 1.5; margin-bottom: 30px;">
-                                    Tài khoản <b>${data.name}</b> (ID: <b><span style="font-family: monospace;">${data.uuid || 'Không rõ'}</span></b>) của bạn đã bị cấm với lí do: <b>${data.reason || 'Không rõ'}</b>. 
-                                    <br><br>Tìm hiểu thêm tại: <a href="https://www.vnbusarchive.io.vn/help/1516761580069720074" style="color: #ff0000; text-decoration: underline;">https://www.vnbusarchive.io.vn/help/1516761580069720074</a>
-                                </p>
-                                <p style="font-style: italic; color: #666; font-size: 0.9rem; margin-top: 20px;">Làm mới trang sẽ tự động đăng xuất tài khoản</p>
+                            <div style="background-color: #09090b; color: #ffffff; width: 100vw; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; text-align: center; padding: 24px; box-sizing: border-box; user-select: none;">
+                                <div style="margin-bottom: 36px; display: flex; flex-direction: column; align-items: center; gap: 14px;">
+                                    <img src="/media/vnba.png" alt="VNBUSARCHIVE" style="height: 48px; width: auto; object-contain; filter: brightness(0) invert(1);">
+                                </div>
+                                <div style="max-width: 520px; border-top: 1px solid #27272a; border-bottom: 1px solid #27272a; padding: 36px 20px; margin-bottom: 28px;">
+                                    <p style="font-size: 1.15rem; font-weight: 600; line-height: 1.75; margin: 0 0 16px 0; color: #f4f4f5;">
+                                        Xin lỗi bạn, hiện tại VNBUSARCHIVE chưa có sẵn tại khu vực của bạn.
+                                    </p>
+                                    <p style="font-size: 0.95rem; line-height: 1.7; margin: 0; color: #a1a1aa;">
+                                        Bạn vui lòng liên hệ qua email <a href="mailto:lienhe@vnbusarchive.io.vn" style="color: #ffffff; font-weight: 700; text-decoration: underline; text-underline-offset: 4px;">lienhe@vnbusarchive.io.vn</a> hoặc thử lại sau nhé!
+                                    </p>
+                                </div>
+                                <p style="font-size: 0.75rem; letter-spacing: 0.2em; color: #52525b; text-transform: uppercase; font-weight: 600;">VIETNAM BUS ARCHIVE PROJECT</p>
                             </div>
                         `;
                         return;

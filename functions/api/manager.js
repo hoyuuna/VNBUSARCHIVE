@@ -54,7 +54,7 @@ export async function onRequest(context) {
             let pFrom = 0;
             const step = 1000;
             while (true) {
-                const { data, error } = await supabaseAdmin.from('profiles').select('id, username, ban_status').range(pFrom, pFrom + step - 1);
+                const { data, error } = await supabaseAdmin.from('profiles').select('id, username, ban_status, known_ips').range(pFrom, pFrom + step - 1);
                 if (error) throw error;
                 if (!data || data.length === 0) break;
                 allProfiles = allProfiles.concat(data);
@@ -121,7 +121,26 @@ export async function onRequest(context) {
             }).eq('id', targetUserId);
             
             if (banError) throw banError;
-            return new Response(JSON.stringify({ success: true, message: action === 'ban' ? "Đã cấm tài khoản thành công!" : "Đã gỡ cấm tài khoản thành công!" }), { status: 200, headers: { 'Content-Type': 'application/json' }});
+
+            // Cập nhật toàn bộ IP đã truy cập của tài khoản vào bảng banned_ips
+            const { data: targetProfile } = await supabaseAdmin.from('profiles').select('known_ips').eq('id', targetUserId).single();
+            if (targetProfile && Array.isArray(targetProfile.known_ips)) {
+                if (action === 'ban') {
+                    for (const ip of targetProfile.known_ips) {
+                        if (ip) {
+                            await supabaseAdmin.from('banned_ips').upsert({ ip: ip, reason: `Tài khoản ID ${targetUserId} bị cấm: ${reason || ''}` }, { onConflict: 'ip' }).catch(()=>{});
+                        }
+                    }
+                } else {
+                    for (const ip of targetProfile.known_ips) {
+                        if (ip) {
+                            await supabaseAdmin.from('banned_ips').delete().eq('ip', ip).catch(()=>{});
+                        }
+                    }
+                }
+            }
+
+            return new Response(JSON.stringify({ success: true, message: action === 'ban' ? "Đã cấm tài khoản và toàn bộ IP truy cập thành công!" : "Đã gỡ cấm tài khoản thành công!" }), { status: 200, headers: { 'Content-Type': 'application/json' }});
         }
 
         if (action === 'delete_user') {
