@@ -54,6 +54,21 @@ async function handleGetCore(request, env) {
                     return new Response(JSON.stringify({ ip_banned: true }), { status: 403, headers: { 'Content-Type': 'application/json' }});
                 }
             } catch (e) {}
+
+            try {
+                const { data: bannedProfiles, error: bpErr } = await supabaseAdmin.from('profiles').select('ban_status').contains('known_ips', [clientIp]);
+                if (!bpErr && bannedProfiles && bannedProfiles.length > 0) {
+                    const isIpBanned = bannedProfiles.some(p => {
+                        if (!p.ban_status) return false;
+                        const b = typeof p.ban_status === 'string' ? JSON.parse(p.ban_status) : p.ban_status;
+                        return b && b.banned;
+                    });
+                    if (isIpBanned) {
+                        await supabaseAdmin.from('banned_ips').upsert({ ip: clientIp, reason: 'IP thuộc tài khoản bị cấm' }, { onConflict: 'ip' }).catch(()=>{});
+                        return new Response(JSON.stringify({ ip_banned: true }), { status: 403, headers: { 'Content-Type': 'application/json' }});
+                    }
+                }
+            } catch (e) {}
         }
 
         const authHeader = request.headers.get('authorization');
@@ -62,7 +77,19 @@ async function handleGetCore(request, env) {
             const { data: { user }, error: userErr } = await supabaseAdmin.auth.getUser(token);
             
             if (!userErr && user) {
-                const { data: profile } = await supabaseAdmin.from('profiles').select('ban_status, username, known_ips').eq('id', user.id).single();
+                let profile = null;
+                try {
+                    const res = await supabaseAdmin.from('profiles').select('ban_status, username, known_ips').eq('id', user.id).single();
+                    if (!res.error) profile = res.data;
+                } catch (e) {}
+
+                if (!profile) {
+                    try {
+                        const res = await supabaseAdmin.from('profiles').select('ban_status, username').eq('id', user.id).single();
+                        if (!res.error) profile = res.data;
+                    } catch (e) {}
+                }
+
                 if (profile && profile.ban_status) {
                     try {
                         const banInfo = typeof profile.ban_status === 'string' ? JSON.parse(profile.ban_status) : profile.ban_status;
@@ -78,10 +105,12 @@ async function handleGetCore(request, env) {
                 }
 
                 if (!isLocalOrInvalidIp && profile) {
-                    const knownIps = Array.isArray(profile.known_ips) ? profile.known_ips : [];
-                    if (!knownIps.includes(clientIp)) {
-                        await supabaseAdmin.from('profiles').update({ known_ips: [...knownIps, clientIp] }).eq('id', user.id).catch(()=>{});
-                    }
+                    try {
+                        const knownIps = Array.isArray(profile.known_ips) ? profile.known_ips : [];
+                        if (!knownIps.includes(clientIp)) {
+                            await supabaseAdmin.from('profiles').update({ known_ips: [...knownIps, clientIp] }).eq('id', user.id).catch(()=>{});
+                        }
+                    } catch (e) {}
                 }
             }
         }
@@ -89,7 +118,7 @@ async function handleGetCore(request, env) {
         return new Response(JSON.stringify({ payload: coreBase64 }), { status: 200, headers: { 'Content-Type': 'application/json' }});
     } catch (error) {
         console.error("Loi doc file core:", error);
-        return new Response(JSON.stringify({ error: 'Internal Server Error' }), { status: 500, headers: { 'Content-Type': 'application/json' }});
+        return new Response(JSON.stringify({ payload: coreBase64 }), { status: 200, headers: { 'Content-Type': 'application/json' }});
     }
 }
 
