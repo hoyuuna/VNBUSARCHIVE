@@ -36,8 +36,8 @@ function handleConfig(request, env) {
 
 async function handleGetCore(request, env) {
     try {
-        const clientIp = (request.headers.get('CF-Connecting-IP') || request.headers.get('x-real-ip') || (request.headers.get('x-forwarded-for') || '').split(',')[0]).trim();
-        const isLocalOrInvalidIp = !clientIp || clientIp === '127.0.0.1' || clientIp === '::1' || clientIp === 'localhost';
+        const clientIp = (request.headers.get('CF-Connecting-IP') || request.headers.get('x-real-ip') || request.headers.get('x-client-ip') || (request.headers.get('x-forwarded-for') || '').split(',')[0] || '127.0.0.1').trim();
+        const isLocalOrInvalidIp = clientIp === '127.0.0.1' || clientIp === '::1' || clientIp === 'localhost';
 
         const supabaseUrl = env.SUPABASE_URL;
         const supabaseServiceRole = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_KEY;
@@ -104,7 +104,7 @@ async function handleGetCore(request, env) {
                     }
                 }
 
-                if (!isLocalOrInvalidIp && profile) {
+                if (clientIp && profile) {
                     try {
                         const knownIps = Array.isArray(profile.known_ips) ? profile.known_ips : [];
                         if (!knownIps.includes(clientIp)) {
