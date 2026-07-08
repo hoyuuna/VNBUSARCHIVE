@@ -1403,12 +1403,20 @@ cleanupState: () => {
                     if (parts.length < 2 || isNaN(parts[1])) return false;
                     const basePlate = parts[0];
                     try {
-                        const { data: baseVehicle } = await window.sb.from('vehicles').select('model').eq('license_plate', basePlate).single();
-                        if (baseVehicle && baseVehicle.model) {
-                            const baseModelLower = baseVehicle.model.trim().toLowerCase();
+                        const { data: relatedVehicles } = await window.sb.from('vehicles').select('license_plate, model').ilike('license_plate', `${basePlate}%`);
+                        if (relatedVehicles && relatedVehicles.length > 0) {
                             const currentModelLower = String(model).trim().toLowerCase();
-                            if (baseModelLower === currentModelLower || baseModelLower.includes(currentModelLower) || currentModelLower.includes(baseModelLower)) {
-                                app.ui.showAlert(`CẢNH BÁO GIAN LẬN (FRAUD): Xe định danh phụ (${plate}) không được trùng dòng xe với xe gốc (${basePlate}: ${baseVehicle.model})! Việc tạo hồ sơ mới hoặc cập nhật cho cùng một xe là vi phạm chính sách chống gian lận!`, null, null, { title: "Vi phạm chính sách (Fraud)" });
+                            const duplicateVehicle = relatedVehicles.find(v => {
+                                if (!v.model || v.license_plate === plate) return false;
+                                if (v.license_plate !== basePlate) {
+                                    const pts = v.license_plate.split('-');
+                                    if (pts.length !== 2 || pts[0] !== basePlate || isNaN(pts[1])) return false;
+                                }
+                                const mLower = v.model.trim().toLowerCase();
+                                return mLower === currentModelLower || mLower.includes(currentModelLower) || currentModelLower.includes(mLower);
+                            });
+                            if (duplicateVehicle) {
+                                app.ui.showAlert(`CẢNH BÁO GIAN LẬN (FRAUD): Xe định danh phụ (${plate}) không được trùng dòng xe với xe khác cùng biển kiểm soát (${duplicateVehicle.license_plate}: ${duplicateVehicle.model})! Việc tạo hồ sơ mới hoặc cập nhật cho cùng một xe là vi phạm chính sách chống gian lận!`, null, null, { title: "Vi phạm chính sách (Fraud)" });
                                 return true;
                             }
                         }

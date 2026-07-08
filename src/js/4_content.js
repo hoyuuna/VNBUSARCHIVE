@@ -230,16 +230,22 @@ Object.assign(window.app, {
                     const exactVehicle = existingVehicles.find(v => v.license_plate === rawPlate);
                     if (exactVehicle) { resetWarning(); return; }
 
-                    const baseVehicle = existingVehicles.find(v => v.license_plate === basePlate);
-                    if (baseVehicle && baseVehicle.model) {
-                        const baseModelLower = baseVehicle.model.toLowerCase();
-                        if (baseModelLower === currentModel || baseModelLower.includes(currentModel) || currentModel.includes(baseModelLower)) {
-                            app.upload.isBlockedByModelDuplicate = true;
-                            if (btnSubmit) btnSubmit.disabled = true;
-                            warningEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> CẢNH BÁO GIAN LẬN (FRAUD): Xe định danh phụ (${rawPlate}) không được trùng dòng xe với xe gốc (${basePlate}: ${baseVehicle.model})! Việc cố tình tạo hồ sơ mới cho xe đã tồn tại là vi phạm chính sách. Không thể tải lên!`;
-                            warningEl.classList.remove('hidden');
-                            return;
+                    const duplicateVehicle = existingVehicles.find(v => {
+                        if (!v.model || v.license_plate === rawPlate) return false;
+                        if (v.license_plate !== basePlate) {
+                            const pts = v.license_plate.split('-');
+                            if (pts.length !== 2 || pts[0] !== basePlate || isNaN(pts[1])) return false;
                         }
+                        const mLower = v.model.trim().toLowerCase();
+                        return mLower === currentModel || mLower.includes(currentModel) || currentModel.includes(mLower);
+                    });
+
+                    if (duplicateVehicle) {
+                        app.upload.isBlockedByModelDuplicate = true;
+                        if (btnSubmit) btnSubmit.disabled = true;
+                        warningEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> CẢNH BÁO GIAN LẬN (FRAUD): Xe định danh phụ (${rawPlate}) không được trùng dòng xe với xe khác cùng biển kiểm soát (${duplicateVehicle.license_plate}: ${duplicateVehicle.model})! Việc cố tình tạo hồ sơ mới cho xe đã tồn tại là vi phạm chính sách. Không thể tải lên!`;
+                        warningEl.classList.remove('hidden');
+                        return;
                     }
 
                     resetWarning();

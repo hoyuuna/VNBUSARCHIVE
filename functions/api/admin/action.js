@@ -52,12 +52,20 @@ export async function onRequestPost(context) {
                 const parts = plate.split('-');
                 if (parts.length >= 2 && !isNaN(parts[1])) {
                     const basePlate = parts[0];
-                    const { data: baseVehicle } = await sb.from('vehicles').select('model').eq('license_plate', basePlate).single();
-                    if (baseVehicle && baseVehicle.model) {
-                        const baseModelLower = baseVehicle.model.trim().toLowerCase();
+                    const { data: relatedVehicles } = await sb.from('vehicles').select('license_plate, model').ilike('license_plate', `${basePlate}%`);
+                    if (relatedVehicles && relatedVehicles.length > 0) {
                         const currentModelLower = model.trim().toLowerCase();
-                        if (baseModelLower === currentModelLower || baseModelLower.includes(currentModelLower) || currentModelLower.includes(baseModelLower)) {
-                            return new Response(JSON.stringify({ error: `Từ chối duyệt: Vi phạm chính sách chống gian lận (Fraud). Xe định danh phụ (${plate}) không được trùng dòng xe với xe gốc (${basePlate}: ${baseVehicle.model}).` }), { status: 400 });
+                        const duplicateVehicle = relatedVehicles.find(v => {
+                            if (!v.model || v.license_plate === plate) return false;
+                            if (v.license_plate !== basePlate) {
+                                const pts = v.license_plate.split('-');
+                                if (pts.length !== 2 || pts[0] !== basePlate || isNaN(pts[1])) return false;
+                            }
+                            const mLower = v.model.trim().toLowerCase();
+                            return mLower === currentModelLower || mLower.includes(currentModelLower) || currentModelLower.includes(mLower);
+                        });
+                        if (duplicateVehicle) {
+                            return new Response(JSON.stringify({ error: `Từ chối duyệt: Vi phạm chính sách chống gian lận (Fraud). Xe định danh phụ (${plate}) không được trùng dòng xe với xe khác cùng biển kiểm soát (${duplicateVehicle.license_plate}: ${duplicateVehicle.model}).` }), { status: 400 });
                         }
                     }
                 }
