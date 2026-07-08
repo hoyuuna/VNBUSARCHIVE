@@ -51,6 +51,7 @@ Khi tải ảnh lên hệ thống, bạn cam kết tuân thủ tuyệt đối qu
 * **Lưu trữ kỹ thuật:** Chúng tôi nỗ lực duy trì tính ổn định của máy chủ nhưng không chịu trách nhiệm nếu xảy ra mất mát dữ liệu do lỗi hệ thống bất khả kháng. Bạn nên tự lưu trữ bản gốc hình ảnh của mình.
 * **Không có giá trị pháp lý:** Hình ảnh và dữ liệu trên hệ thống tuyệt đối không được sử dụng làm cơ sở pháp lý để xác định lỗi vi phạm giao thông hoặc nội quy doanh nghiệp, trừ khi có yêu cầu bằng văn bản từ cơ quan chức năng có thẩm quyền.
 * **Trách nhiệm người dùng:** Người dùng tự chịu trách nhiệm về hình ảnh mình đăng tải. Chúng tôi được miễn trừ mọi trách nhiệm liên quan đến khiếu nại quyền riêng tư do sự bất cẩn của người dùng, hoặc các tranh chấp phát sinh bên ngoài nền tảng.
+* Hành vi tác nghiệp: Chúng tôi không quản lý, không xúi giục và không chịu trách nhiệm pháp lý đối với bất kỳ hành vi nào của người dùng trong quá trình đi thu thập hình ảnh thực tế. Người dùng tự chịu 100% trách nhiệm trước pháp luật về an toàn giao thông, an ninh trật tự, hành vi xâm phạm gia cư/khu vực cấm, hoặc các tổn hại về người và tài sản phát sinh trong quá trình tác nghiệp.
 
 ---
 
@@ -93,7 +94,7 @@ Chúng tôi tuyệt đối không bán hoặc trao đổi dữ liệu cá nhân 
 ### 5. Quyền lợi đối với Dữ liệu
 * **Truy cập và Chỉnh sửa:** Tự do thay đổi thông tin hồ sơ, quản lý các liên kết tài khoản mạng xã hội.
 * **Xóa nội dung:** Bạn có thể yêu cầu xóa hình ảnh do mình đăng tải (cần quản trị viên phê duyệt). Nếu ảnh chưa được phê duyệt, bạn có thể tự thu hồi ngay lập tức.
-* **Xóa tài khoản:** Liên hệ ban quản trị để xóa vĩnh viễn tài khoản và dữ liệu liên đới.
+* **Xóa tài khoản:** Liên hệ ban quản trị để xóa tài khoản. Lưu ý quan trọng đối với kho lưu trữ: Khi tài khoản bị xóa, các thông tin cá nhân (Email, Mật khẩu, Tên hiển thị, Liên kết mạng xã hội) sẽ bị xóa bỏ hoàn toàn hoặc ẩn danh hóa. Tuy nhiên, để duy trì tính vẹn toàn của cơ sở dữ liệu lịch sử, những hình ảnh và thông tin phương tiện bạn đã đóng góp (đã được duyệt công khai) sẽ tiếp tục được lưu giữ trên hệ thống dưới trạng thái tác giả là "Người dùng ẩn danh", trừ khi bạn có yêu cầu xóa từng ảnh cụ thể với lý do chính đáng và được Ban quản trị chấp thuận trước khi xóa tài khoản.
 * **Đặc quyền máy chủ:** Khi tài khoản đạt các cột mốc đóng góp nhất định, bạn có thể nhận các huy hiệu định danh trên máy chủ giao tiếp cộng đồng (Discord), bao gồm cả quyền khởi tạo chức danh mang màu sắc và tên gọi tùy chỉnh.
 * **Quyền riêng tư về vị trí:** Nếu không muốn chia sẻ tọa độ, vui lòng tắt tính năng gắn thẻ địa lý trên thiết bị chụp trước khi tạo tệp ảnh.
 
@@ -101,3 +102,5 @@ Chúng tôi tuyệt đối không bán hoặc trao đổi dữ liệu cá nhân 
 Nền tảng yêu cầu ý thức đóng góp dữ liệu nghiêm túc. Bạn bắt buộc phải từ đủ 14 tuổi trở lên mới được phép sử dụng hệ thống. Nếu ban quản trị phát hiện người dùng dưới độ tuổi quy định thông qua hành vi ứng xử, tài khoản sẽ bị khóa vĩnh viễn và dữ liệu cá nhân liên đới sẽ bị xóa bỏ ngay lập tức để tuân thủ các quy định về an toàn trẻ em trên không gian mạng. Quyết định này là không thể kháng cáo.
 
 ---
+
+VNBUSARCHIVE bảo lưu quyền cập nhật, sửa đổi hoặc bổ sung các Điều khoản và Chính sách này vào bất kỳ lúc nào để phù hợp với sự phát triển của hệ thống hoặc quy định pháp luật. Việc bạn tiếp tục sử dụng hệ thống sau khi các thay đổi có hiệu lực đồng nghĩa với việc bạn chấp nhận các điều khoản mới.
