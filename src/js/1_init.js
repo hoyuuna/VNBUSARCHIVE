@@ -2120,6 +2120,14 @@ Object.assign(window.app, {
                 const { data } = await window.sb.auth.getSession();
                 session = data.session;
 
+                if (session && session.access_token) {
+                    fetch('/api/system', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+                        body: JSON.stringify({ action: 'log_ip' })
+                    }).catch(()=>{});
+                }
+
                 // --- CHẶN TÀI KHOẢN CHƯA XÁC MINH NGAY TỪ ĐẦU ---
                 if (session && session.user && !session.user.email_confirmed_at) {
                     document.getElementById('loading-screen').style.display = 'none';

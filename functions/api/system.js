@@ -175,6 +175,32 @@ async function handleQrLoginGenerate(request, env) {
     }
 }
 
+async function handleLogIp(request, env) {
+    try {
+        const clientIp = (request.headers.get('CF-Connecting-IP') || request.headers.get('x-real-ip') || request.headers.get('x-client-ip') || (request.headers.get('x-forwarded-for') || '').split(',')[0] || '127.0.0.1').trim();
+        const authHeader = request.headers.get('authorization');
+        const supabaseUrl = env.SUPABASE_URL;
+        const supabaseServiceRole = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_KEY;
+
+        if (clientIp && authHeader && authHeader.startsWith('Bearer ') && supabaseUrl && supabaseServiceRole) {
+            const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRole);
+            const token = authHeader.replace('Bearer ', '');
+            const { data: { user }, error: userErr } = await supabaseAdmin.auth.getUser(token);
+
+            if (!userErr && user) {
+                const { data: profile } = await supabaseAdmin.from('profiles').select('known_ips').eq('id', user.id).single();
+                if (profile) {
+                    const knownIps = Array.isArray(profile.known_ips) ? profile.known_ips : [];
+                    if (!knownIps.includes(clientIp)) {
+                        await supabaseAdmin.from('profiles').update({ known_ips: [...knownIps, clientIp] }).eq('id', user.id);
+                    }
+                }
+            }
+        }
+    } catch (e) {}
+    return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { 'Content-Type': 'application/json' }});
+}
+
 export async function onRequest(context) {
     const { request, env } = context;
 
@@ -190,6 +216,8 @@ export async function onRequest(context) {
             const { action } = body;
             if (action === 'qr-login') {
                 return handleQrLoginGenerate(request, env);
+            } else if (action === 'log_ip') {
+                return handleLogIp(request, env);
             } else {
                 return handleGetCore(request, env);
             }
