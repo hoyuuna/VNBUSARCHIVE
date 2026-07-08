@@ -202,33 +202,47 @@ Object.assign(window.app, {
                     const warningEl = document.getElementById('model-warning-msg');
                     const plateInput = document.getElementById('up-plate');
                     const modelInput = document.getElementById('up-model');
+                    const btnSubmit = document.getElementById('btn-submit');
 
                     if (!warningEl || !plateInput || !modelInput) return;
 
                     const rawPlate = plateInput.value.replace(/[^A-Z0-9-]/gi, '').toUpperCase();
                     const currentModel = modelInput.value.trim().toLowerCase();
 
-                    if (!rawPlate || !currentModel) { warningEl.classList.add('hidden'); return; }
+                    const resetWarning = () => {
+                        warningEl.classList.add('hidden');
+                        if (app.upload.isBlockedByModelDuplicate) {
+                            app.upload.isBlockedByModelDuplicate = false;
+                            if (btnSubmit && !document.getElementById('upload-quota-text')?.classList.contains('text-red-600') && !document.getElementById('duplicate-warning-msg')) {
+                                btnSubmit.disabled = false;
+                            }
+                        }
+                    };
+
+                    if (!rawPlate || !currentModel) { resetWarning(); return; }
 
                     const parts = rawPlate.split('-');
-                    if (parts.length < 2) { warningEl.classList.add('hidden'); return; }
+                    if (parts.length < 2) { resetWarning(); return; }
 
                     const basePlate = parts[0];
-                    const existingVehicles = app.upload.existingVehiclesList ||[];
+                    const existingVehicles = app.upload.existingVehiclesList || [];
 
                     const exactVehicle = existingVehicles.find(v => v.license_plate === rawPlate);
-                    if (exactVehicle) { warningEl.classList.add('hidden'); return; }
+                    if (exactVehicle) { resetWarning(); return; }
 
                     const baseVehicle = existingVehicles.find(v => v.license_plate === basePlate);
                     if (baseVehicle && baseVehicle.model) {
                         const baseModelLower = baseVehicle.model.toLowerCase();
                         if (baseModelLower === currentModel || baseModelLower.includes(currentModel) || currentModel.includes(baseModelLower)) {
+                            app.upload.isBlockedByModelDuplicate = true;
+                            if (btnSubmit) btnSubmit.disabled = true;
+                            warningEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> CẢNH BÁO GIAN LẬN (FRAUD): Xe định danh phụ (${rawPlate}) không được trùng dòng xe với xe gốc (${basePlate}: ${baseVehicle.model})! Việc cố tình tạo hồ sơ mới cho xe đã tồn tại là vi phạm chính sách. Không thể tải lên!`;
                             warningEl.classList.remove('hidden');
                             return;
                         }
                     }
 
-                    warningEl.classList.add('hidden');
+                    resetWarning();
                 },
 
                 checkDuplicateRealtime: async () => {
@@ -245,7 +259,7 @@ Object.assign(window.app, {
                     const oldWarning = document.getElementById('duplicate-warning-msg');
                     if (oldWarning) oldWarning.remove();
                     
-                    if (!document.getElementById('upload-quota-text')?.classList.contains('text-red-600')) {
+                    if (!document.getElementById('upload-quota-text')?.classList.contains('text-red-600') && !app.upload.isBlockedByModelDuplicate) {
                         btnSubmit.disabled = false;
                     }
 
@@ -1461,6 +1475,11 @@ Object.assign(window.app, {
                     e.preventDefault();
                     if (!app.user) return app.auth.check();
                     if (!app.rawFile) return app.ui.showAlert("Vui lòng chọn ảnh!");
+
+                    app.upload.checkModelWarning && app.upload.checkModelWarning();
+                    if (app.upload.isBlockedByModelDuplicate) {
+                        return app.ui.showAlert("Cảnh báo chính sách: Không thể tải lên hoặc tạo hồ sơ xe mới do trùng dòng xe với xe gốc! Việc tạo hồ sơ định danh phụ (-1, -2...) cho xe có cùng dòng xe là vi phạm chính sách chống gian lận (Fraud).", null, null, { title: "Từ chối tải lên" });
+                    }
 
                     const q = app.upload.currentQuota;
                     if (q.limit !== null && q.count >= q.limit) {
@@ -2999,6 +3018,10 @@ Object.assign(window.app, {
                     }
 
                     try {
+                        if (newData.model && await app.utils.checkModelDuplicatePolicy(plate, newData.model)) {
+                            btnSave.disabled = false; btnSave.innerHTML = 'Gửi yêu cầu';
+                            return;
+                        }
                         if (app.role === 'admin' || app.role === 'manager') {
 
                             const { error } = await window.sb.from('vehicles').update(newData).eq('license_plate', plate);

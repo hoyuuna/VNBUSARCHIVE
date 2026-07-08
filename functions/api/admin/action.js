@@ -48,6 +48,21 @@ export async function onRequestPost(context) {
         }
         
         if (action === 'approve') {
+            if (plate && plate.includes('-') && model) {
+                const parts = plate.split('-');
+                if (parts.length >= 2 && !isNaN(parts[1])) {
+                    const basePlate = parts[0];
+                    const { data: baseVehicle } = await sb.from('vehicles').select('model').eq('license_plate', basePlate).single();
+                    if (baseVehicle && baseVehicle.model) {
+                        const baseModelLower = baseVehicle.model.trim().toLowerCase();
+                        const currentModelLower = model.trim().toLowerCase();
+                        if (baseModelLower === currentModelLower || baseModelLower.includes(currentModelLower) || currentModelLower.includes(baseModelLower)) {
+                            return new Response(JSON.stringify({ error: `Từ chối duyệt: Vi phạm chính sách chống gian lận (Fraud). Xe định danh phụ (${plate}) không được trùng dòng xe với xe gốc (${basePlate}: ${baseVehicle.model}).` }), { status: 400 });
+                        }
+                    }
+                }
+            }
+
             const { error: vError } = await sb.from('vehicles')
                 .upsert({ license_plate: plate, model: model }, { onConflict: 'license_plate' });
             if (vError) throw vError;

@@ -1397,6 +1397,24 @@ cleanupState: () => {
                     if (!str) return '';
                     return DOMPurify.sanitize(str, { ALLOWED_TAGS: [] });
                 },
+                checkModelDuplicatePolicy: async (plate, model) => {
+                    if (!plate || !model || !String(plate).includes('-')) return false;
+                    const parts = String(plate).split('-');
+                    if (parts.length < 2 || isNaN(parts[1])) return false;
+                    const basePlate = parts[0];
+                    try {
+                        const { data: baseVehicle } = await window.sb.from('vehicles').select('model').eq('license_plate', basePlate).single();
+                        if (baseVehicle && baseVehicle.model) {
+                            const baseModelLower = baseVehicle.model.trim().toLowerCase();
+                            const currentModelLower = String(model).trim().toLowerCase();
+                            if (baseModelLower === currentModelLower || baseModelLower.includes(currentModelLower) || currentModelLower.includes(baseModelLower)) {
+                                app.ui.showAlert(`CẢNH BÁO GIAN LẬN (FRAUD): Xe định danh phụ (${plate}) không được trùng dòng xe với xe gốc (${basePlate}: ${baseVehicle.model})! Việc tạo hồ sơ mới hoặc cập nhật cho cùng một xe là vi phạm chính sách chống gian lận!`, null, null, { title: "Vi phạm chính sách (Fraud)" });
+                                return true;
+                            }
+                        }
+                    } catch(e) { console.warn("Lỗi kiểm tra dòng xe gốc:", e); }
+                    return false;
+                },
                 fixUnicode: (str) => {
                     if (!str) return '';
                     return str.normalize('NFC').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g, "");

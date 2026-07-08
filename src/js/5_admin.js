@@ -1469,6 +1469,11 @@ app.admin.fetchManagerData('denied');
                         const location = document.getElementById(`adm-p-location-${id}`).value.trim();
                         const note = document.getElementById(`adm-p-note-${id}`).value.trim();
 
+                        if (await app.utils.checkModelDuplicatePolicy(plate, model)) {
+                            btn.innerText = "DUYỆT"; btn.disabled = false; btn.classList.remove('btn-loading');
+                            return;
+                        }
+
                         const res = await fetch('/api/admin/action', {
                             method: 'POST',
                             headers: {
@@ -1544,6 +1549,10 @@ app.admin.fetchManagerData('denied');
                             const loc = document.getElementById(`req-loc-${id}`).value;
                             const note = document.getElementById(`req-note-${id}`).value;
 
+                            if (await app.utils.checkModelDuplicatePolicy(plate, model)) {
+                                btn.innerText = "DUYỆT"; btn.disabled = false; btn.classList.remove('btn-loading');
+                                return;
+                            }
 
                             const { error: vError } = await window.sb.from('vehicles').upsert({
                                 license_plate: plate, model: model
@@ -1584,6 +1593,11 @@ app.admin.fetchManagerData('denied');
 
                             const finalModel = inputModel ? inputModel.value : req.new_data.model;
                             const finalNote = inputNote ? inputNote.value : req.new_data.note;
+
+                            if (await app.utils.checkModelDuplicatePolicy(req.license_plate, finalModel)) {
+                                btn.innerText = "DUYỆT"; btn.disabled = false; btn.classList.remove('btn-loading');
+                                return;
+                            }
 
                             const { error } = await window.sb.from('vehicles')
                                 .update({ model: finalModel, note: finalNote })
