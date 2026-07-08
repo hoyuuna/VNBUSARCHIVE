@@ -1530,7 +1530,7 @@ Object.assign(window.app, {
                                 <div class="history-table-wrapper">
                                     <table class="history-table" style="margin-bottom: 0 !important;">
                                         <thead><tr>
-                                            <th class="border-r border-gray-200">Đơn vị</th>
+                                            <th class="border-r border-gray-200" style="border-left: 4px solid #f4f4f5;">Đơn vị</th>
                                             <th class="border-r border-gray-200">${isCoach ? 'Lộ trình' : 'Mã số tuyến'}</th>
                                             <th>Ghi chú</th>
                                         </tr></thead>
