@@ -137,10 +137,11 @@ export async function onRequest(context) {
                             await supabaseAdmin.from('banned_ips').delete().eq('ip', ip).catch(()=>{});
                         }
                     }
+                    await supabaseAdmin.from('banned_ips').delete().like('reason', `%ID ${targetUserId}%`).catch(()=>{});
                 }
             }
 
-            return new Response(JSON.stringify({ success: true, message: action === 'ban' ? "Đã cấm tài khoản và toàn bộ IP truy cập thành công!" : "Đã gỡ cấm tài khoản thành công!" }), { status: 200, headers: { 'Content-Type': 'application/json' }});
+            return new Response(JSON.stringify({ success: true, message: action === 'ban' ? "Đã cấm tài khoản và toàn bộ IP truy cập thành công!" : "Đã gỡ cấm tài khoản và gỡ cấm các IP liên quan thành công!" }), { status: 200, headers: { 'Content-Type': 'application/json' }});
         }
 
         if (action === 'delete_user') {
