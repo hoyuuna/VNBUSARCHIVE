@@ -49,23 +49,28 @@ async function handleGetCore(request, env) {
 
         if (supabaseAdmin && !isLocalOrInvalidIp) {
             try {
-                const { data: ipBan, error: ipBanErr } = await supabaseAdmin.from('banned_ips').select('ip').eq('ip', clientIp).maybeSingle();
+                const { data: ipBan, error: ipBanErr } = await supabaseAdmin.from('banned_ips').select('ip, reason').eq('ip', clientIp).maybeSingle();
                 if (!ipBanErr && ipBan) {
-                    return new Response(JSON.stringify({ ip_banned: true }), { status: 403, headers: { 'Content-Type': 'application/json' }});
+                    return new Response(JSON.stringify({ ip_banned: true, reason: ipBan.reason || 'Địa chỉ IP này thuộc danh sách hạn chế truy cập.' }), { status: 403, headers: { 'Content-Type': 'application/json' }});
                 }
             } catch (e) {}
 
             try {
                 const { data: bannedProfiles, error: bpErr } = await supabaseAdmin.from('profiles').select('ban_status').contains('known_ips', [clientIp]);
                 if (!bpErr && bannedProfiles && bannedProfiles.length > 0) {
+                    let foundReason = 'IP thuộc tài khoản bị hạn chế hoạt động.';
                     const isIpBanned = bannedProfiles.some(p => {
                         if (!p.ban_status) return false;
                         const b = typeof p.ban_status === 'string' ? JSON.parse(p.ban_status) : p.ban_status;
-                        return b && b.banned;
+                        if (b && b.banned) {
+                            if (b.reason) foundReason = b.reason;
+                            return true;
+                        }
+                        return false;
                     });
                     if (isIpBanned) {
-                        await supabaseAdmin.from('banned_ips').upsert({ ip: clientIp, reason: 'IP thuộc tài khoản bị cấm' }, { onConflict: 'ip' }).catch(()=>{});
-                        return new Response(JSON.stringify({ ip_banned: true }), { status: 403, headers: { 'Content-Type': 'application/json' }});
+                        await supabaseAdmin.from('banned_ips').upsert({ ip: clientIp, reason: foundReason }, { onConflict: 'ip' }).catch(()=>{});
+                        return new Response(JSON.stringify({ ip_banned: true, reason: foundReason }), { status: 403, headers: { 'Content-Type': 'application/json' }});
                     }
                 }
             } catch (e) {}
