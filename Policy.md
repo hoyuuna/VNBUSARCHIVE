@@ -53,6 +53,25 @@ Khi tải ảnh lên hệ thống, bạn cam kết tuân thủ tuyệt đối qu
 * **Trách nhiệm người dùng:** Người dùng tự chịu trách nhiệm về hình ảnh mình đăng tải. Chúng tôi được miễn trừ mọi trách nhiệm liên quan đến khiếu nại quyền riêng tư do sự bất cẩn của người dùng, hoặc các tranh chấp phát sinh bên ngoài nền tảng.
 * **Hành vi tác nghiệp:** Chúng tôi không quản lý, không xúi giục và không chịu trách nhiệm pháp lý đối với bất kỳ hành vi nào của người dùng trong quá trình đi thu thập hình ảnh thực tế. Người dùng tự chịu 100% trách nhiệm trước pháp luật về an toàn giao thông, an ninh trật tự, hành vi xâm phạm gia cư/khu vực cấm, hoặc các tổn hại về người và tài sản phát sinh trong quá trình tác nghiệp.
 
+### 8. Tiêu chuẩn vô điều kiện về Tên hiển thị và Ảnh đại diện
+Khu vực hồ sơ cá nhân là nơi hiển thị công khai trên bách khoa toàn thư VNBUSARCHIVE. Để bảo vệ tính chuyên nghiệp của dự án và quyền lợi của cộng đồng, bạn bắt buộc phải tuân thủ tuyệt đối các quy định dưới đây. Ban quản trị bảo lưu quyền chủ động gỡ bỏ ảnh đại diện, buộc đổi tên, hoặc khóa vĩnh viễn tài khoản ngay lập tức mà không cần cảnh báo trước nếu phát hiện vi phạm.
+
+**8.1. Quy định đối với Tên hiển thị**
+* **Giới hạn kỹ thuật:** Tên hiển thị phải có độ dài từ 3 đến tối đa 20 ký tự. Chỉ sử dụng các ký tự có thể đọc được. Nghiêm cấm sử dụng các ký tự tàng hình, ký tự Unicode rác làm vỡ giao diện (Zalgo text), hoặc chuỗi biểu tượng cảm xúc (emoji) vô nghĩa nhằm mục đích phá hoại bộ đệm hiển thị.
+* **Chống mạo danh:** Tuyệt đối không đặt tên trùng khớp hoặc cố tình viết sai chính tả nhằm gây nhầm lẫn với Ban quản trị VNBUSARCHIVE, Quản trị viên, các Cơ quan Nhà nước (Sở GTVT, HĐND, UBND...), hoặc các Doanh nghiệp/Hợp tác xã vận tải.
+* **Không thương mại & Không chứa thông tin cá nhân rác:** Không đặt tên chứa số điện thoại, địa chỉ thư điện tử, liên kết trang web (URL), tên miền, địa chỉ ví tiền điện tử, hoặc các khẩu hiệu quảng cáo thương mại.
+* **Nội dung cấm:** Tuyệt đối không sử dụng từ ngữ thô tục, tiếng lóng phản cảm, nội dung phân biệt chủng tộc/vùng miền, kích động thù địch. Không đặt tên liên quan đến các yếu tố chính trị, tôn giáo, hoặc tên các nhân vật/sự kiện lịch sử nhạy cảm gây tranh cãi.
+
+**8.2. Quy định đối với Ảnh đại diện**
+* **Quyền riêng tư về nhân dạng:** Tuyệt đối KHÔNG sử dụng hình ảnh khuôn mặt của bất kỳ cá nhân nào khác ngoài chính bạn khi chưa có sự đồng ý bằng văn bản hợp pháp. Nghiêm cấm sử dụng trí tuệ nhân tạo để ghép mặt (Deepfake) nhằm mục đích giả mạo hoặc bôi nhọ. Nếu bạn sử dụng ảnh của chính mình, bạn tự chịu hoàn toàn trách nhiệm về các rủi ro bảo mật hình ảnh cá nhân trên không gian mạng.
+* **Bảo vệ Bản quyền và Nhận diện Thương hiệu:** Không sử dụng Logo, biểu trưng, hoặc con dấu của VNBUSARCHIVE, các cơ quan Nhà nước, cơ quan Công an, Quân đội, và các đơn vị, nhà sản xuất phương tiện giao thông (như VinBus, Samco, Thaco, Transerco...) làm ảnh đại diện.
+* **Quy chuẩn Nội dung (Cấm mọi hình thức lách luật):**
+  * **Không nội dung 18+:** Cấm tuyệt đối hình ảnh khỏa thân, bán khỏa thân, tư thế khêu gợi, hoặc các hình ảnh 2D/Anime có tính chất nhạy cảm.
+  * **Không bạo lực/Kinh dị:** Cấm hình ảnh máu me, tai nạn, vũ khí sát thương, hành hạ động vật hoặc các hình ảnh gây ám ảnh thị giác.
+* **An toàn Kỹ thuật & An toàn Thông tin:**
+  * Nghiêm cấm sử dụng hình ảnh chứa mã QR, mã vạch để điều hướng người dùng tới các trang web lừa đảo, chứa mã độc.
+  * Hạn chế sử dụng ảnh động (GIF). Nghiêm cấm tải lên các ảnh động chớp nháy liên tục, đổi màu tốc độ cao hoặc các ảo ảnh quang học có nguy cơ gây chứng động kinh nhạy cảm với ánh sáng (Photosensitive Epilepsy) cho người xem khác.
+
 ---
 
 ## PHẦN 2: CHÍNH SÁCH BẢO MẬT
