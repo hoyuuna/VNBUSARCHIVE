@@ -3598,20 +3598,23 @@ Object.assign(window.app, {
                     if (filterType === 'uploader' || filterType === 'all') {
                         cardPromises.push((async () => {
                             try {
-                                let uQuery = window.sb.from('profiles').select('id, username, avatar_url, role, subroles');
+                                let uQuery = window.sb.from('profiles').select('id, username, avatar_url, role, subroles, ban_status');
                                 searchWords.forEach(w => { uQuery = uQuery.ilike('username', `%${w}%`); });
                                 const { data: usersData } = await uQuery.limit(5);
 
                                 if (usersData && usersData.length > 0) {
                                     for (const user of usersData) {
+                                        const uDisplay = app.utils.formatProfileDisplay(user);
+                                        if (uDisplay.isBanned) continue; // Ẩn hoàn toàn người dùng bị cấm khỏi search
+
                                         const { count } = await window.sb.from('photos').select('*', { count: 'exact', head: true }).eq('uploader_id', user.id).eq('status', 'approved');
-                                        const avatarSrc = user.avatar_url ? app.utils.getProxiedUrl(user.avatar_url, 'avatar.jpg', 'avatar') : DEFAULT_AVATAR;
+                                        const avatarSrc = uDisplay.avatar;
                                         const userBadges = app.utils.getBadgesHTML(user.id, user.role, user.subroles);
                                         uploaderCards.push(`
-                                            <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.views.loadUserProfile('${user.username}')">
+                                            <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.views.loadUserProfile('${uDisplay.linkId}')">
                                                 <img src="${avatarSrc}" onerror="this.onerror=null;this.src='${DEFAULT_AVATAR}';" class="w-12 h-12 rounded-full object-cover bg-gray-100 shrink-0">
                                                 <div class="overflow-hidden">
-                                                    <div class="font-bold text-black text-sm flex items-center truncate">${user.username} ${userBadges}</div>
+                                                    <div class="font-bold text-black text-sm flex items-center truncate">${uDisplay.username} ${userBadges}</div>
                                                     <div class="text-xs text-gray-500">${count || 0} ảnh đã đăng</div>
                                                 </div>
                                             </div>
@@ -3857,7 +3860,7 @@ Object.assign(window.app, {
                     } else {
                         // All
                         let mQ = window.sb.from('vehicles').select('license_plate, photos!inner(status)').eq('photos.status', 'approved');
-                        let uQ = window.sb.from('profiles').select('id');
+                        let uQ = window.sb.from('profiles').select('id, ban_status');
 
                         searchWords.forEach(w => {
                             const safeW = w.replace(/"/g, '');
@@ -3869,7 +3872,8 @@ Object.assign(window.app, {
                         if (app.searchToken !== currentSearchToken) return;
 
                         const plates = mRes.data ? mRes.data.map(v => v.license_plate) : [];
-                        const uploaderIds = uRes.data ? uRes.data.map(u => u.id) : [];
+                        const validUploaders = (uRes.data || []).filter(u => !app.utils.formatProfileDisplay(u).isBanned);
+                        const uploaderIds = validUploaders.map(u => u.id);
 
                         searchWords.forEach(w => {
                             const safeW = w.replace(/"/g, '');

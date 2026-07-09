@@ -587,7 +587,7 @@ Object.assign(window.app, {
                                     <i class="fa-solid fa-ban text-red-500 mt-0.5 text-base shrink-0"></i>
                                     <div>
                                         <h4 class="font-bold text-sm text-red-400 uppercase tracking-wide">Tài khoản bị cấm</h4>
-                                        <p class="text-xs text-gray-300 mt-1 leading-relaxed">Tài khoản này đã bị cấm với lí do: <b class="text-white">${app.utils.escapeHtml(banInfo.reason || 'Vi phạm quy định của VNBUSARCHIVE')}</b></p>
+                                        <p class="text-xs text-gray-300 mt-1 leading-relaxed">Tài khoản này đã bị cấm với lí do: <b class="text-white">${app.utils.cleanText(banInfo.reason || 'Vi phạm quy định của VNBUSARCHIVE')}</b></p>
                                     </div>
                                 </div>
                             `;
