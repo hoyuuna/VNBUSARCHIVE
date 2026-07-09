@@ -4255,7 +4255,7 @@
                                         <i class="fa-solid fa-lock mr-1"></i> <b>BKS này đã có dữ liệu dòng xe.</b> Nếu bạn thấy sai sót cần thay đổi có thể di chuyển tới trang chi tiết ảnh sau khi đăng. Bạn cần đảm bảo dòng xe là đúng trước khi chỉnh sửa. Nếu BKS được lắp trên xe khác vui lòng tham khảo hướng dẫn bên trên và không can thiệp vào dữ liệu hiện tại.
                                     </div>
                                 </div>
-                                <div>
+                                <div class="md:col-span-2">
                                     <label class="text-xs text-gray-500 font-bold block mb-1.5 uppercase">Vị trí chụp
                                         <span class="text-red-500">*</span></label>
                                     <input type="text" id="up-location" tabindex="6"
@@ -4263,14 +4263,16 @@
                                     <p id="err-up-location" class="upload-req-err hidden text-[11px] mt-1 text-red-600 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Vui lòng nhập Vị trí chụp</p>
                                     <div id="upload-map" class="mt-2 border border-gray-300 rounded-md"></div>
                                 </div>
-                                <div class="relative">
+                                <div class="md:col-span-2">
                                     <label class="text-xs text-gray-500 font-bold block mb-1.5 uppercase">Tỉnh / Thành phố chụp</label>
                                     <input type="hidden" id="up-province" value="">
-                                    <button type="button" id="up-province-btn" onclick="document.getElementById('up-province-menu').classList.toggle('active')" class="w-full flex items-center justify-between bg-white border border-gray-300 hover:border-black hover:bg-gray-50 rounded-md p-2.5 text-sm font-medium text-gray-700 transition-all shadow-sm focus:ring-2 focus:ring-black outline-none">
-                                        <span id="up-province-label" class="truncate pr-4 text-gray-400">-- Chọn Tỉnh / Thành phố --</span>
-                                        <i class="fa-solid fa-chevron-down text-gray-400 shrink-0"></i>
-                                    </button>
-                                    <div id="up-province-menu" class="filter-menu left-0 right-0 origin-top mt-1 !max-h-[220px] !z-[999] overflow-y-auto" style="width: 100% !important;">
+                                    <div class="relative">
+                                        <button type="button" id="up-province-btn" onclick="document.getElementById('up-province-menu').classList.toggle('active')" class="w-full flex items-center justify-between bg-white border border-gray-300 hover:border-black hover:bg-gray-50 rounded-md p-2.5 text-sm font-medium text-gray-700 transition-all shadow-sm focus:ring-2 focus:ring-black outline-none">
+                                            <span id="up-province-label" class="truncate pr-4 text-gray-400">-- Chọn Tỉnh / Thành phố --</span>
+                                            <i class="fa-solid fa-chevron-down text-gray-400 shrink-0"></i>
+                                        </button>
+                                        <div id="up-province-menu" class="filter-menu left-0 right-0 origin-top mt-1 !max-h-[220px] !z-[999] overflow-y-auto" style="width: 100% !important;">
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-5">
