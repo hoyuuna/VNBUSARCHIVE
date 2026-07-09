@@ -126,10 +126,20 @@ async function handleGetCore(request, env) {
             }
         }
 
-        return new Response(JSON.stringify({ payload: coreBase64 }), { status: 200, headers: { 'Content-Type': 'application/json' }});
+        const noCacheHeaders = {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma': 'no-cache'
+        };
+        return new Response(JSON.stringify({ payload: coreBase64 }), { status: 200, headers: noCacheHeaders });
     } catch (error) {
         console.error("Loi doc file core:", error);
-        return new Response(JSON.stringify({ payload: coreBase64 }), { status: 200, headers: { 'Content-Type': 'application/json' }});
+        const noCacheHeaders = {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma': 'no-cache'
+        };
+        return new Response(JSON.stringify({ payload: coreBase64 }), { status: 200, headers: noCacheHeaders });
     }
 }
 

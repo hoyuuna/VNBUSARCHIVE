@@ -1398,6 +1398,10 @@ cleanupState: () => {
                     if (!str) return '';
                     return DOMPurify.sanitize(str, { ALLOWED_TAGS: [] });
                 },
+                escapeHtml: (str) => {
+                    if (!str) return '';
+                    return DOMPurify.sanitize(str, { ALLOWED_TAGS: [] });
+                },
                 checkModelDuplicatePolicy: async (plate, model) => {
                     if (!plate || !model || !String(plate).includes('-')) return false;
                     const parts = String(plate).split('-');
