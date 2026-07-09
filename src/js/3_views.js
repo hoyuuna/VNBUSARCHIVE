@@ -585,11 +585,11 @@ Object.assign(window.app, {
                     if (banAlertContainer) {
                         if (isBannedUser) {
                             banAlertContainer.innerHTML = `
-                                <div class="p-4 bg-red-950/30 border border-red-500/40 rounded-xl text-red-200 flex items-start gap-3 shadow-sm">
-                                    <i class="fa-solid fa-ban text-red-500 mt-0.5 text-base shrink-0"></i>
+                                <div class="p-4 bg-red-50 border border-red-200 rounded-xl text-red-900 flex items-start gap-3 shadow-sm">
+                                    <i class="fa-solid fa-ban text-red-600 mt-0.5 text-base shrink-0"></i>
                                     <div>
-                                        <h4 class="font-bold text-sm text-red-400 uppercase tracking-wide">Tài khoản bị cấm</h4>
-                                        <p class="text-xs text-gray-300 mt-1 leading-relaxed">Tài khoản này đã bị cấm với lí do: <b class="text-white">${app.utils.cleanText(banInfo.reason || 'Vi phạm quy định của VNBUSARCHIVE')}</b></p>
+                                        <h4 class="font-bold text-sm text-red-700 uppercase tracking-wide">Tài khoản bị cấm</h4>
+                                        <p class="text-xs text-red-900 mt-1 leading-relaxed">Tài khoản này đã bị cấm với lí do: <b class="font-bold text-red-950">${app.utils.cleanText(banInfo.reason || 'Vi phạm quy định của VNBUSARCHIVE')}</b></p>
                                     </div>
                                 </div>
                             `;
