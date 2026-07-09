@@ -558,6 +558,7 @@ Object.assign(window.app, {
                     }
                     const isBannedUser = banInfo && (banInfo.banned === true || banInfo.banned === 'true');
                     const displayUsername = isBannedUser ? 'Người dùng bị cấm' : profile.username;
+                    document.title = isOwnProfile ? 'Tài khoản của tôi | VNBUSARCHIVE' : `Hồ sơ: ${displayUsername} | VNBUSARCHIVE`;
 
                     const targetUserId = profile.id;
                     app.currentProfileId = targetUserId;
