@@ -128,16 +128,16 @@ export async function onRequest(context) {
                 if (action === 'ban') {
                     for (const ip of targetProfile.known_ips) {
                         if (ip) {
-                            await supabaseAdmin.from('banned_ips').upsert({ ip: ip, reason: `Tài khoản ID ${targetUserId} bị cấm: ${reason || ''}` }, { onConflict: 'ip' }).catch(()=>{});
+                            try { await supabaseAdmin.from('banned_ips').upsert({ ip: ip, reason: `Tài khoản ID ${targetUserId} bị cấm: ${reason || ''}` }, { onConflict: 'ip' }); } catch(err){}
                         }
                     }
                 } else {
                     for (const ip of targetProfile.known_ips) {
                         if (ip) {
-                            await supabaseAdmin.from('banned_ips').delete().eq('ip', ip).catch(()=>{});
+                            try { await supabaseAdmin.from('banned_ips').delete().eq('ip', ip); } catch(err){}
                         }
                     }
-                    await supabaseAdmin.from('banned_ips').delete().like('reason', `%ID ${targetUserId}%`).catch(()=>{});
+                    try { await supabaseAdmin.from('banned_ips').delete().like('reason', `%ID ${targetUserId}%`); } catch(err){}
                 }
             }
 
