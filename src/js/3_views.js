@@ -1514,10 +1514,12 @@ Object.assign(window.app, {
                         const specialRoutes = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động'];
                         let currentRouteClientSide = '';
                         let currentOpClientSide = '';
+                        let currentProvClientSide = '';
 
                         if (allPhotos.length > 0) {
                             const latestPhoto = allPhotos[0];
                             currentOpClientSide = latestPhoto.operator || '';
+                            currentProvClientSide = latestPhoto.province || '';
                             const r = (latestPhoto.route_no || '').trim();
                             if (r && !specialRoutes.includes(r)) {
                                 currentRouteClientSide = r;
@@ -1527,6 +1529,7 @@ Object.assign(window.app, {
                                     const latestValid = validPhotos[0];
                                     currentRouteClientSide = (latestValid.route_no || '').trim();
                                     currentOpClientSide = latestValid.operator || '';
+                                    if (latestValid.province) currentProvClientSide = latestValid.province;
                                 }
                             } else if (r === 'Dừng hoạt động' || r === 'Chưa hoạt động') {
                                 currentRouteClientSide = r;
@@ -1544,7 +1547,12 @@ Object.assign(window.app, {
                         let rawHistory = historyRes.data || [];
 
                         let vehPrefix = '';
-                        const vehProvName = app.utils.getProvinceFromPlate(vehicle.license_plate);
+                        let vehProvName = currentProvClientSide;
+
+                        if (!vehProvName || vehProvName === 'Không xác định') {
+                            vehProvName = app.utils.getProvinceFromPlate(vehicle.license_plate);
+                        }
+
                         if (vehProvName && app.utils.provinceData && app.utils.provinceData.length) {
                             const pData = app.utils.provinceData.find(p => p.ten === vehProvName);
                             if (pData && pData.ky_hieu) {

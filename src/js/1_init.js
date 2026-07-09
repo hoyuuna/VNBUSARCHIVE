@@ -2441,9 +2441,14 @@ Object.assign(window.app, {
                                 app.utils.navigate(`/operator/${encodeURIComponent(this.value)}`);
                             }
                             else if (id === 'info-route') {
-                                const plateValue = document.getElementById('info-plate').value;
+                                let provName = document.getElementById('info-province')?.value;
+                                
+                                if (!provName || provName === 'Không xác định') {
+                                    const plateValue = document.getElementById('info-plate').value;
+                                    provName = app.utils.getProvinceFromPlate(plateValue);
+                                }
+                                
                                 let routePrefix = '';
-                                const provName = app.utils.getProvinceFromPlate(plateValue);
                                 if (provName && app.utils.provinceData && app.utils.provinceData.length) {
                                     const pData = app.utils.provinceData.find(p => p.ten === provName);
                                     if (pData && pData.ky_hieu) {
