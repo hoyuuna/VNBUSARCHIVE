@@ -1158,7 +1158,8 @@ cleanupState: () => {
                     try {
                         const res = await fetch('/licence-no.json');
                         if (res.ok) {
-                            app.utils.provinceData = await res.json();
+                            const rawData = await res.json();
+                            app.utils.provinceData = rawData.sort((a, b) => (a.ten || '').localeCompare(b.ten || '', 'vi'));
                             if (app.upload && app.upload.initProvinceMenu) app.upload.initProvinceMenu();
                             if (app.views && app.views.initInfoProvinceSelect) app.views.initInfoProvinceSelect();
                         }

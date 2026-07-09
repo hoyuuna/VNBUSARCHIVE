@@ -1158,7 +1158,9 @@ Object.assign(window.app, {
                     if (lblDetailRoute) lblDetailRoute.innerText = snapshot.type === 'coach' ? 'Lộ trình' : 'Mã số tuyến';
                     if (elInfoModel) elInfoModel.value = snapshot.model || 'Đã bị xóa';
                     if (elInfoLocation) elInfoLocation.value = photo.location || '---';
-                    if (elInfoProvince) elInfoProvince.value = photo.province || '';
+                    if (elInfoProvince) {
+                        app.views.selectInfoProvince(photo.province || '');
+                    }
                     if (elInfoNote) elInfoNote.value = photo.note || '---';
 
                     const displayDate = photo.taken_at || photo.created_at;
@@ -2071,10 +2073,41 @@ Object.assign(window.app, {
                 },
 
                 initInfoProvinceSelect: () => {
-                    const el = document.getElementById('info-province');
-                    if (!el || !app.utils.provinceData) return;
-                    el.innerHTML = `<option value="" disabled>-- Chọn Tuyến của tỉnh --</option>` +
-                        app.utils.provinceData.map(p => `<option value="${p.ten}">${p.ten}</option>`).join('');
+                    const menuEl = document.getElementById('info-province-menu');
+                    if (!menuEl || !app.utils.provinceData) return;
+                    const itemsHtml = app.utils.provinceData.map(p => {
+                        return `<div class="filter-item" data-prov="${p.ten}" onclick="app.views.selectInfoProvince('${p.ten}', this)">
+                            <span class="font-bold">${p.ten}</span>
+                        </div>`;
+                    }).join('');
+                    menuEl.innerHTML = itemsHtml;
+                },
+
+                selectInfoProvince: (provName, el) => {
+                    const hiddenInput = document.getElementById('info-province');
+                    const labelEl = document.getElementById('info-province-label');
+                    const menuEl = document.getElementById('info-province-menu');
+                    if (hiddenInput) hiddenInput.value = provName || '';
+                    if (labelEl) {
+                        labelEl.innerText = provName || '-- Chọn Tuyến của tỉnh --';
+                        if (provName) {
+                            labelEl.classList.remove('text-gray-400');
+                            labelEl.classList.add('text-gray-700');
+                        } else {
+                            labelEl.classList.remove('text-gray-700');
+                            labelEl.classList.add('text-gray-400');
+                        }
+                    }
+                    document.querySelectorAll('#info-province-menu .filter-item').forEach(item => {
+                        item.classList.remove('selected');
+                    });
+                    if (el && el.classList) {
+                        el.classList.add('selected');
+                    } else if (menuEl) {
+                        const target = menuEl.querySelector(`.filter-item[data-prov="${provName || ''}"]`);
+                        if (target) target.classList.add('selected');
+                    }
+                    if (menuEl) menuEl.classList.remove('active');
                 }
                 // --- KẾT THÚC LOGIC PROFILE ĐƠN VỊ ---
 

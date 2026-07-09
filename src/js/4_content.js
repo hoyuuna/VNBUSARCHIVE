@@ -3163,6 +3163,15 @@ Object.assign(window.app, {
                             else { if (input.id !== 'info-plate') input.readOnly = false; }
                         });
 
+                        const provBtn = document.getElementById('info-province-btn');
+                        const provCaret = document.getElementById('info-province-caret');
+                        if (provBtn) {
+                            provBtn.disabled = false;
+                            provBtn.classList.remove('border-transparent');
+                            provBtn.classList.add('border-gray-300');
+                        }
+                        if (provCaret) provCaret.classList.remove('hidden');
+
                         actions.classList.remove('hidden');
                         actions.classList.add('flex');
                         if (triggerContainer) triggerContainer.classList.add('hidden');
@@ -3186,6 +3195,17 @@ Object.assign(window.app, {
                         if (input.tagName === 'SELECT') input.disabled = true;
                         else input.readOnly = true;
                     });
+
+                    const provBtn = document.getElementById('info-province-btn');
+                    const provCaret = document.getElementById('info-province-caret');
+                    const provMenu = document.getElementById('info-province-menu');
+                    if (provBtn) {
+                        provBtn.disabled = true;
+                        provBtn.classList.add('border-transparent');
+                        provBtn.classList.remove('border-gray-300');
+                    }
+                    if (provCaret) provCaret.classList.add('hidden');
+                    if (provMenu) provMenu.classList.remove('active');
 
                     const triggerContainer = document.getElementById('edit-trigger-container');
                     if (triggerContainer) triggerContainer.classList.remove('hidden');

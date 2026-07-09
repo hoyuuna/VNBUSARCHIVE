@@ -3298,9 +3298,15 @@
                                         <tr>
                                             <td class="label bg-gray-50 border-r border-b border-gray-200">Tuyến của tỉnh</td>
                                             <td class="value-cell border-b border-gray-200">
-                                                <select id="info-province" class="info-input text-gray-700" disabled>
-                                                    <option value="">-- Không xác định --</option>
-                                                </select>
+                                                <input type="hidden" id="info-province" class="info-input" value="">
+                                                <div class="relative">
+                                                    <button type="button" id="info-province-btn" disabled onclick="if(app.edit.isEditing) document.getElementById('info-province-menu').classList.toggle('active')" class="w-full flex items-center justify-between bg-white border border-transparent rounded-md p-1.5 text-sm font-normal text-left outline-none transition disabled:bg-transparent disabled:cursor-default">
+                                                        <span id="info-province-label" class="truncate pr-4 text-gray-700 font-normal">-- Chọn Tuyến của tỉnh --</span>
+                                                        <i id="info-province-caret" class="fa-solid fa-chevron-down text-gray-400 shrink-0 hidden"></i>
+                                                    </button>
+                                                    <div id="info-province-menu" class="filter-menu left-0 right-0 origin-top mt-1 !max-h-[180px] !z-[9999] overflow-y-auto" style="width: 100% !important;">
+                                                    </div>
+                                                </div>
                                             </td>
                                         </tr>
                                         <tr>
