@@ -66,8 +66,11 @@ Khu vực hồ sơ cá nhân là nơi hiển thị công khai trên bách khoa t
 * **Quyền riêng tư về nhân dạng:** Tuyệt đối KHÔNG sử dụng hình ảnh khuôn mặt của bất kỳ cá nhân nào khác ngoài chính bạn khi chưa có sự đồng ý bằng văn bản hợp pháp. Nghiêm cấm sử dụng trí tuệ nhân tạo để ghép mặt (Deepfake) nhằm mục đích giả mạo hoặc bôi nhọ. Nếu bạn sử dụng ảnh của chính mình, bạn tự chịu hoàn toàn trách nhiệm về các rủi ro bảo mật hình ảnh cá nhân trên không gian mạng.
 * **Bảo vệ Bản quyền và Nhận diện Thương hiệu:** Không sử dụng Logo, biểu trưng, hoặc con dấu của VNBUSARCHIVE, các cơ quan Nhà nước, cơ quan Công an, Quân đội, và các đơn vị, nhà sản xuất phương tiện giao thông (như VinBus, Samco, Thaco, Transerco...) làm ảnh đại diện.
 * **Quy chuẩn Nội dung (Cấm mọi hình thức lách luật):**
-  * **Không nội dung 18+:** Cấm tuyệt đối hình ảnh khỏa thân, bán khỏa thân, tư thế khêu gợi, hoặc các hình ảnh 2D/Anime có tính chất nhạy cảm.
-  * **Không bạo lực/Kinh dị:** Cấm hình ảnh máu me, tai nạn, vũ khí sát thương, hành hạ động vật hoặc các hình ảnh gây ám ảnh thị giác.
+* **Không nội dung 18+ và Cấm mọi hình thức lách luật dung tục:** 
+    * Cấm tuyệt đối hình ảnh khỏa thân, bán khỏa thân, tư thế khêu gợi.
+    * **Cấm lách luật bằng kỹ thuật cắt ảnh (crop/zoom):** Nghiêm cấm hành vi cắt xén, phóng to tập trung trực diện khiến bức ảnh mang tính chất dung tục, bất kể bức ảnh gốc có hợp lệ hay không, và bất kể đó là ảnh chụp người thật hay hình vẽ.
+    * **Đối với hình vẽ và nhân vật giả lập:** Cấm mọi hình ảnh có tính chất nhạy cảm. Cấm các hình vẽ có biểu cảm khuôn mặt khêu gợi, trang phục bó sát/xuyên thấu hớ hênh, hoặc các nhân vật có tỷ lệ cơ thể bị cường điệu hóa nhằm mục đích ám chỉ tình dục, ngay cả khi nhân vật không có tư thế rõ ràng hoặc không lộ các bộ phận nhạy cảm.
+* **Không bạo lực/Kinh dị:** Cấm hình ảnh máu me, tai nạn, vũ khí sát thương, hành hạ động vật hoặc các hình ảnh gây ám ảnh thị giác.
 * **An toàn Kỹ thuật & An toàn Thông tin:**
   * Nghiêm cấm sử dụng hình ảnh chứa mã QR, mã vạch để điều hướng người dùng tới các trang web lừa đảo, chứa mã độc.
   * Hạn chế sử dụng ảnh động (GIF). Nghiêm cấm tải lên các ảnh động chớp nháy liên tục, đổi màu tốc độ cao hoặc các ảo ảnh quang học có nguy cơ gây chứng động kinh nhạy cảm với ánh sáng (Photosensitive Epilepsy) cho người xem khác.
