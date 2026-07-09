@@ -3956,7 +3956,9 @@ Object.assign(window.app, {
                                     }
                                 }
                                 sessionStorage.removeItem('VNBA_SESS_AUTH');
-                                const banReason = banInfo.reason || 'Tài khoản hoặc địa chỉ IP của bạn nằm trong danh sách hạn chế truy cập.';
+                                const accName = profile.username || user.email || 'của bạn';
+                                const reasonText = banInfo.reason || 'Vi phạm quy định của VNBUSARCHIVE';
+                                const banReason = `Tài khoản <b>${accName}</b> đã bị cấm với lí do: <b>${reasonText}</b>`;
                                 document.body.innerHTML = `
                                     <div style="background-color: #f4f4f5; color: #09090b; width: 100vw; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; text-align: center; padding: 24px; box-sizing: border-box; user-select: none;">
                                         <div style="margin-bottom: 32px; display: flex; align-items: center; justify-content: center; gap: 8px;">
