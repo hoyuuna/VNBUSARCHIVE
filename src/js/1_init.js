@@ -3889,8 +3889,8 @@ Object.assign(window.app, {
                     if (filterType === 'route') {
                         const prefix = prefixToUrl;
                         if (prefix) {
-                            let provName = null;
-                            if (app.utils.provinceData) {
+                            let provName = app.search?.currentExactProvName || null;
+                            if (!provName && app.utils.provinceData) {
                                 const prov = app.utils.provinceData.find(p => {
                                     const k = Array.isArray(p.ky_hieu) ? p.ky_hieu : p.ky_hieu.split(',');
                                     return k.map(s => s.trim()).includes(prefix);

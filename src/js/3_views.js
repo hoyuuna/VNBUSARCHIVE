@@ -2136,23 +2136,32 @@ Object.assign(window.app, {
 
                 setExactRoute: (prefix, name = 'Toàn quốc') => {
                     app.search.currentExactPrefix = prefix;
+                    app.search.currentExactProvName = prefix ? name : null;
                     document.getElementById('exact-route-page-menu')?.classList.remove('active');
-                    app.search.syncExactUI(prefix);
+                    app.search.syncExactUI(prefix, prefix ? name : null);
                     
                     if (window.location.pathname.includes('/search')) {
                         app.handleSearch(true);
                     }
                 },
 
-                syncExactUI: (prefix) => {
+                syncExactUI: (prefix, explicitName = null) => {
                     app.search.currentExactPrefix = prefix || '';
                     let provName = 'Toàn quốc'; // Mặc định là Toàn quốc
-                    if (prefix && app.utils.provinceData) {
+                    if (explicitName && explicitName !== 'Toàn quốc') {
+                        provName = explicitName;
+                        app.search.currentExactProvName = explicitName;
+                    } else if (prefix && app.utils.provinceData) {
                         const prov = app.utils.provinceData.find(p => {
                             const k = Array.isArray(p.ky_hieu) ? p.ky_hieu : p.ky_hieu.split(',');
                             return k.map(s => s.trim()).includes(prefix);
                         });
-                        if (prov) provName = prov.ten;
+                        if (prov) {
+                            provName = prov.ten;
+                            app.search.currentExactProvName = prov.ten;
+                        }
+                    } else {
+                        app.search.currentExactProvName = null;
                     }
                     
                     const pgLabel = document.getElementById('exact-route-page-label');

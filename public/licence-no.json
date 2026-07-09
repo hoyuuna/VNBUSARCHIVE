@@ -17,7 +17,7 @@
     },
     {
       "ten": "Cần Thơ",
-      "ky_hieu": ["65", "83", "95"]
+      "ky_hieu": ["65"]
     },
     {
       "ten": "Huế",
@@ -101,11 +101,11 @@
     },
     {
       "ten": "An Giang",
-      "ky_hieu": ["67", "68"]
+      "ky_hieu": ["67"]
     },
     {
       "ten": "Cà Mau",
-      "ky_hieu": ["69", "94"]
+      "ky_hieu": ["69"]
     },
     {
       "ten": "Tây Ninh",
@@ -117,7 +117,7 @@
     },
     {
       "ten": "Bạc Liêu",
-      "ky_hieu": ["95"]
+      "ky_hieu": ["94"]
     },
     {
       "ten": "Sóc Trăng",
