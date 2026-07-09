@@ -1851,21 +1851,26 @@ cleanupState: () => {
                     }
 
                     let dbRoutes = [];
-                    if (query.length > 0) {
-                        try {
+                    const selectedProv = document.getElementById('up-province')?.value || document.getElementById('info-province')?.value || null;
+
+                    try {
+                        let rQuery = window.sb.from('photos').select('route_no').eq('status', 'approved');
+
+                        if (currentType) rQuery = rQuery.eq('type', currentType);
+                        if (selectedProv && selectedProv !== 'Không xác định') {
+                            rQuery = rQuery.eq('province', selectedProv);
+                        }
+
+                        if (query.trim().length > 0) {
                             const routeWords = query.trim().split(/\s+/).filter(w => w.length > 0);
-                            // BẮT BUỘC STATUS = APPROVED
-                            let rQuery = window.sb.from('photos').select('route_no').eq('status', 'approved');
-
-                            if (currentType) rQuery = rQuery.eq('type', currentType);
-
                             routeWords.forEach(word => { rQuery = rQuery.ilike('route_no', `%${word}%`); });
-                            const { data } = await rQuery.limit(10);
-                            if (data) {
-                                dbRoutes = data.map(item => item.route_no).filter(Boolean);
-                            }
-                        } catch (e) { console.log("Route suggestion error:", e.message); }
-                    }
+                        }
+
+                        const { data } = await rQuery.limit(30);
+                        if (data) {
+                            dbRoutes = data.map(item => item.route_no).filter(Boolean);
+                        }
+                    } catch (e) { console.log("Route suggestion error:", e.message); }
 
 
                     const allRoutes = [...new Set([...staticList, ...dbRoutes])];
@@ -1956,16 +1961,10 @@ cleanupState: () => {
                                 sbQuery = sbQuery.eq('type', currentType);
                             }
 
-                            // Bổ sung: Lọc theo Tỉnh thay vì chỉ BKS
-                            const selectedProv = document.getElementById('up-province')?.value || (plateVal ? app.utils.getProvinceFromPlate(plateVal) : null);
+                            // Lọc chính xác theo Tuyến của tỉnh (không trộn với BKS khi đã chọn Tuyến của tỉnh)
+                            const selectedProv = document.getElementById('up-province')?.value || null;
                             if (selectedProv && selectedProv !== 'Không xác định') {
-                                if (plateVal && plateVal.length >= 2 && !isNaN(plateVal.substring(0, 2))) {
-                                    const relatedPrefixes = app.utils.getRelatedPrefixes(plateVal.substring(0, 2));
-                                    const prefixOrCond = relatedPrefixes.map(p => `license_plate.ilike.${p}%`).join(',');
-                                    sbQuery = sbQuery.or(`province.eq.${selectedProv},${prefixOrCond}`);
-                                } else {
-                                    sbQuery = sbQuery.eq('province', selectedProv);
-                                }
+                                sbQuery = sbQuery.eq('province', selectedProv);
                             } else if (plateVal && plateVal.length >= 2) {
                                 const prefix = plateVal.substring(0, 2);
                                 if (!isNaN(prefix)) {
@@ -2009,6 +2008,13 @@ cleanupState: () => {
                                     sbQuery = sbQuery.eq('type', currentType);
                                 } else if (table === 'vehicles') {
                                     sbQuery = sbQuery.eq('photos.type', currentType);
+                                }
+                            }
+
+                            if (table === 'photos') {
+                                const selectedProv = document.getElementById('up-province')?.value || null;
+                                if (selectedProv && selectedProv !== 'Không xác định') {
+                                    sbQuery = sbQuery.eq('province', selectedProv);
                                 }
                             }
 
