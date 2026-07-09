@@ -1182,6 +1182,20 @@ cleanupState: () => {
                     }
                     return [prefix];
                 },
+                matchProvinceName: (rawText) => {
+                    if (!rawText || !app.utils.provinceData || !app.utils.provinceData.length) return null;
+                    const clean = rawText
+                        .replace(/^(Tỉnh|Thành phố|TP\.?)\s+/i, '')
+                        .replace(/\s+(Province|City)$/i, '')
+                        .trim().toLowerCase();
+                    const found = app.utils.provinceData.find(p => {
+                        const pName = p.ten.toLowerCase()
+                            .replace(/^(tp\.?\s*)/i, '')
+                            .replace(/^(tỉnh\s*)/i, '').trim();
+                        return clean.includes(pName) || pName.includes(clean);
+                    });
+                    return found ? found.ten : null;
+                },
                 formatCompact: (num) => {
                     if (!num && num !== 0) return '0';
                     num = parseInt(num);
@@ -1766,6 +1780,12 @@ cleanupState: () => {
                         const city = addr.city || addr.town || addr.village || addr.state || '';
                         const road = addr.road || '';
                         const suburb = addr.suburb || addr.quarter || '';
+
+                        const rawProv = addr.state || addr.city || '';
+                        const matchedProv = app.utils.matchProvinceName(rawProv);
+                        if (matchedProv && app.upload && app.upload.selectProvince) {
+                            app.upload.selectProvince(matchedProv);
+                        }
 
                         let result = [road, suburb, city].filter(Boolean).join(', ');
                         return result.replace(', Việt Nam', '');

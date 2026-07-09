@@ -10,7 +10,7 @@ Object.assign(window.app, {
                  isQueueProcessing: false,
                  activeProgressToast: null,
 
-                 selectProvince: (provName) => {
+                 selectProvince: (provName, el) => {
                      const hiddenInput = document.getElementById('up-province');
                      const labelEl = document.getElementById('up-province-label');
                      const menuEl = document.getElementById('up-province-menu');
@@ -19,11 +19,20 @@ Object.assign(window.app, {
                          labelEl.innerText = provName || '-- Chọn Tỉnh / Thành phố --';
                          if (provName) {
                              labelEl.classList.remove('text-gray-400');
-                             labelEl.classList.add('text-gray-700');
+                             labelEl.classList.add('text-black', 'font-bold');
                          } else {
-                             labelEl.classList.remove('text-gray-700');
+                             labelEl.classList.remove('text-black', 'font-bold');
                              labelEl.classList.add('text-gray-400');
                          }
+                     }
+                     document.querySelectorAll('#up-province-menu .filter-item').forEach(item => {
+                         item.classList.remove('selected');
+                     });
+                     if (el && el.classList) {
+                         el.classList.add('selected');
+                     } else if (menuEl) {
+                         const target = menuEl.querySelector(`.filter-item[data-prov="${provName || ''}"]`);
+                         if (target) target.classList.add('selected');
                      }
                      if (menuEl) menuEl.classList.remove('active');
                      if (app.upload.saveDraft) app.upload.saveDraft();
@@ -32,11 +41,11 @@ Object.assign(window.app, {
                  initProvinceMenu: () => {
                      const menuEl = document.getElementById('up-province-menu');
                      if (!menuEl || !app.utils.provinceData) return;
-                     const itemsHtml = `<div class="filter-item" onclick="app.upload.selectProvince('')">
-                         <span class="font-bold text-gray-400">-- Không xác định --</span>
+                     const itemsHtml = `<div class="filter-item selected" data-prov="" onclick="app.upload.selectProvince('', this)">
+                         <span>-- Không xác định --</span>
                      </div>` + app.utils.provinceData.map(p => {
-                         return `<div class="filter-item" onclick="app.upload.selectProvince('${p.ten}')">
-                             <span class="font-bold text-gray-700">${p.ten}</span>
+                         return `<div class="filter-item" data-prov="${p.ten}" onclick="app.upload.selectProvince('${p.ten}', this)">
+                             <span>${p.ten}</span>
                          </div>`;
                      }).join('');
                      menuEl.innerHTML = itemsHtml;
