@@ -1810,7 +1810,7 @@ Object.assign(window.app, {
 
                         while (fetchMore) {
                             const { data, error } = await window.sb.from('photos')
-                                .select('views, license_plate, route_no, vehicles(model)')
+                                .select('views, license_plate, route_no, province, vehicles(model)')
                                 .eq('status', 'approved')
                                 .ilike('operator', operatorName)
                                 .order('taken_at', { ascending: false, nullsFirst: false }) // Ép ảnh mới nhất lên đầu
