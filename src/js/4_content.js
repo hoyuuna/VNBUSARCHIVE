@@ -10,6 +10,38 @@ Object.assign(window.app, {
                  isQueueProcessing: false,
                  activeProgressToast: null,
 
+                 selectProvince: (provName) => {
+                     const hiddenInput = document.getElementById('up-province');
+                     const labelEl = document.getElementById('up-province-label');
+                     const menuEl = document.getElementById('up-province-menu');
+                     if (hiddenInput) hiddenInput.value = provName || '';
+                     if (labelEl) {
+                         labelEl.innerText = provName || '-- Chọn Tỉnh / Thành phố --';
+                         if (provName) {
+                             labelEl.classList.remove('text-gray-400');
+                             labelEl.classList.add('text-gray-700');
+                         } else {
+                             labelEl.classList.remove('text-gray-700');
+                             labelEl.classList.add('text-gray-400');
+                         }
+                     }
+                     if (menuEl) menuEl.classList.remove('active');
+                     if (app.upload.saveDraft) app.upload.saveDraft();
+                 },
+
+                 initProvinceMenu: () => {
+                     const menuEl = document.getElementById('up-province-menu');
+                     if (!menuEl || !app.utils.provinceData) return;
+                     const itemsHtml = `<div class="filter-item" onclick="app.upload.selectProvince('')">
+                         <span class="font-bold text-gray-400">-- Không xác định --</span>
+                     </div>` + app.utils.provinceData.map(p => {
+                         return `<div class="filter-item" onclick="app.upload.selectProvince('${p.ten}')">
+                             <span class="font-bold text-gray-700">${p.ten}</span>
+                         </div>`;
+                     }).join('');
+                     menuEl.innerHTML = itemsHtml;
+                 },
+
                  saveDraft: () => {
                      const plate = document.getElementById('up-plate')?.value || '';
                      const operator = document.getElementById('up-operator')?.value || '';
@@ -26,6 +58,7 @@ Object.assign(window.app, {
                          plate: plate, type: document.getElementById('up-type')?.value || '',
                          route: route, operator: operator, model: model,
                          location: document.getElementById('up-location')?.value || '',
+                         province: document.getElementById('up-province')?.value || '',
                          date: document.getElementById('up-date')?.value || '', note: note
                      };
                      localStorage.setItem('vnbus_upload_draft', JSON.stringify(draft));
@@ -55,6 +88,7 @@ Object.assign(window.app, {
                          if(draft.operator) document.getElementById('up-operator').value = draft.operator;
                          if(draft.model) document.getElementById('up-model').value = draft.model;
                          if(draft.location) document.getElementById('up-location').value = draft.location;
+                         if(draft.province && app.upload.selectProvince) app.upload.selectProvince(draft.province);
                          if(draft.date) document.getElementById('up-date').value = draft.date;
                          if(draft.note) document.getElementById('up-note').value = draft.note;
                          
@@ -525,6 +559,14 @@ Object.assign(window.app, {
                         const routeInput = document.getElementById('up-route');
                         if (routeInput && (!routeInput.value || /^[A-Z]{3}$/.test(routeInput.value))) {
                             routeInput.value = airportMatch[1];
+                        }
+                    }
+
+                    const provInput = document.getElementById('up-province');
+                    if (provInput && !provInput.value && app.upload && app.upload.selectProvince) {
+                        const autoProv = app.utils.getProvinceFromPlate(rawPlate);
+                        if (autoProv && autoProv !== 'Không xác định') {
+                            app.upload.selectProvince(autoProv);
                         }
                     }
 
@@ -1618,6 +1660,7 @@ Object.assign(window.app, {
                         uploadData.append('meta_route', app.utils.fixUnicode(valRoute));
                         uploadData.append('meta_model', app.utils.fixUnicode(valModel));
                         uploadData.append('meta_location', app.utils.fixUnicode(valLoc));
+                        uploadData.append('meta_province', app.utils.fixUnicode(document.getElementById('up-province')?.value || ''));
                         uploadData.append('meta_note', app.utils.fixUnicode(document.getElementById('up-note').value));
                         uploadData.append('meta_taken_at', valDate);
                         uploadData.append('meta_username', username);
@@ -3128,6 +3171,7 @@ Object.assign(window.app, {
                         route: document.getElementById('info-route').value,
                         model: document.getElementById('info-model').value,
                         location: document.getElementById('info-location').value,
+                        province: document.getElementById('info-province')?.value || null,
                         note: document.getElementById('info-note').value,
                         taken_at: document.getElementById('info-date').value
                     };
@@ -3217,6 +3261,7 @@ Object.assign(window.app, {
                             const { error: pError } = await window.sb.from('photos').update({
                                 license_plate: payload.license_plate,
                                 location: payload.location,
+                                province: payload.province,
                                 note: payload.note,
                                 operator: payload.operator,
                                 type: payload.type,
@@ -3261,6 +3306,7 @@ Object.assign(window.app, {
 
                             app.currentPhoto.license_plate = payload.license_plate;
                             app.currentPhoto.location = payload.location;
+                            app.currentPhoto.province = payload.province;
                             app.currentPhoto.note = payload.note;
                             app.currentPhoto.operator = payload.operator;
                             app.currentPhoto.type = payload.type;

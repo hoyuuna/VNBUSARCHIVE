@@ -1112,6 +1112,7 @@ cleanupState: () => {
                             }
                         });
                         app.upload.removeImage();
+                        if (app.upload && app.upload.selectProvince) app.upload.selectProvince('');
                         document.getElementById('locked-msg')?.classList.add('hidden');
                         app.vehicleLocked = false;
                         document.getElementById('plate-msg').innerText = '';
@@ -1133,10 +1134,14 @@ cleanupState: () => {
                     if(app.settings && app.settings.close) app.settings.close();
 
                     // Đóng Zoom Modal nếu đang mở (Xử lý lỗi bấm Back khi đang soi ảnh)
-                    const zoomModal = document.getElementById('admin-zoom-modal');
+                    const zoomModal = document.getElementById('image-zoom-modal');
                     if (zoomModal && !zoomModal.classList.contains('hidden')) {
-                        app.admin.closeZoom();
+                        zoomModal.classList.add('hidden');
+                        document.body.style.overflow = '';
                     }
+
+                    // Reset menu tài khoản
+                    app.ui.closeUserDropdown();
 
                     document.getElementById('search-filter-menu')?.classList.remove('active');
                     app.ui.toggleUserMenu(false);
@@ -1153,6 +1158,8 @@ cleanupState: () => {
                         const res = await fetch('/licence-no.json');
                         if (res.ok) {
                             app.utils.provinceData = await res.json();
+                            if (app.upload && app.upload.initProvinceMenu) app.upload.initProvinceMenu();
+                            if (app.views && app.views.initInfoProvinceSelect) app.views.initInfoProvinceSelect();
                         }
                     } catch (e) { console.warn("Không thể tải licence-no.json", e); }
                 },
@@ -1928,14 +1935,21 @@ cleanupState: () => {
                                 sbQuery = sbQuery.eq('type', currentType);
                             }
 
-                            // Bổ sung: Lọc âm thầm theo Tỉnh (Cụm biển số)
-                            if (plateVal && plateVal.length >= 2) {
+                            // Bổ sung: Lọc theo Tỉnh thay vì chỉ BKS
+                            const selectedProv = document.getElementById('up-province')?.value || (plateVal ? app.utils.getProvinceFromPlate(plateVal) : null);
+                            if (selectedProv && selectedProv !== 'Không xác định') {
+                                if (plateVal && plateVal.length >= 2 && !isNaN(plateVal.substring(0, 2))) {
+                                    const relatedPrefixes = app.utils.getRelatedPrefixes(plateVal.substring(0, 2));
+                                    const prefixOrCond = relatedPrefixes.map(p => `license_plate.ilike.${p}%`).join(',');
+                                    sbQuery = sbQuery.or(`province.eq.${selectedProv},${prefixOrCond}`);
+                                } else {
+                                    sbQuery = sbQuery.eq('province', selectedProv);
+                                }
+                            } else if (plateVal && plateVal.length >= 2) {
                                 const prefix = plateVal.substring(0, 2);
-                                // Chỉ xét nếu 2 ký tự đầu là số (bỏ qua các biển đặc biệt như T1, HAN...)
                                 if (!isNaN(prefix)) {
                                     const relatedPrefixes = app.utils.getRelatedPrefixes(prefix);
                                     if (relatedPrefixes && relatedPrefixes.length > 0) {
-                                        // Tạo chuỗi điều kiện OR cho tất cả đầu biển cùng tỉnh
                                         const prefixOrCond = relatedPrefixes.map(p => `license_plate.ilike.${p}%`).join(',');
                                         sbQuery = sbQuery.or(prefixOrCond);
                                     }
@@ -3842,10 +3856,21 @@ Object.assign(window.app, {
                     if (filterType === 'route') {
                         const prefix = prefixToUrl;
                         if (prefix) {
-                            // GIAI ĐOẠN 1: BẬT TÌM KIẾM CHÍNH XÁC (Giống absolute_route cũ)
+                            let provName = null;
+                            if (app.utils.provinceData) {
+                                const prov = app.utils.provinceData.find(p => {
+                                    const k = Array.isArray(p.ky_hieu) ? p.ky_hieu : p.ky_hieu.split(',');
+                                    return k.map(s => s.trim()).includes(prefix);
+                                });
+                                if (prov) provName = prov.ten;
+                            }
                             const relatedPrefixes = app.utils.getRelatedPrefixes(prefix);
                             const prefixOrCond = relatedPrefixes.map(p => `license_plate.ilike.${p}%`).join(',');
-                            photoQuery = photoQuery.eq('route_no', query).or(prefixOrCond);
+                            if (provName) {
+                                photoQuery = photoQuery.eq('route_no', query).or(`province.eq.${provName},${prefixOrCond}`);
+                            } else {
+                                photoQuery = photoQuery.eq('route_no', query).or(prefixOrCond);
+                            }
                         } else {
                             // GIAI ĐOẠN 2: TÌM KIẾM THEO CHỮ (TẮT)
                             searchWords.forEach(w => { photoQuery = photoQuery.ilike('route_no', `%${w}%`); });

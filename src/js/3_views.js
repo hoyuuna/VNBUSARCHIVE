@@ -1144,6 +1144,7 @@ Object.assign(window.app, {
                     const elInfoModel = document.getElementById('info-model');
                     const elInfoType = document.getElementById('info-type');
                     const elInfoLocation = document.getElementById('info-location');
+                    const elInfoProvince = document.getElementById('info-province');
                     const elInfoNote = document.getElementById('info-note');
                     const elInfoDate = document.getElementById('info-date');
                     const elInfoCamera = document.getElementById('info-camera');
@@ -1157,6 +1158,7 @@ Object.assign(window.app, {
                     if (lblDetailRoute) lblDetailRoute.innerText = snapshot.type === 'coach' ? 'Lộ trình' : 'Mã số tuyến';
                     if (elInfoModel) elInfoModel.value = snapshot.model || 'Đã bị xóa';
                     if (elInfoLocation) elInfoLocation.value = photo.location || '---';
+                    if (elInfoProvince) elInfoProvince.value = photo.province || '';
                     if (elInfoNote) elInfoNote.value = photo.note || '---';
 
                     const displayDate = photo.taken_at || photo.created_at;
@@ -2057,6 +2059,13 @@ Object.assign(window.app, {
                     } else {
                         document.getElementById('model-load-more-container').classList.remove('hidden');
                     }
+                },
+
+                initInfoProvinceSelect: () => {
+                    const el = document.getElementById('info-province');
+                    if (!el || !app.utils.provinceData) return;
+                    el.innerHTML = `<option value="">-- Không xác định --</option>` +
+                        app.utils.provinceData.map(p => `<option value="${p.ten}">${p.ten}</option>`).join('');
                 }
                 // --- KẾT THÚC LOGIC PROFILE ĐƠN VỊ ---
 

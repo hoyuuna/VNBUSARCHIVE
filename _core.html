@@ -3296,6 +3296,14 @@
                                             </td>
                                         </tr>
                                         <tr>
+                                            <td class="label bg-gray-50 border-r border-b border-gray-200">Tỉnh / Thành phố</td>
+                                            <td class="value-cell border-b border-gray-200">
+                                                <select id="info-province" class="info-input text-gray-700" disabled>
+                                                    <option value="">-- Không xác định --</option>
+                                                </select>
+                                            </td>
+                                        </tr>
+                                        <tr>
                                             <td class="label bg-gray-50 border-r border-gray-200">Ghi chú ảnh</td>
                                             <td class="value-cell">
                                                 <textarea id="info-note" rows="3" class="info-input text-gray-700 w-full resize-y min-h-[40px] block" readonly></textarea>
@@ -4254,6 +4262,16 @@
                                         class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition">
                                     <p id="err-up-location" class="upload-req-err hidden text-[11px] mt-1 text-red-600 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Vui lòng nhập Vị trí chụp</p>
                                     <div id="upload-map" class="mt-2 border border-gray-300 rounded-md"></div>
+                                </div>
+                                <div class="relative">
+                                    <label class="text-xs text-gray-500 font-bold block mb-1.5 uppercase">Tỉnh / Thành phố chụp</label>
+                                    <input type="hidden" id="up-province" value="">
+                                    <button type="button" id="up-province-btn" onclick="document.getElementById('up-province-menu').classList.toggle('active')" class="w-full flex items-center justify-between bg-white border border-gray-300 hover:border-black hover:bg-gray-50 rounded-md p-2.5 text-sm font-medium text-gray-700 transition-all shadow-sm focus:ring-2 focus:ring-black outline-none">
+                                        <span id="up-province-label" class="truncate pr-4 text-gray-400">-- Chọn Tỉnh / Thành phố --</span>
+                                        <i class="fa-solid fa-chevron-down text-gray-400 shrink-0"></i>
+                                    </button>
+                                    <div id="up-province-menu" class="filter-menu left-0 right-0 origin-top mt-1 !max-h-[220px] !z-[999] overflow-y-auto" style="width: 100% !important;">
+                                    </div>
                                 </div>
                                 <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-5">
                                     <div>
