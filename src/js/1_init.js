@@ -2052,8 +2052,9 @@ cleanupState: () => {
                         app.topUploaders = {};
                         if (sorted.length > 0) app.topUploaders[sorted[0][0]] = 1;
                         if (sorted.length > 1) app.topUploaders[sorted[1][0]] = 2;
-                        if (sorted.length > 2) app.topUploaders[sorted[2][0]] = 3;
                     } catch (e) { console.log("Lỗi tải Top:", e); }
+                },
+
                 formatProfileDisplay: (profile) => {
                     if (!profile) return { username: 'Ẩn danh', avatar: DEFAULT_AVATAR, isBanned: false, id: '', linkId: '' };
                     let banInfo = null;
