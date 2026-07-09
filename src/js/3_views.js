@@ -2212,7 +2212,7 @@ Object.assign(window.app, {
                                 if (table === 'vehicles') {
                                     selectStr = `${col}, photos!inner(status${app.preference.current !== 'both' ? ', type' : ''})`;
                                 }
-                                if (table === 'photos' && col === 'route_no') selectStr = 'route_no, license_plate';
+                                if (table === 'photos' && col === 'route_no') selectStr = 'route_no, province, license_plate';
 
                                 let sbQuery = window.sb.from(table).select(selectStr);
                                 if (table === 'photos') {
@@ -2236,8 +2236,8 @@ Object.assign(window.app, {
                                         data.forEach(item => {
                                             const r = item.route_no;
                                             if (!r) return;
-                                            let prov = '';
-                                            if (item.license_plate) {
+                                            let prov = item.province || '';
+                                            if (!prov && item.license_plate) {
                                                 const extractedProv = app.utils.getProvinceFromPlate(item.license_plate);
                                                 if (extractedProv && extractedProv !== 'Không xác định' && extractedProv !== 'Biển tạm') prov = extractedProv;
                                             }
