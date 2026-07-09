@@ -253,7 +253,8 @@
                         let banReason = data.reason || 'Tài khoản hoặc địa chỉ IP của bạn nằm trong danh sách hạn chế truy cập.';
                         if (data.banned && data.name) {
                             const reasonText = data.reason || 'Vi phạm quy định của VNBUSARCHIVE';
-                            banReason = `Tài khoản <b>${data.name}</b> đã bị cấm với lí do: <b>${reasonText}</b>`;
+                            const uuidStr = data.uuid ? ` (<code>${data.uuid}</code>)` : '';
+                            banReason = `Tài khoản <b>${data.name}</b>${uuidStr} đã bị cấm với lí do: <b>${reasonText}</b>`;
                         }
                         renderModernStatusScreen({
                             title: 'TRUY CẬP ĐÃ BỊ HẠN CHẾ',
