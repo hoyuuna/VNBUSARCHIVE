@@ -826,7 +826,8 @@ closeCustomRolePrompt: () => {
                         menu.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
                         menu.classList.add('opacity-0', '-translate-y-4', 'pointer-events-none');
                     }
-                }
+                },
+                closeUserDropdown: () => app.ui.toggleUserMenu(false)
             }
 });
 
