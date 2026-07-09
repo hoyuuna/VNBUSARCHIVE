@@ -188,7 +188,7 @@
                 const headers = { 'Content-Type': 'application/json' };
                 if (token) headers['Authorization'] = `Bearer ${token}`;
 
-                const response = await fetch('/api/system', { method: 'POST', headers: headers, body: JSON.stringify({ action: 'core' }) });
+                const response = await fetch('/api/system', { method: 'POST', headers: headers, body: JSON.stringify({ action: 'core', token: token || null }) });
                 
                 function renderModernStatusScreen({ title, label, reason, contactSuffix, iconSvg }) {
                     clearInterval(_pInt);

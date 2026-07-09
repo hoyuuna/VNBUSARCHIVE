@@ -62,7 +62,7 @@ async function handleGetCore(request, env) {
                     const isIpBanned = bannedProfiles.some(p => {
                         if (!p.ban_status) return false;
                         const b = typeof p.ban_status === 'string' ? JSON.parse(p.ban_status) : p.ban_status;
-                        if (b && b.banned) {
+                        if (b && (b.banned === true || b.banned === 'true')) {
                             if (b.reason) foundReason = b.reason;
                             return true;
                         }
@@ -76,9 +76,19 @@ async function handleGetCore(request, env) {
             } catch (e) {}
         }
 
+        let token = null;
         const authHeader = request.headers.get('authorization');
-        if (authHeader && authHeader.startsWith('Bearer ') && supabaseAdmin) {
-            const token = authHeader.replace('Bearer ', '');
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            token = authHeader.replace('Bearer ', '').trim();
+        } else {
+            try {
+                const clone = request.clone();
+                const bodyJson = await clone.json();
+                if (bodyJson && bodyJson.token) token = String(bodyJson.token).trim();
+            } catch (e) {}
+        }
+
+        if (token && supabaseAdmin) {
             const { data: { user }, error: userErr } = await supabaseAdmin.auth.getUser(token);
             
             if (!userErr && user) {
@@ -98,7 +108,7 @@ async function handleGetCore(request, env) {
                 if (profile && profile.ban_status) {
                     try {
                         const banInfo = typeof profile.ban_status === 'string' ? JSON.parse(profile.ban_status) : profile.ban_status;
-                        if (banInfo && banInfo.banned) {
+                        if (banInfo && (banInfo.banned === true || banInfo.banned === 'true')) {
                             if (clientIp) {
                                 const knownIps = Array.isArray(profile.known_ips) ? profile.known_ips : [];
                                 if (!knownIps.includes(clientIp)) {
