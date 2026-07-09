@@ -1668,12 +1668,6 @@ Object.assign(window.app, {
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    <td class="label bg-gray-50 border-r border-b border-gray-200">Đăng ký tại</td>
-                                                    <td class="value-cell border-b border-gray-200">
-                                                        <input type="text" value="${app.utils.getProvinceFromPlate(vehicle.license_plate)}" class="info-input text-gray-700 cursor-not-allowed" readonly>
-                                                    </td>
-                                                </tr>
-                                                <tr>
                                                     <td class="label bg-gray-50 border-r border-gray-200">Ghi chú chung xe</td>
                                                     <td class="value-cell">
                                                         <textarea id="vehicle-edit-note" rows="3" class="info-input text-gray-700 w-full resize-y min-h-[40px] block cursor-not-allowed" readonly>${app.utils.escapeAttr(vehicle.note || '')}</textarea>

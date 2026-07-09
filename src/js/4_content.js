@@ -14,12 +14,19 @@ Object.assign(window.app, {
                      const hiddenInput = document.getElementById('up-province');
                      const labelEl = document.getElementById('up-province-label');
                      const menuEl = document.getElementById('up-province-menu');
+                     const provBtn = document.getElementById('up-province-btn');
+                     const provErr = document.getElementById('err-up-province');
                      if (hiddenInput) hiddenInput.value = provName || '';
                      if (labelEl) {
-                         labelEl.innerText = provName || '-- Chọn Tỉnh / Thành phố --';
+                         labelEl.innerText = provName || '-- Chọn Tuyến của tỉnh --';
                          if (provName) {
                              labelEl.classList.remove('text-gray-400');
                              labelEl.classList.add('text-black');
+                             if (provBtn) {
+                                 provBtn.classList.remove('border-red-500', 'focus:ring-red-500');
+                                 provBtn.classList.add('border-gray-300', 'focus:ring-black');
+                             }
+                             if (provErr) provErr.classList.add('hidden');
                          } else {
                              labelEl.classList.remove('text-black');
                              labelEl.classList.add('text-gray-400');
@@ -1557,6 +1564,15 @@ Object.assign(window.app, {
                     const valModel = document.getElementById('up-model').value.trim();
                     const valLoc = document.getElementById('up-location').value.trim();
                     const valDate = document.getElementById('up-date').value;
+                    let valProvince = document.getElementById('up-province').value.trim();
+
+                    if (!valProvince && valPlate) {
+                        const autoProv = app.utils.getProvinceFromPlate(valPlate);
+                        if (autoProv && autoProv !== 'Không xác định') {
+                            app.upload.selectProvince(autoProv);
+                            valProvince = autoProv;
+                        }
+                    }
 
                     let missingFields = [];
                     if (!valType) missingFields.push("Loại xe (Xe Buýt/Khách)");
@@ -1566,6 +1582,7 @@ Object.assign(window.app, {
                     if (!valOp) missingFields.push("Đơn vị vận hành");
                     if (!valModel) missingFields.push("Dòng xe (Model)");
                     if (!valLoc) missingFields.push("Vị trí chụp");
+                    if (!valProvince) missingFields.push("Tuyến của tỉnh");
 
                     if (missingFields.length > 0) {
                         app.upload.triggerEmptyWarnings();
@@ -1740,6 +1757,21 @@ Object.assign(window.app, {
                             }
                         }
                     });
+
+                    const provVal = document.getElementById('up-province')?.value.trim();
+                    const provBtn = document.getElementById('up-province-btn');
+                    const provErr = document.getElementById('err-up-province');
+                    if (provBtn && provErr) {
+                        if (!provVal) {
+                            provErr.classList.remove('hidden');
+                            provBtn.classList.remove('border-gray-300', 'focus:ring-black');
+                            provBtn.classList.add('border-red-500', 'focus:ring-red-500');
+                        } else {
+                            provErr.classList.add('hidden');
+                            provBtn.classList.remove('border-red-500', 'focus:ring-red-500');
+                            provBtn.classList.add('border-gray-300', 'focus:ring-black');
+                        }
+                    }
                     
                     const typeMsg = document.getElementById('type-msg');
                     if (typeMsg) {
