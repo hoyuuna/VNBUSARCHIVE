@@ -192,7 +192,7 @@ Object.assign(window.app, {
 
                     let topQuery = window.sb
                         .from('photos')
-                        .select(`*, profiles(id, username, role, subroles), vehicles(model)`)
+                        .select(`*, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                         .eq('status', 'approved')
                         .order('views', { ascending: false, nullsFirst: false })
                         .limit(5);
@@ -210,7 +210,8 @@ Object.assign(window.app, {
                         app.topPhotosCache = topPhotos;
                         const main = topPhotos[0];
                         const safeMainPlate = app.utils.displayPlate(app.utils.cleanText(main.license_plate));
-                        const safeMainUser = app.utils.cleanText(main.profiles?.username);
+                        const mainDisplay = app.utils.formatProfileDisplay(main.profiles);
+                        const safeMainUser = app.utils.cleanText(mainDisplay.username);
                         heroMain.innerHTML = `
                             <img src="${app.utils.getProxiedUrl(main.url, 'main.jpg', 'full')}" onerror="app.utils.fallbackHeroImage(this, 'topPhotosCache', 0)" class="w-full h-[400px] object-cover block hover:scale-105 transition-transform duration-700 relative z-0">
                             <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 pt-12 pointer-events-none z-10">
@@ -239,7 +240,7 @@ Object.assign(window.app, {
                     const grid = document.getElementById('photo-grid');
                     let gridQuery = window.sb
                         .from('photos')
-                        .select(`*, profiles(id, username, role, subroles), vehicles(model)`)
+                        .select(`*, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                         .eq('status', 'approved')
                         .order('created_at', { ascending: false })
                         .range(0, 19);
@@ -426,7 +427,7 @@ Object.assign(window.app, {
                     } else {
                         let moreQuery = window.sb
                             .from('photos')
-                            .select(`*, profiles(id, username, role, subroles), vehicles(model)`)
+                            .select(`*, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                             .eq('status', 'approved')
                             .order('created_at', { ascending: false })
                             .range(start, end);
@@ -455,7 +456,8 @@ Object.assign(window.app, {
                 renderPhotoCard: (p) => {
                     const safePlate = app.utils.displayPlate(app.utils.cleanText(p.license_plate));
                     const safeOp = app.utils.cleanText(p.operator || 'Đã bị xóa');
-                    const safeUser = app.utils.cleanText(p.profiles?.username || 'Ẩn danh');
+                    const uDisplay = app.utils.formatProfileDisplay(p.profiles);
+                    const safeUser = app.utils.cleanText(uDisplay.username);
 
                     // Sử dụng mode 'thumb' để tối ưu kích thước ảnh preview
                     const proxyUrl = app.utils.getProxiedUrl(p.url, `${safePlate}.jpg`, 'thumb');
@@ -1337,7 +1339,8 @@ Object.assign(window.app, {
                         }
 
                         recGrid.innerHTML = finalPhotos.map(p => {
-                            const uploaderName = p.profiles?.username || 'Ẩn danh';
+                            const uDisplay = app.utils.formatProfileDisplay(p.profiles);
+                            const uploaderName = uDisplay.username;
                             const role = p.profiles?.role || 'user';
                             const badgeStr = app.utils.getRoleBadge(role, p.profiles?.subroles);
 
@@ -1467,7 +1470,7 @@ Object.assign(window.app, {
 
                     try {
 
-                        let pQuery = window.sb.from('photos').select(`*, profiles(id, username, role, subroles), vehicles(model)`)
+                        let pQuery = window.sb.from('photos').select(`*, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                                 .eq('license_plate', plate)
                                 .eq('status', 'approved')
                                 .order('taken_at', { ascending: false, nullsFirst: false })
@@ -1996,7 +1999,7 @@ Object.assign(window.app, {
                         }
 
                         // LOAD ẢNH...
-                        let pQuery = window.sb.from('photos').select(`*, profiles(id, username, role, subroles), vehicles(model)`)
+                        let pQuery = window.sb.from('photos').select(`*, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                             .eq('status', 'approved')
                             .ilike('operator', operatorName)
                             .order('taken_at', { ascending: false, nullsFirst: false })
@@ -2712,7 +2715,7 @@ Object.assign(window.app, {
                         document.getElementById('mdl-stat-ops').innerText = app.utils.formatCompact(uniqueOps.size);
                         document.getElementById('mdl-stat-views').innerText = app.utils.formatCompact(totalViews);
 
-                        let pQuery = window.sb.from('photos').select(`*, profiles(id, username, role, subroles), vehicles!inner(model)`)
+                        let pQuery = window.sb.from('photos').select(`*, profiles(id, username, role, subroles, ban_status), vehicles!inner(model)`)
                             .eq('status', 'approved')
                             .eq('vehicles.model', modelName)
                             .order('taken_at', { ascending: false, nullsFirst: false })

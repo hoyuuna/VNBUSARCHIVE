@@ -652,13 +652,13 @@ Object.assign(window.app, {
 
                             const { data: shootersData } = await window.sb
                                 .from('photos')
-                                .select('profiles(username)')
+                                .select('profiles(username, ban_status)')
                                 .eq('license_plate', rawPlate)
                                 .eq('status', 'approved');
 
                             let shootersText = "";
                             if (shootersData && shootersData.length > 0) {
-                                const uniqueUsers = [...new Set(shootersData.map(p => p.profiles?.username).filter(Boolean))];
+                                const uniqueUsers = [...new Set(shootersData.map(p => app.utils.formatProfileDisplay(p.profiles).username).filter(Boolean))];
                                 if (uniqueUsers.length === 1) shootersText = `Xe này cũng đã được chụp bởi <b>${uniqueUsers[0]}</b>.`;
                                 else if (uniqueUsers.length === 2) shootersText = `Xe này cũng đã được chụp bởi <b>${uniqueUsers[0]}</b> và <b>${uniqueUsers[1]}</b>.`;
                                 else if (uniqueUsers.length > 2) shootersText = `Xe này cũng đã được chụp bởi <b>${uniqueUsers[0]}</b>, <b>${uniqueUsers[1]}</b> và <b>${uniqueUsers.length - 2} người khác</b>.`;

@@ -1374,7 +1374,8 @@ cleanupState: () => {
                              const textViews = wrapper.querySelector('.hero-main-views');
                              if (textPlate) {
                                  const safePlate = app.utils.displayPlate(app.utils.cleanText(nextPhoto.license_plate));
-                                 const safeUser = app.utils.cleanText(nextPhoto.profiles?.username || 'Ẩn danh');
+                                 const uDisplay = app.utils.formatProfileDisplay(nextPhoto.profiles);
+                                 const safeUser = app.utils.cleanText(uDisplay.username);
                                  textPlate.innerHTML = `${safePlate} - ${safeUser}`;
                              }
                              if (textViews) {
@@ -3830,7 +3831,7 @@ Object.assign(window.app, {
 
 
                     // ================= TÌM KIẾM ẢNH CHÍNH =================
-                    const profileSelect = (filterType === 'uploader') ? 'profiles!inner(id, username, role, subroles)' : 'profiles(id, username, role, subroles)';
+                    const profileSelect = (filterType === 'uploader') ? 'profiles!inner(id, username, role, subroles, ban_status)' : 'profiles(id, username, role, subroles, ban_status)';
                     let photoQuery = window.sb.from('photos').select(`*, ${profileSelect}, vehicles${filterType === 'model' ? '!inner' : ''}(model)`).eq('status', 'approved');
                     photoQuery = app.preference.applyFilter(photoQuery);
 
