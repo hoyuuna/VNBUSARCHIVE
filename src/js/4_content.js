@@ -19,9 +19,9 @@ Object.assign(window.app, {
                          labelEl.innerText = provName || '-- Chọn Tỉnh / Thành phố --';
                          if (provName) {
                              labelEl.classList.remove('text-gray-400');
-                             labelEl.classList.add('text-black', 'font-bold');
+                             labelEl.classList.add('text-black');
                          } else {
-                             labelEl.classList.remove('text-black', 'font-bold');
+                             labelEl.classList.remove('text-black');
                              labelEl.classList.add('text-gray-400');
                          }
                      }
@@ -42,10 +42,10 @@ Object.assign(window.app, {
                      const menuEl = document.getElementById('up-province-menu');
                      if (!menuEl || !app.utils.provinceData) return;
                      const itemsHtml = `<div class="filter-item selected" data-prov="" onclick="app.upload.selectProvince('', this)">
-                         <span>-- Không xác định --</span>
+                         <span class="font-bold">-- Không xác định --</span>
                      </div>` + app.utils.provinceData.map(p => {
                          return `<div class="filter-item" data-prov="${p.ten}" onclick="app.upload.selectProvince('${p.ten}', this)">
-                             <span>${p.ten}</span>
+                             <span class="font-bold">${p.ten}</span>
                          </div>`;
                      }).join('');
                      menuEl.innerHTML = itemsHtml;
