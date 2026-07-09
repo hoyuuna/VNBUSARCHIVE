@@ -4773,45 +4773,45 @@
     </div>
     <script>
         window.renderModernStatusScreen = function({ title, label, reason, contactSuffix, iconSvg }) {
-            const defaultIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.58 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>';
+            const defaultIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#18181b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.58 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>';
             const targetEl = document.getElementById('loading-screen') || document.body;
             targetEl.innerHTML = `
-                <div style="background-color: #09090b; color: #ffffff; width: 100vw; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; text-align: center; padding: 24px; box-sizing: border-box; user-select: none; position: fixed; inset: 0; z-index: 99999;">
-                    <!-- LOGO VNBUSARCHIVE TIÊU CHUẨN (ẢNH + CHỮ) -->
-                    <div style="margin-bottom: 36px; display: flex; flex-direction: column; align-items: center; gap: 12px;">
-                        <img src="/media/vnba.png" alt="VNBUSARCHIVE" style="height: 48px; width: auto; object-contain; filter: brightness(0) invert(1);">
+                <div style="background-color: #f4f4f5; color: #09090b; width: 100vw; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; text-align: center; padding: 24px; box-sizing: border-box; user-select: none; position: fixed; inset: 0; z-index: 99999;">
+                    <!-- LOGO VNBUSARCHIVE -->
+                    <div style="margin-bottom: 32px; display: flex; flex-direction: column; align-items: center; gap: 12px;">
+                        <img src="/media/vnba.png" alt="VNBUSARCHIVE" style="height: 46px; width: auto; object-contain;">
                     </div>
 
-                    <!-- KHUNG GIAO DIỆN CHUNG TRẮNG ĐEN SANG TRỌNG -->
-                    <div style="max-width: 520px; width: 100%; border: 1px solid #27272a; background: #121214; border-radius: 16px; padding: 36px 28px; box-shadow: 0 20px 50px rgba(0,0,0,0.75); margin-bottom: 28px;">
+                    <!-- KHUNG GIAO DIỆN LIGHT MODE CHUẨN HOYUUI -->
+                    <div style="max-width: 520px; width: 100%; border: 1px solid #e4e4e7; background: #ffffff; border-radius: 16px; padding: 36px 28px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); margin-bottom: 24px;">
                         
                         <!-- ICON NẰM Ở GIỮA -->
-                        <div style="width: 64px; height: 64px; border-radius: 50%; background: #18181b; border: 1px solid #3f3f46; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px auto;">
+                        <div style="width: 64px; height: 64px; border-radius: 50%; background: #f4f4f5; border: 1px solid #e4e4e7; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px auto;">
                             ${iconSvg || defaultIcon}
                         </div>
 
                         <!-- TIÊU ĐỀ VẤN ĐỀ -->
-                        <h2 style="font-size: 1.15rem; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 16px 0; color: #ffffff; text-transform: uppercase;">
+                        <h2 style="font-size: 1.15rem; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 16px 0; color: #09090b; text-transform: uppercase;">
                             ${title || 'KHÔNG THỂ KẾT NỐI ĐẾN MÁY CHỦ'}
                         </h2>
 
                         <!-- CHI TIẾT LÝ DO / LOG WEB -->
-                        <div style="background: #09090b; border: 1px solid #27272a; border-radius: 10px; padding: 14px 18px; margin-bottom: 24px; text-align: left;">
+                        <div style="background: #fafafa; border: 1px solid #e4e4e7; border-radius: 10px; padding: 14px 18px; margin-bottom: 24px; text-align: left;">
                             <div style="font-size: 0.72rem; font-weight: 700; color: #71717a; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;">
                                 ${label || 'THÔNG TIN SỰ CỐ / WEB LOG'}
                             </div>
-                            <div style="font-size: 0.92rem; font-weight: 500; color: #e4e4e7; line-height: 1.6; word-break: break-word;">
+                            <div style="font-size: 0.92rem; font-weight: 500; color: #27272a; line-height: 1.6; word-break: break-word;">
                                 ${reason || 'Máy chủ VNBUSARCHIVE tạm thời không phản hồi hoặc kết nối mạng gặp gián đoạn.'}
                             </div>
                         </div>
 
                         <!-- LIÊN HỆ -->
-                        <p style="font-size: 0.85rem; line-height: 1.65; margin: 0; color: #a1a1aa;">
-                            Vui lòng liên hệ: <a href="mailto:lienhe@vnbusarchive.io.vn" style="color: #ffffff; font-weight: 700; text-decoration: underline; text-underline-offset: 4px;">lienhe@vnbusarchive.io.vn</a> ${contactSuffix || 'nếu sự cố vẫn tiếp diễn! Xin cảm ơn.'}
+                        <p style="font-size: 0.85rem; line-height: 1.65; margin: 0; color: #52525b;">
+                            Vui lòng liên hệ: <a href="mailto:lienhe@vnbusarchive.io.vn" style="color: #09090b; font-weight: 700; text-decoration: underline; text-underline-offset: 4px;">lienhe@vnbusarchive.io.vn</a> ${contactSuffix || 'nếu sự cố vẫn tiếp diễn! Xin cảm ơn.'}
                         </p>
                     </div>
 
-                    <p style="font-size: 0.72rem; letter-spacing: 0.22em; color: #52525b; text-transform: uppercase; font-weight: 600; margin: 0;">VIETNAM BUS ARCHIVE PROJECT</p>
+                    <p style="font-size: 0.72rem; letter-spacing: 0.22em; color: #a1a1aa; text-transform: uppercase; font-weight: 600; margin: 0;">VNBUSARCHIVE Foundation</p>
                 </div>
             `;
         };
