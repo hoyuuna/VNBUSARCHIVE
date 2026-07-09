@@ -48,9 +48,7 @@ Object.assign(window.app, {
                  initProvinceMenu: () => {
                      const menuEl = document.getElementById('up-province-menu');
                      if (!menuEl || !app.utils.provinceData) return;
-                     const itemsHtml = `<div class="filter-item selected" data-prov="" onclick="app.upload.selectProvince('', this)">
-                         <span class="font-bold">-- Không xác định --</span>
-                     </div>` + app.utils.provinceData.map(p => {
+                     const itemsHtml = app.utils.provinceData.map(p => {
                          return `<div class="filter-item" data-prov="${p.ten}" onclick="app.upload.selectProvince('${p.ten}', this)">
                              <span class="font-bold">${p.ten}</span>
                          </div>`;

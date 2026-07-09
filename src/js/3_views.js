@@ -2073,7 +2073,7 @@ Object.assign(window.app, {
                 initInfoProvinceSelect: () => {
                     const el = document.getElementById('info-province');
                     if (!el || !app.utils.provinceData) return;
-                    el.innerHTML = `<option value="">-- Không xác định --</option>` +
+                    el.innerHTML = `<option value="" disabled>-- Chọn Tuyến của tỉnh --</option>` +
                         app.utils.provinceData.map(p => `<option value="${p.ten}">${p.ten}</option>`).join('');
                 }
                 // --- KẾT THÚC LOGIC PROFILE ĐƠN VỊ ---
