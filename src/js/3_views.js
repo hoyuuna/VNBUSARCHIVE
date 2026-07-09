@@ -1898,12 +1898,14 @@ Object.assign(window.app, {
                         
                         // Tìm clean route_no gần nhất cho mỗi xe (dựa trên ảnh duyệt)
                         const latestCleanRouteMap = new Map();
+                        const latestProvMap = new Map();
                         const sortedPhotos = [...allStatsData].sort((a,b) => new Date(b.taken_at || b.created_at || 0) - new Date(a.taken_at || a.created_at || 0));
                         sortedPhotos.forEach(p => {
                             if (p.license_plate && p.route_no && p.route_no !== '---') {
                                 const pl = p.license_plate.toUpperCase();
                                 if (!latestCleanRouteMap.has(pl)) {
                                     latestCleanRouteMap.set(pl, p.route_no.trim());
+                                    latestProvMap.set(pl, p.province || '');
                                 }
                             }
                         });
@@ -1923,12 +1925,17 @@ Object.assign(window.app, {
 
                             if (!isInactive) {
                                 const cleanRoute = latestCleanRouteMap.get(pl);
+                                let dbProv = latestProvMap.get(pl);
                                 if (cleanRoute && cleanRoute !== '---' && !specialRoutes.includes(cleanRoute)) {
                                     
-                                    const extractedProv = app.utils.getProvinceFromPlate(pl);
                                     let prov = '';
-                                    if (extractedProv && extractedProv !== 'Không xác định' && extractedProv !== 'Biển tạm') {
-                                        prov = extractedProv;
+                                    if (dbProv && dbProv !== 'Không xác định') {
+                                        prov = dbProv;
+                                    } else {
+                                        const extractedProv = app.utils.getProvinceFromPlate(pl);
+                                        if (extractedProv && extractedProv !== 'Không xác định' && extractedProv !== 'Biển tạm') {
+                                            prov = extractedProv;
+                                        }
                                     }
 
                                     const routeKey = cleanRoute.toLowerCase() + '|' + prov;
@@ -2237,6 +2244,7 @@ Object.assign(window.app, {
                                             const r = item.route_no;
                                             if (!r) return;
                                             let prov = item.province || '';
+                                            if (prov === 'Không xác định') prov = '';
                                             if (!prov && item.license_plate) {
                                                 const extractedProv = app.utils.getProvinceFromPlate(item.license_plate);
                                                 if (extractedProv && extractedProv !== 'Không xác định' && extractedProv !== 'Biển tạm') prov = extractedProv;

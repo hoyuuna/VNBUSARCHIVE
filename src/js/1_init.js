@@ -3894,7 +3894,12 @@ Object.assign(window.app, {
                             const relatedPrefixes = app.utils.getRelatedPrefixes(prefix);
                             const prefixOrCond = relatedPrefixes.map(p => `license_plate.ilike.${p}%`).join(',');
                             if (provName) {
-                                photoQuery = photoQuery.eq('route_no', query).or(`province.eq.${provName},${prefixOrCond}`);
+                                const exactProvCond = `province.eq."${provName}"`;
+                                const fallbackConds = relatedPrefixes.map(p => 
+                                    `and(province.is.null,license_plate.ilike.${p}%),and(province.eq."Không xác định",license_plate.ilike.${p}%),and(province.eq."",license_plate.ilike.${p}%)`
+                                ).join(',');
+                                
+                                photoQuery = photoQuery.eq('route_no', query).or(`${exactProvCond},${fallbackConds}`);
                             } else {
                                 photoQuery = photoQuery.eq('route_no', query).or(prefixOrCond);
                             }
