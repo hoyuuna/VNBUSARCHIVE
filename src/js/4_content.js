@@ -2346,7 +2346,7 @@ Object.assign(window.app, {
 
                         const result = await window.sb
                             .from('photo_comments')
-                            .select('*, profiles(id, username, avatar_url, role, subroles)', { count: 'exact' })
+                            .select('*, profiles(id, username, avatar_url, role, subroles, ban_status)', { count: 'exact' })
                             .eq('photo_id', photoId)
                             .is('parent_id', null)
                             .order('created_at', { ascending: false })
@@ -2360,7 +2360,7 @@ Object.assign(window.app, {
                             useThreads = false;
                             const fallback = await window.sb
                                 .from('photo_comments')
-                                .select('*, profiles(id, username, avatar_url, role, subroles)', { count: 'exact' })
+                                .select('*, profiles(id, username, avatar_url, role, subroles, ban_status)', { count: 'exact' })
                                 .eq('photo_id', photoId)
                                 .order('created_at', { ascending: false })
                                 .range(from, to);
@@ -2385,7 +2385,7 @@ Object.assign(window.app, {
                             const parentIds = parents.map(p => p.id);
                             const { data: replies } = await window.sb
                                 .from('photo_comments')
-                                .select('*, profiles(id, username, avatar_url, role, subroles)')
+                                .select('*, profiles(id, username, avatar_url, role, subroles, ban_status)')
                                 .in('parent_id', parentIds)
                                 .order('created_at', { ascending: true });
                             if (replies) {
@@ -2405,13 +2405,13 @@ Object.assign(window.app, {
                 renderItem: (c, replies = []) => {
                     const isMe = app.user && c.user_id === app.user.id;
                     const canDelete = isMe || app.role === 'admin' || app.role === 'manager';
-                    const avatar = c.profiles?.avatar_url
-                        ? app.utils.getProxiedUrl(c.profiles.avatar_url.replace(/"/g, ''), 'avatar.jpg', 'avatar')
-                        : 'https://files.catbox.moe/zzh1q1.png';
+                    const authorDisplay = app.utils.formatProfileDisplay(c.profiles);
+                    const avatar = authorDisplay.avatar;
+                    const badges = authorDisplay.isBanned ? '' : app.utils.getBadgesHTML(c.user_id, c.profiles?.role, c.profiles?.subroles);
 
                     const toolbar = app.user ? `
                         <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;">
-                            <button style="display: flex; align-items: center; gap: 6px; background: white; border: 1px solid #d1d5db; color: #374151; padding: 6px 12px; border-radius: 8px; font-weight: bold; font-size: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onclick="app.comments.startReply('${c.id}', '${c.profiles?.username || ''}')" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='white'"><i class="fa-solid fa-reply"></i> Phản hồi</button>
+                            <button style="display: flex; align-items: center; gap: 6px; background: white; border: 1px solid #d1d5db; color: #374151; padding: 6px 12px; border-radius: 8px; font-weight: bold; font-size: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onclick="app.comments.startReply('${c.id}', '${authorDisplay.username}')" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='white'"><i class="fa-solid fa-reply"></i> Phản hồi</button>
                             <button style="display: flex; align-items: center; gap: 6px; background: white; border: 1px solid #d1d5db; color: #374151; padding: 6px 12px; border-radius: 8px; font-weight: bold; font-size: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onclick="app.utils.navigate('/contact')" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='white'"><i class="fa-solid fa-flag"></i> Báo cáo</button>
                             ${canDelete ? `<button style="display: flex; align-items: center; gap: 6px; background: white; border: 1px solid #fca5a5; color: #dc2626; padding: 6px 12px; border-radius: 8px; font-weight: bold; font-size: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onclick="app.comments.delete('${c.id}')" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='white'"><i class="fa-solid fa-trash-can"></i> Xóa</button>` : ''}
                         </div>` : `
@@ -2450,9 +2450,9 @@ Object.assign(window.app, {
                             <img src="${avatar}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid #f3f4f6; margin-top: 2px;">
                             <div style="flex: 1; min-width: 0;">
                                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; overflow-x: auto; white-space: nowrap; scrollbar-width: none;">
-                                    <span onclick="app.views.loadUserProfile('${c.profiles?.username}')" style="font-size: 14px; font-weight: bold; color: black; cursor: pointer; flex-shrink: 0;">${c.profiles?.username || 'Ẩn danh'}</span>
+                                    <span onclick="app.views.loadUserProfile('${authorDisplay.linkId}')" style="font-size: 14px; font-weight: bold; color: black; cursor: pointer; flex-shrink: 0;">${authorDisplay.username}</span>
                                     <div style="display: flex; gap: 4px; flex-shrink: 0; align-items: center;">
-                                        ${app.utils.getBadgesHTML(c.user_id, c.profiles?.role, c.profiles?.subroles)}
+                                        ${badges}
                                     </div>
                                 </div>
                                 <span style="font-size: 11px; font-weight: bold; color: #9ca3af; display: block; margin-bottom: 8px;"><i class="fa-regular fa-clock" style="margin-right: 4px;"></i>${new Date(c.created_at).toLocaleString('vi-VN')}</span>
@@ -2467,9 +2467,9 @@ Object.assign(window.app, {
                 renderReplyItem: (r) => {
                     const isMe = app.user && r.user_id === app.user.id;
                     const canDelete = isMe || app.role === 'admin' || app.role === 'manager';
-                    const avatar = r.profiles?.avatar_url
-                        ? app.utils.getProxiedUrl(r.profiles.avatar_url.replace(/"/g, ''), 'avatar.jpg', 'avatar')
-                        : 'https://files.catbox.moe/zzh1q1.png';
+                    const authorDisplay = app.utils.formatProfileDisplay(r.profiles);
+                    const avatar = authorDisplay.avatar;
+                    const badges = authorDisplay.isBanned ? '' : app.utils.getBadgesHTML(r.user_id, r.profiles?.role, r.profiles?.subroles);
 
                     const toolbar = app.user ? `
                         <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;">
@@ -2485,9 +2485,9 @@ Object.assign(window.app, {
                         <img src="${avatar}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid #e5e7eb; margin-top: 2px;">
                         <div style="flex: 1; min-width: 0;">
                             <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px; overflow-x: auto; white-space: nowrap; scrollbar-width: none;">
-                                <span onclick="app.views.loadUserProfile('${r.profiles?.username}')" style="font-size: 12px; font-weight: bold; color: black; cursor: pointer; flex-shrink: 0;">${r.profiles?.username || 'Ẩn danh'}</span>
+                                <span onclick="app.views.loadUserProfile('${authorDisplay.linkId}')" style="font-size: 12px; font-weight: bold; color: black; cursor: pointer; flex-shrink: 0;">${authorDisplay.username}</span>
                                 <div style="display: flex; gap: 4px; flex-shrink: 0; align-items: center; transform: scale(0.8); transform-origin: left;">
-                                    ${app.utils.getBadgesHTML(r.user_id, r.profiles?.role, r.profiles?.subroles)}
+                                    ${badges}
                                 </div>
                             </div>
                             <span style="font-size: 10px; font-weight: bold; color: #9ca3af; display: block; margin-bottom: 4px;"><i class="fa-regular fa-clock" style="margin-right: 4px;"></i>${new Date(r.created_at).toLocaleString('vi-VN')}</span>

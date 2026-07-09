@@ -2054,6 +2054,16 @@ cleanupState: () => {
                         if (sorted.length > 1) app.topUploaders[sorted[1][0]] = 2;
                         if (sorted.length > 2) app.topUploaders[sorted[2][0]] = 3;
                     } catch (e) { console.log("Lỗi tải Top:", e); }
+                formatProfileDisplay: (profile) => {
+                    if (!profile) return { username: 'Ẩn danh', avatar: DEFAULT_AVATAR, isBanned: false, id: '', linkId: '' };
+                    let banInfo = null;
+                    if (profile.ban_status) {
+                        try { banInfo = typeof profile.ban_status === 'string' ? JSON.parse(profile.ban_status) : profile.ban_status; } catch(e){}
+                    }
+                    const isBanned = banInfo && (banInfo.banned === true || banInfo.banned === 'true');
+                    const username = isBanned ? 'Người dùng bị cấm' : (profile.username || 'Ẩn danh');
+                    const avatar = isBanned ? DEFAULT_AVATAR : (profile.avatar_url ? app.utils.getProxiedUrl(profile.avatar_url.replace(/"/g, ''), 'avatar.jpg', 'avatar') : DEFAULT_AVATAR);
+                    return { username, avatar, isBanned, id: profile.id || '', linkId: profile.id || profile.username || '' };
                 },
 
                 getBadgesHTML: (userId, role, subroles = []) => {

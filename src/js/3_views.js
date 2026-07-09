@@ -504,9 +504,9 @@ Object.assign(window.app, {
                         isOwnProfile = true;
                         if (window.location.pathname !== '/profile') return app.utils.navigate('/profile');
                     } else {
-                        isOwnProfile = (app.user && app.username === targetUsername);
+                        isOwnProfile = (app.user && (app.username === targetUsername || app.user.id === targetUsername));
                         if (isOwnProfile && window.location.pathname !== '/profile') return app.utils.navigate('/profile');
-                        if (!isOwnProfile && window.location.pathname !== `/user/${encodeURIComponent(targetUsername)}`) return app.utils.navigate(`/user/${encodeURIComponent(targetUsername)}`);
+                        if (!isOwnProfile && !window.location.pathname.startsWith('/user/')) return app.utils.navigate(`/user/${encodeURIComponent(targetUsername)}`);
                     }
 
                     // KIỂM TRA QUAY LẠI CÙNG 1 PROFILE (Tránh load lại từ đầu làm giật trang)
@@ -537,19 +537,24 @@ Object.assign(window.app, {
                     document.getElementById('approval-rate-island').classList.add('hidden');
                     // --------------------------------------------------
 
-                    const { data: profile } = await window.sb.from('profiles').select('id, username, avatar_url, role, subroles, favorite_photo_id, created_at, ban_status').eq('username', targetUsername).single();
-                    if (window.location.pathname !== (isOwnProfile ? '/profile' : `/user/${encodeURIComponent(targetUsername)}`)) return;
+                    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(targetUsername);
+                    const queryCol = isUUID ? 'id' : 'username';
+                    const { data: profile } = await window.sb.from('profiles').select('id, username, avatar_url, role, subroles, favorite_photo_id, created_at, ban_status').eq(queryCol, targetUsername).single();
 
                     if (!profile) {
                         app.ui.showAlert("Không tìm thấy người dùng này.");
                         return app.views.loadHome();
                     }
 
+                    if (!isOwnProfile && window.location.pathname !== `/user/${profile.id}`) {
+                        window.history.replaceState({}, '', `/user/${profile.id}`);
+                    }
+
                     let banInfo = null;
                     if (profile.ban_status) {
                         try { banInfo = typeof profile.ban_status === 'string' ? JSON.parse(profile.ban_status) : profile.ban_status; } catch(e){}
                     }
-                    const isBannedUser = banInfo && banInfo.banned;
+                    const isBannedUser = banInfo && (banInfo.banned === true || banInfo.banned === 'true');
                     const displayUsername = isBannedUser ? 'Người dùng bị cấm' : profile.username;
 
                     const targetUserId = profile.id;
@@ -557,9 +562,9 @@ Object.assign(window.app, {
 
                     if (Object.keys(app.topUploaders).length === 0) await app.utils.fetchTopUploaders();
 
-                    const badges = app.utils.getBadgesHTML(profile.id, profile.role, profile.subroles);
+                    const badges = isBannedUser ? '' : app.utils.getBadgesHTML(profile.id, profile.role, profile.subroles);
                     document.getElementById('acc-name').innerHTML = isBannedUser 
-                        ? '<span class="text-red-600 font-bold">Người dùng bị cấm</span>' 
+                        ? '<span class="text-black font-bold">Người dùng bị cấm</span>' 
                         : `${profile.username} ${badges}`;
 
                     const avatarIcon = document.getElementById('acc-avatar-icon');
@@ -678,21 +683,23 @@ Object.assign(window.app, {
                     if (isOwnProfile) {
                         likedSection.classList.remove('hidden');
                         reportBtn.classList.add('hidden');
-                        if (editProfileBtn) { editProfileBtn.classList.remove('hidden'); editProfileBtn.classList.add('flex'); }
+                        if (editProfileBtn) {
+                            if (isBannedUser) { editProfileBtn.classList.add('hidden'); editProfileBtn.classList.remove('flex'); }
+                            else { editProfileBtn.classList.remove('hidden'); editProfileBtn.classList.add('flex'); }
+                        }
                         if (document.getElementById('btn-detailed-stats')) document.getElementById('btn-detailed-stats').classList.remove('hidden');
-                        if (manageCommentBtn) manageCommentBtn.classList.remove('hidden'); // HIỆN NÚT
+                        if (manageCommentBtn) {
+                            if (isBannedUser) manageCommentBtn.classList.add('hidden');
+                            else manageCommentBtn.classList.remove('hidden');
+                        }
                         document.getElementById('profile-stats-title').innerText = "THỐNG KÊ HOẠT ĐỘNG";
                         document.getElementById('profile-photos-title').innerText = "Ảnh của bạn";
                     } else {
                         likedSection.classList.add('hidden');
-                        if (isBannedUser) {
-                            reportBtn.classList.add('hidden');
-                        } else {
-                            reportBtn.classList.remove('hidden');
-                        }
+                        reportBtn.classList.toggle('hidden', isBannedUser);
                         if (editProfileBtn) { editProfileBtn.classList.add('hidden'); editProfileBtn.classList.remove('flex'); }
                         if (document.getElementById('btn-detailed-stats')) document.getElementById('btn-detailed-stats').classList.add('hidden');
-                        if (manageCommentBtn) manageCommentBtn.classList.add('hidden'); // ẨN NÚT
+                        if (manageCommentBtn) manageCommentBtn.classList.add('hidden');
                         document.getElementById('profile-stats-title').innerText = "THỐNG KÊ CỦA " + displayUsername.toUpperCase();
                         document.getElementById('profile-photos-title').innerText = "Ảnh đã đăng";
                     }
@@ -984,7 +991,7 @@ Object.assign(window.app, {
 
                     const { data: photo } = await window.sb
                         .from('photos')
-                        .select(`*, profiles(id, username, avatar_url, role, subroles), vehicles(model)`)
+                        .select(`*, profiles(id, username, avatar_url, role, subroles, ban_status), vehicles(model)`)
                         .eq('id', photoId)
                         .single();
 
@@ -1122,7 +1129,8 @@ Object.assign(window.app, {
                         app.admin.openZoom(proxyUrl, true);
                     };
 
-                    const safeUploaderName = app.utils.cleanText(photo.profiles?.username || 'Ẩn danh');
+                    const uploaderDisplay = app.utils.formatProfileDisplay(photo.profiles);
+                    const safeUploaderName = app.utils.cleanText(uploaderDisplay.username);
                     document.getElementById('detail-copyright').innerHTML = `Bản quyền &copy; <strong>${safeUploaderName}</strong>`;
 
                     app.edit.cancel();
@@ -1159,15 +1167,9 @@ Object.assign(window.app, {
                         await app.utils.fetchTopUploaders();
                     }
 
-                    const badges = app.utils.getBadgesHTML(photo.profiles?.id, photo.profiles?.role, photo.profiles?.subroles);
-                    const safeAvatar = photo.profiles?.avatar_url ? app.utils.getProxiedUrl(photo.profiles.avatar_url.replace(/"/g, '&quot;'), 'avatar.jpg', 'avatar') : DEFAULT_AVATAR;
-
-                    if (photo.profiles?.avatar_url) {
-                        statUploaderEl.innerHTML = `<img loading="lazy" decoding="async" src="${safeAvatar}" onerror="this.onerror=null;this.src='${DEFAULT_AVATAR}';" class="w-5 h-5 rounded-full inline-block mr-1 object-cover align-middle"> ${safeUploaderName} ${badges}`;
-                    } else {
-                        statUploaderEl.innerHTML = `<img loading="lazy" decoding="async" src="${DEFAULT_AVATAR}" class="w-5 h-5 rounded-full inline-block mr-1 object-cover align-middle"> ${safeUploaderName} ${badges}`;
-                    }
-                    statUploaderEl.onclick = () => app.views.loadUserProfile(photo.profiles?.username);
+                    const badges = uploaderDisplay.isBanned ? '' : app.utils.getBadgesHTML(photo.profiles?.id, photo.profiles?.role, photo.profiles?.subroles);
+                    statUploaderEl.innerHTML = `<img loading="lazy" decoding="async" src="${uploaderDisplay.avatar}" onerror="this.onerror=null;this.src='${DEFAULT_AVATAR}';" class="w-5 h-5 rounded-full inline-block mr-1 object-cover align-middle"> ${safeUploaderName} ${badges}`;
+                    statUploaderEl.onclick = () => app.views.loadUserProfile(uploaderDisplay.linkId);
 
                     document.getElementById('stat-date').innerText = new Date(photo.created_at).toLocaleDateString('vi-VN');
                     document.getElementById('stat-views').innerText = views;
