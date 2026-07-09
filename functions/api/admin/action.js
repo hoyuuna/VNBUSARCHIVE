@@ -41,7 +41,7 @@ export async function onRequestPost(context) {
         }
         
         const body = await request.json();
-        const { action, photoId, reason, plate, op, type, route, model, location, note } = body;
+        const { action, photoId, reason, plate, op, type, route, model, location, note, province } = body;
         
         if (!action || !photoId) {
             return new Response(JSON.stringify({ error: 'Missing parameters' }), { status: 400 });
@@ -79,6 +79,7 @@ export async function onRequestPost(context) {
                 license_plate: plate,
                 note: note,
                 location: location,
+                province: province || null,
                 status: 'approved',
                 operator: op,
                 type: type,

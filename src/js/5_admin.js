@@ -374,6 +374,7 @@ Object.assign(window.app, {
                                 const route = app.utils.cleanText(p.route_no || '');
                                 const model = app.utils.cleanText(p.vehicles?.model || '');
                                 const location = app.utils.cleanText(p.location);
+                                const prov = app.utils.cleanText(p.province || '');
                                 const note = app.utils.cleanText(p.note);
                                 const safeUsername = app.utils.cleanText(p.profiles?.username || 'Ẩn danh');
                                 const safePlate = app.utils.cleanText(p.license_plate);
@@ -425,7 +426,7 @@ Object.assign(window.app, {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="grid grid-cols-2 gap-2 mb-2">
+                                        <div class="grid grid-cols-3 gap-2 mb-2">
                                             <div>
                                                 <span class="admin-label">Dòng xe${isNewModel ? tagNew : ''}</span>
                                                 <div class="relative">
@@ -434,6 +435,13 @@ Object.assign(window.app, {
                                                 </div>
                                             </div>
                                             <div><span class="admin-label">Vị trí</span><input type="text" id="adm-p-location-${p.id}" value="${location}" class="admin-input"></div>
+                                            <div>
+                                                <span class="admin-label">Tuyến của tỉnh</span>
+                                                <select id="adm-p-province-${p.id}" class="admin-input">
+                                                    <option value="">-- Chọn Tuyến của tỉnh --</option>
+                                                    ${app.utils.provinceData ? app.utils.provinceData.map(pr => `<option value="${pr.ten}" ${prov === pr.ten ? 'selected' : ''}>${pr.ten}</option>`).join('') : ''}
+                                                </select>
+                                            </div>
                                         </div>
                                         <div><span class="admin-label">Ghi chú</span><textarea id="adm-p-note-${p.id}" rows="2" class="admin-input">${note}</textarea></div>
                                         ${(() => {
@@ -548,7 +556,7 @@ Object.assign(window.app, {
 
 
                             const photoIdsReq = reqs.map(r => r.new_data.photo_id).filter(Boolean);
-                            const { data: curPhotos } = await window.sb.from('photos').select('id, operator, route_no, type').in('id', photoIdsReq);
+                            const { data: curPhotos } = await window.sb.from('photos').select('id, operator, route_no, type, province').in('id', photoIdsReq);
                             const pMap = {}; if (curPhotos) curPhotos.forEach(p => pMap[p.id] = p);
 
                             content.innerHTML = reqs.map(r => {
@@ -590,7 +598,16 @@ Object.assign(window.app, {
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="mb-2"><span class="admin-label">Loại xe ${d.type !== curP.type ? tagNew : ''}</span><select id="req-type-${r.id}" class="admin-input"><option value="bus" ${d.type === 'bus' ? 'selected' : ''}>Xe buýt</option><option value="coach" ${d.type === 'coach' ? 'selected' : ''}>Xe khách</option></select></div>
+                                            <div class="grid grid-cols-2 gap-2 mb-2">
+                                                <div><span class="admin-label">Loại xe ${d.type !== curP.type ? tagNew : ''}</span><select id="req-type-${r.id}" class="admin-input"><option value="bus" ${d.type === 'bus' ? 'selected' : ''}>Xe buýt</option><option value="coach" ${d.type === 'coach' ? 'selected' : ''}>Xe khách</option></select></div>
+                                                <div>
+                                                    <span class="admin-label">Tuyến của tỉnh ${d.province !== curP.province ? tagNew : ''}</span>
+                                                    <select id="req-province-${r.id}" class="admin-input">
+                                                        <option value="">-- Chọn Tuyến của tỉnh --</option>
+                                                        ${app.utils.provinceData ? app.utils.provinceData.map(pr => `<option value="${pr.ten}" ${(d.province || curP.province || '') === pr.ten ? 'selected' : ''}>${pr.ten}</option>`).join('') : ''}
+                                                    </select>
+                                                </div>
+                                            </div>
                                             <div class="mb-2"><span class="admin-label">Vị trí (Chỉ cập nhật ảnh này)</span><input type="text" id="req-loc-${r.id}" value="${app.utils.escapeAttr(d.location || '')}" class="admin-input"></div>
                                             <div class="mb-2"><span class="admin-label">Ghi chú (Chỉ cập nhật ảnh này)</span><textarea id="req-note-${r.id}" class="admin-input">${app.utils.cleanText(d.note || '')}</textarea></div>
 
@@ -1469,6 +1486,8 @@ app.admin.fetchManagerData('denied');
                         const model = document.getElementById(`adm-p-model-${id}`).value.trim();
                         const location = document.getElementById(`adm-p-location-${id}`).value.trim();
                         const note = document.getElementById(`adm-p-note-${id}`).value.trim();
+                        const provinceEl = document.getElementById(`adm-p-province-${id}`);
+                        const province = provinceEl ? provinceEl.value : '';
 
                         if (await app.utils.checkModelDuplicatePolicy(plate, model)) {
                             btn.innerText = "DUYỆT"; btn.disabled = false; btn.classList.remove('btn-loading');
@@ -1483,7 +1502,7 @@ app.admin.fetchManagerData('denied');
                             },
                             body: JSON.stringify({
                                 action: 'approve', photoId: id,
-                                plate, op, type, route, model, location, note
+                                plate, op, type, route, model, location, note, province
                             })
                         });
 
@@ -1549,6 +1568,8 @@ app.admin.fetchManagerData('denied');
                             const model = document.getElementById(`req-model-${id}`).value;
                             const loc = document.getElementById(`req-loc-${id}`).value;
                             const note = document.getElementById(`req-note-${id}`).value;
+                            const provinceEl = document.getElementById(`req-province-${id}`);
+                            const province = provinceEl ? provinceEl.value : '';
 
                             if (await app.utils.checkModelDuplicatePolicy(plate, model)) {
                                 btn.innerText = "DUYỆT"; btn.disabled = false; btn.classList.remove('btn-loading');
@@ -1567,6 +1588,7 @@ app.admin.fetchManagerData('denied');
                                     license_plate: plate,
                                     note: note,
                                     location: loc,
+                                    province: province || null,
                                     operator: op,
                                     type: type,
                                     route_no: route
