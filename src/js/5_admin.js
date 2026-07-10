@@ -17,10 +17,10 @@ Object.assign(window.app, {
                     const statusText = document.getElementById('status-3x3');
                     if (btn && statusText) {
                         if (app.admin.is3x3Enabled) {
-                            btn.className = "inline-flex items-center gap-2 px-5 py-2.5 bg-black border border-black rounded-lg text-xs font-bold text-white hover:bg-gray-800 transition shadow-xl";
+                            btn.className = "pointer-events-auto inline-flex items-center gap-2 px-5 py-2.5 bg-black border border-black rounded-lg text-xs font-bold text-white hover:bg-gray-800 transition shadow-xl";
                             statusText.innerText = "BẬT";
                         } else {
-                            btn.className = "inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-300 rounded-lg text-xs font-bold text-gray-800 hover:bg-gray-50 hover:text-black transition shadow-xl";
+                            btn.className = "pointer-events-auto inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-300 rounded-lg text-xs font-bold text-gray-800 hover:bg-gray-50 hover:text-black transition shadow-xl";
                             statusText.innerText = "TẮT";
                         }
                     }
