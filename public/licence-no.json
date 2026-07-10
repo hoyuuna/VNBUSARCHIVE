@@ -1,138 +1,254 @@
 [
-    {
-      "ten": "Hà Nội",
-      "ky_hieu": ["29", "30", "31", "32", "33", "40"]
-    },
-    {
-      "ten": "TP. Hồ Chí Minh",
-      "ky_hieu": ["41", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59", "61", "72"]
-    },
-    {
-      "ten": "Hải Phòng",
-      "ky_hieu": ["15", "16", "34"]
-    },
-    {
-      "ten": "Đà Nẵng",
-      "ky_hieu": ["43", "92"]
-    },
-    {
-      "ten": "Cần Thơ",
-      "ky_hieu": ["65"]
-    },
-    {
-      "ten": "Huế",
-      "ky_hieu": ["75"]
-    },
-    {
-      "ten": "Cao Bằng",
-      "ky_hieu": ["11"]
-    },
-    {
-      "ten": "Lạng Sơn",
-      "ky_hieu": ["12"]
-    },
-    {
-      "ten": "Quảng Ninh",
-      "ky_hieu": ["14"]
-    },
-    {
-      "ten": "Bắc Ninh",
-      "ky_hieu": ["98", "99"]
-    },
-    {
-      "ten": "Tuyên Quang",
-      "ky_hieu": ["22", "23"]
-    },
-    {
-      "ten": "Lào Cai",
-      "ky_hieu": ["21", "24"]
-    },
-    {
-      "ten": "Lai Châu",
-      "ky_hieu": ["25"]
-    },
-    {
-      "ten": "Điện Biên",
-      "ky_hieu": ["27"]
-    },
-    {
-      "ten": "Sơn La",
-      "ky_hieu": ["26"]
-    },
-    {
-      "ten": "Thái Nguyên",
-      "ky_hieu": ["20", "97"]
-    },
-    {
-      "ten": "Phú Thọ",
-      "ky_hieu": ["19", "28", "88"]
-    },
-    {
-      "ten": "Hưng Yên",
-      "ky_hieu": ["89"]
-    },
-    {
-      "ten": "Ninh Bình",
-      "ky_hieu": ["35"]
-    },
-    {
-      "ten": "Khánh Hòa",
-      "ky_hieu": ["79", "85"]
-    },
-    {
-      "ten": "Lâm Đồng",
-      "ky_hieu": ["48", "49", "86"]
-    },
-    {
-      "ten": "Đồng Nai",
-      "ky_hieu": ["39", "60", "93"]
-    },
-    {
-      "ten": "Đắk Lắk",
-      "ky_hieu": ["47", "78"]
-    },
-    {
-      "ten": "Gia Lai",
-      "ky_hieu": ["77", "81"]
-    },
-    {
-      "ten": "Đồng Tháp",
-      "ky_hieu": ["63", "66"]
-    },
-    {
-      "ten": "An Giang",
-      "ky_hieu": ["67"]
-    },
-    {
-      "ten": "Cà Mau",
-      "ky_hieu": ["69"]
-    },
-    {
-      "ten": "Tây Ninh",
-      "ky_hieu": ["62", "70"]
-    },
-    {
-      "ten": "Vĩnh Long",
-      "ky_hieu": ["64"]
-    },
-    {
-      "ten": "Bạc Liêu",
-      "ky_hieu": ["94"]
-    },
-    {
-      "ten": "Sóc Trăng",
-      "ky_hieu": ["83"]
-    },
-    {
-      "ten": "Trà Vinh",
-      "ky_hieu": ["84"]
-    },
-    {
-      "ten": "Hậu Giang",
-      "ky_hieu": ["95"]
-    },
-    {
-      "ten": "Kiên Giang",
-      "ky_hieu": ["68"]
-    }
-  ]
+  {
+    "ten": "Cao Bằng",
+    "ky_hieu": ["11"]
+  },
+  {
+    "ten": "Lạng Sơn",
+    "ky_hieu": ["12"]
+  },
+  {
+    "ten": "Quảng Ninh",
+    "ky_hieu": ["14"]
+  },
+  {
+    "ten": "Hải Phòng",
+    "ky_hieu": ["15", "16"]
+  },
+  {
+    "ten": "Thái Bình",
+    "ky_hieu": ["17"]
+  },
+  {
+    "ten": "Nam Định",
+    "ky_hieu": ["18"]
+  },
+  {
+    "ten": "Phú Thọ",
+    "ky_hieu": ["19"]
+  },
+  {
+    "ten": "Thái Nguyên",
+    "ky_hieu": ["20"]
+  },
+  {
+    "ten": "Yên Bái",
+    "ky_hieu": ["21"]
+  },
+  {
+    "ten": "Tuyên Quang",
+    "ky_hieu": ["22"]
+  },
+  {
+    "ten": "Hà Giang",
+    "ky_hieu": ["23"]
+  },
+  {
+    "ten": "Lào Cai",
+    "ky_hieu": ["24"]
+  },
+  {
+    "ten": "Lai Châu",
+    "ky_hieu": ["25"]
+  },
+  {
+    "ten": "Sơn La",
+    "ky_hieu": ["26"]
+  },
+  {
+    "ten": "Điện Biên",
+    "ky_hieu": ["27"]
+  },
+  {
+    "ten": "Hòa Bình",
+    "ky_hieu": ["28"]
+  },
+  {
+    "ten": "Hà Nội",
+    "ky_hieu": ["29", "30", "31", "32", "33", "40"]
+  },
+  {
+    "ten": "Hải Dương",
+    "ky_hieu": ["34"]
+  },
+  {
+    "ten": "Ninh Bình",
+    "ky_hieu": ["35"]
+  },
+  {
+    "ten": "Thanh Hóa",
+    "ky_hieu": ["36"]
+  },
+  {
+    "ten": "Nghệ An",
+    "ky_hieu": ["37"]
+  },
+  {
+    "ten": "Hà Tĩnh",
+    "ky_hieu": ["38"]
+  },
+  {
+    "ten": "Đà Nẵng",
+    "ky_hieu": ["43"]
+  },
+  {
+    "ten": "Đắk Lắk",
+    "ky_hieu": ["47"]
+  },
+  {
+    "ten": "Đắk Nông",
+    "ky_hieu": ["48"]
+  },
+  {
+    "ten": "Lâm Đồng",
+    "ky_hieu": ["49"]
+  },
+  {
+    "ten": "TP. Hồ Chí Minh",
+    "ky_hieu": ["41", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59"]
+  },
+  {
+    "ten": "Đồng Nai",
+    "ky_hieu": ["39", "60"]
+  },
+  {
+    "ten": "Bình Dương",
+    "ky_hieu": ["61"]
+  },
+  {
+    "ten": "Long An",
+    "ky_hieu": ["62"]
+  },
+  {
+    "ten": "Tiền Giang",
+    "ky_hieu": ["63"]
+  },
+  {
+    "ten": "Vĩnh Long",
+    "ky_hieu": ["64"]
+  },
+  {
+    "ten": "Cần Thơ",
+    "ky_hieu": ["65"]
+  },
+  {
+    "ten": "Đồng Tháp",
+    "ky_hieu": ["66"]
+  },
+  {
+    "ten": "An Giang",
+    "ky_hieu": ["67"]
+  },
+  {
+    "ten": "Kiên Giang",
+    "ky_hieu": ["68"]
+  },
+  {
+    "ten": "Cà Mau",
+    "ky_hieu": ["69"]
+  },
+  {
+    "ten": "Tây Ninh",
+    "ky_hieu": ["70"]
+  },
+  {
+    "ten": "Bến Tre",
+    "ky_hieu": ["71"]
+  },
+  {
+    "ten": "Bà Rịa - Vũng Tàu",
+    "ky_hieu": ["72"]
+  },
+  {
+    "ten": "Quảng Bình",
+    "ky_hieu": ["73"]
+  },
+  {
+    "ten": "Quảng Trị",
+    "ky_hieu": ["74"]
+  },
+  {
+    "ten": "Thừa Thiên Huế",
+    "ky_hieu": ["75"]
+  },
+  {
+    "ten": "Quảng Ngãi",
+    "ky_hieu": ["76"]
+  },
+  {
+    "ten": "Bình Định",
+    "ky_hieu": ["77"]
+  },
+  {
+    "ten": "Phú Yên",
+    "ky_hieu": ["78"]
+  },
+  {
+    "ten": "Khánh Hòa",
+    "ky_hieu": ["79"]
+  },
+  {
+    "ten": "Gia Lai",
+    "ky_hieu": ["81"]
+  },
+  {
+    "ten": "Kon Tum",
+    "ky_hieu": ["82"]
+  },
+  {
+    "ten": "Sóc Trăng",
+    "ky_hieu": ["83"]
+  },
+  {
+    "ten": "Trà Vinh",
+    "ky_hieu": ["84"]
+  },
+  {
+    "ten": "Ninh Thuận",
+    "ky_hieu": ["85"]
+  },
+  {
+    "ten": "Bình Thuận",
+    "ky_hieu": ["86"]
+  },
+  {
+    "ten": "Vĩnh Phúc",
+    "ky_hieu": ["88"]
+  },
+  {
+    "ten": "Hưng Yên",
+    "ky_hieu": ["89"]
+  },
+  {
+    "ten": "Hà Nam",
+    "ky_hieu": ["90"]
+  },
+  {
+    "ten": "Quảng Nam",
+    "ky_hieu": ["92"]
+  },
+  {
+    "ten": "Bình Phước",
+    "ky_hieu": ["93"]
+  },
+  {
+    "ten": "Bạc Liêu",
+    "ky_hieu": ["94"]
+  },
+  {
+    "ten": "Hậu Giang",
+    "ky_hieu": ["95"]
+  },
+  {
+    "ten": "Bắc Kạn",
+    "ky_hieu": ["97"]
+  },
+  {
+    "ten": "Bắc Giang",
+    "ky_hieu": ["98"]
+  },
+  {
+    "ten": "Bắc Ninh",
+    "ky_hieu": ["99"]
+  }
+]

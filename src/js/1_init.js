@@ -1162,6 +1162,8 @@ cleanupState: () => {
                             app.utils.provinceData = rawData.sort((a, b) => (a.ten || '').localeCompare(b.ten || '', 'vi'));
                             if (app.upload && app.upload.initProvinceMenu) app.upload.initProvinceMenu();
                             if (app.views && app.views.initInfoProvinceSelect) app.views.initInfoProvinceSelect();
+                            if (app.search && app.search.initExactRouteMenu) app.search.initExactRouteMenu();
+                            if (app.search && app.search.syncExactUI) app.search.syncExactUI(app.search.currentExactPrefix, app.search.currentExactProvName);
                         }
                     } catch (e) { console.warn("Không thể tải licence-no.json", e); }
                 },
@@ -3572,14 +3574,15 @@ Object.assign(window.app, {
                 const pageClearBtn = document.getElementById('btn-page-clear-search');
                 const filterType = app.currentFilter;
 
-                if (!query) {
+                const hasProvinceFilter = Boolean(app.search?.currentExactPrefix || app.search?.currentExactProvName);
+                if (!query && !hasProvinceFilter) {
                     if (clearBtn) clearBtn.classList.add('hidden');
                     if (pageClearBtn) pageClearBtn.classList.add('hidden');
                     if (window.location.pathname !== '/') app.utils.navigate('/');
                     return app.views.loadHome();
                 } else {
-                    if (clearBtn) clearBtn.classList.remove('hidden');
-                    if (pageClearBtn) pageClearBtn.classList.remove('hidden');
+                    if (clearBtn) clearBtn.classList.toggle('hidden', !query && !hasProvinceFilter);
+                    if (pageClearBtn) pageClearBtn.classList.toggle('hidden', !query && !hasProvinceFilter);
                 }
 
                 const currentParams = new URLSearchParams(window.location.search);
@@ -3904,10 +3907,18 @@ Object.assign(window.app, {
                                 const fallbackConds = relatedPrefixes.map(p => 
                                     `and(province.is.null,license_plate.ilike.${p}%),and(province.eq."Không xác định",license_plate.ilike.${p}%),and(province.eq."",license_plate.ilike.${p}%)`
                                 ).join(',');
-                                
-                                photoQuery = photoQuery.eq('route_no', query).or(`${exactProvCond},${fallbackConds}`);
+                                const provinceOr = `${exactProvCond},${fallbackConds}`;
+                                if (query) {
+                                    photoQuery = photoQuery.eq('route_no', query).or(provinceOr);
+                                } else {
+                                    photoQuery = photoQuery.or(provinceOr);
+                                }
                             } else {
-                                photoQuery = photoQuery.eq('route_no', query).or(prefixOrCond);
+                                if (query) {
+                                    photoQuery = photoQuery.eq('route_no', query).or(prefixOrCond);
+                                } else {
+                                    photoQuery = photoQuery.or(prefixOrCond);
+                                }
                             }
                         } else {
                             // GIAI ĐOẠN 2: TÌM KIẾM THEO CHỮ (TẮT)
