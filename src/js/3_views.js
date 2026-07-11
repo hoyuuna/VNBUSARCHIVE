@@ -190,15 +190,31 @@ Object.assign(window.app, {
 
                     app.loadedCount = 0;
 
-                    let topQuery = window.sb
-                        .from('photos')
-                        .select(`*, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
-                        .eq('status', 'approved')
-                        .order('views', { ascending: false, nullsFirst: false })
-                        .limit(5);
+                    let topPhotos = null;
+                    try {
+                        const { data: trendingData, error: trendingErr } = await window.sb.rpc('get_trending_photos_24h', {
+                            filter_type: app.preference.current || 'both',
+                            limit_num: 5
+                        });
+                        if (!trendingErr && trendingData && trendingData.length > 0) {
+                            topPhotos = trendingData;
+                        }
+                    } catch (e) {
+                        console.warn("Chưa chạy RPC get_trending_photos_24h hoặc lỗi:", e);
+                    }
 
-                    topQuery = app.preference.applyFilter(topQuery);
-                    const { data: topPhotos } = await topQuery;
+                    if (!topPhotos || topPhotos.length === 0) {
+                        let topQuery = window.sb
+                            .from('photos')
+                            .select(`*, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                            .eq('status', 'approved')
+                            .order('views', { ascending: false, nullsFirst: false })
+                            .limit(5);
+
+                        topQuery = app.preference.applyFilter(topQuery);
+                        const { data: fallbackPhotos } = await topQuery;
+                        topPhotos = fallbackPhotos;
+                    }
 
 // BẮT LỖI RACE CONDITION
                     if (app.currentViewMode !== 'home') return;
@@ -212,11 +228,15 @@ Object.assign(window.app, {
                         const safeMainPlate = app.utils.displayPlate(app.utils.cleanText(main.license_plate));
                         const mainDisplay = app.utils.formatProfileDisplay(main.profiles);
                         const safeMainUser = app.utils.cleanText(mainDisplay.username);
+                        const mainViewsText = main.views_24h !== undefined && main.views_24h > 0
+                            ? `${main.views_24h} lượt xem (24h qua) · ${main.views || 0} tổng`
+                            : `${main.views || 0} lượt xem`;
+
                         heroMain.innerHTML = `
                             <img src="${app.utils.getProxiedUrl(main.url, 'main.jpg', 'full')}" onerror="app.utils.fallbackHeroImage(this, 'topPhotosCache', 0)" class="w-full h-[400px] object-cover block hover:scale-105 transition-transform duration-700 relative z-0">
                             <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 pt-12 pointer-events-none z-10">
                                 <p class="text-white font-bold text-lg tracking-tight flex items-center flex-wrap gap-y-1 hero-main-text pointer-events-auto">${safeMainPlate} - ${safeMainUser}</p>
-                                <p class="text-gray-300 text-xs mt-1 hero-main-views pointer-events-auto"><i class="fa-solid fa-eye mr-1"></i> ${main.views || 0} lượt xem</p>
+                                <p class="text-gray-300 text-xs mt-1 hero-main-views pointer-events-auto"><i class="fa-solid fa-eye mr-1"></i> ${mainViewsText}</p>
                             </div>
                         `;
                         heroMain.onclick = () => app.views.loadDetail(main.id);
@@ -224,11 +244,15 @@ Object.assign(window.app, {
                         heroSub.innerHTML = '';
                         for (let i = 1; i < topPhotos.length; i++) {
                             const p = topPhotos[i];
+                            const subViewsText = p.views_24h !== undefined && p.views_24h > 0
+                                ? `${p.views_24h} (24h)`
+                                : `${p.views || 0}`;
+
                             heroSub.innerHTML += `
                                 <div class="relative group cursor-pointer h-[196px] rounded-md overflow-hidden" onclick="app.views.loadDetail(${p.id})">
                                     <img src="${app.utils.getProxiedUrl(p.url, 'sub.jpg', 'thumb')}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                                     <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 to-transparent pt-6 pb-2 px-2 text-white text-[10px] truncate">
-                                        <i class="fa-solid fa-eye mr-1"></i> ${p.views || 0}
+                                        <i class="fa-solid fa-eye mr-1"></i> ${subViewsText}
                                     </div>
                                 </div>`;
                         }
@@ -1090,12 +1114,16 @@ Object.assign(window.app, {
                     }
 
                     const isMyOwnPhoto = app.user && app.user.id === photo.uploader_id;
-                    const isValidViewer = app.user && !isMyOwnPhoto;
+                    const isValidViewer = !isMyOwnPhoto && !isDenied;
                     
                     const views = isDenied ? 0 : (isValidViewer ? ((photo.views || 0) + 1) : (photo.views || 0));
 
-                    if (!isDenied && isValidViewer) {
-                        await window.sb.from('photos').update({ views: views }).eq('id', photoId);
+                    if (isValidViewer) {
+                        window.sb.from('photos').update({ views: views }).eq('id', photoId).then();
+                        window.sb.from('photo_views_log').insert({
+                            photo_id: photoId,
+                            viewer_id: app.user ? app.user.id : null
+                        }).then();
                     }
                     document.getElementById('detail-title').innerText = `${app.utils.displayPlate(photo.license_plate)} - ${snapshot.operator || 'Đã bị xóa'}`;
 
