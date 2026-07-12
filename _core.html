@@ -2102,11 +2102,14 @@
                     <img id="crop-image" src="" style="max-width: 100%; max-height: 100%; display: block; -webkit-touch-callout: none;" draggable="false">
                 </div>
                 <div class="p-4 border-t border-gray-200/50 flex flex-col sm:flex-row gap-4 justify-between items-center shrink-0">
-                    <div id="crop-ratios" class="flex flex-wrap gap-2 w-full sm:w-auto justify-center">
+                    <div id="crop-ratios" class="flex flex-wrap gap-2 w-full sm:w-auto justify-center items-center">
                         <span class="text-xs font-bold text-gray-500 self-center hidden sm:inline-block mr-1">Tỉ lệ:</span>
                         <button type="button" onclick="app.crop.setRatio(16/9)" class="crop-ratio-btn px-3 py-1.5 text-xs border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition" data-ratio="1.7777777777777777">16:9</button>
                         <button type="button" onclick="app.crop.setRatio(3/2)" class="crop-ratio-btn px-3 py-1.5 text-xs border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition" data-ratio="1.5">3:2</button>
                         <button type="button" onclick="app.crop.setRatio(4/3)" class="crop-ratio-btn px-3 py-1.5 text-xs border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition" data-ratio="1.3333333333333333">4:3</button>
+                        <button type="button" id="btn-crop-toggle-ruler" onclick="app.crop.toggleRuler()" class="px-3 py-1.5 text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition ml-1 flex items-center gap-1.5" title="Bật/Tắt thước ngang canh xe">
+                            <i class="fa-solid fa-ruler-horizontal"></i> Thước ngang
+                        </button>
                     </div>
                     <div class="flex gap-2 w-full sm:w-auto justify-end">
                         <button type="button" onclick="app.crop.close()" class="px-5 py-2.5 bg-gray-100 border border-gray-300 text-gray-700 text-xs font-bold rounded-md hover:bg-gray-200 transition">Hủy</button>

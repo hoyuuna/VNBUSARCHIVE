@@ -2065,6 +2065,7 @@ Object.assign(window.app, {
                 mode: 'main',
                 originalFile: null,
                 isMandatory: false, // Thêm cờ đánh dấu bắt buộc cắt
+                isRulerEnabled: false,
 
                 open: async (mode, file = null, isMandatory = false) => {
                     app.crop.mode = mode;
@@ -2116,6 +2117,9 @@ Object.assign(window.app, {
                                 aspectRatio: 4/3, // Tỉ lệ mặc định ban đầu là 4:3, nhưng được phép chọn cái khác
                                 viewMode: 1,
                                 autoCropArea: 1,
+                                ready: () => {
+                                    app.crop.updateRulerUI();
+                                }
                             });
 
                             // Highlight đúng nút 4:3 lúc mới mở
@@ -2126,10 +2130,64 @@ Object.assign(window.app, {
                                 aspectRatio: 1,
                                 viewMode: 1,
                                 autoCropArea: 1,
+                                ready: () => {
+                                    app.crop.updateRulerUI();
+                                }
                             });
                         }
                     };
                     img.src = url;
+                },
+
+                toggleRuler: () => {
+                    app.crop.isRulerEnabled = !app.crop.isRulerEnabled;
+                    app.crop.updateRulerUI();
+                },
+
+                getRulerHTML: () => {
+                    const isHidden = app.crop.isRulerEnabled ? '' : 'hidden';
+                    const levels = [
+                        { pos: 8.3333, label: '5' },
+                        { pos: 16.6667, label: '4' },
+                        { pos: 25.0, label: '3' },
+                        { pos: 33.3333, label: '2' },
+                        { pos: 41.6667, label: '1' },
+                        { pos: 50.0, label: '0', isCenter: true },
+                        { pos: 58.3333, label: '1' },
+                        { pos: 66.6667, label: '2' },
+                        { pos: 75.0, label: '3' },
+                        { pos: 83.3333, label: '4' },
+                        { pos: 91.6667, label: '5' }
+                    ];
+                    let linesHtml = '';
+                    levels.forEach(item => {
+                        const lineClass = item.isCenter ? 'ruler-line-center' : 'ruler-line-v';
+                        const badgeClass = item.isCenter ? 'ruler-badge-center' : 'ruler-badge';
+                        linesHtml += `<div class="${lineClass}" style="left: ${item.pos}%;"><span class="${badgeClass} ruler-badge-top">${item.label}</span><span class="${badgeClass} ruler-badge-bottom">${item.label}</span></div>`;
+                    });
+                    return `<div class="crop-ruler-overlay ruler-horizontal-overlay ${isHidden}" style="z-index: 25;">${linesHtml}</div>`;
+                },
+
+                updateRulerUI: () => {
+                    const btn = document.getElementById('btn-crop-toggle-ruler');
+                    if (btn) {
+                        if (app.crop.isRulerEnabled) {
+                            btn.className = "px-3 py-1.5 text-xs bg-black text-white border border-black rounded-md font-bold transition ml-1 flex items-center gap-1.5";
+                        } else {
+                            btn.className = "px-3 py-1.5 text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition ml-1 flex items-center gap-1.5";
+                        }
+                    }
+                    const cropBox = document.querySelector('#crop-modal .cropper-crop-box');
+                    if (!cropBox) return;
+                    let overlay = cropBox.querySelector('.crop-ruler-overlay');
+                    if (!overlay) {
+                        cropBox.insertAdjacentHTML('beforeend', app.crop.getRulerHTML());
+                        overlay = cropBox.querySelector('.crop-ruler-overlay');
+                    }
+                    if (overlay) {
+                        if (app.crop.isRulerEnabled) overlay.classList.remove('hidden');
+                        else overlay.classList.add('hidden');
+                    }
                 },
 
                 setRatio: (ratio) => {
