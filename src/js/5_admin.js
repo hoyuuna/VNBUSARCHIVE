@@ -259,13 +259,15 @@ Object.assign(window.app, {
 
                 refreshCounts: async () => {
                     try {
-                        const { data: pendingPhotos } = await window.sb.from('photos').select('id, uploader_id, user_id').eq('status', 'pending');
-                        const { data: reqs } = await window.sb.from('edit_requests').select('new_data').eq('status', 'pending');
+                        const { data: pendingPhotos, error: pErr } = await window.sb.from('photos').select('id, uploader_id').eq('status', 'pending');
+                        if (pErr) console.error("Lỗi đếm photos:", pErr);
+                        const { data: reqs, error: rErr } = await window.sb.from('edit_requests').select('requester_id, new_data').eq('status', 'pending');
+                        if (rErr) console.error("Lỗi đếm edit_requests:", rErr);
 
                         let pCount = 0;
                         if (pendingPhotos) {
-                            if (app.admin.isHideMineEnabled && app.user) {
-                                pCount = pendingPhotos.filter(p => p.uploader_id !== app.user.id && p.user_id !== app.user.id).length;
+                            if (app.admin.isHideMineEnabled && app.user && app.user.id) {
+                                pCount = pendingPhotos.filter(p => p.uploader_id !== app.user.id).length;
                             } else {
                                 pCount = pendingPhotos.length;
                             }
@@ -275,7 +277,10 @@ Object.assign(window.app, {
                         let delCount = 0;
                         if (reqs) {
                             reqs.forEach(r => {
-                                if (r.new_data.request_type === 'delete_photo') delCount++;
+                                if (app.admin.isHideMineEnabled && app.user && app.user.id && r.requester_id === app.user.id) {
+                                    return;
+                                }
+                                if (r.new_data?.request_type === 'delete_photo') delCount++;
                                 else editCount++;
                             });
                         }
