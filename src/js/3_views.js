@@ -229,7 +229,7 @@ Object.assign(window.app, {
                         const safeMainOperator = app.utils.cleanText(main.operator || 'Đang cập nhật');
 
                         heroMain.innerHTML = `
-                            <img src="${app.utils.getProxiedUrl(main.url, 'main.jpg', 'full')}" onerror="app.utils.fallbackHeroImage(this, 'topPhotosCache', 0)" class="w-full h-[380px] md:h-full md:absolute md:inset-0 object-cover object-center block group-hover:scale-105 transition-transform duration-700 z-0">
+                            <img src="${app.utils.getProxiedUrl(main.url, 'main.jpg', 'full')}" onerror="app.utils.fallbackHeroImage(this, 'topPhotosCache', 0)" class="w-full h-[400px] object-cover block hover:scale-105 transition-transform duration-700 relative z-0">
                             <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/85 via-black/50 to-transparent p-4 pt-14 pointer-events-none z-10 flex flex-col gap-1">
                                 <p class="text-white font-bold text-xl tracking-tight hero-main-text pointer-events-auto leading-tight truncate" style="text-shadow: 0 2px 4px rgba(0,0,0,0.95);">${safeMainPlate}</p>
                                 <p class="text-white text-xs hero-main-views pointer-events-auto truncate leading-tight font-medium" style="text-shadow: 0 1px 3px rgba(0,0,0,0.95);">${safeMainOperator}</p>
@@ -244,8 +244,8 @@ Object.assign(window.app, {
                             const safeSubOperator = app.utils.cleanText(p.operator || 'Đang cập nhật');
 
                             heroSub.innerHTML += `
-                                <div class="relative group cursor-pointer aspect-square rounded-md overflow-hidden bg-gray-900" onclick="app.views.loadDetail(${p.id})">
-                                    <img src="${app.utils.getProxiedUrl(p.url, 'sub.jpg', 'thumb')}" class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500">
+                                <div class="relative group cursor-pointer h-[196px] rounded-md overflow-hidden" onclick="app.views.loadDetail(${p.id})">
+                                    <img src="${app.utils.getProxiedUrl(p.url, 'sub.jpg', 'thumb')}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                                     <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/85 via-black/40 to-transparent p-2.5 pt-8 pointer-events-none z-10 flex flex-col gap-0.5">
                                         <p class="text-white font-bold text-xs tracking-tight truncate leading-none" style="text-shadow: 0 1px 3px rgba(0,0,0,0.95);">${safeSubPlate}</p>
                                         <p class="text-white text-[11px] truncate leading-none font-medium" style="text-shadow: 0 1px 3px rgba(0,0,0,0.95);">${safeSubOperator}</p>
@@ -253,7 +253,7 @@ Object.assign(window.app, {
                                 </div>`;
                         }
                     } else {
-                        heroMain.innerHTML = '<div class="w-full flex items-center justify-center text-gray-400" style="min-height: 380px;">Chưa có dữ liệu nổi bật</div>';
+                        heroMain.innerHTML = '<div class="w-full h-[400px] flex items-center justify-center text-gray-400">Chưa có dữ liệu nổi bật</div>';
                         heroSub.innerHTML = '';
                     }
 
