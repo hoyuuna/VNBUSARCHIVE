@@ -24,6 +24,7 @@ Object.assign(window.app, {
                     app.admin.isHideMineEnabled = !app.admin.isHideMineEnabled;
                     localStorage.setItem('vbs_admin_hide_mine', app.admin.isHideMineEnabled ? 'true' : 'false');
                     app.admin.updateHideMineUI();
+                    app.admin.checkNotification();
                 },
 
                 update3x3UI: () => {
@@ -258,8 +259,17 @@ Object.assign(window.app, {
 
                 refreshCounts: async () => {
                     try {
-                        const { count: pCount } = await window.sb.from('photos').select('*', { count: 'exact', head: true }).eq('status', 'pending');
+                        const { data: pendingPhotos } = await window.sb.from('photos').select('id, uploader_id, user_id').eq('status', 'pending');
                         const { data: reqs } = await window.sb.from('edit_requests').select('new_data').eq('status', 'pending');
+
+                        let pCount = 0;
+                        if (pendingPhotos) {
+                            if (app.admin.isHideMineEnabled && app.user) {
+                                pCount = pendingPhotos.filter(p => p.uploader_id !== app.user.id && p.user_id !== app.user.id).length;
+                            } else {
+                                pCount = pendingPhotos.length;
+                            }
+                        }
 
                         let editCount = 0;
                         let delCount = 0;
@@ -270,9 +280,12 @@ Object.assign(window.app, {
                             });
                         }
 
-                        document.getElementById('count-photos').innerText = pCount || 0;
-                        document.getElementById('count-requests').innerText = editCount;
-                        document.getElementById('count-delete').innerText = delCount;
+                        const countPhotosEl = document.getElementById('count-photos');
+                        if (countPhotosEl) countPhotosEl.innerText = pCount || 0;
+                        const countReqsEl = document.getElementById('count-requests');
+                        if (countReqsEl) countReqsEl.innerText = editCount;
+                        const countDelEl = document.getElementById('count-delete');
+                        if (countDelEl) countDelEl.innerText = delCount;
 
                         return (pCount || 0) + editCount + delCount;
                     } catch (err) { console.error("Lỗi đếm:", err); return 0; }
