@@ -230,9 +230,9 @@ Object.assign(window.app, {
 
                         heroMain.innerHTML = `
                             <img src="${app.utils.getProxiedUrl(main.url, 'main.jpg', 'full')}" onerror="app.utils.fallbackHeroImage(this, 'topPhotosCache', 0)" class="w-full h-[400px] object-cover block hover:scale-105 transition-transform duration-700 relative z-0">
-                            <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/85 via-black/50 to-transparent p-4 pt-14 pointer-events-none z-10">
-                                <p class="text-white font-bold text-xl tracking-tight hero-main-text pointer-events-auto leading-snug truncate">${safeMainPlate}</p>
-                                <p class="text-gray-300 text-xs mt-1 hero-main-views pointer-events-auto truncate">${safeMainOperator}</p>
+                            <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/85 via-black/50 to-transparent p-4 pt-14 pointer-events-none z-10 flex flex-col gap-1">
+                                <p class="text-white font-bold text-xl tracking-tight hero-main-text pointer-events-auto leading-tight truncate" style="text-shadow: 0 2px 4px rgba(0,0,0,0.95);">${safeMainPlate}</p>
+                                <p class="text-white text-xs hero-main-views pointer-events-auto truncate leading-tight font-medium" style="text-shadow: 0 1px 3px rgba(0,0,0,0.95);">${safeMainOperator}</p>
                             </div>
                         `;
                         heroMain.onclick = () => app.views.loadDetail(main.id);
@@ -246,9 +246,9 @@ Object.assign(window.app, {
                             heroSub.innerHTML += `
                                 <div class="relative group cursor-pointer h-[196px] rounded-md overflow-hidden" onclick="app.views.loadDetail(${p.id})">
                                     <img src="${app.utils.getProxiedUrl(p.url, 'sub.jpg', 'thumb')}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                                    <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/85 via-black/40 to-transparent p-2.5 pt-8 pointer-events-none z-10">
-                                        <p class="text-white font-bold text-xs tracking-tight truncate">${safeSubPlate}</p>
-                                        <p class="text-gray-300 text-[11px] mt-0.5 truncate">${safeSubOperator}</p>
+                                    <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/85 via-black/40 to-transparent p-2.5 pt-8 pointer-events-none z-10 flex flex-col gap-0.5">
+                                        <p class="text-white font-bold text-xs tracking-tight truncate leading-none" style="text-shadow: 0 1px 3px rgba(0,0,0,0.95);">${safeSubPlate}</p>
+                                        <p class="text-white text-[11px] truncate leading-none font-medium" style="text-shadow: 0 1px 3px rgba(0,0,0,0.95);">${safeSubOperator}</p>
                                     </div>
                                 </div>`;
                         }
