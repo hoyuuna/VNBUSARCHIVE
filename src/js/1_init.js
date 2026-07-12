@@ -1395,16 +1395,15 @@ cleanupState: () => {
                     if (wrapper) {
                         wrapper.onclick = () => app.views.loadDetail(nextPhoto.id);
                         if (cacheName === 'topPhotosCache') {
-                             const textPlate = wrapper.querySelector('.hero-main-text');
-                             const textViews = wrapper.querySelector('.hero-main-views');
+                             const textPlate = wrapper.querySelector('.hero-main-text') || wrapper.querySelector('.hero-sub-text');
+                             const textViews = wrapper.querySelector('.hero-main-views') || wrapper.querySelector('.hero-sub-operator');
                              if (textPlate) {
                                  const safePlate = app.utils.displayPlate(app.utils.cleanText(nextPhoto.license_plate));
-                                 const uDisplay = app.utils.formatProfileDisplay(nextPhoto.profiles);
-                                 const safeUser = app.utils.cleanText(uDisplay.username);
-                                 textPlate.innerHTML = `${safePlate} - ${safeUser}`;
+                                 textPlate.innerHTML = safePlate;
                              }
                              if (textViews) {
-                                 textViews.innerHTML = `<i class="fa-solid fa-eye mr-1"></i> ${nextPhoto.views || 0} lượt xem`;
+                                 const safeOperator = app.utils.cleanText(nextPhoto.operator || 'Đang cập nhật');
+                                 textViews.innerHTML = safeOperator;
                              }
                         }
                     }

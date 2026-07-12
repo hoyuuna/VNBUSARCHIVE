@@ -196,6 +196,20 @@
     border: 1px solid rgba(255, 255, 255, 0.6) !important;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
 }
+
+        /* Đảm bảo thông tin BKS & Đơn vị vận hành trên ảnh xem nhiều nhất 24h luôn hiển thị trên ảnh */
+        #hero-main .img-wrapper img,
+        #hero-sub .img-wrapper img,
+        #hero-main img,
+        #hero-sub img {
+            z-index: 10;
+        }
+
+        #hero-main .z-20,
+        #hero-sub .z-20 {
+            z-index: 20 !important;
+        }
+
         body {
 
         /* BẮT BUỘC: Đảm bảo font-smoothing luôn được bật */

@@ -253,7 +253,7 @@ Object.assign(window.app, {
                                  onload="app.utils.handleImgLoad(this)"
                                  onerror="app.utils.fallbackHeroImage(this, 'topPhotosCache', 0)"
                                  class="absolute inset-0 w-full h-full object-cover object-center block group-hover:scale-105 transition-all duration-700 opacity-0 z-10">
-                            <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/85 via-black/50 to-transparent p-4 pt-14 pointer-events-none z-20 flex flex-col gap-1">
+                            <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/85 via-black/50 to-transparent p-4 pt-14 pointer-events-none z-20 flex flex-col gap-1" style="z-index: 20;">
                                 <p class="text-white font-bold text-xl tracking-tight hero-main-text pointer-events-auto leading-tight truncate" style="text-shadow: 0 2px 4px rgba(0,0,0,0.95);">${safeMainPlate}</p>
                                 <p class="text-white text-xs hero-main-views pointer-events-auto truncate leading-tight font-medium" style="text-shadow: 0 1px 3px rgba(0,0,0,0.95);">${safeMainOperator}</p>
                             </div>
@@ -273,11 +273,11 @@ Object.assign(window.app, {
                                     </div>
                                     <img src="${app.utils.getProxiedUrl(p.url, 'sub.jpg', 'thumb')}"
                                          onload="app.utils.handleImgLoad(this)"
-                                         onerror="app.utils.handleImgError(this)"
+                                         onerror="app.utils.fallbackHeroImage(this, 'topPhotosCache', ${i})"
                                          class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-all duration-500 opacity-0 z-10">
-                                    <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/85 via-black/40 to-transparent p-2.5 pt-8 pointer-events-none z-20 flex flex-col gap-0.5">
-                                        <p class="text-white font-bold text-xs tracking-tight truncate leading-none" style="text-shadow: 0 1px 3px rgba(0,0,0,0.95);">${safeSubPlate}</p>
-                                        <p class="text-white text-[11px] truncate leading-none font-medium" style="text-shadow: 0 1px 3px rgba(0,0,0,0.95);">${safeSubOperator}</p>
+                                    <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/85 via-black/40 to-transparent p-2.5 pt-8 pointer-events-none z-20 flex flex-col gap-0.5" style="z-index: 20;">
+                                        <p class="text-white font-bold text-xs tracking-tight truncate leading-none hero-sub-text" style="text-shadow: 0 1px 3px rgba(0,0,0,0.95);">${safeSubPlate}</p>
+                                        <p class="text-white text-[11px] truncate leading-none font-medium hero-sub-operator" style="text-shadow: 0 1px 3px rgba(0,0,0,0.95);">${safeSubOperator}</p>
                                     </div>
                                 </div>`;
                         }
