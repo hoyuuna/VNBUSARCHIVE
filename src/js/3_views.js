@@ -226,16 +226,13 @@ Object.assign(window.app, {
                         app.topPhotosCache = topPhotos;
                         const main = topPhotos[0];
                         const safeMainPlate = app.utils.displayPlate(app.utils.cleanText(main.license_plate));
-                        const mainDisplay = app.utils.formatProfileDisplay(main.profiles);
-                        const safeMainUser = app.utils.cleanText(mainDisplay.username);
-                        const mainViewsVal = main.views ?? main.total_views ?? 0;
-                        const mainViewsText = `${mainViewsVal} lượt xem`;
+                        const safeMainOperator = app.utils.cleanText(main.operator || 'Đang cập nhật');
 
                         heroMain.innerHTML = `
                             <img src="${app.utils.getProxiedUrl(main.url, 'main.jpg', 'full')}" onerror="app.utils.fallbackHeroImage(this, 'topPhotosCache', 0)" class="w-full h-[400px] object-cover block hover:scale-105 transition-transform duration-700 relative z-0">
-                            <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 pt-12 pointer-events-none z-10">
-                                <p class="text-white font-bold text-lg tracking-tight flex items-center flex-wrap gap-y-1 hero-main-text pointer-events-auto">${safeMainPlate} - ${safeMainUser}</p>
-                                <p class="text-gray-300 text-xs mt-1 hero-main-views pointer-events-auto"><i class="fa-solid fa-eye mr-1"></i> ${mainViewsText}</p>
+                            <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/85 via-black/50 to-transparent p-4 pt-14 pointer-events-none z-10">
+                                <p class="text-white font-bold text-xl tracking-tight hero-main-text pointer-events-auto leading-snug truncate">${safeMainPlate}</p>
+                                <p class="text-gray-300 text-xs mt-1 hero-main-views pointer-events-auto truncate">${safeMainOperator}</p>
                             </div>
                         `;
                         heroMain.onclick = () => app.views.loadDetail(main.id);
@@ -243,14 +240,15 @@ Object.assign(window.app, {
                         heroSub.innerHTML = '';
                         for (let i = 1; i < topPhotos.length; i++) {
                             const p = topPhotos[i];
-                            const subViewsVal = p.views ?? p.total_views ?? 0;
-                            const subViewsText = `${subViewsVal}`;
+                            const safeSubPlate = app.utils.displayPlate(app.utils.cleanText(p.license_plate));
+                            const safeSubOperator = app.utils.cleanText(p.operator || 'Đang cập nhật');
 
                             heroSub.innerHTML += `
                                 <div class="relative group cursor-pointer h-[196px] rounded-md overflow-hidden" onclick="app.views.loadDetail(${p.id})">
                                     <img src="${app.utils.getProxiedUrl(p.url, 'sub.jpg', 'thumb')}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                                    <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 to-transparent pt-6 pb-2 px-2 text-white text-[10px] truncate">
-                                        <i class="fa-solid fa-eye mr-1"></i> ${subViewsText}
+                                    <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/85 via-black/40 to-transparent p-2.5 pt-8 pointer-events-none z-10">
+                                        <p class="text-white font-bold text-xs tracking-tight truncate">${safeSubPlate}</p>
+                                        <p class="text-gray-300 text-[11px] mt-0.5 truncate">${safeSubOperator}</p>
                                     </div>
                                 </div>`;
                         }
