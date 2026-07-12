@@ -190,6 +190,22 @@ Object.assign(window.app, {
 
                     app.loadedCount = 0;
 
+                    const heroMainEl = document.getElementById('hero-main');
+                    const heroSubEl = document.getElementById('hero-sub');
+                    if (heroMainEl && heroSubEl) {
+                        heroMainEl.className = "w-full md:w-3/5 relative group cursor-pointer bg-gray-100 rounded-md overflow-hidden border border-gray-200";
+                        heroMainEl.innerHTML = `
+                            <div class="w-full flex items-center justify-center text-gray-400" style="min-height: 404px;">
+                                <i class="fa-solid fa-circle-notch fa-spin text-3xl"></i>
+                            </div>
+                        `;
+                        heroSubEl.innerHTML = Array(4).fill(0).map(() => `
+                            <div class="relative w-full h-[196px] bg-gray-100 rounded-md overflow-hidden border border-gray-200 flex items-center justify-center text-gray-400">
+                                <i class="fa-solid fa-circle-notch fa-spin text-2xl"></i>
+                            </div>
+                        `).join('');
+                    }
+
                     let topPhotos = null;
                     try {
                         const { data: trendingData, error: trendingErr } = await window.sb.rpc('get_trending_photos_24h', {
@@ -228,9 +244,16 @@ Object.assign(window.app, {
                         const safeMainPlate = app.utils.displayPlate(app.utils.cleanText(main.license_plate));
                         const safeMainOperator = app.utils.cleanText(main.operator || 'Đang cập nhật');
 
+                        heroMain.className = "img-wrapper w-full md:w-3/5 relative group cursor-pointer bg-gray-100 rounded-md overflow-hidden border border-gray-200";
                         heroMain.innerHTML = `
-                            <img src="${app.utils.getProxiedUrl(main.url, 'main.jpg', 'full')}" onerror="app.utils.fallbackHeroImage(this, 'topPhotosCache', 0)" class="absolute inset-0 w-full h-full object-cover object-center block group-hover:scale-105 transition-transform duration-700 z-0">
-                            <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/85 via-black/50 to-transparent p-4 pt-14 pointer-events-none z-10 flex flex-col gap-1">
+                            <div class="img-spinner absolute inset-0 flex items-center justify-center text-gray-400 z-0">
+                                <i class="fa-solid fa-circle-notch fa-spin text-3xl"></i>
+                            </div>
+                            <img src="${app.utils.getProxiedUrl(main.url, 'main.jpg', 'full')}"
+                                 onload="app.utils.handleImgLoad(this)"
+                                 onerror="app.utils.fallbackHeroImage(this, 'topPhotosCache', 0)"
+                                 class="absolute inset-0 w-full h-full object-cover object-center block group-hover:scale-105 transition-all duration-700 opacity-0 z-10">
+                            <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/85 via-black/50 to-transparent p-4 pt-14 pointer-events-none z-20 flex flex-col gap-1">
                                 <p class="text-white font-bold text-xl tracking-tight hero-main-text pointer-events-auto leading-tight truncate" style="text-shadow: 0 2px 4px rgba(0,0,0,0.95);">${safeMainPlate}</p>
                                 <p class="text-white text-xs hero-main-views pointer-events-auto truncate leading-tight font-medium" style="text-shadow: 0 1px 3px rgba(0,0,0,0.95);">${safeMainOperator}</p>
                             </div>
@@ -244,15 +267,22 @@ Object.assign(window.app, {
                             const safeSubOperator = app.utils.cleanText(p.operator || 'Đang cập nhật');
 
                             heroSub.innerHTML += `
-                                <div class="relative group cursor-pointer h-[196px] rounded-md overflow-hidden" onclick="app.views.loadDetail(${p.id})">
-                                    <img src="${app.utils.getProxiedUrl(p.url, 'sub.jpg', 'thumb')}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                                    <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/85 via-black/40 to-transparent p-2.5 pt-8 pointer-events-none z-10 flex flex-col gap-0.5">
+                                <div class="img-wrapper relative group cursor-pointer h-[196px] bg-gray-100 rounded-md overflow-hidden border border-gray-200" onclick="app.views.loadDetail(${p.id})">
+                                    <div class="img-spinner absolute inset-0 flex items-center justify-center text-gray-400 z-0">
+                                        <i class="fa-solid fa-circle-notch fa-spin text-2xl"></i>
+                                    </div>
+                                    <img src="${app.utils.getProxiedUrl(p.url, 'sub.jpg', 'thumb')}"
+                                         onload="app.utils.handleImgLoad(this)"
+                                         onerror="app.utils.handleImgError(this)"
+                                         class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-all duration-500 opacity-0 z-10">
+                                    <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/85 via-black/40 to-transparent p-2.5 pt-8 pointer-events-none z-20 flex flex-col gap-0.5">
                                         <p class="text-white font-bold text-xs tracking-tight truncate leading-none" style="text-shadow: 0 1px 3px rgba(0,0,0,0.95);">${safeSubPlate}</p>
                                         <p class="text-white text-[11px] truncate leading-none font-medium" style="text-shadow: 0 1px 3px rgba(0,0,0,0.95);">${safeSubOperator}</p>
                                     </div>
                                 </div>`;
                         }
                     } else {
+                        heroMain.className = "w-full md:w-3/5 relative group cursor-pointer bg-gray-100 rounded-md overflow-hidden border border-gray-200";
                         heroMain.innerHTML = '<div class="w-full flex items-center justify-center text-gray-400" style="min-height: 404px;">Chưa có dữ liệu nổi bật</div>';
                         heroSub.innerHTML = '';
                     }
