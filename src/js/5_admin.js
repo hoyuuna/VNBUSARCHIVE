@@ -6,6 +6,7 @@ Object.assign(window.app, {
                 commentsData: { data: [], page: 1 },
                 is3x3Enabled: localStorage.getItem('vbs_admin_grid_3x3') === 'true',
                 isRulerEnabled: localStorage.getItem('vbs_admin_ruler_horiz') === 'true',
+                isHideMineEnabled: localStorage.getItem('vbs_admin_hide_mine') === 'true',
 
                 toggle3x3Grid: () => {
                     app.admin.is3x3Enabled = !app.admin.is3x3Enabled;
@@ -19,15 +20,21 @@ Object.assign(window.app, {
                     app.admin.updateRulerUI();
                 },
 
+                toggleHideMine: () => {
+                    app.admin.isHideMineEnabled = !app.admin.isHideMineEnabled;
+                    localStorage.setItem('vbs_admin_hide_mine', app.admin.isHideMineEnabled ? 'true' : 'false');
+                    app.admin.updateHideMineUI();
+                },
+
                 update3x3UI: () => {
                     const btn = document.getElementById('btn-toggle-3x3');
                     const statusText = document.getElementById('status-3x3');
                     if (btn && statusText) {
                         if (app.admin.is3x3Enabled) {
-                            btn.className = "pointer-events-auto inline-flex items-center gap-2 px-5 py-2.5 mr-3 bg-black border border-black rounded-lg text-xs font-bold text-white hover:bg-gray-800 transition shadow-xl";
+                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-black border border-black rounded-lg text-xs font-bold text-white hover:bg-gray-800 transition shadow-xl whitespace-nowrap";
                             statusText.innerText = "BẬT";
                         } else {
-                            btn.className = "pointer-events-auto inline-flex items-center gap-2 px-5 py-2.5 mr-3 bg-white border border-gray-300 rounded-lg text-xs font-bold text-gray-800 hover:bg-gray-50 hover:text-black transition shadow-xl";
+                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-xs font-bold text-gray-800 hover:bg-gray-50 hover:text-black transition shadow-xl whitespace-nowrap";
                             statusText.innerText = "TẮT";
                         }
                     }
@@ -47,10 +54,10 @@ Object.assign(window.app, {
                     const statusText = document.getElementById('status-ruler');
                     if (btn && statusText) {
                         if (app.admin.isRulerEnabled) {
-                            btn.className = "pointer-events-auto inline-flex items-center gap-2 px-5 py-2.5 bg-black border border-black rounded-lg text-xs font-bold text-white hover:bg-gray-800 transition shadow-xl";
+                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-black border border-black rounded-lg text-xs font-bold text-white hover:bg-gray-800 transition shadow-xl whitespace-nowrap";
                             statusText.innerText = "BẬT";
                         } else {
-                            btn.className = "pointer-events-auto inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-300 rounded-lg text-xs font-bold text-gray-800 hover:bg-gray-50 hover:text-black transition shadow-xl";
+                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-xs font-bold text-gray-800 hover:bg-gray-50 hover:text-black transition shadow-xl whitespace-nowrap";
                             statusText.innerText = "TẮT";
                         }
                     }
@@ -63,6 +70,24 @@ Object.assign(window.app, {
                         if (app.admin.isRulerEnabled) zoomRuler.classList.remove('hidden');
                         else zoomRuler.classList.add('hidden');
                     }
+                },
+
+                updateHideMineUI: () => {
+                    const btn = document.getElementById('btn-toggle-hide-mine');
+                    const statusText = document.getElementById('status-hide-mine');
+                    if (btn && statusText) {
+                        if (app.admin.isHideMineEnabled) {
+                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-black border border-black rounded-lg text-xs font-bold text-white hover:bg-gray-800 transition shadow-xl whitespace-nowrap";
+                            statusText.innerText = "BẬT";
+                        } else {
+                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-xs font-bold text-gray-800 hover:bg-gray-50 hover:text-black transition shadow-xl whitespace-nowrap";
+                            statusText.innerText = "TẮT";
+                        }
+                    }
+                    document.querySelectorAll('.admin-card[data-is-own="true"]').forEach(card => {
+                        if (app.admin.isHideMineEnabled) card.classList.add('hidden');
+                        else card.classList.remove('hidden');
+                    });
                 },
 
                 getRulerOverlayHTML: () => {
@@ -382,6 +407,7 @@ Object.assign(window.app, {
                     }
                     if (app.admin.update3x3UI) app.admin.update3x3UI();
                     if (app.admin.updateRulerUI) app.admin.updateRulerUI();
+                    if (app.admin.updateHideMineUI) app.admin.updateHideMineUI();
 
                     try {
                         if (tab === 'photos') {
@@ -450,8 +476,11 @@ Object.assign(window.app, {
                                 const isNewRoute = route && !approvedRouteSet.has(route);
                                 const isNewModel = model && !approvedModelSet.has(model);
 
+                                const isOwnPhoto = Boolean(app.user && (p.uploader_id === app.user.id || p.user_id === app.user.id));
+                                const hideClass = (app.admin.isHideMineEnabled && isOwnPhoto) ? 'hidden' : '';
+
                                 return `
-                                <div class="admin-card overflow-visible">
+                                <div class="admin-card overflow-visible ${hideClass}" data-is-own="${isOwnPhoto ? 'true' : 'false'}">
                                     <div class="admin-card-header">
                                         <div class="flex items-center gap-2">
                                             <span class="font-bold text-sm">${safePlate}</span>
@@ -536,6 +565,7 @@ Object.assign(window.app, {
                             }).join('');
                             if (app.admin.update3x3UI) app.admin.update3x3UI();
                             if (app.admin.updateRulerUI) app.admin.updateRulerUI();
+                            if (app.admin.updateHideMineUI) app.admin.updateHideMineUI();
                         } else if (tab === 'delete') {
                             let html = '';
 

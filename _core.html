@@ -4412,16 +4412,22 @@
                     <button onclick="app.admin.loadTab('manager')" id="adm-tab-manager" class="hidden px-5 py-2 bg-white border border-gray-300 text-gray-600 font-bold rounded-md text-sm hover:bg-gray-50 transition whitespace-nowrap">Quản lý (Manager)</button>
                 </div>
 
-                <!-- Nút bật tắt đường tham chiếu & thước ngang (Chỉ hiện ở tab Duyệt ảnh, sticky theo khi cuộn) -->
-                <div id="adm-photo-grid-toggle-bar" class="hidden sticky top-4 z-40 mb-6 flex items-center justify-end gap-3 space-x-3 pointer-events-none">
-                    <button type="button" id="btn-toggle-3x3" onclick="app.admin.toggle3x3Grid()" class="pointer-events-auto inline-flex items-center gap-2 px-5 py-2.5 mr-3 bg-white border border-gray-300 rounded-lg text-xs font-bold text-gray-800 hover:bg-gray-50 hover:text-black transition shadow-xl">
-                        <i class="fa-solid fa-table-cells text-gray-600 mr-1.5"></i>
-                        <span>Đường tham chiếu: <b id="status-3x3">TẮT</b></span>
-                    </button>
-                    <button type="button" id="btn-toggle-ruler" onclick="app.admin.toggleRuler()" class="pointer-events-auto inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-300 rounded-lg text-xs font-bold text-gray-800 hover:bg-gray-50 hover:text-black transition shadow-xl">
-                        <i class="fa-solid fa-ruler-horizontal text-gray-600 mr-1.5"></i>
-                        <span>Thước ngang: <b id="status-ruler">TẮT</b></span>
-                    </button>
+                <!-- Toolbar tiện ích duyệt ảnh: căn trái, cuộn ngang khi màn hình nhỏ -->
+                <div id="adm-photo-grid-toggle-bar" class="hidden sticky top-4 z-40 mb-6 pointer-events-none">
+                    <div class="inline-flex items-center justify-start gap-3 overflow-x-auto max-w-full pb-1 pointer-events-auto">
+                        <button type="button" id="btn-toggle-3x3" onclick="app.admin.toggle3x3Grid()" class="flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-xs font-bold text-gray-800 hover:bg-gray-50 hover:text-black transition shadow-xl whitespace-nowrap">
+                            <i class="fa-solid fa-table-cells text-gray-600"></i>
+                            <span>Đường tham chiếu: <b id="status-3x3">TẮT</b></span>
+                        </button>
+                        <button type="button" id="btn-toggle-ruler" onclick="app.admin.toggleRuler()" class="flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-xs font-bold text-gray-800 hover:bg-gray-50 hover:text-black transition shadow-xl whitespace-nowrap">
+                            <i class="fa-solid fa-ruler-horizontal text-gray-600"></i>
+                            <span>Thước ngang: <b id="status-ruler">TẮT</b></span>
+                        </button>
+                        <button type="button" id="btn-toggle-hide-mine" onclick="app.admin.toggleHideMine()" class="flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-xs font-bold text-gray-800 hover:bg-gray-50 hover:text-black transition shadow-xl whitespace-nowrap">
+                            <i class="fa-solid fa-eye-slash text-gray-600"></i>
+                            <span>Ẩn ảnh của tôi: <b id="status-hide-mine">TẮT</b></span>
+                        </button>
+                    </div>
                 </div>
 
                 <div id="admin-content" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
