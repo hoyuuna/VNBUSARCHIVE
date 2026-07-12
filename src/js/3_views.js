@@ -228,7 +228,8 @@ Object.assign(window.app, {
                         const safeMainPlate = app.utils.displayPlate(app.utils.cleanText(main.license_plate));
                         const mainDisplay = app.utils.formatProfileDisplay(main.profiles);
                         const safeMainUser = app.utils.cleanText(mainDisplay.username);
-                        const mainViewsText = `${main.views || 0} lượt xem`;
+                        const mainViewsVal = main.views ?? main.total_views ?? 0;
+                        const mainViewsText = `${mainViewsVal} lượt xem`;
 
                         heroMain.innerHTML = `
                             <img src="${app.utils.getProxiedUrl(main.url, 'main.jpg', 'full')}" onerror="app.utils.fallbackHeroImage(this, 'topPhotosCache', 0)" class="w-full h-[400px] object-cover block hover:scale-105 transition-transform duration-700 relative z-0">
@@ -242,7 +243,8 @@ Object.assign(window.app, {
                         heroSub.innerHTML = '';
                         for (let i = 1; i < topPhotos.length; i++) {
                             const p = topPhotos[i];
-                            const subViewsText = `${p.views || 0}`;
+                            const subViewsVal = p.views ?? p.total_views ?? 0;
+                            const subViewsText = `${subViewsVal}`;
 
                             heroSub.innerHTML += `
                                 <div class="relative group cursor-pointer h-[196px] rounded-md overflow-hidden" onclick="app.views.loadDetail(${p.id})">

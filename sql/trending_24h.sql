@@ -1,5 +1,6 @@
 -- ==============================================================================
 -- TÍNH NĂNG: LƯU VẾT VÀ HIỂN THỊ ẢNH XEM NHIỀU NHẤT TRONG 24 GIỜ QUA (TRENDING 24H)
+-- PHIÊN BẢN: PRODUCTION READY (TỐI ƯU BẢO MẬT & HIỆU NĂNG)
 -- ==============================================================================
 
 -- 1. Tạo bảng lưu vết từng lượt xem ảnh
@@ -10,68 +11,92 @@ CREATE TABLE IF NOT EXISTS public.photo_views_log (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- 2. Tạo chỉ mục (index) để truy vấn thống kê lượt xem trong 24h qua cực nhanh
+-- 2. Tạo chỉ mục tối ưu cho truy vấn quét theo thời gian (Time-range scanning)
 CREATE INDEX IF NOT EXISTS idx_photo_views_log_photo_created
 ON public.photo_views_log (photo_id, created_at DESC);
 
 CREATE INDEX IF NOT EXISTS idx_photo_views_log_created_at
 ON public.photo_views_log (created_at DESC);
 
--- 3. Bật bảo mật mức dòng (Row Level Security - RLS)
+-- 3. Cấu hình bảo mật mức dòng (RLS)
 ALTER TABLE public.photo_views_log ENABLE ROW LEVEL SECURITY;
 
--- Chính sách: Cho phép tất cả người dùng (kể cả khách chưa đăng nhập) ghi log lượt xem
+-- Chính sách INSERT: Cho phép tất cả mọi người (kể cả Guest) ghi log lượt xem
 DROP POLICY IF EXISTS "Cho phép tất cả ghi log lượt xem" ON public.photo_views_log;
 CREATE POLICY "Cho phép tất cả ghi log lượt xem"
 ON public.photo_views_log FOR INSERT
 WITH CHECK (true);
 
--- Chính sách: Cho phép đọc log để thống kê
-DROP POLICY IF EXISTS "Cho phép tất cả đọc log lượt xem" ON public.photo_views_log;
-CREATE POLICY "Cho phép tất cả đọc log lượt xem"
-ON public.photo_views_log FOR SELECT
-USING (true);
+-- LƯU Ý PRODUCTION: ĐÃ XÓA CHÍNH SÁCH SELECT. 
+-- Bảng log chứa thông tin riêng tư (ai xem gì lúc nào), chỉ cho phép hàm RPC chạy với quyền SECURITY DEFINER đọc.
 
--- 4. Tạo hàm RPC lấy Top 5 ảnh được xem nhiều nhất trong 24 giờ qua
--- Có hỗ trợ bộ lọc (both / bus / coach) và fallback tự động theo lượt xem tổng nếu chưa có đủ log 24h
+-- 4. Tạo hàm RPC lấy Top ảnh trending trong 24 giờ qua
 CREATE OR REPLACE FUNCTION public.get_trending_photos_24h(
-    filter_type text DEFAULT 'both',
-    limit_num int DEFAULT 5
+    filter_type TEXT DEFAULT 'both',
+    limit_num INT DEFAULT 5
 )
-RETURNS jsonb
+RETURNS JSONB
 LANGUAGE plpgsql
-SECURITY DEFINER
+SECURITY DEFINER -- Chạy với quyền Admin để bypass RLS nội bộ, tăng tốc JOIN
 AS $$
 DECLARE
-    result jsonb;
+    result JSONB;
 BEGIN
+    -- Kiểm tra điều kiện đầu vào để bảo vệ tài nguyên database
+    IF limit_num <= 0 OR limit_num > 50 THEN
+        limit_num := 5;
+    END IF;
+
+    IF filter_type NOT IN ('both', 'bus', 'coach') THEN
+        filter_type := 'both';
+    END IF;
+
     SELECT jsonb_agg(row_to_json(t))
     INTO result
     FROM (
         SELECT 
-            p.*,
+            p.id,
+            p.url,
+            p.license_plate,
+            p.uploader_id,
+            p.views,
+            p.views AS total_views,
+            p.location,
+            p.province,
+            p.route_no,
+            p.operator,
+            p.type,
+            p.taken_at,
+            p.created_at,
             COALESCE(v24.cnt, 0) AS views_24h,
+            
             jsonb_build_object(
                 'id', pr.id,
                 'username', pr.username,
                 'role', pr.role,
                 'subroles', pr.subroles,
+                'avatar_url', pr.avatar_url,
                 'ban_status', pr.ban_status
             ) AS profiles,
+            
             jsonb_build_object(
                 'model', v.model
             ) AS vehicles
         FROM public.photos p
+        
         LEFT JOIN (
             SELECT photo_id, COUNT(*) AS cnt
             FROM public.photo_views_log
-            WHERE created_at >= NOW() - INTERVAL '24 hours'
+            WHERE created_at >= (NOW() - INTERVAL '24 hours')
             GROUP BY photo_id
         ) v24 ON p.id = v24.photo_id
+        
         LEFT JOIN public.profiles pr ON p.uploader_id = pr.id
         LEFT JOIN public.vehicles v ON p.license_plate = v.license_plate
+        
         WHERE p.status = 'approved'
           AND (filter_type = 'both' OR p.type = filter_type)
+          
         ORDER BY COALESCE(v24.cnt, 0) DESC, p.views DESC, p.created_at DESC
         LIMIT limit_num
     ) t;
