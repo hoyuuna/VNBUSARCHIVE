@@ -5,11 +5,18 @@ Object.assign(window.app, {
                 adminInterval: null,
                 commentsData: { data: [], page: 1 },
                 is3x3Enabled: localStorage.getItem('vbs_admin_grid_3x3') === 'true',
+                isRulerEnabled: localStorage.getItem('vbs_admin_ruler_horiz') === 'true',
 
                 toggle3x3Grid: () => {
                     app.admin.is3x3Enabled = !app.admin.is3x3Enabled;
                     localStorage.setItem('vbs_admin_grid_3x3', app.admin.is3x3Enabled ? 'true' : 'false');
                     app.admin.update3x3UI();
+                },
+
+                toggleRuler: () => {
+                    app.admin.isRulerEnabled = !app.admin.isRulerEnabled;
+                    localStorage.setItem('vbs_admin_ruler_horiz', app.admin.isRulerEnabled ? 'true' : 'false');
+                    app.admin.updateRulerUI();
                 },
 
                 update3x3UI: () => {
@@ -33,6 +40,53 @@ Object.assign(window.app, {
                         if (app.admin.is3x3Enabled) zoomGrid.classList.remove('hidden');
                         else zoomGrid.classList.add('hidden');
                     }
+                },
+
+                updateRulerUI: () => {
+                    const btn = document.getElementById('btn-toggle-ruler');
+                    const statusText = document.getElementById('status-ruler');
+                    if (btn && statusText) {
+                        if (app.admin.isRulerEnabled) {
+                            btn.className = "pointer-events-auto inline-flex items-center gap-2 px-5 py-2.5 bg-black border border-black rounded-lg text-xs font-bold text-white hover:bg-gray-800 transition shadow-xl";
+                            statusText.innerText = "BẬT";
+                        } else {
+                            btn.className = "pointer-events-auto inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-300 rounded-lg text-xs font-bold text-gray-800 hover:bg-gray-50 hover:text-black transition shadow-xl";
+                            statusText.innerText = "TẮT";
+                        }
+                    }
+                    document.querySelectorAll('.admin-photo-ruler-overlay').forEach(el => {
+                        if (app.admin.isRulerEnabled) el.classList.remove('hidden');
+                        else el.classList.add('hidden');
+                    });
+                    const zoomRuler = document.getElementById('admin-zoom-ruler-overlay');
+                    if (zoomRuler) {
+                        if (app.admin.isRulerEnabled) zoomRuler.classList.remove('hidden');
+                        else zoomRuler.classList.add('hidden');
+                    }
+                },
+
+                getRulerOverlayHTML: () => {
+                    const isHidden = app.admin.isRulerEnabled ? '' : 'hidden';
+                    const levels = [
+                        { pos: 8.3333, label: '5' },
+                        { pos: 16.6667, label: '4' },
+                        { pos: 25.0, label: '3' },
+                        { pos: 33.3333, label: '2' },
+                        { pos: 41.6667, label: '1' },
+                        { pos: 50.0, label: '0', isCenter: true },
+                        { pos: 58.3333, label: '1' },
+                        { pos: 66.6667, label: '2' },
+                        { pos: 75.0, label: '3' },
+                        { pos: 83.3333, label: '4' },
+                        { pos: 91.6667, label: '5' }
+                    ];
+                    let linesHtml = '';
+                    levels.forEach(item => {
+                        const lineClass = item.isCenter ? 'ruler-line-center' : 'ruler-line-v';
+                        const badgeClass = item.isCenter ? 'ruler-badge-center' : 'ruler-badge';
+                        linesHtml += `<div class="${lineClass}" style="left: ${item.pos}%;"><span class="${badgeClass} ruler-badge-top">${item.label}</span><span class="${badgeClass} ruler-badge-bottom">${item.label}</span></div>`;
+                    });
+                    return `<div class="admin-photo-ruler-overlay ruler-horizontal-overlay ${isHidden}">${linesHtml}</div>`;
                 },
 
                 originalData: {},
@@ -219,6 +273,15 @@ Object.assign(window.app, {
                         }
                     }
 
+                    const zoomRuler = document.getElementById('admin-zoom-ruler-overlay');
+                    if (zoomRuler) {
+                        if (isFromAdminReview && app.admin.isRulerEnabled) {
+                            zoomRuler.classList.remove('hidden');
+                        } else {
+                            zoomRuler.classList.add('hidden');
+                        }
+                    }
+
                     // Logic hiển thị Toolbar với Animation Trượt
                     const toolbar = document.getElementById('zoom-toolbar');
                     const hint = document.getElementById('zoom-hint');
@@ -318,6 +381,7 @@ Object.assign(window.app, {
                         else toggleBar.classList.add('hidden');
                     }
                     if (app.admin.update3x3UI) app.admin.update3x3UI();
+                    if (app.admin.updateRulerUI) app.admin.updateRulerUI();
 
                     try {
                         if (tab === 'photos') {
@@ -404,6 +468,7 @@ Object.assign(window.app, {
                                             <div class="grid-3x3-line-h" style="top: 33.3333%;"></div>
                                             <div class="grid-3x3-line-h" style="top: 66.6666%;"></div>
                                         </div>
+                                        ${app.admin.getRulerOverlayHTML()}
                                         <button onclick="app.admin.openZoom('${app.utils.getProxiedUrl(p.url)}', false, true)" class="absolute top-2 right-2 bg-black/50 text-white w-8 h-8 rounded hover:bg-black flex items-center justify-center transition z-20" title="Soi ảnh"><i class="fa-solid fa-expand"></i></button>
                                     </div>
                                     <div class="admin-card-body">
@@ -470,6 +535,7 @@ Object.assign(window.app, {
                                 </div>`
                             }).join('');
                             if (app.admin.update3x3UI) app.admin.update3x3UI();
+                            if (app.admin.updateRulerUI) app.admin.updateRulerUI();
                         } else if (tab === 'delete') {
                             let html = '';
 
@@ -526,6 +592,7 @@ Object.assign(window.app, {
                                             <div class="grid-3x3-line-h" style="top: 33.3333%;"></div>
                                             <div class="grid-3x3-line-h" style="top: 66.6666%;"></div>
                                         </div>
+                                        ${app.admin.getRulerOverlayHTML()}
                                         <button onclick="app.admin.openZoom('${app.utils.getProxiedUrl(photo?.url)}', false, true)" class="absolute top-2 right-2 bg-black/50 text-white w-8 h-8 rounded hover:bg-black flex items-center justify-center transition z-20" title="Soi ảnh"><i class="fa-solid fa-expand"></i></button>
                                     </div>
                                     <div class="admin-card-body text-xs">
@@ -541,6 +608,7 @@ Object.assign(window.app, {
 
                             content.innerHTML = html;
                             if (app.admin.update3x3UI) app.admin.update3x3UI();
+                            if (app.admin.updateRulerUI) app.admin.updateRulerUI();
                         } else if (tab === 'requests') {
                             let { data: reqs, error } = await window.sb.from('edit_requests').select('*').eq('status', 'pending');
                             if (error) throw error;
@@ -701,6 +769,7 @@ Object.assign(window.app, {
                                 }
                             }).join('');
                             if (app.admin.update3x3UI) app.admin.update3x3UI();
+                            if (app.admin.updateRulerUI) app.admin.updateRulerUI();
                         }
 
 

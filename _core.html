@@ -1701,6 +1701,69 @@
             background: rgba(255, 255, 255, 0.85);
             box-shadow: 0 0 2px rgba(0, 0, 0, 0.9), 0 0 1px rgba(0, 0, 0, 1);
         }
+
+        /* Thước ngang cho Admin duyệt ảnh */
+        .ruler-horizontal-overlay {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 16;
+        }
+        .ruler-line-v {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: rgba(255, 255, 255, 0.75);
+            border-left: 1px dashed rgba(255, 255, 255, 0.65);
+            box-shadow: 0 0 2px rgba(0, 0, 0, 0.95), 0 0 1px rgba(0, 0, 0, 1);
+        }
+        .ruler-line-center {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #ffffff;
+            box-shadow: 0 0 4px rgba(0, 0, 0, 0.95), 0 0 1px rgba(0, 0, 0, 1);
+        }
+        .ruler-badge {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.85);
+            color: #ffffff;
+            font-family: monospace;
+            font-size: 10px;
+            font-weight: 700;
+            line-height: 1;
+            padding: 3px 5px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+            white-space: nowrap;
+        }
+        .ruler-badge-center {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ffffff;
+            color: #000000;
+            font-family: monospace;
+            font-size: 10px;
+            font-weight: 800;
+            line-height: 1;
+            padding: 3px 5px;
+            border-radius: 4px;
+            border: 1px solid rgba(0, 0, 0, 0.8);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+            white-space: nowrap;
+        }
+        .ruler-badge-top {
+            top: 6px;
+        }
+        .ruler-badge-bottom {
+            bottom: 6px;
+        }
     </style>
     <style>
         body.is-offline button[type="submit"], body.is-offline .submit-btn, body.is-offline #btn-submit, body.is-offline #btn-post-comment, body.is-offline #btn-like { pointer-events: none !important; opacity: 0.5 !important; }
@@ -2434,6 +2497,19 @@
                     <div class="grid-3x3-line-v" style="left: 66.6666%;"></div>
                     <div class="grid-3x3-line-h" style="top: 33.3333%;"></div>
                     <div class="grid-3x3-line-h" style="top: 66.6666%;"></div>
+                </div>
+                <div id="admin-zoom-ruler-overlay" class="ruler-horizontal-overlay hidden">
+                    <div class="ruler-line-v" style="left: 8.3333%;"><span class="ruler-badge ruler-badge-top">5</span><span class="ruler-badge ruler-badge-bottom">5</span></div>
+                    <div class="ruler-line-v" style="left: 16.6667%;"><span class="ruler-badge ruler-badge-top">4</span><span class="ruler-badge ruler-badge-bottom">4</span></div>
+                    <div class="ruler-line-v" style="left: 25%;"><span class="ruler-badge ruler-badge-top">3</span><span class="ruler-badge ruler-badge-bottom">3</span></div>
+                    <div class="ruler-line-v" style="left: 33.3333%;"><span class="ruler-badge ruler-badge-top">2</span><span class="ruler-badge ruler-badge-bottom">2</span></div>
+                    <div class="ruler-line-v" style="left: 41.6667%;"><span class="ruler-badge ruler-badge-top">1</span><span class="ruler-badge ruler-badge-bottom">1</span></div>
+                    <div class="ruler-line-center" style="left: 50%;"><span class="ruler-badge-center ruler-badge-top">0</span><span class="ruler-badge-center ruler-badge-bottom">0</span></div>
+                    <div class="ruler-line-v" style="left: 58.3333%;"><span class="ruler-badge ruler-badge-top">1</span><span class="ruler-badge ruler-badge-bottom">1</span></div>
+                    <div class="ruler-line-v" style="left: 66.6667%;"><span class="ruler-badge ruler-badge-top">2</span><span class="ruler-badge ruler-badge-bottom">2</span></div>
+                    <div class="ruler-line-v" style="left: 75%;"><span class="ruler-badge ruler-badge-top">3</span><span class="ruler-badge ruler-badge-bottom">3</span></div>
+                    <div class="ruler-line-v" style="left: 83.3333%;"><span class="ruler-badge ruler-badge-top">4</span><span class="ruler-badge ruler-badge-bottom">4</span></div>
+                    <div class="ruler-line-v" style="left: 91.6667%;"><span class="ruler-badge ruler-badge-top">5</span><span class="ruler-badge ruler-badge-bottom">5</span></div>
                 </div>
             </div>
             <button onclick="app.admin.closeZoom()" title="Đóng (ESC)" class="absolute top-4 right-4 text-white hover:text-red-500 text-3xl z-[2001] p-2 transition-transform active:scale-90"><i class="fa-solid fa-xmark"></i></button>
@@ -4337,11 +4413,15 @@
                     <button onclick="app.admin.loadTab('manager')" id="adm-tab-manager" class="hidden px-5 py-2 bg-white border border-gray-300 text-gray-600 font-bold rounded-md text-sm hover:bg-gray-50 transition whitespace-nowrap">Quản lý (Manager)</button>
                 </div>
 
-                <!-- Nút bật tắt đường tham chiếu (Chỉ hiện ở tab Duyệt ảnh, sticky theo khi cuộn và tạo khoảng cách xa trần card) -->
-                <div id="adm-photo-grid-toggle-bar" class="hidden sticky top-4 z-40 mb-6 flex justify-end pointer-events-none">
+                <!-- Nút bật tắt đường tham chiếu & thước ngang (Chỉ hiện ở tab Duyệt ảnh, sticky theo khi cuộn) -->
+                <div id="adm-photo-grid-toggle-bar" class="hidden sticky top-4 z-40 mb-6 flex justify-end gap-2.5 pointer-events-none">
                     <button type="button" id="btn-toggle-3x3" onclick="app.admin.toggle3x3Grid()" class="pointer-events-auto inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-300 rounded-lg text-xs font-bold text-gray-800 hover:bg-gray-50 hover:text-black transition shadow-xl">
                         <i class="fa-solid fa-table-cells text-gray-600 mr-1.5"></i>
                         <span>Đường tham chiếu: <b id="status-3x3">TẮT</b></span>
+                    </button>
+                    <button type="button" id="btn-toggle-ruler" onclick="app.admin.toggleRuler()" class="pointer-events-auto inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-300 rounded-lg text-xs font-bold text-gray-800 hover:bg-gray-50 hover:text-black transition shadow-xl">
+                        <i class="fa-solid fa-ruler-horizontal text-gray-600 mr-1.5"></i>
+                        <span>Thước ngang: <b id="status-ruler">TẮT</b></span>
                     </button>
                 </div>
 
