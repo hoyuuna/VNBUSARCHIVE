@@ -2331,7 +2331,23 @@ Object.assign(window.app, {
 
                 app.handleRoute();
 
-                document.getElementById('up-file').addEventListener('change', app.upload.handleFileSelect);
+                const upFileEl = document.getElementById('up-file');
+                if (upFileEl) upFileEl.addEventListener('change', app.upload.handleFileSelect);
+
+                const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+                const webrtcFileEl = document.getElementById('webrtc-mobile-file');
+                const formatHintEl = document.getElementById('upload-format-hint');
+                if (!isMobileDevice) {
+                    const pcAccept = "image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif,.nef,.cr2,.cr3,.arw,.dng,.orf,.rw2,.pef,.raf,.srw,.raw";
+                    if (upFileEl) upFileEl.accept = pcAccept;
+                    if (webrtcFileEl) webrtcFileEl.accept = pcAccept;
+                    if (formatHintEl) formatHintEl.innerText = "ĐỊNH DẠNG JPG, PNG, HEIC, RAW (TỐI ĐA 30MB)";
+                } else {
+                    const mobileAccept = "image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif";
+                    if (upFileEl) upFileEl.accept = mobileAccept;
+                    if (webrtcFileEl) webrtcFileEl.accept = mobileAccept;
+                    if (formatHintEl) formatHintEl.innerText = "ĐỊNH DẠNG JPG, PNG, HEIC (RAW CHỈ TRÊN PC)";
+                }
 
                 // Logic Drag & Drop TOÀN MÀN HÌNH (Clean UI: Hình tròn trắng không viền)
                 const dropZone = document.getElementById('drop-zone');

@@ -1058,6 +1058,17 @@ Object.assign(window.app, {
                         return;
                     }
 
+                    const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+                    const isRawFile = /\.(nef|cr2|cr3|arw|dng|orf|rw2|pef|raf|srw|raw)$/i.test(file.name);
+                    if (isMobileDevice && isRawFile) {
+                        app.ui.showAlert("Định dạng RAW chỉ hỗ trợ xử lý trên PC/Desktop. Trên điện thoại, vui lòng chọn ảnh JPG, PNG hoặc HEIC.");
+                        const fileInput = document.getElementById('up-file');
+                        if (fileInput) fileInput.value = '';
+                        if (app.upload.restoreDropZone) app.upload.restoreDropZone();
+                        if (app.webrtc && app.webrtc.resetMobile) app.webrtc.resetMobile();
+                        return;
+                    }
+
                     const checkExif = new Promise(async (resolve, reject) => {
                         try {
                             let tags = {};

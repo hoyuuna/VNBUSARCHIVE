@@ -4053,7 +4053,7 @@
                                     </div>
                                     <div class="text-center">
                                         <p class="text-sm font-bold text-gray-600 group-hover:text-black">Nhấn để chọn ảnh hoặc kéo thả vào đây</p>
-                                        <p class="text-[11px] text-gray-400 mt-1 uppercase tracking-wider font-semibold">Định dạng JPG, JPEG, RAW (Tối đa 30MB)</p>
+                                        <p id="upload-format-hint" class="text-[11px] text-gray-400 mt-1 uppercase tracking-wider font-semibold">Định dạng JPG, PNG, HEIC (RAW chỉ trên PC)</p>
                                     </div>
                                 </div>
                                 <div id="qr-btn-wrapper" class="flex flex-col items-center relative z-20 mt-1">
@@ -4062,7 +4062,7 @@
                                     </button>
                                 </div>
 
-                                <input type="file" id="up-file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif,.nef,.cr2,.cr3,.arw,.dng,.orf,.rw2,.pef,.raf,.srw,.raw" class="hidden" />
+                                <input type="file" id="up-file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif" class="hidden" />
                             </div>
 
                             <!-- GIAO DIỆN THIẾT BỊ ĐÃ KẾT NỐI (THAY THẾ DROPZONE) -->
@@ -4866,7 +4866,7 @@
                         <p class="text-sm font-bold text-gray-700">Đang thiết lập kết nối...</p>
                     </div>
 
-                    <input type="file" id="webrtc-mobile-file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif,.nef,.cr2,.cr3,.arw,.dng,.orf,.rw2,.pef,.raf,.srw,.raw" class="hidden">
+                    <input type="file" id="webrtc-mobile-file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif" class="hidden">
 
                     <!-- Box Dropzone chuẩn form PC -->
                     <div id="webrtc-mobile-btn" onclick="document.getElementById('webrtc-mobile-file').click()" class="hidden w-full bg-gray-50 border-2 border-gray-300 rounded-2xl p-10 flex-col items-center justify-center gap-3 shadow-md hover:bg-gray-100 hover:border-black hover:shadow-lg transition-all cursor-pointer group relative overflow-hidden mb-2">
