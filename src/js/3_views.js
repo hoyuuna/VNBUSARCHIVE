@@ -229,7 +229,7 @@ Object.assign(window.app, {
                         const safeMainOperator = app.utils.cleanText(main.operator || 'Đang cập nhật');
 
                         heroMain.innerHTML = `
-                            <img src="${app.utils.getProxiedUrl(main.url, 'main.jpg', 'full')}" onerror="app.utils.fallbackHeroImage(this, 'topPhotosCache', 0)" class="w-full h-[400px] object-cover block hover:scale-105 transition-transform duration-700 relative z-0">
+                            <img src="${app.utils.getProxiedUrl(main.url, 'main.jpg', 'full')}" onerror="app.utils.fallbackHeroImage(this, 'topPhotosCache', 0)" class="absolute inset-0 w-full h-full object-cover object-center block group-hover:scale-105 transition-transform duration-700 z-0">
                             <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/85 via-black/50 to-transparent p-4 pt-14 pointer-events-none z-10 flex flex-col gap-1">
                                 <p class="text-white font-bold text-xl tracking-tight hero-main-text pointer-events-auto leading-tight truncate" style="text-shadow: 0 2px 4px rgba(0,0,0,0.95);">${safeMainPlate}</p>
                                 <p class="text-white text-xs hero-main-views pointer-events-auto truncate leading-tight font-medium" style="text-shadow: 0 1px 3px rgba(0,0,0,0.95);">${safeMainOperator}</p>
@@ -253,7 +253,7 @@ Object.assign(window.app, {
                                 </div>`;
                         }
                     } else {
-                        heroMain.innerHTML = '<div class="w-full h-[400px] flex items-center justify-center text-gray-400">Chưa có dữ liệu nổi bật</div>';
+                        heroMain.innerHTML = '<div class="w-full flex items-center justify-center text-gray-400" style="min-height: 404px;">Chưa có dữ liệu nổi bật</div>';
                         heroSub.innerHTML = '';
                     }
 
