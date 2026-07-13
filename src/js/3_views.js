@@ -3489,7 +3489,7 @@ Object.assign(window.app, {
                 if (copySection) copySection.classList.add('hidden');
                 if (titleEl) titleEl.innerHTML = 'Nội dung liên quan <span class="text-red-500">*</span>';
                 descLabel.innerHTML = 'Mô tả chi tiết <span class="text-red-500">*</span>';
-                photoUrlInput.placeholder = "Paste link ảnh VNBUSARCHIVE có chất lượng xấu vào đây...";
+                photoUrlInput.placeholder = "Paste link ảnh VNBUSARCHIVE chưa đạt chuẩn vào đây...";
             } 
             else {
                 photoSection.classList.add('hidden');
