@@ -3931,6 +3931,12 @@ Object.assign(window.app, {
             const container = document.getElementById('leaderboard-content');
             if (!container) return;
 
+            // Xóa tiêu đề HTML cũ bị trùng lặp (nằm ngay trên container do code HTML cứng)
+            const oldHeader = container.previousElementSibling;
+            if (oldHeader && oldHeader.innerHTML.includes('Top những spotter')) {
+                oldHeader.remove();
+            }
+
             const top1 = topSpotters[0];
             const top2 = topSpotters[1];
             const top3 = topSpotters[2];
@@ -3977,7 +3983,7 @@ Object.assign(window.app, {
                 };
 
                 const style = config[rank];
-                const avatar = user.avatar_url ? app.utils.getProxiedUrl(user.avatar_url, 'avatar.jpg', 'avatar') : 'https://ik.imagekit.io/hoyuuna/avatar-default.png';
+                const avatar = user.avatar_url ? app.utils.getProxiedUrl(user.avatar_url, 'avatar.jpg', 'avatar') : DEFAULT_AVATAR;
 
                 return `
                     <div class="${style.order} flex-1 w-full min-w-0">
@@ -3989,7 +3995,7 @@ Object.assign(window.app, {
                             </div>
                             
                             <div class="w-24 h-24 md:w-28 md:h-28 rounded-full overflow-hidden shrink-0 mx-auto border border-gray-200 bg-gray-50 shadow-inner mb-4 group-hover:scale-105 transition-transform">
-                                <img loading="lazy" src="${avatar}" onerror="this.src='https://ik.imagekit.io/hoyuuna/avatar-default.png'" class="w-full h-full object-cover block">
+                                <img loading="lazy" src="${avatar}" onerror="this.src='${DEFAULT_AVATAR}'" class="w-full h-full object-cover block">
                             </div>
                             
                             <div class="font-extrabold text-black text-xl md:text-2xl w-full truncate mb-2 group-hover:text-blue-600 transition-colors">${app.utils.cleanText(user.username)}</div>
@@ -4025,14 +4031,10 @@ Object.assign(window.app, {
             const restSpotters = topSpotters.slice(3, 10);
             const restHtml = restSpotters.length > 0 ? `
                 <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden mb-10">
-                    <div class="px-5 md:px-6 py-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
-                        <h3 class="text-xs font-black uppercase text-gray-500 tracking-widest"><i class="fa-solid fa-list-ol mr-1.5"></i> Vị trí 4 - 10</h3>
-                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Đóng góp</span>
-                    </div>
                     <div class="divide-y divide-gray-100">
                         ${restSpotters.map((user, idx) => {
                             const rank = idx + 4;
-                            const avatar = user.avatar_url ? app.utils.getProxiedUrl(user.avatar_url, 'avatar.jpg', 'avatar') : 'https://ik.imagekit.io/hoyuuna/avatar-default.png';
+                            const avatar = user.avatar_url ? app.utils.getProxiedUrl(user.avatar_url, 'avatar.jpg', 'avatar') : DEFAULT_AVATAR;
                             return `
                                 <div onclick="app.utils.navigate('/user/${encodeURIComponent(user.username)}')" 
                                      class="cursor-pointer px-5 md:px-6 py-4 flex items-center justify-between gap-3 hover:bg-gray-50 transition-colors group">
@@ -4042,7 +4044,7 @@ Object.assign(window.app, {
                                             #${rank}
                                         </div>
                                         <div class="w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden shrink-0 border border-gray-200 bg-gray-50">
-                                            <img loading="lazy" src="${avatar}" onerror="this.src='https://ik.imagekit.io/hoyuuna/avatar-default.png'" class="w-full h-full object-cover block">
+                                            <img loading="lazy" src="${avatar}" onerror="this.src='${DEFAULT_AVATAR}'" class="w-full h-full object-cover block">
                                         </div>
                                         <div class="min-w-0 flex-1">
                                             <div class="font-extrabold text-black text-sm md:text-base truncate group-hover:text-blue-600 transition-colors">${app.utils.cleanText(user.username)}</div>
@@ -4072,12 +4074,12 @@ Object.assign(window.app, {
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
                         ${adminManagers.map(user => {
-                            const avatar = user.avatar_url ? app.utils.getProxiedUrl(user.avatar_url, 'avatar.jpg', 'avatar') : 'https://ik.imagekit.io/hoyuuna/avatar-default.png';
+                            const avatar = user.avatar_url ? app.utils.getProxiedUrl(user.avatar_url, 'avatar.jpg', 'avatar') : DEFAULT_AVATAR;
                             return `
                                 <div onclick="app.utils.navigate('/user/${encodeURIComponent(user.username)}')" 
                                      class="cursor-pointer bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:border-black hover:shadow-md transition-all flex items-center gap-3 md:gap-4 group">
                                     <div class="w-12 h-12 rounded-full overflow-hidden shrink-0 border border-gray-200 bg-gray-50">
-                                        <img loading="lazy" src="${avatar}" onerror="this.src='https://ik.imagekit.io/hoyuuna/avatar-default.png'" class="w-full h-full object-cover block">
+                                        <img loading="lazy" src="${avatar}" onerror="this.src='${DEFAULT_AVATAR}'" class="w-full h-full object-cover block">
                                     </div>
                                     <div class="min-w-0 flex-1">
                                         <div class="font-bold text-black text-sm truncate group-hover:text-blue-600 transition-colors">${app.utils.cleanText(user.username)}</div>
