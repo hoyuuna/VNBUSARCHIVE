@@ -3228,7 +3228,9 @@ Object.assign(window.app, {
                     if (app.edit.isEditing) {
                         formInputs.forEach(input => {
                             if (input.tagName === 'SELECT') { input.disabled = false; } 
-                            else { if (input.id !== 'info-plate') input.readOnly = false; }
+                            else {
+                                if (input.id !== 'info-plate' && input.id !== 'info-date') input.readOnly = false;
+                            }
                         });
 
                         const provBtn = document.getElementById('info-province-btn');
@@ -3246,11 +3248,11 @@ Object.assign(window.app, {
                         notice.classList.remove('hidden');
 
                         if (app.role === 'admin' || app.role === 'manager') {
-                            noticeText.innerText = "ADMIN MODE: Bạn đang sửa trực tiếp vào cơ sở dữ liệu.";
+                            noticeText.innerText = "ADMIN MODE: Bạn đang sửa trực tiếp vào cơ sở dữ liệu (Ngày chụp khóa cố định).";
                             btnSave.innerText = "Lưu ngay lập tức";
                             document.getElementById('info-plate').readOnly = false;
                         } else {
-                            noticeText.innerText = "Bạn đang ở chế độ chỉnh sửa. Thay đổi sẽ được gửi yêu cầu duyệt (Trừ ngày chụp).";
+                            noticeText.innerText = "Bạn đang ở chế độ chỉnh sửa. Thay đổi sẽ được gửi yêu cầu duyệt (Ngày chụp đã được khóa cố định).";
                             btnSave.innerText = "Gửi yêu cầu";
                         }
                     } else {
@@ -3300,7 +3302,7 @@ Object.assign(window.app, {
                         location: document.getElementById('info-location').value,
                         province: document.getElementById('info-province')?.value || null,
                         note: document.getElementById('info-note').value,
-                        taken_at: document.getElementById('info-date').value
+                        taken_at: app.currentPhoto.taken_at
                     };
 
                     let missingFields = [];
@@ -3327,7 +3329,7 @@ Object.assign(window.app, {
                     }
 
                     try {
-                        const takenAtChanged = !!(payload.taken_at && payload.taken_at !== app.currentPhoto.taken_at);
+                        const takenAtChanged = false; // Khóa cố định Ngày chụp, không cho phép thay đổi
 
 
                         if (takenAtChanged || payload.license_plate !== app.currentPhoto.license_plate) {
@@ -3476,7 +3478,7 @@ Object.assign(window.app, {
                             const { data, error } = await window.sb.from('edit_requests').insert(reqData).select().single();
                             if (error) throw error;
 
-                            app.ui.showAlert("Yêu cầu chỉnh sửa đã được gửi và đang chờ Admin duyệt (Ngày chụp đã được cập nhật ngay nếu bạn là người đăng).");
+                            app.ui.showAlert("Yêu cầu chỉnh sửa đã được gửi và đang chờ Admin duyệt.");
                             app.edit.cancel();
                         }
                     } catch (err) {
