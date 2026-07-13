@@ -538,7 +538,7 @@ Object.assign(window.app, {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="grid grid-cols-3 gap-2 mb-2">
+                                        <div class="grid grid-cols-2 gap-2 mb-2">
                                             <div>
                                                 <span class="admin-label">Dòng xe${isNewModel ? tagNew : ''}</span>
                                                 <div class="relative">
@@ -547,11 +547,9 @@ Object.assign(window.app, {
                                                 </div>
                                             </div>
                                             <div><span class="admin-label">Vị trí</span><input type="text" id="adm-p-location-${p.id}" value="${location}" class="admin-input"></div>
-                                            <div>
-                                                <span class="admin-label">Tuyến của tỉnh</span>
-                                                <select id="adm-p-province-${p.id}" class="admin-input">
-                                                    <option value="">-- Chọn Tuyến của tỉnh --</option>
-                                                    ${app.utils.provinceData ? app.utils.provinceData.map(pr => `<option value="${pr.ten}" ${prov === pr.ten ? 'selected' : ''}>${pr.ten}</option>`).join('') : ''}
+                                            <div class="hidden">
+                                                <select id="adm-p-province-${p.id}">
+                                                    <option value="${prov || ''}" selected>${prov || ''}</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -714,13 +712,11 @@ Object.assign(window.app, {
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="grid grid-cols-2 gap-2 mb-2">
+                                            <div class="grid grid-cols-1 gap-2 mb-2">
                                                 <div><span class="admin-label">Loại xe ${d.type !== curP.type ? tagNew : ''}</span><select id="req-type-${r.id}" class="admin-input"><option value="bus" ${d.type === 'bus' ? 'selected' : ''}>Xe buýt</option><option value="coach" ${d.type === 'coach' ? 'selected' : ''}>Xe khách</option></select></div>
-                                                <div>
-                                                    <span class="admin-label">Tuyến của tỉnh ${d.province !== curP.province ? tagNew : ''}</span>
-                                                    <select id="req-province-${r.id}" class="admin-input">
-                                                        <option value="">-- Chọn Tuyến của tỉnh --</option>
-                                                        ${app.utils.provinceData ? app.utils.provinceData.map(pr => `<option value="${pr.ten}" ${(d.province || curP.province || '') === pr.ten ? 'selected' : ''}>${pr.ten}</option>`).join('') : ''}
+                                                <div class="hidden">
+                                                    <select id="req-province-${r.id}">
+                                                        <option value="${d.province || curP.province || ''}" selected>${d.province || curP.province || ''}</option>
                                                     </select>
                                                 </div>
                                             </div>
