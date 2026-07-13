@@ -3935,104 +3935,146 @@ Object.assign(window.app, {
             const top2 = topSpotters[1];
             const top3 = topSpotters[2];
 
-            // Render Hero Top 1 Card (Nổi bật rõ ràng ở vị trí cao nhất)
-            const top1Html = top1 ? `
-                <div onclick="app.utils.navigate('/user/${encodeURIComponent(top1.username)}')" class="cursor-pointer bg-gradient-to-b from-amber-50/70 to-white border-2 border-amber-400 rounded-3xl p-8 sm:p-10 shadow-md hover:shadow-lg transition-all duration-300 flex flex-col items-center text-center relative group mb-8">
-                    <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-amber-400 text-black rounded-full text-xs sm:text-sm font-black uppercase tracking-wider mb-6 shadow-sm">
-                        <i class="fa-solid fa-crown text-base"></i> #1 QUÁN QUÂN ĐÓNG GÓP
-                    </div>
-                    <div class="w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden shrink-0 mx-auto border-4 border-amber-400 shadow-md mb-5 group-hover:scale-105 transition-transform">
-                        <img src="${top1.avatar_url || 'https://ik.imagekit.io/hoyuuna/avatar-default.png'}" class="w-full h-full object-cover block">
-                    </div>
-                    <div class="font-black text-black text-2xl sm:text-3xl truncate max-w-full mb-2">${app.utils.cleanText(top1.username)}</div>
-                    <div class="flex items-center justify-center gap-1.5 flex-wrap mb-6 min-h-[24px]">
-                        ${app.utils.getBadgesHTML(top1.id, top1.role, top1.subroles)}
-                    </div>
-                    <div class="w-full max-w-md border-t border-gray-200 pt-5 flex items-center justify-around text-sm">
-                        <div>
-                            <div class="font-black text-black text-xl sm:text-2xl">${top1.photoCount}</div>
-                            <div class="text-xs text-gray-500 font-bold uppercase tracking-wider mt-0.5">Ảnh đã duyệt</div>
+            // 1. BANNER HEADER TỐI MÀU (Sang trọng, hiện đại)
+            const headerHtml = `
+                <div class="bg-black border border-gray-800 rounded-3xl p-8 sm:p-12 mb-16 relative overflow-hidden shadow-2xl">
+                    <!-- Hiệu ứng ánh sáng nền -->
+                    <div class="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-white opacity-5 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-gray-500 opacity-10 rounded-full blur-3xl pointer-events-none"></div>
+                    
+                    <div class="relative z-10 max-w-2xl text-center mx-auto">
+                        <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 border border-white/20 text-white rounded-full text-xs font-bold mb-4 uppercase tracking-widest backdrop-blur-sm">
+                            <i class="fa-solid fa-ranking-star text-yellow-400"></i> VNBUSARCHIVE LEADERBOARD
                         </div>
-                        <div class="h-8 w-px bg-gray-200"></div>
-                        <div>
-                            <div class="font-bold text-gray-700 text-xl sm:text-2xl">${app.utils.formatCompact(top1.viewCount)}</div>
-                            <div class="text-xs text-gray-500 font-bold uppercase tracking-wider mt-0.5">Lượt xem</div>
-                        </div>
+                        <h1 class="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tight leading-tight mb-3">
+                            Bảng Vàng Đóng Góp
+                        </h1>
+                        <p class="text-sm sm:text-base text-gray-400 font-medium max-w-lg mx-auto">
+                            Vinh danh những Spotter xuất sắc nhất đã cống hiến xây dựng kho dữ liệu xe buýt Việt Nam.
+                        </p>
                     </div>
                 </div>
-            ` : '';
+            `;
 
-            // Render Top 2 & Top 3 Cards side-by-side
-            const renderPodiumSideCard = (user, rank) => {
+            // 2. BỤC VINH QUANG (PODIUM) CHO TOP 1, 2, 3
+            // Hàm render thẻ Podium để tái sử dụng code
+            const renderPodiumCard = (user, rank) => {
                 if (!user) return '';
-                const rankLabels = {
-                    2: { text: '#2 Á QUÂN', border: 'border-gray-300', badgeBg: 'bg-gray-800 text-white', icon: 'fa-medal', borderImg: 'border-gray-400' },
-                    3: { text: '#3 QUÝ QUÂN', border: 'border-amber-700/40', badgeBg: 'bg-amber-800 text-white', icon: 'fa-award', borderImg: 'border-amber-700/50' }
+                
+                // Cấu hình UI theo thứ hạng
+                const config = {
+                    1: {
+                        wrapperClass: 'order-1 md:order-2 z-20 transform md:-translate-y-8', // Nằm giữa, đẩy lên cao
+                        bgClass: 'bg-gradient-to-b from-yellow-50 to-white border-yellow-400 shadow-[0_10px_40px_-10px_rgba(250,204,21,0.4)]',
+                        badgeClass: 'bg-yellow-400 text-black',
+                        badgeText: '<i class="fa-solid fa-crown mr-1"></i> TOP 1',
+                        avatarBorder: 'border-yellow-400',
+                        avatarSize: 'w-28 h-28 sm:w-36 sm:h-36',
+                        nameSize: 'text-2xl sm:text-3xl'
+                    },
+                    2: {
+                        wrapperClass: 'order-2 md:order-1 z-10', // Nằm trái
+                        bgClass: 'bg-gradient-to-b from-gray-50 to-white border-gray-300 shadow-lg',
+                        badgeClass: 'bg-gray-200 text-gray-700 border border-gray-300',
+                        badgeText: '<i class="fa-solid fa-medal mr-1"></i> TOP 2',
+                        avatarBorder: 'border-gray-300',
+                        avatarSize: 'w-24 h-24 sm:w-28 sm:h-28',
+                        nameSize: 'text-xl sm:text-2xl'
+                    },
+                    3: {
+                        wrapperClass: 'order-3 md:order-3 z-10', // Nằm phải
+                        bgClass: 'bg-gradient-to-b from-orange-50/50 to-white border-orange-200 shadow-lg',
+                        badgeClass: 'bg-orange-100 text-orange-800 border border-orange-200',
+                        badgeText: '<i class="fa-solid fa-award mr-1"></i> TOP 3',
+                        avatarBorder: 'border-orange-300',
+                        avatarSize: 'w-24 h-24 sm:w-28 sm:h-28',
+                        nameSize: 'text-xl sm:text-2xl'
+                    }
                 };
-                const style = rankLabels[rank];
+
+                const style = config[rank];
+                const avatar = user.avatar_url ? app.utils.getProxiedUrl(user.avatar_url, 'avatar.jpg', 'avatar') : 'https://ik.imagekit.io/hoyuuna/avatar-default.png';
+
                 return `
-                    <div onclick="app.utils.navigate('/user/${encodeURIComponent(user.username)}')" class="cursor-pointer bg-white border-2 ${style.border} rounded-3xl p-6 sm:p-8 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col items-center text-center relative group h-full">
-                        <div class="inline-flex items-center gap-1.5 px-3.5 py-1 ${style.badgeBg} rounded-full text-xs font-black uppercase tracking-wider mb-5 shadow-sm">
-                            <i class="fa-solid ${style.icon}"></i> ${style.text}
-                        </div>
-                        <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden shrink-0 mx-auto border-4 ${style.borderImg} shadow-sm mb-4 group-hover:scale-105 transition-transform">
-                            <img src="${user.avatar_url || 'https://ik.imagekit.io/hoyuuna/avatar-default.png'}" class="w-full h-full object-cover block">
-                        </div>
-                        <div class="font-extrabold text-black text-xl sm:text-2xl truncate max-w-full mb-2">${app.utils.cleanText(user.username)}</div>
-                        <div class="flex items-center justify-center gap-1.5 flex-wrap mb-5 min-h-[22px]">
-                            ${app.utils.getBadgesHTML(user.id, user.role, user.subroles)}
-                        </div>
-                        <div class="w-full border-t border-gray-100 pt-4 mt-auto flex items-center justify-around text-xs">
-                            <div>
-                                <div class="font-black text-black text-lg sm:text-xl">${user.photoCount}</div>
-                                <div class="text-[11px] text-gray-500 font-bold uppercase">Ảnh đã duyệt</div>
+                    <div class="${style.wrapperClass} flex-1 w-full">
+                        <div onclick="app.utils.navigate('/user/${encodeURIComponent(user.username)}')" 
+                             class="cursor-pointer border-2 rounded-[2rem] p-6 sm:p-8 flex flex-col items-center text-center relative group transition-all duration-300 hover:-translate-y-2 h-full ${style.bgClass}">
+                            
+                            <div class="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider mb-5 sm:mb-6 shadow-sm ${style.badgeClass}">
+                                ${style.badgeText}
                             </div>
-                            <div class="h-6 w-px bg-gray-200"></div>
-                            <div>
-                                <div class="font-bold text-gray-700 text-lg sm:text-xl">${app.utils.formatCompact(user.viewCount)}</div>
-                                <div class="text-[11px] text-gray-500 font-bold uppercase">Lượt xem</div>
+                            
+                            <div class="${style.avatarSize} rounded-full overflow-hidden shrink-0 mx-auto border-4 ${style.avatarBorder} bg-white shadow-md mb-4 sm:mb-5 group-hover:scale-105 transition-transform duration-500">
+                                <img loading="lazy" src="${avatar}" onerror="this.src='https://ik.imagekit.io/hoyuuna/avatar-default.png'" class="w-full h-full object-cover block">
+                            </div>
+                            
+                            <div class="font-black text-black ${style.nameSize} truncate max-w-full mb-2 group-hover:text-blue-600 transition-colors">${app.utils.cleanText(user.username)}</div>
+                            
+                            <div class="flex items-center justify-center gap-1 flex-wrap mb-5 sm:mb-6 min-h-[24px]">
+                                ${app.utils.getBadgesHTML(user.id, user.role, user.subroles)}
+                            </div>
+                            
+                            <div class="w-full border-t border-black/5 pt-4 sm:pt-5 mt-auto flex items-center justify-around">
+                                <div>
+                                    <div class="font-black text-black text-xl sm:text-2xl leading-none">${user.photoCount}</div>
+                                    <div class="text-[10px] sm:text-xs text-gray-500 font-bold uppercase tracking-wider mt-1">Ảnh</div>
+                                </div>
+                                <div class="h-8 w-px bg-black/10"></div>
+                                <div>
+                                    <div class="font-black text-gray-700 text-xl sm:text-2xl leading-none">${app.utils.formatCompact(user.viewCount)}</div>
+                                    <div class="text-[10px] sm:text-xs text-gray-500 font-bold uppercase tracking-wider mt-1">Views</div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 `;
             };
 
-            const top2And3Html = (top2 || top3) ? `
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-12">
-                    <div>${renderPodiumSideCard(top2, 2)}</div>
-                    <div>${renderPodiumSideCard(top3, 3)}</div>
+            const podiumHtml = (top1 || top2 || top3) ? `
+                <div class="flex flex-col md:flex-row items-stretch md:items-end justify-center gap-6 md:gap-4 lg:gap-6 mb-16 md:mt-12">
+                    ${renderPodiumCard(top2, 2)}
+                    ${renderPodiumCard(top1, 1)}
+                    ${renderPodiumCard(top3, 3)}
                 </div>
             ` : '';
 
-            // Render Top 4 to 10
+            // 3. DANH SÁCH TOP 4 - 10 (List dọc hiện đại)
             const restSpotters = topSpotters.slice(3, 10);
             const restHtml = restSpotters.length > 0 ? `
-                <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden mb-16">
-                    <div class="px-6 sm:px-8 py-4 bg-gray-50 border-b border-gray-200 text-xs font-black uppercase tracking-wider text-gray-500 flex items-center justify-between">
-                        <span>Top 4 - 10 Spotter xuất sắc</span>
-                        <span>Số lượng đóng góp</span>
-                    </div>
-                    <div class="divide-y divide-gray-100">
+                <div class="mb-16">
+                    <h3 class="font-black text-lg sm:text-xl text-black uppercase tracking-tight mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-list-ol text-gray-400"></i> TOP 4 - 10 XUẤT SẮC
+                    </h3>
+                    <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden flex flex-col">
                         ${restSpotters.map((user, idx) => {
                             const rank = idx + 4;
-                            const avatar = user.avatar_url || 'https://ik.imagekit.io/hoyuuna/avatar-default.png';
+                            const avatar = user.avatar_url ? app.utils.getProxiedUrl(user.avatar_url, 'avatar.jpg', 'avatar') : 'https://ik.imagekit.io/hoyuuna/avatar-default.png';
                             return `
-                                <div onclick="app.utils.navigate('/user/${encodeURIComponent(user.username)}')" class="cursor-pointer px-6 sm:px-8 py-5 flex items-center justify-between gap-4 hover:bg-gray-50 transition-colors group">
-                                    <div class="flex items-center gap-4 sm:gap-5 min-w-0">
-                                        <span class="w-8 h-8 rounded-lg bg-gray-100 border border-gray-200 text-gray-700 font-black text-sm flex items-center justify-center shrink-0 group-hover:bg-black group-hover:text-white transition-colors">#${rank}</span>
-                                        <div class="w-12 h-12 rounded-full overflow-hidden shrink-0 border border-gray-200">
-                                            <img src="${avatar}" class="w-full h-full object-cover block">
+                                <div onclick="app.utils.navigate('/user/${encodeURIComponent(user.username)}')" 
+                                     class="cursor-pointer px-4 sm:px-6 py-4 flex items-center justify-between gap-3 sm:gap-4 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors group">
+                                    
+                                    <div class="flex items-center gap-3 sm:gap-5 min-w-0 flex-1">
+                                        <!-- Cục Rank -->
+                                        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gray-100 border border-gray-200 text-gray-600 font-black text-sm sm:text-base flex items-center justify-center shrink-0 group-hover:bg-black group-hover:text-white transition-colors">
+                                            #${rank}
                                         </div>
-                                        <div class="min-w-0">
-                                            <div class="font-extrabold text-black text-base sm:text-lg truncate group-hover:underline">${app.utils.cleanText(user.username)}</div>
-                                            <div class="flex items-center gap-1.5 mt-1 flex-wrap">
+                                        <!-- Avatar -->
+                                        <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden shrink-0 border border-gray-200 bg-white">
+                                            <img loading="lazy" src="${avatar}" onerror="this.src='https://ik.imagekit.io/hoyuuna/avatar-default.png'" class="w-full h-full object-cover block">
+                                        </div>
+                                        <!-- Name & Badges -->
+                                        <div class="min-w-0 flex-1">
+                                            <div class="font-extrabold text-black text-sm sm:text-base truncate group-hover:text-blue-600 transition-colors">${app.utils.cleanText(user.username)}</div>
+                                            <div class="flex items-center gap-1 mt-1 flex-wrap">
                                                 ${app.utils.getBadgesHTML(user.id, user.role, user.subroles)}
                                             </div>
                                         </div>
                                     </div>
+                                    
+                                    <!-- Stats -->
                                     <div class="text-right shrink-0">
-                                        <div class="font-black text-black text-base sm:text-lg">${user.photoCount} <span class="text-xs font-semibold text-gray-500">ảnh</span></div>
-                                        <div class="text-xs text-gray-400 font-medium mt-0.5">${app.utils.formatCompact(user.viewCount)} lượt xem</div>
+                                        <div class="font-black text-black text-sm sm:text-base">${user.photoCount} <span class="text-[10px] sm:text-xs font-bold text-gray-500 uppercase">Ảnh</span></div>
+                                        <div class="text-[11px] sm:text-xs text-gray-400 font-bold mt-0.5">${app.utils.formatCompact(user.viewCount)} <span class="uppercase">Views</span></div>
                                     </div>
                                 </div>
                             `;
@@ -4041,28 +4083,27 @@ Object.assign(window.app, {
                 </div>
             ` : '';
 
-            // Render Admin/Manager Team
+            // 4. ĐỘI NGŨ ADMIN / MANAGER (ID Cards Style)
             const adminManagersHtml = adminManagers.length > 0 ? `
-                <div class="mt-16 mb-16">
-                    <div class="flex items-center gap-3 mb-6">
-                        <h2 class="font-black text-lg sm:text-xl text-black uppercase tracking-tight">Đội ngũ Admin & Manager</h2>
+                <div class="mb-12">
+                    <div class="flex items-center gap-3 mb-5">
+                        <h3 class="font-black text-lg sm:text-xl text-black uppercase tracking-tight flex items-center gap-2">
+                            <i class="fa-solid fa-shield-halved text-red-500"></i> BAN QUẢN TRỊ
+                        </h3>
                         <div class="h-px bg-gray-200 flex-1"></div>
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                         ${adminManagers.map(user => {
-                            const avatar = user.avatar_url || 'https://ik.imagekit.io/hoyuuna/avatar-default.png';
+                            const avatar = user.avatar_url ? app.utils.getProxiedUrl(user.avatar_url, 'avatar.jpg', 'avatar') : 'https://ik.imagekit.io/hoyuuna/avatar-default.png';
                             return `
-                                <div onclick="app.utils.navigate('/user/${encodeURIComponent(user.username)}')" class="cursor-pointer bg-white border border-gray-200 rounded-2xl p-5 shadow-sm hover:border-black transition-colors flex items-center gap-4 group">
-                                    <div class="w-14 h-14 rounded-full overflow-hidden shrink-0 border border-gray-200">
-                                        <img src="${avatar}" class="w-full h-full object-cover block">
+                                <div onclick="app.utils.navigate('/user/${encodeURIComponent(user.username)}')" 
+                                     class="cursor-pointer bg-white border border-gray-200 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-black transition-all flex items-center gap-4 group">
+                                    <div class="w-12 h-12 rounded-full overflow-hidden shrink-0 border border-gray-200">
+                                        <img loading="lazy" src="${avatar}" onerror="this.src='https://ik.imagekit.io/hoyuuna/avatar-default.png'" class="w-full h-full object-cover block">
                                     </div>
                                     <div class="min-w-0 flex-1">
-                                        <div class="font-extrabold text-black text-base truncate group-hover:underline">${app.utils.cleanText(user.username)}</div>
-                                        <div class="mt-1.5 flex items-center gap-1 flex-wrap">${app.utils.getBadgesHTML(user.id, user.role, user.subroles)}</div>
-                                    </div>
-                                    <div class="text-right text-xs text-gray-500 shrink-0">
-                                        <div class="font-black text-black text-sm">${user.photoCount}</div>
-                                        <div class="text-[10px] font-bold">ẢNH</div>
+                                        <div class="font-extrabold text-black text-sm truncate group-hover:text-blue-600 transition-colors">${app.utils.cleanText(user.username)}</div>
+                                        <div class="mt-1 flex items-center gap-1 flex-wrap">${app.utils.getBadgesHTML(user.id, user.role, user.subroles)}</div>
                                     </div>
                                 </div>
                             `;
@@ -4071,22 +4112,29 @@ Object.assign(window.app, {
                 </div>
             ` : '';
 
-            // Render Footer summary
+            // 5. FOOTER LỜI CẢM ƠN
             const footerHtml = `
-                <div class="mt-16 bg-white border border-gray-200 rounded-3xl p-10 text-center shadow-sm">
-                    <p class="text-lg sm:text-xl font-extrabold text-gray-700 mb-2">
-                        Và ${otherCount} thành viên khác
+                <div class="bg-gray-50 border border-gray-200 rounded-3xl p-8 sm:p-10 text-center shadow-inner mt-8">
+                    <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-xl text-red-500 mx-auto mb-3 shadow-sm border border-gray-100">
+                        <i class="fa-solid fa-heart"></i>
+                    </div>
+                    <p class="text-base sm:text-lg font-bold text-gray-600 mb-1">
+                        Cùng với <span class="text-black font-black">${otherCount}</span> thành viên khác
                     </p>
-                    <p class="text-xl sm:text-2xl font-black text-black tracking-tight">
-                        Xin cảm ơn sự đóng góp của các bạn!
+                    <p class="text-xl sm:text-2xl font-black text-black tracking-tight uppercase">
+                        Xin cảm ơn mọi sự đóng góp của các bạn!
                     </p>
                 </div>
             `;
 
-            container.innerHTML = top1Html + top2And3Html + restHtml + adminManagersHtml + footerHtml;
+            container.innerHTML = headerHtml + podiumHtml + restHtml + adminManagersHtml + footerHtml;
         }
     }
 });
+            const container = document.getElementById('leaderboard-content');
+            if (!container) return;
+
+
 
 
 // THUẬT TOÁN AN TOÀN TUYỆT ĐỐI CHỐNG CRASH JS
