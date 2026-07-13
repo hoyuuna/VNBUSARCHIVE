@@ -120,7 +120,7 @@ Object.assign(window.app, {
                     // Cấp bậc trang để biết nên trượt tiến (phải -> trái) hay lùi (trái -> phải)
                     const depths = {
                         'home': 0,
-                        'search': 1, 'account': 1, 'upload': 1, 'mobile-upload': 1, 'admin': 1, 'contact': 1, 'help-list': 1, 'comment-dashboard': 1,
+                        'search': 1, 'account': 1, 'upload': 1, 'mobile-upload': 1, 'admin': 1, 'contact': 1, 'help-list': 1, 'comment-dashboard': 1, 'leaderboard': 1,
                         'detail': 2, 'vehicle': 2, 'operator-view': 2, 'model-view': 2, 'help-detail': 2
                     };
 
@@ -3858,6 +3858,196 @@ Object.assign(window.app, {
                 btn.innerHTML = origHTML;
                 btn.disabled = false;
             }
+        }
+    }
+});
+
+Object.assign(window.app, {
+    leaderboard: {
+        load: async () => {
+            const container = document.getElementById('leaderboard-content');
+            if (!container) return;
+
+            container.innerHTML = `
+                <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-12 text-center text-gray-500">
+                    <i class="fa-solid fa-spinner fa-spin text-2xl mb-3 block text-black"></i>
+                    <span class="text-sm font-medium">Đang tải bảng xếp hạng...</span>
+                </div>
+            `;
+
+            try {
+                // 1. Lấy tất cả ảnh đã duyệt để thống kê số lượng & lượt xem
+                const { data: approvedPhotos, error: phErr } = await window.sb.from('photos').select('uploader_id, views').eq('status', 'approved');
+                if (phErr) throw phErr;
+
+                const userStats = {};
+                (approvedPhotos || []).forEach(p => {
+                    if (!p.uploader_id) return;
+                    if (!userStats[p.uploader_id]) userStats[p.uploader_id] = { photoCount: 0, viewCount: 0 };
+                    userStats[p.uploader_id].photoCount += 1;
+                    userStats[p.uploader_id].viewCount += (p.views || 0);
+                });
+
+                // 2. Lấy danh sách tài khoản
+                const { data: allProfiles, error: prErr } = await window.sb.from('profiles').select('id, username, avatar_url, role, subroles, ban_status');
+                if (prErr) throw prErr;
+
+                const activeProfiles = (allProfiles || []).filter(p => p.ban_status !== 'banned' && p.username);
+                const totalAccounts = activeProfiles.length;
+
+                activeProfiles.forEach(p => {
+                    const stats = userStats[p.id] || { photoCount: 0, viewCount: 0 };
+                    p.photoCount = stats.photoCount;
+                    p.viewCount = stats.viewCount;
+                });
+
+                // Sắp xếp spotter theo số lượng ảnh đã duyệt -> lượt xem
+                const spotters = activeProfiles
+                    .filter(p => p.photoCount > 0)
+                    .sort((a, b) => {
+                        if (b.photoCount !== a.photoCount) return b.photoCount - a.photoCount;
+                        return b.viewCount - a.viewCount;
+                    });
+
+                const topSpotters = spotters.slice(0, 10);
+                const adminManagers = activeProfiles.filter(p => p.role === 'admin' || p.role === 'manager');
+                const otherCount = Math.max(0, totalAccounts - 10);
+
+                app.leaderboard.render(topSpotters, adminManagers, otherCount);
+            } catch (err) {
+                container.innerHTML = `
+                    <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-10 text-center text-red-500 font-medium">
+                        <i class="fa-solid fa-triangle-exclamation text-2xl mb-2 block"></i>
+                        Lỗi khi tải dữ liệu bảng xếp hạng: ${err.message}
+                    </div>
+                `;
+            } finally {
+                app.loadingBar.finish();
+            }
+        },
+
+        render: (topSpotters, adminManagers, otherCount) => {
+            const container = document.getElementById('leaderboard-content');
+            if (!container) return;
+
+            const renderPodiumCard = (user, rank) => {
+                if (!user) return '';
+                const rankLabels = {
+                    1: { text: '#1 QUÁN QUÂN', border: 'border-amber-400', bg: 'bg-white', badgeBg: 'bg-amber-400 text-black', icon: 'fa-trophy' },
+                    2: { text: '#2 Á QUÂN', border: 'border-gray-300', bg: 'bg-white', badgeBg: 'bg-gray-800 text-white', icon: 'fa-medal' },
+                    3: { text: '#3 QUÝ QUÂN', border: 'border-amber-700/40', bg: 'bg-white', badgeBg: 'bg-amber-800 text-white', icon: 'fa-award' }
+                };
+                const style = rankLabels[rank];
+                const avatar = user.avatar_url || 'https://ik.imagekit.io/hoyuuna/avatar-default.png';
+                const badgesHtml = app.utils.getBadgesHTML(user.id, user.role, user.subroles);
+                return `
+                    <div onclick="app.utils.navigate('/user/${encodeURIComponent(user.username)}')" class="cursor-pointer ${style.bg} border-2 ${style.border} rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col items-center text-center relative group h-full">
+                        <div class="inline-flex items-center gap-1.5 px-3 py-1 ${style.badgeBg} rounded-full text-xs font-black uppercase tracking-wider mb-4 shadow-sm">
+                            <i class="fa-solid ${style.icon}"></i> ${style.text}
+                        </div>
+                        <img src="${avatar}" class="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-2 border-white shadow-md mb-4 group-hover:scale-105 transition-transform">
+                        <div class="font-extrabold text-black text-lg sm:text-xl truncate max-w-full mb-1.5">${app.utils.cleanText(user.username)}</div>
+                        <div class="flex items-center justify-center gap-1.5 flex-wrap mb-5 min-h-[22px]">
+                            ${badgesHtml}
+                        </div>
+                        <div class="w-full border-t border-gray-100 pt-4 mt-auto flex items-center justify-around text-xs">
+                            <div>
+                                <div class="font-black text-black text-base sm:text-lg">${user.photoCount}</div>
+                                <div class="text-[11px] text-gray-500 font-semibold uppercase">Ảnh đã duyệt</div>
+                            </div>
+                            <div class="h-6 w-px bg-gray-200"></div>
+                            <div>
+                                <div class="font-bold text-gray-700 text-base sm:text-lg">${app.utils.formatCompact(user.viewCount)}</div>
+                                <div class="text-[11px] text-gray-500 font-semibold uppercase">Lượt xem</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            };
+
+            const top3Html = topSpotters.length > 0 ? `
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div class="order-2 md:order-1">${renderPodiumCard(topSpotters[1], 2)}</div>
+                    <div class="order-1 md:order-2">${renderPodiumCard(topSpotters[0], 1)}</div>
+                    <div class="order-3 md:order-3">${renderPodiumCard(topSpotters[2], 3)}</div>
+                </div>
+            ` : '<div class="text-center py-12 bg-white border border-gray-200 rounded-2xl text-gray-500 font-medium">Chưa có dữ liệu xếp hạng.</div>';
+
+            const restSpotters = topSpotters.slice(3, 10);
+            const restHtml = restSpotters.length > 0 ? `
+                <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+                    <div class="px-6 py-4 bg-gray-50/80 border-b border-gray-200 text-xs font-extrabold uppercase tracking-wider text-gray-500 flex items-center justify-between">
+                        <span>Top 4 - 10 Spotter xuất sắc</span>
+                        <span>Đóng góp</span>
+                    </div>
+                    <div class="divide-y divide-gray-100">
+                        ${restSpotters.map((user, idx) => {
+                            const rank = idx + 4;
+                            const avatar = user.avatar_url || 'https://ik.imagekit.io/hoyuuna/avatar-default.png';
+                            const badgesHtml = app.utils.getBadgesHTML(user.id, user.role, user.subroles);
+                            return `
+                                <div onclick="app.utils.navigate('/user/${encodeURIComponent(user.username)}')" class="cursor-pointer px-6 py-4 flex items-center justify-between gap-4 hover:bg-gray-50 transition-colors group">
+                                    <div class="flex items-center gap-4 min-w-0">
+                                        <span class="w-7 h-7 rounded-lg bg-gray-100 border border-gray-200 text-gray-700 font-black text-xs flex items-center justify-center shrink-0 group-hover:bg-black group-hover:text-white transition-colors">#${rank}</span>
+                                        <img src="${avatar}" class="w-10 h-10 rounded-full object-cover border border-gray-200 shrink-0">
+                                        <div class="min-w-0">
+                                            <div class="font-bold text-black text-sm sm:text-base truncate group-hover:underline">${app.utils.cleanText(user.username)}</div>
+                                            <div class="flex items-center gap-1.5 mt-0.5">
+                                                ${badgesHtml}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right shrink-0">
+                                        <div class="font-black text-black text-sm sm:text-base">${user.photoCount} <span class="text-xs font-normal text-gray-500">ảnh</span></div>
+                                        <div class="text-[11px] text-gray-400 font-medium">${app.utils.formatCompact(user.viewCount)} lượt xem</div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            ` : '';
+
+            const adminManagersHtml = adminManagers.length > 0 ? `
+                <div class="mt-12">
+                    <div class="flex items-center gap-3 mb-5">
+                        <h2 class="font-extrabold text-base sm:text-lg text-black uppercase tracking-tight">Đội ngũ Admin / Manager</h2>
+                        <div class="h-px bg-gray-200 flex-1"></div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        ${adminManagers.map(user => {
+                            const avatar = user.avatar_url || 'https://ik.imagekit.io/hoyuuna/avatar-default.png';
+                            const badgesHtml = app.utils.getBadgesHTML(user.id, user.role, user.subroles);
+                            return `
+                                <div onclick="app.utils.navigate('/user/${encodeURIComponent(user.username)}')" class="cursor-pointer bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:border-black transition-colors flex items-center gap-3 group">
+                                    <img src="${avatar}" class="w-12 h-12 rounded-full object-cover border border-gray-200 shrink-0">
+                                    <div class="min-w-0 flex-1">
+                                        <div class="font-bold text-black text-sm truncate group-hover:underline">${app.utils.cleanText(user.username)}</div>
+                                        <div class="mt-1 flex items-center gap-1 flex-wrap">${badgesHtml}</div>
+                                    </div>
+                                    <div class="text-right text-xs text-gray-500 shrink-0">
+                                        <div class="font-bold text-black">${user.photoCount}</div>
+                                        <div class="text-[10px]">ảnh</div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            ` : '';
+
+            const footerHtml = `
+                <div class="mt-12 bg-white border border-gray-200 rounded-2xl p-8 text-center shadow-sm">
+                    <p class="text-base sm:text-lg font-bold text-gray-700 mb-2">
+                        Và ${otherCount} thành viên khác
+                    </p>
+                    <p class="text-base sm:text-xl font-extrabold text-black tracking-tight">
+                        Xin cảm ơn sự đóng góp của các bạn!
+                    </p>
+                </div>
+            `;
+
+            container.innerHTML = top3Html + restHtml + adminManagersHtml + footerHtml;
         }
     }
 });

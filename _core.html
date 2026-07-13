@@ -2698,10 +2698,13 @@
     </div>
                 </form>
 
-                    <!-- Nút liên hệ hỗ trợ thêm mới -->
-                    <p class="mt-6 text-[11px] text-gray-500 font-medium drop-shadow-sm text-center">
+                    <!-- Nút liên hệ hỗ trợ & bảng xếp hạng -->
+                    <p class="mt-6 text-[11px] text-gray-500 font-medium drop-shadow-sm text-center flex items-center justify-center gap-4">
                         <a href="/contact" class="hover:text-black transition-colors underline decoration-gray-400 hover:decoration-black">
                             <i class="fa-solid fa-headset mr-1"></i> Liên hệ hỗ trợ
+                        </a>
+                        <a href="/leaderboard" class="hover:text-black transition-colors underline decoration-gray-400 hover:decoration-black">
+                            <i class="fa-solid fa-trophy mr-1"></i> BXH Đóng góp
                         </a>
                     </p>
 
@@ -2751,6 +2754,10 @@
                             <i class="fa-solid fa-bell md:mr-1"></i>
                             <span class="hidden md:inline">Bảng tin</span>
                         </button>
+
+                        <a href="/leaderboard" class="nav-link">
+                            <i class="fa-solid fa-trophy md:mr-1"></i> <span class="hidden md:inline">BXH</span>
+                        </a>
 
 
                         <div class="relative" id="user-menu-container">
@@ -3895,6 +3902,41 @@
                             <button onclick="app.auth.copyUUID()" id="contact-copy-uuid" class="w-full sm:w-auto bg-black text-white px-5 py-3 text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-gray-800 transition shrink-0 flex items-center justify-center gap-2 shadow-sm">
                                 <i class="fa-solid fa-copy"></i> Sao chép
                             </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BẢNG XẾP HẠNG ĐÓNG GÓP -->
+            <div id="leaderboard" class="view-section">
+                <div class="max-w-5xl mx-auto">
+                    <!-- Breadcrumb navigation -->
+                    <div class="text-[11px] sm:text-xs text-gray-500 mb-6 bg-white px-3.5 py-2 border border-gray-200 rounded-lg shadow-sm flex items-center gap-1.5 w-max max-w-full">
+                        <span onclick="app.utils.navigate('/')" class="cursor-pointer hover:text-black font-medium transition-colors truncate shrink min-w-0">Trang chủ</span>
+                        <i class="fa-solid fa-chevron-right text-[8px] sm:text-[10px] shrink-0 text-gray-400"></i>
+                        <span class="font-bold text-black truncate shrink min-w-0">Bảng xếp hạng đóng góp</span>
+                    </div>
+
+                    <!-- Header Banner -->
+                    <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-6 sm:p-10 mb-8 relative overflow-hidden">
+                        <div class="relative z-10 max-w-2xl">
+                            <div class="inline-flex items-center gap-2 px-3 py-1 bg-gray-100 border border-gray-200 text-gray-800 rounded-lg text-xs font-bold mb-3 uppercase tracking-wider">
+                                <i class="fa-solid fa-trophy"></i> VNBUSARCHIVE LEADERBOARD
+                            </div>
+                            <h1 class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-black tracking-tight leading-tight">
+                                Top những spotter có nhiều đóng góp nhất
+                            </h1>
+                            <p class="text-sm sm:text-base text-gray-500 mt-2 font-medium">
+                                Vinh danh những thành viên có nhiều cống hiến hình ảnh xe buýt Việt Nam cho kho dữ liệu.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Leaderboard Content Container -->
+                    <div id="leaderboard-content" class="space-y-8">
+                        <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-12 text-center text-gray-400">
+                            <i class="fa-solid fa-spinner fa-spin text-2xl mb-3 block"></i>
+                            <span class="text-sm font-medium">Đang tải bảng xếp hạng...</span>
                         </div>
                     </div>
                 </div>

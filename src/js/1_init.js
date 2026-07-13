@@ -2663,6 +2663,10 @@ Object.assign(window.app, {
                     app.admin.loadTab(app.adminTab);
                 } else if (path === '/contact') {
                     app.views.loadContact();
+                } else if (path === '/leaderboard') {
+                    document.title = 'Bảng xếp hạng đóng góp | VNBUSARCHIVE';
+                    app.views.switch('leaderboard', false);
+                    app.leaderboard.load();
                 } else if (path === '/help' || path === '/help/') {
                     app.help.loadList();
                 } else if (path.startsWith('/help/')) {
