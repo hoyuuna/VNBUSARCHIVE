@@ -3455,6 +3455,14 @@ Object.assign(window.app, {
                 descLabel.innerHTML = 'Lý do bạn cho rằng ảnh hợp lệ <span class="text-red-500">*</span>';
                 photoUrlInput.placeholder = "Paste link ảnh BỊ TỪ CHỐI của bạn vào đây...";
             } 
+            else if (topic === 'bad_photo') {
+                photoSection.classList.remove('hidden');
+                originalWorkSection.classList.add('hidden');
+                if (copySection) copySection.classList.add('hidden');
+                if (titleEl) titleEl.innerHTML = 'Nội dung liên quan <span class="text-red-500">*</span>';
+                descLabel.innerHTML = 'Mô tả chi tiết <span class="text-red-500">*</span>';
+                photoUrlInput.placeholder = "Paste link ảnh VNBUSARCHIVE có chất lượng xấu vào đây...";
+            } 
             else {
                 photoSection.classList.add('hidden');
                 originalWorkSection.classList.add('hidden');
@@ -3724,9 +3732,9 @@ Object.assign(window.app, {
                 return app.ui.showAlert("Vui lòng xác nhận và đồng ý với các mục tuyên bố cam kết bắt buộc!");
             }
             
-            if (topic === 'copyright' || topic === 'appeal' || topic === 'report_violation') {
+            if (topic === 'copyright' || topic === 'appeal' || topic === 'report_violation' || topic === 'bad_photo') {
                 if (!app.contact.isExternalLink && !app.contact.currentPreviewId && !(topic === 'report_violation' && document.getElementById('contact-photo-url').value.trim())) {
-                    const msg = (topic === 'report_violation') ? "Vui lòng nhập Link ảnh / bình luận / hồ sơ hợp lệ." : "Vui lòng nhập Link ảnh hợp lệ.";
+                    const msg = (topic === 'report_violation') ? "Vui lòng nhập Link ảnh / bình luận / hồ sơ hợp lệ." : "Vui lòng nhập Link ảnh VNBUSARCHIVE hợp lệ.";
                     return app.ui.showAlert(msg);
                 }
                 if (app.contact.isExternalLink && !document.getElementById('contact-photo-url').value.trim()) {
@@ -3773,8 +3781,8 @@ Object.assign(window.app, {
                 captcha: captchaResponse,
                 userId: app.user ? app.user.id : null,
                 userName: app.username || 'Khách (Chưa đăng nhập)',
-                photoId: (topic === 'copyright' || topic === 'appeal' || topic === 'report_violation') ? (!app.contact.isExternalLink ? app.contact.currentPreviewId : null) : null,
-                externalLink: (topic === 'copyright' || topic === 'appeal' || topic === 'report_violation') ? ((app.contact.isExternalLink || (topic === 'report_violation' && !app.contact.currentPreviewId)) ? document.getElementById('contact-photo-url').value.trim() : null) : null,
+                photoId: (topic === 'copyright' || topic === 'appeal' || topic === 'report_violation' || topic === 'bad_photo') ? (!app.contact.isExternalLink ? app.contact.currentPreviewId : null) : null,
+                externalLink: (topic === 'copyright' || topic === 'appeal' || topic === 'report_violation' || topic === 'bad_photo') ? ((app.contact.isExternalLink || (topic === 'report_violation' && !app.contact.currentPreviewId)) ? document.getElementById('contact-photo-url').value.trim() : null) : null,
                 originalWork: (topic === 'copyright') ? (app.contact.isExternalLink && app.contact.currentOrigPreviewId ? `https://www.vnbusarchive.io.vn/photo/${app.contact.currentOrigPreviewId}` : (originalWork || null)) : null,
                 legalName: (topic === 'copyright') ? (legalName || null) : null,
                 copyrightType: (topic === 'copyright') ? (document.getElementById('contact-copyright-type')?.value || 'internal') : null

@@ -435,6 +435,7 @@ async function handleContactSubmit(request, env) {
         'scam': { title: 'Báo cáo lừa đảo / Hành vi xấu', color: 0xff4444 }, 
         'copyright': { title: 'Báo cáo vi phạm bản quyền ảnh', color: 0xffaa00 }, 
         'report_violation': { title: 'Báo cáo ảnh / bình luận / hồ sơ vi phạm', color: 0xff4444 },
+        'bad_photo': { title: 'Tôi thấy nền tảng có ảnh quá xấu', color: 0xff8800 },
         'appeal': { title: 'Thắc mắc kiểm duyệt / Kháng cáo ảnh từ chối', color: 0x00ccff }, 
         'account': { title: 'Hỗ trợ / Kháng cáo về tài khoản', color: 0x00ccff },
         'general': { title: 'Hỗ trợ chung', color: 0x999999 }, 

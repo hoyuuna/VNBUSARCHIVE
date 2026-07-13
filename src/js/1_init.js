@@ -2500,7 +2500,7 @@ Object.assign(window.app, {
                 };
 
                 document.getElementById('search-input').addEventListener('keydown', function (e) {
-                    if (e.key === 'Enter') { document.getElementById('main-search-suggestions').classList.remove('active'); app.handleSearch(); }
+                    if (e.key === 'Enter') { document.getElementById('main-search-suggestions').classList.remove('active'); app.handleSearch(true); }
                     if (e.key === 'Escape') clearSearchInput(e.target, 'main-search-suggestions');
                 });
                 document.getElementById('search-input').addEventListener('input', function (e) {
@@ -2707,9 +2707,13 @@ Object.assign(window.app, {
                     }
 
                     if (q) {
-                        document.getElementById('search-input').value = decodeURIComponent(q);
+                        const decodedQ = decodeURIComponent(q);
+                        const headerInp = document.getElementById('search-input');
+                        const pageInp = document.getElementById('page-search-input');
+                        if (headerInp) headerInp.value = decodedQ;
+                        if (pageInp) pageInp.value = decodedQ;
                         app.views.switch('search', false);
-                        app.handleSearch();
+                        app.handleSearch(true);
                     } else app.views.loadHome();
                 } else {
                     app.views.switch('home', false);
@@ -3556,12 +3560,12 @@ Object.assign(window.app, {
                 const pageInput = document.getElementById('page-search-input');
 
                 let query = '';
-                if (app.currentViewMode === 'search' && pageInput && document.activeElement === pageInput) {
+                if (app.currentViewMode === 'search' && pageInput) {
                     query = pageInput.value.trim();
-                    headerInput.value = query;
+                    if (headerInput) headerInput.value = query;
                 } else {
-                    query = headerInput.value.trim();
-                    if(pageInput) pageInput.value = query;
+                    query = headerInput ? headerInput.value.trim() : '';
+                    if (pageInput) pageInput.value = query;
                 }
 
                 // Nhận diện tự động chuỗi gõ bằng tay: ví dụ "01 (Hà Nội)"

@@ -1591,7 +1591,6 @@ Object.assign(window.app, {
                     if (!valOp) missingFields.push("Đơn vị vận hành");
                     if (!valModel) missingFields.push("Dòng xe (Model)");
                     if (!valLoc) missingFields.push("Vị trí chụp");
-                    if (!valProvince) missingFields.push("Tuyến của tỉnh");
 
                     if (missingFields.length > 0) {
                         app.upload.triggerEmptyWarnings();

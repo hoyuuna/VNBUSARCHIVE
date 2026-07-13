@@ -2830,7 +2830,7 @@
                             </div>
                         </div>
 
-                        <button onclick="app.handleSearch()"
+                        <button onclick="app.handleSearch(true)"
                             class="text-gray-500 px-3 py-2 hover:text-black transition-colors">
                             <i class="fa-solid fa-magnifying-glass"></i>
                         </button>
@@ -3402,7 +3402,7 @@
                                                 <div id="detail-map" class="border-t border-gray-200"></div>
                                             </td>
                                         </tr>
-                                        <tr>
+                                        <tr class="hidden">
                                             <td class="label bg-gray-50 border-r border-b border-gray-200">Tuyến của tỉnh</td>
                                             <td class="value-cell border-b border-gray-200">
                                                 <input type="hidden" id="info-province" class="info-input" value="">
@@ -3682,6 +3682,9 @@
                                     </div>
                                     <div class="filter-item" onclick="app.contact.selectTopic('report_violation', 'Báo cáo ảnh / bình luận / hồ sơ vi phạm', this)">
                                         <span class="font-bold">Báo cáo ảnh / bình luận / hồ sơ vi phạm</span>
+                                    </div>
+                                    <div class="filter-item" onclick="app.contact.selectTopic('bad_photo', 'Tôi thấy nền tảng có ảnh quá xấu', this)">
+                                        <span class="font-bold">Tôi thấy nền tảng có ảnh quá xấu</span>
                                     </div>
                                     <div class="filter-item" onclick="app.contact.selectTopic('incorrect_info', 'Sai thông tin ảnh / xe / lịch sử hoặc nội dung khác', this)">
                                         <span class="font-bold">Sai thông tin ảnh / xe / lịch sử hoặc nội dung khác</span>
@@ -4376,7 +4379,7 @@
                                     <p id="err-up-location" class="upload-req-err hidden text-[11px] mt-1 text-red-600 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Vui lòng nhập Vị trí chụp</p>
                                     <div id="upload-map" class="mt-2 border border-gray-300 rounded-md"></div>
                                 </div>
-                                <div class="md:col-span-2">
+                                <div class="md:col-span-2 hidden">
                                     <label class="text-xs text-gray-500 font-bold block mb-1.5 uppercase">Tuyến của tỉnh <span class="text-red-500">*</span></label>
                                     <input type="hidden" id="up-province" value="">
                                     <div class="relative">
