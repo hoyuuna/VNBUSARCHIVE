@@ -1614,12 +1614,10 @@ Object.assign(window.app, {
                         const specialRoutes = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động'];
                         let currentRouteClientSide = '';
                         let currentOpClientSide = '';
-                        let currentProvClientSide = '';
 
                         if (allPhotos.length > 0) {
                             const latestPhoto = allPhotos[0];
                             currentOpClientSide = latestPhoto.operator || '';
-                            currentProvClientSide = latestPhoto.province || '';
                             const r = (latestPhoto.route_no || '').trim();
                             if (r && !specialRoutes.includes(r)) {
                                 currentRouteClientSide = r;
@@ -1629,7 +1627,6 @@ Object.assign(window.app, {
                                     const latestValid = validPhotos[0];
                                     currentRouteClientSide = (latestValid.route_no || '').trim();
                                     currentOpClientSide = latestValid.operator || '';
-                                    if (latestValid.province) currentProvClientSide = latestValid.province;
                                 }
                             } else if (r === 'Dừng hoạt động' || r === 'Chưa hoạt động') {
                                 currentRouteClientSide = r;
@@ -1647,12 +1644,7 @@ Object.assign(window.app, {
                         let rawHistory = historyRes.data || [];
 
                         let vehPrefix = '';
-                        let vehProvName = currentProvClientSide;
-
-                        if (!vehProvName || vehProvName === 'Không xác định') {
-                            vehProvName = app.utils.getProvinceFromPlate(vehicle.license_plate);
-                        }
-
+                        const vehProvName = app.utils.getProvinceFromPlate(vehicle.license_plate);
                         if (vehProvName && app.utils.provinceData && app.utils.provinceData.length) {
                             const pData = app.utils.provinceData.find(p => p.ten === vehProvName);
                             if (pData && pData.ky_hieu) {
@@ -1908,7 +1900,7 @@ Object.assign(window.app, {
 
                         while (fetchMore) {
                             const { data, error } = await window.sb.from('photos')
-                                .select('views, license_plate, route_no, province, vehicles(model)')
+                                .select('views, license_plate, route_no, vehicles(model)')
                                 .eq('status', 'approved')
                                 .ilike('operator', operatorName)
                                 .order('taken_at', { ascending: false, nullsFirst: false }) // Ép ảnh mới nhất lên đầu
@@ -2001,19 +1993,16 @@ Object.assign(window.app, {
                         app.operator.modelStatsTotals = { active: totalActive, inactive: totalInactive, all: totalActive + totalInactive };
                         app.operator.isModelTableExpanded = false;
 
-                        // 3. TÍNH TOÁN CƠ CẤU TUYẾN CHUYẾN (THÔNG MINH DỰA TRÊN XE ACTIVE VÀ CLEAN ROUTE)
+                        // 3. TÍNH TOÁN CƠ CẤU TUYẾN CHUYẾN
                         const specialRoutes = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động', 'Hợp đồng', 'Xe hợp đồng / Đưa đón'];
                         
-                        // Tìm clean route_no gần nhất cho mỗi xe (dựa trên ảnh duyệt)
                         const latestCleanRouteMap = new Map();
-                        const latestProvMap = new Map();
                         const sortedPhotos = [...allStatsData].sort((a,b) => new Date(b.taken_at || b.created_at || 0) - new Date(a.taken_at || a.created_at || 0));
                         sortedPhotos.forEach(p => {
                             if (p.license_plate && p.route_no && p.route_no !== '---') {
                                 const pl = p.license_plate.toUpperCase();
                                 if (!latestCleanRouteMap.has(pl)) {
                                     latestCleanRouteMap.set(pl, p.route_no.trim());
-                                    latestProvMap.set(pl, p.province || '');
                                 }
                             }
                         });
@@ -2033,17 +2022,12 @@ Object.assign(window.app, {
 
                             if (!isInactive) {
                                 const cleanRoute = latestCleanRouteMap.get(pl);
-                                let dbProv = latestProvMap.get(pl);
                                 if (cleanRoute && cleanRoute !== '---' && !specialRoutes.includes(cleanRoute)) {
                                     
+                                    const extractedProv = app.utils.getProvinceFromPlate(pl);
                                     let prov = '';
-                                    if (dbProv && dbProv !== 'Không xác định') {
-                                        prov = dbProv;
-                                    } else {
-                                        const extractedProv = app.utils.getProvinceFromPlate(pl);
-                                        if (extractedProv && extractedProv !== 'Không xác định' && extractedProv !== 'Biển tạm') {
-                                            prov = extractedProv;
-                                        }
+                                    if (extractedProv && extractedProv !== 'Không xác định' && extractedProv !== 'Biển tạm') {
+                                        prov = extractedProv;
                                     }
 
                                     const routeKey = cleanRoute.toLowerCase() + '|' + prov;
@@ -2407,7 +2391,7 @@ Object.assign(window.app, {
                                                         if (provData && provData.ky_hieu) prefix = Array.isArray(provData.ky_hieu) ? String(provData.ky_hieu[0]).trim() : String(provData.ky_hieu).split(',')[0].trim();
                                                     }
                                                 } catch (e) { }
-                                                routeResults.push({ text: prov ? `${r} (${prov})` : r, label: label, prefix: prefix, rawRoute: r });
+                                                routeResults.push({ text: prov ? `${r} (BKS ${prov})` : r, label: label, prefix: prefix, rawRoute: r });
                                             }
                                         });
                                         return routeResults;

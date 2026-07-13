@@ -2462,18 +2462,13 @@ Object.assign(window.app, {
                                 app.utils.navigate(`/operator/${encodeURIComponent(this.value)}`);
                             }
                             else if (id === 'info-route') {
-                                let provName = document.getElementById('info-province')?.value;
-                                
-                                if (!provName || provName === 'Không xác định') {
-                                    const plateValue = document.getElementById('info-plate').value;
-                                    provName = app.utils.getProvinceFromPlate(plateValue);
-                                }
-                                
+                                const plateValue = document.getElementById('info-plate').value;
                                 let routePrefix = '';
+                                const provName = app.utils.getProvinceFromPlate(plateValue);
                                 if (provName && app.utils.provinceData && app.utils.provinceData.length) {
                                     const pData = app.utils.provinceData.find(p => p.ten === provName);
                                     if (pData && pData.ky_hieu) {
-                                        routePrefix = Array.isArray(pData.ky_hieu) ? String(pData.ky_hieu[0]).trim() : String(pData.ky_hieu).split(',')[0].trim();
+                                        routePrefix = Array.isArray(pData.ky_hieu) ? String(pData.ky_hieu[0]).trim() : String(pData.ky_hieu).split()[0].trim();
                                     }
                                 }
                                 app.searchRedirect(this.value, 'route', routePrefix);
@@ -3918,8 +3913,8 @@ Object.assign(window.app, {
                     if (filterType === 'route') {
                         const prefix = prefixToUrl;
                         if (prefix) {
-                            let provName = app.search?.currentExactProvName || null;
-                            if (!provName && app.utils.provinceData) {
+                            let provName = null;
+                            if (app.utils.provinceData) {
                                 const prov = app.utils.provinceData.find(p => {
                                     const k = Array.isArray(p.ky_hieu) ? p.ky_hieu : p.ky_hieu.split(',');
                                     return k.map(s => s.trim()).includes(prefix);
@@ -3929,25 +3924,11 @@ Object.assign(window.app, {
                             const relatedPrefixes = app.utils.getRelatedPrefixes(prefix);
                             const prefixOrCond = relatedPrefixes.map(p => `license_plate.ilike.${p}%`).join(',');
                             if (provName) {
-                                const exactProvCond = `province.eq."${provName}"`;
-                                const fallbackConds = relatedPrefixes.map(p => 
-                                    `and(province.is.null,license_plate.ilike.${p}%),and(province.eq."Không xác định",license_plate.ilike.${p}%),and(province.eq."",license_plate.ilike.${p}%)`
-                                ).join(',');
-                                const provinceOr = `${exactProvCond},${fallbackConds}`;
-                                if (query) {
-                                    photoQuery = photoQuery.eq('route_no', query).or(provinceOr);
-                                } else {
-                                    photoQuery = photoQuery.or(provinceOr);
-                                }
+                                photoQuery = photoQuery.eq('route_no', query).or(`province.eq.${provName},${prefixOrCond}`);
                             } else {
-                                if (query) {
-                                    photoQuery = photoQuery.eq('route_no', query).or(prefixOrCond);
-                                } else {
-                                    photoQuery = photoQuery.or(prefixOrCond);
-                                }
+                                photoQuery = photoQuery.eq('route_no', query).or(prefixOrCond);
                             }
                         } else {
-                            // GIAI ĐOẠN 2: TÌM KIẾM THEO CHỮ (TẮT)
                             searchWords.forEach(w => { photoQuery = photoQuery.ilike('route_no', `%${w}%`); });
                         }
                     } else if (filterType === 'plate') {
