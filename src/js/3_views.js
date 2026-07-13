@@ -57,6 +57,9 @@ Object.assign(window.app, {
                     if (id === 'admin' && window.location.pathname !== '/admin') {
                         app.utils.navigate('/admin'); return;
                     }
+                    if (id === 'leaderboard' && window.location.pathname !== '/leaderboard') {
+                        app.utils.navigate('/leaderboard'); return;
+                    }
 
                     if (id === 'admin') {
                         if (!app.user) { app.utils.navigate('/auth'); return; }
@@ -3865,6 +3868,13 @@ Object.assign(window.app, {
 Object.assign(window.app, {
     leaderboard: {
         load: async () => {
+            if (window.location.pathname !== '/leaderboard') {
+                app.utils.navigate('/leaderboard');
+                return;
+            }
+            document.title = 'Bảng xếp hạng đóng góp | VNBUSARCHIVE';
+            app.views.switch('leaderboard', false);
+
             const container = document.getElementById('leaderboard-content');
             if (!container) return;
 

@@ -1077,9 +1077,9 @@ Object.assign(window.app, {
                     const prevFull = prevPath + window.location.search;
 
                     let parentInfo = window.history.state?.parentInfo;
-                    const rootPages = ['/', '/profile', '/profile/comments', '/search', '/upload', '/admin', '/contact', '/user/', '/help'];
-                    // --- ĐÃ SỬA: KHAI BÁO THÊM TRANG ĐƠN VỊ VÀ DÒNG XE LÀ TRANG CON ---
-                    const isDestLeaf = url.startsWith('/vehicle/') || url.startsWith('/photo/') || url.startsWith('/operator/') || url.startsWith('/model/');
+                    const rootPages = ['/', '/profile', '/profile/comments', '/search', '/upload', '/admin', '/contact', '/user/', '/help', '/leaderboard'];
+                    // --- ĐÃ SỬA: KHAI BÁO THÊM TRANG ĐƠN VỊ, DÒNG XE, NGƯỜI DÙNG LÀ TRANG CON ---
+                    const isDestLeaf = url.startsWith('/vehicle/') || url.startsWith('/photo/') || url.startsWith('/operator/') || url.startsWith('/model/') || url.startsWith('/user/');
                     // ----------------------------------------------------------------
                     const isCurrentRoot = rootPages.some(r => prevPath === r || (r !== '/' && prevPath.startsWith(r)));
 
@@ -1092,6 +1092,7 @@ Object.assign(window.app, {
                         else if (prevPath === '/upload') bName = "Đăng tải";
                         else if (prevPath === '/admin') bName = "Quản trị";
                         else if (prevPath === '/contact') bName = "Liên hệ";
+                        else if (prevPath === '/leaderboard') bName = "Bảng xếp hạng đóng góp";
                         else if (prevPath === '/help' || prevPath.startsWith('/help/')) bName = "Trung tâm hỗ trợ";
                         parentInfo = { name: bName, url: prevFull };
                     }
