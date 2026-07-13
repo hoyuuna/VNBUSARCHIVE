@@ -4131,8 +4131,6 @@ Object.assign(window.app, {
         }
     }
 });
-            const container = document.getElementById('leaderboard-content');
-            if (!container) return;
 
 
 
