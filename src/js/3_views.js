@@ -3382,8 +3382,8 @@ Object.assign(window.app, {
             const photoUrlInput = document.getElementById('contact-photo-url');
 
             // --- YÊU CẦU ĐĂNG NHẬP ---
-            if ((topic === 'appeal' || topic === 'account') && !app.user) {
-                app.ui.showAlert("Chức năng này yêu cầu bạn phải đăng nhập vào hệ thống để xác thực quyền sở hữu.", () => {
+            if ((topic === 'appeal' || topic === 'account' || topic === 'bad_photo') && !app.user) {
+                app.ui.showAlert("Chức năng này yêu cầu bạn phải đăng nhập vào hệ thống để xác thực.", () => {
                     app.utils.navigate('/auth');
                 });
                 app.contact.init(); // Reset lại form
@@ -3753,6 +3753,11 @@ Object.assign(window.app, {
             const btn = document.getElementById('btn-submit-contact');
 
             if (!topic) return app.ui.showAlert("Vui lòng chọn Chủ đề cần hỗ trợ!");
+            if ((topic === 'appeal' || topic === 'account' || topic === 'bad_photo') && !app.user) {
+                return app.ui.showAlert("Chức năng này yêu cầu bạn phải đăng nhập vào hệ thống để xác thực.", () => {
+                    app.utils.navigate('/auth');
+                });
+            }
             
             const chk1 = document.getElementById('contact-declare-1');
             const chk2 = document.getElementById('contact-declare-2');
