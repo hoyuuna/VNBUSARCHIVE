@@ -3947,7 +3947,7 @@ Object.assign(window.app, {
                     <div class="w-16 h-16 bg-gray-50 text-black border border-gray-200 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 shadow-sm">
                         <i class="fa-solid fa-ranking-star"></i>
                     </div>
-                    <h2 class="text-2xl md:text-3xl font-black text-black mb-2 tracking-tight uppercase">Bảng Vàng Đóng Góp</h2>
+                    <h2 class="text-2xl md:text-3xl font-black text-black mb-2 tracking-tight">Bảng xếp hạng đóng góp</h2>
                     <p class="text-sm text-gray-500 font-medium max-w-lg mx-auto leading-relaxed">
                         Vinh danh những Spotter xuất sắc nhất đã cống hiến xây dựng kho dữ liệu VNBUSARCHIVE.
                     </p>
