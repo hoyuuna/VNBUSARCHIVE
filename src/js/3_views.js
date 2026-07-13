@@ -3880,15 +3880,28 @@ Object.assign(window.app, {
                 await app.utils.fetchTopUploaders();
                 const counts = app.topUploadersCounts || {};
 
-                // Lấy thêm tổng lượt xem của các ảnh đã duyệt
-                const { data: approvedPhotos, error: phErr } = await window.sb.from('photos').select('uploader_id, views').eq('status', 'approved');
-                const viewCounts = {};
-                if (!phErr && approvedPhotos) {
-                    approvedPhotos.forEach(p => {
-                        if (!p.uploader_id) return;
-                        viewCounts[p.uploader_id] = (viewCounts[p.uploader_id] || 0) + (p.views || 0);
-                    });
+                // Lấy toàn bộ lượt xem của các ảnh đã duyệt (phân trang đầy đủ tránh giới hạn 1000 dòng)
+                let allApprovedPhotos = [];
+                let fromIndex = 0;
+                let batchSize = 999;
+                let hasMore = true;
+                while (hasMore) {
+                    const { data, error: phErr } = await window.sb
+                        .from('photos')
+                        .select('uploader_id, views')
+                        .eq('status', 'approved')
+                        .range(fromIndex, fromIndex + batchSize);
+                    if (phErr || !data) break;
+                    allApprovedPhotos.push(...data);
+                    if (data.length <= batchSize) hasMore = false;
+                    fromIndex += batchSize + 1;
                 }
+
+                const viewCounts = {};
+                allApprovedPhotos.forEach(p => {
+                    if (!p.uploader_id) return;
+                    viewCounts[p.uploader_id] = (viewCounts[p.uploader_id] || 0) + (Number(p.views) || 0);
+                });
 
                 // 2. Lấy danh sách tài khoản
                 const { data: allProfiles, error: prErr } = await window.sb.from('profiles').select('id, username, avatar_url, role, subroles, ban_status');
@@ -3971,7 +3984,7 @@ Object.assign(window.app, {
                         border: 'border-black border-2 shadow-md',
                         badgeStyle: 'bg-black text-white',
                         icon: '<i class="fa-solid fa-crown text-yellow-400"></i>',
-                        title: 'TOP 1 XUẤT SẮC'
+                        title: 'TOP 1'
                     },
                     2: {
                         order: 'order-2 md:order-1',
@@ -4018,7 +4031,7 @@ Object.assign(window.app, {
                                 </div>
                                 <div>
                                     <div class="font-black text-gray-800 text-xl leading-none mb-1">${app.utils.formatCompact(user.viewCount)}</div>
-                                    <div class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Views</div>
+                                    <div class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Lượt xem</div>
                                 </div>
                             </div>
                         </div>
@@ -4063,7 +4076,7 @@ Object.assign(window.app, {
                                     
                                     <div class="text-right shrink-0">
                                         <div class="font-black text-black text-base md:text-lg leading-none mb-1">${user.photoCount}</div>
-                                        <div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">${app.utils.formatCompact(user.viewCount)} Views</div>
+                                        <div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">${app.utils.formatCompact(user.viewCount)} Lượt xem</div>
                                     </div>
                                 </div>
                             `;
