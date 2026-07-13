@@ -3876,17 +3876,19 @@ Object.assign(window.app, {
             `;
 
             try {
-                // 1. Lấy tất cả ảnh đã duyệt để thống kê số lượng & lượt xem
-                const { data: approvedPhotos, error: phErr } = await window.sb.from('photos').select('uploader_id, views').eq('status', 'approved');
-                if (phErr) throw phErr;
+                // 1. Dùng chính xác cách tính của badge Top Uploader (có phân trang đầy đủ không bị giới hạn 1000 dòng)
+                await app.utils.fetchTopUploaders();
+                const counts = app.topUploadersCounts || {};
 
-                const userStats = {};
-                (approvedPhotos || []).forEach(p => {
-                    if (!p.uploader_id) return;
-                    if (!userStats[p.uploader_id]) userStats[p.uploader_id] = { photoCount: 0, viewCount: 0 };
-                    userStats[p.uploader_id].photoCount += 1;
-                    userStats[p.uploader_id].viewCount += (p.views || 0);
-                });
+                // Lấy thêm tổng lượt xem của các ảnh đã duyệt
+                const { data: approvedPhotos, error: phErr } = await window.sb.from('photos').select('uploader_id, views').eq('status', 'approved');
+                const viewCounts = {};
+                if (!phErr && approvedPhotos) {
+                    approvedPhotos.forEach(p => {
+                        if (!p.uploader_id) return;
+                        viewCounts[p.uploader_id] = (viewCounts[p.uploader_id] || 0) + (p.views || 0);
+                    });
+                }
 
                 // 2. Lấy danh sách tài khoản
                 const { data: allProfiles, error: prErr } = await window.sb.from('profiles').select('id, username, avatar_url, role, subroles, ban_status');
@@ -3896,12 +3898,11 @@ Object.assign(window.app, {
                 const totalAccounts = activeProfiles.length;
 
                 activeProfiles.forEach(p => {
-                    const stats = userStats[p.id] || { photoCount: 0, viewCount: 0 };
-                    p.photoCount = stats.photoCount;
-                    p.viewCount = stats.viewCount;
+                    p.photoCount = counts[p.id] || 0;
+                    p.viewCount = viewCounts[p.id] || 0;
                 });
 
-                // Sắp xếp spotter theo số lượng ảnh đã duyệt -> lượt xem
+                // Sắp xếp chính xác theo số lượng ảnh đã duyệt -> lượt xem
                 const spotters = activeProfiles
                     .filter(p => p.photoCount > 0)
                     .sort((a, b) => {
@@ -3930,76 +3931,108 @@ Object.assign(window.app, {
             const container = document.getElementById('leaderboard-content');
             if (!container) return;
 
-            const renderPodiumCard = (user, rank) => {
+            const top1 = topSpotters[0];
+            const top2 = topSpotters[1];
+            const top3 = topSpotters[2];
+
+            // Render Hero Top 1 Card (Nổi bật rõ ràng ở vị trí cao nhất)
+            const top1Html = top1 ? `
+                <div onclick="app.utils.navigate('/user/${encodeURIComponent(top1.username)}')" class="cursor-pointer bg-gradient-to-b from-amber-50/70 to-white border-2 border-amber-400 rounded-3xl p-8 sm:p-10 shadow-md hover:shadow-lg transition-all duration-300 flex flex-col items-center text-center relative group mb-8">
+                    <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-amber-400 text-black rounded-full text-xs sm:text-sm font-black uppercase tracking-wider mb-6 shadow-sm">
+                        <i class="fa-solid fa-crown text-base"></i> #1 QUÁN QUÂN ĐÓNG GÓP
+                    </div>
+                    <div class="w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden shrink-0 mx-auto border-4 border-amber-400 shadow-md mb-5 group-hover:scale-105 transition-transform">
+                        <img src="${top1.avatar_url || 'https://ik.imagekit.io/hoyuuna/avatar-default.png'}" class="w-full h-full object-cover block">
+                    </div>
+                    <div class="font-black text-black text-2xl sm:text-3xl truncate max-w-full mb-2">${app.utils.cleanText(top1.username)}</div>
+                    <div class="flex items-center justify-center gap-1.5 flex-wrap mb-6 min-h-[24px]">
+                        ${app.utils.getBadgesHTML(top1.id, top1.role, top1.subroles)}
+                    </div>
+                    <div class="w-full max-w-md border-t border-gray-200 pt-5 flex items-center justify-around text-sm">
+                        <div>
+                            <div class="font-black text-black text-xl sm:text-2xl">${top1.photoCount}</div>
+                            <div class="text-xs text-gray-500 font-bold uppercase tracking-wider mt-0.5">Ảnh đã duyệt</div>
+                        </div>
+                        <div class="h-8 w-px bg-gray-200"></div>
+                        <div>
+                            <div class="font-bold text-gray-700 text-xl sm:text-2xl">${app.utils.formatCompact(top1.viewCount)}</div>
+                            <div class="text-xs text-gray-500 font-bold uppercase tracking-wider mt-0.5">Lượt xem</div>
+                        </div>
+                    </div>
+                </div>
+            ` : '';
+
+            // Render Top 2 & Top 3 Cards side-by-side
+            const renderPodiumSideCard = (user, rank) => {
                 if (!user) return '';
                 const rankLabels = {
-                    1: { text: '#1 QUÁN QUÂN', border: 'border-amber-400', bg: 'bg-white', badgeBg: 'bg-amber-400 text-black', icon: 'fa-trophy' },
-                    2: { text: '#2 Á QUÂN', border: 'border-gray-300', bg: 'bg-white', badgeBg: 'bg-gray-800 text-white', icon: 'fa-medal' },
-                    3: { text: '#3 QUÝ QUÂN', border: 'border-amber-700/40', bg: 'bg-white', badgeBg: 'bg-amber-800 text-white', icon: 'fa-award' }
+                    2: { text: '#2 Á QUÂN', border: 'border-gray-300', badgeBg: 'bg-gray-800 text-white', icon: 'fa-medal', borderImg: 'border-gray-400' },
+                    3: { text: '#3 QUÝ QUÂN', border: 'border-amber-700/40', badgeBg: 'bg-amber-800 text-white', icon: 'fa-award', borderImg: 'border-amber-700/50' }
                 };
                 const style = rankLabels[rank];
-                const avatar = user.avatar_url || 'https://ik.imagekit.io/hoyuuna/avatar-default.png';
-                const badgesHtml = app.utils.getBadgesHTML(user.id, user.role, user.subroles);
                 return `
-                    <div onclick="app.utils.navigate('/user/${encodeURIComponent(user.username)}')" class="cursor-pointer ${style.bg} border-2 ${style.border} rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col items-center text-center relative group h-full">
-                        <div class="inline-flex items-center gap-1.5 px-3 py-1 ${style.badgeBg} rounded-full text-xs font-black uppercase tracking-wider mb-4 shadow-sm">
+                    <div onclick="app.utils.navigate('/user/${encodeURIComponent(user.username)}')" class="cursor-pointer bg-white border-2 ${style.border} rounded-3xl p-6 sm:p-8 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col items-center text-center relative group h-full">
+                        <div class="inline-flex items-center gap-1.5 px-3.5 py-1 ${style.badgeBg} rounded-full text-xs font-black uppercase tracking-wider mb-5 shadow-sm">
                             <i class="fa-solid ${style.icon}"></i> ${style.text}
                         </div>
-                        <img src="${avatar}" class="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-2 border-white shadow-md mb-4 group-hover:scale-105 transition-transform">
-                        <div class="font-extrabold text-black text-lg sm:text-xl truncate max-w-full mb-1.5">${app.utils.cleanText(user.username)}</div>
+                        <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden shrink-0 mx-auto border-4 ${style.borderImg} shadow-sm mb-4 group-hover:scale-105 transition-transform">
+                            <img src="${user.avatar_url || 'https://ik.imagekit.io/hoyuuna/avatar-default.png'}" class="w-full h-full object-cover block">
+                        </div>
+                        <div class="font-extrabold text-black text-xl sm:text-2xl truncate max-w-full mb-2">${app.utils.cleanText(user.username)}</div>
                         <div class="flex items-center justify-center gap-1.5 flex-wrap mb-5 min-h-[22px]">
-                            ${badgesHtml}
+                            ${app.utils.getBadgesHTML(user.id, user.role, user.subroles)}
                         </div>
                         <div class="w-full border-t border-gray-100 pt-4 mt-auto flex items-center justify-around text-xs">
                             <div>
-                                <div class="font-black text-black text-base sm:text-lg">${user.photoCount}</div>
-                                <div class="text-[11px] text-gray-500 font-semibold uppercase">Ảnh đã duyệt</div>
+                                <div class="font-black text-black text-lg sm:text-xl">${user.photoCount}</div>
+                                <div class="text-[11px] text-gray-500 font-bold uppercase">Ảnh đã duyệt</div>
                             </div>
                             <div class="h-6 w-px bg-gray-200"></div>
                             <div>
-                                <div class="font-bold text-gray-700 text-base sm:text-lg">${app.utils.formatCompact(user.viewCount)}</div>
-                                <div class="text-[11px] text-gray-500 font-semibold uppercase">Lượt xem</div>
+                                <div class="font-bold text-gray-700 text-lg sm:text-xl">${app.utils.formatCompact(user.viewCount)}</div>
+                                <div class="text-[11px] text-gray-500 font-bold uppercase">Lượt xem</div>
                             </div>
                         </div>
                     </div>
                 `;
             };
 
-            const top3Html = topSpotters.length > 0 ? `
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                    <div class="order-2 md:order-1">${renderPodiumCard(topSpotters[1], 2)}</div>
-                    <div class="order-1 md:order-2">${renderPodiumCard(topSpotters[0], 1)}</div>
-                    <div class="order-3 md:order-3">${renderPodiumCard(topSpotters[2], 3)}</div>
+            const top2And3Html = (top2 || top3) ? `
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-12">
+                    <div>${renderPodiumSideCard(top2, 2)}</div>
+                    <div>${renderPodiumSideCard(top3, 3)}</div>
                 </div>
-            ` : '<div class="text-center py-12 bg-white border border-gray-200 rounded-2xl text-gray-500 font-medium">Chưa có dữ liệu xếp hạng.</div>';
+            ` : '';
 
+            // Render Top 4 to 10
             const restSpotters = topSpotters.slice(3, 10);
             const restHtml = restSpotters.length > 0 ? `
-                <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-                    <div class="px-6 py-4 bg-gray-50/80 border-b border-gray-200 text-xs font-extrabold uppercase tracking-wider text-gray-500 flex items-center justify-between">
+                <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden mb-16">
+                    <div class="px-6 sm:px-8 py-4 bg-gray-50 border-b border-gray-200 text-xs font-black uppercase tracking-wider text-gray-500 flex items-center justify-between">
                         <span>Top 4 - 10 Spotter xuất sắc</span>
-                        <span>Đóng góp</span>
+                        <span>Số lượng đóng góp</span>
                     </div>
                     <div class="divide-y divide-gray-100">
                         ${restSpotters.map((user, idx) => {
                             const rank = idx + 4;
                             const avatar = user.avatar_url || 'https://ik.imagekit.io/hoyuuna/avatar-default.png';
-                            const badgesHtml = app.utils.getBadgesHTML(user.id, user.role, user.subroles);
                             return `
-                                <div onclick="app.utils.navigate('/user/${encodeURIComponent(user.username)}')" class="cursor-pointer px-6 py-4 flex items-center justify-between gap-4 hover:bg-gray-50 transition-colors group">
-                                    <div class="flex items-center gap-4 min-w-0">
-                                        <span class="w-7 h-7 rounded-lg bg-gray-100 border border-gray-200 text-gray-700 font-black text-xs flex items-center justify-center shrink-0 group-hover:bg-black group-hover:text-white transition-colors">#${rank}</span>
-                                        <img src="${avatar}" class="w-10 h-10 rounded-full object-cover border border-gray-200 shrink-0">
+                                <div onclick="app.utils.navigate('/user/${encodeURIComponent(user.username)}')" class="cursor-pointer px-6 sm:px-8 py-5 flex items-center justify-between gap-4 hover:bg-gray-50 transition-colors group">
+                                    <div class="flex items-center gap-4 sm:gap-5 min-w-0">
+                                        <span class="w-8 h-8 rounded-lg bg-gray-100 border border-gray-200 text-gray-700 font-black text-sm flex items-center justify-center shrink-0 group-hover:bg-black group-hover:text-white transition-colors">#${rank}</span>
+                                        <div class="w-12 h-12 rounded-full overflow-hidden shrink-0 border border-gray-200">
+                                            <img src="${avatar}" class="w-full h-full object-cover block">
+                                        </div>
                                         <div class="min-w-0">
-                                            <div class="font-bold text-black text-sm sm:text-base truncate group-hover:underline">${app.utils.cleanText(user.username)}</div>
-                                            <div class="flex items-center gap-1.5 mt-0.5">
-                                                ${badgesHtml}
+                                            <div class="font-extrabold text-black text-base sm:text-lg truncate group-hover:underline">${app.utils.cleanText(user.username)}</div>
+                                            <div class="flex items-center gap-1.5 mt-1 flex-wrap">
+                                                ${app.utils.getBadgesHTML(user.id, user.role, user.subroles)}
                                             </div>
                                         </div>
                                     </div>
                                     <div class="text-right shrink-0">
-                                        <div class="font-black text-black text-sm sm:text-base">${user.photoCount} <span class="text-xs font-normal text-gray-500">ảnh</span></div>
-                                        <div class="text-[11px] text-gray-400 font-medium">${app.utils.formatCompact(user.viewCount)} lượt xem</div>
+                                        <div class="font-black text-black text-base sm:text-lg">${user.photoCount} <span class="text-xs font-semibold text-gray-500">ảnh</span></div>
+                                        <div class="text-xs text-gray-400 font-medium mt-0.5">${app.utils.formatCompact(user.viewCount)} lượt xem</div>
                                     </div>
                                 </div>
                             `;
@@ -4008,26 +4041,28 @@ Object.assign(window.app, {
                 </div>
             ` : '';
 
+            // Render Admin/Manager Team
             const adminManagersHtml = adminManagers.length > 0 ? `
-                <div class="mt-12">
-                    <div class="flex items-center gap-3 mb-5">
-                        <h2 class="font-extrabold text-base sm:text-lg text-black uppercase tracking-tight">Đội ngũ Admin / Manager</h2>
+                <div class="mt-16 mb-16">
+                    <div class="flex items-center gap-3 mb-6">
+                        <h2 class="font-black text-lg sm:text-xl text-black uppercase tracking-tight">Đội ngũ Admin & Manager</h2>
                         <div class="h-px bg-gray-200 flex-1"></div>
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
                         ${adminManagers.map(user => {
                             const avatar = user.avatar_url || 'https://ik.imagekit.io/hoyuuna/avatar-default.png';
-                            const badgesHtml = app.utils.getBadgesHTML(user.id, user.role, user.subroles);
                             return `
-                                <div onclick="app.utils.navigate('/user/${encodeURIComponent(user.username)}')" class="cursor-pointer bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:border-black transition-colors flex items-center gap-3 group">
-                                    <img src="${avatar}" class="w-12 h-12 rounded-full object-cover border border-gray-200 shrink-0">
+                                <div onclick="app.utils.navigate('/user/${encodeURIComponent(user.username)}')" class="cursor-pointer bg-white border border-gray-200 rounded-2xl p-5 shadow-sm hover:border-black transition-colors flex items-center gap-4 group">
+                                    <div class="w-14 h-14 rounded-full overflow-hidden shrink-0 border border-gray-200">
+                                        <img src="${avatar}" class="w-full h-full object-cover block">
+                                    </div>
                                     <div class="min-w-0 flex-1">
-                                        <div class="font-bold text-black text-sm truncate group-hover:underline">${app.utils.cleanText(user.username)}</div>
-                                        <div class="mt-1 flex items-center gap-1 flex-wrap">${badgesHtml}</div>
+                                        <div class="font-extrabold text-black text-base truncate group-hover:underline">${app.utils.cleanText(user.username)}</div>
+                                        <div class="mt-1.5 flex items-center gap-1 flex-wrap">${app.utils.getBadgesHTML(user.id, user.role, user.subroles)}</div>
                                     </div>
                                     <div class="text-right text-xs text-gray-500 shrink-0">
-                                        <div class="font-bold text-black">${user.photoCount}</div>
-                                        <div class="text-[10px]">ảnh</div>
+                                        <div class="font-black text-black text-sm">${user.photoCount}</div>
+                                        <div class="text-[10px] font-bold">ẢNH</div>
                                     </div>
                                 </div>
                             `;
@@ -4036,21 +4071,23 @@ Object.assign(window.app, {
                 </div>
             ` : '';
 
+            // Render Footer summary
             const footerHtml = `
-                <div class="mt-12 bg-white border border-gray-200 rounded-2xl p-8 text-center shadow-sm">
-                    <p class="text-base sm:text-lg font-bold text-gray-700 mb-2">
+                <div class="mt-16 bg-white border border-gray-200 rounded-3xl p-10 text-center shadow-sm">
+                    <p class="text-lg sm:text-xl font-extrabold text-gray-700 mb-2">
                         Và ${otherCount} thành viên khác
                     </p>
-                    <p class="text-base sm:text-xl font-extrabold text-black tracking-tight">
+                    <p class="text-xl sm:text-2xl font-black text-black tracking-tight">
                         Xin cảm ơn sự đóng góp của các bạn!
                     </p>
                 </div>
             `;
 
-            container.innerHTML = top3Html + restHtml + adminManagersHtml + footerHtml;
+            container.innerHTML = top1Html + top2And3Html + restHtml + adminManagersHtml + footerHtml;
         }
     }
 });
+
 
 // THUẬT TOÁN AN TOÀN TUYỆT ĐỐI CHỐNG CRASH JS
 // Đợi bộ định tuyến của trang nạp xong thì mới âm thầm chèn chức năng Liên hệ vào.

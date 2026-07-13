@@ -2098,8 +2098,10 @@ cleanupState: () => {
                         const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
 
                         app.topUploaders = {};
+                        app.topUploadersCounts = counts;
                         if (sorted.length > 0) app.topUploaders[sorted[0][0]] = 1;
                         if (sorted.length > 1) app.topUploaders[sorted[1][0]] = 2;
+                        if (sorted.length > 2) app.topUploaders[sorted[2][0]] = 3;
                     } catch (e) { console.log("Lỗi tải Top:", e); }
                 },
 
