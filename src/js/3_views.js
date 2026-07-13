@@ -17,7 +17,11 @@ Object.assign(window.app, {
                     });
 
                     const labelEl = document.getElementById('profile-sort-label');
-                    if (labelEl) labelEl.innerText = app.views.currentProfileSort === 'newest' ? 'Mới nhất' : 'Phổ biến nhất';
+                    if (labelEl) {
+                        if (app.views.currentProfileSort === 'newest') labelEl.innerText = 'Mới nhất';
+                        else if (app.views.currentProfileSort === 'most_liked') labelEl.innerText = 'Được yêu thích nhất';
+                        else labelEl.innerText = 'Phổ biến nhất';
+                    }
 
                     document.querySelectorAll('.profile-sort-item').forEach(item => {
                         item.classList.remove('selected');
@@ -843,17 +847,54 @@ Object.assign(window.app, {
                         grid.style.pointerEvents = 'none';
                     }
 
-                    let query = window.sb.from('photos').select('id, url, status, views, license_plate', { count: 'exact' }).eq('uploader_id', app.currentProfileId);
+                    let photos, count, error;
 
-                    if (!app._isOwnProfile) query = query.eq('status', 'approved');
-                    else if (app.views.currentProfileFilter !== 'all') query = query.eq('status', app.views.currentProfileFilter);
+                    if (app.views.currentProfileSort === 'most_liked') {
+                        let allQuery = window.sb.from('photos').select('id, url, status, views, license_plate').eq('uploader_id', app.currentProfileId);
+                        if (!app._isOwnProfile) allQuery = allQuery.eq('status', 'approved');
+                        else if (app.views.currentProfileFilter !== 'all') allQuery = allQuery.eq('status', app.views.currentProfileFilter);
+                        allQuery = app.preference.applyFilter(allQuery);
 
-                    query = app.preference.applyFilter(query);
+                        const { data: allPhotos, error: allErr } = await allQuery;
+                        error = allErr;
 
-                    if (app.views.currentProfileSort === 'newest') query = query.order('id', { ascending: false });
-                    else if (app.views.currentProfileSort === 'popular') query = query.order('views', { ascending: false, nullsFirst: false });
+                        if (!error && allPhotos && allPhotos.length > 0) {
+                            const photoIds = allPhotos.map(p => p.id);
+                            const likeCountMap = {};
+                            for (let i = 0; i < photoIds.length; i += 300) {
+                                const chunk = photoIds.slice(i, i + 300);
+                                const { data: likeRows } = await window.sb.from('photo_likes').select('photo_id').in('photo_id', chunk);
+                                (likeRows || []).forEach(r => {
+                                    likeCountMap[r.photo_id] = (likeCountMap[r.photo_id] || 0) + 1;
+                                });
+                            }
 
-                    const { data: photos, count, error } = await query.range(fromRow, toRow);
+                            allPhotos.sort((a, b) => {
+                                const likesA = likeCountMap[a.id] || 0;
+                                const likesB = likeCountMap[b.id] || 0;
+                                if (likesB !== likesA) return likesB - likesA;
+                                return (b.views || 0) - (a.views || 0);
+                            });
+
+                            count = allPhotos.length;
+                            photos = allPhotos.slice(fromRow, toRow + 1);
+                        }
+                    } else {
+                        let query = window.sb.from('photos').select('id, url, status, views, license_plate', { count: 'exact' }).eq('uploader_id', app.currentProfileId);
+
+                        if (!app._isOwnProfile) query = query.eq('status', 'approved');
+                        else if (app.views.currentProfileFilter !== 'all') query = query.eq('status', app.views.currentProfileFilter);
+
+                        query = app.preference.applyFilter(query);
+
+                        if (app.views.currentProfileSort === 'newest') query = query.order('id', { ascending: false });
+                        else if (app.views.currentProfileSort === 'popular') query = query.order('views', { ascending: false, nullsFirst: false });
+
+                        const res = await query.range(fromRow, toRow);
+                        photos = res.data;
+                        count = res.count;
+                        error = res.error;
+                    }
 
                     if (error || !photos || photos.length === 0) {
                         grid.style.opacity = '1';

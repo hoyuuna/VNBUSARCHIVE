@@ -4612,10 +4612,13 @@
                                     <button onclick="document.getElementById('profile-sort-menu').classList.toggle('active')" id="btn-profile-sort" class="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-300 text-gray-700 text-xs font-bold rounded hover:bg-gray-50 transition whitespace-nowrap shadow-sm">
                                         <span id="profile-sort-label">Mới nhất</span> <i class="fa-solid fa-arrow-down-wide-short ml-0.5"></i>
                                     </button>
-                                    <div id="profile-sort-menu" class="filter-menu w-40 right-0 origin-top-right">
+                                    <div id="profile-sort-menu" class="filter-menu w-48 right-0 origin-top-right">
                                         <div class="px-3 py-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Xếp theo:</div>
                                         <div class="filter-item selected profile-sort-item" onclick="app.views.sortProfilePhotos('newest')" data-sort="newest">
                                             <span>Mới nhất</span> <i class="fa-solid fa-check check-icon"></i>
+                                        </div>
+                                        <div class="filter-item profile-sort-item" onclick="app.views.sortProfilePhotos('most_liked')" data-sort="most_liked">
+                                            <span>Được yêu thích nhất</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
                                         </div>
                                         <div class="filter-item profile-sort-item" onclick="app.views.sortProfilePhotos('popular')" data-sort="popular">
                                             <span>Phổ biến nhất</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
