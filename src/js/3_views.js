@@ -3869,7 +3869,7 @@ Object.assign(window.app, {
             if (!container) return;
 
             container.innerHTML = `
-                <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-12 text-center text-gray-500">
+                <div class="py-16 text-center text-gray-500">
                     <i class="fa-solid fa-spinner fa-spin text-2xl mb-3 block text-black"></i>
                     <span class="text-sm font-medium">Đang tải bảng xếp hạng...</span>
                 </div>
@@ -3911,7 +3911,14 @@ Object.assign(window.app, {
                     });
 
                 const topSpotters = spotters.slice(0, 10);
-                const adminManagers = activeProfiles.filter(p => p.role === 'admin' || p.role === 'manager');
+                const adminManagers = activeProfiles
+                    .filter(p => p.role === 'admin' || p.role === 'manager')
+                    .sort((a, b) => {
+                        if (a.role === 'manager' && b.role !== 'manager') return -1;
+                        if (a.role !== 'manager' && b.role === 'manager') return 1;
+                        if (b.photoCount !== a.photoCount) return b.photoCount - a.photoCount;
+                        return b.viewCount - a.viewCount;
+                    });
                 const otherCount = Math.max(0, totalAccounts - 10);
 
                 app.leaderboard.render(topSpotters, adminManagers, otherCount);
