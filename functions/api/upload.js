@@ -24,10 +24,13 @@ export async function onRequest(context) {
             { global: { headers: { Authorization: authHeader } } }
         );
 
+        const { data: { user }, error: authErr } = await supabase.auth.getUser();
+        if (authErr || !user) return new Response(JSON.stringify({ success: false, error: 'Phiên đăng nhập không hợp lệ.' }), { status: 401, headers: { 'Content-Type': 'application/json' }});
+        const userId = user.id;
+
         const formData = await request.formData();
         
         const isAvatar = formData.get('isAvatar') === 'true';
-        const userId = formData.get('userId');
         const captchaToken = formData.get('captchaToken');
         
         const ALLOWED_EXT = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'heic', 'raw', 'cr2', 'cr3', 'nef', 'arw', 'dng'];
@@ -156,7 +159,7 @@ export async function onRequest(context) {
                         const safeFileName = encodeURIComponent(oldFileName);
                         console.log(`[DEBUG] Đang xóa avatar cũ khỏi CDN: ${safeFileName}`);
                         await fetch(`https://cdn.vnbusarchive.io.vn/api/manage/delete/${safeFileName}`, {
-                            method: 'GET',
+                            method: 'DELETE',
                             headers: { 'Authorization': `Bearer ${env.CF_IMGBED_TOKEN}` }
                         }).catch(e => console.warn('[WARN] Lỗi mạng khi xóa avatar cũ:', e));
                     }

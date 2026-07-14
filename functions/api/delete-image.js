@@ -23,9 +23,10 @@ export async function onRequest(context) {
         if (!imageUrl) return new Response(JSON.stringify({ success: false, error: 'Thiếu URL ảnh.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
 
         // [BẢO MẬT - IDOR DEFENSE] Kiểm tra quyền sở hữu ảnh trước khi xóa khỏi CDN
+        if (!env.SUPABASE_SERVICE_ROLE_KEY) throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY');
         const supabaseAdmin = createClient(
             env.SUPABASE_URL,
-            env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_KEY
+            env.SUPABASE_SERVICE_ROLE_KEY
         );
         const { data: profile } = await supabaseAdmin.from('profiles').select('role').eq('id', user.id).single();
         const isManagerOrAdmin = profile && (profile.role === 'admin' || profile.role === 'manager');
@@ -55,7 +56,7 @@ export async function onRequest(context) {
         const deleteUrl = `https://cdn.vnbusarchive.io.vn/api/manage/delete/${safeFileName}`;
         
         const deleteResponse = await fetch(deleteUrl, {
-            method: 'GET',
+            method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${env.CF_IMGBED_TOKEN}`
             }
@@ -73,6 +74,6 @@ export async function onRequest(context) {
 
     } catch (error) {
         console.error('[Delete Image Error]:', error.message);
-        return new Response(JSON.stringify({ success: false, error: error.message }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+        return new Response(JSON.stringify({ success: false, error: 'Lỗi hệ thống máy chủ.' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
     }
 }

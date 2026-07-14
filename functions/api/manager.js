@@ -9,11 +9,14 @@ export async function onRequest(context) {
 
     try {
         const body = await request.json();
-        const { action, targetUserId, newUsername, newRole, newEmail, newPass, reason, token } = body;
+        const authHeader = request.headers.get('authorization');
+        const token = authHeader ? authHeader.replace('Bearer ', '') : body.token;
+        const { action, targetUserId, newUsername, newRole, newEmail, newPass, reason } = body;
 
+        if (!env.SUPABASE_SERVICE_ROLE_KEY) throw new Error("Lỗi cấu hình hệ thống: Thiếu Service Role Key.");
         const supabaseAdmin = createClient(
             env.SUPABASE_URL,
-            env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_KEY, 
+            env.SUPABASE_SERVICE_ROLE_KEY, 
             { auth: { autoRefreshToken: false, persistSession: false } }
         );
 
@@ -181,6 +184,7 @@ export async function onRequest(context) {
         return new Response(JSON.stringify({ success: true, message: "Cập nhật user thành công!" }), { status: 200, headers: { 'Content-Type': 'application/json' }});
 
     } catch (error) {
-        return new Response(JSON.stringify({ success: false, error: error.message }), { status: 400, headers: { 'Content-Type': 'application/json' }});
+        console.error('[Manager Error]:', error.message);
+        return new Response(JSON.stringify({ success: false, error: 'Đã xảy ra lỗi khi thực hiện thao tác quản lý.' }), { status: 400, headers: { 'Content-Type': 'application/json' }});
     }
 }

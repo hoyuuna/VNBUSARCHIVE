@@ -40,7 +40,7 @@ async function handleGetCore(request, env) {
         const isLocalOrInvalidIp = clientIp === '127.0.0.1' || clientIp === '::1' || clientIp === 'localhost';
 
         const supabaseUrl = env.SUPABASE_URL;
-        const supabaseServiceRole = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_KEY;
+        const supabaseServiceRole = env.SUPABASE_SERVICE_ROLE_KEY;
         let supabaseAdmin = null;
 
         if (supabaseUrl && supabaseServiceRole) {
@@ -211,7 +211,7 @@ async function handleLogIp(request, env) {
         const clientIp = (request.headers.get('CF-Connecting-IP') || request.headers.get('x-real-ip') || request.headers.get('x-client-ip') || (request.headers.get('x-forwarded-for') || '').split(',')[0] || '127.0.0.1').trim();
         const authHeader = request.headers.get('authorization');
         const supabaseUrl = env.SUPABASE_URL;
-        const supabaseServiceRole = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_KEY;
+        const supabaseServiceRole = env.SUPABASE_SERVICE_ROLE_KEY;
 
         if (clientIp && authHeader && authHeader.startsWith('Bearer ') && supabaseUrl && supabaseServiceRole) {
             const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRole);

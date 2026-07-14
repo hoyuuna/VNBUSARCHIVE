@@ -1199,7 +1199,7 @@ Object.assign(window.app, {
                         }
 
                         favContainer.innerHTML = `
-                            <img src="${app.utils.getProxiedUrl(url, 'fav.jpg', 'thumb')}" class="absolute inset-0 w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-700 pointer-events-auto" onclick="app.views.loadDetail(${photoId})">
+                            <img src="${app.utils.getProxiedUrl(url, 'fav.jpg', 'thumb')}" class="absolute inset-0 w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-700 pointer-events-auto" onclick="app.views.loadDetail(\${app.utils.escapeHtml(photoId)})">
                         `;
                         favControls.classList.remove('hidden');
                         favControls.classList.add('flex');

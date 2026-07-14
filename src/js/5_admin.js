@@ -1007,7 +1007,7 @@ app.admin.fetchManagerData('denied');
                         }
 
                     } catch (err) {
-                        content.innerHTML = `<p class="p-4 text-red-500 font-bold">Không thể tải dữ liệu: ${err.message}</p>`;
+                        content.innerHTML = `<p class="p-4 text-red-500 font-bold">Không thể tải dữ liệu: \${app.utils.escapeHtml(err.message)}</p>`;
                     }
                 },
 
@@ -1057,8 +1057,11 @@ app.admin.fetchManagerData('denied');
                             const { data: { session } } = await window.sb.auth.getSession();
                             const response = await fetch('/api/manager', {
                                 method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ action: 'get_users', token: session.access_token })
+                                headers: { 
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${session.access_token}`
+                                },
+                                body: JSON.stringify({ action: 'get_users' })
                             });
                             const result = await response.json();
                             if (!result.success) throw new Error(result.error);
@@ -1292,8 +1295,11 @@ app.admin.fetchManagerData('denied');
                         const { data: { session } } = await window.sb.auth.getSession();
                         const response = await fetch('/api/manager', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ action: 'ban', targetUserId: userId, reason: reason, token: session.access_token })
+                            headers: { 
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${session.access_token}`
+                            },
+                            body: JSON.stringify({ action: 'ban', targetUserId: userId, reason: reason })
                         });
                         const data = await response.json();
                         if (data.success) {
@@ -1316,8 +1322,11 @@ app.admin.fetchManagerData('denied');
                             const { data: { session } } = await window.sb.auth.getSession();
                             const response = await fetch('/api/manager', {
                                 method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ action: 'unban', targetUserId: userId, token: session.access_token })
+                                headers: { 
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${session.access_token}`
+                                },
+                                body: JSON.stringify({ action: 'unban', targetUserId: userId })
                             });
                             const data = await response.json();
                             if (data.success) {
@@ -1340,8 +1349,11 @@ app.admin.fetchManagerData('denied');
                             const { data: { session } } = await window.sb.auth.getSession();
                             const response = await fetch('/api/manager', {
                                 method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ action: 'delete_user', targetUserId: userId, token: session.access_token })
+                                headers: { 
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${session.access_token}`
+                                },
+                                body: JSON.stringify({ action: 'delete_user', targetUserId: userId })
                             });
                             const data = await response.json();
                             if (data.success) {

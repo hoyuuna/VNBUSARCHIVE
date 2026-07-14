@@ -227,7 +227,7 @@ async function handleNewsOrHelp(request, env) {
         return new Response(JSON.stringify(id ? formattedData[0] : formattedData), { status: 200, headers: { 'Content-Type': 'application/json' }});
     } catch (error) {
         console.error('API Error:', error);
-        return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: { 'Content-Type': 'application/json' }});
+        return new Response(JSON.stringify({ error: "Đã xảy ra lỗi hệ thống, vui lòng thử lại sau" }), { status: 500, headers: { 'Content-Type': 'application/json' }});
     }
 }
 
@@ -390,7 +390,7 @@ async function handleRoleClaim(request, env) {
 
     } catch (err) {
         console.error("Discord Role API Error:", err);
-        return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { 'Content-Type': 'application/json' }});
+        return new Response(JSON.stringify({ error: "Đã xảy ra lỗi hệ thống, vui lòng thử lại sau" }), { status: 500, headers: { 'Content-Type': 'application/json' }});
     }
 }
 
@@ -464,6 +464,12 @@ async function handleContactSubmit(request, env) {
             rawText += `**${titleStr}**\nhttps://www.vnbusarchive.io.vn/photo/${photoId}\n\n`;
         }
     } else if (externalLink) {
+        try {
+            const parsedUrl = new URL(externalLink);
+            if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') throw new Error();
+        } catch(e) {
+            return new Response(JSON.stringify({ error: 'Đường dẫn liên kết ngoài không hợp lệ (Phải bắt đầu bằng http:// hoặc https://).' }), { status: 400, headers: { 'Content-Type': 'application/json' }});
+        }
         let linkTitle = 'Nội dung liên quan \\*';
         if (topic === 'report_violation' || topic === 'copyright') linkTitle = 'Nội dung vi phạm \\*';
         rawText += `**${linkTitle}**\n${externalLink}\n\n`;

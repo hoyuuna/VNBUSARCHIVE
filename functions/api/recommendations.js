@@ -27,19 +27,19 @@ export async function onRequest(context) {
         if (photoId) {
             // Logic cho loadDetailRecommendations
             const queries = [];
-            
+            const safePhotoId = encodeURIComponent(photoId);
             if (operator && operator !== '---') {
-                queries.push(fetch(`${sbUrl}/rest/v1/photos?select=*,profiles(id,username,role,subroles,ban_status),vehicles(model)&status=eq.approved&id=neq.${photoId}&operator=eq.${encodeURIComponent(operator)}&limit=15`, { headers }).then(r => r.json()));
+                queries.push(fetch(`${sbUrl}/rest/v1/photos?select=*,profiles(id,username,role,subroles,ban_status),vehicles(model)&status=eq.approved&id=neq.${safePhotoId}&operator=eq.${encodeURIComponent(operator)}&limit=15`, { headers }).then(r => r.json()));
             }
             if (routeNo && routeNo !== '---') {
-                queries.push(fetch(`${sbUrl}/rest/v1/photos?select=*,profiles(id,username,role,subroles,ban_status),vehicles(model)&status=eq.approved&id=neq.${photoId}&route_no=eq.${encodeURIComponent(routeNo)}&limit=15`, { headers }).then(r => r.json()));
+                queries.push(fetch(`${sbUrl}/rest/v1/photos?select=*,profiles(id,username,role,subroles,ban_status),vehicles(model)&status=eq.approved&id=neq.${safePhotoId}&route_no=eq.${encodeURIComponent(routeNo)}&limit=15`, { headers }).then(r => r.json()));
             }
             if (uploaderId) {
-                queries.push(fetch(`${sbUrl}/rest/v1/photos?select=*,profiles(id,username,role,subroles,ban_status),vehicles(model)&status=eq.approved&id=neq.${photoId}&uploader_id=eq.${encodeURIComponent(uploaderId)}&limit=15`, { headers }).then(r => r.json()));
+                queries.push(fetch(`${sbUrl}/rest/v1/photos?select=*,profiles(id,username,role,subroles,ban_status),vehicles(model)&status=eq.approved&id=neq.${safePhotoId}&uploader_id=eq.${encodeURIComponent(uploaderId)}&limit=15`, { headers }).then(r => r.json()));
             }
             
             // Backup
-            queries.push(fetch(`${sbUrl}/rest/v1/photos?select=*,profiles(id,username,role,subroles,ban_status),vehicles(model)&status=eq.approved&id=neq.${photoId}&order=created_at.desc&limit=20`, { headers }).then(r => r.json()));
+            queries.push(fetch(`${sbUrl}/rest/v1/photos?select=*,profiles(id,username,role,subroles,ban_status),vehicles(model)&status=eq.approved&id=neq.${safePhotoId}&order=created_at.desc&limit=20`, { headers }).then(r => r.json()));
             
             const allResponses = await Promise.all(queries);
             let combined = [];
@@ -96,6 +96,6 @@ export async function onRequest(context) {
             headers: { 'Content-Type': 'application/json' }
         });
     } catch (err) {
-        return new Response(JSON.stringify({ error: err.message }), { status: 500 });
+        return new Response(JSON.stringify({ error: "Đã xảy ra lỗi hệ thống, vui lòng thử lại sau" }), { status: 500 });
     }
 }

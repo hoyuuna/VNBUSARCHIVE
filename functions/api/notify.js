@@ -2,6 +2,16 @@ import { Resend } from 'resend';
 import { createClient } from '@supabase/supabase-js';
 import { marked } from 'marked';
 
+function escapeHtml(unsafe) {
+    if (!unsafe) return '';
+    return String(unsafe)
+         .replace(/&/g, "&amp;")
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;")
+         .replace(/"/g, "&quot;")
+         .replace(/'/g, "&#039;");
+}
+
 function formatEmailMarkdown(text) {
     if (!text) return '';
     let processed = text;
@@ -49,10 +59,12 @@ async function handleSendEmail(request, env, body) {
         recipientName = targetProfile?.username || toEmail;
     }
 
-    if (!toEmail) return new Response(JSON.stringify({ error: 'Không xác định được địa chỉ Email người nhận.' }), { status: 400, headers: { 'Content-Type': 'application/json' }});
+    if (!toEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(toEmail)) {
+        return new Response(JSON.stringify({ error: 'Địa chỉ Email không hợp lệ.' }), { status: 400, headers: { 'Content-Type': 'application/json' }});
+    }
 
-    const adminName = isAnonymous ? 'Quản trị VNBUSARCHIVE' : profile.username;
-    const senderLine = isAnonymous ? 'VNBUSARCHIVE <noreply@vnbusarchive.io.vn>' : `${profile.username} via VNBUSARCHIVE <noreply@vnbusarchive.io.vn>`;
+    const adminName = escapeHtml(isAnonymous ? 'Quản trị VNBUSARCHIVE' : profile.username);
+    const senderLine = isAnonymous ? 'VNBUSARCHIVE <noreply@vnbusarchive.io.vn>' : `${adminName} via VNBUSARCHIVE <noreply@vnbusarchive.io.vn>`;
 
     const htmlContent = formatEmailMarkdown(markdownContent);
 
@@ -103,7 +115,7 @@ async function handleSendEmail(request, env, body) {
                         <tr>
                             <td align="left" style="padding: 30px;">
                                 <p style="margin: 0 0 20px; font-size: 14px; line-height: 1.6; color: #52525b; font-weight: 500;">
-                                    Xin chào <strong>${recipientName}</strong>,
+                                    Xin chào <strong>${escapeHtml(recipientName)}</strong>,
                                 </p>
 
                                 <div class="markdown-content" style="margin: 0 0 30px; font-size: 14px; line-height: 1.6; color: #3f3f46;">
@@ -254,6 +266,6 @@ export async function onRequest(context) {
         }
     } catch (error) {
         console.error('Lỗi API Notify:', error);
-        return new Response(JSON.stringify({ error: error.message || 'Lỗi hệ thống' }), { status: 500, headers: { 'Content-Type': 'application/json' }});
+        return new Response(JSON.stringify({ error: "Đã xảy ra lỗi hệ thống, vui lòng thử lại sau" }), { status: 500, headers: { 'Content-Type': 'application/json' }});
     }
 }

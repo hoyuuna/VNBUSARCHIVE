@@ -261,8 +261,8 @@ Object.assign(window.app, {
                                  onerror="app.utils.fallbackHeroImage(this, 'topPhotosCache', 0)"
                                  class="absolute inset-0 w-full h-full object-cover object-center block group-hover:scale-105 transition-all duration-700 opacity-0 z-10">
                             <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/85 via-black/50 to-transparent p-4 pt-14 pointer-events-none z-20 flex flex-col gap-1" style="z-index: 20;">
-                                <p class="text-white font-bold text-xl tracking-tight hero-main-text pointer-events-auto leading-tight truncate" style="text-shadow: 0 2px 4px rgba(0,0,0,0.95);">${safeMainPlate}</p>
-                                <p class="text-white text-xs hero-main-views pointer-events-auto truncate leading-tight font-medium" style="text-shadow: 0 1px 3px rgba(0,0,0,0.95);">${safeMainOperator}</p>
+                                <p class="text-white font-bold text-xl tracking-tight hero-main-text pointer-events-auto leading-tight truncate" style="text-shadow: 0 2px 4px rgba(0,0,0,0.95);">\${app.utils.escapeHtml(safeMainPlate)}</p>
+                                <p class="text-white text-xs hero-main-views pointer-events-auto truncate leading-tight font-medium" style="text-shadow: 0 1px 3px rgba(0,0,0,0.95);">\${app.utils.escapeHtml(safeMainOperator)}</p>
                             </div>
                         `;
                         heroMain.onclick = () => app.views.loadDetail(main.id);
@@ -274,17 +274,17 @@ Object.assign(window.app, {
                             const safeSubOperator = app.utils.cleanText(p.operator || 'Đang cập nhật');
 
                             heroSub.innerHTML += `
-                                <div class="img-wrapper relative group cursor-pointer h-[196px] bg-gray-100 rounded-md overflow-hidden border border-gray-200" onclick="app.views.loadDetail(${p.id})">
+                                <div class="img-wrapper relative group cursor-pointer h-[196px] bg-gray-100 rounded-md overflow-hidden border border-gray-200" onclick="app.views.loadDetail(\${app.utils.escapeHtml(p.id)})">
                                     <div class="img-spinner absolute inset-0 flex items-center justify-center text-gray-400 z-0">
                                         <i class="fa-solid fa-circle-notch fa-spin text-2xl"></i>
                                     </div>
                                     <img src="${app.utils.getProxiedUrl(p.url, 'sub.jpg', 'thumb')}"
                                          onload="app.utils.handleImgLoad(this)"
-                                         onerror="app.utils.fallbackHeroImage(this, 'topPhotosCache', ${i})"
+                                         onerror="app.utils.fallbackHeroImage(this, 'topPhotosCache', \${app.utils.escapeHtml(i)})"
                                          class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-all duration-500 opacity-0 z-10">
                                     <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/85 via-black/40 to-transparent p-2.5 pt-8 pointer-events-none z-20 flex flex-col gap-0.5" style="z-index: 20;">
-                                        <p class="text-white font-bold text-xs tracking-tight truncate leading-none hero-sub-text" style="text-shadow: 0 1px 3px rgba(0,0,0,0.95);">${safeSubPlate}</p>
-                                        <p class="text-white text-[11px] truncate leading-none font-medium hero-sub-operator" style="text-shadow: 0 1px 3px rgba(0,0,0,0.95);">${safeSubOperator}</p>
+                                        <p class="text-white font-bold text-xs tracking-tight truncate leading-none hero-sub-text" style="text-shadow: 0 1px 3px rgba(0,0,0,0.95);">\${app.utils.escapeHtml(safeSubPlate)}</p>
+                                        <p class="text-white text-[11px] truncate leading-none font-medium hero-sub-operator" style="text-shadow: 0 1px 3px rgba(0,0,0,0.95);">\${app.utils.escapeHtml(safeSubOperator)}</p>
                                     </div>
                                 </div>`;
                         }
@@ -665,7 +665,7 @@ Object.assign(window.app, {
                     // Lấy ngày tạo tài khoản, nếu không có thì để 'Không rõ'
                     const createDateStr = profile.created_at ? new Date(profile.created_at).toLocaleDateString('vi-VN') : 'Không rõ';
                     if (bioContent) {
-                        bioContent.innerHTML = `<span class="text-gray-700 font-medium leading-relaxed">Tài khoản tạo vào ngày <b>${createDateStr}</b>.</span>`;
+                        bioContent.innerHTML = `<span class="text-gray-700 font-medium leading-relaxed">Tài khoản tạo vào ngày <b>\${app.utils.escapeHtml(createDateStr)}</b>.</span>`;
                     }
                     
                     // Luôn ẩn nút chỉnh sửa tiểu sử
@@ -688,7 +688,7 @@ Object.assign(window.app, {
                                 placeholderWrap.classList.remove('flex');
 
                                 favContainer.innerHTML = `
-                                    <img src="${app.utils.getProxiedUrl(favPhoto.url, 'fav.jpg', 'thumb')}" class="absolute inset-0 w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-700 pointer-events-auto" onclick="app.views.loadDetail(${favPhoto.id})">
+                                    <img src="${app.utils.getProxiedUrl(favPhoto.url, 'fav.jpg', 'thumb')}" class="absolute inset-0 w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-700 pointer-events-auto" onclick="app.views.loadDetail(\${app.utils.escapeHtml(favPhoto.id)})">
                                 `;
                                 if (isOwnProfile) {
                                     favControls.classList.remove('hidden');
@@ -955,7 +955,7 @@ Object.assign(window.app, {
                     }
 
                     if (totalPages <= 1) { pagerEl.innerHTML = ''; return; }
-                    pagerEl.innerHTML = `<div id="profile-pagination-container" class="mt-4 w-full"></div><p class="text-center text-[10px] text-gray-400 mt-3">Trang ${page}/${totalPages} · Tổng ${count} ảnh</p>`;
+                    pagerEl.innerHTML = `<div id="profile-pagination-container" class="mt-4 w-full"></div><p class="text-center text-[10px] text-gray-400 mt-3">Trang \${app.utils.escapeHtml(page)}/\${app.utils.escapeHtml(totalPages)} · Tổng \${app.utils.escapeHtml(count)} ảnh</p>`;
                     app.utils.renderPagination('profile-pagination-container', page, totalPages, (newPage) => app.views.fetchProfilePhotosPage(newPage));
                 },
                 fetchLikedPhotosPage: async (page) => {
@@ -1023,7 +1023,7 @@ Object.assign(window.app, {
                         grid.parentNode.insertBefore(pagerEl, grid.nextSibling);
                     }
                     if (totalPages <= 1) { pagerEl.innerHTML = ''; return; }
-                    pagerEl.innerHTML = `<div id="liked-pagination-container" class="mt-4 w-full"></div><p class="text-center text-[10px] text-gray-400 mt-3">Trang ${page}/${totalPages} · Tổng ${count} ảnh</p>`;
+                    pagerEl.innerHTML = `<div id="liked-pagination-container" class="mt-4 w-full"></div><p class="text-center text-[10px] text-gray-400 mt-3">Trang \${app.utils.escapeHtml(page)}/\${app.utils.escapeHtml(totalPages)} · Tổng \${app.utils.escapeHtml(count)} ảnh</p>`;
                     app.utils.renderPagination('liked-pagination-container', page, totalPages, (newPage) => app.views.fetchLikedPhotosPage(newPage));
                 },
 
@@ -1232,7 +1232,7 @@ Object.assign(window.app, {
 
                     const uploaderDisplay = app.utils.formatProfileDisplay(photo.profiles);
                     const safeUploaderName = app.utils.cleanText(uploaderDisplay.username);
-                    document.getElementById('detail-copyright').innerHTML = `Bản quyền &copy; <strong>${safeUploaderName}</strong>`;
+                    document.getElementById('detail-copyright').innerHTML = `Bản quyền &copy; <strong>\${app.utils.escapeHtml(safeUploaderName)}</strong>`;
 
                     app.edit.cancel();
 
@@ -1273,7 +1273,7 @@ Object.assign(window.app, {
                     }
 
                     const badges = uploaderDisplay.isBanned ? '' : app.utils.getBadgesHTML(photo.profiles?.id, photo.profiles?.role, photo.profiles?.subroles);
-                    statUploaderEl.innerHTML = `<img loading="lazy" decoding="async" src="${uploaderDisplay.avatar}" onerror="this.onerror=null;this.src='${DEFAULT_AVATAR}';" class="w-5 h-5 rounded-full inline-block mr-1 object-cover align-middle"> ${safeUploaderName} ${badges}`;
+                    statUploaderEl.innerHTML = `<img loading="lazy" decoding="async" src="\${app.utils.escapeHtml(uploaderDisplay.avatar)}" onerror="this.onerror=null;this.src='\${app.utils.escapeHtml(DEFAULT_AVATAR)}';" class="w-5 h-5 rounded-full inline-block mr-1 object-cover align-middle"> \${app.utils.escapeHtml(safeUploaderName)} \${app.utils.escapeHtml(badges)}`;
                     statUploaderEl.onclick = () => app.views.loadUserProfile(uploaderDisplay.linkId);
 
                     document.getElementById('stat-date').innerText = new Date(photo.created_at).toLocaleDateString('vi-VN');
@@ -1530,10 +1530,10 @@ Object.assign(window.app, {
 
                             tbody.innerHTML += `
                                 <tr>
-                                    <td class="font-bold" style="border-left: 4px solid ${barColor} !important;">${safePlate}</td>
-                                    <td>${safeOp}</td>
-                                    <td>${safeRoute}</td>
-                                    <td class="text-xs text-gray-500">${safeNote}</td>
+                                    <td class="font-bold" style="border-left: 4px solid \${app.utils.escapeHtml(barColor)} !important;">\${app.utils.escapeHtml(safePlate)}</td>
+                                    <td>\${app.utils.escapeHtml(safeOp)}</td>
+                                    <td>\${app.utils.escapeHtml(safeRoute)}</td>
+                                    <td class="text-xs text-gray-500">\${app.utils.escapeHtml(safeNote)}</td>
                                 </tr>
                             `;
                         });
@@ -1819,7 +1819,7 @@ Object.assign(window.app, {
 
                     } catch (err) {
                         console.error("Lỗi khi tải trang xe:", err);
-                        container.innerHTML = `<p class="text-center text-red-500 p-10">Đã xảy ra lỗi: ${err.message}</p>`;
+                        container.innerHTML = `<p class="text-center text-red-500 p-10">Đã xảy ra lỗi: \${app.utils.escapeHtml(err.message)}</p>`;
                         app.loadingBar.finish();
                     }
                 },
@@ -2111,7 +2111,7 @@ Object.assign(window.app, {
                         app.views.loadMoreOperatorPhotos();
 
                     } catch (err) {
-                        grid.innerHTML = `<div class="col-span-full text-center py-10 text-red-500">Lỗi lấy dữ liệu: ${err.message}</div>`;
+                        grid.innerHTML = `<div class="col-span-full text-center py-10 text-red-500">Lỗi lấy dữ liệu: \${app.utils.escapeHtml(err.message)}</div>`;
                     }
                     app.loadingBar.finish();
                 },
@@ -2875,7 +2875,7 @@ Object.assign(window.app, {
                         app.views.loadMoreModelPhotos();
 
                     } catch (err) {
-                        grid.innerHTML = `<div class="col-span-full text-center py-10 text-red-500">Lỗi lấy dữ liệu: ${err.message}</div>`;
+                        grid.innerHTML = `<div class="col-span-full text-center py-10 text-red-500">Lỗi lấy dữ liệu: \${app.utils.escapeHtml(err.message)}</div>`;
                     }
                     app.loadingBar.finish();
                 },
@@ -3174,7 +3174,7 @@ Object.assign(window.app, {
                             const data = await res.json();
                             app.help.data = data;
                         } catch (e) {
-                            container.innerHTML = `<div class="col-span-full text-center py-10 text-red-500 font-bold"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Không thể tải dữ liệu: ${e.message}</div>`;
+                            container.innerHTML = `<div class="col-span-full text-center py-10 text-red-500 font-bold"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Không thể tải dữ liệu: \${app.utils.escapeHtml(e.message)}</div>`;
                             app.loadingBar.finish();
                             return;
                         }
@@ -3274,9 +3274,9 @@ Object.assign(window.app, {
                                 else if (level === 4) li.classList.add('pl-8', 'text-[12px]', 'text-gray-500');
 
                                 // Link bấm gọi hàm scrollToHeading
-                                li.innerHTML = `<a href="javascript:void(0)" onclick="app.help.scrollToHeading('${targetId}')" class="hover:text-black hover:underline transition-all flex items-start gap-2 leading-snug">
+                                li.innerHTML = `<a href="javascript:void(0)" onclick="app.help.scrollToHeading('\${app.utils.escapeHtml(targetId)}')" class="hover:text-black hover:underline transition-all flex items-start gap-2 leading-snug">
                                     <span class="text-black opacity-40 mt-[3px] shrink-0"><i class="fa-solid fa-angle-right text-[10px]"></i></span> 
-                                    <span>${heading.innerText}</span>
+                                    <span>\${app.utils.escapeHtml(heading.innerText)}</span>
                                 </a>`;
                                 
                                 tocList.appendChild(li);
@@ -3288,7 +3288,7 @@ Object.assign(window.app, {
                         container.classList.remove('hidden');
 
                     } catch (e) {
-                        loading.innerHTML = `<div class="text-red-500 font-bold"><i class="fa-solid fa-triangle-exclamation text-3xl mb-3"></i><p>${e.message}</p></div>`;
+                        loading.innerHTML = `<div class="text-red-500 font-bold"><i class="fa-solid fa-triangle-exclamation text-3xl mb-3"></i><p>\${app.utils.escapeHtml(e.message)}</p></div>`;
                     }
                     app.loadingBar.finish();
                 }
@@ -3605,7 +3605,7 @@ Object.assign(window.app, {
                     const avatarSrc = uData.avatar_url ? app.utils.getProxiedUrl(uData.avatar_url.replace(/"/g, ''), 'avatar.jpg', 'avatar') : 'https://files.catbox.moe/zzh1q1.png';
                     const badges = app.utils.getBadgesHTML(uData.id, uData.role, uData.subroles);
                     document.getElementById('contact-preview-user-avatar').src = avatarSrc;
-                    document.getElementById('contact-preview-user-name').innerHTML = `${uData.username} ${badges}`;
+                    document.getElementById('contact-preview-user-name').innerHTML = `\${app.utils.escapeHtml(uData.username)} \${app.utils.escapeHtml(badges)}`;
                     document.getElementById('contact-preview-user-stats').innerText = `${count || 0} ảnh đã đăng trên hệ thống`;
                     if (userPreviewBox) userPreviewBox.classList.remove('hidden');
                     app.contact.currentPreviewId = 'user:' + uData.username;
@@ -3938,7 +3938,7 @@ Object.assign(window.app, {
                 container.innerHTML = `
                     <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-10 text-center text-red-500 font-medium">
                         <i class="fa-solid fa-triangle-exclamation text-2xl mb-2 block"></i>
-                        Lỗi khi tải dữ liệu bảng xếp hạng: ${err.message}
+                        Lỗi khi tải dữ liệu bảng xếp hạng: \${app.utils.escapeHtml(err.message)}
                     </div>
                 `;
             } finally {
