@@ -43,9 +43,9 @@ Object.assign(window.app, {
                     }
 
                     toast.innerHTML = `
-                        \${app.utils.escapeHtml(iconHtml)}
+                        ${iconHtml}
                         <div class="flex-1 overflow-hidden pointer-events-none select-none">
-                            <h4 class="text-sm font-bold text-gray-900 leading-tight">\${app.utils.escapeHtml(title)}</h4>
+                            <h4 class="text-sm font-bold text-gray-900 leading-tight">${title}</h4>
                             ${message ? `<p class="text-[12px] text-gray-500 mt-1 leading-relaxed">${message}</p>` : ''}
                         </div>
                     `;
@@ -177,13 +177,13 @@ Object.assign(window.app, {
                         <div class="relative w-8 h-8 flex justify-center items-center shrink-0">
                             <svg class="w-full h-full transform -rotate-90 absolute inset-0" viewBox="0 0 120 120">
                                 <circle cx="60" cy="60" r="54" fill="none" stroke="#e4e4e7" stroke-width="12" />
-                                <circle id="\${app.utils.escapeHtml(toastId)}-circle" class="transition-all duration-300 ease-out" cx="60" cy="60" r="54" fill="none" stroke="#000" stroke-width="12" stroke-dasharray="339.29" stroke-dashoffset="339.29" stroke-linecap="round" />
+                                <circle id="${toastId}-circle" class="transition-all duration-300 ease-out" cx="60" cy="60" r="54" fill="none" stroke="#000" stroke-width="12" stroke-dasharray="339.29" stroke-dashoffset="339.29" stroke-linecap="round" />
                             </svg>
                             <i class="fa-solid fa-cloud-arrow-up text-[11px] text-gray-800 relative z-10 animate-pulse"></i>
                         </div>
                         <div class="flex-1 overflow-hidden pointer-events-none select-none">
-                            <h4 id="\${app.utils.escapeHtml(toastId)}-title" class="text-sm font-bold text-gray-900 leading-tight">\${app.utils.escapeHtml(title)}</h4>
-                            <p id="\${app.utils.escapeHtml(toastId)}-desc" class="text-[12px] text-gray-500 mt-0.5 leading-relaxed truncate">Vui lòng đợi trong giây lát...</p>
+                            <h4 id="${toastId}-title" class="text-sm font-bold text-gray-900 leading-tight">${title}</h4>
+                            <p id="${toastId}-desc" class="text-[12px] text-gray-500 mt-0.5 leading-relaxed truncate">Vui lòng đợi trong giây lát...</p>
                         </div>
                     `;
 
@@ -780,13 +780,13 @@ closeCustomRolePrompt: () => {
                         title.innerText = 'Không thể tải ảnh lên';
                     }
 
-                    desc.innerHTML = `<b class="text-red-700">\${app.utils.escapeHtml(cleanMsg)}</b>`;
+                    desc.innerHTML = `<b class="text-red-700">${cleanMsg}</b>`;
                     
                     const isReported = !errMsg.includes('NO_REPORT'); 
                     const pureErrMsg = errMsg.replace('[NO_REPORT] ', '');
 
                     // Chỉ để lại mã lỗi gốc trong hộp đỏ
-                    errorBox.innerHTML = `Mã lỗi: \${app.utils.escapeHtml(pureErrMsg)}`;
+                    errorBox.innerHTML = `Mã lỗi: ${pureErrMsg}`;
                     errorBox.classList.remove('hidden');
 
                     const statusText = isReported ? "Lỗi này đã được thông báo tự động." : "Lỗi này sẽ KHÔNG được thông báo tự động.";
@@ -795,7 +795,7 @@ closeCustomRolePrompt: () => {
                     actions.innerHTML = `
                         <div class="text-[10px] text-black font-medium text-center mb-3">
                             <span class="inline-flex flex-wrap justify-center items-center gap-1">
-                                <span>\${app.utils.escapeHtml(statusText)}</span>
+                                <span>${statusText}</span>
                                 <a href="javascript:void(0)" onclick="app.ui.closeUploadProgress(); setTimeout(() => app.utils.navigate('/help/1516405301996421281'), 300)" class="font-bold underline hover:text-gray-800 transition-colors inline-flex items-center">Tìm hiểu thêm & hướng dẫn khắc phục</a>
                             </span>
                         </div>
@@ -3185,7 +3185,7 @@ Object.assign(window.app, {
                             actionBtn.innerHTML = `<button disabled class="px-4 py-2 bg-gray-50 text-gray-400 text-xs font-bold rounded cursor-not-allowed border border-gray-200 whitespace-nowrap"><i class="fa-solid fa-lock mr-1"></i> Chưa đủ đ/k</button>`;
                         }
                     } catch (err) {
-                        actionBtn.innerHTML = `<p class="text-xs text-red-500">Lỗi: \${app.utils.escapeHtml(err.message)}</p>`;
+                        actionBtn.innerHTML = `<p class="text-xs text-red-500">Lỗi: ${err.message}</p>`;
                     }
                 },
                 claimDiscordVerify: async () => {
@@ -3253,7 +3253,7 @@ Object.assign(window.app, {
                             renderProvider('Discord', 'fa-brands fa-discord', 'bg-[#5865F2]', 'discord');
 
                     } catch (err) {
-                        container.innerHTML = `<p class="text-xs text-red-500">Lỗi lấy thông tin liên kết: \${app.utils.escapeHtml(err.message)}</p>`;
+                        container.innerHTML = `<p class="text-xs text-red-500">Lỗi lấy thông tin liên kết: ${err.message}</p>`;
                     }
                 },
                 linkIdentity: async (provider) => {
@@ -3433,7 +3433,7 @@ grid.innerHTML = tiers.map(tier => {
                         claimBox.classList.remove('hidden');
 
                     } catch (err) {
-                        loading.innerHTML = `<span class="text-red-500"><i class="fa-solid fa-triangle-exclamation"></i> Lỗi: \${app.utils.escapeHtml(err.message)}</span>`;
+                        loading.innerHTML = `<span class="text-red-500"><i class="fa-solid fa-triangle-exclamation"></i> Lỗi: ${err.message}</span>`;
                     }
                 },
 
@@ -4000,7 +4000,7 @@ Object.assign(window.app, {
 
                 } catch (err) {
                     console.error(err);
-                    grid.innerHTML = `<div class="col-span-full text-center py-10 text-red-500">Lỗi hệ thống: \${app.utils.escapeHtml(err.message)}</div>`;
+                    grid.innerHTML = `<div class="col-span-full text-center py-10 text-red-500">Lỗi hệ thống: ${err.message}</div>`;
                 }
                 app.loadingBar.finish();
             }
@@ -4059,7 +4059,7 @@ Object.assign(window.app, {
                                                     LÝ DO HẠN CHẾ TRUY CẬP / BAN LOG
                                                 </div>
                                                 <div style="font-size: 0.92rem; font-weight: 500; color: #27272a; line-height: 1.6; word-break: break-word;">
-                                                    \${app.utils.escapeHtml(banReason)}
+                                                    ${banReason}
                                                 </div>
                                             </div>
                                             <p style="font-size: 0.85rem; line-height: 1.65; margin: 0; color: #52525b;">

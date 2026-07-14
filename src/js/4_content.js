@@ -352,7 +352,7 @@ Object.assign(window.app, {
                                 warningEl.innerHTML = `
                                     <i class="fa-solid fa-triangle-exclamation text-red-500 mt-0.5 text-sm"></i>
                                     <p class="text-[11px] font-bold text-red-700 leading-snug m-0">
-                                        Bạn đã có ảnh với BKS tương tự được chụp ngày \${app.utils.escapeHtml(displayDate)}. Bạn không thể đăng 2 ảnh của cùng 1 xe được chụp cùng ngày.
+                                        Bạn đã có ảnh với BKS tương tự được chụp ngày ${displayDate}. Bạn không thể đăng 2 ảnh của cùng 1 xe được chụp cùng ngày.
                                     </p>
                                 `;
 
@@ -402,7 +402,7 @@ Object.assign(window.app, {
                     panel.style.height = '50px';
 
                     panel.innerHTML = `
-                        <button type="button" class="delete-blur" onclick="app.upload.removeBlurPanel('\${app.utils.escapeHtml(id)}')" title="Xóa vùng này"><i class="fa-solid fa-xmark"></i></button>
+                        <button type="button" class="delete-blur" onclick="app.upload.removeBlurPanel('${id}')" title="Xóa vùng này"><i class="fa-solid fa-xmark"></i></button>
                         <div class="resize-handle" style="position: absolute; bottom: 0; right: 0; width: 20px; height: 20px; cursor: nwse-resize; z-index: 10;"></div>
                     `;
 
@@ -511,7 +511,7 @@ Object.assign(window.app, {
                 updateBlurBtn: () => {
                     const count = document.querySelectorAll('.blur-panel').length;
                     const btn = document.getElementById('btn-add-blur');
-                    if (btn) btn.innerHTML = `<i class="fa-solid fa-droplet-slash"></i> Làm mờ (\${app.utils.escapeHtml(count)}/5)`;
+                    if (btn) btn.innerHTML = `<i class="fa-solid fa-droplet-slash"></i> Làm mờ (${count}/5)`;
 
                     let warningBox = document.getElementById('blur-warning-box');
                     if (!warningBox) {
@@ -1749,7 +1749,7 @@ Object.assign(window.app, {
                             if (!el.value.trim()) {
                                 if (f.id === 'up-plate') {
                                     if (!errEl.innerText.includes("Định dạng")) {
-                                        errEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Vui lòng nhập \${app.utils.escapeHtml(f.name)}`;
+                                        errEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Vui lòng nhập ${f.name}`;
                                         errEl.className = "text-xs mt-1 text-red-600 font-bold";
                                     }
                                 } else {
@@ -1818,7 +1818,7 @@ Object.assign(window.app, {
                                 if (!el.value.trim() && !el.readOnly) {
                                     if (f.id === 'up-plate') {
                                         if (!errEl.innerText.includes("Định dạng")) {
-                                            errEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Vui lòng nhập \${app.utils.escapeHtml(f.name)}`;
+                                            errEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Vui lòng nhập ${f.name}`;
                                             errEl.className = "text-xs mt-1 text-red-600 font-bold";
                                         }
                                     } else {
@@ -2928,20 +2928,20 @@ Object.assign(window.app, {
                         div.innerHTML = `
                             <div class="w-full sm:w-[18%] flex items-center">
                                 <span class="sm:hidden font-bold text-gray-500 w-14">Ngày:</span>
-                                <input type="date" value="${app.utils.escapeAttr(h.effective_date || '')}" onchange="app.vehicle.updateHistoryItem(\${app.utils.escapeHtml(index)}, 'effective_date', this.value, '\${app.utils.escapeHtml(prefix)}')" class="border border-gray-300 p-2 sm:p-1.5 rounded text-gray-700 w-full outline-none focus:ring-1 focus:ring-amber-500">
+                                <input type="date" value="${app.utils.escapeAttr(h.effective_date || '')}" onchange="app.vehicle.updateHistoryItem(${index}, 'effective_date', this.value, '${prefix}')" class="border border-gray-300 p-2 sm:p-1.5 rounded text-gray-700 w-full outline-none focus:ring-1 focus:ring-amber-500">
                             </div>
                             <div class="w-[48%] sm:w-[25%]">
-                                <input type="text" value="${app.utils.escapeAttr(h.operator)}" placeholder="Đơn vị" oninput="app.utils.formatNoPunctuation(this)" onchange="app.vehicle.updateHistoryItem(\${app.utils.escapeHtml(index)}, 'operator', this.value, '\${app.utils.escapeHtml(prefix)}')" class="border border-gray-300 p-2 sm:p-1.5 rounded w-full outline-none focus:ring-1 focus:ring-amber-500">
+                                <input type="text" value="${app.utils.escapeAttr(h.operator)}" placeholder="Đơn vị" oninput="app.utils.formatNoPunctuation(this)" onchange="app.vehicle.updateHistoryItem(${index}, 'operator', this.value, '${prefix}')" class="border border-gray-300 p-2 sm:p-1.5 rounded w-full outline-none focus:ring-1 focus:ring-amber-500">
                             </div>
                             <div class="w-[48%] sm:w-[15%]">
-                                <input type="text" value="${app.utils.escapeAttr(h.route || '')}" placeholder="Tuyến" onchange="app.vehicle.updateHistoryItem(\${app.utils.escapeHtml(index)}, 'route', this.value, '\${app.utils.escapeHtml(prefix)}')" class="border border-gray-300 p-2 sm:p-1.5 rounded w-full outline-none focus:ring-1 focus:ring-amber-500">
+                                <input type="text" value="${app.utils.escapeAttr(h.route || '')}" placeholder="Tuyến" onchange="app.vehicle.updateHistoryItem(${index}, 'route', this.value, '${prefix}')" class="border border-gray-300 p-2 sm:p-1.5 rounded w-full outline-none focus:ring-1 focus:ring-amber-500">
                             </div>
                             <div class="w-full sm:flex-1">
-                                <input type="text" value="${app.utils.escapeAttr(h.note || '')}" placeholder="Ghi chú (BKS cũ...)" onchange="app.vehicle.updateHistoryItem(\${app.utils.escapeHtml(index)}, 'note', this.value, '\${app.utils.escapeHtml(prefix)}')" class="border border-gray-300 p-2 sm:p-1.5 rounded w-full outline-none focus:ring-1 focus:ring-amber-500">
+                                <input type="text" value="${app.utils.escapeAttr(h.note || '')}" placeholder="Ghi chú (BKS cũ...)" onchange="app.vehicle.updateHistoryItem(${index}, 'note', this.value, '${prefix}')" class="border border-gray-300 p-2 sm:p-1.5 rounded w-full outline-none focus:ring-1 focus:ring-amber-500">
                             </div>
                             <div class="w-full sm:w-auto flex justify-end gap-1 border-t sm:border-0 border-gray-100 pt-2 sm:pt-0 mt-1 sm:mt-0">
-                                <button type="button" onclick="app.vehicle.duplicateHistoryItem(\${app.utils.escapeHtml(index)}, '\${app.utils.escapeHtml(prefix)}')" class="text-blue-500 hover:text-white hover:bg-blue-500 border border-blue-100 rounded px-3 sm:px-2 py-1.5 font-bold transition flex-1 sm:flex-none text-center" title="Nhân bản"><i class="fa-solid fa-copy"></i></button>
-                                <button type="button" onclick="app.vehicle.removeHistoryItem(\${app.utils.escapeHtml(index)}, '\${app.utils.escapeHtml(prefix)}')" class="text-red-500 hover:text-white hover:bg-red-500 border border-red-100 rounded px-3 sm:px-2 py-1.5 font-bold transition flex-1 sm:flex-none text-center" title="Xóa"><i class="fa-solid fa-trash"></i></button>
+                                <button type="button" onclick="app.vehicle.duplicateHistoryItem(${index}, '${prefix}')" class="text-blue-500 hover:text-white hover:bg-blue-500 border border-blue-100 rounded px-3 sm:px-2 py-1.5 font-bold transition flex-1 sm:flex-none text-center" title="Nhân bản"><i class="fa-solid fa-copy"></i></button>
+                                <button type="button" onclick="app.vehicle.removeHistoryItem(${index}, '${prefix}')" class="text-red-500 hover:text-white hover:bg-red-500 border border-red-100 rounded px-3 sm:px-2 py-1.5 font-bold transition flex-1 sm:flex-none text-center" title="Xóa"><i class="fa-solid fa-trash"></i></button>
                             </div>
                         `;
                         container.appendChild(div);
