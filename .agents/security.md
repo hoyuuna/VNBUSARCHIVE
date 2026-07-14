@@ -1,51 +1,56 @@
 # VNBUSARCHIVE - Security Guidelines
 
-Tài liệu này đóng vai trò như một bộ quy tắc và sổ tay bảo mật (Security Rules) dành cho các Agent AI tham gia phát triển dự án `vietnam-bus-spotter-main`. Bất kỳ khi nào làm việc với dự án này, Agent **BẮT BUỘC** phải tuân thủ các quy chuẩn bảo mật dưới đây để không làm phá vỡ kiến trúc an toàn đã được thiết lập.
+This document serves as the Security Rules and Guidelines for AI Agents participating in the `vietnam-bus-spotter-main` project. Whenever working on this project, Agents **MUST** strictly adhere to the following security standards to prevent breaking the established security architecture.
 
 ---
 
-## 1. Kiến trúc Payload (Base64 Anti-Tamper)
-Toàn bộ logic của giao diện (UI) nằm trong thư mục `src/js/` và `src/html/`. Tuy nhiên, mã nguồn này không được đưa trực tiếp vào `public/index.html` dưới dạng mã rõ (plain text).
-- **Quy trình build:** Chạy lệnh `node build-core.js` để đóng gói toàn bộ các file JS/HTML vào `functions/api/_core.js` dưới dạng chuỗi **Base64**.
-- **Quy trình load:** Trình duyệt khi tải `index.html` sẽ gọi API `/api/_core` để lấy chuỗi Base64, sau đó giải mã và sử dụng `document.write()` để chèn thẳng vào DOM.
-- **Mục đích:** Ngăn chặn người dùng phổ thông (hoặc bot đơn giản) có thể xem trộm cấu trúc mã nguồn JS/HTML qua F12 hoặc `View-Source`, cũng như tăng thêm một lớp làm khó (obfuscation) để bảo vệ bản quyền giao diện.
-- **Rule:** Không được phép đưa các đoạn script nhạy cảm hoặc logic xử lý cốt lõi ra dạng thẻ `<script src="...">` dạng tĩnh trong `index.html`. Mọi logic phải nằm trong `src/js/` và được build lại bằng `node build-core.js`.
+## 1. Payload Architecture (Base64 Anti-Tamper)
+All User Interface (UI) logic resides in `src/js/` and `src/html/`. However, this source code is not injected directly into `public/index.html` as plain text.
+- **Build Process:** Run `node build-core.js` to bundle all JS/HTML files into `functions/api/_core.js` as a **Base64** string.
+- **Load Process:** When the browser loads `index.html`, it calls the `/api/_core` API to fetch the Base64 string, decodes it, and uses `document.write()` to inject it directly into the DOM.
+- **Purpose:** Prevents casual users (or simple bots) from inspecting the JS/HTML source code structure via F12 or `View-Source`, and adds a layer of obfuscation to protect the UI's intellectual property.
+- **Rule:** Do NOT inject sensitive scripts or core processing logic as static `<script src="...">` tags in `index.html`. All logic must be inside `src/js/` and rebuilt using `node build-core.js`.
 
 ## 2. Content-Security-Policy (CSP)
-Tệp `public/index.html` chứa một thẻ meta Content-Security-Policy (CSP) rất nghiêm ngặt.
-- **Mục đích:** Ngăn chặn các cuộc tấn công XSS (Cross-Site Scripting), chèn mã độc, exfiltration (đánh cắp dữ liệu) sang tên miền lạ.
-- **Rule:** 
-  - Nếu bạn thêm một API mới, thư viện CDN mới (CSS/JS), hay một nguồn ảnh bên ngoài (Cloud Storage, WSRV, Giphy...), bạn **PHẢI BỔ SUNG** domain đó vào thẻ `meta` CSP trong `public/index.html`.
-  - Tuyệt đối **KHÔNG** xóa bỏ thẻ CSP hay sử dụng dấu `*` ở các directive quan trọng (trừ các dịch vụ đã whitelist như `https://*.supabase.co`).
-  - Không bao giờ thêm `'unsafe-inline'` nếu không thực sự bắt buộc. Hiện tại dự án đang phải dùng nó vì thiết kế Base64 injection.
+The `public/index.html` file contains a highly strict Content-Security-Policy (CSP) meta tag.
+- **Purpose:** Prevents XSS (Cross-Site Scripting) attacks, malicious code injection, and data exfiltration to unknown domains.
+- **Rule - Adding New Packages/CDNs/APIs:**
+  If you add a new API, a new CDN library (CSS/JS), or an external image source (Cloud Storage, WSRV, Giphy, etc.), you **MUST ADD** that domain to the corresponding directive in the `meta` CSP tag inside `public/index.html`.
+  *Examples:*
+  - If you use `import()`, `fetch()`, or `WebSocket` to `https://new-api.example.com`, you must add `https://new-api.example.com` to `connect-src` (and potentially `script-src` for imports).
+  - If you load images from `https://images.example.com`, you must add it to `img-src`.
+  - If you add a script from `https://cdn.example.com`, you must add it to `script-src`.
+- **Rule - Restrictions:** 
+  - Absolutely **DO NOT** remove the CSP tag or use the wildcard `*` for critical directives (except for already whitelisted services like `https://*.supabase.co`).
+  - Never add `'unsafe-inline'` unless strictly necessary (currently required due to the Base64 injection design).
 
-## 3. Ngăn chặn SSRF, Origin / Referer Bypass
-- **Rule (Cloudflare Functions):** Mọi file trong thư mục `functions/api/` (như `discord.js`, `manager.js`, `notify.js`...) đều **PHẢI** xác minh `Origin` hoặc `Referer`.
-- Nếu yêu cầu (request) đến từ một nguồn không thuộc danh sách whitelist (ví dụ: `vnbusarchive.io.vn`), hệ thống phải trả về mã lỗi 403 Forbidden. Điều này ngăn chặn hacker giả mạo lời gọi API từ bên ngoài hoặc qua Postman/cURL mà không có token hợp lệ.
-- Khi gọi webhooks (Discord), các tham số URL đầu vào do người dùng gửi lên phải được xác thực nghiêm ngặt để ngăn chặn Server-Side Request Forgery (SSRF).
+## 3. Preventing SSRF & Origin / Referer Bypass
+- **Rule (Cloudflare Functions):** Every file in the `functions/api/` directory (e.g., `discord.js`, `manager.js`, `notify.js`) **MUST** verify the `Origin` or `Referer` headers.
+- If a request originates from a non-whitelisted source (e.g., outside of `vnbusarchive.io.vn`), the system must return a `403 Forbidden` status. This prevents hackers from forging API calls externally or via Postman/cURL without a valid token.
+- When triggering webhooks (e.g., Discord), any URL parameters provided by the user must be strictly validated to prevent Server-Side Request Forgery (SSRF).
 
 ## 4. IP Ban & Request Rate Limiting
-- Hệ thống có cơ chế ban IP và nhận diện người dùng.
-- **Rule:** Bất kỳ chức năng backend nào cũng phải đọc header `CF-Connecting-IP` (hoặc `X-Real-IP`) để xác định đúng IP thực của user nằm sau proxy của Cloudflare. Không bao giờ tin tưởng hoàn toàn dữ liệu IP do user gửi trong body.
+- The system includes mechanisms for IP banning and user identification.
+- **Rule:** Any backend function must read the `CF-Connecting-IP` (or `X-Real-IP`) header to accurately determine the true IP of the user behind the Cloudflare proxy. Never fully trust IP data sent by the user in the request body.
 
-## 5. Xác thực (Authentication) & Token
-- **Rule:** Tuyệt đối không gửi các Secret Key (Supabase Service Role Key, Discord Webhook, Firebase Admin Key) xuống client. Toàn bộ thông tin này phải được lưu trong **Cloudflare Environment Variables** và chỉ được gọi/truy xuất từ `functions/api/`.
-- Khi client cần gửi Token của Supabase (Access Token) lên Backend để xác thực (như `api/manager.js`), **PHẢI** sử dụng HTTP Header `Authorization: Bearer <token>` thay vì truyền vào JSON Body. Việc này tuân thủ chuẩn RESTful và an toàn hơn, tránh token bị ghi vào log HTTP Body.
+## 5. Authentication & Tokens
+- **Rule:** Absolutely do not send Secret Keys (Supabase Service Role Key, Discord Webhook, Firebase Admin Key) to the client. All this information must be stored in **Cloudflare Environment Variables** and only accessed/retrieved from `functions/api/`.
+- When the client needs to send a Supabase Token (Access Token) to the Backend for authentication (e.g., `api/manager.js`), it **MUST** use the HTTP Header `Authorization: Bearer <token>` instead of passing it in the JSON Body. This adheres to RESTful standards and prevents tokens from being logged in HTTP bodies.
 
-## 6. Bảo mật File Upload (Ngăn chặn RCE & XSS File)
-- **Kiểm tra File Extension & MIME Type:** Backend phải tự đánh giá (validate) kiểu file bằng nội dung nhị phân (hoặc whitelist đuôi file nghiêm ngặt), KHÔNG được phép tin tưởng `Content-Type` do trình duyệt gửi lên.
-- **Định dạng cho phép:** `image/jpeg, image/png, image/webp, image/heic, image/heif` và một số file RAW từ máy ảnh kỹ thuật số.
-- Các file tiềm ẩn rủi ro như `.svg`, `.html`, `.php`, `.js` bị chặn tuyệt đối để chống lưu trữ và thực thi mã độc trên máy chủ.
-- Giới hạn dung lượng: Tối đa 20MB mỗi ảnh (được thực thi ở cả Client lẫn Backend).
+## 6. File Upload Security (Preventing RCE & XSS via Files)
+- **File Extension & MIME Type Validation:** The Backend must independently validate the file type using binary content (or strict extension whitelisting). DO NOT trust the `Content-Type` sent by the browser.
+- **Allowed Formats:** `image/jpeg, image/png, image/webp, image/heic, image/heif`, and select RAW files from digital cameras.
+- Potentially dangerous files like `.svg`, `.html`, `.php`, `.js` are strictly blocked to prevent malicious code storage and execution on the server.
+- File Size Limit: Maximum 20MB per image (enforced on both Client and Backend).
 
-## 7. Chống XSS trên DOM (DOMPurify & EscapeHTML)
-- **Rule:** Bất kỳ chuỗi văn bản nào được nhận từ API hoặc do người dùng nhập vào, khi hiển thị ra màn hình thông qua phương thức `.innerHTML` hoặc Template Literals, **PHẢI** được Escape (thoát các ký tự đặc biệt như `< > " '`) để thành chữ HTML.
-- Sử dụng hàm `app.utils.escapeHtml()` hoặc `DOMPurify` để khử trùng dữ liệu. Không dùng `.innerHTML` với dữ liệu bẩn.
+## 7. Preventing DOM-based XSS (DOMPurify & EscapeHTML)
+- **Rule:** Any text string received from an API or input by a user **MUST** be escaped (escaping special characters like `< > " '` into HTML entities) before being rendered to the screen via `.innerHTML` or Template Literals.
+- Use the `app.utils.escapeHtml()` function or `DOMPurify` to sanitize the data. Never use `.innerHTML` with dirty data.
 
-## 8. Xử lý Lỗi an toàn (Error Handling)
-- **Rule:** Hệ thống Backend (`functions/api/`) khi catch (bắt) được exception, tuyệt đối không trả về `error.stack` hoặc `error.message` có chứa thông tin cấu trúc thư mục, code snippet, thông tin SQL (Information Disclosure).
-- Chỉ trả về các thông báo chung chung (Generic Messages) như `"Lỗi hệ thống, vui lòng thử lại sau"`. 
+## 8. Safe Error Handling
+- **Rule:** When the Backend system (`functions/api/`) catches an exception, it must absolutely not return `error.stack` or `error.message` containing directory structures, code snippets, or SQL details (Information Disclosure).
+- Only return generic messages (Generic Errors) such as `"Internal server error, please try again later"`.
 
 ---
 
-_Tài liệu này được tạo tự động bởi AI Security Auditor. Tuân thủ nghiêm ngặt để đảm bảo sự sống còn của dự án VNBUSARCHIVE._
+_This document is automatically generated by the AI Security Auditor. Strictly adhere to these guidelines to ensure the survival and integrity of the VNBUSARCHIVE project._
