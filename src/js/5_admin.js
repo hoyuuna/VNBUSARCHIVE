@@ -1703,7 +1703,20 @@ app.admin.fetchManagerData('denied');
                             })
                         });
 
-                        if (!res.ok) throw new Error((await res.json()).error || 'Lỗi server');
+                        if (!res.ok) {
+                            let errText = 'Lỗi server (' + res.status + ')';
+                            try {
+                                const rawText = await res.text();
+                                if (rawText.includes('1102')) {
+                                    errText = 'Hệ thống vượt quá giới hạn xử lý CPU Cloudflare (Lỗi 1102). Vui lòng thử lại sau ít giây!';
+                                } else {
+                                    const json = JSON.parse(rawText);
+                                    if (json && json.error) errText = json.error;
+                                    else errText = rawText.slice(0, 200);
+                                }
+                            } catch (e) {}
+                            throw new Error(errText);
+                        }
 
                         if (cardEl) cardEl.remove();
                         if (parentEl && !parentEl.querySelector('.admin-card')) {
@@ -1751,7 +1764,20 @@ app.admin.fetchManagerData('denied');
                                     })
                                 });
 
-                                if (!res.ok) throw new Error((await res.json()).error || 'Lỗi server');
+                                if (!res.ok) {
+                                    let errText = 'Lỗi server (' + res.status + ')';
+                                    try {
+                                        const rawText = await res.text();
+                                        if (rawText.includes('1102')) {
+                                            errText = 'Hệ thống vượt quá giới hạn xử lý CPU Cloudflare (Lỗi 1102). Vui lòng thử lại sau ít giây!';
+                                        } else {
+                                            const json = JSON.parse(rawText);
+                                            if (json && json.error) errText = json.error;
+                                            else errText = rawText.slice(0, 200);
+                                        }
+                                    } catch (e) {}
+                                    throw new Error(errText);
+                                }
 
                                 app.admin.loadTab('photos');
                             } catch (err) {

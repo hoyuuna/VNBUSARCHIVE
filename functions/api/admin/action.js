@@ -96,7 +96,20 @@ export async function onRequestPost(context) {
                 const mimeType = matches ? matches[1] : 'image/webp';
                 const ext = mimeType.split('/')[1] || 'webp';
                 const b64Str = matches ? matches[2] : base64Data;
-                const binary = Uint8Array.from(atob(b64Str), c => c.charCodeAt(0));
+
+                let binary;
+                try {
+                    const { Buffer } = await import('node:buffer');
+                    binary = Buffer.from(b64Str, 'base64');
+                } catch (nodeErr) {
+                    const raw = atob(b64Str);
+                    const len = raw.length;
+                    binary = new Uint8Array(len);
+                    for (let i = 0; i < len; i++) {
+                        binary[i] = raw.charCodeAt(i);
+                    }
+                }
+
                 const blob = new Blob([binary], { type: mimeType });
                 const fileName = `img_${Date.now()}_${photoId}.${ext}`;
 
@@ -108,6 +121,11 @@ export async function onRequestPost(context) {
                     headers: { 'Authorization': `Bearer ${env.CF_IMGBED_TOKEN}` },
                     body: newFormData
                 });
+                if (!uploadRes.ok) {
+                    const errTxt = await uploadRes.text();
+                    console.error(`[CDN Upload Error] Status: ${uploadRes.status}, Body: ${errTxt.slice(0, 500)}`);
+                    return new Response(JSON.stringify({ error: `Lỗi từ server CDN (${uploadRes.status}): ${errTxt.slice(0, 200)}` }), { status: 502 });
+                }
                 const uploadResult = await uploadRes.json();
                 if (uploadResult && uploadResult.length > 0 && uploadResult[0].src) {
                     let rawSrc = uploadResult[0].src;
