@@ -1282,7 +1282,7 @@ app.admin.fetchManagerData('denied');
                     });
                 },
 
-                renderManagerData: (type) => {
+                renderManagerData: async (type) => {
                     const state = app.admin.manager[type];
                     const perPage = 12;
                     const totalPages = Math.ceil(state.filtered.length / perPage) || 1;
