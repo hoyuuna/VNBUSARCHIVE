@@ -41,9 +41,14 @@ Object.assign(window.app, {
                     app.admin.originalData['photo_' + p.id] = { plate: safePlate, operator: op, type: type, route: route, model: model };
 
                     const tagNew = '<span class="bg-black text-white px-1.5 py-0.5 rounded text-[9px] font-bold ml-1 tracking-wider">MỚI</span>';
-                    const isNewOp = op && !approvedOpSet.has(op);
-                    const isNewRoute = route && !approvedRouteSet.has(route);
-                    const isNewModel = model && !approvedModelSet.has(model);
+                    const opKey = (op || '').trim().toLowerCase();
+                    const routeKey = (route || '').trim().toLowerCase();
+                    const modelKey = (model || '').trim().toLowerCase();
+                    const plateKey = (safePlate || '').trim().toUpperCase();
+
+                    const isNewOp = opKey && opKey !== '---' && opKey !== 'đang cập nhật' && opKey !== 'không rõ' && !approvedOpSet.has(opKey);
+                    const isNewRoute = routeKey && routeKey !== '---' && routeKey !== 'đang cập nhật' && !approvedRouteSet.has(routeKey);
+                    const isNewModel = modelKey && modelKey !== '---' && modelKey !== 'đang cập nhật' && !approvedModelSet.has(modelKey);
 
                     const isOwnPhoto = Boolean(app.user && (p.uploader_id === app.user.id || p.user_id === app.user.id));
                     const hideClass = (app.admin.isHideMineEnabled && isOwnPhoto) ? 'hidden' : '';
@@ -53,7 +58,7 @@ Object.assign(window.app, {
                                     <div class="admin-card-header">
                                         <div class="flex items-center gap-2">
                                             <span class="font-bold text-sm">${safePlate}</span>
-                                            ${!approvedPlateSet.has(safePlate.toUpperCase()) ? '<span class="badge-xe-moi"><i class="fa-solid fa-sparkles"></i> XE MỚI</span>' : ''}
+                                            ${plateKey && plateKey !== '---' && !approvedPlateSet.has(plateKey) ? '<span class="badge-xe-moi"><i class="fa-solid fa-sparkles"></i> XE MỚI</span>' : ''}
                                             ${p.suspected_exif_fraud ? '<span class="bg-red-600 text-white px-1.5 py-0.5 rounded text-[10px] font-bold ml-1 tracking-wider whitespace-nowrap"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Nghi ngờ gian lận</span>' : ''}
                                         </div>
                                         <span class="text-xs text-gray-500">${safeUsername}</span>
@@ -544,34 +549,58 @@ Object.assign(window.app, {
                             if (!rawPhotos || rawPhotos.length === 0) { content.innerHTML = '<p class="p-4">Không có ảnh nào chờ duyệt.</p>'; return; }
                             await app.utils.resolveSandboxUrls(rawPhotos);
 
-                            const pendingPlates = [...new Set(rawPhotos.map(p => p.license_plate).filter(Boolean))];
-                            const pendingOps = [...new Set(rawPhotos.map(p => app.utils.cleanText(p.operator || '')).filter(Boolean))];
-                            const pendingRoutes = [...new Set(rawPhotos.map(p => app.utils.cleanText(p.route_no || '')).filter(Boolean))];
-                            const pendingModels = [...new Set(rawPhotos.map(p => app.utils.cleanText(p.vehicles?.model || '')).filter(Boolean))];
+                            const getVariants = (arr) => [...new Set(arr.flatMap(s => {
+                                const clean = (s || '').trim();
+                                return [clean, clean.toLowerCase(), clean.toUpperCase(), clean.replace(/\b\w/g, c => c.toUpperCase())];
+                            }).filter(Boolean))];
 
                             let approvedPlateSet = new Set();
                             let approvedOpSet = new Set();
                             let approvedRouteSet = new Set();
                             let approvedModelSet = new Set();
 
+                            // 1. Fetch từ bảng operator_info (đơn vị đã tồn tại)
+                            try {
+                                const { data: opInfos } = await window.sb.from('operator_info').select('operator_name');
+                                (opInfos || []).forEach(o => { if (o.operator_name) approvedOpSet.add(o.operator_name.trim().toLowerCase()); });
+                            } catch (e) {}
+
+                            // 2. Fetch từ bảng vehicles (dòng xe, biển số, tuyến, đơn vị đã tồn tại trong hồ sơ xe)
+                            try {
+                                const { data: vehs } = await window.sb.from('vehicles').select('license_plate, operator, route_no, model');
+                                (vehs || []).forEach(v => {
+                                    if (v.license_plate) approvedPlateSet.add(v.license_plate.trim().toUpperCase());
+                                    if (v.operator && v.operator !== '---' && v.operator !== 'Đang cập nhật') approvedOpSet.add(app.utils.cleanText(v.operator).trim().toLowerCase());
+                                    if (v.route_no && v.route_no !== '---') approvedRouteSet.add(app.utils.cleanText(v.route_no).trim().toLowerCase());
+                                    if (v.model && v.model !== '---') approvedModelSet.add(app.utils.cleanText(v.model).trim().toLowerCase());
+                                });
+                            } catch (e) {}
+
+                            // 3. Fetch từ bảng photos (các ảnh đã được duyệt)
+                            const pendingPlates = [...new Set(rawPhotos.map(p => p.license_plate).filter(Boolean))];
+                            const pendingOps = [...new Set(rawPhotos.map(p => app.utils.cleanText(p.operator || '')).filter(Boolean))];
+                            const pendingRoutes = [...new Set(rawPhotos.map(p => app.utils.cleanText(p.route_no || '')).filter(Boolean))];
+                            const pendingModels = [...new Set(rawPhotos.map(p => app.utils.cleanText(p.vehicles?.model || '')).filter(Boolean))];
+
                             if (pendingPlates.length > 0) {
-                                const { data: approvedPlates } = await window.sb.from('photos')
-                                    .select('license_plate')
-                                    .eq('status', 'approved')
-                                    .in('license_plate', pendingPlates);
-                                approvedPlateSet = new Set((approvedPlates || []).map(p => (p.license_plate || '').toUpperCase()));
+                                const variants = getVariants(pendingPlates);
+                                const { data: approvedPlates } = await window.sb.from('photos').select('license_plate').eq('status', 'approved').in('license_plate', variants);
+                                (approvedPlates || []).forEach(p => { if (p.license_plate) approvedPlateSet.add(p.license_plate.trim().toUpperCase()); });
                             }
                             if (pendingOps.length > 0) {
-                                const { data: approvedOps } = await window.sb.from('photos').select('operator').eq('status', 'approved').in('operator', pendingOps);
-                                approvedOpSet = new Set((approvedOps || []).map(p => app.utils.cleanText(p.operator || '')));
+                                const variants = getVariants(pendingOps);
+                                const { data: approvedOps } = await window.sb.from('photos').select('operator').eq('status', 'approved').in('operator', variants);
+                                (approvedOps || []).forEach(p => { if (p.operator && p.operator !== '---' && p.operator !== 'Đang cập nhật') approvedOpSet.add(app.utils.cleanText(p.operator).trim().toLowerCase()); });
                             }
                             if (pendingRoutes.length > 0) {
-                                const { data: approvedRoutes } = await window.sb.from('photos').select('route_no').eq('status', 'approved').in('route_no', pendingRoutes);
-                                approvedRouteSet = new Set((approvedRoutes || []).map(p => app.utils.cleanText(p.route_no || '')));
+                                const variants = getVariants(pendingRoutes);
+                                const { data: approvedRoutes } = await window.sb.from('photos').select('route_no').eq('status', 'approved').in('route_no', variants);
+                                (approvedRoutes || []).forEach(p => { if (p.route_no && p.route_no !== '---') approvedRouteSet.add(app.utils.cleanText(p.route_no).trim().toLowerCase()); });
                             }
                             if (pendingModels.length > 0) {
-                                const { data: approvedModels } = await window.sb.from('photos').select('vehicles!inner(model)').eq('status', 'approved').in('vehicles.model', pendingModels);
-                                approvedModelSet = new Set((approvedModels || []).map(p => app.utils.cleanText(p.vehicles?.model || '')));
+                                const variants = getVariants(pendingModels);
+                                const { data: approvedModels } = await window.sb.from('photos').select('vehicles!inner(model)').eq('status', 'approved').in('vehicles.model', variants);
+                                (approvedModels || []).forEach(p => { if (p.vehicles?.model && p.vehicles.model !== '---') approvedModelSet.add(app.utils.cleanText(p.vehicles.model).trim().toLowerCase()); });
                             }
 
                             // THÊM: Sắp xếp ưu tiên (Admin/Manager lên đầu, theo thứ tự up trước xếp trước)
