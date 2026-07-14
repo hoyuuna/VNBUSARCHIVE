@@ -54,7 +54,7 @@ Object.assign(window.app, {
                     const hideClass = (app.admin.isHideMineEnabled && isOwnPhoto) ? 'hidden' : '';
 
                     return `
-                                <div id="adm-photo-card-${p.id}" class="admin-card overflow-visible ${hideClass}" data-photo-id="${p.id}" data-is-own="${isOwnPhoto ? 'true' : 'false'}">
+                                <div id="adm-photo-card-${p.id}" class="admin-card overflow-visible ${hideClass}" data-photo-id="${p.id}" data-privileged="${(p.profiles?.role === 'admin' || p.profiles?.role === 'manager') ? 'true' : 'false'}" data-is-own="${isOwnPhoto ? 'true' : 'false'}">
                                     <div class="admin-card-header">
                                         <div class="flex items-center gap-2">
                                             <span class="font-bold text-sm">${safePlate}</span>

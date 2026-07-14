@@ -2706,7 +2706,33 @@ Object.assign(window.app, {
                                             newCard.style.opacity = '0';
                                             newCard.style.transform = 'translateY(-15px)';
                                             newCard.style.transition = 'all 0.4s ease';
-                                            content.insertBefore(newCard, content.firstElementChild);
+                                            const isNewPrivileged = (newPhoto.profiles?.role === 'admin' || newPhoto.profiles?.role === 'manager');
+                                            const newId = Number(newPhoto.id) || 0;
+                                            const existingCards = Array.from(content.querySelectorAll('.admin-card'));
+                                            let insertBeforeTarget = null;
+
+                                            for (const card of existingCards) {
+                                                const isCardPrivileged = card.getAttribute('data-privileged') === 'true';
+                                                const cardId = Number(card.getAttribute('data-photo-id')) || 0;
+
+                                                if (isNewPrivileged) {
+                                                    if (!isCardPrivileged || cardId > newId) {
+                                                        insertBeforeTarget = card;
+                                                        break;
+                                                    }
+                                                } else {
+                                                    if (!isCardPrivileged && cardId > newId) {
+                                                        insertBeforeTarget = card;
+                                                        break;
+                                                    }
+                                                }
+                                            }
+
+                                            if (insertBeforeTarget) {
+                                                content.insertBefore(newCard, insertBeforeTarget);
+                                            } else {
+                                                content.appendChild(newCard);
+                                            }
                                             requestAnimationFrame(() => {
                                                 newCard.style.opacity = '1';
                                                 newCard.style.transform = 'translateY(0)';
