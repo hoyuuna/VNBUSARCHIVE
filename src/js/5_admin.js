@@ -432,6 +432,7 @@ Object.assign(window.app, {
                             const { data: rawPhotos, error } = await window.sb.from('photos').select('*, profiles(username, role), vehicles(model)').eq('status', 'pending').order('id', { ascending: true });
                             if (error) throw error;
                             if (!rawPhotos || rawPhotos.length === 0) { content.innerHTML = '<p class="p-4">Không có ảnh nào chờ duyệt.</p>'; return; }
+                            await app.utils.resolveSandboxUrls(rawPhotos);
 
                             const pendingPlates = [...new Set(rawPhotos.map(p => p.license_plate).filter(Boolean))];
                             const pendingOps = [...new Set(rawPhotos.map(p => app.utils.cleanText(p.operator || '')).filter(Boolean))];
@@ -1590,7 +1591,17 @@ app.admin.fetchManagerData('denied');
                     if (app.user.id === uploaderId && app.role !== 'manager') {
                         return app.ui.showAlert("Bạn không thể tự duyệt ảnh của mình!");
                     }
-                    btn.innerText = "Đang xử lý..."; btn.disabled = true; btn.classList.add('btn-loading');
+                    const cardEl = btn.closest('.admin-card');
+                    const parentEl = cardEl ? cardEl.parentElement : null;
+                    const originalNextSibling = cardEl ? cardEl.nextElementSibling : null;
+
+                    if (cardEl && parentEl) {
+                        parentEl.appendChild(cardEl);
+                        cardEl.querySelectorAll('input, select, textarea, button').forEach(el => el.disabled = true);
+                        cardEl.style.opacity = '0.75';
+                    }
+
+                    btn.innerText = "Đang tải lên CDN..."; btn.disabled = true; btn.classList.add('btn-loading');
                     try {
                         const plate = document.getElementById(`adm-p-plate-${id}`).value.trim();
                         const op = document.getElementById(`adm-p-op-${id}`).value.trim();
@@ -1603,6 +1614,12 @@ app.admin.fetchManagerData('denied');
                         const province = provinceEl ? provinceEl.value : '';
 
                         if (await app.utils.checkModelDuplicatePolicy(plate, model)) {
+                            if (cardEl && parentEl) {
+                                if (originalNextSibling && originalNextSibling !== cardEl) parentEl.insertBefore(cardEl, originalNextSibling);
+                                else parentEl.appendChild(cardEl);
+                                cardEl.querySelectorAll('input, select, textarea, button').forEach(el => el.disabled = false);
+                                cardEl.style.opacity = '1';
+                            }
                             btn.innerText = "DUYỆT"; btn.disabled = false; btn.classList.remove('btn-loading');
                             return;
                         }
@@ -1621,11 +1638,21 @@ app.admin.fetchManagerData('denied');
 
                         if (!res.ok) throw new Error((await res.json()).error || 'Lỗi server');
 
-                        app.admin.loadTab('photos');
+                        if (cardEl) cardEl.remove();
+                        if (parentEl && !parentEl.querySelector('.admin-card')) {
+                            app.admin.loadTab('photos');
+                        }
                     } catch (err) {
                         app.ui.showAlert("Lỗi: " + err.message);
-                    } finally {
+                        if (cardEl && parentEl) {
+                            if (originalNextSibling && originalNextSibling !== cardEl) parentEl.insertBefore(cardEl, originalNextSibling);
+                            else parentEl.appendChild(cardEl);
+                            cardEl.querySelectorAll('input, select, textarea, button').forEach(el => el.disabled = false);
+                            cardEl.style.opacity = '1';
+                        }
                         btn.innerText = "DUYỆT"; btn.disabled = false; btn.classList.remove('btn-loading');
+
+
                     }
                 },
                 denyPhoto: async (id, uploaderId, btn) => {

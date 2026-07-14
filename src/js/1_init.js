@@ -1497,8 +1497,56 @@ cleanupState: () => {
 
 
 
+                resolveSandboxUrls: async (items) => {
+                    if (!items || !window.sb) return;
+                    const list = Array.isArray(items) ? items : [items];
+                    const sandboxIds = [];
+                    list.forEach(item => {
+                        const url = typeof item === 'string' ? item : (item && item.url ? item.url : '');
+                        if (url && typeof url === 'string' && url.startsWith('sandbox:')) {
+                            const sId = url.replace('sandbox:', '').trim();
+                            if (sId && (!app._sandboxCache || !app._sandboxCache[sId])) sandboxIds.push(sId);
+                        }
+                    });
+
+                    if (sandboxIds.length > 0) {
+                        if (!app._sandboxCache) app._sandboxCache = {};
+                        try {
+                            const { data: sandboxData } = await window.sb
+                                .from('image_sandbox')
+                                .select('id, base64_data')
+                                .in('id', sandboxIds);
+
+                            if (sandboxData && sandboxData.length > 0) {
+                                sandboxData.forEach(s => {
+                                    if (s.id && s.base64_data) app._sandboxCache[s.id] = s.base64_data;
+                                });
+                            }
+                        } catch (e) {
+                            console.warn('Lỗi tải ảnh từ sandbox:', e);
+                        }
+                    }
+
+                    list.forEach(item => {
+                        if (item && typeof item === 'object' && item.url && typeof item.url === 'string' && item.url.startsWith('sandbox:')) {
+                            const sId = item.url.replace('sandbox:', '').trim();
+                            if (app._sandboxCache && app._sandboxCache[sId]) {
+                                item.url = app._sandboxCache[sId];
+                            } else {
+                                item._isSandboxMissing = true;
+                            }
+                        }
+                    });
+                },
+
                 getProxiedUrl: (url, filename = 'image.jpg', type = 'full') => {
                     if (!url) return '';
+                    if (typeof url === 'string' && url.startsWith('data:')) return url;
+                    if (typeof url === 'string' && url.startsWith('sandbox:')) {
+                        const sId = url.replace('sandbox:', '').trim();
+                        if (app._sandboxCache && app._sandboxCache[sId]) return app._sandboxCache[sId];
+                        return 'SANDBOX_DELETED';
+                    }
 
                     const safeName = filename.replace(/[^a-z0-9A-Z.-]/gi, '_');
 

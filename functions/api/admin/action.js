@@ -71,11 +71,58 @@ export async function onRequestPost(context) {
                 }
             }
 
+            const { data: currentPhotoRes, error: pGetErr } = await sb.from('photos').select('url, taken_at').eq('id', photoId).single();
+            if (pGetErr) throw pGetErr;
+            const photo = currentPhotoRes || {};
+
+            let finalUrl = photo.url;
+            const sandboxId = photo.url && photo.url.startsWith('sandbox:') ? photo.url.replace('sandbox:', '').trim() : null;
+
+            let base64Data = null;
+            if (sandboxId) {
+                const { data: sbxData } = await sb.from('image_sandbox').select('base64_data').eq('id', sandboxId).maybeSingle();
+                if (sbxData && sbxData.base64_data) base64Data = sbxData.base64_data;
+            }
+            if (!base64Data) {
+                const { data: sbxByPhoto } = await sb.from('image_sandbox').select('base64_data, id').eq('photo_id', photoId).maybeSingle();
+                if (sbxByPhoto && sbxByPhoto.base64_data) {
+                    base64Data = sbxByPhoto.base64_data;
+                }
+            }
+
+            if (base64Data) {
+                console.log(`[DEBUG] Admin duyệt ảnh Sandbox (ID: ${photoId}), chuyển lên CDN thật...`);
+                const matches = base64Data.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+                const mimeType = matches ? matches[1] : 'image/webp';
+                const ext = mimeType.split('/')[1] || 'webp';
+                const b64Str = matches ? matches[2] : base64Data;
+                const binary = Uint8Array.from(atob(b64Str), c => c.charCodeAt(0));
+                const blob = new Blob([binary], { type: mimeType });
+                const fileName = `img_${Date.now()}_${photoId}.${ext}`;
+
+                const newFormData = new FormData();
+                newFormData.append('file', blob, fileName);
+
+                const uploadRes = await fetch('https://cdn.vnbusarchive.io.vn/upload', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${env.CF_IMGBED_TOKEN}` },
+                    body: newFormData
+                });
+                const uploadResult = await uploadRes.json();
+                if (uploadResult && uploadResult.length > 0 && uploadResult[0].src) {
+                    let rawSrc = uploadResult[0].src;
+                    finalUrl = rawSrc.startsWith('/') ? `https://cdn.vnbusarchive.io.vn${rawSrc}` : rawSrc;
+                } else {
+                    return new Response(JSON.stringify({ error: 'Lỗi tải ảnh từ sandbox lên CDN khi duyệt.' }), { status: 500 });
+                }
+            }
+
             const { error: vError } = await sb.from('vehicles')
                 .upsert({ license_plate: plate, model: model }, { onConflict: 'license_plate' });
             if (vError) throw vError;
 
             await sb.from('photos').update({
+                url: finalUrl,
                 license_plate: plate,
                 note: note,
                 location: location,
@@ -86,8 +133,9 @@ export async function onRequestPost(context) {
                 route_no: route
             }).eq('id', photoId);
 
-            const { data: photoData } = await sb.from('photos').select('taken_at').eq('id', photoId).single();
-            const photo = photoData || {};
+            // BẮT BUỘC xóa base64 trong bảng image_sandbox khi đã lên CDN thành công
+            if (sandboxId) await sb.from('image_sandbox').delete().eq('id', sandboxId);
+            await sb.from('image_sandbox').delete().eq('photo_id', photoId);
 
             const specialRoutes = ['Ngoài giờ hoạt động', 'Chưa hoạt động'];
             const isSpecialRoute = specialRoutes.includes(route);
@@ -144,6 +192,17 @@ export async function onRequestPost(context) {
             });
         } else {
             return new Response(JSON.stringify({ error: 'Invalid action' }), { status: 400 });
+        }
+
+        // Tự động dọn dẹp ảnh sandbox bị từ chối quá 24h
+        try {
+            const threshold = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+            const { data: deniedPhotos } = await sb.from('photos').select('id').eq('status', 'denied').lt('created_at', threshold);
+            if (deniedPhotos && deniedPhotos.length > 0) {
+                await sb.from('image_sandbox').delete().in('photo_id', deniedPhotos.map(p => p.id));
+            }
+        } catch (cleanupErr) {
+            console.warn('[WARN] Sandbox cleanup error:', cleanupErr);
         }
 
         return new Response(JSON.stringify({ success: true }), {

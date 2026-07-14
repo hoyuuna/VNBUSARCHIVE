@@ -107,39 +107,20 @@ export async function onRequest(context) {
 
         let finalOptimizedUrl = '';
 
-        console.log(`[DEBUG] Tiến hành tải ảnh và đồng bộ DB: ${fileName}`);
-
-        const uploadTask = fetch('https://cdn.vnbusarchive.io.vn/upload', {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${env.CF_IMGBED_TOKEN}` },
-            body: newFormData
-        }).then(res => res.json()).then(uploadResult => {
-            if (uploadResult && uploadResult.length > 0 && uploadResult[0].src) {
-                let rawSrc = uploadResult[0].src;
-                return rawSrc.startsWith('/') ? `https://cdn.vnbusarchive.io.vn${rawSrc}` : rawSrc;
-            }
-            throw new Error('Lỗi phản hồi từ máy chủ lưu trữ ảnh.');
-        });
-
-        let vehicleInsertTask = Promise.resolve();
-        if (!isAvatar) {
-            vehicleInsertTask = supabase
-                .from('vehicles')
-                .insert({ license_plate: metadata.plate, model: metadata.model })
-                .then(({ error }) => {
-                    if (error && error.code !== '23505') throw error;
-                });
-        }
-
-        try {
-            [finalOptimizedUrl] = await Promise.all([uploadTask, vehicleInsertTask]);
-            console.log(`[DEBUG] Xong đa tiến trình, URL: ${finalOptimizedUrl}`);
-        } catch (err) {
-            console.error('===[LỖI UPLOAD HOẶC DATABASE] ===', err);
-            throw new Error('Đã xảy ra lỗi trong quá trình gửi dữ liệu lên máy chủ.');
-        }
-
         if (isAvatar) {
+            console.log(`[DEBUG] Tiến hành tải Avatar lên CDN: ${fileName}`);
+            const uploadResult = await fetch('https://cdn.vnbusarchive.io.vn/upload', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${env.CF_IMGBED_TOKEN}` },
+                body: newFormData
+            }).then(res => res.json());
+
+            if (!uploadResult || uploadResult.length === 0 || !uploadResult[0].src) {
+                throw new Error('Lỗi phản hồi từ máy chủ lưu trữ ảnh (Avatar).');
+            }
+            let rawSrc = uploadResult[0].src;
+            finalOptimizedUrl = rawSrc.startsWith('/') ? `https://cdn.vnbusarchive.io.vn${rawSrc}` : rawSrc;
+
             let oldAvatarUrl = null;
             const { data: oldProfile } = await supabase.from('profiles').select('avatar_url').eq('id', userId).single();
             if (oldProfile && oldProfile.avatar_url) {
@@ -174,30 +155,66 @@ export async function onRequest(context) {
             await supabase.auth.updateUser({ data: { avatar_url: finalOptimizedUrl } }).catch(() => {});
 
             return new Response(JSON.stringify({ success: true, url: finalOptimizedUrl }), { status: 200, headers: { 'Content-Type': 'application/json' }});
+        } else {
+            console.log(`[DEBUG] Tiến hành lưu ảnh vào Sandbox Base64: ${fileName}`);
+            const arrayBuffer = await file.arrayBuffer();
+            const base64String = `data:${file.type || 'image/jpeg'};base64,` + Buffer.from(arrayBuffer).toString('base64');
+            const sandboxId = `sbx_${Date.now()}_${safeHash}`;
+            finalOptimizedUrl = `sandbox:${sandboxId}`;
+
+            const { error: vErr } = await supabase
+                .from('vehicles')
+                .insert({ license_plate: metadata.plate, model: metadata.model });
+            if (vErr && vErr.code !== '23505') throw vErr;
+
+            const { data: photoInsertRes, error: dbError } = await supabase
+                .from('photos')
+                .insert({
+                    url: finalOptimizedUrl,
+                    uploader_id: userId,
+                    license_plate: metadata.plate,
+                    location: metadata.location,
+                    province: metadata.province || null,
+                    note: metadata.note,
+                    status: 'pending',
+                    camera_model: metadata.camera_model,
+                    exif_params: metadata.exif_params,
+                    taken_at: metadata.taken_at,
+                    operator: metadata.operator,
+                    route_no: metadata.route,
+                    type: metadata.type,
+                    suspected_exif_fraud: metadata.suspected_exif_fraud
+                }).select('id').single();
+
+            if (dbError) throw dbError;
+
+            const { error: sandboxErr } = await supabase
+                .from('image_sandbox')
+                .insert({
+                    id: sandboxId,
+                    photo_id: photoInsertRes.id,
+                    uploader_id: userId,
+                    base64_data: base64String,
+                    created_at: new Date().toISOString()
+                });
+
+            if (sandboxErr) {
+                await supabase.from('photos').delete().eq('id', photoInsertRes.id);
+                throw new Error('Lỗi khi lưu ảnh vào Sandbox: ' + sandboxErr.message);
+            }
+
+            try {
+                const threshold = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+                const { data: deniedPhotos } = await supabase.from('photos').select('id').eq('status', 'denied').lt('created_at', threshold);
+                if (deniedPhotos && deniedPhotos.length > 0) {
+                    await supabase.from('image_sandbox').delete().in('photo_id', deniedPhotos.map(p => p.id));
+                }
+            } catch (cleanupErr) {
+                console.warn('[WARN] Sandbox cleanup error:', cleanupErr);
+            }
+
+            return new Response(JSON.stringify({ success: true, url: finalOptimizedUrl }), { status: 200, headers: { 'Content-Type': 'application/json' }});
         }
-
-        const { error: dbError } = await supabase
-            .from('photos')
-            .insert({
-                url: finalOptimizedUrl,
-                uploader_id: userId,
-                license_plate: metadata.plate,
-                location: metadata.location,
-                province: metadata.province || null,
-                note: metadata.note,
-                status: 'pending',
-                camera_model: metadata.camera_model,
-                exif_params: metadata.exif_params,
-                taken_at: metadata.taken_at,
-                operator: metadata.operator,
-                route_no: metadata.route,
-                type: metadata.type,
-                suspected_exif_fraud: metadata.suspected_exif_fraud
-            });
-
-        if (dbError) throw dbError;
-
-        return new Response(JSON.stringify({ success: true, url: finalOptimizedUrl }), { status: 200, headers: { 'Content-Type': 'application/json' }});
 
     } catch (error) {
         console.error('[System Error Handler]:', error.message);

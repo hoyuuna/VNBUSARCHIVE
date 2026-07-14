@@ -914,7 +914,8 @@ Object.assign(window.app, {
                 },
 
                 // Hàm hỗ trợ render (để tránh lặp code)
-                renderProfileGridHTML: (photos, count, page) => {
+                renderProfileGridHTML: async (photos, count, page) => {
+                    await app.utils.resolveSandboxUrls(photos);
                     const grid = document.getElementById('my-photos-grid');
                     grid.style.opacity = '1';
                     grid.style.pointerEvents = 'auto';
@@ -935,9 +936,25 @@ Object.assign(window.app, {
                             }
                         }
 
+                        const proxyUrl = app.utils.getProxiedUrl(p.url, 'profile.jpg', 'thumb');
+                        if (proxyUrl === 'SANDBOX_DELETED' || p._isSandboxMissing) {
+                            return `
+                                <div class="${cardStyleClasses}" onclick="app.views.loadDetail('${p.id}')">
+                                    <div class="w-full h-full bg-gray-500 flex flex-col items-center justify-center p-2 text-center text-white select-none">
+                                        <i class="fa-solid fa-clock-rotate-left text-xl text-gray-300 mb-1"></i>
+                                        <span class="font-bold text-xs tracking-wider">${app.utils.cleanText(app.utils.displayPlate(p.license_plate))}</span>
+                                        <span class="text-[10px] text-gray-200 mt-0.5">Đã xóa sau 24h</span>
+                                    </div>
+                                    <div class="absolute bottom-0 left-0 bg-black/70 text-white text-[10px] w-full p-1.5 backdrop-blur-sm transition-all duration-300">
+                                        ${textHtml}
+                                    </div>
+                                </div>
+                            `;
+                        }
+
                         return `
                             <div class="${cardStyleClasses}" onclick="app.views.loadDetail('${p.id}')">
-                                <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(p.url, 'profile.jpg', 'thumb')}" class="w-full h-full object-cover">
+                                <img loading="lazy" decoding="async" src="${proxyUrl}" class="w-full h-full object-cover">
                                 <div class="absolute bottom-0 left-0 bg-black/70 text-white text-[10px] w-full p-1.5 backdrop-blur-sm transition-all duration-300">
                                     ${textHtml}
                                 </div>
@@ -1102,6 +1119,7 @@ Object.assign(window.app, {
 
                     app.currentPhoto = photo;
                     app.currentPlate = photo.license_plate;
+                    await app.utils.resolveSandboxUrls([photo]);
                     const v = photo.vehicles;
 
                     const snapshot = {
@@ -1208,27 +1226,53 @@ Object.assign(window.app, {
 
                     const proxyUrl = app.utils.getProxiedUrl(photo.url, `${app.utils.displayPlate(photo.license_plate)}.jpg`);
 
-                    imgEl.style.display = 'block';
-                    imgEl.style.opacity = '0';
                     const wrapper2 = imgEl.closest('.img-wrapper');
-                    if(wrapper2) {
-                        const errBox2 = wrapper2.querySelector('.img-error');
-                        const spinner2 = wrapper2.querySelector('.img-spinner');
-                        if (errBox2) errBox2.classList.add('hidden');
+                    const errBox2 = wrapper2 ? wrapper2.querySelector('.img-error') : null;
+                    const spinner2 = wrapper2 ? wrapper2.querySelector('.img-spinner') : null;
+
+                    if (proxyUrl === 'SANDBOX_DELETED' || photo._isSandboxMissing) {
+                        imgEl.style.display = 'none';
+                        if (spinner2) spinner2.style.display = 'none';
+                        if (errBox2) {
+                            errBox2.className = "img-error absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-gray-200 text-gray-800 z-10 select-none rounded-md";
+                            errBox2.innerHTML = `
+                                <i class="fa-solid fa-clock-rotate-left text-gray-500 text-5xl mb-4"></i>
+                                <p class="text-base text-gray-800 font-bold mb-2">Ảnh đã bị xóa sau 24h không can thiệp.</p>
+                                <p class="text-sm text-gray-600 mb-4">Bạn sẽ không thể kháng cáo hoặc làm hành động khác. Bạn có thể yêu cầu xóa cơ sở dữ liệu của ảnh này bằng nút "Yêu cầu xóa ảnh".</p>
+                            `;
+                            errBox2.classList.remove('hidden');
+                        }
+                    } else {
+                        imgEl.style.display = 'block';
+                        imgEl.style.opacity = '0';
+                        if (errBox2) {
+                            errBox2.className = "img-error absolute inset-0 hidden flex-col items-center justify-center p-6 text-center bg-gray-50 rounded-md";
+                            errBox2.innerHTML = `
+                                <i class="fa-solid fa-image-slash text-red-400 text-5xl mb-4"></i>
+                                <p class="text-base text-gray-800 font-bold mb-2">Ảnh hiện không thể được tải</p>
+                                <p class="text-sm text-gray-600 mb-2">Bạn có thể thử:</p>
+                                <ul class="text-sm text-gray-500 text-left list-disc pl-6 mb-4">
+                                    <li>Báo cáo với bộ phận CSKH để kiểm tra</li>
+                                    <li>Thử lại sau ít phút</li>
+                                </ul>
+                                <p class="text-xs text-gray-400 italic">Bạn có thể truy cập vào <a href="https://www.vnbusarchive.io.vn/help/1519976872316764260" class="text-blue-600 hover:underline font-medium">đây</a> để tìm hiểu thêm và tham khảo các cách khắc phục. Xin cảm ơn sự thấu hiểu của bạn!</p>
+                            `;
+                            errBox2.classList.add('hidden');
+                        }
                         if (spinner2) spinner2.style.display = 'flex';
+
+                        imgEl.onload = () => app.utils.handleImgLoad(imgEl);
+                        imgEl.onerror = () => app.utils.handleImgError(imgEl);
+
+                        imgEl.src = proxyUrl;
+                        imgEl.alt = `Hình ảnh xe buýt ${app.utils.displayPlate(photo.license_plate)} - ${snapshot.operator || 'Đã bị xóa'}`;
+                        imgEl.title = "Nhấn vào ảnh để phóng to toàn màn hình";
+                        imgEl.style.cursor = 'zoom-in';
+
+                        imgEl.onclick = () => {
+                            app.admin.openZoom(proxyUrl, true);
+                        };
                     }
-
-                    imgEl.onload = () => app.utils.handleImgLoad(imgEl);
-                    imgEl.onerror = () => app.utils.handleImgError(imgEl);
-
-                    imgEl.src = proxyUrl;
-                    imgEl.alt = `Hình ảnh xe buýt ${app.utils.displayPlate(photo.license_plate)} - ${snapshot.operator || 'Đã bị xóa'}`;
-                    imgEl.title = "Nhấn vào ảnh để phóng to toàn màn hình";
-                    imgEl.style.cursor = 'zoom-in';
-
-                    imgEl.onclick = () => {
-                        app.admin.openZoom(proxyUrl, true);
-                    };
 
                     const uploaderDisplay = app.utils.formatProfileDisplay(photo.profiles);
                     const safeUploaderName = app.utils.cleanText(uploaderDisplay.username);
@@ -1314,7 +1358,10 @@ Object.assign(window.app, {
 
                     if (app.user && app.user.id === photo.uploader_id) {
                         deleteBtn.classList.remove('hidden');
-                        if (isPending || isDenied) {
+                        if (proxyUrl === 'SANDBOX_DELETED' || photo._isSandboxMissing) {
+                            deleteBtn.innerHTML = '<i class="fa-solid fa-trash-can mr-1"></i> Yêu cầu xóa ảnh';
+                            deleteBtn.className = "w-full border border-red-500 text-red-600 py-2.5 text-sm font-bold rounded-md hover:bg-red-50 transition shadow-sm";
+                        } else if (isPending || isDenied) {
                             deleteBtn.innerHTML = `<i class="fa-solid fa-trash-can mr-1"></i> Xóa ảnh ${isDenied ? '(Bị từ chối)' : '(Đang chờ duyệt)'}`;
                             deleteBtn.className = "w-full border border-gray-500 text-gray-600 py-2.5 text-sm font-bold rounded-md hover:bg-gray-50 transition shadow-sm";
                         } else {
