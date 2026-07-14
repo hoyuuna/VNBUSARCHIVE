@@ -729,8 +729,18 @@ Object.assign(window.app, {
                             const photoMap = {}; if (photos) photos.forEach(p => photoMap[p.id] = p);
 
                             const userIds = [...new Set(deleteReqs.map(r => r.requester_id))];
-                            const { data: users } = await window.sb.from('profiles').select('id, username').in('id', userIds);
-                            const userMap = {}; if (users) users.forEach(u => userMap[u.id] = u.username);
+                            const { data: users } = await window.sb.from('profiles').select('id, username, role').in('id', userIds);
+                            const userMap = {}; const roleMap = {};
+                            if (users) users.forEach(u => { userMap[u.id] = u.username; roleMap[u.id] = u.role; });
+
+                            deleteReqs.sort((a, b) => {
+                                const roleA = roleMap[a.requester_id] || 'user';
+                                const roleB = roleMap[b.requester_id] || 'user';
+                                const isPrivA = (roleA === 'admin' || roleA === 'manager') ? 1 : 0;
+                                const isPrivB = (roleB === 'admin' || roleB === 'manager') ? 1 : 0;
+                                if (isPrivA !== isPrivB) return isPrivB - isPrivA;
+                                return a.id - b.id;
+                            });
 
                             html += deleteReqs.map(req => {
                                 const photo = photoMap[req.new_data.photo_id];
@@ -774,8 +784,18 @@ Object.assign(window.app, {
                             if (!reqs || reqs.length === 0) { content.innerHTML = '<p class="p-4">Không có yêu cầu nào.</p>'; return; }
 
                             const userIds = [...new Set(reqs.map(r => r.requester_id))];
-                            const { data: users } = await window.sb.from('profiles').select('id, username').in('id', userIds);
-                            const userMap = {}; if (users) users.forEach(u => userMap[u.id] = u.username);
+                            const { data: users } = await window.sb.from('profiles').select('id, username, role').in('id', userIds);
+                            const userMap = {}; const roleMap = {};
+                            if (users) users.forEach(u => { userMap[u.id] = u.username; roleMap[u.id] = u.role; });
+
+                            reqs.sort((a, b) => {
+                                const roleA = roleMap[a.requester_id] || 'user';
+                                const roleB = roleMap[b.requester_id] || 'user';
+                                const isPrivA = (roleA === 'admin' || roleA === 'manager') ? 1 : 0;
+                                const isPrivB = (roleB === 'admin' || roleB === 'manager') ? 1 : 0;
+                                if (isPrivA !== isPrivB) return isPrivB - isPrivA;
+                                return a.id - b.id;
+                            });
 
                             const plates = reqs.map(r => r.license_plate);
                             const { data: curVehicles } = await window.sb.from('vehicles').select('*').in('license_plate', plates);
@@ -1754,12 +1774,18 @@ app.admin.fetchManagerData('denied');
                                 const rawText = await res.text();
                                 if (rawText.includes('1102')) {
                                     errText = 'Hệ thống vượt quá giới hạn xử lý CPU Cloudflare (Lỗi 1102). Vui lòng thử lại sau ít giây!';
+                                } else if (res.status === 502 || res.status === 504) {
+                                    errText = 'Lỗi kết nối máy chủ CDN/Cloudflare (' + res.status + '). Vui lòng thử lại sau!';
                                 } else {
                                     const json = JSON.parse(rawText);
                                     if (json && json.error) errText = json.error;
-                                    else errText = rawText.slice(0, 200);
+                                    else errText = rawText.replace(/<[^>]*>?/gm, '').trim().slice(0, 200);
                                 }
-                            } catch (e) {}
+                            } catch (e) {
+                                if (res.status === 502 || res.status === 504) {
+                                    errText = 'Lỗi kết nối máy chủ CDN/Cloudflare (' + res.status + '). Vui lòng thử lại sau!';
+                                }
+                            }
                             throw new Error(errText);
                         }
 
@@ -1815,16 +1841,27 @@ app.admin.fetchManagerData('denied');
                                         const rawText = await res.text();
                                         if (rawText.includes('1102')) {
                                             errText = 'Hệ thống vượt quá giới hạn xử lý CPU Cloudflare (Lỗi 1102). Vui lòng thử lại sau ít giây!';
+                                        } else if (res.status === 502 || res.status === 504) {
+                                            errText = 'Lỗi kết nối máy chủ CDN/Cloudflare (' + res.status + '). Vui lòng thử lại sau!';
                                         } else {
                                             const json = JSON.parse(rawText);
                                             if (json && json.error) errText = json.error;
-                                            else errText = rawText.slice(0, 200);
+                                            else errText = rawText.replace(/<[^>]*>?/gm, '').trim().slice(0, 200);
                                         }
-                                    } catch (e) {}
+                                    } catch (e) {
+                                        if (res.status === 502 || res.status === 504) {
+                                            errText = 'Lỗi kết nối máy chủ CDN/Cloudflare (' + res.status + '). Vui lòng thử lại sau!';
+                                        }
+                                    }
                                     throw new Error(errText);
                                 }
 
-                                app.admin.loadTab('photos');
+                                const cardEl = document.getElementById(`adm-photo-card-${id}`);
+                                const parentEl = cardEl?.parentElement;
+                                if (cardEl) cardEl.remove();
+                                if (parentEl && !parentEl.querySelector('.admin-card')) {
+                                    app.admin.loadTab('photos');
+                                }
                             } catch (err) {
                                 app.ui.showAlert("Lỗi: " + err.message);
                             } finally {

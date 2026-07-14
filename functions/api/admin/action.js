@@ -116,11 +116,19 @@ export async function onRequestPost(context) {
                 const newFormData = new FormData();
                 newFormData.append('file', blob, fileName);
 
-                const uploadRes = await fetch('https://cdn.vnbusarchive.io.vn/upload', {
+                let uploadRes = await fetch('https://cdn.vnbusarchive.io.vn/upload', {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${env.CF_IMGBED_TOKEN}` },
                     body: newFormData
                 });
+                if (!uploadRes.ok || uploadRes.status >= 500) {
+                    await new Promise(r => setTimeout(r, 800));
+                    uploadRes = await fetch('https://cdn.vnbusarchive.io.vn/upload', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${env.CF_IMGBED_TOKEN}` },
+                        body: newFormData
+                    });
+                }
                 if (!uploadRes.ok) {
                     const errTxt = await uploadRes.text();
                     console.error(`[CDN Upload Error] Status: ${uploadRes.status}, Body: ${errTxt.slice(0, 500)}`);
