@@ -30,7 +30,7 @@ export async function onRequest(context) {
         const userId = formData.get('userId');
         const captchaToken = formData.get('captchaToken');
         
-        const ALLOWED_EXT = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'heic'];
+        const ALLOWED_EXT = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'heic', 'raw', 'cr2', 'cr3', 'nef', 'arw', 'dng'];
         const rawExt = String(formData.get('fileExtension') || 'jpg').toLowerCase();
         const fileExtension = ALLOWED_EXT.includes(rawExt) ? rawExt : 'jpg';
 
@@ -57,12 +57,16 @@ export async function onRequest(context) {
         }
 
         const MAX_SIZE = 20 * 1024 * 1024;
-        const ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+        const ALLOWED_MIME = [
+            'image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 
+            'image/tiff', 'image/x-adobe-dng', 'image/x-canon-cr2', 'image/x-canon-cr3', 
+            'image/x-nikon-nef', 'image/x-sony-arw', 'image/x-raw', 'application/octet-stream'
+        ];
         if (file.size > MAX_SIZE) {
             return new Response(JSON.stringify({ success: false, error: 'File quá lớn (tối đa 20MB).' }), { status: 400, headers: { 'Content-Type': 'application/json' }});
         }
         if (!ALLOWED_MIME.includes(file.type)) {
-            return new Response(JSON.stringify({ success: false, error: 'Loại file không hợp lệ (chỉ chấp nhận ảnh).' }), { status: 400, headers: { 'Content-Type': 'application/json' }});
+            return new Response(JSON.stringify({ success: false, error: 'Loại file không hợp lệ (chỉ chấp nhận ảnh và file RAW).' }), { status: 400, headers: { 'Content-Type': 'application/json' }});
         }
 
         if (!isAvatar) {
