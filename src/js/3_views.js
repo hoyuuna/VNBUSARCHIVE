@@ -365,6 +365,7 @@ Object.assign(window.app, {
                         document.getElementById('db-stat-photos').innerText = app.utils.formatCompact(photoCount || 0);
                         document.getElementById('db-stat-vehicles').innerText = app.utils.formatCompact(uniquePlates.size || 0);
                         document.getElementById('db-stat-routes').innerText = app.utils.formatCompact(uniqueRoutes.size || 0);
+                        if (app.views && app.views.updateMilestoneBanner) app.views.updateMilestoneBanner(photoCount || 0);
                         
                     } catch (e) {
                         console.error("Lỗi tải thông kê:", e);
@@ -373,6 +374,56 @@ Object.assign(window.app, {
                     app.newsboard.checkAndShow();
                     app.views.loadRecommendations();
                     app.loadingBar.finish();
+                },
+
+                updateMilestoneBanner: async (photoCount = null) => {
+                    const banner = document.getElementById('milestone-banner');
+                    if (!banner) return;
+
+                    let totalPhotos = photoCount;
+                    if (totalPhotos === null || typeof totalPhotos !== 'number') {
+                        try {
+                            let countQuery = window.sb.from('photos').select('*', { count: 'exact', head: true }).eq('status', 'approved');
+                            countQuery = app.preference.applyFilter(countQuery);
+                            const { count } = await countQuery;
+                            totalPhotos = count || 0;
+                        } catch (e) {
+                            console.warn("Lỗi tính tổng ảnh cột mốc:", e);
+                            return;
+                        }
+                    }
+
+                    const nextMilestone = (totalPhotos > 0 && totalPhotos % 5000 === 0) ? totalPhotos : Math.ceil(totalPhotos / 5000) * 5000;
+                    const prevMilestone = nextMilestone - 5000;
+                    const remaining = nextMilestone - totalPhotos;
+
+                    // Chỉ hiện khi cách cột mốc khoảng 200 ảnh (hoặc đã chạm đúng cột mốc)
+                    if (totalPhotos > 0 && remaining <= 200 && remaining >= 0) {
+                        const progressPercent = Math.min(100, Math.max(0, ((totalPhotos - prevMilestone) / (nextMilestone - prevMilestone)) * 100));
+
+                        banner.innerHTML = `
+                            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-3.5">
+                                <span class="font-extrabold text-gray-900 text-sm md:text-base tracking-tight flex items-center gap-2">
+                                    <i class="fa-solid fa-flag-checkered text-black"></i> Cột mốc ${nextMilestone.toLocaleString('vi-VN')} ảnh
+                                </span>
+                                <span class="font-black text-base md:text-lg tracking-tight" style="background: linear-gradient(to right, #fdf542, #ff0000); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.1));">
+                                    ${totalPhotos.toLocaleString('vi-VN')}/${nextMilestone.toLocaleString('vi-VN')}
+                                </span>
+                            </div>
+                            <div class="w-full bg-gray-100 border border-gray-200 rounded-full h-3 mb-4 overflow-hidden p-0.5 shadow-inner">
+                                <div class="h-full rounded-full transition-all duration-1000 shadow-sm" style="width: ${progressPercent}%; background: linear-gradient(to right, #fdf542, #ff0000);"></div>
+                            </div>
+                            <div class="flex justify-start sm:justify-end">
+                                <button onclick="app.utils.navigate('/upload')" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 bg-black text-white font-bold text-sm rounded-lg hover:bg-gray-800 transition shadow-md group">
+                                    <i class="fa-solid fa-cloud-arrow-up text-white group-hover:-translate-y-0.5 transition-transform"></i>
+                                    <span>Đóng góp ngay, còn lại <span class="font-black" style="background: linear-gradient(to right, #fdf542, #ff0000); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">${remaining.toLocaleString('vi-VN')}</span> ảnh</span>
+                                </button>
+                            </div>
+                        `;
+                        banner.classList.remove('hidden');
+                    } else {
+                        banner.classList.add('hidden');
+                    }
                 },
 
                 loadRecommendations: async () => {

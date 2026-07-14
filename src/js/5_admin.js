@@ -395,6 +395,9 @@ Object.assign(window.app, {
                         if (countReqsEl) countReqsEl.innerText = editCount;
                         const countDelEl = document.getElementById('count-delete');
                         if (countDelEl) countDelEl.innerText = delCount;
+                        if (window.app && window.app.views && window.app.views.updateMilestoneBanner && document.getElementById('milestone-banner')) {
+                            window.app.views.updateMilestoneBanner();
+                        }
 
                         return (pCount || 0) + editCount + delCount;
                     } catch (err) { console.error("Lỗi đếm:", err); return 0; }
