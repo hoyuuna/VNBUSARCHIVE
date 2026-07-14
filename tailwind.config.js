@@ -6,7 +6,9 @@ module.exports = {
     "./public/**/*.html",         // Tất cả file html trong public và thư mục con (status, hbds-map...)
     "./public/**/*.js",           // Tất cả file js trong public
     "./api/**/*.js",              // Các script trong thư mục api
-    "./*.js"                      // Các file js ở thư mục gốc (token.js...)
+    "./*.js",                     // Các file js ở thư mục gốc (token.js...)
+    "./src/**/*.js",              // Các file js trong thư mục src
+    "./src/**/*.html"             // Các file html trong thư mục src
   ],
   theme: {
     extend: {
