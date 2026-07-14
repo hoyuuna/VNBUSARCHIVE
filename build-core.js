@@ -54,6 +54,19 @@ try {
     } else {
         console.warn('_core.html không tồn tại.');
     }
+
+    // Build CSP headers
+    const cspPath = path.join(__dirname, 'csp.json');
+    if (fs.existsSync(cspPath)) {
+        const cspObj = JSON.parse(fs.readFileSync(cspPath, 'utf8'));
+        let cspString = Object.entries(cspObj).map(([key, values]) => {
+            return `${key} ${values.join(' ')}`;
+        }).join('; ') + ';';
+        
+        const headersContent = `/*\n  Content-Security-Policy: ${cspString}\n`;
+        fs.writeFileSync(path.join(__dirname, 'public', '_headers'), headersContent);
+        console.log('Đã tạo public/_headers từ csp.json');
+    }
 } catch (error) {
     console.error('Lỗi khi build:', error);
     process.exit(1);

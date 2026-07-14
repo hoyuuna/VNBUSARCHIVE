@@ -1,0 +1,67 @@
+{
+  "default-src": ["'self'"],
+  "script-src": [
+    "'self'",
+    "'unsafe-inline'",
+    "'unsafe-eval'",
+    "https://challenges.cloudflare.com",
+    "https://cdn.jsdelivr.net",
+    "https://cdnjs.cloudflare.com",
+    "https://unpkg.com",
+    "https://static.cloudflareinsights.com",
+    "https://esm.sh"
+  ],
+  "style-src": [
+    "'self'",
+    "'unsafe-inline'",
+    "https://fonts.googleapis.com",
+    "https://cdnjs.cloudflare.com",
+    "https://unpkg.com"
+  ],
+  "img-src": [
+    "'self'",
+    "data:",
+    "blob:",
+    "https://files.catbox.moe",
+    "https://images.vnbusarchive.io.vn",
+    "https://cdn.vnbusarchive.io.vn",
+    "https://cdn.discordapp.com",
+    "https://wsrv.nl",
+    "https://placehold.co",
+    "https://raw.githubusercontent.com",
+    "https://*.supabase.co",
+    "https://unpkg.com",
+    "https://*.cartocdn.com",
+    "https://*.giphy.com",
+    "https://media2.giphy.com"
+  ],
+  "font-src": [
+    "'self'",
+    "https://fonts.gstatic.com",
+    "https://cdnjs.cloudflare.com"
+  ],
+  "connect-src": [
+    "'self'",
+    "https://*.supabase.co",
+    "wss://*.supabase.co",
+    "https://discord.com",
+    "https://challenges.cloudflare.com",
+    "https://*.cloudflareinsights.com",
+    "https://cloudflareinsights.com",
+    "https://cdnjs.cloudflare.com",
+    "https://unpkg.com",
+    "https://cdn.jsdelivr.net",
+    "https://esm.sh",
+    "https://api.ipify.org",
+    "https://nominatim.openstreetmap.org",
+    "https://raw.githubusercontent.com"
+  ],
+  "frame-src": [
+    "'self'",
+    "https://challenges.cloudflare.com"
+  ],
+  "worker-src": [
+    "'self'",
+    "blob:"
+  ]
+}
