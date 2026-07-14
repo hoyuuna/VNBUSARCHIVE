@@ -726,6 +726,7 @@ Object.assign(window.app, {
 
                             const photoIds = deleteReqs.map(r => r.new_data.photo_id);
                             const { data: photos } = await window.sb.from('photos').select('id, url, license_plate').in('id', photoIds);
+                            if (photos && photos.length > 0) await app.utils.resolveSandboxUrls(photos);
                             const photoMap = {}; if (photos) photos.forEach(p => photoMap[p.id] = p);
 
                             const userIds = [...new Set(deleteReqs.map(r => r.requester_id))];
@@ -1177,6 +1178,7 @@ app.admin.fetchManagerData('denied');
                             const { data: logs } = await window.sb.from('admin_audit_logs').select('target_id, profiles(username)').eq('action_type', 'deny_photo');
                             const denierMap = {};
                             if(logs) logs.forEach(l => { denierMap[l.target_id] = l.profiles?.username || 'Admin'; });
+                            if (photos && photos.length > 0) await app.utils.resolveSandboxUrls(photos);
                             app.admin.manager.denied.data = photos ||[];
                             app.admin.manager.denied.denierMap = denierMap;
                             app.admin.filterManagerData('denied', '');
@@ -1295,13 +1297,17 @@ app.admin.fetchManagerData('denied');
                     }
 
                     if (type === 'denied') {
+                        await app.utils.resolveSandboxUrls(slice);
                         contentEl.innerHTML = slice.map(p => {
                             const proxyUrl = app.utils.getProxiedUrl(p.url, 'thumb.jpg', 'thumb');
                             const uploader = app.utils.cleanText(p.profiles?.username || 'Ẩn danh');
                             const denier = app.utils.cleanText(state.denierMap[p.id] || 'Admin');
                             const time = new Date(p.created_at).toLocaleDateString('vi-VN');
+                            const imgHtml = proxyUrl === 'SANDBOX_DELETED'
+                                ? `<div class="w-24 h-24 rounded bg-gray-100 shrink-0 border border-gray-200 flex flex-col items-center justify-center text-center p-1 text-[10px] text-gray-400 font-medium"><i class="fa-solid fa-image-slash text-base mb-1"></i>Ảnh tạm đã xóa</div>`
+                                : `<img src="${proxyUrl}" class="w-24 h-24 object-cover rounded bg-gray-100 shrink-0 border border-gray-200" onerror="this.onerror=null; this.src='https://files.catbox.moe/zzh1q1.png';">`;
                             return `<div class="flex gap-4 p-3 bg-white border border-gray-200 rounded-lg hover:shadow-md cursor-pointer transition items-start" onclick="app.views.loadDetail('${p.id}')">
-                                <img src="${proxyUrl}" class="w-24 h-24 object-cover rounded bg-gray-100 shrink-0 border border-gray-200">
+                                ${imgHtml}
                                 <div class="flex flex-col h-24 justify-between overflow-hidden w-full">
                                     <div><h4 class="font-bold text-sm text-black truncate uppercase">${app.utils.cleanText(p.license_plate)}</h4><p class="text-xs text-red-600 font-medium line-clamp-2 mt-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i> ${app.utils.cleanText(p.denial_reason)}</p></div>
                                     <div class="text-[10px] text-gray-500 truncate bg-gray-50 p-1.5 rounded">Đăng: <b class="text-gray-700">${uploader}</b> | Khóa: <b class="text-red-700">${denier}</b> | ${time}</div>
