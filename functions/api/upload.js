@@ -165,7 +165,10 @@ export async function onRequest(context) {
             const { error: vErr } = await supabase
                 .from('vehicles')
                 .insert({ license_plate: metadata.plate, model: metadata.model });
-            if (vErr && vErr.code !== '23505') throw vErr;
+            if (vErr && vErr.code !== '23505') {
+                console.error('[UPLOAD BACKEND ERROR - vehicles insert]:', JSON.stringify(vErr, null, 2));
+                throw vErr;
+            }
 
             const { data: photoInsertRes, error: dbError } = await supabase
                 .from('photos')
@@ -186,7 +189,10 @@ export async function onRequest(context) {
                     suspected_exif_fraud: metadata.suspected_exif_fraud
                 }).select('id').single();
 
-            if (dbError) throw dbError;
+            if (dbError) {
+                console.error('[UPLOAD BACKEND ERROR - photos insert]:', JSON.stringify(dbError, null, 2));
+                throw dbError;
+            }
 
             const { error: sandboxErr } = await supabase
                 .from('image_sandbox')
@@ -199,8 +205,9 @@ export async function onRequest(context) {
                 });
 
             if (sandboxErr) {
+                console.error('[UPLOAD BACKEND ERROR - image_sandbox insert]:', JSON.stringify(sandboxErr, null, 2));
                 await supabase.from('photos').delete().eq('id', photoInsertRes.id);
-                throw new Error('Lỗi khi lưu ảnh vào Sandbox: ' + sandboxErr.message);
+                throw new Error(`Lỗi khi lưu ảnh vào Sandbox: ${sandboxErr.message || ''} | Code: ${sandboxErr.code || ''} | Details: ${sandboxErr.details || ''} | Hint: ${sandboxErr.hint || ''}`);
             }
 
             try {
@@ -217,7 +224,14 @@ export async function onRequest(context) {
         }
 
     } catch (error) {
-        console.error('[System Error Handler]:', error.message);
-        return new Response(JSON.stringify({ success: false, error: error.message || 'Lỗi hệ thống không xác định.' }), { status: 500, headers: { 'Content-Type': 'application/json' }});
+        console.error('[UPLOAD BACKEND FATAL ERROR]:', error.message, JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
+        return new Response(JSON.stringify({
+            success: false,
+            error: error.message || 'Lỗi hệ thống không xác định.',
+            code: error.code || null,
+            details: error.details || null,
+            hint: error.hint || null,
+            fullDebug: JSON.stringify(error, Object.getOwnPropertyNames(error))
+        }), { status: 500, headers: { 'Content-Type': 'application/json' }});
     }
 }

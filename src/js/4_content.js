@@ -1933,7 +1933,12 @@ Object.assign(window.app, {
                                     body: item.formData
                                 });
 
-                                result = await response.json();
+                                result = await response.json().catch(err => {
+                                    console.error('[EXHAUSTIVE UPLOAD LOG - JSON PARSE ERROR]:', err, response);
+                                    return { success: false, error: 'Phản hồi từ máy chủ không phải JSON: ' + err.message };
+                                });
+
+                                console.log(`[EXHAUSTIVE UPLOAD LOG - Response Attempt ${uploadAttempts}]:`, { status: response.status, result });
 
                                 if (response.status === 401 || (result && result.error && result.error.message && result.error.message.includes('JWT'))) {
                                     app.upload.activeProgressToast.update(60, 'Phiên hết hạn, đang kết nối lại...', `Thử lại lần ${uploadAttempts}`);
@@ -1948,15 +1953,20 @@ Object.assign(window.app, {
                                 }
 
                                 if (!result.success) {
+                                    console.error('[EXHAUSTIVE UPLOAD LOG - SERVER RETURNED FAILURE]:', JSON.stringify(result, null, 2));
                                     let errorDetail = result.error;
                                     if (typeof errorDetail === 'object' && errorDetail !== null) {
                                         errorDetail = errorDetail.message || JSON.stringify(errorDetail);
                                     }
+                                    if (result.details) errorDetail += ` | Details: ${result.details}`;
+                                    if (result.code) errorDetail += ` | Code: ${result.code}`;
+                                    if (result.hint) errorDetail += ` | Hint: ${result.hint}`;
                                     throw new Error(errorDetail || 'Máy chủ từ chối yêu cầu Upload.');
                                 }
                                 break;
                             } catch (err) {
                                 lastUploadErr = err;
+                                console.error(`[EXHAUSTIVE UPLOAD LOG - ATTEMPT ${uploadAttempts} EXCEPTION]:`, err, err.stack || '');
                                 if (uploadAttempts < maxUploadAttempts) {
                                     app.upload.activeProgressToast.update(50, `Lỗi mạng. Đang thử lại ${uploadAttempts}/${maxUploadAttempts}...`, `BKS: ${item.plate}`);
                                     await new Promise(r => setTimeout(r, 2500));
@@ -1965,6 +1975,12 @@ Object.assign(window.app, {
                         }
 
                         if (!result || !result.success) {
+                            console.error('[EXHAUSTIVE UPLOAD LOG - FINAL FAILURE COMPLETE DETAILS]:', {
+                                plate: item.plate,
+                                lastUploadErr,
+                                result,
+                                attempts: uploadAttempts
+                            });
                             // FALLBACK XOÁ ẢNH KHI LỖI DB
                             if (result && result.url) {
                                 try {
@@ -1973,7 +1989,9 @@ Object.assign(window.app, {
                                         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                                         body: JSON.stringify({ imageUrl: result.url })
                                     });
-                                } catch (delErr) {}
+                                } catch (delErr) {
+                                    console.error('[EXHAUSTIVE UPLOAD LOG - DELETE FALLBACK ERROR]:', delErr);
+                                }
                             }
 
                             if (app.upload.activeProgressToast) {
@@ -1987,6 +2005,7 @@ Object.assign(window.app, {
 
                             let displayError = lastUploadErr ? lastUploadErr.message : "Upload thất bại";
                             if (displayError === '[object Object]') displayError = JSON.stringify(lastUploadErr);
+
 
                             const localErrors = ["Trình duyệt của bạn không hỗ trợ", "Ảnh quá phức tạp", "Lỗi nén ảnh"];
                             const shouldReport = !localErrors.some(eStr => displayError.includes(eStr));
