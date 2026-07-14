@@ -2672,8 +2672,35 @@ Object.assign(window.app, {
                                         if (noDataMsg && noDataMsg.innerText.includes('Không có ảnh nào')) {
                                             content.innerHTML = '';
                                         }
+                                        let plateSet = app.admin?.approvedPlateSet || new Set();
+                                        let opSet = app.admin?.approvedOpSet || new Set();
+                                        let routeSet = app.admin?.approvedRouteSet || new Set();
+                                        let modelSet = app.admin?.approvedModelSet || new Set();
+
+                                        const plateKey = (newPhoto.license_plate || '').trim().toUpperCase();
+                                        if (plateKey && !plateSet.has(plateKey)) {
+                                            const { data } = await window.sb.from('vehicles').select('license_plate').eq('license_plate', plateKey).maybeSingle();
+                                            if (data) plateSet.add(plateKey);
+                                        }
+                                        const opKey = app.utils.cleanText(newPhoto.operator || '').trim().toLowerCase();
+                                        if (opKey && opKey !== '---' && !opSet.has(opKey)) {
+                                            const { data: vData } = await window.sb.from('vehicles').select('operator').ilike('operator', opKey).limit(1);
+                                            const { data: oData } = await window.sb.from('operator_info').select('operator_name').ilike('operator_name', opKey).limit(1);
+                                            if ((vData && vData.length > 0) || (oData && oData.length > 0)) opSet.add(opKey);
+                                        }
+                                        const routeKey = app.utils.cleanText(newPhoto.route_no || '').trim().toLowerCase();
+                                        if (routeKey && routeKey !== '---' && !routeSet.has(routeKey)) {
+                                            const { data: vData } = await window.sb.from('vehicles').select('route_no').ilike('route_no', routeKey).limit(1);
+                                            if (vData && vData.length > 0) routeSet.add(routeKey);
+                                        }
+                                        const modelKey = app.utils.cleanText(newPhoto.vehicles?.model || '').trim().toLowerCase();
+                                        if (modelKey && modelKey !== '---' && !modelSet.has(modelKey)) {
+                                            const { data: vData } = await window.sb.from('vehicles').select('model').ilike('model', modelKey).limit(1);
+                                            if (vData && vData.length > 0) modelSet.add(modelKey);
+                                        }
+
                                         const tempDiv = document.createElement('div');
-                                        tempDiv.innerHTML = app.admin.renderSinglePhotoCardHTML(newPhoto, new Set(), new Set(), new Set(), new Set());
+                                        tempDiv.innerHTML = app.admin.renderSinglePhotoCardHTML(newPhoto, plateSet, opSet, routeSet, modelSet);
                                         const newCard = tempDiv.firstElementChild;
                                         if (newCard) {
                                             newCard.style.opacity = '0';

@@ -27,7 +27,7 @@ Object.assign(window.app, {
                     app.admin.checkNotification();
                 },
 
-                renderSinglePhotoCardHTML: (p, approvedPlateSet = new Set(), approvedOpSet = new Set(), approvedRouteSet = new Set(), approvedModelSet = new Set()) => {
+                renderSinglePhotoCardHTML: (p, approvedPlateSet = app.admin?.approvedPlateSet || new Set(), approvedOpSet = app.admin?.approvedOpSet || new Set(), approvedRouteSet = app.admin?.approvedRouteSet || new Set(), approvedModelSet = app.admin?.approvedModelSet || new Set()) => {
                     const op = app.utils.cleanText(p.operator || '');
                     const type = p.type || 'bus';
                     const route = app.utils.cleanText(p.route_no || '');
@@ -602,6 +602,11 @@ Object.assign(window.app, {
                                 const { data: approvedModels } = await window.sb.from('photos').select('vehicles!inner(model)').eq('status', 'approved').in('vehicles.model', variants);
                                 (approvedModels || []).forEach(p => { if (p.vehicles?.model && p.vehicles.model !== '---') approvedModelSet.add(app.utils.cleanText(p.vehicles.model).trim().toLowerCase()); });
                             }
+
+                            app.admin.approvedPlateSet = approvedPlateSet;
+                            app.admin.approvedOpSet = approvedOpSet;
+                            app.admin.approvedRouteSet = approvedRouteSet;
+                            app.admin.approvedModelSet = approvedModelSet;
 
                             // THÊM: Sắp xếp ưu tiên (Admin/Manager lên đầu, theo thứ tự up trước xếp trước)
                             const photos = rawPhotos.sort((a, b) => {
