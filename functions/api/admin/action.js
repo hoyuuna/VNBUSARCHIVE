@@ -89,6 +89,13 @@ export async function onRequestPost(context) {
                     base64Data = sbxByPhoto.base64_data;
                 }
             }
+            if (!base64Data && photo.url && typeof photo.url === 'string' && photo.url.startsWith('data:')) {
+                base64Data = photo.url;
+            }
+
+            if ((sandboxId || (photo.url && typeof photo.url === 'string' && photo.url.startsWith('sandbox:'))) && !base64Data) {
+                return new Response(JSON.stringify({ error: "Không thể duyệt: Ảnh tạm trong Sandbox đã bị xóa (do quá 24h hoặc bị xóa thủ công). Dữ liệu ảnh gốc không còn tồn tại nên không thể khôi phục lên hệ thống chính!" }), { status: 400 });
+            }
 
             if (base64Data) {
                 console.log(`[DEBUG] Admin duyệt ảnh Sandbox (ID: ${photoId}), chuyển lên CDN thật...`);
@@ -141,6 +148,10 @@ export async function onRequestPost(context) {
                 } else {
                     return new Response(JSON.stringify({ error: 'Lỗi tải ảnh từ sandbox lên CDN khi duyệt.' }), { status: 500 });
                 }
+            }
+
+            if (!finalUrl || (typeof finalUrl === 'string' && (finalUrl.startsWith('sandbox:') || finalUrl.startsWith('data:') || finalUrl === 'SANDBOX_DELETED'))) {
+                return new Response(JSON.stringify({ error: "Không thể duyệt: Dữ liệu ảnh không hợp lệ hoặc chưa được tải thành công lên máy chủ CDN thực!" }), { status: 400 });
             }
 
             const { error: vError } = await sb.from('vehicles')
