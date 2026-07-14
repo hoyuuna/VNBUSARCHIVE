@@ -3294,7 +3294,48 @@
                             </div>
                         </div>
 
+                        <div id="denial-reason-box"
+                            class="hidden bg-red-50 p-4 rounded-md border border-red-200 mt-4 mb-6 shadow-sm">
+                            <div class="flex items-center gap-2 text-red-700 font-bold text-sm mb-1">
+                                <i class="fa-solid fa-circle-exclamation text-lg"></i>
+                                <span>Lý do từ chối:</span>
+                            </div>
+                            <div id="denial-reason-text" class="text-red-800 text-sm ml-6 mb-3"></div>
+                            <hr class="border-red-200 my-2">
 
+                            <!-- Thêm dòng chữ mới vào đây -->
+                            <p class="text-xs font-semibold text-red-700 ml-6 mb-1.5">
+                                Không sao cả, bạn thử lại với một bức ảnh khác chất lượng hơn nhé! Cảm ơn đóng góp của bạn.
+                            </p>
+
+                            <p class="text-xs text-red-600 ml-6">
+                                Bạn có thể tham khảo <a
+                                    href="https://github.com/hoyuuna/VNBUSARCHIVE/blob/main/Requirements.md"
+                                    target="_blank" class="font-bold underline hover:text-red-800">Quy định kiểm duyệt</a> tại đây. Nếu cần giải thích thêm hoặc khiếu nại, hãy <a href="javascript:void(0)" onclick="app.utils.navigate('/contact')"
+                                    class="font-bold underline hover:text-red-800">Gửi yêu cầu hỗ trợ</a> cho tụi mình nhé! (Bạn bắt buộc phải gửi yêu cầu trước ít nhất 12h sau khi bị từ chối, nếu không ảnh sẽ bị xóa vĩnh viễn và không còn khả năng kháng cáo)
+                            </p>
+                        </div>
+
+                        <div id="pending-status-box" class="hidden bg-yellow-50 p-4 rounded-md border border-yellow-200 mt-4 mb-3 shadow-sm">
+                            <div class="flex items-center gap-2 text-yellow-800 font-bold text-sm mb-1">
+                                <i class="fa-solid fa-clock text-lg"></i>
+                                <span>Ảnh đang chờ duyệt</span>
+                            </div>
+                            <p class="text-xs text-yellow-700 ml-6">
+                                Yêu cầu của bạn đang được xử lý. Bạn hoàn toàn có thể xóa ảnh mà không cần chờ duyệt trong thời gian chờ đợi này.
+                            </p>
+                        </div>
+
+                        <div id="pending-queue-box" class="hidden bg-yellow-50 p-4 rounded-md border border-yellow-200 mb-6 shadow-sm">
+                            <div class="flex items-center gap-2 text-yellow-800 font-bold text-sm mb-1">
+                                <i class="fa-solid fa-users-line text-lg"></i>
+                                <span>Ảnh chờ duyệt trước bạn: <span id="pending-queue-count">...</span></span>
+                            </div>
+                            <hr class="border-yellow-200 my-2">
+                            <p class="text-xs text-yellow-700 ml-1">
+                                Thời gian phê duyệt sẽ linh hoạt tùy theo lượng ảnh, độ khó và tâm trạng admin (*^▽^*). Cảm ơn bạn đã kiên nhẫn chờ đợi.
+                            </p>
+                        </div>
 
                         <div class="bg-white mb-6 relative border border-gray-200 shadow-sm rounded-xl p-2.5 pt-3.5 pb-2.5 md:p-3 md:pt-4 md:pb-3 overflow-visible">
                             <h3 class="font-bold text-xs uppercase text-black tracking-wider mb-2.5 px-1">Thông tin chi tiết</h3>
@@ -3517,48 +3558,7 @@
                     </div>
                 </div>
 
-                <div id="denial-reason-box"
-                    class="hidden bg-red-50 p-4 rounded-md border border-red-200 mt-6 mb-6 shadow-sm">
-                    <div class="flex items-center gap-2 text-red-700 font-bold text-sm mb-1">
-                        <i class="fa-solid fa-circle-exclamation text-lg"></i>
-                        <span>Lý do từ chối:</span>
-                    </div>
-                    <div id="denial-reason-text" class="text-red-800 text-sm ml-6 mb-3"></div>
-                    <hr class="border-red-200 my-2">
 
-                    <!-- Thêm dòng chữ mới vào đây -->
-                    <p class="text-xs font-semibold text-red-700 ml-6 mb-1.5">
-                        Không sao cả, bạn thử lại với một bức ảnh khác chất lượng hơn nhé! Cảm ơn đóng góp của bạn.
-                    </p>
-
-                    <p class="text-xs text-red-600 ml-6">
-                        Bạn có thể tham khảo <a
-                            href="https://github.com/hoyuuna/VNBUSARCHIVE/blob/main/Requirements.md"
-                            target="_blank" class="font-bold underline hover:text-red-800">Quy định kiểm duyệt</a> tại đây. Nếu cần giải thích thêm hoặc khiếu nại, hãy <a href="javascript:void(0)" onclick="app.utils.navigate('/contact')"
-                            class="font-bold underline hover:text-red-800">Gửi yêu cầu hỗ trợ</a> cho tụi mình nhé! (Bạn bắt buộc phải gửi yêu cầu trước ít nhất 12h sau khi bị từ chối, nếu không ảnh sẽ bị xóa vĩnh viễn và không còn khả năng kháng cáo)
-                    </p>
-                </div>
-
-                <div id="pending-status-box" class="hidden bg-yellow-50 p-4 rounded-md border border-yellow-200 mt-6 mb-3 shadow-sm">
-                    <div class="flex items-center gap-2 text-yellow-800 font-bold text-sm mb-1">
-                        <i class="fa-solid fa-clock text-lg"></i>
-                        <span>Ảnh đang chờ duyệt</span>
-                    </div>
-                    <p class="text-xs text-yellow-700 ml-6">
-                        Yêu cầu của bạn đang được xử lý. Bạn hoàn toàn có thể xóa ảnh mà không cần chờ duyệt trong thời gian chờ đợi này.
-                    </p>
-                </div>
-
-                <div id="pending-queue-box" class="hidden bg-yellow-50 p-4 rounded-md border border-yellow-200 mb-6 shadow-sm">
-                    <div class="flex items-center gap-2 text-yellow-800 font-bold text-sm mb-1">
-                        <i class="fa-solid fa-users-line text-lg"></i>
-                        <span>Ảnh chờ duyệt trước bạn: <span id="pending-queue-count">...</span></span>
-                    </div>
-                    <hr class="border-yellow-200 my-2">
-                    <p class="text-xs text-yellow-700 ml-1">
-                        Thời gian phê duyệt sẽ linh hoạt tùy theo lượng ảnh, độ khó và tâm trạng admin (*^▽^*). Cảm ơn bạn đã kiên nhẫn chờ đợi.
-                    </p>
-                </div>
 
                 <!-- BÌNH LUẬN -->
                 <div id="comment-section" class="mt-8 mb-6 bg-white border border-vbs-border p-4 md:p-6 rounded-lg shadow-sm block">
