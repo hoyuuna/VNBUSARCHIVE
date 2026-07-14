@@ -27,6 +27,110 @@ Object.assign(window.app, {
                     app.admin.checkNotification();
                 },
 
+                renderSinglePhotoCardHTML: (p, approvedPlateSet = new Set(), approvedOpSet = new Set(), approvedRouteSet = new Set(), approvedModelSet = new Set()) => {
+                    const op = app.utils.cleanText(p.operator || '');
+                    const type = p.type || 'bus';
+                    const route = app.utils.cleanText(p.route_no || '');
+                    const model = app.utils.cleanText(p.vehicles?.model || '');
+                    const location = app.utils.cleanText(p.location);
+                    const prov = app.utils.cleanText(p.province || '');
+                    const note = app.utils.cleanText(p.note);
+                    const safeUsername = app.utils.cleanText(p.profiles?.username || 'Ẩn danh');
+                    const safePlate = app.utils.cleanText(p.license_plate);
+                    if (!app.admin.originalData) app.admin.originalData = {};
+                    app.admin.originalData['photo_' + p.id] = { plate: safePlate, operator: op, type: type, route: route, model: model };
+
+                    const tagNew = '<span class="bg-black text-white px-1.5 py-0.5 rounded text-[9px] font-bold ml-1 tracking-wider">MỚI</span>';
+                    const isNewOp = op && !approvedOpSet.has(op);
+                    const isNewRoute = route && !approvedRouteSet.has(route);
+                    const isNewModel = model && !approvedModelSet.has(model);
+
+                    const isOwnPhoto = Boolean(app.user && (p.uploader_id === app.user.id || p.user_id === app.user.id));
+                    const hideClass = (app.admin.isHideMineEnabled && isOwnPhoto) ? 'hidden' : '';
+
+                    return `
+                                <div id="adm-photo-card-${p.id}" class="admin-card overflow-visible ${hideClass}" data-photo-id="${p.id}" data-is-own="${isOwnPhoto ? 'true' : 'false'}">
+                                    <div class="admin-card-header">
+                                        <div class="flex items-center gap-2">
+                                            <span class="font-bold text-sm">${safePlate}</span>
+                                            ${!approvedPlateSet.has(safePlate.toUpperCase()) ? '<span class="badge-xe-moi"><i class="fa-solid fa-sparkles"></i> XE MỚI</span>' : ''}
+                                            ${p.suspected_exif_fraud ? '<span class="bg-red-600 text-white px-1.5 py-0.5 rounded text-[10px] font-bold ml-1 tracking-wider whitespace-nowrap"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Nghi ngờ gian lận</span>' : ''}
+                                        </div>
+                                        <span class="text-xs text-gray-500">${safeUsername}</span>
+                                    </div>
+                                    <div class="relative w-full bg-gray-200 border-y border-gray-200 overflow-hidden">
+                                        <img loading="lazy" src="${app.utils.getProxiedUrl(p.url)}" class="w-full h-auto object-contain">
+                                        <div class="admin-photo-grid-overlay grid-3x3-overlay ${app.admin.is3x3Enabled ? '' : 'hidden'}">
+                                            <div class="grid-3x3-line-v" style="left: 33.3333%;"></div>
+                                            <div class="grid-3x3-line-v" style="left: 66.6666%;"></div>
+                                            <div class="grid-3x3-line-h" style="top: 33.3333%;"></div>
+                                            <div class="grid-3x3-line-h" style="top: 66.6666%;"></div>
+                                        </div>
+                                        ${app.admin.getRulerOverlayHTML()}
+                                        <button onclick="app.admin.openZoom('${app.utils.getProxiedUrl(p.url)}', false, true)" class="absolute top-2 right-2 bg-black/50 text-white w-8 h-8 rounded hover:bg-black flex items-center justify-center transition z-20" title="Soi ảnh"><i class="fa-solid fa-expand"></i></button>
+                                    </div>
+                                    <div class="admin-card-body">
+                                        <p class="text-[10px] text-gray-500 mb-2"><b>Ngày chụp:</b> ${p.taken_at ? p.taken_at.split('T')[0] : 'Không rõ'} | <b>Camera:</b> ${p.camera_model}</p>
+                                        <div class="grid grid-cols-2 gap-2 mb-2">
+                                            <div><span class="admin-label">Biển số</span><input type="text" id="adm-p-plate-${p.id}" value="${safePlate}" class="admin-input transition-all" oninput="app.utils.formatPlateInput(this)" onchange="app.admin.checkPlateAdmin(this, '${p.id}', 'photo')"></div>
+                                            <div>
+                                                <span class="admin-label">Đơn vị${isNewOp ? tagNew : ''}</span>
+                                                <div class="relative">
+                                                    <input type="text" id="adm-p-op-${p.id}" value="${op}" class="admin-input" autocomplete="off" oninput="app.utils.formatNoPunctuation(this); app.utils.triggerSuggestion('adm-p-op-${p.id}', 'adm-sug-op-${p.id}', this.value, 'operator')">
+                                                    <div id="adm-sug-op-${p.id}" class="suggestion-box"></div>
+                                                </div>
+                                            </div>
+                                            <div><span class="admin-label">Loại xe</span><select id="adm-p-type-${p.id}" class="admin-input"><option value="bus" ${type === 'bus' ? 'selected' : ''}>Xe buýt</option><option value="coach" ${type === 'coach' ? 'selected' : ''}>Xe khách</option></select></div>
+                                            <div>
+                                                <span class="admin-label">Tuyến${isNewRoute ? tagNew : ''}</span>
+                                                <div class="relative">
+                                                    <input type="text" id="adm-p-route-${p.id}" value="${route}" class="admin-input" autocomplete="off" onfocus="app.utils.triggerRouteSuggestion('adm-p-route-${p.id}', 'adm-sug-route-${p.id}', '')" oninput="app.utils.triggerRouteSuggestion('adm-p-route-${p.id}', 'adm-sug-route-${p.id}', this.value)">
+                                                    <div id="adm-sug-route-${p.id}" class="suggestion-box"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="grid grid-cols-2 gap-2 mb-2">
+                                            <div>
+                                                <span class="admin-label">Dòng xe${isNewModel ? tagNew : ''}</span>
+                                                <div class="relative">
+                                                    <input type="text" id="adm-p-model-${p.id}" value="${model}" class="admin-input" autocomplete="off" oninput="app.utils.triggerSuggestion('adm-p-model-${p.id}', 'adm-sug-model-${p.id}', this.value, 'model')">
+                                                    <div id="adm-sug-model-${p.id}" class="suggestion-box"></div>
+                                                </div>
+                                            </div>
+                                            <div><span class="admin-label">Vị trí</span><input type="text" id="adm-p-location-${p.id}" value="${location}" class="admin-input"></div>
+                                            <div class="hidden">
+                                                <select id="adm-p-province-${p.id}">
+                                                    <option value="${prov || ''}" selected>${prov || ''}</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div><span class="admin-label">Ghi chú</span><textarea id="adm-p-note-${p.id}" rows="2" class="admin-input">${note}</textarea></div>
+                                        ${(() => {
+                                        const isOwnPhoto = p.uploader_id === app.user.id;
+                                        const canApprove = !isOwnPhoto || app.role === 'manager';
+                                        const canDeny = !isOwnPhoto || app.role === 'manager';
+
+                                        let actionButtons = '<div class="flex gap-2 mt-2">';
+
+                                        if (canApprove) {
+                                            actionButtons += `<button onclick="app.admin.approvePhoto('${p.id}', '${p.uploader_id}', this)" class="flex-1 bg-green-600 text-white py-1.5 text-xs font-bold rounded hover:bg-green-700">DUYỆT</button>`;
+                                        } else {
+                                            actionButtons += `<div class="flex-1 bg-gray-100 text-gray-400 py-1.5 text-xs font-bold rounded text-center border border-gray-200 cursor-not-allowed">
+                                                <i class="fa-solid fa-lock mr-1"></i> Không thể tự duyệt
+                                            </div>`;
+                                        }
+
+                                        if (canDeny) {
+                                            actionButtons += `<button onclick="app.admin.denyPhoto('${p.id}', '${p.uploader_id}', this)" class="flex-1 bg-red-600 text-white py-1.5 text-xs font-bold rounded hover:bg-red-700">TỪ CHỐI</button>`;
+                                        }
+
+                                        actionButtons += '</div>';
+                                        return actionButtons;
+                                    })()}
+                                    </div>
+                                </div>`;
+                },
+
                 update3x3UI: () => {
                     const btn = document.getElementById('btn-toggle-3x3');
                     const statusText = document.getElementById('status-3x3');
@@ -385,7 +489,7 @@ Object.assign(window.app, {
                     }, 200);
                 },
 
-                loadTab: async (tab) => {
+                loadTab: async (tab, forceReload = false) => {
                     app.adminTab = tab;
                     app.admin.refreshCounts().then(total => app.admin.checkNotification());
 
@@ -405,7 +509,10 @@ Object.assign(window.app, {
                         app.admin.switchManagerTab(activeSub);
                         return;
                     }
-                    content.innerHTML = '<p class="text-gray-500 italic p-4">Đang tải...</p>';
+                    if (!(tab === 'photos' && !forceReload && content.querySelector('.admin-card'))) {
+                        content.innerHTML = '<p class="text-gray-500 italic p-4">Đang tải...</p>';
+                    }
+
 
                     // Update UI Buttons
                     ['photos', 'requests', 'delete', 'manager', 'comments'].forEach(t => {
@@ -477,109 +584,32 @@ Object.assign(window.app, {
                                 return a.id - b.id;
                             });
 
-                            content.innerHTML = photos.map(p => {
-                                const op = app.utils.cleanText(p.operator || '');
-                                const type = p.type || 'bus';
-                                const route = app.utils.cleanText(p.route_no || '');
-                                const model = app.utils.cleanText(p.vehicles?.model || '');
-                                const location = app.utils.cleanText(p.location);
-                                const prov = app.utils.cleanText(p.province || '');
-                                const note = app.utils.cleanText(p.note);
-                                const safeUsername = app.utils.cleanText(p.profiles?.username || 'Ẩn danh');
-                                const safePlate = app.utils.cleanText(p.license_plate);
-                                if (!app.admin.originalData) app.admin.originalData = {};
-                                app.admin.originalData['photo_' + p.id] = { plate: safePlate, operator: op, type: type, route: route, model: model };
-
-                                const tagNew = '<span class="bg-black text-white px-1.5 py-0.5 rounded text-[9px] font-bold ml-1 tracking-wider">MỚI</span>';
-                                const isNewOp = op && !approvedOpSet.has(op);
-                                const isNewRoute = route && !approvedRouteSet.has(route);
-                                const isNewModel = model && !approvedModelSet.has(model);
-
-                                const isOwnPhoto = Boolean(app.user && (p.uploader_id === app.user.id || p.user_id === app.user.id));
-                                const hideClass = (app.admin.isHideMineEnabled && isOwnPhoto) ? 'hidden' : '';
-
-                                return `
-                                <div class="admin-card overflow-visible ${hideClass}" data-is-own="${isOwnPhoto ? 'true' : 'false'}">
-                                    <div class="admin-card-header">
-                                        <div class="flex items-center gap-2">
-                                            <span class="font-bold text-sm">${safePlate}</span>
-                                            ${!approvedPlateSet.has(safePlate.toUpperCase()) ? '<span class="badge-xe-moi"><i class="fa-solid fa-sparkles"></i> XE MỚI</span>' : ''}
-                                            ${p.suspected_exif_fraud ? '<span class="bg-red-600 text-white px-1.5 py-0.5 rounded text-[10px] font-bold ml-1 tracking-wider whitespace-nowrap"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Nghi ngờ gian lận</span>' : ''}
-                                        </div>
-                                        <span class="text-xs text-gray-500">${safeUsername}</span>
-                                    </div>
-                                    <div class="relative w-full bg-gray-200 border-y border-gray-200 overflow-hidden">
-                                        <img loading="lazy" src="${app.utils.getProxiedUrl(p.url)}" class="w-full h-auto object-contain">
-                                        <div class="admin-photo-grid-overlay grid-3x3-overlay ${app.admin.is3x3Enabled ? '' : 'hidden'}">
-                                            <div class="grid-3x3-line-v" style="left: 33.3333%;"></div>
-                                            <div class="grid-3x3-line-v" style="left: 66.6666%;"></div>
-                                            <div class="grid-3x3-line-h" style="top: 33.3333%;"></div>
-                                            <div class="grid-3x3-line-h" style="top: 66.6666%;"></div>
-                                        </div>
-                                        ${app.admin.getRulerOverlayHTML()}
-                                        <button onclick="app.admin.openZoom('${app.utils.getProxiedUrl(p.url)}', false, true)" class="absolute top-2 right-2 bg-black/50 text-white w-8 h-8 rounded hover:bg-black flex items-center justify-center transition z-20" title="Soi ảnh"><i class="fa-solid fa-expand"></i></button>
-                                    </div>
-                                    <div class="admin-card-body">
-                                        <p class="text-[10px] text-gray-500 mb-2"><b>Ngày chụp:</b> ${p.taken_at ? p.taken_at.split('T')[0] : 'Không rõ'} | <b>Camera:</b> ${p.camera_model}</p>
-                                        <div class="grid grid-cols-2 gap-2 mb-2">
-                                            <div><span class="admin-label">Biển số</span><input type="text" id="adm-p-plate-${p.id}" value="${safePlate}" class="admin-input transition-all" oninput="app.utils.formatPlateInput(this)" onchange="app.admin.checkPlateAdmin(this, '${p.id}', 'photo')"></div>
-                                            <div>
-                                                <span class="admin-label">Đơn vị${isNewOp ? tagNew : ''}</span>
-                                                <div class="relative">
-                                                    <input type="text" id="adm-p-op-${p.id}" value="${op}" class="admin-input" autocomplete="off" oninput="app.utils.formatNoPunctuation(this); app.utils.triggerSuggestion('adm-p-op-${p.id}', 'adm-sug-op-${p.id}', this.value, 'operator')">
-                                                    <div id="adm-sug-op-${p.id}" class="suggestion-box"></div>
-                                                </div>
-                                            </div>
-                                            <div><span class="admin-label">Loại xe</span><select id="adm-p-type-${p.id}" class="admin-input"><option value="bus" ${type === 'bus' ? 'selected' : ''}>Xe buýt</option><option value="coach" ${type === 'coach' ? 'selected' : ''}>Xe khách</option></select></div>
-                                            <div>
-                                                <span class="admin-label">Tuyến${isNewRoute ? tagNew : ''}</span>
-                                                <div class="relative">
-                                                    <input type="text" id="adm-p-route-${p.id}" value="${route}" class="admin-input" autocomplete="off" onfocus="app.utils.triggerRouteSuggestion('adm-p-route-${p.id}', 'adm-sug-route-${p.id}', '')" oninput="app.utils.triggerRouteSuggestion('adm-p-route-${p.id}', 'adm-sug-route-${p.id}', this.value)">
-                                                    <div id="adm-sug-route-${p.id}" class="suggestion-box"></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="grid grid-cols-2 gap-2 mb-2">
-                                            <div>
-                                                <span class="admin-label">Dòng xe${isNewModel ? tagNew : ''}</span>
-                                                <div class="relative">
-                                                    <input type="text" id="adm-p-model-${p.id}" value="${model}" class="admin-input" autocomplete="off" oninput="app.utils.triggerSuggestion('adm-p-model-${p.id}', 'adm-sug-model-${p.id}', this.value, 'model')">
-                                                    <div id="adm-sug-model-${p.id}" class="suggestion-box"></div>
-                                                </div>
-                                            </div>
-                                            <div><span class="admin-label">Vị trí</span><input type="text" id="adm-p-location-${p.id}" value="${location}" class="admin-input"></div>
-                                            <div class="hidden">
-                                                <select id="adm-p-province-${p.id}">
-                                                    <option value="${prov || ''}" selected>${prov || ''}</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div><span class="admin-label">Ghi chú</span><textarea id="adm-p-note-${p.id}" rows="2" class="admin-input">${note}</textarea></div>
-                                        ${(() => {
-                                        const isOwnPhoto = p.uploader_id === app.user.id;
-                                        const canApprove = !isOwnPhoto || app.role === 'manager';
-                                        const canDeny = !isOwnPhoto || app.role === 'manager';
-
-                                        let actionButtons = '<div class="flex gap-2 mt-2">';
-
-                                        if (canApprove) {
-                                            actionButtons += `<button onclick="app.admin.approvePhoto('${p.id}', '${p.uploader_id}', this)" class="flex-1 bg-green-600 text-white py-1.5 text-xs font-bold rounded hover:bg-green-700">DUYỆT</button>`;
-                                        } else {
-                                            actionButtons += `<div class="flex-1 bg-gray-100 text-gray-400 py-1.5 text-xs font-bold rounded text-center border border-gray-200 cursor-not-allowed">
-                                                <i class="fa-solid fa-lock mr-1"></i> Không thể tự duyệt
-                                            </div>`;
+                            if (!forceReload && content.querySelector('.admin-card') && app.adminTab === 'photos') {
+                                const currentIds = new Set(photos.map(p => String(p.id)));
+                                content.querySelectorAll('.admin-card[data-photo-id]').forEach(card => {
+                                    if (!currentIds.has(card.getAttribute('data-photo-id'))) {
+                                        card.style.transition = 'all 0.3s ease';
+                                        card.style.opacity = '0';
+                                        card.style.transform = 'scale(0.9)';
+                                        setTimeout(() => card.remove(), 300);
+                                    }
+                                });
+                                photos.forEach(p => {
+                                    if (!document.getElementById(`adm-photo-card-${p.id}`)) {
+                                        const tempDiv = document.createElement('div');
+                                        tempDiv.innerHTML = app.admin.renderSinglePhotoCardHTML(p, approvedPlateSet, approvedOpSet, approvedRouteSet, approvedModelSet);
+                                        const newEl = tempDiv.firstElementChild;
+                                        if (newEl && content) {
+                                            content.appendChild(newEl);
                                         }
-
-                                        if (canDeny) {
-                                            actionButtons += `<button onclick="app.admin.denyPhoto('${p.id}', '${p.uploader_id}', this)" class="flex-1 bg-red-600 text-white py-1.5 text-xs font-bold rounded hover:bg-red-700">TỪ CHỐI</button>`;
-                                        }
-
-                                        actionButtons += '</div>';
-                                        return actionButtons;
-                                    })()}
-                                    </div>
-                                </div>`
-                            }).join('');
+                                    }
+                                });
+                                if (content.querySelectorAll('.admin-card').length === 0 && photos.length === 0) {
+                                    content.innerHTML = '<p class="p-4">Không có ảnh nào chờ duyệt.</p>';
+                                }
+                            } else {
+                                content.innerHTML = photos.map(p => app.admin.renderSinglePhotoCardHTML(p, approvedPlateSet, approvedOpSet, approvedRouteSet, approvedModelSet)).join('');
+                            }
                             if (app.admin.update3x3UI) app.admin.update3x3UI();
                             if (app.admin.updateRulerUI) app.admin.updateRulerUI();
                             if (app.admin.updateHideMineUI) app.admin.updateHideMineUI();

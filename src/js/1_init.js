@@ -2619,6 +2619,79 @@ Object.assign(window.app, {
                             const viewEl = document.getElementById('stat-views');
                             if (viewEl) viewEl.innerText = payload.new.views || 0;
                         }
+                        if (payload.new && payload.new.status !== 'pending') {
+                            const cardEl = document.getElementById(`adm-photo-card-${payload.new.id}`);
+                            if (cardEl) {
+                                cardEl.style.transition = 'all 0.35s ease';
+                                cardEl.style.opacity = '0';
+                                cardEl.style.transform = 'scale(0.92)';
+                                cardEl.style.maxHeight = '0px';
+                                cardEl.style.margin = '0px';
+                                cardEl.style.padding = '0px';
+                                cardEl.style.overflow = 'hidden';
+                                setTimeout(() => {
+                                    cardEl.remove();
+                                    const content = document.getElementById('admin-content');
+                                    if (content && content.querySelectorAll('.admin-card').length === 0 && app.adminTab === 'photos') {
+                                        content.innerHTML = '<p class="p-4">Không có ảnh nào chờ duyệt.</p>';
+                                    }
+                                }, 350);
+                                if (app.admin && app.admin.refreshCounts) app.admin.refreshCounts();
+                            }
+                        }
+                    })
+                    .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'photos' }, payload => {
+                        const cardEl = document.getElementById(`adm-photo-card-${payload.old?.id}`);
+                        if (cardEl) {
+                            cardEl.style.transition = 'all 0.35s ease';
+                            cardEl.style.opacity = '0';
+                            cardEl.style.transform = 'scale(0.92)';
+                            cardEl.style.maxHeight = '0px';
+                            cardEl.style.margin = '0px';
+                            cardEl.style.padding = '0px';
+                            cardEl.style.overflow = 'hidden';
+                            setTimeout(() => {
+                                cardEl.remove();
+                                const content = document.getElementById('admin-content');
+                                if (content && content.querySelectorAll('.admin-card').length === 0 && app.adminTab === 'photos') {
+                                    content.innerHTML = '<p class="p-4">Không có ảnh nào chờ duyệt.</p>';
+                                }
+                            }, 350);
+                            if (app.admin && app.admin.refreshCounts) app.admin.refreshCounts();
+                        }
+                    })
+                    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'photos', filter: 'status=eq.pending' }, async payload => {
+                        if (app.adminTab === 'photos' && (app.role === 'admin' || app.role === 'manager') && payload.new && payload.new.id) {
+                            try {
+                                const { data: newPhoto } = await window.sb.from('photos').select('*, profiles(username, role), vehicles(model)').eq('id', payload.new.id).maybeSingle();
+                                if (newPhoto && !document.getElementById(`adm-photo-card-${newPhoto.id}`)) {
+                                    await app.utils.resolveSandboxUrls([newPhoto]);
+                                    const content = document.getElementById('admin-content');
+                                    if (content && app.admin && app.admin.renderSinglePhotoCardHTML) {
+                                        const noDataMsg = content.querySelector('p');
+                                        if (noDataMsg && noDataMsg.innerText.includes('Không có ảnh nào')) {
+                                            content.innerHTML = '';
+                                        }
+                                        const tempDiv = document.createElement('div');
+                                        tempDiv.innerHTML = app.admin.renderSinglePhotoCardHTML(newPhoto, new Set(), new Set(), new Set(), new Set());
+                                        const newCard = tempDiv.firstElementChild;
+                                        if (newCard) {
+                                            newCard.style.opacity = '0';
+                                            newCard.style.transform = 'translateY(-15px)';
+                                            newCard.style.transition = 'all 0.4s ease';
+                                            content.insertBefore(newCard, content.firstElementChild);
+                                            requestAnimationFrame(() => {
+                                                newCard.style.opacity = '1';
+                                                newCard.style.transform = 'translateY(0)';
+                                            });
+                                        }
+                                    }
+                                    if (app.admin && app.admin.refreshCounts) app.admin.refreshCounts();
+                                }
+                            } catch (err) {
+                                console.error('Realtime insert photo error:', err);
+                            }
+                        }
                     })
                     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'vehicles' }, payload => {
                         const upPlate = document.getElementById('up-plate');
