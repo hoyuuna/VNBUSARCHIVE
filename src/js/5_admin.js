@@ -1057,7 +1057,7 @@ app.admin.fetchManagerData('denied');
                             const { data: { session } } = await window.sb.auth.getSession();
                             const response = await fetch('/api/manager', {
                                 method: 'POST',
-                                headers: { 'Content-Type': 'application/json', 'Authorization': \`Bearer ${session.access_token}\` },
+                                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
                                 body: JSON.stringify({ action: 'get_users' })
                             });
                             const result = await response.json();
@@ -1292,7 +1292,7 @@ app.admin.fetchManagerData('denied');
                         const { data: { session } } = await window.sb.auth.getSession();
                         const response = await fetch('/api/manager', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'Authorization': \`Bearer ${session.access_token}\` },
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
                             body: JSON.stringify({ action: 'ban', targetUserId: userId, reason: reason })
                         });
                         const data = await response.json();
@@ -1316,7 +1316,7 @@ app.admin.fetchManagerData('denied');
                             const { data: { session } } = await window.sb.auth.getSession();
                             const response = await fetch('/api/manager', {
                                 method: 'POST',
-                                headers: { 'Content-Type': 'application/json', 'Authorization': \`Bearer ${session.access_token}\` },
+                                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
                                 body: JSON.stringify({ action: 'unban', targetUserId: userId })
                             });
                             const data = await response.json();
@@ -1340,7 +1340,7 @@ app.admin.fetchManagerData('denied');
                             const { data: { session } } = await window.sb.auth.getSession();
                             const response = await fetch('/api/manager', {
                                 method: 'POST',
-                                headers: { 'Content-Type': 'application/json', 'Authorization': \`Bearer ${session.access_token}\` },
+                                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
                                 body: JSON.stringify({ action: 'delete_user', targetUserId: userId })
                             });
                             const data = await response.json();
