@@ -2389,7 +2389,7 @@ Object.assign(window.app, {
                             async () => {
                                 try {
                                     try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
-                                    // 1. Gọi API Xóa ảnh từ ImageKit trước
+                                    // 1. Gọi API Xóa ảnh từ CDN/Sandbox trước
                                     const { data: { session } } = await window.sb.auth.getSession();
                                     if (session && p.url) {
                                         await fetch('/api/delete-image', {
@@ -2398,11 +2398,16 @@ Object.assign(window.app, {
                                                 'Content-Type': 'application/json',
                                                 'Authorization': `Bearer ${session.access_token}`
                                             },
-                                            body: JSON.stringify({ imageUrl: p.url })
+                                            body: JSON.stringify({ imageUrl: p.url, photoId: p.id })
                                         });
                                     }
 
-                                    // 2. Xóa khỏi Supabase Database
+                                    // 2. Xóa khỏi Sandbox & Supabase Database
+                                    if (p.url && p.url.startsWith('sandbox:')) {
+                                        const sandboxId = p.url.replace('sandbox:', '').trim();
+                                        if (sandboxId) await window.sb.from('image_sandbox').delete().eq('id', sandboxId);
+                                    }
+                                    await window.sb.from('image_sandbox').delete().eq('photo_id', p.id);
                                     await window.sb.from('photos').delete().eq('id', p.id);
                                     await app.vehicle.cleanupVehicle(p.license_plate);
 

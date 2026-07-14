@@ -2050,8 +2050,8 @@ app.admin.fetchManagerData('denied');
                         const plate = photo ? photo.license_plate : 'đã chọn';
                         const imgUrl = photo ? photo.url : null;
 
-                        // 1. Gọi API Xóa ảnh khỏi ImageKit
-                        if (imgUrl) {
+                        // 1. Gọi API Xóa ảnh khỏi CDN/Sandbox
+                        if (imgUrl || photoId) {
                             const { data: { session } } = await window.sb.auth.getSession();
                             await fetch('/api/delete-image', {
                                 method: 'POST',
@@ -2059,11 +2059,16 @@ app.admin.fetchManagerData('denied');
                                     'Content-Type': 'application/json',
                                     'Authorization': `Bearer ${session?.access_token}`
                                 },
-                                body: JSON.stringify({ imageUrl: imgUrl })
+                                body: JSON.stringify({ imageUrl: imgUrl, photoId: photoId })
                             });
                         }
 
-                        // 2. Xóa dữ liệu Database
+                        // 2. Xóa dữ liệu Database & Sandbox
+                        if (imgUrl && imgUrl.startsWith('sandbox:')) {
+                            const sandboxId = imgUrl.replace('sandbox:', '').trim();
+                            if (sandboxId) await window.sb.from('image_sandbox').delete().eq('id', sandboxId);
+                        }
+                        await window.sb.from('image_sandbox').delete().eq('photo_id', photoId);
                         const { error: delError } = await window.sb.from('photos').delete().eq('id', photoId);
                         if (delError) throw delError;
 
