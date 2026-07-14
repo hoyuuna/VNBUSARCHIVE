@@ -1874,7 +1874,7 @@ Object.assign(window.app, {
                         const descEl = document.getElementById('operator-desc');
 
                         if (opInfo && opInfo.logo_url) {
-                            logoEl.src = 'https://wsrv.nl/?url=' + encodeURIComponent(opInfo.logo_url);
+                            logoEl.src = opInfo.logo_url.includes('wsrv.nl') ? opInfo.logo_url : 'https://wsrv.nl/?url=' + encodeURIComponent(opInfo.logo_url);
                             logoEl.classList.remove('hidden');
                             fallbackEl.classList.add('hidden');
                         } else {
@@ -2811,7 +2811,7 @@ Object.assign(window.app, {
                         const descEl = document.getElementById('model-desc');
 
                         if (brandLogoData && brandLogoData.logo_url) {
-                            logoEl.src = 'https://wsrv.nl/?url=' + encodeURIComponent(brandLogoData.logo_url);
+                            logoEl.src = brandLogoData.logo_url.includes('wsrv.nl') ? brandLogoData.logo_url : 'https://wsrv.nl/?url=' + encodeURIComponent(brandLogoData.logo_url);
                             logoEl.classList.remove('hidden');
                             fallbackEl.classList.add('hidden');
                         } else {

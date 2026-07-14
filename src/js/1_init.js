@@ -3754,7 +3754,7 @@ Object.assign(window.app, {
 
                                 for (const op of finalOps) {
                                     const info = opInfoMap[op.toLowerCase()] || {};
-                                    const logo = info.logo_url ? app.utils.escapeAttr('https://wsrv.nl/?url=' + encodeURIComponent(info.logo_url)) : '';
+                                    const logo = info.logo_url ? app.utils.escapeAttr(info.logo_url.includes('wsrv.nl') ? info.logo_url : 'https://wsrv.nl/?url=' + encodeURIComponent(info.logo_url)) : '';
                                     
                                     const iconHtml = logo 
                                         ? `<img src="${logo}" class="w-12 h-12 object-contain shrink-0" onerror="this.outerHTML='<div class=&quot;w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0&quot;><i class=&quot;fa-solid fa-building&quot;></i></div>';">` 
@@ -3827,7 +3827,7 @@ Object.assign(window.app, {
 
                                 for (const m of finalModels) {
                                     const info = mdlInfoMap[m.toLowerCase()] || {};
-                                    let logo = info.logo_url ? app.utils.escapeAttr('https://wsrv.nl/?url=' + encodeURIComponent(info.logo_url)) : '';
+                                    let logo = info.logo_url ? app.utils.escapeAttr(info.logo_url.includes('wsrv.nl') ? info.logo_url : 'https://wsrv.nl/?url=' + encodeURIComponent(info.logo_url)) : '';
                                     
                                     if (!logo) {
                                         const brandName = m.split(' ')[0];
@@ -3838,7 +3838,7 @@ Object.assign(window.app, {
                                             .limit(1)
                                             .maybeSingle();
                                         if (brandLogoData && brandLogoData.logo_url) {
-                                            logo = app.utils.escapeAttr('https://wsrv.nl/?url=' + encodeURIComponent(brandLogoData.logo_url));
+                                            logo = app.utils.escapeAttr(brandLogoData.logo_url.includes('wsrv.nl') ? brandLogoData.logo_url : 'https://wsrv.nl/?url=' + encodeURIComponent(brandLogoData.logo_url));
                                         }
                                     }
 
