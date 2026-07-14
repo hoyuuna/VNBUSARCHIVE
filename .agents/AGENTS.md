@@ -1,3 +1,6 @@
+# ?? CRITICAL INITIALIZATION PROTOCOL: AGENT READ THIS BEFORE PROCEEDING ??
+**MANDATORY FIRST STEP:** Before responding to the user, answering any questions, or writing any code, you MUST read ALL markdown documents located in the .agents/ directory (e.g., security.md, js_map.md). 
+**Rule:** Use your list_dir tool to view .agents/ and iew_file on EVERY .md file inside it immediately upon starting a new conversation. Failure to do so will result in severe system architectural violations.
 ## UI and Color Palette Rules
 - Use only black, white, and gray for standard UI components. Red, yellow, and blue are reserved strictly for notification modals.
 - Always reuse existing designs (popups, modals) unless explicitly asked to create a new design.
