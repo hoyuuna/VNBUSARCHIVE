@@ -158,7 +158,14 @@ export async function onRequest(context) {
         } else {
             console.log(`[DEBUG] Tiến hành lưu ảnh vào Sandbox Base64: ${fileName}`);
             const arrayBuffer = await file.arrayBuffer();
-            const base64String = `data:${file.type || 'image/jpeg'};base64,` + Buffer.from(arrayBuffer).toString('base64');
+            let binary = '';
+            const bytes = new Uint8Array(arrayBuffer);
+            const len = bytes.byteLength;
+            const chunkSize = 8192;
+            for (let i = 0; i < len; i += chunkSize) {
+                binary += String.fromCharCode.apply(null, bytes.subarray(i, Math.min(i + chunkSize, len)));
+            }
+            const base64String = `data:${file.type || 'image/jpeg'};base64,` + btoa(binary);
             const sandboxId = `sbx_${Date.now()}_${safeHash}`;
             finalOptimizedUrl = `sandbox:${sandboxId}`;
 
