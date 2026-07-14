@@ -777,7 +777,7 @@ Object.assign(window.app, {
                                             <div class="mb-2">
                                                 <span class="admin-label">Logo URL</span>
                                                 <input type="text" id="req-op-logo-${r.id}" value="${app.utils.escapeAttr(d.logo_url || '')}" class="admin-input">
-                                                ${d.logo_url ? `<img src="${app.utils.escapeAttr(d.logo_url)}" class="mt-1 h-8 w-8 object-cover rounded border border-gray-200">` : ''}
+                                                ${d.logo_url ? `<img src="${app.utils.escapeAttr(d.logo_url.includes('wsrv.nl') ? d.logo_url : 'https://wsrv.nl/?url=' + encodeURIComponent(d.logo_url))}" class="mt-1 h-8 w-8 object-cover rounded border border-gray-200">` : ''}
                                             </div>
                                             <div class="mb-2">
                                                 <span class="admin-label">Mô tả</span>
@@ -798,7 +798,7 @@ Object.assign(window.app, {
                                             <div class="mb-2">
                                                 <span class="admin-label">Logo Hãng (Tự động đồng bộ hãng)</span>
                                                 <input type="text" id="req-mdl-logo-${r.id}" value="${app.utils.escapeAttr(d.logo_url || '')}" class="admin-input">
-                                                ${d.logo_url ? `<img src="${app.utils.escapeAttr(d.logo_url)}" class="mt-1 h-8 w-auto max-w-[80px] object-contain rounded border border-gray-200">` : ''}
+                                                ${d.logo_url ? `<img src="${app.utils.escapeAttr(d.logo_url.includes('wsrv.nl') ? d.logo_url : 'https://wsrv.nl/?url=' + encodeURIComponent(d.logo_url))}" class="mt-1 h-8 w-auto max-w-[80px] object-contain rounded border border-gray-200">` : ''}
                                             </div>
                                             <div class="mb-2">
                                                 <span class="admin-label">Mô tả chi tiết Model</span>
