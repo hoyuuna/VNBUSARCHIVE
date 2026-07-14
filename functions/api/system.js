@@ -8,7 +8,7 @@ function validateOriginAndReferer(request) {
     const isProduction = host.includes('vnbusarchive.io.vn');
     
     if (!isProduction) return true;
-    if (!origin && !referer) return true;
+    if (!origin && !referer) return false;
     
     function checkDomain(str) {
         if (!str) return false;
@@ -250,7 +250,8 @@ export async function onRequest(context) {
         return handleConfig(request, env);
     } else if (request.method === 'POST') {
         try {
-            const body = await request.json().catch(() => ({}));
+            const clonedReq = request.clone();
+            const body = await clonedReq.json().catch(() => ({}));
             const { action } = body;
             if (action === 'qr-login') {
                 return handleQrLoginGenerate(request, env);

@@ -29,7 +29,10 @@ export async function onRequest(context) {
         const isAvatar = formData.get('isAvatar') === 'true';
         const userId = formData.get('userId');
         const captchaToken = formData.get('captchaToken');
-        const fileExtension = formData.get('fileExtension') || 'jpg';
+        
+        const ALLOWED_EXT = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'heic'];
+        const rawExt = String(formData.get('fileExtension') || 'jpg').toLowerCase();
+        const fileExtension = ALLOWED_EXT.includes(rawExt) ? rawExt : 'jpg';
 
         const metadata = {
             plate: sanitizeString(formData.get('meta_plate')),
@@ -51,6 +54,15 @@ export async function onRequest(context) {
 
         if (!file || typeof file === 'string') {
             return new Response(JSON.stringify({ success: false, error: 'Ảnh tải lên bị rỗng. Vui lòng thử lại.' }), { status: 400, headers: { 'Content-Type': 'application/json' }});
+        }
+
+        const MAX_SIZE = 20 * 1024 * 1024;
+        const ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+        if (file.size > MAX_SIZE) {
+            return new Response(JSON.stringify({ success: false, error: 'File quá lớn (tối đa 20MB).' }), { status: 400, headers: { 'Content-Type': 'application/json' }});
+        }
+        if (!ALLOWED_MIME.includes(file.type)) {
+            return new Response(JSON.stringify({ success: false, error: 'Loại file không hợp lệ (chỉ chấp nhận ảnh).' }), { status: 400, headers: { 'Content-Type': 'application/json' }});
         }
 
         if (!isAvatar) {

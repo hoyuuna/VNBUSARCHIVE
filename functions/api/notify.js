@@ -223,7 +223,7 @@ function validateOriginAndReferer(request) {
     const host = request.headers.get('host') || '';
     const isProduction = host.includes('vnbusarchive.io.vn');
     if (!isProduction) return true;
-    if (!origin && !referer) return true;
+    if (!origin && !referer) return false;
     function checkDomain(str) {
         if (!str) return false;
         try {
