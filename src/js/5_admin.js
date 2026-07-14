@@ -41,13 +41,21 @@ Object.assign(window.app, {
                     app.admin.originalData['photo_' + p.id] = { plate: safePlate, operator: op, type: type, route: route, model: model };
 
                     const tagNew = '<span class="bg-black text-white px-1.5 py-0.5 rounded text-[9px] font-bold ml-1 tracking-wider">MỚI</span>';
-                    const opKey = (op || '').trim().toLowerCase();
-                    const routeKey = (route || '').trim().toLowerCase();
-                    const modelKey = (model || '').trim().toLowerCase();
+                    const opKey = app.utils.cleanText(op || '').trim().toLowerCase();
+                    const rawRouteKey = app.utils.cleanText(route || '').trim().toLowerCase();
+                    const strippedRouteKey = rawRouteKey.replace(/^tuyến\s+/i, '').trim();
+                    const numRouteKey = /^\d+$/.test(strippedRouteKey) ? String(parseInt(strippedRouteKey, 10)) : strippedRouteKey;
+                    const paddedRouteKey = /^\d+$/.test(strippedRouteKey) ? strippedRouteKey.padStart(2, '0') : strippedRouteKey;
+                    const modelKey = app.utils.cleanText(model || '').trim().toLowerCase();
                     const plateKey = (safePlate || '').trim().toUpperCase();
 
                     const isNewOp = opKey && opKey !== '---' && opKey !== 'đang cập nhật' && opKey !== 'không rõ' && !approvedOpSet.has(opKey);
-                    const isNewRoute = routeKey && routeKey !== '---' && routeKey !== 'đang cập nhật' && !approvedRouteSet.has(routeKey);
+                    const isNewRoute = route && rawRouteKey !== '---' && rawRouteKey !== 'đang cập nhật' && rawRouteKey !== 'không rõ' && 
+                        !approvedRouteSet.has(rawRouteKey) && 
+                        !approvedRouteSet.has(strippedRouteKey) && 
+                        !approvedRouteSet.has('tuyến ' + strippedRouteKey) && 
+                        !approvedRouteSet.has(numRouteKey) && 
+                        !approvedRouteSet.has(paddedRouteKey);
                     const isNewModel = modelKey && modelKey !== '---' && modelKey !== 'đang cập nhật' && !approvedModelSet.has(modelKey);
 
                     const isOwnPhoto = Boolean(app.user && (p.uploader_id === app.user.id || p.user_id === app.user.id));
@@ -549,9 +557,36 @@ Object.assign(window.app, {
                             if (!rawPhotos || rawPhotos.length === 0) { content.innerHTML = '<p class="p-4">Không có ảnh nào chờ duyệt.</p>'; return; }
                             await app.utils.resolveSandboxUrls(rawPhotos);
 
+                            const addRouteVariants = (set, s) => {
+                                if (!s || s === '---' || s === 'Đang cập nhật') return;
+                                const clean = app.utils.cleanText(s).trim().toLowerCase();
+                                if (!clean) return;
+                                set.add(clean);
+                                const stripped = clean.replace(/^tuyến\s+/i, '').trim();
+                                set.add(stripped);
+                                set.add('tuyến ' + stripped);
+                                if (/^\d+$/.test(stripped)) {
+                                    const num = String(parseInt(stripped, 10));
+                                    const pad = stripped.padStart(2, '0');
+                                    set.add(num); set.add(pad);
+                                    set.add('tuyến ' + num); set.add('tuyến ' + pad);
+                                }
+                            };
+
                             const getVariants = (arr) => [...new Set(arr.flatMap(s => {
-                                const clean = (s || '').trim();
-                                return [clean, clean.toLowerCase(), clean.toUpperCase(), clean.replace(/\b\w/g, c => c.toUpperCase())];
+                                const clean = app.utils.cleanText(s || '').trim();
+                                const cleanLower = clean.toLowerCase();
+                                const stripped = cleanLower.replace(/^tuyến\s+/i, '').trim();
+                                let res = [clean, cleanLower, clean.toUpperCase(), clean.replace(/\b\w/g, c => c.toUpperCase())];
+                                if (stripped && stripped !== cleanLower) {
+                                    res.push(stripped, stripped.toUpperCase(), 'Tuyến ' + stripped, 'Tuyến ' + stripped.toUpperCase(), 'tuyến ' + stripped);
+                                }
+                                if (/^\d+$/.test(stripped)) {
+                                    const num = String(parseInt(stripped, 10));
+                                    const pad = stripped.padStart(2, '0');
+                                    res.push(num, pad, 'Tuyến ' + num, 'Tuyến ' + pad, 'tuyến ' + num, 'tuyến ' + pad);
+                                }
+                                return res;
                             }).filter(Boolean))];
 
                             let approvedPlateSet = new Set();
@@ -562,7 +597,7 @@ Object.assign(window.app, {
                             // 1. Fetch từ bảng operator_info (đơn vị đã tồn tại)
                             try {
                                 const { data: opInfos } = await window.sb.from('operator_info').select('operator_name');
-                                (opInfos || []).forEach(o => { if (o.operator_name) approvedOpSet.add(o.operator_name.trim().toLowerCase()); });
+                                (opInfos || []).forEach(o => { if (o.operator_name) approvedOpSet.add(app.utils.cleanText(o.operator_name).trim().toLowerCase()); });
                             } catch (e) {}
 
                             // 2. Fetch từ bảng vehicles (dòng xe, biển số, tuyến, đơn vị đã tồn tại trong hồ sơ xe)
@@ -571,12 +606,12 @@ Object.assign(window.app, {
                                 (vehs || []).forEach(v => {
                                     if (v.license_plate) approvedPlateSet.add(v.license_plate.trim().toUpperCase());
                                     if (v.operator && v.operator !== '---' && v.operator !== 'Đang cập nhật') approvedOpSet.add(app.utils.cleanText(v.operator).trim().toLowerCase());
-                                    if (v.route_no && v.route_no !== '---') approvedRouteSet.add(app.utils.cleanText(v.route_no).trim().toLowerCase());
+                                    if (v.route_no && v.route_no !== '---') addRouteVariants(approvedRouteSet, v.route_no);
                                     if (v.model && v.model !== '---') approvedModelSet.add(app.utils.cleanText(v.model).trim().toLowerCase());
                                 });
                             } catch (e) {}
 
-                            // 3. Fetch từ bảng photos (các ảnh đã được duyệt)
+                            // 3. Fetch từ bảng photos và vehicles theo exact variants của ảnh chờ duyệt
                             const pendingPlates = [...new Set(rawPhotos.map(p => p.license_plate).filter(Boolean))];
                             const pendingOps = [...new Set(rawPhotos.map(p => app.utils.cleanText(p.operator || '')).filter(Boolean))];
                             const pendingRoutes = [...new Set(rawPhotos.map(p => app.utils.cleanText(p.route_no || '')).filter(Boolean))];
@@ -585,22 +620,32 @@ Object.assign(window.app, {
                             if (pendingPlates.length > 0) {
                                 const variants = getVariants(pendingPlates);
                                 const { data: approvedPlates } = await window.sb.from('photos').select('license_plate').eq('status', 'approved').in('license_plate', variants);
+                                const { data: vehPlates } = await window.sb.from('vehicles').select('license_plate').in('license_plate', variants);
                                 (approvedPlates || []).forEach(p => { if (p.license_plate) approvedPlateSet.add(p.license_plate.trim().toUpperCase()); });
+                                (vehPlates || []).forEach(v => { if (v.license_plate) approvedPlateSet.add(v.license_plate.trim().toUpperCase()); });
                             }
                             if (pendingOps.length > 0) {
                                 const variants = getVariants(pendingOps);
                                 const { data: approvedOps } = await window.sb.from('photos').select('operator').eq('status', 'approved').in('operator', variants);
+                                const { data: vehOps } = await window.sb.from('vehicles').select('operator').in('operator', variants);
+                                const { data: infoOps } = await window.sb.from('operator_info').select('operator_name').in('operator_name', variants);
                                 (approvedOps || []).forEach(p => { if (p.operator && p.operator !== '---' && p.operator !== 'Đang cập nhật') approvedOpSet.add(app.utils.cleanText(p.operator).trim().toLowerCase()); });
+                                (vehOps || []).forEach(v => { if (v.operator && v.operator !== '---' && v.operator !== 'Đang cập nhật') approvedOpSet.add(app.utils.cleanText(v.operator).trim().toLowerCase()); });
+                                (infoOps || []).forEach(o => { if (o.operator_name) approvedOpSet.add(app.utils.cleanText(o.operator_name).trim().toLowerCase()); });
                             }
                             if (pendingRoutes.length > 0) {
                                 const variants = getVariants(pendingRoutes);
                                 const { data: approvedRoutes } = await window.sb.from('photos').select('route_no').eq('status', 'approved').in('route_no', variants);
-                                (approvedRoutes || []).forEach(p => { if (p.route_no && p.route_no !== '---') approvedRouteSet.add(app.utils.cleanText(p.route_no).trim().toLowerCase()); });
+                                const { data: vehRoutes } = await window.sb.from('vehicles').select('route_no').in('route_no', variants);
+                                (approvedRoutes || []).forEach(p => { if (p.route_no && p.route_no !== '---') addRouteVariants(approvedRouteSet, p.route_no); });
+                                (vehRoutes || []).forEach(v => { if (v.route_no && v.route_no !== '---') addRouteVariants(approvedRouteSet, v.route_no); });
                             }
                             if (pendingModels.length > 0) {
                                 const variants = getVariants(pendingModels);
                                 const { data: approvedModels } = await window.sb.from('photos').select('vehicles!inner(model)').eq('status', 'approved').in('vehicles.model', variants);
+                                const { data: vehModels } = await window.sb.from('vehicles').select('model').in('model', variants);
                                 (approvedModels || []).forEach(p => { if (p.vehicles?.model && p.vehicles.model !== '---') approvedModelSet.add(app.utils.cleanText(p.vehicles.model).trim().toLowerCase()); });
+                                (vehModels || []).forEach(v => { if (v.model && v.model !== '---') approvedModelSet.add(app.utils.cleanText(v.model).trim().toLowerCase()); });
                             }
 
                             app.admin.approvedPlateSet = approvedPlateSet;

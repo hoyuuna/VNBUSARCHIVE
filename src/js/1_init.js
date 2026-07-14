@@ -2679,24 +2679,37 @@ Object.assign(window.app, {
 
                                         const plateKey = (newPhoto.license_plate || '').trim().toUpperCase();
                                         if (plateKey && !plateSet.has(plateKey)) {
-                                            const { data } = await window.sb.from('vehicles').select('license_plate').eq('license_plate', plateKey).maybeSingle();
-                                            if (data) plateSet.add(plateKey);
+                                            const { data: vData } = await window.sb.from('vehicles').select('license_plate').eq('license_plate', plateKey).limit(1);
+                                            const { data: pData } = await window.sb.from('photos').select('license_plate').eq('status', 'approved').eq('license_plate', plateKey).limit(1);
+                                            if ((vData && vData.length > 0) || (pData && pData.length > 0)) plateSet.add(plateKey);
                                         }
                                         const opKey = app.utils.cleanText(newPhoto.operator || '').trim().toLowerCase();
                                         if (opKey && opKey !== '---' && !opSet.has(opKey)) {
                                             const { data: vData } = await window.sb.from('vehicles').select('operator').ilike('operator', opKey).limit(1);
                                             const { data: oData } = await window.sb.from('operator_info').select('operator_name').ilike('operator_name', opKey).limit(1);
-                                            if ((vData && vData.length > 0) || (oData && oData.length > 0)) opSet.add(opKey);
+                                            const { data: pData } = await window.sb.from('photos').select('operator').eq('status', 'approved').ilike('operator', opKey).limit(1);
+                                            if ((vData && vData.length > 0) || (oData && oData.length > 0) || (pData && pData.length > 0)) opSet.add(opKey);
                                         }
                                         const routeKey = app.utils.cleanText(newPhoto.route_no || '').trim().toLowerCase();
                                         if (routeKey && routeKey !== '---' && !routeSet.has(routeKey)) {
-                                            const { data: vData } = await window.sb.from('vehicles').select('route_no').ilike('route_no', routeKey).limit(1);
-                                            if (vData && vData.length > 0) routeSet.add(routeKey);
+                                            const stripped = routeKey.replace(/^tuyến\s+/i, '').trim();
+                                            const variants = [...new Set([routeKey, stripped, 'tuyến ' + stripped])];
+                                            if (/^\d+$/.test(stripped)) {
+                                                const num = String(parseInt(stripped, 10));
+                                                const pad = stripped.padStart(2, '0');
+                                                variants.push(num, pad, 'tuyến ' + num, 'tuyến ' + pad);
+                                            }
+                                            const { data: vData } = await window.sb.from('vehicles').select('route_no').in('route_no', variants).limit(1);
+                                            const { data: pData } = await window.sb.from('photos').select('route_no').eq('status', 'approved').in('route_no', variants).limit(1);
+                                            if ((vData && vData.length > 0) || (pData && pData.length > 0)) {
+                                                variants.forEach(v => routeSet.add(v.toLowerCase()));
+                                            }
                                         }
                                         const modelKey = app.utils.cleanText(newPhoto.vehicles?.model || '').trim().toLowerCase();
                                         if (modelKey && modelKey !== '---' && !modelSet.has(modelKey)) {
                                             const { data: vData } = await window.sb.from('vehicles').select('model').ilike('model', modelKey).limit(1);
-                                            if (vData && vData.length > 0) modelSet.add(modelKey);
+                                            const { data: pData } = await window.sb.from('photos').select('vehicles!inner(model)').eq('status', 'approved').ilike('vehicles.model', modelKey).limit(1);
+                                            if ((vData && vData.length > 0) || (pData && pData.length > 0)) modelSet.add(modelKey);
                                         }
 
                                         const tempDiv = document.createElement('div');
