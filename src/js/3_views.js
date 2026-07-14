@@ -403,15 +403,15 @@ Object.assign(window.app, {
 
                         banner.innerHTML = `
                             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-3.5">
-                                <span class="font-extrabold text-gray-900 text-sm md:text-base tracking-tight flex items-center gap-2">
-                                    <i class="fa-solid fa-flag-checkered text-black"></i> Cột mốc ${nextMilestone.toLocaleString('vi-VN')} ảnh
+                                <span class="font-extrabold text-gray-900 text-sm md:text-base tracking-tight">
+                                    Cột mốc ${nextMilestone.toLocaleString('vi-VN')} ảnh
                                 </span>
                                 <span class="font-black text-base md:text-lg tracking-tight" style="background: linear-gradient(to right, #fdf542, #ff0000); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.1));">
                                     ${totalPhotos.toLocaleString('vi-VN')}/${nextMilestone.toLocaleString('vi-VN')}
                                 </span>
                             </div>
-                            <div class="w-full bg-gray-100 border border-gray-200 rounded-full h-3 mb-4 overflow-hidden p-0.5 shadow-inner">
-                                <div class="h-full rounded-full transition-all duration-1000 shadow-sm" style="width: ${progressPercent}%; background: linear-gradient(to right, #fdf542, #ff0000);"></div>
+                            <div class="w-full bg-gray-100 border border-gray-200 rounded-full h-3.5 md:h-4 mb-4 overflow-hidden shadow-inner flex items-center">
+                                <div class="h-full rounded-full transition-all duration-1000" style="width: ${progressPercent}%; background: linear-gradient(to right, #fdf542, #ff0000); min-width: 6px;"></div>
                             </div>
                             <div class="flex justify-start sm:justify-end">
                                 <button onclick="app.utils.navigate('/upload')" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 bg-black text-white font-bold text-sm rounded-lg hover:bg-gray-800 transition shadow-md group">
