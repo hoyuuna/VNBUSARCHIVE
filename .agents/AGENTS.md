@@ -19,3 +19,15 @@
 
 ## Git Workflow
 - **Rule:** Always automatically commit and push git changes (`git add -A; git commit -m "..."; git push`) after successfully completing user requests or modifying code. **All git commit messages MUST always be written in English.**
+
+## Frontend Build & Payload Invariant
+- **Rule:** All core frontend logic resides in `src/js/` (`1_init.js` through `5_admin.js`) and `_core.html`. Whenever any file inside `src/js/` or `_core.html` is modified, you **MUST run `node build-core.js`** immediately to bundle and Base64-encode the payload into `functions/api/_core.js`. Never edit `functions/api/_core.js` directly or inject static script logic into `public/index.html`.
+
+## Sandbox Image & CDN Approval Guardrails
+- **No Client-Side Approval Bypasses:** All actions that approve or re-approve photos (e.g., `reapproveBtn` in `3_views.js` or `approvePhoto` in `5_admin.js`) **MUST call the backend API `/api/admin/action`** (`action: 'approve'`). Never directly update `photos.status = 'approved'` from the frontend via `window.sb.from('photos').update(...)`, as this bypasses CDN uploading and validation.
+- **Missing Data Safety Block:** When handling `action: 'approve'` in `/api/admin/action.js`, the backend must verify that valid base64 image data exists in `image_sandbox` (or valid `data:image/...` string). If data is missing (e.g., deleted after 24h or expired), the system MUST return a `400 Bad Request` error and block approval to prevent broken `sandbox:` links from entering the main feed.
+- **Storage Cleanup:** Upon successful CDN upload during photo approval, the backend **MUST BẮT BUỘC delete** the corresponding base64 rows from `image_sandbox` (`by id` and `by photo_id`) to prevent database storage bloat.
+
+## Admin Dashboard & Vehicle Status Filtering (`XE MỚI` Badge Invariant)
+- **Approved Photo Filtering:** When fetching vehicle data (`vehicles` table) to build reference sets in Admin/Manager views (`approvedPlateSet`, `approvedOpSet`, `approvedRouteSet`, `approvedModelSet` in `5_admin.js`), you **MUST strictly filter by `photos!inner(status) = 'approved'`**. 
+- **Why:** Because `upload.js` inserts new vehicle records with `pending` status upon initial photo upload. If queries do not filter by approved photo status, `pending` or `denied` license plates will prematurely exist in `approvedPlateSet`, causing the `XE MỚI` (New Car) badge logic (`!approvedPlateSet.has(plateKey)`) to fail.
