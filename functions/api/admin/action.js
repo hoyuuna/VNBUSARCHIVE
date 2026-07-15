@@ -342,18 +342,6 @@ export async function onRequestPost(context) {
                 }
             }
             
-            // cleanupVehicle logic
-            if (targetPlate) {
-                const { data: countData } = await sb.from('photos').select('id', { count: 'exact' })
-                    .eq('license_plate', targetPlate)
-                    .neq('status', 'denied');
-                
-                if (countData && countData.length === 0) {
-                    await sb.from('vehicles').delete().eq('license_plate', targetPlate);
-                    await sb.from('vehicle_history').delete().eq('license_plate', targetPlate);
-                }
-            }
-
             await sb.from('admin_audit_logs').insert({
                 admin_id: user.id,
                 action_type: 'deny_photo',

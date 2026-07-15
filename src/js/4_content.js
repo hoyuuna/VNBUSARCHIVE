@@ -2903,16 +2903,8 @@ Object.assign(window.app, {
                 currentHistoryPrefix: '',
 
                 cleanupVehicle: async (plate) => {
-                    if (!plate || !app.user) return;
-                    try {
-
-
-                        const { data, error } = await window.sb.from('photos').select('id').eq('license_plate', plate).limit(1);
-                        if (!error && (!data || data.length === 0)) {
-                            await window.sb.from('vehicles').delete().eq('license_plate', plate);
-                            await window.sb.from('vehicle_history').delete().eq('license_plate', plate);
-                        }
-                    } catch (err) {}
+                    // Đã vô hiệu hóa dọn dẹp xe trống để tránh lỗi Postgres ON DELETE CASCADE làm mất ảnh trong bảng photos
+                    return;
                 },
 
                 toggleEditHistory: (prefix = '') => {
