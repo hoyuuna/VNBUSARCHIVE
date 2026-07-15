@@ -589,7 +589,14 @@ Object.assign(window.app, {
                                         if (apiJson && apiJson.data && Array.isArray(apiJson.data)) {
                                             const idMap = new Map();
                                             rawPhotos.forEach(p => idMap.set(p.id, p));
-                                            apiJson.data.forEach(p => idMap.set(p.id, p));
+                                            apiJson.data.forEach(p => {
+                                                const existing = idMap.get(p.id);
+                                                if (existing) {
+                                                    idMap.set(p.id, { ...existing, ...p, vehicles: p.vehicles || existing.vehicles, profiles: p.profiles || existing.profiles });
+                                                } else {
+                                                    idMap.set(p.id, p);
+                                                }
+                                            });
                                             rawPhotos = Array.from(idMap.values()).sort((a,b) => a.id - b.id);
                                         }
                                     }

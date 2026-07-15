@@ -2936,7 +2936,7 @@ Object.assign(window.app, {
                         if (headerInp) headerInp.value = decodedQ;
                         if (pageInp) pageInp.value = decodedQ;
                         app.views.switch('search', false);
-                        app.handleSearch(true);
+                        app.handleSearch(false);
                     } else app.views.loadHome();
                 } else {
                     app.views.switch('home', false);
