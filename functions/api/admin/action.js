@@ -15,9 +15,8 @@ export async function onRequestPost(context) {
         
         const token = authHeader.replace('Bearer ', '');
 
-        // Khởi tạo Supabase client với quyền của chính User (bằng token JWT của họ)
-        // Điều này giúp vượt qua RLS policy mà không cần dùng Service Role Key
-        const sb = createClient(env.SUPABASE_URL, env.SUPABASE_KEY, {
+        // Khởi tạo Supabase client với quyền của chính User (bằng token JWT của họ) để xác thực
+        let sb = createClient(env.SUPABASE_URL, env.SUPABASE_KEY, {
             global: {
                 headers: {
                     Authorization: `Bearer ${token}`
@@ -38,6 +37,12 @@ export async function onRequestPost(context) {
         
         if (!profiles || profiles.length === 0 || !['admin', 'manager'].includes(profiles[0].role)) {
             return new Response(JSON.stringify({ error: 'Forbidden: Admin access required' }), { status: 403 });
+        }
+        
+        // Sau khi đã xác thực user hợp lệ và có quyền admin/manager, nâng cấp client lên Service Role Key
+        // để thực hiện các thao tác quản trị (lưu vào image_sandbox, sửa photos/vehicles của user khác) không bị cản trở bởi RLS
+        if (env.SUPABASE_SERVICE_ROLE_KEY) {
+            sb = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
         }
         
         const body = await request.json();
