@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { execSync, execFileSync } = require('child_process');
 
 try {
     const corePath = path.join(__dirname, '_core.html');
@@ -66,6 +67,24 @@ try {
         const headersContent = `/*\n  Content-Security-Policy: ${cspString}\n`;
         fs.writeFileSync(path.join(__dirname, 'public', '_headers'), headersContent);
         console.log('Đã tạo public/_headers từ csp.json');
+    }
+
+    // Build Tailwind CSS
+    try {
+        console.log('Đang biên dịch Tailwind CSS...');
+        const tailwindExe = path.join(__dirname, 'tailwind.exe');
+        const inputCssPath = path.join(__dirname, 'src', 'input.css');
+        const outputCssPath = path.join(__dirname, 'public', 'tailwind.css');
+
+        if (fs.existsSync(tailwindExe)) {
+            execFileSync(tailwindExe, ['-i', inputCssPath, '-o', outputCssPath, '--minify'], { stdio: 'inherit' });
+            console.log('Biên dịch Tailwind CSS thành công (qua tailwind.exe)!');
+        } else {
+            execSync(`npx -y tailwindcss -i "${inputCssPath}" -o "${outputCssPath}" --minify`, { stdio: 'inherit' });
+            console.log('Biên dịch Tailwind CSS thành công (qua npx tailwindcss)!');
+        }
+    } catch (twErr) {
+        console.warn('Cảnh báo: Lỗi khi biên dịch Tailwind CSS:', twErr.message);
     }
 } catch (error) {
     console.error('Lỗi khi build:', error);
