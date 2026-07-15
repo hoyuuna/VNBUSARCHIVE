@@ -571,8 +571,31 @@ Object.assign(window.app, {
 
                     try {
                         if (tab === 'photos') {
-                            const { data: rawPhotos, error } = await window.sb.from('photos').select('*, profiles(username, role), vehicles(model)').eq('status', 'pending').order('id', { ascending: true });
-                            if (error) throw error;
+                            let rawPhotos = [];
+                            try {
+                                const { data: pData } = await window.sb.from('photos').select('*, profiles(username, role), vehicles(model)').eq('status', 'pending').order('id', { ascending: true });
+                                if (pData && pData.length > 0) rawPhotos = pData;
+                            } catch(e){}
+
+                            try {
+                                const sessionRes = await window.sb.auth.getSession();
+                                const token = sessionRes.data.session?.access_token;
+                                if (token) {
+                                    const apiRes = await fetch('/api/photo?status=pending', {
+                                        headers: { 'Authorization': `Bearer ${token}` }
+                                    });
+                                    if (apiRes.ok) {
+                                        const apiJson = await apiRes.json();
+                                        if (apiJson && apiJson.data && Array.isArray(apiJson.data)) {
+                                            const idMap = new Map();
+                                            rawPhotos.forEach(p => idMap.set(p.id, p));
+                                            apiJson.data.forEach(p => idMap.set(p.id, p));
+                                            rawPhotos = Array.from(idMap.values()).sort((a,b) => a.id - b.id);
+                                        }
+                                    }
+                                }
+                            } catch(e) { console.warn('Lỗi tải danh sách pending qua backend API:', e); }
+
                             if (!rawPhotos || rawPhotos.length === 0) { content.innerHTML = '<p class="p-4">Không có ảnh nào chờ duyệt.</p>'; return; }
                             await app.utils.resolveSandboxUrls(rawPhotos);
 
@@ -1193,7 +1216,31 @@ app.admin.fetchManagerData('denied');
                 fetchManagerData: async (type) => {
                     try {
                         if (type === 'denied') {
-                            const { data: photos } = await window.sb.from('photos').select('*, profiles(username)').eq('status', 'denied').order('created_at', {ascending: false}).limit(500);
+                            let photos = [];
+                            try {
+                                const { data: pData } = await window.sb.from('photos').select('*, profiles(username)').eq('status', 'denied').order('created_at', {ascending: false}).limit(500);
+                                if (pData && pData.length > 0) photos = pData;
+                            } catch(e){}
+
+                            try {
+                                const sessionRes = await window.sb.auth.getSession();
+                                const token = sessionRes.data.session?.access_token;
+                                if (token) {
+                                    const apiRes = await fetch('/api/photo?status=denied', {
+                                        headers: { 'Authorization': `Bearer ${token}` }
+                                    });
+                                    if (apiRes.ok) {
+                                        const apiJson = await apiRes.json();
+                                        if (apiJson && apiJson.data && Array.isArray(apiJson.data)) {
+                                            const idMap = new Map();
+                                            photos.forEach(p => idMap.set(p.id, p));
+                                            apiJson.data.forEach(p => idMap.set(p.id, p));
+                                            photos = Array.from(idMap.values()).sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+                                        }
+                                    }
+                                }
+                            } catch(e) { console.warn('Lỗi tải danh sách denied qua backend API:', e); }
+
                             const { data: logs } = await window.sb.from('admin_audit_logs').select('target_id, profiles(username)').eq('action_type', 'deny_photo');
                             const denierMap = {};
                             if(logs) logs.forEach(l => { denierMap[l.target_id] = l.profiles?.username || 'Admin'; });

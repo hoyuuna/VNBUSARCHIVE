@@ -1157,11 +1157,28 @@ Object.assign(window.app, {
                     if (fbCommentsWrapper) fbCommentsWrapper.innerHTML = '';
                     // -------------------------------------------------------------------
 
-                    const { data: photo } = await window.sb
+                    let { data: photo } = await window.sb
                         .from('photos')
                         .select(`*, profiles(id, username, avatar_url, role, subroles, ban_status), vehicles(model)`)
                         .eq('id', photoId)
                         .single();
+
+                    // Nếu RLS bên client chặn (ví dụ Admin/Manager xem ảnh denied hoặc pending của người khác), gọi backend API
+                    if (!photo && app.user && (app.role === 'admin' || app.role === 'manager')) {
+                        try {
+                            const sessionRes = await window.sb.auth.getSession();
+                            const token = sessionRes.data.session?.access_token;
+                            if (token) {
+                                const apiRes = await fetch(`/api/photo?id=${photoId}`, {
+                                    headers: { 'Authorization': `Bearer ${token}` }
+                                });
+                                if (apiRes.ok) {
+                                    const apiJson = await apiRes.json();
+                                    if (apiJson && apiJson.data) photo = apiJson.data;
+                                }
+                            }
+                        } catch(e) { console.warn('Lỗi tải chi tiết ảnh qua backend API:', e); }
+                    }
 
                     // BẮT LỖI RACE CONDITION
                     if (window.location.pathname !== `/photo/${photoId}`) return;
