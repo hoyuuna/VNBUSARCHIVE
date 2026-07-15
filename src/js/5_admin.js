@@ -289,6 +289,25 @@ Object.assign(window.app, {
                             inputEl.classList.add('ring-2', 'ring-amber-500');
                             setTimeout(() => inputEl.classList.remove('ring-2', 'ring-amber-500'), 500);
                         }
+
+                        // Cập nhật text biển số trên header và tag XE MỚI dynamically
+                        const cardEl = inputEl.closest('.admin-card');
+                        if (cardEl && type === 'photo') {
+                            const cardHeader = cardEl.querySelector('.admin-card-header');
+                            if (cardHeader) {
+                                const plateSpan = cardHeader.querySelector('span.font-bold');
+                                if (plateSpan) plateSpan.innerText = val;
+                                const existingBadge = cardHeader.querySelector('.badge-xe-moi');
+                                const isApprovedPlate = app.admin?.approvedPlateSet?.has(val) || (await window.sb.from('photos').select('id').eq('license_plate', val).eq('status', 'approved').limit(1)).data?.length > 0;
+                                if (!isApprovedPlate && val && val !== '---') {
+                                    if (!existingBadge && plateSpan) {
+                                        plateSpan.insertAdjacentHTML('afterend', ' <span class="badge-xe-moi"><i class="fa-solid fa-sparkles"></i> XE MỚI</span>');
+                                    }
+                                } else if (existingBadge) {
+                                    existingBadge.remove();
+                                }
+                            }
+                        }
                     } catch (e) {
                         console.error("Lỗi tự điền BKS Admin:", e);
                     }
@@ -600,9 +619,9 @@ Object.assign(window.app, {
                                 (opInfos || []).forEach(o => { if (o.operator_name) approvedOpSet.add(app.utils.cleanText(o.operator_name).trim().toLowerCase()); });
                             } catch (e) {}
 
-                            // 2. Fetch từ bảng vehicles (dòng xe, biển số, tuyến, đơn vị đã tồn tại trong hồ sơ xe)
+                            // 2. Fetch từ bảng vehicles (chỉ những xe đã có ít nhất 1 ảnh được duyệt status = 'approved')
                             try {
-                                const { data: vehs } = await window.sb.from('vehicles').select('license_plate, operator, route_no, model');
+                                const { data: vehs } = await window.sb.from('vehicles').select('license_plate, operator, route_no, model, photos!inner(status)').eq('photos.status', 'approved');
                                 (vehs || []).forEach(v => {
                                     if (v.license_plate) approvedPlateSet.add(v.license_plate.trim().toUpperCase());
                                     if (v.operator && v.operator !== '---' && v.operator !== 'Đang cập nhật') approvedOpSet.add(app.utils.cleanText(v.operator).trim().toLowerCase());
@@ -620,14 +639,14 @@ Object.assign(window.app, {
                             if (pendingPlates.length > 0) {
                                 const variants = getVariants(pendingPlates);
                                 const { data: approvedPlates } = await window.sb.from('photos').select('license_plate').eq('status', 'approved').in('license_plate', variants);
-                                const { data: vehPlates } = await window.sb.from('vehicles').select('license_plate').in('license_plate', variants);
+                                const { data: vehPlates } = await window.sb.from('vehicles').select('license_plate, photos!inner(status)').eq('photos.status', 'approved').in('license_plate', variants);
                                 (approvedPlates || []).forEach(p => { if (p.license_plate) approvedPlateSet.add(p.license_plate.trim().toUpperCase()); });
                                 (vehPlates || []).forEach(v => { if (v.license_plate) approvedPlateSet.add(v.license_plate.trim().toUpperCase()); });
                             }
                             if (pendingOps.length > 0) {
                                 const variants = getVariants(pendingOps);
                                 const { data: approvedOps } = await window.sb.from('photos').select('operator').eq('status', 'approved').in('operator', variants);
-                                const { data: vehOps } = await window.sb.from('vehicles').select('operator').in('operator', variants);
+                                const { data: vehOps } = await window.sb.from('vehicles').select('operator, photos!inner(status)').eq('photos.status', 'approved').in('operator', variants);
                                 const { data: infoOps } = await window.sb.from('operator_info').select('operator_name').in('operator_name', variants);
                                 (approvedOps || []).forEach(p => { if (p.operator && p.operator !== '---' && p.operator !== 'Đang cập nhật') approvedOpSet.add(app.utils.cleanText(p.operator).trim().toLowerCase()); });
                                 (vehOps || []).forEach(v => { if (v.operator && v.operator !== '---' && v.operator !== 'Đang cập nhật') approvedOpSet.add(app.utils.cleanText(v.operator).trim().toLowerCase()); });
@@ -636,14 +655,14 @@ Object.assign(window.app, {
                             if (pendingRoutes.length > 0) {
                                 const variants = getVariants(pendingRoutes);
                                 const { data: approvedRoutes } = await window.sb.from('photos').select('route_no').eq('status', 'approved').in('route_no', variants);
-                                const { data: vehRoutes } = await window.sb.from('vehicles').select('route_no').in('route_no', variants);
+                                const { data: vehRoutes } = await window.sb.from('vehicles').select('route_no, photos!inner(status)').eq('photos.status', 'approved').in('route_no', variants);
                                 (approvedRoutes || []).forEach(p => { if (p.route_no && p.route_no !== '---') addRouteVariants(approvedRouteSet, p.route_no); });
                                 (vehRoutes || []).forEach(v => { if (v.route_no && v.route_no !== '---') addRouteVariants(approvedRouteSet, v.route_no); });
                             }
                             if (pendingModels.length > 0) {
                                 const variants = getVariants(pendingModels);
                                 const { data: approvedModels } = await window.sb.from('photos').select('vehicles!inner(model)').eq('status', 'approved').in('vehicles.model', variants);
-                                const { data: vehModels } = await window.sb.from('vehicles').select('model').in('model', variants);
+                                const { data: vehModels } = await window.sb.from('vehicles').select('model, photos!inner(status)').eq('photos.status', 'approved').in('model', variants);
                                 (approvedModels || []).forEach(p => { if (p.vehicles?.model && p.vehicles.model !== '---') approvedModelSet.add(app.utils.cleanText(p.vehicles.model).trim().toLowerCase()); });
                                 (vehModels || []).forEach(v => { if (v.model && v.model !== '---') approvedModelSet.add(app.utils.cleanText(v.model).trim().toLowerCase()); });
                             }
