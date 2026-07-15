@@ -15,8 +15,9 @@ export async function onRequestPost(context) {
         
         const token = authHeader.replace('Bearer ', '');
 
-        // Khởi tạo Supabase client với quyền của chính User (bằng token JWT của họ) để xác thực
-        let sb = createClient(env.SUPABASE_URL, env.SUPABASE_KEY, {
+        // Khởi tạo Supabase client với quyền của chính User (bằng token JWT của họ)
+        // Điều này giúp vượt qua RLS policy mà không cần dùng Service Role Key
+        const sb = createClient(env.SUPABASE_URL, env.SUPABASE_KEY, {
             global: {
                 headers: {
                     Authorization: `Bearer ${token}`
@@ -38,12 +39,8 @@ export async function onRequestPost(context) {
         if (!profiles || profiles.length === 0 || !['admin', 'manager'].includes(profiles[0].role)) {
             return new Response(JSON.stringify({ error: 'Forbidden: Admin access required' }), { status: 403 });
         }
-        
-        // Sau khi đã xác thực user hợp lệ và có quyền admin/manager, nâng cấp client lên Service Role Key
-        // để thực hiện các thao tác quản trị (lưu vào image_sandbox, sửa photos/vehicles của user khác) không bị cản trở bởi RLS
-        if (env.SUPABASE_SERVICE_ROLE_KEY) {
-            sb = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
-        }
+
+        const sbAdmin = env.SUPABASE_SERVICE_ROLE_KEY ? createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY) : sb;
         
         const body = await request.json();
         const { action, photoId, reason, plate, op, type, route, model, location, note, province } = body;
@@ -267,7 +264,7 @@ export async function onRequestPost(context) {
 
                 // 2. Lưu vào bảng image_sandbox
                 const newSandboxId = `sbx_${Date.now()}_demoted_${photoId}`;
-                const { error: sbxErr } = await sb.from('image_sandbox').insert({
+                const { error: sbxErr } = await sbAdmin.from('image_sandbox').insert({
                     id: newSandboxId,
                     photo_id: photoId,
                     uploader_id: currentPhotoRes.uploader_id || user.id,
@@ -288,7 +285,7 @@ export async function onRequestPost(context) {
 
                 if (updateErr) {
                     // FALLBACK: Rollback xóa row vừa insert vào image_sandbox
-                    await sb.from('image_sandbox').delete().eq('id', newSandboxId).catch(() => {});
+                    await sbAdmin.from('image_sandbox').delete().eq('id', newSandboxId).catch(() => {});
                     return new Response(JSON.stringify({ error: `Lỗi khi cập nhật trạng thái ảnh (${updateErr.message}). Hủy quá trình xóa ảnh!` }), { status: 500 });
                 }
 
@@ -370,13 +367,13 @@ export async function onRequestPost(context) {
         // Tự động dọn dẹp ảnh sandbox bị từ chối quá 24h (dựa trên thời gian tạo trong image_sandbox)
         try {
             const threshold = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-            const { data: expiredSandbox } = await sb.from('image_sandbox').select('id, photo_id').lt('created_at', threshold);
+            const { data: expiredSandbox } = await sbAdmin.from('image_sandbox').select('id, photo_id').lt('created_at', threshold);
             if (expiredSandbox && expiredSandbox.length > 0) {
                 const photoIds = expiredSandbox.map(item => item.photo_id).filter(Boolean);
                 if (photoIds.length > 0) {
                     const { data: deniedPhotos } = await sb.from('photos').select('id').in('id', photoIds).eq('status', 'denied');
                     if (deniedPhotos && deniedPhotos.length > 0) {
-                        await sb.from('image_sandbox').delete().in('photo_id', deniedPhotos.map(p => p.id));
+                        await sbAdmin.from('image_sandbox').delete().in('photo_id', deniedPhotos.map(p => p.id));
                     }
                 }
             }
