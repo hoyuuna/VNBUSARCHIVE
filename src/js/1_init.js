@@ -1512,10 +1512,38 @@ cleanupState: () => {
                     if (sandboxIds.length > 0) {
                         if (!app._sandboxCache) app._sandboxCache = {};
                         try {
-                            const { data: sandboxData } = await window.sb
+                            let sandboxData = [];
+                            const { data: resNormal } = await window.sb
                                 .from('image_sandbox')
                                 .select('id, base64_data')
                                 .in('id', sandboxIds);
+                            
+                            if (resNormal && resNormal.length > 0) {
+                                sandboxData = resNormal;
+                            }
+
+                            const missingIds = sandboxIds.filter(id => !sandboxData.some(item => item.id === id));
+                            if (missingIds.length > 0) {
+                                try {
+                                    const sessionRes = await window.sb.auth.getSession();
+                                    const token = sessionRes.data.session?.access_token;
+                                    if (token) {
+                                        const apiRes = await fetch('/api/sandbox', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                                            body: JSON.stringify({ ids: missingIds })
+                                        });
+                                        if (apiRes.ok) {
+                                            const apiJson = await apiRes.json();
+                                            if (apiJson && apiJson.data && Array.isArray(apiJson.data)) {
+                                                sandboxData = sandboxData.concat(apiJson.data);
+                                            }
+                                        }
+                                    }
+                                } catch (apiErr) {
+                                    console.warn('Lỗi tải ảnh sandbox qua API backend:', apiErr);
+                                }
+                            }
 
                             if (sandboxData && sandboxData.length > 0) {
                                 sandboxData.forEach(s => {
