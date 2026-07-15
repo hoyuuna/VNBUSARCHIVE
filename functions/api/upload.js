@@ -219,9 +219,15 @@ export async function onRequest(context) {
 
             try {
                 const threshold = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-                const { data: deniedPhotos } = await supabase.from('photos').select('id').eq('status', 'denied').lt('created_at', threshold);
-                if (deniedPhotos && deniedPhotos.length > 0) {
-                    await supabase.from('image_sandbox').delete().in('photo_id', deniedPhotos.map(p => p.id));
+                const { data: expiredSandbox } = await supabase.from('image_sandbox').select('id, photo_id').lt('created_at', threshold);
+                if (expiredSandbox && expiredSandbox.length > 0) {
+                    const photoIds = expiredSandbox.map(item => item.photo_id).filter(Boolean);
+                    if (photoIds.length > 0) {
+                        const { data: deniedPhotos } = await supabase.from('photos').select('id').in('id', photoIds).eq('status', 'denied');
+                        if (deniedPhotos && deniedPhotos.length > 0) {
+                            await supabase.from('image_sandbox').delete().in('photo_id', deniedPhotos.map(p => p.id));
+                        }
+                    }
                 }
             } catch (cleanupErr) {
                 console.warn('[WARN] Sandbox cleanup error:', cleanupErr);

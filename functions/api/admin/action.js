@@ -215,33 +215,165 @@ export async function onRequestPost(context) {
             });
 
         } else if (action === 'deny') {
-            await sb.from('photos').update({ status: 'denied', denial_reason: reason }).eq('id', photoId);
+            const { data: currentPhotoRes, error: pGetErr } = await sb.from('photos').select('id, url, status, license_plate, uploader_id').eq('id', photoId).single();
+            if (pGetErr || !currentPhotoRes) {
+                return new Response(JSON.stringify({ error: 'Không tìm thấy ảnh cần từ chối/xóa.' }), { status: 404 });
+            }
+
+            const targetPlate = plate || currentPhotoRes.license_plate;
+            const isApprovedOrCdn = currentPhotoRes.status === 'approved' || (currentPhotoRes.url && typeof currentPhotoRes.url === 'string' && (currentPhotoRes.url.startsWith('http://') || currentPhotoRes.url.startsWith('https://')));
+
+            if (isApprovedOrCdn && currentPhotoRes.url && (currentPhotoRes.url.startsWith('http://') || currentPhotoRes.url.startsWith('https://'))) {
+                console.log(`[DEBUG] Ảnh ID ${photoId} đang trên CDN (${currentPhotoRes.url}). Tiến hành tải về, convert sang base64, lưu sandbox và xóa CDN...`);
+                
+                // 1. Tải ảnh từ CDN
+                let imgRes;
+                try {
+                    imgRes = await fetch(currentPhotoRes.url);
+                } catch (fetchErr) {
+                    return new Response(JSON.stringify({ error: `Không thể kết nối tới CDN để tải ảnh khôi phục (${fetchErr.message}). Hủy quá trình xóa ảnh!` }), { status: 502 });
+                }
+
+                if (!imgRes.ok) {
+                    return new Response(JSON.stringify({ error: `Không thể tải ảnh từ CDN (HTTP ${imgRes.status}). Hủy quá trình xóa ảnh!` }), { status: 502 });
+                }
+
+                let base64Data;
+                try {
+                    const arrayBuffer = await imgRes.arrayBuffer();
+                    const contentType = imgRes.headers.get('content-type') || 'image/webp';
+                    let binaryStr = '';
+                    try {
+                        const { Buffer } = await import('node:buffer');
+                        binaryStr = Buffer.from(arrayBuffer).toString('base64');
+                    } catch (nodeErr) {
+                        const bytes = new Uint8Array(arrayBuffer);
+                        const len = bytes.byteLength;
+                        const chunkSize = 8192;
+                        for (let i = 0; i < len; i += chunkSize) {
+                            binaryStr += String.fromCharCode.apply(null, bytes.subarray(i, Math.min(i + chunkSize, len)));
+                        }
+                        binaryStr = btoa(binaryStr);
+                    }
+                    base64Data = `data:${contentType};base64,` + binaryStr;
+                } catch (convErr) {
+                    return new Response(JSON.stringify({ error: `Lỗi khi convert ảnh sang Base64 (${convErr.message}). Hủy quá trình xóa ảnh!` }), { status: 500 });
+                }
+
+                // 2. Lưu vào bảng image_sandbox
+                const newSandboxId = `sbx_${Date.now()}_demoted_${photoId}`;
+                const { error: sbxErr } = await sb.from('image_sandbox').insert({
+                    id: newSandboxId,
+                    photo_id: photoId,
+                    uploader_id: currentPhotoRes.uploader_id || user.id,
+                    base64_data: base64Data,
+                    created_at: new Date().toISOString()
+                });
+
+                if (sbxErr) {
+                    return new Response(JSON.stringify({ error: `Lỗi khi lưu ảnh khôi phục vào Sandbox (${sbxErr.message}). Hủy quá trình xóa ảnh!` }), { status: 500 });
+                }
+
+                // 3. Cập nhật bảng photos sang status 'denied' và url về sandbox
+                const { error: updateErr } = await sb.from('photos').update({
+                    status: 'denied',
+                    denial_reason: reason || 'Quản lý/Admin xóa ảnh đã duyệt',
+                    url: `sandbox:${newSandboxId}`
+                }).eq('id', photoId);
+
+                if (updateErr) {
+                    // FALLBACK: Rollback xóa row vừa insert vào image_sandbox
+                    await sb.from('image_sandbox').delete().eq('id', newSandboxId).catch(() => {});
+                    return new Response(JSON.stringify({ error: `Lỗi khi cập nhật trạng thái ảnh (${updateErr.message}). Hủy quá trình xóa ảnh!` }), { status: 500 });
+                }
+
+                // 4. Xóa ảnh trên CDN chính
+                try {
+                    const urlObj = new URL(currentPhotoRes.url);
+                    const fileName = urlObj.pathname.split('/').pop();
+                    if (fileName && env.CF_IMGBED_TOKEN) {
+                        const safeFileName = encodeURIComponent(fileName);
+                        const deleteUrl = `https://cdn.vnbusarchive.io.vn/api/manage/delete/${safeFileName}`;
+                        const deleteResponse = await fetch(deleteUrl, {
+                            method: 'DELETE',
+                            headers: {
+                                'Authorization': `Bearer ${env.CF_IMGBED_TOKEN}`
+                            }
+                        });
+                        if (!deleteResponse.ok && deleteResponse.status !== 404) {
+                            console.warn(`[WARN] Lỗi khi xóa ảnh trên CDN (HTTP ${deleteResponse.status}). Thử lại lần 2...`);
+                            await new Promise(r => setTimeout(r, 600));
+                            const retryRes = await fetch(deleteUrl, {
+                                method: 'DELETE',
+                                headers: { 'Authorization': `Bearer ${env.CF_IMGBED_TOKEN}` }
+                            });
+                            if (!retryRes.ok && retryRes.status !== 404) {
+                                console.error(`[CDN DELETE FATAL] Rollback ảnh ID ${photoId} về approved vì không xóa được trên CDN.`);
+                                await sb.from('photos').update({
+                                    status: 'approved',
+                                    denial_reason: null,
+                                    url: currentPhotoRes.url
+                                }).eq('id', photoId);
+                                await sb.from('image_sandbox').delete().eq('id', newSandboxId).catch(() => {});
+                                return new Response(JSON.stringify({ error: `Không thể xóa ảnh khỏi máy chủ CDN (HTTP ${retryRes.status}). Đã khôi phục lại trạng thái ảnh ban đầu để tránh mất mát/bất đồng bộ!` }), { status: 502 });
+                            }
+                        }
+                    }
+                } catch (cdnErr) {
+                    console.error(`[CDN DELETE ERROR] Rollback ảnh ID ${photoId} về approved.`, cdnErr);
+                    await sb.from('photos').update({
+                        status: 'approved',
+                        denial_reason: null,
+                        url: currentPhotoRes.url
+                    }).eq('id', photoId);
+                    await sb.from('image_sandbox').delete().eq('id', newSandboxId).catch(() => {});
+                    return new Response(JSON.stringify({ error: `Lỗi gọi API xóa ảnh CDN (${cdnErr.message}). Đã khôi phục lại trạng thái ảnh ban đầu!` }), { status: 500 });
+                }
+            } else {
+                // Ảnh đang ở trạng thái pending (chưa lên CDN), chỉ việc update sang denied
+                const { error: updateErr } = await sb.from('photos').update({
+                    status: 'denied',
+                    denial_reason: reason || 'Từ chối ảnh'
+                }).eq('id', photoId);
+                if (updateErr) {
+                    return new Response(JSON.stringify({ error: `Lỗi cập nhật trạng thái ảnh (${updateErr.message})` }), { status: 500 });
+                }
+            }
             
             // cleanupVehicle logic
-            const { data: countData } = await sb.from('photos').select('id', { count: 'exact' })
-                .eq('license_plate', plate);
-            
-            if (countData && countData.length === 0) {
-                await sb.from('vehicles').delete().eq('license_plate', plate);
-                await sb.from('vehicle_history').delete().eq('license_plate', plate);
+            if (targetPlate) {
+                const { data: countData } = await sb.from('photos').select('id', { count: 'exact' })
+                    .eq('license_plate', targetPlate)
+                    .neq('status', 'denied');
+                
+                if (countData && countData.length === 0) {
+                    await sb.from('vehicles').delete().eq('license_plate', targetPlate);
+                    await sb.from('vehicle_history').delete().eq('license_plate', targetPlate);
+                }
             }
 
             await sb.from('admin_audit_logs').insert({
                 admin_id: user.id,
                 action_type: 'deny_photo',
                 target_id: photoId,
-                details: JSON.stringify({ plate, reason })
+                details: JSON.stringify({ plate: targetPlate, reason: reason || 'Đã xóa/từ chối ảnh', was_approved: isApprovedOrCdn })
             });
         } else {
             return new Response(JSON.stringify({ error: 'Invalid action' }), { status: 400 });
         }
 
-        // Tự động dọn dẹp ảnh sandbox bị từ chối quá 24h
+        // Tự động dọn dẹp ảnh sandbox bị từ chối quá 24h (dựa trên thời gian tạo trong image_sandbox)
         try {
             const threshold = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-            const { data: deniedPhotos } = await sb.from('photos').select('id').eq('status', 'denied').lt('created_at', threshold);
-            if (deniedPhotos && deniedPhotos.length > 0) {
-                await sb.from('image_sandbox').delete().in('photo_id', deniedPhotos.map(p => p.id));
+            const { data: expiredSandbox } = await sb.from('image_sandbox').select('id, photo_id').lt('created_at', threshold);
+            if (expiredSandbox && expiredSandbox.length > 0) {
+                const photoIds = expiredSandbox.map(item => item.photo_id).filter(Boolean);
+                if (photoIds.length > 0) {
+                    const { data: deniedPhotos } = await sb.from('photos').select('id').in('id', photoIds).eq('status', 'denied');
+                    if (deniedPhotos && deniedPhotos.length > 0) {
+                        await sb.from('image_sandbox').delete().in('photo_id', deniedPhotos.map(p => p.id));
+                    }
+                }
             }
         } catch (cleanupErr) {
             console.warn('[WARN] Sandbox cleanup error:', cleanupErr);

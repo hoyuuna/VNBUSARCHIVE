@@ -2047,16 +2047,36 @@ app.admin.fetchManagerData('denied');
                     btn.innerText = "Đang xóa..."; btn.disabled = true;
 
                     try {
-                        const { data: p, error: errFetch } = await window.sb.from('photos').select('id, uploader_id, license_plate').eq('id', photoId).single();
-                        if (errFetch || !p) return app.ui.showAlert("Không tìm thấy ảnh với ID này trong hệ thống!");
+                        const sessionRes = await window.sb.auth.getSession();
+                        const token = sessionRes.data.session?.access_token;
+                        const res = await fetch('/api/admin/action', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({
+                                action: 'deny',
+                                photoId: photoId,
+                                reason: reason
+                            })
+                        });
 
-                        await window.sb.from('photos').update({ status: 'denied', denial_reason: reason }).eq('id', p.id);
-                        await app.vehicle.cleanupVehicle(p.license_plate);
-                        app.admin.logAction('direct_delete', photoId, { plate: p.license_plate, reason: reason });
+                        if (!res.ok) {
+                            let errText = 'Lỗi server (' + res.status + ')';
+                            try {
+                                const rawText = await res.text();
+                                const json = JSON.parse(rawText);
+                                if (json && json.error) errText = json.error;
+                                else errText = rawText;
+                            } catch (e) {}
+                            throw new Error(errText);
+                        }
 
-                        app.toast.show('success', 'Thành công', 'Đã xóa ảnh thành công!');
+                        app.toast.show('success', 'Thành công', 'Đã xóa ảnh thành công (đã chuyển về Sandbox và xóa khỏi CDN)!');
                         document.getElementById('adm-direct-delete-id').value = '';
                         document.getElementById('adm-direct-delete-reason').value = '';
+                        if (app.admin.loadTab) app.admin.loadTab('denied');
                     } catch (e) { app.ui.showAlert("Lỗi: " + e.message); }
                     finally { btn.innerText = originalText; btn.disabled = false; }
                 },

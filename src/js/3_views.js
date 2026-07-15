@@ -1424,23 +1424,57 @@ Object.assign(window.app, {
                         }
                         deleteBtn.onclick = () => app.photo.requestDelete();
                     }
-                    else if (app.user && app.role === 'manager' && !isDenied) {
+                    else if (app.user && (app.role === 'manager' || app.role === 'admin') && !isDenied) {
                         deleteBtn.classList.remove('hidden');
                         deleteBtn.innerHTML = '<i class="fa-solid fa-radiation mr-1"></i> Quản lý: Xóa ảnh này';
                         deleteBtn.className = "w-full bg-red-600 border border-red-600 text-white py-2.5 text-sm font-bold rounded-md hover:bg-red-700 transition shadow-sm";
                         deleteBtn.onclick = () => {
                             app.ui.showDenyPrompt("QUẢN LÝ - Xóa ảnh này", async (reason) => {
                                 try {
-                                    await window.sb.from('photos').update({ status: 'denied', denial_reason: reason }).eq('id', photo.id);
-                                    app.admin.logAction('admin_delete_from_detail', photo.id, { plate: photo.license_plate, reason: reason });
-                                    app.toast.show('success', 'Đã xóa ảnh', 'Ảnh đã được xóa khỏi hệ thống thành công.');
+                                    const originalBtnText = deleteBtn.innerHTML;
+                                    deleteBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang xử lý...';
+                                    deleteBtn.disabled = true;
+
+                                    const sessionRes = await window.sb.auth.getSession();
+                                    const token = sessionRes.data.session?.access_token;
+                                    const res = await fetch('/api/admin/action', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'Authorization': `Bearer ${token}`
+                                        },
+                                        body: JSON.stringify({
+                                            action: 'deny',
+                                            photoId: photo.id,
+                                            reason: reason,
+                                            plate: photo.license_plate
+                                        })
+                                    });
+
+                                    if (!res.ok) {
+                                        let errText = 'Lỗi server (' + res.status + ')';
+                                        try {
+                                            const rawText = await res.text();
+                                            const json = JSON.parse(rawText);
+                                            if (json && json.error) errText = json.error;
+                                            else errText = rawText;
+                                        } catch (e) {}
+                                        throw new Error(errText);
+                                    }
+
+                                    app.toast.show('success', 'Đã xóa ảnh', 'Ảnh đã được chuyển về Sandbox và xóa khỏi CDN chính thành công.');
+                                    if (typeof app.ui.closeModal === 'function') app.ui.closeModal('photo-detail-modal');
                                     app.views.loadHome();
-                                } catch (e) { app.ui.showAlert("Lỗi: " + e.message); }
+                                } catch (e) {
+                                    app.ui.showAlert("Lỗi: " + e.message);
+                                    deleteBtn.innerHTML = '<i class="fa-solid fa-radiation mr-1"></i> Quản lý: Xóa ảnh này';
+                                    deleteBtn.disabled = false;
+                                }
                             });
                         };
                     }
 
-                    if (app.user && app.role === 'manager' && (isDenied || (photo.url && typeof photo.url === 'string' && (photo.url.startsWith('data:') || photo.url.startsWith('sandbox:'))))) {
+                    if (app.user && (app.role === 'manager' || app.role === 'admin') && (isDenied || (photo.url && typeof photo.url === 'string' && (photo.url.startsWith('data:') || photo.url.startsWith('sandbox:'))))) {
                         if (reapproveBtn) {
                             if (!isDenied) {
                                 reapproveBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up mr-1"></i> Quản lý: Đẩy ảnh này lên CDN';
