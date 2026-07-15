@@ -1440,25 +1440,60 @@ Object.assign(window.app, {
                         };
                     }
 
-                    if (app.user && app.role === 'manager' && isDenied) {
+                    if (app.user && app.role === 'manager' && (isDenied || (photo.url && typeof photo.url === 'string' && (photo.url.startsWith('data:') || photo.url.startsWith('sandbox:'))))) {
                         if (reapproveBtn) {
+                            if (!isDenied) {
+                                reapproveBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up mr-1"></i> Quản lý: Đẩy ảnh này lên CDN';
+                            } else {
+                                reapproveBtn.innerHTML = '<i class="fa-solid fa-rotate-left mr-1"></i> Quản lý: Duyệt lại ảnh này';
+                            }
                             reapproveBtn.classList.remove('hidden');
                             reapproveBtn.onclick = () => {
-                                app.ui.showPrompt("Nhập ghi chú cho việc duyệt lại (Tùy chọn):", "", async (reason) => {
+                                app.ui.showPrompt("Nhập ghi chú cho việc duyệt lại / đẩy ảnh lên CDN (Tùy chọn):", "", async (reason) => {
                                     try {
                                         const originalText = reapproveBtn.innerHTML;
-                                        reapproveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang xử lý...';
+                                        reapproveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang tải lên CDN...';
                                         reapproveBtn.disabled = true;
 
-                                        const { error } = await window.sb.from('photos').update({ status: 'approved', denial_reason: null }).eq('id', photo.id);
-                                        if (error) throw error;
-                                        app.admin.logAction('manager_reapprove', photo.id, { plate: photo.license_plate, reason: reason });
+                                        const sessionRes = await window.sb.auth.getSession();
+                                        const token = sessionRes.data.session?.access_token;
+                                        const res = await fetch('/api/admin/action', {
+                                            method: 'POST',
+                                            headers: {
+                                                'Content-Type': 'application/json',
+                                                'Authorization': `Bearer ${token}`
+                                            },
+                                            body: JSON.stringify({
+                                                action: 'approve',
+                                                photoId: photo.id,
+                                                plate: photo.license_plate,
+                                                op: photo.operator || '',
+                                                type: photo.type || 'bus',
+                                                route: photo.route_no || '',
+                                                model: photo.vehicles?.model || photo.model || '',
+                                                location: photo.location || '',
+                                                note: photo.note || '',
+                                                province: photo.province || ''
+                                            })
+                                        });
 
-                                        app.toast.show('success', 'Đã duyệt lại', 'Ảnh này đã được cấp phép hiển thị trở lại trên hệ thống.');
+                                        if (!res.ok) {
+                                            let errText = 'Lỗi server (' + res.status + ')';
+                                            try {
+                                                const rawText = await res.text();
+                                                const json = JSON.parse(rawText);
+                                                if (json && json.error) errText = json.error;
+                                                else errText = rawText.replace(/<[^>]*>?/gm, '').trim().slice(0, 200);
+                                            } catch (e) {}
+                                            throw new Error(errText);
+                                        }
+
+                                        app.admin.logAction('manager_reapprove', photo.id, { plate: photo.license_plate, reason: reason });
+                                        app.toast.show('success', 'Đã duyệt & đẩy lên CDN', 'Ảnh đã được đẩy thành công lên máy chủ CDN thực và hiển thị trên hệ thống.');
                                         app.views.loadDetail(photo.id);
                                     } catch (e) {
                                         app.ui.showAlert("Lỗi: " + e.message);
-                                        reapproveBtn.innerHTML = '<i class="fa-solid fa-rotate-left mr-1"></i> Quản lý: Duyệt lại ảnh này';
+                                        reapproveBtn.innerHTML = isDenied ? '<i class="fa-solid fa-rotate-left mr-1"></i> Quản lý: Duyệt lại ảnh này' : '<i class="fa-solid fa-cloud-arrow-up mr-1"></i> Quản lý: Đẩy ảnh này lên CDN';
                                         reapproveBtn.disabled = false;
                                     }
                                 });

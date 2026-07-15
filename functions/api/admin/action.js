@@ -142,11 +142,16 @@ export async function onRequestPost(context) {
                     return new Response(JSON.stringify({ error: `Lỗi từ server CDN (${uploadRes.status}): ${errTxt.slice(0, 200)}` }), { status: 502 });
                 }
                 const uploadResult = await uploadRes.json();
-                if (uploadResult && uploadResult.length > 0 && uploadResult[0].src) {
-                    let rawSrc = uploadResult[0].src;
+                let rawSrc = null;
+                if (Array.isArray(uploadResult) && uploadResult.length > 0) {
+                    rawSrc = uploadResult[0].src || uploadResult[0].url || (uploadResult[0].data && (uploadResult[0].data.src || uploadResult[0].data.url));
+                } else if (uploadResult && typeof uploadResult === 'object') {
+                    rawSrc = uploadResult.src || uploadResult.url || (uploadResult.data && (uploadResult.data.src || uploadResult.data.url));
+                }
+                if (rawSrc) {
                     finalUrl = rawSrc.startsWith('/') ? `https://cdn.vnbusarchive.io.vn${rawSrc}` : rawSrc;
                 } else {
-                    return new Response(JSON.stringify({ error: 'Lỗi tải ảnh từ sandbox lên CDN khi duyệt.' }), { status: 500 });
+                    return new Response(JSON.stringify({ error: 'Lỗi tải ảnh từ sandbox lên CDN khi duyệt: Phản hồi từ CDN không hợp lệ.' }), { status: 500 });
                 }
             }
 
