@@ -33,7 +33,10 @@
     "https://unpkg.com",
     "https://*.cartocdn.com",
     "https://*.giphy.com",
-    "https://media2.giphy.com"
+    "https://media2.giphy.com",
+    "https://i.postimg.cc",
+    "https://postimg.cc",
+    "https://*.postimg.cc"
   ],
   "font-src": [
     "'self'",
