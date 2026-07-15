@@ -1018,7 +1018,7 @@ Object.assign(window.app, {
                         const cIcon = document.getElementById('webrtc-connected-icon');
                         const cTitle = document.getElementById('webrtc-connected-title');
                         const cSub = document.getElementById('webrtc-connected-sub');
-                        if (cIcon) cIcon.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-2xl text-blue-600"></i>';
+                        if (cIcon) cIcon.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-2xl text-black"></i>';
                         if (cTitle) cTitle.innerText = 'Đang xử lý ảnh...';
                         if (cSub) cSub.innerText = 'Vui lòng đợi trong giây lát';
                     } else if (dropZone && visualEl) {
@@ -1027,7 +1027,7 @@ Object.assign(window.app, {
                         }
                         const qrWrapper = document.getElementById('qr-btn-wrapper');
                         dropZone.style.pointerEvents = 'none';
-                        visualEl.innerHTML = '<div class="flex flex-col items-center gap-3 py-4"><i class="fa-solid fa-circle-notch fa-spin text-4xl text-gray-400"></i><p class="text-sm font-bold text-gray-600 mt-3">Đang xử lý ảnh, vui lòng đợi...</p></div>';
+                        visualEl.innerHTML = '<div class="flex flex-col items-center gap-3 py-4"><i class="fa-solid fa-circle-notch fa-spin text-4xl text-black"></i><p class="text-sm font-bold text-gray-600 mt-3">Đang xử lý ảnh, vui lòng đợi...</p></div>';
                         if (qrWrapper) qrWrapper.classList.add('hidden');
                     }
 
