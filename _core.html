@@ -115,21 +115,11 @@
             Alpine.data('authForm', () => ({
                 mode: 'login',
                 backgrounds: [
-                    { url: 'https://i.postimg.cc/RhfxYJTw/IMG-8120.jpg', authorId: 'b073ffb7-4df3-40bc-a83b-619192979c15' },
-                    { url: 'https://i.postimg.cc/CLQb7ZQ4/IMG-8111.jpg', authorId: 'b073ffb7-4df3-40bc-a83b-619192979c15' },
-                    { url: 'https://i.postimg.cc/SKrYPgdT/IMG-8588.jpg', authorId: 'b073ffb7-4df3-40bc-a83b-619192979c15' },
-                    { url: 'https://i.postimg.cc/cLgZtJ20/IMG-0417.avif', authorId: '723187ab-4859-4e70-9088-b3d18a95cad0' },
-                    { url: 'https://i.postimg.cc/8zJDfC91/IMG-4693.avif', authorId: '723187ab-4859-4e70-9088-b3d18a95cad0' },
-                    { url: 'https://i.postimg.cc/K8kF3YwF/IMG-6028.avif', authorId: '723187ab-4859-4e70-9088-b3d18a95cad0' },
-                    { url: 'https://i.postimg.cc/mZvwC0ZH/IMG-4330.avif', authorId: '211f5d63-15f6-48ae-a02a-06e14f5d5796' },
-                    { url: 'https://i.postimg.cc/05Mn68vr/IMG-4345.avif', authorId: '211f5d63-15f6-48ae-a02a-06e14f5d5796' },
-                    { url: 'https://i.postimg.cc/59YgHxJ6/IMG-4730.avif', authorId: '211f5d63-15f6-48ae-a02a-06e14f5d5796' },
-                    { url: 'https://wsrv.nl/?url=https://files.catbox.moe/7m9cv8.jpg', authorId: '12fc8d3a-e8dc-48b1-bc47-0a518a1ec88b' },
-                    { url: 'https://wsrv.nl/?url=https://files.catbox.moe/rrlwue.jpg', authorId: '12fc8d3a-e8dc-48b1-bc47-0a518a1ec88b' },
-                    { url: 'https://wsrv.nl/?url=https://files.catbox.moe/6zbksl.jpg', authorId: '12fc8d3a-e8dc-48b1-bc47-0a518a1ec88b' },
-                    { url: 'https://wsrv.nl/?url=https://files.catbox.moe/it3m6l.jpg', authorId: '0e31adb6-35f8-4d42-97d5-4439de3e6bfb' },
-                    { url: 'https://wsrv.nl/?url=https://files.catbox.moe/z84cu0.jpg', authorId: '1758a8bd-256e-46df-8329-38e196db4c17' },
-                    { url: 'https://wsrv.nl/?url=https://files.catbox.moe/fmfv43.jpg', authorId: 'cdf5b31c-7017-477f-812b-dda05e9b20c2' }
+                    { url: 'https://wsrv.nl/?url=https://i.postimg.cc/xdRvXXbL/20260523-124423.jpg', authorId: '1758a8bd-256e-46df-8329-38e196db4c17' },
+                    { url: 'https://wsrv.nl/?url=https://i.postimg.cc/sXgp73pb/IMG-20260512-144447-1778572396342edit.jpg', authorId: '12fc8d3a-e8dc-48b1-bc47-0a518a1ec88b' },
+                    { url: 'https://wsrv.nl/?url=https://i.postimg.cc/gJ2v8Gvs/IMG-20260516-144139-1778917334901edit.jpg', authorId: '12fc8d3a-e8dc-48b1-bc47-0a518a1ec88b' },
+                    { url: 'https://wsrv.nl/?url=https://i.postimg.cc/mrwYPPF9/IMG-20260701-122009.jpg', authorId: 'cdf5b31c-7017-477f-812b-dda05e9b20c2' },
+                    { url: 'https://wsrv.nl/?url=https://i.postimg.cc/B6nxHJxw/IMG20260614172504.jpg', authorId: '0e31adb6-35f8-4d42-97d5-4439de3e6bfb' }
                 ],
                 currentBg: { url: '', author: 'Đang tải...', link: '#' },
                 authorCache: {},
@@ -2690,13 +2680,10 @@
     </div>
                 </form>
 
-                    <!-- Nút liên hệ hỗ trợ & bảng xếp hạng -->
+                    <!-- Nút liên hệ hỗ trợ -->
                     <p class="mt-6 text-[11px] text-gray-500 font-medium drop-shadow-sm text-center flex items-center justify-center gap-4">
                         <a href="/contact" class="hover:text-black transition-colors underline decoration-gray-400 hover:decoration-black">
                             <i class="fa-solid fa-headset mr-1"></i> Liên hệ hỗ trợ
-                        </a>
-                        <a href="/leaderboard" class="hover:text-black transition-colors underline decoration-gray-400 hover:decoration-black">
-                            <i class="fa-solid fa-trophy mr-1"></i> BXH Đóng góp
                         </a>
                     </p>
 
@@ -2825,7 +2812,7 @@
                             </div>
                         </div>
 
-                        <button onclick="app.handleSearch(true)"
+                        <button onclick="app.handleSearch(true, 'search-input')"
                             class="text-gray-500 px-3 py-2 hover:text-black transition-colors">
                             <i class="fa-solid fa-magnifying-glass"></i>
                         </button>
@@ -3224,7 +3211,7 @@
                         </div>
 
                         <!-- Nút Tìm Kiếm -->
-                        <button onclick="app.handleSearch(true)" class="text-gray-500 px-4 md:px-5 h-full hover:text-black transition-colors rounded-r-lg bg-gray-100/50 hover:bg-gray-200/50 border-l border-gray-200">
+                        <button onclick="app.handleSearch(true, 'page-search-input')" class="text-gray-500 px-4 md:px-5 h-full hover:text-black transition-colors rounded-r-lg bg-gray-100/50 hover:bg-gray-200/50 border-l border-gray-200">
                             <i class="fa-solid fa-magnifying-glass text-lg"></i>
                         </button>
                     </div>

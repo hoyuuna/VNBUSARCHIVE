@@ -2546,11 +2546,14 @@ Object.assign(window.app, {
                 };
 
                 document.getElementById('search-input').addEventListener('keydown', function (e) {
-                    if (e.key === 'Enter') { document.getElementById('main-search-suggestions').classList.remove('active'); app.handleSearch(true); }
+                    if (e.key === 'Enter') { document.getElementById('main-search-suggestions').classList.remove('active'); app.handleSearch(true, 'search-input'); }
                     if (e.key === 'Escape') clearSearchInput(e.target, 'main-search-suggestions');
                 });
                 document.getElementById('search-input').addEventListener('input', function (e) {
-                    app.search.triggerMainSuggestion(e.target.value.trim(), 'search-input', 'main-search-suggestions');
+                    const val = e.target.value;
+                    const pageInp = document.getElementById('page-search-input');
+                    if (pageInp && document.activeElement === e.target) pageInp.value = val;
+                    app.search.triggerMainSuggestion(val.trim(), 'search-input', 'main-search-suggestions');
                 });
                 document.getElementById('search-input').addEventListener('focus', function (e) {
                     app.search.triggerMainSuggestion(e.target.value.trim(), 'search-input', 'main-search-suggestions');
@@ -2559,11 +2562,14 @@ Object.assign(window.app, {
                 const pageSearchInput = document.getElementById('page-search-input');
                 if (pageSearchInput) {
                     pageSearchInput.addEventListener('keydown', function (e) {
-                        if (e.key === 'Enter') { document.getElementById('page-search-suggestions').classList.remove('active'); app.handleSearch(true); }
+                        if (e.key === 'Enter') { document.getElementById('page-search-suggestions').classList.remove('active'); app.handleSearch(true, 'page-search-input'); }
                         if (e.key === 'Escape') clearSearchInput(e.target, 'page-search-suggestions');
                     });
                     pageSearchInput.addEventListener('input', function (e) {
-                        app.search.triggerMainSuggestion(e.target.value.trim(), 'page-search-input', 'page-search-suggestions');
+                        const val = e.target.value;
+                        const headerInp = document.getElementById('search-input');
+                        if (headerInp && document.activeElement === e.target) headerInp.value = val;
+                        app.search.triggerMainSuggestion(val.trim(), 'page-search-input', 'page-search-suggestions');
                     });
                     pageSearchInput.addEventListener('focus', function (e) {
                         app.search.triggerMainSuggestion(e.target.value.trim(), 'page-search-input', 'page-search-suggestions');
@@ -3744,12 +3750,19 @@ Object.assign(window.app, {
 });
 
 Object.assign(window.app, {
-  handleSearch: async (forceRefresh = false) => {
+  handleSearch: async (forceRefresh = false, sourceInputId = null) => {
                 const headerInput = document.getElementById('search-input');
                 const pageInput = document.getElementById('page-search-input');
 
+                const activeId = sourceInputId || document.activeElement?.id;
                 let query = '';
-                if (app.currentViewMode === 'search' && pageInput) {
+                if (activeId === 'search-input' && headerInput) {
+                    query = headerInput.value.trim();
+                    if (pageInput) pageInput.value = query;
+                } else if (activeId === 'page-search-input' && pageInput) {
+                    query = pageInput.value.trim();
+                    if (headerInput) headerInput.value = query;
+                } else if (app.currentViewMode === 'search' && pageInput) {
                     query = pageInput.value.trim();
                     if (headerInput) headerInput.value = query;
                 } else {

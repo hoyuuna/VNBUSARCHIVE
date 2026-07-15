@@ -2450,7 +2450,7 @@ Object.assign(window.app, {
                             </div>` + recents.map(r => {
                                 let safeRawJS = r.query.replace(/'/g, "\\'").replace(/"/g, '\\"');
                                 let setPrefixAction = r.prefix ? `app.search.syncExactUI('${r.prefix}');` : `app.search.syncExactUI('');`;
-                                let clickAction = `document.getElementById('${inputId}').value = '${safeRawJS}'; document.getElementById('${sugId}').classList.remove('active'); app.search.setFilter('${r.filter}', false); ${setPrefixAction} app.handleSearch(true);`;
+                                let clickAction = `document.getElementById('${inputId}').value = '${safeRawJS}'; document.getElementById('${sugId}').classList.remove('active'); app.search.setFilter('${r.filter}', false); ${setPrefixAction} app.handleSearch(true, '${inputId}');`;
                                 
                                 return `<div class="suggestion-item border-b border-gray-100 last:border-0" onmousedown="event.preventDefault(); ${clickAction}">
                                     <div class="text-[13px] text-black font-medium leading-snug break-words whitespace-normal flex items-center gap-2"><i class="fa-solid fa-clock-rotate-left text-gray-400"></i> <span class="truncate">${r.query}</span></div>
@@ -2607,7 +2607,7 @@ Object.assign(window.app, {
                                         setPrefixAction = `app.search.syncExactUI('${item.prefix}');`;
                                     }
                                     
-                                    let clickAction = `document.getElementById('${inputId}').value = '${safeRawJS}'; document.getElementById('${sugId}').classList.remove('active'); app.search.setFilter('${filterKey}', false); ${setPrefixAction} app.handleSearch(true);`;
+                                    let clickAction = `document.getElementById('${inputId}').value = '${safeRawJS}'; document.getElementById('${sugId}').classList.remove('active'); app.search.setFilter('${filterKey}', false); ${setPrefixAction} app.handleSearch(true, '${inputId}');`;
 
                                     return `<div class="suggestion-item border-b border-gray-100 last:border-0" onmousedown="event.preventDefault(); ${clickAction}">
                                         <div class="text-[13px] text-black font-medium leading-snug break-words whitespace-normal">${displayHTML}</div>
