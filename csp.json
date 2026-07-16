@@ -23,6 +23,7 @@
     "data:",
     "blob:",
     "https://files.catbox.moe",
+    "https://*.vnbusarchive.io.vn",
     "https://images.vnbusarchive.io.vn",
     "https://cdn.vnbusarchive.io.vn",
     "https://cdn.discordapp.com",
@@ -61,7 +62,15 @@
     "https://*.peerjs.com",
     "wss://*.peerjs.com",
     "https://0.peerjs.com",
-    "wss://0.peerjs.com"
+    "wss://0.peerjs.com",
+    "https://*.vnbusarchive.io.vn",
+    "https://cdn.vnbusarchive.io.vn",
+    "https://images.vnbusarchive.io.vn",
+    "https://files.catbox.moe",
+    "https://wsrv.nl",
+    "https://i.postimg.cc",
+    "https://postimg.cc",
+    "https://*.postimg.cc"
   ],
   "frame-src": [
     "'self'",
