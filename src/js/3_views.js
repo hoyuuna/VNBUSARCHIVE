@@ -1421,14 +1421,17 @@ Object.assign(window.app, {
 
                     const reapproveBtn = document.getElementById('btn-manager-reapprove');
                     deleteBtn.onclick = null;
+                    deleteBtn.disabled = false;
                     deleteBtn.classList.add('hidden');
                     if (reapproveBtn) {
                         reapproveBtn.onclick = null;
+                        reapproveBtn.disabled = false;
                         reapproveBtn.classList.add('hidden');
                     }
 
                     if (app.user && app.user.id === photo.uploader_id) {
                         deleteBtn.classList.remove('hidden');
+                        deleteBtn.disabled = false;
                         if (proxyUrl === 'SANDBOX_DELETED' || photo._isSandboxMissing) {
                             deleteBtn.innerHTML = '<i class="fa-solid fa-trash-can mr-1"></i> Yêu cầu xóa ảnh';
                             deleteBtn.className = "w-full border border-red-500 text-red-600 py-2.5 text-sm font-bold rounded-md hover:bg-red-50 transition shadow-sm";
@@ -1443,6 +1446,7 @@ Object.assign(window.app, {
                     }
                     else if (app.user && (app.role === 'manager' || app.role === 'admin') && !isDenied) {
                         deleteBtn.classList.remove('hidden');
+                        deleteBtn.disabled = false;
                         deleteBtn.innerHTML = '<i class="fa-solid fa-radiation mr-1"></i> Quản lý: Xóa ảnh này';
                         deleteBtn.className = "w-full bg-red-600 border border-red-600 text-white py-2.5 text-sm font-bold rounded-md hover:bg-red-700 transition shadow-sm";
                         deleteBtn.onclick = () => {
@@ -1480,6 +1484,8 @@ Object.assign(window.app, {
                                     }
 
                                     app.toast.show('success', 'Đã xóa ảnh', 'Ảnh đã được chuyển về Sandbox và xóa khỏi CDN chính thành công.');
+                                    deleteBtn.disabled = false;
+                                    deleteBtn.innerHTML = '<i class="fa-solid fa-radiation mr-1"></i> Quản lý: Xóa ảnh này';
                                     if (typeof app.ui.closeModal === 'function') app.ui.closeModal('photo-detail-modal');
                                     app.views.loadHome();
                                 } catch (e) {
@@ -1499,6 +1505,7 @@ Object.assign(window.app, {
                                 reapproveBtn.innerHTML = '<i class="fa-solid fa-rotate-left mr-1"></i> Quản lý: Duyệt lại ảnh này';
                             }
                             reapproveBtn.classList.remove('hidden');
+                            reapproveBtn.disabled = false;
                             reapproveBtn.onclick = () => {
                                 app.ui.showPrompt("Nhập ghi chú cho việc duyệt lại / đẩy ảnh lên CDN (Tùy chọn):", "", async (reason) => {
                                     try {
@@ -1541,6 +1548,8 @@ Object.assign(window.app, {
 
                                         app.admin.logAction('manager_reapprove', photo.id, { plate: photo.license_plate, reason: reason });
                                         app.toast.show('success', 'Đã duyệt & đẩy lên CDN', 'Ảnh đã được đẩy thành công lên máy chủ CDN thực và hiển thị trên hệ thống.');
+                                        reapproveBtn.disabled = false;
+                                        reapproveBtn.innerHTML = isDenied ? '<i class="fa-solid fa-rotate-left mr-1"></i> Quản lý: Duyệt lại ảnh này' : '<i class="fa-solid fa-cloud-arrow-up mr-1"></i> Quản lý: Đẩy ảnh này lên CDN';
                                         app.views.loadDetail(photo.id);
                                     } catch (e) {
                                         app.ui.showAlert("Lỗi: " + e.message);
