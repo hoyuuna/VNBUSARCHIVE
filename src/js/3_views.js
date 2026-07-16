@@ -1981,7 +1981,7 @@ Object.assign(window.app, {
                                                 </td>
                                             </tr>
                                             <tr>
-                                                <td class="label bg-gray-50 border-r border-gray-200">Ghi chú chung xe</td>
+                                                <td class="label bg-gray-50 border-r border-gray-200">Ghi chú</td>
                                                 <td class="value-cell">
                                                     <textarea id="vehicle-edit-note" rows="2" class="info-input text-gray-700 w-full resize-y min-h-[40px] block cursor-not-allowed" readonly>${app.utils.escapeAttr(vehicle.note || '')}</textarea>
                                                 </td>

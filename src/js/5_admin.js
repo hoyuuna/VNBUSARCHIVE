@@ -943,7 +943,7 @@ Object.assign(window.app, {
                                                 </div>
                                             </div>
                                             <div class="mb-2">
-                                                <span class="admin-label">Ghi chú chung về xe ${d.note !== curV.note ? tagNew : ''}</span>
+                                                <span class="admin-label">Ghi chú về xe ${d.note !== curV.note ? tagNew : ''}</span>
                                                 <textarea id="req-v-note-${r.id}" class="admin-input" rows="3">${app.utils.escapeAttr(d.note || '')}</textarea>
                                             </div>
                                             <div class="flex gap-2 mt-3">
