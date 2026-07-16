@@ -5,3 +5,19 @@
 @source "../src";
 @source "../*.html";
 @source "../*.js";
+
+@layer base {
+  button,
+  [role="button"],
+  [onclick],
+  a {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [role="button"]:disabled,
+  [disabled],
+  .cursor-not-allowed {
+    cursor: not-allowed !important;
+  }
+}

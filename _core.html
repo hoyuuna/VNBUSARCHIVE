@@ -192,6 +192,20 @@
             z-index: 20 !important;
         }
 
+        button,
+        [role="button"],
+        [onclick],
+        a {
+            cursor: pointer;
+        }
+
+        button:disabled,
+        [role="button"]:disabled,
+        [disabled],
+        .cursor-not-allowed {
+            cursor: not-allowed !important;
+        }
+
         body {
 
         /* BẮT BUỘC: Đảm bảo font-smoothing luôn được bật */
