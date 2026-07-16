@@ -3638,7 +3638,7 @@ grid.innerHTML = tiers.map(tier => {
     return `
     <div class="flex items-center justify-between p-3 border border-gray-200 rounded-md bg-white">
         <div class="flex items-center gap-3 overflow-hidden">
-            <div class="w-10 h-10 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-lg text-[#5865F2] shrink-0">
+            <div class="w-10 h-10 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-lg text-black shrink-0">
                 <i class="fa-solid fa-medal"></i>
             </div>
             <div class="overflow-hidden">
