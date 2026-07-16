@@ -189,7 +189,10 @@
                 const headers = { 'Content-Type': 'application/json' };
                 if (token) headers['Authorization'] = `Bearer ${token}`;
 
-                const response = await fetch('/api/system', { method: 'POST', headers: headers, body: JSON.stringify({ action: 'core', token: token || null }) });
+                const [response, cssResponse] = await Promise.all([
+                    fetch('/api/system', { method: 'POST', headers: headers, body: JSON.stringify({ action: 'core', token: token || null }) }),
+                    fetch('/tailwind.css', { method: 'GET', cache: 'default' }).catch(() => null)
+                ]);
                 
                 function renderModernStatusScreen({ title, label, reason, contactSuffix, iconSvg }) {
                     clearInterval(_pInt);
@@ -266,6 +269,35 @@
                         });
                         return;
                     }
+                }
+
+                let isCssValid = false;
+                let cssErrorReason = 'Không thể tải tệp giao diện tailwind.css';
+                if (cssResponse && cssResponse.ok) {
+                    const contentType = cssResponse.headers.get('content-type') || '';
+                    const cssText = await cssResponse.text().catch(() => '');
+                    if (contentType.includes('text/html') || cssText.trim().startsWith('<!DOCTYPE') || cssText.trim().startsWith('<html')) {
+                        cssErrorReason = 'Tệp định dạng tailwind.css bị trả về định dạng HTML không hợp lệ (có thể do lỗi máy chủ hoặc tường lửa).';
+                    } else if (cssText.length < 100) {
+                        cssErrorReason = 'Tệp định dạng tailwind.css bị rỗng hoặc không đầy đủ dữ liệu giao diện.';
+                    } else {
+                        isCssValid = true;
+                    }
+                } else if (cssResponse) {
+                    cssErrorReason = `Mã lỗi HTTP khi tải tệp tailwind.css: ${cssResponse.status}.`;
+                } else {
+                    cssErrorReason = 'Không thể kết nối tải tệp giao diện tailwind.css (mạng bị gián đoạn hoặc bị tiện ích chặn tải trang block).';
+                }
+
+                if (!isCssValid) {
+                    renderModernStatusScreen({
+                        title: 'LỖI TẢI GIAO DIỆN HỆ THỐNG',
+                        label: 'KIỂM TRA TỆP TAILWIND.CSS / CSS LOG',
+                        reason: `${cssErrorReason} Vui lòng kiểm tra lại đường truyền mạng, tắt các tiện ích chặn quảng cáo (Adblock/VPN) hoặc làm mới trình duyệt để tiếp tục truy cập.`,
+                        contactSuffix: 'nếu sự cố vẫn tiếp diễn! Xin cảm ơn.',
+                        iconSvg: '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#18181b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
+                    });
+                    return;
                 }
 
                 if (!response.ok) throw new Error('Bị từ chối (Mã lỗi HTTP: ' + response.status + ')');
