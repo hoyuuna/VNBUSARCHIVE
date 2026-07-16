@@ -322,7 +322,7 @@ Object.assign(window.app, {
 
                     if (okBtn) {
                         let defaultText = options.btnOkText || "Đồng ý";
-                        okBtn.style.display = options.hideButtons ? 'none' : '';
+                        okBtn.style.display = options.hideButtons ? 'none' : 'inline-flex';
 
                         if (options.countdown) {
                             okBtn.disabled = true;
@@ -361,11 +361,11 @@ Object.assign(window.app, {
                     if (cancelCallback || options.btnCancelText) {
                         cancelBtn.classList.remove('hidden');
                         cancelBtn.innerText = options.btnCancelText || "Hủy";
-                        cancelBtn.style.display = options.hideButtons ? 'none' : '';
+                        cancelBtn.style.display = options.hideButtons ? 'none' : 'inline-flex';
                         app.alertCancelCallback = cancelCallback || (() => { });
                     } else {
                         cancelBtn.classList.add('hidden');
-                        cancelBtn.style.display = '';
+                        cancelBtn.style.display = 'none';
                         app.alertCancelCallback = null;
                     }
 
@@ -396,6 +396,11 @@ Object.assign(window.app, {
 
                         app.alertCallback = null;
                         app.alertCancelCallback = null;
+                        const cancelBtn = document.getElementById('custom-alert-cancel-btn');
+                        if (cancelBtn) {
+                            cancelBtn.classList.add('hidden');
+                            cancelBtn.style.display = 'none';
+                        }
                     }, 200);
                 },
                 showQuotaInfo: () => {

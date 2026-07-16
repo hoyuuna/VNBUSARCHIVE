@@ -1767,6 +1767,52 @@
         .ruler-badge-bottom {
             bottom: 6px;
         }
+
+        /* ==========================================
+           FIX CROPPER.JS HANDLES (TĂNG KÍCH THƯỚC NÚT KÉO CẮT ẢNH)
+        ========================================== */
+        .cropper-point {
+            width: 18px !important;
+            height: 18px !important;
+            background-color: #ffffff !important;
+            border: 3px solid #000000 !important;
+            border-radius: 50% !important;
+            opacity: 1 !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+            transition: transform 0.15s ease !important;
+        }
+        .cropper-point:hover, .cropper-point:active {
+            transform: scale(1.2) !important;
+            background-color: #f4f4f5 !important;
+        }
+        /* Mở rộng hit-box vô hình giúp dễ chạm/kéo trên cả mobile và PC */
+        .cropper-point::after {
+            content: '' !important;
+            position: absolute !important;
+            top: -12px !important;
+            left: -12px !important;
+            right: -12px !important;
+            bottom: -12px !important;
+        }
+        /* Căn chỉnh tâm chính xác cho 8 điểm kéo với kích thước mới (18px -> bán kính 9px) */
+        .cropper-point.point-e { top: 50% !important; right: -9px !important; margin-top: -9px !important; }
+        .cropper-point.point-n { top: -9px !important; left: 50% !important; margin-left: -9px !important; }
+        .cropper-point.point-w { top: 50% !important; left: -9px !important; margin-top: -9px !important; }
+        .cropper-point.point-s { bottom: -9px !important; left: 50% !important; margin-left: -9px !important; }
+        .cropper-point.point-ne { top: -9px !important; right: -9px !important; }
+        .cropper-point.point-nw { top: -9px !important; left: -9px !important; }
+        .cropper-point.point-sw { bottom: -9px !important; left: -9px !important; }
+        .cropper-point.point-se { right: -9px !important; bottom: -9px !important; width: 18px !important; height: 18px !important; opacity: 1 !important; }
+
+        /* Làm rõ đường viền và đường kẻ khung cắt giúp dễ nhìn hơn */
+        .cropper-line {
+            background-color: #ffffff !important;
+            opacity: 0.35 !important;
+        }
+        .cropper-view-box {
+            outline: 2px solid rgba(255, 255, 255, 0.9) !important;
+            outline-color: rgba(255, 255, 255, 0.9) !important;
+        }
     </style>
     <style>
         body.is-offline button[type="submit"], body.is-offline .submit-btn, body.is-offline #btn-submit, body.is-offline #btn-post-comment, body.is-offline #btn-like { pointer-events: none !important; opacity: 0.5 !important; }
