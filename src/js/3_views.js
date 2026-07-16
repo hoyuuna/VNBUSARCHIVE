@@ -1931,84 +1931,89 @@ Object.assign(window.app, {
                         }
 
                         const html = `
-                            <div class="flex flex-col lg:flex-row gap-6">
-                                <div class="w-full lg:w-1/3 space-y-6">
-                                    ${topPhoto ? `<div class="bg-white border border-gray-200 shadow-sm rounded-xl overflow-hidden relative group cursor-pointer" onclick="app.views.loadDetail(${topPhoto.id})"><img src="${app.utils.getProxiedUrl(topPhoto.url, 'vehicle-top.jpg', 'thumb')}" onerror="app.utils.fallbackHeroImage(this, 'vehiclePhotosCache', 0)" class="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-500 relative z-0"></div>` : '<div class="aspect-[4/3] bg-gray-100 flex items-center justify-center text-gray-400 rounded-xl border border-gray-200">Chưa có ảnh</div>'}
+                            <div class="text-[11px] sm:text-xs text-gray-500 mb-4 bg-white px-3 py-2 border border-vbs-border rounded-md shadow-sm flex items-center gap-1.5 sm:gap-2 w-max max-w-full">
+                                <span class="crumb-back cursor-pointer hover:text-black font-medium transition-colors truncate shrink min-w-0" onclick="app.views.loadHome()">Trang chủ</span>
+                                <i class="fa-solid fa-chevron-right text-[8px] sm:text-[10px] shrink-0 text-gray-400"></i>
+                                <span id="crumb-vehicle-profile" class="font-bold text-black overflow-x-auto whitespace-nowrap no-scrollbar shrink min-w-0 block">${app.utils.displayPlate(vehicle.license_plate)}</span>
+                            </div>
 
-                                     <div class="bg-white border border-gray-200 shadow-sm rounded-xl p-2.5 pt-3.5 pb-2.5 md:p-3 md:pt-4 md:pb-3 overflow-hidden">
-                                        <h3 class="font-black text-lg sm:text-xl uppercase text-black tracking-widest mb-3 px-1">${app.utils.displayPlate(vehicle.license_plate)}</h3>
-                                        
-                                        <div class="border border-gray-200 rounded-lg overflow-hidden bg-white mb-3">
-                                            <table class="info-table border-gray-200 w-full" style="margin-bottom: 0 !important;">
-                                                <tr>
-                                                    <td class="label bg-gray-50 border-r border-b border-gray-200" style="width: 40%">Đơn vị vận hành</td>
-                                                    <td class="value-cell border-b border-gray-200">
-                                                        <input type="text" id="vehicle-edit-operator" value="${currentOpClientSide}" class="info-input text-gray-700 ${currentOpClientSide ? 'clickable-search' : 'cursor-not-allowed'}" readonly ${currentOpClientSide ? `onclick="if(this.readOnly && this.value && this.value!=='---') app.utils.navigate('/operator/' + encodeURIComponent(this.value))"` : ''}>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="label bg-gray-50 border-r border-b border-gray-200">${isCoach ? 'Lộ trình' : 'Mã số tuyến'} hiện tại</td>
-                                                    <td class="value-cell border-b border-gray-200">
-                                                        <div class="relative w-full h-full">
-                                                            <input type="text" id="vehicle-edit-route" value="${currentRouteClientSide}" autocomplete="off" class="info-input text-gray-700 w-full ${currentRouteClientSide ? 'clickable-search' : 'cursor-not-allowed'}" readonly ${currentRouteClientSide ? `onclick="if(this.readOnly && this.value && this.value!=='---') app.searchRedirect(this.value, 'route', '${vehPrefix}')"` : ''} onfocus="if(!this.readOnly) app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', '')" oninput="app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', this.value)">
-                                                            <div id="veh-sug-route" class="suggestion-box"></div>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="label bg-gray-50 border-r border-b border-gray-200">Dòng xe</td>
-                                                    <td class="value-cell border-b border-gray-200">
-                                                        <div class="relative w-full h-full">
-                                                            <input type="text" id="vehicle-edit-model" value="${app.utils.escapeAttr(vehicle.model || '')}" autocomplete="off" class="info-input text-gray-700 w-full ${vehicle.model ? 'clickable-search' : 'cursor-not-allowed'}" readonly ${vehicle.model ? `onclick="if(this.readOnly && this.value && this.value!=='---') app.utils.navigate('/model/' + encodeURIComponent(this.value))"` : ''} oninput="app.utils.triggerSuggestion('vehicle-edit-model', 'veh-sug-model', this.value, 'model')">
-                                                            <div id="veh-sug-model" class="suggestion-box"></div>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="label bg-gray-50 border-r border-gray-200">Ghi chú chung xe</td>
-                                                    <td class="value-cell">
-                                                        <textarea id="vehicle-edit-note" rows="3" class="info-input text-gray-700 w-full resize-y min-h-[40px] block cursor-not-allowed" readonly>${app.utils.escapeAttr(vehicle.note || '')}</textarea>
-                                                    </td>
-                                                </tr>
-                                            </table>
+                            <div class="bg-white border border-vbs-border shadow-sm rounded-lg p-6 md:p-8 mb-6 relative overflow-hidden">
+                                <div class="flex flex-col md:flex-row justify-between items-start mb-6 gap-4">
+                                    <div class="flex items-center gap-4 sm:gap-6 w-full md:w-auto min-w-0 max-w-full">
+                                        ${topPhoto ? `
+                                        <img src="${app.utils.getProxiedUrl(topPhoto.url, 'vehicle-top.jpg', 'thumb')}" onerror="app.utils.fallbackHeroImage(this, 'vehiclePhotosCache', 0)" onclick="app.views.loadDetail(${topPhoto.id})" class="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-xl object-cover shrink-0 border border-gray-200 shadow-sm cursor-pointer hover:scale-105 transition duration-300">
+                                        ` : `
+                                        <div class="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-xl bg-gray-100 text-gray-400 flex items-center justify-center font-bold text-3xl shrink-0 border border-gray-200">
+                                            <i class="fa-solid fa-bus"></i>
                                         </div>
-
-                                        <div id="veh-edit-trigger-container" class="mt-3 pt-3 border-t border-gray-100">
-                                            <button id="btn-vehicle-edit" onclick="app.vehicle.toggleVehiclePageEdit('${plate}')" class="w-full bg-white border border-gray-300 text-gray-700 py-2.5 text-sm font-bold rounded-md hover:bg-gray-50 transition shadow-sm flex justify-center items-center gap-1.5">
-                                                <i class="fa-solid fa-pen-to-square"></i> <span id="btn-veh-edit-label">Sửa thông tin xe</span>
-                                            </button>
+                                        `}
+                                        <div class="overflow-hidden min-w-0 flex-1 text-left">
+                                            <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-widest font-bold mb-1">Hồ sơ phương tiện</p>
+                                            <h2 class="text-xl md:text-3xl font-black uppercase text-black tracking-tight leading-tight overflow-x-auto whitespace-nowrap no-scrollbar block w-full">${app.utils.displayPlate(vehicle.license_plate)}</h2>
+                                            <p class="text-xs md:text-sm font-bold text-gray-600 mt-1 uppercase tracking-wider truncate ${currentOpClientSide ? 'cursor-pointer hover:text-black transition' : ''}" ${currentOpClientSide ? `onclick="app.utils.navigate('/operator/' + encodeURIComponent('${app.utils.escapeAttr(currentOpClientSide)}'))"` : ''} title="${app.utils.escapeAttr(currentOpClientSide || 'Chưa cập nhật ĐVVH')}">${currentOpClientSide || 'Chưa có thông tin ĐVVH'}</p>
                                         </div>
-
-                                        <div id="vehicle-edit-actions" class="hidden mt-3 pt-3 border-t border-gray-100 justify-end gap-3">
-                                            <button onclick="app.vehicle.toggleVehiclePageEdit('${plate}')" class="text-xs text-gray-500 hover:text-black font-medium">Hủy bỏ</button>
-                                            <button id="btn-vehicle-save" onclick="app.vehicle.saveVehiclePageChanges('${plate}')" class="bg-black text-white text-xs font-bold px-4 py-2 rounded-md hover:bg-gray-800 transition shadow-sm">Gửi yêu cầu</button>
-                                        </div>
+                                    </div>
+                                    <div id="veh-edit-trigger-container" class="w-full md:w-auto shrink-0">
+                                        <button id="btn-vehicle-edit" onclick="app.vehicle.toggleVehiclePageEdit('${plate}')" class="w-full md:w-auto text-xs text-black hover:bg-gray-100 bg-white px-4 py-2.5 border border-gray-200 rounded-lg transition shadow-sm font-bold flex justify-center items-center gap-1.5">
+                                            <i class="fa-solid fa-pen-to-square"></i> <span id="btn-veh-edit-label">Sửa thông tin xe</span>
+                                        </button>
                                     </div>
                                 </div>
 
-                                <div class="w-full lg:w-2/3 space-y-6">
-                                    <div class="bg-white relative border border-gray-200 shadow-sm rounded-xl p-2.5 pt-3.5 pb-2.5 md:p-3 md:pt-4 md:pb-3 overflow-hidden">
-                                        <h3 class="font-bold text-xs uppercase text-black tracking-wider mb-2.5 px-1">Lịch sử hoạt động</h3>
-                                        
-                                        <div class="border border-gray-200 rounded-lg overflow-hidden bg-white">
-                                            ${historyHTML}
-                                        </div>
-
-                                        <div class="mt-3 pt-3 border-t border-gray-100">
-                                            <button onclick="app.vehicle.toggleEditHistory('veh-')"
-                                                class="w-full bg-white border border-gray-300 text-gray-700 py-2.5 text-sm font-bold rounded-md hover:bg-gray-50 transition shadow-sm flex justify-center items-center gap-1.5">
-                                                <i class="fa-solid fa-clock-rotate-left"></i> Cập nhật lịch sử
-                                            </button>
-                                        </div>
-                                        ${editHistoryUI}
+                                <div class="mb-8">
+                                    <h3 class="font-bold text-xs uppercase text-black tracking-wider mb-2.5 px-1">Thông tin chi tiết</h3>
+                                    <div class="border border-gray-200 rounded-lg overflow-hidden bg-white mb-3 shadow-sm">
+                                        <table class="info-table border-gray-200 w-full" style="margin-bottom: 0 !important;">
+                                            <tr>
+                                                <td class="label bg-gray-50 border-r border-b border-gray-200" style="width: 35%">${isCoach ? 'Lộ trình' : 'Mã số tuyến'} hiện tại</td>
+                                                <td class="value-cell border-b border-gray-200">
+                                                    <div class="relative w-full h-full">
+                                                        <input type="text" id="vehicle-edit-route" value="${currentRouteClientSide}" autocomplete="off" class="info-input text-gray-700 w-full ${currentRouteClientSide ? 'clickable-search' : 'cursor-not-allowed'}" readonly ${currentRouteClientSide ? `onclick="if(this.readOnly && this.value && this.value!=='---') app.searchRedirect(this.value, 'route', '${vehPrefix}')"` : ''} onfocus="if(!this.readOnly) app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', '')" oninput="app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', this.value)">
+                                                        <div id="veh-sug-route" class="suggestion-box"></div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="label bg-gray-50 border-r border-b border-gray-200">Dòng xe</td>
+                                                <td class="value-cell border-b border-gray-200">
+                                                    <div class="relative w-full h-full">
+                                                        <input type="text" id="vehicle-edit-model" value="${app.utils.escapeAttr(vehicle.model || '')}" autocomplete="off" class="info-input text-gray-700 w-full ${vehicle.model ? 'clickable-search' : 'cursor-not-allowed'}" readonly ${vehicle.model ? `onclick="if(this.readOnly && this.value && this.value!=='---') app.utils.navigate('/model/' + encodeURIComponent(this.value))"` : ''} oninput="app.utils.triggerSuggestion('vehicle-edit-model', 'veh-sug-model', this.value, 'model')">
+                                                        <div id="veh-sug-model" class="suggestion-box"></div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="label bg-gray-50 border-r border-gray-200">Ghi chú chung xe</td>
+                                                <td class="value-cell">
+                                                    <textarea id="vehicle-edit-note" rows="2" class="info-input text-gray-700 w-full resize-y min-h-[40px] block cursor-not-allowed" readonly>${app.utils.escapeAttr(vehicle.note || '')}</textarea>
+                                                </td>
+                                            </tr>
+                                        </table>
                                     </div>
-
-                                    <div>
-                                        <h3 class="font-bold text-lg mb-3 tracking-tight text-black uppercase">Thư viện ảnh (${allPhotos.length})</h3>
-                                        ${photosHTML}
+                                    <div id="vehicle-edit-actions" class="hidden mt-3 pt-3 border-t border-gray-100 justify-end gap-3">
+                                        <button onclick="app.vehicle.toggleVehiclePageEdit('${plate}')" class="text-xs text-gray-500 hover:text-black font-medium">Hủy bỏ</button>
+                                        <button id="btn-vehicle-save" onclick="app.vehicle.saveVehiclePageChanges('${plate}')" class="bg-black text-white text-xs font-bold px-4 py-2 rounded-md hover:bg-gray-800 transition shadow-sm">Gửi yêu cầu</button>
                                     </div>
+                                </div>
+
+                                <div>
+                                    <h3 class="font-bold text-xs uppercase text-black tracking-wider mb-2.5 px-1">Lịch sử hoạt động</h3>
+                                    <div class="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
+                                        ${historyHTML}
+                                    </div>
+                                    <div class="mt-3 pt-3 border-t border-gray-100">
+                                        <button onclick="app.vehicle.toggleEditHistory('veh-')" class="w-full bg-white border border-gray-300 text-gray-700 py-2.5 text-sm font-bold rounded-md hover:bg-gray-50 transition shadow-sm flex justify-center items-center gap-1.5">
+                                            <i class="fa-solid fa-clock-rotate-left"></i> Cập nhật lịch sử
+                                        </button>
+                                    </div>
+                                    ${editHistoryUI}
                                 </div>
                             </div>
+
+                            <div class="flex items-center gap-2 mb-4">
+                                <h3 class="text-lg font-bold uppercase text-black tracking-tight">Thư viện ảnh (${allPhotos.length})</h3>
+                            </div>
+                            ${photosHTML}
                         `;
                         container.innerHTML = html;
                         app.vehicle._renderedPlate = plate; // ĐÁNH DẤU XE NÀY ĐÃ RENDER THÀNH CÔNG
