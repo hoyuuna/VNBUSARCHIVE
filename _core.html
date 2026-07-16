@@ -4565,12 +4565,12 @@
                                 </div>
                             </div>
 
-                            <button id="btn-detailed-stats" onclick="app.achievement.open()" class="w-full mb-2 py-3 bg-white border border-[#e4e4e7] rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-black transition shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] flex items-center justify-center gap-2 group">
-                                <i class="fa-solid fa-chart-pie text-gray-500 group-hover:text-black transition-colors"></i> Chỉ số chi tiết
+                            <button id="btn-detailed-stats" onclick="app.achievement.open()" class="w-full mb-2 py-3 bg-white border border-[#e4e4e7] rounded-lg text-sm font-bold text-gray-700 hover:bg-black hover:text-white hover:border-black transition shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] flex items-center justify-center gap-2 group">
+                                <i class="fa-solid fa-chart-pie text-gray-500 group-hover:text-white transition-colors"></i> Chỉ số chi tiết
                             </button>
 
-                            <button id="btn-manage-comments" onclick="app.utils.navigate('/profile/comments')" class="w-full mb-6 py-3 bg-white border border-[#e4e4e7] rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-black transition shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] flex items-center justify-center gap-2 group">
-                                <i class="fa-solid fa-comments text-gray-500 group-hover:text-black transition-colors"></i> Quản lý bình luận
+                            <button id="btn-manage-comments" onclick="app.utils.navigate('/profile/comments')" class="w-full mb-6 py-3 bg-white border border-[#e4e4e7] rounded-lg text-sm font-bold text-gray-700 hover:bg-black hover:text-white hover:border-black transition shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] flex items-center justify-center gap-2 group">
+                                <i class="fa-solid fa-comments text-gray-500 group-hover:text-white transition-colors"></i> Quản lý bình luận
                             </button>
 
                             <!-- ĐOẠN CODE THÊM MỚI: PHẦN GIỚI THIỆU -->
@@ -5915,35 +5915,35 @@
 
                 <div class="space-y-4">
                     <!-- Tuyến -->
-                    <div onclick="var v=document.getElementById('my-top-route').innerText; if(v!=='---'){app.searchRedirect(v, 'route'); app.achievement.close();}" class="cursor-pointer group flex items-center gap-4 p-4 rounded-xl border border-gray-200 shadow-sm transition-all hover:border-blue-400 hover:shadow-md hover:bg-white" style="background-color: rgba(249, 250, 251, 0.6);" title="Nhấn để tìm kiếm ảnh theo tuyến này">
-                        <div class="w-12 h-12 bg-white shadow-sm rounded-full flex items-center justify-center text-blue-600 border border-blue-50 shrink-0 group-hover:scale-110 transition-transform">
+                    <div onclick="var v=document.getElementById('my-top-route').innerText; if(v!=='---'){app.searchRedirect(v, 'route'); app.achievement.close();}" class="cursor-pointer group flex items-center gap-4 p-4 rounded-xl border border-gray-200 shadow-sm transition-all hover:border-black hover:shadow-md hover:bg-white" style="background-color: rgba(249, 250, 251, 0.6);" title="Nhấn để tìm kiếm ảnh theo tuyến này">
+                        <div class="w-12 h-12 bg-white shadow-sm rounded-full flex items-center justify-center text-gray-800 border border-gray-200 shrink-0 group-hover:bg-black group-hover:text-white group-hover:border-black group-hover:scale-110 transition-all">
                             <i class="fa-solid fa-route text-lg"></i>
                         </div>
                         <div class="overflow-hidden min-w-0 flex-1">
-                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5 group-hover:text-blue-600 transition-colors">Tuyến chụp nhiều nhất</p>
-                            <p class="text-lg font-black text-gray-800 overflow-x-auto whitespace-nowrap no-scrollbar leading-none group-hover:text-black transition-colors" id="my-top-route">---</p>
+                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5 group-hover:text-gray-900 transition-colors">Tuyến chụp nhiều nhất</p>
+                            <p class="text-lg font-black text-gray-900 overflow-x-auto whitespace-nowrap no-scrollbar leading-none group-hover:text-black transition-colors" id="my-top-route">---</p>
                         </div>
                     </div>
 
                     <!-- Xe -->
-                    <div onclick="var v=document.getElementById('my-top-plate').innerText; if(v!=='---'){app.utils.navigate('/vehicle/'+encodeURIComponent(v)); app.achievement.close();}" class="cursor-pointer group flex items-center gap-4 p-4 rounded-xl border border-gray-200 shadow-sm transition-all hover:border-orange-400 hover:shadow-md hover:bg-white" style="background-color: rgba(249, 250, 251, 0.6);" title="Nhấn để xem hồ sơ xe này">
-                        <div class="w-12 h-12 bg-white shadow-sm rounded-full flex items-center justify-center text-orange-600 border border-orange-50 shrink-0 group-hover:scale-110 transition-transform">
+                    <div onclick="var v=document.getElementById('my-top-plate').innerText; if(v!=='---'){app.utils.navigate('/vehicle/'+encodeURIComponent(v)); app.achievement.close();}" class="cursor-pointer group flex items-center gap-4 p-4 rounded-xl border border-gray-200 shadow-sm transition-all hover:border-black hover:shadow-md hover:bg-white" style="background-color: rgba(249, 250, 251, 0.6);" title="Nhấn để xem hồ sơ xe này">
+                        <div class="w-12 h-12 bg-white shadow-sm rounded-full flex items-center justify-center text-gray-800 border border-gray-200 shrink-0 group-hover:bg-black group-hover:text-white group-hover:border-black group-hover:scale-110 transition-all">
                             <i class="fa-solid fa-bus text-lg"></i>
                         </div>
                         <div class="overflow-hidden min-w-0 flex-1">
-                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5 group-hover:text-orange-600 transition-colors">Xe chụp nhiều nhất</p>
-                            <p class="text-lg font-black text-gray-800 overflow-x-auto whitespace-nowrap no-scrollbar leading-none group-hover:text-black transition-colors" id="my-top-plate">---</p>
+                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5 group-hover:text-gray-900 transition-colors">Xe chụp nhiều nhất</p>
+                            <p class="text-lg font-black text-gray-900 overflow-x-auto whitespace-nowrap no-scrollbar leading-none group-hover:text-black transition-colors" id="my-top-plate">---</p>
                         </div>
                     </div>
 
                     <!-- Dòng xe -->
-                    <div onclick="var v=document.getElementById('my-top-model').innerText; if(v!=='---'){app.utils.navigate('/model/'+encodeURIComponent(v)); app.achievement.close();}" class="cursor-pointer group flex items-center gap-4 p-4 rounded-xl border border-gray-200 shadow-sm transition-all hover:border-blue-400 hover:shadow-md hover:bg-white" style="background-color: rgba(249, 250, 251, 0.6);" title="Nhấn để xem hồ sơ dòng xe này">
-                        <div class="w-12 h-12 bg-white shadow-sm rounded-full flex items-center justify-center text-blue-600 border border-blue-50 shrink-0 group-hover:scale-110 transition-transform">
+                    <div onclick="var v=document.getElementById('my-top-model').innerText; if(v!=='---'){app.utils.navigate('/model/'+encodeURIComponent(v)); app.achievement.close();}" class="cursor-pointer group flex items-center gap-4 p-4 rounded-xl border border-gray-200 shadow-sm transition-all hover:border-black hover:shadow-md hover:bg-white" style="background-color: rgba(249, 250, 251, 0.6);" title="Nhấn để xem hồ sơ dòng xe này">
+                        <div class="w-12 h-12 bg-white shadow-sm rounded-full flex items-center justify-center text-gray-800 border border-gray-200 shrink-0 group-hover:bg-black group-hover:text-white group-hover:border-black group-hover:scale-110 transition-all">
                             <i class="fa-solid fa-layer-group text-lg"></i>
                         </div>
                         <div class="overflow-hidden min-w-0 flex-1">
-                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5 group-hover:text-blue-600 transition-colors">Dòng xe chụp nhiều nhất</p>
-                            <p class="text-lg font-black text-gray-800 overflow-x-auto whitespace-nowrap no-scrollbar leading-none group-hover:text-black transition-colors" id="my-top-model">---</p>
+                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5 group-hover:text-gray-900 transition-colors">Dòng xe chụp nhiều nhất</p>
+                            <p class="text-lg font-black text-gray-900 overflow-x-auto whitespace-nowrap no-scrollbar leading-none group-hover:text-black transition-colors" id="my-top-model">---</p>
                         </div>
                     </div>
                 </div>
