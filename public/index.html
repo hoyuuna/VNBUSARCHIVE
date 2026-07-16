@@ -189,9 +189,10 @@
                 const headers = { 'Content-Type': 'application/json' };
                 if (token) headers['Authorization'] = `Bearer ${token}`;
 
+                const cssUrl = '/tailwind.css?v=' + new Date().getTime();
                 const [response, cssResponse] = await Promise.all([
                     fetch('/api/system', { method: 'POST', headers: headers, body: JSON.stringify({ action: 'core', token: token || null }) }),
-                    fetch('/tailwind.css', { method: 'GET', cache: 'default' }).catch(() => null)
+                    fetch(cssUrl, { method: 'GET', cache: 'no-store' }).catch(() => null)
                 ]);
                 
                 function renderModernStatusScreen({ title, label, reason, contactSuffix, iconSvg }) {
@@ -303,7 +304,8 @@
                 if (!response.ok) throw new Error('Bị từ chối (Mã lỗi HTTP: ' + response.status + ')');
                 
                 const data = await response.json();
-                const decodedHTML = decodeURIComponent(escape(atob(data.payload)));
+                let decodedHTML = decodeURIComponent(escape(atob(data.payload)));
+                decodedHTML = decodedHTML.replace('/tailwind.css', cssUrl);
             
                 document.open();
                 if (sessionStorage.getItem('VNBA_SESS_AUTH') === 'active') clearInterval(_pInt);

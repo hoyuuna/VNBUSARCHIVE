@@ -64,9 +64,9 @@ try {
             return `${key} ${values.join(' ')}`;
         }).join('; ') + ';';
         
-        const headersContent = `/*\n  Content-Security-Policy: ${cspString}\n`;
+        const headersContent = `/*\n  Content-Security-Policy: ${cspString}\n\n/tailwind.css\n  Cache-Control: no-store, no-cache, must-revalidate, max-age=0\n  Pragma: no-cache\n  Expires: 0\n`;
         fs.writeFileSync(path.join(__dirname, 'public', '_headers'), headersContent);
-        console.log('Đã tạo public/_headers từ csp.json');
+        console.log('Đã tạo public/_headers từ csp.json (kèm Cache-Control no-store cho tailwind.css)');
     }
 
     // Build Tailwind CSS
