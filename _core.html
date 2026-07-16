@@ -1398,11 +1398,17 @@
         }
 
         /* LUÔN CĂN GIỮA VÀ THÊM ANIMATION RƠI XUỐNG CHO USER DROPDOWN */
+        #user-dropdown {
+            left: 50% !important;
+            translate: 0 0 !important;
+        }
         #user-dropdown.opacity-100 {
             transform: translateX(-50%) translateY(0) !important;
+            translate: 0 0 !important;
         }
         #user-dropdown.opacity-0 {
             transform: translateX(-50%) translateY(-16px) !important;
+            translate: 0 0 !important;
         }
 
         /* 3. CUSTOM BLACK CHECKBOX (DÀNH CHO FORM HỖ TRỢ & TUYÊN BỐ) */
@@ -2740,7 +2746,7 @@
                                 <i class="fa-solid fa-circle-user md:mr-1"></i>
                                 <span id="nav-username" class="hidden md:inline">Tài khoản</span>
                             </button>
-                            <div id="user-dropdown" class="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 border border-white/50 rounded-lg shadow-xl z-[1510] overflow-hidden transform opacity-0 -translate-y-4 pointer-events-none transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] origin-top" style="z-index: 1510 !important;">
+                            <div id="user-dropdown" class="absolute top-full left-1/2 mt-2 w-48 border border-white/50 rounded-lg shadow-xl z-[1510] overflow-hidden transform opacity-0 -translate-y-4 pointer-events-none transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] origin-top" style="z-index: 1510 !important;">
 
                             </div>
                         </div>
