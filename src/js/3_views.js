@@ -1954,7 +1954,7 @@ Object.assign(window.app, {
 
                                 <div class="mb-8">
                                     <h3 class="font-bold text-xs uppercase text-black tracking-wider mb-2.5 px-1">Thông tin chi tiết</h3>
-                                    <div class="border border-gray-200 rounded-lg overflow-hidden bg-white mb-6 shadow-sm">
+                                    <div class="border border-gray-200 rounded-lg overflow-hidden bg-white mb-3 shadow-sm">
                                         <table class="info-table border-gray-200 w-full" style="margin-bottom: 0 !important;">
                                             <tr>
                                                 <td class="label bg-gray-50 border-r border-b border-gray-200" style="width: 35%">Đơn vị vận hành</td>
@@ -1995,7 +1995,7 @@ Object.assign(window.app, {
                                         </button>
                                     </div>
 
-                                    <div id="vehicle-edit-actions" class="hidden mt-3 justify-end gap-3">
+                                    <div id="vehicle-edit-actions" class="hidden mb-6 justify-end gap-3">
                                         <button onclick="app.vehicle.toggleVehiclePageEdit('${plate}')" class="text-xs text-gray-500 hover:text-black font-medium">Hủy bỏ</button>
                                         <button id="btn-vehicle-save" onclick="app.vehicle.saveVehiclePageChanges('${plate}')" class="bg-black text-white text-xs font-bold px-4 py-2 rounded-md hover:bg-gray-800 transition shadow-sm">Gửi yêu cầu</button>
                                     </div>
@@ -2003,10 +2003,10 @@ Object.assign(window.app, {
 
                                 <div>
                                     <h3 class="font-bold text-xs uppercase text-black tracking-wider mb-2.5 px-1">Lịch sử hoạt động</h3>
-                                    <div class="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
+                                    <div class="border border-gray-200 rounded-lg overflow-hidden bg-white mb-3 shadow-sm">
                                         ${historyHTML}
                                     </div>
-                                    <div class="mt-3">
+                                    <div class="mb-2">
                                         <button onclick="app.vehicle.toggleEditHistory('veh-')" class="w-full bg-white border border-gray-300 text-gray-700 py-2.5 text-sm font-bold rounded-md hover:bg-gray-50 transition shadow-sm flex justify-center items-center gap-1.5">
                                             <i class="fa-solid fa-clock-rotate-left"></i> Cập nhật lịch sử
                                         </button>
