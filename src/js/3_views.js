@@ -1808,6 +1808,20 @@ Object.assign(window.app, {
                         const isCoach = topPhoto && topPhoto.type === 'coach';
 
 
+                        let rawHistory = historyRes.data || [];
+
+                        let historyData = rawHistory.map(h => {
+                            if (!h.effective_date && h.note) {
+                                const dateMatch = h.note.match(/Từ ngày:\s*(\d{1,2}\/\d{1,2}\/\d{4})/i);
+                                if (dateMatch) {
+                                    const parts = dateMatch[1].split('/');
+                                    h.effective_date = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                                    h.note = h.note.replace(dateMatch[0], '').trim();
+                                }
+                            }
+                            return h;
+                        }).sort((a, b) => new Date(a.effective_date || '1970-01-01') - new Date(b.effective_date || '1970-01-01'));
+
                         const specialRoutes = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động'];
                         let currentRouteClientSide = '';
                         let currentOpClientSide = '';
@@ -1830,15 +1844,25 @@ Object.assign(window.app, {
                             }
                         }
 
+                        // Ưu tiên lấy Mã số tuyến hiện tại (và Đơn vị vận hành) từ mốc Lịch sử hoạt động mới nhất
+                        if (historyData.length > 0) {
+                            const latestHist = historyData[historyData.length - 1];
+                            const histRoute = (latestHist.route || '').trim();
+                            if (histRoute && histRoute !== '-' && histRoute !== '---') {
+                                currentRouteClientSide = histRoute;
+                            }
+                            const histOp = (latestHist.operator || '').trim();
+                            if (histOp && histOp !== '-' && histOp !== '---') {
+                                currentOpClientSide = histOp;
+                            }
+                        }
+
                         const baseDescClient = `Lịch sử hoạt động và thư viện ảnh của xe ${vehicle.model ? vehicle.model + ' ' : ''}biển kiểm soát ${app.utils.formatPlateVariations(vehicle.license_plate)}`;
                         const tailPartsClient = [];
                         if (currentOpClientSide) tailPartsClient.push(currentOpClientSide);
                         if (currentRouteClientSide && currentRouteClientSide !== '---') tailPartsClient.push(`Tuyến ${currentRouteClientSide}`);
                         const pageDesc = tailPartsClient.length > 0 ? `${baseDescClient} - ${tailPartsClient.join(' - ')}.` : `${baseDescClient}.`;
                         app.utils.updateMetaTags(pageTitle, pageDesc, topPhoto ? app.utils.getProxiedUrl(topPhoto.url) : '');
-
-
-                        let rawHistory = historyRes.data || [];
 
                         let vehPrefix = '';
                         const vehProvName = app.utils.getProvinceFromPlate(vehicle.license_plate);
@@ -1848,18 +1872,6 @@ Object.assign(window.app, {
                                 vehPrefix = Array.isArray(pData.ky_hieu) ? String(pData.ky_hieu[0]).trim() : String(pData.ky_hieu).split(',')[0].trim();
                             }
                         }
-
-                        let historyData = rawHistory.map(h => {
-                            if (!h.effective_date && h.note) {
-                                const dateMatch = h.note.match(/Từ ngày:\s*(\d{1,2}\/\d{1,2}\/\d{4})/i);
-                                if (dateMatch) {
-                                    const parts = dateMatch[1].split('/');
-                                    h.effective_date = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-                                    h.note = h.note.replace(dateMatch[0], '').trim();
-                                }
-                            }
-                            return h;
-                        }).sort((a, b) => new Date(a.effective_date || '1970-01-01') - new Date(b.effective_date || '1970-01-01'));
 
                         app.currentPlate = vehicle.license_plate;
                         app.vehicle.currentHistoryData = historyData;
