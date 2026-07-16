@@ -1727,9 +1727,9 @@ Object.assign(window.app, {
 
                             tbody.innerHTML += `
                                 <tr>
-                                    <td class="font-bold" style="border-left: 4px solid ${barColor} !important;">${safePlate}</td>
-                                    <td>${safeOp}</td>
-                                    <td>${safeRoute}</td>
+                                    <td class="font-bold border-r border-gray-200" style="border-left: 4px solid ${barColor} !important;">${safePlate}</td>
+                                    <td class="border-r border-gray-200">${safeOp}</td>
+                                    <td class="border-r border-gray-200">${safeRoute}</td>
                                     <td class="text-xs text-gray-500">${safeNote}</td>
                                 </tr>
                             `;
@@ -1882,31 +1882,39 @@ Object.assign(window.app, {
                                 <div class="history-table-wrapper">
                                     <table class="history-table" style="margin-bottom: 0 !important;">
                                         <thead><tr>
-                                            <th class="border-r border-gray-200" style="border-left: 4px solid #f4f4f5;">Đơn vị</th>
-                                            <th class="border-r border-gray-200">${isCoach ? 'Lộ trình' : 'Mã số tuyến'}</th>
+                                            <th class="border-r border-gray-200" style="border-left: 4px solid #f4f4f5;">BKS</th>
+                                            <th class="border-r border-gray-200">Đơn vị</th>
+                                            <th class="border-r border-gray-200">Tuyến</th>
                                             <th>Ghi chú</th>
                                         </tr></thead>
                                         <tbody>
                                             ${historyData.map((h, idx) => {
+                                                let displayPlate = h.license_plate || vehicle.license_plate;
+                                                let displayNote = h.note || '';
+
+                                                const match = displayNote.match(/BKS cũ:\s*([A-Z0-9.-]+)/i);
+                                                if (match) {
+                                                    displayPlate = match[1];
+                                                    displayNote = displayNote.replace(match[0], '').trim();
+                                                }
+                                                displayNote = displayNote.replace(/^[-,]\s*/, '').trim();
+
+                                                const safePlate = app.utils.cleanText(displayPlate);
+                                                const safeOp = app.utils.cleanText(h.operator);
+                                                const safeRoute = app.utils.cleanText(h.route || '-');
+                                                const safeNote = app.utils.cleanText(displayNote);
+
                                                 const isLatest = idx === historyData.length - 1;
                                                 const textCheck = `${h.operator || ''} ${h.route || ''} ${h.note || ''}`.toLowerCase();
                                                 const isStopped = textCheck.includes('dừng hoạt động') || textCheck.includes('ngừng hoạt động') || textCheck.includes('thanh lý') || textCheck.includes('thu hồi');
                                                 const barColor = !isLatest ? '#9ca3af' : (isStopped ? '#ef4444' : '#22c55e');
 
-                                                let displayNote = h.note || '';
-                                                const oldBksMatch = displayNote.match(/BKS cũ:\s*([A-Z0-9.-]+)/i);
-                                                let bksHtml = '';
-                                                if (oldBksMatch) {
-                                                    bksHtml = `<br><span class="text-[10px] bg-gray-100 px-1 rounded border">BKS cũ: ${oldBksMatch[1]}</span>`;
-                                                    displayNote = displayNote.replace(oldBksMatch[0], '').trim();
-                                                }
-                                                displayNote = displayNote.replace(/^[-,]\s*/, '').trim();
-
                                                 return `
                                                 <tr>
-                                                    <td class="font-bold border-r border-gray-200" style="border-left: 4px solid ${barColor} !important;">${h.operator}${bksHtml}</td>
-                                                    <td class="font-bold border-r border-gray-200">${h.route || '-'}</td>
-                                                    <td class="text-xs text-gray-500">${displayNote}</td>
+                                                    <td class="font-bold border-r border-gray-200" style="border-left: 4px solid ${barColor} !important;">${safePlate}</td>
+                                                    <td class="border-r border-gray-200">${safeOp}</td>
+                                                    <td class="border-r border-gray-200">${safeRoute}</td>
+                                                    <td class="text-xs text-gray-500">${safeNote}</td>
                                                 </tr>`;
                                             }).join('')}
                                         </tbody>
