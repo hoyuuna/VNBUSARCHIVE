@@ -1899,7 +1899,7 @@
                 </div>
             </div>
 
-            <div class="px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse" style="background-color: transparent !important; border-top: 1px solid rgba(0, 0, 0, 0.05) !important;">
+            <div class="px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse" style="background-color: transparent !important;">
                 <button type="button" id="btn-resend-verify" onclick="app.auth.resendVerification()" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-black text-base font-medium text-white hover:bg-gray-800 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition">
                     Gửi lại mail
                 </button>
@@ -2151,7 +2151,7 @@
                 <div class="w-full relative flex items-center justify-center select-none overflow-hidden" style="height: 60vh; min-height: 300px; -webkit-touch-callout: none;" oncontextmenu="return false;">
                     <img id="crop-image" src="" style="max-width: 100%; max-height: 100%; display: block; -webkit-touch-callout: none;" draggable="false">
                 </div>
-                <div class="p-4 border-t border-gray-200/50 flex flex-col sm:flex-row gap-4 justify-between items-center shrink-0">
+                <div class="p-4 flex flex-col sm:flex-row gap-4 justify-between items-center shrink-0">
                     <div id="crop-ratios" class="flex flex-wrap gap-2 w-full sm:w-auto justify-center items-center">
                         <span class="text-xs font-bold text-gray-500 self-center hidden sm:inline-block mr-1">Tỉ lệ:</span>
                         <button type="button" onclick="app.crop.setRatio(16/9)" class="crop-ratio-btn px-3 py-1.5 text-xs border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition" data-ratio="1.7777777777777777">16:9</button>
@@ -2223,7 +2223,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="bg-gray-50/50 px-5 py-4 border-t border-gray-200/50 flex gap-3 rounded-b-xl">
+                <div class="bg-gray-50/50 px-5 py-4 flex gap-3 rounded-b-xl">
                     <button type="button" onclick="app.ui.closeCustomRolePrompt()" class="flex-1 inline-flex justify-center items-center rounded-lg shadow-sm px-4 py-2.5 bg-white border border-gray-300 text-sm font-bold text-gray-700 hover:bg-gray-50 focus:outline-none transition-all">
                         Hủy
                     </button>
@@ -2336,7 +2336,7 @@
                     </div>
                 </div>
 
-                <div class="bg-white px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse shrink-0 border-t border-gray-200 rounded-b-xl">
+                <div class="bg-white px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse shrink-0 rounded-b-xl">
                     <button type="button" id="btn-submit-ban" onclick="app.admin.submitBanUser()"
                         class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-bold text-white hover:bg-red-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition">Xác
                         nhận cấm</button>
@@ -2497,7 +2497,7 @@
 
 
                 <div
-                    class="bg-white px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse shrink-0 border-t border-gray-200 rounded-b-xl">
+                    class="bg-white px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse shrink-0 rounded-b-xl">
                     <button type="button" id="deny-prompt-ok-btn"
                         class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-bold text-white hover:bg-red-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition">Xác
                         nhận</button>
@@ -3088,7 +3088,7 @@
                                     </label>
                                 </div>
 
-                                <div class="text-right border-t border-gray-100 pt-4">
+                                <div class="text-right mt-4">
                                     <button onclick="app.preference.save()" class="bg-black text-white px-6 py-2.5 rounded-lg text-xs font-bold shadow-sm hover:bg-gray-800 transition"><i class="fa-solid fa-floppy-disk mr-1"></i> Lưu thiết lập</button>
                                 </div>
                             </div>
@@ -3449,7 +3449,7 @@
                                             <td class="label bg-gray-50 border-r border-b border-gray-200">Vị trí chụp</td>
                                             <td class="value-cell border-b border-gray-200">
                                                 <input type="text" id="info-location" class="info-input text-gray-700" readonly>
-                                                <div id="detail-map" class="border-t border-gray-200"></div>
+                                                <div id="detail-map"></div>
                                             </td>
                                         </tr>
                                         <tr class="hidden">
@@ -5808,7 +5808,7 @@
                 <div class="text-right text-[10px] font-bold text-gray-500 mt-1.5" id="bio-char-count">0/800</div>
             </div>
 
-            <div class="bg-gray-50/30 px-5 py-4 border-t border-gray-200/50 flex gap-3">
+            <div class="bg-gray-50/30 px-5 py-4 flex gap-3">
                 <button type="button" onclick="app.profileIntro.closeBioEditor()" class="flex-1 rounded-xl shadow-sm px-4 py-2.5 bg-white border border-gray-300 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all">Hủy</button>
                 <button type="button" id="btn-save-bio" onclick="app.profileIntro.saveBio()" class="flex-1 rounded-xl shadow-sm px-4 py-2.5 bg-black border border-black text-sm font-bold text-white hover:bg-gray-800 transition-all">Lưu tiểu sử</button>
             </div>
@@ -5837,7 +5837,7 @@
                     <textarea id="op-edit-desc" rows="4" class="w-full bg-white/60 border border-gray-300/80 rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all shadow-inner resize-none custom-scrollbar text-black" placeholder="Cung cấp thông tin lịch sử hoạt động, trụ sở..."></textarea>
                 </div>
             </div>
-            <div class="bg-gray-50/30 px-5 py-4 border-t border-gray-200/50 flex gap-3">
+            <div class="bg-gray-50/30 px-5 py-4 flex gap-3">
                 <button type="button" onclick="app.operator.closeEditPrompt()" class="flex-1 rounded-xl shadow-sm px-4 py-2.5 bg-white border border-gray-300 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all">Hủy</button>
                 <button type="button" id="btn-save-operator" onclick="app.operator.submitEdit()" class="flex-1 rounded-xl shadow-sm px-4 py-2.5 bg-black border border-black text-sm font-bold text-white hover:bg-gray-800 transition-all">Gửi yêu cầu</button>
             </div>
@@ -5866,7 +5866,7 @@
                     <textarea id="mdl-edit-desc" rows="4" class="w-full bg-white/60 border border-gray-300/80 rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all shadow-inner resize-none custom-scrollbar text-black" placeholder="Cung cấp thông tin về sức chứa, động cơ, năm sản xuất..."></textarea>
                 </div>
             </div>
-            <div class="bg-gray-50/30 px-5 py-4 border-t border-gray-200/50 flex gap-3">
+            <div class="bg-gray-50/30 px-5 py-4 flex gap-3">
                 <button type="button" onclick="app.model.closeEditPrompt()" class="flex-1 rounded-xl shadow-sm px-4 py-2.5 bg-white border border-gray-300 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all">Hủy</button>
                 <button type="button" id="btn-save-model" onclick="app.model.submitEdit()" class="flex-1 rounded-xl shadow-sm px-4 py-2.5 bg-black border border-black text-sm font-bold text-white hover:bg-gray-800 transition-all">Gửi yêu cầu</button>
             </div>
@@ -5914,7 +5914,7 @@
             </div>
 
             <!-- NÚT XÁC NHẬN -->
-            <div class="bg-gray-50/50 px-5 py-4 border-t border-gray-200/50 flex gap-3 rounded-b-2xl shrink-0">
+            <div class="bg-gray-50/50 px-5 py-4 flex gap-3 rounded-b-2xl shrink-0">
                 <button type="button" onclick="app.profileIntro.closePhotoSelector()" class="flex-1 rounded-xl shadow-sm px-4 py-2.5 bg-white border border-gray-300 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all">Hủy</button>
                 <button type="button" id="btn-save-fav-photo" onclick="app.profileIntro.confirmSaveFavPhoto()" disabled class="flex-1 rounded-xl shadow-sm px-4 py-2.5 bg-black border border-black text-sm font-bold text-white hover:bg-gray-800 transition-all opacity-50 cursor-not-allowed">Xác nhận đặt ảnh</button>
             </div>

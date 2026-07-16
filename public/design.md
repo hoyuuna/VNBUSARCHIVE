@@ -360,3 +360,4 @@ Apply these exact class names for standardized enter/exit transitions. They rely
 - **Don't** use Red, Blue, or Yellow for structural borders or general backgrounds. They are only for intent (Errors, Information, Warnings/Badges).
 - **Don't** nest backdrop filters without ensuring parent containers don't block the blur context. Use `::before` pseudo-elements if necessary to apply blur to headers without breaking z-index contexts for dropdowns.
 - **Don't** add drop shadows directly to text unless it's a micro-shadow (`text-shadow: 0 0 0.5px rgba(0, 0, 0, 0.15)`) applied to the `body` to enforce anti-aliasing.
+- **Don't** ever use horizontal separator or dividing lines (`border-t`, `border-top`, `<hr>`) inside cards, modals, tables, or above action buttons (`Cập nhật lịch sử`, `Cập nhật thông tin`, modal footers, etc.). Use clean margins and spacing (`mt-3`, `mt-4`) to separate UI elements seamlessly without visually jarring lines.

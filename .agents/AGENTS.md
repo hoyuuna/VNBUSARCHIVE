@@ -6,6 +6,7 @@
 - Always reuse existing designs (popups, modals) unless explicitly asked to create a new design.
 - **Button Border Radius & Consistency:** All general action buttons must use square-rounded corners (`rounded-md` or `rounded-lg`) rather than pill-shaped (`rounded-full`) to maintain visual consistency across the HoyuUI interface, unless explicitly instructed otherwise for circular icon buttons or avatars.
 - **Deep-linking in Modals/Settings:** When UI elements or buttons trigger multi-tab modals (such as Settings or Admin panels), always navigate directly to the target tab and submenu (e.g., `app.settings.open('profile', 'account')`) rather than opening the default or blank landing screen.
+- **No Component Separator Lines (`border-t`, `<hr>`):** NEVER use horizontal separator or divider lines (`border-t`, `border-top`, `<hr>`) to divide sections, card bodies, modal content, or action footers/buttons. All components and buttons inside cards or modals must flow cleanly using margin/spacing (`mt-3`, `mt-4`, `mb-4`, etc.) without visual dividing lines.
 
 ## Project Stack & Deployment
 - **Hosting/Platform:** Cloudflare Pages (Framework preset: `None`).

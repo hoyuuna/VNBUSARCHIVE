@@ -1910,7 +1910,7 @@ Object.assign(window.app, {
                                 </div>
                                 <div id="veh-sortable-history" class="space-y-2 mb-4"></div>
 
-                                <h4 class="font-bold text-xs text-amber-900 mt-4 mb-2 border-t border-amber-200 pt-3">Thêm mốc lịch sử mới</h4>
+                                <h4 class="font-bold text-xs text-amber-900 mt-4 mb-2">Thêm mốc lịch sử mới</h4>
                                 <div class="flex flex-wrap sm:flex-nowrap gap-2">
                                     <input type="date" id="veh-hist-new-date" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-full sm:w-[18%] rounded bg-white text-gray-700 outline-none focus:ring-1 focus:ring-amber-500 transition" title="Ngày áp dụng">
                                     <input type="text" id="veh-hist-new-op" placeholder="Đơn vị vận hành" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-[48%] sm:w-[25%] rounded bg-white outline-none focus:ring-1 focus:ring-amber-500 transition" oninput="app.utils.formatNoPunctuation(this)">
@@ -1918,7 +1918,7 @@ Object.assign(window.app, {
                                     <input type="text" id="veh-hist-new-note" placeholder="Ghi chú (BKS cũ...)" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-full sm:flex-1 rounded bg-white outline-none focus:ring-1 focus:ring-amber-500 transition">
                                     <button onclick="app.vehicle.addHistoryItem('veh-')" class="bg-green-600 text-white p-2 text-xs rounded font-bold hover:bg-green-700 transition w-full sm:w-auto shadow-sm">Thêm Mới</button>
                                 </div>
-                                <div class="mt-3 pt-3 border-t border-amber-200 flex justify-end gap-3">
+                                <div class="mt-3 flex justify-end gap-3">
                                     <button onclick="app.vehicle.toggleEditHistory('veh-')" class="text-xs text-gray-500 hover:text-black font-medium">Hủy bỏ</button>
                                     <button onclick="app.vehicle.saveHistory()" class="bg-black text-white px-4 py-2 text-xs font-bold rounded-md hover:bg-gray-800 transition shadow-sm">Lưu dữ liệu / Gửi yêu cầu</button>
                                 </div>
@@ -1995,7 +1995,7 @@ Object.assign(window.app, {
                                         </button>
                                     </div>
 
-                                    <div id="vehicle-edit-actions" class="hidden mt-3 pt-3 border-t border-gray-100 justify-end gap-3">
+                                    <div id="vehicle-edit-actions" class="hidden mt-3 justify-end gap-3">
                                         <button onclick="app.vehicle.toggleVehiclePageEdit('${plate}')" class="text-xs text-gray-500 hover:text-black font-medium">Hủy bỏ</button>
                                         <button id="btn-vehicle-save" onclick="app.vehicle.saveVehiclePageChanges('${plate}')" class="bg-black text-white text-xs font-bold px-4 py-2 rounded-md hover:bg-gray-800 transition shadow-sm">Gửi yêu cầu</button>
                                     </div>
@@ -2006,7 +2006,7 @@ Object.assign(window.app, {
                                     <div class="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
                                         ${historyHTML}
                                     </div>
-                                    <div class="mt-3 pt-3 border-t border-gray-100">
+                                    <div class="mt-3">
                                         <button onclick="app.vehicle.toggleEditHistory('veh-')" class="w-full bg-white border border-gray-300 text-gray-700 py-2.5 text-sm font-bold rounded-md hover:bg-gray-50 transition shadow-sm flex justify-center items-center gap-1.5">
                                             <i class="fa-solid fa-clock-rotate-left"></i> Cập nhật lịch sử
                                         </button>

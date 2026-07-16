@@ -1126,7 +1126,7 @@ Object.assign(window.app, {
                                                     <label for="email-is-anonymous" class="text-sm font-bold text-gray-800 cursor-pointer select-none">Gửi ẩn danh (Người gửi sẽ hiển thị là "Quản trị VNBUSARCHIVE")</label>
                                                 </div>
 
-                                                <div class="text-right border-t border-gray-100 pt-4">
+                                                <div class="text-right mt-4">
                                                     <button type="submit" id="btn-send-email" class="bg-blue-600 text-white px-6 py-2.5 font-bold rounded-md hover:bg-blue-700 transition shadow-sm flex items-center gap-2 ml-auto">
                                                         <i class="fa-solid fa-paper-plane"></i> Gửi Email
                                                     </button>
