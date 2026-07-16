@@ -2543,7 +2543,7 @@
 
         <div id="admin-zoom-modal" class="hidden fixed inset-0 z-[2000] bg-black/95 flex flex-col items-center justify-center px-4 pt-4 pb-20 md:pb-24" onclick="app.admin.closeZoom()">
             <div id="admin-zoom-container" class="relative inline-flex items-center justify-center max-w-full max-h-full transition-transform duration-300 zoom-img-cursor" onclick="event.stopPropagation();">
-                <img id="admin-zoom-img" src="" class="max-w-full max-h-full object-contain pointer-events-none">
+                <img id="admin-zoom-img" src="" crossorigin="anonymous" class="max-w-full max-h-full object-contain">
                 <div id="admin-zoom-grid-overlay" class="grid-3x3-overlay hidden">
                     <div class="grid-3x3-line-v" style="left: 33.3333%;"></div>
                     <div class="grid-3x3-line-v" style="left: 66.6666%;"></div>
@@ -3308,7 +3308,7 @@
                                     <i class="fa-solid fa-circle-notch fa-spin text-4xl"></i>
                                 </div>
 
-                                <img id="detail-img" src="" class="absolute inset-0 w-full h-full object-contain opacity-0 transition-all duration-300 block">
+                                <img id="detail-img" src="" crossorigin="anonymous" class="absolute inset-0 w-full h-full object-contain opacity-0 transition-all duration-300 block">
 
                                 <div class="img-error absolute inset-0 hidden flex-col items-center justify-center p-6 text-center bg-gray-50">
                                     <i class="fa-solid fa-image-slash text-red-400 text-5xl mb-4"></i>

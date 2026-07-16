@@ -1335,6 +1335,7 @@ Object.assign(window.app, {
                         imgEl.onload = () => app.utils.handleImgLoad(imgEl);
                         imgEl.onerror = () => app.utils.handleImgError(imgEl);
 
+                        imgEl.crossOrigin = "anonymous";
                         imgEl.src = proxyUrl;
                         imgEl.alt = `Hình ảnh xe buýt ${app.utils.displayPlate(photo.license_plate)} - ${snapshot.operator || 'Đã bị xóa'}`;
                         imgEl.title = "Nhấn vào ảnh để phóng to toàn màn hình";

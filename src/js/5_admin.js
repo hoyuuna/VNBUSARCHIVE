@@ -439,6 +439,7 @@ Object.assign(window.app, {
                     const modal = document.getElementById('admin-zoom-modal');
                     const img = document.getElementById('admin-zoom-img');
                     const container = document.getElementById('admin-zoom-container') || img;
+                    img.crossOrigin = "anonymous";
                     img.src = url;
                     container.classList.remove('zoom-img-active');
                     modal.classList.remove('hidden');
