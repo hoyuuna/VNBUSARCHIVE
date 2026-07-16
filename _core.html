@@ -4734,28 +4734,29 @@
                 </div>
 
                 <div class="bg-white border border-vbs-border shadow-sm rounded-lg p-6 md:p-8 mb-6 relative overflow-hidden">
-                    <div class="flex flex-col md:flex-row justify-between items-start mb-6 gap-4">
-                        <div class="flex items-center gap-4 w-full md:w-auto min-w-0 max-w-full">
-                            <!-- NẾU CÓ LOGO: Hình vuông, dùng object-contain để hiển thị trọn vẹn logo trong suốt -->
-                            <img id="operator-logo" src="" class="hidden w-16 h-16 md:w-20 md:h-20 object-contain shrink-0" onerror="this.classList.add('hidden'); document.getElementById('operator-logo-fallback').classList.remove('hidden');">
-                            
-                            <!-- NẾU KHÔNG CÓ LOGO: Hình tròn, màu xanh dương (Giữ nguyên như default) -->
-                            <div id="operator-logo-fallback" class="w-16 h-16 md:w-20 md:h-20 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-3xl shrink-0">
-                                <i class="fa-solid fa-building"></i>
-                            </div>
-                            
-                            <div class="overflow-hidden min-w-0 flex-1">
-                                <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-widest font-bold mb-1">Đơn vị vận hành</p>
-                                <h2 id="operator-title" class="text-xl md:text-3xl font-black uppercase text-black tracking-tight leading-tight overflow-x-auto whitespace-nowrap no-scrollbar block w-full">...</h2>
-                            </div>
+                    <div class="flex items-center gap-4 w-full min-w-0 max-w-full mb-6">
+                        <!-- NẾU CÓ LOGO: Hình vuông, dùng object-contain để hiển thị trọn vẹn logo trong suốt -->
+                        <img id="operator-logo" src="" class="hidden w-16 h-16 md:w-20 md:h-20 object-contain shrink-0" onerror="this.classList.add('hidden'); document.getElementById('operator-logo-fallback').classList.remove('hidden');">
+                        
+                        <!-- NẾU KHÔNG CÓ LOGO: Hình tròn, màu xanh dương (Giữ nguyên như default) -->
+                        <div id="operator-logo-fallback" class="w-16 h-16 md:w-20 md:h-20 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-3xl shrink-0">
+                            <i class="fa-solid fa-building"></i>
                         </div>
-                        <button onclick="app.operator.openEditPrompt()" class="w-full md:w-auto text-xs text-black hover:bg-gray-100 bg-white px-4 py-2.5 border border-gray-200 rounded-lg transition shadow-sm font-bold shrink-0 flex justify-center items-center gap-1.5">
-                            <i class="fa-solid fa-pen-to-square"></i> Cập nhật thông tin
-                        </button>
+                        
+                        <div class="overflow-hidden min-w-0 flex-1">
+                            <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-widest font-bold mb-1">Đơn vị vận hành</p>
+                            <h2 id="operator-title" class="text-xl md:text-3xl font-black uppercase text-black tracking-tight leading-tight overflow-x-auto whitespace-nowrap no-scrollbar block w-full">...</h2>
+                        </div>
                     </div>
                     
                     <!-- Khung mô tả -->
                     <div id="operator-desc" class="text-sm text-gray-700 mb-6 whitespace-pre-wrap leading-relaxed hidden bg-gray-50 p-4 rounded-xl border border-gray-100 shadow-inner"></div>
+
+                    <div class="mb-6">
+                        <button onclick="app.operator.openEditPrompt()" class="w-full bg-white border border-gray-300 text-gray-700 py-2.5 text-sm font-bold rounded-md hover:bg-gray-50 transition shadow-sm flex justify-center items-center gap-1.5">
+                            <i class="fa-solid fa-pen-to-square"></i> Cập nhật thông tin
+                        </button>
+                    </div>
 
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
@@ -4768,7 +4769,7 @@
                         </div>
                         <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
                             <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Tuyến được chụp</p>
-                            <p id="op-stat-routes" class="text-2xl font-black text-orange-600">...</p>
+                            <p id="op-stat-routes" class="text-2xl font-black text-black">...</p>
                         </div>
                         <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
                             <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Tổng lượt xem</p>
@@ -4872,27 +4873,28 @@
                 </div>
 
                 <div class="bg-white border border-vbs-border shadow-sm rounded-lg p-6 md:p-8 mb-6 relative overflow-hidden">
-                    <div class="flex flex-col md:flex-row justify-between items-start mb-6 gap-4">
-                        <div class="flex items-center gap-4 w-full md:w-auto min-w-0 max-w-full">
-                            <!-- LOGO DÒNG XE (ĐỒNG BỘ THEO HÃNG) -->
-                            <img id="model-logo" src="" class="hidden w-16 h-16 md:w-20 md:h-20 object-contain shrink-0" onerror="this.classList.add('hidden'); document.getElementById('model-logo-fallback').classList.remove('hidden');">
-                            
-                            <div id="model-logo-fallback" class="w-16 h-16 md:w-20 md:h-20 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-3xl shrink-0">
-                                <i class="fa-solid fa-layer-group"></i>
-                            </div>
-                            
-                            <div class="overflow-hidden min-w-0 flex-1">
-                                <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-widest font-bold mb-1">Dòng xe</p>
-                                <h2 id="model-profile-title" class="text-xl md:text-3xl font-black uppercase text-black tracking-tight leading-tight overflow-x-auto whitespace-nowrap no-scrollbar block w-full">...</h2>
-                            </div>
+                    <div class="flex items-center gap-4 w-full min-w-0 max-w-full mb-6">
+                        <!-- LOGO DÒNG XE (ĐỒNG BỘ THEO HÃNG) -->
+                        <img id="model-logo" src="" class="hidden w-16 h-16 md:w-20 md:h-20 object-contain shrink-0" onerror="this.classList.add('hidden'); document.getElementById('model-logo-fallback').classList.remove('hidden');">
+                        
+                        <div id="model-logo-fallback" class="w-16 h-16 md:w-20 md:h-20 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-3xl shrink-0">
+                            <i class="fa-solid fa-layer-group"></i>
                         </div>
-                        <button onclick="app.model.openEditPrompt()" class="w-full md:w-auto text-xs text-black hover:bg-gray-100 bg-white px-4 py-2.5 border border-gray-200 rounded-lg transition shadow-sm font-bold shrink-0 flex justify-center items-center gap-1.5">
-                            <i class="fa-solid fa-pen-to-square"></i> Cập nhật thông tin
-                        </button>
+                        
+                        <div class="overflow-hidden min-w-0 flex-1">
+                            <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-widest font-bold mb-1">Dòng xe</p>
+                            <h2 id="model-profile-title" class="text-xl md:text-3xl font-black uppercase text-black tracking-tight leading-tight overflow-x-auto whitespace-nowrap no-scrollbar block w-full">...</h2>
+                        </div>
                     </div>
                     
                     <!-- Khung mô tả -->
                     <div id="model-desc" class="text-sm text-gray-700 mb-6 whitespace-pre-wrap leading-relaxed hidden bg-gray-50 p-4 rounded-xl border border-gray-100 shadow-inner"></div>
+
+                    <div class="mb-6">
+                        <button onclick="app.model.openEditPrompt()" class="w-full bg-white border border-gray-300 text-gray-700 py-2.5 text-sm font-bold rounded-md hover:bg-gray-50 transition shadow-sm flex justify-center items-center gap-1.5">
+                            <i class="fa-solid fa-pen-to-square"></i> Cập nhật thông tin
+                        </button>
+                    </div>
 
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
