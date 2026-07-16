@@ -1948,7 +1948,7 @@ Object.assign(window.app, {
                                         </div>
                                         `}
                                         <div class="overflow-hidden min-w-0 flex-1 text-left">
-                                            <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-widest font-bold mb-1">Hồ sơ phương tiện</p>
+                                            <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-widest font-bold mb-1">${isCoach ? 'Xe khách' : 'Xe buýt'}</p>
                                             <h2 class="text-xl md:text-3xl font-black uppercase text-black tracking-tight leading-tight overflow-x-auto whitespace-nowrap no-scrollbar block w-full">${app.utils.displayPlate(vehicle.license_plate)}</h2>
                                             <p class="text-xs md:text-sm font-bold text-gray-600 mt-1 uppercase tracking-wider truncate ${currentOpClientSide ? 'cursor-pointer hover:text-black transition' : ''}" ${currentOpClientSide ? `onclick="app.utils.navigate('/operator/' + encodeURIComponent('${app.utils.escapeAttr(currentOpClientSide)}'))"` : ''} title="${app.utils.escapeAttr(currentOpClientSide || 'Chưa cập nhật ĐVVH')}">${currentOpClientSide || 'Chưa có thông tin ĐVVH'}</p>
                                         </div>
