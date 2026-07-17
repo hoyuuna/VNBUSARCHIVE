@@ -1046,6 +1046,9 @@ Object.assign(window.app, {
 
                     if (app.webrtc && app.webrtc.resetMobile) app.webrtc.resetMobile();
                     app.rawFile = null;
+                    app.crop.sourceImage = null;
+                    app.crop.savedCropData = null;
+                    app.crop.savedRatio = 4/3;
                     app.currentExif = { camera: 'N/A', params: 'N/A' };
 
                     const upCamera = document.getElementById('up-camera');
@@ -1066,6 +1069,10 @@ Object.assign(window.app, {
                 handleFileSelect: async (e) => {
                     const file = e.target.files[0];
                     if (!file) return;
+
+                    app.crop.sourceImage = null;
+                    app.crop.savedCropData = null;
+                    app.crop.savedRatio = 4/3;
 
                     const dropZone = document.getElementById('drop-zone');
                     const visualEl = dropZone ? dropZone.querySelector('.pointer-events-none') : null;
@@ -1358,6 +1365,10 @@ Object.assign(window.app, {
                                 }
                             }
 
+                            if (!app.crop.sourceImage) {
+                                app.crop.sourceImage = normalizedFile;
+                            }
+
                             if (!is4by3 && !is3by2 && !is16by9) {
                                 app.crop.open('main', normalizedFile, true);
                             } else {
@@ -1452,6 +1463,9 @@ Object.assign(window.app, {
 
                 setupPreview: (file) => {
                     app.rawFile = file;
+                    if (!app.crop.sourceImage) {
+                        app.crop.sourceImage = file;
+                    }
                     const url = URL.createObjectURL(file);
                     const previewImg = document.getElementById('preview-img');
                     
@@ -2171,6 +2185,9 @@ Object.assign(window.app, {
                 cropper: null,
                 mode: 'main',
                 originalFile: null,
+                sourceImage: null, // Lưu ảnh gốc chưa qua cắt để phục vụ chỉnh sửa nhiều lần (non-destructive cropping)
+                savedCropData: null, // Lưu tọa độ và kích thước khung cắt lần trước
+                savedRatio: 4/3, // Lưu tỉ lệ khung cắt lần trước
                 isMandatory: false, // Thêm cờ đánh dấu bắt buộc cắt
                 isRulerEnabled: false,
 
@@ -2180,7 +2197,7 @@ Object.assign(window.app, {
                         app.crop.closeTimeout = null;
                     }
                     app.crop.mode = mode;
-                    let targetFile = file || app.rawFile;
+                    let targetFile = file || (mode === 'main' && app.crop.sourceImage ? app.crop.sourceImage : app.rawFile);
                     if (!targetFile) return;
 
                     const isHeic = /\.(heic|heif)$/i.test(targetFile.name) || targetFile.type === 'image/heic' || targetFile.type === 'image/heif';
@@ -2243,7 +2260,7 @@ Object.assign(window.app, {
                                 if(ratioContainer) ratioContainer.classList.remove('hidden');
 
                                 app.crop.cropper = new Cropper(img, {
-                                    aspectRatio: 4/3, // Tỉ lệ mặc định ban đầu là 4:3, nhưng được phép chọn cái khác
+                                    aspectRatio: (typeof app.crop.savedRatio === 'number' && !isNaN(app.crop.savedRatio)) ? app.crop.savedRatio : (4/3),
                                     viewMode: 1,
                                     autoCropArea: 1,
                                     checkCrossOrigin: false,
@@ -2251,12 +2268,17 @@ Object.assign(window.app, {
                                         app.crop.updateRulerUI();
                                         if (app.crop.cropper) {
                                             try { app.crop.cropper.update(); } catch(e){}
+                                            if (app.crop.savedCropData && targetFile === app.crop.sourceImage) {
+                                                try {
+                                                    app.crop.cropper.setData(app.crop.savedCropData);
+                                                } catch(e) { console.warn("Lỗi khôi phục vùng cắt:", e); }
+                                            }
                                         }
                                     }
                                 });
 
-                                // Highlight đúng nút 4:3 lúc mới mở
-                                app.crop.updateRatioButtons(4/3);
+                                // Highlight đúng nút tỉ lệ
+                                app.crop.updateRatioButtons((typeof app.crop.savedRatio === 'number' && !isNaN(app.crop.savedRatio)) ? app.crop.savedRatio : (4/3));
                             } else if (mode === 'avatar') {
                                 if(ratioContainer) ratioContainer.classList.add('hidden');
                                 app.crop.cropper = new Cropper(img, {
@@ -2340,6 +2362,9 @@ Object.assign(window.app, {
                     if (app.crop.cropper) {
                         app.crop.cropper.setAspectRatio(ratio);
                         app.crop.updateRatioButtons(ratio);
+                        if (app.crop.mode === 'main') {
+                            app.crop.savedRatio = ratio;
+                        }
                     }
                 },
 
@@ -2397,6 +2422,12 @@ Object.assign(window.app, {
 
                 apply: () => {
                     if (!app.crop.cropper) return;
+
+                    if (app.crop.mode === 'main') {
+                        try {
+                            app.crop.savedCropData = app.crop.cropper.getData(true);
+                        } catch(e) {}
+                    }
 
                     const btn = document.querySelector('#crop-modal button:last-child');
                     const originalText = btn.innerHTML;
