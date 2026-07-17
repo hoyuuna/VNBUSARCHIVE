@@ -2661,6 +2661,9 @@ Object.assign(window.app, {
                         if (payload.new && payload.new.status !== 'pending') {
                             const cardEl = document.getElementById(`adm-photo-card-${payload.new.id}`);
                             if (cardEl) {
+                                if (document.activeElement && cardEl.contains(document.activeElement)) {
+                                    document.activeElement.blur();
+                                }
                                 cardEl.style.transition = 'all 0.35s ease';
                                 cardEl.style.opacity = '0';
                                 cardEl.style.transform = 'scale(0.92)';
@@ -2682,6 +2685,9 @@ Object.assign(window.app, {
                     .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'photos' }, payload => {
                         const cardEl = document.getElementById(`adm-photo-card-${payload.old?.id}`);
                         if (cardEl) {
+                            if (document.activeElement && cardEl.contains(document.activeElement)) {
+                                document.activeElement.blur();
+                            }
                             cardEl.style.transition = 'all 0.35s ease';
                             cardEl.style.opacity = '0';
                             cardEl.style.transform = 'scale(0.92)';

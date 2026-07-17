@@ -525,14 +525,18 @@ Object.assign(window.app, {
                     }, 200);
                 },
 
-                loadTab: async (tab, forceReload = false) => {
+                loadTab: async (tab = 'photos', forceReload = true, preserveScroll = false) => {
                     app.adminTab = tab;
                     app.admin.refreshCounts().then(total => app.admin.checkNotification());
 
-                    if (app.admin._isTabLoading && tab === app.adminTab && !forceReload) return;
+                    if (app.admin._isTabLoading && tab === app.adminTab && !preserveScroll) return;
                     app.admin._isTabLoading = true;
 
                     const content = document.getElementById('admin-content');
+                    if (!content) return;
+                    const savedScrollY = typeof window !== 'undefined' ? window.scrollY : 0;
+                    const isSameTabWithContent = (app.adminTab === tab) && (content.querySelector('.admin-card') || content.querySelector('.bg-white') || content.children.length > 0);
+
                     if (tab === 'manager' && document.getElementById('mgr-sec-denied')) {
                         app.admin._isTabLoading = false;
                         ['photos', 'requests', 'delete', 'manager', 'comments'].forEach(t => {
@@ -549,7 +553,7 @@ Object.assign(window.app, {
                         app.admin.switchManagerTab(activeSub);
                         return;
                     }
-                    if (!(tab === 'photos' && !forceReload && content.querySelector('.admin-card'))) {
+                    if (!(isSameTabWithContent && (preserveScroll || !forceReload))) {
                         content.innerHTML = '<p class="text-gray-500 italic p-4"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Đang tải danh sách chờ duyệt...</p>';
                     }
 
@@ -713,7 +717,7 @@ Object.assign(window.app, {
                                 return a.id - b.id;
                             });
 
-                            if (!forceReload && content.querySelector('.admin-card') && app.adminTab === 'photos') {
+                            if ((!forceReload || preserveScroll) && content.querySelector('.admin-card') && app.adminTab === 'photos') {
                                 const currentIds = new Set(photos.map(p => String(p.id)));
                                 content.querySelectorAll('.admin-card[data-photo-id]').forEach(card => {
                                     if (!currentIds.has(card.getAttribute('data-photo-id'))) {
@@ -1193,6 +1197,11 @@ app.admin.fetchManagerData('denied');
                         app.admin._isTabLoading = false;
                         if (app.isRealtimeConnected === false && typeof app.setRealtimeStatus === 'function') {
                             app.setRealtimeStatus(false);
+                        }
+                        if (preserveScroll && typeof savedScrollY === 'number' && savedScrollY > 0) {
+                            setTimeout(() => {
+                                window.scrollTo({ top: savedScrollY, behavior: 'instant' });
+                            }, 50);
                         }
                     }
                 },
@@ -1819,14 +1828,14 @@ app.admin.fetchManagerData('denied');
                     if (app.user.id === uploaderId && app.role !== 'manager') {
                         return app.ui.showAlert("Bạn không thể tự duyệt ảnh của mình!");
                     }
-                    const cardEl = btn.closest('.admin-card');
+                    if (document.activeElement) document.activeElement.blur();
+                    const cardEl = btn ? btn.closest('.admin-card') : document.getElementById(`adm-photo-card-${id}`);
                     const parentEl = cardEl ? cardEl.parentElement : null;
-                    const originalNextSibling = cardEl ? cardEl.nextElementSibling : null;
 
-                    if (cardEl && parentEl) {
-                        parentEl.appendChild(cardEl);
+                    if (cardEl) {
                         cardEl.querySelectorAll('input, select, textarea, button').forEach(el => el.disabled = true);
-                        cardEl.style.opacity = '0.75';
+                        cardEl.style.opacity = '0.55';
+                        cardEl.style.pointerEvents = 'none';
                     }
 
                     btn.innerText = "Đang tải lên CDN..."; btn.disabled = true; btn.classList.add('btn-loading');
@@ -1842,11 +1851,10 @@ app.admin.fetchManagerData('denied');
                         const province = provinceEl ? provinceEl.value : '';
 
                         if (await app.utils.checkModelDuplicatePolicy(plate, model)) {
-                            if (cardEl && parentEl) {
-                                if (originalNextSibling && originalNextSibling !== cardEl) parentEl.insertBefore(cardEl, originalNextSibling);
-                                else parentEl.appendChild(cardEl);
+                            if (cardEl) {
                                 cardEl.querySelectorAll('input, select, textarea, button').forEach(el => el.disabled = false);
                                 cardEl.style.opacity = '1';
+                                cardEl.style.pointerEvents = 'auto';
                             }
                             btn.innerText = "DUYỆT"; btn.disabled = false; btn.classList.remove('btn-loading');
                             return;
@@ -1885,21 +1893,34 @@ app.admin.fetchManagerData('denied');
                             throw new Error(errText);
                         }
 
-                        if (cardEl) cardEl.remove();
-                        if (parentEl && !parentEl.querySelector('.admin-card')) {
-                            app.admin.loadTab('photos');
+                        if (cardEl) {
+                            if (document.activeElement && cardEl.contains(document.activeElement)) {
+                                document.activeElement.blur();
+                            }
+                            cardEl.style.transition = 'all 0.35s ease';
+                            cardEl.style.opacity = '0';
+                            cardEl.style.transform = 'scale(0.92)';
+                            cardEl.style.maxHeight = '0px';
+                            cardEl.style.margin = '0px';
+                            cardEl.style.padding = '0px';
+                            cardEl.style.overflow = 'hidden';
+                            setTimeout(() => {
+                                cardEl.remove();
+                                if (parentEl && !parentEl.querySelector('.admin-card')) {
+                                    app.admin.loadTab('photos', false, true);
+                                }
+                            }, 350);
+                        } else if (parentEl && !parentEl.querySelector('.admin-card')) {
+                            app.admin.loadTab('photos', false, true);
                         }
                     } catch (err) {
                         app.ui.showAlert("Lỗi: " + err.message);
-                        if (cardEl && parentEl) {
-                            if (originalNextSibling && originalNextSibling !== cardEl) parentEl.insertBefore(cardEl, originalNextSibling);
-                            else parentEl.appendChild(cardEl);
+                        if (cardEl) {
                             cardEl.querySelectorAll('input, select, textarea, button').forEach(el => el.disabled = false);
                             cardEl.style.opacity = '1';
+                            cardEl.style.pointerEvents = 'auto';
                         }
                         btn.innerText = "DUYỆT"; btn.disabled = false; btn.classList.remove('btn-loading');
-
-
                     }
                 },
                 denyPhoto: async (id, uploaderId, btn) => {
@@ -1918,6 +1939,7 @@ app.admin.fetchManagerData('denied');
                             return;
                         }
 
+                        if (document.activeElement) document.activeElement.blur();
                         btn.innerText = "Đang xử lý..."; btn.disabled = true; btn.classList.add('btn-loading');
                         (async () => {
                             try {
@@ -1957,9 +1979,25 @@ app.admin.fetchManagerData('denied');
 
                                 const cardEl = document.getElementById(`adm-photo-card-${id}`);
                                 const parentEl = cardEl?.parentElement;
-                                if (cardEl) cardEl.remove();
-                                if (parentEl && !parentEl.querySelector('.admin-card')) {
-                                    app.admin.loadTab('photos');
+                                if (cardEl) {
+                                    if (document.activeElement && cardEl.contains(document.activeElement)) {
+                                        document.activeElement.blur();
+                                    }
+                                    cardEl.style.transition = 'all 0.35s ease';
+                                    cardEl.style.opacity = '0';
+                                    cardEl.style.transform = 'scale(0.92)';
+                                    cardEl.style.maxHeight = '0px';
+                                    cardEl.style.margin = '0px';
+                                    cardEl.style.padding = '0px';
+                                    cardEl.style.overflow = 'hidden';
+                                    setTimeout(() => {
+                                        cardEl.remove();
+                                        if (parentEl && !parentEl.querySelector('.admin-card')) {
+                                            app.admin.loadTab('photos', false, true);
+                                        }
+                                    }, 350);
+                                } else if (parentEl && !parentEl.querySelector('.admin-card')) {
+                                    app.admin.loadTab('photos', false, true);
                                 }
                             } catch (err) {
                                 app.ui.showAlert("Lỗi: " + err.message);
@@ -2107,7 +2145,8 @@ app.admin.fetchManagerData('denied');
                         }
                         await window.sb.from('edit_requests').update({ status: 'approved' }).eq('id', id);
                         app.admin.logAction('approve_edit_req', id, { req_type: reqType, plate: req.license_plate });
-                        app.admin.loadTab('requests');
+                        if (document.activeElement) document.activeElement.blur();
+                        app.admin.loadTab('requests', false, true);
                     } catch (err) { app.ui.showAlert("Lỗi: " + err.message); } finally { btn.innerText = "DUYỆT"; btn.disabled = false; btn.classList.remove('btn-loading'); }
                 },
                 directDeleteInput: async (btn) => {
@@ -2159,7 +2198,8 @@ app.admin.fetchManagerData('denied');
                         app.toast.show('success', 'Thành công', 'Đã xóa ảnh thành công (đã chuyển về Sandbox và xóa khỏi CDN)!');
                         document.getElementById('adm-direct-delete-id').value = '';
                         document.getElementById('adm-direct-delete-reason').value = '';
-                        if (app.admin.loadTab) app.admin.loadTab('denied');
+                        if (document.activeElement) document.activeElement.blur();
+                        if (app.admin.loadTab) app.admin.loadTab('denied', false, true);
                     } catch (e) { app.ui.showAlert("Lỗi: " + e.message); }
                     finally { btn.innerText = originalText; btn.disabled = false; }
                 },
@@ -2208,7 +2248,8 @@ app.admin.fetchManagerData('denied');
 
                         app.toast.show('success', 'Thành công', 'Đã duyệt yêu cầu và xóa ảnh vĩnh viễn thành công!');
                         app.admin.logAction('approve_delete_req', photoId, { plate: plate });
-                        app.admin.loadTab('delete');
+                        if (document.activeElement) document.activeElement.blur();
+                        app.admin.loadTab('delete', false, true);
 
                     } catch (err) {
                         app.ui.showAlert("Lỗi khi duyệt xóa: " + err.message);
@@ -2231,8 +2272,9 @@ app.admin.fetchManagerData('denied');
                             let reasonMsg = reason ? ` Lý do: ${reason}` : '';
 
 
-                            if (req.new_data.request_type === 'delete_photo') app.admin.loadTab('delete');
-                            else app.admin.loadTab('requests');
+                            if (document.activeElement) document.activeElement.blur();
+                            if (req.new_data.request_type === 'delete_photo') app.admin.loadTab('delete', false, true);
+                            else app.admin.loadTab('requests', false, true);
                         } catch (err) {
                             app.ui.showAlert("Lỗi: " + err.message);
                             btn.innerText = "TỪ CHỐI"; btn.disabled = false; btn.classList.remove('btn-loading');
