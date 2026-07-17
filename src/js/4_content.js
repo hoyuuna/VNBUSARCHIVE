@@ -979,7 +979,7 @@ Object.assign(window.app, {
                                 el.checked = true;
                                 app.upload.isBlindWatermarkEnabled = true;
                                 if (progToast && progToast.remove) progToast.remove();
-                                app.toast.show('Đã sẵn sàng tính năng Blind Watermark!', 'success');
+                                app.toast.show('success', 'Blind Watermark', 'Đã sẵn sàng tính năng Blind Watermark!');
                                 if (app.upload.schedulePrepareBlob) app.upload.schedulePrepareBlob();
                             } catch (err) {
                                 console.error("Lỗi khởi tạo tính năng Blind Watermark / OpenCV.js:", err);
@@ -993,12 +993,12 @@ Object.assign(window.app, {
                             }
                         } else {
                             app.upload.isBlindWatermarkEnabled = true;
-                            app.toast.show('Đã bật Blind Watermark!', 'success');
+                            app.toast.show('success', 'Blind Watermark', 'Đã bật Blind Watermark!');
                             if (app.upload.schedulePrepareBlob) app.upload.schedulePrepareBlob();
                         }
                     } else {
                         app.upload.isBlindWatermarkEnabled = false;
-                        app.toast.show('Đã tắt Blind Watermark.', 'info');
+                        app.toast.show('info', 'Blind Watermark', 'Đã tắt Blind Watermark.');
                         if (app.upload.schedulePrepareBlob) app.upload.schedulePrepareBlob();
                     }
                 },
