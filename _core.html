@@ -1030,10 +1030,10 @@
             user-select: none;
         }
 
-        /* Nút xóa chéo góc trên-phải bên ngoài, cách 1 khoảng 5px (-31px) */
+        /* Nút xóa chéo góc trên-phải bên ngoài, cách 1 khoảng 2.5-3px (-29px) */
         .blur-panel .delete-blur {
-            top: -31px;
-            right: -31px;
+            top: -29px;
+            right: -29px;
             background: #ef4444;
             color: white;
             border: 2px solid white;
@@ -1044,10 +1044,10 @@
             transform: scale(1.15);
         }
 
-        /* Nút di chuyển màu đen ở phía dưới vùng làm mờ, cách 1 khoảng để đỡ che ngón tay */
+        /* Nút di chuyển màu đen ở phía dưới vùng làm mờ, cách xa một chút (-40px) để không che ngón tay */
         .blur-panel .move-blur {
             top: auto;
-            bottom: -36px;
+            bottom: -40px;
             left: 50%;
             transform: translateX(-50%);
             background: #000000;
@@ -1064,13 +1064,13 @@
         /* Khi ô làm mờ sát cạnh dưới -> nút di chuyển lật lên phía trên (vẫn giữ khoảng cách và ở giữa) */
         .blur-panel .move-blur.flip-top {
             bottom: auto;
-            top: -36px;
+            top: -40px;
         }
 
-        /* Khi ô làm mờ sát cạnh trên -> nút xóa lật chéo góc dưới-phải bên ngoài, cách 5px */
+        /* Khi ô làm mờ sát cạnh trên -> nút xóa lật chéo góc dưới-phải bên ngoài, cách 2.5-3px */
         .blur-panel .delete-blur.flip-bottom {
             top: auto;
-            bottom: -31px;
+            bottom: -29px;
         }
 
         /* Khi ô làm mờ sát cạnh phải -> nút xóa lật vào bên trong góc phải để không bị che */

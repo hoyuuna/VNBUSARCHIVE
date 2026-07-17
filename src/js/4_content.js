@@ -426,7 +426,7 @@ Object.assign(window.app, {
                         if (!deleteBtn || !moveBtn || !container) return;
 
                         // Khi sát cạnh dưới container -> nút di chuyển lật lên trên
-                        if (panel.offsetTop + panel.offsetHeight > container.offsetHeight - 42) {
+                        if (panel.offsetTop + panel.offsetHeight > container.offsetHeight - 46) {
                             moveBtn.classList.add('flip-top');
                         } else {
                             moveBtn.classList.remove('flip-top');
