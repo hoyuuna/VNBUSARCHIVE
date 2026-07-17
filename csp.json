@@ -5,6 +5,8 @@
     "'unsafe-inline'",
     "'unsafe-eval'",
     "'wasm-unsafe-eval'",
+    "blob:",
+    "data:",
     "https://challenges.cloudflare.com",
     "https://cdn.jsdelivr.net",
     "https://cdnjs.cloudflare.com",
@@ -54,6 +56,8 @@
   ],
   "connect-src": [
     "'self'",
+    "blob:",
+    "data:",
     "https://*.supabase.co",
     "wss://*.supabase.co",
     "https://discord.com",
