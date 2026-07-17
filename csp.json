@@ -9,7 +9,8 @@
     "https://cdnjs.cloudflare.com",
     "https://unpkg.com",
     "https://static.cloudflareinsights.com",
-    "https://esm.sh"
+    "https://esm.sh",
+    "https://docs.opencv.org"
   ],
   "style-src": [
     "'self'",
@@ -81,7 +82,8 @@
     "https://wsrv.nl",
     "https://i.postimg.cc",
     "https://postimg.cc",
-    "https://*.postimg.cc"
+    "https://*.postimg.cc",
+    "https://docs.opencv.org"
   ],
   "frame-src": [
     "'self'",
