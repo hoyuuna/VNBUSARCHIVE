@@ -1831,8 +1831,10 @@ app.admin.fetchManagerData('denied');
                     if (document.activeElement) document.activeElement.blur();
                     const cardEl = btn ? btn.closest('.admin-card') : document.getElementById(`adm-photo-card-${id}`);
                     const parentEl = cardEl ? cardEl.parentElement : null;
+                    const originalNextSibling = cardEl ? cardEl.nextElementSibling : null;
 
-                    if (cardEl) {
+                    if (cardEl && parentEl) {
+                        parentEl.appendChild(cardEl);
                         cardEl.querySelectorAll('input, select, textarea, button').forEach(el => el.disabled = true);
                         cardEl.style.opacity = '0.55';
                         cardEl.style.pointerEvents = 'none';
@@ -1851,7 +1853,9 @@ app.admin.fetchManagerData('denied');
                         const province = provinceEl ? provinceEl.value : '';
 
                         if (await app.utils.checkModelDuplicatePolicy(plate, model)) {
-                            if (cardEl) {
+                            if (cardEl && parentEl) {
+                                if (originalNextSibling && originalNextSibling !== cardEl) parentEl.insertBefore(cardEl, originalNextSibling);
+                                else parentEl.appendChild(cardEl);
                                 cardEl.querySelectorAll('input, select, textarea, button').forEach(el => el.disabled = false);
                                 cardEl.style.opacity = '1';
                                 cardEl.style.pointerEvents = 'auto';
@@ -1915,7 +1919,9 @@ app.admin.fetchManagerData('denied');
                         }
                     } catch (err) {
                         app.ui.showAlert("Lỗi: " + err.message);
-                        if (cardEl) {
+                        if (cardEl && parentEl) {
+                            if (originalNextSibling && originalNextSibling !== cardEl) parentEl.insertBefore(cardEl, originalNextSibling);
+                            else parentEl.appendChild(cardEl);
                             cardEl.querySelectorAll('input, select, textarea, button').forEach(el => el.disabled = false);
                             cardEl.style.opacity = '1';
                             cardEl.style.pointerEvents = 'auto';
@@ -1940,6 +1946,16 @@ app.admin.fetchManagerData('denied');
                         }
 
                         if (document.activeElement) document.activeElement.blur();
+                        const cardEl = document.getElementById(`adm-photo-card-${id}`);
+                        const parentEl = cardEl?.parentElement;
+                        const originalNextSibling = cardEl ? cardEl.nextElementSibling : null;
+
+                        if (cardEl && parentEl) {
+                            parentEl.appendChild(cardEl);
+                            cardEl.querySelectorAll('input, select, textarea, button').forEach(el => el.disabled = true);
+                            cardEl.style.opacity = '0.55';
+                            cardEl.style.pointerEvents = 'none';
+                        }
                         btn.innerText = "Đang xử lý..."; btn.disabled = true; btn.classList.add('btn-loading');
                         (async () => {
                             try {
@@ -2001,6 +2017,13 @@ app.admin.fetchManagerData('denied');
                                 }
                             } catch (err) {
                                 app.ui.showAlert("Lỗi: " + err.message);
+                                if (cardEl && parentEl) {
+                                    if (originalNextSibling && originalNextSibling !== cardEl) parentEl.insertBefore(cardEl, originalNextSibling);
+                                    else parentEl.appendChild(cardEl);
+                                    cardEl.querySelectorAll('input, select, textarea, button').forEach(el => el.disabled = false);
+                                    cardEl.style.opacity = '1';
+                                    cardEl.style.pointerEvents = 'auto';
+                                }
                             } finally {
                                 btn.innerText = "TỪ CHỐI"; btn.disabled = false; btn.classList.remove('btn-loading');
                             }
