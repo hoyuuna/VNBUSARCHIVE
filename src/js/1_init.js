@@ -1916,7 +1916,7 @@ cleanupState: () => {
                          q1.copyTo(tmp); q2.copyTo(q1); tmp.copyTo(q2);
 
                          // Biến đổi Fourier ngược (idft) về lại miền không gian ảnh
-                         cv.idft(complexI, complexI, cv.DFT_SCALE | cv.DFT_REAL_OUTPUT);
+                         cv.dft(complexI, complexI, cv.DFT_INVERSE | cv.DFT_SCALE | cv.DFT_REAL_OUTPUT);
 
                          let splitInv = new cv.MatVector();
                          objectsToDelete.push(splitInv);

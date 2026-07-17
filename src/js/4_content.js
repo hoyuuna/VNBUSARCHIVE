@@ -864,7 +864,7 @@ Object.assign(window.app, {
                     else el.classList.remove('wm-black');
                     if (app.upload.schedulePrepareBlob) app.upload.schedulePrepareBlob();
                 },
-                isBlindWatermarkEnabled: false,
+                isBlindWatermarkEnabled: typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_blind_wm_pref') === 'true',
                 loadOpenCV: (progToast) => {
                     return new Promise((resolve, reject) => {
                         if (window._openCvReady || (window.cv && window.cv.Mat && typeof window.cv.Mat === 'function')) {
@@ -907,7 +907,6 @@ Object.assign(window.app, {
                                         innerResolve(); 
                                     }).catch(innerReject);
                                 }
-                                // Nếu chưa có cv.Mat thì không innerResolve ngay, để onload/checkReady tiếp tục đợi đến lúc sẵn sàng hoàn toàn
                             };
 
                             const cdnUrls = [
@@ -940,30 +939,18 @@ Object.assign(window.app, {
                                                 window.cv = cvObj;
                                                 window._openCvReady = true;
                                                 innerResolve();
-                                            }).catch(err => {
-                                                window._openCvLoadingPromise = null;
-                                                innerReject(err);
-                                            });
-                                        } else if (window.cv && window.cv instanceof Promise) {
-                                            window.cv.then(cvObj => {
-                                                window.cv = cvObj;
-                                                window._openCvReady = true;
-                                                innerResolve();
-                                            }).catch(err => {
-                                                window._openCvLoadingPromise = null;
-                                                innerReject(err);
-                                            });
-                                        } else if (attempts > 300) { // 30s timeout per script
-                                            console.warn(`Timeout khởi tạo từ ${url}, tự động chuyển CDN tiếp theo...`);
-                                            loadScriptFromCdn();
-                                        } else {
+                                            }).catch(innerReject);
+                                        } else if (window.Module && window.Module.onRuntimeInitialized && attempts < 100) {
                                             setTimeout(checkReady, 100);
+                                        } else if (attempts < 100) {
+                                            setTimeout(checkReady, 100);
+                                        } else {
+                                            loadScriptFromCdn();
                                         }
                                     };
                                     checkReady();
                                 };
-                                script.onerror = (e) => {
-                                    console.warn(`Lỗi tải từ ${url} (CORS/403/Network), tự động chuyển sang CDN dự phòng tiếp theo...`, e);
+                                script.onerror = () => {
                                     loadScriptFromCdn();
                                 };
                                 document.head.appendChild(script);
@@ -975,13 +962,13 @@ Object.assign(window.app, {
                     });
                 },
                 toggleBlindWatermark: async (el) => {
+                    const savedPref = el.checked;
+                    try { if (typeof localStorage !== 'undefined') localStorage.setItem('vnbus_blind_wm_pref', savedPref ? 'true' : 'false'); } catch (e) {}
+                    
                     if (el.checked) {
                         const isCvReady = window._openCvReady || (window.cv && window.cv.Mat && typeof window.cv.Mat === 'function');
                         if (!isCvReady) {
                             el.disabled = true;
-                            el.checked = false;
-                            app.upload.isBlindWatermarkEnabled = false;
-
                             const progToast = app.toast.createProgress('Đang chuẩn bị tính năng Blind Watermark...');
                             try {
                                 await app.upload.loadOpenCV(progToast);
@@ -997,6 +984,7 @@ Object.assign(window.app, {
                                 el.disabled = false;
                                 el.checked = false;
                                 app.upload.isBlindWatermarkEnabled = false;
+                                try { if (typeof localStorage !== 'undefined') localStorage.setItem('vnbus_blind_wm_pref', 'false'); } catch (e) {}
                                 window._openCvLoadingPromise = null;
                                 window._openCvReady = false;
                                 if (progToast && progToast.remove) progToast.remove();
@@ -1078,9 +1066,13 @@ Object.assign(window.app, {
                     const chk = document.getElementById('chk-wm-black');
                     if (chk) chk.checked = false;
                     
-                    app.upload.isBlindWatermarkEnabled = false;
+                    const pref = typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_blind_wm_pref') === 'true';
+                    app.upload.isBlindWatermarkEnabled = pref;
                     const chkBwm = document.getElementById('chk-blind-watermark');
-                    if (chkBwm) chkBwm.checked = false;
+                    if (chkBwm) chkBwm.checked = pref;
+                    if (pref && !(window._openCvReady || (window.cv && window.cv.Mat && typeof window.cv.Mat === 'function'))) {
+                        app.upload.loadOpenCV().catch(() => {});
+                    }
                     
                     app.upload.toggleColor(false);
                     
@@ -3996,3 +3988,18 @@ Object.assign(window.app, {
                 }
             }
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        const pref = typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_blind_wm_pref') === 'true';
+        if (pref && window.app && window.app.upload) {
+            window.app.upload.isBlindWatermarkEnabled = true;
+            const chkBwm = document.getElementById('chk-blind-watermark');
+            if (chkBwm) chkBwm.checked = true;
+            if (!(window._openCvReady || (window.cv && window.cv.Mat && typeof window.cv.Mat === 'function'))) {
+                window.app.upload.loadOpenCV().catch(() => {});
+            }
+        }
+    }, 500);
+});
+
