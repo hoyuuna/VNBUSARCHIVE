@@ -1191,6 +1191,9 @@ app.admin.fetchManagerData('denied');
                         content.innerHTML = `<p class="p-4 text-red-500 font-bold">Không thể tải dữ liệu: ${err.message}</p>`;
                     } finally {
                         app.admin._isTabLoading = false;
+                        if (app.isRealtimeConnected === false && typeof app.setRealtimeStatus === 'function') {
+                            app.setRealtimeStatus(false);
+                        }
                     }
                 },
 
@@ -1810,6 +1813,9 @@ app.admin.fetchManagerData('denied');
                 // ------------------------------------------
 
                 approvePhoto: async (id, uploaderId, btn) => {
+                    if (app.isRealtimeConnected === false) {
+                        return app.ui.showAlert("Mất kết nối Realtime với máy chủ! Đã tạm khóa chức năng duyệt và can thiệp ảnh để tránh lệch dữ liệu.");
+                    }
                     if (app.user.id === uploaderId && app.role !== 'manager') {
                         return app.ui.showAlert("Bạn không thể tự duyệt ảnh của mình!");
                     }
@@ -1897,6 +1903,9 @@ app.admin.fetchManagerData('denied');
                     }
                 },
                 denyPhoto: async (id, uploaderId, btn) => {
+                    if (app.isRealtimeConnected === false) {
+                        return app.ui.showAlert("Mất kết nối Realtime với máy chủ! Đã tạm khóa chức năng từ chối/can thiệp ảnh để tránh lệch dữ liệu.");
+                    }
                     if (app.role !== 'manager' && app.role !== 'admin') {
                         return app.ui.showAlert("Chỉ Kiểm duyệt/Quản lý mới có quyền từ chối ảnh!");
                     }
@@ -1961,6 +1970,9 @@ app.admin.fetchManagerData('denied');
                     });
                 },
                 approveReq: async (id, btn, reqType = 'info') => {
+                    if (app.isRealtimeConnected === false) {
+                        return app.ui.showAlert("Mất kết nối Realtime với máy chủ! Đã tạm khóa chức năng duyệt và can thiệp để tránh lệch dữ liệu.");
+                    }
                     btn.innerText = "Đang xử lý..."; btn.disabled = true; btn.classList.add('btn-loading');
                     try {
                         const { data: req } = await window.sb.from('edit_requests').select('*').eq('id', id).single();
@@ -2099,6 +2111,9 @@ app.admin.fetchManagerData('denied');
                     } catch (err) { app.ui.showAlert("Lỗi: " + err.message); } finally { btn.innerText = "DUYỆT"; btn.disabled = false; btn.classList.remove('btn-loading'); }
                 },
                 directDeleteInput: async (btn) => {
+                    if (app.isRealtimeConnected === false) {
+                        return app.ui.showAlert("Mất kết nối Realtime với máy chủ! Đã tạm khóa chức năng xóa để tránh lệch dữ liệu.");
+                    }
                     if (app.role !== 'manager') return app.ui.showAlert("Chỉ Quản lý mới có quyền sử dụng tính năng này!");
                     const input = document.getElementById('adm-direct-delete-id').value.trim();
                     const reason = document.getElementById('adm-direct-delete-reason').value.trim();
@@ -2150,6 +2165,9 @@ app.admin.fetchManagerData('denied');
                 },
 
                 approveDeleteReq: async (reqId, photoId, requesterId, userReason, btn) => {
+                    if (app.isRealtimeConnected === false) {
+                        return app.ui.showAlert("Mất kết nối Realtime với máy chủ! Đã tạm khóa chức năng duyệt xóa để tránh lệch dữ liệu.");
+                    }
                     if (app.role !== 'manager') {
                         return app.ui.showAlert("Chỉ Quản lý mới có quyền duyệt lệnh xóa ảnh khỏi hệ thống!");
                     }
@@ -2200,6 +2218,9 @@ app.admin.fetchManagerData('denied');
                     }
                 },
                 denyReq: async (reqId, btn) => {
+                    if (app.isRealtimeConnected === false) {
+                        return app.ui.showAlert("Mất kết nối Realtime với máy chủ! Đã tạm khóa chức năng từ chối yêu cầu để tránh lệch dữ liệu.");
+                    }
                     app.ui.showPrompt("Nhập lý do từ chối yêu cầu này (Tùy chọn):", "", async (reason) => {
                         btn.innerText = "Đang xử lý..."; btn.disabled = true; btn.classList.add('btn-loading');
                         try {

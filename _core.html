@@ -4558,6 +4558,11 @@
                 <h2 class="text-2xl font-bold font-logo mb-6 uppercase tracking-tight">
                     Quản trị hệ thống</h2>
 
+                <div id="admin-realtime-warning" class="hidden mb-6 p-3 bg-red-50 border border-red-100 rounded-xl flex items-start gap-2 shadow-sm">
+                    <i class="fa-solid fa-triangle-exclamation text-red-500 mt-0.5 text-xs"></i>
+                    <p class="text-[11px] text-red-700 font-bold leading-tight">Mất kết nối máy chủ thời gian thực (Realtime)! Đã tạm khóa các chức năng duyệt, chỉnh sửa hay can thiệp ảnh để tránh lệch dữ liệu. Đang kết nối lại...</p>
+                </div>
+
                 <div class="flex gap-3 mb-6 overflow-x-auto pb-2">
                     <button onclick="app.admin.loadTab('photos')" id="adm-tab-photos"
                         class="px-5 py-2 bg-black text-white font-bold rounded-md text-sm shadow-sm transition whitespace-nowrap">Duyệt

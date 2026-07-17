@@ -2810,9 +2810,10 @@ Object.assign(window.app, {
                     .subscribe((status, err) => {
                         if (status === 'SUBSCRIBED') {
                             console.log('🔌 Connected to Realtime');
+                            app.setRealtimeStatus(true);
                         } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
                             console.error('🔌 Realtime Error:', err);
-
+                            app.setRealtimeStatus(false);
                         }
                     });
 
@@ -2826,15 +2827,52 @@ Object.assign(window.app, {
                         const state = app.realtimeChannel?.state;
                         if (state !== 'joined' && state !== 'joining') {
                             console.log('🔄 Tab visible: Reconnecting Realtime...');
+                            app.setRealtimeStatus(false);
                             if (app.realtimeChannel) window.sb.removeChannel(app.realtimeChannel);
                             window.sb.realtime.connect();
                         }
+                    }
+                });
+
+                window.addEventListener('offline', () => app.setRealtimeStatus(false));
+                window.addEventListener('online', () => {
+                    if (app.realtimeChannel && app.realtimeChannel.state !== 'joined' && app.realtimeChannel.state !== 'joining') {
+                        app.setRealtimeStatus(false);
+                        if (app.realtimeChannel) window.sb.removeChannel(app.realtimeChannel);
+                        window.sb.realtime.connect();
+                    } else {
+                        app.setRealtimeStatus(true);
                     }
                 });
             }
 });
 
 Object.assign(window.app, {
+  isRealtimeConnected: true,
+  setRealtimeStatus: (isConnected) => {
+      app.isRealtimeConnected = isConnected;
+      const banner = document.getElementById('admin-realtime-warning');
+      const adminContent = document.getElementById('admin-content');
+      if (!isConnected) {
+          if (banner) banner.classList.remove('hidden');
+          if (adminContent) {
+              adminContent.style.pointerEvents = 'none';
+              adminContent.style.opacity = '0.55';
+              adminContent.querySelectorAll('button, input, select, textarea').forEach(el => {
+                  el.disabled = true;
+              });
+          }
+      } else {
+          if (banner) banner.classList.add('hidden');
+          if (adminContent) {
+              adminContent.style.pointerEvents = 'auto';
+              adminContent.style.opacity = '1';
+              if (app.currentViewMode === 'admin' && app.admin && typeof app.admin.loadTab === 'function') {
+                  app.admin.loadTab(app.adminTab || 'photos');
+              }
+          }
+      }
+  },
   handleRoute: () => {
                 app.loadingBar.start(); // Bật thanh loading ngay lập tức
                 app.utils.cleanupState();
