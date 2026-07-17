@@ -1038,7 +1038,11 @@ Object.assign(window.app, {
                     if (app.upload.restoreDropZone) app.upload.restoreDropZone();
 
                     const previewImg = document.getElementById('preview-img');
-                    if (previewImg) previewImg.src = '';
+                    if (previewImg) {
+                        previewImg.onload = null;
+                        previewImg.onerror = null;
+                        previewImg.removeAttribute('src');
+                    }
 
                     if (app.webrtc && app.webrtc.resetMobile) app.webrtc.resetMobile();
                     app.rawFile = null;
@@ -2202,6 +2206,9 @@ Object.assign(window.app, {
 
                     const img = document.getElementById('crop-image');
                     if (img) {
+                        img.onload = null;
+                        img.onerror = null;
+                        img.removeAttribute('src');
                         img.removeAttribute('style');
                         img.style.cssText = 'max-width: 100%; max-height: 100%; display: block; -webkit-touch-callout: none;';
                         img.className = '';
@@ -2223,6 +2230,8 @@ Object.assign(window.app, {
                     const url = URL.createObjectURL(app.crop.originalFile);
 
                     img.onload = () => {
+                        img.onload = null;
+                        img.onerror = null; // Ngăn thay đổi src sau khi load thành công kích hoạt onerror
                         if (app.crop.cropper) {
                             try { app.crop.cropper.destroy(); } catch (e) {}
                             app.crop.cropper = null;
@@ -2267,6 +2276,8 @@ Object.assign(window.app, {
                     };
 
                     img.onerror = () => {
+                        img.onload = null;
+                        img.onerror = null;
                         app.ui.showAlert("Không thể tải ảnh vào công cụ cắt ảnh. Vui lòng thử lại hoặc chọn file hợp lệ.");
                         app.crop.close();
                     };
@@ -2350,6 +2361,11 @@ Object.assign(window.app, {
                         clearTimeout(app.crop.closeTimeout);
                         app.crop.closeTimeout = null;
                     }
+                    const img = document.getElementById('crop-image');
+                    if (img) {
+                        img.onload = null;
+                        img.onerror = null;
+                    }
                     const modal = document.getElementById('crop-modal');
                     const content = document.getElementById('crop-content');
                     if (content) {
@@ -2362,9 +2378,10 @@ Object.assign(window.app, {
                             try { app.crop.cropper.destroy(); } catch (e) {}
                             app.crop.cropper = null;
                         }
-                        const img = document.getElementById('crop-image');
                         if (img) {
-                            img.src = '';
+                            img.onload = null;
+                            img.onerror = null;
+                            img.removeAttribute('src');
                             img.removeAttribute('style');
                             img.style.cssText = 'max-width: 100%; max-height: 100%; display: block; -webkit-touch-callout: none;';
                         }
