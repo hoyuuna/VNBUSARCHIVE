@@ -984,9 +984,9 @@ Object.assign(window.app, {
                     if(panel) panel.classList.toggle('hidden');
                 },
                 updateFilters: () => {
-                    const b = document.getElementById('adj-brightness')?.value || 100;
-                    const c = document.getElementById('adj-contrast')?.value || 100;
-                    const s = document.getElementById('adj-saturation')?.value || 100;
+                    const b = Number(document.getElementById('adj-brightness')?.value || 100);
+                    const c = Number(document.getElementById('adj-contrast')?.value || 100);
+                    const s = Number(document.getElementById('adj-saturation')?.value || 100);
 
                     const vb = document.getElementById('val-brightness');
                     const vc = document.getElementById('val-contrast');
@@ -995,7 +995,8 @@ Object.assign(window.app, {
                     if(vc) vc.innerText = c + '%';
                     if(vs) vs.innerText = s + '%';
 
-                    const filterString = `brightness(${b}%) contrast(${c}%) saturate(${s}%)`;
+                    const isDefault = (b === 100 && c === 100 && s === 100);
+                    const filterString = isDefault ? 'none' : `brightness(${b}%) contrast(${c}%) saturate(${s}%)`;
                     const previewImg = document.getElementById('preview-img');
                     if(previewImg) previewImg.style.filter = filterString;
                     app.upload.currentFilters = filterString;
@@ -1318,7 +1319,7 @@ Object.assign(window.app, {
                         const img = new Image();
                         const url = URL.createObjectURL(fileToLoad);
 
-                        img.onload = () => {
+                        img.onload = async () => {
                             const w = img.width; const h = img.height;
 
                             if (!isRawFile && !isRawExtracted && h < 1080 && w < 1080) {
@@ -1334,10 +1335,29 @@ Object.assign(window.app, {
                             const is3by2 = Math.abs(ratio - (3/2)) < 0.05;
                             const is16by9 = Math.abs(ratio - (16/9)) < 0.05;
 
+                            // Chuẩn hóa sang sRGB SDR bằng canvas (loại bỏ hoàn toàn HDR Gain Map / Ultra HDR / EXIF profile gây sáng chói hay tối om khi preview)
+                            let normalizedFile = fileToLoad;
+                            if (!isRawExtracted && w > 0 && h > 0) {
+                                try {
+                                    const tempCanvas = document.createElement('canvas');
+                                    tempCanvas.width = w;
+                                    tempCanvas.height = h;
+                                    const tempCtx = tempCanvas.getContext('2d');
+                                    tempCtx.drawImage(img, 0, 0, w, h);
+                                    const sdrBlob = await new Promise(res => tempCanvas.toBlob(res, file.type || 'image/jpeg', 0.95));
+                                    if (sdrBlob && sdrBlob.size > 0) {
+                                        normalizedFile = new File([sdrBlob], file.name || 'photo.jpg', { type: sdrBlob.type || 'image/jpeg' });
+                                        isRawExtracted = true;
+                                    }
+                                } catch (ex) {
+                                    console.warn("Chuẩn hóa SDR fallback:", ex);
+                                }
+                            }
+
                             if (!is4by3 && !is3by2 && !is16by9) {
-                                app.crop.open('main', fileToLoad, true);
+                                app.crop.open('main', normalizedFile, true);
                             } else {
-                                app.upload.setupPreview(fileToLoad);
+                                app.upload.setupPreview(normalizedFile);
                             }
                             URL.revokeObjectURL(url);
                         };
@@ -2151,6 +2171,10 @@ Object.assign(window.app, {
                 isRulerEnabled: false,
 
                 open: async (mode, file = null, isMandatory = false) => {
+                    if (app.crop.closeTimeout) {
+                        clearTimeout(app.crop.closeTimeout);
+                        app.crop.closeTimeout = null;
+                    }
                     app.crop.mode = mode;
                     let targetFile = file || app.rawFile;
                     if (!targetFile) return;
@@ -2171,8 +2195,17 @@ Object.assign(window.app, {
                     app.crop.originalFile = targetFile;
                     app.crop.isMandatory = isMandatory;
 
-                    const url = URL.createObjectURL(app.crop.originalFile);
+                    if (app.crop.cropper) {
+                        try { app.crop.cropper.destroy(); } catch (e) {}
+                        app.crop.cropper = null;
+                    }
+
                     const img = document.getElementById('crop-image');
+                    if (img) {
+                        img.removeAttribute('style');
+                        img.style.cssText = 'max-width: 100%; max-height: 100%; display: block; -webkit-touch-callout: none;';
+                        img.className = '';
+                    }
 
                     const modal = document.getElementById('crop-modal');
                     const content = document.getElementById('crop-content');
@@ -2187,38 +2220,57 @@ Object.assign(window.app, {
                         }
                     }, 10);
 
+                    const url = URL.createObjectURL(app.crop.originalFile);
+
                     img.onload = () => {
                         if (app.crop.cropper) {
-                            app.crop.cropper.destroy();
+                            try { app.crop.cropper.destroy(); } catch (e) {}
+                            app.crop.cropper = null;
                         }
 
-                        if (mode === 'main') {
-                            // Hiện lại thanh chọn tỉ lệ (16:9, 3:2, 4:3)
-                            if(ratioContainer) ratioContainer.classList.remove('hidden');
+                        setTimeout(() => {
+                            if (mode === 'main') {
+                                // Hiện lại thanh chọn tỉ lệ (16:9, 3:2, 4:3)
+                                if(ratioContainer) ratioContainer.classList.remove('hidden');
 
-                            app.crop.cropper = new Cropper(img, {
-                                aspectRatio: 4/3, // Tỉ lệ mặc định ban đầu là 4:3, nhưng được phép chọn cái khác
-                                viewMode: 1,
-                                autoCropArea: 1,
-                                ready: () => {
-                                    app.crop.updateRulerUI();
-                                }
-                            });
+                                app.crop.cropper = new Cropper(img, {
+                                    aspectRatio: 4/3, // Tỉ lệ mặc định ban đầu là 4:3, nhưng được phép chọn cái khác
+                                    viewMode: 1,
+                                    autoCropArea: 1,
+                                    checkCrossOrigin: false,
+                                    ready: () => {
+                                        app.crop.updateRulerUI();
+                                        if (app.crop.cropper) {
+                                            try { app.crop.cropper.update(); } catch(e){}
+                                        }
+                                    }
+                                });
 
-                            // Highlight đúng nút 4:3 lúc mới mở
-                            app.crop.updateRatioButtons(4/3);
-                        } else if (mode === 'avatar') {
-                            if(ratioContainer) ratioContainer.classList.add('hidden');
-                            app.crop.cropper = new Cropper(img, {
-                                aspectRatio: 1,
-                                viewMode: 1,
-                                autoCropArea: 1,
-                                ready: () => {
-                                    app.crop.updateRulerUI();
-                                }
-                            });
-                        }
+                                // Highlight đúng nút 4:3 lúc mới mở
+                                app.crop.updateRatioButtons(4/3);
+                            } else if (mode === 'avatar') {
+                                if(ratioContainer) ratioContainer.classList.add('hidden');
+                                app.crop.cropper = new Cropper(img, {
+                                    aspectRatio: 1,
+                                    viewMode: 1,
+                                    autoCropArea: 1,
+                                    checkCrossOrigin: false,
+                                    ready: () => {
+                                        app.crop.updateRulerUI();
+                                        if (app.crop.cropper) {
+                                            try { app.crop.cropper.update(); } catch(e){}
+                                        }
+                                    }
+                                });
+                            }
+                        }, 50);
                     };
+
+                    img.onerror = () => {
+                        app.ui.showAlert("Không thể tải ảnh vào công cụ cắt ảnh. Vui lòng thử lại hoặc chọn file hợp lệ.");
+                        app.crop.close();
+                    };
+
                     img.src = url;
                 },
 
@@ -2294,17 +2346,27 @@ Object.assign(window.app, {
                 },
 
                 close: () => {
+                    if (app.crop.closeTimeout) {
+                        clearTimeout(app.crop.closeTimeout);
+                        app.crop.closeTimeout = null;
+                    }
                     const modal = document.getElementById('crop-modal');
                     const content = document.getElementById('crop-content');
                     if (content) {
                         content.classList.remove('opacity-100', 'scale-100');
                         content.classList.add('opacity-0', 'scale-95');
                     }
-                    setTimeout(() => {
+                    app.crop.closeTimeout = setTimeout(() => {
                         modal.classList.add('hidden');
                         if (app.crop.cropper) {
-                            app.crop.cropper.destroy();
+                            try { app.crop.cropper.destroy(); } catch (e) {}
                             app.crop.cropper = null;
+                        }
+                        const img = document.getElementById('crop-image');
+                        if (img) {
+                            img.src = '';
+                            img.removeAttribute('style');
+                            img.style.cssText = 'max-width: 100%; max-height: 100%; display: block; -webkit-touch-callout: none;';
                         }
                         app.ui.unlockScroll();
 
