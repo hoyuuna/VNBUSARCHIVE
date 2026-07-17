@@ -1806,17 +1806,7 @@ cleanupState: () => {
                          throw new Error("BLIND_WM_ERROR:Thư viện OpenCV.js chưa sẵn sàng hoặc bị lỗi.");
                      }
                      const cv = window.cv;
-                     let srcMat = null;
-                     let planes = null;
-                     let plane0 = null;
-                     let plane0_clean = null;
-                     let plane0_watermarked = null;
-                     let maskFE = null;
-                     let wmGray = null;
-                     let wmBits = null;
-                     let wmMat = null;
-                     let dstMat = null;
-
+                     const objectsToDelete = [];
                      try {
                          const width = canvas.width;
                          const height = canvas.height;
@@ -1824,49 +1814,123 @@ cleanupState: () => {
                              throw new Error("BLIND_WM_ERROR:Kích thước ảnh quá nhỏ để gắn Blind Watermark.");
                          }
 
+                         // Sử dụng kênh Blue (ít nhạy cảm nhất với mắt người) và pad kích thước tối ưu cho DFT
+                         let srcMat = cv.imread(canvas);
+                         objectsToDelete.push(srcMat);
+
+                         let planes = new cv.MatVector();
+                         cv.split(srcMat, planes);
+                         objectsToDelete.push(planes);
+
+                         let planeB = planes.get(2); // Kênh Blue (B trong RGBA của cv.imread)
+                         objectsToDelete.push(planeB);
+
+                         const optRows = cv.getOptimalDFTSize(height);
+                         const optCols = cv.getOptimalDFTSize(width);
+
+                         let padded = new cv.Mat();
+                         objectsToDelete.push(padded);
+                         cv.copyMakeBorder(planeB, padded, 0, optRows - height, 0, optCols - width, cv.BORDER_CONSTANT, cv.Scalar.all(0));
+
+                         let paddedFloat = new cv.Mat();
+                         objectsToDelete.push(paddedFloat);
+                         padded.convertTo(paddedFloat, cv.CV_32F);
+
+                         let zeroMat = cv.Mat.zeros(optRows, optCols, cv.CV_32F);
+                         objectsToDelete.push(zeroMat);
+
+                         let dftPlanes = new cv.MatVector();
+                         objectsToDelete.push(dftPlanes);
+                         dftPlanes.push_back(paddedFloat);
+                         dftPlanes.push_back(zeroMat);
+
+                         let complexI = new cv.Mat();
+                         objectsToDelete.push(complexI);
+                         cv.merge(dftPlanes, complexI);
+
+                         // Chuyển sang miền tần số Fourier
+                         cv.dft(complexI, complexI, cv.DFT_COMPLEX_OUTPUT);
+
+                         // Shift DC component về tâm phổ (fftshift)
+                         const cx = Math.floor(optCols / 2);
+                         const cy = Math.floor(optRows / 2);
+                         let q0 = complexI.roi(new cv.Rect(0, 0, cx, cy));
+                         let q1 = complexI.roi(new cv.Rect(cx, 0, optCols - cx, cy));
+                         let q2 = complexI.roi(new cv.Rect(0, cy, cx, optRows - cy));
+                         let q3 = complexI.roi(new cv.Rect(cx, cy, optCols - cx, optRows - cy));
+                         objectsToDelete.push(q0, q1, q2, q3);
+
+                         let tmp = new cv.Mat();
+                         objectsToDelete.push(tmp);
+                         q0.copyTo(tmp); q3.copyTo(q0); tmp.copyTo(q3);
+                         q1.copyTo(tmp); q2.copyTo(q1); tmp.copyTo(q2);
+
+                         // Vẽ chữ ký Blind Watermark đối xứng Hermitian để giữ phổ ảnh thật sau idft
                          const wmCanvas = document.createElement('canvas');
-                         wmCanvas.width = width;
-                         wmCanvas.height = height;
+                         wmCanvas.width = optCols;
+                         wmCanvas.height = optRows;
                          const wmCtx = wmCanvas.getContext('2d');
                          wmCtx.fillStyle = '#000000';
-                         wmCtx.fillRect(0, 0, width, height);
+                         wmCtx.fillRect(0, 0, optCols, optRows);
                          wmCtx.fillStyle = '#ffffff';
                          wmCtx.textAlign = 'center';
                          wmCtx.textBaseline = 'middle';
-                         let fontSize = Math.max(24, Math.floor(width * 0.055));
+                         let fontSize = Math.max(20, Math.floor(optCols * 0.045));
                          wmCtx.font = `900 ${fontSize}px "Montserrat", sans-serif`;
                          const textMetrics = wmCtx.measureText(hiddenText);
-                         if (textMetrics && textMetrics.width > width * 0.88) {
-                             fontSize = Math.max(16, Math.floor(fontSize * ((width * 0.88) / textMetrics.width)));
+                         if (textMetrics && textMetrics.width > optCols * 0.82) {
+                             fontSize = Math.max(16, Math.floor(fontSize * ((optCols * 0.82) / textMetrics.width)));
                              wmCtx.font = `900 ${fontSize}px "Montserrat", sans-serif`;
                          }
-                         wmCtx.fillText(hiddenText, width / 2, height / 2);
+                         wmCtx.fillText(hiddenText, optCols / 2, optRows * 0.35);
+                         wmCtx.save();
+                         wmCtx.translate(optCols / 2, optRows / 2);
+                         wmCtx.rotate(Math.PI);
+                         wmCtx.fillText(hiddenText, 0, optRows * 0.15);
+                         wmCtx.restore();
 
-                         srcMat = cv.imread(canvas);
-                         wmMat = cv.imread(wmCanvas);
-
-                         if (srcMat.empty() || wmMat.empty()) {
-                             throw new Error("BLIND_WM_ERROR:Không thể xử lý ma trận ảnh OpenCV.");
-                         }
-
-                         wmGray = new cv.Mat();
+                         let wmMat = cv.imread(wmCanvas);
+                         objectsToDelete.push(wmMat);
+                         let wmGray = new cv.Mat();
+                         objectsToDelete.push(wmGray);
                          cv.cvtColor(wmMat, wmGray, cv.COLOR_RGBA2GRAY);
-                         wmBits = new cv.Mat();
-                         cv.threshold(wmGray, wmBits, 128, 1, cv.THRESH_BINARY);
 
-                         planes = new cv.MatVector();
-                         cv.split(srcMat, planes);
-                         plane0 = planes.get(0);
+                         let wmFloat = new cv.Mat();
+                         objectsToDelete.push(wmFloat);
+                         const strength = Math.max(15000, Math.floor(optCols * optRows * 0.035));
+                         wmGray.convertTo(wmFloat, cv.CV_32F, strength / 255.0);
 
-                         maskFE = new cv.Mat(height, width, cv.CV_8UC1, new cv.Scalar(0xFE));
-                         plane0_clean = new cv.Mat();
-                         cv.bitwise_and(plane0, maskFE, plane0_clean);
+                         // Tách phần thực và ảo của phổ sau khi shift
+                         let splitComplex = new cv.MatVector();
+                         objectsToDelete.push(splitComplex);
+                         cv.split(complexI, splitComplex);
+                         let dftRe = splitComplex.get(0);
+                         objectsToDelete.push(dftRe);
 
-                         plane0_watermarked = new cv.Mat();
-                         cv.bitwise_or(plane0_clean, wmBits, plane0_watermarked);
+                         cv.add(dftRe, wmFloat, dftRe);
+                         splitComplex.set(0, dftRe);
+                         cv.merge(splitComplex, complexI);
 
-                         planes.set(0, plane0_watermarked);
-                         dstMat = new cv.Mat();
+                         // Inverse shift (ifftshift)
+                         q0.copyTo(tmp); q3.copyTo(q0); tmp.copyTo(q3);
+                         q1.copyTo(tmp); q2.copyTo(q1); tmp.copyTo(q2);
+
+                         // Biến đổi Fourier ngược (idft) về lại miền không gian ảnh
+                         cv.idft(complexI, complexI, cv.DFT_SCALE | cv.DFT_REAL_OUTPUT);
+
+                         let splitInv = new cv.MatVector();
+                         objectsToDelete.push(splitInv);
+                         cv.split(complexI, splitInv);
+                         let invFloat = splitInv.get(0);
+                         objectsToDelete.push(invFloat);
+
+                         let croppedFloat = invFloat.roi(new cv.Rect(0, 0, width, height));
+                         objectsToDelete.push(croppedFloat);
+                         croppedFloat.convertTo(planeB, cv.CV_8U);
+
+                         planes.set(2, planeB);
+                         let dstMat = new cv.Mat();
+                         objectsToDelete.push(dstMat);
                          cv.merge(planes, dstMat);
 
                          cv.imshow(canvas, dstMat);
@@ -1875,7 +1939,7 @@ cleanupState: () => {
                          if (errMsg.includes("BLIND_WM_ERROR:")) throw err;
                          throw new Error("BLIND_WM_ERROR:Không thể gắn Blind Watermark vào ảnh này: " + errMsg);
                      } finally {
-                         [srcMat, planes, plane0, plane0_clean, plane0_watermarked, maskFE, wmGray, wmBits, wmMat, dstMat].forEach(obj => {
+                         objectsToDelete.forEach(obj => {
                              if (obj && typeof obj.delete === 'function') {
                                  try { obj.delete(); } catch (e) {}
                              }
