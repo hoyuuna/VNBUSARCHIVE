@@ -415,23 +415,22 @@ Object.assign(window.app, {
                         const moveBtn = panel.querySelector('.move-blur');
                         if (!deleteBtn || !moveBtn || !container) return;
 
-                        if (panel.offsetTop < 28) {
-                            deleteBtn.classList.add('bottom');
-                            moveBtn.classList.add('bottom');
+                        // Khi sát cạnh dưới container -> nút di chuyển lật lên trên
+                        if (panel.offsetTop + panel.offsetHeight > container.offsetHeight - 42) {
+                            moveBtn.classList.add('flip-top');
                         } else {
-                            deleteBtn.classList.remove('bottom');
-                            moveBtn.classList.remove('bottom');
+                            moveBtn.classList.remove('flip-top');
                         }
 
-                        if (panel.offsetLeft < 28) {
-                            moveBtn.classList.add('inside-left');
-                            deleteBtn.classList.add('right');
+                        // Khi sát cạnh trên container -> nút xóa lật xuống dưới
+                        if (panel.offsetTop < 18) {
+                            deleteBtn.classList.add('flip-bottom');
                         } else {
-                            moveBtn.classList.remove('inside-left');
-                            deleteBtn.classList.remove('right');
+                            deleteBtn.classList.remove('flip-bottom');
                         }
 
-                        if (panel.offsetLeft + panel.offsetWidth > container.offsetWidth - 28) {
+                        // Khi sát cạnh phải container -> nút xóa lật vào bên trong góc phải
+                        if (panel.offsetLeft + panel.offsetWidth > container.offsetWidth - 18) {
                             deleteBtn.classList.add('inside-right');
                         } else {
                             deleteBtn.classList.remove('inside-right');
@@ -494,8 +493,8 @@ Object.assign(window.app, {
                             let newWidth = initialWidth + dx;
                             let newHeight = initialHeight + dy;
 
-                            newWidth = Math.max(30, Math.min(newWidth, container.offsetWidth - panel.offsetLeft));
-                            newHeight = Math.max(30, Math.min(newHeight, container.offsetHeight - panel.offsetTop));
+                            newWidth = Math.max(24, Math.min(newWidth, container.offsetWidth - panel.offsetLeft));
+                            newHeight = Math.max(24, Math.min(newHeight, container.offsetHeight - panel.offsetTop));
 
                             panel.style.width = newWidth + 'px';
                             panel.style.height = newHeight + 'px';

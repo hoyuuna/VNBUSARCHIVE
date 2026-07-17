@@ -979,8 +979,8 @@
             -webkit-backdrop-filter: blur(10px);
             border: 1.5px dashed rgba(255, 255, 255, 0.8);
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-            min-width: 30px;
-            min-height: 30px;
+            min-width: 24px;
+            min-height: 24px;
             width: 80px;
             height: 50px;
             z-index: 5;
@@ -990,8 +990,8 @@
         .blur-panel .delete-blur,
         .blur-panel .move-blur {
             position: absolute;
-            width: 24px;
-            height: 24px;
+            width: 26px;
+            height: 26px;
             padding: 0;
             margin: 0;
             line-height: 1;
@@ -1000,7 +1000,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.5);
             z-index: 20;
             flex-shrink: 0;
             transition: left 0.15s ease, right 0.15s ease, top 0.15s ease, bottom 0.15s ease, transform 0.15s ease;
@@ -1021,37 +1021,36 @@
             transform: scale(1.15);
         }
 
-        /* Nút di chuyển ở góc trên-trái bên ngoài */
+        /* Nút di chuyển màu đen ở phía dưới vùng làm mờ, cách 1 khoảng để đỡ che ngón tay */
         .blur-panel .move-blur {
-            top: -12px;
-            left: -12px;
-            background: #2563eb;
+            top: auto;
+            bottom: -36px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #000000;
             color: white;
             border: 2px solid white;
-            font-size: 11px;
+            font-size: 12px;
             cursor: move;
         }
         .blur-panel .move-blur:hover {
-            background: #1d4ed8;
-            transform: scale(1.15);
+            background: #222222;
+            transform: translateX(-50%) scale(1.15);
         }
 
-        /* Khi ô làm mờ gần cạnh trên -> cả 2 nút lật xuống góc dưới */
-        .blur-panel .delete-blur.bottom {
+        /* Khi ô làm mờ sát cạnh dưới -> nút di chuyển lật lên trên (vẫn giữ khoảng cách và ở giữa) */
+        .blur-panel .move-blur.flip-top {
+            bottom: auto;
+            top: -36px;
+        }
+
+        /* Khi ô làm mờ sát cạnh trên -> nút xóa lật xuống góc dưới-phải */
+        .blur-panel .delete-blur.flip-bottom {
             top: auto;
             bottom: -12px;
         }
-        .blur-panel .move-blur.bottom {
-            top: auto;
-            bottom: -12px;
-        }
 
-        /* Khi ô làm mờ gần cạnh trái -> nút di chuyển lật vào bên trong hoặc sang cạnh phải */
-        .blur-panel .move-blur.inside-left {
-            left: 2px;
-        }
-
-        /* Khi ô làm mờ gần cạnh phải -> nút xóa lật vào bên trong hoặc sang cạnh trái */
+        /* Khi ô làm mờ sát cạnh phải -> nút xóa lật vào bên trong góc phải */
         .blur-panel .delete-blur.inside-right,
         .blur-panel .delete-blur.right {
             right: 2px;
