@@ -4,13 +4,15 @@
     "'self'",
     "'unsafe-inline'",
     "'unsafe-eval'",
+    "'wasm-unsafe-eval'",
     "https://challenges.cloudflare.com",
     "https://cdn.jsdelivr.net",
     "https://cdnjs.cloudflare.com",
     "https://unpkg.com",
     "https://static.cloudflareinsights.com",
     "https://esm.sh",
-    "https://docs.opencv.org"
+    "https://docs.opencv.org",
+    "https://*.opencv.org"
   ],
   "style-src": [
     "'self'",
@@ -83,7 +85,8 @@
     "https://i.postimg.cc",
     "https://postimg.cc",
     "https://*.postimg.cc",
-    "https://docs.opencv.org"
+    "https://docs.opencv.org",
+    "https://*.opencv.org"
   ],
   "frame-src": [
     "'self'",
@@ -91,6 +94,9 @@
   ],
   "worker-src": [
     "'self'",
-    "blob:"
+    "blob:",
+    "data:",
+    "https://docs.opencv.org",
+    "https://*.opencv.org"
   ]
 }

@@ -872,6 +872,14 @@ Object.assign(window.app, {
                             return;
                         }
 
+                        if (typeof window.cv === 'function') {
+                            window.cv().then(cvObj => {
+                                window.cv = cvObj;
+                                resolve();
+                            }).catch(reject);
+                            return;
+                        }
+
                         if (window._openCvLoadingPromise) {
                             window._openCvLoadingPromise.then(resolve).catch(reject);
                             return;
@@ -887,25 +895,53 @@ Object.assign(window.app, {
                                 if (progToast && progToast.update) {
                                     progToast.update(90, 'Đang khởi tạo OpenCV.js...', 'Đang kích hoạt bộ xử lý Blind Watermark...');
                                 }
-                                innerResolve();
+                                if (window.cv && window.cv.Mat && typeof window.cv.Mat === 'function') {
+                                    innerResolve();
+                                } else if (typeof window.cv === 'function') {
+                                    window.cv().then(cvObj => { window.cv = cvObj; innerResolve(); }).catch(innerReject);
+                                } else {
+                                    innerResolve();
+                                }
                             };
 
                             const script = document.createElement('script');
                             script.src = 'https://docs.opencv.org/4.8.0/opencv.js';
                             script.async = true;
                             script.onload = () => {
+                                let attempts = 0;
                                 const checkReady = () => {
+                                    attempts++;
                                     if (window.cv && window.cv.Mat && typeof window.cv.Mat === 'function') {
                                         innerResolve();
+                                    } else if (typeof window.cv === 'function') {
+                                        window.cv().then(cvObj => {
+                                            window.cv = cvObj;
+                                            innerResolve();
+                                        }).catch(err => {
+                                            window._openCvLoadingPromise = null;
+                                            innerReject(err);
+                                        });
+                                    } else if (window.cv && window.cv instanceof Promise) {
+                                        window.cv.then(cvObj => {
+                                            window.cv = cvObj;
+                                            innerResolve();
+                                        }).catch(err => {
+                                            window._openCvLoadingPromise = null;
+                                            innerReject(err);
+                                        });
+                                    } else if (attempts > 300) { // 30s timeout
+                                        window._openCvLoadingPromise = null;
+                                        innerReject(new Error("Quá thời gian khởi tạo OpenCV.js (Timeout 30s)"));
                                     } else {
                                         setTimeout(checkReady, 100);
                                     }
                                 };
                                 checkReady();
                             };
-                            script.onerror = () => {
+                            script.onerror = (e) => {
                                 window._openCvLoadingPromise = null;
-                                innerReject(new Error("Không thể tải thư viện OpenCV.js từ CDN"));
+                                console.error("Lỗi tải script OpenCV.js từ CDN:", e);
+                                innerReject(new Error("Không thể tải tập tin script OpenCV.js từ CDN"));
                             };
                             document.head.appendChild(script);
                         });
@@ -930,11 +966,14 @@ Object.assign(window.app, {
                                 app.toast.show('Đã sẵn sàng tính năng Blind Watermark!', 'success');
                                 if (app.upload.schedulePrepareBlob) app.upload.schedulePrepareBlob();
                             } catch (err) {
+                                console.error("Lỗi khởi tạo tính năng Blind Watermark / OpenCV.js:", err);
                                 el.disabled = false;
                                 el.checked = false;
                                 app.upload.isBlindWatermarkEnabled = false;
+                                window._openCvLoadingPromise = null;
                                 if (progToast && progToast.remove) progToast.remove();
-                                app.ui.showAlert('Không thể tải thư viện OpenCV.js. Vui lòng kiểm tra kết nối mạng và thử lại.');
+                                const detailMsg = err && err.message ? ` (${err.message})` : "";
+                                app.ui.showAlert(`Không thể tải thư viện OpenCV.js${detailMsg}. Vui lòng kiểm tra kết nối mạng và thử lại.`);
                             }
                         } else {
                             app.upload.isBlindWatermarkEnabled = true;
