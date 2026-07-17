@@ -4381,6 +4381,28 @@
                                     </div>
                                 </div>
 
+                                <!-- [MỚI] CÔNG TẮC BLIND WATERMARK TÁCH BIỆT NGAY BÊN DƯỚI THANH CÔNG CỤ -->
+                                <div id="blind-wm-container" class="mt-3 bg-gray-50 border border-gray-200 rounded-xl p-3 sm:p-3.5 shadow-sm relative z-30">
+                                    <div class="flex items-center justify-between gap-3">
+                                        <div class="flex items-start gap-3">
+                                            <div class="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center shrink-0 transition-colors shadow-sm">
+                                                <i class="fa-solid fa-eye-slash text-base sm:text-lg text-black"></i>
+                                            </div>
+                                            <div class="mt-0.5">
+                                                <h4 class="font-bold text-xs sm:text-sm uppercase mb-1 text-black flex items-center gap-1.5 flex-wrap">
+                                                    blind watermark
+                                                    <span class="bg-black text-white text-[9px] px-1.5 py-0.5 rounded font-mono font-bold">OPENCV</span>
+                                                </h4>
+                                                <p class="text-[10px] sm:text-[11px] font-medium text-gray-500 leading-snug">Gắn chữ ẩn chìm vào giữa ảnh bằng thuật toán OpenCV.js, không thể thấy bằng mắt thường.</p>
+                                            </div>
+                                        </div>
+                                        <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-2 self-center">
+                                            <input type="checkbox" id="chk-blind-watermark" class="sr-only peer" onchange="app.upload.toggleBlindWatermark(this)">
+                                            <div class="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-black peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all shadow-inner"></div>
+                                        </label>
+                                    </div>
+                                </div>
+
                                 <!-- Hộp Thông báo hướng dẫn gọn gàng -->
                                 <div class="mt-3 flex flex-col gap-2">
                                     <div class="flex items-start gap-2 bg-blue-50/50 border border-blue-100 p-3 rounded-xl shadow-sm">

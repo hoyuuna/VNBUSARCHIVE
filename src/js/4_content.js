@@ -864,6 +864,89 @@ Object.assign(window.app, {
                     else el.classList.remove('wm-black');
                     if (app.upload.schedulePrepareBlob) app.upload.schedulePrepareBlob();
                 },
+                isBlindWatermarkEnabled: false,
+                loadOpenCV: (progToast) => {
+                    return new Promise((resolve, reject) => {
+                        if (window.cv && window.cv.Mat && typeof window.cv.Mat === 'function') {
+                            resolve();
+                            return;
+                        }
+
+                        if (window._openCvLoadingPromise) {
+                            window._openCvLoadingPromise.then(resolve).catch(reject);
+                            return;
+                        }
+
+                        window._openCvLoadingPromise = new Promise((innerResolve, innerReject) => {
+                            if (progToast && progToast.update) {
+                                progToast.update(30, 'Đang tải thư viện OpenCV.js...', 'Đang chuẩn bị mô-đun xử lý ảnh...');
+                            }
+
+                            window.Module = window.Module || {};
+                            window.Module.onRuntimeInitialized = () => {
+                                if (progToast && progToast.update) {
+                                    progToast.update(90, 'Đang khởi tạo OpenCV.js...', 'Đang kích hoạt bộ xử lý Blind Watermark...');
+                                }
+                                innerResolve();
+                            };
+
+                            const script = document.createElement('script');
+                            script.src = 'https://docs.opencv.org/4.8.0/opencv.js';
+                            script.async = true;
+                            script.onload = () => {
+                                const checkReady = () => {
+                                    if (window.cv && window.cv.Mat && typeof window.cv.Mat === 'function') {
+                                        innerResolve();
+                                    } else {
+                                        setTimeout(checkReady, 100);
+                                    }
+                                };
+                                checkReady();
+                            };
+                            script.onerror = () => {
+                                window._openCvLoadingPromise = null;
+                                innerReject(new Error("Không thể tải thư viện OpenCV.js từ CDN"));
+                            };
+                            document.head.appendChild(script);
+                        });
+
+                        window._openCvLoadingPromise.then(resolve).catch(reject);
+                    });
+                },
+                toggleBlindWatermark: async (el) => {
+                    if (el.checked) {
+                        if (!window.cv || !window.cv.Mat || typeof window.cv.Mat !== 'function') {
+                            el.disabled = true;
+                            el.checked = false;
+                            app.upload.isBlindWatermarkEnabled = false;
+
+                            const progToast = app.toast.createProgress('Đang chuẩn bị tính năng Blind Watermark...');
+                            try {
+                                await app.upload.loadOpenCV(progToast);
+                                el.disabled = false;
+                                el.checked = true;
+                                app.upload.isBlindWatermarkEnabled = true;
+                                if (progToast && progToast.remove) progToast.remove();
+                                app.toast.show('Đã sẵn sàng tính năng Blind Watermark!', 'success');
+                                if (app.upload.schedulePrepareBlob) app.upload.schedulePrepareBlob();
+                            } catch (err) {
+                                el.disabled = false;
+                                el.checked = false;
+                                app.upload.isBlindWatermarkEnabled = false;
+                                if (progToast && progToast.remove) progToast.remove();
+                                app.ui.showAlert('Không thể tải thư viện OpenCV.js. Vui lòng kiểm tra kết nối mạng và thử lại.');
+                            }
+                        } else {
+                            app.upload.isBlindWatermarkEnabled = true;
+                            app.toast.show('Đã bật Blind Watermark!', 'success');
+                            if (app.upload.schedulePrepareBlob) app.upload.schedulePrepareBlob();
+                        }
+                    } else {
+                        app.upload.isBlindWatermarkEnabled = false;
+                        app.toast.show('Đã tắt Blind Watermark.', 'info');
+                        if (app.upload.schedulePrepareBlob) app.upload.schedulePrepareBlob();
+                    }
+                },
                 toggleWmPanel: () => {
                     const panel = document.getElementById('wm-adjust-panel');
                     if(panel) panel.classList.toggle('hidden');
@@ -928,6 +1011,10 @@ Object.assign(window.app, {
                     const chk = document.getElementById('chk-wm-black');
                     if (chk) chk.checked = false;
                     
+                    app.upload.isBlindWatermarkEnabled = false;
+                    const chkBwm = document.getElementById('chk-blind-watermark');
+                    if (chkBwm) chkBwm.checked = false;
+                    
                     app.upload.toggleColor(false);
                     
                     const el = document.getElementById('draggable-watermark');
@@ -975,6 +1062,9 @@ Object.assign(window.app, {
                     } catch (err) {
                         console.error("Lỗi prepareFinalBlob:", err);
                         app.upload.readyBlob = null;
+                        if (err && err.message && err.message.includes("BLIND_WM_ERROR:")) {
+                            app.ui.showAlert(err.message.replace("BLIND_WM_ERROR:", ""));
+                        }
                     } finally {
                         app.upload.isPreparingBlob = false;
                     }
@@ -1722,6 +1812,9 @@ Object.assign(window.app, {
                             }
                             return blobToProcess;
                         } catch (err) {
+                            if (err && err.message && err.message.includes("BLIND_WM_ERROR:")) {
+                                throw err;
+                            }
                             console.warn("Lỗi tiến trình nền xử lý ảnh:", err);
                             return app.upload.readyBlob || app.rawFile;
                         }
@@ -1753,7 +1846,16 @@ Object.assign(window.app, {
                         const targetMime = app.utils.getTargetMimeType();
 
                         // Lấy kết quả từ tiến trình nền (thường đã hoàn tất hoặc gần hoàn tất trong lúc giải captcha)
-                        let compressedFile = await bgWebpPromise;
+                        let compressedFile;
+                        try {
+                            compressedFile = await bgWebpPromise;
+                        } catch (bwErr) {
+                            if (app.upload.activeProgressToast && app.upload.activeProgressToast.remove) app.upload.activeProgressToast.remove();
+                            btn.disabled = false;
+                            btn.innerHTML = originalText;
+                            const msg = bwErr && bwErr.message ? bwErr.message.replace("BLIND_WM_ERROR:", "") : "Lỗi xử lý ảnh.";
+                            return app.ui.showAlert(msg);
+                        }
 
                         // Nếu tiến trình nền chưa ra webp thì chạy fallback lần cuối
                         if (!compressedFile || (compressedFile.type !== targetMime && compressedFile.type !== 'image/webp')) {

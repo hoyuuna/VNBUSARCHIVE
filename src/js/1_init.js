@@ -1765,30 +1765,118 @@ cleanupState: () => {
                                 ctx.textAlign = 'center';
                                 ctx.textBaseline = 'middle';
 
-                                ctx.translate(width * pos.x, height * pos.y);
-                                ctx.fillText(`© ${username}`, 0, 0);
-                                ctx.restore();
+                                 ctx.translate(width * pos.x, height * pos.y);
+                                 ctx.fillText(`© ${username}`, 0, 0);
+                                 ctx.restore();
 
-                                try {
-                                    const blob = await app.utils.canvasToBlobUniversal(canvas, app.utils.getTargetMimeType(), 0.80);
-                                    if (blob) resolve(blob);
-                                    else reject(new Error("Canvas failed to blob"));
-                                } catch (errBlob) {
-                                    reject(errBlob);
-                                }
-                            } catch (e) {
-                                reject(e);
-                            } finally {
-                                URL.revokeObjectURL(url);
-                            }
-                        };
-                        img.onerror = (e) => {
-                            URL.revokeObjectURL(url);
-                            reject(new Error("Không thể tải ảnh."));
-                        };
-                        img.src = url;
-                    });
-                },
+                                 // [MỚI] GẮN BLIND WATERMARK CỦA OPENCV NẾU BẬT
+                                 if (app.upload && app.upload.isBlindWatermarkEnabled) {
+                                     try {
+                                         const hiddenText = `VNBUSARCHIVE/${username}/`;
+                                         await app.utils.embedBlindWatermarkOpenCV(canvas, hiddenText);
+                                     } catch (bwErr) {
+                                         reject(bwErr);
+                                         return;
+                                     }
+                                 }
+
+                                 try {
+                                     const blob = await app.utils.canvasToBlobUniversal(canvas, app.utils.getTargetMimeType(), 0.80);
+                                     if (blob) resolve(blob);
+                                     else reject(new Error("Canvas failed to blob"));
+                                 } catch (errBlob) {
+                                     reject(errBlob);
+                                 }
+                             } catch (e) {
+                                 reject(e);
+                             } finally {
+                                 URL.revokeObjectURL(url);
+                             }
+                         };
+                         img.onerror = (e) => {
+                             URL.revokeObjectURL(url);
+                             reject(new Error("Không thể tải ảnh."));
+                         };
+                         img.src = url;
+                     });
+                 },
+
+                 embedBlindWatermarkOpenCV: async (canvas, hiddenText) => {
+                     if (!window.cv || !window.cv.Mat || typeof window.cv.Mat !== 'function') {
+                         throw new Error("BLIND_WM_ERROR:Thư viện OpenCV.js chưa sẵn sàng hoặc bị lỗi.");
+                     }
+                     const cv = window.cv;
+                     let srcMat = null;
+                     let planes = null;
+                     let plane0 = null;
+                     let plane0_clean = null;
+                     let plane0_watermarked = null;
+                     let maskFE = null;
+                     let wmGray = null;
+                     let wmBits = null;
+                     let wmMat = null;
+                     let dstMat = null;
+
+                     try {
+                         const width = canvas.width;
+                         const height = canvas.height;
+                         if (!width || !height || width < 50 || height < 50) {
+                             throw new Error("BLIND_WM_ERROR:Kích thước ảnh quá nhỏ để gắn Blind Watermark.");
+                         }
+
+                         const wmCanvas = document.createElement('canvas');
+                         wmCanvas.width = width;
+                         wmCanvas.height = height;
+                         const wmCtx = wmCanvas.getContext('2d');
+                         wmCtx.fillStyle = '#000000';
+                         wmCtx.fillRect(0, 0, width, height);
+                         wmCtx.fillStyle = '#ffffff';
+                         wmCtx.textAlign = 'center';
+                         wmCtx.textBaseline = 'middle';
+                         const fontSize = Math.max(16, Math.floor(width * 0.045));
+                         wmCtx.font = `bold ${fontSize}px sans-serif`;
+                         wmCtx.fillText(hiddenText, width / 2, height / 2);
+
+                         srcMat = cv.imread(canvas);
+                         wmMat = cv.imread(wmCanvas);
+
+                         if (srcMat.empty() || wmMat.empty()) {
+                             throw new Error("BLIND_WM_ERROR:Không thể xử lý ma trận ảnh OpenCV.");
+                         }
+
+                         wmGray = new cv.Mat();
+                         cv.cvtColor(wmMat, wmGray, cv.COLOR_RGBA2GRAY);
+                         wmBits = new cv.Mat();
+                         cv.threshold(wmGray, wmBits, 128, 1, cv.THRESH_BINARY);
+
+                         planes = new cv.MatVector();
+                         cv.split(srcMat, planes);
+                         plane0 = planes.get(0);
+
+                         maskFE = new cv.Mat(height, width, cv.CV_8UC1, new cv.Scalar(0xFE));
+                         plane0_clean = new cv.Mat();
+                         cv.bitwise_and(plane0, maskFE, plane0_clean);
+
+                         plane0_watermarked = new cv.Mat();
+                         cv.bitwise_or(plane0_clean, wmBits, plane0_watermarked);
+
+                         planes.set(0, plane0_watermarked);
+                         dstMat = new cv.Mat();
+                         cv.merge(planes, dstMat);
+
+                         cv.imshow(canvas, dstMat);
+                     } catch (err) {
+                         const errMsg = err && err.message ? err.message : String(err);
+                         if (errMsg.includes("BLIND_WM_ERROR:")) throw err;
+                         throw new Error("BLIND_WM_ERROR:Không thể gắn Blind Watermark vào ảnh này: " + errMsg);
+                     } finally {
+                         [srcMat, planes, plane0, plane0_clean, plane0_watermarked, maskFE, wmGray, wmBits, wmMat, dstMat].forEach(obj => {
+                             if (obj && typeof obj.delete === 'function') {
+                                 try { obj.delete(); } catch (e) {}
+                             }
+                         });
+                     }
+                 },
 
                 handleLike: async () => {
                     if (!app.user) return app.auth.check();
