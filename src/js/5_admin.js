@@ -529,8 +529,12 @@ Object.assign(window.app, {
                     app.adminTab = tab;
                     app.admin.refreshCounts().then(total => app.admin.checkNotification());
 
+                    if (app.admin._isTabLoading && tab === app.adminTab && !forceReload) return;
+                    app.admin._isTabLoading = true;
+
                     const content = document.getElementById('admin-content');
                     if (tab === 'manager' && document.getElementById('mgr-sec-denied')) {
+                        app.admin._isTabLoading = false;
                         ['photos', 'requests', 'delete', 'manager', 'comments'].forEach(t => {
                             const btn = document.getElementById(`adm-tab-${t}`);
                             if(!btn) return;
@@ -546,7 +550,7 @@ Object.assign(window.app, {
                         return;
                     }
                     if (!(tab === 'photos' && !forceReload && content.querySelector('.admin-card'))) {
-                        content.innerHTML = '<p class="text-gray-500 italic p-4">Đang tải...</p>';
+                        content.innerHTML = '<p class="text-gray-500 italic p-4"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Đang tải danh sách chờ duyệt...</p>';
                     }
 
 
@@ -574,37 +578,37 @@ Object.assign(window.app, {
                         if (tab === 'photos') {
                             let rawPhotos = [];
                             try {
-                                const { data: pData } = await window.sb.from('photos').select('*, profiles(username, role), vehicles(model)').eq('status', 'pending').order('id', { ascending: true });
-                                if (pData && pData.length > 0) rawPhotos = pData;
-                            } catch(e){}
-
-                            try {
-                                const sessionRes = await window.sb.auth.getSession();
-                                const token = sessionRes.data.session?.access_token;
-                                if (token) {
-                                    const apiRes = await fetch('/api/photo?status=pending', {
-                                        headers: { 'Authorization': `Bearer ${token}` }
-                                    });
-                                    if (apiRes.ok) {
-                                        const apiJson = await apiRes.json();
-                                        if (apiJson && apiJson.data && Array.isArray(apiJson.data)) {
-                                            const idMap = new Map();
-                                            rawPhotos.forEach(p => idMap.set(p.id, p));
-                                            apiJson.data.forEach(p => {
-                                                const existing = idMap.get(p.id);
-                                                if (existing) {
-                                                    idMap.set(p.id, { ...existing, ...p, vehicles: p.vehicles || existing.vehicles, profiles: p.profiles || existing.profiles });
-                                                } else {
-                                                    idMap.set(p.id, p);
+                                const [sbRes, apiRes] = await Promise.all([
+                                    window.sb.from('photos').select('*, profiles(username, role), vehicles(model)').eq('status', 'pending').order('id', { ascending: true }).then(r => r.data || []).catch(() => []),
+                                    (async () => {
+                                        try {
+                                            const sessionRes = await window.sb.auth.getSession();
+                                            const token = sessionRes.data.session?.access_token;
+                                            if (token) {
+                                                const res = await fetch('/api/photo?status=pending', { headers: { 'Authorization': `Bearer ${token}` } });
+                                                if (res.ok) {
+                                                    const json = await res.json();
+                                                    if (json && json.data && Array.isArray(json.data)) return json.data;
                                                 }
-                                            });
-                                            rawPhotos = Array.from(idMap.values()).sort((a,b) => a.id - b.id);
-                                        }
+                                            }
+                                        } catch (e) { console.warn('Lỗi tải pending API:', e); }
+                                        return [];
+                                    })()
+                                ]);
+                                const idMap = new Map();
+                                sbRes.forEach(p => idMap.set(p.id, p));
+                                apiRes.forEach(p => {
+                                    const existing = idMap.get(p.id);
+                                    if (existing) {
+                                        idMap.set(p.id, { ...existing, ...p, vehicles: p.vehicles || existing.vehicles, profiles: p.profiles || existing.profiles });
+                                    } else {
+                                        idMap.set(p.id, p);
                                     }
-                                }
-                            } catch(e) { console.warn('Lỗi tải danh sách pending qua backend API:', e); }
+                                });
+                                rawPhotos = Array.from(idMap.values()).sort((a,b) => a.id - b.id);
+                            } catch(e) { console.warn('Lỗi fetch pending:', e); }
 
-                            if (!rawPhotos || rawPhotos.length === 0) { content.innerHTML = '<p class="p-4">Không có ảnh nào chờ duyệt.</p>'; return; }
+                            if (!rawPhotos || rawPhotos.length === 0) { content.innerHTML = '<p class="p-4 text-gray-600">Không có ảnh nào chờ duyệt.</p>'; return; }
                             await app.utils.resolveSandboxUrls(rawPhotos);
 
                             const addRouteVariants = (set, s) => {
@@ -644,66 +648,59 @@ Object.assign(window.app, {
                             let approvedRouteSet = new Set();
                             let approvedModelSet = new Set();
 
-                            // 1. Fetch từ bảng operator_info (đơn vị đã tồn tại)
-                            try {
-                                const { data: opInfos } = await window.sb.from('operator_info').select('operator_name');
-                                (opInfos || []).forEach(o => { if (o.operator_name) approvedOpSet.add(app.utils.cleanText(o.operator_name).trim().toLowerCase()); });
-                            } catch (e) {}
-
-                            // 2. Fetch từ bảng vehicles (chỉ những xe đã có ít nhất 1 ảnh được duyệt status = 'approved')
-                            try {
-                                const { data: vehs } = await window.sb.from('vehicles').select('license_plate, operator, route_no, model, photos!inner(status)').eq('photos.status', 'approved');
-                                (vehs || []).forEach(v => {
-                                    if (v.license_plate) approvedPlateSet.add(v.license_plate.trim().toUpperCase());
-                                    if (v.operator && v.operator !== '---' && v.operator !== 'Đang cập nhật') approvedOpSet.add(app.utils.cleanText(v.operator).trim().toLowerCase());
-                                    if (v.route_no && v.route_no !== '---') addRouteVariants(approvedRouteSet, v.route_no);
-                                    if (v.model && v.model !== '---') approvedModelSet.add(app.utils.cleanText(v.model).trim().toLowerCase());
-                                });
-                            } catch (e) {}
-
-                            // 3. Fetch từ bảng photos và vehicles theo exact variants của ảnh chờ duyệt
                             const pendingPlates = [...new Set(rawPhotos.map(p => p.license_plate).filter(Boolean))];
                             const pendingOps = [...new Set(rawPhotos.map(p => app.utils.cleanText(p.operator || '')).filter(Boolean))];
                             const pendingRoutes = [...new Set(rawPhotos.map(p => app.utils.cleanText(p.route_no || '')).filter(Boolean))];
                             const pendingModels = [...new Set(rawPhotos.map(p => app.utils.cleanText(p.vehicles?.model || '')).filter(Boolean))];
 
-                            if (pendingPlates.length > 0) {
-                                const variants = getVariants(pendingPlates);
-                                const { data: approvedPlates } = await window.sb.from('photos').select('license_plate').eq('status', 'approved').in('license_plate', variants);
-                                const { data: vehPlates } = await window.sb.from('vehicles').select('license_plate, photos!inner(status)').eq('photos.status', 'approved').in('license_plate', variants);
-                                (approvedPlates || []).forEach(p => { if (p.license_plate) approvedPlateSet.add(p.license_plate.trim().toUpperCase()); });
-                                (vehPlates || []).forEach(v => { if (v.license_plate) approvedPlateSet.add(v.license_plate.trim().toUpperCase()); });
-                            }
-                            if (pendingOps.length > 0) {
-                                const variants = getVariants(pendingOps);
-                                const { data: approvedOps } = await window.sb.from('photos').select('operator').eq('status', 'approved').in('operator', variants);
-                                const { data: vehOps } = await window.sb.from('vehicles').select('operator, photos!inner(status)').eq('photos.status', 'approved').in('operator', variants);
-                                const { data: infoOps } = await window.sb.from('operator_info').select('operator_name').in('operator_name', variants);
-                                (approvedOps || []).forEach(p => { if (p.operator && p.operator !== '---' && p.operator !== 'Đang cập nhật') approvedOpSet.add(app.utils.cleanText(p.operator).trim().toLowerCase()); });
-                                (vehOps || []).forEach(v => { if (v.operator && v.operator !== '---' && v.operator !== 'Đang cập nhật') approvedOpSet.add(app.utils.cleanText(v.operator).trim().toLowerCase()); });
-                                (infoOps || []).forEach(o => { if (o.operator_name) approvedOpSet.add(app.utils.cleanText(o.operator_name).trim().toLowerCase()); });
-                            }
-                            if (pendingRoutes.length > 0) {
-                                const variants = getVariants(pendingRoutes);
-                                const { data: approvedRoutes } = await window.sb.from('photos').select('route_no').eq('status', 'approved').in('route_no', variants);
-                                const { data: vehRoutes } = await window.sb.from('vehicles').select('route_no, photos!inner(status)').eq('photos.status', 'approved').in('route_no', variants);
-                                (approvedRoutes || []).forEach(p => { if (p.route_no && p.route_no !== '---') addRouteVariants(approvedRouteSet, p.route_no); });
-                                (vehRoutes || []).forEach(v => { if (v.route_no && v.route_no !== '---') addRouteVariants(approvedRouteSet, v.route_no); });
-                            }
-                            if (pendingModels.length > 0) {
-                                const variants = getVariants(pendingModels);
-                                const { data: approvedModels } = await window.sb.from('photos').select('vehicles!inner(model)').eq('status', 'approved').in('vehicles.model', variants);
-                                const { data: vehModels } = await window.sb.from('vehicles').select('model, photos!inner(status)').eq('photos.status', 'approved').in('model', variants);
-                                (approvedModels || []).forEach(p => { if (p.vehicles?.model && p.vehicles.model !== '---') approvedModelSet.add(app.utils.cleanText(p.vehicles.model).trim().toLowerCase()); });
-                                (vehModels || []).forEach(v => { if (v.model && v.model !== '---') approvedModelSet.add(app.utils.cleanText(v.model).trim().toLowerCase()); });
-                            }
+                            const platesVariants = pendingPlates.length > 0 ? getVariants(pendingPlates) : [];
+                            const opsVariants = pendingOps.length > 0 ? getVariants(pendingOps) : [];
+                            const routesVariants = pendingRoutes.length > 0 ? getVariants(pendingRoutes) : [];
+                            const modelsVariants = pendingModels.length > 0 ? getVariants(pendingModels) : [];
+
+                            await Promise.all([
+                                window.sb.from('operator_info').select('operator_name').then(r => {
+                                    (r.data || []).forEach(o => { if (o.operator_name) approvedOpSet.add(app.utils.cleanText(o.operator_name).trim().toLowerCase()); });
+                                }).catch(() => {}),
+                                window.sb.from('vehicles').select('license_plate, operator, route_no, model, photos!inner(status)').eq('photos.status', 'approved').limit(1000).then(r => {
+                                    (r.data || []).forEach(v => {
+                                        if (v.license_plate) approvedPlateSet.add(v.license_plate.trim().toUpperCase());
+                                        if (v.operator && v.operator !== '---' && v.operator !== 'Đang cập nhật') approvedOpSet.add(app.utils.cleanText(v.operator).trim().toLowerCase());
+                                        if (v.route_no && v.route_no !== '---') addRouteVariants(approvedRouteSet, v.route_no);
+                                        if (v.model && v.model !== '---') approvedModelSet.add(app.utils.cleanText(v.model).trim().toLowerCase());
+                                    });
+                                }).catch(() => {}),
+                                platesVariants.length > 0 ? window.sb.from('photos').select('license_plate').eq('status', 'approved').in('license_plate', platesVariants).then(r => {
+                                    (r.data || []).forEach(p => { if (p.license_plate) approvedPlateSet.add(p.license_plate.trim().toUpperCase()); });
+                                }).catch(() => {}) : Promise.resolve(),
+                                platesVariants.length > 0 ? window.sb.from('vehicles').select('license_plate, photos!inner(status)').eq('photos.status', 'approved').in('license_plate', platesVariants).then(r => {
+                                    (r.data || []).forEach(v => { if (v.license_plate) approvedPlateSet.add(v.license_plate.trim().toUpperCase()); });
+                                }).catch(() => {}) : Promise.resolve(),
+                                opsVariants.length > 0 ? window.sb.from('photos').select('operator').eq('status', 'approved').in('operator', opsVariants).then(r => {
+                                    (r.data || []).forEach(p => { if (p.operator && p.operator !== '---' && p.operator !== 'Đang cập nhật') approvedOpSet.add(app.utils.cleanText(p.operator).trim().toLowerCase()); });
+                                }).catch(() => {}) : Promise.resolve(),
+                                opsVariants.length > 0 ? window.sb.from('vehicles').select('operator, photos!inner(status)').eq('photos.status', 'approved').in('operator', opsVariants).then(r => {
+                                    (r.data || []).forEach(v => { if (v.operator && v.operator !== '---' && v.operator !== 'Đang cập nhật') approvedOpSet.add(app.utils.cleanText(v.operator).trim().toLowerCase()); });
+                                }).catch(() => {}) : Promise.resolve(),
+                                opsVariants.length > 0 ? window.sb.from('operator_info').select('operator_name').in('operator_name', opsVariants).then(r => {
+                                    (r.data || []).forEach(o => { if (o.operator_name) approvedOpSet.add(app.utils.cleanText(o.operator_name).trim().toLowerCase()); });
+                                }).catch(() => {}) : Promise.resolve(),
+                                routesVariants.length > 0 ? window.sb.from('photos').select('route_no').eq('status', 'approved').in('route_no', routesVariants).then(r => {
+                                    (r.data || []).forEach(p => { if (p.route_no && p.route_no !== '---') addRouteVariants(approvedRouteSet, p.route_no); });
+                                }).catch(() => {}) : Promise.resolve(),
+                                routesVariants.length > 0 ? window.sb.from('vehicles').select('route_no, photos!inner(status)').eq('photos.status', 'approved').in('route_no', routesVariants).then(r => {
+                                    (r.data || []).forEach(v => { if (v.route_no && v.route_no !== '---') addRouteVariants(approvedRouteSet, v.route_no); });
+                                }).catch(() => {}) : Promise.resolve(),
+                                modelsVariants.length > 0 ? window.sb.from('vehicles').select('model, photos!inner(status)').eq('photos.status', 'approved').in('model', modelsVariants).then(r => {
+                                    (r.data || []).forEach(v => { if (v.model && v.model !== '---') approvedModelSet.add(app.utils.cleanText(v.model).trim().toLowerCase()); });
+                                }).catch(() => {}) : Promise.resolve()
+                            ]);
 
                             app.admin.approvedPlateSet = approvedPlateSet;
                             app.admin.approvedOpSet = approvedOpSet;
                             app.admin.approvedRouteSet = approvedRouteSet;
                             app.admin.approvedModelSet = approvedModelSet;
 
-                            // THÊM: Sắp xếp ưu tiên (Admin/Manager lên đầu, theo thứ tự up trước xếp trước)
                             const photos = rawPhotos.sort((a, b) => {
                                 const roleA = a.profiles?.role || 'user';
                                 const roleB = b.profiles?.role || 'user';
@@ -737,7 +734,7 @@ Object.assign(window.app, {
                                     }
                                 });
                                 if (content.querySelectorAll('.admin-card').length === 0 && photos.length === 0) {
-                                    content.innerHTML = '<p class="p-4">Không có ảnh nào chờ duyệt.</p>';
+                                    content.innerHTML = '<p class="p-4 text-gray-600">Không có ảnh nào chờ duyệt.</p>';
                                 }
                             } else {
                                 content.innerHTML = photos.map(p => app.admin.renderSinglePhotoCardHTML(p, approvedPlateSet, approvedOpSet, approvedRouteSet, approvedModelSet)).join('');
@@ -1192,6 +1189,8 @@ app.admin.fetchManagerData('denied');
 
                     } catch (err) {
                         content.innerHTML = `<p class="p-4 text-red-500 font-bold">Không thể tải dữ liệu: ${err.message}</p>`;
+                    } finally {
+                        app.admin._isTabLoading = false;
                     }
                 },
 
@@ -1274,7 +1273,13 @@ app.admin.fetchManagerData('denied');
                             app.admin.manager.bans.data = result.users || [];
                             app.admin.filterManagerData('bans', '', 'all');
                         }
-                    } catch (e) { console.error("Lỗi fetch data manager:", e); }
+                    } catch (e) {
+                        console.error("Lỗi fetch data manager:", e);
+                        const contentEl = document.getElementById(`mgr-${type}-content`);
+                        if (contentEl && (contentEl.innerHTML.includes('Đang tải') || contentEl.innerHTML.trim() === '')) {
+                            contentEl.innerHTML = `<p class="text-red-500 col-span-full py-4 text-sm px-4">Không thể tải dữ liệu: ${e.message || 'Lỗi kết nối'}</p>`;
+                        }
+                    }
                 },
 
                 filterManagerData: (type, query, statusArg) => {
@@ -1687,8 +1692,13 @@ app.admin.fetchManagerData('denied');
                 // --- ĐÂY LÀ 2 HÀM BẠN ĐANG THIẾU DẪN ĐẾN LỖI ---
                 renderManagerSettings: async () => {
                     const container = document.getElementById('mgr-settings-content');
-                    container.innerHTML = '<p class="text-gray-500 italic"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</p>';
-                    await app.maintenance.fetch();
+                    container.innerHTML = '<p class="text-gray-500 italic"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Đang tải dữ liệu...</p>';
+                    try {
+                        await app.maintenance.fetch();
+                    } catch (err) {
+                        if (container) container.innerHTML = `<p class="text-red-500 py-4">Không thể tải cấu hình bảo trì: ${err.message}</p>`;
+                        return;
+                    }
 
                     const configs =[
                         { id: 'global', title: 'Cầu chì Tổng (Toàn hệ thống)', icon: 'fa-globe', color: 'red' },
