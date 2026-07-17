@@ -864,7 +864,7 @@ Object.assign(window.app, {
                     else el.classList.remove('wm-black');
                     if (app.upload.schedulePrepareBlob) app.upload.schedulePrepareBlob();
                 },
-                isBlindWatermarkEnabled: typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_blind_wm_pref') === 'true',
+                isBlindWatermarkEnabled: false, // Tạm thời tắt: typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_blind_wm_pref') === 'true',
                 loadOpenCV: (progToast) => {
                     return new Promise((resolve, reject) => {
                         if (window._openCvReady || (window.cv && window.cv.Mat && typeof window.cv.Mat === 'function')) {
@@ -1066,13 +1066,11 @@ Object.assign(window.app, {
                     const chk = document.getElementById('chk-wm-black');
                     if (chk) chk.checked = false;
                     
-                    const pref = typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_blind_wm_pref') === 'true';
-                    app.upload.isBlindWatermarkEnabled = pref;
+                    // Tạm thời tắt đọc pref để không tự bật Blind Watermark
+                    // const pref = typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_blind_wm_pref') === 'true';
+                    app.upload.isBlindWatermarkEnabled = false;
                     const chkBwm = document.getElementById('chk-blind-watermark');
-                    if (chkBwm) chkBwm.checked = pref;
-                    if (pref && !(window._openCvReady || (window.cv && window.cv.Mat && typeof window.cv.Mat === 'function'))) {
-                        app.upload.loadOpenCV().catch(() => {});
-                    }
+                    if (chkBwm) chkBwm.checked = false;
                     
                     app.upload.toggleColor(false);
                     
@@ -3989,6 +3987,7 @@ Object.assign(window.app, {
             }
 });
 
+/* Tạm thời tắt tự động tải ngầm OpenCV.js khi khởi động cho tới khi tính năng được bật lại
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         const pref = typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_blind_wm_pref') === 'true';
@@ -4002,4 +4001,5 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 500);
 });
+*/
 
