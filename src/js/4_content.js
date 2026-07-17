@@ -904,46 +904,62 @@ Object.assign(window.app, {
                                 }
                             };
 
-                            const script = document.createElement('script');
-                            script.src = 'https://docs.opencv.org/4.8.0/opencv.js';
-                            script.async = true;
-                            script.onload = () => {
-                                let attempts = 0;
-                                const checkReady = () => {
-                                    attempts++;
-                                    if (window.cv && window.cv.Mat && typeof window.cv.Mat === 'function') {
-                                        innerResolve();
-                                    } else if (typeof window.cv === 'function') {
-                                        window.cv().then(cvObj => {
-                                            window.cv = cvObj;
+                            const cdnUrls = [
+                                'https://cdn.jsdelivr.net/npm/@techstark/opencv-js@4.8.0-release.1/dist/opencv.js',
+                                'https://unpkg.com/@techstark/opencv-js@4.8.0-release.1/dist/opencv.js',
+                                'https://cdn.jsdelivr.net/npm/opencv.js@1.2.1/opencv.js',
+                                'https://docs.opencv.org/4.8.0/opencv.js'
+                            ];
+                            let currentCdnIndex = 0;
+                            const loadScriptFromCdn = () => {
+                                if (currentCdnIndex >= cdnUrls.length) {
+                                    window._openCvLoadingPromise = null;
+                                    innerReject(new Error("Không thể tải thư viện OpenCV.js từ tất cả các máy chủ CDN (CORS/Network error)"));
+                                    return;
+                                }
+                                const url = cdnUrls[currentCdnIndex++];
+                                console.log(`Đang tải OpenCV.js từ CDN (${currentCdnIndex}/${cdnUrls.length}): ${url}`);
+                                const script = document.createElement('script');
+                                script.src = url;
+                                script.async = true;
+                                script.onload = () => {
+                                    let attempts = 0;
+                                    const checkReady = () => {
+                                        attempts++;
+                                        if (window.cv && window.cv.Mat && typeof window.cv.Mat === 'function') {
                                             innerResolve();
-                                        }).catch(err => {
-                                            window._openCvLoadingPromise = null;
-                                            innerReject(err);
-                                        });
-                                    } else if (window.cv && window.cv instanceof Promise) {
-                                        window.cv.then(cvObj => {
-                                            window.cv = cvObj;
-                                            innerResolve();
-                                        }).catch(err => {
-                                            window._openCvLoadingPromise = null;
-                                            innerReject(err);
-                                        });
-                                    } else if (attempts > 300) { // 30s timeout
-                                        window._openCvLoadingPromise = null;
-                                        innerReject(new Error("Quá thời gian khởi tạo OpenCV.js (Timeout 30s)"));
-                                    } else {
-                                        setTimeout(checkReady, 100);
-                                    }
+                                        } else if (typeof window.cv === 'function') {
+                                            window.cv().then(cvObj => {
+                                                window.cv = cvObj;
+                                                innerResolve();
+                                            }).catch(err => {
+                                                window._openCvLoadingPromise = null;
+                                                innerReject(err);
+                                            });
+                                        } else if (window.cv && window.cv instanceof Promise) {
+                                            window.cv.then(cvObj => {
+                                                window.cv = cvObj;
+                                                innerResolve();
+                                            }).catch(err => {
+                                                window._openCvLoadingPromise = null;
+                                                innerReject(err);
+                                            });
+                                        } else if (attempts > 300) { // 30s timeout per script
+                                            console.warn(`Timeout khởi tạo từ ${url}, tự động chuyển CDN tiếp theo...`);
+                                            loadScriptFromCdn();
+                                        } else {
+                                            setTimeout(checkReady, 100);
+                                        }
+                                    };
+                                    checkReady();
                                 };
-                                checkReady();
+                                script.onerror = (e) => {
+                                    console.warn(`Lỗi tải từ ${url} (CORS/403/Network), tự động chuyển sang CDN dự phòng tiếp theo...`, e);
+                                    loadScriptFromCdn();
+                                };
+                                document.head.appendChild(script);
                             };
-                            script.onerror = (e) => {
-                                window._openCvLoadingPromise = null;
-                                console.error("Lỗi tải script OpenCV.js từ CDN:", e);
-                                innerReject(new Error("Không thể tải tập tin script OpenCV.js từ CDN"));
-                            };
-                            document.head.appendChild(script);
+                            loadScriptFromCdn();
                         });
 
                         window._openCvLoadingPromise.then(resolve).catch(reject);
