@@ -403,11 +403,40 @@ Object.assign(window.app, {
 
                     panel.innerHTML = `
                         <button type="button" class="delete-blur" onclick="app.upload.removeBlurPanel('${id}')" title="Xóa vùng này"><i class="fa-solid fa-xmark"></i></button>
-                        <div class="resize-handle" style="position: absolute; bottom: 0; right: 0; width: 20px; height: 20px; cursor: nwse-resize; z-index: 10;"></div>
+                        <button type="button" class="move-blur" title="Giữ và kéo để di chuyển vùng làm mờ"><i class="fa-solid fa-arrows-up-down-left-right"></i></button>
+                        <div class="resize-handle" style="position: absolute; bottom: 0; right: 0; width: 20px; height: 20px; cursor: nwse-resize; z-index: 10;" title="Kéo để đổi kích thước"></div>
                     `;
 
                     let isDragging = false;
                     let dragStartX, dragStartY, initialLeft, initialTop;
+
+                    const updateButtonsPosition = () => {
+                        const deleteBtn = panel.querySelector('.delete-blur');
+                        const moveBtn = panel.querySelector('.move-blur');
+                        if (!deleteBtn || !moveBtn || !container) return;
+
+                        if (panel.offsetTop < 28) {
+                            deleteBtn.classList.add('bottom');
+                            moveBtn.classList.add('bottom');
+                        } else {
+                            deleteBtn.classList.remove('bottom');
+                            moveBtn.classList.remove('bottom');
+                        }
+
+                        if (panel.offsetLeft < 28) {
+                            moveBtn.classList.add('inside-left');
+                            deleteBtn.classList.add('right');
+                        } else {
+                            moveBtn.classList.remove('inside-left');
+                            deleteBtn.classList.remove('right');
+                        }
+
+                        if (panel.offsetLeft + panel.offsetWidth > container.offsetWidth - 28) {
+                            deleteBtn.classList.add('inside-right');
+                        } else {
+                            deleteBtn.classList.remove('inside-right');
+                        }
+                    };
 
                     const startDrag = (e) => {
                         if (e.target.closest('.delete-blur') || e.target.closest('.resize-handle')) return;
@@ -415,8 +444,8 @@ Object.assign(window.app, {
                         if (e.type === 'touchstart') e.preventDefault();
 
                         isDragging = true;
-                        dragStartX = e.clientX || e.touches[0].clientX;
-                        dragStartY = e.clientY || e.touches[0].clientY;
+                        dragStartX = e.clientX || (e.touches && e.touches[0].clientX);
+                        dragStartY = e.clientY || (e.touches && e.touches[0].clientY);
                         initialLeft = panel.offsetLeft;
                         initialTop = panel.offsetTop;
                     };
@@ -433,8 +462,8 @@ Object.assign(window.app, {
                         if (e.type === 'touchstart') e.preventDefault();
 
                         isResizing = true;
-                        resizeStartX = e.clientX || e.touches[0].clientX;
-                        resizeStartY = e.clientY || e.touches[0].clientY;
+                        resizeStartX = e.clientX || (e.touches && e.touches[0].clientX);
+                        resizeStartY = e.clientY || (e.touches && e.touches[0].clientY);
                         initialWidth = panel.offsetWidth;
                         initialHeight = panel.offsetHeight;
                     };
@@ -457,6 +486,7 @@ Object.assign(window.app, {
 
                             panel.style.left = Math.max(minLeft, Math.min(newLeft, maxLeft)) + 'px';
                             panel.style.top = Math.max(minTop, Math.min(newTop, maxTop)) + 'px';
+                            updateButtonsPosition();
                         } else if (isResizing) {
                             const dx = clientX - resizeStartX;
                             const dy = clientY - resizeStartY;
@@ -469,6 +499,7 @@ Object.assign(window.app, {
 
                             panel.style.width = newWidth + 'px';
                             panel.style.height = newHeight + 'px';
+                            updateButtonsPosition();
                         }
                     };
 
@@ -486,11 +517,11 @@ Object.assign(window.app, {
                     };
 
                     const endAction = () => {
+                        if (isDragging || isResizing) {
+                            updateButtonsPosition();
+                        }
                         isDragging = false;
                         isResizing = false;
-                        const deleteBtn = panel.querySelector('.delete-blur');
-                        if (panel.offsetLeft < 28) deleteBtn.classList.add('right');
-                        else deleteBtn.classList.remove('right');
                     };
 
                     document.addEventListener('mousemove', handleMouseMove);
@@ -499,6 +530,7 @@ Object.assign(window.app, {
                     document.addEventListener('touchend', endAction);
 
                     container.appendChild(panel);
+                    updateButtonsPosition();
                     app.upload.updateBlurBtn();
                 },
 
