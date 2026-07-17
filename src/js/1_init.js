@@ -1769,8 +1769,8 @@ cleanupState: () => {
                                  ctx.fillText(`© ${username}`, 0, 0);
                                  ctx.restore();
 
-                                 // [MỚI] GẮN BLIND WATERMARK CỦA OPENCV NẾU BẬT
-                                 if (app.upload && app.upload.isBlindWatermarkEnabled) {
+                                 const isBlind = (app.upload && app.upload.isBlindWatermarkEnabled);
+                                 if (isBlind) {
                                      try {
                                          const hiddenText = `VNBUSARCHIVE/${username}/`;
                                          await app.utils.embedBlindWatermarkOpenCV(canvas, hiddenText);
@@ -1781,7 +1781,9 @@ cleanupState: () => {
                                  }
 
                                  try {
-                                     const blob = await app.utils.canvasToBlobUniversal(canvas, app.utils.getTargetMimeType(), 0.80);
+                                     const targetMime = isBlind ? 'image/png' : app.utils.getTargetMimeType();
+                                     const targetQuality = isBlind ? 1.0 : 0.80;
+                                     const blob = await app.utils.canvasToBlobUniversal(canvas, targetMime, targetQuality);
                                      if (blob) resolve(blob);
                                      else reject(new Error("Canvas failed to blob"));
                                  } catch (errBlob) {
