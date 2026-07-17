@@ -977,14 +977,38 @@
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            border: 1.5px dashed rgba(255, 255, 255, 0.8);
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            border: 1.5px dashed rgba(255, 255, 255, 0.6);
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
             min-width: 24px;
             min-height: 24px;
             width: 80px;
             height: 50px;
             z-index: 5;
             cursor: move;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+
+        .blur-panel.active {
+            border: 2px dashed #ffffff;
+            box-shadow: 0 0 14px rgba(255, 255, 255, 0.4), 0 0 4px rgba(0,0,0,0.5);
+            z-index: 15;
+        }
+
+        /* Ẩn 2 nút công cụ và góc kéo khi ô làm mờ không được chọn (.active) */
+        .blur-panel .delete-blur,
+        .blur-panel .move-blur,
+        .blur-panel .resize-handle {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.15s ease, transform 0.15s ease, left 0.15s ease, right 0.15s ease, top 0.15s ease, bottom 0.15s ease;
+        }
+
+        /* Chỉ khi được chọn (.active) mới hiện 2 nút công cụ và góc kéo */
+        .blur-panel.active .delete-blur,
+        .blur-panel.active .move-blur,
+        .blur-panel.active .resize-handle {
+            opacity: 1;
+            pointer-events: auto;
         }
 
         .blur-panel .delete-blur,
@@ -1003,20 +1027,19 @@
             box-shadow: 0 2px 6px rgba(0,0,0,0.5);
             z-index: 20;
             flex-shrink: 0;
-            transition: left 0.15s ease, right 0.15s ease, top 0.15s ease, bottom 0.15s ease, transform 0.15s ease;
             user-select: none;
         }
 
-        /* Nút xóa ở góc trên-phải bên ngoài */
+        /* Nút xóa chéo góc trên-phải bên ngoài, cách 1 khoảng 5px (-31px) */
         .blur-panel .delete-blur {
-            top: -12px;
-            right: -12px;
+            top: -31px;
+            right: -31px;
             background: #ef4444;
             color: white;
             border: 2px solid white;
             font-size: 11px;
         }
-        .blur-panel .delete-blur:hover {
+        .blur-panel.active .delete-blur:hover {
             background: #dc2626;
             transform: scale(1.15);
         }
@@ -1033,27 +1056,33 @@
             font-size: 12px;
             cursor: move;
         }
-        .blur-panel .move-blur:hover {
+        .blur-panel.active .move-blur:hover {
             background: #222222;
             transform: translateX(-50%) scale(1.15);
         }
 
-        /* Khi ô làm mờ sát cạnh dưới -> nút di chuyển lật lên trên (vẫn giữ khoảng cách và ở giữa) */
+        /* Khi ô làm mờ sát cạnh dưới -> nút di chuyển lật lên phía trên (vẫn giữ khoảng cách và ở giữa) */
         .blur-panel .move-blur.flip-top {
             bottom: auto;
             top: -36px;
         }
 
-        /* Khi ô làm mờ sát cạnh trên -> nút xóa lật xuống góc dưới-phải */
+        /* Khi ô làm mờ sát cạnh trên -> nút xóa lật chéo góc dưới-phải bên ngoài, cách 5px */
         .blur-panel .delete-blur.flip-bottom {
             top: auto;
-            bottom: -12px;
+            bottom: -31px;
         }
 
-        /* Khi ô làm mờ sát cạnh phải -> nút xóa lật vào bên trong góc phải */
+        /* Khi ô làm mờ sát cạnh phải -> nút xóa lật vào bên trong góc phải để không bị che */
         .blur-panel .delete-blur.inside-right,
         .blur-panel .delete-blur.right {
             right: 2px;
+            top: 2px;
+        }
+        .blur-panel .delete-blur.inside-right.flip-bottom,
+        .blur-panel .delete-blur.right.flip-bottom {
+            top: auto;
+            bottom: 2px;
         }
 
         .blur-panel:hover {
@@ -1061,6 +1090,7 @@
             background: rgba(255, 255, 255, 0.1);
         }
 
+        /* Chỉ hiển thị hình tam giác đổi kích thước khi ô được chọn (.active) */
         .blur-panel::after {
             content: '◢';
             position: absolute;
@@ -1069,6 +1099,10 @@
             font-size: 10px;
             color: white;
             pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+        }
+        .blur-panel.active::after {
             opacity: 0.8;
         }
 

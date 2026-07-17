@@ -393,7 +393,10 @@ Object.assign(window.app, {
                     const container = document.getElementById('preview-container');
                     const id = 'blur-' + Date.now();
                     const panel = document.createElement('div');
-                    panel.className = 'blur-panel';
+                    
+                    // Ẩn công cụ của tất cả các ô hiện có khi tạo ô mới
+                    document.querySelectorAll('.blur-panel').forEach(p => p.classList.remove('active'));
+                    panel.className = 'blur-panel active';
                     panel.id = id;
 
                     panel.style.left = '40%';
@@ -406,6 +409,13 @@ Object.assign(window.app, {
                         <button type="button" class="move-blur" title="Giữ và kéo để di chuyển vùng làm mờ"><i class="fa-solid fa-arrows-up-down-left-right"></i></button>
                         <div class="resize-handle" style="position: absolute; bottom: 0; right: 0; width: 20px; height: 20px; cursor: nwse-resize; z-index: 10;" title="Kéo để đổi kích thước"></div>
                     `;
+
+                    const selectPanel = (e) => {
+                        if (!panel.classList.contains('active')) {
+                            document.querySelectorAll('.blur-panel').forEach(p => p.classList.remove('active'));
+                            panel.classList.add('active');
+                        }
+                    };
 
                     let isDragging = false;
                     let dragStartX, dragStartY, initialLeft, initialTop;
@@ -438,6 +448,7 @@ Object.assign(window.app, {
                     };
 
                     const startDrag = (e) => {
+                        selectPanel(e);
                         if (e.target.closest('.delete-blur') || e.target.closest('.resize-handle')) return;
                         e.stopPropagation();
                         if (e.type === 'touchstart') e.preventDefault();
@@ -457,6 +468,7 @@ Object.assign(window.app, {
                     const resizeHandle = panel.querySelector('.resize-handle');
 
                     const startResize = (e) => {
+                        selectPanel(e);
                         e.stopPropagation();
                         if (e.type === 'touchstart') e.preventDefault();
 
@@ -527,6 +539,17 @@ Object.assign(window.app, {
                     document.addEventListener('touchmove', handleTouchMove, { passive: false });
                     document.addEventListener('mouseup', endAction);
                     document.addEventListener('touchend', endAction);
+
+                    document.addEventListener('mousedown', (e) => {
+                        if (!panel.contains(e.target) && !e.target.closest('#btn-add-blur')) {
+                            panel.classList.remove('active');
+                        }
+                    });
+                    document.addEventListener('touchstart', (e) => {
+                        if (!panel.contains(e.target) && !e.target.closest('#btn-add-blur')) {
+                            panel.classList.remove('active');
+                        }
+                    });
 
                     container.appendChild(panel);
                     updateButtonsPosition();
