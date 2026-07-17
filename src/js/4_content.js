@@ -1115,21 +1115,17 @@ Object.assign(window.app, {
                         app.upload.isPreparingBlob = true;
                         const username = app.username || "Guest";
                         const finalBlob = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none');
-                        if (app.upload && app.upload.isBlindWatermarkEnabled) {
-                            app.upload.readyBlob = finalBlob;
-                        } else {
-                            const targetMime = app.utils.getTargetMimeType();
-                            const compressOptions = {
-                                maxSizeMB: 10,
-                                maxWidthOrHeight: 1920,
-                                useWebWorker: true,
-                                fileType: targetMime,
-                                initialQuality: 0.8
-                            };
-                            let compressedFile = await imageCompression(finalBlob, compressOptions);
-                            if (!compressedFile) compressedFile = finalBlob;
-                            app.upload.readyBlob = compressedFile;
-                        }
+                        const targetMime = app.utils.getTargetMimeType();
+                        const compressOptions = {
+                            maxSizeMB: 10,
+                            maxWidthOrHeight: 1920,
+                            useWebWorker: true,
+                            fileType: targetMime,
+                            initialQuality: 0.8
+                        };
+                        let compressedFile = await imageCompression(finalBlob, compressOptions);
+                        if (!compressedFile) compressedFile = finalBlob;
+                        app.upload.readyBlob = compressedFile;
                     } catch (err) {
                         console.error("Lỗi prepareFinalBlob:", err);
                         app.upload.readyBlob = null;
@@ -1856,27 +1852,18 @@ Object.assign(window.app, {
                     const bgWebpPromise = (async () => {
                         try {
                             const username = app.username || "Guest";
-                            const isBlind = (app.upload && app.upload.isBlindWatermarkEnabled);
                             let blobToProcess = app.upload.readyBlob;
-                            const targetMime = isBlind ? 'image/png' : app.utils.getTargetMimeType();
+                            const targetMime = app.utils.getTargetMimeType();
 
                             if (!blobToProcess) {
                                 const finalBlob = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none');
-                                if (isBlind) {
-                                    blobToProcess = finalBlob;
-                                } else {
-                                    const compressOptions = { maxSizeMB: 10, maxWidthOrHeight: 1920, useWebWorker: true, fileType: targetMime, initialQuality: 0.8 };
-                                    try {
-                                        blobToProcess = await imageCompression(finalBlob, compressOptions);
-                                    } catch (e) {
-                                        console.warn("imageCompression lỗi:", e);
-                                    }
-                                    if (!blobToProcess) blobToProcess = finalBlob;
+                                const compressOptions = { maxSizeMB: 10, maxWidthOrHeight: 1920, useWebWorker: true, fileType: targetMime, initialQuality: 0.8 };
+                                try {
+                                    blobToProcess = await imageCompression(finalBlob, compressOptions);
+                                } catch (e) {
+                                    console.warn("imageCompression lỗi:", e);
                                 }
-                            }
-
-                            if (isBlind) {
-                                return new File([blobToProcess], app.rawFile.name.replace(/\.[^/.]+$/, "") + ".png", { type: 'image/png' });
+                                if (!blobToProcess) blobToProcess = finalBlob;
                             }
 
                             // Chạy convertToWebpCpu trong nền trong lúc giải captcha

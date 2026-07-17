@@ -1781,9 +1781,7 @@ cleanupState: () => {
                                  }
 
                                  try {
-                                     const targetMime = isBlind ? 'image/png' : app.utils.getTargetMimeType();
-                                     const targetQuality = isBlind ? 1.0 : 0.80;
-                                     const blob = await app.utils.canvasToBlobUniversal(canvas, targetMime, targetQuality);
+                                     const blob = await app.utils.canvasToBlobUniversal(canvas, app.utils.getTargetMimeType(), 0.80);
                                      if (blob) resolve(blob);
                                      else reject(new Error("Canvas failed to blob"));
                                  } catch (errBlob) {
