@@ -1987,7 +1987,7 @@ app.admin.fetchManagerData('denied');
                             if (vError) throw vError;
 
                             if (req.new_data.photo_id) {
-                                const { data: oldP } = await window.sb.from('photos').select('operator, route_no, taken_at').eq('id', req.new_data.photo_id).single();
+                                const { data: oldP } = await window.sb.from('photos').select('license_plate, operator, route_no, taken_at').eq('id', req.new_data.photo_id).single();
 
                                 const { error: pError } = await window.sb.from('photos').update({
                                     license_plate: plate,
@@ -2001,11 +2001,13 @@ app.admin.fetchManagerData('denied');
                                 if (pError) throw pError;
 
                                 if (oldP && oldP.taken_at) {
+                                    const isPlateChanged = req.license_plate !== plate || (oldP.license_plate && oldP.license_plate !== plate);
                                     await app.vehicle.syncHistoryOnPhotoEdit(
                                         plate,
                                         oldP.taken_at,
                                         { operator: oldP.operator, route_no: oldP.route_no },
-                                        { operator: op, route_no: route }
+                                        { operator: op, route_no: route },
+                                        isPlateChanged
                                     );
                                 }
                             }
@@ -2013,6 +2015,7 @@ app.admin.fetchManagerData('denied');
                             if (req.license_plate !== plate) {
                                 await app.vehicle.cleanupVehicle(req.license_plate);
                             }
+                            await app.vehicle.cleanupVehicle(plate);
                         }
 
                         else if (reqType === 'vehicle_details' || req.new_data.request_type === 'update_vehicle_details') {

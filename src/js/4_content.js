@@ -2957,8 +2957,35 @@ Object.assign(window.app, {
                 currentHistoryPrefix: '',
 
                 cleanupVehicle: async (plate) => {
-                    // Đã vô hiệu hóa dọn dẹp xe trống để tránh lỗi Postgres ON DELETE CASCADE làm mất ảnh trong bảng photos
-                    return;
+                    if (!plate) return;
+                    try {
+                        // Lưu ý: Không xóa bảng vehicles để tránh lỗi Postgres ON DELETE CASCADE làm mất ảnh trong bảng photos
+                        // Nhưng BẮT BUỘC phải dọn dẹp bảng vehicle_history nếu xe không còn ảnh đã duyệt hoặc lịch sử bị sai (route không khớp ảnh nào)
+                        const { data: approvedPhotos, error } = await window.sb.from('photos').select('route_no, operator, taken_at').eq('license_plate', plate).eq('status', 'approved');
+                        if (error || !approvedPhotos) return;
+
+                        if (approvedPhotos.length === 0) {
+                            await window.sb.from('vehicle_history').delete().eq('license_plate', plate);
+                            return;
+                        }
+
+                        const { data: history } = await window.sb.from('vehicle_history').select('*').eq('license_plate', plate);
+                        if (!history || history.length === 0) return;
+
+                        const specialRoutes = ['Ngoài giờ hoạt động', 'Chưa hoạt động'];
+                        const activePhotos = approvedPhotos.filter(p => !specialRoutes.includes(p.route_no));
+
+                        for (const h of history) {
+                            if (!specialRoutes.includes(h.route)) {
+                                const hasMatchingPhoto = activePhotos.some(p => p.route_no === h.route && p.operator === h.operator);
+                                if (!hasMatchingPhoto) {
+                                    await window.sb.from('vehicle_history').delete().eq('id', h.id);
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        console.error("Lỗi dọn dẹp lịch sử xe:", e);
+                    }
                 },
 
                 toggleEditHistory: (prefix = '') => {
@@ -3147,9 +3174,9 @@ Object.assign(window.app, {
                     }
                 },
 
-                syncHistoryOnPhotoEdit: async (plate, takenAtIso, oldData, newData) => {
+                syncHistoryOnPhotoEdit: async (plate, takenAtIso, oldData, newData, isPlateChanged = false) => {
                     if (!takenAtIso) return;
-                    if (oldData.operator === newData.operator && oldData.route_no === newData.route_no) return;
+                    if (!isPlateChanged && oldData.operator === newData.operator && oldData.route_no === newData.route_no) return;
 
                     const targetDate = takenAtIso.split('T')[0];
                     const specialRoutes = ['Ngoài giờ hoạt động', 'Chưa hoạt động'];
@@ -3179,20 +3206,24 @@ Object.assign(window.app, {
                                 .select('*').eq('license_plate', plate).eq('effective_date', targetDate);
 
                             if (history && history.length > 0) {
-                                await window.sb.from('vehicle_history').update({
-                                    operator: newData.operator,
-                                    route: newData.route_no
-                                }).eq('id', history[0].id);
+                                if (!isPlateChanged || history[0].operator !== newData.operator || history[0].route !== newData.route_no) {
+                                    await window.sb.from('vehicle_history').update({
+                                        operator: newData.operator,
+                                        route: newData.route_no
+                                    }).eq('id', history[0].id);
+                                }
                             } else {
+                                const { count } = await window.sb.from('vehicle_history').select('*', { count: 'exact', head: true }).eq('license_plate', plate);
                                 await window.sb.from('vehicle_history').insert({
                                     license_plate: plate,
                                     effective_date: targetDate,
                                     operator: newData.operator,
                                     route: newData.route_no,
-                                    display_order: 999
+                                    display_order: count || 0
                                 });
                             }
                         }
+                        await app.vehicle.cleanupVehicle(plate);
                     } catch (e) { console.error("Lỗi sync lịch sử:", e); }
                 },
 
@@ -3488,20 +3519,23 @@ Object.assign(window.app, {
                                 { taken_at_changed: takenAtChanged, before: beforeSnapshot, after: afterSnapshot }
                             );
 
-                            if (takenAtChanged || beforeSnapshot.operator !== payload.operator || beforeSnapshot.route_no !== payload.route) {
+                            const isPlateChanged = beforeSnapshot.license_plate !== payload.license_plate;
+                            if (isPlateChanged || takenAtChanged || beforeSnapshot.operator !== payload.operator || beforeSnapshot.route_no !== payload.route) {
                                 await app.vehicle.syncHistoryOnPhotoEdit(
                                     payload.license_plate,
                                     takenAtChanged ? payload.taken_at : beforeSnapshot.taken_at,
                                     { operator: beforeSnapshot.operator, route_no: beforeSnapshot.route_no },
-                                    { operator: payload.operator, route_no: payload.route }
+                                    { operator: payload.operator, route_no: payload.route },
+                                    isPlateChanged
                                 );
                             }
 
                             app.toast.show('success', 'Lưu thành công', 'Dữ liệu của ảnh này đã được cập nhật.');
 
-                            if (beforeSnapshot.license_plate !== payload.license_plate) {
+                            if (isPlateChanged) {
                                 await app.vehicle.cleanupVehicle(beforeSnapshot.license_plate);
                             }
+                            await app.vehicle.cleanupVehicle(payload.license_plate);
 
                             app.currentPhoto.license_plate = payload.license_plate;
                             app.currentPhoto.location = payload.location;

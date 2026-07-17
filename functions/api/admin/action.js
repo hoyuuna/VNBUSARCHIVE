@@ -342,6 +342,31 @@ export async function onRequestPost(context) {
                 }
             }
             
+            if (isApprovedOrCdn && targetPlate) {
+                try {
+                    const { data: approvedPhotos } = await sb.from('photos').select('route_no, operator').eq('license_plate', targetPlate).eq('status', 'approved');
+                    if (!approvedPhotos || approvedPhotos.length === 0) {
+                        await sb.from('vehicle_history').delete().eq('license_plate', targetPlate);
+                    } else {
+                        const { data: history } = await sb.from('vehicle_history').select('*').eq('license_plate', targetPlate);
+                        if (history && history.length > 0) {
+                            const specialRoutes = ['Ngoài giờ hoạt động', 'Chưa hoạt động'];
+                            const activePhotos = approvedPhotos.filter(p => !specialRoutes.includes(p.route_no));
+                            for (const h of history) {
+                                if (!specialRoutes.includes(h.route)) {
+                                    const hasPhoto = activePhotos.some(p => p.route_no === h.route && p.operator === h.operator);
+                                    if (!hasPhoto) {
+                                        await sb.from('vehicle_history').delete().eq('id', h.id);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } catch (histErr) {
+                    console.warn('[WARN] Lỗi dọn dẹp lịch sử xe sau khi xóa ảnh:', histErr);
+                }
+            }
+            
             await sb.from('admin_audit_logs').insert({
                 admin_id: user.id,
                 action_type: 'deny_photo',
