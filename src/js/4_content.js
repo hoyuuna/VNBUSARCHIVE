@@ -867,7 +867,8 @@ Object.assign(window.app, {
                 isBlindWatermarkEnabled: false,
                 loadOpenCV: (progToast) => {
                     return new Promise((resolve, reject) => {
-                        if (window.cv && window.cv.Mat && typeof window.cv.Mat === 'function') {
+                        if (window._openCvReady || (window.cv && window.cv.Mat && typeof window.cv.Mat === 'function')) {
+                            window._openCvReady = true;
                             resolve();
                             return;
                         }
@@ -875,6 +876,7 @@ Object.assign(window.app, {
                         if (typeof window.cv === 'function') {
                             window.cv().then(cvObj => {
                                 window.cv = cvObj;
+                                window._openCvReady = true;
                                 resolve();
                             }).catch(reject);
                             return;
@@ -896,12 +898,16 @@ Object.assign(window.app, {
                                     progToast.update(90, 'Đang khởi tạo OpenCV.js...', 'Đang kích hoạt bộ xử lý Blind Watermark...');
                                 }
                                 if (window.cv && window.cv.Mat && typeof window.cv.Mat === 'function') {
+                                    window._openCvReady = true;
                                     innerResolve();
                                 } else if (typeof window.cv === 'function') {
-                                    window.cv().then(cvObj => { window.cv = cvObj; innerResolve(); }).catch(innerReject);
-                                } else {
-                                    innerResolve();
+                                    window.cv().then(cvObj => { 
+                                        window.cv = cvObj; 
+                                        window._openCvReady = true; 
+                                        innerResolve(); 
+                                    }).catch(innerReject);
                                 }
+                                // Nếu chưa có cv.Mat thì không innerResolve ngay, để onload/checkReady tiếp tục đợi đến lúc sẵn sàng hoàn toàn
                             };
 
                             const cdnUrls = [
@@ -926,11 +932,13 @@ Object.assign(window.app, {
                                     let attempts = 0;
                                     const checkReady = () => {
                                         attempts++;
-                                        if (window.cv && window.cv.Mat && typeof window.cv.Mat === 'function') {
+                                        if (window._openCvReady || (window.cv && window.cv.Mat && typeof window.cv.Mat === 'function')) {
+                                            window._openCvReady = true;
                                             innerResolve();
                                         } else if (typeof window.cv === 'function') {
                                             window.cv().then(cvObj => {
                                                 window.cv = cvObj;
+                                                window._openCvReady = true;
                                                 innerResolve();
                                             }).catch(err => {
                                                 window._openCvLoadingPromise = null;
@@ -939,6 +947,7 @@ Object.assign(window.app, {
                                         } else if (window.cv && window.cv instanceof Promise) {
                                             window.cv.then(cvObj => {
                                                 window.cv = cvObj;
+                                                window._openCvReady = true;
                                                 innerResolve();
                                             }).catch(err => {
                                                 window._openCvLoadingPromise = null;
@@ -967,7 +976,8 @@ Object.assign(window.app, {
                 },
                 toggleBlindWatermark: async (el) => {
                     if (el.checked) {
-                        if (!window.cv || !window.cv.Mat || typeof window.cv.Mat !== 'function') {
+                        const isCvReady = window._openCvReady || (window.cv && window.cv.Mat && typeof window.cv.Mat === 'function');
+                        if (!isCvReady) {
                             el.disabled = true;
                             el.checked = false;
                             app.upload.isBlindWatermarkEnabled = false;
@@ -978,6 +988,7 @@ Object.assign(window.app, {
                                 el.disabled = false;
                                 el.checked = true;
                                 app.upload.isBlindWatermarkEnabled = true;
+                                window._openCvReady = true;
                                 if (progToast && progToast.remove) progToast.remove();
                                 app.toast.show('success', 'Blind Watermark', 'Đã sẵn sàng tính năng Blind Watermark!');
                                 if (app.upload.schedulePrepareBlob) app.upload.schedulePrepareBlob();
@@ -987,6 +998,7 @@ Object.assign(window.app, {
                                 el.checked = false;
                                 app.upload.isBlindWatermarkEnabled = false;
                                 window._openCvLoadingPromise = null;
+                                window._openCvReady = false;
                                 if (progToast && progToast.remove) progToast.remove();
                                 const detailMsg = err && err.message ? ` (${err.message})` : "";
                                 app.ui.showAlert(`Không thể tải thư viện OpenCV.js${detailMsg}. Vui lòng kiểm tra kết nối mạng và thử lại.`);
