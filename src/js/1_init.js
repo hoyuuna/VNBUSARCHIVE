@@ -1833,8 +1833,13 @@ cleanupState: () => {
                          wmCtx.fillStyle = '#ffffff';
                          wmCtx.textAlign = 'center';
                          wmCtx.textBaseline = 'middle';
-                         const fontSize = Math.max(16, Math.floor(width * 0.045));
-                         wmCtx.font = `bold ${fontSize}px sans-serif`;
+                         let fontSize = Math.max(24, Math.floor(width * 0.055));
+                         wmCtx.font = `900 ${fontSize}px "Montserrat", sans-serif`;
+                         const textMetrics = wmCtx.measureText(hiddenText);
+                         if (textMetrics && textMetrics.width > width * 0.88) {
+                             fontSize = Math.max(16, Math.floor(fontSize * ((width * 0.88) / textMetrics.width)));
+                             wmCtx.font = `900 ${fontSize}px "Montserrat", sans-serif`;
+                         }
                          wmCtx.fillText(hiddenText, width / 2, height / 2);
 
                          srcMat = cv.imread(canvas);
