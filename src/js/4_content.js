@@ -870,7 +870,7 @@ Object.assign(window.app, {
                     return true;
                 },
                 setWmMode: (mode, animate = false) => {
-                    if (!app.wmState) app.wmState = { x: 0.5, y: 0.5, color: 'white', scale: 1.0, mode: 'basic' };
+                    if (!app.wmState) app.wmState = { x: 0.5, y: 0.5, color: 'white', scale: 1.0, mode: (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_mode')) || 'basic' };
                     app.wmState.mode = mode;
                     app.upload.isBlindWatermarkEnabled = (mode === 'advanced');
                     try { if (typeof localStorage !== 'undefined') localStorage.setItem('vnbus_wm_mode', mode); } catch (e) {}
@@ -941,8 +941,13 @@ Object.assign(window.app, {
                     const panel = document.getElementById('wm-adjust-panel');
                     if (panel) {
                         panel.classList.toggle('hidden');
-                        if (!panel.classList.contains('hidden') && app.upload.updateWmModeSlider) {
-                            setTimeout(() => app.upload.updateWmModeSlider(false), 10);
+                        if (!panel.classList.contains('hidden')) {
+                            const currentMode = (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_mode')) || (app.wmState && app.wmState.mode) || 'basic';
+                            if (app.upload.setWmMode) {
+                                setTimeout(() => app.upload.setWmMode(currentMode, false), 10);
+                            } else if (app.upload.updateWmModeSlider) {
+                                setTimeout(() => app.upload.updateWmModeSlider(false), 10);
+                            }
                         }
                     }
                 },
@@ -1005,8 +1010,8 @@ Object.assign(window.app, {
                     
                     const chk = document.getElementById('chk-wm-black');
                     if (chk) chk.checked = false;
-                    
-                    app.upload.setWmMode('basic', true);
+                    const savedMode = (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_mode')) || (app.wmState && app.wmState.mode) || 'basic';
+                    app.upload.setWmMode(savedMode, false);
                     
                     app.upload.toggleColor(false);
                     

@@ -1758,7 +1758,7 @@ cleanupState: () => {
                                 const rightWidth = ctx.measureText(rightText).width;
                                 ctx.fillText(rightText, width - rightWidth - (barHeight / 2), height - barHeight / 2);
 
-                                const currentMode = pos.mode || (app.wmState && app.wmState.mode) || 'basic';
+                                const currentMode = pos.mode || (app.wmState && app.wmState.mode) || (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_mode')) || 'basic';
                                 if (currentMode !== 'standard') {
                                     ctx.save();
                                     ctx.globalAlpha = 0.5;
@@ -3214,7 +3214,7 @@ Object.assign(window.app, {
 });
 
 Object.assign(window.app, {
-  wmState: { x: 0.5, y: 0.5, color: 'white', scale: 1.0, mode: 'basic' }
+  wmState: { x: 0.5, y: 0.5, color: 'white', scale: 1.0, mode: (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_mode')) || 'basic' }
 });
 
 Object.assign(window.app, {
