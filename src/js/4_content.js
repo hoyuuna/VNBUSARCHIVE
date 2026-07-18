@@ -393,20 +393,23 @@ Object.assign(window.app, {
                     app.upload.performAddBlurPanel();
                 },
 
-                performAddBlurPanel: () => {
+                buildBlurPanel: (opts) => {
                     const container = document.getElementById('preview-container');
-                    const id = 'blur-' + Date.now();
+                    if (!container) return null;
+                    const { left, top, width, height, auto = false } = opts || {};
+                    const id = 'blur-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
                     const panel = document.createElement('div');
-                    
+
                     // Ẩn công cụ của tất cả các ô hiện có khi tạo ô mới
                     document.querySelectorAll('.blur-panel').forEach(p => p.classList.remove('active'));
-                    panel.className = 'blur-panel active';
+                    panel.className = 'blur-panel active' + (auto ? ' auto-blur' : '');
                     panel.id = id;
+                    panel.dataset.auto = auto ? '1' : '0';
 
-                    panel.style.left = '40%';
-                    panel.style.top = '40%';
-                    panel.style.width = '80px';
-                    panel.style.height = '50px';
+                    if (left != null) panel.style.left = left + 'px';
+                    if (top != null) panel.style.top = top + 'px';
+                    if (width != null) panel.style.width = width + 'px';
+                    if (height != null) panel.style.height = height + 'px';
 
                     panel.innerHTML = `
                         <button type="button" class="delete-blur" onclick="app.upload.removeBlurPanel('${id}')" title="Xóa vùng này"><i class="fa-solid fa-xmark"></i></button>
@@ -558,6 +561,135 @@ Object.assign(window.app, {
                     container.appendChild(panel);
                     updateButtonsPosition();
                     app.upload.updateBlurBtn();
+                    return id;
+                },
+
+                performAddBlurPanel: () => {
+                    const container = document.getElementById('preview-container');
+                    if (!container) return;
+                    const cw = container.clientWidth || 320;
+                    const ch = container.clientHeight || 240;
+                    const width = Math.min(80, Math.round(cw * 0.25));
+                    const height = Math.min(50, Math.round(ch * 0.2));
+                    app.upload.buildBlurPanel({
+                        left: Math.round(cw * 0.4),
+                        top: Math.round(ch * 0.4),
+                        width,
+                        height,
+                        auto: false
+                    });
+                },
+
+                loadOpenCv: () => {
+                    return new Promise((resolve, reject) => {
+                        if (window.cv && window.cv.CascadeClassifier) return resolve(window.cv);
+                        if (window.cv && typeof window.cv.then === 'function') {
+                            window.cv.then(() => resolve(window.cv));
+                            return;
+                        }
+                        const s = document.createElement('script');
+                        s.src = 'https://docs.opencv.org/4.x/opencv.js';
+                        s.crossOrigin = 'anonymous';
+                        s.onload = () => {
+                            if (window.cv && window.cv.CascadeClassifier) return resolve(window.cv);
+                            if (window.cv && typeof window.cv.then === 'function') {
+                                window.cv.then(() => resolve(window.cv));
+                                return;
+                            }
+                            const t = setInterval(() => {
+                                if (window.cv && window.cv.CascadeClassifier) {
+                                    clearInterval(t);
+                                    resolve(window.cv);
+                                }
+                            }, 100);
+                            setTimeout(() => { clearInterval(t); reject(new Error('OpenCV load timeout')); }, 30000);
+                        };
+                        s.onerror = () => reject(new Error('Không thể tải thư viện nhận diện khuôn mặt.'));
+                        document.head.appendChild(s);
+                    });
+                },
+
+                detectFaces: async () => {
+                    const container = document.getElementById('preview-container');
+                    const previewImg = document.getElementById('preview-img');
+                    if (!container || !previewImg) {
+                        app.ui.showAlert('Chưa có ảnh preview để nhận diện khuôn mặt.');
+                        return;
+                    }
+
+                    const toast = app.toast.createProgress('Đang tải mô hình nhận diện khuôn mặt...');
+                    try {
+                        const cv = await app.upload.loadOpenCv();
+                        if (toast && toast.update) toast.update(45, 'Đang phân tích khuôn mặt...');
+
+                        if (!app.upload._faceCascade) {
+                            const xmlUrl = 'https://raw.githubusercontent.com/opencv/opencv/4.x/data/haarcascades/haarcascade_frontalface_default.xml';
+                            const xmlText = await (await fetch(xmlUrl)).text();
+                            const u8 = new TextEncoder().encode(xmlText);
+                            cv.FS_createDataFile('/', 'face_cascade.xml', u8, true, false);
+                            const clf = new cv.CascadeClassifier();
+                            clf.load('/face_cascade.xml');
+                            app.upload._faceCascade = clf;
+                        }
+                        const clf = app.upload._faceCascade;
+
+                        const natW = previewImg.naturalWidth || container.clientWidth;
+                        const natH = previewImg.naturalHeight || container.clientHeight;
+                        const detW = Math.min(natW, 1000);
+                        const detH = Math.round(natH * (detW / natW));
+
+                        const canvas = document.createElement('canvas');
+                        canvas.width = detW;
+                        canvas.height = detH;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(previewImg, 0, 0, detW, detH);
+
+                        const src = cv.imread(canvas);
+                        const gray = new cv.Mat();
+                        cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
+                        cv.equalizeHist(gray, gray);
+
+                        const faces = new cv.RectVector();
+                        const minSize = new cv.Size(Math.round(detW * 0.04), Math.round(detH * 0.04));
+                        clf.detectMultiScale(gray, faces, 1.1, 3, 0, minSize);
+
+                        const count = faces.size();
+                        let added = 0;
+                        for (let i = 0; i < count; i++) {
+                            const r = faces.get(i);
+                            const padX = r.width * 0.08;
+                            const padY = r.height * 0.08;
+                            const fx = Math.max(0, r.x - padX);
+                            const fy = Math.max(0, r.y - padY);
+                            const fw = Math.min(detW - fx, r.width + padX * 2);
+                            const fh = Math.min(detH - fy, r.height + padY * 2);
+
+                            const left = (fx / detW) * container.clientWidth;
+                            const top = (fy / detH) * container.clientHeight;
+                            const w = (fw / detW) * container.clientWidth;
+                            const h = (fh / detH) * container.clientHeight;
+
+                            app.upload.buildBlurPanel({ left, top, width: w, height: h, auto: true });
+                            added++;
+                        }
+
+                        src.delete();
+                        gray.delete();
+                        faces.delete();
+                        minSize.delete();
+
+                        if (toast && toast.remove) toast.remove();
+
+                        if (added === 0) {
+                            app.ui.showAlert('Không phát hiện khuôn mặt nào trong ảnh. Bạn vẫn có thể thêm vùng che thủ công bằng nút "Làm mờ".');
+                        } else {
+                            app.toast.show('success', 'Đã tự động che khuôn mặt', `Phát hiện và che ${added} khuôn mặt. Bạn có thể kéo, thay đổi kích thước hoặc xóa từng vùng.`);
+                        }
+                    } catch (err) {
+                        if (toast && toast.remove) toast.remove();
+                        console.error('Face detect error:', err);
+                        app.ui.showAlert('Không thể nhận diện khuôn mặt tự động (' + (err && err.message ? err.message : err) + '). Bạn vẫn có thể che thủ công.');
+                    }
                 },
 
                 removeBlurPanel: (id) => {
@@ -1171,6 +1303,7 @@ Object.assign(window.app, {
                     const file = e.target.files[0];
                     if (!file) return;
 
+                    app.upload._faceAutoRun = false;
                     app.crop.sourceImage = null;
                     app.crop.savedCropData = null;
                     app.crop.savedRatio = 4/3;
@@ -1632,6 +1765,15 @@ Object.assign(window.app, {
                         };
                         updateSize();
                         app.previewUpdateSize = updateSize;
+
+                        if (document.querySelectorAll('.blur-panel').length === 0 && !app.upload._faceAutoRun) {
+                            app.upload._faceAutoRun = true;
+                            setTimeout(() => {
+                                if (document.querySelectorAll('.blur-panel').length === 0) {
+                                    app.upload.detectFaces();
+                                }
+                            }, 600);
+                        }
                     };
                     
                     previewImg.src = url;
