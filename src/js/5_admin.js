@@ -1188,6 +1188,7 @@ Object.assign(window.app, {
                                              </table>
                                          <div id="mgr-bans-pager" class="mt-6 w-full flex justify-center"></div>
                                      </div>
+                                     </div>
 
                                      <!-- TAB: GIẢI MÃ DẤU CHÌM BLIND WATERMARK -->
                                      <div id="mgr-sec-blindwm" class="hidden">
