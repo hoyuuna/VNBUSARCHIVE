@@ -864,7 +864,7 @@ Object.assign(window.app, {
                     else el.classList.remove('wm-black');
                     if (app.upload.schedulePrepareBlob) app.upload.schedulePrepareBlob();
                 },
-                isBlindWatermarkEnabled: false,
+                isBlindWatermarkEnabled: (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_mode') === 'advanced'),
                 loadOpenCV: async (progToast) => {
                     window._openCvReady = true;
                     return true;
