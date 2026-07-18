@@ -869,7 +869,7 @@ Object.assign(window.app, {
                     window._openCvReady = true;
                     return true;
                 },
-                setWmMode: (mode) => {
+                setWmMode: (mode, animate = false) => {
                     if (!app.wmState) app.wmState = { x: 0.5, y: 0.5, color: 'white', scale: 1.0, mode: 'basic' };
                     app.wmState.mode = mode;
                     app.upload.isBlindWatermarkEnabled = (mode === 'advanced');
@@ -885,7 +885,7 @@ Object.assign(window.app, {
                             }
                         }
                     });
-                    if (app.upload.updateWmModeSlider) app.upload.updateWmModeSlider();
+                    if (app.upload.updateWmModeSlider) app.upload.updateWmModeSlider(animate);
 
                     const descEl = document.getElementById('wm-mode-desc');
                     if (descEl) {
@@ -894,7 +894,7 @@ Object.assign(window.app, {
                         } else if (mode === 'basic') {
                             descEl.innerHTML = 'Có dấu chìm tên tài khoản và thanh dấu chìm tiêu chuẩn phía dưới.';
                         } else if (mode === 'advanced') {
-                            descEl.innerHTML = 'Có dấu chìm tên tài khoản và thanh dấu chìm tiêu chuẩn phía dưới cùng công nghệ "Blind watermark" (<a href="https://www.vnbusarchive.io.vn/help/1527674609951047761" target="_blank" class="text-black font-bold underline hover:text-blue-600">tìm hiểu thêm</a>).';
+                            descEl.innerHTML = 'Có dấu chìm tên tài khoản và thanh dấu chìm tiêu chuẩn phía dưới cùng công nghệ "Blind watermark" (<a href="https://www.vnbusarchive.io.vn/help/1527674609951047761" target="_blank" class="text-black font-bold underline">tìm hiểu thêm</a>).';
                         }
                     }
 
@@ -919,13 +919,22 @@ Object.assign(window.app, {
 
                     if (app.upload.schedulePrepareBlob) app.upload.schedulePrepareBlob();
                 },
-                updateWmModeSlider: () => {
+                updateWmModeSlider: (animate = false) => {
                     const mode = (app.wmState && app.wmState.mode) || 'basic';
                     const btn = document.getElementById(`btn-wm-mode-${mode}`);
                     const slider = document.getElementById('wm-mode-slider');
                     if (btn && slider && btn.offsetWidth > 0) {
-                        slider.style.left = btn.offsetLeft + 'px';
-                        slider.style.width = btn.offsetWidth + 'px';
+                        if (!animate) {
+                            slider.style.transition = 'none';
+                            slider.style.left = btn.offsetLeft + 'px';
+                            slider.style.width = btn.offsetWidth + 'px';
+                            slider.offsetHeight; // force reflow
+                            slider.style.transition = '';
+                        } else {
+                            slider.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+                            slider.style.left = btn.offsetLeft + 'px';
+                            slider.style.width = btn.offsetWidth + 'px';
+                        }
                     }
                 },
                 toggleWmPanel: () => {
@@ -933,7 +942,7 @@ Object.assign(window.app, {
                     if (panel) {
                         panel.classList.toggle('hidden');
                         if (!panel.classList.contains('hidden') && app.upload.updateWmModeSlider) {
-                            setTimeout(() => app.upload.updateWmModeSlider(), 10);
+                            setTimeout(() => app.upload.updateWmModeSlider(false), 10);
                         }
                     }
                 },
