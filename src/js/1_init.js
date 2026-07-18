@@ -1824,9 +1824,9 @@ cleanupState: () => {
                          }
                      }
 
-                     // 2. Tạo lưới nhị phân chữ ký (Binary Watermark Grid) lặp đều trên khối 8x8
-                     const gridW = 120;
-                     const gridH = 90;
+                     // 2. Tạo lưới chữ ký 140x105, chia 2 dòng chữ to rõ (tránh font Minecraft bị bóp nhỏ)
+                     const gridW = 140;
+                     const gridH = 105;
                      const wmCanvas = document.createElement('canvas');
                      wmCanvas.width = gridW;
                      wmCanvas.height = gridH;
@@ -1837,19 +1837,34 @@ cleanupState: () => {
                      wmCtx.textAlign = 'center';
                      wmCtx.textBaseline = 'middle';
                      
-                     let fontSize = 13;
-                     wmCtx.font = `900 ${fontSize}px "Montserrat", sans-serif`;
-                     const textMetrics = wmCtx.measureText(hiddenText);
-                     if (textMetrics && textMetrics.width > gridW * 0.9) {
-                         fontSize = Math.max(8, Math.floor(fontSize * ((gridW * 0.9) / textMetrics.width)));
-                         wmCtx.font = `900 ${fontSize}px "Montserrat", sans-serif`;
+                     // Tách dòng chữ ký: VNBUSARCHIVE + Username
+                     const parts = hiddenText.split('/').filter(Boolean);
+                     const line1 = parts[0] || "VNBUSARCHIVE";
+                     const line2 = parts[1] ? `© ${parts[1]}` : "© VNBUS";
+
+                     let fontSize1 = 16;
+                     wmCtx.font = `900 ${fontSize1}px "Montserrat", -apple-system, sans-serif`;
+                     const m1 = wmCtx.measureText(line1);
+                     if (m1 && m1.width > gridW * 0.88) {
+                         fontSize1 = Math.max(10, Math.floor(fontSize1 * ((gridW * 0.88) / m1.width)));
                      }
-                     wmCtx.fillText(hiddenText, gridW / 2, gridH / 2);
+                     wmCtx.font = `900 ${fontSize1}px "Montserrat", -apple-system, sans-serif`;
+                     wmCtx.fillText(line1, gridW / 2, gridH * 0.36);
+
+                     let fontSize2 = 16;
+                     wmCtx.font = `900 ${fontSize2}px "Montserrat", -apple-system, sans-serif`;
+                     const m2 = wmCtx.measureText(line2);
+                     if (m2 && m2.width > gridW * 0.88) {
+                         fontSize2 = Math.max(10, Math.floor(fontSize2 * ((gridW * 0.88) / m2.width)));
+                     }
+                     wmCtx.font = `900 ${fontSize2}px "Montserrat", -apple-system, sans-serif`;
+                     wmCtx.fillText(line2, gridW / 2, gridH * 0.66);
 
                      const wmImgData = wmCtx.getImageData(0, 0, gridW, gridH).data;
-                     const wmBits = new Uint8Array(gridW * gridH);
+                     const wmGrays = new Float32Array(gridW * gridH);
                      for (let i = 0; i < gridW * gridH; i++) {
-                         wmBits[i] = wmImgData[i * 4] > 128 ? 1 : 0;
+                         // Điều chế liên tục [-1.0 đến +1.0] giữ độ mượt anti-alias đường cong
+                         wmGrays[i] = (wmImgData[i * 4] - 128.0) / 128.0;
                      }
 
                      // 3. Xử lý từng khối 8x8 trên kênh Y (Luminance trong YCbCr)
@@ -1860,13 +1875,13 @@ cleanupState: () => {
                      const dct = new Float32Array(64);
 
                      // Ngưỡng chênh lệch (Delta) để chống nén lossy JPEG/WebP 80%
-                     const delta = 45.0;
+                     const delta = 48.0;
 
                      for (let by = 0; by < blocksY; by++) {
                          for (let bx = 0; bx < blocksX; bx++) {
                              const gx = bx % gridW;
                              const gy = by % gridH;
-                             const bit = wmBits[gy * gridW + gx];
+                             const targetDiff = wmGrays[gy * gridW + gx] * delta;
 
                              for (let y = 0; y < 8; y++) {
                                  const py = (by * 8 + y) * width;
@@ -1900,20 +1915,20 @@ cleanupState: () => {
                                  }
                              }
 
-                             // Điều chế cặp tần số giữa đối xứng (3,2) và (2,3)
+                             // Điều chế cặp tần số giữa đối xứng (3,2) và (2,3) theo targetDiff mượt
                              let c1 = dct[3 * 8 + 2];
                              let c2 = dct[2 * 8 + 3];
                              const avg = (c1 + c2) / 2.0;
 
-                             if (bit === 1) {
-                                 if (c1 <= c2 + delta) {
-                                     c1 = avg + (delta + 4.0) / 2.0;
-                                     c2 = avg - (delta + 4.0) / 2.0;
+                             if (targetDiff > 0) {
+                                 if (c1 - c2 < targetDiff) {
+                                     c1 = avg + (targetDiff + 3.0) / 2.0;
+                                     c2 = avg - (targetDiff + 3.0) / 2.0;
                                  }
                              } else {
-                                 if (c2 <= c1 + delta) {
-                                     c1 = avg - (delta + 4.0) / 2.0;
-                                     c2 = avg + (delta + 4.0) / 2.0;
+                                 if (c1 - c2 > targetDiff) {
+                                     c1 = avg + (targetDiff - 3.0) / 2.0;
+                                     c2 = avg - (targetDiff - 3.0) / 2.0;
                                  }
                              }
                              dct[3 * 8 + 2] = c1;
