@@ -1215,8 +1215,8 @@ Object.assign(window.app, {
                                              <div class="lg:col-span-1 space-y-4">
                                                  <div id="mgr-wm-drop-zone" ondragover="event.preventDefault(); this.classList.add('border-purple-500','bg-purple-50');" ondragleave="event.preventDefault(); this.classList.remove('border-purple-500','bg-purple-50');" ondrop="event.preventDefault(); this.classList.remove('border-purple-500','bg-purple-50'); if(event.dataTransfer.files.length > 0) app.admin.processBlindWmFile(event.dataTransfer.files[0]);" class="border-2 border-dashed border-gray-300 rounded-md p-6 text-center hover:border-purple-500 transition cursor-pointer bg-white" onclick="document.getElementById('mgr-wm-file-input').click()">
                                                      <i class="fa-solid fa-cloud-arrow-up text-3xl text-gray-400 mb-2"></i>
-                                                     <p class="text-xs font-bold text-gray-700 mb-1">1. Ảnh cần kiểm định / bị cắt (Bắt buộc)</p>
-                                                     <p class="text-[11px] text-gray-500">Kéo thả hoặc click để chọn tệp từ máy tính</p>
+                                                     <p class="text-xs font-bold text-gray-700 mb-1">1. Ảnh cần kiểm định (Mảnh cắt / bị co giãn)</p>
+                                                     <p class="text-[11px] text-gray-500">Bắt buộc có để giải mã lấy dấu chìm Watermark</p>
                                                      <input type="file" id="mgr-wm-file-input" accept="image/*" class="hidden" onchange="if(this.files.length > 0) app.admin.processBlindWmFile(this.files[0])">
                                                  </div>
 
@@ -1224,8 +1224,8 @@ Object.assign(window.app, {
                                                      <div class="flex items-center justify-center gap-2.5">
                                                          <i class="fa-solid fa-images text-2xl text-blue-500"></i>
                                                          <div class="text-left">
-                                                             <p class="text-xs font-bold text-gray-700">2. Ảnh gốc đối chiếu (Tùy chọn)</p>
-                                                             <p id="mgr-wm-ref-status" class="text-[11px] text-gray-500">Trừ nhiễu 100% & tự khớp viền khi ảnh bị cắt</p>
+                                                             <p class="text-xs font-bold text-gray-700">2. Ảnh gốc / toàn cảnh chuẩn (Tùy chọn)</p>
+                                                             <p id="mgr-wm-ref-status" class="text-[11px] text-gray-500">Dùng để hệ thống tự ghép tìm tỷ lệ Scale & vị trí viền</p>
                                                          </div>
                                                      </div>
                                                      <input type="file" id="mgr-wm-ref-input" accept="image/*" class="hidden" onchange="if(this.files.length > 0) app.admin.processBlindWmRefFile(this.files[0])">
@@ -1484,18 +1484,6 @@ app.admin.fetchManagerData('denied');
                             ctx.drawImage(img, -dx, -dy, targetW, targetH);
                             const data = ctx.getImageData(0, 0, w, h).data;
 
-                            let refData = null;
-                            if (app.admin._refBlindImg) {
-                                if (!app.admin._refCanvas) app.admin._refCanvas = document.createElement('canvas');
-                                const refCanvas = app.admin._refCanvas;
-                                refCanvas.width = w;
-                                refCanvas.height = h;
-                                const ctxRef = refCanvas.getContext('2d', { willReadFrequently: true });
-                                ctxRef.clearRect(0, 0, w, h);
-                                ctxRef.drawImage(app.admin._refBlindImg, 0, 0, w, h);
-                                refData = ctxRef.getImageData(0, 0, w, h).data;
-                            }
-
                             const tileAcc = new Float32Array(gridW * gridH);
                             const tileCount = new Uint32Array(gridW * gridH);
                             const block = new Float32Array(64);
@@ -1508,14 +1496,7 @@ app.admin.fetchManagerData('denied');
                                         const py = (by * 8 + y) * w;
                                         for (let x = 0; x < 8; x++) {
                                             const idx = (py + (bx * 8 + x)) * 4;
-                                            const r = data[idx], g = data[idx + 1], b = data[idx + 2];
-                                            let val = 0.299 * r + 0.587 * g + 0.114 * b - 128.0;
-                                            if (refData) {
-                                                const rr = refData[idx], gr = refData[idx + 1], br = refData[idx + 2];
-                                                const valRef = 0.299 * rr + 0.587 * gr + 0.114 * br - 128.0;
-                                                val = (val - valRef) * 2.5;
-                                            }
-                                            block[y * 8 + x] = val;
+                                            block[y * 8 + x] = 0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2] - 128.0;
                                         }
                                     }
                                     for (let row = 0; row < 8; row++) {
@@ -1618,18 +1599,6 @@ app.admin.fetchManagerData('denied');
                     const fullImgData = ctxFull.createImageData(blocksX, blocksY);
                     const fullPixels = fullImgData.data;
 
-                    let refData = null;
-                    if (app.admin._refBlindImg) {
-                        if (!app.admin._refCanvas) app.admin._refCanvas = document.createElement('canvas');
-                        const refCanvas = app.admin._refCanvas;
-                        refCanvas.width = width;
-                        refCanvas.height = height;
-                        const ctxRef = refCanvas.getContext('2d', { willReadFrequently: true });
-                        ctxRef.clearRect(0, 0, width, height);
-                        ctxRef.drawImage(app.admin._refBlindImg, 0, 0, width, height);
-                        refData = ctxRef.getImageData(0, 0, width, height).data;
-                    }
-
                     const gridW = 90;
                     const gridH = 60;
                     const tileAcc = new Float32Array(gridW * gridH);
@@ -1650,13 +1619,7 @@ app.admin.fetchManagerData('denied');
                                     const r = data[idx];
                                     const g = data[idx + 1];
                                     const b = data[idx + 2];
-                                    let val = 0.299 * r + 0.587 * g + 0.114 * b - 128.0;
-                                    if (refData) {
-                                        const rr = refData[idx], gr = refData[idx + 1], br = refData[idx + 2];
-                                        const valRef = 0.299 * rr + 0.587 * gr + 0.114 * br - 128.0;
-                                        val = (val - valRef) * 2.5;
-                                    }
-                                    block[y * 8 + x] = val;
+                                    block[y * 8 + x] = 0.299 * r + 0.587 * g + 0.114 * b - 128.0;
                                 }
                             }
 
