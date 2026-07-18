@@ -2615,10 +2615,35 @@ Object.assign(window.app, {
 
                                 app.auth.uploadAvatarBlob(blob);
                             });
-                        }
-                    }, 50);
                 }
             }
+});
+
+window.addEventListener('keydown', (e) => {
+    const cropModal = document.getElementById('crop-modal');
+    if (!cropModal || cropModal.classList.contains('hidden') || !app.crop || !app.crop.cropper) return;
+    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target && e.target.tagName)) return;
+
+    let dx = 0, dy = 0;
+    const step = e.shiftKey ? 10 : 1;
+    if (e.key === 'ArrowLeft') dx = -step;
+    else if (e.key === 'ArrowRight') dx = step;
+    else if (e.key === 'ArrowUp') dy = -step;
+    else if (e.key === 'ArrowDown') dy = step;
+    else return;
+
+    e.preventDefault();
+    try {
+        const box = app.crop.cropper.getCropBoxData();
+        app.crop.cropper.setCropBoxData({
+            left: box.left + dx,
+            top: box.top + dy
+        });
+        const newBox = app.crop.cropper.getCropBoxData();
+        if (Math.abs(newBox.left - box.left) < 0.1 && Math.abs(newBox.top - box.top) < 0.1) {
+            app.crop.cropper.move(-dx, -dy);
+        }
+    } catch (err) {}
 });
 
 Object.assign(window.app, {
