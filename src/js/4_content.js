@@ -390,10 +390,6 @@ Object.assign(window.app, {
                 },
 
                 addBlurPanel: () => {
-                    const currentCount = document.querySelectorAll('.blur-panel').length;
-                    if (currentCount >= 5) {
-                        return app.ui.showAlert("Bạn chỉ được thêm tối đa 5 vùng làm mờ cho mỗi ảnh.");
-                    }
                     app.upload.performAddBlurPanel();
                 },
 
@@ -573,7 +569,7 @@ Object.assign(window.app, {
                 updateBlurBtn: () => {
                     const count = document.querySelectorAll('.blur-panel').length;
                     const btn = document.getElementById('btn-add-blur');
-                    if (btn) btn.innerHTML = `<i class="fa-solid fa-droplet-slash"></i> Làm mờ (${count}/5)`;
+                    if (btn) btn.innerHTML = `<i class="fa-solid fa-droplet-slash"></i> Làm mờ (${count})`;
 
                     let warningBox = document.getElementById('blur-warning-box');
                     if (!warningBox) {
