@@ -1370,6 +1370,8 @@ app.admin.fetchManagerData('denied');
                     const img = new Image();
                     img.onload = () => {
                         app.admin._rawBlindImg = img;
+                        app.admin._wmTileOffsetX = 0;
+                        app.admin._wmTileOffsetY = 0;
                         const statusBox = document.getElementById('mgr-wm-status-box');
                         const rstBox = document.getElementById('mgr-wm-rst-box');
                         if (statusBox) statusBox.classList.remove('hidden');
@@ -1405,6 +1407,8 @@ app.admin.fetchManagerData('denied');
                     const img = new Image();
                     img.onload = () => {
                         app.admin._refBlindImg = img;
+                        app.admin._wmTileOffsetX = 0;
+                        app.admin._wmTileOffsetY = 0;
                         const refStatus = document.getElementById('mgr-wm-ref-status');
                         if (refStatus) refStatus.innerHTML = `<span class="text-blue-600 font-bold"><i class="fa-solid fa-check mr-1"></i>Đã nạp ảnh gốc (${img.width}×${img.height}px)</span>`;
                         URL.revokeObjectURL(url);
@@ -1457,6 +1461,171 @@ app.admin.fetchManagerData('denied');
                     app.admin.extractBlindWmDCT();
                 },
 
+                autoFindPyramidMatch: async (refImg, patchImg) => {
+                    const statusEl = document.getElementById('mgr-wm-ref-status');
+                    if (statusEl) statusEl.innerHTML = `<span class="text-purple-600 font-bold"><i class="fa-solid fa-spinner fa-spin mr-1"></i>Đang đối chiếu mảnh cắt với ảnh gốc qua tháp kim tự tháp (Pyramid Matching)...</span>`;
+                    await new Promise(r => setTimeout(r, 20));
+
+                    const getGray = (img, w, h) => {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = w;
+                        canvas.height = h;
+                        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+                        ctx.drawImage(img, 0, 0, w, h);
+                        const data = ctx.getImageData(0, 0, w, h).data;
+                        const gray = new Float32Array(w * h);
+                        for (let i = 0; i < w * h; i++) {
+                            gray[i] = 0.299 * data[i * 4] + 0.587 * data[i * 4 + 1] + 0.114 * data[i * 4 + 2];
+                        }
+                        return gray;
+                    };
+
+                    const computeNCC = (I, iw, ih, T, tw, th, x, y, muT, sigT) => {
+                        if (x + tw > iw || y + th > ih || x < 0 || y < 0) return -1;
+                        let sumW = 0;
+                        for (let ty = 0; ty < th; ty++) {
+                            const py = (y + ty) * iw + x;
+                            for (let tx = 0; tx < tw; tx++) {
+                                sumW += I[py + tx];
+                            }
+                        }
+                        const muW = sumW / (tw * th);
+                        let num = 0, sumSqW = 0;
+                        for (let ty = 0; ty < th; ty++) {
+                            const py = (y + ty) * iw + x;
+                            const rowT = ty * tw;
+                            for (let tx = 0; tx < tw; tx++) {
+                                const valW = I[py + tx] - muW;
+                                const valT = T[rowT + tx] - muT;
+                                num += valW * valT;
+                                sumSqW += valW * valW;
+                            }
+                        }
+                        const sigW = Math.sqrt(sumSqW);
+                        if (sigW < 1e-5 || sigT < 1e-5) return 0;
+                        return num / (sigW * sigT);
+                    };
+
+                    const coarseMax = 200;
+                    const coarseRatio = Math.min(1.0, coarseMax / Math.max(refImg.width, refImg.height));
+                    const cw = Math.max(16, Math.round(refImg.width * coarseRatio));
+                    const ch = Math.max(16, Math.round(refImg.height * coarseRatio));
+                    const coarseRef = getGray(refImg, cw, ch);
+
+                    let bestCandidate = { s: 1.0, x: 0, y: 0, score: -2 };
+                    const coarseCandidates = [];
+
+                    for (let s = 0.35; s <= 2.50; s += 0.05) {
+                        const pw = Math.round(patchImg.width * coarseRatio * s);
+                        const ph = Math.round(patchImg.height * coarseRatio * s);
+                        if (pw < 8 || ph < 8 || pw > cw || ph > ch) continue;
+
+                        const coarsePatch = getGray(patchImg, pw, ph);
+                        let sumT = 0;
+                        for (let i = 0; i < pw * ph; i++) sumT += coarsePatch[i];
+                        const muT = sumT / (pw * ph);
+                        let sumSqT = 0;
+                        for (let i = 0; i < pw * ph; i++) {
+                            const val = coarsePatch[i] - muT;
+                            sumSqT += val * val;
+                        }
+                        const sigT = Math.sqrt(sumSqT);
+                        if (sigT < 1e-5) continue;
+
+                        const stepX = Math.max(1, Math.floor((cw - pw) / 30));
+                        const stepY = Math.max(1, Math.floor((ch - ph) / 30));
+                        for (let y = 0; y <= ch - ph; y += stepY) {
+                            for (let x = 0; x <= cw - pw; x += stepX) {
+                                const score = computeNCC(coarseRef, cw, ch, coarsePatch, pw, ph, x, y, muT, sigT);
+                                if (score > bestCandidate.score) {
+                                    bestCandidate = { s, x, y, score };
+                                }
+                                coarseCandidates.push({ s, x, y, score });
+                            }
+                        }
+                    }
+
+                    coarseCandidates.sort((a, b) => b.score - a.score);
+                    const topCoarse = coarseCandidates.slice(0, 5);
+
+                    const medMax = 450;
+                    const medRatio = Math.min(1.0, medMax / Math.max(refImg.width, refImg.height));
+                    const mw = Math.max(32, Math.round(refImg.width * medRatio));
+                    const mh = Math.max(32, Math.round(refImg.height * medRatio));
+                    const medRef = getGray(refImg, mw, mh);
+
+                    let medBest = { s: bestCandidate.s, x: 0, y: 0, score: -2 };
+                    for (const c of topCoarse) {
+                        for (let s = Math.max(0.35, c.s - 0.06); s <= Math.min(2.50, c.s + 0.06); s += 0.015) {
+                            const pw = Math.round(patchImg.width * medRatio * s);
+                            const ph = Math.round(patchImg.height * medRatio * s);
+                            if (pw < 8 || ph < 8 || pw > mw || ph > mh) continue;
+
+                            const medPatch = getGray(patchImg, pw, ph);
+                            let sumT = 0;
+                            for (let i = 0; i < pw * ph; i++) sumT += medPatch[i];
+                            const muT = sumT / (pw * ph);
+                            let sumSqT = 0;
+                            for (let i = 0; i < pw * ph; i++) {
+                                const val = medPatch[i] - muT;
+                                sumSqT += val * val;
+                            }
+                            const sigT = Math.sqrt(sumSqT);
+                            if (sigT < 1e-5) continue;
+
+                            const approxX = Math.round(c.x * (medRatio / coarseRatio));
+                            const approxY = Math.round(c.y * (medRatio / coarseRatio));
+
+                            for (let dy = -6; dy <= 6; dy += 2) {
+                                for (let dx = -6; dx <= 6; dx += 2) {
+                                    const x = approxX + dx;
+                                    const y = approxY + dy;
+                                    const score = computeNCC(medRef, mw, mh, medPatch, pw, ph, x, y, muT, sigT);
+                                    if (score > medBest.score) {
+                                        medBest = { s, x, y, score };
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    const fullX = Math.round(medBest.x / medRatio);
+                    const fullY = Math.round(medBest.y / medRatio);
+                    const fullScale = medBest.s;
+
+                    const restoredScalePct = Math.round((1.0 / fullScale) * 100);
+                    const clampedScale = Math.min(200, Math.max(50, restoredScalePct));
+
+                    const dx = ((fullX % 8) + 8) % 8;
+                    const dy = ((fullY % 8) + 8) % 8;
+
+                    const scaleEl = document.getElementById('mgr-wm-scale');
+                    const scaleVal = document.getElementById('mgr-wm-scale-val');
+                    const dxEl = document.getElementById('mgr-wm-dx');
+                    const dxVal = document.getElementById('mgr-wm-dx-val');
+                    const dyEl = document.getElementById('mgr-wm-dy');
+                    const dyVal = document.getElementById('mgr-wm-dy-val');
+
+                    if (scaleEl) scaleEl.value = clampedScale;
+                    if (scaleVal) scaleVal.innerText = clampedScale + '%';
+                    if (dxEl) dxEl.value = dx;
+                    if (dxVal) dxVal.innerText = dx + ' px';
+                    if (dyEl) dyEl.value = dy;
+                    if (dyVal) dyVal.innerText = dy + ' px';
+
+                    app.admin._wmTileOffsetX = Math.floor((fullX - dx) / 8) % 90;
+                    app.admin._wmTileOffsetY = Math.floor((fullY - dy) / 8) % 60;
+
+                    const btn = document.getElementById('mgr-wm-autoscan-btn');
+                    if (btn) btn.innerHTML = `<i class="fa-solid fa-bolt mr-1"></i> Dò tự động lệch viền`;
+
+                    if (statusEl) {
+                        const matchPct = Math.min(100, Math.round(Math.max(0, medBest.score) * 100));
+                        statusEl.innerHTML = `<span class="text-emerald-700 font-bold"><i class="fa-solid fa-check-double mr-1"></i>Đã ghép mảnh cắt vào ảnh gốc! Tỷ lệ ảnh: ${Math.round(fullScale*100)}% -> Scale khôi phục: ${clampedScale}%, Tọa độ: (${fullX}, ${fullY}) [Khớp: ${matchPct}%]</span>`;
+                    }
+                    app.admin.applyBlindWmRST();
+                },
+
                 autoScanBlindWmRST: async () => {
                     const img = app.admin._rawBlindImg;
                     const canvasSrc = document.getElementById('mgr-wm-canvas-src');
@@ -1466,16 +1635,12 @@ app.admin.fetchManagerData('denied');
                     if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang dò lệch viền...`;
                     await new Promise(r => setTimeout(r, 20));
 
-                    let scale = parseInt(document.getElementById('mgr-wm-scale')?.value || 100) / 100;
-                    if (app.admin._refBlindImg && img.width > 0 && Math.abs(app.admin._refBlindImg.width - img.width) > 2) {
-                        const autoScalePct = Math.round((app.admin._refBlindImg.width / img.width) * 100);
-                        const clampedScale = Math.min(200, Math.max(50, autoScalePct));
-                        const scaleEl = document.getElementById('mgr-wm-scale');
-                        const scaleVal = document.getElementById('mgr-wm-scale-val');
-                        if (scaleEl) scaleEl.value = clampedScale;
-                        if (scaleVal) scaleVal.innerText = clampedScale + '%';
-                        scale = clampedScale / 100;
+                    if (app.admin._refBlindImg && img.width > 0) {
+                        await app.admin.autoFindPyramidMatch(app.admin._refBlindImg, img);
+                        return;
                     }
+
+                    let scale = parseInt(document.getElementById('mgr-wm-scale')?.value || 100) / 100;
                     const targetW = Math.max(64, Math.round(img.width * scale));
                     const targetH = Math.max(64, Math.round(img.height * scale));
 
@@ -1660,8 +1825,10 @@ app.admin.fetchManagerData('denied');
                             fullPixels[fullIdx + 2] = val;
                             fullPixels[fullIdx + 3] = 255;
 
-                            const gx = bx % gridW;
-                            const gy = by % gridH;
+                            const offX = app.admin._wmTileOffsetX || 0;
+                            const offY = app.admin._wmTileOffsetY || 0;
+                            const gx = ((bx + offX) % gridW + gridW) % gridW;
+                            const gy = ((by + offY) % gridH + gridH) % gridH;
                             const tileIdx = gy * gridW + gx;
                             tileAcc[tileIdx] += diff;
                             tileCount[tileIdx]++;
