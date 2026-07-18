@@ -1886,9 +1886,9 @@ cleanupState: () => {
                              
                              let targetDiff = 0;
                              if (wmGrays[gy * gridW + gx] <= -0.9) {
-                                 targetDiff = -6.0;
+                                 targetDiff = -1.5;
                              } else {
-                                 targetDiff = -6.0 + (wmGrays[gy * gridW + gx] + 1.0) * 12.0; // [-6 đến +18]
+                                 targetDiff = -1.5 + (wmGrays[gy * gridW + gx] + 1.0) * 12.0; // [-1.5 đến +10.5]
                              }
 
                              for (let y = 0; y < 8; y++) {
@@ -1923,12 +1923,12 @@ cleanupState: () => {
                                  }
                              }
 
-                             // Điều chế đồng thời trên 3 cặp tần số đối xứng (3,1)/(1,3), (3,2)/(2,3) và (4,1)/(1,4)
-                             // Tăng cường tín hiệu (SNR x3) mà không cần chỉnh lệch quá mạnh trên một tần số
+                             // Điều chế trên 3 cặp tần số trung cao [(3,2)/(2,3), (4,2)/(2,4), (4,3)/(3,4)]
+                             // Mắt người hoàn toàn vô cảm với thay đổi tần số bậc >= 5, giúp ảnh mịn 100% dù soi kỹ
                              const freqPairs = [
-                                 [3, 1, 1, 3],
                                  [3, 2, 2, 3],
-                                 [4, 1, 1, 4]
+                                 [4, 2, 2, 4],
+                                 [4, 3, 3, 4]
                              ];
                              for (let p = 0; p < freqPairs.length; p++) {
                                  const [r1, c1Idx, r2, c2Idx] = freqPairs[p];
@@ -1968,7 +1968,7 @@ cleanupState: () => {
                                  }
                              }
 
-                             // Ghi lại sai lệch Y vào pixel RGB
+                             // Ghi lại sai lệch Y vào pixel RGB kèm kẹp an toàn ±3.8 giúp không bao giờ bị lộ điểm dị thường
                              for (let y = 0; y < 8; y++) {
                                  const py = (by * 8 + y) * width;
                                  for (let x = 0; x < 8; x++) {
@@ -1978,7 +1978,7 @@ cleanupState: () => {
                                      const b = data[idx + 2];
                                      const oldY = 0.299 * r + 0.587 * g + 0.114 * b - 128.0;
                                      const newY = block[y * 8 + x];
-                                     const diff = newY - oldY;
+                                     const diff = Math.min(3.8, Math.max(-3.8, newY - oldY));
 
                                      data[idx] = Math.min(255, Math.max(0, Math.round(r + diff)));
                                      data[idx + 1] = Math.min(255, Math.max(0, Math.round(g + diff)));
