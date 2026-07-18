@@ -1824,9 +1824,9 @@ cleanupState: () => {
                          }
                      }
 
-                     // 2. Tạo lưới chữ ký 140x105, chia 2 dòng chữ to rõ (tránh font Minecraft bị bóp nhỏ)
-                     const gridW = 140;
-                     const gridH = 105;
+                     // 2. Tạo lưới chữ ký chuẩn 90x60 (lặp đều 6-10 lần trên ảnh giúp triệt tiêu hoàn toàn nhiễu nền khi giải mã)
+                     const gridW = 90;
+                     const gridH = 60;
                      const wmCanvas = document.createElement('canvas');
                      wmCanvas.width = gridW;
                      wmCanvas.height = gridH;
@@ -1837,33 +1837,37 @@ cleanupState: () => {
                      wmCtx.textAlign = 'center';
                      wmCtx.textBaseline = 'middle';
                      
-                     // Tách dòng chữ ký: VNBUSARCHIVE + Username
+                     // Tách chuỗi rõ ràng 3 dòng trên lưới 90x60
                      const parts = hiddenText.split('/').filter(Boolean);
-                     const line1 = parts[0] || "VNBUSARCHIVE";
-                     const line2 = parts[1] ? `© ${parts[1]}` : "© VNBUS";
+                     const line1 = "VNBUS";
+                     let line2 = parts[0] ? parts[0].replace(/VNBUS/i, '') : "ARCHIVE";
+                     if (!line2) line2 = "ARCHIVE";
+                     const line3 = parts[1] ? `© ${parts[1]}` : "© VNBUS";
 
-                     let fontSize1 = 16;
-                     wmCtx.font = `900 ${fontSize1}px "Montserrat", -apple-system, sans-serif`;
-                     const m1 = wmCtx.measureText(line1);
-                     if (m1 && m1.width > gridW * 0.88) {
-                         fontSize1 = Math.max(10, Math.floor(fontSize1 * ((gridW * 0.88) / m1.width)));
-                     }
-                     wmCtx.font = `900 ${fontSize1}px "Montserrat", -apple-system, sans-serif`;
-                     wmCtx.fillText(line1, gridW / 2, gridH * 0.36);
+                     wmCtx.font = `900 15px "Montserrat", -apple-system, sans-serif`;
+                     wmCtx.fillText(line1, gridW / 2, gridH * 0.22);
 
-                     let fontSize2 = 16;
+                     let fontSize2 = 13;
                      wmCtx.font = `900 ${fontSize2}px "Montserrat", -apple-system, sans-serif`;
                      const m2 = wmCtx.measureText(line2);
-                     if (m2 && m2.width > gridW * 0.88) {
-                         fontSize2 = Math.max(10, Math.floor(fontSize2 * ((gridW * 0.88) / m2.width)));
+                     if (m2 && m2.width > gridW * 0.9) {
+                         fontSize2 = Math.max(9, Math.floor(fontSize2 * ((gridW * 0.9) / m2.width)));
                      }
                      wmCtx.font = `900 ${fontSize2}px "Montserrat", -apple-system, sans-serif`;
-                     wmCtx.fillText(line2, gridW / 2, gridH * 0.66);
+                     wmCtx.fillText(line2, gridW / 2, gridH * 0.50);
+
+                     let fontSize3 = 12;
+                     wmCtx.font = `900 ${fontSize3}px "Montserrat", -apple-system, sans-serif`;
+                     const m3 = wmCtx.measureText(line3);
+                     if (m3 && m3.width > gridW * 0.9) {
+                         fontSize3 = Math.max(8, Math.floor(fontSize3 * ((gridW * 0.9) / m3.width)));
+                     }
+                     wmCtx.font = `900 ${fontSize3}px "Montserrat", -apple-system, sans-serif`;
+                     wmCtx.fillText(line3, gridW / 2, gridH * 0.78);
 
                      const wmImgData = wmCtx.getImageData(0, 0, gridW, gridH).data;
                      const wmGrays = new Float32Array(gridW * gridH);
                      for (let i = 0; i < gridW * gridH; i++) {
-                         // Điều chế liên tục [-1.0 đến +1.0] giữ độ mượt anti-alias đường cong
                          wmGrays[i] = (wmImgData[i * 4] - 128.0) / 128.0;
                      }
 
@@ -1874,7 +1878,7 @@ cleanupState: () => {
                      const temp = new Float32Array(64);
                      const dct = new Float32Array(64);
 
-                     // Ngưỡng chênh lệch tinh tế (Tối ưu cho JPEG 80% để hoàn toàn vô hình, 0% rỗ vải)
+                     // Ngưỡng chênh lệch tinh tế kết hợp Đa tần số (Multi-Carrier DCT Modulation)
                      for (let by = 0; by < blocksY; by++) {
                          for (let bx = 0; bx < blocksX; bx++) {
                              const gx = bx % gridW;
@@ -1882,11 +1886,9 @@ cleanupState: () => {
                              
                              let targetDiff = 0;
                              if (wmGrays[gy * gridW + gx] <= -0.9) {
-                                 // Nền đen: chỉ lệch cực nhẹ (-4.0) để hoàn toàn vô hình (0% rỗ vải trên bầu trời/nền ảnh)
-                                 targetDiff = -4.0;
+                                 targetDiff = -6.0;
                              } else {
-                                 // Chữ trắng & viền anti-alias: điều chế từ -4.0 đến +16.0 (vượt quá bước lượng tử hóa của JPEG 80%)
-                                 targetDiff = -4.0 + (wmGrays[gy * gridW + gx] + 1.0) * 10.0;
+                                 targetDiff = -6.0 + (wmGrays[gy * gridW + gx] + 1.0) * 12.0; // [-6 đến +18]
                              }
 
                              for (let y = 0; y < 8; y++) {
@@ -1921,24 +1923,30 @@ cleanupState: () => {
                                  }
                              }
 
-                             // Điều chế tinh tế cặp tần số giữa đối xứng (3,2) và (2,3)
-                             let c1 = dct[3 * 8 + 2];
-                             let c2 = dct[2 * 8 + 3];
-                             const avg = (c1 + c2) / 2.0;
-
-                             if (targetDiff > 0) {
-                                 if (c1 - c2 < targetDiff) {
-                                     c1 = avg + (targetDiff + 1.5) / 2.0;
-                                     c2 = avg - (targetDiff + 1.5) / 2.0;
-                                 }
-                             } else {
-                                 if (c1 - c2 > targetDiff) {
-                                     c1 = avg + (targetDiff - 1.5) / 2.0;
-                                     c2 = avg - (targetDiff - 1.5) / 2.0;
+                             // Điều chế đồng thời trên 3 cặp tần số đối xứng (3,1)/(1,3), (3,2)/(2,3) và (4,1)/(1,4)
+                             // Tăng cường tín hiệu (SNR x3) mà không cần chỉnh lệch quá mạnh trên một tần số
+                             const freqPairs = [
+                                 [3, 1, 1, 3],
+                                 [3, 2, 2, 3],
+                                 [4, 1, 1, 4]
+                             ];
+                             for (let p = 0; p < freqPairs.length; p++) {
+                                 const [r1, c1Idx, r2, c2Idx] = freqPairs[p];
+                                 let c1 = dct[r1 * 8 + c1Idx];
+                                 let c2 = dct[r2 * 8 + c2Idx];
+                                 const avg = (c1 + c2) / 2.0;
+                                 if (targetDiff > 0) {
+                                     if (c1 - c2 < targetDiff) {
+                                         dct[r1 * 8 + c1Idx] = avg + (targetDiff + 1.2) / 2.0;
+                                         dct[r2 * 8 + c2Idx] = avg - (targetDiff + 1.2) / 2.0;
+                                     }
+                                 } else {
+                                     if (c1 - c2 > targetDiff) {
+                                         dct[r1 * 8 + c1Idx] = avg + (targetDiff - 1.2) / 2.0;
+                                         dct[r2 * 8 + c2Idx] = avg - (targetDiff - 1.2) / 2.0;
+                                     }
                                  }
                              }
-                             dct[3 * 8 + 2] = c1;
-                             dct[2 * 8 + 3] = c2;
 
                              // Tính IDCT 2D: block = T^t * dct * T
                              for (let row = 0; row < 8; row++) {
