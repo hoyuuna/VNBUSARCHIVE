@@ -4358,10 +4358,11 @@
                                         <!-- CHẾ ĐỘ DẤU CHÌM (Tiêu chuẩn / Cơ bản / Nâng cao) -->
                                         <div>
                                             <label class="text-xs font-bold text-gray-700 uppercase tracking-wider block mb-2">Chế độ dấu chìm</label>
-                                            <div class="grid grid-cols-3 gap-1.5 bg-gray-100 p-1 rounded-xl border border-gray-200/80">
-                                                <button type="button" id="btn-wm-mode-standard" onclick="app.upload.setWmMode('standard')" class="px-2 py-2 rounded-lg text-xs font-bold transition text-gray-600 hover:text-black">Tiêu chuẩn</button>
-                                                <button type="button" id="btn-wm-mode-basic" onclick="app.upload.setWmMode('basic')" class="px-2 py-2 rounded-lg text-xs font-bold transition bg-white text-black shadow-sm border border-gray-200/60">Cơ bản</button>
-                                                <button type="button" id="btn-wm-mode-advanced" onclick="app.upload.setWmMode('advanced')" class="px-2 py-2 rounded-lg text-xs font-bold transition text-gray-600 hover:text-black">Nâng cao</button>
+                                            <div id="wm-mode-track" class="grid grid-cols-3 gap-1.5 bg-gray-100 p-1 rounded-xl border border-gray-200/80 relative">
+                                                <div id="wm-mode-slider" class="absolute top-1 bottom-1 bg-black rounded-lg shadow-md transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1) pointer-events-none z-10" style="left: 4px; width: calc((100% - 8px - 12px) / 3);"></div>
+                                                <button type="button" id="btn-wm-mode-standard" onclick="app.upload.setWmMode('standard')" class="relative z-20 px-2 py-2 rounded-lg text-xs font-bold transition-colors duration-200 text-gray-600 hover:text-black">Tiêu chuẩn</button>
+                                                <button type="button" id="btn-wm-mode-basic" onclick="app.upload.setWmMode('basic')" class="relative z-20 px-2 py-2 rounded-lg text-xs font-bold transition-colors duration-200 text-white">Cơ bản</button>
+                                                <button type="button" id="btn-wm-mode-advanced" onclick="app.upload.setWmMode('advanced')" class="relative z-20 px-2 py-2 rounded-lg text-xs font-bold transition-colors duration-200 text-gray-600 hover:text-black">Nâng cao</button>
                                             </div>
                                             <div id="wm-mode-desc" class="mt-2.5 text-[11px] text-gray-600 font-medium leading-relaxed bg-gray-50 border border-gray-200/80 rounded-lg p-3">
                                                 Có dấu chìm tên tài khoản và thanh dấu chìm tiêu chuẩn phía dưới.

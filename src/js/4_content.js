@@ -879,12 +879,13 @@ Object.assign(window.app, {
                         const btn = document.getElementById(`btn-wm-mode-${m}`);
                         if (btn) {
                             if (m === mode) {
-                                btn.className = 'px-2 py-2 rounded-lg text-xs font-bold transition bg-white text-black shadow-sm border border-gray-200/60';
+                                btn.className = 'relative z-20 px-2 py-2 rounded-lg text-xs font-bold transition-colors duration-200 text-white';
                             } else {
-                                btn.className = 'px-2 py-2 rounded-lg text-xs font-bold transition text-gray-600 hover:text-black';
+                                btn.className = 'relative z-20 px-2 py-2 rounded-lg text-xs font-bold transition-colors duration-200 text-gray-600 hover:text-black';
                             }
                         }
                     });
+                    if (app.upload.updateWmModeSlider) app.upload.updateWmModeSlider();
 
                     const descEl = document.getElementById('wm-mode-desc');
                     if (descEl) {
@@ -918,9 +919,23 @@ Object.assign(window.app, {
 
                     if (app.upload.schedulePrepareBlob) app.upload.schedulePrepareBlob();
                 },
+                updateWmModeSlider: () => {
+                    const mode = (app.wmState && app.wmState.mode) || 'basic';
+                    const btn = document.getElementById(`btn-wm-mode-${mode}`);
+                    const slider = document.getElementById('wm-mode-slider');
+                    if (btn && slider && btn.offsetWidth > 0) {
+                        slider.style.left = btn.offsetLeft + 'px';
+                        slider.style.width = btn.offsetWidth + 'px';
+                    }
+                },
                 toggleWmPanel: () => {
                     const panel = document.getElementById('wm-adjust-panel');
-                    if(panel) panel.classList.toggle('hidden');
+                    if (panel) {
+                        panel.classList.toggle('hidden');
+                        if (!panel.classList.contains('hidden') && app.upload.updateWmModeSlider) {
+                            setTimeout(() => app.upload.updateWmModeSlider(), 10);
+                        }
+                    }
                 },
                 updateWmScale: (val) => {
                     app.wmState.scale = parseInt(val) / 100;
@@ -3905,6 +3920,11 @@ Object.assign(window.app, {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('resize', () => {
+        if (window.app && window.app.upload && window.app.upload.updateWmModeSlider) {
+            window.app.upload.updateWmModeSlider();
+        }
+    });
     setTimeout(() => {
         const savedMode = (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_mode')) || 'basic';
         if (window.app && window.app.upload && window.app.upload.setWmMode) {
