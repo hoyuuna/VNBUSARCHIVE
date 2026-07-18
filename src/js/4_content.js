@@ -1006,8 +1006,7 @@ Object.assign(window.app, {
                     const chk = document.getElementById('chk-wm-black');
                     if (chk) chk.checked = false;
                     
-                    const prefMode = (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_mode')) || 'basic';
-                    app.upload.setWmMode(prefMode);
+                    app.upload.setWmMode('basic', true);
                     
                     app.upload.toggleColor(false);
                     

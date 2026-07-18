@@ -529,8 +529,11 @@ Object.assign(window.app, {
                     app.adminTab = tab;
                     app.admin.refreshCounts().then(total => app.admin.checkNotification());
 
-                    if (app.admin._isTabLoading && tab === app.adminTab && !preserveScroll) return;
+                    if (app.admin._activeLoadingTab === tab && app.admin._isTabLoading && !preserveScroll && !forceReload) return;
+                    app.admin._activeLoadingTab = tab;
                     app.admin._isTabLoading = true;
+                    const currentLoadToken = ++app.admin._loadTokenCounter || (app.admin._loadTokenCounter = 1);
+                    app.admin._activeLoadToken = currentLoadToken;
 
                     const content = document.getElementById('admin-content');
                     if (!content) return;
@@ -538,7 +541,10 @@ Object.assign(window.app, {
                     const isSameTabWithContent = (app.adminTab === tab) && (content.querySelector('.admin-card') || content.querySelector('.bg-white') || content.children.length > 0);
 
                     if (tab === 'manager' && document.getElementById('mgr-sec-denied')) {
-                        app.admin._isTabLoading = false;
+                        if (app.admin._activeLoadToken === currentLoadToken) {
+                            app.admin._isTabLoading = false;
+                            app.admin._activeLoadingTab = null;
+                        }
                         ['photos', 'requests', 'delete', 'manager', 'comments'].forEach(t => {
                             const btn = document.getElementById(`adm-tab-${t}`);
                             if(!btn) return;
@@ -554,7 +560,12 @@ Object.assign(window.app, {
                         return;
                     }
                     if (!(isSameTabWithContent && (preserveScroll || !forceReload))) {
-                        content.innerHTML = '<p class="text-gray-500 italic p-4"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Đang tải danh sách chờ duyệt...</p>';
+                        let loadingMsg = 'Đang tải danh sách chờ duyệt...';
+                        if (tab === 'requests') loadingMsg = 'Đang tải danh sách yêu cầu chỉnh sửa...';
+                        else if (tab === 'delete') loadingMsg = 'Đang tải danh sách yêu cầu xóa...';
+                        else if (tab === 'comments') loadingMsg = 'Đang tải danh sách bình luận...';
+                        else if (tab === 'manager') loadingMsg = 'Đang tải khu vực quản lý...';
+                        content.innerHTML = `<p class="text-gray-500 italic p-4"><i class="fa-solid fa-spinner fa-spin mr-2"></i>${loadingMsg}</p>`;
                     }
 
 
@@ -611,9 +622,11 @@ Object.assign(window.app, {
                                 });
                                 rawPhotos = Array.from(idMap.values()).sort((a,b) => a.id - b.id);
                             } catch(e) { console.warn('Lỗi fetch pending:', e); }
+                            if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
 
                             if (!rawPhotos || rawPhotos.length === 0) { content.innerHTML = '<p class="p-4 text-gray-600">Không có ảnh nào chờ duyệt.</p>'; return; }
                             await app.utils.resolveSandboxUrls(rawPhotos);
+                            if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
 
                             const addRouteVariants = (set, s) => {
                                 if (!s || s === '---' || s === 'Đang cập nhật') return;
@@ -699,6 +712,7 @@ Object.assign(window.app, {
                                     (r.data || []).forEach(v => { if (v.model && v.model !== '---') approvedModelSet.add(app.utils.cleanText(v.model).trim().toLowerCase()); });
                                 }).catch(() => {}) : Promise.resolve()
                             ]);
+                            if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
 
                             app.admin.approvedPlateSet = approvedPlateSet;
                             app.admin.approvedOpSet = approvedOpSet;
@@ -767,6 +781,7 @@ Object.assign(window.app, {
 
                             let { data: reqs, error } = await window.sb.from('edit_requests').select('*').eq('status', 'pending');
                             if (error) throw error;
+                            if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
 
                             const deleteReqs = reqs ? reqs.filter(r => r.new_data.request_type === 'delete_photo') : [];
 
@@ -778,10 +793,12 @@ Object.assign(window.app, {
                             const photoIds = deleteReqs.map(r => r.new_data.photo_id);
                             const { data: photos } = await window.sb.from('photos').select('id, url, license_plate').in('id', photoIds);
                             if (photos && photos.length > 0) await app.utils.resolveSandboxUrls(photos);
+                            if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
                             const photoMap = {}; if (photos) photos.forEach(p => photoMap[p.id] = p);
 
                             const userIds = [...new Set(deleteReqs.map(r => r.requester_id))];
                             const { data: users } = await window.sb.from('profiles').select('id, username, role').in('id', userIds);
+                            if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
                             const userMap = {}; const roleMap = {};
                             if (users) users.forEach(u => { userMap[u.id] = u.username; roleMap[u.id] = u.role; });
 
@@ -833,10 +850,12 @@ Object.assign(window.app, {
                         } else if (tab === 'requests') {
                             let { data: reqs, error } = await window.sb.from('edit_requests').select('*').eq('status', 'pending');
                             if (error) throw error;
+                            if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
                             if (!reqs || reqs.length === 0) { content.innerHTML = '<p class="p-4">Không có yêu cầu nào.</p>'; return; }
 
                             const userIds = [...new Set(reqs.map(r => r.requester_id))];
                             const { data: users } = await window.sb.from('profiles').select('id, username, role').in('id', userIds);
+                            if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
                             const userMap = {}; const roleMap = {};
                             if (users) users.forEach(u => { userMap[u.id] = u.username; roleMap[u.id] = u.role; });
 
@@ -851,11 +870,13 @@ Object.assign(window.app, {
 
                             const plates = reqs.map(r => r.license_plate);
                             const { data: curVehicles } = await window.sb.from('vehicles').select('*').in('license_plate', plates);
+                            if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
                             const vMap = {}; if (curVehicles) curVehicles.forEach(v => vMap[v.license_plate] = v);
 
 
                             const photoIdsReq = reqs.map(r => r.new_data.photo_id).filter(Boolean);
                             const { data: curPhotos } = await window.sb.from('photos').select('id, operator, route_no, type, province').in('id', photoIdsReq);
+                            if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
                             const pMap = {}; if (curPhotos) curPhotos.forEach(p => pMap[p.id] = p);
 
                             content.innerHTML = reqs.map(r => {
@@ -1006,6 +1027,7 @@ Object.assign(window.app, {
                             const { data } = await window.sb.from('photo_comments')
                                 .select('*, profiles(username), photos(license_plate)')
                                 .order('created_at', {ascending: false}).limit(500);
+                            if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
 
                             app.admin.commentsData.data = data || [];
                             app.admin.commentsData.page = 1;
@@ -1049,6 +1071,7 @@ Object.assign(window.app, {
                                         <button onclick="app.admin.switchManagerTab('bans')" id="mgr-tab-bans" class="font-bold text-sm px-4 py-2 bg-white text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition whitespace-nowrap"><i class="fa-solid fa-users mr-1"></i> Quản lý người dùng</button>
                                         <button onclick="app.admin.switchManagerTab('email')" id="mgr-tab-email" class="font-bold text-sm px-4 py-2 bg-white text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition whitespace-nowrap"><i class="fa-solid fa-envelope mr-1"></i> Gửi Email</button>
                                         <button onclick="app.admin.switchManagerTab('settings')" id="mgr-tab-settings" class="font-bold text-sm px-4 py-2 bg-white text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition whitespace-nowrap"><i class="fa-solid fa-sliders mr-1"></i> Cài đặt</button>
+                                        <button onclick="app.admin.switchManagerTab('blindwm')" id="mgr-tab-blindwm" class="font-bold text-sm px-4 py-2 bg-white text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition whitespace-nowrap"><i class="fa-solid fa-fingerprint mr-1"></i> Giải mã Dấu chìm</button>
                                     </div>
 
                                     <!-- TAB: ẢNH BỊ TỪ CHỐI -->
@@ -1058,7 +1081,7 @@ Object.assign(window.app, {
                                             <input type="text" placeholder="Tìm kiếm BKS, Lý do, Username..." class="w-full py-2.5 bg-transparent outline-none text-sm" oninput="app.admin.filterManagerData('denied', this.value)">
                                         </div>
                                         <div id="mgr-denied-content" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <p class="text-gray-500 italic text-sm py-4"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</p>
+                                            <p class="text-gray-500 italic col-span-full"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải ảnh bị từ chối...</p>
                                         </div>
                                         <div id="mgr-denied-pager" class="mt-6 w-full flex justify-center"></div>
                                     </div>
@@ -1067,21 +1090,20 @@ Object.assign(window.app, {
                                     <div id="mgr-sec-logs" class="hidden">
                                         <div class="flex items-center gap-2 mb-4 bg-gray-50 border border-gray-200 rounded-md px-3">
                                             <i class="fa-solid fa-magnifying-glass text-gray-400"></i>
-                                            <input type="text" placeholder="Tìm kiếm hành động, Admin, chi tiết..." class="w-full py-2.5 bg-transparent outline-none text-sm" oninput="app.admin.filterManagerData('logs', this.value)">
+                                            <input type="text" placeholder="Tìm kiếm nhật ký..." class="w-full py-2.5 bg-transparent outline-none text-sm" oninput="app.admin.filterManagerData('logs', this.value)">
                                         </div>
                                         <div class="overflow-x-auto border border-gray-200 rounded-md">
                                             <table class="w-full text-left text-sm whitespace-nowrap">
                                                 <thead class="bg-gray-50 border-b border-gray-200 text-gray-600 uppercase text-[11px] tracking-wider">
                                                     <tr>
                                                         <th class="p-3">Thời gian</th>
-                                                        <th class="p-3">Admin</th>
+                                                        <th class="p-3">Người thực hiện</th>
                                                         <th class="p-3">Hành động</th>
-                                                        <th class="p-3">Mục tiêu (ID)</th>
-                                                        <th class="p-3 w-full">Chi tiết</th>
+                                                        <th class="p-3">Chi tiết</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody id="mgr-logs-content" class="divide-y divide-gray-200">
-                                                    <tr><td colspan="5" class="p-4 text-center text-gray-500"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải...</td></tr>
+                                                    <tr><td colspan="4" class="p-4 text-center text-gray-500"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải nhật ký...</td></tr>
                                                 </tbody>
                                             </table>
                                         </div>
@@ -1090,47 +1112,36 @@ Object.assign(window.app, {
 
                                     <!-- TAB: GỬI EMAIL -->
                                     <div id="mgr-sec-email" class="hidden">
-                                        <div class="max-w-3xl border border-gray-200 rounded-lg p-5 bg-white shadow-sm">
-                                            <div class="flex justify-between items-center mb-4">
-                                                <h3 class="font-bold text-lg text-black"><i class="fa-solid fa-paper-plane mr-2 text-blue-600"></i>Soạn Email Mới</h3>
-                                                <button type="button" onclick="if(confirm('Bạn có chắc muốn xóa bản nháp email này?')) { app.admin.clearEmailDraft(); document.getElementById('admin-email-form').reset(); app.admin.toggleEmailCustom(); }" class="text-xs bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 px-3 py-1.5 rounded-md font-bold transition flex items-center gap-1"><i class="fa-solid fa-trash-can"></i> Xóa bản nháp</button>
+                                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                            <div class="lg:col-span-1 border border-gray-200 rounded-md p-4 flex flex-col h-[500px]">
+                                                <h4 class="font-bold text-sm mb-3 uppercase tracking-wider text-gray-600">Chọn người nhận</h4>
+                                                <div class="flex items-center gap-2 mb-3 bg-gray-50 border border-gray-200 rounded px-2.5 py-1.5">
+                                                    <i class="fa-solid fa-magnifying-glass text-gray-400 text-xs"></i>
+                                                    <input type="text" placeholder="Tìm tên, email, role..." class="w-full bg-transparent outline-none text-xs" oninput="app.admin.filterEmailUsers(this.value)">
+                                                </div>
+                                                <div class="flex justify-between items-center mb-2 pb-2 border-b border-gray-100 text-xs">
+                                                    <label class="flex items-center gap-1.5 font-bold cursor-pointer"><input type="checkbox" id="email-select-all" onchange="app.admin.toggleSelectAllEmail(this.checked)"> Chọn tất cả (<span id="email-total-cnt">0</span>)</label>
+                                                    <span class="text-blue-600 font-bold" id="email-selected-cnt">0 đã chọn</span>
+                                                </div>
+                                                <div id="email-user-list" class="flex-1 overflow-y-auto space-y-1 pr-1">
+                                                    <p class="text-xs text-gray-400 italic text-center py-4"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải danh sách...</p>
+                                                </div>
                                             </div>
-
-                                            <form id="admin-email-form" onsubmit="app.admin.submitEmail(event)">
-                                                <div class="mb-4">
-                                                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Gửi tới <span class="text-red-500">*</span></label>
-                                                    <div class="flex gap-2">
-                                                        <select id="email-target-user" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none" onchange="app.admin.toggleEmailCustom(); app.admin.saveEmailDraft();">
-                                                            <option value="">-- Chọn thành viên trong hệ thống --</option>
-                                                            <option value="custom">Gửi tới một Email tùy chỉnh khác...</option>
-                                                        </select>
+                                            <form id="mgr-email-form" onsubmit="app.admin.sendMassEmail(event)" class="lg:col-span-2 border border-gray-200 rounded-md p-4 flex flex-col justify-between">
+                                                <div class="space-y-4">
+                                                    <h4 class="font-bold text-sm uppercase tracking-wider text-gray-600 mb-2">Soạn thảo nội dung</h4>
+                                                    <div>
+                                                        <label class="admin-label">Tiêu đề Email <span class="text-red-500">*</span></label>
+                                                        <input type="text" id="email-subject" required placeholder="Nhập tiêu đề thông báo..." class="admin-input font-medium" oninput="app.admin.saveEmailDraft()">
                                                     </div>
-                                                    <input type="email" id="email-custom-address" placeholder="Nhập địa chỉ email..." class="hidden w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none mt-2" oninput="app.admin.saveEmailDraft()">
-                                                </div>
-
-                                                <div class="mb-4">
-                                                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Tiêu đề (Subject) <span class="text-red-500">*</span></label>
-                                                    <input type="text" id="email-subject" placeholder="VD: Thông báo cập nhật quy định..." required class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none" oninput="app.admin.saveEmailDraft()">
-                                                </div>
-
-                                                <div class="mb-4">
-                                                    <div class="flex justify-between items-center mb-1">
-                                                        <label class="block text-xs font-bold text-gray-700 uppercase">Nội dung (Hỗ trợ Markdown) <span class="text-red-500">*</span></label>
-                                                        <button type="button" onclick="app.admin.previewEmailMd()" class="text-[11px] bg-gray-100 border border-gray-300 px-2 py-1 rounded text-gray-700 font-bold hover:bg-gray-200 transition"><i class="fa-brands fa-markdown mr-1"></i> Xem trước</button>
+                                                    <div>
+                                                        <label class="admin-label">Nội dung <span class="text-red-500">*</span> (Hỗ trợ xuống dòng)</label>
+                                                        <textarea id="email-content" required rows="10" placeholder="Nhập nội dung email gởi đến thành viên..." class="admin-input font-mono text-xs leading-relaxed" oninput="app.admin.saveEmailDraft()"></textarea>
                                                     </div>
-                                                    <textarea id="email-content" rows="8" required placeholder="Nhập nội dung email tại đây..." class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none font-mono" oninput="app.admin.saveEmailDraft()"></textarea>
-                                                    <div id="email-md-preview" class="hidden markdown-body w-full border border-blue-200 bg-blue-50 p-4 mt-2 rounded-md text-sm min-h-[100px]"></div>
                                                 </div>
-
-                                                <div class="mb-6 flex items-center gap-2 bg-gray-50 border border-gray-200 p-3 rounded-md">
-                                                    <input type="checkbox" id="email-is-anonymous" class="w-4 h-4 rounded border-gray-300 text-black focus:ring-black cursor-pointer" onchange="app.admin.saveEmailDraft()">
-                                                    <label for="email-is-anonymous" class="text-sm font-bold text-gray-800 cursor-pointer select-none">Gửi ẩn danh (Người gửi sẽ hiển thị là "Quản trị VNBUSARCHIVE")</label>
-                                                </div>
-
-                                                <div class="text-right mt-4">
-                                                    <button type="submit" id="btn-send-email" class="bg-blue-600 text-white px-6 py-2.5 font-bold rounded-md hover:bg-blue-700 transition shadow-sm flex items-center gap-2 ml-auto">
-                                                        <i class="fa-solid fa-paper-plane"></i> Gửi Email
-                                                    </button>
+                                                <div class="pt-4 border-t border-gray-100 flex justify-end gap-3 mt-4">
+                                                    <button type="button" onclick="app.admin.clearEmailForm()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded text-xs transition">Xóa trắng</button>
+                                                    <button type="submit" id="email-send-btn" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded text-xs shadow transition flex items-center gap-2"><i class="fa-solid fa-paper-plane"></i> Gửi Email Ngay</button>
                                                 </div>
                                             </form>
                                         </div>
@@ -1179,6 +1190,79 @@ Object.assign(window.app, {
                                           <div id="mgr-bans-pager" class="mt-6 w-full flex justify-center"></div>
                                      </div>
 
+                                     <!-- TAB: GIẢI MÃ DẤU CHÌM BLIND WATERMARK -->
+                                     <div id="mgr-sec-blindwm" class="hidden">
+                                         <div class="bg-gray-50 border border-gray-200 rounded-md p-4 mb-6">
+                                             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                                                 <div>
+                                                     <h4 class="font-bold text-sm uppercase tracking-wider text-gray-800 mb-1"><i class="fa-solid fa-fingerprint text-purple-600 mr-2"></i>Công cụ Kiểm định Dấu chìm ẩn (Blind Watermark DCT)</h4>
+                                                     <p class="text-xs text-gray-600">Trích xuất và xác thực dấu chìm tần số DCT từ ảnh nghi ngờ (hỗ trợ ảnh đã qua nén hoặc chụp lại).</p>
+                                                 </div>
+                                                 <div class="flex items-center gap-3">
+                                                     <label class="flex items-center gap-1.5 text-xs font-bold text-gray-700 cursor-pointer select-none">
+                                                         <input type="checkbox" id="mgr-wm-smooth" checked onchange="if(document.getElementById('mgr-wm-canvas-src')?.width > 0) app.admin.extractBlindWmDCT()" class="w-4 h-4 rounded border-gray-300 text-black focus:ring-black cursor-pointer">
+                                                         Lọc mịn (Smooth)
+                                                     </label>
+                                                     <button type="button" id="mgr-wm-reextract-btn" onclick="app.admin.extractBlindWmDCT()" class="hidden px-3 py-1.5 bg-black text-white rounded-md text-xs font-bold hover:bg-gray-800 transition"><i class="fa-solid fa-rotate-right mr-1"></i> Giải mã lại</button>
+                                                 </div>
+                                             </div>
+                                         </div>
+
+                                         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                             <div class="lg:col-span-1 space-y-4">
+                                                 <div id="mgr-wm-drop-zone" ondragover="event.preventDefault(); this.classList.add('border-purple-500','bg-purple-50');" ondragleave="event.preventDefault(); this.classList.remove('border-purple-500','bg-purple-50');" ondrop="event.preventDefault(); this.classList.remove('border-purple-500','bg-purple-50'); if(event.dataTransfer.files.length > 0) app.admin.processBlindWmFile(event.dataTransfer.files[0]);" class="border-2 border-dashed border-gray-300 rounded-md p-6 text-center hover:border-purple-500 transition cursor-pointer bg-white" onclick="document.getElementById('mgr-wm-file-input').click()">
+                                                     <i class="fa-solid fa-cloud-arrow-up text-3xl text-gray-400 mb-2"></i>
+                                                     <p class="text-xs font-bold text-gray-700 mb-1">Kéo thả ảnh cần kiểm định vào đây</p>
+                                                     <p class="text-[11px] text-gray-500">Hoặc click để chọn tệp từ máy tính</p>
+                                                     <input type="file" id="mgr-wm-file-input" accept="image/*" class="hidden" onchange="if(this.files.length > 0) app.admin.processBlindWmFile(this.files[0])">
+                                                 </div>
+
+                                                 <div id="mgr-wm-status-box" class="hidden border border-gray-200 rounded-md p-4 bg-white space-y-2.5 text-xs">
+                                                     <div class="flex justify-between items-center pb-2 border-b border-gray-100">
+                                                         <span class="font-bold text-gray-600">Trạng thái:</span>
+                                                         <span id="mgr-wm-badge-status" class="px-2.5 py-0.5 rounded-md font-bold bg-emerald-100 text-emerald-800">Khôi phục thành công</span>
+                                                     </div>
+                                                     <div class="flex justify-between items-center">
+                                                         <span class="text-gray-500">Kích thước ảnh gốc:</span>
+                                                         <span id="mgr-wm-info-dim" class="font-mono font-bold text-gray-800">-</span>
+                                                     </div>
+                                                     <div class="flex justify-between items-center">
+                                                         <span class="text-gray-500">Số khối DCT 8x8:</span>
+                                                         <span id="mgr-wm-info-blocks" class="font-mono font-bold text-gray-800">-</span>
+                                                     </div>
+                                                     <div class="flex justify-between items-center">
+                                                         <span class="text-gray-500">Thời gian xử lý:</span>
+                                                         <span id="mgr-wm-info-time" class="font-mono font-bold text-gray-800">-</span>
+                                                     </div>
+                                                 </div>
+                                             </div>
+
+                                             <div class="lg:col-span-2 space-y-6">
+                                                 <div class="border border-gray-200 rounded-md p-4 bg-white">
+                                                     <h5 class="font-bold text-xs uppercase tracking-wider text-gray-600 mb-3">1. Ảnh gốc tải lên</h5>
+                                                     <div class="bg-gray-50 border border-gray-200 rounded-md p-2 flex items-center justify-center min-h-[200px] max-h-[350px] overflow-auto">
+                                                         <canvas id="mgr-wm-canvas-src" class="max-w-full h-auto object-contain"></canvas>
+                                                     </div>
+                                                 </div>
+
+                                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                     <div class="border border-gray-200 rounded-md p-4 bg-white">
+                                                         <h5 class="font-bold text-xs uppercase tracking-wider text-gray-600 mb-3">2. Phân bố tín hiệu toàn ảnh</h5>
+                                                         <div class="bg-gray-50 border border-gray-200 rounded-md p-2 flex items-center justify-center min-h-[160px]">
+                                                             <canvas id="mgr-wm-canvas-full" class="max-w-full h-auto object-contain"></canvas>
+                                                         </div>
+                                                     </div>
+                                                     <div class="border border-gray-200 rounded-md p-4 bg-white">
+                                                         <h5 class="font-bold text-xs uppercase tracking-wider text-gray-600 mb-3">3. Dấu chìm khôi phục (90x60)</h5>
+                                                         <div class="bg-gray-50 border border-gray-200 rounded-md p-2 flex items-center justify-center min-h-[160px]">
+                                                             <canvas id="mgr-wm-canvas-tile" class="max-w-full h-auto object-contain scale-150"></canvas>
+                                                         </div>
+                                                     </div>
+                                                 </div>
+                                             </div>
+                                         </div>
+                                     </div>
+
                                  </div>
                              `;
 
@@ -1194,7 +1278,10 @@ app.admin.fetchManagerData('denied');
                     } catch (err) {
                         content.innerHTML = `<p class="p-4 text-red-500 font-bold">Không thể tải dữ liệu: ${err.message}</p>`;
                     } finally {
-                        app.admin._isTabLoading = false;
+                        if (app.admin._activeLoadToken === currentLoadToken) {
+                            app.admin._isTabLoading = false;
+                            app.admin._activeLoadingTab = null;
+                        }
                         if (app.isRealtimeConnected === false && typeof app.setRealtimeStatus === 'function') {
                             app.setRealtimeStatus(false);
                         }
@@ -1211,7 +1298,7 @@ app.admin.fetchManagerData('denied');
                     app.admin.manager.activeTab = subTab;
                     try { sessionStorage.setItem('vbs_mgr_active_tab', subTab); } catch(e){}
 
-                    ['denied', 'logs', 'email', 'settings', 'bans'].forEach(t => {
+                    ['denied', 'logs', 'email', 'settings', 'bans', 'blindwm'].forEach(t => {
                         const btn = document.getElementById('mgr-tab-' + t);
                         const sec = document.getElementById('mgr-sec-' + t);
                         if (btn && sec) {
@@ -1229,6 +1316,172 @@ app.admin.fetchManagerData('denied');
                         app.admin.renderManagerSettings();
                     } else if (subTab === 'email') {
                         app.admin.restoreEmailDraft();
+                    }
+                },
+
+                processBlindWmFile: (file) => {
+                    if (!file) return;
+                    const url = URL.createObjectURL(file);
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvasSrc = document.getElementById('mgr-wm-canvas-src');
+                        if (!canvasSrc) return;
+                        canvasSrc.width = img.width;
+                        canvasSrc.height = img.height;
+                        const ctx = canvasSrc.getContext('2d');
+                        ctx.drawImage(img, 0, 0);
+                        URL.revokeObjectURL(url);
+                        app.admin.extractBlindWmDCT();
+                    };
+                    img.src = url;
+                },
+
+                extractBlindWmDCT: () => {
+                    const startTime = performance.now();
+                    const canvasSrc = document.getElementById('mgr-wm-canvas-src');
+                    const canvasFull = document.getElementById('mgr-wm-canvas-full');
+                    const canvasTile = document.getElementById('mgr-wm-canvas-tile');
+                    if (!canvasSrc || !canvasFull || !canvasTile || canvasSrc.width === 0) return;
+
+                    if (!app.admin._dctT) {
+                        const T = new Float32Array(64);
+                        const Tt = new Float32Array(64);
+                        const alpha0 = 1.0 / Math.sqrt(2.0);
+                        for (let u = 0; u < 8; u++) {
+                            const alpha = (u === 0) ? alpha0 : 1.0;
+                            for (let x = 0; x < 8; x++) {
+                                const val = 0.5 * alpha * Math.cos(((2 * x + 1) * u * Math.PI) / 16.0);
+                                T[u * 8 + x] = val;
+                                Tt[x * 8 + u] = val;
+                            }
+                        }
+                        app.admin._dctT = T;
+                        app.admin._dctTt = Tt;
+                    }
+                    const T = app.admin._dctT;
+                    const Tt = app.admin._dctTt;
+
+                    const width = canvasSrc.width;
+                    const height = canvasSrc.height;
+                    const ctxSrc = canvasSrc.getContext('2d');
+                    const imgData = ctxSrc.getImageData(0, 0, width, height);
+                    const data = imgData.data;
+
+                    const blocksX = Math.floor(width / 8);
+                    const blocksY = Math.floor(height / 8);
+
+                    canvasFull.width = blocksX;
+                    canvasFull.height = blocksY;
+                    const ctxFull = canvasFull.getContext('2d');
+                    const fullImgData = ctxFull.createImageData(blocksX, blocksY);
+                    const fullPixels = fullImgData.data;
+
+                    const gridW = 90;
+                    const gridH = 60;
+                    const tileAcc = new Float32Array(gridW * gridH);
+                    const tileCount = new Uint32Array(gridW * gridH);
+
+                    const block = new Float32Array(64);
+                    const temp = new Float32Array(64);
+                    const dct = new Float32Array(64);
+                    const chkSmooth = document.getElementById('mgr-wm-smooth');
+                    const isSmooth = chkSmooth ? chkSmooth.checked : true;
+
+                    for (let by = 0; by < blocksY; by++) {
+                        for (let bx = 0; bx < blocksX; bx++) {
+                            for (let y = 0; y < 8; y++) {
+                                const py = (by * 8 + y) * width;
+                                for (let x = 0; x < 8; x++) {
+                                    const idx = (py + (bx * 8 + x)) * 4;
+                                    const r = data[idx];
+                                    const g = data[idx + 1];
+                                    const b = data[idx + 2];
+                                    block[y * 8 + x] = 0.299 * r + 0.587 * g + 0.114 * b - 128.0;
+                                }
+                            }
+
+                            for (let row = 0; row < 8; row++) {
+                                for (let col = 0; col < 8; col++) {
+                                    let sum = 0.0;
+                                    for (let k = 0; k < 8; k++) { sum += T[row * 8 + k] * block[k * 8 + col]; }
+                                    temp[row * 8 + col] = sum;
+                                }
+                            }
+                            for (let row = 0; row < 8; row++) {
+                                for (let col = 0; col < 8; col++) {
+                                    let sum = 0.0;
+                                    for (let k = 0; k < 8; k++) { sum += temp[row * 8 + k] * Tt[k * 8 + col]; }
+                                    dct[row * 8 + col] = sum;
+                                }
+                            }
+
+                            const diff1 = dct[3 * 8 + 2] - dct[2 * 8 + 3];
+                            const diff2 = dct[4 * 8 + 2] - dct[2 * 8 + 4];
+                            const diff3 = dct[4 * 8 + 3] - dct[3 * 8 + 4];
+                            const diff = diff1 + diff2 + diff3;
+
+                            const fullIdx = (by * blocksX + bx) * 4;
+                            let val = 0;
+                            if (isSmooth) {
+                                val = Math.round(((diff - (-4.0)) / 42.0) * 255.0);
+                                val = Math.min(255, Math.max(0, val));
+                            } else {
+                                val = diff > 6.0 ? 255 : 0;
+                            }
+                            fullPixels[fullIdx] = val;
+                            fullPixels[fullIdx + 1] = val;
+                            fullPixels[fullIdx + 2] = val;
+                            fullPixels[fullIdx + 3] = 255;
+
+                            const gx = bx % gridW;
+                            const gy = by % gridH;
+                            const tileIdx = gy * gridW + gx;
+                            tileAcc[tileIdx] += diff;
+                            tileCount[tileIdx]++;
+                        }
+                    }
+
+                    ctxFull.putImageData(fullImgData, 0, 0);
+
+                    canvasTile.width = gridW;
+                    canvasTile.height = gridH;
+                    const ctxTile = canvasTile.getContext('2d');
+                    const tileImgData = ctxTile.createImageData(gridW, gridH);
+                    const tilePixels = tileImgData.data;
+
+                    for (let i = 0; i < gridW * gridH; i++) {
+                        const avgDiff = tileCount[i] > 0 ? (tileAcc[i] / tileCount[i]) : 0;
+                        let color = 0;
+                        if (isSmooth) {
+                            color = Math.round(((avgDiff - (-3.0)) / 35.0) * 255.0);
+                            color = Math.min(255, Math.max(0, color));
+                        } else {
+                            color = avgDiff > 4.0 ? 255 : 0;
+                        }
+                        const idx = i * 4;
+                        tilePixels[idx] = color;
+                        tilePixels[idx + 1] = color;
+                        tilePixels[idx + 2] = color;
+                        tilePixels[idx + 3] = 255;
+                    }
+                    ctxTile.putImageData(tileImgData, 0, 0);
+
+                    const elapsed = (performance.now() - startTime).toFixed(1);
+                    const statusBox = document.getElementById('mgr-wm-status-box');
+                    const reextractBtn = document.getElementById('mgr-wm-reextract-btn');
+                    const infoDim = document.getElementById('mgr-wm-info-dim');
+                    const infoBlocks = document.getElementById('mgr-wm-info-blocks');
+                    const infoTime = document.getElementById('mgr-wm-info-time');
+                    const badgeStatus = document.getElementById('mgr-wm-badge-status');
+
+                    if (statusBox) statusBox.classList.remove('hidden');
+                    if (reextractBtn) reextractBtn.classList.remove('hidden');
+                    if (infoDim) infoDim.innerText = `${width} × ${height} px`;
+                    if (infoBlocks) infoBlocks.innerText = `${blocksX.toLocaleString()} × ${blocksY.toLocaleString()} (${(blocksX * blocksY).toLocaleString()} khối)`;
+                    if (infoTime) infoTime.innerText = `${elapsed} ms`;
+                    if (badgeStatus) {
+                        badgeStatus.className = "px-2.5 py-0.5 rounded-md font-bold bg-emerald-100 text-emerald-800";
+                        badgeStatus.innerText = "Khôi phục thành công";
                     }
                 },
 
