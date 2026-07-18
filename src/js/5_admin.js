@@ -1419,6 +1419,23 @@ app.admin.fetchManagerData('denied');
                     img.src = url;
                 },
 
+                ensureBlindWmDCT: () => {
+                    if (app.admin._dctT && app.admin._dctTt) return;
+                    const T = new Float32Array(64);
+                    const Tt = new Float32Array(64);
+                    const alpha0 = 1.0 / Math.sqrt(2.0);
+                    for (let u = 0; u < 8; u++) {
+                        const alpha = (u === 0) ? alpha0 : 1.0;
+                        for (let x = 0; x < 8; x++) {
+                            const val = 0.5 * alpha * Math.cos(((2 * x + 1) * u * Math.PI) / 16.0);
+                            T[u * 8 + x] = val;
+                            Tt[x * 8 + u] = val;
+                        }
+                    }
+                    app.admin._dctT = T;
+                    app.admin._dctTt = Tt;
+                },
+
                 applyBlindWmRST: () => {
                     const img = app.admin._rawBlindImg;
                     const canvasSrc = document.getElementById('mgr-wm-canvas-src');
@@ -1461,7 +1478,7 @@ app.admin.fetchManagerData('denied');
                     const targetW = Math.max(64, Math.round(img.width * scale));
                     const targetH = Math.max(64, Math.round(img.height * scale));
 
-                    if (!app.admin._dctT) app.admin.extractBlindWmDCT();
+                    app.admin.ensureBlindWmDCT();
                     const T = app.admin._dctT;
                     const Tt = app.admin._dctTt;
                     if (!T || !Tt) return;
@@ -1566,21 +1583,7 @@ app.admin.fetchManagerData('denied');
                     const canvasTile = document.getElementById('mgr-wm-canvas-tile');
                     if (!canvasSrc || !canvasFull || !canvasTile || canvasSrc.width === 0) return;
 
-                    if (!app.admin._dctT) {
-                        const T = new Float32Array(64);
-                        const Tt = new Float32Array(64);
-                        const alpha0 = 1.0 / Math.sqrt(2.0);
-                        for (let u = 0; u < 8; u++) {
-                            const alpha = (u === 0) ? alpha0 : 1.0;
-                            for (let x = 0; x < 8; x++) {
-                                const val = 0.5 * alpha * Math.cos(((2 * x + 1) * u * Math.PI) / 16.0);
-                                T[u * 8 + x] = val;
-                                Tt[x * 8 + u] = val;
-                            }
-                        }
-                        app.admin._dctT = T;
-                        app.admin._dctTt = Tt;
-                    }
+                    app.admin.ensureBlindWmDCT();
                     const T = app.admin._dctT;
                     const Tt = app.admin._dctTt;
 
