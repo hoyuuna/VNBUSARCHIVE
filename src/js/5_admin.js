@@ -1186,8 +1186,7 @@ Object.assign(window.app, {
                                                      <tr><td colspan="4" class="p-4 text-center text-gray-500"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải...</td></tr>
                                                  </tbody>
                                              </table>
-                                         </div>
-                                          <div id="mgr-bans-pager" class="mt-6 w-full flex justify-center"></div>
+                                         <div id="mgr-bans-pager" class="mt-6 w-full flex justify-center"></div>
                                      </div>
 
                                      <!-- TAB: GIẢI MÃ DẤU CHÌM BLIND WATERMARK -->
@@ -1199,6 +1198,10 @@ Object.assign(window.app, {
                                                      <p class="text-xs text-gray-600">Trích xuất và xác thực dấu chìm tần số DCT từ ảnh nghi ngờ (hỗ trợ ảnh đã qua nén hoặc chụp lại).</p>
                                                  </div>
                                                  <div class="flex items-center gap-3">
+                                                     <label class="flex items-center gap-1.5 text-xs font-bold text-gray-700 cursor-pointer select-none">
+                                                         <input type="checkbox" id="mgr-wm-auto-rst" checked class="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-600 cursor-pointer">
+                                                         Tự động dò RST
+                                                     </label>
                                                      <label class="flex items-center gap-1.5 text-xs font-bold text-gray-700 cursor-pointer select-none">
                                                          <input type="checkbox" id="mgr-wm-smooth" checked onchange="if(document.getElementById('mgr-wm-canvas-src')?.width > 0) app.admin.extractBlindWmDCT()" class="w-4 h-4 rounded border-gray-300 text-black focus:ring-black cursor-pointer">
                                                          Lọc mịn (Smooth)
@@ -1212,9 +1215,20 @@ Object.assign(window.app, {
                                              <div class="lg:col-span-1 space-y-4">
                                                  <div id="mgr-wm-drop-zone" ondragover="event.preventDefault(); this.classList.add('border-purple-500','bg-purple-50');" ondragleave="event.preventDefault(); this.classList.remove('border-purple-500','bg-purple-50');" ondrop="event.preventDefault(); this.classList.remove('border-purple-500','bg-purple-50'); if(event.dataTransfer.files.length > 0) app.admin.processBlindWmFile(event.dataTransfer.files[0]);" class="border-2 border-dashed border-gray-300 rounded-md p-6 text-center hover:border-purple-500 transition cursor-pointer bg-white" onclick="document.getElementById('mgr-wm-file-input').click()">
                                                      <i class="fa-solid fa-cloud-arrow-up text-3xl text-gray-400 mb-2"></i>
-                                                     <p class="text-xs font-bold text-gray-700 mb-1">Kéo thả ảnh cần kiểm định vào đây</p>
-                                                     <p class="text-[11px] text-gray-500">Hoặc click để chọn tệp từ máy tính</p>
+                                                     <p class="text-xs font-bold text-gray-700 mb-1">1. Ảnh cần kiểm định / bị cắt (Bắt buộc)</p>
+                                                     <p class="text-[11px] text-gray-500">Kéo thả hoặc click để chọn tệp từ máy tính</p>
                                                      <input type="file" id="mgr-wm-file-input" accept="image/*" class="hidden" onchange="if(this.files.length > 0) app.admin.processBlindWmFile(this.files[0])">
+                                                 </div>
+
+                                                 <div id="mgr-wm-ref-drop-zone" ondragover="event.preventDefault(); this.classList.add('border-blue-500','bg-blue-50');" ondragleave="event.preventDefault(); this.classList.remove('border-blue-500','bg-blue-50');" ondrop="event.preventDefault(); this.classList.remove('border-blue-500','bg-blue-50'); if(event.dataTransfer.files.length > 0) app.admin.processBlindWmRefFile(event.dataTransfer.files[0]);" class="border-2 border-dashed border-gray-300 rounded-md p-4 text-center hover:border-blue-500 transition cursor-pointer bg-white" onclick="document.getElementById('mgr-wm-ref-input').click()">
+                                                     <div class="flex items-center justify-center gap-2.5">
+                                                         <i class="fa-solid fa-images text-2xl text-blue-500"></i>
+                                                         <div class="text-left">
+                                                             <p class="text-xs font-bold text-gray-700">2. Ảnh gốc đối chiếu (Tùy chọn)</p>
+                                                             <p id="mgr-wm-ref-status" class="text-[11px] text-gray-500">Trừ nhiễu 100% & tự khớp viền khi ảnh bị cắt</p>
+                                                         </div>
+                                                     </div>
+                                                     <input type="file" id="mgr-wm-ref-input" accept="image/*" class="hidden" onchange="if(this.files.length > 0) app.admin.processBlindWmRefFile(this.files[0])">
                                                  </div>
 
                                                  <div id="mgr-wm-status-box" class="hidden border border-gray-200 rounded-md p-4 bg-white space-y-2.5 text-xs">
@@ -1374,7 +1388,33 @@ app.admin.fetchManagerData('denied');
                         if (dyVal) dyVal.innerText = '0 px';
 
                         URL.revokeObjectURL(url);
-                        app.admin.applyBlindWmRST();
+                        const autoRst = document.getElementById('mgr-wm-auto-rst');
+                        if (autoRst && autoRst.checked) {
+                            app.admin.autoScanBlindWmRST();
+                        } else {
+                            app.admin.applyBlindWmRST();
+                        }
+                    };
+                    img.src = url;
+                },
+
+                processBlindWmRefFile: (file) => {
+                    if (!file) return;
+                    const url = URL.createObjectURL(file);
+                    const img = new Image();
+                    img.onload = () => {
+                        app.admin._refBlindImg = img;
+                        const refStatus = document.getElementById('mgr-wm-ref-status');
+                        if (refStatus) refStatus.innerHTML = `<span class="text-blue-600 font-bold"><i class="fa-solid fa-check mr-1"></i>Đã nạp ảnh gốc (${img.width}×${img.height}px)</span>`;
+                        URL.revokeObjectURL(url);
+                        if (app.admin._rawBlindImg) {
+                            const autoRst = document.getElementById('mgr-wm-auto-rst');
+                            if (autoRst && autoRst.checked) {
+                                app.admin.autoScanBlindWmRST();
+                            } else {
+                                app.admin.applyBlindWmRST();
+                            }
+                        }
                     };
                     img.src = url;
                 },
@@ -1408,7 +1448,16 @@ app.admin.fetchManagerData('denied');
                     if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang dò lệch viền...`;
                     await new Promise(r => setTimeout(r, 20));
 
-                    const scale = parseInt(document.getElementById('mgr-wm-scale')?.value || 100) / 100;
+                    let scale = parseInt(document.getElementById('mgr-wm-scale')?.value || 100) / 100;
+                    if (app.admin._refBlindImg && img.width > 0 && Math.abs(app.admin._refBlindImg.width - img.width) > 2) {
+                        const autoScalePct = Math.round((app.admin._refBlindImg.width / img.width) * 100);
+                        const clampedScale = Math.min(200, Math.max(50, autoScalePct));
+                        const scaleEl = document.getElementById('mgr-wm-scale');
+                        const scaleVal = document.getElementById('mgr-wm-scale-val');
+                        if (scaleEl) scaleEl.value = clampedScale;
+                        if (scaleVal) scaleVal.innerText = clampedScale + '%';
+                        scale = clampedScale / 100;
+                    }
                     const targetW = Math.max(64, Math.round(img.width * scale));
                     const targetH = Math.max(64, Math.round(img.height * scale));
 
@@ -1435,6 +1484,18 @@ app.admin.fetchManagerData('denied');
                             ctx.drawImage(img, -dx, -dy, targetW, targetH);
                             const data = ctx.getImageData(0, 0, w, h).data;
 
+                            let refData = null;
+                            if (app.admin._refBlindImg) {
+                                if (!app.admin._refCanvas) app.admin._refCanvas = document.createElement('canvas');
+                                const refCanvas = app.admin._refCanvas;
+                                refCanvas.width = w;
+                                refCanvas.height = h;
+                                const ctxRef = refCanvas.getContext('2d', { willReadFrequently: true });
+                                ctxRef.clearRect(0, 0, w, h);
+                                ctxRef.drawImage(app.admin._refBlindImg, 0, 0, w, h);
+                                refData = ctxRef.getImageData(0, 0, w, h).data;
+                            }
+
                             const tileAcc = new Float32Array(gridW * gridH);
                             const tileCount = new Uint32Array(gridW * gridH);
                             const block = new Float32Array(64);
@@ -1447,7 +1508,14 @@ app.admin.fetchManagerData('denied');
                                         const py = (by * 8 + y) * w;
                                         for (let x = 0; x < 8; x++) {
                                             const idx = (py + (bx * 8 + x)) * 4;
-                                            block[y * 8 + x] = 0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2] - 128.0;
+                                            const r = data[idx], g = data[idx + 1], b = data[idx + 2];
+                                            let val = 0.299 * r + 0.587 * g + 0.114 * b - 128.0;
+                                            if (refData) {
+                                                const rr = refData[idx], gr = refData[idx + 1], br = refData[idx + 2];
+                                                const valRef = 0.299 * rr + 0.587 * gr + 0.114 * br - 128.0;
+                                                val = (val - valRef) * 2.5;
+                                            }
+                                            block[y * 8 + x] = val;
                                         }
                                     }
                                     for (let row = 0; row < 8; row++) {
@@ -1550,6 +1618,18 @@ app.admin.fetchManagerData('denied');
                     const fullImgData = ctxFull.createImageData(blocksX, blocksY);
                     const fullPixels = fullImgData.data;
 
+                    let refData = null;
+                    if (app.admin._refBlindImg) {
+                        if (!app.admin._refCanvas) app.admin._refCanvas = document.createElement('canvas');
+                        const refCanvas = app.admin._refCanvas;
+                        refCanvas.width = width;
+                        refCanvas.height = height;
+                        const ctxRef = refCanvas.getContext('2d', { willReadFrequently: true });
+                        ctxRef.clearRect(0, 0, width, height);
+                        ctxRef.drawImage(app.admin._refBlindImg, 0, 0, width, height);
+                        refData = ctxRef.getImageData(0, 0, width, height).data;
+                    }
+
                     const gridW = 90;
                     const gridH = 60;
                     const tileAcc = new Float32Array(gridW * gridH);
@@ -1570,7 +1650,13 @@ app.admin.fetchManagerData('denied');
                                     const r = data[idx];
                                     const g = data[idx + 1];
                                     const b = data[idx + 2];
-                                    block[y * 8 + x] = 0.299 * r + 0.587 * g + 0.114 * b - 128.0;
+                                    let val = 0.299 * r + 0.587 * g + 0.114 * b - 128.0;
+                                    if (refData) {
+                                        const rr = refData[idx], gr = refData[idx + 1], br = refData[idx + 2];
+                                        const valRef = 0.299 * rr + 0.587 * gr + 0.114 * br - 128.0;
+                                        val = (val - valRef) * 2.5;
+                                    }
+                                    block[y * 8 + x] = val;
                                 }
                             }
 
