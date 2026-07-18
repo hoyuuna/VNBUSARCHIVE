@@ -585,17 +585,21 @@ Object.assign(window.app, {
                     if (app.upload._faceModelLoading) return app.upload._faceModelLoading;
 
                     app.upload._faceModelLoading = (async () => {
-                        if (!window.tf) {
-                            const tfMod = await import('https://esm.sh/@tensorflow/tfjs@4.22.0');
-                            window.tf = tfMod.default || tfMod;
-                        }
-                        if (!window.blazeface) {
-                            const bfMod = await import('https://esm.sh/@tensorflow-models/blazeface@0.1.0');
-                            window.blazeface = bfMod;
-                        }
-                        const model = await window.blazeface.load();
-                        app.upload._faceModel = model;
-                        return model;
+                        const vision = await import('https://esm.sh/@mediapipe/tasks-vision@0.10.18');
+                        const fileset = await vision.FilesetResolver.forVisionTasks(
+                            'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/wasm'
+                        );
+                        const detector = await vision.FaceDetector.createFromOptions(fileset, {
+                            baseOptions: {
+                                modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/face_detector/face_detector/float16/1/face_detector.task',
+                                delegate: 'GPU'
+                            },
+                            runningMode: 'IMAGE',
+                            minDetectionConfidence: 0.3,
+                            minSuppressionThreshold: 0.2
+                        });
+                        app.upload._faceModel = detector;
+                        return detector;
                     })();
 
                     return app.upload._faceModelLoading;
@@ -610,7 +614,7 @@ Object.assign(window.app, {
                     app.upload._faceDetecting = true;
 
                     try {
-                        const model = await app.upload.loadFaceModel();
+                        const detector = await app.upload.loadFaceModel();
 
                         const natW = previewImg.naturalWidth || container.clientWidth;
                         const natH = previewImg.naturalHeight || container.clientHeight;
@@ -623,18 +627,21 @@ Object.assign(window.app, {
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(previewImg, 0, 0, detW, detH);
 
-                        const predictions = await model.estimateFaces(canvas, false);
-                        if (!predictions || predictions.length === 0) return;
+                        const results = await detector.detect(canvas);
+                        const detections = results.detections || [];
+                        if (detections.length === 0) return;
 
                         let added = 0;
-                        predictions.forEach(p => {
-                            const x = Math.min(p.topLeft[0], p.bottomRight[0]);
-                            const y = Math.min(p.topLeft[1], p.bottomRight[1]);
-                            const w = Math.abs(p.bottomRight[0] - p.topLeft[0]);
-                            const h = Math.abs(p.bottomRight[1] - p.topLeft[1]);
+                        detections.forEach(d => {
+                            const box = d.boundingBox;
+                            if (!box) return;
+                            const x = box.originX;
+                            const y = box.originY;
+                            const w = box.width;
+                            const h = box.height;
 
-                            const padX = w * 0.12;
-                            const padY = h * 0.18;
+                            const padX = w * 0.15;
+                            const padY = h * 0.2;
                             const fx = Math.max(0, x - padX);
                             const fy = Math.max(0, y - padY);
                             const fw = Math.min(detW - fx, w + padX * 2);

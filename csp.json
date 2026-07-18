@@ -106,6 +106,7 @@
     "https://docs.opencv.org",
     "https://*.opencv.org",
     "https://storage.googleapis.com",
-    "https://tfhub.dev"
+    "https://tfhub.dev",
+    "https://cdn.jsdelivr.net"
   ]
 }
