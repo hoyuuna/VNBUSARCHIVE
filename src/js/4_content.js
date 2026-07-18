@@ -1791,48 +1791,55 @@ Object.assign(window.app, {
                         return app.ui.showAlert(msg, null, null, { title: "Thiếu thông tin" });
                     }
 
-                    // Đẩy bước nhúng Blind Watermark, nén ảnh & convert WebP vào tiến trình nền
-                    // Chạy song song ngay khi người dùng bấm nút gửi và bắt đầu giải Captcha
-                    const bgWebpPromise = (async () => {
-                        try {
-                            const username = app.username || "Guest";
-                            const targetMime = app.utils.getTargetMimeType();
+                    // 1. Kích hoạt mở Captcha NGAY LẬP TỨC để phản ứng tức thời (0ms delay)
+                    const captchaPromise = app.captcha.request();
 
-                            // Thực hiện nhúng Blind Watermark + dấu chìm hiển thị và nén ảnh trong lúc người dùng giải Captcha
-                            const finalBlob = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none', { embedBlind: true });
-                            const compressOptions = { maxSizeMB: 10, maxWidthOrHeight: 1920, useWebWorker: true, fileType: targetMime, initialQuality: 0.8 };
-                            let blobToProcess = null;
+                    // 2. Cho trình duyệt 50ms để render trơn tru giao diện modal Captcha rồi mới chạy 2 task xử lý ảnh trong nền
+                    const bgWebpPromise = new Promise((resolve, reject) => {
+                        setTimeout(async () => {
                             try {
-                                blobToProcess = await imageCompression(finalBlob, compressOptions);
-                            } catch (e) {
-                                console.warn("imageCompression lỗi:", e);
-                            }
-                            if (!blobToProcess) blobToProcess = finalBlob;
+                                const username = app.username || "Guest";
+                                const targetMime = app.utils.getTargetMimeType();
 
-                            // Chạy convertToWebpCpu trong nền trong lúc giải captcha
-                            if (blobToProcess && blobToProcess.type !== targetMime) {
-                                const cpuBlob = await app.utils.convertToWebpCpu(blobToProcess, 0.8);
-                                if (cpuBlob && cpuBlob.size > 0) {
-                                    return new File([cpuBlob], app.rawFile.name.replace(/\.[^/.]+$/, "") + ".webp", { type: 'image/webp' });
+                                // Thực hiện nhúng Blind Watermark + dấu chìm hiển thị và nén ảnh trong lúc người dùng giải Captcha
+                                const finalBlob = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none', { embedBlind: true });
+                                const compressOptions = { maxSizeMB: 10, maxWidthOrHeight: 1920, useWebWorker: true, fileType: targetMime, initialQuality: 0.8 };
+                                let blobToProcess = null;
+                                try {
+                                    blobToProcess = await imageCompression(finalBlob, compressOptions);
+                                } catch (e) {
+                                    console.warn("imageCompression lỗi:", e);
                                 }
+                                if (!blobToProcess) blobToProcess = finalBlob;
+
+                                // Chạy convertToWebpCpu trong nền trong lúc giải captcha
+                                if (blobToProcess && blobToProcess.type !== targetMime) {
+                                    const cpuBlob = await app.utils.convertToWebpCpu(blobToProcess, 0.8);
+                                    if (cpuBlob && cpuBlob.size > 0) {
+                                        resolve(new File([cpuBlob], app.rawFile.name.replace(/\.[^/.]+$/, "") + ".webp", { type: 'image/webp' }));
+                                        return;
+                                    }
+                                }
+                                if (blobToProcess && blobToProcess instanceof Blob && !(blobToProcess instanceof File)) {
+                                    const ext = blobToProcess.type === 'image/webp' ? 'webp' : 'jpg';
+                                    resolve(new File([blobToProcess], app.rawFile.name.replace(/\.[^/.]+$/, "") + "." + ext, { type: blobToProcess.type || targetMime }));
+                                    return;
+                                }
+                                resolve(blobToProcess);
+                            } catch (err) {
+                                if (err && err.message && err.message.includes("BLIND_WM_ERROR:")) {
+                                    reject(err);
+                                    return;
+                                }
+                                console.warn("Lỗi tiến trình nền xử lý ảnh:", err);
+                                resolve(app.upload.readyBlob || app.rawFile);
                             }
-                            if (blobToProcess && blobToProcess instanceof Blob && !(blobToProcess instanceof File)) {
-                                const ext = blobToProcess.type === 'image/webp' ? 'webp' : 'jpg';
-                                return new File([blobToProcess], app.rawFile.name.replace(/\.[^/.]+$/, "") + "." + ext, { type: blobToProcess.type || targetMime });
-                            }
-                            return blobToProcess;
-                        } catch (err) {
-                            if (err && err.message && err.message.includes("BLIND_WM_ERROR:")) {
-                                throw err;
-                            }
-                            console.warn("Lỗi tiến trình nền xử lý ảnh:", err);
-                            return app.upload.readyBlob || app.rawFile;
-                        }
-                    })();
+                        }, 50);
+                    });
 
                     let captchaResponse;
                     try {
-                        captchaResponse = await app.captcha.request();
+                        captchaResponse = await captchaPromise;
                     } catch (err) {
                         if (err.message === "CAPTCHA_CANCELLED") return; 
                         return app.ui.showAlert("Lỗi xác thực Captcha.");
