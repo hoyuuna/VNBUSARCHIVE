@@ -319,7 +319,7 @@ Object.assign(window.app, {
 
                     const oldWarning = document.getElementById('duplicate-warning-msg');
                     if (oldWarning) oldWarning.remove();
-                    
+
                     if (!document.getElementById('upload-quota-text')?.classList.contains('text-red-600') && !app.upload.isBlockedByModelDuplicate) {
                         btnSubmit.disabled = false;
                     }
@@ -328,6 +328,9 @@ Object.assign(window.app, {
 
                     const cleanPlate = valPlate.replace(/[^A-Z0-9-]/gi, '').toUpperCase();
 
+                    app.upload._dupToken = (app.upload._dupToken || 0) + 1;
+                    const myToken = app.upload._dupToken;
+
                     try {
                         const { data: existingPhotos, error: checkErr } = await window.sb
                             .from('photos')
@@ -335,6 +338,8 @@ Object.assign(window.app, {
                             .eq('uploader_id', app.user.id)
                             .eq('license_plate', cleanPlate)
                             .neq('status', 'denied');
+
+                        if (myToken !== app.upload._dupToken) return;
 
                         if (!checkErr && existingPhotos && existingPhotos.length > 0) {
                             const isDuplicateDate = existingPhotos.some(p => {
@@ -345,6 +350,9 @@ Object.assign(window.app, {
                             if (isDuplicateDate) {
                                 btnSubmit.disabled = true;
                                 const displayDate = valDate.split('-').reverse().join('/');
+
+                                const existing = document.getElementById('duplicate-warning-msg');
+                                if (existing) return;
 
                                 const warningEl = document.createElement('div');
                                 warningEl.id = 'duplicate-warning-msg';
