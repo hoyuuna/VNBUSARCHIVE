@@ -1874,14 +1874,20 @@ cleanupState: () => {
                      const temp = new Float32Array(64);
                      const dct = new Float32Array(64);
 
-                     // Ngưỡng chênh lệch (Delta) để chống nén lossy JPEG/WebP 80%
-                     const delta = 48.0;
-
+                     // Ngưỡng chênh lệch tinh tế (Tối ưu cho JPEG 80% để hoàn toàn vô hình, 0% rỗ vải)
                      for (let by = 0; by < blocksY; by++) {
                          for (let bx = 0; bx < blocksX; bx++) {
                              const gx = bx % gridW;
                              const gy = by % gridH;
-                             const targetDiff = wmGrays[gy * gridW + gx] * delta;
+                             
+                             let targetDiff = 0;
+                             if (wmGrays[gy * gridW + gx] <= -0.9) {
+                                 // Nền đen: chỉ lệch cực nhẹ (-4.0) để hoàn toàn vô hình (0% rỗ vải trên bầu trời/nền ảnh)
+                                 targetDiff = -4.0;
+                             } else {
+                                 // Chữ trắng & viền anti-alias: điều chế từ -4.0 đến +16.0 (vượt quá bước lượng tử hóa của JPEG 80%)
+                                 targetDiff = -4.0 + (wmGrays[gy * gridW + gx] + 1.0) * 10.0;
+                             }
 
                              for (let y = 0; y < 8; y++) {
                                  const py = (by * 8 + y) * width;
@@ -1915,20 +1921,20 @@ cleanupState: () => {
                                  }
                              }
 
-                             // Điều chế cặp tần số giữa đối xứng (3,2) và (2,3) theo targetDiff mượt
+                             // Điều chế tinh tế cặp tần số giữa đối xứng (3,2) và (2,3)
                              let c1 = dct[3 * 8 + 2];
                              let c2 = dct[2 * 8 + 3];
                              const avg = (c1 + c2) / 2.0;
 
                              if (targetDiff > 0) {
                                  if (c1 - c2 < targetDiff) {
-                                     c1 = avg + (targetDiff + 3.0) / 2.0;
-                                     c2 = avg - (targetDiff + 3.0) / 2.0;
+                                     c1 = avg + (targetDiff + 1.5) / 2.0;
+                                     c2 = avg - (targetDiff + 1.5) / 2.0;
                                  }
                              } else {
                                  if (c1 - c2 > targetDiff) {
-                                     c1 = avg + (targetDiff - 3.0) / 2.0;
-                                     c2 = avg - (targetDiff - 3.0) / 2.0;
+                                     c1 = avg + (targetDiff - 1.5) / 2.0;
+                                     c2 = avg - (targetDiff - 1.5) / 2.0;
                                  }
                              }
                              dct[3 * 8 + 2] = c1;
