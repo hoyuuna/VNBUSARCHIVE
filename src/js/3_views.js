@@ -4244,7 +4244,7 @@ Object.assign(window.app, {
                                 <img loading="lazy" src="${avatar}" onerror="this.src='${DEFAULT_AVATAR}'" class="w-full h-full object-cover block">
                             </div>
                             
-                            <div class="font-extrabold text-black text-xl md:text-2xl w-full truncate mb-2 group-hover:text-blue-600 transition-colors">${app.utils.cleanText(user.username)}</div>
+                            <div class="font-extrabold text-black text-xl md:text-2xl w-full truncate mb-2 transition-colors">${app.utils.cleanText(user.username)}</div>
                             
                             <div class="flex items-center justify-center gap-1.5 flex-wrap mb-6 min-h-[20px]">
                                 ${app.utils.getBadgesHTML(user.id, user.role, user.subroles)}
@@ -4293,7 +4293,7 @@ Object.assign(window.app, {
                                             <img loading="lazy" src="${avatar}" onerror="this.src='${DEFAULT_AVATAR}'" class="w-full h-full object-cover block">
                                         </div>
                                         <div class="min-w-0 flex-1">
-                                            <div class="font-extrabold text-black text-sm md:text-base truncate group-hover:text-blue-600 transition-colors">${app.utils.cleanText(user.username)}</div>
+                                            <div class="font-extrabold text-black text-sm md:text-base truncate transition-colors">${app.utils.cleanText(user.username)}</div>
                                             <div class="flex items-center gap-1.5 mt-1 flex-wrap">
                                                 ${app.utils.getBadgesHTML(user.id, user.role, user.subroles)}
                                             </div>
@@ -4328,7 +4328,7 @@ Object.assign(window.app, {
                                         <img loading="lazy" src="${avatar}" onerror="this.src='${DEFAULT_AVATAR}'" class="w-full h-full object-cover block">
                                     </div>
                                     <div class="min-w-0 flex-1">
-                                        <div class="font-bold text-black text-sm truncate group-hover:text-blue-600 transition-colors">${app.utils.cleanText(user.username)}</div>
+                                        <div class="font-bold text-black text-sm truncate transition-colors">${app.utils.cleanText(user.username)}</div>
                                         <div class="mt-1 flex items-center gap-1 flex-wrap">${app.utils.getBadgesHTML(user.id, user.role, user.subroles)}</div>
                                     </div>
                                     <div class="text-right shrink-0 border-l border-gray-100 pl-3 md:pl-4">
