@@ -586,24 +586,12 @@ Object.assign(window.app, {
 
                     app.upload._faceModelLoading = (async () => {
                         if (!window.tf) {
-                            await new Promise((resolve, reject) => {
-                                const s = document.createElement('script');
-                                s.src = 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js';
-                                s.crossOrigin = 'anonymous';
-                                s.onload = resolve;
-                                s.onerror = () => reject(new Error('TFJS load failed'));
-                                document.head.appendChild(s);
-                            });
+                            const tfMod = await import('https://esm.sh/@tensorflow/tfjs@4.22.0');
+                            window.tf = tfMod.default || tfMod;
                         }
                         if (!window.blazeface) {
-                            await new Promise((resolve, reject) => {
-                                const s = document.createElement('script');
-                                s.src = 'https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface@0.1.0/dist/blazeface.min.js';
-                                s.crossOrigin = 'anonymous';
-                                s.onload = resolve;
-                                s.onerror = () => reject(new Error('BlazeFace load failed'));
-                                document.head.appendChild(s);
-                            });
+                            const bfMod = await import('https://esm.sh/@tensorflow-models/blazeface@0.1.0');
+                            window.blazeface = bfMod;
                         }
                         const model = await window.blazeface.load();
                         app.upload._faceModel = model;
