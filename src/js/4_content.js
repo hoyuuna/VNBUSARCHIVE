@@ -2615,6 +2615,8 @@ Object.assign(window.app, {
 
                                 app.auth.uploadAvatarBlob(blob);
                             });
+                        }
+                    }, 50);
                 }
             }
 });
