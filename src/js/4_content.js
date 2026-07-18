@@ -864,143 +864,22 @@ Object.assign(window.app, {
                     else el.classList.remove('wm-black');
                     if (app.upload.schedulePrepareBlob) app.upload.schedulePrepareBlob();
                 },
-                isBlindWatermarkEnabled: false, // Tạm thời tắt: typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_blind_wm_pref') === 'true',
-                loadOpenCV: (progToast) => {
-                    return new Promise((resolve, reject) => {
-                        if (window._openCvReady || (window.cv && window.cv.Mat && typeof window.cv.Mat === 'function')) {
-                            window._openCvReady = true;
-                            resolve();
-                            return;
-                        }
-
-                        if (typeof window.cv === 'function') {
-                            window.cv().then(cvObj => {
-                                window.cv = cvObj;
-                                window._openCvReady = true;
-                                resolve();
-                            }).catch(reject);
-                            return;
-                        }
-
-                        if (window._openCvLoadingPromise) {
-                            window._openCvLoadingPromise.then(resolve).catch(reject);
-                            return;
-                        }
-
-                        window._openCvLoadingPromise = new Promise((innerResolve, innerReject) => {
-                            if (progToast && progToast.update) {
-                                progToast.update(30, 'Đang tải thư viện OpenCV.js...', 'Đang chuẩn bị mô-đun xử lý ảnh...');
-                            }
-
-                            window.Module = window.Module || {};
-                            window.Module.onRuntimeInitialized = () => {
-                                if (progToast && progToast.update) {
-                                    progToast.update(90, 'Đang khởi tạo OpenCV.js...', 'Đang kích hoạt bộ xử lý Blind Watermark...');
-                                }
-                                if (window.cv && window.cv.Mat && typeof window.cv.Mat === 'function') {
-                                    window._openCvReady = true;
-                                    innerResolve();
-                                } else if (typeof window.cv === 'function') {
-                                    window.cv().then(cvObj => { 
-                                        window.cv = cvObj; 
-                                        window._openCvReady = true; 
-                                        innerResolve(); 
-                                    }).catch(innerReject);
-                                }
-                            };
-
-                            const cdnUrls = [
-                                'https://cdn.jsdelivr.net/npm/@techstark/opencv-js@4.8.0-release.1/dist/opencv.js',
-                                'https://unpkg.com/@techstark/opencv-js@4.8.0-release.1/dist/opencv.js',
-                                'https://cdn.jsdelivr.net/npm/opencv.js@1.2.1/opencv.js',
-                                'https://docs.opencv.org/4.8.0/opencv.js'
-                            ];
-                            let currentCdnIndex = 0;
-                            const loadScriptFromCdn = () => {
-                                if (currentCdnIndex >= cdnUrls.length) {
-                                    window._openCvLoadingPromise = null;
-                                    innerReject(new Error("Không thể tải thư viện OpenCV.js từ tất cả các máy chủ CDN (CORS/Network error)"));
-                                    return;
-                                }
-                                const url = cdnUrls[currentCdnIndex++];
-                                console.log(`Đang tải OpenCV.js từ CDN (${currentCdnIndex}/${cdnUrls.length}): ${url}`);
-                                const script = document.createElement('script');
-                                script.src = url;
-                                script.async = true;
-                                script.onload = () => {
-                                    let attempts = 0;
-                                    const checkReady = () => {
-                                        attempts++;
-                                        if (window._openCvReady || (window.cv && window.cv.Mat && typeof window.cv.Mat === 'function')) {
-                                            window._openCvReady = true;
-                                            innerResolve();
-                                        } else if (typeof window.cv === 'function') {
-                                            window.cv().then(cvObj => {
-                                                window.cv = cvObj;
-                                                window._openCvReady = true;
-                                                innerResolve();
-                                            }).catch(innerReject);
-                                        } else if (window.Module && window.Module.onRuntimeInitialized && attempts < 100) {
-                                            setTimeout(checkReady, 100);
-                                        } else if (attempts < 100) {
-                                            setTimeout(checkReady, 100);
-                                        } else {
-                                            loadScriptFromCdn();
-                                        }
-                                    };
-                                    checkReady();
-                                };
-                                script.onerror = () => {
-                                    loadScriptFromCdn();
-                                };
-                                document.head.appendChild(script);
-                            };
-                            loadScriptFromCdn();
-                        });
-
-                        window._openCvLoadingPromise.then(resolve).catch(reject);
-                    });
+                isBlindWatermarkEnabled: typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_blind_wm_pref') === 'true',
+                loadOpenCV: async (progToast) => {
+                    window._openCvReady = true;
+                    return true;
                 },
                 toggleBlindWatermark: async (el) => {
                     const savedPref = el.checked;
                     try { if (typeof localStorage !== 'undefined') localStorage.setItem('vnbus_blind_wm_pref', savedPref ? 'true' : 'false'); } catch (e) {}
                     
+                    app.upload.isBlindWatermarkEnabled = el.checked;
                     if (el.checked) {
-                        const isCvReady = window._openCvReady || (window.cv && window.cv.Mat && typeof window.cv.Mat === 'function');
-                        if (!isCvReady) {
-                            el.disabled = true;
-                            const progToast = app.toast.createProgress('Đang chuẩn bị tính năng Blind Watermark...');
-                            try {
-                                await app.upload.loadOpenCV(progToast);
-                                el.disabled = false;
-                                el.checked = true;
-                                app.upload.isBlindWatermarkEnabled = true;
-                                window._openCvReady = true;
-                                if (progToast && progToast.remove) progToast.remove();
-                                app.toast.show('success', 'Blind Watermark', 'Đã sẵn sàng tính năng Blind Watermark!');
-                                if (app.upload.schedulePrepareBlob) app.upload.schedulePrepareBlob();
-                            } catch (err) {
-                                console.error("Lỗi khởi tạo tính năng Blind Watermark / OpenCV.js:", err);
-                                el.disabled = false;
-                                el.checked = false;
-                                app.upload.isBlindWatermarkEnabled = false;
-                                try { if (typeof localStorage !== 'undefined') localStorage.setItem('vnbus_blind_wm_pref', 'false'); } catch (e) {}
-                                window._openCvLoadingPromise = null;
-                                window._openCvReady = false;
-                                if (progToast && progToast.remove) progToast.remove();
-                                const detailMsg = err && err.message ? ` (${err.message})` : "";
-                                app.ui.showAlert(`Không thể tải thư viện OpenCV.js${detailMsg}. Vui lòng kiểm tra kết nối mạng và thử lại.`);
-                            }
-                        } else {
-                            app.upload.isBlindWatermarkEnabled = true;
-                            app.toast.show('success', 'Blind Watermark', 'Đã bật Blind Watermark!');
-                            if (app.upload.schedulePrepareBlob) app.upload.schedulePrepareBlob();
-                        }
+                        app.toast.show('success', 'Blind Watermark', 'Đã bật Blind Watermark (Block DCT 8x8)!');
                     } else {
-                        app.upload.isBlindWatermarkEnabled = false;
                         app.toast.show('info', 'Blind Watermark', 'Đã tắt Blind Watermark.');
-                        if (app.upload.schedulePrepareBlob) app.upload.schedulePrepareBlob();
                     }
+                    if (app.upload.schedulePrepareBlob) app.upload.schedulePrepareBlob();
                 },
                 toggleWmPanel: () => {
                     const panel = document.getElementById('wm-adjust-panel');
@@ -1066,11 +945,10 @@ Object.assign(window.app, {
                     const chk = document.getElementById('chk-wm-black');
                     if (chk) chk.checked = false;
                     
-                    // Tạm thời tắt đọc pref để không tự bật Blind Watermark
-                    // const pref = typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_blind_wm_pref') === 'true';
-                    app.upload.isBlindWatermarkEnabled = false;
+                    const pref = typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_blind_wm_pref') === 'true';
+                    app.upload.isBlindWatermarkEnabled = pref;
                     const chkBwm = document.getElementById('chk-blind-watermark');
-                    if (chkBwm) chkBwm.checked = false;
+                    if (chkBwm) chkBwm.checked = pref;
                     
                     app.upload.toggleColor(false);
                     
@@ -3987,7 +3865,6 @@ Object.assign(window.app, {
             }
 });
 
-/* Tạm thời tắt tự động tải ngầm OpenCV.js khi khởi động cho tới khi tính năng được bật lại
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         const pref = typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_blind_wm_pref') === 'true';
@@ -3995,11 +3872,7 @@ document.addEventListener('DOMContentLoaded', () => {
             window.app.upload.isBlindWatermarkEnabled = true;
             const chkBwm = document.getElementById('chk-blind-watermark');
             if (chkBwm) chkBwm.checked = true;
-            if (!(window._openCvReady || (window.cv && window.cv.Mat && typeof window.cv.Mat === 'function'))) {
-                window.app.upload.loadOpenCV().catch(() => {});
-            }
         }
     }, 500);
 });
-*/
 

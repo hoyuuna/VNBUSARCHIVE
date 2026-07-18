@@ -1802,149 +1802,164 @@ cleanupState: () => {
                  },
 
                  embedBlindWatermarkOpenCV: async (canvas, hiddenText) => {
-                     if (!window.cv || !window.cv.Mat || typeof window.cv.Mat !== 'function') {
-                         throw new Error("BLIND_WM_ERROR:Thư viện OpenCV.js chưa sẵn sàng hoặc bị lỗi.");
+                     const width = canvas.width;
+                     const height = canvas.height;
+                     if (!width || !height || width < 64 || height < 64) {
+                         throw new Error("BLIND_WM_ERROR:Kích thước ảnh quá nhỏ để gắn Blind Watermark.");
                      }
-                     const cv = window.cv;
-                     const objectsToDelete = [];
-                     try {
-                         const width = canvas.width;
-                         const height = canvas.height;
-                         if (!width || !height || width < 50 || height < 50) {
-                             throw new Error("BLIND_WM_ERROR:Kích thước ảnh quá nhỏ để gắn Blind Watermark.");
+                     const ctx = canvas.getContext('2d');
+                     const imgData = ctx.getImageData(0, 0, width, height);
+                     const data = imgData.data;
+
+                     // 1. Tạo ma trận DCT 8x8 và ma trận chuyển vị T, T^t
+                     const T = new Float32Array(64);
+                     const Tt = new Float32Array(64);
+                     const alpha0 = 1.0 / Math.sqrt(2.0);
+                     for (let u = 0; u < 8; u++) {
+                         const alpha = (u === 0) ? alpha0 : 1.0;
+                         for (let x = 0; x < 8; x++) {
+                             const val = 0.5 * alpha * Math.cos(((2 * x + 1) * u * Math.PI) / 16.0);
+                             T[u * 8 + x] = val;
+                             Tt[x * 8 + u] = val;
                          }
+                     }
 
-                         // Sử dụng kênh Blue (ít nhạy cảm nhất với mắt người) và pad kích thước tối ưu cho DFT
-                         let srcMat = cv.imread(canvas);
-                         objectsToDelete.push(srcMat);
-
-                         let planes = new cv.MatVector();
-                         cv.split(srcMat, planes);
-                         objectsToDelete.push(planes);
-
-                         let planeB = planes.get(2); // Kênh Blue (B trong RGBA của cv.imread)
-                         objectsToDelete.push(planeB);
-
-                         const optRows = cv.getOptimalDFTSize(height);
-                         const optCols = cv.getOptimalDFTSize(width);
-
-                         let padded = new cv.Mat();
-                         objectsToDelete.push(padded);
-                         cv.copyMakeBorder(planeB, padded, 0, optRows - height, 0, optCols - width, cv.BORDER_CONSTANT, cv.Scalar.all(0));
-
-                         let paddedFloat = new cv.Mat();
-                         objectsToDelete.push(paddedFloat);
-                         padded.convertTo(paddedFloat, cv.CV_32F);
-
-                         let zeroMat = cv.Mat.zeros(optRows, optCols, cv.CV_32F);
-                         objectsToDelete.push(zeroMat);
-
-                         let dftPlanes = new cv.MatVector();
-                         objectsToDelete.push(dftPlanes);
-                         dftPlanes.push_back(paddedFloat);
-                         dftPlanes.push_back(zeroMat);
-
-                         let complexI = new cv.Mat();
-                         objectsToDelete.push(complexI);
-                         cv.merge(dftPlanes, complexI);
-
-                         // Chuyển sang miền tần số Fourier
-                         cv.dft(complexI, complexI, cv.DFT_COMPLEX_OUTPUT);
-
-                         // Shift DC component về tâm phổ (fftshift)
-                         const cx = Math.floor(optCols / 2);
-                         const cy = Math.floor(optRows / 2);
-                         let q0 = complexI.roi(new cv.Rect(0, 0, cx, cy));
-                         let q1 = complexI.roi(new cv.Rect(cx, 0, optCols - cx, cy));
-                         let q2 = complexI.roi(new cv.Rect(0, cy, cx, optRows - cy));
-                         let q3 = complexI.roi(new cv.Rect(cx, cy, optCols - cx, optRows - cy));
-                         objectsToDelete.push(q0, q1, q2, q3);
-
-                         let tmp = new cv.Mat();
-                         objectsToDelete.push(tmp);
-                         q0.copyTo(tmp); q3.copyTo(q0); tmp.copyTo(q3);
-                         q1.copyTo(tmp); q2.copyTo(q1); tmp.copyTo(q2);
-
-                         // Vẽ chữ ký Blind Watermark đối xứng Hermitian để giữ phổ ảnh thật sau idft
-                         const wmCanvas = document.createElement('canvas');
-                         wmCanvas.width = optCols;
-                         wmCanvas.height = optRows;
-                         const wmCtx = wmCanvas.getContext('2d');
-                         wmCtx.fillStyle = '#000000';
-                         wmCtx.fillRect(0, 0, optCols, optRows);
-                         wmCtx.fillStyle = '#ffffff';
-                         wmCtx.textAlign = 'center';
-                         wmCtx.textBaseline = 'middle';
-                         let fontSize = Math.max(20, Math.floor(optCols * 0.045));
+                     // 2. Tạo lưới nhị phân chữ ký (Binary Watermark Grid) lặp đều trên khối 8x8
+                     const gridW = 120;
+                     const gridH = 90;
+                     const wmCanvas = document.createElement('canvas');
+                     wmCanvas.width = gridW;
+                     wmCanvas.height = gridH;
+                     const wmCtx = wmCanvas.getContext('2d');
+                     wmCtx.fillStyle = '#000000';
+                     wmCtx.fillRect(0, 0, gridW, gridH);
+                     wmCtx.fillStyle = '#ffffff';
+                     wmCtx.textAlign = 'center';
+                     wmCtx.textBaseline = 'middle';
+                     
+                     let fontSize = 13;
+                     wmCtx.font = `900 ${fontSize}px "Montserrat", sans-serif`;
+                     const textMetrics = wmCtx.measureText(hiddenText);
+                     if (textMetrics && textMetrics.width > gridW * 0.9) {
+                         fontSize = Math.max(8, Math.floor(fontSize * ((gridW * 0.9) / textMetrics.width)));
                          wmCtx.font = `900 ${fontSize}px "Montserrat", sans-serif`;
-                         const textMetrics = wmCtx.measureText(hiddenText);
-                         if (textMetrics && textMetrics.width > optCols * 0.82) {
-                             fontSize = Math.max(16, Math.floor(fontSize * ((optCols * 0.82) / textMetrics.width)));
-                             wmCtx.font = `900 ${fontSize}px "Montserrat", sans-serif`;
-                         }
-                         wmCtx.fillText(hiddenText, optCols / 2, optRows * 0.35);
-                         wmCtx.save();
-                         wmCtx.translate(optCols / 2, optRows / 2);
-                         wmCtx.rotate(Math.PI);
-                         wmCtx.fillText(hiddenText, 0, optRows * 0.15);
-                         wmCtx.restore();
-
-                         let wmMat = cv.imread(wmCanvas);
-                         objectsToDelete.push(wmMat);
-                         let wmGray = new cv.Mat();
-                         objectsToDelete.push(wmGray);
-                         cv.cvtColor(wmMat, wmGray, cv.COLOR_RGBA2GRAY);
-
-                         let wmFloat = new cv.Mat();
-                         objectsToDelete.push(wmFloat);
-                         const strength = Math.max(15000, Math.floor(optCols * optRows * 0.035));
-                         wmGray.convertTo(wmFloat, cv.CV_32F, strength / 255.0);
-
-                         // Tách phần thực và ảo của phổ sau khi shift
-                         let splitComplex = new cv.MatVector();
-                         objectsToDelete.push(splitComplex);
-                         cv.split(complexI, splitComplex);
-                         let dftRe = splitComplex.get(0);
-                         objectsToDelete.push(dftRe);
-
-                         cv.add(dftRe, wmFloat, dftRe);
-                         splitComplex.set(0, dftRe);
-                         cv.merge(splitComplex, complexI);
-
-                         // Inverse shift (ifftshift)
-                         q0.copyTo(tmp); q3.copyTo(q0); tmp.copyTo(q3);
-                         q1.copyTo(tmp); q2.copyTo(q1); tmp.copyTo(q2);
-
-                         // Biến đổi Fourier ngược (idft) về lại miền không gian ảnh
-                         cv.dft(complexI, complexI, cv.DFT_INVERSE | cv.DFT_SCALE | cv.DFT_REAL_OUTPUT);
-
-                         let splitInv = new cv.MatVector();
-                         objectsToDelete.push(splitInv);
-                         cv.split(complexI, splitInv);
-                         let invFloat = splitInv.get(0);
-                         objectsToDelete.push(invFloat);
-
-                         let croppedFloat = invFloat.roi(new cv.Rect(0, 0, width, height));
-                         objectsToDelete.push(croppedFloat);
-                         croppedFloat.convertTo(planeB, cv.CV_8U);
-
-                         planes.set(2, planeB);
-                         let dstMat = new cv.Mat();
-                         objectsToDelete.push(dstMat);
-                         cv.merge(planes, dstMat);
-
-                         cv.imshow(canvas, dstMat);
-                     } catch (err) {
-                         const errMsg = err && err.message ? err.message : String(err);
-                         if (errMsg.includes("BLIND_WM_ERROR:")) throw err;
-                         throw new Error("BLIND_WM_ERROR:Không thể gắn Blind Watermark vào ảnh này: " + errMsg);
-                     } finally {
-                         objectsToDelete.forEach(obj => {
-                             if (obj && typeof obj.delete === 'function') {
-                                 try { obj.delete(); } catch (e) {}
-                             }
-                         });
                      }
+                     wmCtx.fillText(hiddenText, gridW / 2, gridH / 2);
+
+                     const wmImgData = wmCtx.getImageData(0, 0, gridW, gridH).data;
+                     const wmBits = new Uint8Array(gridW * gridH);
+                     for (let i = 0; i < gridW * gridH; i++) {
+                         wmBits[i] = wmImgData[i * 4] > 128 ? 1 : 0;
+                     }
+
+                     // 3. Xử lý từng khối 8x8 trên kênh Y (Luminance trong YCbCr)
+                     const blocksX = Math.floor(width / 8);
+                     const blocksY = Math.floor(height / 8);
+                     const block = new Float32Array(64);
+                     const temp = new Float32Array(64);
+                     const dct = new Float32Array(64);
+
+                     // Ngưỡng chênh lệch (Delta) để chống nén lossy JPEG/WebP 80%
+                     const delta = 45.0;
+
+                     for (let by = 0; by < blocksY; by++) {
+                         for (let bx = 0; bx < blocksX; bx++) {
+                             const gx = bx % gridW;
+                             const gy = by % gridH;
+                             const bit = wmBits[gy * gridW + gx];
+
+                             for (let y = 0; y < 8; y++) {
+                                 const py = (by * 8 + y) * width;
+                                 for (let x = 0; x < 8; x++) {
+                                     const idx = (py + (bx * 8 + x)) * 4;
+                                     const r = data[idx];
+                                     const g = data[idx + 1];
+                                     const b = data[idx + 2];
+                                     const Y = 0.299 * r + 0.587 * g + 0.114 * b - 128.0;
+                                     block[y * 8 + x] = Y;
+                                 }
+                             }
+
+                             // Tính DCT 2D: C = T * block * T^t
+                             for (let row = 0; row < 8; row++) {
+                                 for (let col = 0; col < 8; col++) {
+                                     let sum = 0.0;
+                                     for (let k = 0; k < 8; k++) {
+                                         sum += T[row * 8 + k] * block[k * 8 + col];
+                                     }
+                                     temp[row * 8 + col] = sum;
+                                 }
+                             }
+                             for (let row = 0; row < 8; row++) {
+                                 for (let col = 0; col < 8; col++) {
+                                     let sum = 0.0;
+                                     for (let k = 0; k < 8; k++) {
+                                         sum += temp[row * 8 + k] * Tt[k * 8 + col];
+                                     }
+                                     dct[row * 8 + col] = sum;
+                                 }
+                             }
+
+                             // Điều chế cặp tần số giữa đối xứng (3,2) và (2,3)
+                             let c1 = dct[3 * 8 + 2];
+                             let c2 = dct[2 * 8 + 3];
+                             const avg = (c1 + c2) / 2.0;
+
+                             if (bit === 1) {
+                                 if (c1 <= c2 + delta) {
+                                     c1 = avg + (delta + 4.0) / 2.0;
+                                     c2 = avg - (delta + 4.0) / 2.0;
+                                 }
+                             } else {
+                                 if (c2 <= c1 + delta) {
+                                     c1 = avg - (delta + 4.0) / 2.0;
+                                     c2 = avg + (delta + 4.0) / 2.0;
+                                 }
+                             }
+                             dct[3 * 8 + 2] = c1;
+                             dct[2 * 8 + 3] = c2;
+
+                             // Tính IDCT 2D: block = T^t * dct * T
+                             for (let row = 0; row < 8; row++) {
+                                 for (let col = 0; col < 8; col++) {
+                                     let sum = 0.0;
+                                     for (let k = 0; k < 8; k++) {
+                                         sum += Tt[row * 8 + k] * dct[k * 8 + col];
+                                     }
+                                     temp[row * 8 + col] = sum;
+                                 }
+                             }
+                             for (let row = 0; row < 8; row++) {
+                                 for (let col = 0; col < 8; col++) {
+                                     let sum = 0.0;
+                                     for (let k = 0; k < 8; k++) {
+                                         sum += temp[row * 8 + k] * T[k * 8 + col];
+                                     }
+                                     block[row * 8 + col] = sum;
+                                 }
+                             }
+
+                             // Ghi lại sai lệch Y vào pixel RGB
+                             for (let y = 0; y < 8; y++) {
+                                 const py = (by * 8 + y) * width;
+                                 for (let x = 0; x < 8; x++) {
+                                     const idx = (py + (bx * 8 + x)) * 4;
+                                     const r = data[idx];
+                                     const g = data[idx + 1];
+                                     const b = data[idx + 2];
+                                     const oldY = 0.299 * r + 0.587 * g + 0.114 * b - 128.0;
+                                     const newY = block[y * 8 + x];
+                                     const diff = newY - oldY;
+
+                                     data[idx] = Math.min(255, Math.max(0, Math.round(r + diff)));
+                                     data[idx + 1] = Math.min(255, Math.max(0, Math.round(g + diff)));
+                                     data[idx + 2] = Math.min(255, Math.max(0, Math.round(b + diff)));
+                                 }
+                             }
+                         }
+                     }
+
+                     ctx.putImageData(imgData, 0, 0);
                  },
 
                 handleLike: async () => {
