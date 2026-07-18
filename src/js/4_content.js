@@ -1054,7 +1054,7 @@ Object.assign(window.app, {
                     try {
                         app.upload.isPreparingBlob = true;
                         const username = app.username || "Guest";
-                        const finalBlob = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none');
+                        const finalBlob = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none', { embedBlind: false });
                         const targetMime = app.utils.getTargetMimeType();
                         const compressOptions = {
                             maxSizeMB: 10,
@@ -1791,24 +1791,23 @@ Object.assign(window.app, {
                         return app.ui.showAlert(msg, null, null, { title: "Thiếu thông tin" });
                     }
 
-                    // Đẩy bước chuẩn bị & convert WebP (chỉ bước convert webp dùng thư viện CPU) vào tiến trình nền
+                    // Đẩy bước nhúng Blind Watermark, nén ảnh & convert WebP vào tiến trình nền
                     // Chạy song song ngay khi người dùng bấm nút gửi và bắt đầu giải Captcha
                     const bgWebpPromise = (async () => {
                         try {
                             const username = app.username || "Guest";
-                            let blobToProcess = app.upload.readyBlob;
                             const targetMime = app.utils.getTargetMimeType();
 
-                            if (!blobToProcess) {
-                                const finalBlob = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none');
-                                const compressOptions = { maxSizeMB: 10, maxWidthOrHeight: 1920, useWebWorker: true, fileType: targetMime, initialQuality: 0.8 };
-                                try {
-                                    blobToProcess = await imageCompression(finalBlob, compressOptions);
-                                } catch (e) {
-                                    console.warn("imageCompression lỗi:", e);
-                                }
-                                if (!blobToProcess) blobToProcess = finalBlob;
+                            // Thực hiện nhúng Blind Watermark + dấu chìm hiển thị và nén ảnh trong lúc người dùng giải Captcha
+                            const finalBlob = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none', { embedBlind: true });
+                            const compressOptions = { maxSizeMB: 10, maxWidthOrHeight: 1920, useWebWorker: true, fileType: targetMime, initialQuality: 0.8 };
+                            let blobToProcess = null;
+                            try {
+                                blobToProcess = await imageCompression(finalBlob, compressOptions);
+                            } catch (e) {
+                                console.warn("imageCompression lỗi:", e);
                             }
+                            if (!blobToProcess) blobToProcess = finalBlob;
 
                             // Chạy convertToWebpCpu trong nền trong lúc giải captcha
                             if (blobToProcess && blobToProcess.type !== targetMime) {

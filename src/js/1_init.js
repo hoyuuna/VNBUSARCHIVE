@@ -1640,7 +1640,7 @@ cleanupState: () => {
                     });
                 },
 
-                watermark: (file, username, pos = { x: 0.5, y: 0.5, color: 'white' }, filters = 'none') => {
+                watermark: (file, username, pos = { x: 0.5, y: 0.5, color: 'white' }, filters = 'none', options = { embedBlind: false }) => {
                     return new Promise((resolve, reject) => {
                         const img = new Image();
                         const url = URL.createObjectURL(file);
@@ -1772,7 +1772,7 @@ cleanupState: () => {
                                     ctx.restore();
                                 }
 
-                                 const isBlind = (currentMode === 'advanced') || (app.upload && app.upload.isBlindWatermarkEnabled);
+                                 const isBlind = options.embedBlind && ((currentMode === 'advanced') || (app.upload && app.upload.isBlindWatermarkEnabled));
                                  if (isBlind) {
                                      try {
                                          const hiddenText = `VNBUSARCHIVE/${username}/`;
