@@ -1455,6 +1455,8 @@ app.admin.fetchManagerData('denied');
                     canvasSrc.width = Math.max(64, targetW - dx);
                     canvasSrc.height = Math.max(64, targetH - dy);
                     const ctx = canvasSrc.getContext('2d');
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingQuality = 'high';
                     ctx.clearRect(0, 0, canvasSrc.width, canvasSrc.height);
                     ctx.drawImage(img, -dx, -dy, targetW, targetH);
 
@@ -1779,6 +1781,9 @@ app.admin.fetchManagerData('denied');
                     const chkSmooth = document.getElementById('mgr-wm-smooth');
                     const isSmooth = chkSmooth ? chkSmooth.checked : true;
 
+                    const blockDiffs = new Float32Array(blocksX * blocksY);
+                    const allDiffsList = [];
+
                     for (let by = 0; by < blocksY; by++) {
                         for (let bx = 0; bx < blocksX; bx++) {
                             for (let y = 0; y < 8; y++) {
@@ -1812,18 +1817,8 @@ app.admin.fetchManagerData('denied');
                             const diff3 = dct[4 * 8 + 3] - dct[3 * 8 + 4];
                             const diff = diff1 + diff2 + diff3;
 
-                            const fullIdx = (by * blocksX + bx) * 4;
-                            let val = 0;
-                            if (isSmooth) {
-                                val = Math.round(((diff - (-4.0)) / 42.0) * 255.0);
-                                val = Math.min(255, Math.max(0, val));
-                            } else {
-                                val = diff > 6.0 ? 255 : 0;
-                            }
-                            fullPixels[fullIdx] = val;
-                            fullPixels[fullIdx + 1] = val;
-                            fullPixels[fullIdx + 2] = val;
-                            fullPixels[fullIdx + 3] = 255;
+                            blockDiffs[by * blocksX + bx] = diff;
+                            allDiffsList.push(diff);
 
                             const offX = app.admin._wmTileOffsetX || 0;
                             const offY = app.admin._wmTileOffsetY || 0;
@@ -1835,7 +1830,57 @@ app.admin.fetchManagerData('denied');
                         }
                     }
 
+                    allDiffsList.sort((a, b) => a - b);
+                    let fp5 = -4.0, fp95 = 38.0;
+                    if (allDiffsList.length > 5) {
+                        fp5 = allDiffsList[Math.floor(allDiffsList.length * 0.05)];
+                        fp95 = allDiffsList[Math.floor(allDiffsList.length * 0.95)];
+                        if (fp95 - fp5 < 1.0) {
+                            const mid = (fp5 + fp95) / 2.0;
+                            fp5 = mid - 5.0;
+                            fp95 = mid + 5.0;
+                        }
+                    }
+                    const fpMid = (fp5 + fp95) / 2.0;
+
+                    for (let by = 0; by < blocksY; by++) {
+                        for (let bx = 0; bx < blocksX; bx++) {
+                            const diff = blockDiffs[by * blocksX + bx];
+                            const fullIdx = (by * blocksX + bx) * 4;
+                            let val = 0;
+                            if (isSmooth) {
+                                val = Math.round(((diff - fp5) / (fp95 - fp5)) * 255.0);
+                                val = Math.min(255, Math.max(0, val));
+                            } else {
+                                val = diff > fpMid ? 255 : 0;
+                            }
+                            fullPixels[fullIdx] = val;
+                            fullPixels[fullIdx + 1] = val;
+                            fullPixels[fullIdx + 2] = val;
+                            fullPixels[fullIdx + 3] = 255;
+                        }
+                    }
+
                     ctxFull.putImageData(fullImgData, 0, 0);
+
+                    const validTileDiffs = [];
+                    for (let i = 0; i < gridW * gridH; i++) {
+                        if (tileCount[i] > 0) {
+                            validTileDiffs.push(tileAcc[i] / tileCount[i]);
+                        }
+                    }
+                    validTileDiffs.sort((a, b) => a - b);
+                    let tp5 = -3.0, tp95 = 35.0;
+                    if (validTileDiffs.length > 5) {
+                        tp5 = validTileDiffs[Math.floor(validTileDiffs.length * 0.06)];
+                        tp95 = validTileDiffs[Math.floor(validTileDiffs.length * 0.94)];
+                        if (tp95 - tp5 < 1.0) {
+                            const mid = (tp5 + tp95) / 2.0;
+                            tp5 = mid - 5.0;
+                            tp95 = mid + 5.0;
+                        }
+                    }
+                    const tpMid = (tp5 + tp95) / 2.0;
 
                     canvasTile.width = gridW;
                     canvasTile.height = gridH;
@@ -1844,19 +1889,26 @@ app.admin.fetchManagerData('denied');
                     const tilePixels = tileImgData.data;
 
                     for (let i = 0; i < gridW * gridH; i++) {
-                        const avgDiff = tileCount[i] > 0 ? (tileAcc[i] / tileCount[i]) : 0;
-                        let color = 0;
-                        if (isSmooth) {
-                            color = Math.round(((avgDiff - (-3.0)) / 35.0) * 255.0);
-                            color = Math.min(255, Math.max(0, color));
-                        } else {
-                            color = avgDiff > 4.0 ? 255 : 0;
-                        }
                         const idx = i * 4;
-                        tilePixels[idx] = color;
-                        tilePixels[idx + 1] = color;
-                        tilePixels[idx + 2] = color;
-                        tilePixels[idx + 3] = 255;
+                        if (tileCount[i] > 0) {
+                            const avgDiff = tileAcc[i] / tileCount[i];
+                            let color = 0;
+                            if (isSmooth) {
+                                color = Math.round(((avgDiff - tp5) / (tp95 - tp5)) * 255.0);
+                                color = Math.min(255, Math.max(0, color));
+                            } else {
+                                color = avgDiff > tpMid ? 255 : 0;
+                            }
+                            tilePixels[idx] = color;
+                            tilePixels[idx + 1] = color;
+                            tilePixels[idx + 2] = color;
+                            tilePixels[idx + 3] = 255;
+                        } else {
+                            tilePixels[idx] = 12;
+                            tilePixels[idx + 1] = 14;
+                            tilePixels[idx + 2] = 20;
+                            tilePixels[idx + 3] = 255;
+                        }
                     }
                     ctxTile.putImageData(tileImgData, 0, 0);
 
