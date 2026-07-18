@@ -864,21 +864,58 @@ Object.assign(window.app, {
                     else el.classList.remove('wm-black');
                     if (app.upload.schedulePrepareBlob) app.upload.schedulePrepareBlob();
                 },
-                isBlindWatermarkEnabled: typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_blind_wm_pref') === 'true',
+                isBlindWatermarkEnabled: false,
                 loadOpenCV: async (progToast) => {
                     window._openCvReady = true;
                     return true;
                 },
-                toggleBlindWatermark: async (el) => {
-                    const savedPref = el.checked;
-                    try { if (typeof localStorage !== 'undefined') localStorage.setItem('vnbus_blind_wm_pref', savedPref ? 'true' : 'false'); } catch (e) {}
-                    
-                    app.upload.isBlindWatermarkEnabled = el.checked;
-                    if (el.checked) {
-                        app.toast.show('success', 'Blind Watermark', 'Đã bật Blind Watermark (Block DCT 8x8)!');
-                    } else {
-                        app.toast.show('info', 'Blind Watermark', 'Đã tắt Blind Watermark.');
+                setWmMode: (mode) => {
+                    if (!app.wmState) app.wmState = { x: 0.5, y: 0.5, color: 'white', scale: 1.0, mode: 'basic' };
+                    app.wmState.mode = mode;
+                    app.upload.isBlindWatermarkEnabled = (mode === 'advanced');
+                    try { if (typeof localStorage !== 'undefined') localStorage.setItem('vnbus_wm_mode', mode); } catch (e) {}
+
+                    ['standard', 'basic', 'advanced'].forEach(m => {
+                        const btn = document.getElementById(`btn-wm-mode-${m}`);
+                        if (btn) {
+                            if (m === mode) {
+                                btn.className = 'px-2 py-2 rounded-lg text-xs font-bold transition bg-white text-black shadow-sm border border-gray-200/60';
+                            } else {
+                                btn.className = 'px-2 py-2 rounded-lg text-xs font-bold transition text-gray-600 hover:text-black';
+                            }
+                        }
+                    });
+
+                    const descEl = document.getElementById('wm-mode-desc');
+                    if (descEl) {
+                        if (mode === 'standard') {
+                            descEl.innerHTML = 'Không có dấu chìm tên tài khoản, vẫn sẽ có thanh dấu chìm tiêu chuẩn phía dưới.';
+                        } else if (mode === 'basic') {
+                            descEl.innerHTML = 'Có dấu chìm tên tài khoản và thanh dấu chìm tiêu chuẩn phía dưới.';
+                        } else if (mode === 'advanced') {
+                            descEl.innerHTML = 'Có dấu chìm tên tài khoản và thanh dấu chìm tiêu chuẩn phía dưới cùng công nghệ "Blind watermark" (<a href="https://www.vnbusarchive.io.vn/help/1527674609951047761" target="_blank" class="text-black font-bold underline hover:text-blue-600">tìm hiểu thêm</a>).';
+                        }
                     }
+
+                    const customControls = document.getElementById('wm-custom-controls');
+                    if (customControls) {
+                        if (mode === 'standard') {
+                            customControls.classList.add('opacity-40', 'pointer-events-none');
+                        } else {
+                            customControls.classList.remove('opacity-40', 'pointer-events-none');
+                        }
+                    }
+
+                    const wmDrag = document.getElementById('draggable-watermark');
+                    const previewBox = document.getElementById('preview-box');
+                    if (wmDrag && previewBox && !previewBox.classList.contains('hidden')) {
+                        if (mode === 'standard') {
+                            wmDrag.classList.add('hidden');
+                        } else {
+                            wmDrag.classList.remove('hidden');
+                        }
+                    }
+
                     if (app.upload.schedulePrepareBlob) app.upload.schedulePrepareBlob();
                 },
                 toggleWmPanel: () => {
@@ -945,10 +982,8 @@ Object.assign(window.app, {
                     const chk = document.getElementById('chk-wm-black');
                     if (chk) chk.checked = false;
                     
-                    const pref = typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_blind_wm_pref') === 'true';
-                    app.upload.isBlindWatermarkEnabled = pref;
-                    const chkBwm = document.getElementById('chk-blind-watermark');
-                    if (chkBwm) chkBwm.checked = pref;
+                    const prefMode = (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_mode')) || 'basic';
+                    app.upload.setWmMode(prefMode);
                     
                     app.upload.toggleColor(false);
                     
@@ -1573,7 +1608,11 @@ Object.assign(window.app, {
 
                     const wmDrag = document.getElementById('draggable-watermark');
                     if (wmDrag) {
-                        wmDrag.classList.remove('hidden');
+                        if (app.wmState && app.wmState.mode === 'standard') {
+                            wmDrag.classList.add('hidden');
+                        } else {
+                            wmDrag.classList.remove('hidden');
+                        }
                         wmDrag.classList.remove('wm-active');
                     }
 
@@ -3867,11 +3906,9 @@ Object.assign(window.app, {
 
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
-        const pref = typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_blind_wm_pref') === 'true';
-        if (pref && window.app && window.app.upload) {
-            window.app.upload.isBlindWatermarkEnabled = true;
-            const chkBwm = document.getElementById('chk-blind-watermark');
-            if (chkBwm) chkBwm.checked = true;
+        const savedMode = (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_mode')) || 'basic';
+        if (window.app && window.app.upload && window.app.upload.setWmMode) {
+            window.app.upload.setWmMode(savedMode);
         }
     }, 500);
 });

@@ -1758,18 +1758,21 @@ cleanupState: () => {
                                 const rightWidth = ctx.measureText(rightText).width;
                                 ctx.fillText(rightText, width - rightWidth - (barHeight / 2), height - barHeight / 2);
 
-                                ctx.save();
-                                ctx.globalAlpha = 0.5;
-                                ctx.fillStyle = pos.color === 'black' ? "black" : "white";
-                                ctx.font = `700 ${wmFontSize}px ${fontFace}`;
-                                ctx.textAlign = 'center';
-                                ctx.textBaseline = 'middle';
+                                const currentMode = pos.mode || (app.wmState && app.wmState.mode) || 'basic';
+                                if (currentMode !== 'standard') {
+                                    ctx.save();
+                                    ctx.globalAlpha = 0.5;
+                                    ctx.fillStyle = pos.color === 'black' ? "black" : "white";
+                                    ctx.font = `700 ${wmFontSize}px ${fontFace}`;
+                                    ctx.textAlign = 'center';
+                                    ctx.textBaseline = 'middle';
 
-                                 ctx.translate(width * pos.x, height * pos.y);
-                                 ctx.fillText(`© ${username}`, 0, 0);
-                                 ctx.restore();
+                                    ctx.translate(width * pos.x, height * pos.y);
+                                    ctx.fillText(`© ${username}`, 0, 0);
+                                    ctx.restore();
+                                }
 
-                                 const isBlind = (app.upload && app.upload.isBlindWatermarkEnabled);
+                                 const isBlind = (currentMode === 'advanced') || (app.upload && app.upload.isBlindWatermarkEnabled);
                                  if (isBlind) {
                                      try {
                                          const hiddenText = `VNBUSARCHIVE/${username}/`;
@@ -3211,7 +3214,7 @@ Object.assign(window.app, {
 });
 
 Object.assign(window.app, {
-  wmState: { x: 0.5, y: 0.5, color: 'white' }
+  wmState: { x: 0.5, y: 0.5, color: 'white', scale: 1.0, mode: 'basic' }
 });
 
 Object.assign(window.app, {

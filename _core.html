@@ -4355,51 +4355,44 @@
                                 <!-- BẢNG ĐIỀU CHỈNH WATERMARK -->
                                 <div id="wm-adjust-panel" class="hidden mt-3 p-4 bg-white border border-gray-200 rounded-xl shadow-sm relative z-30">
                                     <div class="grid grid-cols-1 gap-4">
-                                        <!-- CÔNG TẮC DẤU CHÌM MÀU ĐEN -->
-                                        <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 flex items-center justify-between shadow-sm transition-all hover:border-gray-300 group">
-                                            <div class="flex items-start gap-3">
-                                                <div class="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center shrink-0 transition-colors shadow-sm group-hover:border-gray-300">
-                                                    <i class="fa-solid fa-circle-half-stroke text-lg text-black"></i>
-                                                </div>
-                                                <div class="mt-0.5">
-                                                    <h4 class="font-bold text-sm uppercase mb-1 text-black">Dấu chìm màu đen</h4>
-                                                    <p class="text-[10px] font-medium text-gray-500 leading-snug">Sử dụng chữ ký màu đen để dễ nhìn hơn trên ảnh sáng.</p>
-                                                </div>
-                                            </div>
-                                            <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-4 self-center">
-                                                <input type="checkbox" id="chk-wm-black" class="sr-only peer" onchange="app.upload.toggleColor(this.checked)">
-                                                <div class="w-11 h-6 bg-black rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all shadow-inner"></div>
-                                            </label>
-                                        </div>
+                                        <!-- CHẾ ĐỘ DẤU CHÌM (Tiêu chuẩn / Cơ bản / Nâng cao) -->
                                         <div>
-                                            <div class="flex justify-between items-center mb-2"><label class="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Kích thước</label><span id="wm-scale-val" class="text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">100%</span></div>
-                                            <input type="range" id="wm-scale-slider" min="50" max="100" value="100" class="vnbus-slider" oninput="app.upload.updateWmScale(this.value)" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
+                                            <label class="text-xs font-bold text-gray-700 uppercase tracking-wider block mb-2">Chế độ dấu chìm</label>
+                                            <div class="grid grid-cols-3 gap-1.5 bg-gray-100 p-1 rounded-xl border border-gray-200/80">
+                                                <button type="button" id="btn-wm-mode-standard" onclick="app.upload.setWmMode('standard')" class="px-2 py-2 rounded-lg text-xs font-bold transition text-gray-600 hover:text-black">Tiêu chuẩn</button>
+                                                <button type="button" id="btn-wm-mode-basic" onclick="app.upload.setWmMode('basic')" class="px-2 py-2 rounded-lg text-xs font-bold transition bg-white text-black shadow-sm border border-gray-200/60">Cơ bản</button>
+                                                <button type="button" id="btn-wm-mode-advanced" onclick="app.upload.setWmMode('advanced')" class="px-2 py-2 rounded-lg text-xs font-bold transition text-gray-600 hover:text-black">Nâng cao</button>
+                                            </div>
+                                            <div id="wm-mode-desc" class="mt-2.5 text-[11px] text-gray-600 font-medium leading-relaxed bg-gray-50 border border-gray-200/80 rounded-lg p-3">
+                                                Có dấu chìm tên tài khoản và thanh dấu chìm tiêu chuẩn phía dưới.
+                                            </div>
+                                        </div>
+
+                                        <div id="wm-custom-controls" class="grid grid-cols-1 gap-4 transition-opacity duration-200">
+                                            <!-- CÔNG TẮC DẤU CHÌM MÀU ĐEN -->
+                                            <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 flex items-center justify-between shadow-sm transition-all hover:border-gray-300 group">
+                                                <div class="flex items-start gap-3">
+                                                    <div class="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center shrink-0 transition-colors shadow-sm group-hover:border-gray-300">
+                                                        <i class="fa-solid fa-circle-half-stroke text-lg text-black"></i>
+                                                    </div>
+                                                    <div class="mt-0.5">
+                                                        <h4 class="font-bold text-sm uppercase mb-1 text-black">Dấu chìm màu đen</h4>
+                                                        <p class="text-[10px] font-medium text-gray-500 leading-snug">Sử dụng chữ ký màu đen để dễ nhìn hơn trên ảnh sáng.</p>
+                                                    </div>
+                                                </div>
+                                                <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-4 self-center">
+                                                    <input type="checkbox" id="chk-wm-black" class="sr-only peer" onchange="app.upload.toggleColor(this.checked)">
+                                                    <div class="w-11 h-6 bg-black rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all shadow-inner"></div>
+                                                </label>
+                                            </div>
+                                            <div>
+                                                <div class="flex justify-between items-center mb-2"><label class="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Kích thước</label><span id="wm-scale-val" class="text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">100%</span></div>
+                                                <input type="range" id="wm-scale-slider" min="50" max="100" value="100" class="vnbus-slider" oninput="app.upload.updateWmScale(this.value)" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="text-right mt-4">
                                         <button type="button" onclick="app.upload.resetWm()" class="text-xs bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-800 px-4 py-1.5 rounded-md font-bold transition"><i class="fa-solid fa-rotate-left mr-1"></i> Đặt lại mặc định</button>
-                                    </div>
-                                </div>
-
-                                <!-- [MỚI] CÔNG TẮC BLIND WATERMARK TÁCH BIỆT NGAY BÊN DƯỚI THANH CÔNG CỤ -->
-                                <div id="blind-wm-container" class="mt-3 bg-gray-50 border border-gray-200 rounded-xl p-3 sm:p-3.5 shadow-sm relative z-30">
-                                    <div class="flex items-center justify-between gap-3">
-                                        <div class="flex items-start gap-3">
-                                            <div class="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center shrink-0 transition-colors shadow-sm">
-                                                <i class="fa-solid fa-eye-slash text-base sm:text-lg text-black"></i>
-                                            </div>
-                                            <div class="mt-0.5">
-                                                <h4 class="font-bold text-xs sm:text-sm uppercase mb-1 text-black flex items-center gap-1.5 flex-wrap">
-                                                    blind watermark
-                                                    <span class="bg-black text-white text-[9px] px-1.5 py-0.5 rounded font-mono font-bold">KHUYẾN CÁO</span>
-                                                </h4>
-                                                <p class="text-[10px] sm:text-[11px] font-medium text-gray-500 leading-snug"><a href="https://www.vnbusarchive.io.vn/help/1527674609951047761" target="_blank" class="text-black hover:underline font-bold">Tìm hiểu thêm</a></p>
-                                            </div>
-                                        </div>
-                                        <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-2 self-center">
-                                            <input type="checkbox" id="chk-blind-watermark" class="sr-only peer" onchange="app.upload.toggleBlindWatermark(this)">
-                                            <div class="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-black peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all shadow-inner"></div>
-                                        </label>
                                     </div>
                                 </div>
 
