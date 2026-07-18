@@ -73,6 +73,9 @@
     "https://unpkg.com",
     "https://cdn.jsdelivr.net",
     "https://esm.sh",
+    "https://storage.googleapis.com",
+    "https://tfhub.dev",
+    "https://www.kaggle.com",
     "https://api.ipify.org",
     "https://nominatim.openstreetmap.org",
     "https://raw.githubusercontent.com",
@@ -101,6 +104,8 @@
     "blob:",
     "data:",
     "https://docs.opencv.org",
-    "https://*.opencv.org"
+    "https://*.opencv.org",
+    "https://storage.googleapis.com",
+    "https://tfhub.dev"
   ]
 }

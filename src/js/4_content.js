@@ -580,62 +580,53 @@ Object.assign(window.app, {
                     });
                 },
 
-                loadOpenCv: () => {
-                    return new Promise((resolve, reject) => {
-                        if (window.cv && window.cv.CascadeClassifier) return resolve(window.cv);
-                        if (window.cv && typeof window.cv.then === 'function') {
-                            window.cv.then(() => resolve(window.cv));
-                            return;
+                loadFaceModel: () => {
+                    if (app.upload._faceModel) return Promise.resolve(app.upload._faceModel);
+                    if (app.upload._faceModelLoading) return app.upload._faceModelLoading;
+
+                    app.upload._faceModelLoading = (async () => {
+                        if (!window.tf) {
+                            await new Promise((resolve, reject) => {
+                                const s = document.createElement('script');
+                                s.src = 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js';
+                                s.crossOrigin = 'anonymous';
+                                s.onload = resolve;
+                                s.onerror = () => reject(new Error('TFJS load failed'));
+                                document.head.appendChild(s);
+                            });
                         }
-                        const s = document.createElement('script');
-                        s.src = 'https://docs.opencv.org/4.x/opencv.js';
-                        s.crossOrigin = 'anonymous';
-                        s.onload = () => {
-                            if (window.cv && window.cv.CascadeClassifier) return resolve(window.cv);
-                            if (window.cv && typeof window.cv.then === 'function') {
-                                window.cv.then(() => resolve(window.cv));
-                                return;
-                            }
-                            const t = setInterval(() => {
-                                if (window.cv && window.cv.CascadeClassifier) {
-                                    clearInterval(t);
-                                    resolve(window.cv);
-                                }
-                            }, 100);
-                            setTimeout(() => { clearInterval(t); reject(new Error('OpenCV load timeout')); }, 30000);
-                        };
-                        s.onerror = () => reject(new Error('Không thể tải thư viện nhận diện khuôn mặt.'));
-                        document.head.appendChild(s);
-                    });
+                        if (!window.blazeface) {
+                            await new Promise((resolve, reject) => {
+                                const s = document.createElement('script');
+                                s.src = 'https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface@0.1.0/dist/blazeface.min.js';
+                                s.crossOrigin = 'anonymous';
+                                s.onload = resolve;
+                                s.onerror = () => reject(new Error('BlazeFace load failed'));
+                                document.head.appendChild(s);
+                            });
+                        }
+                        const model = await window.blazeface.load();
+                        app.upload._faceModel = model;
+                        return model;
+                    })();
+
+                    return app.upload._faceModelLoading;
                 },
 
                 detectFaces: async () => {
                     const container = document.getElementById('preview-container');
                     const previewImg = document.getElementById('preview-img');
-                    if (!container || !previewImg) {
-                        app.ui.showAlert('Chưa có ảnh preview để nhận diện khuôn mặt.');
-                        return;
-                    }
+                    if (!container || !previewImg) return;
 
-                    const toast = app.toast.createProgress('Đang tải mô hình nhận diện khuôn mặt...');
+                    if (app.upload._faceDetecting) return;
+                    app.upload._faceDetecting = true;
+
                     try {
-                        const cv = await app.upload.loadOpenCv();
-                        if (toast && toast.update) toast.update(45, 'Đang phân tích khuôn mặt...');
-
-                        if (!app.upload._faceCascade) {
-                            const xmlUrl = 'https://raw.githubusercontent.com/opencv/opencv/4.x/data/haarcascades/haarcascade_frontalface_default.xml';
-                            const xmlText = await (await fetch(xmlUrl)).text();
-                            const u8 = new TextEncoder().encode(xmlText);
-                            cv.FS_createDataFile('/', 'face_cascade.xml', u8, true, false);
-                            const clf = new cv.CascadeClassifier();
-                            clf.load('/face_cascade.xml');
-                            app.upload._faceCascade = clf;
-                        }
-                        const clf = app.upload._faceCascade;
+                        const model = await app.upload.loadFaceModel();
 
                         const natW = previewImg.naturalWidth || container.clientWidth;
                         const natH = previewImg.naturalHeight || container.clientHeight;
-                        const detW = Math.min(natW, 1000);
+                        const detW = Math.min(natW, 1280);
                         const detH = Math.round(natH * (detW / natW));
 
                         const canvas = document.createElement('canvas');
@@ -644,51 +635,39 @@ Object.assign(window.app, {
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(previewImg, 0, 0, detW, detH);
 
-                        const src = cv.imread(canvas);
-                        const gray = new cv.Mat();
-                        cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
-                        cv.equalizeHist(gray, gray);
+                        const predictions = await model.estimateFaces(canvas, false);
+                        if (!predictions || predictions.length === 0) return;
 
-                        const faces = new cv.RectVector();
-                        const minSize = new cv.Size(Math.round(detW * 0.04), Math.round(detH * 0.04));
-                        clf.detectMultiScale(gray, faces, 1.1, 3, 0, minSize);
-
-                        const count = faces.size();
                         let added = 0;
-                        for (let i = 0; i < count; i++) {
-                            const r = faces.get(i);
-                            const padX = r.width * 0.08;
-                            const padY = r.height * 0.08;
-                            const fx = Math.max(0, r.x - padX);
-                            const fy = Math.max(0, r.y - padY);
-                            const fw = Math.min(detW - fx, r.width + padX * 2);
-                            const fh = Math.min(detH - fy, r.height + padY * 2);
+                        predictions.forEach(p => {
+                            const x = Math.min(p.topLeft[0], p.bottomRight[0]);
+                            const y = Math.min(p.topLeft[1], p.bottomRight[1]);
+                            const w = Math.abs(p.bottomRight[0] - p.topLeft[0]);
+                            const h = Math.abs(p.bottomRight[1] - p.topLeft[1]);
+
+                            const padX = w * 0.12;
+                            const padY = h * 0.18;
+                            const fx = Math.max(0, x - padX);
+                            const fy = Math.max(0, y - padY);
+                            const fw = Math.min(detW - fx, w + padX * 2);
+                            const fh = Math.min(detH - fy, h + padY * 2);
 
                             const left = (fx / detW) * container.clientWidth;
                             const top = (fy / detH) * container.clientHeight;
-                            const w = (fw / detW) * container.clientWidth;
-                            const h = (fh / detH) * container.clientHeight;
+                            const pw = (fw / detW) * container.clientWidth;
+                            const ph = (fh / detH) * container.clientHeight;
 
-                            app.upload.buildBlurPanel({ left, top, width: w, height: h, auto: true });
+                            app.upload.buildBlurPanel({ left, top, width: pw, height: ph, auto: true });
                             added++;
-                        }
+                        });
 
-                        src.delete();
-                        gray.delete();
-                        faces.delete();
-                        minSize.delete();
-
-                        if (toast && toast.remove) toast.remove();
-
-                        if (added === 0) {
-                            app.ui.showAlert('Không phát hiện khuôn mặt nào trong ảnh. Bạn vẫn có thể thêm vùng che thủ công bằng nút "Làm mờ".');
-                        } else {
-                            app.toast.show('success', 'Đã tự động che khuôn mặt', `Phát hiện và che ${added} khuôn mặt. Bạn có thể kéo, thay đổi kích thước hoặc xóa từng vùng.`);
+                        if (added > 0) {
+                            app.toast.show('success', 'Đã tự động che khuôn mặt', `Phát hiện và che ${added} khuôn mặt. Bạn có thể kéo, đổi kích thước hoặc xóa từng vùng.`);
                         }
                     } catch (err) {
-                        if (toast && toast.remove) toast.remove();
-                        console.error('Face detect error:', err);
-                        app.ui.showAlert('Không thể nhận diện khuôn mặt tự động (' + (err && err.message ? err.message : err) + '). Bạn vẫn có thể che thủ công.');
+                        console.warn('Auto face-blur skipped:', err);
+                    } finally {
+                        app.upload._faceDetecting = false;
                     }
                 },
 
@@ -1329,6 +1308,8 @@ Object.assign(window.app, {
                         dropZone.style.pointerEvents = 'none';
                         visualEl.innerHTML = '<div class="flex flex-col items-center gap-3 py-4"><i class="fa-solid fa-circle-notch fa-spin text-4xl text-black"></i><p class="text-sm font-bold text-gray-600 mt-3">Đang xử lý ảnh, vui lòng đợi...</p></div>';
                         if (qrWrapper) qrWrapper.classList.add('hidden');
+                        // Bắt đầu tải trước mô hình nhận diện khuôn mặt trong lúc xử lý ảnh
+                        if (app.upload.loadFaceModel) app.upload.loadFaceModel().catch(() => {});
                     }
 
                     app.upload.restoreDropZone = () => {
