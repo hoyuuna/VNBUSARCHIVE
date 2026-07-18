@@ -881,6 +881,25 @@ Object.assign(window.app, {
                     }
                     if (app.upload.schedulePrepareBlob) app.upload.schedulePrepareBlob();
                 },
+                downloadTestBlob: async () => {
+                    if (!app.upload.readyBlob && app.upload.prepareFinalBlob) {
+                        app.toast.show('info', 'Blind Watermark', 'Đang nung ảnh xuất ra (nén 80%), vui lòng chờ trong giây lát...');
+                        await app.upload.prepareFinalBlob();
+                    }
+                    if (!app.upload.readyBlob) {
+                        app.ui.showAlert('Chưa có dữ liệu ảnh xuất ra. Vui lòng chọn lại ảnh hoặc thử lại sau.');
+                        return;
+                    }
+                    const url = URL.createObjectURL(app.upload.readyBlob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `vnbus_blindwm_test_${Date.now()}.jpg`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    app.toast.show('success', 'Blind Watermark', 'Đã tải xuống ảnh xuất ra (nhúng DCT & nén 80%). Bạn có thể thả vào trang verify để kiểm tra!');
+                },
                 toggleWmPanel: () => {
                     const panel = document.getElementById('wm-adjust-panel');
                     if(panel) panel.classList.toggle('hidden');
