@@ -1781,30 +1781,9 @@ app.admin.fetchManagerData('denied');
                     const tileAcc = new Float32Array(gridW * gridH);
                     const tileCount = new Uint32Array(gridW * gridH);
 
-                    const refImg = app.admin._refBlindImg;
-                    let refGray = null;
-                    let refW = 0, refH = 0;
-                    if (refImg && refImg.width > 0 && app.admin._wmFullX !== undefined && app.admin._wmFullY !== undefined) {
-                        refW = refImg.width;
-                        refH = refImg.height;
-                        const cRef = document.createElement('canvas');
-                        cRef.width = refW;
-                        cRef.height = refH;
-                        const ctxRef = cRef.getContext('2d', { willReadFrequently: true });
-                        ctxRef.drawImage(refImg, 0, 0, refW, refH);
-                        const rData = ctxRef.getImageData(0, 0, refW, refH).data;
-                        refGray = new Float32Array(refW * refH);
-                        for (let i = 0; i < refW * refH; i++) {
-                            refGray[i] = 0.299 * rData[i * 4] + 0.587 * rData[i * 4 + 1] + 0.114 * rData[i * 4 + 2] - 128.0;
-                        }
-                    }
-
                     const block = new Float32Array(64);
                     const temp = new Float32Array(64);
                     const dct = new Float32Array(64);
-                    const blockRef = new Float32Array(64);
-                    const tempRef = new Float32Array(64);
-                    const dctRef = new Float32Array(64);
                     const chkSmooth = document.getElementById('mgr-wm-smooth');
                     const isSmooth = chkSmooth ? chkSmooth.checked : true;
 
@@ -1839,42 +1818,11 @@ app.admin.fetchManagerData('denied');
                                 }
                             }
 
-                            const diff1 = dct[3 * 8 + 2] - dct[2 * 8 + 3];
-                            const diff2 = dct[4 * 8 + 2] - dct[2 * 8 + 4];
-                            const diff3 = dct[4 * 8 + 3] - dct[3 * 8 + 4];
-                            let diff = diff1 + diff2 + diff3;
-
-                            if (refGray) {
-                                const rx = (app.admin._wmFullX || 0) + bx * 8;
-                                const ry = (app.admin._wmFullY || 0) + by * 8;
-                                if (rx >= 0 && ry >= 0 && rx + 8 <= refW && ry + 8 <= refH) {
-                                    for (let y = 0; y < 8; y++) {
-                                        const py = (ry + y) * refW;
-                                        for (let x = 0; x < 8; x++) {
-                                            blockRef[y * 8 + x] = refGray[py + rx + x];
-                                        }
-                                    }
-                                    for (let row = 0; row < 8; row++) {
-                                        for (let col = 0; col < 8; col++) {
-                                            let sum = 0.0;
-                                            for (let k = 0; k < 8; k++) { sum += T[row * 8 + k] * blockRef[k * 8 + col]; }
-                                            tempRef[row * 8 + col] = sum;
-                                        }
-                                    }
-                                    for (let row = 0; row < 8; row++) {
-                                        for (let col = 0; col < 8; col++) {
-                                            let sum = 0.0;
-                                            for (let k = 0; k < 8; k++) { sum += tempRef[row * 8 + k] * Tt[k * 8 + col]; }
-                                            dctRef[row * 8 + col] = sum;
-                                        }
-                                    }
-                                    const diffRef = (dctRef[3 * 8 + 2] - dctRef[2 * 8 + 3]) + (dctRef[4 * 8 + 2] - dctRef[2 * 8 + 4]) + (dctRef[4 * 8 + 3] - dctRef[3 * 8 + 4]);
-                                    diff = diff - diffRef;
-                                }
-                            }
-                            if (Math.abs(diff) > 20.0) {
-                                diff = Math.max(-20.0, Math.min(20.0, diff));
-                            }
+                            const clampPair = (v) => Math.max(-4.5, Math.min(13.5, v));
+                            const diff1 = clampPair(dct[3 * 8 + 2] - dct[2 * 8 + 3]);
+                            const diff2 = clampPair(dct[4 * 8 + 2] - dct[2 * 8 + 4]);
+                            const diff3 = clampPair(dct[4 * 8 + 3] - dct[3 * 8 + 4]);
+                            const diff = diff1 + diff2 + diff3;
 
                             blockDiffs[by * blocksX + bx] = diff;
                             allDiffsList.push(diff);
