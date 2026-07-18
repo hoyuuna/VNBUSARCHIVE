@@ -1324,16 +1324,160 @@ app.admin.fetchManagerData('denied');
                     const url = URL.createObjectURL(file);
                     const img = new Image();
                     img.onload = () => {
-                        const canvasSrc = document.getElementById('mgr-wm-canvas-src');
-                        if (!canvasSrc) return;
-                        canvasSrc.width = img.width;
-                        canvasSrc.height = img.height;
-                        const ctx = canvasSrc.getContext('2d');
-                        ctx.drawImage(img, 0, 0);
+                        app.admin._rawBlindImg = img;
+                        const statusBox = document.getElementById('mgr-wm-status-box');
+                        const rstBox = document.getElementById('mgr-wm-rst-box');
+                        if (statusBox) statusBox.classList.remove('hidden');
+                        if (rstBox) rstBox.classList.remove('hidden');
+
+                        const scaleEl = document.getElementById('mgr-wm-scale');
+                        const scaleVal = document.getElementById('mgr-wm-scale-val');
+                        const dxEl = document.getElementById('mgr-wm-dx');
+                        const dxVal = document.getElementById('mgr-wm-dx-val');
+                        const dyEl = document.getElementById('mgr-wm-dy');
+                        const dyVal = document.getElementById('mgr-wm-dy-val');
+                        if (scaleEl) scaleEl.value = 100;
+                        if (scaleVal) scaleVal.innerText = '100%';
+                        if (dxEl) dxEl.value = 0;
+                        if (dxVal) dxVal.innerText = '0 px';
+                        if (dyEl) dyEl.value = 0;
+                        if (dyVal) dyVal.innerText = '0 px';
+
                         URL.revokeObjectURL(url);
-                        app.admin.extractBlindWmDCT();
+                        app.admin.applyBlindWmRST();
                     };
                     img.src = url;
+                },
+
+                applyBlindWmRST: () => {
+                    const img = app.admin._rawBlindImg;
+                    const canvasSrc = document.getElementById('mgr-wm-canvas-src');
+                    if (!img || !canvasSrc) return;
+                    const scale = parseInt(document.getElementById('mgr-wm-scale')?.value || 100) / 100;
+                    const dx = parseInt(document.getElementById('mgr-wm-dx')?.value || 0);
+                    const dy = parseInt(document.getElementById('mgr-wm-dy')?.value || 0);
+
+                    const targetW = Math.max(64, Math.round(img.width * scale));
+                    const targetH = Math.max(64, Math.round(img.height * scale));
+
+                    canvasSrc.width = Math.max(64, targetW - dx);
+                    canvasSrc.height = Math.max(64, targetH - dy);
+                    const ctx = canvasSrc.getContext('2d');
+                    ctx.clearRect(0, 0, canvasSrc.width, canvasSrc.height);
+                    ctx.drawImage(img, -dx, -dy, targetW, targetH);
+
+                    app.admin.extractBlindWmDCT();
+                },
+
+                autoScanBlindWmRST: async () => {
+                    const img = app.admin._rawBlindImg;
+                    const canvasSrc = document.getElementById('mgr-wm-canvas-src');
+                    if (!img || !canvasSrc) return;
+
+                    const btn = document.getElementById('mgr-wm-autoscan-btn');
+                    if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang dò lệch viền...`;
+                    await new Promise(r => setTimeout(r, 20));
+
+                    const scale = parseInt(document.getElementById('mgr-wm-scale')?.value || 100) / 100;
+                    const targetW = Math.max(64, Math.round(img.width * scale));
+                    const targetH = Math.max(64, Math.round(img.height * scale));
+
+                    if (!app.admin._dctT) app.admin.extractBlindWmDCT();
+                    const T = app.admin._dctT;
+                    const Tt = app.admin._dctTt;
+                    if (!T || !Tt) return;
+
+                    const gridW = 90;
+                    const gridH = 60;
+                    let bestDX = 0, bestDY = 0, bestScore = -1;
+
+                    for (let dy = 0; dy < 8; dy++) {
+                        for (let dx = 0; dx < 8; dx++) {
+                            const w = targetW - dx;
+                            const h = targetH - dy;
+                            const blocksX = Math.floor(w / 8);
+                            const blocksY = Math.floor(h / 8);
+                            if (blocksX <= 0 || blocksY <= 0) continue;
+
+                            canvasSrc.width = w;
+                            canvasSrc.height = h;
+                            const ctx = canvasSrc.getContext('2d', { willReadFrequently: true });
+                            ctx.drawImage(img, -dx, -dy, targetW, targetH);
+                            const data = ctx.getImageData(0, 0, w, h).data;
+
+                            const tileAcc = new Float32Array(gridW * gridH);
+                            const tileCount = new Uint32Array(gridW * gridH);
+                            const block = new Float32Array(64);
+                            const temp = new Float32Array(64);
+                            const dct = new Float32Array(64);
+
+                            for (let by = 0; by < blocksY; by++) {
+                                for (let bx = 0; bx < blocksX; bx++) {
+                                    for (let y = 0; y < 8; y++) {
+                                        const py = (by * 8 + y) * w;
+                                        for (let x = 0; x < 8; x++) {
+                                            const idx = (py + (bx * 8 + x)) * 4;
+                                            block[y * 8 + x] = 0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2] - 128.0;
+                                        }
+                                    }
+                                    for (let row = 0; row < 8; row++) {
+                                        for (let col = 0; col < 8; col++) {
+                                            let sum = 0.0;
+                                            for (let k = 0; k < 8; k++) sum += T[row * 8 + k] * block[k * 8 + col];
+                                            temp[row * 8 + col] = sum;
+                                        }
+                                    }
+                                    for (let row = 0; row < 8; row++) {
+                                        for (let col = 0; col < 8; col++) {
+                                            let sum = 0.0;
+                                            for (let k = 0; k < 8; k++) sum += temp[row * 8 + k] * Tt[k * 8 + col];
+                                            dct[row * 8 + col] = sum;
+                                        }
+                                    }
+                                    const diff = (dct[3 * 8 + 2] - dct[2 * 8 + 3]) + (dct[4 * 8 + 2] - dct[2 * 8 + 4]) + (dct[4 * 8 + 3] - dct[3 * 8 + 4]);
+                                    const gx = bx % gridW;
+                                    const gy = by % gridH;
+                                    tileAcc[gy * gridW + gx] += diff;
+                                    tileCount[gy * gridW + gx]++;
+                                }
+                            }
+
+                            let mean = 0, count = 0;
+                            for (let i = 0; i < gridW * gridH; i++) {
+                                if (tileCount[i] > 0) {
+                                    mean += tileAcc[i] / tileCount[i];
+                                    count++;
+                                }
+                            }
+                            if (count > 0) mean /= count;
+                            let variance = 0;
+                            for (let i = 0; i < gridW * gridH; i++) {
+                                if (tileCount[i] > 0) {
+                                    const val = (tileAcc[i] / tileCount[i]) - mean;
+                                    variance += val * val;
+                                }
+                            }
+                            if (count > 0) variance /= count;
+
+                            if (variance > bestScore) {
+                                bestScore = variance;
+                                bestDX = dx;
+                                bestDY = dy;
+                            }
+                        }
+                    }
+
+                    const dxInput = document.getElementById('mgr-wm-dx');
+                    const dyInput = document.getElementById('mgr-wm-dy');
+                    const dxVal = document.getElementById('mgr-wm-dx-val');
+                    const dyVal = document.getElementById('mgr-wm-dy-val');
+                    if (dxInput) dxInput.value = bestDX;
+                    if (dyInput) dyInput.value = bestDY;
+                    if (dxVal) dxVal.innerText = bestDX + ' px';
+                    if (dyVal) dyVal.innerText = bestDY + ' px';
+
+                    if (btn) btn.innerHTML = `<i class="fa-solid fa-bolt mr-1"></i> Dò tự động lệch viền`;
+                    app.admin.applyBlindWmRST();
                 },
 
                 extractBlindWmDCT: () => {

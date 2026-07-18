@@ -873,7 +873,16 @@ Object.assign(window.app, {
                     if (!app.wmState) app.wmState = { x: 0.5, y: 0.5, color: 'white', scale: 1.0, mode: (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_mode')) || 'basic' };
                     app.wmState.mode = mode;
                     app.upload.isBlindWatermarkEnabled = (mode === 'advanced');
-                    try { if (typeof localStorage !== 'undefined') localStorage.setItem('vnbus_wm_mode', mode); } catch (e) {}
+                    try {
+                        if (typeof localStorage !== 'undefined') localStorage.setItem('vnbus_wm_mode', mode);
+                        if (animate && app.user && window.sb) {
+                            const curPref = localStorage.getItem('vnbus_preference') || 'both';
+                            const curShowRec = localStorage.getItem('vnbus_show_rec') !== 'false';
+                            window.sb.from('profiles').update({
+                                preferences: { type: curPref, showRec: curShowRec, wmMode: mode }
+                            }).eq('id', app.user.id).then(()=>{});
+                        }
+                    } catch (e) {}
 
                     ['standard', 'basic', 'advanced'].forEach(m => {
                         const btn = document.getElementById(`btn-wm-mode-${m}`);
@@ -3886,8 +3895,9 @@ Object.assign(window.app, {
                     localStorage.setItem('vnbus_show_rec', app.preference.showRecommendations);
 
                     if (app.user) {
+                        const curWmMode = localStorage.getItem('vnbus_wm_mode') || (app.wmState && app.wmState.mode) || 'basic';
                         window.sb.from('profiles').update({
-                            preferences: { type: app.preference.current, showRec: app.preference.showRecommendations }
+                            preferences: { type: app.preference.current, showRec: app.preference.showRecommendations, wmMode: curWmMode }
                         }).eq('id', app.user.id).then(({error}) => {});
                     }
 

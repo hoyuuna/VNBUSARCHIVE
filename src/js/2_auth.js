@@ -1370,8 +1370,9 @@ Object.assign(window.app, {
                         app.preference.current = app.preference.tempSelection || 'both';
                         localStorage.setItem('vnbus_preference', app.preference.current);
                         if (app.user) {
+                            const curWmMode = localStorage.getItem('vnbus_wm_mode') || (app.wmState && app.wmState.mode) || 'basic';
                             window.sb.from('profiles').update({
-                                preferences: { type: app.preference.current, showRec: app.preference.showRecommendations }
+                                preferences: { type: app.preference.current, showRec: app.preference.showRecommendations, wmMode: curWmMode }
                             }).eq('id', app.user.id).then(()=>{});
                         }
                     }

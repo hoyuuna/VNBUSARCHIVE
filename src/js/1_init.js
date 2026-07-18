@@ -4554,10 +4554,10 @@ Object.assign(window.app, {
                             }
                         }
 
-                        // Đọc trạng thái lưu tạm ở trình duyệt (để dự phòng)
                         let localPref = localStorage.getItem('vnbus_preference') || 'both';
                         let localShowRec = localStorage.getItem('vnbus_show_rec');
                         localShowRec = localShowRec !== null ? localShowRec === 'true' : true;
+                        let localWmMode = localStorage.getItem('vnbus_wm_mode') || 'basic';
 
                         if (!profile || !profile.username) {
                             // Tạo mới user và đẩy thiết lập trình duyệt hiện tại lên Database
@@ -4565,7 +4565,7 @@ Object.assign(window.app, {
                                 id: user.id,
                                 username: finalName,
                                 avatar_url: finalAvatar,
-                                preferences: { type: localPref, showRec: localShowRec }
+                                preferences: { type: localPref, showRec: localShowRec, wmMode: localWmMode }
                             }, { onConflict: 'id' });
 
                             app.username = finalName;
@@ -4590,10 +4590,19 @@ Object.assign(window.app, {
 
                                 localStorage.setItem('vnbus_preference', app.preference.current);
                                 localStorage.setItem('vnbus_show_rec', app.preference.showRecommendations);
+
+                                if (dbPrefs.wmMode) {
+                                    localStorage.setItem('vnbus_wm_mode', dbPrefs.wmMode);
+                                    if (app.wmState) app.wmState.mode = dbPrefs.wmMode;
+                                    if (app.upload) {
+                                        app.upload.isBlindWatermarkEnabled = (dbPrefs.wmMode === 'advanced');
+                                        if (app.upload.setWmMode) app.upload.setWmMode(dbPrefs.wmMode, false);
+                                    }
+                                }
                             } else {
                                 // Nếu DB TRỐNG (User cũ chưa lưu bao giờ) -> Lấy LocalStorage đẩy lên DB
                                 window.sb.from('profiles').update({
-                                    preferences: { type: localPref, showRec: localShowRec }
+                                    preferences: { type: localPref, showRec: localShowRec, wmMode: localWmMode }
                                 }).eq('id', user.id).then(()=>{});
 
                                 app.preference.current = localPref;
