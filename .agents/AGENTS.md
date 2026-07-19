@@ -24,10 +24,10 @@
 ## Frontend Build & Payload Invariant
 - **Rule:** All core frontend logic resides in `src/js/` (`1_init.js` through `5_admin.js`) and `_core.html`. Whenever any file inside `src/js/` or `_core.html` is modified, you **MUST run `node build-core.js`** immediately to bundle and Base64-encode the payload into `functions/api/_core.js`. Never edit `functions/api/_core.js` directly or inject static script logic into `public/index.html`.
 
-## Sandbox Image & CDN Approval Guardrails
-- **No Client-Side Approval Bypasses:** All actions that approve or re-approve photos (e.g., `reapproveBtn` in `3_views.js` or `approvePhoto` in `5_admin.js`) **MUST call the backend API `/api/admin/action`** (`action: 'approve'`). Never directly update `photos.status = 'approved'` from the frontend via `window.sb.from('photos').update(...)`, as this bypasses CDN uploading and validation.
-- **Missing Data Safety Block:** When handling `action: 'approve'` in `/api/admin/action.js`, the backend must verify that valid base64 image data exists in `image_sandbox` (or valid `data:image/...` string). If data is missing (e.g., deleted after 24h or expired), the system MUST return a `400 Bad Request` error and block approval to prevent broken `sandbox:` links from entering the main feed.
-- **Storage Cleanup:** Upon successful CDN upload during photo approval, the backend **MUST BẮT BUỘC delete** the corresponding base64 rows from `image_sandbox` (`by id` and `by photo_id`) to prevent database storage bloat.
+## Photo Approval Guardrails (Sandbox retired)
+- **No Client-Side Approval Bypasses:** All actions that approve or re-approve photos (e.g., `reapproveBtn` in `3_views.js` or `approvePhoto` in `5_admin.js`) **MUST call the backend API `/api/admin/action`** (`action: 'approve'`). Never directly update `photos.status = 'approved'` from the frontend via `window.sb.from('photos').update(...)`, as this bypasses validation.
+- **Sandbox retired:** The old `image_sandbox` / `sandbox:` / `data:` base64 system has been removed. All photos now reside on the real CDN as https URLs stored directly in `photos.url`. Approval (`action: 'approve'`) uses `photo.url` directly; if it is not a valid https URL (e.g. legacy `sandbox:`/`data:`/`SANDBOX_DELETED`), the backend returns a `400` error. Denial (`action: 'deny'`) only flips `status` to `denied` and keeps the CDN image.
+- **Legacy data handling:** Remaining legacy `sandbox:`/`data:` URLs are treated as missing/invalid (`_isSandboxMissing`) and render as placeholders; they are never approved.
 
 ## Admin Dashboard & Vehicle Status Filtering (`XE MỚI` Badge Invariant)
 - **Approved Photo Filtering:** When fetching vehicle data (`vehicles` table) to build reference sets in Admin/Manager views (`approvedPlateSet`, `approvedOpSet`, `approvedRouteSet`, `approvedModelSet` in `5_admin.js`), you **MUST strictly filter by `photos!inner(status) = 'approved'`**. 

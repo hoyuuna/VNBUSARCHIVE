@@ -154,7 +154,7 @@ export async function onRequestPost(context) {
                 return new Response(JSON.stringify({ error: `Lỗi cập nhật trạng thái ảnh (${updateErr.message})` }), { status: 500 });
             }
             
-            if (isApprovedOrCdn && targetPlate) {
+            if (targetPlate) {
                 try {
                     const { data: approvedPhotos } = await sb.from('photos').select('route_no, operator').eq('license_plate', targetPlate).eq('status', 'approved');
                     if (!approvedPhotos || approvedPhotos.length === 0) {
