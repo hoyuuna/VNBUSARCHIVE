@@ -523,17 +523,78 @@ Object.assign(window.app, {
                     const grid = document.getElementById(gridId);
 
                     if (isSearch) {
-                        const photos = app.currentSearchResults.slice(start, end + 1);
-                        if (photos.length > 0) {
-                            grid.innerHTML += photos.map(p => app.views.renderPhotoCard(p)).join('');
-                            app.loadedCount += photos.length;
-                            if (app.loadedCount >= app.currentSearchResults.length) {
-                                document.getElementById('search-load-more-container').classList.add('hidden');
-                            } else {
-                                document.getElementById('search-load-more-container').classList.remove('hidden');
-                            }
+                        // Nếu còn trang trên server thì fetch tiếp, ngược lại dùng cache client
+                        if (app.searchCurrentPage < (app.searchTotalPages || 1)) {
+                            const nextPage = app.searchCurrentPage + 1;
+                            const fromRow = (nextPage - 1) * app.searchPageSize;
+                            const toRow = fromRow + app.searchPageSize - 1;
+                            try {
+                                // Tái tạo query tìm kiếm theo filterType hiện tại
+                                const filterType = app.currentFilter;
+                                const profileSelect = (filterType === 'uploader') ? 'profiles!inner(id, username, role, subroles, ban_status)' : 'profiles(id, username, role, subroles, ban_status)';
+                                let sQuery = window.sb.from('photos').select(`*, ${profileSelect}, vehicles${filterType === 'model' ? '!inner' : ''}(model)`).eq('status', 'approved');
+                                sQuery = app.preference.applyFilter(sQuery);
+
+                                const query = (document.getElementById('page-search-input') || document.getElementById('search-input'))?.value.trim() || '';
+                                const searchWords = query.toLowerCase().split(/\s+/).filter(w => w.length > 0);
+
+                                if (filterType === 'route') {
+                                    searchWords.forEach(w => { sQuery = sQuery.ilike('route_no', `%${w}%`); });
+                                } else if (filterType === 'plate') {
+                                    searchWords.forEach(w => { sQuery = sQuery.ilike('license_plate', `%${app.utils.normalizePlateQuery(w)}%`); });
+                                } else if (filterType === 'operator') {
+                                    searchWords.forEach(w => { sQuery = sQuery.ilike('operator', `%${w}%`); });
+                                } else if (filterType === 'camera') {
+                                    searchWords.forEach(w => { sQuery = sQuery.ilike('camera_model', `%${w}%`); });
+                                } else if (filterType === 'location') {
+                                    searchWords.forEach(w => { sQuery = sQuery.ilike('location', `%${w}%`); });
+                                } else if (filterType === 'uploader') {
+                                    searchWords.forEach(w => { sQuery = sQuery.ilike('profiles.username', `%${w}%`); });
+                                } else if (filterType === 'model') {
+                                    searchWords.forEach(w => { sQuery = sQuery.ilike('vehicles.model', `%${w}%`); });
+                                } else {
+                                    searchWords.forEach(w => {
+                                        const safeW = w.replace(/"/g, '');
+                                        const safeWPlate = app.utils.normalizePlateQuery(safeW);
+                                        let orConditions = [];
+                                        if (safeWPlate) orConditions.push(`license_plate.ilike."%${safeWPlate}%"`);
+                                        orConditions.push(`operator.ilike."%${safeW}%"`);
+                                        orConditions.push(`route_no.ilike."%${safeW}%"`);
+                                        orConditions.push(`camera_model.ilike."%${safeW}%"`);
+                                        orConditions.push(`location.ilike."%${safeW}%"`);
+                                        orConditions.push(`note.ilike."%${safeW}%"`);
+                                        sQuery = sQuery.or(orConditions.join(','));
+                                    });
+                                }
+
+                                const { data: photos } = await sQuery
+                                    .order('taken_at', { ascending: false, nullsFirst: false })
+                                    .order('created_at', { ascending: false })
+                                    .range(fromRow, toRow);
+
+                                if (photos && photos.length > 0) {
+                                    const existingIds = Array.from(grid.querySelectorAll('[data-id]')).map(el => el.getAttribute('data-id'));
+                                    const uniquePhotos = photos.filter(p => !existingIds.includes(String(p.id)));
+                                    if (uniquePhotos.length > 0) {
+                                        grid.innerHTML += uniquePhotos.map(p => app.views.renderPhotoCard(p)).join('');
+                                    }
+                                    app.loadedCount += photos.length;
+                                    app.currentSearchResults = app.currentSearchResults.concat(photos);
+                                }
+                                app.searchCurrentPage = nextPage;
+                            } catch (e) { console.error("Lỗi tải thêm kết quả tìm kiếm:", e); }
                         } else {
+                            const photos = app.currentSearchResults.slice(start, end + 1);
+                            if (photos.length > 0) {
+                                grid.innerHTML += photos.map(p => app.views.renderPhotoCard(p)).join('');
+                                app.loadedCount += photos.length;
+                            }
+                        }
+
+                        if (app.searchCurrentPage >= (app.searchTotalPages || 1)) {
                             document.getElementById('search-load-more-container').classList.add('hidden');
+                        } else {
+                            document.getElementById('search-load-more-container').classList.remove('hidden');
                         }
                     } else {
                         let moreQuery = window.sb
@@ -1770,7 +1831,10 @@ Object.assign(window.app, {
 
                     try {
 
-                        let pQuery = window.sb.from('photos').select(`*, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                        // PHÂN TRANG: CHỈ KÉO TRANG ĐẦU (12 ẢNH) THAY VÌ TOÀN BỘ
+                        app.vehicle.currentPage = 1;
+                        const vehSize = app.vehicle.VEHICLE_PAGE_SIZE || 12;
+                        let pQuery = window.sb.from('photos').select(`*, profiles(id, username, role, subroles, ban_status), vehicles(model)`, { count: 'exact' })
                                 .eq('license_plate', plate)
                                 .eq('status', 'approved')
                                 .order('taken_at', { ascending: false, nullsFirst: false })
@@ -1780,7 +1844,7 @@ Object.assign(window.app, {
 
                         const [vehicleRes, allPhotosRes, historyRes] = await Promise.all([
                             window.sb.from('vehicles').select('*').eq('license_plate', plate).single(),
-                            pQuery,
+                            pQuery.range(0, vehSize - 1),
                             window.sb.from('vehicle_history').select('*').eq('license_plate', plate).order('display_order', { ascending: true })
                         ]);
 
@@ -1803,6 +1867,8 @@ Object.assign(window.app, {
 
                         const pageTitle = `Hồ sơ xe ${vehicle.license_plate} | VNBUSARCHIVE`;
                         app.vehiclePhotosCache = allPhotos;
+                        app.vehicle.totalCount = allPhotosRes.count || allPhotos.length;
+                        app.vehicle.totalPages = Math.ceil(app.vehicle.totalCount / vehSize);
                         // Lấy ảnh ở đầu danh sách (mới chụp nhất theo taken_at)
                         const topPhoto = allPhotos.length > 0 ? allPhotos[0] : null;
                         const isCoach = topPhoto && topPhoto.type === 'coach';
@@ -1946,8 +2012,17 @@ Object.assign(window.app, {
                         `;
 
                         let photosHTML = '<p class="text-xs text-gray-500">Chưa có ảnh nào cho xe này.</p>';
+                        let loadMoreHtml = '';
                         if (allPhotos.length > 0) {
-                            photosHTML = `<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">${allPhotos.map(p => app.views.renderPhotoCard(p)).join('')}</div>`;
+                            photosHTML = `<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" id="vehicle-photo-grid">${allPhotos.map(p => app.views.renderPhotoCard(p)).join('')}</div>`;
+                            if (app.vehicle.totalPages > 1) {
+                                loadMoreHtml = `
+                                <div id="vehicle-load-more-container" class="mt-6 w-full flex justify-center">
+                                    <button onclick="app.vehicle.loadMoreVehiclePhotos()" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-black font-bold text-sm rounded-lg hover:bg-gray-50 transition shadow-sm border border-gray-300">
+                                        <i class="fa-solid fa-plus"></i> Xem thêm ảnh
+                                    </button>
+                                </div>`;
+                            }
                         }
 
                         const html = `
@@ -2036,9 +2111,10 @@ Object.assign(window.app, {
                             </div>
 
                             <div class="flex items-center gap-2 mb-4">
-                                <h3 class="text-lg font-bold uppercase text-black tracking-tight">Thư viện ảnh (${allPhotos.length})</h3>
+                                <h3 class="text-lg font-bold uppercase text-black tracking-tight">Thư viện ảnh (${app.vehicle.totalCount})</h3>
                             </div>
                             ${photosHTML}
+                            ${loadMoreHtml}
                         `;
                         container.innerHTML = html;
                         app.vehicle._renderedPlate = plate; // ĐÁNH DẤU XE NÀY ĐÃ RENDER THÀNH CÔNG
@@ -2055,6 +2131,7 @@ Object.assign(window.app, {
                 currentOperator: '',
                 operatorLoadedCount: 0,
                 operatorPhotos: [],
+                OPERATOR_PAGE_SIZE: 12,
 
                 loadOperatorPage: async (operatorName, forceRefresh = false) => {
                     const decodedPath = decodeURIComponent(window.location.pathname);
@@ -2337,19 +2414,24 @@ Object.assign(window.app, {
                             document.getElementById('op-stats-tabs-wrapper').classList.add('hidden');
                         }
 
-                        // LOAD ẢNH...
-                        let pQuery = window.sb.from('photos').select(`*, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                        // LOAD ẢNH (PHÂN TRANG: CHỈ KÉO 1 TRANG ĐẦU THAY VÌ TOÀN BỘ)
+                        app.currentOperatorResolved = resolvedOperator;
+                        app.views.operatorCurrentPage = 1;
+                        const opSize = app.views.OPERATOR_PAGE_SIZE || 12;
+                        let pQuery = window.sb.from('photos').select(`*, profiles(id, username, role, subroles, ban_status), vehicles(model)`, { count: 'exact' })
                             .eq('status', 'approved')
                             .ilike('operator', resolvedOperator)
                             .order('taken_at', { ascending: false, nullsFirst: false })
                             .order('created_at', { ascending: false });
-                        
+
                         pQuery = app.preference.applyFilter(pQuery);
 
-                        const { data: photos, error } = await pQuery;
+                        const { data: photos, error, count } = await pQuery.range(0, opSize - 1);
                         if (error) throw error;
 
                         app.operatorPhotos = photos || [];
+                        app.operator.totalCount = count || (photos ? photos.length : 0);
+                        app.operator.totalPages = Math.ceil(app.operator.totalCount / opSize);
                         grid.innerHTML = '';
                         app.views.loadMoreOperatorPhotos();
 
@@ -2359,41 +2441,100 @@ Object.assign(window.app, {
                     app.loadingBar.finish();
                 },
 
-                loadMoreOperatorPhotos: () => {
-                    const start = app.operatorLoadedCount;
-                    const limit = 12; // Load mỗi lần 12 ảnh
-                    const end = start + limit;
+                loadMoreOperatorPhotos: async () => {
                     const grid = document.getElementById('operator-photo-grid');
-                    
-                    const photosToRender = app.operatorPhotos.slice(start, end);
-                    if (photosToRender.length > 0) {
-                        grid.innerHTML += photosToRender.map(p => app.views.renderPhotoCard(p)).join('');
-                        app.operatorLoadedCount += photosToRender.length;
+                    const btnContainer = document.getElementById('operator-load-more-container');
+                    if (!btnContainer) return;
+
+                    // Nếu đã hiển thị hết các trang thì ẩn nút
+                    if (app.views.operatorCurrentPage >= (app.operator.totalPages || 1)) {
+                        btnContainer.classList.add('hidden');
+                        return;
                     }
 
-                    if (app.operatorLoadedCount >= app.operatorPhotos.length) {
-                        document.getElementById('operator-load-more-container').classList.add('hidden');
+                    const opSize = app.views.OPERATOR_PAGE_SIZE || 12;
+                    const nextPage = app.views.operatorCurrentPage + 1;
+                    const fromRow = (nextPage - 1) * opSize;
+                    const toRow = fromRow + opSize - 1;
+
+                    const btn = btnContainer.querySelector('button');
+                    const originalText = btn ? btn.innerHTML : '';
+                    if (btn) { btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tải...'; btn.disabled = true; }
+
+                    try {
+                        let pQuery = window.sb.from('photos').select(`*, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                            .eq('status', 'approved')
+                            .ilike('operator', app.currentOperatorResolved)
+                            .order('taken_at', { ascending: false, nullsFirst: false })
+                            .order('created_at', { ascending: false });
+
+                        pQuery = app.preference.applyFilter(pQuery);
+
+                        const { data: photos, error } = await pQuery.range(fromRow, toRow);
+                        if (error) throw error;
+
+                        if (photos && photos.length > 0) {
+                            grid.innerHTML += photos.map(p => app.views.renderPhotoCard(p)).join('');
+                        }
+                        app.views.operatorCurrentPage = nextPage;
+                    } catch (err) {
+                        console.error("Lỗi tải thêm ảnh đơn vị:", err);
+                    } finally {
+                        if (btn) { btn.innerHTML = originalText; btn.disabled = false; }
+                    }
+
+                    if (app.views.operatorCurrentPage >= (app.operator.totalPages || 1)) {
+                        btnContainer.classList.add('hidden');
                     } else {
-                        document.getElementById('operator-load-more-container').classList.remove('hidden');
+                        btnContainer.classList.remove('hidden');
                     }
                 },
 
-                loadMoreModelPhotos: () => {
-                    const start = app.model.modelLoadedCount;
-                    const limit = 12;
-                    const end = start + limit;
+                loadMoreModelPhotos: async () => {
                     const grid = document.getElementById('model-photo-grid');
-                    
-                    const photosToRender = app.model.modelPhotos.slice(start, end);
-                    if (photosToRender.length > 0) {
-                        grid.innerHTML += photosToRender.map(p => app.views.renderPhotoCard(p)).join('');
-                        app.model.modelLoadedCount += photosToRender.length;
+                    const btnContainer = document.getElementById('model-load-more-container');
+                    if (!btnContainer) return;
+
+                    if (app.views.modelCurrentPage >= (app.model.totalPages || 1)) {
+                        btnContainer.classList.add('hidden');
+                        return;
                     }
 
-                    if (app.model.modelLoadedCount >= app.model.modelPhotos.length) {
-                        document.getElementById('model-load-more-container').classList.add('hidden');
+                    const mdlSize = app.views.MODEL_PAGE_SIZE || 12;
+                    const nextPage = app.views.modelCurrentPage + 1;
+                    const fromRow = (nextPage - 1) * mdlSize;
+                    const toRow = fromRow + mdlSize - 1;
+
+                    const btn = btnContainer.querySelector('button');
+                    const originalText = btn ? btn.innerHTML : '';
+                    if (btn) { btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tải...'; btn.disabled = true; }
+
+                    try {
+                        let pQuery = window.sb.from('photos').select(`*, profiles(id, username, role, subroles, ban_status), vehicles!inner(model)`)
+                            .eq('status', 'approved')
+                            .eq('vehicles.model', app.model.currentModel)
+                            .order('taken_at', { ascending: false, nullsFirst: false })
+                            .order('created_at', { ascending: false });
+
+                        pQuery = app.preference.applyFilter(pQuery);
+
+                        const { data: photos, error } = await pQuery.range(fromRow, toRow);
+                        if (error) throw error;
+
+                        if (photos && photos.length > 0) {
+                            grid.innerHTML += photos.map(p => app.views.renderPhotoCard(p)).join('');
+                        }
+                        app.views.modelCurrentPage = nextPage;
+                    } catch (err) {
+                        console.error("Lỗi tải thêm ảnh dòng xe:", err);
+                    } finally {
+                        if (btn) { btn.innerHTML = originalText; btn.disabled = false; }
+                    }
+
+                    if (app.views.modelCurrentPage >= (app.model.totalPages || 1)) {
+                        btnContainer.classList.add('hidden');
                     } else {
-                        document.getElementById('model-load-more-container').classList.remove('hidden');
+                        btnContainer.classList.remove('hidden');
                     }
                 },
 
@@ -3008,6 +3149,7 @@ Object.assign(window.app, {
                 currentModel: '',
                 modelLoadedCount: 0,
                 modelPhotos: [],
+                MODEL_PAGE_SIZE: 12,
 
                 loadModelPage: async (modelName, forceRefresh = false) => {
                     const decodedPath = decodeURIComponent(window.location.pathname);
@@ -3112,18 +3254,23 @@ Object.assign(window.app, {
                         document.getElementById('mdl-stat-ops').innerText = app.utils.formatCompact(uniqueOps.size);
                         document.getElementById('mdl-stat-views').innerText = app.utils.formatCompact(totalViews);
 
-                        let pQuery = window.sb.from('photos').select(`*, profiles(id, username, role, subroles, ban_status), vehicles!inner(model)`)
+                        // PHÂN TRANG: CHỈ KÉO 1 TRANG ĐẦU
+                        app.views.modelCurrentPage = 1;
+                        const mdlSize = app.views.MODEL_PAGE_SIZE || 12;
+                        let pQuery = window.sb.from('photos').select(`*, profiles(id, username, role, subroles, ban_status), vehicles!inner(model)`, { count: 'exact' })
                             .eq('status', 'approved')
                             .eq('vehicles.model', modelName)
                             .order('taken_at', { ascending: false, nullsFirst: false })
                             .order('created_at', { ascending: false });
-                        
+
                         pQuery = app.preference.applyFilter(pQuery);
 
-                        const { data: photos, error } = await pQuery;
+                        const { data: photos, error, count } = await pQuery.range(0, mdlSize - 1);
                         if (error) throw error;
 
                         app.model.modelPhotos = photos || [];
+                        app.model.totalCount = count || (photos ? photos.length : 0);
+                        app.model.totalPages = Math.ceil(app.model.totalCount / mdlSize);
                         grid.innerHTML = '';
                         app.views.loadMoreModelPhotos();
 

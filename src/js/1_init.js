@@ -4488,10 +4488,13 @@ Object.assign(window.app, {
                         });
                     }
 
-                    const { data: results, error } = await photoQuery
+                    // PHÂN TRANG: CHỈ KÉO TRANG ĐẦU (24 ẢNH) THAY VÌ LIMIT(500)
+                    app.searchPageSize = 24;
+                    app.searchCurrentPage = 1;
+                    const { data: results, error, count } = await photoQuery
                         .order('taken_at', { ascending: false, nullsFirst: false })
                         .order('created_at', { ascending: false })
-                        .limit(500);
+                        .range(0, app.searchPageSize - 1);
 
                     if (app.currentViewMode !== 'search' || app.searchToken !== currentSearchToken) return;
                     if (error) throw error;
@@ -4502,6 +4505,8 @@ Object.assign(window.app, {
                     }
 
                     app.currentSearchResults = results;
+                    app.searchTotalCount = count || results.length;
+                    app.searchTotalPages = Math.ceil(app.searchTotalCount / app.searchPageSize);
                     app.loadedCount = 0;
                     grid.innerHTML = '';
                     app.views.loadMorePhotos();
