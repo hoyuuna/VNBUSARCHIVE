@@ -55,22 +55,25 @@ export async function onRequest(context) {
             }
         }
 
-        // Xóa ảnh tạm trong sandbox nếu ảnh thuộc sandbox hoặc có photoId
-        if (imageUrl && imageUrl.startsWith('sandbox:')) {
-            const sandboxId = imageUrl.replace('sandbox:', '').trim();
-            console.log(`[DEBUG] Đang xóa ảnh tạm trong sandbox: ${sandboxId}, photoId: ${photoId}`);
-            if (sandboxId) await supabaseAdmin.from('image_sandbox').delete().eq('id', sandboxId);
-            if (photoId) await supabaseAdmin.from('image_sandbox').delete().eq('photo_id', photoId);
-            return new Response(JSON.stringify({ success: true, message: 'Đã xóa ảnh tạm trong sandbox thành công.' }), { status: 200, headers: { 'Content-Type': 'application/json' } });
-        }
-        if (photoId) {
-            await supabaseAdmin.from('image_sandbox').delete().eq('photo_id', photoId);
-        }
-        if (!imageUrl) {
-            return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+        // Hệ thống Sandbox đã khai tử: ảnh luôn nằm trên CDN (url https).
+        // Nếu chỉ có photoId mà không có imageUrl, lấy url từ DB.
+        let targetUrl = imageUrl;
+        if ((!targetUrl || targetUrl.startsWith('sandbox:') || targetUrl.startsWith('data:')) && photoId) {
+            const { data: photoRow } = await supabaseAdmin.from('photos').select('url').eq('id', photoId).maybeSingle();
+            if (photoRow && photoRow.url && (photoRow.url.startsWith('http://') || photoRow.url.startsWith('https://'))) {
+                targetUrl = photoRow.url;
+            }
         }
 
-        const urlObj = new URL(imageUrl);
+        // Ảnh cũ dạng sandbox:/data: không còn base64 -> không thể xóa trên CDN, chỉ xóa row DB (nếu có photoId)
+        if (!targetUrl || targetUrl.startsWith('sandbox:') || targetUrl.startsWith('data:')) {
+            if (photoId) {
+                await supabaseAdmin.from('photos').delete().eq('id', photoId);
+            }
+            return new Response(JSON.stringify({ success: true, message: 'Ảnh dữ liệu cũ đã được xóa khỏi cơ sở dữ liệu.' }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+        }
+
+        const urlObj = new URL(targetUrl);
         const fileName = urlObj.pathname.split('/').pop();
         const safeFileName = encodeURIComponent(fileName);
 
@@ -89,6 +92,9 @@ export async function onRequest(context) {
 
         if (deleteResponse.ok && deleteResult) {
             console.log(`[DEBUG] Đã xóa vĩnh viễn ảnh: ${fileName}`);
+            if (photoId) {
+                await supabaseAdmin.from('photos').delete().eq('id', photoId).catch(() => {});
+            }
             return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
         } else {
             console.log(`[WARN] Lỗi xóa ảnh CF ImgBed:`, deleteResult);

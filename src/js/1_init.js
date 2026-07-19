@@ -1530,69 +1530,13 @@ cleanupState: () => {
 
 
                 resolveSandboxUrls: async (items) => {
-                    if (!items || !window.sb) return;
+                    // Hệ thống Sandbox đã bị khai tử: ảnh pending/denied đã nằm trên CDN thật (url https).
+                    // Hàm này giờ chỉ đánh dấu _isSandboxMissing cho các url cũ dạng sandbox: (không còn base64).
+                    if (!items) return;
                     const list = Array.isArray(items) ? items : [items];
-                    const sandboxIds = [];
                     list.forEach(item => {
-                        const url = typeof item === 'string' ? item : (item && item.url ? item.url : '');
-                        if (url && typeof url === 'string' && url.startsWith('sandbox:')) {
-                            const sId = url.replace('sandbox:', '').trim();
-                            if (sId && (!app._sandboxCache || !app._sandboxCache[sId])) sandboxIds.push(sId);
-                        }
-                    });
-
-                    if (sandboxIds.length > 0) {
-                        if (!app._sandboxCache) app._sandboxCache = {};
-                        try {
-                            let sandboxData = [];
-                            const { data: resNormal } = await window.sb
-                                .from('image_sandbox')
-                                .select('id, base64_data')
-                                .in('id', sandboxIds);
-                            
-                            if (resNormal && resNormal.length > 0) {
-                                sandboxData = resNormal;
-                            }
-
-                            const missingIds = sandboxIds.filter(id => !sandboxData.some(item => item.id === id));
-                            if (missingIds.length > 0) {
-                                try {
-                                    const sessionRes = await window.sb.auth.getSession();
-                                    const token = sessionRes.data.session?.access_token;
-                                    if (token) {
-                                        const apiRes = await fetch('/api/sandbox', {
-                                            method: 'POST',
-                                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                                            body: JSON.stringify({ ids: missingIds })
-                                        });
-                                        if (apiRes.ok) {
-                                            const apiJson = await apiRes.json();
-                                            if (apiJson && apiJson.data && Array.isArray(apiJson.data)) {
-                                                sandboxData = sandboxData.concat(apiJson.data);
-                                            }
-                                        }
-                                    }
-                                } catch (apiErr) {
-                                    console.warn('Lỗi tải ảnh sandbox qua API backend:', apiErr);
-                                }
-                            }
-
-                            if (sandboxData && sandboxData.length > 0) {
-                                sandboxData.forEach(s => {
-                                    if (s.id && s.base64_data) app._sandboxCache[s.id] = s.base64_data;
-                                });
-                            }
-                        } catch (e) {
-                            console.warn('Lỗi tải ảnh từ sandbox:', e);
-                        }
-                    }
-
-                    list.forEach(item => {
-                        if (item && typeof item === 'object' && item.url && typeof item.url === 'string' && item.url.startsWith('sandbox:')) {
-                            const sId = item.url.replace('sandbox:', '').trim();
-                            if (app._sandboxCache && app._sandboxCache[sId]) {
-                                item.url = app._sandboxCache[sId];
-                            } else {
+                        if (item && typeof item === 'object' && item.url && typeof item.url === 'string') {
+                            if (item.url.startsWith('sandbox:') || item.url.startsWith('data:')) {
                                 item._isSandboxMissing = true;
                             }
                         }
@@ -1601,12 +1545,8 @@ cleanupState: () => {
 
                 getProxiedUrl: (url, filename = 'image.jpg', type = 'full') => {
                     if (!url) return '';
-                    if (typeof url === 'string' && url.startsWith('data:')) return url;
-                    if (typeof url === 'string' && url.startsWith('sandbox:')) {
-                        const sId = url.replace('sandbox:', '').trim();
-                        if (app._sandboxCache && app._sandboxCache[sId]) return app._sandboxCache[sId];
-                        return 'SANDBOX_DELETED';
-                    }
+                    // Dữ liệu cũ dạng sandbox:/data: không còn hợp lệ -> trả về rỗng để UI hiện placeholder
+                    if (typeof url === 'string' && (url.startsWith('data:') || url.startsWith('sandbox:'))) return '';
 
                     const safeName = filename.replace(/[^a-z0-9A-Z.-]/gi, '_');
 

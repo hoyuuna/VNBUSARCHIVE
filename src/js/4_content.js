@@ -2839,12 +2839,7 @@ Object.assign(window.app, {
                                         });
                                     }
 
-                                    // 2. Xóa khỏi Sandbox & Supabase Database
-                                    if (p.url && p.url.startsWith('sandbox:')) {
-                                        const sandboxId = p.url.replace('sandbox:', '').trim();
-                                        if (sandboxId) await window.sb.from('image_sandbox').delete().eq('id', sandboxId);
-                                    }
-                                    await window.sb.from('image_sandbox').delete().eq('photo_id', p.id);
+                                    // 2. Xóa khỏi Supabase Database (ảnh trên CDN đã được xóa ở bước 1)
                                     await window.sb.from('photos').delete().eq('id', p.id);
                                     await app.vehicle.cleanupVehicle(p.license_plate);
 

@@ -1058,7 +1058,7 @@ Object.assign(window.app, {
                                     <div class="w-full h-full bg-gray-500 flex flex-col items-center justify-center p-2 text-center text-white select-none">
                                         <i class="fa-solid fa-clock-rotate-left text-xl text-gray-300 mb-1"></i>
                                         <span class="font-bold text-xs tracking-wider">${app.utils.cleanText(app.utils.displayPlate(p.license_plate))}</span>
-                                        <span class="text-[10px] text-gray-200 mt-0.5">Đã xóa sau 24h</span>
+                                        <span class="text-[10px] text-gray-200 mt-0.5">Ảnh không khả dụng</span>
                                     </div>
                                     <div class="absolute bottom-0 left-0 bg-black/70 text-white text-[10px] w-full p-1.5 backdrop-blur-sm transition-all duration-300">
                                         ${textHtml}
@@ -1369,7 +1369,7 @@ Object.assign(window.app, {
                             errBox2.className = "img-error absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-gray-200 text-gray-800 z-10 select-none rounded-md";
                             errBox2.innerHTML = `
                                 <i class="fa-solid fa-clock-rotate-left text-gray-500 text-5xl mb-4"></i>
-                                <p class="text-base text-gray-800 font-bold mb-2">Ảnh đã bị xóa sau 24h không can thiệp.</p>
+                                <p class="text-base text-gray-800 font-bold mb-2">Ảnh không khả dụng (dữ liệu cũ).</p>
                                 <p class="text-sm text-gray-600 mb-4">Bạn sẽ không thể kháng cáo hoặc làm hành động khác. Bạn có thể yêu cầu xóa cơ sở dữ liệu của ảnh này bằng nút "Yêu cầu xóa ảnh".</p>
                             `;
                             errBox2.classList.remove('hidden');
@@ -1559,13 +1559,9 @@ Object.assign(window.app, {
                         };
                     }
 
-                    if (app.user && (app.role === 'manager' || app.role === 'admin') && (isDenied || (photo.url && typeof photo.url === 'string' && (photo.url.startsWith('data:') || photo.url.startsWith('sandbox:'))))) {
+                    if (app.user && (app.role === 'manager' || app.role === 'admin') && isDenied) {
                         if (reapproveBtn) {
-                            if (!isDenied) {
-                                reapproveBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up mr-1"></i> Quản lý: Đẩy ảnh này lên CDN';
-                            } else {
-                                reapproveBtn.innerHTML = '<i class="fa-solid fa-rotate-left mr-1"></i> Quản lý: Duyệt lại ảnh này';
-                            }
+                            reapproveBtn.innerHTML = '<i class="fa-solid fa-rotate-left mr-1"></i> Quản lý: Duyệt lại ảnh này';
                             reapproveBtn.classList.remove('hidden');
                             reapproveBtn.disabled = false;
                             reapproveBtn.onclick = () => {

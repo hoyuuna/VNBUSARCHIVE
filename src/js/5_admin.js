@@ -2963,12 +2963,7 @@ app.admin.fetchManagerData('denied');
                             });
                         }
 
-                        // 2. Xóa dữ liệu Database & Sandbox
-                        if (imgUrl && imgUrl.startsWith('sandbox:')) {
-                            const sandboxId = imgUrl.replace('sandbox:', '').trim();
-                            if (sandboxId) await window.sb.from('image_sandbox').delete().eq('id', sandboxId);
-                        }
-                        await window.sb.from('image_sandbox').delete().eq('photo_id', photoId);
+                        // 2. Xóa dữ liệu Database (ảnh trên CDN đã được xóa ở bước 1)
                         const { error: delError } = await window.sb.from('photos').delete().eq('id', photoId);
                         if (delError) throw delError;
 

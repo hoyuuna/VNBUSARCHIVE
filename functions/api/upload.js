@@ -156,18 +156,18 @@ export async function onRequest(context) {
 
             return new Response(JSON.stringify({ success: true, url: finalOptimizedUrl }), { status: 200, headers: { 'Content-Type': 'application/json' }});
         } else {
-            console.log(`[DEBUG] Tiến hành lưu ảnh vào Sandbox Base64: ${fileName}`);
-            const arrayBuffer = await file.arrayBuffer();
-            let binary = '';
-            const bytes = new Uint8Array(arrayBuffer);
-            const len = bytes.byteLength;
-            const chunkSize = 8192;
-            for (let i = 0; i < len; i += chunkSize) {
-                binary += String.fromCharCode.apply(null, bytes.subarray(i, Math.min(i + chunkSize, len)));
+            console.log(`[DEBUG] Tiến hành tải ảnh chờ duyệt trực tiếp lên CDN: ${fileName}`);
+            const uploadResult = await fetch('https://cdn.vnbusarchive.io.vn/upload', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${env.CF_IMGBED_TOKEN}` },
+                body: newFormData
+            }).then(res => res.json());
+
+            if (!uploadResult || uploadResult.length === 0 || !uploadResult[0].src) {
+                throw new Error('Lỗi phản hồi từ máy chủ lưu trữ ảnh (Upload chờ duyệt).');
             }
-            const base64String = `data:${file.type || 'image/jpeg'};base64,` + btoa(binary);
-            const sandboxId = `sbx_${Date.now()}_${safeHash}`;
-            finalOptimizedUrl = `sandbox:${sandboxId}`;
+            let rawSrc = uploadResult[0].src;
+            finalOptimizedUrl = rawSrc.startsWith('/') ? `https://cdn.vnbusarchive.io.vn${rawSrc}` : rawSrc;
 
             const { error: vErr } = await supabase
                 .from('vehicles')
@@ -199,38 +199,6 @@ export async function onRequest(context) {
             if (dbError) {
                 console.error('[UPLOAD BACKEND ERROR - photos insert]:', JSON.stringify(dbError, null, 2));
                 throw dbError;
-            }
-
-            const { error: sandboxErr } = await supabase
-                .from('image_sandbox')
-                .insert({
-                    id: sandboxId,
-                    photo_id: photoInsertRes.id,
-                    uploader_id: userId,
-                    base64_data: base64String,
-                    created_at: new Date().toISOString()
-                });
-
-            if (sandboxErr) {
-                console.error('[UPLOAD BACKEND ERROR - image_sandbox insert]:', JSON.stringify(sandboxErr, null, 2));
-                await supabase.from('photos').delete().eq('id', photoInsertRes.id);
-                throw new Error(`Lỗi khi lưu ảnh vào Sandbox: ${sandboxErr.message || ''} | Code: ${sandboxErr.code || ''} | Details: ${sandboxErr.details || ''} | Hint: ${sandboxErr.hint || ''}`);
-            }
-
-            try {
-                const threshold = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-                const { data: expiredSandbox } = await supabase.from('image_sandbox').select('id, photo_id').lt('created_at', threshold);
-                if (expiredSandbox && expiredSandbox.length > 0) {
-                    const photoIds = expiredSandbox.map(item => item.photo_id).filter(Boolean);
-                    if (photoIds.length > 0) {
-                        const { data: deniedPhotos } = await supabase.from('photos').select('id').in('id', photoIds).eq('status', 'denied');
-                        if (deniedPhotos && deniedPhotos.length > 0) {
-                            await supabase.from('image_sandbox').delete().in('photo_id', deniedPhotos.map(p => p.id));
-                        }
-                    }
-                }
-            } catch (cleanupErr) {
-                console.warn('[WARN] Sandbox cleanup error:', cleanupErr);
             }
 
             return new Response(JSON.stringify({ success: true, url: finalOptimizedUrl }), { status: 200, headers: { 'Content-Type': 'application/json' }});
