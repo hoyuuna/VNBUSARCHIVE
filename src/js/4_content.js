@@ -589,15 +589,20 @@ Object.assign(window.app, {
                         const fileset = await vision.FilesetResolver.forVisionTasks(
                             'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/wasm'
                         );
-                        const detector = await vision.FaceDetector.createFromOptions(fileset, {
-                            baseOptions: {
-                                modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/face_detector/face_detector/float16/1/face_detector.task',
-                                delegate: 'GPU'
-                            },
+                        const modelAssetPath = 'https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite';
+                        const baseOpts = {
+                            baseOptions: { modelAssetPath: modelAssetPath },
                             runningMode: 'IMAGE',
                             minDetectionConfidence: 0.3,
                             minSuppressionThreshold: 0.2
-                        });
+                        };
+                        let detector;
+                        try {
+                            detector = await vision.FaceDetector.createFromOptions(fileset, { ...baseOpts, baseOptions: { ...baseOpts.baseOptions, delegate: 'GPU' } });
+                        } catch (gpuErr) {
+                            console.warn('Face detector GPU failed, falling back to CPU:', gpuErr);
+                            detector = await vision.FaceDetector.createFromOptions(fileset, { ...baseOpts, baseOptions: { ...baseOpts.baseOptions, delegate: 'CPU' } });
+                        }
                         app.upload._faceModel = detector;
                         return detector;
                     })();
@@ -660,7 +665,7 @@ Object.assign(window.app, {
                             app.toast.show('success', 'Đã tự động che khuôn mặt', `Phát hiện và che ${added} khuôn mặt. Bạn có thể kéo, đổi kích thước hoặc xóa từng vùng.`);
                         }
                     } catch (err) {
-                        console.warn('Auto face-blur skipped:', err);
+                        console.error('Auto face-blur skipped:', err);
                     } finally {
                         app.upload._faceDetecting = false;
                     }
