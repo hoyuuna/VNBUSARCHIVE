@@ -2582,7 +2582,7 @@ Object.assign(window.app, {
 
                                 let sbQuery = window.sb.from(table).select(selectStr);
                                 if (table === 'photos') {
-                                    sbQuery = sbQuery.eq('status', 'approved');
+                                    sbQuery = sbQuery.eq('status', 'approved').not(col, 'is', null).neq(col, '').neq(col, '---');
                                 } else if (table === 'vehicles') {
                                     sbQuery = sbQuery.eq('photos.status', 'approved');
                                 }
@@ -2624,13 +2624,23 @@ Object.assign(window.app, {
                                         return routeResults;
                                     }
 
-                                    const plates = [...new Set(data.map(item => item[col]).filter(Boolean))];
+                                    let vals = data.map(item => (item[col] || '').toString().trim()).filter(Boolean);
+                                    if (col === 'operator') {
+                                        const seen = new Map();
+                                        vals.forEach(v => {
+                                            const key = v.toLowerCase();
+                                            if (!seen.has(key)) seen.set(key, v);
+                                        });
+                                        vals = [...seen.values()];
+                                    } else {
+                                        vals = [...new Set(vals)];
+                                    }
                                     if (col === 'license_plate') {
-                                        const basePlates = plates.filter(p => !/-\d+$/.test(p));
+                                        const basePlates = vals.filter(p => !/-\d+$/.test(p));
                                         const uniqueBases = [...new Set(basePlates.map(p => p.replace(/-\d+$/, '')))];
                                         return uniqueBases.map(val => ({ text: val, label }));
                                     }
-                                    return plates.map(val => ({ text: val, label }));
+                                    return vals.map(val => ({ text: val, label }));
                                 }
                                 return [];
                             };
