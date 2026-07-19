@@ -2075,6 +2075,22 @@ Object.assign(window.app, {
                     app.currentOperator = operatorName;
                     app.operatorLoadedCount = 0;
 
+                    // Giải quyết tên đơn vị thực tế trong DB (xử lý biến thể khoảng trắng/ký tự ẩn)
+                    const targetNorm = app.utils.normOperator(operatorName).toLowerCase();
+                    let resolvedOperator = operatorName;
+                    try {
+                        const { data: opCandidates } = await window.sb
+                            .from('photos')
+                            .select('operator')
+                            .eq('status', 'approved')
+                            .not('operator', 'is', null)
+                            .limit(1000);
+                        if (opCandidates && opCandidates.length > 0) {
+                            const match = opCandidates.find(r => app.utils.normOperator(r.operator).toLowerCase() === targetNorm);
+                            if (match) resolvedOperator = match.operator;
+                        }
+                    } catch (e) { /* fallback to original name */ }
+
                     // --- RESET UI TRỐNG ĐỂ CHỐNG NHÁY THÔNG TIN CŨ ---
                     document.getElementById('crumb-operator').innerText = operatorName;
                     document.getElementById('operator-title').innerText = operatorName;
@@ -2129,7 +2145,7 @@ Object.assign(window.app, {
                             const { data, error } = await window.sb.from('photos')
                                 .select('views, license_plate, route_no, vehicles(model)')
                                 .eq('status', 'approved')
-                                .ilike('operator', operatorName)
+                                .ilike('operator', resolvedOperator)
                                 .order('taken_at', { ascending: false, nullsFirst: false }) // Ép ảnh mới nhất lên đầu
                                 .range(from, from + step);
 
@@ -2324,7 +2340,7 @@ Object.assign(window.app, {
                         // LOAD ẢNH...
                         let pQuery = window.sb.from('photos').select(`*, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                             .eq('status', 'approved')
-                            .ilike('operator', operatorName)
+                            .ilike('operator', resolvedOperator)
                             .order('taken_at', { ascending: false, nullsFirst: false })
                             .order('created_at', { ascending: false });
                         
@@ -2628,8 +2644,8 @@ Object.assign(window.app, {
                                     if (col === 'operator') {
                                         const seen = new Map();
                                         vals.forEach(v => {
-                                            const key = v.toLowerCase();
-                                            if (!seen.has(key)) seen.set(key, v);
+                                            const key = app.utils.normOperator(v).toLowerCase();
+                                            if (!seen.has(key)) seen.set(key, app.utils.normOperator(v));
                                         });
                                         vals = [...seen.values()];
                                     } else {

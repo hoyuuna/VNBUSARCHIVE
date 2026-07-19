@@ -1462,6 +1462,16 @@ cleanupState: () => {
                     if (!str) return '';
                     return str.normalize('NFC').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g, "");
                 },
+                normOperator: (str) => {
+                    if (!str) return '';
+                    return String(str)
+                        .normalize('NFKC')
+                        .replace(/[（）]/g, m => m === '（' ? '(' : ')')
+                        .replace(/[ ­ᅟᅠ﻿]/g, ' ')
+                        .replace(/[ ]/g, ' ')
+                        .replace(/\s+/g, ' ')
+                        .trim();
+                },
                 displayPlate: (plate) => {
                     if (!plate) return '';
                     return plate.replace(/-\d+$/, '');
