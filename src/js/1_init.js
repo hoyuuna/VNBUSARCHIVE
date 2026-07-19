@@ -4212,16 +4212,7 @@ Object.assign(window.app, {
                                 let uniqueOpsMap = new Map();
                                 const opInfoMap = {};
 
-                                if (infoRes.data) {
-                                    infoRes.data.forEach(info => {
-                                        if (info.operator_name) {
-                                            const key = info.operator_name.toLowerCase();
-                                            uniqueOpsMap.set(key, info.operator_name);
-                                            opInfoMap[key] = info;
-                                        }
-                                    });
-                                }
-
+                                // CHỈ lấy đơn vị từ ảnh đã duyệt (nguồn duy nhất đủ điều kiện hiển thị)
                                 if (photoRes.data) {
                                     photoRes.data.forEach(p => {
                                         if (p.operator) {
@@ -4229,6 +4220,15 @@ Object.assign(window.app, {
                                             if (!uniqueOpsMap.has(key)) {
                                                 uniqueOpsMap.set(key, p.operator);
                                             }
+                                        }
+                                    });
+                                }
+
+                                // Đơn vị có logo/thông tin nhưng KHÔNG có ảnh duyệt nào sẽ bị ẩn
+                                if (infoRes.data) {
+                                    infoRes.data.forEach(info => {
+                                        if (info.operator_name) {
+                                            opInfoMap[info.operator_name.toLowerCase()] = info;
                                         }
                                     });
                                 }
