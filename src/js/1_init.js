@@ -878,15 +878,10 @@ Object.assign(window.app, {
 
                     if (!target) return false;
 
-                    // Nếu is_active = false, kiểm tra xem đã qua giờ tự mở chưa
+                    // Nếu is_active = false, luôn hiển thị màn hình bảo trì (không tự mở lại khi hết giờ).
+                    // auto_reactivate_at giờ chỉ dùng làm thời gian dự kiến để đếm ngược.
                     if (target.is_active === false) {
-                        if (target.auto_reactivate_at) {
-                            const autoTime = new Date(target.auto_reactivate_at).getTime();
-                            if (Date.now() >= autoTime) {
-                                return false; // Đã quá giờ -> Cho phép qua
-                            }
-                        }
-                        return target; // Trả về thông tin bảo trì để show màn hình
+                        return target;
                     }
                     return false;
                 },
@@ -919,7 +914,8 @@ Object.assign(window.app, {
 
                             if (distance < 0) {
                                 clearInterval(app.maintenance.timer);
-                                window.location.reload();
+                                countdownEl.innerText = "Cập nhật sau";
+                                countdownEl.className = "text-xl font-bold tracking-normal text-gray-400";
                                 return;
                             }
 

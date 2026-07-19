@@ -1150,7 +1150,7 @@ Object.assign(window.app, {
                                     <!-- TAB: CÀI ĐẶT HỆ THỐNG (MANAGER) -->
                                     <div id="mgr-sec-settings" class="hidden">
                                         <div class="mb-4 bg-blue-50 border border-blue-200 p-4 rounded-md">
-                                            <p class="text-xs text-blue-800 font-medium"><i class="fa-solid fa-circle-info mr-1"></i> <b>Lưu ý:</b> Các công tắc dưới đây ảnh hưởng trực tiếp đến người dùng. Nếu "Hẹn giờ tự động" kết thúc, hệ thống sẽ tự mở lại mà không cần bạn bật thủ công.</p>
+                                            <p class="text-xs text-blue-800 font-medium"><i class="fa-solid fa-circle-info mr-1"></i> <b>Lưu ý:</b> Các công tắc dưới đây ảnh hưởng trực tiếp đến người dùng. "Thời gian dự kiến mở lại" chỉ dùng để hiển thị đếm ngược, hệ thống <b>không</b> tự mở lại khi hết giờ &mdash; bạn phải bật thủ công công tắc để mở lại.</p>
                                         </div>
                                         <div id="mgr-settings-content" class="grid grid-cols-1 gap-6">
                                             <p class="text-gray-500 italic"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải cấu hình...</p>
@@ -2446,7 +2446,7 @@ app.admin.fetchManagerData('denied');
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div><label class="text-xs text-gray-500 font-bold block mb-1">Lý do bảo trì</label><input type="text" id="mt-reason-${cfg.id}" value="${app.utils.escapeAttr(data.reason)}" class="w-full border p-2.5 text-sm rounded"></div>
                                 <div>
-                                    <label class="text-xs text-gray-500 font-bold flex justify-between mb-1"><span>Hẹn giờ tự mở lại</span> <input type="checkbox" id="mt-has-time-${cfg.id}" ${hasTime ? 'checked' : ''} onchange="document.getElementById('mt-time-${cfg.id}').disabled = !this.checked"></label>
+                                    <label class="text-xs text-gray-500 font-bold flex justify-between mb-1"><span>Thời gian dự kiến mở lại</span> <input type="checkbox" id="mt-has-time-${cfg.id}" ${hasTime ? 'checked' : ''} onchange="document.getElementById('mt-time-${cfg.id}').disabled = !this.checked"></label>
                                     <input type="datetime-local" id="mt-time-${cfg.id}" value="${timeVal}" ${!hasTime ? 'disabled' : ''} class="w-full border p-2.5 text-sm rounded disabled:bg-gray-100">
                                 </div>
                             </div>
