@@ -489,6 +489,17 @@ closeCustomRolePrompt: () => {
                     }, 200);
                 },
 
+                 filterDenyQuick: (query) => {
+                    const q = (query || '').trim().toLowerCase();
+                    const section = document.getElementById('deny-section-quick');
+                    if (!section) return;
+                    const labels = section.querySelectorAll('label');
+                    labels.forEach(lbl => {
+                        const text = (lbl.textContent || '').toLowerCase();
+                        lbl.style.display = (!q || text.includes(q)) ? '' : 'none';
+                    });
+                },
+
                  toggleDenySection: (section) => {
                     app.activeDenySection = section;
 
@@ -501,6 +512,12 @@ closeCustomRolePrompt: () => {
 
                         quickSection.classList.remove('hidden');
                         customSection.classList.add('hidden');
+
+                        const searchEl = document.getElementById('deny-quick-search');
+                        if (searchEl) {
+                            searchEl.value = '';
+                            app.ui.filterDenyQuick('');
+                        }
 
 
                         btnQuick.className = "w-full bg-black text-white p-3 text-center font-bold text-sm rounded-lg shadow-sm transition border border-black";

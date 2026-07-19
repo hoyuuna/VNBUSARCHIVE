@@ -2429,6 +2429,9 @@
 
                         <div id="deny-section-quick"
                             class="mt-2 p-4 bg-white border border-gray-200 rounded-lg shadow-sm space-y-3 max-h-64 overflow-y-auto block">
+                            <input type="text" id="deny-quick-search" oninput="app.ui.filterDenyQuick(this.value)"
+                                class="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none transition-all mb-1"
+                                placeholder="Tìm kiếm lí do nhanh...">
                             <label class="flex items-start gap-2 cursor-pointer group">
                                 <input type="checkbox" value="[B1.1 & B1.2] Sai chủ đề / Đối tượng không hợp lệ: Hệ thống không tiếp nhận xe cá nhân, nhà xe nhỏ lẻ, xe thuộc cơ quan Nhà nước hoặc xe không đăng ký tại Việt Nam."
                                     class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
