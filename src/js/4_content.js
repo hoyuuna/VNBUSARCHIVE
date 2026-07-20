@@ -678,19 +678,22 @@ Object.assign(window.app, {
                         const fileset = await vision.FilesetResolver.forVisionTasks(
                             'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/wasm'
                         );
-                        const modelAssetPath = 'https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite';
+                        // Model FaceLandmarker (chính xác cao hơn BlazeFace short-range, bắt được nhiều góc độ/che một phần)
+                        const modelAssetPath = 'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task';
                         const baseOpts = {
                             baseOptions: { modelAssetPath: modelAssetPath },
                             runningMode: 'IMAGE',
-                            minDetectionConfidence: 0.3,
-                            minSuppressionThreshold: 0.2
+                            numFaces: 20,
+                            minFaceDetectionConfidence: 0.3,
+                            minFacePresenceConfidence: 0.3,
+                            minTrackingConfidence: 0.3
                         };
                         let detector;
                         try {
-                            detector = await vision.FaceDetector.createFromOptions(fileset, { ...baseOpts, baseOptions: { ...baseOpts.baseOptions, delegate: 'GPU' } });
+                            detector = await vision.FaceLandmarker.createFromOptions(fileset, { ...baseOpts, baseOptions: { ...baseOpts.baseOptions, delegate: 'GPU' } });
                         } catch (gpuErr) {
-                            console.warn('Face detector GPU failed, falling back to CPU:', gpuErr);
-                            detector = await vision.FaceDetector.createFromOptions(fileset, { ...baseOpts, baseOptions: { ...baseOpts.baseOptions, delegate: 'CPU' } });
+                            console.warn('Face landmarker GPU failed, falling back to CPU:', gpuErr);
+                            detector = await vision.FaceLandmarker.createFromOptions(fileset, { ...baseOpts, baseOptions: { ...baseOpts.baseOptions, delegate: 'CPU' } });
                         }
                         app.upload._faceModel = detector;
                         return detector;
@@ -722,20 +725,29 @@ Object.assign(window.app, {
                         ctx.drawImage(previewImg, 0, 0, detW, detH);
 
                         const results = await detector.detect(canvas);
-                        const detections = results.detections || [];
-                        if (detections.length === 0) return;
+                        const faces = results.faceLandmarks || [];
+                        if (faces.length === 0) {
+                            app.toast.show('info', 'Không phát hiện khuôn mặt', 'Hệ thống không tìm thấy khuôn mặt nào trên ảnh này.');
+                            return;
+                        }
 
                         let added = 0;
-                        detections.forEach(d => {
-                            const box = d.boundingBox;
-                            if (!box) return;
-                            const x = box.originX;
-                            const y = box.originY;
-                            const w = box.width;
-                            const h = box.height;
+                        faces.forEach(landmarks => {
+                            if (!landmarks || landmarks.length === 0) return;
+                            let minX = 1, minY = 1, maxX = 0, maxY = 0;
+                            for (const p of landmarks) {
+                                if (p.x < minX) minX = p.x;
+                                if (p.y < minY) minY = p.y;
+                                if (p.x > maxX) maxX = p.x;
+                                if (p.y > maxY) maxY = p.y;
+                            }
+                            const x = minX * detW;
+                            const y = minY * detH;
+                            const w = (maxX - minX) * detW;
+                            const h = (maxY - minY) * detH;
 
-                            const padX = w * 0.15;
-                            const padY = h * 0.2;
+                            const padX = w * 0.25;
+                            const padY = h * 0.35;
                             const fx = Math.max(0, x - padX);
                             const fy = Math.max(0, y - padY);
                             const fw = Math.min(detW - fx, w + padX * 2);
@@ -752,9 +764,12 @@ Object.assign(window.app, {
 
                         if (added > 0) {
                             app.toast.show('success', 'Đã tự động che khuôn mặt', `Phát hiện và che ${added} khuôn mặt. Bạn có thể kéo, đổi kích thước hoặc xóa từng vùng.`);
+                        } else {
+                            app.toast.show('info', 'Không phát hiện khuôn mặt', 'Hệ thống không tìm thấy khuôn mặt nào trên ảnh này.');
                         }
                     } catch (err) {
                         console.error('Auto face-blur skipped:', err);
+                        app.toast.show('error', 'Lỗi tự động làm mờ', 'Không thể chạy nhận diện khuôn mặt: ' + (err && err.message ? err.message : err));
                     } finally {
                         app.upload._faceDetecting = false;
                         app.upload.updateBlurBtn();
