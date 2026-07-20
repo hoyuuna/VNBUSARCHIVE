@@ -680,11 +680,12 @@ Object.assign(window.app, {
                         );
                         // Google MediaPipe Face Detector (@mediapipe/tasks-vision)
                         const modelAssetPath = 'https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite';
+                        // Hạ阈值 để bắt được nhiều mặt nhỏ / góc độ lệch (vẫn sót case đội mũ bảo hiểm/qua kính)
                         const baseOpts = {
                             baseOptions: { modelAssetPath: modelAssetPath },
                             runningMode: 'IMAGE',
-                            minDetectionConfidence: 0.3,
-                            minSuppressionThreshold: 0.2
+                            minDetectionConfidence: 0.1,
+                            minSuppressionThreshold: 0.3
                         };
                         let detector;
                         try {
@@ -721,7 +722,8 @@ Object.assign(window.app, {
 
                         const natW = previewImg.naturalWidth || container.clientWidth;
                         const natH = previewImg.naturalHeight || container.clientHeight;
-                        const detW = Math.min(natW, 1280);
+                        // Tăng lên 1920 để bắt được các khuôn mặt nhỏ / ở xa trong ảnh xe buýt
+                        const detW = Math.min(natW, 1920);
                         const detH = Math.round(natH * (detW / natW));
 
                         const canvas = document.createElement('canvas');
@@ -745,6 +747,9 @@ Object.assign(window.app, {
                             const y = box.originY;
                             const w = box.width;
                             const h = box.height;
+
+                            // Bỏ qua face quá nhỏ (<10px trên ảnh detect) để tránh nhiễu do hạ threshold
+                            if (w < 10 || h < 10) return;
 
                             const padX = w * 0.25;
                             const padY = h * 0.35;
