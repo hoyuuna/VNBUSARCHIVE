@@ -3622,7 +3622,7 @@ Object.assign(window.app, {
                         div.innerHTML = `
                             <div class="flex flex-col sm:flex-1 min-w-0">
                                 <span class="sm:hidden font-bold text-gray-500 mb-1">Biển số</span>
-                                <input type="text" value="${app.utils.escapeAttr(h.plate || '')}" placeholder="Biển số" oninput="app.utils.formatPlateInput(this)" onchange="app.vehicle.updateHistoryItem(${index}, 'plate', this.value, '${prefix}')" class="hist-input">
+                                <input type="text" value="${app.utils.escapeAttr(h.plate || app.currentPlate || '')}" placeholder="Biển số" oninput="app.utils.formatPlateInput(this)" onchange="app.vehicle.updateHistoryItem(${index}, 'plate', this.value, '${prefix}')" class="hist-input">
                             </div>
                             <div class="flex flex-col sm:flex-1 min-w-0">
                                 <span class="sm:hidden font-bold text-gray-500 mb-1">Ngày áp dụng</span>
@@ -3652,8 +3652,10 @@ Object.assign(window.app, {
                         const latest = app.vehicle.tempHistory[app.vehicle.tempHistory.length - 1];
                         const opInput = document.getElementById(prefix + 'hist-new-op');
                         const routeInput = document.getElementById(prefix + 'hist-new-route');
+                        const plateInput = document.getElementById(prefix + 'hist-new-plate');
                         if (opInput && !opInput.value) opInput.value = latest.operator || '';
                         if (routeInput && !routeInput.value) routeInput.value = latest.route || '';
+                        if (plateInput && !plateInput.value) plateInput.value = latest.plate || app.currentPlate || '';
                     }
                 },
 
@@ -3681,7 +3683,7 @@ Object.assign(window.app, {
 
                     app.vehicle.tempHistory.push({
                         license_plate: app.currentPlate,
-                        plate: plate || null,
+                        plate: plate || app.currentPlate || null,
                         effective_date: dateVal,
                         operator: op,
                         route: route,
@@ -3725,7 +3727,7 @@ Object.assign(window.app, {
 
                         const payload = app.vehicle.tempHistory.map((h, i) => ({
                             license_plate: app.currentPlate,
-                            plate: h.plate || null,
+                            plate: (h.plate && h.plate.trim()) ? h.plate.trim() : (app.currentPlate || null),
                             operator: h.operator,
                             route: h.route,
                             note: h.note,
