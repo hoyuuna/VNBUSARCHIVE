@@ -229,7 +229,7 @@ Object.assign(window.app, {
                     if (!topPhotos || topPhotos.length === 0) {
                         let topQuery = window.sb
                             .from('photos')
-                            .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                            .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                             .eq('status', 'approved')
                             .order('views', { ascending: false, nullsFirst: false })
                             .limit(5);
@@ -297,7 +297,7 @@ Object.assign(window.app, {
                     const grid = document.getElementById('photo-grid');
                     let gridQuery = window.sb
                         .from('photos')
-                        .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                        .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                         .eq('status', 'approved')
                         .order('created_at', { ascending: false })
                         .range(0, 19);
@@ -532,7 +532,7 @@ Object.assign(window.app, {
                                 // Tái tạo query tìm kiếm theo filterType hiện tại
                                 const filterType = app.currentFilter;
                                 const profileSelect = (filterType === 'uploader') ? 'profiles!inner(id, username, role, subroles, ban_status)' : 'profiles(id, username, role, subroles, ban_status)';
-                                let sQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, status, denial_reason, views, ${profileSelect}, vehicles${filterType === 'model' ? '!inner' : ''}(model)`).eq('status', 'approved');
+                                let sQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, ${profileSelect}, vehicles${filterType === 'model' ? '!inner' : ''}(model)`).eq('status', 'approved');
                                 sQuery = app.preference.applyFilter(sQuery);
 
                                 const query = (document.getElementById('page-search-input') || document.getElementById('search-input'))?.value.trim() || '';
@@ -599,7 +599,7 @@ Object.assign(window.app, {
                     } else {
                         let moreQuery = window.sb
                             .from('photos')
-                            .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                            .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                             .eq('status', 'approved')
                             .order('created_at', { ascending: false })
                             .range(start, end);
@@ -1220,7 +1220,7 @@ Object.assign(window.app, {
 
                     let { data: photo } = await window.sb
                         .from('photos')
-                        .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, status, denial_reason, views, profiles(id, username, avatar_url, role, subroles, ban_status), vehicles(model)`)
+                        .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, profiles(id, username, avatar_url, role, subroles, ban_status), vehicles(model)`)
                         .eq('id', photoId)
                         .single();
 
@@ -1830,7 +1830,7 @@ Object.assign(window.app, {
                         // PHÂN TRANG: CHỈ KÉO TRANG ĐẦU (12 ẢNH) THAY VÌ TOÀN BỘ
                         app.vehicle.currentPage = 1;
                         const vehSize = app.vehicle.VEHICLE_PAGE_SIZE || 12;
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`, { count: 'exact' })
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`, { count: 'exact' })
                                 .eq('license_plate', plate)
                                 .eq('status', 'approved')
                                 .order('taken_at', { ascending: false, nullsFirst: false })
@@ -2441,7 +2441,7 @@ Object.assign(window.app, {
                         app.currentOperatorResolved = resolvedOperator;
                         app.views.operatorCurrentPage = 1;
                         const opSize = app.views.OPERATOR_PAGE_SIZE || 12;
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`, { count: 'exact' })
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`, { count: 'exact' })
                             .eq('status', 'approved')
                             .ilike('operator', resolvedOperator)
                             .order('taken_at', { ascending: false, nullsFirst: false })
@@ -2485,7 +2485,7 @@ Object.assign(window.app, {
                     if (btn) { btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tải...'; btn.disabled = true; }
 
                     try {
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                             .eq('status', 'approved')
                             .ilike('operator', app.currentOperatorResolved)
                             .order('taken_at', { ascending: false, nullsFirst: false })
@@ -2533,7 +2533,7 @@ Object.assign(window.app, {
                     if (btn) { btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tải...'; btn.disabled = true; }
 
                     try {
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles!inner(model)`)
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles!inner(model)`)
                             .eq('status', 'approved')
                             .eq('vehicles.model', app.model.currentModel)
                             .order('taken_at', { ascending: false, nullsFirst: false })
@@ -3294,7 +3294,7 @@ Object.assign(window.app, {
                         // PHÂN TRANG: CHỈ KÉO 1 TRANG ĐẦU
                         app.views.modelCurrentPage = 1;
                         const mdlSize = app.views.MODEL_PAGE_SIZE || 12;
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles!inner(model)`, { count: 'exact' })
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles!inner(model)`, { count: 'exact' })
                             .eq('status', 'approved')
                             .eq('vehicles.model', modelName)
                             .order('taken_at', { ascending: false, nullsFirst: false })

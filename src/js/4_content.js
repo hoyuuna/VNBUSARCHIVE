@@ -3525,7 +3525,7 @@ Object.assign(window.app, {
 
                     try {
                         const plate = app.currentPlate;
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                             .eq('license_plate', plate)
                             .eq('status', 'approved')
                             .order('taken_at', { ascending: false, nullsFirst: false })
