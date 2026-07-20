@@ -229,7 +229,7 @@ Object.assign(window.app, {
                     if (!topPhotos || topPhotos.length === 0) {
                         let topQuery = window.sb
                             .from('photos')
-                            .select(`*, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                            .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                             .eq('status', 'approved')
                             .order('views', { ascending: false, nullsFirst: false })
                             .limit(5);
@@ -297,7 +297,7 @@ Object.assign(window.app, {
                     const grid = document.getElementById('photo-grid');
                     let gridQuery = window.sb
                         .from('photos')
-                        .select(`*, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                        .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                         .eq('status', 'approved')
                         .order('created_at', { ascending: false })
                         .range(0, 19);
@@ -319,54 +319,54 @@ Object.assign(window.app, {
                     grid.innerHTML = photos.map(p => app.views.renderPhotoCard(p)).join('');
 
                     try {
-                        // 1. Đếm tổng số ảnh
-                        let countQuery = window.sb.from('photos').select('*', { count: 'exact', head: true }).eq('status', 'approved');
-                        countQuery = app.preference.applyFilter(countQuery);
-                        const { count: photoCount } = await countQuery;
+                        const prefFilter = app.preference.current || 'both';
 
-                        // 2. Đếm số Xe và Tuyến (Sử dụng vòng lặp để vượt qua giới hạn 1000 row)
-                        const uniquePlates = new Set();
-                        const uniqueRoutes = new Set();
-                        let from = 0;
-                        const step = 999;
-                        let fetchMore = true;
+                        // Ưu tiên RPC server-side (trả về 1 row, không kéo 999 dòng về client)
+                        const stats = await app.utils.getCachedStats('home_stats_' + prefFilter, 10 * 60 * 1000, async () => {
+                            const rpc = await app.utils.getHomeStats(prefFilter);
+                            if (rpc) return rpc;
 
-                        // Gom chung việc lấy Biển số và Tuyến vào 1 truy vấn để tiết kiệm API Call
-                        while (fetchMore) {
-                            let statsQuery = window.sb.from('photos')
-                                .select('license_plate, route_no')
-                                .eq('status', 'approved') // Chỉ lấy ảnh đã được duyệt
-                                .range(from, from + step);
+                            // FALLBACK (nếu chưa tạo RPC): giữ nguyên cách cũ nhưng chỉ đếm, không kéo route
+                            let countQuery = window.sb.from('photos').select('id', { count: 'exact', head: true }).eq('status', 'approved');
+                            countQuery = app.preference.applyFilter(countQuery);
+                            const { count: photoCount } = await countQuery;
+                            return { total_photos: photoCount || 0, total_vehicles: null, total_routes: null };
+                        });
 
-                            // Áp dụng bộ lọc cá nhân hóa nếu user đang chọn xem riêng Xe Buýt hoặc Xe Khách
-                            statsQuery = app.preference.applyFilter(statsQuery);
+                        // Nếu RPC trả về đủ 3 chỉ số -> dùng luôn
+                        let photoCount = stats.total_photos || 0;
+                        let uniquePlates = (stats.total_vehicles != null) ? stats.total_vehicles : null;
+                        let uniqueRoutes = (stats.total_routes != null) ? stats.total_routes : null;
 
-                            const { data, error } = await statsQuery;
-
-                            if (error || !data || data.length === 0) break;
-
-                            data.forEach(item => {
-                                if (item.license_plate) {
-                                    uniquePlates.add(item.license_plate.trim().toUpperCase());
-                                }
-                                if (item.route_no && item.route_no !== '---') {
-                                    uniqueRoutes.add(item.route_no.trim().toLowerCase());
-                                }
-                            });
-
-                            if (data.length <= step) {
-                                fetchMore = false;
-                            } else {
-                                from += step + 1;
+                        // Fallback cũ (chỉ khi RPC chưa có sẵn): tính xe/tuyến bằng vòng lặp 999 dòng
+                        if (uniquePlates === null || uniqueRoutes === null) {
+                            const plateSet = new Set();
+                            const routeSet = new Set();
+                            let from = 0; const step = 999; let fetchMore = true;
+                            while (fetchMore) {
+                                let statsQuery = window.sb.from('photos')
+                                    .select('license_plate, route_no')
+                                    .eq('status', 'approved')
+                                    .range(from, from + step);
+                                statsQuery = app.preference.applyFilter(statsQuery);
+                                const { data, error } = await statsQuery;
+                                if (error || !data || data.length === 0) break;
+                                data.forEach(item => {
+                                    if (item.license_plate) plateSet.add(item.license_plate.trim().toUpperCase());
+                                    if (item.route_no && item.route_no !== '---') routeSet.add(item.route_no.trim().toLowerCase());
+                                });
+                                if (data.length <= step) fetchMore = false; else from += step + 1;
                             }
+                            uniquePlates = plateSet.size;
+                            uniqueRoutes = routeSet.size;
                         }
 
                         // 3. Render ra giao diện
                         document.getElementById('db-stat-photos').innerText = app.utils.formatCompact(photoCount || 0);
-                        document.getElementById('db-stat-vehicles').innerText = app.utils.formatCompact(uniquePlates.size || 0);
-                        document.getElementById('db-stat-routes').innerText = app.utils.formatCompact(uniqueRoutes.size || 0);
+                        document.getElementById('db-stat-vehicles').innerText = app.utils.formatCompact(uniquePlates || 0);
+                        document.getElementById('db-stat-routes').innerText = app.utils.formatCompact(uniqueRoutes || 0);
                         if (app.views && app.views.updateMilestoneBanner) app.views.updateMilestoneBanner(photoCount || 0);
-                        
+
                     } catch (e) {
                         console.error("Lỗi tải thông kê:", e);
                     }
@@ -383,7 +383,7 @@ Object.assign(window.app, {
                     let totalPhotos = photoCount;
                     if (totalPhotos === null || typeof totalPhotos !== 'number') {
                         try {
-                            let countQuery = window.sb.from('photos').select('*', { count: 'exact', head: true }).eq('status', 'approved');
+                            let countQuery = window.sb.from('photos').select('id', { count: 'exact', head: true }).eq('status', 'approved');
                             countQuery = app.preference.applyFilter(countQuery);
                             const { count } = await countQuery;
                             totalPhotos = count || 0;
@@ -532,7 +532,7 @@ Object.assign(window.app, {
                                 // Tái tạo query tìm kiếm theo filterType hiện tại
                                 const filterType = app.currentFilter;
                                 const profileSelect = (filterType === 'uploader') ? 'profiles!inner(id, username, role, subroles, ban_status)' : 'profiles(id, username, role, subroles, ban_status)';
-                                let sQuery = window.sb.from('photos').select(`*, ${profileSelect}, vehicles${filterType === 'model' ? '!inner' : ''}(model)`).eq('status', 'approved');
+                                let sQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, status, denial_reason, views, ${profileSelect}, vehicles${filterType === 'model' ? '!inner' : ''}(model)`).eq('status', 'approved');
                                 sQuery = app.preference.applyFilter(sQuery);
 
                                 const query = (document.getElementById('page-search-input') || document.getElementById('search-input'))?.value.trim() || '';
@@ -599,7 +599,7 @@ Object.assign(window.app, {
                     } else {
                         let moreQuery = window.sb
                             .from('photos')
-                            .select(`*, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                            .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                             .eq('status', 'approved')
                             .order('created_at', { ascending: false })
                             .range(start, end);
@@ -1220,7 +1220,7 @@ Object.assign(window.app, {
 
                     let { data: photo } = await window.sb
                         .from('photos')
-                        .select(`*, profiles(id, username, avatar_url, role, subroles, ban_status), vehicles(model)`)
+                        .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, status, denial_reason, views, profiles(id, username, avatar_url, role, subroles, ban_status), vehicles(model)`)
                         .eq('id', photoId)
                         .single();
 
@@ -1733,10 +1733,10 @@ Object.assign(window.app, {
                     const tbody = document.getElementById('history-list');
                     if(tbody) tbody.innerHTML = '<tr><td colspan="4" class="text-center py-2"><i class="fa-solid fa-spinner fa-spin text-gray-400"></i> Đang tải...</td></tr>';
 
-                    const { data: history } = await window.sb
-                        .from('vehicle_history')
-                        .select('*')
-                        .eq('license_plate', plate);
+                        const { data: history } = await window.sb
+                            .from('vehicle_history')
+                            .select('id, license_plate, operator, route, note, effective_date, display_order')
+                            .eq('license_plate', plate);
 
                     // --- CHỐT CHẶN ĐÃ SỬA LỖI: KIỂM TRA BẰNG BIẾN THAY VÌ URL ---
                     if (app.currentPlate !== plate) return;
@@ -1830,7 +1830,7 @@ Object.assign(window.app, {
                         // PHÂN TRANG: CHỈ KÉO TRANG ĐẦU (12 ẢNH) THAY VÌ TOÀN BỘ
                         app.vehicle.currentPage = 1;
                         const vehSize = app.vehicle.VEHICLE_PAGE_SIZE || 12;
-                        let pQuery = window.sb.from('photos').select(`*, profiles(id, username, role, subroles, ban_status), vehicles(model)`, { count: 'exact' })
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`, { count: 'exact' })
                                 .eq('license_plate', plate)
                                 .eq('status', 'approved')
                                 .order('taken_at', { ascending: false, nullsFirst: false })
@@ -1839,9 +1839,9 @@ Object.assign(window.app, {
                         pQuery = app.preference.applyFilter(pQuery);
 
                         const [vehicleRes, allPhotosRes, historyRes] = await Promise.all([
-                            window.sb.from('vehicles').select('*').eq('license_plate', plate).single(),
+                            window.sb.from('vehicles').select('license_plate, model, operator, note').eq('license_plate', plate).single(),
                             pQuery.range(0, vehSize - 1),
-                            window.sb.from('vehicle_history').select('*').eq('license_plate', plate).order('display_order', { ascending: true })
+                            window.sb.from('vehicle_history').select('id, license_plate, operator, route, note, effective_date, display_order').eq('license_plate', plate).order('display_order', { ascending: true })
                         ]);
 
 // BẮT LỖI RACE CONDITION
@@ -2157,7 +2157,7 @@ Object.assign(window.app, {
                             .select('operator')
                             .eq('status', 'approved')
                             .not('operator', 'is', null)
-                            .limit(1000);
+                            .limit(50);
                         if (opCandidates && opCandidates.length > 0) {
                             const match = opCandidates.find(r => app.utils.normOperator(r.operator).toLowerCase() === targetNorm);
                             if (match) resolvedOperator = match.operator;
@@ -2183,7 +2183,7 @@ Object.assign(window.app, {
 
                     try {
                         // Gọi DB Lấy thông tin Operator (Logo, Mô tả)
-                        const { data: opInfo } = await window.sb.from('operator_info').select('*').eq('operator_name', operatorName).maybeSingle();
+                        const { data: opInfo } = await window.sb.from('operator_info').select('operator_name, logo_url, description').eq('operator_name', operatorName).maybeSingle();
                         
                         const logoEl = document.getElementById('operator-logo');
                         const fallbackEl = document.getElementById('operator-logo-fallback');
@@ -2206,34 +2206,47 @@ Object.assign(window.app, {
                         }
 
                         // =========================================================
-                        // LOGIC THÔNG MINH: VÒNG LẶP LẤY THỐNG KÊ (VƯỢT GIỚI HẠN 1000 DÒNG)
-                        // Chỉ tải text (BKS, Tuyến, Dòng xe), tuyệt đối không tải URL ảnh để tiết kiệm RAM
+                        // LOGIC MỚI: TÍNH THỐNG KÊ SERVER-SIDE QUA RPC (tránh kéo 999 dòng/loop)
+                        // get_operator_stats -> tổng ảnh/views/xe/tuyến (1 row)
+                        // get_operator_plates -> danh sách BKS + trạng thái mới nhất từ vehicle_history (chỉ các BKS distinct)
                         // =========================================================
-                        let allStatsData = [];
-                        let from = 0;
-                        const step = 999;
-                        let fetchMore = true;
+                        const stats = await app.utils.getCachedStats('op_stats_' + resolvedOperator, 10 * 60 * 1000, async () => {
+                            const rpc = await app.utils.getOperatorStats(resolvedOperator);
+                            if (rpc) return rpc;
+                            // FALLBACK nếu chưa có RPC: chỉ đếm (không lấy route/ảnh)
+                            let cq = window.sb.from('photos').select('id', { count: 'exact', head: true }).eq('status', 'approved').ilike('operator', resolvedOperator);
+                            const { count } = await cq;
+                            return { total_photos: count || 0, total_views: 0, total_vehicles: null, total_routes: null };
+                        });
 
-                        while (fetchMore) {
-                            const { data, error } = await window.sb.from('photos')
+                        let allStatsData = [];
+                        // Lấy danh sách BKS distinct + trạng thái mới nhất (nhỏ, bounded)
+                        const platesRpc = await app.utils.getCachedStats('op_plates_' + resolvedOperator, 10 * 60 * 1000, async () => {
+                            try {
+                                const { data } = await window.sb.rpc('get_operator_plates', { op_name: resolvedOperator });
+                                return data || [];
+                            } catch (e) { return null; }
+                        });
+
+                        if (platesRpc && platesRpc.length > 0) {
+                            allStatsData = platesRpc.map(p => ({
+                                license_plate: p.license_plate,
+                                route_no: p.route || null,
+                                views: 0,
+                                vehicles: p.model ? { model: p.model } : null
+                            }));
+                        } else {
+                            // FALLBACK nhẹ: lấy 200 dòng gần nhất thay vì loop 999
+                            const { data } = await window.sb.from('photos')
                                 .select('views, license_plate, route_no, vehicles(model)')
                                 .eq('status', 'approved')
                                 .ilike('operator', resolvedOperator)
-                                .order('taken_at', { ascending: false, nullsFirst: false }) // Ép ảnh mới nhất lên đầu
-                                .range(from, from + step);
-
-                            if (error || !data || data.length === 0) break;
-
-                            allStatsData.push(...data);
-
-                            if (data.length <= step) {
-                                fetchMore = false;
-                            } else {
-                                from += step + 1;
-                            }
+                                .order('taken_at', { ascending: false, nullsFirst: false })
+                                .limit(200);
+                            allStatsData = data || [];
                         }
 
-                        if (allStatsData.length === 0) {
+                        if (allStatsData.length === 0 && (!stats.total_photos || stats.total_photos === 0)) {
                             grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500">Chưa có ảnh nào của đơn vị này được duyệt trên hệ thống.</div>';
                             document.getElementById('op-stat-photos').innerText = '0';
                             document.getElementById('op-stat-vehicles').innerText = '0';
@@ -2244,20 +2257,22 @@ Object.assign(window.app, {
                             return;
                         }
 
-                        // 1. TÍNH TOÁN 4 Ô THỐNG KÊ TRÊN CÙNG
-                        let totalViews = 0;
+                        // 1. TÍNH TOÁN 4 Ô THỐNG KÊ TRÊN CÙNG (ưu tiên từ RPC aggregates)
+                        let totalViews = stats.total_views || 0;
                         let uniquePlates = new Set();
                         let uniqueRoutes = new Set();
 
                         allStatsData.forEach(p => {
-                            totalViews += (p.views || 0);
                             if (p.license_plate) uniquePlates.add(p.license_plate.toUpperCase());
                             if (p.route_no && p.route_no !== '---') uniqueRoutes.add(p.route_no.toLowerCase());
                         });
+                        // Nếu RPC có tổng xe/tuyến chính xác thì dùng luôn
+                        const totalVehicles = (stats.total_vehicles != null) ? stats.total_vehicles : uniquePlates.size;
+                        const totalRoutes = (stats.total_routes != null) ? stats.total_routes : uniqueRoutes.size;
 
-                        document.getElementById('op-stat-photos').innerText = app.utils.formatCompact(allStatsData.length);
-                        document.getElementById('op-stat-vehicles').innerText = app.utils.formatCompact(uniquePlates.size);
-                        document.getElementById('op-stat-routes').innerText = app.utils.formatCompact(uniqueRoutes.size);
+                        document.getElementById('op-stat-photos').innerText = app.utils.formatCompact(stats.total_photos || allStatsData.length);
+                        document.getElementById('op-stat-vehicles').innerText = app.utils.formatCompact(totalVehicles);
+                        document.getElementById('op-stat-routes').innerText = app.utils.formatCompact(totalRoutes);
                         document.getElementById('op-stat-views').innerText = app.utils.formatCompact(totalViews);
 
                         // 2. TÍNH TOÁN BẢNG CƠ CẤU DÒNG XE TỪ LỊCH SỬ HOẠT ĐỘNG (VEHICLE_HISTORY)
@@ -2414,7 +2429,7 @@ Object.assign(window.app, {
                         app.currentOperatorResolved = resolvedOperator;
                         app.views.operatorCurrentPage = 1;
                         const opSize = app.views.OPERATOR_PAGE_SIZE || 12;
-                        let pQuery = window.sb.from('photos').select(`*, profiles(id, username, role, subroles, ban_status), vehicles(model)`, { count: 'exact' })
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`, { count: 'exact' })
                             .eq('status', 'approved')
                             .ilike('operator', resolvedOperator)
                             .order('taken_at', { ascending: false, nullsFirst: false })
@@ -2458,7 +2473,7 @@ Object.assign(window.app, {
                     if (btn) { btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tải...'; btn.disabled = true; }
 
                     try {
-                        let pQuery = window.sb.from('photos').select(`*, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                             .eq('status', 'approved')
                             .ilike('operator', app.currentOperatorResolved)
                             .order('taken_at', { ascending: false, nullsFirst: false })
@@ -2506,7 +2521,7 @@ Object.assign(window.app, {
                     if (btn) { btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tải...'; btn.disabled = true; }
 
                     try {
-                        let pQuery = window.sb.from('photos').select(`*, profiles(id, username, role, subroles, ban_status), vehicles!inner(model)`)
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles!inner(model)`)
                             .eq('status', 'approved')
                             .eq('vehicles.model', app.model.currentModel)
                             .order('taken_at', { ascending: false, nullsFirst: false })
@@ -3020,7 +3035,7 @@ Object.assign(window.app, {
                     }
 
                     try {
-                        const { data: opInfo } = await window.sb.from('operator_info').select('*').eq('operator_name', app.currentOperator).maybeSingle();
+                        const { data: opInfo } = await window.sb.from('operator_info').select('operator_name, logo_url, description').eq('operator_name', app.currentOperator).maybeSingle();
                         if (opInfo) {
                             document.getElementById('op-edit-logo').value = opInfo.logo_url || '';
                             document.getElementById('op-edit-desc').value = opInfo.description || '';
@@ -3187,7 +3202,7 @@ Object.assign(window.app, {
                         const brandName = modelName.split(' ')[0];
 
                         // 2. Lấy dữ liệu Mô tả của CHÍNH XÁC dòng xe này
-                        const { data: exactInfo } = await window.sb.from('model_info').select('*').eq('model_name', modelName).maybeSingle();
+                        const { data: exactInfo } = await window.sb.from('model_info').select('model_name, logo_url, description').eq('model_name', modelName).maybeSingle();
 
                         // 3. Tìm Logo của hãng (Tìm dòng xe bất kỳ bắt đầu bằng tên hãng và có logo)
                         const { data: brandLogoData } = await window.sb.from('model_info')
@@ -3217,15 +3232,39 @@ Object.assign(window.app, {
                             descEl.classList.add('hidden');
                         }
 
-                        // 4. Lấy dữ liệu ảnh và thống kê thông qua INNER JOIN bảng vehicles
-                        const { data: statsData, error: statsErr } = await window.sb.from('photos')
-                            .select('views, license_plate, operator, vehicles!inner(model)')
-                            .eq('status', 'approved')
-                            .eq('vehicles.model', modelName);
+                        // 4. Lấy thống kê qua RPC (1 row, không kéo mọi ảnh về client)
+                        const stats = await app.utils.getCachedStats('mdl_stats_' + modelName, 10 * 60 * 1000, async () => {
+                            const rpc = await app.utils.getModelStats(modelName);
+                            if (rpc) return rpc;
 
-                        if (statsErr) throw statsErr;
+                            // FALLBACK: chỉ đếm (có limit để tránh kéo toàn bộ)
+                            const { data, error: statsErr } = await window.sb.from('photos')
+                                .select('views, license_plate, operator, vehicles!inner(model)')
+                                .eq('status', 'approved')
+                                .eq('vehicles.model', modelName)
+                                .limit(500);
+                            if (statsErr) throw statsErr;
+                            let totalViews = 0; const pSet = new Set(); const oSet = new Set();
+                            (data || []).forEach(p => {
+                                totalViews += (p.views || 0);
+                                if (p.license_plate) pSet.add(p.license_plate.toUpperCase());
+                                if (p.operator && p.operator !== '---') oSet.add(p.operator.toLowerCase());
+                            });
+                            return { total_photos: data ? data.length : 0, total_views: totalViews, total_vehicles: pSet.size, total_ops: oSet.size };
+                        });
 
-                        if (!statsData || statsData.length === 0) {
+                        const statsData = stats; // tương thích với code render bên dưới
+                        const totalViews = stats.total_views || 0;
+                        const uniquePlates = new Set();
+                        const uniqueOps = new Set();
+                        if (stats.total_vehicles != null) {
+                            // RPC đã tính sẵn -> không cần lặp; chỉ để Set rỗng (render dùng số từ RPC)
+                        }
+                        const mdlPhotoCount = stats.total_photos || 0;
+                        const mdlVehicleCount = stats.total_vehicles != null ? stats.total_vehicles : 0;
+                        const mdlOpCount = stats.total_ops != null ? stats.total_ops : 0;
+
+                        if (!mdlPhotoCount || mdlPhotoCount === 0) {
                             grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500">Chưa có ảnh xe nào thuộc dòng này được duyệt trên hệ thống.</div>';
                             document.getElementById('mdl-stat-photos').innerText = '0';
                             document.getElementById('mdl-stat-vehicles').innerText = '0';
@@ -3235,25 +3274,15 @@ Object.assign(window.app, {
                             return;
                         }
 
-                        let totalViews = 0;
-                        let uniquePlates = new Set();
-                        let uniqueOps = new Set();
-
-                        statsData.forEach(p => {
-                            totalViews += (p.views || 0);
-                            if (p.license_plate) uniquePlates.add(p.license_plate.toUpperCase());
-                            if (p.operator && p.operator !== '---') uniqueOps.add(p.operator.toLowerCase());
-                        });
-
-                        document.getElementById('mdl-stat-photos').innerText = app.utils.formatCompact(statsData.length);
-                        document.getElementById('mdl-stat-vehicles').innerText = app.utils.formatCompact(uniquePlates.size);
-                        document.getElementById('mdl-stat-ops').innerText = app.utils.formatCompact(uniqueOps.size);
+                        document.getElementById('mdl-stat-photos').innerText = app.utils.formatCompact(mdlPhotoCount);
+                        document.getElementById('mdl-stat-vehicles').innerText = app.utils.formatCompact(mdlVehicleCount);
+                        document.getElementById('mdl-stat-ops').innerText = app.utils.formatCompact(mdlOpCount);
                         document.getElementById('mdl-stat-views').innerText = app.utils.formatCompact(totalViews);
 
                         // PHÂN TRANG: CHỈ KÉO 1 TRANG ĐẦU
                         app.views.modelCurrentPage = 1;
                         const mdlSize = app.views.MODEL_PAGE_SIZE || 12;
-                        let pQuery = window.sb.from('photos').select(`*, profiles(id, username, role, subroles, ban_status), vehicles!inner(model)`, { count: 'exact' })
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles!inner(model)`, { count: 'exact' })
                             .eq('status', 'approved')
                             .eq('vehicles.model', modelName)
                             .order('taken_at', { ascending: false, nullsFirst: false })

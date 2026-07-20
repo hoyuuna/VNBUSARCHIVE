@@ -861,7 +861,7 @@ Object.assign(window.app, {
 
                 fetch: async () => {
                     try {
-                        const { data, error } = await window.sb.from('system_settings').select('*');
+                        const { data, error } = await window.sb.from('system_settings').select('id, value, is_active, auto_reactivate_at, reason');
                         if (data) {
                             data.forEach(item => { app.maintenance.settings[item.id] = item; });
                         }
@@ -1565,6 +1565,70 @@ cleanupState: () => {
                     }
 
                     return url;
+                },
+
+                // =========================================================
+                // HELPER: TÍNH THỐNG KÊ SERVER-SIDE (RPC) + CACHE
+                // Thay thế các vòng lặp kéo 999 dòng về client để tính đếm.
+                // Tránh bón rút Egress: chỉ trả về 1 row tổng hợp từ DB.
+                // =========================================================
+                _statsCache: {},
+                _statsCacheExpire: {},
+                getCachedStats: async (cacheKey, ttlMs, fetchFn) => {
+                    const now = Date.now();
+                    if (app.utils._statsCache[cacheKey] && app.utils._statsCacheExpire[cacheKey] > now) {
+                        return app.utils._statsCache[cacheKey];
+                    }
+                    const data = await fetchFn();
+                    app.utils._statsCache[cacheKey] = data;
+                    app.utils._statsCacheExpire[cacheKey] = now + ttlMs;
+                    return data;
+                },
+
+                // Thống kê tổng quát trang chủ (số ảnh, số xe, số tuyến)
+                getHomeStats: async (prefFilter) => {
+                    try {
+                        const { data, error } = await window.sb.rpc('get_home_stats', { pref_filter: prefFilter || 'both' });
+                        if (error) throw error;
+                        if (data && data.length > 0) return data[0];
+                    } catch (e) {
+                        console.warn('RPC get_home_stats lỗi, fallback về cách cũ:', e);
+                    }
+                    return null;
+                },
+
+                // Thống kê theo Đơn vị vận hành (tổng ảnh, views, số xe, số tuyến)
+                getOperatorStats: async (operatorName) => {
+                    try {
+                        const { data, error } = await window.sb.rpc('get_operator_stats', { op_name: operatorName });
+                        if (error) throw error;
+                        if (data && data.length > 0) return data[0];
+                    } catch (e) {
+                        console.warn('RPC get_operator_stats lỗi, fallback về cách cũ:', e);
+                    }
+                    return null;
+                },
+
+                // Thống kê theo Dòng xe (tổng ảnh, views, số xe, số đơn vị)
+                getModelStats: async (modelName) => {
+                    try {
+                        const { data, error } = await window.sb.rpc('get_model_stats', { mdl_name: modelName });
+                        if (error) throw error;
+                        if (data && data.length > 0) return data[0];
+                    } catch (e) {
+                        console.warn('RPC get_model_stats lỗi, fallback về cách cũ:', e);
+                    }
+                    return null;
+                },
+
+                // Debounce helper (dùng cho search thực thi)
+                debounce: (fn, delay = 500) => {
+                    let timer = null;
+                    return function (...args) {
+                        const ctx = this;
+                        if (timer) clearTimeout(timer);
+                        timer = setTimeout(() => { timer = null; fn.apply(ctx, args); }, delay);
+                    };
                 },
 
 
@@ -2563,8 +2627,13 @@ Object.assign(window.app, {
 
                 app.scrollPositions = {};
                 app.currentPathForScroll = window.location.pathname + window.location.search;
+                app._isUserScrolling = false;
+                let _scrollTimer = null;
                 window.addEventListener('scroll', () => {
                     app.scrollPositions[app.currentPathForScroll] = window.scrollY;
+                    app._isUserScrolling = true;
+                    if (_scrollTimer) clearTimeout(_scrollTimer);
+                    _scrollTimer = setTimeout(() => { app._isUserScrolling = false; }, 400);
                 }, { passive: true });
                 app.lastSearchQuery = '';
                 app.lastSearchFilter = '';
@@ -2817,6 +2886,11 @@ Object.assign(window.app, {
                 app.realtimeChannel = window.sb.channel('global-changes')
                     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'photos', filter: 'status=eq.approved' }, payload => {
                         if (app.currentViewMode === 'home') {
+                            const now = Date.now();
+                            // CHỐNG BẮN REAL: chỉ reload tối đa 1 lần / 30s, và bỏ qua khi user đang cuộn
+                            if (app._lastHomeRealtimeReload && now - app._lastHomeRealtimeReload < 30000) return;
+                            if (app._isUserScrolling) return;
+                            app._lastHomeRealtimeReload = now;
                             app.views.loadHome(true);
                         }
                     })
@@ -4149,7 +4223,7 @@ Object.assign(window.app, {
                     if (filterType === 'operator' || filterType === 'all') {
                         cardPromises.push((async () => {
                             try {
-                                let opInfoQuery = window.sb.from('operator_info').select('*');
+                                let opInfoQuery = window.sb.from('operator_info').select('operator_name, logo_url, description');
                                 let opPhotoQuery = window.sb.from('photos').select('operator').eq('status', 'approved');
                                 
                                 searchWords.forEach(w => { 
@@ -4159,7 +4233,7 @@ Object.assign(window.app, {
 
                                 const [infoRes, photoRes] = await Promise.all([
                                     opInfoQuery.limit(10),
-                                    opPhotoQuery.limit(200)
+                                    opPhotoQuery.limit(50)
                                 ]);
 
                                 let uniqueOpsMap = new Map();
@@ -4190,7 +4264,7 @@ Object.assign(window.app, {
 
                                 const missingInfos = finalOps.filter(op => !opInfoMap[op.toLowerCase()]);
                                 if (missingInfos.length > 0) {
-                                    const { data: extraInfos } = await window.sb.from('operator_info').select('*').in('operator_name', missingInfos);
+                                    const { data: extraInfos } = await window.sb.from('operator_info').select('operator_name, logo_url, description').in('operator_name', missingInfos);
                                     if (extraInfos) {
                                         extraInfos.forEach(info => { opInfoMap[info.operator_name.toLowerCase()] = info; });
                                     }
@@ -4222,7 +4296,7 @@ Object.assign(window.app, {
                     if (filterType === 'model' || filterType === 'all') {
                         cardPromises.push((async () => {
                             try {
-                                let mdlInfoQuery = window.sb.from('model_info').select('*');
+                                let mdlInfoQuery = window.sb.from('model_info').select('model_name, logo_url, description');
                                 let mdlVehicleQuery = window.sb.from('vehicles').select('model, photos!inner(status)').eq('photos.status', 'approved');
                                 
                                 searchWords.forEach(w => { 
@@ -4232,7 +4306,7 @@ Object.assign(window.app, {
 
                                 const [infoRes, vehicleRes] = await Promise.all([
                                     mdlInfoQuery.limit(10),
-                                    mdlVehicleQuery.limit(200)
+                                    mdlVehicleQuery.limit(50)
                                 ]);
 
                                 let uniqueModelsMap = new Map();
@@ -4263,7 +4337,7 @@ Object.assign(window.app, {
 
                                 const missingInfos = finalModels.filter(m => !mdlInfoMap[m.toLowerCase()]);
                                 if (missingInfos.length > 0) {
-                                    const { data: extraInfos } = await window.sb.from('model_info').select('*').in('model_name', missingInfos);
+                                    const { data: extraInfos } = await window.sb.from('model_info').select('model_name, logo_url, description').in('model_name', missingInfos);
                                     if (extraInfos) {
                                         extraInfos.forEach(info => { mdlInfoMap[info.model_name.toLowerCase()] = info; });
                                     }
@@ -4351,7 +4425,7 @@ Object.assign(window.app, {
 
                     // ================= TÌM KIẾM ẢNH CHÍNH =================
                     const profileSelect = (filterType === 'uploader') ? 'profiles!inner(id, username, role, subroles, ban_status)' : 'profiles(id, username, role, subroles, ban_status)';
-                    let photoQuery = window.sb.from('photos').select(`*, ${profileSelect}, vehicles${filterType === 'model' ? '!inner' : ''}(model)`).eq('status', 'approved');
+                    let photoQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, status, denial_reason, views, ${profileSelect}, vehicles${filterType === 'model' ? '!inner' : ''}(model)`).eq('status', 'approved');
                     photoQuery = app.preference.applyFilter(photoQuery);
 
                     if (filterType === 'route') {
