@@ -2009,7 +2009,7 @@ Object.assign(window.app, {
                                     <input type="date" id="veh-hist-new-date" class="hist-input sm:flex-1" title="Ngày áp dụng">
                                     <input type="text" id="veh-hist-new-op" placeholder="Đơn vị vận hành" class="hist-input sm:flex-1" oninput="app.utils.formatNoPunctuation(this)">
                                     <input type="text" id="veh-hist-new-route" placeholder="Mã số tuyến" class="hist-input sm:flex-1">
-                                    <input type="text" id="veh-hist-new-note" placeholder="Ghi chú (BKS cũ...)" class="hist-input sm:flex-1">
+                                    <input type="text" id="veh-hist-new-note" placeholder="Ghi chú" class="hist-input sm:flex-1">
                                     <button onclick="app.vehicle.addHistoryItem('veh-')" class="bg-black text-white px-4 py-2 text-xs rounded-md font-bold hover:bg-gray-800 transition shadow-sm w-full sm:w-auto whitespace-nowrap">Thêm Mới</button>
                                 </div>
                                 <div class="mt-3 flex justify-end gap-3">

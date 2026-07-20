@@ -3638,7 +3638,7 @@ Object.assign(window.app, {
                             </div>
                             <div class="flex flex-col sm:flex-1 min-w-0">
                                 <span class="sm:hidden font-bold text-gray-500 mb-1">Ghi chú</span>
-                                <input type="text" value="${app.utils.escapeAttr(h.note || '')}" placeholder="Ghi chú (BKS cũ...)" onchange="app.vehicle.updateHistoryItem(${index}, 'note', this.value, '${prefix}')" class="hist-input">
+                                <input type="text" value="${app.utils.escapeAttr(h.note || '')}" placeholder="Ghi chú" onchange="app.vehicle.updateHistoryItem(${index}, 'note', this.value, '${prefix}')" class="hist-input">
                             </div>
                             <div class="flex justify-end gap-2 sm:items-center mt-1 sm:mt-0">
                                 <button type="button" onclick="app.vehicle.duplicateHistoryItem(${index}, '${prefix}')" class="text-gray-700 hover:text-white hover:bg-black border border-gray-300 rounded-md px-3 py-2 font-bold transition" title="Nhân bản"><i class="fa-solid fa-copy"></i></button>
