@@ -4425,7 +4425,7 @@ Object.assign(window.app, {
 
                     // ================= TÌM KIẾM ẢNH CHÍNH =================
                     const profileSelect = (filterType === 'uploader') ? 'profiles!inner(id, username, role, subroles, ban_status)' : 'profiles(id, username, role, subroles, ban_status)';
-                    let photoQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, status, denial_reason, views, ${profileSelect}, vehicles${filterType === 'model' ? '!inner' : ''}(model)`).eq('status', 'approved');
+                        let photoQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, status, denial_reason, views, ${profileSelect}, vehicles${filterType === 'model' ? '!inner' : ''}(model)`, { count: 'exact' }).eq('status', 'approved');
                     photoQuery = app.preference.applyFilter(photoQuery);
 
                     if (filterType === 'route') {
@@ -4517,9 +4517,16 @@ Object.assign(window.app, {
                     app.currentSearchResults = results;
                     app.searchTotalCount = count || results.length;
                     app.searchTotalPages = Math.ceil(app.searchTotalCount / app.searchPageSize);
-                    app.loadedCount = 0;
-                    grid.innerHTML = '';
-                    app.views.loadMorePhotos();
+                    app.loadedCount = results.length;
+                    app.searchCurrentPage = 1;
+
+                    grid.innerHTML = results.map(p => app.views.renderPhotoCard(p)).join('');
+
+                    if (app.searchTotalPages > 1) {
+                        document.getElementById('search-load-more-container')?.classList.remove('hidden');
+                    } else {
+                        document.getElementById('search-load-more-container')?.classList.add('hidden');
+                    }
 
                 } catch (err) {
                     console.error(err);
