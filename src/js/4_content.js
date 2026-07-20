@@ -512,8 +512,10 @@ Object.assign(window.app, {
                             let newWidth = initialWidth + dx;
                             let newHeight = initialHeight + dy;
 
-                            newWidth = Math.max(24, Math.min(newWidth, container.offsetWidth - panel.offsetLeft));
-                            newHeight = Math.max(24, Math.min(newHeight, container.offsetHeight - panel.offsetTop));
+                            const minBlurW = Math.max(8, container.offsetWidth * 0.02);
+                            const minBlurH = Math.max(8, container.offsetHeight * 0.02);
+                            newWidth = Math.max(minBlurW, Math.min(newWidth, container.offsetWidth - panel.offsetLeft));
+                            newHeight = Math.max(minBlurH, Math.min(newHeight, container.offsetHeight - panel.offsetTop));
 
                             panel.style.width = newWidth + 'px';
                             panel.style.height = newHeight + 'px';
