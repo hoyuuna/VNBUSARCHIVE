@@ -1839,7 +1839,7 @@ Object.assign(window.app, {
                         pQuery = app.preference.applyFilter(pQuery);
 
                         const [vehicleRes, allPhotosRes, historyRes] = await Promise.all([
-                            window.sb.from('vehicles').select('license_plate, model, operator, note').eq('license_plate', plate).single(),
+                            window.sb.from('vehicles').select('license_plate, model, operator, note').eq('license_plate', plate).maybeSingle(),
                             pQuery.range(0, vehSize - 1),
                             window.sb.from('vehicle_history').select('id, license_plate, operator, route, note, effective_date, display_order').eq('license_plate', plate).order('display_order', { ascending: true })
                         ]);
@@ -1847,15 +1847,26 @@ Object.assign(window.app, {
 // BẮT LỖI RACE CONDITION
                     if (window.location.pathname !== `/vehicle/${encodeURIComponent(plate)}`) return;
 
-                        const vehicle = vehicleRes.data;
+                        const allPhotos = allPhotosRes.data || [];
+
+                        // XE CÓ THỂ CHƯA CÓ ROW TRONG BẢNG vehicles (chỉ có ảnh).
+                        // DỰNG THÔNG TIN TỪ ẢNH + LỊCH SỬ thay vì báo lỗi.
+                        let vehicle = vehicleRes.data;
                         if (!vehicle) {
-                            app.ui.showAlert("Không tìm thấy thông tin cho xe này.", () => app.views.loadHome());
-                            return;
+                            if (allPhotos.length === 0) {
+                                app.ui.showAlert("Không tìm thấy thông tin cho xe này.", () => app.views.loadHome());
+                                return;
+                            }
+                            const topP = allPhotos[0];
+                            vehicle = {
+                                license_plate: plate,
+                                model: topP.vehicles?.model || null,
+                                operator: topP.operator || null,
+                                note: null
+                            };
                         }
 
-                        const allPhotos = allPhotosRes.data || [];
-                        
-                        // YÊU CẦU XE PHẢI CÓ ÍT NHẤT 1 ẢNH ĐƯỢC DUYỆT MỚI CHO XEM HỒ SƠ
+                        // YÊU CẦU XE PHẢI CÓ ÍT NHẤT 1 ẢNH ĐƯỢC DUYỆT MỚI CHO XEM HỒ SỒ
                         if (allPhotos.length === 0) {
                             app.ui.showAlert("Hồ sơ ẩn: Xe này chưa có ảnh nào được duyệt trên hệ thống.", () => app.views.loadHome());
                             return;
