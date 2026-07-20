@@ -582,6 +582,92 @@ Object.assign(window.app, {
                     });
                 },
 
+                // Chuyển đổi tọa độ blur-panel từ không gian ảnh đã cắt cũ sang ảnh mới sau khi cắt lại.
+                // oldCrop / newCrop: kết quả của cropper.getData(true) (tọa độ pixel trên ảnh gốc đã scaled).
+                // Trả về mảng { left, top, width, height (tính theo % 0-1 của ảnh mới), auto }.
+                mapBlurForRecrop: (oldCrop, newCrop) => {
+                    try {
+                        const container = document.getElementById('preview-container');
+                        const previewImg = document.getElementById('preview-img');
+                        if (!container || !previewImg) return null;
+                        const cw = container.offsetWidth || previewImg.clientWidth || 1;
+                        const ch = container.offsetHeight || previewImg.clientHeight || 1;
+
+                        const oW = oldCrop.width || 1, oH = oldCrop.height || 1;
+                        const nW = newCrop.width || 1, nH = newCrop.height || 1;
+
+                        const panels = Array.from(document.querySelectorAll('.blur-panel'));
+                        return panels.map(panel => {
+                            // Vị trí/tỷ lệ của panel trên ảnh đã cắt cũ (theo %)
+                            let fx = (panel.offsetLeft) / cw;
+                            let fy = (panel.offsetTop) / ch;
+                            let fw = (panel.offsetWidth) / cw;
+                            let fh = (panel.offsetHeight) / ch;
+
+                            // Map sang tọa độ ảnh gốc
+                            const gx = oldCrop.x + fx * oW;
+                            const gy = oldCrop.y + fy * oH;
+                            const gw = fw * oW;
+                            const gh = fh * oH;
+
+                            // Map sang không gian ảnh mới (cắt mới)
+                            let nfx = (gx - newCrop.x) / nW;
+                            let nfy = (gy - newCrop.y) / nH;
+                            let nfw = gw / nW;
+                            let nfh = gh / nH;
+
+                            // Đẩy vào trong nếu tràn ra ngoài vùng cắt
+                            if (nfx < 0) { nfw += nfx; nfx = 0; }
+                            if (nfy < 0) { nfh += nfy; nfy = 0; }
+                            if (nfx + nfw > 1) nfw = 1 - nfx;
+                            if (nfy + nfh > 1) nfh = 1 - nfy;
+
+                            nfx = Math.max(0, Math.min(nfx, 1));
+                            nfy = Math.max(0, Math.min(nfy, 1));
+                            nfw = Math.max(0.02, Math.min(nfw, 1 - nfx));
+                            nfh = Math.max(0.02, Math.min(nfh, 1 - nfy));
+
+                            return {
+                                left: nfx,
+                                top: nfy,
+                                width: nfw,
+                                height: nfh,
+                                auto: panel.dataset.auto === '1'
+                            };
+                        });
+                    } catch (e) {
+                        console.warn('Lỗi map blur khi cắt lại:', e);
+                        return null;
+                    }
+                },
+
+                // Tạo lại blur-panel từ _pendingBlurRestore (tọa độ % của ảnh mới).
+                // Trả về true nếu đã phục hồi xong, false nếu container chưa sẵn sàng.
+                restoreBlurAfterRecrop: () => {
+                    const pending = app.upload._pendingBlurRestore;
+                    if (!pending) return true;
+                    const container = document.getElementById('preview-container');
+                    if (!container || !container.offsetWidth) return false;
+
+                    const cw = container.offsetWidth;
+                    const ch = container.offsetHeight;
+
+                    pending.forEach(item => {
+                        app.upload.buildBlurPanel({
+                            left: Math.round(item.left * cw),
+                            top: Math.round(item.top * ch),
+                            width: Math.max(8, Math.round(item.width * cw)),
+                            height: Math.max(8, Math.round(item.height * ch)),
+                            auto: item.auto
+                        });
+                    });
+
+                    app.upload._pendingBlurRestore = null;
+                    app.upload._restoringBlur = false;
+                    if (app.upload.updateBlurBtn) app.upload.updateBlurBtn();
+                    return true;
+                },
+
                 loadFaceModel: () => {
                     if (app.upload._faceModel) return Promise.resolve(app.upload._faceModel);
                     if (app.upload._faceModelLoading) return app.upload._faceModelLoading;
@@ -1749,7 +1835,7 @@ Object.assign(window.app, {
                         updateSize();
                         app.previewUpdateSize = updateSize;
 
-                        if (document.querySelectorAll('.blur-panel').length === 0 && !app.upload._faceAutoRun) {
+                        if (document.querySelectorAll('.blur-panel').length === 0 && !app.upload._faceAutoRun && !app.upload._restoringBlur) {
                             app.upload._faceAutoRun = true;
                             setTimeout(() => {
                                 if (document.querySelectorAll('.blur-panel').length === 0) {
@@ -2671,9 +2757,12 @@ Object.assign(window.app, {
                 apply: () => {
                     if (!app.crop.cropper) return;
 
+                    const newCropData = (app.crop.mode === 'main') ? app.crop.cropper.getData(true) : null;
+                    const prevCropData = (app.crop.mode === 'main') ? app.crop.savedCropData : null;
+
                     if (app.crop.mode === 'main') {
                         try {
-                            app.crop.savedCropData = app.crop.cropper.getData(true);
+                            app.crop.savedCropData = newCropData;
                         } catch(e) {}
                     }
 
@@ -2720,6 +2809,11 @@ Object.assign(window.app, {
                                     app.upload.setupPreview(blob);
                                 } else {
                                     // Nếu là cắt thủ công lại sau này -> chỉ thay thế ảnh hiện tại
+                                    // Map tọa độ blur-panel từ không gian ảnh đã cắt cũ sang ảnh mới
+                                    if (prevCropData && newCropData && app.upload.mapBlurForRecrop) {
+                                        app.upload._pendingBlurRestore = app.upload.mapBlurForRecrop(prevCropData, newCropData);
+                                    }
+
                                     app.rawFile = blob;
                                     const url = URL.createObjectURL(blob);
                                     const previewImg = document.getElementById('preview-img');
@@ -2730,6 +2824,19 @@ Object.assign(window.app, {
 
                                     if(app.upload.resetWm) app.upload.resetWm();
                                     if(app.upload.resetFilters) app.upload.resetFilters();
+
+                                    if (app.upload._pendingBlurRestore) app.upload._restoringBlur = true;
+
+                                    // Phục hồi blur-panel đã được map sang ảnh mới (sau khi preview load xong)
+                                    if (app.upload._pendingBlurRestore && app.upload.restoreBlurAfterRecrop) {
+                                        const restore = () => {
+                                            if (app.upload.restoreBlurAfterRecrop()) {
+                                                previewImg.removeEventListener('load', restore);
+                                            }
+                                        };
+                                        previewImg.addEventListener('load', restore);
+                                        if (previewImg.complete) restore();
+                                    }
                                 }
 
                                 btn.innerHTML = originalText;
