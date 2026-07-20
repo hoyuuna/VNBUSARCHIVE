@@ -795,7 +795,7 @@ Object.assign(window.app, {
                     const count = document.querySelectorAll('.blur-panel').length;
                     const btn = document.getElementById('btn-add-blur');
                     if (btn) {
-                        btn.innerHTML = `<i class="fa-solid fa-droplet-slash"></i> Làm mờ${count > 0 ? ` (${count})` : ''}`;
+                        btn.innerHTML = `<i class="fa-solid fa-droplet-slash"></i> Làm mờ`;
                         const panel = document.getElementById('blur-adjust-panel');
                         if (panel && !panel.classList.contains('hidden')) {
                             btn.classList.add('bg-gray-100', 'text-black', 'border-gray-400');
