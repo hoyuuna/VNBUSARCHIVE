@@ -3620,14 +3620,18 @@ Object.assign(window.app, {
                         const div = document.createElement('div');
                         div.className = "flex flex-wrap sm:flex-nowrap gap-2 items-center bg-white p-3 border border-gray-200 rounded-md text-xs hover:border-amber-400 transition mb-2";
                         div.innerHTML = `
-                            <div class="w-full sm:w-[18%] flex items-center">
+                            <div class="w-full sm:w-[14%]">
+                                <span class="sm:hidden font-bold text-gray-500 w-14">BKS:</span>
+                                <input type="text" value="${app.utils.escapeAttr(h.plate || '')}" placeholder="Biển số" oninput="app.utils.formatPlateInput(this)" onchange="app.vehicle.updateHistoryItem(${index}, 'plate', this.value, '${prefix}')" class="border border-gray-300 p-2 sm:p-1.5 rounded text-gray-700 w-full outline-none focus:ring-1 focus:ring-amber-500">
+                            </div>
+                            <div class="w-full sm:w-[16%] flex items-center">
                                 <span class="sm:hidden font-bold text-gray-500 w-14">Ngày:</span>
                                 <input type="date" value="${app.utils.escapeAttr(h.effective_date || '')}" onchange="app.vehicle.updateHistoryItem(${index}, 'effective_date', this.value, '${prefix}')" class="border border-gray-300 p-2 sm:p-1.5 rounded text-gray-700 w-full outline-none focus:ring-1 focus:ring-amber-500">
                             </div>
-                            <div class="w-[48%] sm:w-[25%]">
+                            <div class="w-[48%] sm:w-[22%]">
                                 <input type="text" value="${app.utils.escapeAttr(h.operator)}" placeholder="Đơn vị" oninput="app.utils.formatNoPunctuation(this)" onchange="app.vehicle.updateHistoryItem(${index}, 'operator', this.value, '${prefix}')" class="border border-gray-300 p-2 sm:p-1.5 rounded w-full outline-none focus:ring-1 focus:ring-amber-500">
                             </div>
-                            <div class="w-[48%] sm:w-[15%]">
+                            <div class="w-[48%] sm:w-[13%]">
                                 <input type="text" value="${app.utils.escapeAttr(h.route || '')}" placeholder="Tuyến" onchange="app.vehicle.updateHistoryItem(${index}, 'route', this.value, '${prefix}')" class="border border-gray-300 p-2 sm:p-1.5 rounded w-full outline-none focus:ring-1 focus:ring-amber-500">
                             </div>
                             <div class="w-full sm:flex-1">
@@ -3668,11 +3672,13 @@ Object.assign(window.app, {
                     const op = document.getElementById(prefix + 'hist-new-op').value;
                     const route = document.getElementById(prefix + 'hist-new-route').value;
                     const note = document.getElementById(prefix + 'hist-new-note') ? document.getElementById(prefix + 'hist-new-note').value : '';
+                    const plate = document.getElementById(prefix + 'hist-new-plate') ? document.getElementById(prefix + 'hist-new-plate').value.trim() : '';
 
                     if(!dateVal || !op) return app.ui.showAlert("Vui lòng nhập Ngày áp dụng và Đơn vị vận hành!");
 
                     app.vehicle.tempHistory.push({
                         license_plate: app.currentPlate,
+                        plate: plate || null,
                         effective_date: dateVal,
                         operator: op,
                         route: route,
@@ -3680,6 +3686,7 @@ Object.assign(window.app, {
                     });
 
                     document.getElementById(prefix + 'hist-new-date').value = '';
+                    if(document.getElementById(prefix + 'hist-new-plate')) document.getElementById(prefix + 'hist-new-plate').value = '';
                     if(document.getElementById(prefix + 'hist-new-note')) document.getElementById(prefix + 'hist-new-note').value = '';
 
                     app.vehicle.renderEditList(prefix);
@@ -3697,14 +3704,14 @@ Object.assign(window.app, {
                         for (let i = 1; i < app.vehicle.tempHistory.length; i++) {
                             const prev = app.vehicle.tempHistory[i - 1];
                             const curr = app.vehicle.tempHistory[i];
-                            if (prev.operator === curr.operator && prev.route === curr.route && prev.note === curr.note) {
-                                return app.ui.showAlert(`Lỗi: Có 2 mốc lịch sử cạnh nhau có thông tin (Đơn vị, Tuyến, Ghi chú) giống hệt nhau. Hệ thống đã chặn để tránh rác dữ liệu. Vui lòng gộp chung hoặc xóa bớt 1 mục.`);
+                            if (prev.operator === curr.operator && prev.route === curr.route && prev.note === curr.note && (prev.plate || '') === (curr.plate || '')) {
+                                return app.ui.showAlert(`Lỗi: Có 2 mốc lịch sử cạnh nhau có thông tin (Biển số, Đơn vị, Tuyến, Ghi chú) giống hệt nhau. Hệ thống đã chặn để tránh rác dữ liệu. Vui lòng gộp chung hoặc xóa bớt 1 mục.`);
                             }
                         }
 
                         // [BẢO VỆ] Kiểm tra dữ liệu lịch sử có thực sự thay đổi không
-                        const origClean = JSON.stringify((app.vehicle.currentHistoryData || []).map(h => ({op: h.operator, rt: h.route, nt: h.note, dt: h.effective_date})));
-                        const tempClean = JSON.stringify(app.vehicle.tempHistory.map(h => ({op: h.operator, rt: h.route, nt: h.note, dt: h.effective_date})));
+                        const origClean = JSON.stringify((app.vehicle.currentHistoryData || []).map(h => ({op: h.operator, rt: h.route, nt: h.note, dt: h.effective_date, pl: h.plate || ''})));
+                        const tempClean = JSON.stringify(app.vehicle.tempHistory.map(h => ({op: h.operator, rt: h.route, nt: h.note, dt: h.effective_date, pl: h.plate || ''})));
                         if (origClean === tempClean) {
                             return app.ui.showAlert("Không có sự thay đổi nào so với dữ liệu gốc. Yêu cầu bị hủy.");
                         }
@@ -3715,6 +3722,7 @@ Object.assign(window.app, {
 
                         const payload = app.vehicle.tempHistory.map((h, i) => ({
                             license_plate: app.currentPlate,
+                            plate: h.plate || null,
                             operator: h.operator,
                             route: h.route,
                             note: h.note,

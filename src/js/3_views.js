@@ -1762,7 +1762,7 @@ Object.assign(window.app, {
 
                     if (parsedHistory.length > 0) {
                         parsedHistory.forEach((h, idx) => {
-                            let displayPlate = h.license_plate;
+                            let displayPlate = h.plate || h.license_plate;
                             let displayNote = h.note || '';
 
                             const match = displayNote.match(/BKS cũ:\s*([A-Z0-9.-]+)/i);
@@ -1841,7 +1841,7 @@ Object.assign(window.app, {
                         const [vehicleRes, allPhotosRes, historyRes] = await Promise.all([
                             window.sb.from('vehicles').select('license_plate, model, operator, note').eq('license_plate', plate).maybeSingle(),
                             pQuery.range(0, vehSize - 1),
-                            window.sb.from('vehicle_history').select('id, license_plate, operator, route, note, effective_date, display_order').eq('license_plate', plate).order('display_order', { ascending: true })
+                            window.sb.from('vehicle_history').select('id, license_plate, plate, operator, route, note, effective_date, display_order').eq('license_plate', plate).order('display_order', { ascending: true })
                         ]);
 
 // BẮT LỖI RACE CONDITION
@@ -1962,7 +1962,7 @@ Object.assign(window.app, {
                                         </tr></thead>
                                         <tbody>
                                             ${historyData.map((h, idx) => {
-                                                let displayPlate = h.license_plate || vehicle.license_plate;
+                                                let displayPlate = h.plate || h.license_plate || vehicle.license_plate;
                                                 let displayNote = h.note || '';
 
                                                 const match = displayNote.match(/BKS cũ:\s*([A-Z0-9.-]+)/i);
@@ -2005,9 +2005,10 @@ Object.assign(window.app, {
 
                                 <h4 class="font-bold text-xs text-amber-900 mt-4 mb-2">Thêm mốc lịch sử mới</h4>
                                 <div class="flex flex-wrap sm:flex-nowrap gap-2">
-                                    <input type="date" id="veh-hist-new-date" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-full sm:w-[18%] rounded bg-white text-gray-700 outline-none focus:ring-1 focus:ring-amber-500 transition" title="Ngày áp dụng">
-                                    <input type="text" id="veh-hist-new-op" placeholder="Đơn vị vận hành" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-[48%] sm:w-[25%] rounded bg-white outline-none focus:ring-1 focus:ring-amber-500 transition" oninput="app.utils.formatNoPunctuation(this)">
-                                    <input type="text" id="veh-hist-new-route" placeholder="Mã số tuyến" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-[48%] sm:w-[15%] rounded bg-white outline-none focus:ring-1 focus:ring-amber-500 transition">
+                                    <input type="text" id="veh-hist-new-plate" placeholder="Biển số (tùy chọn)" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-full sm:w-[14%] rounded bg-white text-gray-700 outline-none focus:ring-1 focus:ring-amber-500 transition" oninput="app.utils.formatPlateInput(this)">
+                                    <input type="date" id="veh-hist-new-date" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-full sm:w-[16%] rounded bg-white text-gray-700 outline-none focus:ring-1 focus:ring-amber-500 transition" title="Ngày áp dụng">
+                                    <input type="text" id="veh-hist-new-op" placeholder="Đơn vị vận hành" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-[48%] sm:w-[22%] rounded bg-white outline-none focus:ring-1 focus:ring-amber-500 transition" oninput="app.utils.formatNoPunctuation(this)">
+                                    <input type="text" id="veh-hist-new-route" placeholder="Mã số tuyến" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-[48%] sm:w-[13%] rounded bg-white outline-none focus:ring-1 focus:ring-amber-500 transition">
                                     <input type="text" id="veh-hist-new-note" placeholder="Ghi chú (BKS cũ...)" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-full sm:flex-1 rounded bg-white outline-none focus:ring-1 focus:ring-amber-500 transition">
                                     <button onclick="app.vehicle.addHistoryItem('veh-')" class="bg-green-600 text-white p-2 text-xs rounded font-bold hover:bg-green-700 transition w-full sm:w-auto shadow-sm">Thêm Mới</button>
                                 </div>

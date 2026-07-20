@@ -2863,6 +2863,7 @@ app.admin.fetchManagerData('denied');
                             if (d.history_items && d.history_items.length > 0) {
                                 const newItems = d.history_items.map((item, index) => ({
                                     license_plate: req.license_plate,
+                                    plate: item.plate || null,
                                     operator: item.operator,
                                     route: item.route,
                                     note: item.note,
