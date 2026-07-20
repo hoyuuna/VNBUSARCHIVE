@@ -710,6 +710,14 @@ Object.assign(window.app, {
                     if (app.upload._faceDetecting) return;
                     app.upload._faceDetecting = true;
 
+                    const autoBtn = document.getElementById('btn-auto-blur');
+                    const autoBtnOrig = autoBtn ? autoBtn.innerHTML : '';
+                    if (autoBtn) {
+                        autoBtn.disabled = true;
+                        autoBtn.classList.add('opacity-60', 'cursor-not-allowed');
+                        autoBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tìm kiếm khuôn mặt...';
+                    }
+
                     try {
                         const detector = await app.upload.loadFaceModel();
 
@@ -772,6 +780,11 @@ Object.assign(window.app, {
                         app.toast.show('error', 'Lỗi tự động làm mờ', 'Không thể chạy nhận diện khuôn mặt: ' + (err && err.message ? err.message : err));
                     } finally {
                         app.upload._faceDetecting = false;
+                        if (autoBtn) {
+                            autoBtn.disabled = false;
+                            autoBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+                            autoBtn.innerHTML = autoBtnOrig;
+                        }
                         app.upload.updateBlurBtn();
                     }
                 },
@@ -1889,15 +1902,6 @@ Object.assign(window.app, {
                         updateSize();
                         app.previewUpdateSize = updateSize;
                         if (app.upload.updateBlurBtn) app.upload.updateBlurBtn();
-
-                        if (document.querySelectorAll('.blur-panel').length === 0 && !app.upload._faceAutoRun && !app.upload._restoringBlur) {
-                            app.upload._faceAutoRun = true;
-                            setTimeout(() => {
-                                if (document.querySelectorAll('.blur-panel').length === 0) {
-                                    app.upload.detectFaces();
-                                }
-                            }, 600);
-                        }
                     };
                     
                     previewImg.src = url;
