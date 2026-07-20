@@ -3641,8 +3641,8 @@ Object.assign(window.app, {
                                 <input type="text" value="${app.utils.escapeAttr(h.note || '')}" placeholder="Ghi chú (BKS cũ...)" onchange="app.vehicle.updateHistoryItem(${index}, 'note', this.value, '${prefix}')" class="hist-input">
                             </div>
                             <div class="flex justify-end gap-2 sm:items-center mt-1 sm:mt-0">
-                                <button type="button" onclick="app.vehicle.duplicateHistoryItem(${index}, '${prefix}')" class="text-blue-600 hover:text-white hover:bg-blue-600 border border-blue-200 rounded-md px-3 py-2 font-bold transition" title="Nhân bản"><i class="fa-solid fa-copy"></i></button>
-                                <button type="button" onclick="app.vehicle.removeHistoryItem(${index}, '${prefix}')" class="text-red-600 hover:text-white hover:bg-red-600 border border-red-200 rounded-md px-3 py-2 font-bold transition" title="Xóa"><i class="fa-solid fa-trash"></i></button>
+                                <button type="button" onclick="app.vehicle.duplicateHistoryItem(${index}, '${prefix}')" class="text-gray-700 hover:text-white hover:bg-black border border-gray-300 rounded-md px-3 py-2 font-bold transition" title="Nhân bản"><i class="fa-solid fa-copy"></i></button>
+                                <button type="button" onclick="app.vehicle.removeHistoryItem(${index}, '${prefix}')" class="text-gray-700 hover:text-white hover:bg-black border border-gray-300 rounded-md px-3 py-2 font-bold transition" title="Xóa"><i class="fa-solid fa-trash"></i></button>
                             </div>
                         `;
                         container.appendChild(div);
