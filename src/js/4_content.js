@@ -580,6 +580,7 @@ Object.assign(window.app, {
                         height,
                         auto: false
                     });
+                    app.upload.updateBlurBtn();
                 },
 
                 // Chuyển đổi tọa độ blur-panel từ không gian ảnh đã cắt cũ sang ảnh mới sau khi cắt lại.
@@ -756,6 +757,7 @@ Object.assign(window.app, {
                         console.error('Auto face-blur skipped:', err);
                     } finally {
                         app.upload._faceDetecting = false;
+                        app.upload.updateBlurBtn();
                     }
                 },
 
@@ -765,22 +767,59 @@ Object.assign(window.app, {
                     app.upload.updateBlurBtn();
                 },
 
+                removeBlurPanelByIndex: (index) => {
+                    const panels = Array.from(document.querySelectorAll('.blur-panel'));
+                    if (panels[index]) panels[index].remove();
+                    app.upload.updateBlurBtn();
+                },
+
+                toggleBlurPanel: () => {
+                    const panel = document.getElementById('blur-adjust-panel');
+                    const btn = document.getElementById('btn-add-blur');
+                    if (panel) {
+                        panel.classList.toggle('hidden');
+                        if (!panel.classList.contains('hidden')) {
+                            app.upload.updateBlurBtn();
+                        }
+                    }
+                    if (btn) {
+                        if (panel && !panel.classList.contains('hidden')) {
+                            btn.classList.add('bg-gray-100', 'text-black', 'border-gray-400');
+                        } else {
+                            btn.classList.remove('bg-gray-100', 'text-black', 'border-gray-400');
+                        }
+                    }
+                },
+
                 updateBlurBtn: () => {
                     const count = document.querySelectorAll('.blur-panel').length;
                     const btn = document.getElementById('btn-add-blur');
-                    if (btn) btn.innerHTML = `<i class="fa-solid fa-droplet-slash"></i> Làm mờ (${count})`;
-
-                    let warningBox = document.getElementById('blur-warning-box');
-                    if (!warningBox) {
-                        warningBox = document.createElement('div');
-                        warningBox.id = 'blur-warning-box';
-                        warningBox.className = 'mt-3 p-3 bg-amber-50 border border-amber-200 rounded-xl shadow-sm flex items-start gap-2 hidden';
-                        warningBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-amber-500 mt-0.5 text-xs"></i><p class="text-[11px] text-amber-800 font-bold leading-relaxed m-0">Không lạm dụng công cụ làm mờ. Vùng làm mờ/che vật thể tuyệt đối không được đè lên bất kỳ bộ phận nào của xe (thân xe, bánh xe, kính, đèn...), tránh làm ảnh hưởng đến tính toàn vẹn và chi tiết của chủ thể.</p>';
-                        const toolbar = document.getElementById('vnbus-editor-toolbar');
-                        if (toolbar) toolbar.appendChild(warningBox);
+                    if (btn) {
+                        btn.innerHTML = `<i class="fa-solid fa-droplet-slash"></i> Làm mờ${count > 0 ? ` (${count})` : ''}`;
+                        const panel = document.getElementById('blur-adjust-panel');
+                        if (panel && !panel.classList.contains('hidden')) {
+                            btn.classList.add('bg-gray-100', 'text-black', 'border-gray-400');
+                        } else {
+                            btn.classList.remove('bg-gray-100', 'text-black', 'border-gray-400');
+                        }
                     }
-                    if (count > 0) warningBox.classList.remove('hidden');
-                    else warningBox.classList.add('hidden');
+
+                    const list = document.getElementById('blur-list');
+                    if (list) {
+                        if (count === 0) {
+                            list.innerHTML = `<p class="text-[11px] text-gray-400 font-medium italic text-center py-1">Chưa có vùng làm mờ nào.</p>`;
+                        } else {
+                            let html = '';
+                            for (let i = 0; i < count; i++) {
+                                const auto = document.querySelectorAll('.blur-panel')[i].dataset.auto === '1';
+                                html += `<div class="flex items-center justify-between gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                                    <span class="text-[11px] font-bold text-gray-700 truncate"><i class="fa-solid fa-droplet-slash mr-1.5 text-gray-400"></i>Vùng ${i + 1}${auto ? ' <span class="text-[10px] text-blue-600 font-semibold">(tự động)</span>' : ''}</span>
+                                    <button type="button" onclick="app.upload.removeBlurPanelByIndex(${i})" class="shrink-0 flex items-center justify-center w-7 h-7 rounded-md bg-white border border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 transition" title="Xóa vùng này"><i class="fa-solid fa-xmark text-xs"></i></button>
+                                </div>`;
+                            }
+                            list.innerHTML = html;
+                        }
+                    }
                 },
 
                 checkPlate: async (val) => {
@@ -1834,6 +1873,7 @@ Object.assign(window.app, {
                         };
                         updateSize();
                         app.previewUpdateSize = updateSize;
+                        if (app.upload.updateBlurBtn) app.upload.updateBlurBtn();
 
                         if (document.querySelectorAll('.blur-panel').length === 0 && !app.upload._faceAutoRun && !app.upload._restoringBlur) {
                             app.upload._faceAutoRun = true;
