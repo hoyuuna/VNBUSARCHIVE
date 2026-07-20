@@ -3618,28 +3618,31 @@ Object.assign(window.app, {
 
                     app.vehicle.tempHistory.forEach((h, index) => {
                         const div = document.createElement('div');
-                        div.className = "flex flex-wrap sm:flex-nowrap gap-2 items-center bg-white p-3 border border-gray-200 rounded-md text-xs hover:border-amber-400 transition mb-2";
+                        div.className = "flex flex-col sm:flex-row gap-2 items-stretch sm:items-center bg-white p-3 border border-gray-200 rounded-md text-xs hover:border-amber-400 transition mb-2";
                         div.innerHTML = `
-                            <div class="w-full sm:w-[14%]">
-                                <span class="sm:hidden font-bold text-gray-500 w-14">BKS:</span>
-                                <input type="text" value="${app.utils.escapeAttr(h.plate || '')}" placeholder="Biển số" oninput="app.utils.formatPlateInput(this)" onchange="app.vehicle.updateHistoryItem(${index}, 'plate', this.value, '${prefix}')" class="border border-gray-300 p-2 sm:p-1.5 rounded text-gray-700 w-full outline-none focus:ring-1 focus:ring-amber-500">
+                            <div class="flex flex-col sm:flex-1 min-w-0">
+                                <span class="sm:hidden font-bold text-gray-500 mb-1">Biển số</span>
+                                <input type="text" value="${app.utils.escapeAttr(h.plate || '')}" placeholder="Biển số" oninput="app.utils.formatPlateInput(this)" onchange="app.vehicle.updateHistoryItem(${index}, 'plate', this.value, '${prefix}')" class="hist-input">
                             </div>
-                            <div class="w-full sm:w-[16%] flex items-center">
-                                <span class="sm:hidden font-bold text-gray-500 w-14">Ngày:</span>
-                                <input type="date" value="${app.utils.escapeAttr(h.effective_date || '')}" onchange="app.vehicle.updateHistoryItem(${index}, 'effective_date', this.value, '${prefix}')" class="border border-gray-300 p-2 sm:p-1.5 rounded text-gray-700 w-full outline-none focus:ring-1 focus:ring-amber-500">
+                            <div class="flex flex-col sm:flex-1 min-w-0">
+                                <span class="sm:hidden font-bold text-gray-500 mb-1">Ngày áp dụng</span>
+                                <input type="date" value="${app.utils.escapeAttr(h.effective_date || '')}" onchange="app.vehicle.updateHistoryItem(${index}, 'effective_date', this.value, '${prefix}')" class="hist-input">
                             </div>
-                            <div class="w-[48%] sm:w-[22%]">
-                                <input type="text" value="${app.utils.escapeAttr(h.operator)}" placeholder="Đơn vị" oninput="app.utils.formatNoPunctuation(this)" onchange="app.vehicle.updateHistoryItem(${index}, 'operator', this.value, '${prefix}')" class="border border-gray-300 p-2 sm:p-1.5 rounded w-full outline-none focus:ring-1 focus:ring-amber-500">
+                            <div class="flex flex-col sm:flex-1 min-w-0">
+                                <span class="sm:hidden font-bold text-gray-500 mb-1">Đơn vị</span>
+                                <input type="text" value="${app.utils.escapeAttr(h.operator)}" placeholder="Đơn vị" oninput="app.utils.formatNoPunctuation(this)" onchange="app.vehicle.updateHistoryItem(${index}, 'operator', this.value, '${prefix}')" class="hist-input">
                             </div>
-                            <div class="w-[48%] sm:w-[13%]">
-                                <input type="text" value="${app.utils.escapeAttr(h.route || '')}" placeholder="Tuyến" onchange="app.vehicle.updateHistoryItem(${index}, 'route', this.value, '${prefix}')" class="border border-gray-300 p-2 sm:p-1.5 rounded w-full outline-none focus:ring-1 focus:ring-amber-500">
+                            <div class="flex flex-col sm:flex-1 min-w-0">
+                                <span class="sm:hidden font-bold text-gray-500 mb-1">Tuyến</span>
+                                <input type="text" value="${app.utils.escapeAttr(h.route || '')}" placeholder="Tuyến" onchange="app.vehicle.updateHistoryItem(${index}, 'route', this.value, '${prefix}')" class="hist-input">
                             </div>
-                            <div class="w-full sm:flex-1">
-                                <input type="text" value="${app.utils.escapeAttr(h.note || '')}" placeholder="Ghi chú (BKS cũ...)" onchange="app.vehicle.updateHistoryItem(${index}, 'note', this.value, '${prefix}')" class="border border-gray-300 p-2 sm:p-1.5 rounded w-full outline-none focus:ring-1 focus:ring-amber-500">
+                            <div class="flex flex-col sm:flex-1 min-w-0">
+                                <span class="sm:hidden font-bold text-gray-500 mb-1">Ghi chú</span>
+                                <input type="text" value="${app.utils.escapeAttr(h.note || '')}" placeholder="Ghi chú (BKS cũ...)" onchange="app.vehicle.updateHistoryItem(${index}, 'note', this.value, '${prefix}')" class="hist-input">
                             </div>
-                            <div class="w-full sm:w-auto flex justify-end gap-1 border-t sm:border-0 border-gray-100 pt-2 sm:pt-0 mt-1 sm:mt-0">
-                                <button type="button" onclick="app.vehicle.duplicateHistoryItem(${index}, '${prefix}')" class="text-blue-500 hover:text-white hover:bg-blue-500 border border-blue-100 rounded px-3 sm:px-2 py-1.5 font-bold transition flex-1 sm:flex-none text-center" title="Nhân bản"><i class="fa-solid fa-copy"></i></button>
-                                <button type="button" onclick="app.vehicle.removeHistoryItem(${index}, '${prefix}')" class="text-red-500 hover:text-white hover:bg-red-500 border border-red-100 rounded px-3 sm:px-2 py-1.5 font-bold transition flex-1 sm:flex-none text-center" title="Xóa"><i class="fa-solid fa-trash"></i></button>
+                            <div class="flex justify-end gap-2 sm:items-center mt-1 sm:mt-0">
+                                <button type="button" onclick="app.vehicle.duplicateHistoryItem(${index}, '${prefix}')" class="text-blue-600 hover:text-white hover:bg-blue-600 border border-blue-200 rounded-md px-3 py-2 font-bold transition" title="Nhân bản"><i class="fa-solid fa-copy"></i></button>
+                                <button type="button" onclick="app.vehicle.removeHistoryItem(${index}, '${prefix}')" class="text-red-600 hover:text-white hover:bg-red-600 border border-red-200 rounded-md px-3 py-2 font-bold transition" title="Xóa"><i class="fa-solid fa-trash"></i></button>
                             </div>
                         `;
                         container.appendChild(div);
