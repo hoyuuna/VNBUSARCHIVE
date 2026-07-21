@@ -2109,7 +2109,7 @@ Object.assign(window.app, {
                                     <div class="border border-gray-200 rounded-lg overflow-hidden bg-white mb-3 shadow-sm">
                                         ${historyHTML}
                                     </div>
-                                    <div class="mb-2">
+                                    <div class="mb-6">
                                         <button onclick="app.vehicle.toggleEditHistory('veh-')" class="w-full bg-white border border-gray-300 text-gray-700 py-2.5 text-sm font-bold rounded-md hover:bg-gray-50 transition shadow-sm flex justify-center items-center gap-1.5">
                                             <i class="fa-solid fa-clock-rotate-left"></i> Cập nhật lịch sử
                                         </button>
