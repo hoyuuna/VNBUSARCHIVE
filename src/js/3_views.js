@@ -2094,7 +2094,7 @@ Object.assign(window.app, {
 
                                     <div id="veh-edit-trigger-container" class="mb-6">
                                         <button id="btn-vehicle-edit" onclick="app.vehicle.toggleVehiclePageEdit('${plate}')" class="w-full bg-white border border-gray-300 text-gray-700 py-2.5 text-sm font-bold rounded-md hover:bg-gray-50 transition shadow-sm flex justify-center items-center gap-1.5">
-                                            <i class="fa-solid fa-pen-to-square"></i> <span id="btn-veh-edit-label">Cập nhật thông tin</span>
+                                            <i class="fa-solid fa-pen-to-square"></i> Cập nhật thông tin
                                         </button>
                                     </div>
 
