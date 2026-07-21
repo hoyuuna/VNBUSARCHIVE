@@ -3741,23 +3741,33 @@ Object.assign(window.app, {
 
                         if(app.role === 'admin' || app.role === 'manager') {
                             try {
-                                // [HỆ THỐNG GỘP XE] Kiểm tra và gộp nếu có biển số cũ tồn tại như một hồ sơ độc lập
-                                const oldPlates = [...new Set(payload.map(p => p.plate).filter(p => p && p !== app.currentPlate))];
-                                if (oldPlates.length > 0) {
-                                    const { data: existingOldVehicles } = await window.sb.from('vehicles').select('license_plate').in('license_plate', oldPlates);
+                                // [HỆ THỐNG GỘP XE] Cơ chế Soft Merge
+                                const currentPlate = app.currentPlate;
+                                const newHistoryPlates = [...new Set(payload.map(p => p.plate).filter(p => p && p !== currentPlate))];
+                                
+                                // 1. Tách (Un-merge) các xe đã bị loại khỏi lịch sử
+                                const { data: unmergeCandidates } = await window.sb.from('vehicles').select('license_plate, note').like('note', `%[MERGED_INTO:${currentPlate}]%`);
+                                if (unmergeCandidates) {
+                                    for (const v of unmergeCandidates) {
+                                        if (!newHistoryPlates.includes(v.license_plate)) {
+                                            const newNote = (v.note || '').replace(`[MERGED_INTO:${currentPlate}]`, '').trim();
+                                            await window.sb.from('vehicles').update({ note: newNote }).eq('license_plate', v.license_plate);
+                                            app.toast.show('info', 'Đã tách xe', `Hồ sơ xe ${v.license_plate} đã được khôi phục thành hồ sơ độc lập.`);
+                                        }
+                                    }
+                                }
+
+                                // 2. Gộp (Merge) các xe mới thêm vào lịch sử
+                                if (newHistoryPlates.length > 0) {
+                                    const { data: existingOldVehicles } = await window.sb.from('vehicles').select('license_plate, note').in('license_plate', newHistoryPlates);
                                     if (existingOldVehicles && existingOldVehicles.length > 0) {
                                         for (const v of existingOldVehicles) {
-                                            const oldPlate = v.license_plate;
-                                            // Chuyển ảnh
-                                            await window.sb.from('photos').update({ license_plate: app.currentPlate }).eq('license_plate', oldPlate);
-                                            // Chuyển yêu cầu chỉnh sửa
-                                            await window.sb.from('edit_requests').update({ license_plate: app.currentPlate }).eq('license_plate', oldPlate);
-                                            // Xóa lịch sử cũ
-                                            await window.sb.from('vehicle_history').delete().eq('license_plate', oldPlate);
-                                            // Xóa hồ sơ xe cũ
-                                            await window.sb.from('vehicles').delete().eq('license_plate', oldPlate);
-                                            
-                                            app.toast.show('info', 'Đã gộp xe', `Dữ liệu từ xe ${oldPlate} đã được tự động gộp sang xe này.`);
+                                            const noteStr = v.note || '';
+                                            if (!noteStr.includes(`[MERGED_INTO:${currentPlate}]`)) {
+                                                const newNote = (noteStr + ` [MERGED_INTO:${currentPlate}]`).trim();
+                                                await window.sb.from('vehicles').update({ note: newNote }).eq('license_plate', v.license_plate);
+                                                app.toast.show('info', 'Đã gộp xe', `Dữ liệu từ xe ${v.license_plate} đã được tự động gộp sang xe này.`);
+                                            }
                                         }
                                     }
                                 }

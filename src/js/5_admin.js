@@ -241,7 +241,11 @@ Object.assign(window.app, {
                     const orig = app.admin.originalData[origKey];
                     if (!orig) return;
 
-                    const pre = type === 'photo' ? 'adm-p-' : 'req-';
+                    let pre;
+                    if (type === 'photo') pre = 'adm-p-';
+                    else if (type === 'req-h') pre = 'req-h-';
+                    else pre = 'req-';
+
                     const elOp = document.getElementById(pre + 'op-' + id);
                     const elType = document.getElementById(pre + 'type-' + id);
                     const elRoute = document.getElementById(pre + 'route-' + id);
@@ -257,6 +261,10 @@ Object.assign(window.app, {
                         // Thêm hiệu ứng chớp xanh để báo đã khôi phục
                         inputEl.classList.add('ring-2', 'ring-green-500');
                         setTimeout(() => inputEl.classList.remove('ring-2', 'ring-green-500'), 500);
+
+                        const warnEl = document.getElementById(inputEl.id + '-warning');
+                        if (warnEl) warnEl.remove();
+
                         return;
                     }
 
@@ -288,6 +296,23 @@ Object.assign(window.app, {
                             // Thêm hiệu ứng chớp vàng để báo đã load dữ liệu có sẵn
                             inputEl.classList.add('ring-2', 'ring-amber-500');
                             setTimeout(() => inputEl.classList.remove('ring-2', 'ring-amber-500'), 500);
+
+                            // Xử lý cảnh báo biển số trùng
+                            let warnEl = document.getElementById(inputEl.id + '-warning');
+                            if (!warnEl) {
+                                warnEl = document.createElement('div');
+                                warnEl.id = inputEl.id + '-warning';
+                                warnEl.className = 'text-orange-600 text-[10px] font-bold mt-1 leading-tight';
+                                inputEl.parentNode.appendChild(warnEl);
+                            }
+                            if (type === 'req-h') {
+                                warnEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Đã có xe ${app.utils.escapeAttr(vData.model || 'này')}. Sẽ tự động gộp (ẩn) nếu duyệt!`;
+                            } else {
+                                warnEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> BKS này đã được gán với xe ${app.utils.escapeAttr(vData.model || 'này')}.`;
+                            }
+                        } else {
+                            const warnEl = document.getElementById(inputEl.id + '-warning');
+                            if (warnEl) warnEl.remove();
                         }
 
                         // Cập nhật text biển số trên header và tag XE MỚI dynamically
@@ -936,15 +961,53 @@ Object.assign(window.app, {
                                         </div>
                                     </div>`;
                                 } else if (type === 'update_history') {
-                                    let details = `<p class="mb-2 font-bold text-red-500">[MỚI] Cập nhật ${d.history_items.length} mục lịch sử:</p>`;
-                                    d.history_items.forEach(h => { details += `<p class="pl-2 border-l-2 border-gray-300 mb-1">- ${h.operator} (${h.route})</p>`; });
+                                    if (!app.admin.originalData) app.admin.originalData = {};
+                                    let details = `<p class="mb-2 font-bold text-red-500">[MỚI] Cập nhật ${d.history_items.length} mục lịch sử:</p><div id="req-h-list-${r.id}" class="space-y-2">`;
+                                    d.history_items.forEach((h, i) => {
+                                        app.admin.originalData[`req-h_${r.id}_${i}`] = { plate: h.plate || '', operator: h.operator || '', route: h.route || '', note: h.note || '' };
+                                        details += `
+                                        <div class="border border-gray-200 p-2 rounded relative">
+                                            <div class="grid grid-cols-2 gap-2 mb-2">
+                                                <div>
+                                                    <span class="admin-label">Biển số cũ</span>
+                                                    <input type="text" id="req-h-plate-${r.id}-${i}" value="${app.utils.escapeAttr(h.plate || '')}" class="admin-input font-bold" oninput="app.utils.formatPlateInput(this)" onchange="app.admin.checkPlateAdmin(this, '${r.id}_${i}', 'req-h')">
+                                                </div>
+                                                <div>
+                                                    <span class="admin-label">Ngày hiệu lực</span>
+                                                    <input type="date" id="req-h-date-${r.id}-${i}" value="${h.effective_date || ''}" class="admin-input">
+                                                </div>
+                                            </div>
+                                            <div class="grid grid-cols-2 gap-2 mb-2">
+                                                <div>
+                                                    <span class="admin-label">Đơn vị</span>
+                                                    <div class="relative">
+                                                        <input type="text" id="req-h-op-${r.id}-${i}" value="${app.utils.escapeAttr(h.operator || '')}" class="admin-input" oninput="app.utils.triggerSuggestion('req-h-op-${r.id}-${i}', 'req-h-sug-op-${r.id}-${i}', this.value, 'operator')">
+                                                        <div id="req-h-sug-op-${r.id}-${i}" class="suggestion-box"></div>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <span class="admin-label">Tuyến</span>
+                                                    <div class="relative">
+                                                        <input type="text" id="req-h-route-${r.id}-${i}" value="${app.utils.escapeAttr(h.route || '')}" class="admin-input" autocomplete="off" onfocus="app.utils.triggerRouteSuggestion('req-h-route-${r.id}-${i}', 'req-h-sug-route-${r.id}-${i}', '')" oninput="app.utils.triggerRouteSuggestion('req-h-route-${r.id}-${i}', 'req-h-sug-route-${r.id}-${i}', this.value)">
+                                                        <div id="req-h-sug-route-${r.id}-${i}" class="suggestion-box"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <span class="admin-label">Ghi chú</span>
+                                                <input type="text" id="req-h-note-${r.id}-${i}" value="${app.utils.escapeAttr(h.note || '')}" class="admin-input">
+                                            </div>
+                                        </div>
+                                        `;
+                                    });
+                                    details += `</div>`;
                                     return `
-                                    <div class="admin-card">
+                                    <div class="admin-card overflow-visible">
                                         <div class="admin-card-header"><span class="font-bold text-xs uppercase text-amber-600">SỬA LỊCH SỬ XE: ${r.license_plate}</span><span class="text-xs text-gray-500">${username}</span></div>
                                         <div class="admin-card-body text-xs">
-                                            <div class="mb-3 scroll-y max-h-40 overflow-auto">${details}</div>
+                                            <div class="mb-3 scroll-y max-h-80 overflow-visible">${details}</div>
                                             <div class="flex gap-2">
-                                                <button onclick="app.admin.approveReq('${r.id}', this, 'history')" class="flex-1 bg-green-600 text-white py-1.5 font-bold rounded hover:bg-green-700">DUYỆT</button>
+                                                <button onclick="app.admin.approveReq('${r.id}', this, 'history', ${d.history_items.length})" class="flex-1 bg-green-600 text-white py-1.5 font-bold rounded hover:bg-green-700">DUYỆT</button>
                                                 <button onclick="app.admin.denyReq('${r.id}', this)" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">HỦY</button>
                                             </div>
                                         </div>
@@ -2736,7 +2799,7 @@ app.admin.fetchManagerData('denied');
                         })();
                     });
                 },
-                approveReq: async (id, btn, reqType = 'info') => {
+                approveReq: async (id, btn, reqType = 'info', historyCount = 0) => {
                     if (app.isRealtimeConnected === false) {
                         return app.ui.showAlert("Mất kết nối Realtime với máy chủ! Đã tạm khóa chức năng duyệt và can thiệp để tránh lệch dữ liệu.");
                     }
@@ -2857,37 +2920,66 @@ app.admin.fetchManagerData('denied');
                         }
 
                         else {
+                            let newItems = [];
+                            if (reqType === 'history') {
+                                // Lấy từ input
+                                for (let i = 0; i < historyCount; i++) {
+                                    newItems.push({
+                                        license_plate: req.license_plate,
+                                        plate: document.getElementById(`req-h-plate-${id}-${i}`).value || null,
+                                        operator: document.getElementById(`req-h-op-${id}-${i}`).value,
+                                        route: document.getElementById(`req-h-route-${id}-${i}`).value,
+                                        note: document.getElementById(`req-h-note-${id}-${i}`).value,
+                                        effective_date: document.getElementById(`req-h-date-${id}-${i}`).value || null,
+                                        display_order: i
+                                    });
+                                }
+                            } else {
+                                // Fallback
+                                if (req.new_data.history_items) {
+                                    newItems = req.new_data.history_items.map((item, index) => ({
+                                        license_plate: req.license_plate,
+                                        plate: item.plate || null,
+                                        operator: item.operator,
+                                        route: item.route,
+                                        note: item.note,
+                                        effective_date: item.effective_date || null,
+                                        display_order: index
+                                    }));
+                                }
+                            }
 
-                            const d = req.new_data;
+                            // [HỆ THỐNG GỘP XE] Cơ chế Soft Merge
+                            const currentPlate = req.license_plate;
+                            const newHistoryPlates = [...new Set(newItems.map(p => p.plate).filter(p => p && p !== currentPlate))];
+                            
+                            // 1. Tách (Un-merge) các xe đã bị loại khỏi lịch sử
+                            const { data: unmergeCandidates } = await window.sb.from('vehicles').select('license_plate, note').like('note', `%[MERGED_INTO:${currentPlate}]%`);
+                            if (unmergeCandidates) {
+                                for (const v of unmergeCandidates) {
+                                    if (!newHistoryPlates.includes(v.license_plate)) {
+                                        const newNote = (v.note || '').replace(`[MERGED_INTO:${currentPlate}]`, '').trim();
+                                        await window.sb.from('vehicles').update({ note: newNote }).eq('license_plate', v.license_plate);
+                                    }
+                                }
+                            }
 
-                            // [HỆ THỐNG GỘP XE] Kiểm tra và gộp nếu có biển số cũ tồn tại như một hồ sơ độc lập
-                            if (d.history_items && d.history_items.length > 0) {
-                                const oldPlates = [...new Set(d.history_items.map(p => p.plate).filter(p => p && p !== req.license_plate))];
-                                if (oldPlates.length > 0) {
-                                    const { data: existingOldVehicles } = await window.sb.from('vehicles').select('license_plate').in('license_plate', oldPlates);
-                                    if (existingOldVehicles && existingOldVehicles.length > 0) {
-                                        for (const v of existingOldVehicles) {
-                                            const oldPlate = v.license_plate;
-                                            await window.sb.from('photos').update({ license_plate: req.license_plate }).eq('license_plate', oldPlate);
-                                            await window.sb.from('edit_requests').update({ license_plate: req.license_plate }).eq('license_plate', oldPlate);
-                                            await window.sb.from('vehicle_history').delete().eq('license_plate', oldPlate);
-                                            await window.sb.from('vehicles').delete().eq('license_plate', oldPlate);
+                            // 2. Gộp (Merge) các xe mới thêm vào lịch sử
+                            if (newHistoryPlates.length > 0) {
+                                const { data: existingOldVehicles } = await window.sb.from('vehicles').select('license_plate, note').in('license_plate', newHistoryPlates);
+                                if (existingOldVehicles && existingOldVehicles.length > 0) {
+                                    for (const v of existingOldVehicles) {
+                                        const noteStr = v.note || '';
+                                        if (!noteStr.includes(`[MERGED_INTO:${currentPlate}]`)) {
+                                            const newNote = (noteStr + ` [MERGED_INTO:${currentPlate}]`).trim();
+                                            await window.sb.from('vehicles').update({ note: newNote }).eq('license_plate', v.license_plate);
                                         }
                                     }
                                 }
                             }
 
-                            await window.sb.from('vehicle_history').delete().eq('license_plate', req.license_plate);
-                            if (d.history_items && d.history_items.length > 0) {
-                                const newItems = d.history_items.map((item, index) => ({
-                                    license_plate: req.license_plate,
-                                    plate: item.plate || null,
-                                    operator: item.operator,
-                                    route: item.route,
-                                    note: item.note,
-                                    effective_date: item.effective_date || null,
-                                    display_order: index
-                                }));
+                            await window.sb.from('vehicle_history').delete().eq('license_plate', currentPlate);
+                            if (newItems.length > 0) {
                                 await window.sb.from('vehicle_history').insert(newItems);
                             }
                         }

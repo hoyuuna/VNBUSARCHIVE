@@ -1830,19 +1830,32 @@ Object.assign(window.app, {
                         // PHÂN TRANG: CHỈ KÉO TRANG ĐẦU (12 ẢNH) THAY VÌ TOÀN BỘ
                         app.vehicle.currentPage = 1;
                         const vehSize = app.vehicle.VEHICLE_PAGE_SIZE || 12;
+
+                        const [vehicleRes, historyRes] = await Promise.all([
+                            window.sb.from('vehicles').select('license_plate, model, operator, note').eq('license_plate', plate).maybeSingle(),
+                            window.sb.from('vehicle_history').select('id, license_plate, plate, operator, route, note, effective_date, display_order').eq('license_plate', plate).order('display_order', { ascending: true })
+                        ]);
+
+                        if (vehicleRes.data && vehicleRes.data.note) {
+                            const match = vehicleRes.data.note.match(/\[MERGED_INTO:([^\]]+)\]/);
+                            if (match && match[1]) {
+                                app.toast.show('info', 'Chuyển hướng', `Hồ sơ xe này đã được ẩn và gộp chung vào xe ${match[1]}`);
+                                return app.views.loadVehiclePage(match[1], forceRefresh);
+                            }
+                        }
+
+                        // Lấy danh sách biển số liên quan
+                        const historyPlates = historyRes.data ? historyRes.data.map(h => h.plate).filter(Boolean) : [];
+                        const allPlatesToFetch = [...new Set([plate, ...historyPlates])];
+
                         let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`, { count: 'exact' })
-                                .eq('license_plate', plate)
+                                .in('license_plate', allPlatesToFetch)
                                 .eq('status', 'approved')
                                 .order('taken_at', { ascending: false, nullsFirst: false })
                                 .order('created_at', { ascending: false });
 
                         pQuery = app.preference.applyFilter(pQuery);
-
-                        const [vehicleRes, allPhotosRes, historyRes] = await Promise.all([
-                            window.sb.from('vehicles').select('license_plate, model, operator, note').eq('license_plate', plate).maybeSingle(),
-                            pQuery.range(0, vehSize - 1),
-                            window.sb.from('vehicle_history').select('id, license_plate, plate, operator, route, note, effective_date, display_order').eq('license_plate', plate).order('display_order', { ascending: true })
-                        ]);
+                        const allPhotosRes = await pQuery.range(0, vehSize - 1);
 
 // BẮT LỖI RACE CONDITION
                     if (window.location.pathname !== `/vehicle/${encodeURIComponent(plate)}`) return;
