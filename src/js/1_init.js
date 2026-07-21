@@ -3887,13 +3887,13 @@ const ROLE_MAP_FRONTEND = {
     1000: '1505159111686488164'
 };
 
-const tiers = [50, 100, 200, 500, 1000, 1500];
+const tiers = [50, 100, 200, 500, 1000, 2000];
 const grid = document.getElementById('badges-grid');
 
 grid.innerHTML = tiers.map(tier => {
-    if (tier === 1500) {
+    if (tier === 2000) {
         const hasCustomRole = !!data.customRoleId;
-        const isEligible = (count || 0) >= 1500;
+        const isEligible = (count || 0) >= 2000;
         let btnHtml = '';
 
         if (hasCustomRole) {
@@ -3911,7 +3911,7 @@ grid.innerHTML = tiers.map(tier => {
                     <i class="fa-solid fa-wand-magic-sparkles"></i>
                 </div>
                 <div class="overflow-hidden">
-                    <p class="font-bold text-sm text-purple-900 truncate">Cột mốc 1500 ảnh (Tùy chỉnh)</p>
+                    <p class="font-bold text-sm text-purple-900 truncate">Cột mốc 2000 ảnh</p>
                     <p class="text-[10px] text-purple-700">Đặc quyền tạo Role Custom riêng biệt.</p>
                 </div>
             </div>
@@ -4029,7 +4029,7 @@ Object.assign(window.app, {
                                     const res = await fetch('/api/discord', {
                                         method: 'POST',
                                         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                                        body: JSON.stringify({ action: 'delete', tier: 1500 })
+                                        body: JSON.stringify({ action: 'delete', tier: 2000 })
                                     });
 
                                     const data = await res.json();
@@ -4068,7 +4068,7 @@ Object.assign(window.app, {
                             const res = await fetch('/api/discord', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                                body: JSON.stringify({ action: 'claim', tier: 1500, customName: name, customColor: color })
+                                body: JSON.stringify({ action: 'claim', tier: 2000, customName: name, customColor: color })
                             });
 
                             const data = await res.json();

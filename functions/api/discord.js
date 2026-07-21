@@ -320,15 +320,15 @@ async function handleRoleClaim(request, env) {
 
         if (countError) throw countError;
 
-        if (tier === 1500 && action === 'claim') {
+        if (tier === 2000 && action === 'claim') {
             if (!customName || customName.length < 2 || customName.length > 100) {
                 return new Response(JSON.stringify({ error: 'Tên Role phải từ 2-100 ký tự.' }), { status: 400, headers: { 'Content-Type': 'application/json' }});
             }
             if (!customColor || !/^#[0-9A-F]{6}$/i.test(customColor)) {
                 return new Response(JSON.stringify({ error: 'Mã màu Hex không hợp lệ.' }), { status: 400, headers: { 'Content-Type': 'application/json' }});
             }
-            if ((count || 0) < 1500) {
-                return new Response(JSON.stringify({ error: 'Bạn cần 1500 ảnh để tạo Custom Role.' }), { status: 400, headers: { 'Content-Type': 'application/json' }});
+            if ((count || 0) < 2000) {
+                return new Response(JSON.stringify({ error: 'Bạn cần 2000 ảnh để tạo Custom Role.' }), { status: 400, headers: { 'Content-Type': 'application/json' }});
             }
 
             const colorInt = parseInt(customColor.replace('#', ''), 16);
@@ -376,7 +376,7 @@ async function handleRoleClaim(request, env) {
             }
         }
 
-        if (tier === 1500 && action === 'delete') {
+        if (tier === 2000 && action === 'delete') {
             const { data: profile } = await supabase.from('profiles').select('discord_custom_role_id').eq('id', user.id).single();
             if (profile?.discord_custom_role_id) {
                 const deleteRes = await fetch(`https://discord.com/api/v10/guilds/${guildId}/roles/${profile.discord_custom_role_id}`, {
