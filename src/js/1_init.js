@@ -861,7 +861,7 @@ Object.assign(window.app, {
 
                 fetch: async () => {
                     try {
-                        const { data, error } = await window.sb.from('system_settings').select('id, value, is_active, auto_reactivate_at, reason');
+                        const { data, error } = await window.sb.from('system_settings').select('id, is_active, auto_reactivate_at, reason');
                         if (data) {
                             data.forEach(item => { app.maintenance.settings[item.id] = item; });
                         }

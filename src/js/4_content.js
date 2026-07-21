@@ -914,7 +914,7 @@ Object.assign(window.app, {
 
                     try {
                         const { data: existingVehicles } = await app.utils.promiseWithTimeout(
-                            window.sb.from('vehicles').select('license_plate').ilike('license_plate', `${basePlate}%`),
+                            window.sb.from('vehicles').select('license_plate, model').ilike('license_plate', `${basePlate}%`),
 
                             5000
                         );
