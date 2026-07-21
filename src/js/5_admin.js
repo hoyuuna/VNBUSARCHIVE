@@ -2859,6 +2859,24 @@ app.admin.fetchManagerData('denied');
                         else {
 
                             const d = req.new_data;
+
+                            // [HỆ THỐNG GỘP XE] Kiểm tra và gộp nếu có biển số cũ tồn tại như một hồ sơ độc lập
+                            if (d.history_items && d.history_items.length > 0) {
+                                const oldPlates = [...new Set(d.history_items.map(p => p.plate).filter(p => p && p !== req.license_plate))];
+                                if (oldPlates.length > 0) {
+                                    const { data: existingOldVehicles } = await window.sb.from('vehicles').select('license_plate').in('license_plate', oldPlates);
+                                    if (existingOldVehicles && existingOldVehicles.length > 0) {
+                                        for (const v of existingOldVehicles) {
+                                            const oldPlate = v.license_plate;
+                                            await window.sb.from('photos').update({ license_plate: req.license_plate }).eq('license_plate', oldPlate);
+                                            await window.sb.from('edit_requests').update({ license_plate: req.license_plate }).eq('license_plate', oldPlate);
+                                            await window.sb.from('vehicle_history').delete().eq('license_plate', oldPlate);
+                                            await window.sb.from('vehicles').delete().eq('license_plate', oldPlate);
+                                        }
+                                    }
+                                }
+                            }
+
                             await window.sb.from('vehicle_history').delete().eq('license_plate', req.license_plate);
                             if (d.history_items && d.history_items.length > 0) {
                                 const newItems = d.history_items.map((item, index) => ({

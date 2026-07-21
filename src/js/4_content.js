@@ -1049,7 +1049,11 @@ Object.assign(window.app, {
                                 suggestionHtml = `<span class="text-gray-500 font-normal">Không phải xe này? Thử: ${links}</span>`;
                             }
 
-                            const finalText = [shootersText, suggestionHtml].filter(Boolean).join('<br>');
+                            const nextSuffix = (existingSuffixes.length > 0 ? Math.max(...existingSuffixes) : -1) + 1;
+                            const newPlateSuggest = `${basePlate}-${nextSuffix}`;
+                            const warningNewCar = `<span class="text-orange-600 font-bold mt-2 inline-block"><i class="fa-solid fa-triangle-exclamation"></i> BKS này đã được gán với xe ${app.utils.escapeAttr(exactVehicle.model || 'này')}. Vui lòng kiểm tra lại hoặc thêm đuôi -${nextSuffix} (Ví dụ: ${newPlateSuggest}) để tạo hồ sơ xe mới nếu đây là một chiếc xe khác.</span>`;
+
+                            const finalText = [shootersText, suggestionHtml, warningNewCar].filter(Boolean).join('<br>');
                             msg.innerHTML = finalText;
                             msg.className = "text-xs mt-1 text-black";
 
@@ -3737,6 +3741,27 @@ Object.assign(window.app, {
 
                         if(app.role === 'admin' || app.role === 'manager') {
                             try {
+                                // [HỆ THỐNG GỘP XE] Kiểm tra và gộp nếu có biển số cũ tồn tại như một hồ sơ độc lập
+                                const oldPlates = [...new Set(payload.map(p => p.plate).filter(p => p && p !== app.currentPlate))];
+                                if (oldPlates.length > 0) {
+                                    const { data: existingOldVehicles } = await window.sb.from('vehicles').select('license_plate').in('license_plate', oldPlates);
+                                    if (existingOldVehicles && existingOldVehicles.length > 0) {
+                                        for (const v of existingOldVehicles) {
+                                            const oldPlate = v.license_plate;
+                                            // Chuyển ảnh
+                                            await window.sb.from('photos').update({ license_plate: app.currentPlate }).eq('license_plate', oldPlate);
+                                            // Chuyển yêu cầu chỉnh sửa
+                                            await window.sb.from('edit_requests').update({ license_plate: app.currentPlate }).eq('license_plate', oldPlate);
+                                            // Xóa lịch sử cũ
+                                            await window.sb.from('vehicle_history').delete().eq('license_plate', oldPlate);
+                                            // Xóa hồ sơ xe cũ
+                                            await window.sb.from('vehicles').delete().eq('license_plate', oldPlate);
+                                            
+                                            app.toast.show('info', 'Đã gộp xe', `Dữ liệu từ xe ${oldPlate} đã được tự động gộp sang xe này.`);
+                                        }
+                                    }
+                                }
+
                                 await window.sb.from('vehicle_history').delete().eq('license_plate', app.currentPlate);
                                 if (payload.length > 0) await window.sb.from('vehicle_history').insert(payload);
 
