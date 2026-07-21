@@ -3824,6 +3824,8 @@ Object.assign(window.app, {
                             body: JSON.stringify({ action: 'status' })
                         });
                         const data = await res.json();
+                        
+                        app.customRoleDetails = data.customRoleDetails || null;
 
                         if (!data.linked || !data.inServer) {
                             loading.classList.add('hidden');
@@ -3997,6 +3999,17 @@ Object.assign(window.app, {
 
                     if (deleteBtn) {
                         deleteBtn.classList.toggle('hidden', !hasCustomRole);
+                    }
+
+                    const nameInput = document.getElementById('cr-name-input');
+                    const colorInput = document.getElementById('cr-color-input');
+
+                    if (hasCustomRole && app.customRoleDetails) {
+                        if (nameInput) nameInput.value = app.customRoleDetails.name || '';
+                        if (colorInput) colorInput.value = app.customRoleDetails.color || '#000000';
+                    } else {
+                        if (nameInput) nameInput.value = '';
+                        if (colorInput) colorInput.value = '#000000';
                     }
 
                     app.ui.lockScroll();

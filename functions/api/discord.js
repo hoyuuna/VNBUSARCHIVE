@@ -281,11 +281,34 @@ async function handleRoleClaim(request, env) {
 
         if (action === 'status') {
             const { data: profile } = await supabase.from('profiles').select('discord_custom_role_id').eq('id', user.id).single();
+            let customRoleDetails = null;
+
+            if (profile?.discord_custom_role_id) {
+                try {
+                    const rolesRes = await fetch(`https://discord.com/api/v10/guilds/${guildId}/roles`, {
+                        headers: { 'Authorization': `Bot ${botToken}` }
+                    });
+                    if (rolesRes.ok) {
+                        const roles = await rolesRes.json();
+                        const role = roles.find(r => r.id === profile.discord_custom_role_id);
+                        if (role) {
+                            customRoleDetails = {
+                                name: role.name,
+                                color: '#' + role.color.toString(16).padStart(6, '0')
+                            };
+                        }
+                    }
+                } catch (e) {
+                    console.error('Lỗi khi lấy thông tin custom role:', e);
+                }
+            }
+
             return new Response(JSON.stringify({
                 linked: true,
                 inServer: true,
                 claimedRoles: currentRoles,
-                customRoleId: profile?.discord_custom_role_id || null
+                customRoleId: profile?.discord_custom_role_id || null,
+                customRoleDetails
             }), { status: 200, headers: { 'Content-Type': 'application/json' }});
         }
 
