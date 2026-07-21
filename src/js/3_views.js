@@ -1858,9 +1858,10 @@ Object.assign(window.app, {
                                 return;
                             }
                             const topP = allPhotos[0];
+                            const fallbackModel = allPhotos.find(p => p.vehicles?.model)?.vehicles?.model || null;
                             vehicle = {
                                 license_plate: plate,
-                                model: topP.vehicles?.model || null,
+                                model: fallbackModel,
                                 operator: topP.operator || null,
                                 note: null
                             };
