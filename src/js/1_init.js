@@ -3895,9 +3895,9 @@ grid.innerHTML = tiers.map(tier => {
         let btnHtml = '';
 
         if (hasCustomRole) {
-            btnHtml = `<button onclick="app.openCustomRolePrompt()" class="px-4 py-2 bg-gray-100 text-gray-800 text-xs font-bold rounded-md border border-gray-300 hover:bg-gray-200 transition whitespace-nowrap"><i class="fa-solid fa-pen mr-1"></i> Sửa Role</button>`;
+            btnHtml = `<button onclick="app.openCustomRolePrompt(true)" class="px-4 py-2 bg-gray-100 text-gray-800 text-xs font-bold rounded-md border border-gray-300 hover:bg-gray-200 transition whitespace-nowrap"><i class="fa-solid fa-pen mr-1"></i> Sửa Role</button>`;
         } else if (isEligible) {
-            btnHtml = `<button onclick="app.openCustomRolePrompt()" class="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold rounded-md hover:opacity-90 transition shadow-sm whitespace-nowrap">Tạo Role Riêng</button>`;
+            btnHtml = `<button onclick="app.openCustomRolePrompt(false)" class="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold rounded-md hover:opacity-90 transition shadow-sm whitespace-nowrap">Tạo Role Riêng</button>`;
         } else {
             btnHtml = `<button disabled class="px-4 py-2 bg-gray-50 text-gray-400 text-xs font-bold rounded cursor-not-allowed border border-gray-200 whitespace-nowrap"><i class="fa-solid fa-lock mr-1"></i> Chưa đủ đ/k</button>`;
         }
@@ -3989,12 +3989,52 @@ grid.innerHTML = tiers.map(tier => {
 });
 
 Object.assign(window.app, {
-  openCustomRolePrompt: () => {
+  openCustomRolePrompt: (hasCustomRole = false) => {
                     const modal = document.getElementById('custom-role-modal');
                     const content = document.getElementById('custom-role-content');
                     const okBtn = document.getElementById('cr-ok-btn');
+                    const deleteBtn = document.getElementById('cr-delete-btn');
+
+                    if (deleteBtn) {
+                        deleteBtn.classList.toggle('hidden', !hasCustomRole);
+                    }
 
                     app.ui.lockScroll();
+
+                    if (deleteBtn) {
+                        deleteBtn.onclick = async () => {
+                            if (!confirm("Bạn có chắc chắn muốn xóa Custom Role này không? Hành động này không thể hoàn tác.")) return;
+                            
+                            const originalDelText = deleteBtn.innerHTML;
+                            deleteBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+                            deleteBtn.disabled = true;
+                            okBtn.disabled = true;
+
+                            try {
+                                const { data: { session } } = await window.sb.auth.getSession();
+                                const token = session?.access_token;
+
+                                const res = await fetch('/api/discord', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                                    body: JSON.stringify({ action: 'delete', tier: 1500 })
+                                });
+
+                                const data = await res.json();
+                                if (!res.ok) throw new Error(data.error || 'Lỗi không xác định');
+
+                                app.ui.closeCustomRolePrompt();
+                                app.toast.show('success', 'Thành công', data.message || "Đã xóa Role thành công!");
+                                app.settings.loadBadges();
+                            } catch (err) {
+                                app.ui.showAlert("Lỗi: " + err.message);
+                            } finally {
+                                deleteBtn.innerHTML = originalDelText;
+                                deleteBtn.disabled = false;
+                                okBtn.disabled = false;
+                            }
+                        };
+                    }
 
                     okBtn.onclick = async () => {
                         const name = document.getElementById('cr-name-input').value.trim();
@@ -4006,6 +4046,7 @@ Object.assign(window.app, {
                         const originalText = okBtn.innerHTML;
                         okBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
                         okBtn.disabled = true;
+                        if (deleteBtn) deleteBtn.disabled = true;
 
                         try {
                             const { data: { session } } = await window.sb.auth.getSession();
@@ -4028,6 +4069,7 @@ Object.assign(window.app, {
                         } finally {
                             okBtn.innerHTML = originalText;
                             okBtn.disabled = false;
+                            if (deleteBtn) deleteBtn.disabled = false;
                         }
                     };
 

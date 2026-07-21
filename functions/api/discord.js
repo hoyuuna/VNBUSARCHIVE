@@ -353,6 +353,25 @@ async function handleRoleClaim(request, env) {
             }
         }
 
+        if (tier === 1500 && action === 'delete') {
+            const { data: profile } = await supabase.from('profiles').select('discord_custom_role_id').eq('id', user.id).single();
+            if (profile?.discord_custom_role_id) {
+                const deleteRes = await fetch(`https://discord.com/api/v10/guilds/${guildId}/roles/${profile.discord_custom_role_id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bot ${botToken}` }
+                });
+                
+                if (!deleteRes.ok) {
+                    console.error("Lỗi xóa role Discord:", await deleteRes.text());
+                }
+
+                await supabase.from('profiles').update({ discord_custom_role_id: null }).eq('id', user.id);
+                return new Response(JSON.stringify({ success: true, message: 'Đã xóa Custom Role thành công!' }), { status: 200, headers: { 'Content-Type': 'application/json' }});
+            } else {
+                return new Response(JSON.stringify({ error: 'Bạn không có Custom Role để xóa.' }), { status: 400, headers: { 'Content-Type': 'application/json' }});
+            }
+        }
+
         if (action === 'claim' && ROLE_MAP[tier]) {
             const roleId = ROLE_MAP[tier];
 
