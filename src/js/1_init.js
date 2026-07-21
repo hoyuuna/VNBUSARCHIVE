@@ -4447,7 +4447,7 @@ Object.assign(window.app, {
                             const relatedPrefixes = app.utils.getRelatedPrefixes(prefix);
                             const prefixOrCond = relatedPrefixes.map(p => `license_plate.ilike.${p}%`).join(',');
                             if (provName) {
-                                photoQuery = photoQuery.eq('route_no', query).or(`province.eq.${provName},${prefixOrCond}`);
+                                photoQuery = photoQuery.eq('route_no', query).or(`province.eq."${provName}",${prefixOrCond}`);
                             } else {
                                 photoQuery = photoQuery.eq('route_no', query).or(prefixOrCond);
                             }
