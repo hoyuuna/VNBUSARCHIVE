@@ -4002,37 +4002,37 @@ Object.assign(window.app, {
                     app.ui.lockScroll();
 
                     if (deleteBtn) {
-                        deleteBtn.onclick = async () => {
-                            if (!confirm("Bạn có chắc chắn muốn xóa Custom Role này không? Hành động này không thể hoàn tác.")) return;
-                            
-                            const originalDelText = deleteBtn.innerHTML;
-                            deleteBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-                            deleteBtn.disabled = true;
-                            okBtn.disabled = true;
+                        deleteBtn.onclick = () => {
+                            app.ui.showAlert("Bạn có chắc chắn muốn xóa Custom Role này không? Hành động này không thể hoàn tác.", async () => {
+                                const originalDelText = deleteBtn.innerHTML;
+                                deleteBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+                                deleteBtn.disabled = true;
+                                okBtn.disabled = true;
 
-                            try {
-                                const { data: { session } } = await window.sb.auth.getSession();
-                                const token = session?.access_token;
+                                try {
+                                    const { data: { session } } = await window.sb.auth.getSession();
+                                    const token = session?.access_token;
 
-                                const res = await fetch('/api/discord', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                                    body: JSON.stringify({ action: 'delete', tier: 1500 })
-                                });
+                                    const res = await fetch('/api/discord', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                                        body: JSON.stringify({ action: 'delete', tier: 1500 })
+                                    });
 
-                                const data = await res.json();
-                                if (!res.ok) throw new Error(data.error || 'Lỗi không xác định');
+                                    const data = await res.json();
+                                    if (!res.ok) throw new Error(data.error || 'Lỗi không xác định');
 
-                                app.ui.closeCustomRolePrompt();
-                                app.toast.show('success', 'Thành công', data.message || "Đã xóa Role thành công!");
-                                app.settings.loadBadges();
-                            } catch (err) {
-                                app.ui.showAlert("Lỗi: " + err.message);
-                            } finally {
-                                deleteBtn.innerHTML = originalDelText;
-                                deleteBtn.disabled = false;
-                                okBtn.disabled = false;
-                            }
+                                    app.ui.closeCustomRolePrompt();
+                                    app.toast.show('success', 'Thành công', data.message || "Đã xóa Role thành công!");
+                                    app.settings.loadBadges();
+                                } catch (err) {
+                                    app.ui.showAlert("Lỗi: " + err.message);
+                                } finally {
+                                    deleteBtn.innerHTML = originalDelText;
+                                    deleteBtn.disabled = false;
+                                    okBtn.disabled = false;
+                                }
+                            }, () => {}, { title: "Xác nhận xóa Role", btnCancelText: "Hủy", btnOkText: "Xóa" });
                         };
                     }
 
