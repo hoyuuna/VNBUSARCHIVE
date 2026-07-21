@@ -3,7 +3,7 @@ window.app = window.app || {};
 window.addEventListener('unhandledrejection', function(event) {
     if (event.reason && event.reason.message && event.reason.message.includes("Unexpected token '<'")) {
         if (window.app && window.app.toast) {
-            window.app.toast.show('error', 'Lá»—i káº¿t ná»‘i', 'Cloudflare háº¿t háº¡n, vui lÃ²ng báº¥m vÃ o Ä‘Ã¢y Ä‘á»ƒ táº£i láº¡i trang', 10000, () => {
+            window.app.toast.show('error', 'Lỗi kết nối', 'Cloudflare hết hạn, vui lòng bấm vào đây để tải lại trang', 10000, () => {
                 window.location.reload(true);
             });
         }
@@ -13,7 +13,7 @@ window.addEventListener('unhandledrejection', function(event) {
 window.addEventListener('error', function(event) {
     if (event.message && event.message.includes("Unexpected token '<'")) {
         if (window.app && window.app.toast) {
-            window.app.toast.show('error', 'Lá»—i káº¿t ná»‘i', 'Cloudflare háº¿t háº¡n, vui lÃ²ng báº¥m vÃ o Ä‘Ã¢y Ä‘á»ƒ táº£i láº¡i trang', 10000, () => {
+            window.app.toast.show('error', 'Lỗi kết nối', 'Cloudflare hết hạn, vui lòng bấm vào đây để tải lại trang', 10000, () => {
                 window.location.reload(true);
             });
         }
@@ -163,7 +163,7 @@ Object.assign(window.app, {
                     return removeToast;
                 },
 
-                // [Má»šI] TOAST Äáº¶C BIá»†T: KHÃ”NG THá»‚ Táº®T, CHá»ˆ DÃ™NG CHO TIáº¾N TRÃŒNH UPLOAD HÃ€NG Äá»¢I
+                // [MỚI] TOAST ĐẶC BIỆT: KHÔNG THỂ TẮT, CHỈ DÙNG CHO TIẾN TRÌNH UPLOAD HÀNG ĐỢI
                 createProgress: (title) => {
                     const container = document.getElementById('toast-container');
                     if (!container) return null;
@@ -183,13 +183,13 @@ Object.assign(window.app, {
                         </div>
                         <div class="flex-1 overflow-hidden pointer-events-none select-none">
                             <h4 id="${toastId}-title" class="text-sm font-bold text-gray-900 leading-tight">${title}</h4>
-                            <p id="${toastId}-desc" class="text-[12px] text-gray-500 mt-0.5 leading-relaxed truncate">Vui lÃ²ng Ä‘á»£i trong giÃ¢y lÃ¡t...</p>
+                            <p id="${toastId}-desc" class="text-[12px] text-gray-500 mt-0.5 leading-relaxed truncate">Vui lòng đợi trong giây lát...</p>
                         </div>
                     `;
 
                     container.prepend(toast);
 
-                    // Hiá»‡u á»©ng "DÃ­u láº¡i" khi cá»‘ vuá»‘t táº¯t Toast nÃ y
+                    // Hiệu ứng "Díu lại" khi cố vuốt tắt Toast này
                     let startY = 0, currentY = 0, isDragging = false;
                     toast.addEventListener('touchstart', (e) => { 
                         isDragging = true; startY = e.touches[0].clientY; 
@@ -200,7 +200,7 @@ Object.assign(window.app, {
                         if(!isDragging) return;
                         currentY = e.touches[0].clientY;
                         let diffY = currentY - startY;
-                        // KhÃ¡ng cá»± láº¡i lá»±c kÃ©o (DÃ­u láº¡i)
+                        // Kháng cự lại lực kéo (Díu lại)
                         if (diffY < 0) diffY = diffY * 0.25;
                         else diffY = diffY * 0.1;
                         toast.style.transform = `translateY(${diffY}px)`;
@@ -208,7 +208,7 @@ Object.assign(window.app, {
                     
                     toast.addEventListener('touchend', () => {
                         isDragging = false;
-                        // Náº£y Ä‘Ã n há»“i vá» láº¡i vá»‹ trÃ­ 0
+                        // Nảy đàn hồi về lại vị trí 0
                         toast.style.transition = 'transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
                         toast.style.transform = 'translateY(0) scale(1)';
                     });
@@ -247,7 +247,7 @@ Object.assign(window.app, {
                     const bar = document.getElementById('top-loading-bar');
                     if (!bar) return;
 
-                    // XÃ³a dá»©t Ä‘iá»ƒm cÃ¡c vÃ²ng láº·p cÅ© náº¿u ngÆ°á»i dÃ¹ng click liÃªn tá»¥c
+                    // Xóa dứt điểm các vòng lặp cũ nếu người dùng click liên tục
                     clearInterval(app.loadingBar.interval);
                     clearTimeout(app.loadingBar.timeout1);
                     clearTimeout(app.loadingBar.timeout2);
@@ -256,14 +256,14 @@ Object.assign(window.app, {
                     bar.style.width = '0%';
                     bar.style.opacity = '1';
 
-                    void bar.offsetWidth; // Ã‰p trÃ¬nh duyá»‡t reset CSS ngay láº­p tá»©c
+                    void bar.offsetWidth; // Ép trình duyệt reset CSS ngay lập tức
 
                     bar.style.transition = 'width 0.3s ease, opacity 0.2s ease';
-                    bar.style.width = '30%'; // PhÃ³ng nhanh lÃªn 30% cho mÆ°á»£t
+                    bar.style.width = '30%'; // Phóng nhanh lên 30% cho mượt
 
                     let progress = 30;
                     app.loadingBar.interval = setInterval(() => {
-                        progress += (100 - progress) * 0.1; // Cháº¡y cháº­m dáº§n vá» 90%
+                        progress += (100 - progress) * 0.1; // Chạy chậm dần về 90%
                         if (progress > 90) progress = 90;
                         bar.style.width = progress + '%';
                     }, 150);
@@ -277,13 +277,13 @@ Object.assign(window.app, {
                     clearTimeout(app.loadingBar.timeout2);
 
                     bar.style.transition = 'width 0.2s ease-out, opacity 0.2s ease';
-                    bar.style.width = '100%'; // PhÃ³ng tháº³ng lÃªn 100%
+                    bar.style.width = '100%'; // Phóng thẳng lên 100%
 
                     app.loadingBar.timeout1 = setTimeout(() => {
-                        bar.style.opacity = '0'; // Má» dáº§n
+                        bar.style.opacity = '0'; // Mờ dần
                         app.loadingBar.timeout2 = setTimeout(() => {
                             bar.style.transition = 'none';
-                            bar.style.width = '0%'; // Reset ngáº§m
+                            bar.style.width = '0%'; // Reset ngầm
                         }, 250);
                     }, 250);
                 }
@@ -294,14 +294,14 @@ Object.assign(window.app, {
   ui: {
                 alertInterval: null,
                 showAlert: (msg, okCallback = null, cancelCallback = null, options = {}) => {
-                    // Tá»° Äá»˜NG Báº®T CÃC THÃ”NG BÃO THÃ€NH CÃ”NG VÃ€ CHUYá»‚N SANG TOAST
+                    // TỰ ĐỘNG BẮT CÁC THÔNG BÁO THÀNH CÔNG VÀ CHUYỂN SANG TOAST
                     const cleanMsg = (msg || '').toLowerCase();
-                    const isSuccess = cleanMsg.includes('thÃ nh cÃ´ng') || cleanMsg.includes('Ä‘Ã£ lÆ°u') || cleanMsg.includes('Ä‘Ã£ cáº­p nháº­t');
+                    const isSuccess = cleanMsg.includes('thành công') || cleanMsg.includes('đã lưu') || cleanMsg.includes('đã cập nhật');
                     
-                    // Chá»‰ chuyá»ƒn sang Toast náº¿u nÃ³ KHÃ”NG CÃ“ callback báº¯t buá»™c (nÃºt báº¥m lÃ m hÃ nh Ä‘á»™ng gÃ¬ Ä‘Ã³)
+                    // Chỉ chuyển sang Toast nếu nó KHÔNG CÓ callback bắt buộc (nút bấm làm hành động gì đó)
                     if (isSuccess && !okCallback && !cancelCallback && !options.countdown) {
-                        // Gá»i Toast vÃ  bá» qua viá»‡c báº­t Modal Alert
-                        app.toast.show('success', 'ThÃ nh cÃ´ng', msg);
+                        // Gọi Toast và bỏ qua việc bật Modal Alert
+                        app.toast.show('success', 'Thành công', msg);
                         return;
                     }
 
@@ -317,11 +317,11 @@ Object.assign(window.app, {
                     const cancelBtn = document.getElementById('custom-alert-cancel-btn');
                     const iconBox = document.getElementById('custom-alert-icon');
 
-                    if (titleEl) titleEl.innerText = options.title || "ThÃ´ng bÃ¡o";
+                    if (titleEl) titleEl.innerText = options.title || "Thông báo";
                     if (iconBox) iconBox.style.display = options.hideButtons ? 'none' : 'flex';
 
                     if (okBtn) {
-                        let defaultText = options.btnOkText || "Äá»“ng Ã½";
+                        let defaultText = options.btnOkText || "Đồng ý";
                         okBtn.style.display = options.hideButtons ? 'none' : 'inline-flex';
 
                         if (options.countdown) {
@@ -360,7 +360,7 @@ Object.assign(window.app, {
 
                     if (cancelCallback || options.btnCancelText) {
                         cancelBtn.classList.remove('hidden');
-                        cancelBtn.innerText = options.btnCancelText || "Há»§y";
+                        cancelBtn.innerText = options.btnCancelText || "Hủy";
                         cancelBtn.style.display = options.hideButtons ? 'none' : 'inline-flex';
                         app.alertCancelCallback = cancelCallback || (() => { });
                     } else {
@@ -405,11 +405,11 @@ Object.assign(window.app, {
                 },
                 showQuotaInfo: () => {
                     const limitStr = app.maintenance.settings['upload_quota']?.reason;
-                    const limitTxt = (limitStr && limitStr.trim() !== '') ? limitStr : 'khÃ´ng giá»›i háº¡n';
+                    const limitTxt = (limitStr && limitStr.trim() !== '') ? limitStr : 'không giới hạn';
 
                     app.ui.showAlert(
-                        `Nháº±m báº£o vá»‡ háº¡ táº§ng mÃ¡y chá»§ vÃ  dung lÆ°á»£ng lÆ°u trá»¯, há»‡ thá»‘ng chá»‰ tiáº¿p nháº­n tá»•ng cá»™ng tá»‘i Ä‘a <b>${limitTxt} áº£nh</b> hÃ ng ngÃ y (Ã¡p dá»¥ng chung cho toÃ n server).<br><br>Chu ká»³ sáº½ Ä‘Æ°á»£c tá»± Ä‘á»™ng Ä‘áº·t láº¡i vÃ o má»—i <b>7 giá» sÃ¡ng (Giá» Viá»‡t Nam)</b>.`,
-                        null, null, { title: "ChÃ­nh sÃ¡ch giá»›i háº¡n Ä‘Äƒng táº£i", btnOkText: "ÄÃ£ hiá»ƒu" }
+                        `Nhằm bảo vệ hạ tầng máy chủ và dung lượng lưu trữ, hệ thống chỉ tiếp nhận tổng cộng tối đa <b>${limitTxt} ảnh</b> hàng ngày (áp dụng chung cho toàn server).<br><br>Chu kỳ sẽ được tự động đặt lại vào mỗi <b>7 giờ sáng (Giờ Việt Nam)</b>.`,
+                        null, null, { title: "Chính sách giới hạn đăng tải", btnOkText: "Đã hiểu" }
                     );
                 },
                 showPrompt: (msg, defaultValue = '', callback) => {
@@ -420,7 +420,7 @@ Object.assign(window.app, {
                     const inputEl = document.getElementById('custom-prompt-input');
                     const okBtn = document.getElementById('custom-prompt-ok-btn');
 
-                    titleEl.innerText = "Nháº­p thÃ´ng tin";
+                    titleEl.innerText = "Nhập thông tin";
                     msgEl.innerText = msg;
                     inputEl.value = defaultValue;
 
@@ -446,7 +446,7 @@ Object.assign(window.app, {
 
                     okBtn.onclick = () => {
                         if (!inputEl.value.trim()) {
-                            app.ui.showAlert("Vui lÃ²ng nháº­p ná»™i dung, khÃ´ng Ä‘Æ°á»£c Ä‘á»ƒ trá»‘ng!");
+                            app.ui.showAlert("Vui lòng nhập nội dung, không được để trống!");
                             return;
                         }
                         app.ui.closePrompt(true);
@@ -547,7 +547,7 @@ closeCustomRolePrompt: () => {
                     const customInput = document.getElementById('deny-custom-input');
 
 
-                    titleEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-2"></i>${titleStr || 'Tá»« chá»‘i áº£nh'}`;
+                    titleEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-2"></i>${titleStr || 'Từ chối ảnh'}`;
 
 
                     customInput.value = '';
@@ -570,7 +570,7 @@ closeCustomRolePrompt: () => {
                         if (app.activeDenySection === 'quick') {
                             const selectedChecks = Array.from(document.querySelectorAll('.deny-quick-cb:checked')).map(cb => cb.value);
                             if (selectedChecks.length === 0) {
-                                app.ui.showAlert("Vui lÃ²ng chá»n Ã­t nháº¥t má»™t lÃ½ do tá»« danh sÃ¡ch!");
+                                app.ui.showAlert("Vui lòng chọn ít nhất một lý do từ danh sách!");
                                 return;
                             }
                             reasonString = selectedChecks.join(' + ');
@@ -578,7 +578,7 @@ closeCustomRolePrompt: () => {
                         } else if (app.activeDenySection === 'custom') {
                             const customText = customInput.value.trim();
                             if (!customText) {
-                                app.ui.showAlert("Vui lÃ²ng nháº­p lÃ½ do tá»« chá»‘i cá»¥ thá»ƒ!");
+                                app.ui.showAlert("Vui lòng nhập lý do từ chối cụ thể!");
                                 document.getElementById('deny-custom-input').focus();
                                 return;
                             }
@@ -656,9 +656,9 @@ closeCustomRolePrompt: () => {
                     app.ui.uploadProgressValue = 0;
                     text.innerHTML = '0%';
                     text.className = 'absolute inset-0 flex items-center justify-center text-2xl font-bold text-black';
-                    title.innerText = 'Äang chuáº©n bá»‹...';
+                    title.innerText = 'Đang chuẩn bị...';
                     title.className = 'text-lg font-bold text-gray-900 mb-1';
-                    desc.innerText = 'Vui lÃ²ng khÃ´ng rá»i khá»i trang';
+                    desc.innerText = 'Vui lòng không rời khỏi trang';
 
                     errorBox.classList.add('hidden');
                     if (infoBox) infoBox.classList.add('hidden');
@@ -704,23 +704,23 @@ closeCustomRolePrompt: () => {
                         }
                     }, 20);
 
-                    title.innerText = 'áº¢nh Ä‘Ã£ upload thÃ nh cÃ´ng';
+                    title.innerText = 'Ảnh đã upload thành công';
                     title.classList.replace('text-gray-900', 'text-green-600');
-                    desc.innerText = 'áº¢nh sáº½ xuáº¥t hiá»‡n sau khi Ä‘Æ°á»£c admin duyá»‡t!';
+                    desc.innerText = 'Ảnh sẽ xuất hiện sau khi được admin duyệt!';
 
-                    // Báº­t Ã´ mÃ u vÃ ng vÃ  fetch sá»‘ lÆ°á»£ng hÃ ng Ä‘á»£i
+                    // Bật ô màu vàng và fetch số lượng hàng đợi
                     if (infoBox && queueCountSpan) {
                         infoBox.classList.remove('hidden');
                         queueCountSpan.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
 
-                        // THÃŠM: TÃ­nh toÃ¡n hÃ ng Ä‘á»£i cÃ³ Æ°u tiÃªn Admin/Manager
+                        // THÊM: Tính toán hàng đợi có ưu tiên Admin/Manager
                         window.sb.from('photos').select('id, created_at, uploader_id, profiles(role)').eq('status', 'pending')
                             .then(({ data, error }) => {
                                 if (!error && data) {
                                     let ahead = 0;
                                     const isMePrivileged = (app.role === 'admin' || app.role === 'manager');
 
-                                    // Láº¥y áº£nh má»›i nháº¥t vá»«a Ä‘Æ°á»£c thÃªm
+                                    // Lấy ảnh mới nhất vừa được thêm
                                     const myPhotos = data.filter(p => p.uploader_id === app.user.id).sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
                                     if (myPhotos.length === 0) {
                                         queueCountSpan.innerText = Math.max(0, data.length - 1);
@@ -749,10 +749,10 @@ closeCustomRolePrompt: () => {
                             });
                     }
 
-                    actions.className = "mt-6 flex gap-3 justify-center w-full"; // KhÃ´i phá»¥c class xáº¿p ngang
+                    actions.className = "mt-6 flex gap-3 justify-center w-full"; // Khôi phục class xếp ngang
                     actions.innerHTML = `
-                        <button onclick="app.utils.cleanupState(); window.scrollTo({ top: 0, behavior: 'smooth' });" class="flex-1 bg-white border border-gray-300 text-gray-700 py-2.5 rounded-md font-bold text-xs hover:bg-gray-50 transition shadow-sm">Upload thÃªm</button>
-                        <button onclick="app.utils.navigate('/');" class="flex-1 bg-black text-white py-2.5 rounded-md font-bold text-xs hover:bg-gray-800 transition shadow-sm">Trang chá»§</button>
+                        <button onclick="app.utils.cleanupState(); window.scrollTo({ top: 0, behavior: 'smooth' });" class="flex-1 bg-white border border-gray-300 text-gray-700 py-2.5 rounded-md font-bold text-xs hover:bg-gray-50 transition shadow-sm">Upload thêm</button>
+                        <button onclick="app.utils.navigate('/');" class="flex-1 bg-black text-white py-2.5 rounded-md font-bold text-xs hover:bg-gray-800 transition shadow-sm">Trang chủ</button>
                     `;
                     actions.classList.remove('hidden');
                 },
@@ -784,22 +784,22 @@ closeCustomRolePrompt: () => {
                         }
                     }, 10);
 
-                    title.innerText = 'KhÃ´ng thá»ƒ táº£i áº£nh lÃªn';
+                    title.innerText = 'Không thể tải ảnh lên';
                     title.classList.replace('text-gray-900', 'text-red-600');
 
-                    // PhÃ¢n loáº¡i lá»—i Ä‘á»ƒ hiá»ƒn thá»‹ tiÃªu Ä‘á» chÃ­nh xÃ¡c
+                    // Phân loại lỗi để hiển thị tiêu đề chính xác
                     let cleanMsg = errMsg;
                     if (errMsg.includes('EXCEPTION:')) {
                         cleanMsg = errMsg.split('EXCEPTION:')[1].trim();
                     }
 
-                    // Tá»± Ä‘á»™ng Ä‘iá»u chá»‰nh tiÃªu Ä‘á» náº¿u lá»—i liÃªn quan Ä‘áº¿n xÃ¡c thá»±c/há»‡ thá»‘ng
+                    // Tự động điều chỉnh tiêu đề nếu lỗi liên quan đến xác thực/hệ thống
                     if (errMsg.toLowerCase().includes('cloudflare') || errMsg.toLowerCase().includes('turnstile')) {
-                        title.innerText = 'Lá»—i xÃ¡c thá»±c báº£o máº­t';
+                        title.innerText = 'Lỗi xác thực bảo mật';
                     } else if (errMsg.toLowerCase().includes('image') || errMsg.toLowerCase().includes('upload')) {
-                        title.innerText = 'Lá»—i mÃ¡y chá»§ hÃ¬nh áº£nh';
+                        title.innerText = 'Lỗi máy chủ hình ảnh';
                     } else {
-                        title.innerText = 'KhÃ´ng thá»ƒ táº£i áº£nh lÃªn';
+                        title.innerText = 'Không thể tải ảnh lên';
                     }
 
                     desc.innerHTML = `<b class="text-red-700">${cleanMsg}</b>`;
@@ -807,23 +807,23 @@ closeCustomRolePrompt: () => {
                     const isReported = !errMsg.includes('NO_REPORT'); 
                     const pureErrMsg = errMsg.replace('[NO_REPORT] ', '');
 
-                    // Chá»‰ Ä‘á»ƒ láº¡i mÃ£ lá»—i gá»‘c trong há»™p Ä‘á»
-                    errorBox.innerHTML = `MÃ£ lá»—i: ${pureErrMsg}`;
+                    // Chỉ để lại mã lỗi gốc trong hộp đỏ
+                    errorBox.innerHTML = `Mã lỗi: ${pureErrMsg}`;
                     errorBox.classList.remove('hidden');
 
-                    const statusText = isReported ? "Lá»—i nÃ y Ä‘Ã£ Ä‘Æ°á»£c thÃ´ng bÃ¡o tá»± Ä‘á»™ng." : "Lá»—i nÃ y sáº½ KHÃ”NG Ä‘Æ°á»£c thÃ´ng bÃ¡o tá»± Ä‘á»™ng.";
+                    const statusText = isReported ? "Lỗi này đã được thông báo tự động." : "Lỗi này sẽ KHÔNG được thông báo tự động.";
 
-                    actions.className = "mt-5 flex flex-col w-full"; // Ghi Ä‘Ã¨ class Ä‘á»ƒ xáº¿p dá»c
+                    actions.className = "mt-5 flex flex-col w-full"; // Ghi đè class để xếp dọc
                     actions.innerHTML = `
                         <div class="text-[10px] text-black font-medium text-center mb-3">
                             <span class="inline-flex flex-wrap justify-center items-center gap-1">
                                 <span>${statusText}</span>
-                                <a href="javascript:void(0)" onclick="app.ui.closeUploadProgress(); setTimeout(() => app.utils.navigate('/help/1516405301996421281'), 300)" class="font-bold underline hover:text-gray-800 transition-colors inline-flex items-center">TÃ¬m hiá»ƒu thÃªm & hÆ°á»›ng dáº«n kháº¯c phá»¥c</a>
+                                <a href="javascript:void(0)" onclick="app.ui.closeUploadProgress(); setTimeout(() => app.utils.navigate('/help/1516405301996421281'), 300)" class="font-bold underline hover:text-gray-800 transition-colors inline-flex items-center">Tìm hiểu thêm & hướng dẫn khắc phục</a>
                             </span>
                         </div>
                         <div class="flex gap-3 w-full">
-                            <button onclick="app.ui.closeUploadProgress(); app.utils.resetTurnstile('#upload .cf-turnstile');" class="flex-1 bg-white border border-gray-300 text-gray-700 py-2.5 rounded-md font-bold text-xs hover:bg-gray-50 transition shadow-sm">Thá»­ láº¡i</button>
-                            <button onclick="app.utils.navigate('/');" class="flex-1 bg-black text-white py-2.5 rounded-md font-bold text-xs hover:bg-gray-800 transition shadow-sm">Trang chá»§</button>
+                            <button onclick="app.ui.closeUploadProgress(); app.utils.resetTurnstile('#upload .cf-turnstile');" class="flex-1 bg-white border border-gray-300 text-gray-700 py-2.5 rounded-md font-bold text-xs hover:bg-gray-50 transition shadow-sm">Thử lại</button>
+                            <button onclick="app.utils.navigate('/');" class="flex-1 bg-black text-white py-2.5 rounded-md font-bold text-xs hover:bg-gray-800 transition shadow-sm">Trang chủ</button>
                         </div>
                     `;
                 },
@@ -865,21 +865,21 @@ Object.assign(window.app, {
                         if (data) {
                             data.forEach(item => { app.maintenance.settings[item.id] = item; });
                         }
-                    } catch (e) { console.error("Lá»—i láº¥y thÃ´ng tin báº£o trÃ¬", e); }
+                    } catch (e) { console.error("Lỗi lấy thông tin bảo trì", e); }
                 },
 
                 check: (sysId) => {
                     if (app.maintenance.isBypassed) return false; // Manager bypass
 
-                    // Kiá»ƒm tra cáº§u chÃ¬ tá»•ng trÆ°á»›c, sau Ä‘Ã³ má»›i Ä‘áº¿n module cá»¥ thá»ƒ
+                    // Kiểm tra cầu chì tổng trước, sau đó mới đến module cụ thể
                     const target = app.maintenance.settings['global']?.is_active === false
                                  ? app.maintenance.settings['global']
                                  : app.maintenance.settings[sysId];
 
                     if (!target) return false;
 
-                    // Náº¿u is_active = false, luÃ´n hiá»ƒn thá»‹ mÃ n hÃ¬nh báº£o trÃ¬ (khÃ´ng tá»± má»Ÿ láº¡i khi háº¿t giá»).
-                    // auto_reactivate_at giá» chá»‰ dÃ¹ng lÃ m thá»i gian dá»± kiáº¿n Ä‘á»ƒ Ä‘áº¿m ngÆ°á»£c.
+                    // Nếu is_active = false, luôn hiển thị màn hình bảo trì (không tự mở lại khi hết giờ).
+                    // auto_reactivate_at giờ chỉ dùng làm thời gian dự kiến để đếm ngược.
                     if (target.is_active === false) {
                         return target;
                     }
@@ -889,14 +889,14 @@ Object.assign(window.app, {
                 showScreen: (targetData) => {
                     const screen = document.getElementById('maintenance-screen');
 
-                    // áº¨n triá»‡t Ä‘á»ƒ giao diá»‡n ná»n phÃ­a sau Ä‘á»ƒ khÃ´ng bá»‹ há»Ÿ khi cuá»™n trÃªn Mobile
+                    // Ẩn triệt để giao diện nền phía sau để không bị hở khi cuộn trên Mobile
                     document.querySelectorAll('header, main, footer, #header-spacer').forEach(el => el.style.display = 'none');
                     document.body.style.backgroundColor = '#ffffff';
 
-                    // Cáº­p nháº­t text lÃ½ do
-                    document.getElementById('mt-reason').innerText = targetData.reason || "Há»‡ thá»‘ng Ä‘ang Ä‘Æ°á»£c báº£o trÃ¬, vui lÃ²ng quay láº¡i sau.";
+                    // Cập nhật text lý do
+                    document.getElementById('mt-reason').innerText = targetData.reason || "Hệ thống đang được bảo trì, vui lòng quay lại sau.";
 
-                    // Hiá»‡n nÃºt cho Manager
+                    // Hiện nút cho Manager
                     if (app.role === 'manager') {
                         document.getElementById('mt-manager-bypass').classList.remove('hidden');
                     }
@@ -914,7 +914,7 @@ Object.assign(window.app, {
 
                             if (distance < 0) {
                                 clearInterval(app.maintenance.timer);
-                                countdownEl.innerText = "Cáº­p nháº­t sau";
+                                countdownEl.innerText = "Cập nhật sau";
                                 countdownEl.className = "text-xl font-bold tracking-normal text-gray-400";
                                 return;
                             }
@@ -931,18 +931,18 @@ Object.assign(window.app, {
                             countdownEl.innerText = timeStr;
                         }, 1000);
                     } else {
-                        countdownEl.innerText = "Cáº­p nháº­t sau";
-                        countdownEl.className = "text-xl font-bold tracking-normal text-gray-400"; // Äá»•i style náº¿u khÃ´ng cÃ³ giá»
+                        countdownEl.innerText = "Cập nhật sau";
+                        countdownEl.className = "text-xl font-bold tracking-normal text-gray-400"; // Đổi style nếu không có giờ
                     }
 
                     screen.classList.remove('hidden');
-                    app.ui.lockScroll(); // KhÃ³a cuá»™n trang
+                    app.ui.lockScroll(); // Khóa cuộn trang
                 },
 
                 hideScreen: () => {
                     document.getElementById('maintenance-screen').classList.add('hidden');
 
-                    // Tráº£ láº¡i giao diá»‡n ná»n khi táº¯t báº£o trÃ¬
+                    // Trả lại giao diện nền khi tắt bảo trì
                     document.querySelectorAll('header, main, footer, #header-spacer').forEach(el => el.style.display = '');
                     document.body.style.backgroundColor = '';
 
@@ -952,7 +952,7 @@ Object.assign(window.app, {
                 bypass: () => {
                     app.maintenance.isBypassed = true;
                     app.maintenance.hideScreen();
-                    app.handleRoute(); // Khá»Ÿi Ä‘á»™ng láº¡i route
+                    app.handleRoute(); // Khởi động lại route
                 }
             }
 });
@@ -979,9 +979,9 @@ Object.assign(window.app, {
                     temp.innerHTML = html;
                     return (temp.textContent || temp.innerText || '').replace(/\s+/g, ' ').trim();
                 },
-                // ThÃªm hÃ m resetTurnstile dÃ¹ng chung nÃ y vÃ o Ä‘áº§u object utils
+                // Thêm hàm resetTurnstile dùng chung này vào đầu object utils
                 resetTurnstile: (selector) => {
-                    // ÄÃ£ chuyá»ƒn sang dÃ¹ng Popup (app.captcha), hÃ m nÃ y bá»‹ vÃ´ hiá»‡u hÃ³a
+                    // Đã chuyển sang dùng Popup (app.captcha), hàm này bị vô hiệu hóa
                 },
                 isIOS: () => {
                     return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -1006,7 +1006,7 @@ Object.assign(window.app, {
                         const result = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.95 });
                         heicBlob = Array.isArray(result) ? result[0] : result;
                     }
-                    if (!heicBlob) throw new Error("KhÃ´ng thá»ƒ chuyá»ƒn Ä‘á»•i áº£nh HEIC/HEIF sang JPEG.");
+                    if (!heicBlob) throw new Error("Không thể chuyển đổi ảnh HEIC/HEIF sang JPEG.");
                     return new File([heicBlob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", { type: "image/jpeg" });
                 },
                 convertToWebpCpu: async (imageSource, initialQuality = 0.8) => {
@@ -1025,7 +1025,7 @@ Object.assign(window.app, {
                             img.src = url;
                             await new Promise((resolve, reject) => {
                                 img.onload = resolve;
-                                img.onerror = () => reject(new Error("Lá»—i táº£i áº£nh Ä‘á»ƒ encode WebP CPU"));
+                                img.onerror = () => reject(new Error("Lỗi tải ảnh để encode WebP CPU"));
                             });
                             if (imageSource instanceof Blob || imageSource instanceof File) URL.revokeObjectURL(url);
 
@@ -1049,7 +1049,7 @@ Object.assign(window.app, {
                             return new Blob([webpBuffer], { type: 'image/webp' });
                         }
                     } catch (err) {
-                        console.warn("WASM WebP encode báº±ng CPU lá»—i, fallback:", err);
+                        console.warn("WASM WebP encode bằng CPU lỗi, fallback:", err);
                         return null;
                     }
                 },
@@ -1096,22 +1096,22 @@ Object.assign(window.app, {
 
                     let parentInfo = window.history.state?.parentInfo;
                     const rootPages = ['/', '/profile', '/profile/comments', '/search', '/upload', '/admin', '/contact', '/user/', '/help', '/leaderboard'];
-                    // --- ÄÃƒ Sá»¬A: KHAI BÃO THÃŠM TRANG ÄÆ N Vá»Š, DÃ’NG XE, NGÆ¯á»œI DÃ™NG LÃ€ TRANG CON ---
+                    // --- ĐÃ SỬA: KHAI BÁO THÊM TRANG ĐƠN VỊ, DÒNG XE, NGƯỜI DÙNG LÀ TRANG CON ---
                     const isDestLeaf = url.startsWith('/vehicle/') || url.startsWith('/photo/') || url.startsWith('/operator/') || url.startsWith('/model/') || url.startsWith('/user/');
                     // ----------------------------------------------------------------
                     const isCurrentRoot = rootPages.some(r => prevPath === r || (r !== '/' && prevPath.startsWith(r)));
 
                     if (isCurrentRoot) {
-                        let bName = "Trang chá»§";
-                        if (prevPath === '/profile/comments') bName = "Quáº£n lÃ½ bÃ¬nh luáº­n";
-                        else if (prevPath === '/profile') bName = "Há»“ sÆ¡ cá»§a tÃ´i";
-                        else if (prevPath.startsWith('/search')) bName = "Káº¿t quáº£ tÃ¬m kiáº¿m";
-                        else if (prevPath.startsWith('/user/')) bName = "Há»“ sÆ¡ ngÆ°á»i dÃ¹ng";
-                        else if (prevPath === '/upload') bName = "ÄÄƒng táº£i";
-                        else if (prevPath === '/admin') bName = "Quáº£n trá»‹";
-                        else if (prevPath === '/contact') bName = "LiÃªn há»‡";
-                        else if (prevPath === '/leaderboard') bName = "Báº£ng xáº¿p háº¡ng Ä‘Ã³ng gÃ³p";
-                        else if (prevPath === '/help' || prevPath.startsWith('/help/')) bName = "Trung tÃ¢m há»— trá»£";
+                        let bName = "Trang chủ";
+                        if (prevPath === '/profile/comments') bName = "Quản lý bình luận";
+                        else if (prevPath === '/profile') bName = "Hồ sơ của tôi";
+                        else if (prevPath.startsWith('/search')) bName = "Kết quả tìm kiếm";
+                        else if (prevPath.startsWith('/user/')) bName = "Hồ sơ người dùng";
+                        else if (prevPath === '/upload') bName = "Đăng tải";
+                        else if (prevPath === '/admin') bName = "Quản trị";
+                        else if (prevPath === '/contact') bName = "Liên hệ";
+                        else if (prevPath === '/leaderboard') bName = "Bảng xếp hạng đóng góp";
+                        else if (prevPath === '/help' || prevPath.startsWith('/help/')) bName = "Trung tâm hỗ trợ";
                         parentInfo = { name: bName, url: prevFull };
                     }
 
@@ -1137,11 +1137,11 @@ cleanupState: () => {
                         app.vehicleLocked = false;
                         document.getElementById('plate-msg').innerText = '';
 
-                        // Gá»i hÃ m reset má»›i, cá»±c ká»³ gá»n gÃ ng
+                        // Gọi hàm reset mới, cực kỳ gọn gàng
                         app.utils.resetTurnstile('#upload .cf-turnstile');
                         app.utils.resetTurnstile('#auth .cf-turnstile');
 
-                        // Load láº¡i tráº¡ng thÃ¡i khÃ³a nÃºt theo cÃ¡ nhÃ¢n hÃ³a
+                        // Load lại trạng thái khóa nút theo cá nhân hóa
                         if(app.upload.applyPreferenceUI) app.upload.applyPreferenceUI();
                         document.getElementById('type-msg')?.classList.add('hidden');
                     }
@@ -1153,14 +1153,14 @@ cleanupState: () => {
                     if(app.docs && app.docs.close) app.docs.close();
                     if(app.settings && app.settings.close) app.settings.close();
 
-                    // ÄÃ³ng Zoom Modal náº¿u Ä‘ang má»Ÿ (Xá»­ lÃ½ lá»—i báº¥m Back khi Ä‘ang soi áº£nh)
+                    // Đóng Zoom Modal nếu đang mở (Xử lý lỗi bấm Back khi đang soi ảnh)
                     const zoomModal = document.getElementById('image-zoom-modal');
                     if (zoomModal && !zoomModal.classList.contains('hidden')) {
                         zoomModal.classList.add('hidden');
                         document.body.style.overflow = '';
                     }
 
-                    // Reset menu tÃ i khoáº£n
+                    // Reset menu tài khoản
                     app.ui.closeUserDropdown();
 
                     document.getElementById('search-filter-menu')?.classList.remove('active');
@@ -1184,17 +1184,17 @@ cleanupState: () => {
                             if (app.search && app.search.initExactRouteMenu) app.search.initExactRouteMenu();
                             if (app.search && app.search.syncExactUI) app.search.syncExactUI(app.search.currentExactPrefix, app.search.currentExactProvName);
                         }
-                    } catch (e) { console.warn("KhÃ´ng thá»ƒ táº£i licence-no.json", e); }
+                    } catch (e) { console.warn("Không thể tải licence-no.json", e); }
                 },
                 getProvinceFromPlate: (plate) => {
-                    if (!plate) return 'KhÃ´ng xÃ¡c Ä‘á»‹nh';
-                    if (/^[A-Z]{3}\d{4,7}/.test(plate)) return 'BuÃ½t sÃ¢n bay';
-                    if (!app.utils.provinceData.length) return 'KhÃ´ng xÃ¡c Ä‘á»‹nh';
-                    if (plate.startsWith('T')) return 'Biá»ƒn táº¡m';
-                    if (/^[A-Z]{2}/.test(plate.substring(0, 2))) return 'Biá»ƒn quÃ¢n Ä‘á»™i / Ngoáº¡i giao';
+                    if (!plate) return 'Không xác định';
+                    if (/^[A-Z]{3}\d{4,7}/.test(plate)) return 'Buýt sân bay';
+                    if (!app.utils.provinceData.length) return 'Không xác định';
+                    if (plate.startsWith('T')) return 'Biển tạm';
+                    if (/^[A-Z]{2}/.test(plate.substring(0, 2))) return 'Biển quân đội / Ngoại giao';
                     const prefix = plate.substring(0, 2);
                     const province = app.utils.provinceData.find(p => p.ky_hieu.includes(prefix));
-                    return province ? province.ten : 'KhÃ´ng xÃ¡c Ä‘á»‹nh';
+                    return province ? province.ten : 'Không xác định';
                 },
                 getRelatedPrefixes: (prefix) => {
                     if (!app.utils.provinceData.length) return [prefix];
@@ -1207,13 +1207,13 @@ cleanupState: () => {
                 matchProvinceName: (rawText) => {
                     if (!rawText || !app.utils.provinceData || !app.utils.provinceData.length) return null;
                     const clean = rawText
-                        .replace(/^(Tá»‰nh|ThÃ nh phá»‘|TP\.?)\s+/i, '')
+                        .replace(/^(Tỉnh|Thành phố|TP\.?)\s+/i, '')
                         .replace(/\s+(Province|City)$/i, '')
                         .trim().toLowerCase();
                     const found = app.utils.provinceData.find(p => {
                         const pName = p.ten.toLowerCase()
                             .replace(/^(tp\.?\s*)/i, '')
-                            .replace(/^(tá»‰nh\s*)/i, '').trim();
+                            .replace(/^(tỉnh\s*)/i, '').trim();
                         return clean.includes(pName) || pName.includes(clean);
                     });
                     return found ? found.ten : null;
@@ -1238,11 +1238,11 @@ cleanupState: () => {
 
                         img.onload = async () => {
                                     if (img.naturalWidth > 10) resolve(true);
-                                    else reject(new Error("File áº£nh bá»‹ há»ng hoáº·c trá»‘ng."));
+                                    else reject(new Error("File ảnh bị hỏng hoặc trống."));
                                 };
 
                                 img.onerror = () => {
-                                    reject(new Error("Lá»—i mÃ¡y chá»§ lÆ°u trá»¯ (404 / Bá»‹ cháº·n)."));
+                                    reject(new Error("Lỗi máy chủ lưu trữ (404 / Bị chặn)."));
                                 };
                             });
                             return true;
@@ -1294,9 +1294,9 @@ cleanupState: () => {
 
                             const dotsBtn = document.createElement('button');
                             dotsBtn.className = 'page-btn dots';
-                            dotsBtn.innerHTML = 'â€¢â€¢â€¢';
+                            dotsBtn.innerHTML = '•••';
                             dotsBtn.style.cursor = 'pointer';
-                            dotsBtn.title = 'Nháº£y Ä‘áº¿n trang báº¥t ká»³';
+                            dotsBtn.title = 'Nhảy đến trang bất kỳ';
 
                             dotsBtn.addEventListener('click', function () {
 
@@ -1312,7 +1312,7 @@ cleanupState: () => {
 
                                 const goBtn = document.createElement('button');
                                 goBtn.className = 'page-jump-btn';
-                                goBtn.textContent = 'â†’';
+                                goBtn.textContent = '→';
 
                                 const doJump = () => {
                                     const val = parseInt(input.value);
@@ -1359,7 +1359,7 @@ cleanupState: () => {
                 },
                 updateBreadcrumbs: () => {
                     const state = window.history.state;
-                    const parent = state?.parentInfo || { name: "Trang chá»§", url: "/" };
+                    const parent = state?.parentInfo || { name: "Trang chủ", url: "/" };
 
                     document.querySelectorAll('.crumb-back').forEach(el => {
                         el.innerText = parent.name;
@@ -1379,14 +1379,14 @@ cleanupState: () => {
                     }
                 },
                 formatNoPunctuation: (el) => {
-                    // ÄÃ£ gá»¡ bá» giá»›i háº¡n dáº¥u cÃ¢u theo yÃªu cáº§u (cho phÃ©p ngÆ°á»i dÃ¹ng nháº­p tá»± do)
+                    // Đã gỡ bỏ giới hạn dấu câu theo yêu cầu (cho phép người dùng nhập tự do)
                     return;
                 },
                 fallbackHeroImage: (imgElement, cacheName, currentIndex) => {
                     const photos = app[cacheName];
                     const wrapper = imgElement.closest('#hero-main') || imgElement.closest('.group');
 
-                    // Náº¿u háº¿t áº£nh dá»± phÃ²ng -> Hiá»‡n UI bÃ¡o lá»—i Ä‘áº¹p máº¯t
+                    // Nếu hết ảnh dự phòng -> Hiện UI báo lỗi đẹp mắt
                     if (!photos || currentIndex >= photos.length - 1) {
                         imgElement.style.display = 'none';
                         if (wrapper) {
@@ -1396,21 +1396,21 @@ cleanupState: () => {
                             if (!errBox) {
                                 wrapper.innerHTML += `<div class="fallback-error absolute inset-0 flex flex-col items-center justify-center bg-gray-100 z-10 w-full h-full min-h-[200px]">
                                     <i class="fa-solid fa-image-slash text-gray-400 text-4xl mb-2"></i>
-                                    <span class="text-sm font-bold text-gray-500">áº¢nh Ä‘Ã£ bá»‹ lá»—i hoáº·c gá»¡ bá»</span>
+                                    <span class="text-sm font-bold text-gray-500">Ảnh đã bị lỗi hoặc gỡ bỏ</span>
                                 </div>`;
                             }
                         }
                         return;
                     }
 
-                    // Thá»­ load áº£nh tiáº¿p theo
+                    // Thử load ảnh tiếp theo
                     const nextIndex = currentIndex + 1;
                     const nextPhoto = photos[nextIndex];
 
                     imgElement.src = app.utils.getProxiedUrl(nextPhoto.url, 'fallback.jpg', 'thumb');
                     imgElement.setAttribute('onerror', `app.utils.fallbackHeroImage(this, '${cacheName}', ${nextIndex})`);
 
-                    // Cáº­p nháº­t láº¡i Link click vÃ  Text (náº¿u cÃ³)
+                    // Cập nhật lại Link click và Text (nếu có)
                     if (wrapper) {
                         wrapper.onclick = () => app.views.loadDetail(nextPhoto.id);
                         if (cacheName === 'topPhotosCache') {
@@ -1421,7 +1421,7 @@ cleanupState: () => {
                                  textPlate.innerHTML = safePlate;
                              }
                              if (textViews) {
-                                 const safeOperator = app.utils.cleanText(nextPhoto.operator || 'Äang cáº­p nháº­t');
+                                 const safeOperator = app.utils.cleanText(nextPhoto.operator || 'Đang cập nhật');
                                  textViews.innerHTML = safeOperator;
                              }
                         }
@@ -1429,11 +1429,11 @@ cleanupState: () => {
                 },
                 normalizePlateQuery: (str) => {
                     if (!str) return '';
-                    // Bá» khoáº£ng tráº¯ng, dáº¥u cháº¥m, pháº©y, gáº¡ch dÆ°á»›i vÃ  in hoa
+                    // Bỏ khoảng trắng, dấu chấm, phẩy, gạch dưới và in hoa
                     let s = str.toUpperCase().replace(/[\s.,_]/g, '');
-                    // Bá» gáº¡ch ngang náº¿u nÃ³ Ä‘á»©ng trÆ°á»›c chuá»—i 3 Ä‘áº¿n 5 chá»¯ sá»‘ (XÃ³a 29F-12345 nhÆ°ng giá»¯ láº¡i -1 á»Ÿ Ä‘uÃ´i)
+                    // Bỏ gạch ngang nếu nó đứng trước chuỗi 3 đến 5 chữ số (Xóa 29F-12345 nhưng giữ lại -1 ở đuôi)
                     s = s.replace(/\-(\d{3,5})(?!\d)/g, '$1');
-                    // Xá»­ lÃ½ lá»—i gÃµ dÆ° gáº¡ch ngang rÃ¡c
+                    // Xử lý lỗi gõ dư gạch ngang rác
                     if (s === '-') return '';
                     return s;
                 },
@@ -1464,11 +1464,11 @@ cleanupState: () => {
                                 return mLower === currentModelLower || mLower.includes(currentModelLower) || currentModelLower.includes(mLower);
                             });
                             if (duplicateVehicle) {
-                                app.ui.showAlert("Xe Ä‘á»‹nh danh phá»¥ khÃ´ng Ä‘Æ°á»£c trÃ¹ng dÃ²ng xe vá»›i xe khÃ¡c cÃ¹ng biá»ƒn kiá»ƒm soÃ¡t.", null, null, { title: "Vi pháº¡m chÃ­nh sÃ¡ch" });
+                                app.ui.showAlert("Xe định danh phụ không được trùng dòng xe với xe khác cùng biển kiểm soát.", null, null, { title: "Vi phạm chính sách" });
                                 return true;
                             }
                         }
-                    } catch(e) { console.warn("Lá»—i kiá»ƒm tra dÃ²ng xe gá»‘c:", e); }
+                    } catch(e) { console.warn("Lỗi kiểm tra dòng xe gốc:", e); }
                     return false;
                 },
                 fixUnicode: (str) => {
@@ -1479,9 +1479,9 @@ cleanupState: () => {
                     if (!str) return '';
                     return String(str)
                         .normalize('NFKC')
-                        .replace(/[ï¼ˆï¼‰]/g, m => m === 'ï¼ˆ' ? '(' : ')')
-                        .replace(/[Â Â­á…Ÿá… ï»¿]/g, ' ')
-                        .replace(/[â€¯]/g, ' ')
+                        .replace(/[（）]/g, m => m === '（' ? '(' : ')')
+                        .replace(/[ ­ᅟᅠ﻿]/g, ' ')
+                        .replace(/[ ]/g, ' ')
                         .replace(/\s+/g, ' ')
                         .trim();
                 },
@@ -1526,8 +1526,8 @@ cleanupState: () => {
 
 
                 resolveSandboxUrls: async (items) => {
-                    // Há»‡ thá»‘ng Sandbox Ä‘Ã£ bá»‹ khai tá»­: áº£nh pending/denied Ä‘Ã£ náº±m trÃªn CDN tháº­t (url https).
-                    // HÃ m nÃ y giá» chá»‰ Ä‘Ã¡nh dáº¥u _isSandboxMissing cho cÃ¡c url cÅ© dáº¡ng sandbox: (khÃ´ng cÃ²n base64).
+                    // Hệ thống Sandbox đã bị khai tử: ảnh pending/denied đã nằm trên CDN thật (url https).
+                    // Hàm này giờ chỉ đánh dấu _isSandboxMissing cho các url cũ dạng sandbox: (không còn base64).
                     if (!items) return;
                     const list = Array.isArray(items) ? items : [items];
                     list.forEach(item => {
@@ -1541,7 +1541,7 @@ cleanupState: () => {
 
                 getProxiedUrl: (url, filename = 'image.jpg', type = 'full') => {
                     if (!url) return '';
-                    // Dá»¯ liá»‡u cÅ© dáº¡ng sandbox:/data: khÃ´ng cÃ²n há»£p lá»‡ -> tráº£ vá» rá»—ng Ä‘á»ƒ UI hiá»‡n placeholder
+                    // Dữ liệu cũ dạng sandbox:/data: không còn hợp lệ -> trả về rỗng để UI hiện placeholder
                     if (typeof url === 'string' && (url.startsWith('data:') || url.startsWith('sandbox:'))) return '';
 
                     const safeName = filename.replace(/[^a-z0-9A-Z.-]/gi, '_');
@@ -1552,7 +1552,7 @@ cleanupState: () => {
                         if (type === 'thumb') {
                             transformations.push('w-400', 'h-300', 'c-at_max');
                         } else if (type === 'avatar') {
-                            // Cáº¯t chuáº©n 200x200 cho Avatar
+                            // Cắt chuẩn 200x200 cho Avatar
                             transformations.push('w-200', 'h-200', 'c-maintain_ratio');
                         }
 
@@ -1568,9 +1568,9 @@ cleanupState: () => {
                 },
 
                 // =========================================================
-                // HELPER: TÃNH THá»NG KÃŠ SERVER-SIDE (RPC) + CACHE
-                // Thay tháº¿ cÃ¡c vÃ²ng láº·p kÃ©o 999 dÃ²ng vá» client Ä‘á»ƒ tÃ­nh Ä‘áº¿m.
-                // TrÃ¡nh bÃ³n rÃºt Egress: chá»‰ tráº£ vá» 1 row tá»•ng há»£p tá»« DB.
+                // HELPER: TÍNH THỐNG KÊ SERVER-SIDE (RPC) + CACHE
+                // Thay thế các vòng lặp kéo 999 dòng về client để tính đếm.
+                // Tránh bón rút Egress: chỉ trả về 1 row tổng hợp từ DB.
                 // =========================================================
                 _statsCache: {},
                 _statsCacheExpire: {},
@@ -1585,43 +1585,43 @@ cleanupState: () => {
                     return data;
                 },
 
-                // Thá»‘ng kÃª tá»•ng quÃ¡t trang chá»§ (sá»‘ áº£nh, sá»‘ xe, sá»‘ tuyáº¿n)
+                // Thống kê tổng quát trang chủ (số ảnh, số xe, số tuyến)
                 getHomeStats: async (prefFilter) => {
                     try {
                         const { data, error } = await window.sb.rpc('get_home_stats', { pref_filter: prefFilter || 'both' });
                         if (error) throw error;
                         if (data && data.length > 0) return data[0];
                     } catch (e) {
-                        console.warn('RPC get_home_stats lá»—i, fallback vá» cÃ¡ch cÅ©:', e);
+                        console.warn('RPC get_home_stats lỗi, fallback về cách cũ:', e);
                     }
                     return null;
                 },
 
-                // Thá»‘ng kÃª theo ÄÆ¡n vá»‹ váº­n hÃ nh (tá»•ng áº£nh, views, sá»‘ xe, sá»‘ tuyáº¿n)
+                // Thống kê theo Đơn vị vận hành (tổng ảnh, views, số xe, số tuyến)
                 getOperatorStats: async (operatorName) => {
                     try {
                         const { data, error } = await window.sb.rpc('get_operator_stats', { op_name: operatorName });
                         if (error) throw error;
                         if (data && data.length > 0) return data[0];
                     } catch (e) {
-                        console.warn('RPC get_operator_stats lá»—i, fallback vá» cÃ¡ch cÅ©:', e);
+                        console.warn('RPC get_operator_stats lỗi, fallback về cách cũ:', e);
                     }
                     return null;
                 },
 
-                // Thá»‘ng kÃª theo DÃ²ng xe (tá»•ng áº£nh, views, sá»‘ xe, sá»‘ Ä‘Æ¡n vá»‹)
+                // Thống kê theo Dòng xe (tổng ảnh, views, số xe, số đơn vị)
                 getModelStats: async (modelName) => {
                     try {
                         const { data, error } = await window.sb.rpc('get_model_stats', { mdl_name: modelName });
                         if (error) throw error;
                         if (data && data.length > 0) return data[0];
                     } catch (e) {
-                        console.warn('RPC get_model_stats lá»—i, fallback vá» cÃ¡ch cÅ©:', e);
+                        console.warn('RPC get_model_stats lỗi, fallback về cách cũ:', e);
                     }
                     return null;
                 },
 
-                // Debounce helper (dÃ¹ng cho search thá»±c thi)
+                // Debounce helper (dùng cho search thực thi)
                 debounce: (fn, delay = 500) => {
                     let timer = null;
                     return function (...args) {
@@ -1781,7 +1781,7 @@ cleanupState: () => {
 
                                 ctx.textBaseline = 'middle'; // Reset textBaseline for the right text
                                 ctx.font = `700 ${fontSize}px ${fontFace}`;
-                                const rightText = `Báº£n quyá»n bá»Ÿi ${username}`;
+                                const rightText = `Bản quyền bởi ${username}`;
                                 const rightWidth = ctx.measureText(rightText).width;
                                 ctx.fillText(rightText, width - rightWidth - (barHeight / 2), height - barHeight / 2);
 
@@ -1795,7 +1795,7 @@ cleanupState: () => {
                                     ctx.textBaseline = 'middle';
 
                                     ctx.translate(width * pos.x, height * pos.y);
-                                    ctx.fillText(`Â© ${username}`, 0, 0);
+                                    ctx.fillText(`© ${username}`, 0, 0);
                                     ctx.restore();
                                 }
 
@@ -1825,7 +1825,7 @@ cleanupState: () => {
                          };
                          img.onerror = (e) => {
                              URL.revokeObjectURL(url);
-                             reject(new Error("KhÃ´ng thá»ƒ táº£i áº£nh."));
+                             reject(new Error("Không thể tải ảnh."));
                          };
                          img.src = url;
                      });
@@ -1835,13 +1835,13 @@ cleanupState: () => {
                      const width = canvas.width;
                      const height = canvas.height;
                      if (!width || !height || width < 64 || height < 64) {
-                         throw new Error("BLIND_WM_ERROR:KÃ­ch thÆ°á»›c áº£nh quÃ¡ nhá» Ä‘á»ƒ gáº¯n Blind Watermark.");
+                         throw new Error("BLIND_WM_ERROR:Kích thước ảnh quá nhỏ để gắn Blind Watermark.");
                      }
                      const ctx = canvas.getContext('2d');
                      const imgData = ctx.getImageData(0, 0, width, height);
                      const data = imgData.data;
 
-                     // 1. Táº¡o ma tráº­n DCT 8x8 vÃ  ma tráº­n chuyá»ƒn vá»‹ T, T^t
+                     // 1. Tạo ma trận DCT 8x8 và ma trận chuyển vị T, T^t
                      const T = new Float32Array(64);
                      const Tt = new Float32Array(64);
                      const alpha0 = 1.0 / Math.sqrt(2.0);
@@ -1854,7 +1854,7 @@ cleanupState: () => {
                          }
                      }
 
-                     // 2. Táº¡o lÆ°á»›i chá»¯ kÃ½ chuáº©n 90x60 (láº·p Ä‘á»u 6-10 láº§n trÃªn áº£nh giÃºp triá»‡t tiÃªu hoÃ n toÃ n nhiá»…u ná»n khi giáº£i mÃ£)
+                     // 2. Tạo lưới chữ ký chuẩn 90x60 (lặp đều 6-10 lần trên ảnh giúp triệt tiêu hoàn toàn nhiễu nền khi giải mã)
                      const gridW = 90;
                      const gridH = 60;
                      const wmCanvas = document.createElement('canvas');
@@ -1867,12 +1867,12 @@ cleanupState: () => {
                      wmCtx.textAlign = 'center';
                      wmCtx.textBaseline = 'middle';
                      
-                     // TÃ¡ch chuá»—i rÃµ rÃ ng 3 dÃ²ng trÃªn lÆ°á»›i 90x60
+                     // Tách chuỗi rõ ràng 3 dòng trên lưới 90x60
                      const parts = hiddenText.split('/').filter(Boolean);
                      const line1 = "VNBUS";
                      let line2 = parts[0] ? parts[0].replace(/VNBUS/i, '') : "ARCHIVE";
                      if (!line2) line2 = "ARCHIVE";
-                     const line3 = parts[1] ? `Â© ${parts[1]}` : "Â© VNBUS";
+                     const line3 = parts[1] ? `© ${parts[1]}` : "© VNBUS";
 
                      wmCtx.font = `900 15px "Montserrat", -apple-system, sans-serif`;
                      wmCtx.fillText(line1, gridW / 2, gridH * 0.22);
@@ -1901,14 +1901,14 @@ cleanupState: () => {
                          wmGrays[i] = (wmImgData[i * 4] - 128.0) / 128.0;
                      }
 
-                     // 3. Xá»­ lÃ½ tá»«ng khá»‘i 8x8 trÃªn kÃªnh Y (Luminance trong YCbCr)
+                     // 3. Xử lý từng khối 8x8 trên kênh Y (Luminance trong YCbCr)
                      const blocksX = Math.floor(width / 8);
                      const blocksY = Math.floor(height / 8);
                      const block = new Float32Array(64);
                      const temp = new Float32Array(64);
                      const dct = new Float32Array(64);
 
-                     // NgÆ°á»¡ng chÃªnh lá»‡ch tinh táº¿ káº¿t há»£p Äa táº§n sá»‘ (Multi-Carrier DCT Modulation)
+                     // Ngưỡng chênh lệch tinh tế kết hợp Đa tần số (Multi-Carrier DCT Modulation)
                      for (let by = 0; by < blocksY; by++) {
                          for (let bx = 0; bx < blocksX; bx++) {
                              const gx = bx % gridW;
@@ -1918,7 +1918,7 @@ cleanupState: () => {
                              if (wmGrays[gy * gridW + gx] <= -0.9) {
                                  targetDiff = -1.5;
                              } else {
-                                 targetDiff = -1.5 + (wmGrays[gy * gridW + gx] + 1.0) * 12.0; // [-1.5 Ä‘áº¿n +10.5]
+                                 targetDiff = -1.5 + (wmGrays[gy * gridW + gx] + 1.0) * 12.0; // [-1.5 đến +10.5]
                              }
 
                              for (let y = 0; y < 8; y++) {
@@ -1933,7 +1933,7 @@ cleanupState: () => {
                                  }
                              }
 
-                             // TÃ­nh DCT 2D: C = T * block * T^t
+                             // Tính DCT 2D: C = T * block * T^t
                              for (let row = 0; row < 8; row++) {
                                  for (let col = 0; col < 8; col++) {
                                      let sum = 0.0;
@@ -1953,8 +1953,8 @@ cleanupState: () => {
                                  }
                              }
 
-                             // Äiá»u cháº¿ trÃªn 3 cáº·p táº§n sá»‘ trung cao [(3,2)/(2,3), (4,2)/(2,4), (4,3)/(3,4)]
-                             // Máº¯t ngÆ°á»i hoÃ n toÃ n vÃ´ cáº£m vá»›i thay Ä‘á»•i táº§n sá»‘ báº­c >= 5, giÃºp áº£nh má»‹n 100% dÃ¹ soi ká»¹
+                             // Điều chế trên 3 cặp tần số trung cao [(3,2)/(2,3), (4,2)/(2,4), (4,3)/(3,4)]
+                             // Mắt người hoàn toàn vô cảm với thay đổi tần số bậc >= 5, giúp ảnh mịn 100% dù soi kỹ
                              const freqPairs = [
                                  [3, 2, 2, 3],
                                  [4, 2, 2, 4],
@@ -1978,7 +1978,7 @@ cleanupState: () => {
                                  }
                              }
 
-                             // TÃ­nh IDCT 2D: block = T^t * dct * T
+                             // Tính IDCT 2D: block = T^t * dct * T
                              for (let row = 0; row < 8; row++) {
                                  for (let col = 0; col < 8; col++) {
                                      let sum = 0.0;
@@ -1998,7 +1998,7 @@ cleanupState: () => {
                                  }
                              }
 
-                             // Ghi láº¡i sai lá»‡ch Y vÃ o pixel RGB kÃ¨m káº¹p an toÃ n Â±3.8 giÃºp khÃ´ng bao giá» bá»‹ lá»™ Ä‘iá»ƒm dá»‹ thÆ°á»ng
+                             // Ghi lại sai lệch Y vào pixel RGB kèm kẹp an toàn ±3.8 giúp không bao giờ bị lộ điểm dị thường
                              for (let y = 0; y < 8; y++) {
                                  const py = (by * 8 + y) * width;
                                  for (let x = 0; x < 8; x++) {
@@ -2036,13 +2036,13 @@ cleanupState: () => {
                     if (isLiked) {
                         // Optimistic UI Update: Revert UI immediately
                         likeBtn.classList.replace('bg-gray-400', 'bg-black');
-                        likeBtn.innerHTML = '<i class="fa-regular fa-thumbs-up"></i> ThÃ­ch áº£nh nÃ y';
+                        likeBtn.innerHTML = '<i class="fa-regular fa-thumbs-up"></i> Thích ảnh này';
                         likeCountEl.innerText = Math.max(0, currentCount - 1);
 
                         const zBtn = document.getElementById('zoom-btn-like');
                         if(zBtn) {
                             zBtn.className = "flex items-center justify-center gap-1.5 text-gray-800 bg-transparent hover:bg-black hover:text-white px-3 py-2 md:px-4 md:py-2.5 rounded-lg font-bold text-[11px] md:text-sm transition-colors whitespace-nowrap";
-                            zBtn.innerHTML = '<i class="fa-regular fa-thumbs-up text-sm md:text-base"></i> <span class="hidden md:inline">ThÃ­ch</span>';
+                            zBtn.innerHTML = '<i class="fa-regular fa-thumbs-up text-sm md:text-base"></i> <span class="hidden md:inline">Thích</span>';
                         }
 
                         const { error } = await window.sb.from('photo_likes').delete().eq('photo_id', photoId).eq('user_id', app.user.id);
@@ -2050,24 +2050,24 @@ cleanupState: () => {
                         if (error) {
                             // Rollback UI
                             likeBtn.classList.replace('bg-black', 'bg-gray-400');
-                            likeBtn.innerHTML = '<i class="fa-solid fa-check"></i> ÄÃ£ thÃ­ch';
+                            likeBtn.innerHTML = '<i class="fa-solid fa-check"></i> Đã thích';
                             likeCountEl.innerText = currentCount;
                             if(zBtn) {
                                 zBtn.className = "flex items-center justify-center gap-1.5 bg-black text-white px-3 py-2 md:px-4 md:py-2.5 rounded-lg font-bold text-[11px] md:text-sm transition-colors whitespace-nowrap";
-                                zBtn.innerHTML = '<i class="fa-solid fa-check text-sm md:text-base"></i> <span class="hidden md:inline">ÄÃ£ thÃ­ch</span>';
+                                zBtn.innerHTML = '<i class="fa-solid fa-check text-sm md:text-base"></i> <span class="hidden md:inline">Đã thích</span>';
                             }
-                            app.ui.showAlert("Lá»—i khi bá» thÃ­ch: " + error.message);
+                            app.ui.showAlert("Lỗi khi bỏ thích: " + error.message);
                         }
                     } else {
                         // Optimistic UI Update: Update UI immediately
                         likeBtn.classList.replace('bg-black', 'bg-gray-400');
-                        likeBtn.innerHTML = '<i class="fa-solid fa-check"></i> ÄÃ£ thÃ­ch';
+                        likeBtn.innerHTML = '<i class="fa-solid fa-check"></i> Đã thích';
                         likeCountEl.innerText = currentCount + 1;
 
                         const zBtn = document.getElementById('zoom-btn-like');
                         if(zBtn) {
                             zBtn.className = "flex items-center justify-center gap-1.5 bg-black text-white px-3 py-2 md:px-4 md:py-2.5 rounded-lg font-bold text-[11px] md:text-sm transition-colors whitespace-nowrap";
-                            zBtn.innerHTML = '<i class="fa-solid fa-check text-sm md:text-base"></i> <span class="hidden md:inline">ÄÃ£ thÃ­ch</span>';
+                            zBtn.innerHTML = '<i class="fa-solid fa-check text-sm md:text-base"></i> <span class="hidden md:inline">Đã thích</span>';
                         }
 
                         const { error } = await window.sb.from('photo_likes').insert({ photo_id: photoId, user_id: app.user.id });
@@ -2076,13 +2076,13 @@ cleanupState: () => {
                             if (error.code !== '23505') {
                                 // Rollback UI
                                 likeBtn.classList.replace('bg-gray-400', 'bg-black');
-                                likeBtn.innerHTML = '<i class="fa-regular fa-thumbs-up"></i> ThÃ­ch áº£nh nÃ y';
+                                likeBtn.innerHTML = '<i class="fa-regular fa-thumbs-up"></i> Thích ảnh này';
                                 likeCountEl.innerText = currentCount;
                                 if(zBtn) {
                                     zBtn.className = "flex items-center justify-center gap-1.5 text-gray-800 bg-transparent hover:bg-black hover:text-white px-3 py-2 md:px-4 md:py-2.5 rounded-lg font-bold text-[11px] md:text-sm transition-colors whitespace-nowrap";
-                                    zBtn.innerHTML = '<i class="fa-regular fa-thumbs-up text-sm md:text-base"></i> <span class="hidden md:inline">ThÃ­ch</span>';
+                                    zBtn.innerHTML = '<i class="fa-regular fa-thumbs-up text-sm md:text-base"></i> <span class="hidden md:inline">Thích</span>';
                                 }
-                                app.ui.showAlert("Lá»—i khi thÃ­ch: " + error.message);
+                                app.ui.showAlert("Lỗi khi thích: " + error.message);
                             }
                         }
                     }
@@ -2103,14 +2103,14 @@ cleanupState: () => {
                         }
 
                         let result = [road, suburb, city].filter(Boolean).join(', ');
-                        return result.replace(', Viá»‡t Nam', '');
-                    } catch (e) { return "Vá»‹ trÃ­ khÃ´ng xÃ¡c Ä‘á»‹nh"; }
+                        return result.replace(', Việt Nam', '');
+                    } catch (e) { return "Vị trí không xác định"; }
                 },
 
                 geocodeAddress: async (locationText) => {
                     if (!locationText || locationText.length < 3) return;
                     try {
-                        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationText + ', Viá»‡t Nam')}&limit=1`);
+                        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationText + ', Việt Nam')}&limit=1`);
                         const data = await res.json();
                         if (data && data.length > 0) {
                             const { lat, lon } = data[0];
@@ -2134,7 +2134,7 @@ cleanupState: () => {
                     }
 
                     try {
-                        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationText + ', Viá»‡t Nam')}&limit=1`);
+                        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationText + ', Việt Nam')}&limit=1`);
                         const data = await res.json();
                         if (data && data.length > 0) {
                             const { lat, lon } = data[0];
@@ -2160,9 +2160,9 @@ cleanupState: () => {
                     else if (inputId.startsWith('req-') && !inputId.startsWith('req-v-')) currentType = document.getElementById(`req-type-${inputId.split('-').pop()}`)?.value || '';
                     else if (app.currentVehicle) currentType = app.currentVehicle.type || '';
 
-                    let staticList = ['Dá»«ng hoáº¡t Ä‘á»™ng', 'NgoÃ i giá» hoáº¡t Ä‘á»™ng', 'ChÆ°a hoáº¡t Ä‘á»™ng'];
+                    let staticList = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động'];
                     if (currentType === 'coach' || currentType === '') {
-                        staticList.unshift('Há»£p Ä‘á»“ng');
+                        staticList.unshift('Hợp đồng');
                     }
 
                     let dbRoutes = [];
@@ -2172,7 +2172,7 @@ cleanupState: () => {
                         let rQuery = window.sb.from('photos').select('route_no').eq('status', 'approved');
 
                         if (currentType) rQuery = rQuery.eq('type', currentType);
-                        if (selectedProv && selectedProv !== 'KhÃ´ng xÃ¡c Ä‘á»‹nh') {
+                        if (selectedProv && selectedProv !== 'Không xác định') {
                             rQuery = rQuery.eq('province', selectedProv);
                         }
 
@@ -2225,11 +2225,11 @@ cleanupState: () => {
                     else if (inputId.startsWith('req-') && !inputId.startsWith('req-v-')) currentType = document.getElementById(`req-type-${inputId.split('-').pop()}`)?.value || '';
                     else if (app.currentVehicle) currentType = app.currentVehicle.type || '';
 
-                    // LOGIC Má»šI: Tá»± Ä‘á»™ng phÃ¡t hiá»‡n Input "Tuyáº¿n" vÃ  "Biá»ƒn sá»‘" tÆ°Æ¡ng á»©ng
+                    // LOGIC MỚI: Tự động phát hiện Input "Tuyến" và "Biển số" tương ứng
                     let routeVal = '';
                     let plateVal = '';
                     if (field === 'model') {
-                        // Ãnh xáº¡ ID cá»§a Ã´ Tuyáº¿n
+                        // Ánh xạ ID của ô Tuyến
                         let routeInputId = inputId.replace('model', 'route');
                         let plateInputId = inputId.replace('model', 'plate');
 
@@ -2245,10 +2245,10 @@ cleanupState: () => {
                         if (plateEl) plateVal = plateEl.value.trim();
                     }
 
-                    const specialRoutes = ['Dá»«ng hoáº¡t Ä‘á»™ng', 'NgoÃ i giá» hoáº¡t Ä‘á»™ng', 'ChÆ°a hoáº¡t Ä‘á»™ng', 'Xe há»£p Ä‘á»“ng / ÄÆ°a Ä‘Ã³n', 'Há»£p Ä‘á»“ng / ÄÆ°a Ä‘Ã³n', 'Há»£p Ä‘á»“ng'];
+                    const specialRoutes = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động', 'Xe hợp đồng / Đưa đón', 'Hợp đồng / Đưa đón', 'Hợp đồng'];
                     const isSpecialRoute = specialRoutes.includes(routeVal);
 
-                    // Náº¿u Query Ä‘ang rá»—ng VÃ€ (khÃ´ng pháº£i trÆ°á»ng model HOáº¶C trÆ°á»ng model mÃ  khÃ´ng cÃ³ tuyáº¿n HOáº¶C tuyáº¿n Ä‘áº·c biá»‡t) -> áº¨n box
+                    // Nếu Query đang rỗng VÀ (không phải trường model HOẶC trường model mà không có tuyến HOẶC tuyến đặc biệt) -> Ẩn box
                     if (query.length < 1 && !(field === 'model' && routeVal.length > 0 && !isSpecialRoute)) {
                         box.classList.remove('active');
                         return;
@@ -2271,19 +2271,19 @@ cleanupState: () => {
                         let data, error;
 
                         if (query.length < 1 && field === 'model' && routeVal.length > 0 && !isSpecialRoute) {
-                            // TRÆ¯á»œNG Há»¢P 1: Query rá»—ng nhÆ°ng cÃ³ TUYáº¾N -> Fetch cÃ¡c dÃ²ng xe theo Tuyáº¿n tá»« Database
+                            // TRƯỜNG HỢP 1: Query rỗng nhưng có TUYẾN -> Fetch các dòng xe theo Tuyến từ Database
                             let sbQuery = window.sb.from('photos')
                                 .select('vehicles!inner(model)')
                                 .eq('route_no', routeVal)
-                                .eq('status', 'approved'); // CHá»ˆ Gá»¢I Ã Tá»ª áº¢NH ÄÃƒ ÄÆ¯á»¢C DUYá»†T
+                                .eq('status', 'approved'); // CHỈ GỢI Ý TỪ ẢNH ĐÃ ĐƯỢC DUYỆT
 
                             if (currentType) {
                                 sbQuery = sbQuery.eq('type', currentType);
                             }
 
-                            // Lá»c chÃ­nh xÃ¡c theo Tuyáº¿n cá»§a tá»‰nh (khÃ´ng trá»™n vá»›i BKS khi Ä‘Ã£ chá»n Tuyáº¿n cá»§a tá»‰nh)
+                            // Lọc chính xác theo Tuyến của tỉnh (không trộn với BKS khi đã chọn Tuyến của tỉnh)
                             const selectedProv = document.getElementById('up-province')?.value || null;
-                            if (selectedProv && selectedProv !== 'KhÃ´ng xÃ¡c Ä‘á»‹nh') {
+                            if (selectedProv && selectedProv !== 'Không xác định') {
                                 sbQuery = sbQuery.eq('province', selectedProv);
                             } else if (plateVal && plateVal.length >= 2) {
                                 const prefix = plateVal.substring(0, 2);
@@ -2296,19 +2296,19 @@ cleanupState: () => {
                                 }
                             }
 
-                            sbQuery = app.preference.applyFilter(sbQuery); // <--- THÃŠM DÃ’NG NÃ€Y
+                            sbQuery = app.preference.applyFilter(sbQuery); // <--- THÊM DÒNG NÀY
 
                             const res = await sbQuery.limit(100).abortSignal(controller.signal);
 
                             error = res.error;
                             if (res.data) {
-                                // TrÃ­ch xuáº¥t dá»¯ liá»‡u tráº£ vá» cho Ä‘Ãºng Ä‘á»‹nh dáº¡ng
+                                // Trích xuất dữ liệu trả về cho đúng định dạng
                                 data = res.data
                                     .map(item => ({ [selectField]: item.vehicles?.model }))
                                     .filter(item => item[selectField]);
                             }
                         } else {
-                            // TRÆ¯á»œNG Há»¢P 2: Gá»£i Ã½ bÃ¬nh thÆ°á»ng theo Text nháº­p vÃ o
+                            // TRƯỜNG HỢP 2: Gợi ý bình thường theo Text nhập vào
                             let selectStr = selectField;
                             if (table === 'vehicles') {
                                 selectStr = `${selectField}, photos!inner(status${(app.preference.current !== 'both' || currentType) ? ', type' : ''})`;
@@ -2316,7 +2316,7 @@ cleanupState: () => {
 
                             let sbQuery = window.sb.from(table).select(selectStr);
 
-                            // CHá»ˆ Gá»¢I Ã Tá»ª áº¢NH ÄÃƒ ÄÆ¯á»¢C DUYá»†T
+                            // CHỈ GỢI Ý TỪ ẢNH ĐÃ ĐƯỢC DUYỆT
                             if (table === 'photos') {
                                 sbQuery = sbQuery.eq('status', 'approved');
                             } else if (table === 'vehicles') {
@@ -2333,7 +2333,7 @@ cleanupState: () => {
 
                             if (table === 'photos') {
                                 const selectedProv = document.getElementById('up-province')?.value || null;
-                                if (selectedProv && selectedProv !== 'KhÃ´ng xÃ¡c Ä‘á»‹nh') {
+                                if (selectedProv && selectedProv !== 'Không xác định') {
                                     sbQuery = sbQuery.eq('province', selectedProv);
                                 }
                             }
@@ -2365,9 +2365,9 @@ cleanupState: () => {
                                         displayHTML = safeHTML.replace(regex, '<strong class="font-extrabold">$1</strong>');
                                     }
 
-                                    // Hiá»ƒn thá»‹ thÃªm nhÃ£n "DÃ¹ng á»Ÿ Tuyáº¿n X" (khÃ´ng nháº¯c gÃ¬ Ä‘áº¿n tá»‰nh)
+                                    // Hiển thị thêm nhãn "Dùng ở Tuyến X" (không nhắc gì đến tỉnh)
                                     const labelHtml = (query.length < 1 && field === 'model' && routeVal.length > 0)
-                                        ? `<span class="text-[9px] text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded ml-2 font-bold whitespace-nowrap border border-blue-100">DÃ¹ng á»Ÿ Tuyáº¿n ${app.utils.cleanText(routeVal)}</span>`
+                                        ? `<span class="text-[9px] text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded ml-2 font-bold whitespace-nowrap border border-blue-100">Dùng ở Tuyến ${app.utils.cleanText(routeVal)}</span>`
                                         : '';
 
                                      return `<div class="suggestion-item flex justify-between items-start gap-2" onmousedown="event.preventDefault(); const inp = document.getElementById('${inputId}'); inp.value = '${safeJS}'; document.getElementById('${suggestionId}').classList.remove('active'); inp.dispatchEvent(new Event('input')); inp.dispatchEvent(new Event('change'));">
@@ -2420,17 +2420,17 @@ cleanupState: () => {
                         if (sorted.length > 0) app.topUploaders[sorted[0][0]] = 1;
                         if (sorted.length > 1) app.topUploaders[sorted[1][0]] = 2;
                         if (sorted.length > 2) app.topUploaders[sorted[2][0]] = 3;
-                    } catch (e) { console.log("Lá»—i táº£i Top:", e); }
+                    } catch (e) { console.log("Lỗi tải Top:", e); }
                 },
 
                 formatProfileDisplay: (profile) => {
-                    if (!profile) return { username: 'áº¨n danh', avatar: DEFAULT_AVATAR, isBanned: false, id: '', linkId: '' };
+                    if (!profile) return { username: 'Ẩn danh', avatar: DEFAULT_AVATAR, isBanned: false, id: '', linkId: '' };
                     let banInfo = null;
                     if (profile.ban_status) {
                         try { banInfo = typeof profile.ban_status === 'string' ? JSON.parse(profile.ban_status) : profile.ban_status; } catch(e){}
                     }
                     const isBanned = banInfo && (banInfo.banned === true || banInfo.banned === 'true');
-                    const username = isBanned ? 'NgÆ°á»i dÃ¹ng bá»‹ cáº¥m' : (profile.username || 'áº¨n danh');
+                    const username = isBanned ? 'Người dùng bị cấm' : (profile.username || 'Ẩn danh');
                     const avatar = isBanned ? DEFAULT_AVATAR : (profile.avatar_url ? app.utils.getProxiedUrl(profile.avatar_url.replace(/"/g, ''), 'avatar.jpg', 'avatar') : DEFAULT_AVATAR);
                     return { username, avatar, isBanned, id: profile.id || '', linkId: profile.id || profile.username || '' };
                 },
@@ -2444,8 +2444,8 @@ cleanupState: () => {
 
                     if (role === 'admin' || role === 'manager') {
                         const badgeClass = role === 'manager' ? 'badge-manager' : 'badge-admin';
-                        const badgeText = role === 'manager' ? 'Quáº£n lÃ½' : 'Kiá»ƒm duyá»‡t';
-                        const badgeTitle = role === 'manager' ? 'Quáº£n lÃ½ há»‡ thá»‘ng (Quyá»n cao nháº¥t)' : 'Kiá»ƒm duyá»‡t viÃªn';
+                        const badgeText = role === 'manager' ? 'Quản lý' : 'Kiểm duyệt';
+                        const badgeTitle = role === 'manager' ? 'Quản lý hệ thống (Quyền cao nhất)' : 'Kiểm duyệt viên';
                         html += `<span class="badge-shiny ${badgeClass}" title="${badgeTitle}"><i class="fa-solid fa-shield-halved mr-1 text-[10px]"></i> ${badgeText}</span>`;
                     }
 
@@ -2459,20 +2459,20 @@ cleanupState: () => {
                  },
                  getLast7AM_UTC7: () => {
                      const now = new Date();
-                     // Äá»•i giá» hiá»‡n táº¡i sang UTC+7
+                     // Đổi giờ hiện tại sang UTC+7
                      const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
                      const vnTime = new Date(utc + (3600000 * 7));
 
-                     // Thiáº¿t láº­p má»‘c 7:00:00 AM
+                     // Thiết lập mốc 7:00:00 AM
                      let target = new Date(vnTime);
                      target.setHours(7, 0, 0, 0);
 
-                     // Náº¿u giá» hiá»‡n táº¡i VN < 7h sÃ¡ng, lÃ¹i vá» 7h sÃ¡ng hÃ´m qua
+                     // Nếu giờ hiện tại VN < 7h sáng, lùi về 7h sáng hôm qua
                      if (vnTime.getTime() < target.getTime()) {
                          target.setDate(target.getDate() - 1);
                      }
 
-                     // Chuyá»ƒn ngÆ°á»£c láº¡i sang chuáº©n UTC Ä‘á»ƒ query Supabase
+                     // Chuyển ngược lại sang chuẩn UTC để query Supabase
                      const targetUTC = new Date(target.getTime() - (3600000 * 7));
                      return targetUTC.toISOString();
                  }
@@ -2507,7 +2507,7 @@ Object.assign(window.app, {
                     }).catch(()=>{});
                 }
 
-                // --- CHáº¶N TÃ€I KHOáº¢N CHÆ¯A XÃC MINH NGAY Tá»ª Äáº¦U ---
+                // --- CHẶN TÀI KHOẢN CHƯA XÁC MINH NGAY TỪ ĐẦU ---
                 if (session && session.user && !session.user.email_confirmed_at) {
                     document.getElementById('loading-screen').style.display = 'none';
                     if(document.getElementById('app-container')) document.getElementById('app-container').style.display = 'none';
@@ -2525,14 +2525,14 @@ Object.assign(window.app, {
                         if (!localStorage.getItem('vnbus_donate_toast_shown')) {
                             localStorage.setItem('vnbus_donate_toast_shown', 'true');
                             setTimeout(() => {
-                                app.toast.show('heart', 'Website phi lá»£i nhuáº­n', 'KhÃ´ng quáº£ng cÃ¡o, khÃ´ng nguá»“n thu - VNBA duy trÃ¬ báº±ng sá»± á»§ng há»™ cá»§a cÃ¡c báº¡n. Nháº¥n vÃ o Ä‘Ã¢y Ä‘á»ƒ chia sáº» website nhÃ©!', 0, async () => {
-                                    const shareText = 'Web lÆ°u trá»¯ hÃ¬nh áº£nh xe buÃ½t/khÃ¡ch Viá»‡t Nam phi lá»£i nhuáº­n https://www.vnbusarchive.io.vn';
+                                app.toast.show('heart', 'Website phi lợi nhuận', 'Không quảng cáo, không nguồn thu - VNBA duy trì bằng sự ủng hộ của các bạn. Nhấn vào đây để chia sẻ website nhé!', 0, async () => {
+                                    const shareText = 'Web lưu trữ hình ảnh xe buýt/khách Việt Nam phi lợi nhuận https://www.vnbusarchive.io.vn';
                                     if (navigator.share) {
                                         try { await navigator.share({ text: shareText }); } catch (err) {}
                                     } else {
                                         try {
                                             await navigator.clipboard.writeText(shareText);
-                                            app.toast.show('success', 'ÄÃ£ copy', 'Thiáº¿t bá»‹ khÃ´ng há»— trá»£ chia sáº», Ä‘Ã£ copy ná»™i dung!');
+                                            app.toast.show('success', 'Đã copy', 'Thiết bị không hỗ trợ chia sẻ, đã copy nội dung!');
                                         } catch (e) {}
                                     }
                                 });
@@ -2546,23 +2546,23 @@ Object.assign(window.app, {
                 window.sb.auth.onAuthStateChange(async (event, session) => {
 
                         if (event === 'PASSWORD_RECOVERY') {
-    // Chá»‰ xá»­ lÃ½ trÃªn TAB Má»šI (Tab Ä‘Æ°á»£c má»Ÿ tá»« Link Email sáº½ cÃ³ chá»©a chá»¯ type=recovery trÃªn URL)
+    // Chỉ xử lý trên TAB MỚI (Tab được mở từ Link Email sẽ có chứa chữ type=recovery trên URL)
     if (window.location.hash.includes('type=recovery')) {
         app.auth.mode = 'recovery';
 
-        // Äiá»u hÆ°á»›nh tháº³ng vÃ o trang Auth Ä‘á»ƒ hiá»‡n form
+        // Điều hướnh thẳng vào trang Auth để hiện form
         if (window.location.pathname !== '/auth') {
             app.utils.navigate('/auth');
         } else {
             app.views.switch('auth', false);
         }
 
-        // Báº¯n event gá»i AlpineJS Ä‘á»•i giao diá»‡n sang Form Nháº­p máº­t kháº©u má»›i
+        // Bắn event gọi AlpineJS đổi giao diện sang Form Nhập mật khẩu mới
         setTimeout(() => {
             window.dispatchEvent(new CustomEvent('set-auth-mode', { detail: 'recovery' }));
         }, 100);
     }
-    // Náº¿u lÃ  TAB CÅ¨ (Trang báº¡n vá»«a báº¥m gá»­i yÃªu cáº§u) -> Return, khÃ´ng lÃ m gÃ¬ cáº£!
+    // Nếu là TAB CŨ (Trang bạn vừa bấm gửi yêu cầu) -> Return, không làm gì cả!
     return;
 }
 
@@ -2570,7 +2570,7 @@ Object.assign(window.app, {
                             const hash = window.location.hash;
                             if (hash && hash.includes('type=email_change')) {
                                 setTimeout(() => {
-                                    app.ui.showAlert("XÃ¡c nháº­n Ä‘á»•i Ä‘á»‹a chá»‰ Email thÃ nh cÃ´ng!");
+                                    app.ui.showAlert("Xác nhận đổi địa chỉ Email thành công!");
                                     window.history.replaceState(null, null, window.location.pathname);
                                 }, 500);
                             }
@@ -2580,7 +2580,7 @@ Object.assign(window.app, {
                             const hash = window.location.hash;
                             if (hash && hash.includes('type=signup')) {
                                 setTimeout(() => {
-                                    app.ui.showAlert("XÃ¡c thá»±c Email thÃ nh cÃ´ng! ChÃ o má»«ng báº¡n Ä‘áº¿n vá»›i há»‡ thá»‘ng.");
+                                    app.ui.showAlert("Xác thực Email thành công! Chào mừng bạn đến với hệ thống.");
                                     window.history.replaceState(null, null, window.location.pathname);
                                 }, 500);
                             }
@@ -2597,25 +2597,25 @@ Object.assign(window.app, {
                     await app.setUser(null);
                 }
 
-                // Network Resilience (TÃ­ch há»£p Toast má»›i)
+                // Network Resilience (Tích hợp Toast mới)
                 window.addEventListener('offline', () => {
                     document.body.classList.add('is-offline');
-                    if (app.toast.currentOfflineToast) app.toast.currentOfflineToast(); // ÄÃ³ng cÃ¡i cÅ© náº¿u cÃ³
-                    app.toast.currentOfflineToast = app.toast.show('offline', 'Máº¥t káº¿t ná»‘i Internet', 'Báº¡n Ä‘ang ngoáº¡i tuyáº¿n. Dá»¯ liá»‡u sáº½ khÃ´ng thá»ƒ Ä‘á»“ng bá»™.', 0);
+                    if (app.toast.currentOfflineToast) app.toast.currentOfflineToast(); // Đóng cái cũ nếu có
+                    app.toast.currentOfflineToast = app.toast.show('offline', 'Mất kết nối Internet', 'Bạn đang ngoại tuyến. Dữ liệu sẽ không thể đồng bộ.', 0);
                 });
                 
                 window.addEventListener('online', () => {
                     document.body.classList.remove('is-offline');
                     if (app.toast.currentOfflineToast) {
-                        app.toast.currentOfflineToast(); // áº¨n thÃ´ng bÃ¡o lá»—i
+                        app.toast.currentOfflineToast(); // Ẩn thông báo lỗi
                         app.toast.currentOfflineToast = null;
                     }
-                    app.toast.show('success', 'ÄÃ£ khÃ´i phá»¥c káº¿t ná»‘i', 'Máº¡ng Internet Ä‘Ã£ hoáº¡t Ä‘á»™ng trá»Ÿ láº¡i.', 5000);
+                    app.toast.show('success', 'Đã khôi phục kết nối', 'Mạng Internet đã hoạt động trở lại.', 5000);
                 });
                 
                 if (!navigator.onLine) {
                     document.body.classList.add('is-offline');
-                    app.toast.currentOfflineToast = app.toast.show('offline', 'Máº¥t káº¿t ná»‘i Internet', 'Báº¡n Ä‘ang ngoáº¡i tuyáº¿n. Dá»¯ liá»‡u sáº½ khÃ´ng thá»ƒ Ä‘á»“ng bá»™.', 0);
+                    app.toast.currentOfflineToast = app.toast.show('offline', 'Mất kết nối Internet', 'Bạn đang ngoại tuyến. Dữ liệu sẽ không thể đồng bộ.', 0);
                 }
 
 
@@ -2626,7 +2626,7 @@ Object.assign(window.app, {
                     }
                     if (app.upload && app.upload.isQueueProcessing) {
                         e.preventDefault();
-                        e.returnValue = ''; // Cháº·n Ä‘Ã³ng tab náº¿u Ä‘ang táº£i dá»¯ liá»‡u ngáº§m lÃªn
+                        e.returnValue = ''; // Chặn đóng tab nếu đang tải dữ liệu ngầm lên
                     }
                 });
 
@@ -2666,15 +2666,15 @@ Object.assign(window.app, {
                     const pcAccept = "image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif,.nef,.cr2,.cr3,.arw,.dng,.orf,.rw2,.pef,.raf,.srw,.raw";
                     if (upFileEl) upFileEl.accept = pcAccept;
                     if (webrtcFileEl) webrtcFileEl.accept = pcAccept;
-                    if (formatHintEl) formatHintEl.innerText = "Äá»ŠNH Dáº NG JPG, PNG, HEIC, RAW (Tá»I ÄA 30MB)";
+                    if (formatHintEl) formatHintEl.innerText = "ĐỊNH DẠNG JPG, PNG, HEIC, RAW (TỐI ĐA 30MB)";
                 } else {
                     const mobileAccept = "image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif";
                     if (upFileEl) upFileEl.accept = mobileAccept;
                     if (webrtcFileEl) webrtcFileEl.accept = mobileAccept;
-                    if (formatHintEl) formatHintEl.innerText = "Äá»ŠNH Dáº NG JPG, PNG, HEIC (RAW CHá»ˆ TRÃŠN PC)";
+                    if (formatHintEl) formatHintEl.innerText = "ĐỊNH DẠNG JPG, PNG, HEIC (RAW CHỈ TRÊN PC)";
                 }
 
-                // Logic Drag & Drop TOÃ€N MÃ€N HÃŒNH (Clean UI: HÃ¬nh trÃ²n tráº¯ng khÃ´ng viá»n)
+                // Logic Drag & Drop TOÀN MÀN HÌNH (Clean UI: Hình tròn trắng không viền)
                 const dropZone = document.getElementById('drop-zone');
                 if (dropZone) {
                     let dragCounter = 0;
@@ -2692,7 +2692,7 @@ Object.assign(window.app, {
 
                         dragCounter++;
                         if (dragCounter === 1) {
-                            // Giao diá»‡n Ã´ thÃ´ng bÃ¡o mÃ u xanh
+                            // Giao diện ô thông báo màu xanh
                             dropZone.style.backgroundColor = '#eff6ff';
                             dropZone.style.borderColor = '#3b82f6';
                             dropZone.style.color = '#1e40af';
@@ -2705,12 +2705,12 @@ Object.assign(window.app, {
 
                             if (icon) {
                                 icon.classList.add('animate-bounce');
-                                icon.style.color = '#000000'; // ÄÃ¡m mÃ¢y mÃ u Ä‘en
+                                icon.style.color = '#000000'; // Đám mây màu đen
                             }
                             if (iconContainer) {
-                                iconContainer.style.backgroundColor = '#ffffff'; // HÃ¬nh trÃ²n tráº¯ng tinh
-                                iconContainer.style.border = 'none';            // Bá» hoÃ n toÃ n viá»n
-                                iconContainer.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)'; // ThÃªm Ä‘á»• bÃ³ng nháº¹ cho hÃ¬nh trÃ²n ná»•i lÃªn
+                                iconContainer.style.backgroundColor = '#ffffff'; // Hình tròn trắng tinh
+                                iconContainer.style.border = 'none';            // Bỏ hoàn toàn viền
+                                iconContainer.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)'; // Thêm đổ bóng nhẹ cho hình tròn nổi lên
                             }
                         }
                     });
@@ -2802,7 +2802,7 @@ Object.assign(window.app, {
                     });
                 });
 
-                // Xá»¬ LÃ RIÃŠNG CHO INFO-MODEL (ÄIá»€U HÆ¯á»šNG SANG PROFILE DÃ’NG XE)
+                // XỬ LÝ RIÊNG CHO INFO-MODEL (ĐIỀU HƯỚNG SANG PROFILE DÒNG XE)
                 const elInfoModel = document.getElementById('info-model');
                 if (elInfoModel) {
                     elInfoModel.addEventListener('click', function() {
@@ -2812,7 +2812,7 @@ Object.assign(window.app, {
                     });
                 }
 
-                // ---- KÃCH HOáº T Sá»° KIá»†N CHO Cáº¢ 2 Ã” TÃŒM KIáº¾M ----
+                // ---- KÍCH HOẠT SỰ KIỆN CHO CẢ 2 Ô TÌM KIẾM ----
                 const clearSearchInput = (inputEl, sugId) => {
                     inputEl.value = '';
                     document.getElementById(sugId).classList.remove('active');
@@ -2857,7 +2857,7 @@ Object.assign(window.app, {
                     }, 1000);
                 });
 
-                // Sá»­a logic áº©n menu tháº£ xuá»‘ng Ä‘á»ƒ há»— trá»£ nhiá»u menu Filter
+                // Sửa logic ẩn menu thả xuống để hỗ trợ nhiều menu Filter
                 document.addEventListener('click', function (e) {
                     document.querySelectorAll('.filter-menu').forEach(menu => {
                         const btn = menu.previousElementSibling;
@@ -2892,7 +2892,7 @@ Object.assign(window.app, {
                     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'photos', filter: 'status=eq.approved' }, payload => {
                         if (app.currentViewMode === 'home') {
                             const now = Date.now();
-                            // CHá»NG Báº®N REAL: chá»‰ reload tá»‘i Ä‘a 1 láº§n / 30s, vÃ  bá» qua khi user Ä‘ang cuá»™n
+                            // CHỐNG BẮN REAL: chỉ reload tối đa 1 lần / 30s, và bỏ qua khi user đang cuộn
                             if (app._lastHomeRealtimeReload && now - app._lastHomeRealtimeReload < 30000) return;
                             if (app._isUserScrolling) return;
                             app._lastHomeRealtimeReload = now;
@@ -2921,7 +2921,7 @@ Object.assign(window.app, {
                                     cardEl.remove();
                                     const content = document.getElementById('admin-content');
                                     if (content && content.querySelectorAll('.admin-card').length === 0 && app.adminTab === 'photos') {
-                                        content.innerHTML = '<p class="p-4">KhÃ´ng cÃ³ áº£nh nÃ o chá» duyá»‡t.</p>';
+                                        content.innerHTML = '<p class="p-4">Không có ảnh nào chờ duyệt.</p>';
                                     }
                                 }, 350);
                                 if (app.admin && app.admin.refreshCounts) app.admin.refreshCounts();
@@ -2945,7 +2945,7 @@ Object.assign(window.app, {
                                 cardEl.remove();
                                 const content = document.getElementById('admin-content');
                                 if (content && content.querySelectorAll('.admin-card').length === 0 && app.adminTab === 'photos') {
-                                    content.innerHTML = '<p class="p-4">KhÃ´ng cÃ³ áº£nh nÃ o chá» duyá»‡t.</p>';
+                                    content.innerHTML = '<p class="p-4">Không có ảnh nào chờ duyệt.</p>';
                                 }
                             }, 350);
                             if (app.admin && app.admin.refreshCounts) app.admin.refreshCounts();
@@ -2960,7 +2960,7 @@ Object.assign(window.app, {
                                     const content = document.getElementById('admin-content');
                                     if (content && app.admin && app.admin.renderSinglePhotoCardHTML) {
                                         const noDataMsg = content.querySelector('p');
-                                        if (noDataMsg && noDataMsg.innerText.includes('KhÃ´ng cÃ³ áº£nh nÃ o')) {
+                                        if (noDataMsg && noDataMsg.innerText.includes('Không có ảnh nào')) {
                                             content.innerHTML = '';
                                         }
                                         let plateSet = app.admin?.approvedPlateSet || new Set();
@@ -2983,12 +2983,12 @@ Object.assign(window.app, {
                                         }
                                         const routeKey = app.utils.cleanText(newPhoto.route_no || '').trim().toLowerCase();
                                         if (routeKey && routeKey !== '---' && !routeSet.has(routeKey)) {
-                                            const stripped = routeKey.replace(/^tuyáº¿n\s+/i, '').trim();
-                                            const variants = [...new Set([routeKey, stripped, 'tuyáº¿n ' + stripped])];
+                                            const stripped = routeKey.replace(/^tuyến\s+/i, '').trim();
+                                            const variants = [...new Set([routeKey, stripped, 'tuyến ' + stripped])];
                                             if (/^\d+$/.test(stripped)) {
                                                 const num = String(parseInt(stripped, 10));
                                                 const pad = stripped.padStart(2, '0');
-                                                variants.push(num, pad, 'tuyáº¿n ' + num, 'tuyáº¿n ' + pad);
+                                                variants.push(num, pad, 'tuyến ' + num, 'tuyến ' + pad);
                                             }
                                             const { data: vData } = await window.sb.from('vehicles').select('route_no').in('route_no', variants).limit(1);
                                             const { data: pData } = await window.sb.from('photos').select('route_no').eq('status', 'approved').in('route_no', variants).limit(1);
@@ -3061,10 +3061,10 @@ Object.assign(window.app, {
 
                     .subscribe((status, err) => {
                         if (status === 'SUBSCRIBED') {
-                            console.log('ðŸ”Œ Connected to Realtime');
+                            console.log('🔌 Connected to Realtime');
                             app.setRealtimeStatus(true);
                         } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
-                            console.error('ðŸ”Œ Realtime Error:', err);
+                            console.error('🔌 Realtime Error:', err);
                             app.setRealtimeStatus(false);
                         }
                     });
@@ -3078,7 +3078,7 @@ Object.assign(window.app, {
 
                         const state = app.realtimeChannel?.state;
                         if (state !== 'joined' && state !== 'joining') {
-                            console.log('ðŸ”„ Tab visible: Reconnecting Realtime...');
+                            console.log('🔄 Tab visible: Reconnecting Realtime...');
                             app.setRealtimeStatus(false);
                             if (app.realtimeChannel) window.sb.removeChannel(app.realtimeChannel);
                             window.sb.realtime.connect();
@@ -3126,7 +3126,7 @@ Object.assign(window.app, {
       }
   },
   handleRoute: () => {
-                app.loadingBar.start(); // Báº­t thanh loading ngay láº­p tá»©c
+                app.loadingBar.start(); // Bật thanh loading ngay lập tức
                 app.utils.cleanupState();
                 if (app.utils && app.utils.updateCanonical) app.utils.updateCanonical();
 
@@ -3134,12 +3134,12 @@ Object.assign(window.app, {
                 const searchParams = new URLSearchParams(window.location.search);
                 app.currentPathForScroll = path + window.location.search;
 
-                // CHUYá»‚N GIAO DIá»†N (UI) NGAY Láº¬P Tá»¨C TRÆ¯á»šC, DATA LOAD NGáº¦M SAU
+                // CHUYỂN GIAO DIỆN (UI) NGAY LẬP TỨC TRƯỚC, DATA LOAD NGẦM SAU
                 if (path === '/login' && searchParams.get('qr')) {
                     app.views.switch('home', false);
                     setTimeout(() => app.qrLogin.initClient(searchParams.get('qr')), 500);
                 } else if (path === '/auth') {
-                    document.title = 'XÃ¡c thá»±c | VNBUSARCHIVE';
+                    document.title = 'Xác thực | VNBUSARCHIVE';
                     const isRecovery = window.location.hash.includes('type=recovery') || app.auth.mode === 'recovery';
                     if (app.user && !isRecovery) app.utils.navigate('/');
                     else app.views.switch('auth', false);
@@ -3165,20 +3165,20 @@ Object.assign(window.app, {
                         app.views.loadAccount(username);
                     } else app.views.loadHome();
                 } else if (path === '/upload') {
-                    document.title = 'ÄÄƒng táº£i áº£nh | VNBUSARCHIVE';
+                    document.title = 'Đăng tải ảnh | VNBUSARCHIVE';
                     app.views.switch('upload', false);
                 } else if (path === '/mobile-upload') {
-                    document.title = 'Táº£i áº£nh tá»« thiáº¿t bá»‹ | VNBUSARCHIVE';
+                    document.title = 'Tải ảnh từ thiết bị | VNBUSARCHIVE';
                     app.views.switch('mobile-upload', false);
                 } else if (path === '/admin') {
-                    document.title = 'Quáº£n trá»‹ há»‡ thá»‘ng | VNBUSARCHIVE';
+                    document.title = 'Quản trị hệ thống | VNBUSARCHIVE';
                     app.views.switch('admin', false);
                     app.admin.refreshCounts();
                     app.admin.loadTab(app.adminTab);
                 } else if (path === '/contact') {
                     app.views.loadContact();
                 } else if (path === '/leaderboard') {
-                    document.title = 'Báº£ng xáº¿p háº¡ng Ä‘Ã³ng gÃ³p | VNBUSARCHIVE';
+                    document.title = 'Bảng xếp hạng đóng góp | VNBUSARCHIVE';
                     app.views.switch('leaderboard', false);
                     app.leaderboard.load();
                 } else if (path === '/help' || path === '/help/') {
@@ -3212,11 +3212,11 @@ Object.assign(window.app, {
                         app.model.loadModelPage(modelName);
                     } else app.views.loadHome();
                 } else if (path.startsWith('/search')) {
-                    document.title = 'TÃ¬m kiáº¿m | VNBUSARCHIVE';
+                    document.title = 'Tìm kiếm | VNBUSARCHIVE';
                     const q = searchParams.get('q');
                     let filter = searchParams.get('filter') || 'all';
 
-                    // Náº¿u gáº·p URL format cÅ© (cÃ²n lÆ°u láº¡i) thÃ¬ Ã©p chuyá»ƒn qua chuáº©n má»›i
+                    // Nếu gặp URL format cũ (còn lưu lại) thì ép chuyển qua chuẩn mới
                     if (filter === 'absolute_route') filter = 'route'; 
 
                     app.search.setFilter(filter, false);
@@ -3240,7 +3240,7 @@ Object.assign(window.app, {
 
                 app.utils.updateBreadcrumbs();
                 
-                // Tráº£ cáº£m giÃ¡c mÆ°á»£t mÃ : Báº¥t cháº¥p Database load lÃ¢u cá»¡ nÃ o, thanh Loading cháº¡y xong ngay sau khi Ä‘á»•i UI!
+                // Trả cảm giác mượt mà: Bất chấp Database load lâu cỡ nào, thanh Loading chạy xong ngay sau khi đổi UI!
                 setTimeout(() => {
                     app.loadingBar.finish();
                 }, 150);
@@ -3433,31 +3433,31 @@ Object.assign(window.app, {
                     }
 
                     const keywords = [
-                        { text: "TÃ¹y chá»‰nh há»“ sÆ¡", tab: "profile", parent: "account", icon: "fa-user-pen" },
+                        { text: "Tùy chỉnh hồ sơ", tab: "profile", parent: "account", icon: "fa-user-pen" },
                         { text: "Avatar", tab: "profile", parent: "account", icon: "fa-user-pen" },
-                        { text: "Äá»•i tÃªn", tab: "profile", parent: "account", icon: "fa-user-pen" },
-                        { text: "Báº£o máº­t", tab: "security", parent: "account", icon: "fa-shield-halved" },
-                        { text: "Máº­t kháº©u", tab: "security", parent: "account", icon: "fa-shield-halved" },
+                        { text: "Đổi tên", tab: "profile", parent: "account", icon: "fa-user-pen" },
+                        { text: "Bảo mật", tab: "security", parent: "account", icon: "fa-shield-halved" },
+                        { text: "Mật khẩu", tab: "security", parent: "account", icon: "fa-shield-halved" },
                         { text: "Email", tab: "security", parent: "account", icon: "fa-shield-halved" },
-                        { text: "MÃ£ Ä‘á»‹nh danh (UUID)", tab: "security", parent: "account", icon: "fa-shield-halved" },
-                        { text: "LiÃªn káº¿t tÃ i khoáº£n", tab: "links", parent: "account", icon: "fa-link" },
+                        { text: "Mã định danh (UUID)", tab: "security", parent: "account", icon: "fa-shield-halved" },
+                        { text: "Liên kết tài khoản", tab: "links", parent: "account", icon: "fa-link" },
                         { text: "Google", tab: "links", parent: "account", icon: "fa-link" },
                         { text: "Discord", tab: "links", parent: "account", icon: "fa-link" },
-                        { text: "Huy hiá»‡u Discord", tab: "badges", parent: "main", icon: "fa-discord" },
+                        { text: "Huy hiệu Discord", tab: "badges", parent: "main", icon: "fa-discord" },
                         { text: "Role", tab: "badges", parent: "main", icon: "fa-discord" },
-                        { text: "CÃ¡ nhÃ¢n hÃ³a", tab: "preference", parent: "main", icon: "fa-layer-group" },
-                        { text: "Xe buÃ½t", tab: "preference", parent: "main", icon: "fa-layer-group" },
-                        { text: "Xe khÃ¡ch", tab: "preference", parent: "main", icon: "fa-layer-group" },
-                        { text: "Gá»£i Ã½ thÃ´ng minh", tab: "preference", parent: "main", icon: "fa-layer-group" },
-                        { text: "CÃ i Ä‘áº·t thÃ´ng bÃ¡o", tab: "notifications", parent: "account", icon: "fa-bell" },
-                        { text: "Báº­t táº¯t thÃ´ng bÃ¡o", tab: "notifications", parent: "account", icon: "fa-bell" },
-                        { text: "TÃ i liá»‡u", tab: "docs-intro", parent: "docs", icon: "fa-markdown" },
-                        { text: "Giá»›i thiá»‡u há»‡ thá»‘ng", tab: "docs-intro", parent: "docs", icon: "fa-markdown" },
-                        { text: "Quy Ä‘á»‹nh", tab: "docs-requirements", parent: "docs", icon: "fa-list-check" },
-                        { text: "Kiá»ƒm duyá»‡t", tab: "docs-requirements", parent: "docs", icon: "fa-list-check" },
-                        { text: "ChÃ­nh sÃ¡ch báº£o máº­t", tab: "docs-policy", parent: "docs", icon: "fa-shield" },
-                        { text: "TiÃªu chuáº©n bÃ¬nh luáº­n", tab: "docs-chatrule", parent: "docs", icon: "fa-comments" },
-                        { text: "Quy táº¯c bÃ¬nh luáº­n", tab: "docs-chatrule", parent: "docs", icon: "fa-comments" },
+                        { text: "Cá nhân hóa", tab: "preference", parent: "main", icon: "fa-layer-group" },
+                        { text: "Xe buýt", tab: "preference", parent: "main", icon: "fa-layer-group" },
+                        { text: "Xe khách", tab: "preference", parent: "main", icon: "fa-layer-group" },
+                        { text: "Gợi ý thông minh", tab: "preference", parent: "main", icon: "fa-layer-group" },
+                        { text: "Cài đặt thông báo", tab: "notifications", parent: "account", icon: "fa-bell" },
+                        { text: "Bật tắt thông báo", tab: "notifications", parent: "account", icon: "fa-bell" },
+                        { text: "Tài liệu", tab: "docs-intro", parent: "docs", icon: "fa-markdown" },
+                        { text: "Giới thiệu hệ thống", tab: "docs-intro", parent: "docs", icon: "fa-markdown" },
+                        { text: "Quy định", tab: "docs-requirements", parent: "docs", icon: "fa-list-check" },
+                        { text: "Kiểm duyệt", tab: "docs-requirements", parent: "docs", icon: "fa-list-check" },
+                        { text: "Chính sách bảo mật", tab: "docs-policy", parent: "docs", icon: "fa-shield" },
+                        { text: "Tiêu chuẩn bình luận", tab: "docs-chatrule", parent: "docs", icon: "fa-comments" },
+                        { text: "Quy tắc bình luận", tab: "docs-chatrule", parent: "docs", icon: "fa-comments" },
                         { text: "Chat rule", tab: "docs-chatrule", parent: "docs", icon: "fa-comments" }
                     ];
 
@@ -3479,7 +3479,7 @@ Object.assign(window.app, {
                         `).join('');
                         box.classList.add('active');
                     } else {
-                        box.innerHTML = `<div class="p-4 text-xs text-gray-500 text-center"><i class="fa-solid fa-magnifying-glass mr-1"></i> KhÃ´ng tÃ¬m tháº¥y cÃ i Ä‘áº·t nÃ o phÃ¹ há»£p.</div>`;
+                        box.innerHTML = `<div class="p-4 text-xs text-gray-500 text-center"><i class="fa-solid fa-magnifying-glass mr-1"></i> Không tìm thấy cài đặt nào phù hợp.</div>`;
                         box.classList.add('active');
                     }
                 },
@@ -3523,7 +3523,7 @@ Object.assign(window.app, {
                         main.classList.remove('hidden');
                         main.classList.add('flex', 'slide-right-enter');
                         main.classList.remove('slide-left-enter');
-                        // Táº¯t tá»± Ä‘á»™ng nháº£y tab Ä‘á»ƒ ná»™i dung bÃªn pháº£i Ä‘á»™c láº­p vá»›i menu
+                        // Tắt tự động nhảy tab để nội dung bên phải độc lập với menu
             // app.settings.switchTab(app.user ? 'badges' : 'preference');
                     }
                 },
@@ -3534,7 +3534,7 @@ Object.assign(window.app, {
 
                     app.ui.toggleUserMenu(false);
 
-                    // Reset menu trÆ°á»£t vá» menu chÃ­nh
+                    // Reset menu trượt về menu chính
                     app.settings.closeDocsMenu(true);
                     app.settings.closeAccountMenu(true);
 
@@ -3566,7 +3566,7 @@ Object.assign(window.app, {
                         }
                         avatarImg.onerror = () => { avatarImg.src = DEFAULT_AVATAR; };
                     } else {
-                        // KhÃ¡ch áº©n pháº§n TÃ i khoáº£n, má»Ÿ tháº³ng CÃ¡ nhÃ¢n hÃ³a
+                        // Khách ẩn phần Tài khoản, mở thẳng Cá nhân hóa
                         document.querySelectorAll('.account-only-btn').forEach(el => el.style.display = 'none');
                         app.settings.switchTab(targetTab || 'blank');
                         app.preference.updateUI();
@@ -3619,7 +3619,7 @@ Object.assign(window.app, {
                         main.classList.remove('hidden');
                         main.classList.add('flex', 'slide-right-enter');
                         main.classList.remove('slide-left-enter');
-                        // Táº¯t tá»± Ä‘á»™ng nháº£y tab Ä‘á»ƒ ná»™i dung bÃªn pháº£i Ä‘á»™c láº­p vá»›i menu
+                        // Tắt tự động nhảy tab để nội dung bên phải độc lập với menu
             // app.settings.switchTab(app.user ? 'badges' : 'preference');
                     }
                 },
@@ -3640,14 +3640,14 @@ Object.assign(window.app, {
                             content.classList.remove('hidden');
                             content.classList.add('block');
 
-                            // Náº¿u lÃ  tab tÃ i liá»‡u thÃ¬ táº£i ná»™i dung
+                            // Nếu là tab tài liệu thì tải nội dung
                             if (t.startsWith('docs-')) {
                                 app.docs.fetchContent(t);
                             } else if (t === 'X') {
 
                             } else if (t === 'preference') {
                                 app.preference.tempSelection = app.preference.current || 'both';
-                                app.preference.tempShowRec = app.preference.showRecommendations; // FIX: Äá»“ng bá»™ Ä‘Ãºng tráº¡ng thÃ¡i
+                                app.preference.tempShowRec = app.preference.showRecommendations; // FIX: Đồng bộ đúng trạng thái
                                 app.preference.updateUI();
                             }
                         } else {
@@ -3682,7 +3682,7 @@ Object.assign(window.app, {
                         const data = await res.json();
                         
                         if (!data.linked) {
-                            actionBtn.innerHTML = `<button onclick="app.settings.jumpTo('badges', 'main')" class="px-4 py-2 bg-black text-white text-xs font-bold rounded hover:bg-gray-800 transition shadow-sm border border-black whitespace-nowrap">LiÃªn káº¿t Discord</button>`;
+                            actionBtn.innerHTML = `<button onclick="app.settings.jumpTo('badges', 'main')" class="px-4 py-2 bg-black text-white text-xs font-bold rounded hover:bg-gray-800 transition shadow-sm border border-black whitespace-nowrap">Liên kết Discord</button>`;
                             return;
                         }
                         if (!data.inServer) {
@@ -3694,14 +3694,14 @@ Object.assign(window.app, {
                         const isEligible = (count || 0) >= 1;
                         
                         if (isClaimed) {
-                            actionBtn.innerHTML = `<button disabled class="px-4 py-2 bg-gray-100 text-gray-400 text-xs font-bold rounded cursor-not-allowed border border-gray-200 whitespace-nowrap"><i class="fa-solid fa-check mr-1"></i> ÄÃ£ xÃ¡c minh</button>`;
+                            actionBtn.innerHTML = `<button disabled class="px-4 py-2 bg-gray-100 text-gray-400 text-xs font-bold rounded cursor-not-allowed border border-gray-200 whitespace-nowrap"><i class="fa-solid fa-check mr-1"></i> Đã xác minh</button>`;
                         } else if (isEligible) {
-                            actionBtn.innerHTML = `<button id="btn-claim-discord-1" onclick="app.settings.claimDiscordVerify()" class="px-4 py-2 bg-black text-white text-xs font-bold rounded hover:bg-gray-800 transition shadow-sm border border-black whitespace-nowrap">XÃ¡c minh ngay</button>`;
+                            actionBtn.innerHTML = `<button id="btn-claim-discord-1" onclick="app.settings.claimDiscordVerify()" class="px-4 py-2 bg-black text-white text-xs font-bold rounded hover:bg-gray-800 transition shadow-sm border border-black whitespace-nowrap">Xác minh ngay</button>`;
                         } else {
-                            actionBtn.innerHTML = `<button disabled class="px-4 py-2 bg-gray-50 text-gray-400 text-xs font-bold rounded cursor-not-allowed border border-gray-200 whitespace-nowrap"><i class="fa-solid fa-lock mr-1"></i> ChÆ°a Ä‘á»§ Ä‘/k</button>`;
+                            actionBtn.innerHTML = `<button disabled class="px-4 py-2 bg-gray-50 text-gray-400 text-xs font-bold rounded cursor-not-allowed border border-gray-200 whitespace-nowrap"><i class="fa-solid fa-lock mr-1"></i> Chưa đủ đ/k</button>`;
                         }
                     } catch (err) {
-                        actionBtn.innerHTML = `<p class="text-xs text-red-500">Lá»—i: ${err.message}</p>`;
+                        actionBtn.innerHTML = `<p class="text-xs text-red-500">Lỗi: ${err.message}</p>`;
                     }
                 },
                 claimDiscordVerify: async () => {
@@ -3716,14 +3716,14 @@ Object.assign(window.app, {
                         });
                         const data = await res.json();
                         if (res.ok) {
-                            app.ui.showAlert(data.message || 'XÃ¡c minh Discord thÃ nh cÃ´ng!');
+                            app.ui.showAlert(data.message || 'Xác minh Discord thành công!');
                             app.settings.loadDiscordVerifyStatus();
                         } else {
-                            app.ui.showAlert(data.error || 'Lá»—i xÃ¡c minh.');
+                            app.ui.showAlert(data.error || 'Lỗi xác minh.');
                             app.settings.loadDiscordVerifyStatus();
                         }
                     } catch (err) {
-                        app.ui.showAlert('Lá»—i: ' + err.message);
+                        app.ui.showAlert('Lỗi: ' + err.message);
                         app.settings.loadDiscordVerifyStatus();
                     }
                 },
@@ -3751,13 +3751,13 @@ Object.assign(window.app, {
                                     </div>
                                     <div>
                                         <p class="font-bold text-sm text-gray-800">${name}</p>
-                                        <p class="text-[10px] ${isLinked ? 'text-green-600 font-bold' : 'text-gray-500'}">${isLinked ? '<i class="fa-solid fa-check mr-1"></i> ÄÃ£ liÃªn káº¿t' : 'ChÆ°a liÃªn káº¿t'}</p>
+                                        <p class="text-[10px] ${isLinked ? 'text-green-600 font-bold' : 'text-gray-500'}">${isLinked ? '<i class="fa-solid fa-check mr-1"></i> Đã liên kết' : 'Chưa liên kết'}</p>
                                     </div>
                                 </div>
                                 <div>
                                     ${isLinked
-                                        ? `<button onclick="app.settings.unlinkIdentity('${identityId}', '${name}')" class="w-full sm:w-auto text-xs font-bold text-red-600 bg-red-50 border border-red-200 px-4 py-2 rounded-md hover:bg-red-100 transition shadow-sm">Há»§y liÃªn káº¿t</button>`
-                                        : `<button onclick="app.settings.linkIdentity('${providerKey}')" class="w-full sm:w-auto text-xs font-bold text-black bg-white border border-black px-4 py-2 rounded-md hover:bg-gray-100 transition shadow-sm">ThÃªm liÃªn káº¿t</button>`
+                                        ? `<button onclick="app.settings.unlinkIdentity('${identityId}', '${name}')" class="w-full sm:w-auto text-xs font-bold text-red-600 bg-red-50 border border-red-200 px-4 py-2 rounded-md hover:bg-red-100 transition shadow-sm">Hủy liên kết</button>`
+                                        : `<button onclick="app.settings.linkIdentity('${providerKey}')" class="w-full sm:w-auto text-xs font-bold text-black bg-white border border-black px-4 py-2 rounded-md hover:bg-gray-100 transition shadow-sm">Thêm liên kết</button>`
                                     }
                                 </div>
                             </div>
@@ -3769,7 +3769,7 @@ Object.assign(window.app, {
                             renderProvider('Discord', 'fa-brands fa-discord', 'bg-[#5865F2]', 'discord');
 
                     } catch (err) {
-                        container.innerHTML = `<p class="text-xs text-red-500">Lá»—i láº¥y thÃ´ng tin liÃªn káº¿t: ${err.message}</p>`;
+                        container.innerHTML = `<p class="text-xs text-red-500">Lỗi lấy thông tin liên kết: ${err.message}</p>`;
                     }
                 },
                 linkIdentity: async (provider) => {
@@ -3780,25 +3780,25 @@ Object.assign(window.app, {
                         });
                         if (error) throw error;
                     } catch (err) {
-                        app.ui.showAlert("Lá»—i liÃªn káº¿t: " + err.message);
+                        app.ui.showAlert("Lỗi liên kết: " + err.message);
                     }
                 },
                 unlinkIdentity: async (identityId, providerName) => {
                     app.ui.showAlert(
-                        `Báº¡n cÃ³ cháº¯c cháº¯n muá»‘n há»§y liÃªn káº¿t tÃ i khoáº£n ${providerName}? Báº¡n sáº½ khÃ´ng thá»ƒ Ä‘Äƒng nháº­p báº±ng ná»n táº£ng nÃ y ná»¯a.`,
+                        `Bạn có chắc chắn muốn hủy liên kết tài khoản ${providerName}? Bạn sẽ không thể đăng nhập bằng nền tảng này nữa.`,
                         async () => {
                             try {
                                 const { error } = await window.sb.auth.unlinkIdentity({ identity_id: identityId });
                                 if (error) throw error;
 
-                                app.ui.showAlert(`ÄÃ£ há»§y liÃªn káº¿t vá»›i ${providerName} thÃ nh cÃ´ng!`);
+                                app.ui.showAlert(`Đã hủy liên kết với ${providerName} thành công!`);
                                 app.settings.loadIdentities();
                             } catch (err) {
-                                app.ui.showAlert("Lá»—i há»§y liÃªn káº¿t: " + err.message);
+                                app.ui.showAlert("Lỗi hủy liên kết: " + err.message);
                             }
                         },
                         () => {},
-                        { btnOkText: "Há»§y liÃªn káº¿t", btnCancelText: "ÄÃ³ng", title: "XÃ¡c nháº­n" }
+                        { btnOkText: "Hủy liên kết", btnCancelText: "Đóng", title: "Xác nhận" }
                     );
                 },
                 loadBadges: async () => {
@@ -3813,7 +3813,7 @@ Object.assign(window.app, {
                     try {
                         const { data: { session } } = await window.sb.auth.getSession();
                         const token = session?.access_token;
-                        if (!token) throw new Error("ChÆ°a Ä‘Äƒng nháº­p");
+                        if (!token) throw new Error("Chưa đăng nhập");
 
                         const res = await fetch('/api/discord', {
                             method: 'POST',
@@ -3844,13 +3844,13 @@ Object.assign(window.app, {
                                 reqLinkContainer.classList.add(...completeClasses);
                                 reqLinkContainer.classList.remove(...incompleteClasses);
                                 reqLinkStatus.className = 'flex items-center gap-3 text-sm font-medium text-green-800';
-                                reqLinkStatus.innerHTML = `<i class="fa-solid fa-check-circle w-5 text-center text-green-600"></i> <span>ÄÃ£ liÃªn káº¿t tÃ i khoáº£n Discord</span>`;
+                                reqLinkStatus.innerHTML = `<i class="fa-solid fa-check-circle w-5 text-center text-green-600"></i> <span>Đã liên kết tài khoản Discord</span>`;
                                 reqLinkAction.classList.add('hidden');
                             } else {
                                 reqLinkContainer.classList.add(...incompleteClasses);
                                 reqLinkContainer.classList.remove(...completeClasses);
                                 reqLinkStatus.className = 'flex items-center gap-3 text-sm font-medium text-red-800';
-                                reqLinkStatus.innerHTML = `<i class="fa-solid fa-times-circle w-5 text-center text-red-600"></i> <span>ChÆ°a liÃªn káº¿t tÃ i khoáº£n Discord</span>`;
+                                reqLinkStatus.innerHTML = `<i class="fa-solid fa-times-circle w-5 text-center text-red-600"></i> <span>Chưa liên kết tài khoản Discord</span>`;
                                 reqLinkAction.classList.remove('hidden');
                             }
 
@@ -3858,13 +3858,13 @@ Object.assign(window.app, {
                                 reqServerContainer.classList.add(...completeClasses);
                                 reqServerContainer.classList.remove(...incompleteClasses);
                                 reqServerStatus.className = 'flex items-center gap-3 text-sm font-medium text-green-800';
-                                reqServerStatus.innerHTML = `<i class="fa-solid fa-check-circle w-5 text-center text-green-600"></i> <span>ÄÃ£ tham gia Server</span>`;
+                                reqServerStatus.innerHTML = `<i class="fa-solid fa-check-circle w-5 text-center text-green-600"></i> <span>Đã tham gia Server</span>`;
                                 reqServerAction.classList.add('hidden');
                             } else {
                                 reqServerContainer.classList.add(...incompleteClasses);
                                 reqServerContainer.classList.remove(...completeClasses);
                                 reqServerStatus.className = 'flex items-center gap-3 text-sm font-medium text-red-800';
-                                reqServerStatus.innerHTML = `<i class="fa-solid fa-times-circle w-5 text-center text-red-600"></i> <span>ChÆ°a tham gia Server VNBUSARCHIVE</span>`;
+                                reqServerStatus.innerHTML = `<i class="fa-solid fa-times-circle w-5 text-center text-red-600"></i> <span>Chưa tham gia Server VNBUSARCHIVE</span>`;
                                 reqServerAction.classList.remove('hidden');
                             }
                             return;
@@ -3895,11 +3895,11 @@ grid.innerHTML = tiers.map(tier => {
         let btnHtml = '';
 
         if (hasCustomRole) {
-            btnHtml = `<button onclick="app.settings.openCustomRolePrompt()" class="px-4 py-2 bg-gray-100 text-gray-800 text-xs font-bold rounded border border-gray-300 hover:bg-gray-200 transition whitespace-nowrap"><i class="fa-solid fa-pen mr-1"></i> Sá»­a Role</button>`;
+            btnHtml = `<button onclick="app.settings.openCustomRolePrompt()" class="px-4 py-2 bg-gray-100 text-gray-800 text-xs font-bold rounded border border-gray-300 hover:bg-gray-200 transition whitespace-nowrap"><i class="fa-solid fa-pen mr-1"></i> Sửa Role</button>`;
         } else if (isEligible) {
-            btnHtml = `<button onclick="app.settings.openCustomRolePrompt()" class="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold rounded hover:opacity-90 transition shadow-sm border border-transparent whitespace-nowrap">Táº¡o Role RiÃªng</button>`;
+            btnHtml = `<button onclick="app.settings.openCustomRolePrompt()" class="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold rounded hover:opacity-90 transition shadow-sm border border-transparent whitespace-nowrap">Tạo Role Riêng</button>`;
         } else {
-            btnHtml = `<button disabled class="px-4 py-2 bg-gray-50 text-gray-400 text-xs font-bold rounded cursor-not-allowed border border-gray-200 whitespace-nowrap"><i class="fa-solid fa-lock mr-1"></i> ChÆ°a Ä‘á»§ Ä‘/k</button>`;
+            btnHtml = `<button disabled class="px-4 py-2 bg-gray-50 text-gray-400 text-xs font-bold rounded cursor-not-allowed border border-gray-200 whitespace-nowrap"><i class="fa-solid fa-lock mr-1"></i> Chưa đủ đ/k</button>`;
         }
 
         return `
@@ -3909,8 +3909,8 @@ grid.innerHTML = tiers.map(tier => {
                     <i class="fa-solid fa-wand-magic-sparkles"></i>
                 </div>
                 <div class="overflow-hidden">
-                    <p class="font-bold text-sm text-purple-900 truncate">Cá»™t má»‘c 1500 áº£nh (TÃ¹y chá»‰nh)</p>
-                    <p class="text-[10px] text-purple-700">Äáº·c quyá»n táº¡o Role Custom riÃªng biá»‡t.</p>
+                    <p class="font-bold text-sm text-purple-900 truncate">Cột mốc 1500 ảnh (Tùy chỉnh)</p>
+                    <p class="text-[10px] text-purple-700">Đặc quyền tạo Role Custom riêng biệt.</p>
                 </div>
             </div>
             <div>${btnHtml}</div>
@@ -3923,11 +3923,11 @@ grid.innerHTML = tiers.map(tier => {
 
     let btnHtml = '';
     if (isClaimed) {
-        btnHtml = `<button disabled class="px-4 py-2 bg-gray-100 text-gray-400 text-xs font-bold rounded cursor-not-allowed border border-gray-200 whitespace-nowrap"><i class="fa-solid fa-check mr-1"></i> ÄÃ£ nháº­n</button>`;
+        btnHtml = `<button disabled class="px-4 py-2 bg-gray-100 text-gray-400 text-xs font-bold rounded cursor-not-allowed border border-gray-200 whitespace-nowrap"><i class="fa-solid fa-check mr-1"></i> Đã nhận</button>`;
     } else if (isEligible) {
-        btnHtml = `<button id="btn-claim-${tier}" onclick="app.settings.claimBadge(${tier})" class="px-4 py-2 bg-black text-white text-xs font-bold rounded hover:bg-gray-800 transition shadow-sm border border-black whitespace-nowrap">Nháº­n Role</button>`;
+        btnHtml = `<button id="btn-claim-${tier}" onclick="app.settings.claimBadge(${tier})" class="px-4 py-2 bg-black text-white text-xs font-bold rounded hover:bg-gray-800 transition shadow-sm border border-black whitespace-nowrap">Nhận Role</button>`;
     } else {
-        btnHtml = `<button disabled class="px-4 py-2 bg-gray-50 text-gray-400 text-xs font-bold rounded cursor-not-allowed border border-gray-200 whitespace-nowrap"><i class="fa-solid fa-lock mr-1"></i> ChÆ°a Ä‘á»§ Ä‘/k</button>`;
+        btnHtml = `<button disabled class="px-4 py-2 bg-gray-50 text-gray-400 text-xs font-bold rounded cursor-not-allowed border border-gray-200 whitespace-nowrap"><i class="fa-solid fa-lock mr-1"></i> Chưa đủ đ/k</button>`;
     }
 
     return `
@@ -3937,8 +3937,8 @@ grid.innerHTML = tiers.map(tier => {
                 <i class="fa-solid fa-medal"></i>
             </div>
             <div class="overflow-hidden">
-                <p class="font-bold text-sm text-gray-800 truncate">Cá»™t má»‘c ${tier} áº£nh</p>
-                <p class="text-[10px] text-gray-500">YÃªu cáº§u: ÄÃ³ng gÃ³p ${tier}+ áº£nh Ä‘Æ°á»£c duyá»‡t.</p>
+                <p class="font-bold text-sm text-gray-800 truncate">Cột mốc ${tier} ảnh</p>
+                <p class="text-[10px] text-gray-500">Yêu cầu: Đóng góp ${tier}+ ảnh được duyệt.</p>
             </div>
         </div>
         <div>${btnHtml}</div>
@@ -3949,7 +3949,7 @@ grid.innerHTML = tiers.map(tier => {
                         claimBox.classList.remove('hidden');
 
                     } catch (err) {
-                        loading.innerHTML = `<span class="text-red-500"><i class="fa-solid fa-triangle-exclamation"></i> Lá»—i: ${err.message}</span>`;
+                        loading.innerHTML = `<span class="text-red-500"><i class="fa-solid fa-triangle-exclamation"></i> Lỗi: ${err.message}</span>`;
                     }
                 },
 
@@ -3974,13 +3974,13 @@ grid.innerHTML = tiers.map(tier => {
 
                         const data = await res.json();
 
-                        if (!res.ok) throw new Error(data.error || 'Lá»—i khÃ´ng xÃ¡c Ä‘á»‹nh');
+                        if (!res.ok) throw new Error(data.error || 'Lỗi không xác định');
 
-                        app.toast.show('success', 'ThÃ nh cÃ´ng', data.message || "ÄÃ£ nháº­n Role thÃ nh cÃ´ng!");
+                        app.toast.show('success', 'Thành công', data.message || "Đã nhận Role thành công!");
                         app.settings.loadBadges();
 
                     } catch (err) {
-                        app.ui.showAlert("Lá»—i: " + err.message);
+                        app.ui.showAlert("Lỗi: " + err.message);
                         btn.innerHTML = originalText;
                         btn.disabled = false;
                     }
@@ -4000,8 +4000,8 @@ Object.assign(window.app, {
                         const name = document.getElementById('cr-name-input').value.trim();
                         const color = document.getElementById('cr-color-input').value.trim();
 
-                        if (!name || name.length < 2) return app.ui.showAlert("TÃªn Role pháº£i tá»« 2 kÃ½ tá»± trá»Ÿ lÃªn!");
-                        if (!color.match(/^#[0-9A-Fa-f]{6}$/)) return app.ui.showAlert("MÃ£ mÃ u Hex khÃ´ng há»£p lá»‡!");
+                        if (!name || name.length < 2) return app.ui.showAlert("Tên Role phải từ 2 ký tự trở lên!");
+                        if (!color.match(/^#[0-9A-Fa-f]{6}$/)) return app.ui.showAlert("Mã màu Hex không hợp lệ!");
 
                         const originalText = okBtn.innerHTML;
                         okBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
@@ -4018,13 +4018,13 @@ Object.assign(window.app, {
                             });
 
                             const data = await res.json();
-                            if (!res.ok) throw new Error(data.error || 'Lá»—i khÃ´ng xÃ¡c Ä‘á»‹nh');
+                            if (!res.ok) throw new Error(data.error || 'Lỗi không xác định');
 
                             app.ui.closeCustomRolePrompt();
-                            app.toast.show('success', 'ThÃ nh cÃ´ng', data.message || "Táº¡o/Sá»­a Role thÃ nh cÃ´ng!");
+                            app.toast.show('success', 'Thành công', data.message || "Tạo/Sửa Role thành công!");
                             app.settings.loadBadges();
                         } catch (err) {
-                            app.ui.showAlert("Lá»—i: " + err.message);
+                            app.ui.showAlert("Lỗi: " + err.message);
                         } finally {
                             okBtn.innerHTML = originalText;
                             okBtn.disabled = false;
@@ -4052,7 +4052,7 @@ Object.assign(window.app, {
                     const url = container.dataset.url;
                     try {
                         const res = await fetch(url);
-                        if (!res.ok) throw new Error('Lá»—i máº¡ng');
+                        if (!res.ok) throw new Error('Lỗi mạng');
                         const text = await res.text();
 
                         const html = DOMPurify.sanitize(marked.parse(text));
@@ -4060,10 +4060,10 @@ Object.assign(window.app, {
                         container.dataset.loaded = 'true';
                     } catch (e) {
                         container.innerHTML = `
-                            <p class="text-red-500 font-bold py-4 text-center"><i class="fa-solid fa-triangle-exclamation"></i> KhÃ´ng thá»ƒ táº£i ná»™i dung tá»± Ä‘á»™ng.</p>
+                            <p class="text-red-500 font-bold py-4 text-center"><i class="fa-solid fa-triangle-exclamation"></i> Không thể tải nội dung tự động.</p>
                             <div class="text-center mt-2">
                                 <a href="${url.replace('raw.githubusercontent.com/hoyuuna', 'github.com/hoyuuna').replace('/refs/heads/', '/blob/')}" target="_blank" class="inline-flex items-center gap-1.5 bg-black text-white px-4 py-2 rounded-md font-bold hover:bg-gray-800 transition text-[11px] uppercase">
-                                    <i class="fa-brands fa-github text-sm"></i> Xem trá»±c tiáº¿p trÃªn GitHub
+                                    <i class="fa-brands fa-github text-sm"></i> Xem trực tiếp trên GitHub
                                 </a>
                             </div>
                         `;
@@ -4093,7 +4093,7 @@ Object.assign(window.app, {
                     if (pageInput) pageInput.value = query;
                 }
 
-                // Nháº­n diá»‡n tá»± Ä‘á»™ng chuá»—i gÃµ báº±ng tay: vÃ­ dá»¥ "01 (HÃ  Ná»™i)"
+                // Nhận diện tự động chuỗi gõ bằng tay: ví dụ "01 (Hà Nội)"
                 let autoPrefix = null;
                 const provMatch = query.match(/^(.*?)\s*\((.+?)\)$/);
                 if (provMatch) {
@@ -4109,7 +4109,7 @@ Object.assign(window.app, {
                             if (pageInput) pageInput.value = query;
                             
                             app.currentFilter = 'route';
-                            app.search.syncExactUI(autoPrefix); // Äá»“ng bá»™ UI Dropdown má»›i
+                            app.search.syncExactUI(autoPrefix); // Đồng bộ UI Dropdown mới
                         }
                     }
                 }
@@ -4132,11 +4132,11 @@ Object.assign(window.app, {
                 const currentParams = new URLSearchParams(window.location.search);
                 let filterFromUrl = currentParams.get('filter') || 'all';
 
-                // Bá» qua legacy cá»§a URL cÅ©
+                // Bỏ qua legacy của URL cũ
                 if (filterFromUrl === 'absolute_route') filterFromUrl = 'route';
 
                 let prefixToUrl = typeof app.search.currentExactPrefix === 'string' ? app.search.currentExactPrefix : (currentParams.get('prefix') || '');
-                if (filterType !== 'route') prefixToUrl = ''; // Chá»‰ Ã¡p dá»¥ng prefix cho route
+                if (filterType !== 'route') prefixToUrl = ''; // Chỉ áp dụng prefix cho route
 
                 const currentUrlPrefix = currentParams.get('prefix') || '';
 
@@ -4167,7 +4167,7 @@ Object.assign(window.app, {
 
                 app.views.switch('search', false);
                 app.currentViewMode = 'search';
-                document.title = 'TÃ¬m kiáº¿m | VNBUSARCHIVE';
+                document.title = 'Tìm kiếm | VNBUSARCHIVE';
 
                 const profileCardsContainer = document.getElementById('search-profile-cards');
                 profileCardsContainer.innerHTML = '';
@@ -4177,7 +4177,7 @@ Object.assign(window.app, {
                 app.loadedSearchCardsCount = 0;
 
                 const grid = document.getElementById('search-photo-grid');
-                grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500"><i class="fa-solid fa-circle-notch fa-spin"></i> Äang tÃ¬m kiáº¿m...</div>';
+                grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tìm kiếm...</div>';
 
                 try {
                     const isIdSearch = query.match(/\/photo\/(\d+)/i) || (filterType === 'all' ? query.match(/^#(\d+)$/) : null);
@@ -4187,13 +4187,13 @@ Object.assign(window.app, {
                         return;
                     }
 
-                    // TÃ¡i sá»­ dá»¥ng logic láº¥y card nhÆ° cÅ© (chá»‰ sá»­a tÃªn filter)
+                    // Tái sử dụng logic lấy card như cũ (chỉ sửa tên filter)
                     let uploaderCards = [], operatorCards = [], modelCards = [], plateCards = [];
-                    let normalizedQuery = query.toLowerCase().replace(/vin bus/g, 'vinbus').replace(/thanh buoi/g, 'thÃ nh bÆ°á»Ÿi').replace(/phuong trang/g, 'phÆ°Æ¡ng trang');
+                    let normalizedQuery = query.toLowerCase().replace(/vin bus/g, 'vinbus').replace(/thanh buoi/g, 'thành bưởi').replace(/phuong trang/g, 'phương trang');
                     const searchWords = normalizedQuery.trim().split(/\s+/).filter(w => w.length > 0);
                     const cardPromises = [];
 
-                    // 1. Láº¤Y UPLOADER
+                    // 1. LẤY UPLOADER
                     if (filterType === 'uploader' || filterType === 'all') {
                         cardPromises.push((async () => {
                             try {
@@ -4204,7 +4204,7 @@ Object.assign(window.app, {
                                 if (usersData && usersData.length > 0) {
                                     for (const user of usersData) {
                                         const uDisplay = app.utils.formatProfileDisplay(user);
-                                        if (uDisplay.isBanned) continue; // áº¨n hoÃ n toÃ n ngÆ°á»i dÃ¹ng bá»‹ cáº¥m khá»i search
+                                        if (uDisplay.isBanned) continue; // Ẩn hoàn toàn người dùng bị cấm khỏi search
 
                                         const { count } = await window.sb.from('photos').select('*', { count: 'exact', head: true }).eq('uploader_id', user.id).eq('status', 'approved');
                                         const avatarSrc = uDisplay.avatar;
@@ -4214,17 +4214,17 @@ Object.assign(window.app, {
                                                 <img src="${avatarSrc}" onerror="this.onerror=null;this.src='${DEFAULT_AVATAR}';" class="w-12 h-12 rounded-full object-cover bg-gray-100 shrink-0">
                                                 <div class="overflow-hidden">
                                                     <div class="font-bold text-black text-sm flex items-center truncate">${uDisplay.username} ${userBadges}</div>
-                                                    <div class="text-xs text-gray-500">${count || 0} áº£nh Ä‘Ã£ Ä‘Äƒng</div>
+                                                    <div class="text-xs text-gray-500">${count || 0} ảnh đã đăng</div>
                                                 </div>
                                             </div>
                                         `);
                                     }
                                 }
-                            } catch (e) { console.error("Lá»—i tÃ¬m Uploader:", e); }
+                            } catch (e) { console.error("Lỗi tìm Uploader:", e); }
                         })());
                     }
 
-                    // 2. Láº¤Y ÄÆ N Vá»Š Váº¬N HÃ€NH
+                    // 2. LẤY ĐƠN VỊ VẬN HÀNH
                     if (filterType === 'operator' || filterType === 'all') {
                         cardPromises.push((async () => {
                             try {
@@ -4244,7 +4244,7 @@ Object.assign(window.app, {
                                 let uniqueOpsMap = new Map();
                                 const opInfoMap = {};
 
-                                // CHá»ˆ láº¥y Ä‘Æ¡n vá»‹ tá»« áº£nh Ä‘Ã£ duyá»‡t (nguá»“n duy nháº¥t Ä‘á»§ Ä‘iá»u kiá»‡n hiá»ƒn thá»‹)
+                                // CHỈ lấy đơn vị từ ảnh đã duyệt (nguồn duy nhất đủ điều kiện hiển thị)
                                 if (photoRes.data) {
                                     photoRes.data.forEach(p => {
                                         if (p.operator) {
@@ -4256,7 +4256,7 @@ Object.assign(window.app, {
                                     });
                                 }
 
-                                // ÄÆ¡n vá»‹ cÃ³ logo/thÃ´ng tin nhÆ°ng KHÃ”NG cÃ³ áº£nh duyá»‡t nÃ o sáº½ bá»‹ áº©n
+                                // Đơn vị có logo/thông tin nhưng KHÔNG có ảnh duyệt nào sẽ bị ẩn
                                 if (infoRes.data) {
                                     infoRes.data.forEach(info => {
                                         if (info.operator_name) {
@@ -4288,16 +4288,16 @@ Object.assign(window.app, {
                                             ${iconHtml}
                                             <div class="overflow-hidden min-w-0 flex-1">
                                                 <div class="font-bold text-black text-sm overflow-x-auto whitespace-nowrap no-scrollbar">${app.utils.cleanText(op)}</div>
-                                                <div class="text-[10px] text-gray-500 uppercase tracking-widest mt-0.5 font-bold">ÄÆ¡n vá»‹ váº­n hÃ nh</div>
+                                                <div class="text-[10px] text-gray-500 uppercase tracking-widest mt-0.5 font-bold">Đơn vị vận hành</div>
                                             </div>
                                         </div>
                                     `);
                                 }
-                            } catch (e) { console.error("Lá»—i tÃ¬m ÄÆ¡n vá»‹:", e); }
+                            } catch (e) { console.error("Lỗi tìm Đơn vị:", e); }
                         })());
                     }
 
-                    // 3. Láº¤Y DÃ’NG XE (MODEL)
+                    // 3. LẤY DÒNG XE (MODEL)
                     if (filterType === 'model' || filterType === 'all') {
                         cardPromises.push((async () => {
                             try {
@@ -4374,16 +4374,16 @@ Object.assign(window.app, {
                                             ${iconHtml}
                                             <div class="overflow-hidden min-w-0 flex-1">
                                                 <div class="font-bold text-black text-sm overflow-x-auto whitespace-nowrap no-scrollbar">${app.utils.cleanText(m)}</div>
-                                                <div class="text-[10px] text-gray-500 uppercase tracking-widest mt-0.5 font-bold">DÃ²ng xe</div>
+                                                <div class="text-[10px] text-gray-500 uppercase tracking-widest mt-0.5 font-bold">Dòng xe</div>
                                             </div>
                                         </div>
                                     `);
                                 }
-                            } catch (e) { console.error("Lá»—i tÃ¬m DÃ²ng xe:", e); }
+                            } catch (e) { console.error("Lỗi tìm Dòng xe:", e); }
                         })());
                     }
 
-                    // 4. Láº¤Y XE (VEHICLE / PLATE)
+                    // 4. LẤY XE (VEHICLE / PLATE)
                     if (filterType === 'plate' || filterType === 'model' || filterType === 'all') {
                         cardPromises.push((async () => {
                             try {
@@ -4411,7 +4411,7 @@ Object.assign(window.app, {
                                                 <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0"><i class="fa-solid ${iconClass}"></i></div>
                                                 <div class="overflow-hidden">
                                                     <div class="font-bold text-black text-sm truncate">${app.utils.displayPlate(app.utils.cleanText(v.license_plate))}</div>
-                                                    <div class="text-xs text-gray-500 truncate" title="${app.utils.cleanText(v.model || '')}">${app.utils.cleanText(v.model || 'ChÆ°a rÃµ Model')}</div>
+                                                    <div class="text-xs text-gray-500 truncate" title="${app.utils.cleanText(v.model || '')}">${app.utils.cleanText(v.model || 'Chưa rõ Model')}</div>
                                                 </div>
                                             </div>
                                         `);
@@ -4428,7 +4428,7 @@ Object.assign(window.app, {
                     app.views.loadMoreSearchCards(true);
 
 
-                    // ================= TÃŒM KIáº¾M áº¢NH CHÃNH =================
+                    // ================= TÌM KIẾM ẢNH CHÍNH =================
                     const profileSelect = (filterType === 'uploader') ? 'profiles!inner(id, username, role, subroles, ban_status)' : 'profiles(id, username, role, subroles, ban_status)';
                         let photoQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, ${profileSelect}, vehicles${filterType === 'model' ? '!inner' : ''}(model)`, { count: 'exact' }).eq('status', 'approved');
                     photoQuery = app.preference.applyFilter(photoQuery);
@@ -4503,7 +4503,7 @@ Object.assign(window.app, {
                         });
                     }
 
-                    // PHÃ‚N TRANG: CHá»ˆ KÃ‰O TRANG Äáº¦U (24 áº¢NH) THAY VÃŒ LIMIT(500)
+                    // PHÂN TRANG: CHỈ KÉO TRANG ĐẦU (24 ẢNH) THAY VÌ LIMIT(500)
                     app.searchPageSize = 24;
                     app.searchCurrentPage = 1;
                     const { data: results, error, count } = await photoQuery
@@ -4515,7 +4515,7 @@ Object.assign(window.app, {
                     if (error) throw error;
 
                     if (!results || results.length === 0) {
-                        grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500">KhÃ´ng tÃ¬m tháº¥y káº¿t quáº£ phÃ¹ há»£p.</div>';
+                        grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500">Không tìm thấy kết quả phù hợp.</div>';
                         return;
                     }
 
@@ -4535,7 +4535,7 @@ Object.assign(window.app, {
 
                 } catch (err) {
                     console.error(err);
-                    grid.innerHTML = `<div class="col-span-full text-center py-10 text-red-500">Lá»—i há»‡ thá»‘ng: ${err.message}</div>`;
+                    grid.innerHTML = `<div class="col-span-full text-center py-10 text-red-500">Lỗi hệ thống: ${err.message}</div>`;
                 }
                 app.loadingBar.finish();
             }
@@ -4547,7 +4547,7 @@ Object.assign(window.app, {
                 const dropdown = document.getElementById('user-dropdown');
 
                 if (user) {
-                    // Láº¥y tÃªn tá»« metadata (Há»— trá»£ Google, Discord, Email)
+                    // Lấy tên từ metadata (Hỗ trợ Google, Discord, Email)
                     let metaName = user.user_metadata?.username ||
                                    user.user_metadata?.full_name ||
                                    user.user_metadata?.name ||
@@ -4572,10 +4572,10 @@ Object.assign(window.app, {
                                     }
                                 }
                                 sessionStorage.removeItem('VNBA_SESS_AUTH');
-                                const accName = profile.username || user.email || 'cá»§a báº¡n';
-                                const reasonText = banInfo.reason || 'Vi pháº¡m quy Ä‘á»‹nh cá»§a VNBUSARCHIVE';
+                                const accName = profile.username || user.email || 'của bạn';
+                                const reasonText = banInfo.reason || 'Vi phạm quy định của VNBUSARCHIVE';
                                 const uuidStr = user.id ? ` (<code>${user.id}</code>)` : '';
-                                const banReason = `TÃ i khoáº£n <b>${accName}</b>${uuidStr} Ä‘Ã£ bá»‹ cáº¥m vá»›i lÃ­ do: <b>${reasonText}</b>`;
+                                const banReason = `Tài khoản <b>${accName}</b>${uuidStr} đã bị cấm với lí do: <b>${reasonText}</b>`;
                                 document.body.innerHTML = `
                                     <div style="background-color: #f4f4f5; color: #09090b; width: 100vw; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; text-align: center; padding: 24px; box-sizing: border-box; user-select: none;">
                                         <div style="margin-bottom: 32px; display: flex; align-items: center; justify-content: center; gap: 8px;">
@@ -4587,18 +4587,18 @@ Object.assign(window.app, {
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#18181b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>
                                             </div>
                                             <h2 style="font-size: 1.15rem; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 16px 0; color: #09090b; text-transform: uppercase;">
-                                                TRUY Cáº¬P ÄÃƒ Bá»Š Háº N CHáº¾
+                                                TRUY CẬP ĐÃ BỊ HẠN CHẾ
                                             </h2>
                                             <div style="background: #fafafa; border: 1px solid #e4e4e7; border-radius: 10px; padding: 14px 18px; margin-bottom: 24px; text-align: left;">
                                                 <div style="font-size: 0.72rem; font-weight: 700; color: #71717a; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;">
-                                                    LÃ DO Háº N CHáº¾ TRUY Cáº¬P / BAN LOG
+                                                    LÝ DO HẠN CHẾ TRUY CẬP / BAN LOG
                                                 </div>
                                                 <div style="font-size: 0.92rem; font-weight: 500; color: #27272a; line-height: 1.6; word-break: break-word;">
                                                     ${banReason}
                                                 </div>
                                             </div>
                                             <p style="font-size: 0.85rem; line-height: 1.65; margin: 0; color: #52525b;">
-                                                Vui lÃ²ng táº£i láº¡i trang hoáº·c liÃªn há»‡: <a href="mailto:lienhe@vnbusarchive.io.vn" style="color: #09090b; font-weight: 700; text-decoration: underline; text-underline-offset: 4px;">lienhe@vnbusarchive.io.vn</a> náº¿u báº¡n nghÄ© Ä‘Ã¢y lÃ  má»™t sai láº§m! Xin cáº£m Æ¡n.
+                                                Vui lòng tải lại trang hoặc liên hệ: <a href="mailto:lienhe@vnbusarchive.io.vn" style="color: #09090b; font-weight: 700; text-decoration: underline; text-underline-offset: 4px;">lienhe@vnbusarchive.io.vn</a> nếu bạn nghĩ đây là một sai lầm! Xin cảm ơn.
                                             </p>
                                         </div>
                                         <p style="font-size: 0.72rem; letter-spacing: 0.22em; color: #a1a1aa; text-transform: uppercase; font-weight: 600; margin: 0;">VNBUSARCHIVE Foundation</p>
@@ -4614,7 +4614,7 @@ Object.assign(window.app, {
                         let localWmMode = localStorage.getItem('vnbus_wm_mode') || 'basic';
 
                         if (!profile || !profile.username) {
-                            // Táº¡o má»›i user vÃ  Ä‘áº©y thiáº¿t láº­p trÃ¬nh duyá»‡t hiá»‡n táº¡i lÃªn Database
+                            // Tạo mới user và đẩy thiết lập trình duyệt hiện tại lên Database
                             await window.sb.from('profiles').upsert({
                                 id: user.id,
                                 username: finalName,
@@ -4629,7 +4629,7 @@ Object.assign(window.app, {
                         } else {
                             app.username = profile.username;
                             app.role = profile.role || 'user';
-                            // Cáº¥p quyá»n bypass cho Manager trong phiÃªn nÃ y
+                            // Cấp quyền bypass cho Manager trong phiên này
                             if (app.role === 'manager') {
                                 sessionStorage.setItem('VNBA_SESS_AUTH', 'active');
                             } else {
@@ -4638,7 +4638,7 @@ Object.assign(window.app, {
 
                             let dbPrefs = profile.preferences;
                             if (dbPrefs && Object.keys(dbPrefs).length > 0) {
-                                // Náº¿u DB CÃ“ Dá»® LIá»†U -> Láº¥y DB Ä‘Ã¨ lÃªn LocalStorage (Æ¯u tiÃªn DB)
+                                // Nếu DB CÓ DỮ LIỆU -> Lấy DB đè lên LocalStorage (Ưu tiên DB)
                                 app.preference.current = dbPrefs.type || 'both';
                                 app.preference.showRecommendations = dbPrefs.showRec !== false;
 
@@ -4654,7 +4654,7 @@ Object.assign(window.app, {
                                     }
                                 }
                             } else {
-                                // Náº¿u DB TRá»NG (User cÅ© chÆ°a lÆ°u bao giá») -> Láº¥y LocalStorage Ä‘áº©y lÃªn DB
+                                // Nếu DB TRỐNG (User cũ chưa lưu bao giờ) -> Lấy LocalStorage đẩy lên DB
                                 window.sb.from('profiles').update({
                                     preferences: { type: localPref, showRec: localShowRec, wmMode: localWmMode }
                                 }).eq('id', user.id).then(()=>{});
@@ -4668,15 +4668,15 @@ Object.assign(window.app, {
                         app.role = 'user';
                     }
 
-                    // Render tÃªn lÃªn UI Header
+                    // Render tên lên UI Header
                     document.getElementById('nav-username').innerText = app.username;
 
 dropdown.innerHTML = `
-                         <a href="/profile" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-address-card w-5 text-center mr-1"></i> Há»“ sÆ¡ cá»§a tÃ´i</a>
-                         <button onclick="app.settings.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-gear w-5 text-center mr-1"></i> CÃ i Ä‘áº·t</button>
-                         <a href="/help" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-book-open w-5 text-center mr-1"></i> Trung tÃ¢m há»— trá»£</a>
-                         <a href="/contact" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-headset w-5 text-center mr-1"></i> LiÃªn há»‡ há»— trá»£</a>
-                         <button onclick="app.auth.logout()" class="w-full text-left block px-4 py-3 text-sm text-red-600 hover:bg-red-50 font-bold"><i class="fa-solid fa-right-from-bracket w-5 text-center mr-1"></i> ÄÄƒng xuáº¥t</button>
+                         <a href="/profile" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-address-card w-5 text-center mr-1"></i> Hồ sơ của tôi</a>
+                         <button onclick="app.settings.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-gear w-5 text-center mr-1"></i> Cài đặt</button>
+                         <a href="/help" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-book-open w-5 text-center mr-1"></i> Trung tâm hỗ trợ</a>
+                         <a href="/contact" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-headset w-5 text-center mr-1"></i> Liên hệ hỗ trợ</a>
+                         <button onclick="app.auth.logout()" class="w-full text-left block px-4 py-3 text-sm text-red-600 hover:bg-red-50 font-bold"><i class="fa-solid fa-right-from-bracket w-5 text-center mr-1"></i> Đăng xuất</button>
                      `;
 
                     app.auth.close();
@@ -4685,7 +4685,7 @@ dropdown.innerHTML = `
                         document.getElementById('nav-admin').classList.remove('hidden');
                         app.admin.checkNotification();
 
-                        // [THÃŠM Má»šI] Hiá»ƒn thá»‹ tab Quáº£n lÃ½ náº¿u lÃ  Manager
+                        // [THÊM MỚI] Hiển thị tab Quản lý nếu là Manager
                         if (app.role === 'manager') {
                             document.getElementById('adm-tab-manager').classList.remove('hidden');
                         }
@@ -4693,29 +4693,29 @@ dropdown.innerHTML = `
                         document.getElementById('nav-admin').classList.add('hidden');
                     }
 
-                    // ÄÃ£ táº¯t tá»± Ä‘á»™ng nháº£y sang Telegram
+                    // Đã tắt tự động nhảy sang Telegram
 
 
 
 
                 } else {
-                    document.getElementById('nav-username').innerText = 'TÃ i khoáº£n';
+                    document.getElementById('nav-username').innerText = 'Tài khoản';
                     document.getElementById('nav-admin').classList.add('hidden');
                     app.username = 'Guest';
                     app.role = 'user';
 
 
 dropdown.innerHTML = `
-                         <a href="/auth" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-arrow-right-to-bracket w-5 text-center mr-1"></i> ÄÄƒng nháº­p</a>
-                         <a href="/auth" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-user-plus w-5 text-center mr-1"></i> Táº¡o tÃ i khoáº£n</a>
-                         <button onclick="app.settings.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-gear w-5 text-center mr-1"></i> CÃ i Ä‘áº·t</button>
-                         <a href="/help" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-book-open w-5 text-center mr-1"></i> Trung tÃ¢m há»— trá»£</a>
-                         <a href="/contact" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 font-bold"><i class="fa-solid fa-headset w-5 text-center mr-1"></i> LiÃªn há»‡ há»— trá»£</a>
+                         <a href="/auth" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-arrow-right-to-bracket w-5 text-center mr-1"></i> Đăng nhập</a>
+                         <a href="/auth" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-user-plus w-5 text-center mr-1"></i> Tạo tài khoản</a>
+                         <button onclick="app.settings.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-gear w-5 text-center mr-1"></i> Cài đặt</button>
+                         <a href="/help" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-book-open w-5 text-center mr-1"></i> Trung tâm hỗ trợ</a>
+                         <a href="/contact" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 font-bold"><i class="fa-solid fa-headset w-5 text-center mr-1"></i> Liên hệ hỗ trợ</a>
                      `;
 
 
 
-                    // ÄÃ£ táº¯t tá»± Ä‘á»™ng nháº£y sang Telegram
+                    // Đã tắt tự động nhảy sang Telegram
 
                 }
                 if (app.auth && app.auth.updateUUIDBox) app.auth.updateUUIDBox();
