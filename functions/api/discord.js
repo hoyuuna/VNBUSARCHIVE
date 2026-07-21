@@ -638,7 +638,7 @@ export async function onRequest(context) {
             
             if (body.action === 'contact_submit') {
                 return handleContactSubmit(request, env);
-            } else if (body.action === 'claim' || body.action === 'status') {
+            } else if (body.action === 'claim' || body.action === 'status' || body.action === 'delete') {
                 return handleRoleClaim(request, env);
             } else {
                 return new Response(JSON.stringify({ error: 'Action không hợp lệ' }), { status: 400 });
