@@ -2488,8 +2488,21 @@ Object.assign(window.app, {
                         app.operatorPhotos = photos || [];
                         app.operator.totalCount = count || (photos ? photos.length : 0);
                         app.operator.totalPages = Math.ceil(app.operator.totalCount / opSize);
-                        grid.innerHTML = '';
-                        app.views.loadMoreOperatorPhotos();
+                        
+                        if (photos && photos.length > 0) {
+                            grid.innerHTML = photos.map(p => app.views.renderPhotoCard(p)).join('');
+                        } else {
+                            grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500">Không tìm thấy ảnh nào.</div>';
+                        }
+                        
+                        const btnContainer = document.getElementById('operator-load-more-container');
+                        if (btnContainer) {
+                            if (app.views.operatorCurrentPage >= (app.operator.totalPages || 1)) {
+                                btnContainer.classList.add('hidden');
+                            } else {
+                                btnContainer.classList.remove('hidden');
+                            }
+                        }
 
                     } catch (err) {
                         grid.innerHTML = `<div class="col-span-full text-center py-10 text-red-500">Lỗi lấy dữ liệu: ${err.message}</div>`;
@@ -3341,8 +3354,21 @@ Object.assign(window.app, {
                         app.model.modelPhotos = photos || [];
                         app.model.totalCount = count || (photos ? photos.length : 0);
                         app.model.totalPages = Math.ceil(app.model.totalCount / mdlSize);
-                        grid.innerHTML = '';
-                        app.views.loadMoreModelPhotos();
+                        
+                        if (photos && photos.length > 0) {
+                            grid.innerHTML = photos.map(p => app.views.renderPhotoCard(p)).join('');
+                        } else {
+                            grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500">Không tìm thấy ảnh nào.</div>';
+                        }
+                        
+                        const btnContainer = document.getElementById('model-load-more-container');
+                        if (btnContainer) {
+                            if (app.views.modelCurrentPage >= (app.model.totalPages || 1)) {
+                                btnContainer.classList.add('hidden');
+                            } else {
+                                btnContainer.classList.remove('hidden');
+                            }
+                        }
 
                     } catch (err) {
                         grid.innerHTML = `<div class="col-span-full text-center py-10 text-red-500">Lỗi lấy dữ liệu: ${err.message}</div>`;
