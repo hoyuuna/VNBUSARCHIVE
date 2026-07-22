@@ -1005,7 +1005,7 @@ Object.assign(window.app, {
                                     <div class="admin-card overflow-visible">
                                         <div class="admin-card-header"><span class="font-bold text-xs uppercase text-amber-600">SỬA LỊCH SỬ XE: ${r.license_plate}</span><span class="text-xs text-gray-500">${username}</span></div>
                                         <div class="admin-card-body text-xs">
-                                            <div class="mb-3 scroll-y max-h-80 overflow-visible">${details}</div>
+                                            <div class="mb-3 overflow-visible">${details}</div>
                                             <div class="flex gap-2">
                                                 <button onclick="app.admin.approveReq('${r.id}', this, 'history', ${d.history_items.length})" class="flex-1 bg-green-600 text-white py-1.5 font-bold rounded hover:bg-green-700">DUYỆT</button>
                                                 <button onclick="app.admin.denyReq('${r.id}', this)" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">HỦY</button>
