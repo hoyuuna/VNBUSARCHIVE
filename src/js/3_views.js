@@ -2495,14 +2495,7 @@ Object.assign(window.app, {
                             grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500">Không tìm thấy ảnh nào.</div>';
                         }
                         
-                        const btnContainer = document.getElementById('operator-load-more-container');
-                        if (btnContainer) {
-                            if (app.views.operatorCurrentPage >= (app.operator.totalPages || 1)) {
-                                btnContainer.classList.add('hidden');
-                            } else {
-                                btnContainer.classList.remove('hidden');
-                            }
-                        }
+                        app.views.renderOperatorPagination();
 
                     } catch (err) {
                         grid.innerHTML = `<div class="col-span-full text-center py-10 text-red-500">Lỗi lấy dữ liệu: ${err.message}</div>`;
@@ -2510,25 +2503,15 @@ Object.assign(window.app, {
                     app.loadingBar.finish();
                 },
 
-                loadMoreOperatorPhotos: async () => {
+                fetchOperatorPhotosPage: async (page) => {
                     const grid = document.getElementById('operator-photo-grid');
-                    const btnContainer = document.getElementById('operator-load-more-container');
-                    if (!btnContainer) return;
-
-                    // Nếu đã hiển thị hết các trang thì ẩn nút
-                    if (app.views.operatorCurrentPage >= (app.operator.totalPages || 1)) {
-                        btnContainer.classList.add('hidden');
-                        return;
-                    }
-
+                    app.views.operatorCurrentPage = page;
                     const opSize = app.views.OPERATOR_PAGE_SIZE || 12;
-                    const nextPage = app.views.operatorCurrentPage + 1;
-                    const fromRow = (nextPage - 1) * opSize;
+                    const fromRow = (page - 1) * opSize;
                     const toRow = fromRow + opSize - 1;
 
-                    const btn = btnContainer.querySelector('button');
-                    const originalText = btn ? btn.innerHTML : '';
-                    if (btn) { btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tải...'; btn.disabled = true; }
+                    grid.style.opacity = '0.5';
+                    grid.style.pointerEvents = 'none';
 
                     try {
                         let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
@@ -2543,40 +2526,51 @@ Object.assign(window.app, {
                         if (error) throw error;
 
                         if (photos && photos.length > 0) {
-                            grid.innerHTML += photos.map(p => app.views.renderPhotoCard(p)).join('');
+                            grid.innerHTML = photos.map(p => app.views.renderPhotoCard(p)).join('');
+                        } else {
+                            grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500">Không tìm thấy ảnh nào.</div>';
                         }
-                        app.views.operatorCurrentPage = nextPage;
                     } catch (err) {
-                        console.error("Lỗi tải thêm ảnh đơn vị:", err);
+                        console.error("Lỗi tải trang ảnh đơn vị:", err);
                     } finally {
-                        if (btn) { btn.innerHTML = originalText; btn.disabled = false; }
+                        grid.style.opacity = '1';
+                        grid.style.pointerEvents = 'auto';
                     }
 
-                    if (app.views.operatorCurrentPage >= (app.operator.totalPages || 1)) {
-                        btnContainer.classList.add('hidden');
-                    } else {
-                        btnContainer.classList.remove('hidden');
+                    app.views.renderOperatorPagination();
+                },
+
+                renderOperatorPagination: () => {
+                    const btnContainer = document.getElementById('operator-load-more-container');
+                    if (btnContainer) {
+                        btnContainer.innerHTML = '';
+                        if (app.operator.totalPages > 1) {
+                            btnContainer.classList.remove('hidden');
+                            app.utils.renderPagination('operator-load-more-container', app.views.operatorCurrentPage, app.operator.totalPages, (newPage) => {
+                                const grid = document.getElementById('operator-photo-grid');
+                                if (grid) {
+                                    const offset = 80; 
+                                    const elementPosition = grid.getBoundingClientRect().top;
+                                    const offsetPosition = elementPosition + window.pageYOffset - offset;
+                                    window.scrollTo({ top: offsetPosition, behavior: "smooth" });
+                                }
+                                app.views.fetchOperatorPhotosPage(newPage);
+                            });
+                        } else {
+                            btnContainer.classList.add('hidden');
+                        }
                     }
                 },
 
-                loadMoreModelPhotos: async () => {
+                fetchModelPhotosPage: async (page) => {
                     const grid = document.getElementById('model-photo-grid');
-                    const btnContainer = document.getElementById('model-load-more-container');
-                    if (!btnContainer) return;
-
-                    if (app.views.modelCurrentPage >= (app.model.totalPages || 1)) {
-                        btnContainer.classList.add('hidden');
-                        return;
-                    }
-
+                    app.views.modelCurrentPage = page;
                     const mdlSize = app.views.MODEL_PAGE_SIZE || 12;
-                    const nextPage = app.views.modelCurrentPage + 1;
-                    const fromRow = (nextPage - 1) * mdlSize;
+                    const fromRow = (page - 1) * mdlSize;
                     const toRow = fromRow + mdlSize - 1;
 
-                    const btn = btnContainer.querySelector('button');
-                    const originalText = btn ? btn.innerHTML : '';
-                    if (btn) { btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tải...'; btn.disabled = true; }
+                    grid.style.opacity = '0.5';
+                    grid.style.pointerEvents = 'none';
 
                     try {
                         let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles!inner(model)`)
@@ -2591,19 +2585,39 @@ Object.assign(window.app, {
                         if (error) throw error;
 
                         if (photos && photos.length > 0) {
-                            grid.innerHTML += photos.map(p => app.views.renderPhotoCard(p)).join('');
+                            grid.innerHTML = photos.map(p => app.views.renderPhotoCard(p)).join('');
+                        } else {
+                            grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500">Không tìm thấy ảnh nào.</div>';
                         }
-                        app.views.modelCurrentPage = nextPage;
                     } catch (err) {
-                        console.error("Lỗi tải thêm ảnh dòng xe:", err);
+                        console.error("Lỗi tải trang ảnh dòng xe:", err);
                     } finally {
-                        if (btn) { btn.innerHTML = originalText; btn.disabled = false; }
+                        grid.style.opacity = '1';
+                        grid.style.pointerEvents = 'auto';
                     }
 
-                    if (app.views.modelCurrentPage >= (app.model.totalPages || 1)) {
-                        btnContainer.classList.add('hidden');
-                    } else {
-                        btnContainer.classList.remove('hidden');
+                    app.views.renderModelPagination();
+                },
+
+                renderModelPagination: () => {
+                    const btnContainer = document.getElementById('model-load-more-container');
+                    if (btnContainer) {
+                        btnContainer.innerHTML = '';
+                        if (app.model.totalPages > 1) {
+                            btnContainer.classList.remove('hidden');
+                            app.utils.renderPagination('model-load-more-container', app.views.modelCurrentPage, app.model.totalPages, (newPage) => {
+                                const grid = document.getElementById('model-photo-grid');
+                                if (grid) {
+                                    const offset = 80; 
+                                    const elementPosition = grid.getBoundingClientRect().top;
+                                    const offsetPosition = elementPosition + window.pageYOffset - offset;
+                                    window.scrollTo({ top: offsetPosition, behavior: "smooth" });
+                                }
+                                app.views.fetchModelPhotosPage(newPage);
+                            });
+                        } else {
+                            btnContainer.classList.add('hidden');
+                        }
                     }
                 },
 
@@ -3361,14 +3375,7 @@ Object.assign(window.app, {
                             grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500">Không tìm thấy ảnh nào.</div>';
                         }
                         
-                        const btnContainer = document.getElementById('model-load-more-container');
-                        if (btnContainer) {
-                            if (app.views.modelCurrentPage >= (app.model.totalPages || 1)) {
-                                btnContainer.classList.add('hidden');
-                            } else {
-                                btnContainer.classList.remove('hidden');
-                            }
-                        }
+                        app.views.renderModelPagination();
 
                     } catch (err) {
                         grid.innerHTML = `<div class="col-span-full text-center py-10 text-red-500">Lỗi lấy dữ liệu: ${err.message}</div>`;
