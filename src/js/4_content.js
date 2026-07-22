@@ -1049,11 +1049,7 @@ Object.assign(window.app, {
                                 suggestionHtml = `<span class="text-gray-500 font-normal">Không phải xe này? Thử: ${links}</span>`;
                             }
 
-                            const nextSuffix = (existingSuffixes.length > 0 ? Math.max(...existingSuffixes) : -1) + 1;
-                            const newPlateSuggest = `${basePlate}-${nextSuffix}`;
-                            const warningNewCar = `<span class="text-orange-600 font-bold mt-2 inline-block"><i class="fa-solid fa-triangle-exclamation"></i> BKS này đã được gán với xe ${app.utils.escapeAttr(exactVehicle.model || 'này')}. Vui lòng kiểm tra lại hoặc thêm đuôi -${nextSuffix} (Ví dụ: ${newPlateSuggest}) để tạo hồ sơ xe mới nếu đây là một chiếc xe khác.</span>`;
-
-                            const finalText = [shootersText, suggestionHtml, warningNewCar].filter(Boolean).join('<br>');
+                            const finalText = [shootersText, suggestionHtml].filter(Boolean).join('<br>');
                             msg.innerHTML = finalText;
                             msg.className = "text-xs mt-1 text-black";
 
