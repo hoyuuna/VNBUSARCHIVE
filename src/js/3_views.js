@@ -172,7 +172,7 @@ Object.assign(window.app, {
                     if (app.loadedCount > 0 && !forceRefresh && !wasSearch) {
                         document.getElementById('hero-section').style.display = 'block';
                         document.getElementById('db-stats-section').style.display = 'block';
-                        document.getElementById('grid-title').innerText = "Ảnh mới nhất đã được duyệt";
+                        document.getElementById('grid-title').innerText = "Ảnh mới nhất được đăng";
                         document.getElementById('search-input').value = "";
                         document.getElementById('btn-clear-search').classList.add('hidden');
                         document.getElementById('search-profile-cards').classList.add('hidden');
@@ -187,7 +187,7 @@ Object.assign(window.app, {
 
                     document.getElementById('hero-section').style.display = 'block';
                     document.getElementById('db-stats-section').style.display = 'block';
-                    document.getElementById('grid-title').innerText = "Ảnh mới nhất đã được duyệt";
+                    document.getElementById('grid-title').innerText = "Ảnh mới nhất được đăng";
                     document.getElementById('search-input').value = "";
                     document.getElementById('btn-clear-search').classList.add('hidden');
                     document.getElementById('load-more-container').classList.add('hidden');
