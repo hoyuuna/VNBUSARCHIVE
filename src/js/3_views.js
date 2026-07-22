@@ -2057,12 +2057,7 @@ Object.assign(window.app, {
                         if (allPhotos.length > 0) {
                             photosHTML = `<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" id="vehicle-photo-grid">${allPhotos.map(p => app.views.renderPhotoCard(p)).join('')}</div>`;
                             if (app.vehicle.totalPages > 1) {
-                                loadMoreHtml = `
-                                <div id="vehicle-load-more-container" class="mt-6 w-full flex justify-center">
-                                    <button onclick="app.vehicle.loadMoreVehiclePhotos()" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-black font-bold text-sm rounded-lg hover:bg-gray-50 transition shadow-sm border border-gray-300">
-                                        <i class="fa-solid fa-plus"></i> Xem thêm ảnh
-                                    </button>
-                                </div>`;
+                                loadMoreHtml = '<div id="vehicle-load-more-container" class="mt-6 w-full flex justify-center hidden"></div>';
                             }
                         }
 
@@ -2158,6 +2153,9 @@ Object.assign(window.app, {
                             ${loadMoreHtml}
                         `;
                         container.innerHTML = html;
+                        if (typeof app.vehicle.renderVehiclePagination === 'function') {
+                            app.vehicle.renderVehiclePagination();
+                        }
                         app.vehicle._renderedPlate = plate; // ĐÁNH DẤU XE NÀY ĐÃ RENDER THÀNH CÔNG
                         app.loadingBar.finish();
 

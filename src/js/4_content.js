@@ -3504,24 +3504,17 @@ Object.assign(window.app, {
                 totalPages: 1,
                 totalCount: 0,
 
-                loadMoreVehiclePhotos: async () => {
+                fetchVehiclePhotosPage: async (page) => {
                     const grid = document.getElementById('vehicle-photo-grid');
-                    const btnContainer = document.getElementById('vehicle-load-more-container');
-                    if (!grid || !btnContainer) return;
-
-                    if (app.vehicle.currentPage >= app.vehicle.totalPages) {
-                        btnContainer.classList.add('hidden');
-                        return;
-                    }
-
+                    app.vehicle.currentPage = page;
                     const size = app.vehicle.VEHICLE_PAGE_SIZE || 12;
-                    const nextPage = app.vehicle.currentPage + 1;
-                    const fromRow = (nextPage - 1) * size;
+                    const fromRow = (page - 1) * size;
                     const toRow = fromRow + size - 1;
 
-                    const btn = btnContainer.querySelector('button');
-                    const originalText = btn ? btn.innerHTML : '';
-                    if (btn) { btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tải...'; btn.disabled = true; }
+                    if (grid) {
+                        grid.style.opacity = '0.5';
+                        grid.style.pointerEvents = 'none';
+                    }
 
                     try {
                         const plate = app.currentPlate;
@@ -3537,19 +3530,41 @@ Object.assign(window.app, {
                         if (error) throw error;
 
                         if (photos && photos.length > 0) {
-                            grid.innerHTML += photos.map(p => app.views.renderPhotoCard(p)).join('');
+                            if (grid) grid.innerHTML = photos.map(p => app.views.renderPhotoCard(p)).join('');
+                        } else {
+                            if (grid) grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500">Không tìm thấy ảnh nào.</div>';
                         }
-                        app.vehicle.currentPage = nextPage;
                     } catch (err) {
-                        console.error("Lỗi tải thêm ảnh xe:", err);
+                        console.error("Lỗi tải trang ảnh xe:", err);
                     } finally {
-                        if (btn) { btn.innerHTML = originalText; btn.disabled = false; }
+                        if (grid) {
+                            grid.style.opacity = '1';
+                            grid.style.pointerEvents = 'auto';
+                        }
                     }
 
-                    if (app.vehicle.currentPage >= app.vehicle.totalPages) {
-                        btnContainer.classList.add('hidden');
-                    } else {
-                        btnContainer.classList.remove('hidden');
+                    app.vehicle.renderVehiclePagination();
+                },
+
+                renderVehiclePagination: () => {
+                    const btnContainer = document.getElementById('vehicle-load-more-container');
+                    if (btnContainer) {
+                        btnContainer.innerHTML = '';
+                        if (app.vehicle.totalPages > 1) {
+                            btnContainer.classList.remove('hidden');
+                            app.utils.renderPagination('vehicle-load-more-container', app.vehicle.currentPage, app.vehicle.totalPages, (newPage) => {
+                                const grid = document.getElementById('vehicle-photo-grid');
+                                if (grid) {
+                                    const offset = 80; 
+                                    const elementPosition = grid.getBoundingClientRect().top;
+                                    const offsetPosition = elementPosition + window.pageYOffset - offset;
+                                    window.scrollTo({ top: offsetPosition, behavior: "smooth" });
+                                }
+                                app.vehicle.fetchVehiclePhotosPage(newPage);
+                            });
+                        } else {
+                            btnContainer.classList.add('hidden');
+                        }
                     }
                 },
 
