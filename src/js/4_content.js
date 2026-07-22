@@ -801,19 +801,18 @@ Object.assign(window.app, {
                 toggleBlurPanel: () => {
                     const panel = document.getElementById('blur-adjust-panel');
                     const btn = document.getElementById('btn-add-blur');
-                    if (panel) {
-                        panel.classList.toggle('hidden');
-                        if (!panel.classList.contains('hidden')) {
-                            app.upload.updateBlurBtn();
+                    const isHidden = panel ? panel.classList.contains('hidden') : true;
+
+                    if (app.upload.closeAllUploadPanels) app.upload.closeAllUploadPanels();
+
+                    if (isHidden && panel) {
+                        panel.classList.remove('hidden');
+                        if (btn) {
+                            btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300', 'hover:bg-gray-100', 'hover:text-black');
+                            btn.classList.add('bg-black', 'text-white', 'border-black');
                         }
                     }
-                    if (btn) {
-                        if (panel && !panel.classList.contains('hidden')) {
-                            btn.classList.add('bg-gray-100', 'text-black', 'border-gray-400');
-                        } else {
-                            btn.classList.remove('bg-gray-100', 'text-black', 'border-gray-400');
-                        }
-                    }
+                    app.upload.updateBlurBtn();
                 },
 
                 updateBlurBtn: () => {
@@ -821,12 +820,6 @@ Object.assign(window.app, {
                     const btn = document.getElementById('btn-add-blur');
                     if (btn) {
                         btn.innerHTML = `<i class="fa-solid fa-droplet-slash"></i> Làm mờ`;
-                        const panel = document.getElementById('blur-adjust-panel');
-                        if (panel && !panel.classList.contains('hidden')) {
-                            btn.classList.add('bg-gray-100', 'text-black', 'border-gray-400');
-                        } else {
-                            btn.classList.remove('bg-gray-100', 'text-black', 'border-gray-400');
-                        }
                     }
 
                     const list = document.getElementById('blur-list');
@@ -1216,15 +1209,22 @@ Object.assign(window.app, {
                 },
                 toggleWmPanel: () => {
                     const panel = document.getElementById('wm-adjust-panel');
-                    if (panel) {
-                        panel.classList.toggle('hidden');
-                        if (!panel.classList.contains('hidden')) {
-                            const currentMode = (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_mode')) || (app.wmState && app.wmState.mode) || 'basic';
-                            if (app.upload.setWmMode) {
-                                setTimeout(() => app.upload.setWmMode(currentMode, false), 10);
-                            } else if (app.upload.updateWmModeSlider) {
-                                setTimeout(() => app.upload.updateWmModeSlider(false), 10);
-                            }
+                    const btn = document.getElementById('btn-adjust-wm');
+                    const isHidden = panel ? panel.classList.contains('hidden') : true;
+
+                    if (app.upload.closeAllUploadPanels) app.upload.closeAllUploadPanels();
+
+                    if (isHidden && panel) {
+                        panel.classList.remove('hidden');
+                        if (btn) {
+                            btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300', 'hover:bg-gray-100', 'hover:text-black');
+                            btn.classList.add('bg-black', 'text-white', 'border-black');
+                        }
+                        const currentMode = (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_mode')) || (app.wmState && app.wmState.mode) || 'basic';
+                        if (app.upload.setWmMode) {
+                            setTimeout(() => app.upload.setWmMode(currentMode, false), 10);
+                        } else if (app.upload.updateWmModeSlider) {
+                            setTimeout(() => app.upload.updateWmModeSlider(false), 10);
                         }
                     }
                 },
@@ -1344,9 +1344,33 @@ Object.assign(window.app, {
                         app.upload.isPreparingBlob = false;
                     }
                 },
+                closeAllUploadPanels: () => {
+                    ['color-adjust-panel', 'blur-adjust-panel', 'wm-adjust-panel'].forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) el.classList.add('hidden');
+                    });
+                    ['btn-adjust-color', 'btn-add-blur', 'btn-adjust-wm'].forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) {
+                            el.classList.remove('bg-black', 'text-white', 'border-black');
+                            el.classList.add('bg-white', 'text-gray-700', 'border-gray-300', 'hover:bg-gray-100', 'hover:text-black');
+                        }
+                    });
+                },
                 toggleColorPanel: () => {
                     const panel = document.getElementById('color-adjust-panel');
-                    if(panel) panel.classList.toggle('hidden');
+                    const btn = document.getElementById('btn-adjust-color');
+                    const isHidden = panel ? panel.classList.contains('hidden') : true;
+
+                    if (app.upload.closeAllUploadPanels) app.upload.closeAllUploadPanels();
+
+                    if (isHidden && panel) {
+                        panel.classList.remove('hidden');
+                        if (btn) {
+                            btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300', 'hover:bg-gray-100', 'hover:text-black');
+                            btn.classList.add('bg-black', 'text-white', 'border-black');
+                        }
+                    }
                 },
                 updateFilters: () => {
                     const b = Number(document.getElementById('adj-brightness')?.value || 100);
