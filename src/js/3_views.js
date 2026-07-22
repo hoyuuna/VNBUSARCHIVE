@@ -539,7 +539,26 @@ Object.assign(window.app, {
                                 const searchWords = query.toLowerCase().split(/\s+/).filter(w => w.length > 0);
 
                                 if (filterType === 'route') {
-                                    searchWords.forEach(w => { sQuery = sQuery.ilike('route_no', `%${w}%`); });
+                                    const prefix = app.lastSearchPrefix || new URLSearchParams(window.location.search).get('prefix') || '';
+                                    if (prefix) {
+                                        let provName = null;
+                                        if (app.utils.provinceData) {
+                                            const prov = app.utils.provinceData.find(p => {
+                                                const k = Array.isArray(p.ky_hieu) ? p.ky_hieu : p.ky_hieu.split(',');
+                                                return k.map(s => s.trim()).includes(prefix);
+                                            });
+                                            if (prov) provName = prov.ten;
+                                        }
+                                        const relatedPrefixes = app.utils.getRelatedPrefixes(prefix);
+                                        const prefixOrCond = relatedPrefixes.map(p => `license_plate.ilike.${p}%`).join(',');
+                                        if (provName) {
+                                            sQuery = sQuery.eq('route_no', query).or(`province.eq."${provName}",${prefixOrCond}`);
+                                        } else {
+                                            sQuery = sQuery.eq('route_no', query).or(prefixOrCond);
+                                        }
+                                    } else {
+                                        searchWords.forEach(w => { sQuery = sQuery.ilike('route_no', `%${w}%`); });
+                                    }
                                 } else if (filterType === 'plate') {
                                     searchWords.forEach(w => { sQuery = sQuery.ilike('license_plate', `%${app.utils.normalizePlateQuery(w)}%`); });
                                 } else if (filterType === 'operator') {
