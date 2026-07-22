@@ -973,18 +973,27 @@ Object.assign(window.app, {
                                     if (!app.admin.originalData) app.admin.originalData = {};
                                     const oldHistories = hMap[r.license_plate] || [];
                                     oldHistories.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
-                                    let details = `<p class="mb-2 font-bold text-red-500">[MỚI] Cập nhật ${d.history_items.length} mục lịch sử:</p><div id="req-h-list-${r.id}" class="space-y-2">`;
+                                    
+                                    let oldHHtml = `<p class="mb-2 text-xs font-bold text-gray-500">Lịch sử hiện tại (${oldHistories.length} mục):</p><div class="space-y-1 mb-4 text-xs opacity-75">`;
+                                    if (oldHistories.length === 0) {
+                                        oldHHtml += `<div class="italic text-gray-400">Không có dữ liệu lịch sử cũ</div>`;
+                                    } else {
+                                        oldHistories.forEach(old => {
+                                            oldHHtml += `<div class="border p-1.5 rounded bg-gray-50">Biển: <span class="font-bold">${app.utils.escapeAttr(old.plate||'-')}</span> | Ngày: ${old.effective_date||'-'} | ĐV: ${app.utils.escapeAttr(old.operator||'-')} | Tuyến: ${app.utils.escapeAttr(old.route||'-')}</div>`;
+                                        });
+                                    }
+                                    oldHHtml += `</div>`;
+
+                                    let details = oldHHtml + `<p class="mb-2 font-bold text-red-500">[MỚI] Yêu cầu cập nhật thành ${d.history_items.length} mục:</p><div id="req-h-list-${r.id}" class="space-y-2">`;
                                     d.history_items.forEach((h, i) => {
                                         app.admin.originalData[`req-h_${r.id}_${i}`] = { plate: h.plate || '', operator: h.operator || '', route: h.route || '', note: h.note || '' };
                                         
-                                        let oh = oldHistories[i];
-                                        if (!oh && h.plate) {
-                                            oh = oldHistories.find(old => old.plate === h.plate);
-                                        }
+                                        let oh = oldHistories.find(old => old.plate === h.plate);
+                                        if (!oh) oh = oldHistories[i];
                                         oh = oh || {};
 
                                         const tagNew = '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>';
-                                        const hasChanged = (oldVal, newVal) => (oldVal || '').trim() !== (newVal || '').trim();
+                                        const hasChanged = (oldVal, newVal) => String(oldVal || '').trim() !== String(newVal || '').trim();
                                         
                                         const plateTag = hasChanged(oh.plate, h.plate) ? tagNew : '';
                                         const dateTag = hasChanged(oh.effective_date, h.effective_date) ? tagNew : '';
