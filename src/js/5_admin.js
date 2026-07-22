@@ -972,18 +972,25 @@ Object.assign(window.app, {
                                 } else if (type === 'update_history') {
                                     if (!app.admin.originalData) app.admin.originalData = {};
                                     const oldHistories = hMap[r.license_plate] || [];
+                                    oldHistories.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
                                     let details = `<p class="mb-2 font-bold text-red-500">[MỚI] Cập nhật ${d.history_items.length} mục lịch sử:</p><div id="req-h-list-${r.id}" class="space-y-2">`;
                                     d.history_items.forEach((h, i) => {
                                         app.admin.originalData[`req-h_${r.id}_${i}`] = { plate: h.plate || '', operator: h.operator || '', route: h.route || '', note: h.note || '' };
                                         
-                                        const oh = oldHistories.find(old => old.plate === h.plate) || {};
+                                        let oh = oldHistories[i];
+                                        if (!oh && h.plate) {
+                                            oh = oldHistories.find(old => old.plate === h.plate);
+                                        }
+                                        oh = oh || {};
+
                                         const tagNew = '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>';
+                                        const hasChanged = (oldVal, newVal) => (oldVal || '').trim() !== (newVal || '').trim();
                                         
-                                        const plateTag = (!oh.plate || oh.plate !== h.plate) ? tagNew : '';
-                                        const dateTag = (!oh.effective_date || oh.effective_date !== h.effective_date) ? tagNew : '';
-                                        const opTag = (!oh.operator || oh.operator !== h.operator) ? tagNew : '';
-                                        const routeTag = (!oh.route || oh.route !== h.route) ? tagNew : '';
-                                        const noteTag = (!oh.note || oh.note !== h.note) ? tagNew : '';
+                                        const plateTag = hasChanged(oh.plate, h.plate) ? tagNew : '';
+                                        const dateTag = hasChanged(oh.effective_date, h.effective_date) ? tagNew : '';
+                                        const opTag = hasChanged(oh.operator, h.operator) ? tagNew : '';
+                                        const routeTag = hasChanged(oh.route, h.route) ? tagNew : '';
+                                        const noteTag = hasChanged(oh.note, h.note) ? tagNew : '';
 
                                         details += `
                                         <div class="border border-gray-200 p-2 rounded relative">
