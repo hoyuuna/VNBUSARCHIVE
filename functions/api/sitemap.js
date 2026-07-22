@@ -47,6 +47,13 @@ async function fetchAllData(supabase, table, select, conditions = {}) {
 export async function onRequest(context) {
   const { request, env } = context;
   
+  const cache = caches.default;
+  const cacheKey = new Request(request.url, request);
+  let cachedResponse = await cache.match(cacheKey);
+  if (cachedResponse) {
+    return cachedResponse;
+  }
+  
   const requestUrl = new URL(request.url);
   const protocol = request.headers.get('x-forwarded-proto') || 'https';
   let host = request.headers.get('host') || requestUrl.host;
@@ -90,13 +97,16 @@ export async function onRequest(context) {
 
     const finalXML = xmlChunks.join(''); 
 
-    return new Response(finalXML, {
+    const response = new Response(finalXML, {
       status: 200,
       headers: {
         'Cache-Control': 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400',
         'Content-Type': 'application/xml; charset=utf-8'
       }
     });
+
+    context.waitUntil(cache.put(cacheKey, response.clone()));
+    return response;
 
   } catch (error) {
     console.error("Lỗi tạo sitemap:", error);
