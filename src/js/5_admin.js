@@ -898,6 +898,15 @@ Object.assign(window.app, {
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
                             const vMap = {}; if (curVehicles) curVehicles.forEach(v => vMap[v.license_plate] = v);
 
+                            const { data: curHistories } = await window.sb.from('vehicle_history').select('*').in('license_plate', plates);
+                            if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
+                            const hMap = {}; 
+                            if (curHistories) {
+                                curHistories.forEach(h => {
+                                    if (!hMap[h.license_plate]) hMap[h.license_plate] = [];
+                                    hMap[h.license_plate].push(h);
+                                });
+                            }
 
                             const photoIdsReq = reqs.map(r => r.new_data.photo_id).filter(Boolean);
                             const { data: curPhotos } = await window.sb.from('photos').select('id, operator, route_no, type, province').in('id', photoIdsReq);
@@ -962,31 +971,42 @@ Object.assign(window.app, {
                                     </div>`;
                                 } else if (type === 'update_history') {
                                     if (!app.admin.originalData) app.admin.originalData = {};
+                                    const oldHistories = hMap[r.license_plate] || [];
                                     let details = `<p class="mb-2 font-bold text-red-500">[MỚI] Cập nhật ${d.history_items.length} mục lịch sử:</p><div id="req-h-list-${r.id}" class="space-y-2">`;
                                     d.history_items.forEach((h, i) => {
                                         app.admin.originalData[`req-h_${r.id}_${i}`] = { plate: h.plate || '', operator: h.operator || '', route: h.route || '', note: h.note || '' };
+                                        
+                                        const oh = oldHistories.find(old => old.plate === h.plate) || {};
+                                        const tagNew = '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>';
+                                        
+                                        const plateTag = (!oh.plate || oh.plate !== h.plate) ? tagNew : '';
+                                        const dateTag = (!oh.effective_date || oh.effective_date !== h.effective_date) ? tagNew : '';
+                                        const opTag = (!oh.operator || oh.operator !== h.operator) ? tagNew : '';
+                                        const routeTag = (!oh.route || oh.route !== h.route) ? tagNew : '';
+                                        const noteTag = (!oh.note || oh.note !== h.note) ? tagNew : '';
+
                                         details += `
                                         <div class="border border-gray-200 p-2 rounded relative">
                                             <div class="grid grid-cols-2 gap-2 mb-2">
                                                 <div>
-                                                    <span class="admin-label">Biển số cũ</span>
+                                                    <span class="admin-label">Biển số cũ ${plateTag}</span>
                                                     <input type="text" id="req-h-plate-${r.id}-${i}" value="${app.utils.escapeAttr(h.plate || '')}" class="admin-input font-bold" oninput="app.utils.formatPlateInput(this)" onchange="app.admin.checkPlateAdmin(this, '${r.id}_${i}', 'req-h')">
                                                 </div>
                                                 <div>
-                                                    <span class="admin-label">Ngày hiệu lực</span>
+                                                    <span class="admin-label">Ngày hiệu lực ${dateTag}</span>
                                                     <input type="date" id="req-h-date-${r.id}-${i}" value="${h.effective_date || ''}" class="admin-input">
                                                 </div>
                                             </div>
                                             <div class="grid grid-cols-2 gap-2 mb-2">
                                                 <div>
-                                                    <span class="admin-label">Đơn vị</span>
+                                                    <span class="admin-label">Đơn vị ${opTag}</span>
                                                     <div class="relative">
                                                         <input type="text" id="req-h-op-${r.id}-${i}" value="${app.utils.escapeAttr(h.operator || '')}" class="admin-input" oninput="app.utils.triggerSuggestion('req-h-op-${r.id}-${i}', 'req-h-sug-op-${r.id}-${i}', this.value, 'operator')">
                                                         <div id="req-h-sug-op-${r.id}-${i}" class="suggestion-box"></div>
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <span class="admin-label">Tuyến</span>
+                                                    <span class="admin-label">Tuyến ${routeTag}</span>
                                                     <div class="relative">
                                                         <input type="text" id="req-h-route-${r.id}-${i}" value="${app.utils.escapeAttr(h.route || '')}" class="admin-input" autocomplete="off" onfocus="app.utils.triggerRouteSuggestion('req-h-route-${r.id}-${i}', 'req-h-sug-route-${r.id}-${i}', '')" oninput="app.utils.triggerRouteSuggestion('req-h-route-${r.id}-${i}', 'req-h-sug-route-${r.id}-${i}', this.value)">
                                                         <div id="req-h-sug-route-${r.id}-${i}" class="suggestion-box"></div>
@@ -994,7 +1014,7 @@ Object.assign(window.app, {
                                                 </div>
                                             </div>
                                             <div>
-                                                <span class="admin-label">Ghi chú</span>
+                                                <span class="admin-label">Ghi chú ${noteTag}</span>
                                                 <input type="text" id="req-h-note-${r.id}-${i}" value="${app.utils.escapeAttr(h.note || '')}" class="admin-input">
                                             </div>
                                         </div>
