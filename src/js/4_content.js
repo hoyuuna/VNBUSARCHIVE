@@ -2801,7 +2801,7 @@ Object.assign(window.app, {
                                 app.crop.cropper = new Cropper(img, {
                                     aspectRatio: app.crop.savedRatio,
                                     
-                                    // 1. CRITICAL: Change to viewMode 0. This stops Cropper from natively moving the crop box to compensate for boundaries.
+                                    // 1. MUST BE 0. Removes native bounding-box restrictions that break rotated images.
                                     viewMode: 0, 
                                     
                                     dragMode: 'move',
@@ -2811,60 +2811,46 @@ Object.assign(window.app, {
                                     wheelZoomRatio: 0.1,
                                     toggleDragModeOnDblclick: false,
                                     checkCrossOrigin: false,
-                                    
-                                    // 2. STRICT ZOOM CLAMPING
+
+                                    // 2. PREVENT ZOOMING OUT (Revealing background)
                                     zoom: (event) => {
                                         if (app.crop.isSystemUpdating) return;
                                         const cropper = app.crop.cropper;
                                         const minScale = app.crop.calculateInitialCoverScale();
                                         
+                                        // If the user tries to zoom out smaller than the required cover scale
                                         if (event.detail.ratio < minScale) {
-                                            event.preventDefault(); // Stop user from zooming out too much
-                                            cropper.zoomTo(minScale);
+                                            event.preventDefault(); // Stop the mouse wheel / pinch action
+                                            cropper.zoomTo(minScale); // Snap strictly to the minimum safe size
                                         }
                                     },
 
-                                    // 3. BULLETPROOF PHYSICS ENGINE FOR PANNING AND CROP BOX ANCHORING
-                                    crop: (event) => {
+                                    // 3. THE MAGIC: PREVENT DRAGGING OUT OF BOUNDS (Stops the runaway box!)
+                                    cropmove: (event) => {
                                         if (app.crop.isSystemUpdating) return;
                                         const cropper = app.crop.cropper;
-                                        app.crop.isSystemUpdating = true; // Lock to prevent infinite loops
-
-                                        // --- A. ANCHOR THE CROP BOX TO THE EXACT CENTER ---
-                                        const containerData = cropper.getContainerData();
-                                        const cropBoxData = cropper.getCropBoxData();
-                                        const expectedLeft = (containerData.width - cropBoxData.width) / 2;
-                                        const expectedTop = (containerData.height - cropBoxData.height) / 2;
                                         
-                                        // If Cropper tried to move the box, snap it back instantly
-                                        if (Math.abs(cropBoxData.left - expectedLeft) > 0.5 || Math.abs(cropBoxData.top - expectedTop) > 0.5) {
-                                            cropper.setCropBoxData({ left: expectedLeft, top: expectedTop });
+                                        // getData(true) returns the crop box coordinates mapped to the ORIGINAL unrotated image pixels!
+                                        // This automatically handles the trigonometry for rotation.
+                                        const data = cropper.getData(true); 
+                                        const imgData = cropper.getImageData();
+
+                                        // Check if the crop box is trying to cross the natural boundaries of the image
+                                        if (
+                                            data.x <= 0 || 
+                                            data.y <= 0 || 
+                                            (data.x + data.width) >= imgData.naturalWidth || 
+                                            (data.y + data.height) >= imgData.naturalHeight
+                                        ) {
+                                            // The user dragged the image too far!
+                                            // Canceling the event STOPS the canvas from moving, and STOPS the crop box from drifting.
+                                            event.preventDefault();
                                         }
+                                    },
 
-                                        // --- B. CLAMP THE IMAGE DRAGGING (NO TRANSPARENT GAPS) ---
-                                        const data = event.detail; 
-                                        const imageData = cropper.getImageData();
-                                        
-                                        let newX = data.x;
-                                        let newY = data.y;
-                                        let isOutOfBounds = false;
-
-                                        const maxX = imageData.naturalWidth - data.width;
-                                        const maxY = imageData.naturalHeight - data.height;
-
-                                        // Check against original unrotated image boundaries
-                                        if (newX < 0) { newX = 0; isOutOfBounds = true; }
-                                        else if (newX > maxX) { newX = maxX; isOutOfBounds = true; }
-
-                                        if (newY < 0) { newY = 0; isOutOfBounds = true; }
-                                        else if (newY > maxY) { newY = maxY; isOutOfBounds = true; }
-
-                                        // If user dragged outside the boundary, force the image back inside
-                                        if (isOutOfBounds) {
-                                            cropper.setData({ x: newX, y: newY });
-                                        }
-
-                                        app.crop.isSystemUpdating = false; // Unlock
+                                    // (Remove any manual boundary clamping from the 'crop' event. Leave it empty or just use it for updates)
+                                    crop: () => {
+                                        // Do nothing here regarding boundaries. `cropmove` handles it safely.
                                     },
                                     
                                     cropstart: () => {
@@ -2888,7 +2874,7 @@ Object.assign(window.app, {
                                         const cropper = app.crop.cropper;
                                         cropper.zoomTo(minScale);
                                         
-                                        // Center canvas
+                                        // Force center alignment natively
                                         const containerData = cropper.getContainerData();
                                         const canvasData = cropper.getCanvasData();
                                         cropper.setCanvasData({
@@ -2898,12 +2884,9 @@ Object.assign(window.app, {
                                         
                                         app.crop.lastValidCanvasData = cropper.getCanvasData();
                                         app.crop.isSystemUpdating = false;
-                                        
                                         app.crop.updateRulerUI();
+                                        
                                         if (app.crop.mode === 'main') {
-                                            if (app.crop.savedCropData && targetFile === app.crop.sourceImage) {
-                                                try { app.crop.cropper.setData(app.crop.savedCropData); } catch(e) {}
-                                            }
                                             app.crop.pushHistory();
                                         }
                                     }
