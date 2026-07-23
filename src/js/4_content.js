@@ -2778,6 +2778,85 @@ Object.assign(window.app, {
                                     viewMode: 1,
                                     autoCropArea: 1,
                                     checkCrossOrigin: false,
+                                    crop: (event) => {
+                                        if (app.crop.isClamping) return;
+                                        const cropper = app.crop.cropper;
+                                        if (!cropper) return;
+                                        
+                                        const totalAngle = (app.crop.currentBaseAngle || 0) + (app.crop.fineAngle || 0);
+                                        const cropBoxData = cropper.getCropBoxData();
+                                        const canvasData = cropper.getCanvasData();
+                                        
+                                        if (totalAngle % 90 === 0) {
+                                            app.crop.lastValidCropBoxData = cropBoxData;
+                                            app.crop.lastCanvasData = canvasData;
+                                            return;
+                                        }
+
+                                        const imageData = cropper.getImageData();
+                                        const W = imageData.naturalWidth;
+                                        const H = imageData.naturalHeight;
+                                        const cx = canvasData.left + canvasData.width / 2;
+                                        const cy = canvasData.top + canvasData.height / 2;
+                                        
+                                        const rad = totalAngle * Math.PI / 180;
+                                        const C = Math.cos(rad);
+                                        const S = Math.sin(rad);
+                                        const absC = Math.abs(C);
+                                        const absS = Math.abs(S);
+                                        
+                                        const bboxW = W * absC + H * absS;
+                                        const scale = canvasData.width / bboxW;
+                                        
+                                        const w = (W * scale) / 2;
+                                        const h = (H * scale) / 2;
+                                        
+                                        const corners = [
+                                            { x: cropBoxData.left, y: cropBoxData.top },
+                                            { x: cropBoxData.left + cropBoxData.width, y: cropBoxData.top },
+                                            { x: cropBoxData.left, y: cropBoxData.top + cropBoxData.height },
+                                            { x: cropBoxData.left + cropBoxData.width, y: cropBoxData.top + cropBoxData.height }
+                                        ];
+                                        
+                                        let isValid = true;
+                                        for (let pt of corners) {
+                                            const dx = pt.x - cx;
+                                            const dy = pt.y - cy;
+                                            const lx = dx * C + dy * S;
+                                            const ly = -dx * S + dy * C;
+                                            
+                                            if (Math.abs(lx) > w + 0.5 || Math.abs(ly) > h + 0.5) {
+                                                isValid = false;
+                                                break;
+                                            }
+                                        }
+                                        
+                                        const prevCanvas = app.crop.lastCanvasData;
+                                        const isCanvasChanged = prevCanvas && (Math.abs(canvasData.width - prevCanvas.width) > 0.1 || Math.abs(canvasData.left - prevCanvas.left) > 0.1 || Math.abs(canvasData.top - prevCanvas.top) > 0.1);
+
+                                        if (!isValid) {
+                                            app.crop.isClamping = true;
+                                            if (isCanvasChanged || !app.crop.lastValidCropBoxData) {
+                                                const aspectRatio = (typeof app.crop.savedRatio === 'number' && !isNaN(app.crop.savedRatio)) ? app.crop.savedRatio : (4/3);
+                                                const maxH = Math.min(W / (aspectRatio * absC + absS), H / (aspectRatio * absS + absC));
+                                                const maxW = maxH * aspectRatio;
+                                                const cropW = maxW * scale;
+                                                const cropH = maxH * scale;
+                                                cropper.setCropBoxData({
+                                                    left: canvasData.left + (canvasData.width - cropW) / 2,
+                                                    top: canvasData.top + (canvasData.height - cropH) / 2,
+                                                    width: cropW,
+                                                    height: cropH
+                                                });
+                                            } else {
+                                                cropper.setCropBoxData(app.crop.lastValidCropBoxData);
+                                            }
+                                            setTimeout(() => { app.crop.isClamping = false; }, 0);
+                                        } else {
+                                            app.crop.lastValidCropBoxData = cropBoxData;
+                                            app.crop.lastCanvasData = canvasData;
+                                        }
+                                    },
                                     ready: () => {
                                         app.crop.updateRulerUI();
                                         if (app.crop.cropper) {
@@ -2930,6 +3009,11 @@ Object.assign(window.app, {
 
                 rotateBy: (deg) => {
                     app.crop.currentBaseAngle += deg;
+                    app.crop.fineAngle = 0;
+                    const rotateSlider = document.getElementById('crop-rotate-slider');
+                    if (rotateSlider) rotateSlider.value = 0;
+                    const rotateVal = document.getElementById('crop-rotate-val');
+                    if (rotateVal) rotateVal.innerText = '0°';
                     app.crop.updateRotation();
                 },
 
@@ -2944,9 +3028,9 @@ Object.assign(window.app, {
                     
                     const W = imageData.naturalWidth;
                     const H = imageData.naturalHeight;
-                    const rad = Math.abs(totalAngle) * Math.PI / 180;
-                    const C = Math.cos(rad);
-                    const S = Math.sin(rad);
+                    const rad = totalAngle * Math.PI / 180;
+                    const C = Math.abs(Math.cos(rad));
+                    const S = Math.abs(Math.sin(rad));
                     
                     const aspectRatio = (typeof app.crop.savedRatio === 'number' && !isNaN(app.crop.savedRatio)) ? app.crop.savedRatio : (4/3);
                     
