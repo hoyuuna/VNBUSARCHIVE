@@ -325,7 +325,7 @@ Object.assign(window.app, {
                     if (app.homeTotalPages > 1) {
                         const btnContainer = document.getElementById('load-more-container');
                         btnContainer.classList.remove('hidden');
-                        btnContainer.innerHTML = `<button id="btn-home-load-more" onclick="app.views.loadMorePhotos()" class="px-6 py-2 bg-black text-white text-sm font-bold rounded-lg shadow-sm hover:bg-gray-800 transition">Xem thêm ảnh</button>`;
+                        btnContainer.innerHTML = `<button id="btn-home-load-more" onclick="app.views.loadMorePhotos()" class="bg-white border border-gray-300 text-gray-700 px-6 py-2.5 text-sm font-bold rounded-md hover:bg-gray-50 hover:border-gray-400 transition shadow-sm">Xem thêm <i class="fa-solid fa-chevron-down ml-1"></i></button>`;
                     } else {
                         document.getElementById('load-more-container').classList.add('hidden');
                     }
@@ -646,7 +646,7 @@ Object.assign(window.app, {
                                 document.getElementById('load-more-container').classList.add('hidden');
                             } else {
                                 btn.disabled = false;
-                                btn.innerHTML = 'Xem thêm ảnh';
+                                btn.innerHTML = 'Xem thêm <i class="fa-solid fa-chevron-down ml-1"></i>';
                             }
                         }
                     }
