@@ -2085,14 +2085,28 @@ app.admin.fetchManagerData('denied');
                     }
                 },
 
+                _managerSearchTimeout: null,
+                
                 fetchManagerData: async (type) => {
                     try {
+                        const state = app.admin.manager[type];
+                        state.page = state.page || 1;
+                        const q = state.searchQuery || '';
+
                         if (type === 'denied') {
-                            const state = app.admin.manager.denied;
+                            const perPage = 50;
+                            const fromRow = (state.page - 1) * perPage;
+                            const toRow = fromRow + perPage - 1;
                             let photos = [];
+                            let total = 0;
                             try {
-                                const { data: pData } = await window.sb.from('photos').select('*, profiles(username)').eq('status', 'denied').order('created_at', {ascending: false}).limit(2000);
+                                let query = window.sb.from('photos').select('*, profiles(username)', {count: 'exact'}).eq('status', 'denied').order('created_at', {ascending: false});
+                                if (q) {
+                                    query = query.or(`license_plate.ilike.%${q}%,denial_reason.ilike.%${q}%`);
+                                }
+                                const { data: pData, count } = await query.range(fromRow, toRow);
                                 if (pData && pData.length > 0) photos = pData;
+                                total = count || 0;
                             } catch(e){}
 
                             const { data: logs } = await window.sb.from('admin_audit_logs').select('target_id, profiles(username)').eq('action_type', 'deny_photo');
@@ -2100,28 +2114,44 @@ app.admin.fetchManagerData('denied');
                             if(logs) logs.forEach(l => { denierMap[l.target_id] = l.profiles?.username || 'Admin'; });
                             if (photos && photos.length > 0) await app.utils.resolveSandboxUrls(photos);
                             state.data = photos ||[];
+                            state.total = total;
                             state.denierMap = denierMap;
-                            app.admin.filterManagerData('denied', '');
                         }
                         else if (type === 'logs') {
-                            const state = app.admin.manager.logs;
-                            const { data: logs } = await window.sb.from('admin_audit_logs').select('*, profiles(username)').order('created_at', {ascending: false}).limit(2000);
+                            const perPage = 50;
+                            const fromRow = (state.page - 1) * perPage;
+                            const toRow = fromRow + perPage - 1;
+                            
+                            let query = window.sb.from('admin_audit_logs').select('*, profiles(username)', {count: 'exact'}).order('created_at', {ascending: false});
+                            if (q) {
+                                query = query.or(`action_type.ilike.%${q}%,target_id.ilike.%${q}%`);
+                            }
+                            const { data: logs, count } = await query.range(fromRow, toRow);
                             state.data = logs ||[];
-                            app.admin.filterManagerData('logs', '');
+                            state.total = count || 0;
                         }
                         else if (type === 'bans') {
-                            const state = app.admin.manager.bans;
+                            const perPage = 15;
                             const { data: { session } } = await window.sb.auth.getSession();
+                            const payload = { 
+                                action: 'get_users', 
+                                page: state.page, 
+                                limit: perPage,
+                                search: q,
+                                status: state.currentFilter || 'all'
+                            };
                             const response = await fetch('/api/manager', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
-                                body: JSON.stringify({ action: 'get_users', page: 1, limit: 500 })
+                                body: JSON.stringify(payload)
                             });
                             const result = await response.json();
                             if (!result.success) throw new Error(result.error);
                             state.data = result.users || [];
-                            app.admin.filterManagerData('bans', '', 'all');
+                            state.total = result.total || 0;
                         }
+
+                        app.admin.renderManagerData(type);
                     } catch (e) {
                         console.error("Lỗi fetch data manager:", e);
                         const contentEl = document.getElementById(`mgr-${type}-content`);
@@ -2134,36 +2164,16 @@ app.admin.fetchManagerData('denied');
                 filterManagerData: (type, query, statusArg) => {
                     const q = (query || '').toLowerCase().trim();
                     const state = app.admin.manager[type];
-                    if (!q && (!statusArg || statusArg === 'all') && type !== 'bans') { state.filtered =[...state.data]; }
-                    else {
-                        if (type === 'denied') {
-                            state.filtered = state.data.filter(p => `${p.license_plate} ${p.denial_reason} ${p.profiles?.username}`.toLowerCase().includes(q));
-                        } else if (type === 'bans') {
-                            const status = statusArg || app.admin.manager.bans.currentFilter || 'all';
-                            state.filtered = state.data.filter(u => {
-                                const matchText = `${u.username} ${u.id}`.toLowerCase().includes(q);
-                                
-                                const threeMonthsAgo = new Date();
-                                threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-                                const lastSignIn = new Date(u.last_sign_in_at);
-                                const isWarning = lastSignIn < threeMonthsAgo;
-                                
-                                let banInfo = { banned: false };
-                                try { banInfo = typeof u.ban_status === 'string' ? JSON.parse(u.ban_status) : (u.ban_status || banInfo); } catch(e){}
-
-                                let matchStatus = true;
-                                if (status === 'active') matchStatus = !banInfo.banned && !isWarning;
-                                if (status === 'warning') matchStatus = !banInfo.banned && isWarning;
-                                if (status === 'banned') matchStatus = banInfo.banned;
-
-                                return matchText && matchStatus;
-                            });
-                        } else {
-                            state.filtered = state.data.filter(l => `${l.action_type} ${l.target_id} ${l.profiles?.username} ${JSON.stringify(l.details)}`.toLowerCase().includes(q));
-                        }
+                    state.searchQuery = q;
+                    if (type === 'bans') {
+                        state.currentFilter = statusArg || state.currentFilter || 'all';
                     }
                     state.page = 1;
-                    app.admin.renderManagerData(type);
+                    
+                    if (app.admin._managerSearchTimeout) clearTimeout(app.admin._managerSearchTimeout);
+                    app.admin._managerSearchTimeout = setTimeout(() => {
+                        app.admin.fetchManagerData(type);
+                    }, 400);
                 },
 
                 setBanFilter: (status) => {
@@ -2213,8 +2223,8 @@ app.admin.fetchManagerData('denied');
                 renderManagerData: async (type) => {
                     const state = app.admin.manager[type];
                     const perPage = (type === 'denied' || type === 'logs') ? 50 : 15;
-                    const totalPages = Math.ceil(state.filtered.length / perPage) || 1;
-                    const slice = state.filtered.slice((state.page - 1) * perPage, state.page * perPage);
+                    const totalPages = Math.ceil((state.total || 0) / perPage) || 1;
+                    const slice = state.data || [];
                     const contentEl = document.getElementById(`mgr-${type}-content`);
                     const pagerElId = `mgr-${type}-pager`;
 
@@ -2291,10 +2301,16 @@ app.admin.fetchManagerData('denied');
                             return `<tr class="hover:bg-gray-50 transition"><td class="p-3 text-[11px] text-gray-500">${time}</td><td class="p-3 font-bold text-black text-[12px]">${app.utils.cleanText(log.profiles?.username || 'Unknown')}</td><td class="p-3">${app.utils.cleanText(log.action_type)}</td><td class="p-3 text-[10px] font-mono">${app.utils.cleanText(log.target_id || '-')}</td><td class="p-3 text-[11px] break-all">${app.utils.cleanText(JSON.stringify(log.details))}</td></tr>`;
                         }).join('');
                     }
-                    app.utils.renderPagination(pagerElId, state.page, totalPages, (newPage) => {
-                        app.admin.manager[type].page = newPage;
-                        app.admin.renderManagerData(type);
-                    });
+                    if (totalPages > 1) {
+                        const pEl = document.getElementById(pagerElId);
+                        pEl.className = 'col-span-full mt-4';
+                        app.utils.renderPagination(pagerElId, state.page, totalPages, (newPage) => {
+                            state.page = newPage;
+                            app.admin.fetchManagerData(type);
+                        });
+                    } else {
+                        document.getElementById(pagerElId).innerHTML = '';
+                    }
                 },
 
                 toggleBanSection: (section) => {

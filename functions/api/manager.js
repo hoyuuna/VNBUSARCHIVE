@@ -45,9 +45,13 @@ export async function onRequest(context) {
             const pageNum = parseInt(body.page) || 1;
             const pageSize = parseInt(body.limit) || 50;
             const search = body.search || '';
+            const status = body.status || 'all';
 
             let query = supabaseAdmin.from('profiles').select('id, username, ban_status', { count: 'exact' });
             if (search) query = query.ilike('username', `%${search}%`);
+            if (status === 'banned') {
+                query = query.ilike('ban_status', '%"banned":true%');
+            }
             
             const { data: profiles, count, error } = await query
                 .order('username')
