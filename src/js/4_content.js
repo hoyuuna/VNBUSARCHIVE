@@ -2691,6 +2691,9 @@ Object.assign(window.app, {
                 modeTab: 'ratio',
                 currentBaseAngle: 0,
                 fineAngle: 0,
+                history: [],
+                currentIndex: -1,
+                isRestoringHistory: false,
                 isMandatory: false, // Thêm cờ đánh dấu bắt buộc cắt
                 isRulerEnabled: false,
 
@@ -2770,6 +2773,10 @@ Object.assign(window.app, {
                                 if (modePanel) modePanel.classList.remove('hidden');
                                 app.crop.setModeTab('ratio');
 
+                                app.crop.history = [];
+                                app.crop.currentIndex = -1;
+                                app.crop.updateHistoryButtons();
+
                                 // Hiện lại thanh chọn tỉ lệ (16:9, 3:2, 4:3)
                                 if(ratioContainer) ratioContainer.classList.remove('hidden');
 
@@ -2778,6 +2785,19 @@ Object.assign(window.app, {
                                     viewMode: 1,
                                     autoCropArea: 1,
                                     checkCrossOrigin: false,
+                                    cropstart: () => {
+                                        const btnCancel = document.getElementById('btn-crop-cancel');
+                                        const btnApply = document.getElementById('btn-crop-apply');
+                                        if (btnCancel) { btnCancel.disabled = true; btnCancel.classList.add('opacity-50', 'pointer-events-none'); }
+                                        if (btnApply) { btnApply.disabled = true; btnApply.classList.add('opacity-50', 'pointer-events-none'); }
+                                    },
+                                    cropend: () => {
+                                        const btnCancel = document.getElementById('btn-crop-cancel');
+                                        const btnApply = document.getElementById('btn-crop-apply');
+                                        if (btnCancel) { btnCancel.disabled = false; btnCancel.classList.remove('opacity-50', 'pointer-events-none'); }
+                                        if (btnApply) { btnApply.disabled = false; btnApply.classList.remove('opacity-50', 'pointer-events-none'); }
+                                        app.crop.pushHistory();
+                                    },
                                     crop: (event) => {
                                         if (app.crop.isClamping) return;
                                         const cropper = app.crop.cropper;
@@ -2866,6 +2886,7 @@ Object.assign(window.app, {
                                                     app.crop.cropper.setData(app.crop.savedCropData);
                                                 } catch(e) { console.warn("Lỗi khôi phục vùng cắt:", e); }
                                             }
+                                            app.crop.pushHistory();
                                         }
                                     }
                                 });
@@ -2958,6 +2979,7 @@ Object.assign(window.app, {
                         app.crop.updateRatioButtons(ratio);
                         if (app.crop.mode === 'main') {
                             app.crop.savedRatio = ratio;
+                            app.crop.pushHistory();
                         }
                     }
                 },
@@ -2973,6 +2995,77 @@ Object.assign(window.app, {
                             btn.classList.add('bg-white', 'text-gray-700', 'border-gray-300', 'hover:bg-gray-100');
                         }
                     });
+                },
+
+                updateHistoryButtons: () => {
+                    const btnUndo = document.getElementById('btn-crop-undo');
+                    const btnRedo = document.getElementById('btn-crop-redo');
+                    const undoRedoContainer = document.getElementById('crop-undo-redo');
+                    if (app.crop.mode !== 'main') {
+                        if (undoRedoContainer) undoRedoContainer.classList.add('hidden');
+                        return;
+                    }
+                    if (undoRedoContainer) undoRedoContainer.classList.remove('hidden');
+
+                    if (btnUndo) btnUndo.disabled = app.crop.currentIndex <= 0;
+                    if (btnRedo) btnRedo.disabled = app.crop.currentIndex >= app.crop.history.length - 1;
+                },
+
+                pushHistory: () => {
+                    if (!app.crop.cropper || app.crop.isRestoringHistory) return;
+                    if (app.crop.currentIndex < app.crop.history.length - 1) {
+                        app.crop.history = app.crop.history.slice(0, app.crop.currentIndex + 1);
+                    }
+                    const state = {
+                        cropBoxData: app.crop.cropper.getCropBoxData(),
+                        canvasData: app.crop.cropper.getCanvasData(),
+                        baseAngle: app.crop.currentBaseAngle,
+                        fineAngle: app.crop.fineAngle,
+                        ratio: app.crop.savedRatio,
+                        modeTab: app.crop.modeTab
+                    };
+                    app.crop.history.push(state);
+                    app.crop.currentIndex++;
+                    app.crop.updateHistoryButtons();
+                },
+
+                undo: () => {
+                    if (app.crop.currentIndex > 0) {
+                        app.crop.currentIndex--;
+                        app.crop.restoreState(app.crop.history[app.crop.currentIndex]);
+                    }
+                },
+
+                redo: () => {
+                    if (app.crop.currentIndex < app.crop.history.length - 1) {
+                        app.crop.currentIndex++;
+                        app.crop.restoreState(app.crop.history[app.crop.currentIndex]);
+                    }
+                },
+
+                restoreState: (state) => {
+                    if (!app.crop.cropper || !state) return;
+                    app.crop.isRestoringHistory = true;
+                    
+                    app.crop.currentBaseAngle = state.baseAngle;
+                    app.crop.fineAngle = state.fineAngle;
+                    app.crop.savedRatio = state.ratio;
+                    
+                    const rotateSlider = document.getElementById('crop-rotate-slider');
+                    if (rotateSlider) rotateSlider.value = state.fineAngle;
+                    const rotateVal = document.getElementById('crop-rotate-val');
+                    if (rotateVal) rotateVal.innerText = (state.fineAngle > 0 ? '+' : '') + state.fineAngle + '°';
+                    
+                    app.crop.setModeTab(state.modeTab || 'ratio');
+                    app.crop.updateRatioButtons((typeof state.ratio === 'number' && !isNaN(state.ratio)) ? state.ratio : (4/3));
+                    
+                    app.crop.cropper.rotateTo(state.baseAngle + state.fineAngle);
+                    app.crop.cropper.setAspectRatio((typeof state.ratio === 'number' && !isNaN(state.ratio)) ? state.ratio : (4/3));
+                    app.crop.cropper.setCanvasData(state.canvasData);
+                    app.crop.cropper.setCropBoxData(state.cropBoxData);
+                    
+                    app.crop.updateHistoryButtons();
+                    app.crop.isRestoringHistory = false;
                 },
 
                 setModeTab: (tab) => {
@@ -3015,6 +3108,7 @@ Object.assign(window.app, {
                     const rotateVal = document.getElementById('crop-rotate-val');
                     if (rotateVal) rotateVal.innerText = '0°';
                     app.crop.updateRotation();
+                    app.crop.pushHistory();
                 },
 
                 updateRotation: () => {
