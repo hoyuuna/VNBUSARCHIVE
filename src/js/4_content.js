@@ -2935,23 +2935,36 @@ Object.assign(window.app, {
         },
 
         onDragStart: (e) => {
-            if (e.touches && e.touches.length > 1) return;
             app.crop.isDragging = true;
-            if (e.touches && e.touches.length === 1) {
+            if (e.touches && e.touches.length >= 2) {
+                const t1 = e.touches[0];
+                const t2 = e.touches[1];
+                app.crop.lastClientX = (t1.clientX + t2.clientX) / 2;
+                app.crop.lastClientY = (t1.clientY + t2.clientY) / 2;
+                app.crop.lastPinchDist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+            } else if (e.touches && e.touches.length === 1) {
                 app.crop.lastClientX = e.touches[0].clientX;
                 app.crop.lastClientY = e.touches[0].clientY;
+                app.crop.lastPinchDist = null;
             } else {
                 app.crop.lastClientX = e.clientX;
                 app.crop.lastClientY = e.clientY;
+                app.crop.lastPinchDist = null;
             }
         },
 
         onDragMove: (e) => {
             if (!app.crop.isDragging) return;
-            if (e.touches && e.touches.length > 1) return;
             e.preventDefault();
-            let clientX, clientY;
-            if (e.touches && e.touches.length === 1) {
+            let clientX, clientY, currentPinchDist = null;
+            
+            if (e.touches && e.touches.length >= 2) {
+                const t1 = e.touches[0];
+                const t2 = e.touches[1];
+                clientX = (t1.clientX + t2.clientX) / 2;
+                clientY = (t1.clientY + t2.clientY) / 2;
+                currentPinchDist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+            } else if (e.touches && e.touches.length === 1) {
                 clientX = e.touches[0].clientX;
                 clientY = e.touches[0].clientY;
             } else {
@@ -2965,19 +2978,44 @@ Object.assign(window.app, {
             app.crop.state.x += deltaX;
             app.crop.state.y += deltaY;
             
+            if (currentPinchDist && app.crop.lastPinchDist) {
+                const pinchDelta = currentPinchDist - app.crop.lastPinchDist;
+                app.crop.state.scale += pinchDelta * 0.005;
+                if (app.crop.state.scale < app.crop.state.minScale) {
+                    app.crop.state.scale = app.crop.state.minScale;
+                }
+            }
+            
             app.crop.lastClientX = clientX;
             app.crop.lastClientY = clientY;
+            if (currentPinchDist) app.crop.lastPinchDist = currentPinchDist;
             
             app.crop.applyTransform();
         },
 
         onDragEnd: (e) => {
+            if (e.touches && e.touches.length > 0) {
+                if (e.touches.length === 1) {
+                    app.crop.lastClientX = e.touches[0].clientX;
+                    app.crop.lastClientY = e.touches[0].clientY;
+                    app.crop.lastPinchDist = null;
+                } else if (e.touches.length >= 2) {
+                    const t1 = e.touches[0];
+                    const t2 = e.touches[1];
+                    app.crop.lastClientX = (t1.clientX + t2.clientX) / 2;
+                    app.crop.lastClientY = (t1.clientY + t2.clientY) / 2;
+                    app.crop.lastPinchDist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+                }
+                return;
+            }
             app.crop.isDragging = false;
+            app.crop.lastPinchDist = null;
         },
 
         onWheel: (e) => {
             e.preventDefault();
-            const delta = e.deltaY > 0 ? -0.05 : 0.05;
+            // Scale dynamically based on deltaY, makes trackpad very smooth, caps at normal mouse wheel speed
+            const delta = -(e.deltaY * 0.0005);
             app.crop.state.scale += delta;
             
             if (app.crop.state.scale < app.crop.state.minScale) {
