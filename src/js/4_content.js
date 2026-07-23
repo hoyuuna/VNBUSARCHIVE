@@ -2852,11 +2852,58 @@ Object.assign(window.app, {
                                         }
                                         
                                         const prevCanvas = app.crop.lastCanvasData;
+                                        const prevCrop = app.crop.lastValidCropBoxData;
                                         const isCanvasChanged = prevCanvas && (Math.abs(canvasData.width - prevCanvas.width) > 0.1 || Math.abs(canvasData.left - prevCanvas.left) > 0.1 || Math.abs(canvasData.top - prevCanvas.top) > 0.1);
 
                                         if (!isValid) {
                                             app.crop.isClamping = true;
-                                            if (isCanvasChanged || !app.crop.lastValidCropBoxData) {
+                                            
+                                            const isDragOnly = prevCrop && Math.abs(cropBoxData.width - prevCrop.width) < 0.1 && Math.abs(cropBoxData.height - prevCrop.height) < 0.1;
+
+                                            if (isDragOnly && !isCanvasChanged) {
+                                                const dx = cropBoxData.left - prevCrop.left;
+                                                const dy = cropBoxData.top - prevCrop.top;
+                                                
+                                                const checkTest = (l, t) => {
+                                                    const testCorners = [
+                                                        { x: l, y: t },
+                                                        { x: l + prevCrop.width, y: t },
+                                                        { x: l, y: t + prevCrop.height },
+                                                        { x: l + prevCrop.width, y: t + prevCrop.height }
+                                                    ];
+                                                    for (let pt of testCorners) {
+                                                        const p_dx = pt.x - cx;
+                                                        const p_dy = pt.y - cy;
+                                                        const lx = p_dx * C + p_dy * S;
+                                                        const ly = -p_dx * S + p_dy * C;
+                                                        if (Math.abs(lx) > w + 0.5 || Math.abs(ly) > h + 0.5) return false;
+                                                    }
+                                                    return true;
+                                                };
+                                                
+                                                let tryX = false;
+                                                let tryY = false;
+                                                if (Math.abs(dx) > 0.1) tryX = checkTest(cropBoxData.left, prevCrop.top);
+                                                if (Math.abs(dy) > 0.1) tryY = checkTest(prevCrop.left, cropBoxData.top);
+                                                
+                                                if (tryX && !tryY) {
+                                                    cropper.setCropBoxData({ left: cropBoxData.left, top: prevCrop.top, width: prevCrop.width, height: prevCrop.height });
+                                                } else if (tryY && !tryX) {
+                                                    cropper.setCropBoxData({ left: prevCrop.left, top: cropBoxData.top, width: prevCrop.width, height: prevCrop.height });
+                                                } else {
+                                                    let t = 0.5; let step = 0.25; let bestT = 0;
+                                                    for (let i = 0; i < 5; i++) {
+                                                        if (checkTest(prevCrop.left + dx * t, prevCrop.top + dy * t)) {
+                                                            bestT = t; t += step;
+                                                        } else { t -= step; }
+                                                    }
+                                                    if (bestT > 0) {
+                                                        cropper.setCropBoxData({ left: prevCrop.left + dx * bestT, top: prevCrop.top + dy * bestT, width: prevCrop.width, height: prevCrop.height });
+                                                    } else {
+                                                        cropper.setCropBoxData(prevCrop);
+                                                    }
+                                                }
+                                            } else if (isCanvasChanged || !prevCrop) {
                                                 const aspectRatio = (typeof app.crop.savedRatio === 'number' && !isNaN(app.crop.savedRatio)) ? app.crop.savedRatio : (4/3);
                                                 const maxH = Math.min(W / (aspectRatio * absC + absS), H / (aspectRatio * absS + absC));
                                                 const maxW = maxH * aspectRatio;
@@ -2869,7 +2916,7 @@ Object.assign(window.app, {
                                                     height: cropH
                                                 });
                                             } else {
-                                                cropper.setCropBoxData(app.crop.lastValidCropBoxData);
+                                                cropper.setCropBoxData(prevCrop);
                                             }
                                             setTimeout(() => { app.crop.isClamping = false; }, 0);
                                         } else {
@@ -2955,9 +3002,9 @@ Object.assign(window.app, {
                     const btn = document.getElementById('btn-crop-toggle-ruler');
                     if (btn) {
                         if (app.crop.isRulerEnabled) {
-                            btn.className = "px-3 py-1.5 text-xs bg-black text-white border border-black rounded-md font-bold transition ml-1 flex items-center gap-1.5";
+                            btn.className = "px-3 py-2 sm:px-3 sm:py-1.5 text-xs bg-black text-white border border-black rounded-md font-bold transition flex items-center justify-center gap-1.5";
                         } else {
-                            btn.className = "px-3 py-1.5 text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition ml-1 flex items-center gap-1.5";
+                            btn.className = "px-3 py-2 sm:px-3 sm:py-1.5 text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition flex items-center justify-center gap-1.5";
                         }
                     }
                     const cropBox = document.querySelector('#crop-modal .cropper-crop-box');

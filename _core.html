@@ -2262,11 +2262,11 @@
                     </div>
                     <div class="p-3 md:p-4 flex justify-between items-center w-full">
                         <div class="flex items-center">
-                            <button type="button" id="btn-crop-toggle-ruler" onclick="app.crop.toggleRuler()" class="px-3 py-1.5 text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition flex items-center gap-1.5" title="Bật/Tắt thước ngang canh xe">
-                                <i class="fa-solid fa-ruler-horizontal"></i> Thước ngang
+                            <button type="button" id="btn-crop-toggle-ruler" onclick="app.crop.toggleRuler()" class="px-3 py-2 sm:px-3 sm:py-1.5 text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition flex items-center justify-center gap-1.5" title="Bật/Tắt thước ngang canh xe">
+                                <i class="fa-solid fa-ruler-horizontal"></i> <span class="hidden sm:inline">Thước ngang</span>
                             </button>
                         </div>
-                        <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-2 sm:gap-4">
                             <div class="flex items-center gap-1 bg-gray-100 rounded-md p-1 border border-gray-200" id="crop-undo-redo">
                                 <button type="button" id="btn-crop-undo" onclick="app.crop.undo()" class="w-8 h-8 flex items-center justify-center rounded text-gray-700 hover:bg-gray-200 disabled:opacity-30 disabled:hover:bg-transparent transition" title="Hoàn tác (Undo)" disabled>
                                     <i class="fa-solid fa-undo"></i>
@@ -2276,8 +2276,12 @@
                                 </button>
                             </div>
                             <div class="flex items-center gap-2">
-                                <button type="button" id="btn-crop-cancel" onclick="app.crop.close()" class="px-5 py-2.5 bg-gray-100 border border-gray-300 text-gray-700 text-xs font-bold rounded-md hover:bg-gray-200 transition disabled:opacity-50 disabled:pointer-events-none">Hủy</button>
-                                <button type="button" id="btn-crop-apply" onclick="app.crop.apply()" class="px-5 py-2.5 bg-black text-white text-xs font-bold rounded-md hover:bg-gray-800 transition shadow-sm disabled:opacity-50 disabled:pointer-events-none"><i class="fa-solid fa-check mr-1"></i> Áp dụng</button>
+                                <button type="button" id="btn-crop-cancel" onclick="app.crop.close()" class="px-4 py-2 sm:px-5 sm:py-2.5 bg-gray-100 border border-gray-300 text-gray-700 text-xs font-bold rounded-md hover:bg-gray-200 transition disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center" title="Hủy">
+                                    <i class="fa-solid fa-xmark text-sm sm:hidden"></i><span class="hidden sm:inline">Hủy</span>
+                                </button>
+                                <button type="button" id="btn-crop-apply" onclick="app.crop.apply()" class="px-4 py-2 sm:px-5 sm:py-2.5 bg-black text-white text-xs font-bold rounded-md hover:bg-gray-800 transition shadow-sm disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-1.5" title="Áp dụng">
+                                    <i class="fa-solid fa-check text-sm sm:text-xs"></i> <span class="hidden sm:inline">Áp dụng</span>
+                                </button>
                             </div>
                         </div>
                     </div>
