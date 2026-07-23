@@ -2796,6 +2796,8 @@ Object.assign(window.app, {
                                     app.crop.savedRatio = bestRatio;
                                 }
 
+                                app.crop.updateRatioButtons(app.crop.savedRatio);
+
                                 app.crop.cropper = new Cropper(img, {
                                     aspectRatio: app.crop.savedRatio,
                                     viewMode: 1,
