@@ -122,16 +122,7 @@
         
         @keyframes slideOut { 0% { grid-template-columns: 0fr; opacity: 0; } 100% { grid-template-columns: 1fr; opacity: 1; } }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    
-        /* CropperJS Ghosting Fix */
-        .cropper-view-box img { display: none !important; }
-        .cropper-modal { display: none !important; }
-        .cropper-crop-box { box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.75) !important; overflow: visible !important; }
-        .cropper-view-box { outline: 1px solid rgba(255,255,255,0.8) !important; outline-color: rgba(255,255,255,0.8) !important; }
-        #crop-image-container.avatar-mode .cropper-crop-box { border-radius: 50%; }
-        #crop-image-container.avatar-mode .cropper-view-box { border-radius: 50%; }
-        /* End CropperJS Ghosting Fix */
-</style>
+    </style>
 </head>
 <body>
     <div id="loading-screen">

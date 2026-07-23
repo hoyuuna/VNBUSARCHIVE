@@ -2944,10 +2944,6 @@ Object.assign(window.app, {
                     });
                     
                     if (app.crop.cropper.cropBox) {
-                        app.crop.cropper.cropBox.style.setProperty('position', 'absolute', 'important');
-                        app.crop.cropper.cropBox.style.setProperty('top', '50%', 'important');
-                        app.crop.cropper.cropBox.style.setProperty('left', '50%', 'important');
-                        app.crop.cropper.cropBox.style.setProperty('transform', 'translate(-50%, -50%)', 'important');
                         app.crop.cropper.cropBox.style.setProperty('pointer-events', 'none', 'important');
                     }
                 },
