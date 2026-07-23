@@ -2247,13 +2247,13 @@
                             <button type="button" onclick="app.crop.rotateBy(-90)" class="px-3 py-1.5 text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition flex items-center gap-1.5" title="Xoay trái 90 độ">
                                 <i class="fa-solid fa-rotate-left"></i>
                             </button>
-                            <div class="flex flex-col items-center justify-center px-2">
+                            <div class="flex flex-col items-center justify-center px-2 sm:px-4 w-48 sm:w-72 md:w-80">
                                 <div class="flex justify-between w-full text-[10px] font-bold text-gray-500 mb-1">
                                     <span>-45°</span>
                                     <span id="crop-rotate-val">0°</span>
                                     <span>+45°</span>
                                 </div>
-                                <input type="range" id="crop-rotate-slider" min="-45" max="45" value="0" class="vnbus-slider w-32 sm:w-48" oninput="app.crop.slideRotate(this.value)" onchange="app.crop.pushHistory()">
+                                <input type="range" id="crop-rotate-slider" min="-45" max="45" value="0" class="vnbus-slider w-full" oninput="app.crop.slideRotate(this.value)" onchange="app.crop.pushHistory()">
                             </div>
                             <button type="button" onclick="app.crop.rotateBy(90)" class="px-3 py-1.5 text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition flex items-center gap-1.5" title="Xoay phải 90 độ">
                                 <i class="fa-solid fa-rotate-right"></i>
