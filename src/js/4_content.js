@@ -2918,7 +2918,7 @@ Object.assign(window.app, {
                                             } else {
                                                 cropper.setCropBoxData(prevCrop);
                                             }
-                                            setTimeout(() => { app.crop.isClamping = false; }, 0);
+                                            app.crop.isClamping = false;
                                         } else {
                                             app.crop.lastValidCropBoxData = cropBoxData;
                                             app.crop.lastCanvasData = canvasData;
@@ -3145,6 +3145,16 @@ Object.assign(window.app, {
                         rotateVal.innerText = (app.crop.fineAngle > 0 ? '+' : '') + app.crop.fineAngle + '°';
                     }
                     app.crop.updateRotation();
+                },
+
+                stepRotate: (delta) => {
+                    let newVal = app.crop.fineAngle + delta;
+                    if (newVal < -45) newVal = -45;
+                    if (newVal > 45) newVal = 45;
+                    const rotateSlider = document.getElementById('crop-rotate-slider');
+                    if (rotateSlider) rotateSlider.value = newVal;
+                    app.crop.slideRotate(newVal);
+                    app.crop.pushHistory();
                 },
 
                 rotateBy: (deg) => {
