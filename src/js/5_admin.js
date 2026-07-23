@@ -2089,16 +2089,10 @@ app.admin.fetchManagerData('denied');
                     try {
                         if (type === 'denied') {
                             const state = app.admin.manager.denied;
-                            state.page = state.page || 1;
-                            const perPage = 50;
-                            const fromRow = (state.page - 1) * perPage;
-                            const toRow = fromRow + perPage - 1;
                             let photos = [];
-                            let total = 0;
                             try {
-                                const { data: pData, count } = await window.sb.from('photos').select('*, profiles(username)', {count: 'exact'}).eq('status', 'denied').order('created_at', {ascending: false}).range(fromRow, toRow);
+                                const { data: pData } = await window.sb.from('photos').select('*, profiles(username)').eq('status', 'denied').order('created_at', {ascending: false}).limit(2000);
                                 if (pData && pData.length > 0) photos = pData;
-                                total = count || 0;
                             } catch(e){}
 
                             const { data: logs } = await window.sb.from('admin_audit_logs').select('target_id, profiles(username)').eq('action_type', 'deny_photo');
@@ -2106,36 +2100,27 @@ app.admin.fetchManagerData('denied');
                             if(logs) logs.forEach(l => { denierMap[l.target_id] = l.profiles?.username || 'Admin'; });
                             if (photos && photos.length > 0) await app.utils.resolveSandboxUrls(photos);
                             state.data = photos ||[];
-                            state.total = total;
                             state.denierMap = denierMap;
-                            app.admin.filterManagerData('denied', '', null, true);
+                            app.admin.filterManagerData('denied', '');
                         }
                         else if (type === 'logs') {
                             const state = app.admin.manager.logs;
-                            state.page = state.page || 1;
-                            const perPage = 50;
-                            const fromRow = (state.page - 1) * perPage;
-                            const toRow = fromRow + perPage - 1;
-                            const { data: logs, count } = await window.sb.from('admin_audit_logs').select('*, profiles(username)', {count: 'exact'}).order('created_at', {ascending: false}).range(fromRow, toRow);
+                            const { data: logs } = await window.sb.from('admin_audit_logs').select('*, profiles(username)').order('created_at', {ascending: false}).limit(2000);
                             state.data = logs ||[];
-                            state.total = count || 0;
-                            app.admin.filterManagerData('logs', '', null, true);
+                            app.admin.filterManagerData('logs', '');
                         }
                         else if (type === 'bans') {
                             const state = app.admin.manager.bans;
-                            state.page = state.page || 1;
-                            const perPage = 15;
                             const { data: { session } } = await window.sb.auth.getSession();
                             const response = await fetch('/api/manager', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
-                                body: JSON.stringify({ action: 'get_users', page: state.page, limit: perPage })
+                                body: JSON.stringify({ action: 'get_users', page: 1, limit: 500 })
                             });
                             const result = await response.json();
                             if (!result.success) throw new Error(result.error);
                             state.data = result.users || [];
-                            state.total = result.total || 0;
-                            app.admin.filterManagerData('bans', '', 'all', true);
+                            app.admin.filterManagerData('bans', '', 'all');
                         }
                     } catch (e) {
                         console.error("Lỗi fetch data manager:", e);
@@ -2146,7 +2131,7 @@ app.admin.fetchManagerData('denied');
                     }
                 },
 
-                filterManagerData: (type, query, statusArg, preservePage = false) => {
+                filterManagerData: (type, query, statusArg) => {
                     const q = (query || '').toLowerCase().trim();
                     const state = app.admin.manager[type];
                     if (!q && (!statusArg || statusArg === 'all') && type !== 'bans') { state.filtered =[...state.data]; }
@@ -2177,7 +2162,7 @@ app.admin.fetchManagerData('denied');
                             state.filtered = state.data.filter(l => `${l.action_type} ${l.target_id} ${l.profiles?.username} ${JSON.stringify(l.details)}`.toLowerCase().includes(q));
                         }
                     }
-                    if (!preservePage) state.page = 1;
+                    state.page = 1;
                     app.admin.renderManagerData(type);
                 },
 
@@ -2228,8 +2213,8 @@ app.admin.fetchManagerData('denied');
                 renderManagerData: async (type) => {
                     const state = app.admin.manager[type];
                     const perPage = (type === 'denied' || type === 'logs') ? 50 : 15;
-                    const totalPages = state.total !== undefined ? Math.ceil(state.total / perPage) : (Math.ceil(state.filtered.length / perPage) || 1);
-                    const slice = state.total !== undefined ? state.filtered : state.filtered.slice((state.page - 1) * perPage, state.page * perPage);
+                    const totalPages = Math.ceil(state.filtered.length / perPage) || 1;
+                    const slice = state.filtered.slice((state.page - 1) * perPage, state.page * perPage);
                     const contentEl = document.getElementById(`mgr-${type}-content`);
                     const pagerElId = `mgr-${type}-pager`;
 
