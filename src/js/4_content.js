@@ -2819,7 +2819,8 @@ Object.assign(window.app, {
                                         const absC = Math.abs(C);
                                         const absS = Math.abs(S);
                                         
-                                        const scale = canvasData.width / W;
+                                        const bboxW = W * absC + H * absS;
+                                        const scale = canvasData.width / bboxW;
                                         
                                         const w = (W * scale) / 2;
                                         const h = (H * scale) / 2;
@@ -3193,8 +3194,8 @@ Object.assign(window.app, {
                         containerData.height / bboxH
                     ) * margin;
                     
-                    const newCanvasW = W * fitScale;
-                    const newCanvasH = H * fitScale;
+                    const newCanvasW = bboxW * fitScale;
+                    const newCanvasH = bboxH * fitScale;
                     const newCanvasLeft = (containerData.width - newCanvasW) / 2;
                     const newCanvasTop = (containerData.height - newCanvasH) / 2;
                     
