@@ -2112,6 +2112,13 @@ Object.assign(window.app, {
                 submit: async (e) => {
                     e.preventDefault();
                     if (!app.user) return app.auth.check();
+                    
+                    if (app.username && app.utils.isValidUsername && !app.utils.isValidUsername(app.username)) {
+                        return app.ui.showAlert("Tên hiển thị của bạn không hợp lệ. Vui lòng đổi tên ở mục Tài khoản trước khi đăng ảnh!", () => {
+                            if (app.settings && app.settings.open) app.settings.open('profile');
+                        });
+                    }
+
                     if (!app.rawFile) return app.ui.showAlert("Vui lòng chọn ảnh!");
 
                     app.upload.checkModelWarning && app.upload.checkModelWarning();
@@ -2414,6 +2421,15 @@ Object.assign(window.app, {
                 },
                 checkQuota: async () => {
                     if (!app.user) return;
+
+                    if (app.username && app.utils.isValidUsername && !app.utils.isValidUsername(app.username)) {
+                        app.ui.showAlert("Tên hiển thị của bạn không hợp lệ (Chỉ được chứa chữ, số, dấu cách; không chứa ký tự đặc biệt, kí hiệu hay emoji và phải từ 3-20 ký tự). Vui lòng đổi tên trước khi đăng ảnh!", () => {
+                            if (app.settings && app.settings.open) app.settings.open('profile');
+                        });
+                        const btnSubmit = document.getElementById('btn-submit');
+                        if (btnSubmit) btnSubmit.disabled = true;
+                        return;
+                    }
 
                     const pill = document.getElementById('upload-quota-pill');
                     const textEl = document.getElementById('upload-quota-text');

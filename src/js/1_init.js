@@ -959,6 +959,9 @@ Object.assign(window.app, {
 
 Object.assign(window.app, {
   utils: {
+                isValidUsername: (name) => {
+                    return /^[\p{L}0-9 ]+$/u.test(name) && name.length >= 3 && name.length <= 20;
+                },
                 updateCanonical: (customPath = null) => {
                     let link = document.querySelector('link[rel="canonical"]');
                     if (!link) {
