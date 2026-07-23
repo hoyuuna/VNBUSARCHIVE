@@ -2172,21 +2172,22 @@ cleanupState: () => {
                     const selectedProv = document.getElementById('up-province')?.value || document.getElementById('info-province')?.value || null;
 
                     try {
-                        let rQuery = window.sb.from('photos').select('route_no').eq('status', 'approved');
-
-                        if (currentType) rQuery = rQuery.eq('type', currentType);
-                        if (selectedProv && selectedProv !== 'Không xác định') {
-                            rQuery = rQuery.eq('province', selectedProv);
-                        }
+                        let rQuery = window.sb.rpc('get_unique_routes');
 
                         if (query.trim().length > 0) {
                             const routeWords = query.trim().split(/\s+/).filter(w => w.length > 0);
-                            routeWords.forEach(word => { rQuery = rQuery.ilike('route_no', `%${word}%`); });
-                        }
-
-                        const { data } = await rQuery.limit(30);
-                        if (data) {
-                            dbRoutes = data.map(item => item.route_no).filter(Boolean);
+                            // Rpc doesn't support ilike directly if it's returning a table, 
+                            // we need to filter locally or modify the RPC to accept search. 
+                            // For simplicity, we fetch all unique routes (it's a small set of distinct values) and filter locally.
+                            const { data } = await rQuery;
+                            if (data) {
+                                dbRoutes = data.map(item => item.route_no).filter(Boolean);
+                            }
+                        } else {
+                            const { data } = await rQuery;
+                            if (data) {
+                                dbRoutes = data.map(item => item.route_no).filter(Boolean);
+                            }
                         }
                     } catch (e) { console.log("Route suggestion error:", e.message); }
 

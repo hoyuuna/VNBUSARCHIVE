@@ -804,7 +804,7 @@ Object.assign(window.app, {
 
                             html += '<div class="col-span-full"><h3 class="font-bold text-sm mb-3 uppercase">Danh sách user yêu cầu xóa</h3></div>';
 
-                            let { data: reqs, error } = await window.sb.from('edit_requests').select('*').eq('status', 'pending');
+                            let { data: reqs, error } = await window.sb.from('edit_requests').select('*').eq('status', 'pending').limit(50);
                             if (error) throw error;
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
 
@@ -873,7 +873,7 @@ Object.assign(window.app, {
                             if (app.admin.update3x3UI) app.admin.update3x3UI();
                             if (app.admin.updateRulerUI) app.admin.updateRulerUI();
                         } else if (tab === 'requests') {
-                            let { data: reqs, error } = await window.sb.from('edit_requests').select('*').eq('status', 'pending');
+                            let { data: reqs, error } = await window.sb.from('edit_requests').select('*').eq('status', 'pending').limit(50);
                             if (error) throw error;
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
                             if (!reqs || reqs.length === 0) { content.innerHTML = '<p class="p-4">Không có yêu cầu nào.</p>'; return; }
@@ -2074,7 +2074,7 @@ app.admin.fetchManagerData('denied');
                             app.admin.filterManagerData('denied', '');
                         }
                         else if (type === 'logs') {
-                            const { data: logs } = await window.sb.from('admin_audit_logs').select('*, profiles(username)').order('created_at', {ascending: false}).limit(1000);
+                            const { data: logs } = await window.sb.from('admin_audit_logs').select('*, profiles(username)').order('created_at', {ascending: false}).limit(100);
                             app.admin.manager.logs.data = logs ||[];
                             app.admin.filterManagerData('logs', '');
                         }
@@ -2395,7 +2395,7 @@ app.admin.fetchManagerData('denied');
                 // --- CÁC HÀM MỚI CHO TÍNH NĂNG GỬI EMAIL ---
                 fetchUsersForEmail: async () => {
                     try {
-                        const { data: users } = await window.sb.from('profiles').select('id, username').order('username');
+                        const { data: users } = await window.sb.from('profiles').select('id, username').order('created_at', { ascending: false }).limit(100);
                         const select = document.getElementById('email-target-user');
                         if (users && select) {
                             users.forEach(u => {

@@ -42,74 +42,55 @@ export async function onRequest(context) {
         }
 
         if (action === 'get_users') {
-            let allAuthUsers = [];
-            let page = 1;
-            while (true) {
-                const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 1000 });
-                if (error) throw error;
-                if (!data || !data.users || data.users.length === 0) break;
-                allAuthUsers = allAuthUsers.concat(data.users);
-                if (data.users.length < 1000) break;
-                page++;
-            }
+            const pageNum = parseInt(body.page) || 1;
+            const pageSize = parseInt(body.limit) || 50;
+            const search = body.search || '';
 
-            let allProfiles = [];
-            let pFrom = 0;
-            const step = 1000;
-            while (true) {
-                const { data, error } = await supabaseAdmin.from('profiles').select('id, username, ban_status, known_ips').range(pFrom, pFrom + step - 1);
-                if (error) throw error;
-                if (!data || data.length === 0) break;
-                allProfiles = allProfiles.concat(data);
-                if (data.length < step) break;
-                pFrom += step;
-            }
+            let query = supabaseAdmin.from('profiles').select('id, username, ban_status', { count: 'exact' });
+            if (search) query = query.ilike('username', `%${search}%`);
+            
+            const { data: profiles, count, error } = await query
+                .order('username')
+                .range((pageNum - 1) * pageSize, pageNum * pageSize - 1);
+                
+            if (error) throw error;
 
-            let allPhotos = [];
-            let phFrom = 0;
-            while (true) {
-                const { data, error } = await supabaseAdmin.from('photos').select('uploader_id').eq('status', 'approved').range(phFrom, phFrom + step - 1);
-                if (error) throw error;
-                if (!data || data.length === 0) break;
-                allPhotos = allPhotos.concat(data);
-                if (data.length < step) break;
-                phFrom += step;
-            }
+            const merged = await Promise.all(profiles.map(async (p) => {
+                let email = '';
+                let created_at = new Date(0).toISOString();
+                let last_sign_in_at = new Date(0).toISOString();
+                try {
+                    const { data: userAuth } = await supabaseAdmin.auth.admin.getUserById(p.id);
+                    if (userAuth && userAuth.user) {
+                        email = userAuth.user.email;
+                        created_at = userAuth.user.created_at;
+                        last_sign_in_at = userAuth.user.last_sign_in_at;
+                    }
+                } catch(e) {}
 
-            const photoCounts = {};
-            allPhotos.forEach(p => {
-                if(p.uploader_id) {
-                    photoCounts[p.uploader_id] = (photoCounts[p.uploader_id] || 0) + 1;
-                }
-            });
+                let photo_count = 0;
+                try {
+                    const { count: pCount } = await supabaseAdmin.from('photos').select('*', { count: 'exact', head: true }).eq('uploader_id', p.id).eq('status', 'approved');
+                    photo_count = pCount || 0;
+                } catch(e) {}
 
-            const authMap = {};
-            allAuthUsers.forEach(u => {
-                authMap[u.id] = {
-                    email: u.email,
-                    created_at: u.created_at,
-                    last_sign_in_at: u.last_sign_in_at
-                };
-            });
-
-            const merged = allProfiles.map(p => {
                 let banInfo = { banned: false, reason: '' };
                 if (p.ban_status) {
                     try { banInfo = typeof p.ban_status === 'string' ? JSON.parse(p.ban_status) : p.ban_status; } catch(e){}
                 }
-                const auth = authMap[p.id] || {};
+
                 return {
                     id: p.id,
                     username: p.username || 'Unknown',
                     ban_status: banInfo,
-                    photo_count: photoCounts[p.id] || 0,
-                    email: auth.email || '',
-                    created_at: auth.created_at || new Date(0).toISOString(),
-                    last_sign_in_at: auth.last_sign_in_at || new Date(0).toISOString()
+                    photo_count,
+                    email,
+                    created_at,
+                    last_sign_in_at
                 };
-            });
+            }));
 
-            return new Response(JSON.stringify({ success: true, users: merged }), { status: 200, headers: { 'Content-Type': 'application/json' }});
+            return new Response(JSON.stringify({ success: true, users: merged, total: count }), { status: 200, headers: { 'Content-Type': 'application/json' }});
         }
 
         if (action === 'ban' || action === 'unban') {
