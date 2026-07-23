@@ -246,49 +246,72 @@ Object.assign(window.app, {
                 },
 
                 existingVehiclesList:[],
-                checkModelPreview: async (modelName = '') => {
-                    if (!modelName) {
-                        const modelInput = document.getElementById('up-model');
-                        modelName = modelInput ? modelInput.value.trim() : '';
-                    }
-                    const previewContainer = document.getElementById('up-model-preview');
-                    const previewImg = document.getElementById('up-model-preview-img');
-                    const previewName = document.getElementById('up-model-preview-name');
-                    const lockedMsg = document.getElementById('locked-msg');
-                    
-                    if (!previewContainer || !previewImg || !previewName) return;
+                modelPreviewCache: {},
+                previewDebounceTimeout: null,
+                checkModelPreview: (modelName = '') => {
+                    clearTimeout(app.upload.previewDebounceTimeout);
+                    app.upload.previewDebounceTimeout = setTimeout(async () => {
+                        if (!modelName) {
+                            const modelInput = document.getElementById('up-model');
+                            modelName = modelInput ? modelInput.value.trim() : '';
+                        }
+                        const previewContainer = document.getElementById('up-model-preview');
+                        const previewImg = document.getElementById('up-model-preview-img');
+                        const previewName = document.getElementById('up-model-preview-name');
+                        const lockedMsg = document.getElementById('locked-msg');
+                        
+                        if (!previewContainer || !previewImg || !previewName) return;
 
-                    // Nếu input bị lock (xe đã có data) hoặc model rỗng thì ẩn preview
-                    const isLocked = lockedMsg && !lockedMsg.classList.contains('hidden');
-                    if (!modelName || isLocked) {
-                        previewContainer.classList.add('hidden');
-                        previewContainer.classList.remove('flex');
-                        return;
-                    }
+                        // Nếu input bị lock (xe đã có data) hoặc model rỗng thì ẩn preview
+                        const isLocked = lockedMsg && !lockedMsg.classList.contains('hidden');
+                        if (!modelName || isLocked) {
+                            previewContainer.classList.add('hidden');
+                            previewContainer.classList.remove('flex');
+                            return;
+                        }
 
-                    try {
-                        const { data: topPhoto } = await window.sb.from('photos')
-                            .select('url, vehicles!inner(model)')
-                            .eq('status', 'approved')
-                            .eq('vehicles.model', modelName)
-                            .order('created_at', { ascending: false })
-                            .limit(1)
-                            .maybeSingle();
+                        // Nếu đã cache, lấy ra dùng luôn, không cần call DB
+                        if (app.upload.modelPreviewCache[modelName] !== undefined) {
+                            const cachedUrl = app.upload.modelPreviewCache[modelName];
+                            if (cachedUrl) {
+                                previewImg.src = app.utils.getProxiedUrl(cachedUrl, 'model-preview.jpg', 'thumb');
+                                previewImg.dataset.fullSrc = app.utils.getProxiedUrl(cachedUrl, 'full.jpg');
+                                previewName.innerText = modelName;
+                                previewContainer.classList.remove('hidden');
+                                previewContainer.classList.add('flex');
+                            } else {
+                                previewContainer.classList.add('hidden');
+                                previewContainer.classList.remove('flex');
+                            }
+                            return;
+                        }
 
-                        if (topPhoto && topPhoto.url) {
-                            previewImg.src = app.utils.getProxiedUrl(topPhoto.url, 'model-preview.jpg', 'thumb');
-                            previewImg.dataset.fullSrc = app.utils.getProxiedUrl(topPhoto.url, 'full.jpg');
-                            previewName.innerText = modelName;
-                            previewContainer.classList.remove('hidden');
-                            previewContainer.classList.add('flex');
-                        } else {
+                        try {
+                            const { data: topPhoto } = await window.sb.from('photos')
+                                .select('url, vehicles!inner(model)')
+                                .eq('status', 'approved')
+                                .eq('vehicles.model', modelName)
+                                .order('created_at', { ascending: false })
+                                .limit(1)
+                                .maybeSingle();
+
+                            if (topPhoto && topPhoto.url) {
+                                app.upload.modelPreviewCache[modelName] = topPhoto.url;
+                                previewImg.src = app.utils.getProxiedUrl(topPhoto.url, 'model-preview.jpg', 'thumb');
+                                previewImg.dataset.fullSrc = app.utils.getProxiedUrl(topPhoto.url, 'full.jpg');
+                                previewName.innerText = modelName;
+                                previewContainer.classList.remove('hidden');
+                                previewContainer.classList.add('flex');
+                            } else {
+                                app.upload.modelPreviewCache[modelName] = null;
+                                previewContainer.classList.add('hidden');
+                                previewContainer.classList.remove('flex');
+                            }
+                        } catch (err) {
                             previewContainer.classList.add('hidden');
                             previewContainer.classList.remove('flex');
                         }
-                    } catch (err) {
-                        previewContainer.classList.add('hidden');
-                        previewContainer.classList.remove('flex');
-                    }
+                    }, 500); // 500ms debounce
                 },
                 checkModelWarning: () => {
                     const warningEl = document.getElementById('model-warning-msg');

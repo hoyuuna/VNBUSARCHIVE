@@ -2216,6 +2216,9 @@ cleanupState: () => {
                         if (box) box.style.display = 'none';
                         return;
                     }
+                    if (inputId === 'up-model' && app.upload && app.upload.checkModelPreview) {
+                        app.upload.checkModelPreview(query);
+                    }
                     if (app.suggestionTimeouts[inputId]) clearTimeout(app.suggestionTimeouts[inputId]);
 
                     let currentType = '';
