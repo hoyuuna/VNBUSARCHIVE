@@ -2922,12 +2922,12 @@ Object.assign(window.app, {
                     return Math.max(scaleX, scaleY);
                 },
                 
-                setFixedCropBox: () => {
+                setFixedCropBox: (ratio) => {
                     if (!app.crop.cropper) return;
                     const containerData = app.crop.cropper.getContainerData();
-                    const targetW = containerData.width * 0.8;
-                    const targetH = containerData.height * 0.8;
-                    const currentRatio = (typeof app.crop.savedRatio === 'number' && !isNaN(app.crop.savedRatio)) ? app.crop.savedRatio : (4/3);
+                    const targetW = containerData.width * 0.85;
+                    const targetH = containerData.height * 0.85;
+                    const currentRatio = ratio || ((typeof app.crop.savedRatio === 'number' && !isNaN(app.crop.savedRatio)) ? app.crop.savedRatio : (4/3));
                     
                     let finalW = targetW;
                     let finalH = finalW / currentRatio;
@@ -2946,8 +2946,9 @@ Object.assign(window.app, {
                 
                 setRatio: (ratio) => {
                     if (app.crop.cropper) {
+                        if (app.crop.mode === 'main') app.crop.savedRatio = ratio;
                         app.crop.cropper.setAspectRatio(ratio);
-                        app.crop.setFixedCropBox();
+                        app.crop.setFixedCropBox(ratio);
                         
                         const minScale = app.crop.calculateInitialCoverScale();
                         const cropper = app.crop.cropper;
