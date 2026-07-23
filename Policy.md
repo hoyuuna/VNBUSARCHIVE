@@ -49,7 +49,7 @@ Khi tải ảnh lên hệ thống, bạn cam kết tuân thủ tuyệt đối qu
 ### 7. Miễn trừ Trách nhiệm
 * **Tính chính xác:** Dữ liệu do cộng đồng đóng góp chỉ mang tính chất tham khảo. Chúng tôi không đảm bảo tính chính xác tuyệt đối ở mọi thời điểm.
 * **Lưu trữ kỹ thuật:** Chúng tôi nỗ lực duy trì tính ổn định của máy chủ nhưng không chịu trách nhiệm nếu xảy ra mất mát dữ liệu do lỗi hệ thống bất khả kháng. Bạn nên tự lưu trữ bản gốc hình ảnh của mình.
-* **Không có giá trị pháp lý:** Hình ảnh và dữ liệu trên hệ thống tuyệt đối không được sử dụng làm cơ sở pháp lý để xác định lỗi vi phạm giao thông hoặc nội quy doanh nghiệp, trừ khi có yêu cầu bằng văn bản từ cơ quan chức năng có thẩm quyền.
+* **Không có giá trị pháp lý:** Hình ảnh và dữ liệu trên hệ thống không được sử dụng làm cơ sở xử lý vi phạm giao thông hoặc nội quy doanh nghiệp (trừ khi có yêu cầu bằng văn bản từ cơ quan có thẩm quyền), do hệ thống không thể đảm bảo dữ liệu chưa qua chỉnh sửa.
 * **Trách nhiệm người dùng:** Người dùng tự chịu trách nhiệm về hình ảnh mình đăng tải. Chúng tôi được miễn trừ mọi trách nhiệm liên quan đến khiếu nại quyền riêng tư do sự bất cẩn của người dùng, hoặc các tranh chấp phát sinh bên ngoài nền tảng.
 * **Hành vi tác nghiệp:** Chúng tôi không quản lý, không xúi giục và không chịu trách nhiệm pháp lý đối với bất kỳ hành vi nào của người dùng trong quá trình đi thu thập hình ảnh thực tế. Người dùng tự chịu 100% trách nhiệm trước pháp luật về an toàn giao thông, an ninh trật tự, hành vi xâm phạm gia cư/khu vực cấm, hoặc các tổn hại về người và tài sản phát sinh trong quá trình tác nghiệp.
 
