@@ -2868,14 +2868,14 @@ Object.assign(window.app, {
                                         const minScaleW = (cropBox.width * absC + cropBox.height * absS) / imageData.naturalWidth;
                                         const minScaleH = (cropBox.width * absS + cropBox.height * absC) / imageData.naturalHeight;
                                         const minScale = Math.max(minScaleW, minScaleH);
-                                        const maxScale = minScale * 4; // Max 4x zoom
+                                        const maxScale = Math.max(minScale * 5, 2); // Allow zooming in
                                         
                                         if (event.detail.ratio < minScale) {
                                             event.preventDefault();
-                                            cropper.zoomTo(minScale);
+                                            setTimeout(() => { cropper.zoomTo(minScale); }, 0);
                                         } else if (event.detail.ratio > maxScale) {
                                             event.preventDefault();
-                                            cropper.zoomTo(maxScale);
+                                            setTimeout(() => { cropper.zoomTo(maxScale); }, 0);
                                         }
                                     },
                                     crop: (event) => {
@@ -2973,7 +2973,7 @@ Object.assign(window.app, {
                                         const minScale = Math.max(minScaleW, minScaleH);
                                         
                                         // Default scale should be 1 (100%), unless minScale requires it to be larger
-                                        const targetScale = Math.max(1, minScale);
+                                        const targetScale = minScale;
                                         cropper.zoomTo(targetScale);
                                         
                                         // Center the canvas
