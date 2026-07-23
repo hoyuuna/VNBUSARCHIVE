@@ -3254,7 +3254,7 @@ Object.assign(window.app, {
                     const minScaleH = (cropBox.width * absS + cropBox.height * absC) / imageData.naturalHeight;
                     const minScale = Math.max(minScaleW, minScaleH);
                     
-                    const currentScale = canvasData.width / imageData.naturalWidth;
+                    const currentScale = canvasData.width / (imageData.naturalWidth * absC + imageData.naturalHeight * absS);
                     if (currentScale < minScale) {
                         cropper.zoomTo(minScale);
                     }
