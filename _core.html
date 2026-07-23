@@ -2270,8 +2270,8 @@
                                 </button>
                             </div>
 
-                            <button type="button" onclick="app.crop.rotateBy(90)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition" title="Xoay 90 độ">
-                                <i class="fa-solid fa-rotate-right"></i>
+                            <button type="button" onclick="app.crop.rotateBy(90)" class="shrink-0 px-2 py-1 sm:py-1.5 sm:px-3 text-[10px] sm:text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition flex items-center justify-center gap-1" title="Xoay 90 độ">
+                                <i class="fa-solid fa-rotate-right"></i> <span>90°</span>
                             </button>
                         </div>
                     </div>
@@ -2282,11 +2282,9 @@
                             </button>
                         </div>
                         <div class="flex items-center gap-2 sm:gap-4">
-                            <div class="flex items-center gap-1 bg-gray-100 rounded-md p-1 border border-gray-200" id="crop-reset-btn">
-                                <button type="button" onclick="app.crop.confirmReset()" class="h-8 px-2 sm:px-3 flex items-center justify-center rounded text-gray-700 hover:bg-gray-200 transition text-xs font-bold gap-1.5" title="Đặt lại từ đầu">
-                                    <i class="fa-solid fa-arrow-rotate-left"></i> <span class="hidden sm:inline">Đặt lại</span>
-                                </button>
-                            </div>
+                            <button type="button" onclick="app.crop.confirmReset()" class="px-4 py-2 sm:px-5 sm:py-2.5 bg-gray-100 border border-gray-300 text-gray-700 text-xs font-bold rounded-md hover:bg-gray-200 transition disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center" title="Đặt lại từ đầu">
+                                <i class="fa-solid fa-arrow-rotate-left sm:mr-1.5"></i><span class="hidden sm:inline">Đặt lại</span>
+                            </button>
                             <div class="flex items-center gap-2">
                                 <button type="button" id="btn-crop-cancel" onclick="app.crop.close()" class="px-4 py-2 sm:px-5 sm:py-2.5 bg-gray-100 border border-gray-300 text-gray-700 text-xs font-bold rounded-md hover:bg-gray-200 transition disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center" title="Hủy">
                                     <i class="fa-solid fa-xmark sm:mr-1.5"></i><span class="hidden sm:inline">Hủy</span>
