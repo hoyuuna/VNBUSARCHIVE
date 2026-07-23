@@ -2232,8 +2232,9 @@
                         <button type="button" id="btn-crop-mode-rotate" onclick="app.crop.setModeTab('rotate')" class="relative z-20 px-2 py-1.5 rounded-lg text-xs font-bold transition-colors duration-200 text-gray-500 hover:text-black">Xoay ảnh</button>
                     </div>
                 </div>
-                <div class="w-full relative flex items-center justify-center select-none overflow-hidden bg-black" style="height: 60vh; min-height: 300px; -webkit-touch-callout: none;" oncontextmenu="return false;">
-                    <img id="crop-image" src="" style="max-width: 100%; max-height: 100%; display: block; -webkit-touch-callout: none;" draggable="false">
+                <div id="crop-container" class="w-full relative flex items-center justify-center select-none overflow-hidden bg-black" style="height: 60vh; min-height: 300px; -webkit-touch-callout: none;" oncontextmenu="return false;" onmousedown="app.crop.onDragStart(event)" onmousemove="app.crop.onDragMove(event)" onmouseup="app.crop.onDragEnd(event)" onmouseleave="app.crop.onDragEnd(event)" ontouchstart="app.crop.onDragStart(event)" ontouchmove="app.crop.onDragMove(event)" ontouchend="app.crop.onDragEnd(event)" onwheel="app.crop.onWheel(event)">
+                    <img id="crop-image" src="" style="position: absolute; top: 50%; left: 50%; transform-origin: center center; -webkit-touch-callout: none;" draggable="false">
+                    <div id="crop-overlay-box" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); border: 2px solid white; pointer-events: none; box-shadow: 0 0 0 9999px rgba(0,0,0,0.5); z-index: 10;"></div>
                 </div>
                 <div class="flex flex-col shrink-0 bg-white z-10 w-full">
                     <div class="p-3 border-b border-gray-200/50 flex justify-center items-center w-full min-h-[56px]">

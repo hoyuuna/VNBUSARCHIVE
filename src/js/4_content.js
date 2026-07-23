@@ -2682,678 +2682,496 @@ Object.assign(window.app, {
 
 Object.assign(window.app, {
   crop: {
-                cropper: null,
-                mode: 'main',
-                originalFile: null,
-                sourceImage: null, // Lưu ảnh gốc chưa qua cắt để phục vụ chỉnh sửa nhiều lần (non-destructive cropping)
-                savedCropData: null, // Lưu tọa độ và kích thước khung cắt lần trước
-                savedRatio: 4/3, // Lưu tỉ lệ khung cắt lần trước
-                modeTab: 'ratio',
-                currentBaseAngle: 0,
-                fineAngle: 0,
-                history: [],
-                currentIndex: -1,
-                isRestoringHistory: false,
-                isMandatory: false, // Thêm cờ đánh dấu bắt buộc cắt
-                isRulerEnabled: false,
+        state: { x: 0, y: 0, scale: 1, rotation: 0, minScale: 1 },
+        isDragging: false,
+        startX: 0,
+        startY: 0,
+        lastClientX: 0,
+        lastClientY: 0,
+        
+        mode: 'main',
+        originalFile: null,
+        sourceImage: null,
+        savedRatio: 4/3,
+        modeTab: 'ratio',
+        isRulerEnabled: false,
+        isMandatory: false,
+        closeTimeout: null,
+        
+        open: async (mode, file = null, isMandatory = false) => {
+            if (app.crop.closeTimeout) {
+                clearTimeout(app.crop.closeTimeout);
+                app.crop.closeTimeout = null;
+            }
+            app.crop.mode = mode;
+            let targetFile = file || (mode === 'main' && app.crop.sourceImage ? app.crop.sourceImage : app.rawFile);
+            if (!targetFile) return;
 
-                open: async (mode, file = null, isMandatory = false) => {
-                    if (app.crop.closeTimeout) {
-                        clearTimeout(app.crop.closeTimeout);
-                        app.crop.closeTimeout = null;
-                    }
-                    app.crop.mode = mode;
-                    let targetFile = file || (mode === 'main' && app.crop.sourceImage ? app.crop.sourceImage : app.rawFile);
-                    if (!targetFile) return;
-
-                    const isHeic = /\.(heic|heif)$/i.test(targetFile.name) || targetFile.type === 'image/heic' || targetFile.type === 'image/heif';
-                    if (isHeic) {
-                        try {
-                            const progToast = app.toast.createProgress('Đang xử lý ảnh HEIF/HEIC...');
-                            if (progToast) progToast.update(50, 'Đang giải mã HEIF/HEIC...', 'Đang chuyển đổi định dạng ảnh...');
-                            targetFile = await app.utils.decodeHeic(targetFile);
-                            if (mode === 'main') app.rawFile = targetFile;
-                            if (progToast && progToast.remove) progToast.remove();
-                        } catch (err) {
-                            console.warn("Lỗi chuyển đổi HEIF/HEIC trong cropper:", err);
-                        }
-                    }
-
-                    app.crop.originalFile = targetFile;
-                    app.crop.isMandatory = isMandatory;
-
-                    if (app.crop.cropper) {
-                        try { app.crop.cropper.destroy(); } catch (e) {}
-                        app.crop.cropper = null;
-                    }
-
-                    const img = document.getElementById('crop-image');
-                    if (img) {
-                        img.onload = null;
-                        img.onerror = null;
-                        img.removeAttribute('src');
-                        img.removeAttribute('style');
-                        img.style.cssText = 'max-width: 100%; max-height: 100%; display: block; -webkit-touch-callout: none;';
-                        img.className = '';
-                    }
-
-                    const modal = document.getElementById('crop-modal');
-                    const content = document.getElementById('crop-content');
-                    const ratioContainer = document.getElementById('crop-ratios');
-                    const modePanel = document.getElementById('crop-mode-panel');
-
-                    modal.classList.remove('hidden');
-                    app.ui.lockScroll();
-                    setTimeout(() => {
-                        if (content) {
-                            content.classList.remove('opacity-0', 'scale-95');
-                            content.classList.add('opacity-100', 'scale-100');
-                        }
-                    }, 10);
-
-                    const url = URL.createObjectURL(app.crop.originalFile);
-
-                    img.onload = () => {
-                        img.onload = null;
-                        img.onerror = null; // Ngăn thay đổi src sau khi load thành công kích hoạt onerror
-                        if (app.crop.cropper) {
-                            try { app.crop.cropper.destroy(); } catch (e) {}
-                            app.crop.cropper = null;
-                        }
-
-                        setTimeout(() => {
-                            if (mode === 'main') {
-                                app.crop.currentBaseAngle = 0;
-                                app.crop.fineAngle = 0;
-                                const rotateSlider = document.getElementById('crop-rotate-slider');
-                                if (rotateSlider) rotateSlider.value = 0;
-                                const rotateVal = document.getElementById('crop-rotate-val');
-                                if (rotateVal) rotateVal.innerText = '0°';
-                                
-                                if (modePanel) modePanel.classList.remove('hidden');
-                                app.crop.setModeTab('ratio');
-
-                                app.crop.history = [];
-                                app.crop.currentIndex = -1;
-                                app.crop.updateHistoryButtons();
-
-                                // Hiện lại thanh chọn tỉ lệ (16:9, 3:2, 4:3)
-                                if(ratioContainer) ratioContainer.classList.remove('hidden');
-
-                                
-                                // Detect natural ratio if not saved
-                                if (typeof app.crop.savedRatio !== 'number' || isNaN(app.crop.savedRatio)) {
-                                    const imgRatio = img.naturalWidth / img.naturalHeight;
-                                    const presets = [16/9, 3/2, 4/3];
-                                    let bestRatio = 4/3;
-                                    let minDiff = 0.05;
-                                    for (let r of presets) {
-                                        if (Math.abs(imgRatio - r) < minDiff) {
-                                            bestRatio = r;
-                                            minDiff = Math.abs(imgRatio - r);
-                                        }
-                                    }
-                                    app.crop.savedRatio = bestRatio;
-                                }
-
-                                app.crop.updateRatioButtons(app.crop.savedRatio);
-
-                                app.crop.cropper = new Cropper(img, {
-                                    aspectRatio: app.crop.savedRatio,
-                                    
-                                    // 1. MUST BE 0. Removes native bounding-box restrictions that break rotated images.
-                                    viewMode: 0, 
-                                    
-                                    dragMode: 'move',
-                                    cropBoxMovable: false,
-                                    cropBoxResizable: false,
-                                    zoomable: true,
-                                    wheelZoomRatio: 0.1,
-                                    toggleDragModeOnDblclick: false,
-                                    checkCrossOrigin: false,
-
-                                    // 2. PREVENT ZOOMING OUT (Revealing background)
-                                    zoom: (event) => {
-                                        if (app.crop.isSystemUpdating) return;
-                                        const cropper = app.crop.cropper;
-                                        const minScale = app.crop.calculateInitialCoverScale();
-                                        
-                                        // If the user tries to zoom out smaller than the required cover scale
-                                        if (event.detail.ratio < minScale) {
-                                            event.preventDefault(); // Stop the mouse wheel / pinch action
-                                            cropper.zoomTo(minScale); // Snap strictly to the minimum safe size
-                                        }
-                                    },
-
-                                    // 3. THE MAGIC: PREVENT DRAGGING OUT OF BOUNDS (Stops the runaway box!)
-                                    cropmove: (event) => {
-                                        if (app.crop.isSystemUpdating) return;
-                                        const cropper = app.crop.cropper;
-                                        
-                                        // getData(true) returns the crop box coordinates mapped to the ORIGINAL unrotated image pixels!
-                                        // This automatically handles the trigonometry for rotation.
-                                        const data = cropper.getData(true); 
-                                        const imgData = cropper.getImageData();
-
-                                        // Check if the crop box is trying to cross the natural boundaries of the image
-                                        if (
-                                            data.x <= 0 || 
-                                            data.y <= 0 || 
-                                            (data.x + data.width) >= imgData.naturalWidth || 
-                                            (data.y + data.height) >= imgData.naturalHeight
-                                        ) {
-                                            // The user dragged the image too far!
-                                            // Canceling the event STOPS the canvas from moving, and STOPS the crop box from drifting.
-                                            event.preventDefault();
-                                        }
-                                    },
-
-                                    // (Remove any manual boundary clamping from the 'crop' event. Leave it empty or just use it for updates)
-                                    crop: () => {
-                                        // Do nothing here regarding boundaries. `cropmove` handles it safely.
-                                    },
-                                    
-                                    cropstart: () => {
-                                        const btnCancel = document.getElementById('btn-crop-cancel');
-                                        const btnApply = document.getElementById('btn-crop-apply');
-                                        if (btnCancel) { btnCancel.disabled = true; btnCancel.classList.add('opacity-50', 'pointer-events-none'); }
-                                        if (btnApply) { btnApply.disabled = true; btnApply.classList.add('opacity-50', 'pointer-events-none'); }
-                                    },
-                                    cropend: () => {
-                                        const btnCancel = document.getElementById('btn-crop-cancel');
-                                        const btnApply = document.getElementById('btn-crop-apply');
-                                        if (btnCancel) { btnCancel.disabled = false; btnCancel.classList.remove('opacity-50', 'pointer-events-none'); }
-                                        if (btnApply) { btnApply.disabled = false; btnApply.classList.remove('opacity-50', 'pointer-events-none'); }
-                                        app.crop.pushHistory();
-                                    },
-                                    ready: () => {
-                                        app.crop.isSystemUpdating = true;
-                                        app.crop.setFixedCropBox();
-                                        
-                                        const minScale = app.crop.calculateInitialCoverScale();
-                                        const cropper = app.crop.cropper;
-                                        cropper.zoomTo(minScale);
-                                        
-                                        // Force center alignment natively
-                                        const containerData = cropper.getContainerData();
-                                        const canvasData = cropper.getCanvasData();
-                                        cropper.setCanvasData({
-                                            left: (containerData.width - canvasData.width) / 2,
-                                            top: (containerData.height - canvasData.height) / 2
-                                        });
-                                        
-                                        app.crop.lastValidCanvasData = cropper.getCanvasData();
-                                        app.crop.isSystemUpdating = false;
-                                        app.crop.updateRulerUI();
-                                        
-                                        if (app.crop.mode === 'main') {
-                                            app.crop.pushHistory();
-                                        }
-                                    }
-                                });
-                            }
-                        }, 50);
-                    };
-
-                    img.onerror = () => {
-                        img.onload = null;
-                        img.onerror = null;
-                        app.ui.showAlert("Không thể tải ảnh vào công cụ cắt ảnh. Vui lòng thử lại hoặc chọn file hợp lệ.");
-                        app.crop.close();
-                    };
-
-                    img.src = url;
-                },
-
-                toggleRuler: () => {
-                    app.crop.isRulerEnabled = !app.crop.isRulerEnabled;
-                    app.crop.updateRulerUI();
-                },
-
-                getRulerHTML: () => {
-                    const isHidden = app.crop.isRulerEnabled ? '' : 'hidden';
-                    const levels = [
-                        { pos: 8.3333, label: '5' },
-                        { pos: 16.6667, label: '4' },
-                        { pos: 25.0, label: '3' },
-                        { pos: 33.3333, label: '2' },
-                        { pos: 41.6667, label: '1' },
-                        { pos: 50.0, label: '0', isCenter: true },
-                        { pos: 58.3333, label: '1' },
-                        { pos: 66.6667, label: '2' },
-                        { pos: 75.0, label: '3' },
-                        { pos: 83.3333, label: '4' },
-                        { pos: 91.6667, label: '5' }
-                    ];
-                    let linesHtml = '';
-                    levels.forEach(item => {
-                        const lineClass = item.isCenter ? 'ruler-line-center' : 'ruler-line-v';
-                        const badgeClass = item.isCenter ? 'ruler-badge-center' : 'ruler-badge';
-                        linesHtml += `<div class="${lineClass}" style="left: ${item.pos}%;"><span class="${badgeClass} ruler-badge-top">${item.label}</span><span class="${badgeClass} ruler-badge-bottom">${item.label}</span></div>`;
-                    });
-                    return `<div class="crop-ruler-overlay ruler-horizontal-overlay ${isHidden}" style="z-index: 25;">${linesHtml}</div>`;
-                },
-
-                updateRulerUI: () => {
-                    const btn = document.getElementById('btn-crop-toggle-ruler');
-                    if (btn) {
-                        if (app.crop.isRulerEnabled) {
-                            btn.className = "px-3 py-2 sm:px-3 sm:py-1.5 text-xs bg-black text-white border border-black rounded-md font-bold transition flex items-center justify-center gap-1.5";
-                        } else {
-                            btn.className = "px-3 py-2 sm:px-3 sm:py-1.5 text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition flex items-center justify-center gap-1.5";
-                        }
-                    }
-                    const cropBox = document.querySelector('#crop-modal .cropper-crop-box');
-                    if (!cropBox) return;
-                    let overlay = cropBox.querySelector('.crop-ruler-overlay');
-                    if (!overlay) {
-                        cropBox.insertAdjacentHTML('beforeend', app.crop.getRulerHTML());
-                        overlay = cropBox.querySelector('.crop-ruler-overlay');
-                    }
-                    if (overlay) {
-                        if (app.crop.isRulerEnabled) overlay.classList.remove('hidden');
-                        else overlay.classList.add('hidden');
-                    }
-                },
-
-                
-                calculateInitialCoverScale: () => {
-                    const cropper = app.crop.cropper;
-                    if (!cropper) return 1;
-                    const cropBox = cropper.getCropBoxData();
-                    const imageData = cropper.getImageData();
-                    const imgW = imageData.naturalWidth;
-                    const imgH = imageData.naturalHeight;
-                    
-                    const totalAngle = (app.crop.currentBaseAngle || 0) + (app.crop.fineAngle || 0);
-                    const rad = totalAngle * Math.PI / 180;
-                    const absC = Math.abs(Math.cos(rad));
-                    const absS = Math.abs(Math.sin(rad));
-                    
-                    const boundingW = (cropBox.width * absC) + (cropBox.height * absS);
-                    const boundingH = (cropBox.width * absS) + (cropBox.height * absC);
-                    
-                    const scaleX = boundingW / imgW;
-                    const scaleY = boundingH / imgH;
-                    return Math.max(scaleX, scaleY);
-                },
-                
-                setFixedCropBox: (ratio) => {
-                    if (!app.crop.cropper) return;
-                    const containerData = app.crop.cropper.getContainerData();
-                    const targetW = containerData.width * 0.85;
-                    const targetH = containerData.height * 0.85;
-                    const currentRatio = ratio || ((typeof app.crop.savedRatio === 'number' && !isNaN(app.crop.savedRatio)) ? app.crop.savedRatio : (4/3));
-                    
-                    let finalW = targetW;
-                    let finalH = finalW / currentRatio;
-                    if (finalH > targetH) {
-                        finalH = targetH;
-                        finalW = finalH * currentRatio;
-                    }
-                    
-                    app.crop.cropper.setCropBoxData({
-                        left: (containerData.width - finalW) / 2,
-                        top: (containerData.height - finalH) / 2,
-                        width: finalW,
-                        height: finalH
-                    });
-                    
-                    if (app.crop.cropper.cropBox) {
-                        app.crop.cropper.cropBox.style.setProperty('pointer-events', 'none', 'important');
-                    }
-                },
-                
-                setRatio: (ratio) => {
-                    if (app.crop.cropper) {
-                        app.crop.isSystemUpdating = true;
-                        if (app.crop.mode === 'main') app.crop.savedRatio = ratio;
-                        
-                        // Hard reset rotation
-                        const rotateSlider = document.getElementById('crop-rotate');
-                        if (rotateSlider) rotateSlider.value = 0;
-                        app.crop.currentBaseAngle = 0;
-                        app.crop.fineAngle = 0;
-                        app.crop.cropper.rotateTo(0);
-                        
-                        app.crop.cropper.setAspectRatio(ratio);
-                        app.crop.setFixedCropBox(ratio);
-                        
-                        const minScale = app.crop.calculateInitialCoverScale();
-                        const cropper = app.crop.cropper;
-                        
-                        // Hard reset scale exactly to minScale
-                        cropper.zoomTo(minScale);
-                        
-                        // Center
-                        const containerData = cropper.getContainerData();
-                        const canvasData = cropper.getCanvasData();
-                        cropper.setCanvasData({
-                            left: (containerData.width - canvasData.width) / 2,
-                            top: (containerData.height - canvasData.height) / 2
-                        });
-                        
-                        app.crop.lastValidCanvasData = cropper.getCanvasData();
-                        app.crop.updateRatioButtons(ratio);
-                        if (app.crop.mode === 'main') {
-                            app.crop.savedRatio = ratio;
-                            app.crop.pushHistory();
-                        }
-                        app.crop.isSystemUpdating = false;
-                    }
-                },
-
-                updateRatioButtons: (activeRatio) => {
-                    document.querySelectorAll('.crop-ratio-btn').forEach(btn => {
-                        const r = parseFloat(btn.dataset.ratio);
-                        if (Math.abs(r - activeRatio) < 0.01) {
-                            btn.classList.add('bg-black', 'text-white', 'border-black');
-                            btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300', 'hover:bg-gray-100');
-                        } else {
-                            btn.classList.remove('bg-black', 'text-white', 'border-black');
-                            btn.classList.add('bg-white', 'text-gray-700', 'border-gray-300', 'hover:bg-gray-100');
-                        }
-                    });
-                },
-
-                updateHistoryButtons: () => {
-                    const btnUndo = document.getElementById('btn-crop-undo');
-                    const btnRedo = document.getElementById('btn-crop-redo');
-                    const undoRedoContainer = document.getElementById('crop-undo-redo');
-                    if (app.crop.mode !== 'main') {
-                        if (undoRedoContainer) undoRedoContainer.classList.add('hidden');
-                        return;
-                    }
-                    if (undoRedoContainer) undoRedoContainer.classList.remove('hidden');
-
-                    if (btnUndo) btnUndo.disabled = app.crop.currentIndex <= 0;
-                    if (btnRedo) btnRedo.disabled = app.crop.currentIndex >= app.crop.history.length - 1;
-                },
-
-                pushHistory: () => {
-                    if (!app.crop.cropper || app.crop.isRestoringHistory) return;
-                    if (app.crop.currentIndex < app.crop.history.length - 1) {
-                        app.crop.history = app.crop.history.slice(0, app.crop.currentIndex + 1);
-                    }
-                    const state = {
-                        cropBoxData: app.crop.cropper.getCropBoxData(),
-                        canvasData: app.crop.cropper.getCanvasData(),
-                        baseAngle: app.crop.currentBaseAngle,
-                        fineAngle: app.crop.fineAngle,
-                        ratio: app.crop.savedRatio,
-                        modeTab: app.crop.modeTab
-                    };
-                    app.crop.history.push(state);
-                    app.crop.currentIndex++;
-                    app.crop.updateHistoryButtons();
-                },
-
-                undo: () => {
-                    if (app.crop.currentIndex > 0) {
-                        app.crop.currentIndex--;
-                        app.crop.restoreState(app.crop.history[app.crop.currentIndex]);
-                    }
-                },
-
-                redo: () => {
-                    if (app.crop.currentIndex < app.crop.history.length - 1) {
-                        app.crop.currentIndex++;
-                        app.crop.restoreState(app.crop.history[app.crop.currentIndex]);
-                    }
-                },
-
-                restoreState: (state) => {
-                    if (!app.crop.cropper || !state) return;
-                    app.crop.isRestoringHistory = true;
-                    
-                    app.crop.currentBaseAngle = state.baseAngle;
-                    app.crop.fineAngle = state.fineAngle;
-                    app.crop.savedRatio = state.ratio;
-                    
-                    const rotateSlider = document.getElementById('crop-rotate-slider');
-                    if (rotateSlider) rotateSlider.value = state.fineAngle;
-                    const rotateVal = document.getElementById('crop-rotate-val');
-                    if (rotateVal) rotateVal.innerText = (state.fineAngle > 0 ? '+' : '') + state.fineAngle + '°';
-                    
-                    app.crop.setModeTab(state.modeTab || 'ratio');
-                    app.crop.updateRatioButtons((typeof state.ratio === 'number' && !isNaN(state.ratio)) ? state.ratio : (4/3));
-                    
-                    app.crop.cropper.rotateTo(state.baseAngle + state.fineAngle);
-                    app.crop.cropper.setAspectRatio((typeof state.ratio === 'number' && !isNaN(state.ratio)) ? state.ratio : (4/3));
-                    app.crop.cropper.setCanvasData(state.canvasData);
-                    app.crop.cropper.setCropBoxData(state.cropBoxData);
-                    
-                    app.crop.updateHistoryButtons();
-                    app.crop.isRestoringHistory = false;
-                },
-
-                setModeTab: (tab) => {
-                    app.crop.modeTab = tab;
-                    const slider = document.getElementById('crop-mode-slider');
-                    const btnRatio = document.getElementById('btn-crop-mode-ratio');
-                    const btnRotate = document.getElementById('btn-crop-mode-rotate');
-                    const ratioControls = document.getElementById('crop-ratios');
-                    const rotateControls = document.getElementById('crop-rotate-controls');
-
-                    if (tab === 'ratio') {
-                        if(slider) slider.style.left = '4px';
-                        if(btnRatio) { btnRatio.classList.add('text-black'); btnRatio.classList.remove('text-gray-500', 'hover:text-black'); }
-                        if(btnRotate) { btnRotate.classList.add('text-gray-500', 'hover:text-black'); btnRotate.classList.remove('text-black'); }
-                        if(ratioControls) { ratioControls.classList.remove('hidden'); ratioControls.classList.add('flex'); }
-                        if(rotateControls) { rotateControls.classList.add('hidden'); rotateControls.classList.remove('flex'); }
-                    } else if (tab === 'rotate') {
-                        if(slider) slider.style.left = 'calc(50% + 2px)';
-                        if(btnRatio) { btnRatio.classList.add('text-gray-500', 'hover:text-black'); btnRatio.classList.remove('text-black'); }
-                        if(btnRotate) { btnRotate.classList.add('text-black'); btnRotate.classList.remove('text-gray-500', 'hover:text-black'); }
-                        if(ratioControls) { ratioControls.classList.add('hidden'); ratioControls.classList.remove('flex'); }
-                        if(rotateControls) { rotateControls.classList.remove('hidden'); rotateControls.classList.add('flex'); }
-                    }
-                },
-
-                slideRotate: (val) => {
-                    app.crop.fineAngle = parseInt(val, 10);
-                    const rotateVal = document.getElementById('crop-rotate-val');
-                    if (rotateVal) {
-                        rotateVal.innerText = (app.crop.fineAngle > 0 ? '+' : '') + app.crop.fineAngle + '°';
-                    }
-                    app.crop.updateRotation();
-                },
-
-                stepRotate: (delta) => {
-                    let newVal = app.crop.fineAngle + delta;
-                    if (newVal < -45) newVal = -45;
-                    if (newVal > 45) newVal = 45;
-                    const rotateSlider = document.getElementById('crop-rotate-slider');
-                    if (rotateSlider) rotateSlider.value = newVal;
-                    app.crop.slideRotate(newVal);
-                    app.crop.pushHistory();
-                },
-
-                rotateBy: (deg) => {
-                    app.crop.currentBaseAngle += deg;
-                    app.crop.fineAngle = 0;
-                    const rotateSlider = document.getElementById('crop-rotate-slider');
-                    if (rotateSlider) rotateSlider.value = 0;
-                    const rotateVal = document.getElementById('crop-rotate-val');
-                    if (rotateVal) rotateVal.innerText = '0°';
-                    app.crop.updateRotation();
-                    app.crop.pushHistory();
-                },
-
-                updateRotation: () => {
-                    if (!app.crop.cropper) return;
-                    app.crop.isSystemUpdating = true;
-                    
-                    const totalAngle = (app.crop.currentBaseAngle || 0) + (app.crop.fineAngle || 0);
-                    app.crop.cropper.rotateTo(totalAngle);
-                    
-                    const minScale = app.crop.calculateInitialCoverScale();
-                    const cropper = app.crop.cropper;
-                    const canvasData = cropper.getCanvasData();
-                    const imageData = cropper.getImageData();
-                    const rad = totalAngle * Math.PI / 180;
-                    const absC = Math.abs(Math.cos(rad));
-                    const absS = Math.abs(Math.sin(rad));
-                    
-                    const currentScale = canvasData.width / (imageData.naturalWidth * absC + imageData.naturalHeight * absS);
-                    if (currentScale < minScale) {
-                        cropper.zoomTo(minScale);
-                    }
-                    
-                    // Re-center if out of bounds (let cropper snap it)
-                    cropper.move(0, 0);
-                    
-                    app.crop.isSystemUpdating = false;
-                },
-
-
-                close: () => {
-                    if (app.crop.closeTimeout) {
-                        clearTimeout(app.crop.closeTimeout);
-                        app.crop.closeTimeout = null;
-                    }
-                    const img = document.getElementById('crop-image');
-                    if (img) {
-                        img.onload = null;
-                        img.onerror = null;
-                    }
-                    const modal = document.getElementById('crop-modal');
-                    const content = document.getElementById('crop-content');
-                    if (content) {
-                        content.classList.remove('opacity-100', 'scale-100');
-                        content.classList.add('opacity-0', 'scale-95');
-                    }
-                    app.crop.closeTimeout = setTimeout(() => {
-                        modal.classList.add('hidden');
-                        if (app.crop.cropper) {
-                            try { app.crop.cropper.destroy(); } catch (e) {}
-                            app.crop.cropper = null;
-                        }
-                        if (img) {
-                            img.onload = null;
-                            img.onerror = null;
-                            img.removeAttribute('src');
-                            img.removeAttribute('style');
-                            img.style.cssText = 'max-width: 100%; max-height: 100%; display: block; -webkit-touch-callout: none;';
-                        }
-                        app.ui.unlockScroll();
-
-                        // Nếu là lần cắt bắt buộc mà user bấm Hủy -> Xóa trắng để chọn ảnh khác
-                        if (app.crop.isMandatory) {
-                            app.upload.removeImage();
-                            app.crop.isMandatory = false;
-                        }
-                    }, 200);
-                },
-
-                apply: () => {
-                    if (!app.crop.cropper) return;
-
-                    const newCropData = (app.crop.mode === 'main') ? app.crop.cropper.getData(true) : null;
-                    const prevCropData = (app.crop.mode === 'main') ? app.crop.savedCropData : null;
-
-                    if (app.crop.mode === 'main') {
-                        try {
-                            app.crop.savedCropData = newCropData;
-                        } catch(e) {}
-                    }
-
-                    const btn = document.querySelector('#crop-modal button:last-child');
-                    const originalText = btn.innerHTML;
-                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang cắt...';
-                    btn.disabled = true;
-
-                    setTimeout(() => {
-                        const cropOptions = {
-                            imageSmoothingEnabled: true,
-                            imageSmoothingQuality: 'high',
-                        };
-                        if (app.crop.mode === 'avatar') {
-                            cropOptions.width = 200;
-                            cropOptions.height = 200;
-                        }
-                        const canvas = app.crop.cropper.getCroppedCanvas(cropOptions);
-
-                        if (app.crop.mode === 'main') {
-                            const h = canvas.height;
-                            const w = canvas.width;
-
-                            if (h < 1080) {
-                                app.ui.showAlert(`Ảnh sau khi cắt có độ phân giải quá thấp (${w}x${h}). Yêu cầu chiều cao tối thiểu 1080px.`);
-                                btn.innerHTML = originalText;
-                                btn.disabled = false;
-                                return;
-                            }
-
-                            app.utils.canvasToBlobUniversal(canvas, app.utils.getTargetMimeType(), 0.85).then((blob) => {
-                                if (app.crop.originalFile && app.crop.originalFile.name) {
-                                    blob.name = app.crop.originalFile.name;
-                                } else {
-                                    blob.name = 'cropped_image.webp';
-                                }
-
-                                const wasMandatory = app.crop.isMandatory;
-                                app.crop.isMandatory = false; // Tắt cờ để hàm close() không xóa ảnh
-                                app.crop.close();
-
-                                if (wasMandatory) {
-                                    // Nếu là bước cắt đầu tiên bắt buộc -> thiết lập preview hoàn chỉnh
-                                    app.upload.setupPreview(blob);
-                                } else {
-                                    // Nếu là cắt thủ công lại sau này -> chỉ thay thế ảnh hiện tại
-                                    // Map tọa độ blur-panel từ không gian ảnh đã cắt cũ sang ảnh mới
-                                    if (prevCropData && newCropData && app.upload.mapBlurForRecrop) {
-                                        app.upload._pendingBlurRestore = app.upload.mapBlurForRecrop(prevCropData, newCropData);
-                                    }
-
-                                    app.rawFile = blob;
-                                    const url = URL.createObjectURL(blob);
-                                    const previewImg = document.getElementById('preview-img');
-                                    previewImg.src = url;
-
-                                    document.querySelectorAll('.blur-panel').forEach(p => p.remove());
-                                    if (app.upload.updateBlurBtn) app.upload.updateBlurBtn();
-
-                                    if(app.upload.resetWm) app.upload.resetWm();
-                                    if(app.upload.resetFilters) app.upload.resetFilters();
-
-                                    if (app.upload._pendingBlurRestore) app.upload._restoringBlur = true;
-
-                                    // Phục hồi blur-panel đã được map sang ảnh mới (sau khi preview load xong)
-                                    if (app.upload._pendingBlurRestore && app.upload.restoreBlurAfterRecrop) {
-                                        const restore = () => {
-                                            if (app.upload.restoreBlurAfterRecrop()) {
-                                                previewImg.removeEventListener('load', restore);
-                                            }
-                                        };
-                                        previewImg.addEventListener('load', restore);
-                                        if (previewImg.complete) restore();
-                                    }
-                                }
-
-                                btn.innerHTML = originalText;
-                                btn.disabled = false;
-                            });
-
-                        } else if (app.crop.mode === 'avatar') {
-                            app.utils.canvasToBlobUniversal(canvas, app.utils.getTargetMimeType(), 0.8).then(async (blob) => {
-                                if (blob.size > 3 * 1024 * 1024) {
-                                    app.ui.showAlert('Ảnh sau khi cắt vẫn quá lớn (>3MB)! Vui lòng chọn ảnh/vùng nhỏ hơn.');
-                                    btn.innerHTML = originalText;
-                                    btn.disabled = false;
-                                    return;
-                                }
-
-                                app.crop.close();
-                                btn.innerHTML = originalText;
-                                btn.disabled = false;
-
-                                app.auth.uploadAvatarBlob(blob);
-                            });
-                        }
-                    }, 50);
+            const isHeic = /\.(heic|heif)$/i.test(targetFile.name) || targetFile.type === 'image/heic' || targetFile.type === 'image/heif';
+            if (isHeic) {
+                try {
+                    const progToast = app.toast.createProgress('Đang xử lý ảnh HEIF/HEIC...');
+                    if (progToast) progToast.update(50, 'Đang giải mã HEIF/HEIC...', 'Đang chuyển đổi định dạng ảnh...');
+                    targetFile = await app.utils.decodeHeic(targetFile);
+                    if (mode === 'main') app.rawFile = targetFile;
+                    if (progToast && progToast.remove) progToast.remove();
+                } catch (err) {
+                    console.warn('Lỗi chuyển đổi HEIF/HEIC trong cropper:', err);
                 }
             }
+
+            app.crop.originalFile = targetFile;
+            app.crop.isMandatory = isMandatory;
+
+            const img = document.getElementById('crop-image');
+            if (img) {
+                img.onload = null;
+                img.onerror = null;
+                img.removeAttribute('src');
+                img.style.cssText = 'position: absolute; top: 50%; left: 50%; transform-origin: center center; -webkit-touch-callout: none; transform: translate(-50%, -50%) scale(1) rotate(0deg);';
+            }
+
+            const modal = document.getElementById('crop-modal');
+            const content = document.getElementById('crop-content');
+            const ratioContainer = document.getElementById('crop-ratios');
+            const modePanel = document.getElementById('crop-mode-panel');
+
+            modal.classList.remove('hidden');
+            app.ui.lockScroll();
+            setTimeout(() => {
+                if (content) {
+                    content.classList.remove('opacity-0', 'scale-95');
+                    content.classList.add('opacity-100', 'scale-100');
+                }
+            }, 10);
+
+            const url = URL.createObjectURL(app.crop.originalFile);
+
+            img.onload = () => {
+                img.onload = null;
+                img.onerror = null;
+                
+                setTimeout(() => {
+                    if (mode === 'main') {
+                        app.crop.state = { x: 0, y: 0, scale: 1, rotation: 0, minScale: 1 };
+                        
+                        const rotateSlider = document.getElementById('crop-rotate-slider');
+                        if (rotateSlider) rotateSlider.value = 0;
+                        const rotateVal = document.getElementById('crop-rotate-val');
+                        if (rotateVal) rotateVal.innerText = '0°';
+                        
+                        if (modePanel) modePanel.classList.remove('hidden');
+                        app.crop.setModeTab('ratio');
+
+                        if(ratioContainer) ratioContainer.classList.remove('hidden');
+
+                        if (typeof app.crop.savedRatio !== 'number' || isNaN(app.crop.savedRatio)) {
+                            const imgRatio = img.naturalWidth / img.naturalHeight;
+                            const presets = [16/9, 3/2, 4/3];
+                            let bestRatio = 4/3;
+                            let minDiff = 0.05;
+                            for (let r of presets) {
+                                if (Math.abs(imgRatio - r) < minDiff) {
+                                    bestRatio = r;
+                                    minDiff = Math.abs(imgRatio - r);
+                                }
+                            }
+                            app.crop.savedRatio = bestRatio;
+                        }
+
+                        app.crop.updateRatioButtons(app.crop.savedRatio);
+                        app.crop.setFixedCropBox(app.crop.savedRatio);
+                        app.crop.updateMinScale();
+                        
+                        app.crop.state.scale = app.crop.state.minScale;
+                        app.crop.applyTransform();
+                        app.crop.updateRulerUI();
+                    }
+                }, 50);
+            };
+
+            img.onerror = () => {
+                img.onload = null;
+                img.onerror = null;
+                app.ui.showAlert('Không thể tải ảnh vào công cụ cắt ảnh. Vui lòng thử lại hoặc chọn file hợp lệ.');
+                app.crop.close();
+            };
+
+            img.src = url;
+        },
+
+        updateMinScale: () => {
+            const overlay = document.getElementById('crop-overlay-box');
+            const img = document.getElementById('crop-image');
+            if (!overlay || !img || !img.naturalWidth) return;
+            
+            const ow = overlay.offsetWidth;
+            const oh = overlay.offsetHeight;
+            const iw = img.naturalWidth;
+            const ih = img.naturalHeight;
+            
+            const rad = app.crop.state.rotation * (Math.PI / 180);
+            const boundingW = (ow * Math.abs(Math.cos(rad))) + (oh * Math.abs(Math.sin(rad)));
+            const boundingH = (ow * Math.abs(Math.sin(rad))) + (oh * Math.abs(Math.cos(rad)));
+            
+            app.crop.state.minScale = Math.max(boundingW / iw, boundingH / ih);
+            
+            if (app.crop.state.scale < app.crop.state.minScale) {
+                app.crop.state.scale = app.crop.state.minScale;
+            }
+        },
+
+        applyTransform: () => {
+            const overlay = document.getElementById('crop-overlay-box');
+            const img = document.getElementById('crop-image');
+            if (!overlay || !img || !img.naturalWidth) return;
+            
+            const scaledImgW = img.naturalWidth * app.crop.state.scale;
+            const scaledImgH = img.naturalHeight * app.crop.state.scale;
+            
+            const rad = app.crop.state.rotation * (Math.PI / 180);
+            const ow = overlay.offsetWidth;
+            const oh = overlay.offsetHeight;
+            
+            const maxTx = Math.max(0, (scaledImgW * Math.abs(Math.cos(rad)) + scaledImgH * Math.abs(Math.sin(rad)) - ow) / 2);
+            const maxTy = Math.max(0, (scaledImgW * Math.abs(Math.sin(rad)) + scaledImgH * Math.abs(Math.cos(rad)) - oh) / 2);
+
+            app.crop.state.x = Math.max(-maxTx, Math.min(maxTx, app.crop.state.x));
+            app.crop.state.y = Math.max(-maxTy, Math.min(maxTy, app.crop.state.y));
+
+            img.style.transform = `translate(calc(-50% + ${app.crop.state.x}px), calc(-50% + ${app.crop.state.y}px)) rotate(${app.crop.state.rotation}deg) scale(${app.crop.state.scale})`;
+        },
+
+        onDragStart: (e) => {
+            app.crop.isDragging = true;
+            if (e.touches && e.touches.length > 0) {
+                app.crop.lastClientX = e.touches[0].clientX;
+                app.crop.lastClientY = e.touches[0].clientY;
+            } else {
+                app.crop.lastClientX = e.clientX;
+                app.crop.lastClientY = e.clientY;
+            }
+        },
+
+        onDragMove: (e) => {
+            if (!app.crop.isDragging) return;
+            e.preventDefault();
+            let clientX, clientY;
+            if (e.touches && e.touches.length > 0) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            
+            const deltaX = clientX - app.crop.lastClientX;
+            const deltaY = clientY - app.crop.lastClientY;
+            
+            app.crop.state.x += deltaX;
+            app.crop.state.y += deltaY;
+            
+            app.crop.lastClientX = clientX;
+            app.crop.lastClientY = clientY;
+            
+            app.crop.applyTransform();
+        },
+
+        onDragEnd: (e) => {
+            app.crop.isDragging = false;
+        },
+
+        onWheel: (e) => {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? -0.05 : 0.05;
+            app.crop.state.scale += delta;
+            
+            if (app.crop.state.scale < app.crop.state.minScale) {
+                app.crop.state.scale = app.crop.state.minScale;
+            }
+            
+            app.crop.applyTransform();
+        },
+
+        setFixedCropBox: (ratio) => {
+            const container = document.getElementById('crop-container');
+            const overlay = document.getElementById('crop-overlay-box');
+            if (!container || !overlay) return;
+            
+            const cw = container.offsetWidth;
+            const ch = container.offsetHeight;
+            
+            const targetW = cw * 0.85;
+            const targetH = ch * 0.85;
+            const currentRatio = ratio || ((typeof app.crop.savedRatio === 'number' && !isNaN(app.crop.savedRatio)) ? app.crop.savedRatio : (4/3));
+            
+            let finalW = targetW;
+            let finalH = finalW / currentRatio;
+            if (finalH > targetH) {
+                finalH = targetH;
+                finalW = finalH * currentRatio;
+            }
+            
+            overlay.style.width = finalW + 'px';
+            overlay.style.height = finalH + 'px';
+        },
+
+        setRatio: (ratio) => {
+            if (app.crop.mode === 'main') app.crop.savedRatio = ratio;
+            
+            const rotateSlider = document.getElementById('crop-rotate-slider');
+            if (rotateSlider) rotateSlider.value = 0;
+            const rotateVal = document.getElementById('crop-rotate-val');
+            if (rotateVal) rotateVal.innerText = '0°';
+            
+            app.crop.state.rotation = 0;
+            app.crop.state.x = 0;
+            app.crop.state.y = 0;
+            
+            app.crop.setFixedCropBox(ratio);
+            app.crop.updateMinScale();
+            app.crop.state.scale = app.crop.state.minScale;
+            
+            app.crop.applyTransform();
+            app.crop.updateRatioButtons(ratio);
+        },
+
+        updateRatioButtons: (activeRatio) => {
+            document.querySelectorAll('.crop-ratio-btn').forEach(btn => {
+                const r = parseFloat(btn.dataset.ratio);
+                if (Math.abs(r - activeRatio) < 0.01) {
+                    btn.classList.add('bg-black', 'text-white', 'border-black');
+                    btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300', 'hover:bg-gray-100');
+                } else {
+                    btn.classList.remove('bg-black', 'text-white', 'border-black');
+                    btn.classList.add('bg-white', 'text-gray-700', 'border-gray-300', 'hover:bg-gray-100');
+                }
+            });
+        },
+
+        setModeTab: (tab) => {
+            app.crop.modeTab = tab;
+            const slider = document.getElementById('crop-mode-slider');
+            const btnRatio = document.getElementById('btn-crop-mode-ratio');
+            const btnRotate = document.getElementById('btn-crop-mode-rotate');
+            const ratioControls = document.getElementById('crop-ratios');
+            const rotateControls = document.getElementById('crop-rotate-controls');
+
+            if (tab === 'ratio') {
+                if(slider) slider.style.left = '4px';
+                if(btnRatio) { btnRatio.classList.add('text-black'); btnRatio.classList.remove('text-gray-500', 'hover:text-black'); }
+                if(btnRotate) { btnRotate.classList.add('text-gray-500', 'hover:text-black'); btnRotate.classList.remove('text-black'); }
+                if(ratioControls) { ratioControls.classList.remove('hidden'); ratioControls.classList.add('flex'); }
+                if(rotateControls) { rotateControls.classList.add('hidden'); rotateControls.classList.remove('flex'); }
+            } else if (tab === 'rotate') {
+                if(slider) slider.style.left = 'calc(50% + 2px)';
+                if(btnRatio) { btnRatio.classList.add('text-gray-500', 'hover:text-black'); btnRatio.classList.remove('text-black'); }
+                if(btnRotate) { btnRotate.classList.add('text-black'); btnRotate.classList.remove('text-gray-500', 'hover:text-black'); }
+                if(ratioControls) { ratioControls.classList.add('hidden'); ratioControls.classList.remove('flex'); }
+                if(rotateControls) { rotateControls.classList.remove('hidden'); rotateControls.classList.add('flex'); }
+            }
+        },
+
+        slideRotate: (val) => {
+            app.crop.state.rotation = parseInt(val, 10);
+            const rotateVal = document.getElementById('crop-rotate-val');
+            if (rotateVal) {
+                rotateVal.innerText = (app.crop.state.rotation > 0 ? '+' : '') + app.crop.state.rotation + '°';
+            }
+            app.crop.updateMinScale();
+            app.crop.applyTransform();
+        },
+
+        stepRotate: (delta) => {
+            let newVal = app.crop.state.rotation + delta;
+            if (newVal < -45) newVal = -45;
+            if (newVal > 45) newVal = 45;
+            const rotateSlider = document.getElementById('crop-rotate-slider');
+            if (rotateSlider) rotateSlider.value = newVal;
+            app.crop.slideRotate(newVal);
+        },
+
+        rotateBy: (deg) => {
+            app.crop.state.rotation += deg;
+            app.crop.updateMinScale();
+            app.crop.applyTransform();
+        },
+
+        toggleRuler: () => {
+            app.crop.isRulerEnabled = !app.crop.isRulerEnabled;
+            app.crop.updateRulerUI();
+        },
+
+        getRulerHTML: () => {
+            const isHidden = app.crop.isRulerEnabled ? '' : 'hidden';
+            const levels = [
+                { pos: 8.3333, label: '5' },
+                { pos: 16.6667, label: '4' },
+                { pos: 25.0, label: '3' },
+                { pos: 33.3333, label: '2' },
+                { pos: 41.6667, label: '1' },
+                { pos: 50.0, label: '0', isCenter: true },
+                { pos: 58.3333, label: '1' },
+                { pos: 66.6667, label: '2' },
+                { pos: 75.0, label: '3' },
+                { pos: 83.3333, label: '4' },
+                { pos: 91.6667, label: '5' }
+            ];
+            let linesHtml = '';
+            levels.forEach(item => {
+                const lineClass = item.isCenter ? 'ruler-line-center' : 'ruler-line-v';
+                const badgeClass = item.isCenter ? 'ruler-badge-center' : 'ruler-badge';
+                linesHtml += `<div class="${lineClass}" style="left: ${item.pos}%;"><span class="${badgeClass} ruler-badge-top">${item.label}</span><span class="${badgeClass} ruler-badge-bottom">${item.label}</span></div>`;
+            });
+            return `<div class="crop-ruler-overlay ruler-horizontal-overlay ${isHidden}" style="z-index: 25;">${linesHtml}</div>`;
+        },
+
+        updateRulerUI: () => {
+            const btn = document.getElementById('btn-crop-toggle-ruler');
+            if (btn) {
+                if (app.crop.isRulerEnabled) {
+                    btn.className = "px-3 py-2 sm:px-3 sm:py-1.5 text-xs bg-black text-white border border-black rounded-md font-bold transition flex items-center justify-center gap-1.5";
+                } else {
+                    btn.className = "px-3 py-2 sm:px-3 sm:py-1.5 text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition flex items-center justify-center gap-1.5";
+                }
+            }
+            const overlayBox = document.getElementById('crop-overlay-box');
+            if (!overlayBox) return;
+            let overlay = overlayBox.querySelector('.crop-ruler-overlay');
+            if (!overlay) {
+                overlayBox.insertAdjacentHTML('beforeend', app.crop.getRulerHTML());
+                overlay = overlayBox.querySelector('.crop-ruler-overlay');
+            }
+            if (overlay) {
+                if (app.crop.isRulerEnabled) overlay.classList.remove('hidden');
+                else overlay.classList.add('hidden');
+            }
+        },
+
+        close: () => {
+            if (app.crop.closeTimeout) {
+                clearTimeout(app.crop.closeTimeout);
+                app.crop.closeTimeout = null;
+            }
+            const img = document.getElementById('crop-image');
+            if (img) {
+                img.onload = null;
+                img.onerror = null;
+            }
+            const modal = document.getElementById('crop-modal');
+            const content = document.getElementById('crop-content');
+            if (content) {
+                content.classList.remove('opacity-100', 'scale-100');
+                content.classList.add('opacity-0', 'scale-95');
+            }
+            app.crop.closeTimeout = setTimeout(() => {
+                modal.classList.add('hidden');
+                if (img) {
+                    img.onload = null;
+                    img.onerror = null;
+                    img.removeAttribute('src');
+                    img.removeAttribute('style');
+                }
+                app.ui.unlockScroll();
+
+                if (app.crop.isMandatory) {
+                    app.upload.removeImage();
+                    app.crop.isMandatory = false;
+                }
+            }, 200);
+        },
+
+        apply: () => {
+            const img = document.getElementById('crop-image');
+            const overlay = document.getElementById('crop-overlay-box');
+            if (!img || !overlay || !img.naturalWidth) return;
+
+            const btn = document.querySelector('#crop-modal button:last-child');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang cắt...';
+            btn.disabled = true;
+
+            setTimeout(() => {
+                const ow = overlay.offsetWidth;
+                const oh = overlay.offsetHeight;
+                
+                const multiplier = 3; 
+                
+                const canvas = document.createElement('canvas');
+                canvas.width = ow * multiplier;
+                canvas.height = oh * multiplier;
+                const ctx = canvas.getContext('2d');
+                
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+                
+                ctx.translate(canvas.width / 2, canvas.height / 2);
+                ctx.rotate(app.crop.state.rotation * Math.PI / 180);
+                ctx.scale(app.crop.state.scale * multiplier, app.crop.state.scale * multiplier);
+                
+                ctx.drawImage(
+                    img,
+                    -img.naturalWidth / 2 + (app.crop.state.x / app.crop.state.scale),
+                    -img.naturalHeight / 2 + (app.crop.state.y / app.crop.state.scale)
+                );
+
+                if (app.crop.mode === 'main') {
+                    if (canvas.height < 1080) {
+                        app.ui.showAlert(`Ảnh sau khi cắt có độ phân giải quá thấp (${canvas.width}x${canvas.height}). Yêu cầu chiều cao tối thiểu 1080px.`);
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                        return;
+                    }
+
+                    app.utils.canvasToBlobUniversal(canvas, app.utils.getTargetMimeType(), 0.85).then((blob) => {
+                        if (app.crop.originalFile && app.crop.originalFile.name) {
+                            blob.name = app.crop.originalFile.name;
+                        } else {
+                            blob.name = 'cropped_image.webp';
+                        }
+
+                        const wasMandatory = app.crop.isMandatory;
+                        app.crop.isMandatory = false;
+                        app.crop.close();
+
+                        if (wasMandatory) {
+                            app.upload.setupPreview(blob);
+                        } else {
+                            app.rawFile = blob;
+                            const url = URL.createObjectURL(blob);
+                            const previewImg = document.getElementById('preview-img');
+                            previewImg.src = url;
+
+                            document.querySelectorAll('.blur-panel').forEach(p => p.remove());
+                            if (app.upload.updateBlurBtn) app.upload.updateBlurBtn();
+
+                            if(app.upload.resetWm) app.upload.resetWm();
+                            if(app.upload.resetFilters) app.upload.resetFilters();
+                        }
+
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                    });
+                } else if (app.crop.mode === 'avatar') {
+                    app.utils.canvasToBlobUniversal(canvas, app.utils.getTargetMimeType(), 0.8).then(async (blob) => {
+                        if (blob.size > 3 * 1024 * 1024) {
+                            app.ui.showAlert('Ảnh sau khi cắt vẫn quá lớn (>3MB)! Vui lòng chọn ảnh/vùng nhỏ hơn.');
+                            btn.innerHTML = originalText;
+                            btn.disabled = false;
+                            return;
+                        }
+                        app.crop.close();
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                        app.auth.uploadAvatarBlob(blob);
+                    });
+                }
+            }, 50);
+        },
+        
+        undo: () => {},
+        redo: () => {}
+    }
 });
 
 window.addEventListener('keydown', (e) => {
