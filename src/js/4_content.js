@@ -2782,7 +2782,7 @@ Object.assign(window.app, {
 
                                 app.crop.cropper = new Cropper(img, {
                                     aspectRatio: (typeof app.crop.savedRatio === 'number' && !isNaN(app.crop.savedRatio)) ? app.crop.savedRatio : (4/3),
-                                    viewMode: 1,
+                                    viewMode: 0,
                                     autoCropArea: 1,
                                     checkCrossOrigin: false,
                                     cropstart: () => {
@@ -2807,12 +2807,6 @@ Object.assign(window.app, {
                                         const cropBoxData = cropper.getCropBoxData();
                                         const canvasData = cropper.getCanvasData();
                                         
-                                        if (totalAngle % 90 === 0) {
-                                            app.crop.lastValidCropBoxData = cropBoxData;
-                                            app.crop.lastCanvasData = canvasData;
-                                            return;
-                                        }
-
                                         const imageData = cropper.getImageData();
                                         const W = imageData.naturalWidth;
                                         const H = imageData.naturalHeight;
@@ -2825,8 +2819,7 @@ Object.assign(window.app, {
                                         const absC = Math.abs(C);
                                         const absS = Math.abs(S);
                                         
-                                        const bboxW = W * absC + H * absS;
-                                        const scale = canvasData.width / bboxW;
+                                        const scale = canvasData.width / W;
                                         
                                         const w = (W * scale) / 2;
                                         const h = (H * scale) / 2;
@@ -2855,36 +2848,43 @@ Object.assign(window.app, {
                                         const prevCrop = app.crop.lastValidCropBoxData;
                                         const isCanvasChanged = prevCanvas && (Math.abs(canvasData.width - prevCanvas.width) > 0.1 || Math.abs(canvasData.left - prevCanvas.left) > 0.1 || Math.abs(canvasData.top - prevCanvas.top) > 0.1);
 
+                                        const checkTest = (l, t, testCx, testCy, testScale) => {
+                                            const testW = W * testScale / 2;
+                                            const testH = H * testScale / 2;
+                                            const testCorners = [
+                                                { x: l, y: t },
+                                                { x: l + (prevCrop ? prevCrop.width : cropBoxData.width), y: t },
+                                                { x: l, y: t + (prevCrop ? prevCrop.height : cropBoxData.height) },
+                                                { x: l + (prevCrop ? prevCrop.width : cropBoxData.width), y: t + (prevCrop ? prevCrop.height : cropBoxData.height) }
+                                            ];
+                                            for (let pt of testCorners) {
+                                                const p_dx = pt.x - testCx;
+                                                const p_dy = pt.y - testCy;
+                                                const lx = p_dx * C + p_dy * S;
+                                                const ly = -p_dx * S + p_dy * C;
+                                                if (Math.abs(lx) > testW + 0.5 || Math.abs(ly) > testH + 0.5) return false;
+                                            }
+                                            return true;
+                                        };
+
                                         if (!isValid) {
                                             app.crop.isClamping = true;
                                             
                                             const isDragOnly = prevCrop && Math.abs(cropBoxData.width - prevCrop.width) < 0.1 && Math.abs(cropBoxData.height - prevCrop.height) < 0.1;
 
-                                            if (isDragOnly && !isCanvasChanged) {
+                                            if (isCanvasChanged && prevCrop) {
+                                                if (!checkTest(cropBoxData.left, cropBoxData.top, cx, cy, scale)) {
+                                                    cropper.setCanvasData(prevCanvas);
+                                                    cropper.setCropBoxData(prevCrop);
+                                                }
+                                            } else if (isDragOnly) {
                                                 const dx = cropBoxData.left - prevCrop.left;
                                                 const dy = cropBoxData.top - prevCrop.top;
                                                 
-                                                const checkTest = (l, t) => {
-                                                    const testCorners = [
-                                                        { x: l, y: t },
-                                                        { x: l + prevCrop.width, y: t },
-                                                        { x: l, y: t + prevCrop.height },
-                                                        { x: l + prevCrop.width, y: t + prevCrop.height }
-                                                    ];
-                                                    for (let pt of testCorners) {
-                                                        const p_dx = pt.x - cx;
-                                                        const p_dy = pt.y - cy;
-                                                        const lx = p_dx * C + p_dy * S;
-                                                        const ly = -p_dx * S + p_dy * C;
-                                                        if (Math.abs(lx) > w + 0.5 || Math.abs(ly) > h + 0.5) return false;
-                                                    }
-                                                    return true;
-                                                };
-                                                
                                                 let tryX = false;
                                                 let tryY = false;
-                                                if (Math.abs(dx) > 0.1) tryX = checkTest(cropBoxData.left, prevCrop.top);
-                                                if (Math.abs(dy) > 0.1) tryY = checkTest(prevCrop.left, cropBoxData.top);
+                                                if (Math.abs(dx) > 0.1) tryX = checkTest(cropBoxData.left, prevCrop.top, cx, cy, scale);
+                                                if (Math.abs(dy) > 0.1) tryY = checkTest(prevCrop.left, cropBoxData.top, cx, cy, scale);
                                                 
                                                 if (tryX && !tryY) {
                                                     cropper.setCropBoxData({ left: cropBoxData.left, top: prevCrop.top, width: prevCrop.width, height: prevCrop.height });
@@ -2893,7 +2893,7 @@ Object.assign(window.app, {
                                                 } else {
                                                     let t = 0.5; let step = 0.25; let bestT = 0;
                                                     for (let i = 0; i < 5; i++) {
-                                                        if (checkTest(prevCrop.left + dx * t, prevCrop.top + dy * t)) {
+                                                        if (checkTest(prevCrop.left + dx * t, prevCrop.top + dy * t, cx, cy, scale)) {
                                                             bestT = t; t += step;
                                                         } else { t -= step; }
                                                     }
@@ -2903,7 +2903,7 @@ Object.assign(window.app, {
                                                         cropper.setCropBoxData(prevCrop);
                                                     }
                                                 }
-                                            } else if (isCanvasChanged || !prevCrop) {
+                                            } else if (!prevCrop) {
                                                 const aspectRatio = (typeof app.crop.savedRatio === 'number' && !isNaN(app.crop.savedRatio)) ? app.crop.savedRatio : (4/3);
                                                 const maxH = Math.min(W / (aspectRatio * absC + absS), H / (aspectRatio * absS + absC));
                                                 const maxW = maxH * aspectRatio;
@@ -3185,14 +3185,13 @@ Object.assign(window.app, {
                     
                     const aspectRatio = (typeof app.crop.savedRatio === 'number' && !isNaN(app.crop.savedRatio)) ? app.crop.savedRatio : (4/3);
                     
-                    const bboxW = W * C + H * S;
                     const maxH = Math.min(
                         W / (aspectRatio * C + S),
                         H / (aspectRatio * S + C)
                     );
                     const maxW = maxH * aspectRatio;
                     
-                    const scale = canvasData.width / bboxW;
+                    const scale = canvasData.width / W;
                     const cropW = maxW * scale;
                     const cropH = maxH * scale;
                     
