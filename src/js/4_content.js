@@ -2684,6 +2684,7 @@ Object.assign(window.app, {
   crop: {
         state: { x: 0, y: 0, scale: 1, rotation: 0, minScale: 1 },
         isDragging: false,
+        eventsAttached: false,
         startX: 0,
         startY: 0,
         lastClientX: 0,
@@ -2755,6 +2756,61 @@ Object.assign(window.app, {
                     content.classList.add('opacity-100', 'scale-100');
                 }
             }, 10);
+
+            const container = document.getElementById('crop-container');
+            if (container && !app.crop.eventsAttached) {
+                app.crop.eventsAttached = true;
+                
+                // --- PC Mouse Wheel Zoom ---
+                container.addEventListener('wheel', (e) => {
+                    e.preventDefault();
+                    const zoomSpeed = 0.05;
+                    const delta = e.deltaY > 0 ? -zoomSpeed : zoomSpeed;
+                    
+                    app.crop.state.scale += delta;
+                    
+                    if (app.crop.state.scale < app.crop.state.minScale) {
+                        app.crop.state.scale = app.crop.state.minScale;
+                    }
+                    if (app.crop.state.scale > 5) app.crop.state.scale = 5;
+                    
+                    app.crop.applyTransform();
+                }, { passive: false });
+
+                // --- Mobile Pinch-to-Zoom (Touch) ---
+                let initialPinchDist = 0;
+                let initialScale = 1;
+
+                container.addEventListener('touchstart', (e) => {
+                    if (e.touches.length === 2) {
+                        e.preventDefault();
+                        initialPinchDist = Math.hypot(
+                            e.touches[0].clientX - e.touches[1].clientX,
+                            e.touches[0].clientY - e.touches[1].clientY
+                        );
+                        initialScale = app.crop.state.scale;
+                    }
+                }, { passive: false });
+
+                container.addEventListener('touchmove', (e) => {
+                    if (e.touches.length === 2) {
+                        e.preventDefault();
+                        const currentDist = Math.hypot(
+                            e.touches[0].clientX - e.touches[1].clientX,
+                            e.touches[0].clientY - e.touches[1].clientY
+                        );
+                        
+                        app.crop.state.scale = initialScale * (currentDist / initialPinchDist);
+                        
+                        if (app.crop.state.scale < app.crop.state.minScale) {
+                            app.crop.state.scale = app.crop.state.minScale;
+                        }
+                        if (app.crop.state.scale > 5) app.crop.state.scale = 5;
+                        
+                        app.crop.applyTransform();
+                    }
+                }, { passive: false });
+            }
 
             const url = URL.createObjectURL(app.crop.originalFile);
 
@@ -2838,25 +2894,35 @@ Object.assign(window.app, {
             const img = document.getElementById('crop-image');
             if (!overlay || !img || !img.naturalWidth) return;
             
+            const ow = overlay.offsetWidth;
+            const oh = overlay.offsetHeight;
             const scaledImgW = img.naturalWidth * app.crop.state.scale;
             const scaledImgH = img.naturalHeight * app.crop.state.scale;
             
             const rad = app.crop.state.rotation * (Math.PI / 180);
-            const ow = overlay.offsetWidth;
-            const oh = overlay.offsetHeight;
+            const cos = Math.abs(Math.cos(rad));
+            const sin = Math.abs(Math.sin(rad));
             
-            const maxTx = Math.max(0, (scaledImgW * Math.abs(Math.cos(rad)) + scaledImgH * Math.abs(Math.sin(rad)) - ow) / 2);
-            const maxTy = Math.max(0, (scaledImgW * Math.abs(Math.sin(rad)) + scaledImgH * Math.abs(Math.cos(rad)) - oh) / 2);
+            // 1. Calculate 'Slack' (How much extra image we have beyond the crop box on local axes)
+            const slackX = Math.max(0, scaledImgW - (ow * cos + oh * sin));
+            const slackY = Math.max(0, scaledImgH - (ow * sin + oh * cos));
 
+            // 2. Convert local slack back to screen space max translations
+            const maxTx = (slackX * cos + slackY * sin) / 2;
+            const maxTy = (slackX * sin + slackY * cos) / 2;
+            
+            // 3. Clamp the state
             app.crop.state.x = Math.max(-maxTx, Math.min(maxTx, app.crop.state.x));
             app.crop.state.y = Math.max(-maxTy, Math.min(maxTy, app.crop.state.y));
-
+            
+            // 4. Apply
             img.style.transform = `translate(calc(-50% + ${app.crop.state.x}px), calc(-50% + ${app.crop.state.y}px)) rotate(${app.crop.state.rotation}deg) scale(${app.crop.state.scale})`;
         },
 
         onDragStart: (e) => {
+            if (e.touches && e.touches.length > 1) return;
             app.crop.isDragging = true;
-            if (e.touches && e.touches.length > 0) {
+            if (e.touches && e.touches.length === 1) {
                 app.crop.lastClientX = e.touches[0].clientX;
                 app.crop.lastClientY = e.touches[0].clientY;
             } else {
@@ -2867,9 +2933,10 @@ Object.assign(window.app, {
 
         onDragMove: (e) => {
             if (!app.crop.isDragging) return;
+            if (e.touches && e.touches.length > 1) return;
             e.preventDefault();
             let clientX, clientY;
-            if (e.touches && e.touches.length > 0) {
+            if (e.touches && e.touches.length === 1) {
                 clientX = e.touches[0].clientX;
                 clientY = e.touches[0].clientY;
             } else {
