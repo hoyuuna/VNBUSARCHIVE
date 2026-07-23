@@ -2894,9 +2894,12 @@ Object.assign(window.app, {
                                         
                                         const W = imageData.naturalWidth;
                                         const H = imageData.naturalHeight;
-                                        const scale = canvasData.width / W;
-                                        const w = canvasData.width / 2;
-                                        const h = canvasData.height / 2;
+                                        const absC = Math.abs(C);
+                                        const absS = Math.abs(S);
+                                        const bboxW = W * absC + H * absS;
+                                        const scale = canvasData.width / bboxW;
+                                        const w = (W * scale) / 2;
+                                        const h = (H * scale) / 2;
                                         
                                         const cx = canvasData.left + w;
                                         const cy = canvasData.top + h;
