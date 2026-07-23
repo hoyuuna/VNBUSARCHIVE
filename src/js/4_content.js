@@ -2942,21 +2942,36 @@ Object.assign(window.app, {
                         width: finalW,
                         height: finalH
                     });
+                    
+                    if (app.crop.cropper.cropBox) {
+                        app.crop.cropper.cropBox.style.setProperty('position', 'absolute', 'important');
+                        app.crop.cropper.cropBox.style.setProperty('top', '50%', 'important');
+                        app.crop.cropper.cropBox.style.setProperty('left', '50%', 'important');
+                        app.crop.cropper.cropBox.style.setProperty('transform', 'translate(-50%, -50%)', 'important');
+                        app.crop.cropper.cropBox.style.setProperty('pointer-events', 'none', 'important');
+                    }
                 },
                 
                 setRatio: (ratio) => {
                     if (app.crop.cropper) {
+                        app.crop.isSystemUpdating = true;
                         if (app.crop.mode === 'main') app.crop.savedRatio = ratio;
+                        
+                        // Hard reset rotation
+                        const rotateSlider = document.getElementById('crop-rotate');
+                        if (rotateSlider) rotateSlider.value = 0;
+                        app.crop.currentBaseAngle = 0;
+                        app.crop.fineAngle = 0;
+                        app.crop.cropper.rotateTo(0);
+                        
                         app.crop.cropper.setAspectRatio(ratio);
                         app.crop.setFixedCropBox(ratio);
                         
                         const minScale = app.crop.calculateInitialCoverScale();
                         const cropper = app.crop.cropper;
-                        const imageData = cropper.getImageData();
-                        const currentScale = cropper.getCanvasData().width / (imageData.naturalWidth * Math.abs(Math.cos((app.crop.currentBaseAngle + app.crop.fineAngle) * Math.PI / 180)) + imageData.naturalHeight * Math.abs(Math.sin((app.crop.currentBaseAngle + app.crop.fineAngle) * Math.PI / 180)));
                         
-                        const newScale = Math.max(currentScale || 0, minScale);
-                        cropper.zoomTo(newScale);
+                        // Hard reset scale exactly to minScale
+                        cropper.zoomTo(minScale);
                         
                         // Center
                         const containerData = cropper.getContainerData();
@@ -2966,11 +2981,13 @@ Object.assign(window.app, {
                             top: (containerData.height - canvasData.height) / 2
                         });
                         
+                        app.crop.lastValidCanvasData = cropper.getCanvasData();
                         app.crop.updateRatioButtons(ratio);
                         if (app.crop.mode === 'main') {
                             app.crop.savedRatio = ratio;
                             app.crop.pushHistory();
                         }
+                        app.crop.isSystemUpdating = false;
                     }
                 },
 
