@@ -2782,8 +2782,13 @@ Object.assign(window.app, {
 
                                 app.crop.cropper = new Cropper(img, {
                                     aspectRatio: (typeof app.crop.savedRatio === 'number' && !isNaN(app.crop.savedRatio)) ? app.crop.savedRatio : (4/3),
-                                    viewMode: 0,
-                                    autoCropArea: 1,
+                                    viewMode: 1,
+                                    dragMode: 'move',
+                                    cropBoxMovable: false,
+                                    cropBoxResizable: false,
+                                    zoomable: true,
+                                    wheelZoomRatio: 0.1,
+                                    toggleDragModeOnDblclick: false,
                                     checkCrossOrigin: false,
                                     cropstart: () => {
                                         const btnCancel = document.getElementById('btn-crop-cancel');
@@ -2799,133 +2804,11 @@ Object.assign(window.app, {
                                         app.crop.pushHistory();
                                     },
                                     crop: (event) => {
-                                        if (app.crop.isClamping || app.crop.isSystemUpdating) return;
-                                        const cropper = app.crop.cropper;
-                                        if (!cropper) return;
-                                        
-                                        const totalAngle = (app.crop.currentBaseAngle || 0) + (app.crop.fineAngle || 0);
-                                        const cropBoxData = cropper.getCropBoxData();
-                                        const canvasData = cropper.getCanvasData();
-                                        
-                                        const imageData = cropper.getImageData();
-                                        const W = imageData.naturalWidth;
-                                        const H = imageData.naturalHeight;
-                                        const cx = canvasData.left + canvasData.width / 2;
-                                        const cy = canvasData.top + canvasData.height / 2;
-                                        
-                                        const rad = totalAngle * Math.PI / 180;
-                                        const C = Math.cos(rad);
-                                        const S = Math.sin(rad);
-                                        const absC = Math.abs(C);
-                                        const absS = Math.abs(S);
-                                        
-                                        const bboxW = W * absC + H * absS;
-                                        const scale = canvasData.width / bboxW;
-                                        
-                                        const w = (W * scale) / 2;
-                                        const h = (H * scale) / 2;
-                                        
-                                        const corners = [
-                                            { x: cropBoxData.left, y: cropBoxData.top },
-                                            { x: cropBoxData.left + cropBoxData.width, y: cropBoxData.top },
-                                            { x: cropBoxData.left, y: cropBoxData.top + cropBoxData.height },
-                                            { x: cropBoxData.left + cropBoxData.width, y: cropBoxData.top + cropBoxData.height }
-                                        ];
-                                        
-                                        let isValid = true;
-                                        for (let pt of corners) {
-                                            const dx = pt.x - cx;
-                                            const dy = pt.y - cy;
-                                            const lx = dx * C + dy * S;
-                                            const ly = -dx * S + dy * C;
-                                            
-                                            if (Math.abs(lx) > w + 0.5 || Math.abs(ly) > h + 0.5) {
-                                                isValid = false;
-                                                break;
-                                            }
-                                        }
-                                        
-                                        const prevCanvas = app.crop.lastCanvasData;
-                                        const prevCrop = app.crop.lastValidCropBoxData;
-                                        const isCanvasChanged = prevCanvas && (Math.abs(canvasData.width - prevCanvas.width) > 0.1 || Math.abs(canvasData.left - prevCanvas.left) > 0.1 || Math.abs(canvasData.top - prevCanvas.top) > 0.1);
-
-                                        const checkTest = (l, t, testCx, testCy, testScale) => {
-                                            const testW = W * testScale / 2;
-                                            const testH = H * testScale / 2;
-                                            const testCorners = [
-                                                { x: l, y: t },
-                                                { x: l + (prevCrop ? prevCrop.width : cropBoxData.width), y: t },
-                                                { x: l, y: t + (prevCrop ? prevCrop.height : cropBoxData.height) },
-                                                { x: l + (prevCrop ? prevCrop.width : cropBoxData.width), y: t + (prevCrop ? prevCrop.height : cropBoxData.height) }
-                                            ];
-                                            for (let pt of testCorners) {
-                                                const p_dx = pt.x - testCx;
-                                                const p_dy = pt.y - testCy;
-                                                const lx = p_dx * C + p_dy * S;
-                                                const ly = -p_dx * S + p_dy * C;
-                                                if (Math.abs(lx) > testW + 0.5 || Math.abs(ly) > testH + 0.5) return false;
-                                            }
-                                            return true;
-                                        };
-
-                                        if (!isValid) {
-                                            app.crop.isClamping = true;
-                                            
-                                            const isDragOnly = prevCrop && Math.abs(cropBoxData.width - prevCrop.width) < 0.1 && Math.abs(cropBoxData.height - prevCrop.height) < 0.1;
-
-                                            if (isCanvasChanged && prevCrop) {
-                                                if (!checkTest(cropBoxData.left, cropBoxData.top, cx, cy, scale)) {
-                                                    cropper.setCanvasData(prevCanvas);
-                                                    cropper.setCropBoxData(prevCrop);
-                                                }
-                                            } else if (isDragOnly) {
-                                                const dx = cropBoxData.left - prevCrop.left;
-                                                const dy = cropBoxData.top - prevCrop.top;
-                                                
-                                                let tryX = false;
-                                                let tryY = false;
-                                                if (Math.abs(dx) > 0.1) tryX = checkTest(cropBoxData.left, prevCrop.top, cx, cy, scale);
-                                                if (Math.abs(dy) > 0.1) tryY = checkTest(prevCrop.left, cropBoxData.top, cx, cy, scale);
-                                                
-                                                if (tryX && !tryY) {
-                                                    cropper.setCropBoxData({ left: cropBoxData.left, top: prevCrop.top, width: prevCrop.width, height: prevCrop.height });
-                                                } else if (tryY && !tryX) {
-                                                    cropper.setCropBoxData({ left: prevCrop.left, top: cropBoxData.top, width: prevCrop.width, height: prevCrop.height });
-                                                } else {
-                                                    let t = 0.5; let step = 0.25; let bestT = 0;
-                                                    for (let i = 0; i < 5; i++) {
-                                                        if (checkTest(prevCrop.left + dx * t, prevCrop.top + dy * t, cx, cy, scale)) {
-                                                            bestT = t; t += step;
-                                                        } else { t -= step; }
-                                                    }
-                                                    if (bestT > 0) {
-                                                        cropper.setCropBoxData({ left: prevCrop.left + dx * bestT, top: prevCrop.top + dy * bestT, width: prevCrop.width, height: prevCrop.height });
-                                                    } else {
-                                                        cropper.setCropBoxData(prevCrop);
-                                                    }
-                                                }
-                                            } else if (!prevCrop) {
-                                                const aspectRatio = (typeof app.crop.savedRatio === 'number' && !isNaN(app.crop.savedRatio)) ? app.crop.savedRatio : (4/3);
-                                                const maxH = Math.min(W / (aspectRatio * absC + absS), H / (aspectRatio * absS + absC));
-                                                const maxW = maxH * aspectRatio;
-                                                const cropW = maxW * scale;
-                                                const cropH = maxH * scale;
-                                                cropper.setCropBoxData({
-                                                    left: canvasData.left + (canvasData.width - cropW) / 2,
-                                                    top: canvasData.top + (canvasData.height - cropH) / 2,
-                                                    width: cropW,
-                                                    height: cropH
-                                                });
-                                            } else {
-                                                cropper.setCropBoxData(prevCrop);
-                                            }
-                                            app.crop.isClamping = false;
-                                        } else {
-                                            app.crop.lastValidCropBoxData = cropBoxData;
-                                            app.crop.lastCanvasData = canvasData;
-                                        }
+                                        // Với viewMode: 1 và dragMode: 'move', Cropper.js tự động xử lý bounds
+                                        // nên chúng ta không cần tính toán clamp OBB phức tạp nữa.
                                     },
                                     ready: () => {
+                                        app.crop.setFixedCropBox();
                                         app.crop.updateRulerUI();
                                         if (app.crop.cropper) {
                                             try { app.crop.cropper.update(); } catch(e){}
@@ -3021,6 +2904,28 @@ Object.assign(window.app, {
                     }
                 },
 
+                setFixedCropBox: () => {
+                    if (!app.crop.cropper) return;
+                    const containerData = app.crop.cropper.getContainerData();
+                    const targetW = containerData.width * 0.8;
+                    const targetH = containerData.height * 0.8;
+                    const currentRatio = (typeof app.crop.savedRatio === 'number' && !isNaN(app.crop.savedRatio)) ? app.crop.savedRatio : (4/3);
+                    
+                    let finalW = targetW;
+                    let finalH = finalW / currentRatio;
+                    if (finalH > targetH) {
+                        finalH = targetH;
+                        finalW = finalH * currentRatio;
+                    }
+                    
+                    app.crop.cropper.setCropBoxData({
+                        left: (containerData.width - finalW) / 2,
+                        top: (containerData.height - finalH) / 2,
+                        width: finalW,
+                        height: finalH
+                    });
+                },
+                
                 setRatio: (ratio) => {
                     if (app.crop.cropper) {
                         app.crop.cropper.setAspectRatio(ratio);
@@ -3171,62 +3076,9 @@ Object.assign(window.app, {
 
                 updateRotation: () => {
                     if (!app.crop.cropper) return;
-                    app.crop.isSystemUpdating = true;
                     
-                    const totalAngle = app.crop.currentBaseAngle + app.crop.fineAngle;
+                    const totalAngle = (app.crop.currentBaseAngle || 0) + (app.crop.fineAngle || 0);
                     app.crop.cropper.rotateTo(totalAngle);
-                    
-                    const imageData = app.crop.cropper.getImageData();
-                    const containerData = app.crop.cropper.getContainerData();
-                    
-                    const W = imageData.naturalWidth;
-                    const H = imageData.naturalHeight;
-                    const rad = totalAngle * Math.PI / 180;
-                    const absC = Math.abs(Math.cos(rad));
-                    const absS = Math.abs(Math.sin(rad));
-                    
-                    const bboxW = W * absC + H * absS;
-                    const bboxH = W * absS + H * absC;
-                    
-                    const margin = 0.95; 
-                    const fitScale = Math.min(
-                        containerData.width / bboxW,
-                        containerData.height / bboxH
-                    ) * margin;
-                    
-                    const newCanvasW = bboxW * fitScale;
-                    const newCanvasH = bboxH * fitScale;
-                    const newCanvasLeft = (containerData.width - newCanvasW) / 2;
-                    const newCanvasTop = (containerData.height - newCanvasH) / 2;
-                    
-                    app.crop.cropper.setCanvasData({
-                        width: newCanvasW,
-                        height: newCanvasH,
-                        left: newCanvasLeft,
-                        top: newCanvasTop
-                    });
-                    
-                    const aspectRatio = (typeof app.crop.savedRatio === 'number' && !isNaN(app.crop.savedRatio)) ? app.crop.savedRatio : (4/3);
-                    const maxH = Math.min(
-                        W / (aspectRatio * absC + absS),
-                        H / (aspectRatio * absS + absC)
-                    );
-                    const maxW = maxH * aspectRatio;
-                    
-                    const cropW = maxW * fitScale;
-                    const cropH = maxH * fitScale;
-                    
-                    app.crop.cropper.setCropBoxData({
-                        left: newCanvasLeft + (newCanvasW - cropW) / 2,
-                        top: newCanvasTop + (newCanvasH - cropH) / 2,
-                        width: cropW,
-                        height: cropH
-                    });
-                    
-                    app.crop.lastCanvasData = app.crop.cropper.getCanvasData();
-                    app.crop.lastValidCropBoxData = app.crop.cropper.getCropBoxData();
-                    
-                    app.crop.isSystemUpdating = false;
                 },
 
 
@@ -3384,6 +3236,18 @@ window.addEventListener('keydown', (e) => {
     if (!cropModal || cropModal.classList.contains('hidden') || !app.crop || !app.crop.cropper) return;
     if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target && e.target.tagName)) return;
 
+    if (e.ctrlKey) {
+        if (e.key === '=' || e.key === '+') {
+            e.preventDefault();
+            app.crop.cropper.zoom(0.1);
+            return;
+        } else if (e.key === '-') {
+            e.preventDefault();
+            app.crop.cropper.zoom(-0.1);
+            return;
+        }
+    }
+
     let dx = 0, dy = 0;
     const step = e.shiftKey ? 10 : 1;
     if (e.key === 'ArrowLeft') dx = -step;
@@ -3394,15 +3258,7 @@ window.addEventListener('keydown', (e) => {
 
     e.preventDefault();
     try {
-        const box = app.crop.cropper.getCropBoxData();
-        app.crop.cropper.setCropBoxData({
-            left: box.left + dx,
-            top: box.top + dy
-        });
-        const newBox = app.crop.cropper.getCropBoxData();
-        if (Math.abs(newBox.left - box.left) < 0.1 && Math.abs(newBox.top - box.top) < 0.1) {
-            app.crop.cropper.move(-dx, -dy);
-        }
+        app.crop.cropper.move(-dx, -dy);
     } catch (err) {}
 });
 
