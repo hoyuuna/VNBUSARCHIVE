@@ -2800,7 +2800,10 @@ Object.assign(window.app, {
 
                                 app.crop.cropper = new Cropper(img, {
                                     aspectRatio: app.crop.savedRatio,
-                                    viewMode: 1,
+                                    
+                                    // 1. CRITICAL: Change to viewMode 0. This stops Cropper from natively moving the crop box to compensate for boundaries.
+                                    viewMode: 0, 
+                                    
                                     dragMode: 'move',
                                     cropBoxMovable: false,
                                     cropBoxResizable: false,
@@ -2808,51 +2811,62 @@ Object.assign(window.app, {
                                     wheelZoomRatio: 0.1,
                                     toggleDragModeOnDblclick: false,
                                     checkCrossOrigin: false,
+                                    
+                                    // 2. STRICT ZOOM CLAMPING
                                     zoom: (event) => {
+                                        if (app.crop.isSystemUpdating) return;
                                         const cropper = app.crop.cropper;
-                                        if (!cropper || app.crop.isSystemUpdating) return;
-                                        
                                         const minScale = app.crop.calculateInitialCoverScale();
+                                        
                                         if (event.detail.ratio < minScale) {
-                                            event.preventDefault(); // Stop the user's zoom
-                                            cropper.zoomTo(minScale); // Force it back to safe scale
+                                            event.preventDefault(); // Stop user from zooming out too much
+                                            cropper.zoomTo(minScale);
                                         }
                                     },
+
+                                    // 3. BULLETPROOF PHYSICS ENGINE FOR PANNING AND CROP BOX ANCHORING
                                     crop: (event) => {
-                                        // Prevent infinite loop when we force data update
                                         if (app.crop.isSystemUpdating) return;
-
-                                        const data = event.detail;
                                         const cropper = app.crop.cropper;
-                                        const imageData = cropper.getImageData();
+                                        app.crop.isSystemUpdating = true; // Lock to prevent infinite loops
 
+                                        // --- A. ANCHOR THE CROP BOX TO THE EXACT CENTER ---
+                                        const containerData = cropper.getContainerData();
+                                        const cropBoxData = cropper.getCropBoxData();
+                                        const expectedLeft = (containerData.width - cropBoxData.width) / 2;
+                                        const expectedTop = (containerData.height - cropBoxData.height) / 2;
+                                        
+                                        // If Cropper tried to move the box, snap it back instantly
+                                        if (Math.abs(cropBoxData.left - expectedLeft) > 0.5 || Math.abs(cropBoxData.top - expectedTop) > 0.5) {
+                                            cropper.setCropBoxData({ left: expectedLeft, top: expectedTop });
+                                        }
+
+                                        // --- B. CLAMP THE IMAGE DRAGGING (NO TRANSPARENT GAPS) ---
+                                        const data = event.detail; 
+                                        const imageData = cropper.getImageData();
+                                        
                                         let newX = data.x;
                                         let newY = data.y;
+                                        let isOutOfBounds = false;
 
-                                        // data.x and data.y are mapped to the UNROTATED original image coordinates!
-                                        // This means we can strictly clamp them to the natural image dimensions.
-                                        if (newX < 0) newX = 0;
-                                        if (newY < 0) newY = 0;
-                                        
-                                        const maxAllowedX = imageData.naturalWidth - data.width;
-                                        const maxAllowedY = imageData.naturalHeight - data.height;
-                                        
-                                        if (newX > maxAllowedX) newX = maxAllowedX;
-                                        if (newY > maxAllowedY) newY = maxAllowedY;
+                                        const maxX = imageData.naturalWidth - data.width;
+                                        const maxY = imageData.naturalHeight - data.height;
 
-                                        // If clamping changed the coordinates (with 0.5px tolerance for float precision)
-                                        if (Math.abs(newX - data.x) > 0.5 || Math.abs(newY - data.y) > 0.5) {
-                                            app.crop.isSystemUpdating = true;
-                                            
-                                            // Force the image back inside the strict boundaries
-                                            cropper.setData({
-                                                x: newX,
-                                                y: newY
-                                            });
-                                            
-                                            app.crop.isSystemUpdating = false;
+                                        // Check against original unrotated image boundaries
+                                        if (newX < 0) { newX = 0; isOutOfBounds = true; }
+                                        else if (newX > maxX) { newX = maxX; isOutOfBounds = true; }
+
+                                        if (newY < 0) { newY = 0; isOutOfBounds = true; }
+                                        else if (newY > maxY) { newY = maxY; isOutOfBounds = true; }
+
+                                        // If user dragged outside the boundary, force the image back inside
+                                        if (isOutOfBounds) {
+                                            cropper.setData({ x: newX, y: newY });
                                         }
+
+                                        app.crop.isSystemUpdating = false; // Unlock
                                     },
+                                    
                                     cropstart: () => {
                                         const btnCancel = document.getElementById('btn-crop-cancel');
                                         const btnApply = document.getElementById('btn-crop-apply');
@@ -2874,7 +2888,7 @@ Object.assign(window.app, {
                                         const cropper = app.crop.cropper;
                                         cropper.zoomTo(minScale);
                                         
-                                        // Center the canvas
+                                        // Center canvas
                                         const containerData = cropper.getContainerData();
                                         const canvasData = cropper.getCanvasData();
                                         cropper.setCanvasData({
