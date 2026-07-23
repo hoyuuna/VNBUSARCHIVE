@@ -2808,6 +2808,51 @@ Object.assign(window.app, {
                                     wheelZoomRatio: 0.1,
                                     toggleDragModeOnDblclick: false,
                                     checkCrossOrigin: false,
+                                    zoom: (event) => {
+                                        const cropper = app.crop.cropper;
+                                        if (!cropper || app.crop.isSystemUpdating) return;
+                                        
+                                        const minScale = app.crop.calculateInitialCoverScale();
+                                        if (event.detail.ratio < minScale) {
+                                            event.preventDefault(); // Stop the user's zoom
+                                            cropper.zoomTo(minScale); // Force it back to safe scale
+                                        }
+                                    },
+                                    crop: (event) => {
+                                        // Prevent infinite loop when we force data update
+                                        if (app.crop.isSystemUpdating) return;
+
+                                        const data = event.detail;
+                                        const cropper = app.crop.cropper;
+                                        const imageData = cropper.getImageData();
+
+                                        let newX = data.x;
+                                        let newY = data.y;
+
+                                        // data.x and data.y are mapped to the UNROTATED original image coordinates!
+                                        // This means we can strictly clamp them to the natural image dimensions.
+                                        if (newX < 0) newX = 0;
+                                        if (newY < 0) newY = 0;
+                                        
+                                        const maxAllowedX = imageData.naturalWidth - data.width;
+                                        const maxAllowedY = imageData.naturalHeight - data.height;
+                                        
+                                        if (newX > maxAllowedX) newX = maxAllowedX;
+                                        if (newY > maxAllowedY) newY = maxAllowedY;
+
+                                        // If clamping changed the coordinates (with 0.5px tolerance for float precision)
+                                        if (Math.abs(newX - data.x) > 0.5 || Math.abs(newY - data.y) > 0.5) {
+                                            app.crop.isSystemUpdating = true;
+                                            
+                                            // Force the image back inside the strict boundaries
+                                            cropper.setData({
+                                                x: newX,
+                                                y: newY
+                                            });
+                                            
+                                            app.crop.isSystemUpdating = false;
+                                        }
+                                    },
                                     cropstart: () => {
                                         const btnCancel = document.getElementById('btn-crop-cancel');
                                         const btnApply = document.getElementById('btn-crop-apply');
@@ -2820,10 +2865,6 @@ Object.assign(window.app, {
                                         if (btnCancel) { btnCancel.disabled = false; btnCancel.classList.remove('opacity-50', 'pointer-events-none'); }
                                         if (btnApply) { btnApply.disabled = false; btnApply.classList.remove('opacity-50', 'pointer-events-none'); }
                                         app.crop.pushHistory();
-                                    },
-                                    crop: (event) => {
-                                        // Với viewMode: 1 và dragMode: 'move', Cropper.js tự động xử lý bounds
-                                        // nên chúng ta không cần tính toán clamp OBB phức tạp nữa.
                                     },
                                     ready: () => {
                                         app.crop.isSystemUpdating = true;
