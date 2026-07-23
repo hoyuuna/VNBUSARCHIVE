@@ -2799,7 +2799,7 @@ Object.assign(window.app, {
                                         app.crop.pushHistory();
                                     },
                                     crop: (event) => {
-                                        if (app.crop.isClamping) return;
+                                        if (app.crop.isClamping || app.crop.isSystemUpdating) return;
                                         const cropper = app.crop.cropper;
                                         if (!cropper) return;
                                         
@@ -3170,40 +3170,62 @@ Object.assign(window.app, {
 
                 updateRotation: () => {
                     if (!app.crop.cropper) return;
-                    const totalAngle = app.crop.currentBaseAngle + app.crop.fineAngle;
+                    app.crop.isSystemUpdating = true;
                     
+                    const totalAngle = app.crop.currentBaseAngle + app.crop.fineAngle;
                     app.crop.cropper.rotateTo(totalAngle);
                     
                     const imageData = app.crop.cropper.getImageData();
-                    const canvasData = app.crop.cropper.getCanvasData();
+                    const containerData = app.crop.cropper.getContainerData();
                     
                     const W = imageData.naturalWidth;
                     const H = imageData.naturalHeight;
                     const rad = totalAngle * Math.PI / 180;
-                    const C = Math.abs(Math.cos(rad));
-                    const S = Math.abs(Math.sin(rad));
+                    const absC = Math.abs(Math.cos(rad));
+                    const absS = Math.abs(Math.sin(rad));
+                    
+                    const bboxW = W * absC + H * absS;
+                    const bboxH = W * absS + H * absC;
+                    
+                    const margin = 0.95; 
+                    const fitScale = Math.min(
+                        containerData.width / bboxW,
+                        containerData.height / bboxH
+                    ) * margin;
+                    
+                    const newCanvasW = W * fitScale;
+                    const newCanvasH = H * fitScale;
+                    const newCanvasLeft = (containerData.width - newCanvasW) / 2;
+                    const newCanvasTop = (containerData.height - newCanvasH) / 2;
+                    
+                    app.crop.cropper.setCanvasData({
+                        width: newCanvasW,
+                        height: newCanvasH,
+                        left: newCanvasLeft,
+                        top: newCanvasTop
+                    });
                     
                     const aspectRatio = (typeof app.crop.savedRatio === 'number' && !isNaN(app.crop.savedRatio)) ? app.crop.savedRatio : (4/3);
-                    
                     const maxH = Math.min(
-                        W / (aspectRatio * C + S),
-                        H / (aspectRatio * S + C)
+                        W / (aspectRatio * absC + absS),
+                        H / (aspectRatio * absS + absC)
                     );
                     const maxW = maxH * aspectRatio;
                     
-                    const scale = canvasData.width / W;
-                    const cropW = maxW * scale;
-                    const cropH = maxH * scale;
-                    
-                    const left = canvasData.left + (canvasData.width - cropW) / 2;
-                    const top = canvasData.top + (canvasData.height - cropH) / 2;
+                    const cropW = maxW * fitScale;
+                    const cropH = maxH * fitScale;
                     
                     app.crop.cropper.setCropBoxData({
-                        left: left,
-                        top: top,
+                        left: newCanvasLeft + (newCanvasW - cropW) / 2,
+                        top: newCanvasTop + (newCanvasH - cropH) / 2,
                         width: cropW,
                         height: cropH
                     });
+                    
+                    app.crop.lastCanvasData = app.crop.cropper.getCanvasData();
+                    app.crop.lastValidCropBoxData = app.crop.cropper.getCropBoxData();
+                    
+                    app.crop.isSystemUpdating = false;
                 },
 
 
