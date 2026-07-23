@@ -2899,23 +2899,38 @@ Object.assign(window.app, {
             const scaledImgW = img.naturalWidth * app.crop.state.scale;
             const scaledImgH = img.naturalHeight * app.crop.state.scale;
             
+            // True angles for Matrix transformation
             const rad = app.crop.state.rotation * (Math.PI / 180);
-            const cos = Math.abs(Math.cos(rad));
-            const sin = Math.abs(Math.sin(rad));
+            const cos = Math.cos(rad);
+            const sin = Math.sin(rad);
             
-            // 1. Calculate 'Slack' (How much extra image we have beyond the crop box on local axes)
-            const slackX = Math.max(0, scaledImgW - (ow * cos + oh * sin));
-            const slackY = Math.max(0, scaledImgH - (ow * sin + oh * cos));
+            // Absolute values for bounding box dimension calculations
+            const absCos = Math.abs(cos);
+            const absSin = Math.abs(sin);
 
-            // 2. Convert local slack back to screen space max translations
-            const maxTx = (slackX * cos + slackY * sin) / 2;
-            const maxTy = (slackX * sin + slackY * cos) / 2;
-            
-            // 3. Clamp the state
-            app.crop.state.x = Math.max(-maxTx, Math.min(maxTx, app.crop.state.x));
-            app.crop.state.y = Math.max(-maxTy, Math.min(maxTy, app.crop.state.y));
-            
-            // 4. Apply
+            // 1. Calculate the dimensions of the crop box if it were projected into the image's unrotated local space
+            const projCropW = (ow * absCos) + (oh * absSin);
+            const projCropH = (ow * absSin) + (oh * absCos);
+
+            // 2. The absolute maximum distance the image can move in its OWN LOCAL X/Y axes
+            const maxLocalX = Math.max(0, (scaledImgW - projCropW) / 2);
+            const maxLocalY = Math.max(0, (scaledImgH - projCropH) / 2);
+
+            // 3. Convert current requested Screen-Space translation (x, y) into Local-Space translation (lx, ly)
+            // Inverse Rotation Matrix
+            let lx = app.crop.state.x * cos + app.crop.state.y * sin;
+            let ly = -app.crop.state.x * sin + app.crop.state.y * cos;
+
+            // 4. Strictly clamp the translation in Local-Space (This prevents the corner clipping!)
+            lx = Math.max(-maxLocalX, Math.min(maxLocalX, lx));
+            ly = Math.max(-maxLocalY, Math.min(maxLocalY, ly));
+
+            // 5. Convert the clamped Local-Space translation back to Screen-Space
+            // Standard Rotation Matrix
+            app.crop.state.x = lx * cos - ly * sin;
+            app.crop.state.y = lx * sin + ly * cos;
+
+            // 6. Apply to CSS
             img.style.transform = `translate(calc(-50% + ${app.crop.state.x}px), calc(-50% + ${app.crop.state.y}px)) rotate(${app.crop.state.rotation}deg) scale(${app.crop.state.scale})`;
         },
 
