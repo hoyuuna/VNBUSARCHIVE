@@ -2688,6 +2688,9 @@ Object.assign(window.app, {
                 sourceImage: null, // Lưu ảnh gốc chưa qua cắt để phục vụ chỉnh sửa nhiều lần (non-destructive cropping)
                 savedCropData: null, // Lưu tọa độ và kích thước khung cắt lần trước
                 savedRatio: 4/3, // Lưu tỉ lệ khung cắt lần trước
+                modeTab: 'ratio',
+                currentBaseAngle: 0,
+                fineAngle: 0,
                 isMandatory: false, // Thêm cờ đánh dấu bắt buộc cắt
                 isRulerEnabled: false,
 
@@ -2734,6 +2737,7 @@ Object.assign(window.app, {
                     const modal = document.getElementById('crop-modal');
                     const content = document.getElementById('crop-content');
                     const ratioContainer = document.getElementById('crop-ratios');
+                    const modePanel = document.getElementById('crop-mode-panel');
 
                     modal.classList.remove('hidden');
                     app.ui.lockScroll();
@@ -2756,6 +2760,16 @@ Object.assign(window.app, {
 
                         setTimeout(() => {
                             if (mode === 'main') {
+                                app.crop.currentBaseAngle = 0;
+                                app.crop.fineAngle = 0;
+                                const rotateSlider = document.getElementById('crop-rotate-slider');
+                                if (rotateSlider) rotateSlider.value = 0;
+                                const rotateVal = document.getElementById('crop-rotate-val');
+                                if (rotateVal) rotateVal.innerText = '0°';
+                                
+                                if (modePanel) modePanel.classList.remove('hidden');
+                                app.crop.setModeTab('ratio');
+
                                 // Hiện lại thanh chọn tỉ lệ (16:9, 3:2, 4:3)
                                 if(ratioContainer) ratioContainer.classList.remove('hidden');
 
@@ -2780,6 +2794,7 @@ Object.assign(window.app, {
                                 // Highlight đúng nút tỉ lệ
                                 app.crop.updateRatioButtons((typeof app.crop.savedRatio === 'number' && !isNaN(app.crop.savedRatio)) ? app.crop.savedRatio : (4/3));
                             } else if (mode === 'avatar') {
+                                if (modePanel) modePanel.classList.add('hidden');
                                 if(ratioContainer) ratioContainer.classList.add('hidden');
                                 app.crop.cropper = new Cropper(img, {
                                     aspectRatio: 1,
@@ -2880,6 +2895,83 @@ Object.assign(window.app, {
                         }
                     });
                 },
+
+                setModeTab: (tab) => {
+                    app.crop.modeTab = tab;
+                    const slider = document.getElementById('crop-mode-slider');
+                    const btnRatio = document.getElementById('btn-crop-mode-ratio');
+                    const btnRotate = document.getElementById('btn-crop-mode-rotate');
+                    const ratioControls = document.getElementById('crop-ratios');
+                    const rotateControls = document.getElementById('crop-rotate-controls');
+
+                    if (tab === 'ratio') {
+                        if(slider) slider.style.left = '4px';
+                        if(btnRatio) { btnRatio.classList.add('text-black'); btnRatio.classList.remove('text-gray-500', 'hover:text-black'); }
+                        if(btnRotate) { btnRotate.classList.add('text-gray-500', 'hover:text-black'); btnRotate.classList.remove('text-black'); }
+                        if(ratioControls) { ratioControls.classList.remove('hidden'); ratioControls.classList.add('flex'); }
+                        if(rotateControls) { rotateControls.classList.add('hidden'); rotateControls.classList.remove('flex'); }
+                    } else if (tab === 'rotate') {
+                        if(slider) slider.style.left = 'calc(50% + 2px)';
+                        if(btnRatio) { btnRatio.classList.add('text-gray-500', 'hover:text-black'); btnRatio.classList.remove('text-black'); }
+                        if(btnRotate) { btnRotate.classList.add('text-black'); btnRotate.classList.remove('text-gray-500', 'hover:text-black'); }
+                        if(ratioControls) { ratioControls.classList.add('hidden'); ratioControls.classList.remove('flex'); }
+                        if(rotateControls) { rotateControls.classList.remove('hidden'); rotateControls.classList.add('flex'); }
+                    }
+                },
+
+                slideRotate: (val) => {
+                    app.crop.fineAngle = parseInt(val, 10);
+                    const rotateVal = document.getElementById('crop-rotate-val');
+                    if (rotateVal) {
+                        rotateVal.innerText = (app.crop.fineAngle > 0 ? '+' : '') + app.crop.fineAngle + '°';
+                    }
+                    app.crop.updateRotation();
+                },
+
+                rotateBy: (deg) => {
+                    app.crop.currentBaseAngle += deg;
+                    app.crop.updateRotation();
+                },
+
+                updateRotation: () => {
+                    if (!app.crop.cropper) return;
+                    const totalAngle = app.crop.currentBaseAngle + app.crop.fineAngle;
+                    
+                    app.crop.cropper.rotateTo(totalAngle);
+                    
+                    const imageData = app.crop.cropper.getImageData();
+                    const canvasData = app.crop.cropper.getCanvasData();
+                    
+                    const W = imageData.naturalWidth;
+                    const H = imageData.naturalHeight;
+                    const rad = Math.abs(totalAngle) * Math.PI / 180;
+                    const C = Math.cos(rad);
+                    const S = Math.sin(rad);
+                    
+                    const aspectRatio = (typeof app.crop.savedRatio === 'number' && !isNaN(app.crop.savedRatio)) ? app.crop.savedRatio : (4/3);
+                    
+                    const bboxW = W * C + H * S;
+                    const maxH = Math.min(
+                        W / (aspectRatio * C + S),
+                        H / (aspectRatio * S + C)
+                    );
+                    const maxW = maxH * aspectRatio;
+                    
+                    const scale = canvasData.width / bboxW;
+                    const cropW = maxW * scale;
+                    const cropH = maxH * scale;
+                    
+                    const left = canvasData.left + (canvasData.width - cropW) / 2;
+                    const top = canvasData.top + (canvasData.height - cropH) / 2;
+                    
+                    app.crop.cropper.setCropBoxData({
+                        left: left,
+                        top: top,
+                        width: cropW,
+                        height: cropH
+                    });
+                },
+
 
                 close: () => {
                     if (app.crop.closeTimeout) {

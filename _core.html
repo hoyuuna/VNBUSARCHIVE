@@ -2221,14 +2221,21 @@
 
         <div id="crop-modal" class="hidden fixed inset-0 z-[4000] flex flex-col items-center justify-center p-2 sm:p-4">
             <div id="crop-content" class="w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col overflow-hidden transform transition-all opacity-0 scale-95">
-                <div class="p-3 md:p-4 border-b border-gray-200/50 flex justify-between items-center shrink-0">
+                <div class="p-3 md:p-4 border-b border-gray-200/50 flex justify-between items-center shrink-0 bg-white z-10">
                     <h3 class="font-bold text-sm md:text-base uppercase text-black"><i class="fa-solid fa-crop-simple mr-2"></i> Cắt ảnh</h3>
                     <button onclick="app.crop.close()" class="text-gray-500 hover:text-red-600 transition"><i class="fa-solid fa-xmark text-lg"></i></button>
                 </div>
-                <div class="w-full relative flex items-center justify-center select-none overflow-hidden" style="height: 60vh; min-height: 300px; -webkit-touch-callout: none;" oncontextmenu="return false;">
+                <div id="crop-mode-panel" class="p-2 border-b border-gray-200/50 bg-gray-50 flex justify-center shrink-0 z-10 hidden">
+                    <div id="crop-mode-track" class="grid grid-cols-2 gap-1.5 bg-gray-200/80 p-1 rounded-xl border border-gray-300/50 relative w-full max-w-[240px]">
+                        <div id="crop-mode-slider" class="absolute top-1 bottom-1 bg-white rounded-lg shadow-sm transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1) pointer-events-none z-10" style="left: 4px; width: calc((100% - 8px - 6px) / 2);"></div>
+                        <button type="button" id="btn-crop-mode-ratio" onclick="app.crop.setModeTab('ratio')" class="relative z-20 px-2 py-1.5 rounded-lg text-xs font-bold transition-colors duration-200 text-black">Tỉ lệ</button>
+                        <button type="button" id="btn-crop-mode-rotate" onclick="app.crop.setModeTab('rotate')" class="relative z-20 px-2 py-1.5 rounded-lg text-xs font-bold transition-colors duration-200 text-gray-500 hover:text-black">Xoay ảnh</button>
+                    </div>
+                </div>
+                <div class="w-full relative flex items-center justify-center select-none overflow-hidden bg-black" style="height: 60vh; min-height: 300px; -webkit-touch-callout: none;" oncontextmenu="return false;">
                     <img id="crop-image" src="" style="max-width: 100%; max-height: 100%; display: block; -webkit-touch-callout: none;" draggable="false">
                 </div>
-                <div class="p-4 flex flex-col sm:flex-row gap-4 justify-between items-center shrink-0">
+                <div class="p-3 md:p-4 flex flex-col sm:flex-row gap-4 justify-between items-center shrink-0 bg-white z-10">
                     <div id="crop-ratios" class="flex flex-wrap gap-2 w-full sm:w-auto justify-center items-center">
                         <span class="text-xs font-bold text-gray-500 self-center hidden sm:inline-block mr-1">Tỉ lệ:</span>
                         <button type="button" onclick="app.crop.setRatio(16/9)" class="crop-ratio-btn px-3 py-1.5 text-xs border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition" data-ratio="1.7777777777777777">16:9</button>
@@ -2238,7 +2245,23 @@
                             <i class="fa-solid fa-ruler-horizontal"></i> Thước ngang
                         </button>
                     </div>
-                    <div class="flex gap-2 w-full sm:w-auto justify-end">
+                    <div id="crop-rotate-controls" class="hidden flex-wrap gap-2 w-full sm:w-auto justify-center items-center">
+                        <button type="button" onclick="app.crop.rotateBy(-90)" class="px-3 py-1.5 text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition flex items-center gap-1.5" title="Xoay trái 90 độ">
+                            <i class="fa-solid fa-rotate-left"></i>
+                        </button>
+                        <div class="flex flex-col items-center justify-center px-2">
+                            <div class="flex justify-between w-full text-[10px] font-bold text-gray-500 mb-1">
+                                <span>-45°</span>
+                                <span id="crop-rotate-val">0°</span>
+                                <span>+45°</span>
+                            </div>
+                            <input type="range" id="crop-rotate-slider" min="-45" max="45" value="0" class="vnbus-slider w-32 sm:w-48" oninput="app.crop.slideRotate(this.value)">
+                        </div>
+                        <button type="button" onclick="app.crop.rotateBy(90)" class="px-3 py-1.5 text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition flex items-center gap-1.5" title="Xoay phải 90 độ">
+                            <i class="fa-solid fa-rotate-right"></i>
+                        </button>
+                    </div>
+                    <div class="flex gap-2 w-full sm:w-auto justify-end shrink-0">
                         <button type="button" onclick="app.crop.close()" class="px-5 py-2.5 bg-gray-100 border border-gray-300 text-gray-700 text-xs font-bold rounded-md hover:bg-gray-200 transition">Hủy</button>
                         <button type="button" onclick="app.crop.apply()" class="px-5 py-2.5 bg-black text-white text-xs font-bold rounded-md hover:bg-gray-800 transition shadow-sm"><i class="fa-solid fa-check mr-1"></i> Áp dụng</button>
                     </div>
