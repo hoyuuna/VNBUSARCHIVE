@@ -2780,8 +2780,24 @@ Object.assign(window.app, {
                                 // Hiện lại thanh chọn tỉ lệ (16:9, 3:2, 4:3)
                                 if(ratioContainer) ratioContainer.classList.remove('hidden');
 
+                                
+                                // Detect natural ratio if not saved
+                                if (typeof app.crop.savedRatio !== 'number' || isNaN(app.crop.savedRatio)) {
+                                    const imgRatio = img.naturalWidth / img.naturalHeight;
+                                    const presets = [16/9, 3/2, 4/3];
+                                    let bestRatio = 4/3;
+                                    let minDiff = 0.05;
+                                    for (let r of presets) {
+                                        if (Math.abs(imgRatio - r) < minDiff) {
+                                            bestRatio = r;
+                                            minDiff = Math.abs(imgRatio - r);
+                                        }
+                                    }
+                                    app.crop.savedRatio = bestRatio;
+                                }
+
                                 app.crop.cropper = new Cropper(img, {
-                                    aspectRatio: (typeof app.crop.savedRatio === 'number' && !isNaN(app.crop.savedRatio)) ? app.crop.savedRatio : (4/3),
+                                    aspectRatio: app.crop.savedRatio,
                                     viewMode: 1,
                                     dragMode: 'move',
                                     cropBoxMovable: false,
