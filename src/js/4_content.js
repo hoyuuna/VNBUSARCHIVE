@@ -3198,7 +3198,7 @@ Object.assign(window.app, {
                 const ow = overlay.offsetWidth;
                 const oh = overlay.offsetHeight;
                 
-                const multiplier = 3; 
+                const multiplier = 1 / app.crop.state.scale; 
                 
                 const canvas = document.createElement('canvas');
                 canvas.width = ow * multiplier;
