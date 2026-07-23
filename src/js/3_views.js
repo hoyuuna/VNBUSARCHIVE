@@ -613,6 +613,7 @@ Object.assign(window.app, {
                     const start = app.loadedCount;
                     const end = start + 11;
                     const grid = document.getElementById(gridId);
+                    try {
                         let moreQuery = window.sb
                             .from('photos')
                             .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
@@ -621,7 +622,9 @@ Object.assign(window.app, {
                             .range(start, end);
 
                         moreQuery = app.preference.applyFilter(moreQuery);
-                        const { data: photos } = await moreQuery;
+                        const { data: photos, error } = await moreQuery;
+                        
+                        if (error) throw error;
 
                         if (photos && photos.length > 0) {
                             const existingIds = Array.from(grid.querySelectorAll('[data-id]')).map(el => el.getAttribute('data-id'));
@@ -635,6 +638,8 @@ Object.assign(window.app, {
                         } else {
                             document.getElementById('load-more-container').classList.add('hidden');
                         }
+                    } catch(e) {
+                        console.error("Lỗi khi tải thêm ảnh:", e);
                     }
 
                     btn.innerHTML = originalText;
