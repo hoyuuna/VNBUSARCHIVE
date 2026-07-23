@@ -4725,6 +4725,60 @@ Object.assign(window.app, {
             }
 });
 
+// --- Crop Keyboard Shortcuts ---
+document.addEventListener('keydown', (e) => {
+    const cropModal = document.getElementById('crop-modal');
+    
+    // Ensure the custom engine is active, the modal is open, and user isn't typing in an input
+    if (!cropModal || cropModal.classList.contains('hidden') || !app.crop.state) return;
+    if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
+
+    const panStep = e.shiftKey ? 50 : 15; // Hold Shift to pan faster
+    const zoomStep = 0.05;
+
+    // --- Zooming (Ctrl + / Ctrl -) ---
+    if (e.ctrlKey || e.metaKey) {
+        if (e.key === '=' || e.key === '+') {
+            e.preventDefault(); // Prevent browser zoom
+            app.crop.state.scale = Math.min(5, app.crop.state.scale + zoomStep);
+            app.crop.applyTransform();
+            return;
+        }
+        if (e.key === '-') {
+            e.preventDefault(); // Prevent browser zoom
+            app.crop.state.scale = Math.max(app.crop.state.minScale, app.crop.state.scale - zoomStep);
+            app.crop.applyTransform();
+            return;
+        }
+    }
+
+    // --- Panning (Arrow Keys) ---
+    let moved = false;
+    switch (e.key) {
+        case 'ArrowLeft':  
+            app.crop.state.x -= panStep; 
+            moved = true; 
+            break;
+        case 'ArrowRight': 
+            app.crop.state.x += panStep; 
+            moved = true; 
+            break;
+        case 'ArrowUp':    
+            app.crop.state.y -= panStep; 
+            moved = true; 
+            break;
+        case 'ArrowDown':  
+            app.crop.state.y += panStep; 
+            moved = true; 
+            break;
+    }
+
+    if (moved) {
+        e.preventDefault(); // Stop window from scrolling
+        // Calling applyTransform triggers our Matrix Clamping, so the image will safely stop at the edges!
+        app.crop.applyTransform(); 
+    }
+});
 document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('resize', () => {
         if (window.app && window.app.upload && window.app.upload.updateWmModeSlider) {
