@@ -4541,12 +4541,14 @@
                                         class="hidden mt-3 p-3 bg-amber-50 text-amber-800 text-xs border border-amber-200 rounded-md leading-relaxed">
                                         <i class="fa-solid fa-lock mr-1"></i> <b>BKS này đã có dữ liệu dòng xe.</b> Nếu bạn thấy sai sót cần thay đổi có thể di chuyển tới trang chi tiết ảnh sau khi đăng. Bạn cần đảm bảo dòng xe là đúng trước khi chỉnh sửa. Nếu BKS được lắp trên xe khác vui lòng tham khảo hướng dẫn bên trên và không can thiệp vào dữ liệu hiện tại.
                                     </div>
-                                    <div id="up-model-preview" class="hidden mt-3 p-2 bg-gray-50 border border-gray-200 rounded-lg shadow-sm flex items-center gap-3 fade-zoom-in transition-all">
-                                        <img id="up-model-preview-img" src="" class="w-16 h-12 object-cover rounded-md border border-gray-300">
-                                        <div class="flex-1 min-w-0">
-                                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Hình ảnh mẫu</p>
-                                            <p id="up-model-preview-name" class="text-xs font-bold text-gray-800 truncate"></p>
+                                    <div id="up-model-preview" class="hidden mt-3 p-3 bg-gray-50 border border-gray-200 rounded-lg shadow-sm flex-col gap-2 fade-zoom-in transition-all">
+                                        <div class="relative w-full aspect-[16/10] rounded-md overflow-hidden border border-gray-300 group">
+                                            <img id="up-model-preview-img" src="" class="w-full h-full object-cover">
+                                            <button type="button" onclick="app.ui.showPhotoViewer(document.getElementById('up-model-preview-img').dataset.fullSrc)" class="absolute inset-0 bg-black/40 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity w-full h-full cursor-zoom-in">
+                                                <i class="fa-solid fa-magnifying-glass-plus text-2xl drop-shadow-md"></i>
+                                            </button>
                                         </div>
+                                        <p id="up-model-preview-name" class="text-[11px] font-bold text-gray-600 text-center uppercase tracking-wide truncate m-0"></p>
                                     </div>
                                 </div>
                                 <div class="md:col-span-2">

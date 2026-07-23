@@ -271,12 +271,13 @@ Object.assign(window.app, {
                             .select('url, vehicles!inner(model)')
                             .eq('status', 'approved')
                             .eq('vehicles.model', modelName)
-                            .order('views', { ascending: false })
+                            .order('created_at', { ascending: false })
                             .limit(1)
                             .maybeSingle();
 
                         if (topPhoto && topPhoto.url) {
                             previewImg.src = app.utils.getProxiedUrl(topPhoto.url, 'model-preview.jpg', 'thumb');
+                            previewImg.dataset.fullSrc = app.utils.getProxiedUrl(topPhoto.url, 'full.jpg');
                             previewName.innerText = modelName;
                             previewContainer.classList.remove('hidden');
                             previewContainer.classList.add('flex');
