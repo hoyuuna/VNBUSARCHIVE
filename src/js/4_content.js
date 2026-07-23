@@ -2728,7 +2728,18 @@ Object.assign(window.app, {
                 img.onload = null;
                 img.onerror = null;
                 img.removeAttribute('src');
-                img.style.cssText = 'position: absolute; top: 50%; left: 50%; transform-origin: center center; -webkit-touch-callout: none; transform: translate(-50%, -50%) scale(1) rotate(0deg);';
+                img.style.cssText = `
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    width: auto !important;
+                    height: auto !important;
+                    max-width: none !important;
+                    max-height: none !important;
+                    transform-origin: center center;
+                    pointer-events: none;
+                `;
+                img.className = '';
             }
 
             const modal = document.getElementById('crop-modal');
@@ -2782,8 +2793,9 @@ Object.assign(window.app, {
                         app.crop.updateRatioButtons(app.crop.savedRatio);
                         app.crop.setFixedCropBox(app.crop.savedRatio);
                         app.crop.updateMinScale();
-                        
                         app.crop.state.scale = app.crop.state.minScale;
+                        app.crop.state.x = 0;
+                        app.crop.state.y = 0;
                         app.crop.applyTransform();
                         app.crop.updateRulerUI();
                     }
@@ -2925,13 +2937,12 @@ Object.assign(window.app, {
             if (rotateVal) rotateVal.innerText = '0°';
             
             app.crop.state.rotation = 0;
-            app.crop.state.x = 0;
-            app.crop.state.y = 0;
             
             app.crop.setFixedCropBox(ratio);
             app.crop.updateMinScale();
             app.crop.state.scale = app.crop.state.minScale;
-            
+            app.crop.state.x = 0;
+            app.crop.state.y = 0;
             app.crop.applyTransform();
             app.crop.updateRatioButtons(ratio);
         },
