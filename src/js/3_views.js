@@ -508,10 +508,102 @@ Object.assign(window.app, {
                     }
                 },
 
+                fetchSearchPage: async (page) => {
+                    const grid = document.getElementById('search-photo-grid');
+                    grid.innerHTML = '<div class="col-span-full text-center py-10"><i class="fa-solid fa-spinner fa-spin text-2xl text-gray-400"></i></div>';
+
+                    const fromRow = (page - 1) * app.searchPageSize;
+                    const toRow = fromRow + app.searchPageSize - 1;
+
+                    try {
+                        const filterType = app.currentFilter;
+                        const profileSelect = (filterType === 'uploader') ? 'profiles!inner(id, username, role, subroles, ban_status)' : 'profiles(id, username, role, subroles, ban_status)';
+                        let sQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, ${profileSelect}, vehicles${filterType === 'model' ? '!inner' : ''}(model)`).eq('status', 'approved');
+                        sQuery = app.preference.applyFilter(sQuery);
+
+                        const query = (document.getElementById('page-search-input') || document.getElementById('search-input'))?.value.trim() || '';
+                        const searchWords = query.toLowerCase().split(/\s+/).filter(w => w.length > 0);
+
+                        if (filterType === 'route') {
+                            const prefix = app.lastSearchPrefix || new URLSearchParams(window.location.search).get('prefix') || '';
+                            if (prefix) {
+                                let provName = null;
+                                if (app.utils.provinceData) {
+                                    const prov = app.utils.provinceData.find(p => {
+                                        const k = Array.isArray(p.ky_hieu) ? p.ky_hieu : p.ky_hieu.split(',');
+                                        return k.map(s => s.trim()).includes(prefix);
+                                    });
+                                    if (prov) provName = prov.ten;
+                                }
+                                const relatedPrefixes = app.utils.getRelatedPrefixes(prefix);
+                                const prefixOrCond = relatedPrefixes.map(p => `license_plate.ilike.${p}%`).join(',');
+                                if (provName) {
+                                    sQuery = sQuery.eq('route_no', query).or(`province.eq."${provName}",${prefixOrCond}`);
+                                } else {
+                                    sQuery = sQuery.eq('route_no', query).or(prefixOrCond);
+                                }
+                            } else {
+                                searchWords.forEach(w => { sQuery = sQuery.ilike('route_no', `%${w}%`); });
+                            }
+                        } else if (filterType === 'plate') {
+                            searchWords.forEach(w => { sQuery = sQuery.ilike('license_plate', `%${app.utils.normalizePlateQuery(w)}%`); });
+                        } else if (filterType === 'operator') {
+                            searchWords.forEach(w => { sQuery = sQuery.ilike('operator', `%${w}%`); });
+                        } else if (filterType === 'camera') {
+                            searchWords.forEach(w => { sQuery = sQuery.ilike('camera_model', `%${w}%`); });
+                        } else if (filterType === 'location') {
+                            searchWords.forEach(w => { sQuery = sQuery.ilike('location', `%${w}%`); });
+                        } else if (filterType === 'uploader') {
+                            searchWords.forEach(w => { sQuery = sQuery.ilike('profiles.username', `%${w}%`); });
+                        } else if (filterType === 'model') {
+                            searchWords.forEach(w => { sQuery = sQuery.ilike('vehicles.model', `%${w}%`); });
+                        } else {
+                            searchWords.forEach(w => {
+                                const safeW = w.replace(/"/g, '');
+                                const safeWPlate = app.utils.normalizePlateQuery(safeW);
+                                let orConditions = [];
+                                if (safeWPlate) orConditions.push(`license_plate.ilike."%${safeWPlate}%"`);
+                                orConditions.push(`operator.ilike."%${safeW}%"`);
+                                orConditions.push(`route_no.ilike."%${safeW}%"`);
+                                orConditions.push(`camera_model.ilike."%${safeW}%"`);
+                                orConditions.push(`location.ilike."%${safeW}%"`);
+                                orConditions.push(`note.ilike."%${safeW}%"`);
+                                sQuery = sQuery.or(orConditions.join(','));
+                            });
+                        }
+
+                        const { data: photos } = await sQuery
+                            .order('taken_at', { ascending: false, nullsFirst: false })
+                            .order('created_at', { ascending: false })
+                            .range(fromRow, toRow);
+
+                        if (photos && photos.length > 0) {
+                            grid.innerHTML = photos.map(p => app.views.renderPhotoCard(p)).join('');
+                            app.currentSearchResults = photos;
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        } else {
+                            grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500">Không tìm thấy kết quả phù hợp.</div>';
+                        }
+                        
+                        app.searchCurrentPage = page;
+                        
+                        if (app.searchTotalPages > 1) {
+                            document.getElementById('search-load-more-container').classList.remove('hidden');
+                            app.utils.renderPagination('search-load-more-container', page, app.searchTotalPages, (newPage) => {
+                                app.views.fetchSearchPage(newPage);
+                            });
+                        } else {
+                            document.getElementById('search-load-more-container').classList.add('hidden');
+                        }
+                    } catch (e) {
+                        console.error("Lỗi tải trang tìm kiếm:", e);
+                        grid.innerHTML = `<div class="col-span-full text-center py-10 text-red-500">Lỗi hệ thống: ${e.message}</div>`;
+                    }
+                },
+                
                 loadMorePhotos: async () => {
-                    const isSearch = app.currentViewMode === 'search';
-                    const btnContainerId = isSearch ? 'search-load-more-container' : 'load-more-container';
-                    const gridId = isSearch ? 'search-photo-grid' : 'photo-grid';
+                    const btnContainerId = 'load-more-container';
+                    const gridId = 'photo-grid';
 
                     const btn = document.querySelector(`#${btnContainerId} button`);
                     const originalText = btn.innerHTML;
@@ -521,101 +613,6 @@ Object.assign(window.app, {
                     const start = app.loadedCount;
                     const end = start + 11;
                     const grid = document.getElementById(gridId);
-
-                    if (isSearch) {
-                        // Nếu còn trang trên server thì fetch tiếp, ngược lại dùng cache client
-                        if (app.searchCurrentPage < (app.searchTotalPages || 1)) {
-                            const nextPage = app.searchCurrentPage + 1;
-                            const fromRow = (nextPage - 1) * app.searchPageSize;
-                            const toRow = fromRow + app.searchPageSize - 1;
-                            try {
-                                // Tái tạo query tìm kiếm theo filterType hiện tại
-                                const filterType = app.currentFilter;
-                                const profileSelect = (filterType === 'uploader') ? 'profiles!inner(id, username, role, subroles, ban_status)' : 'profiles(id, username, role, subroles, ban_status)';
-                                let sQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, ${profileSelect}, vehicles${filterType === 'model' ? '!inner' : ''}(model)`).eq('status', 'approved');
-                                sQuery = app.preference.applyFilter(sQuery);
-
-                                const query = (document.getElementById('page-search-input') || document.getElementById('search-input'))?.value.trim() || '';
-                                const searchWords = query.toLowerCase().split(/\s+/).filter(w => w.length > 0);
-
-                                if (filterType === 'route') {
-                                    const prefix = app.lastSearchPrefix || new URLSearchParams(window.location.search).get('prefix') || '';
-                                    if (prefix) {
-                                        let provName = null;
-                                        if (app.utils.provinceData) {
-                                            const prov = app.utils.provinceData.find(p => {
-                                                const k = Array.isArray(p.ky_hieu) ? p.ky_hieu : p.ky_hieu.split(',');
-                                                return k.map(s => s.trim()).includes(prefix);
-                                            });
-                                            if (prov) provName = prov.ten;
-                                        }
-                                        const relatedPrefixes = app.utils.getRelatedPrefixes(prefix);
-                                        const prefixOrCond = relatedPrefixes.map(p => `license_plate.ilike.${p}%`).join(',');
-                                        if (provName) {
-                                            sQuery = sQuery.eq('route_no', query).or(`province.eq."${provName}",${prefixOrCond}`);
-                                        } else {
-                                            sQuery = sQuery.eq('route_no', query).or(prefixOrCond);
-                                        }
-                                    } else {
-                                        searchWords.forEach(w => { sQuery = sQuery.ilike('route_no', `%${w}%`); });
-                                    }
-                                } else if (filterType === 'plate') {
-                                    searchWords.forEach(w => { sQuery = sQuery.ilike('license_plate', `%${app.utils.normalizePlateQuery(w)}%`); });
-                                } else if (filterType === 'operator') {
-                                    searchWords.forEach(w => { sQuery = sQuery.ilike('operator', `%${w}%`); });
-                                } else if (filterType === 'camera') {
-                                    searchWords.forEach(w => { sQuery = sQuery.ilike('camera_model', `%${w}%`); });
-                                } else if (filterType === 'location') {
-                                    searchWords.forEach(w => { sQuery = sQuery.ilike('location', `%${w}%`); });
-                                } else if (filterType === 'uploader') {
-                                    searchWords.forEach(w => { sQuery = sQuery.ilike('profiles.username', `%${w}%`); });
-                                } else if (filterType === 'model') {
-                                    searchWords.forEach(w => { sQuery = sQuery.ilike('vehicles.model', `%${w}%`); });
-                                } else {
-                                    searchWords.forEach(w => {
-                                        const safeW = w.replace(/"/g, '');
-                                        const safeWPlate = app.utils.normalizePlateQuery(safeW);
-                                        let orConditions = [];
-                                        if (safeWPlate) orConditions.push(`license_plate.ilike."%${safeWPlate}%"`);
-                                        orConditions.push(`operator.ilike."%${safeW}%"`);
-                                        orConditions.push(`route_no.ilike."%${safeW}%"`);
-                                        orConditions.push(`camera_model.ilike."%${safeW}%"`);
-                                        orConditions.push(`location.ilike."%${safeW}%"`);
-                                        orConditions.push(`note.ilike."%${safeW}%"`);
-                                        sQuery = sQuery.or(orConditions.join(','));
-                                    });
-                                }
-
-                                const { data: photos } = await sQuery
-                                    .order('taken_at', { ascending: false, nullsFirst: false })
-                                    .order('created_at', { ascending: false })
-                                    .range(fromRow, toRow);
-
-                                if (photos && photos.length > 0) {
-                                    const existingIds = Array.from(grid.querySelectorAll('[data-id]')).map(el => el.getAttribute('data-id'));
-                                    const uniquePhotos = photos.filter(p => !existingIds.includes(String(p.id)));
-                                    if (uniquePhotos.length > 0) {
-                                        grid.innerHTML += uniquePhotos.map(p => app.views.renderPhotoCard(p)).join('');
-                                    }
-                                    app.loadedCount += photos.length;
-                                    app.currentSearchResults = app.currentSearchResults.concat(photos);
-                                }
-                                app.searchCurrentPage = nextPage;
-                            } catch (e) { console.error("Lỗi tải thêm kết quả tìm kiếm:", e); }
-                        } else {
-                            const photos = app.currentSearchResults.slice(start, end + 1);
-                            if (photos.length > 0) {
-                                grid.innerHTML += photos.map(p => app.views.renderPhotoCard(p)).join('');
-                                app.loadedCount += photos.length;
-                            }
-                        }
-
-                        if (app.searchCurrentPage >= (app.searchTotalPages || 1)) {
-                            document.getElementById('search-load-more-container').classList.add('hidden');
-                        } else {
-                            document.getElementById('search-load-more-container').classList.remove('hidden');
-                        }
-                    } else {
                         let moreQuery = window.sb
                             .from('photos')
                             .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)

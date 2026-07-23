@@ -4590,6 +4590,9 @@ Object.assign(window.app, {
 
                     if (app.searchTotalPages > 1) {
                         document.getElementById('search-load-more-container')?.classList.remove('hidden');
+                        app.utils.renderPagination('search-load-more-container', 1, app.searchTotalPages, (newPage) => {
+                            app.views.fetchSearchPage(newPage);
+                        });
                     } else {
                         document.getElementById('search-load-more-container')?.classList.add('hidden');
                     }
