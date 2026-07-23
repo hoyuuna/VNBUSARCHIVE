@@ -616,28 +616,35 @@ Object.assign(window.app, {
 
                     try {
                         if (tab === 'photos') {
+                            app.adminPendingPage = app.adminPendingPage || 1;
+                            const pageSize = 50;
+                            const fromRow = (app.adminPendingPage - 1) * pageSize;
+                            const toRow = fromRow + pageSize - 1;
+                            let totalPending = 0;
+
                             let rawPhotos = [];
                             try {
                                 const [sbRes, apiRes] = await Promise.all([
-                                    window.sb.from('photos').select('*, profiles(username, role), vehicles(model)').eq('status', 'pending').order('id', { ascending: true }).then(r => r.data || []).catch(() => []),
+                                    window.sb.from('photos').select('*, profiles(username, role), vehicles(model)', { count: 'exact' }).eq('status', 'pending').order('id', { ascending: true }).range(fromRow, toRow).then(r => r).catch(() => ({ data: [], count: 0 })),
                                     (async () => {
                                         try {
                                             const sessionRes = await window.sb.auth.getSession();
                                             const token = sessionRes.data.session?.access_token;
                                             if (token) {
-                                                const res = await fetch('/api/photo?status=pending', { headers: { 'Authorization': `Bearer ${token}` } });
+                                                const res = await fetch(`/api/photo?status=pending&page=${app.adminPendingPage}&limit=${pageSize}`, { headers: { 'Authorization': `Bearer ${token}` } });
                                                 if (res.ok) {
                                                     const json = await res.json();
-                                                    if (json && json.data && Array.isArray(json.data)) return json.data;
+                                                    if (json && json.data && Array.isArray(json.data)) return { data: json.data, count: json.count || 0 };
                                                 }
                                             }
                                         } catch (e) { console.warn('Lỗi tải pending API:', e); }
-                                        return [];
+                                        return { data: [], count: 0 };
                                     })()
                                 ]);
+                                totalPending = Math.max(sbRes.count || 0, apiRes.count || 0);
                                 const idMap = new Map();
-                                sbRes.forEach(p => idMap.set(p.id, p));
-                                apiRes.forEach(p => {
+                                (sbRes.data || []).forEach(p => idMap.set(p.id, p));
+                                (apiRes.data || []).forEach(p => {
                                     const existing = idMap.get(p.id);
                                     if (existing) {
                                         idMap.set(p.id, { ...existing, ...p, vehicles: p.vehicles || existing.vehicles, profiles: p.profiles || existing.profiles });
@@ -782,6 +789,19 @@ Object.assign(window.app, {
                             } else {
                                 content.innerHTML = photos.map(p => app.admin.renderSinglePhotoCardHTML(p, approvedPlateSet, approvedOpSet, approvedRouteSet, approvedModelSet)).join('');
                             }
+                            
+                            app.adminPendingTotalPages = Math.ceil(totalPending / pageSize);
+                            if (app.adminPendingTotalPages > 1) {
+                                const pager = document.createElement('div');
+                                pager.id = 'adm-pending-pager';
+                                pager.className = 'col-span-full mt-6';
+                                content.appendChild(pager);
+                                app.utils.renderPagination('adm-pending-pager', app.adminPendingPage, app.adminPendingTotalPages, (newPage) => {
+                                    app.adminPendingPage = newPage;
+                                    app.admin.loadTab('photos', true);
+                                });
+                            }
+
                             if (app.admin.update3x3UI) app.admin.update3x3UI();
                             if (app.admin.updateRulerUI) app.admin.updateRulerUI();
                             if (app.admin.updateHideMineUI) app.admin.updateHideMineUI();
@@ -804,11 +824,15 @@ Object.assign(window.app, {
 
                             html += '<div class="col-span-full"><h3 class="font-bold text-sm mb-3 uppercase">Danh sách user yêu cầu xóa</h3></div>';
 
-                            let { data: reqs, error } = await window.sb.from('edit_requests').select('*').eq('status', 'pending').limit(50);
+                            app.adminDeletePage = app.adminDeletePage || 1;
+                            const pageSize = 20;
+                            const fromRow = (app.adminDeletePage - 1) * pageSize;
+                            const toRow = fromRow + pageSize - 1;
+                            let { data: reqs, count, error } = await window.sb.from('edit_requests').select('*', { count: 'exact' }).eq('status', 'pending').eq('new_data->>request_type', 'delete_photo').range(fromRow, toRow);
                             if (error) throw error;
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
 
-                            const deleteReqs = reqs ? reqs.filter(r => r.new_data.request_type === 'delete_photo') : [];
+                            const deleteReqs = reqs || [];
 
                             if (!deleteReqs || deleteReqs.length === 0) {
                                 content.innerHTML = html + '<p class="col-span-full p-4">Không có yêu cầu xóa nào.</p>';
@@ -870,10 +894,24 @@ Object.assign(window.app, {
                             }).join('');
 
                             content.innerHTML = html;
+                            if (count > 0 && Math.ceil(count / pageSize) > 1) {
+                                const pager = document.createElement('div');
+                                pager.id = 'adm-delete-pager';
+                                pager.className = 'mt-6 col-span-full';
+                                content.appendChild(pager);
+                                app.utils.renderPagination('adm-delete-pager', app.adminDeletePage, Math.ceil(count / pageSize), (newPage) => {
+                                    app.adminDeletePage = newPage;
+                                    app.admin.loadTab('delete', true);
+                                });
+                            }
                             if (app.admin.update3x3UI) app.admin.update3x3UI();
                             if (app.admin.updateRulerUI) app.admin.updateRulerUI();
                         } else if (tab === 'requests') {
-                            let { data: reqs, error } = await window.sb.from('edit_requests').select('*').eq('status', 'pending').limit(50);
+                            app.adminReqPage = app.adminReqPage || 1;
+                            const pageSize = 20;
+                            const fromRow = (app.adminReqPage - 1) * pageSize;
+                            const toRow = fromRow + pageSize - 1;
+                            let { data: reqs, count, error } = await window.sb.from('edit_requests').select('*', { count: 'exact' }).eq('status', 'pending').neq('new_data->>request_type', 'delete_photo').range(fromRow, toRow);
                             if (error) throw error;
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
                             if (!reqs || reqs.length === 0) { content.innerHTML = '<p class="p-4">Không có yêu cầu nào.</p>'; return; }
@@ -1117,6 +1155,16 @@ Object.assign(window.app, {
                                     </div>`;
                                 }
                             }).join('');
+                            if (count > 0 && Math.ceil(count / pageSize) > 1) {
+                                const pager = document.createElement('div');
+                                pager.id = 'adm-req-pager';
+                                pager.className = 'mt-6 col-span-full';
+                                content.appendChild(pager);
+                                app.utils.renderPagination('adm-req-pager', app.adminReqPage, Math.ceil(count / pageSize), (newPage) => {
+                                    app.adminReqPage = newPage;
+                                    app.admin.loadTab('requests', true);
+                                });
+                            }
                             if (app.admin.update3x3UI) app.admin.update3x3UI();
                             if (app.admin.updateRulerUI) app.admin.updateRulerUI();
                         }
@@ -2040,55 +2088,54 @@ app.admin.fetchManagerData('denied');
                 fetchManagerData: async (type) => {
                     try {
                         if (type === 'denied') {
+                            const state = app.admin.manager.denied;
+                            state.page = state.page || 1;
+                            const perPage = 50;
+                            const fromRow = (state.page - 1) * perPage;
+                            const toRow = fromRow + perPage - 1;
                             let photos = [];
+                            let total = 0;
                             try {
-                                const { data: pData } = await window.sb.from('photos').select('*, profiles(username)').eq('status', 'denied').order('created_at', {ascending: false}).limit(500);
+                                const { data: pData, count } = await window.sb.from('photos').select('*, profiles(username)', {count: 'exact'}).eq('status', 'denied').order('created_at', {ascending: false}).range(fromRow, toRow);
                                 if (pData && pData.length > 0) photos = pData;
+                                total = count || 0;
                             } catch(e){}
-
-                            try {
-                                const sessionRes = await window.sb.auth.getSession();
-                                const token = sessionRes.data.session?.access_token;
-                                if (token) {
-                                    const apiRes = await fetch('/api/photo?status=denied', {
-                                        headers: { 'Authorization': `Bearer ${token}` }
-                                    });
-                                    if (apiRes.ok) {
-                                        const apiJson = await apiRes.json();
-                                        if (apiJson && apiJson.data && Array.isArray(apiJson.data)) {
-                                            const idMap = new Map();
-                                            photos.forEach(p => idMap.set(p.id, p));
-                                            apiJson.data.forEach(p => idMap.set(p.id, p));
-                                            photos = Array.from(idMap.values()).sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
-                                        }
-                                    }
-                                }
-                            } catch(e) { console.warn('Lỗi tải danh sách denied qua backend API:', e); }
 
                             const { data: logs } = await window.sb.from('admin_audit_logs').select('target_id, profiles(username)').eq('action_type', 'deny_photo');
                             const denierMap = {};
                             if(logs) logs.forEach(l => { denierMap[l.target_id] = l.profiles?.username || 'Admin'; });
                             if (photos && photos.length > 0) await app.utils.resolveSandboxUrls(photos);
-                            app.admin.manager.denied.data = photos ||[];
-                            app.admin.manager.denied.denierMap = denierMap;
-                            app.admin.filterManagerData('denied', '');
+                            state.data = photos ||[];
+                            state.total = total;
+                            state.denierMap = denierMap;
+                            app.admin.filterManagerData('denied', '', null, true);
                         }
                         else if (type === 'logs') {
-                            const { data: logs } = await window.sb.from('admin_audit_logs').select('*, profiles(username)').order('created_at', {ascending: false}).limit(100);
-                            app.admin.manager.logs.data = logs ||[];
-                            app.admin.filterManagerData('logs', '');
+                            const state = app.admin.manager.logs;
+                            state.page = state.page || 1;
+                            const perPage = 50;
+                            const fromRow = (state.page - 1) * perPage;
+                            const toRow = fromRow + perPage - 1;
+                            const { data: logs, count } = await window.sb.from('admin_audit_logs').select('*, profiles(username)', {count: 'exact'}).order('created_at', {ascending: false}).range(fromRow, toRow);
+                            state.data = logs ||[];
+                            state.total = count || 0;
+                            app.admin.filterManagerData('logs', '', null, true);
                         }
                         else if (type === 'bans') {
+                            const state = app.admin.manager.bans;
+                            state.page = state.page || 1;
+                            const perPage = 15;
                             const { data: { session } } = await window.sb.auth.getSession();
                             const response = await fetch('/api/manager', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
-                                body: JSON.stringify({ action: 'get_users' })
+                                body: JSON.stringify({ action: 'get_users', page: state.page, limit: perPage })
                             });
                             const result = await response.json();
                             if (!result.success) throw new Error(result.error);
-                            app.admin.manager.bans.data = result.users || [];
-                            app.admin.filterManagerData('bans', '', 'all');
+                            state.data = result.users || [];
+                            state.total = result.total || 0;
+                            app.admin.filterManagerData('bans', '', 'all', true);
                         }
                     } catch (e) {
                         console.error("Lỗi fetch data manager:", e);
@@ -2099,7 +2146,7 @@ app.admin.fetchManagerData('denied');
                     }
                 },
 
-                filterManagerData: (type, query, statusArg) => {
+                filterManagerData: (type, query, statusArg, preservePage = false) => {
                     const q = (query || '').toLowerCase().trim();
                     const state = app.admin.manager[type];
                     if (!q && (!statusArg || statusArg === 'all') && type !== 'bans') { state.filtered =[...state.data]; }
@@ -2130,7 +2177,7 @@ app.admin.fetchManagerData('denied');
                             state.filtered = state.data.filter(l => `${l.action_type} ${l.target_id} ${l.profiles?.username} ${JSON.stringify(l.details)}`.toLowerCase().includes(q));
                         }
                     }
-                    state.page = 1;
+                    if (!preservePage) state.page = 1;
                     app.admin.renderManagerData(type);
                 },
 
@@ -2180,9 +2227,9 @@ app.admin.fetchManagerData('denied');
 
                 renderManagerData: async (type) => {
                     const state = app.admin.manager[type];
-                    const perPage = 12;
-                    const totalPages = Math.ceil(state.filtered.length / perPage) || 1;
-                    const slice = state.filtered.slice((state.page - 1) * perPage, state.page * perPage);
+                    const perPage = (type === 'denied' || type === 'logs') ? 50 : 15;
+                    const totalPages = state.total !== undefined ? Math.ceil(state.total / perPage) : (Math.ceil(state.filtered.length / perPage) || 1);
+                    const slice = state.total !== undefined ? state.filtered : state.filtered.slice((state.page - 1) * perPage, state.page * perPage);
                     const contentEl = document.getElementById(`mgr-${type}-content`);
                     const pagerElId = `mgr-${type}-pager`;
 

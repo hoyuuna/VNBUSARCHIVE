@@ -295,28 +295,40 @@ Object.assign(window.app, {
                     }
 
                     const grid = document.getElementById('photo-grid');
+                    app.homeCurrentPage = 1;
+                    const homeSize = 20;
+
                     let gridQuery = window.sb
                         .from('photos')
-                        .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                        .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`, { count: 'exact' })
                         .eq('status', 'approved')
                         .order('created_at', { ascending: false })
-                        .range(0, 19);
+                        .range(0, homeSize - 1);
 
                     gridQuery = app.preference.applyFilter(gridQuery);
-                    const { data: photos } = await gridQuery;
+                    const { data: photos, count: exactCount } = await gridQuery;
 
 // BẮT LỖI RACE CONDITION
                     if (app.currentViewMode !== 'home') return;
 
                     if (!photos || photos.length === 0) {
                         grid.innerHTML = '<div class="col-span-full text-center py-10">Chưa có ảnh nào.</div>';
+                        document.getElementById('load-more-container').classList.add('hidden');
                         return;
                     }
 
-                    app.loadedCount = photos.length;
-                    if (photos.length === 20) document.getElementById('load-more-container').classList.remove('hidden');
+                    app.loadedCount = exactCount || photos.length;
+                    app.homeTotalPages = Math.ceil(app.loadedCount / homeSize);
 
                     grid.innerHTML = photos.map(p => app.views.renderPhotoCard(p)).join('');
+                    
+                    if (app.homeTotalPages > 1) {
+                        const btnContainer = document.getElementById('load-more-container');
+                        btnContainer.classList.remove('hidden');
+                        btnContainer.innerHTML = `<button id="btn-home-load-more" onclick="app.views.loadMorePhotos()" class="px-6 py-2 bg-black text-white text-sm font-bold rounded-lg shadow-sm hover:bg-gray-800 transition">Xem thêm ảnh</button>`;
+                    } else {
+                        document.getElementById('load-more-container').classList.add('hidden');
+                    }
 
                     try {
                         const prefFilter = app.preference.current || 'both';
@@ -602,24 +614,21 @@ Object.assign(window.app, {
                 },
                 
                 loadMorePhotos: async () => {
-                    const btnContainerId = 'load-more-container';
-                    const gridId = 'photo-grid';
+                    const btn = document.getElementById('btn-home-load-more');
+                    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tải...'; }
+                    const grid = document.getElementById('photo-grid');
+                    app.homeCurrentPage++;
+                    const homeSize = 20;
+                    const fromRow = (app.homeCurrentPage - 1) * homeSize;
+                    const toRow = fromRow + homeSize - 1;
 
-                    const btn = document.querySelector(`#${btnContainerId} button`);
-                    const originalText = btn.innerHTML;
-                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tải...';
-                    btn.disabled = true;
-
-                    const start = app.loadedCount;
-                    const end = start + 11;
-                    const grid = document.getElementById(gridId);
                     try {
                         let moreQuery = window.sb
                             .from('photos')
                             .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                             .eq('status', 'approved')
                             .order('created_at', { ascending: false })
-                            .range(start, end);
+                            .range(fromRow, toRow);
 
                         moreQuery = app.preference.applyFilter(moreQuery);
                         const { data: photos, error } = await moreQuery;
@@ -627,23 +636,20 @@ Object.assign(window.app, {
                         if (error) throw error;
 
                         if (photos && photos.length > 0) {
-                            const existingIds = Array.from(grid.querySelectorAll('[data-id]')).map(el => el.getAttribute('data-id'));
-                            const uniquePhotos = photos.filter(p => !existingIds.includes(String(p.id)));
-
-                            if (uniquePhotos.length > 0) {
-                                grid.innerHTML += uniquePhotos.map(p => app.views.renderPhotoCard(p)).join('');
-                            }
-                            app.loadedCount += photos.length;
-                            if (photos.length < 12) document.getElementById('load-more-container').classList.add('hidden');
-                        } else {
-                            document.getElementById('load-more-container').classList.add('hidden');
+                            grid.innerHTML += photos.map(p => app.views.renderPhotoCard(p)).join('');
                         }
                     } catch(e) {
                         console.error("Lỗi khi tải thêm ảnh:", e);
+                    } finally {
+                        if (btn) {
+                            if (app.homeCurrentPage >= app.homeTotalPages) {
+                                document.getElementById('load-more-container').classList.add('hidden');
+                            } else {
+                                btn.disabled = false;
+                                btn.innerHTML = 'Xem thêm ảnh';
+                            }
+                        }
                     }
-
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
                 },
 
                 renderPhotoCard: (p) => {
