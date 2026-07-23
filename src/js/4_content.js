@@ -3014,8 +3014,8 @@ Object.assign(window.app, {
 
         onWheel: (e) => {
             e.preventDefault();
-            // Multiplicative zoom: ~5% change per standard 100 deltaY tick
-            const zoomFactor = Math.exp(-e.deltaY * 0.0005);
+            // Multiplicative zoom: extremely smooth and slow for PC (1/4 of previous speed)
+            const zoomFactor = Math.exp(-e.deltaY * 0.000125);
             app.crop.state.scale *= zoomFactor;
             
             if (app.crop.state.scale < app.crop.state.minScale) {
