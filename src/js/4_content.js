@@ -2827,15 +2827,171 @@ Object.assign(window.app, {
                             } else if (mode === 'avatar') {
                                 if (modePanel) modePanel.classList.add('hidden');
                                 if(ratioContainer) ratioContainer.classList.add('hidden');
-                                app.crop.cropper = new Cropper(img, {
+                                                                app.crop.cropper = new Cropper(img, {
                                     aspectRatio: 1,
                                     viewMode: 1,
-                                    autoCropArea: 1,
+                                    dragMode: 'move',
+                                    cropBoxMovable: false,
+                                    cropBoxResizable: false,
+                                    zoomable: true,
+                                    wheelZoomRatio: 0.1,
+                                    toggleDragModeOnDblclick: false,
                                     checkCrossOrigin: false,
+                                    cropstart: () => {
+                                        const btnCancel = document.getElementById('btn-crop-cancel');
+                                        const btnApply = document.getElementById('btn-crop-apply');
+                                        if (btnCancel) { btnCancel.disabled = true; btnCancel.classList.add('opacity-50', 'pointer-events-none'); }
+                                        if (btnApply) { btnApply.disabled = true; btnApply.classList.add('opacity-50', 'pointer-events-none'); }
+                                    },
+                                    cropend: () => {
+                                        const btnCancel = document.getElementById('btn-crop-cancel');
+                                        const btnApply = document.getElementById('btn-crop-apply');
+                                        if (btnCancel) { btnCancel.disabled = false; btnCancel.classList.remove('opacity-50', 'pointer-events-none'); }
+                                        if (btnApply) { btnApply.disabled = false; btnApply.classList.remove('opacity-50', 'pointer-events-none'); }
+                                        if (app.crop.mode === 'main') app.crop.pushHistory();
+                                    },
+                                    zoom: (event) => {
+                                        if (app.crop.isClamping || app.crop.isSystemUpdating) return;
+                                        const cropper = app.crop.cropper;
+                                        if (!cropper) return;
+                                        
+                                        const cropBox = cropper.getCropBoxData();
+                                        const canvasData = cropper.getCanvasData();
+                                        const imageData = cropper.getImageData();
+                                        
+                                        const totalAngle = (app.crop.currentBaseAngle || 0) + (app.crop.fineAngle || 0);
+                                        const rad = totalAngle * Math.PI / 180;
+                                        const absC = Math.abs(Math.cos(rad));
+                                        const absS = Math.abs(Math.sin(rad));
+                                        
+                                        // Calculate the minimum scale required for the OBB to encompass the fixed crop box
+                                        const minScaleW = (cropBox.width * absC + cropBox.height * absS) / imageData.naturalWidth;
+                                        const minScaleH = (cropBox.width * absS + cropBox.height * absC) / imageData.naturalHeight;
+                                        const minScale = Math.max(minScaleW, minScaleH);
+                                        const maxScale = minScale * 4; // Max 4x zoom
+                                        
+                                        if (event.detail.ratio < minScale) {
+                                            event.preventDefault();
+                                            cropper.zoomTo(minScale);
+                                        } else if (event.detail.ratio > maxScale) {
+                                            event.preventDefault();
+                                            cropper.zoomTo(maxScale);
+                                        }
+                                    },
+                                    crop: (event) => {
+                                        if (app.crop.isClamping || app.crop.isSystemUpdating) return;
+                                        const cropper = app.crop.cropper;
+                                        if (!cropper) return;
+                                        
+                                        const totalAngle = (app.crop.currentBaseAngle || 0) + (app.crop.fineAngle || 0);
+                                        const rad = totalAngle * Math.PI / 180;
+                                        const C = Math.cos(rad);
+                                        const S = Math.sin(rad);
+                                        
+                                        const cropBox = cropper.getCropBoxData();
+                                        const canvasData = cropper.getCanvasData();
+                                        const imageData = cropper.getImageData();
+                                        
+                                        const W = imageData.naturalWidth;
+                                        const H = imageData.naturalHeight;
+                                        const scale = canvasData.width / W;
+                                        const w = canvasData.width / 2;
+                                        const h = canvasData.height / 2;
+                                        
+                                        const cx = canvasData.left + w;
+                                        const cy = canvasData.top + h;
+                                        
+                                        const corners = [
+                                            { x: cropBox.left, y: cropBox.top },
+                                            { x: cropBox.left + cropBox.width, y: cropBox.top },
+                                            { x: cropBox.left, y: cropBox.top + cropBox.height },
+                                            { x: cropBox.left + cropBox.width, y: cropBox.top + cropBox.height }
+                                        ];
+                                        
+                                        const checkTest = (testCx, testCy) => {
+                                            for (let pt of corners) {
+                                                const dx = pt.x - testCx;
+                                                const dy = pt.y - testCy;
+                                                const lx = dx * C + dy * S;
+                                                const ly = -dx * S + dy * C;
+                                                if (Math.abs(lx) > w + 0.5 || Math.abs(ly) > h + 0.5) return false;
+                                            }
+                                            return true;
+                                        };
+                                        
+                                        if (!checkTest(cx, cy)) {
+                                            app.crop.isClamping = true;
+                                            const prev = app.crop.lastValidCanvasData;
+                                            if (prev) {
+                                                const dx = canvasData.left - prev.left;
+                                                const dy = canvasData.top - prev.top;
+                                                
+                                                let t = 0.5; let step = 0.25; let bestT = 0;
+                                                for (let i = 0; i < 5; i++) {
+                                                    const testCx = (prev.left + dx * t) + prev.width / 2;
+                                                    const testCy = (prev.top + dy * t) + prev.height / 2;
+                                                    if (checkTest(testCx, testCy)) {
+                                                        bestT = t; t += step;
+                                                    } else {
+                                                        t -= step;
+                                                    }
+                                                }
+                                                if (bestT > 0) {
+                                                    cropper.setCanvasData({
+                                                        left: prev.left + dx * bestT,
+                                                        top: prev.top + dy * bestT,
+                                                        width: prev.width,
+                                                        height: prev.height
+                                                    });
+                                                } else {
+                                                    cropper.setCanvasData(prev);
+                                                }
+                                            }
+                                            app.crop.isClamping = false;
+                                        } else {
+                                            app.crop.lastValidCanvasData = canvasData;
+                                        }
+                                    },
                                     ready: () => {
+                                        app.crop.isSystemUpdating = true;
+                                        app.crop.setFixedCropBox();
+                                        
+                                        // Auto-scale to fit 100% or optimal size
+                                        const cropper = app.crop.cropper;
+                                        const cropBox = cropper.getCropBoxData();
+                                        const imageData = cropper.getImageData();
+                                        const W = imageData.naturalWidth;
+                                        const H = imageData.naturalHeight;
+                                        
+                                        // Calculate minimum scale to fill the crop box completely
+                                        const totalAngle = (app.crop.currentBaseAngle || 0) + (app.crop.fineAngle || 0);
+                                        const rad = totalAngle * Math.PI / 180;
+                                        const absC = Math.abs(Math.cos(rad));
+                                        const absS = Math.abs(Math.sin(rad));
+                                        const minScaleW = (cropBox.width * absC + cropBox.height * absS) / W;
+                                        const minScaleH = (cropBox.width * absS + cropBox.height * absC) / H;
+                                        const minScale = Math.max(minScaleW, minScaleH);
+                                        
+                                        // Default scale should be 1 (100%), unless minScale requires it to be larger
+                                        const targetScale = Math.max(1, minScale);
+                                        cropper.zoomTo(targetScale);
+                                        
+                                        // Center the canvas
+                                        const containerData = cropper.getContainerData();
+                                        cropper.setCanvasData({
+                                            left: (containerData.width - W * targetScale) / 2,
+                                            top: (containerData.height - H * targetScale) / 2
+                                        });
+                                        
+                                        app.crop.lastValidCanvasData = cropper.getCanvasData();
+                                        app.crop.isSystemUpdating = false;
+                                        
                                         app.crop.updateRulerUI();
-                                        if (app.crop.cropper) {
-                                            try { app.crop.cropper.update(); } catch(e){}
+                                        if (app.crop.mode === 'main') {
+                                            if (app.crop.savedCropData && targetFile === app.crop.sourceImage) {
+                                                try { app.crop.cropper.setData(app.crop.savedCropData); } catch(e) {}
+                                            }
+                                            app.crop.pushHistory();
                                         }
                                     }
                                 });
@@ -3076,9 +3232,36 @@ Object.assign(window.app, {
 
                 updateRotation: () => {
                     if (!app.crop.cropper) return;
+                    app.crop.isSystemUpdating = true;
                     
                     const totalAngle = (app.crop.currentBaseAngle || 0) + (app.crop.fineAngle || 0);
                     app.crop.cropper.rotateTo(totalAngle);
+                    
+                    // Auto-zoom to ensure the fixed crop box is within the rotated OBB
+                    const cropper = app.crop.cropper;
+                    const cropBox = cropper.getCropBoxData();
+                    const canvasData = cropper.getCanvasData();
+                    const imageData = cropper.getImageData();
+                    
+                    const rad = totalAngle * Math.PI / 180;
+                    const absC = Math.abs(Math.cos(rad));
+                    const absS = Math.abs(Math.sin(rad));
+                    
+                    const minScaleW = (cropBox.width * absC + cropBox.height * absS) / imageData.naturalWidth;
+                    const minScaleH = (cropBox.width * absS + cropBox.height * absC) / imageData.naturalHeight;
+                    const minScale = Math.max(minScaleW, minScaleH);
+                    
+                    const currentScale = canvasData.width / imageData.naturalWidth;
+                    if (currentScale < minScale) {
+                        cropper.zoomTo(minScale);
+                    }
+                    
+                    // Re-center if out of bounds
+                    // Easiest is to force a move(0,0) which triggers cropper's internal AABB clamp,
+                    // and our own OBB clamp will handle the rest in the crop event
+                    cropper.move(0, 0);
+                    
+                    app.crop.isSystemUpdating = false;
                 },
 
 
