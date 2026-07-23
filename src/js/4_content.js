@@ -2978,9 +2978,9 @@ Object.assign(window.app, {
             app.crop.state.x += deltaX;
             app.crop.state.y += deltaY;
             
-            if (currentPinchDist && app.crop.lastPinchDist) {
-                const pinchDelta = currentPinchDist - app.crop.lastPinchDist;
-                app.crop.state.scale += pinchDelta * 0.005;
+            if (currentPinchDist && app.crop.lastPinchDist && app.crop.lastPinchDist > 0) {
+                const pinchRatio = currentPinchDist / app.crop.lastPinchDist;
+                app.crop.state.scale *= pinchRatio;
                 if (app.crop.state.scale < app.crop.state.minScale) {
                     app.crop.state.scale = app.crop.state.minScale;
                 }
@@ -3014,9 +3014,9 @@ Object.assign(window.app, {
 
         onWheel: (e) => {
             e.preventDefault();
-            // Scale dynamically based on deltaY, makes trackpad very smooth, caps at normal mouse wheel speed
-            const delta = -(e.deltaY * 0.0005);
-            app.crop.state.scale += delta;
+            // Multiplicative zoom: ~5% change per standard 100 deltaY tick
+            const zoomFactor = Math.exp(-e.deltaY * 0.0005);
+            app.crop.state.scale *= zoomFactor;
             
             if (app.crop.state.scale < app.crop.state.minScale) {
                 app.crop.state.scale = app.crop.state.minScale;
