@@ -2203,7 +2203,7 @@ cleanupState: () => {
                                 displayHTML = safeHTML.replace(regex, '<strong class="font-extrabold">$1</strong>');
                             }
 
-                            return `<div class="suggestion-item" onmousedown="event.preventDefault(); document.getElementById('${inputId}').value = '${safeJS}'; document.getElementById('${suggestionId}').classList.remove('active'); if('${inputId}' === 'up-route'){ app.upload.autoFillOperatorByRoute(); }">${displayHTML}</div>`;
+                            return `<div class="suggestion-item" onmousedown="event.preventDefault(); document.getElementById('${inputId}').value = '${safeJS}'; document.getElementById('${suggestionId}').classList.remove('active'); if('${inputId}' === 'up-route'){ app.upload.autoFillOperatorByRoute(); } if('${inputId}' === 'up-model' && app.upload && app.upload.checkModelPreview){ app.upload.checkModelPreview('${safeJS}'); }">${displayHTML}</div>`;
                         }).join('');
                         box.classList.add('active');
                     } else { box.classList.remove('active'); }

@@ -4526,7 +4526,7 @@
                                             class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition"
                                             autocomplete="off"
                                             onfocus="app.utils.triggerSuggestion('up-model', 'up-model-suggestions', this.value, 'model')"
-                                            x-on:input.debounce.300ms="app.utils.triggerSuggestion('up-model', 'up-model-suggestions', $el.value, 'model'); app.upload.checkModelWarning && app.upload.checkModelWarning()">
+                                            x-on:input.debounce.300ms="app.utils.triggerSuggestion('up-model', 'up-model-suggestions', $el.value, 'model'); app.upload.checkModelWarning && app.upload.checkModelWarning(); app.upload.checkModelPreview && app.upload.checkModelPreview($el.value)">
                                         <div id="up-model-suggestions" class="suggestion-box"></div>
                                     </div>
                                     <p id="err-up-model" class="upload-req-err hidden text-[11px] mt-1 text-red-600 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Vui lòng nhập Dòng xe</p>
@@ -4540,6 +4540,13 @@
                                     <div id="locked-msg"
                                         class="hidden mt-3 p-3 bg-amber-50 text-amber-800 text-xs border border-amber-200 rounded-md leading-relaxed">
                                         <i class="fa-solid fa-lock mr-1"></i> <b>BKS này đã có dữ liệu dòng xe.</b> Nếu bạn thấy sai sót cần thay đổi có thể di chuyển tới trang chi tiết ảnh sau khi đăng. Bạn cần đảm bảo dòng xe là đúng trước khi chỉnh sửa. Nếu BKS được lắp trên xe khác vui lòng tham khảo hướng dẫn bên trên và không can thiệp vào dữ liệu hiện tại.
+                                    </div>
+                                    <div id="up-model-preview" class="hidden mt-3 p-2 bg-gray-50 border border-gray-200 rounded-lg shadow-sm flex items-center gap-3 fade-zoom-in transition-all">
+                                        <img id="up-model-preview-img" src="" class="w-16 h-12 object-cover rounded-md border border-gray-300">
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Hình ảnh mẫu</p>
+                                            <p id="up-model-preview-name" class="text-xs font-bold text-gray-800 truncate"></p>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="md:col-span-2">

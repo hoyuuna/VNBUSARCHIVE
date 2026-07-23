@@ -246,6 +246,49 @@ Object.assign(window.app, {
                 },
 
                 existingVehiclesList:[],
+                checkModelPreview: async (modelName = '') => {
+                    if (!modelName) {
+                        const modelInput = document.getElementById('up-model');
+                        modelName = modelInput ? modelInput.value.trim() : '';
+                    }
+                    const previewContainer = document.getElementById('up-model-preview');
+                    const previewImg = document.getElementById('up-model-preview-img');
+                    const previewName = document.getElementById('up-model-preview-name');
+                    const lockedMsg = document.getElementById('locked-msg');
+                    
+                    if (!previewContainer || !previewImg || !previewName) return;
+
+                    // Nếu input bị lock (xe đã có data) hoặc model rỗng thì ẩn preview
+                    const isLocked = lockedMsg && !lockedMsg.classList.contains('hidden');
+                    if (!modelName || isLocked) {
+                        previewContainer.classList.add('hidden');
+                        previewContainer.classList.remove('flex');
+                        return;
+                    }
+
+                    try {
+                        const { data: topPhoto } = await window.sb.from('photos')
+                            .select('url, vehicles!inner(model)')
+                            .eq('status', 'approved')
+                            .eq('vehicles.model', modelName)
+                            .order('views', { ascending: false })
+                            .limit(1)
+                            .maybeSingle();
+
+                        if (topPhoto && topPhoto.url) {
+                            previewImg.src = app.utils.getProxiedUrl(topPhoto.url, 'model-preview.jpg', 'thumb');
+                            previewName.innerText = modelName;
+                            previewContainer.classList.remove('hidden');
+                            previewContainer.classList.add('flex');
+                        } else {
+                            previewContainer.classList.add('hidden');
+                            previewContainer.classList.remove('flex');
+                        }
+                    } catch (err) {
+                        previewContainer.classList.add('hidden');
+                        previewContainer.classList.remove('flex');
+                    }
+                },
                 checkModelWarning: () => {
                     const warningEl = document.getElementById('model-warning-msg');
                     const plateInput = document.getElementById('up-plate');
@@ -856,6 +899,7 @@ Object.assign(window.app, {
 
                         document.getElementById('locked-msg')?.classList.add('hidden');
                         if(app.upload.applyPreferenceUI) app.upload.applyPreferenceUI();
+                        if(app.upload.checkModelPreview) app.upload.checkModelPreview();
 
                         const btnBus = document.getElementById('btn-type-bus');
                         const btnCoach = document.getElementById('btn-type-coach');
@@ -1020,6 +1064,7 @@ Object.assign(window.app, {
                             });
 
                             document.getElementById('locked-msg').classList.remove('hidden');
+                            if(app.upload.checkModelPreview) app.upload.checkModelPreview();
 
                             const { data: shootersData } = await window.sb
                                 .from('photos')
