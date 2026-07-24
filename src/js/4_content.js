@@ -2699,7 +2699,7 @@ Object.assign(window.app, {
         sourceImage: null,
         savedRatio: 4/3,
         modeTab: 'ratio',
-        isRulerEnabled: false,
+        isRulerEnabled: localStorage.getItem('cropRulerEnabled') === 'true',
         isMandatory: false,
         closeTimeout: null,
         
@@ -3109,6 +3109,7 @@ Object.assign(window.app, {
 
         toggleRuler: () => {
             app.crop.isRulerEnabled = !app.crop.isRulerEnabled;
+            localStorage.setItem('cropRulerEnabled', app.crop.isRulerEnabled);
             app.crop.updateRulerUI();
         },
 
