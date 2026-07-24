@@ -3212,14 +3212,21 @@ Object.assign(window.app, {
                 ctx.imageSmoothingEnabled = true;
                 ctx.imageSmoothingQuality = 'high';
                 
-                ctx.translate(canvas.width / 2, canvas.height / 2);
+                // Translate to the center of the crop box, offset by the panning (in screen space)
+                ctx.translate(
+                    canvas.width / 2 + (app.crop.state.x * multiplier),
+                    canvas.height / 2 + (app.crop.state.y * multiplier)
+                );
+                
+                // Then apply rotation and scale
                 ctx.rotate(app.crop.state.rotation * Math.PI / 180);
                 ctx.scale(app.crop.state.scale * multiplier, app.crop.state.scale * multiplier);
                 
+                // Draw the image centered around the transformed origin
                 ctx.drawImage(
                     img,
-                    -img.naturalWidth / 2 + (app.crop.state.x / app.crop.state.scale),
-                    -img.naturalHeight / 2 + (app.crop.state.y / app.crop.state.scale)
+                    -img.naturalWidth / 2,
+                    -img.naturalHeight / 2
                 );
 
                 if (app.crop.mode === 'main') {
