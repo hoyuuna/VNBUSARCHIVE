@@ -1056,7 +1056,7 @@ Object.assign(window.app, {
                         return null;
                     }
                 },
-                canvasToBlobUniversal: async (canvas, targetMime = 'image/webp', quality = 0.82) => {
+                canvasToBlobUniversal: async (canvas, targetMime = 'image/webp', quality = 0.95) => {
                     const nativeBlob = await new Promise((resolve) => {
                         canvas.toBlob((blob) => resolve(blob), targetMime, quality);
                     });
@@ -1814,7 +1814,7 @@ cleanupState: () => {
                                  }
 
                                  try {
-                                     const blob = await app.utils.canvasToBlobUniversal(canvas, app.utils.getTargetMimeType(), 0.80);
+                                     const blob = await app.utils.canvasToBlobUniversal(canvas, app.utils.getTargetMimeType(), 0.95);
                                      if (blob) resolve(blob);
                                      else reject(new Error("Canvas failed to blob"));
                                  } catch (errBlob) {

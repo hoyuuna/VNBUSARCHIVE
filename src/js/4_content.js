@@ -1199,7 +1199,7 @@ Object.assign(window.app, {
                     const el = document.getElementById('draggable-watermark');
                     if (isBlack) el.classList.add('wm-black');
                     else el.classList.remove('wm-black');
-                    if (app.upload.schedulePrepareBlob) app.upload.schedulePrepareBlob();
+                    // Auto compression removed to save CPU during edit
                 },
                 isBlindWatermarkEnabled: (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_mode') === 'advanced'),
                 loadOpenCV: async (progToast) => {
@@ -1263,7 +1263,7 @@ Object.assign(window.app, {
                         }
                     }
 
-                    if (app.upload.schedulePrepareBlob) app.upload.schedulePrepareBlob();
+                    // Auto compression removed to save CPU during edit
                 },
                 updateWmModeSlider: (animate = false) => {
                     const mode = (app.wmState && app.wmState.mode) || 'basic';
@@ -1347,7 +1347,7 @@ Object.assign(window.app, {
                         }
                     }
                     
-                    if (app.upload.schedulePrepareBlob) app.upload.schedulePrepareBlob();
+                    // Auto compression removed to save CPU during edit
                 },
                 resetWm: () => {
                     app.wmState.scale = 1.0;
@@ -1374,7 +1374,7 @@ Object.assign(window.app, {
                         el.style.top = '50%';
                         el.style.transform = `translate(-50%, -50%) scale(1.0)`;
                     }
-                    if (app.upload.schedulePrepareBlob) app.upload.schedulePrepareBlob();
+                    // Auto compression removed to save CPU during edit
                 },
                 
                 previewBlob: () => {
@@ -1405,7 +1405,7 @@ Object.assign(window.app, {
                             maxWidthOrHeight: 1920,
                             useWebWorker: true,
                             fileType: targetMime,
-                            initialQuality: 0.8
+                            initialQuality: 0.95
                         };
                         let compressedFile = await imageCompression(finalBlob, compressOptions);
                         if (!compressedFile) compressedFile = finalBlob;
@@ -1465,7 +1465,7 @@ Object.assign(window.app, {
                     const previewImg = document.getElementById('preview-img');
                     if(previewImg) previewImg.style.filter = filterString;
                     app.upload.currentFilters = filterString;
-                    if (app.upload.schedulePrepareBlob) app.upload.schedulePrepareBlob();
+                    // Auto compression removed to save CPU during edit
                 },
                 resetFilters: () => {
                     const b = document.getElementById('adj-brightness');
@@ -2113,7 +2113,7 @@ Object.assign(window.app, {
 
                     const onEnd = () => { 
                         isDragging = false; 
-                        if (app.upload.schedulePrepareBlob) app.upload.schedulePrepareBlob(); 
+                        // Auto compression removed to save CPU during edit 
                     };
                     document.addEventListener('mouseup', onEnd);
                     document.addEventListener('touchend', onEnd);
@@ -2186,7 +2186,7 @@ Object.assign(window.app, {
 
                                 // Thực hiện nhúng Blind Watermark + dấu chìm hiển thị và nén ảnh trong lúc người dùng giải Captcha
                                 const finalBlob = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none', { embedBlind: true });
-                                const compressOptions = { maxSizeMB: 1, maxWidthOrHeight: 1920, useWebWorker: true, fileType: targetMime, initialQuality: 0.8 };
+                                const compressOptions = { maxSizeMB: 1, maxWidthOrHeight: 1920, useWebWorker: true, fileType: targetMime, initialQuality: 0.95 };
                                 let blobToProcess = null;
                                 try {
                                     blobToProcess = await imageCompression(finalBlob, compressOptions);
@@ -2197,7 +2197,7 @@ Object.assign(window.app, {
 
                                 // Chạy convertToWebpCpu trong nền trong lúc giải captcha
                                 if (blobToProcess && blobToProcess.type !== targetMime) {
-                                    const cpuBlob = await app.utils.convertToWebpCpu(blobToProcess, 0.8);
+                                    const cpuBlob = await app.utils.convertToWebpCpu(blobToProcess, 0.95);
                                     if (cpuBlob && cpuBlob.size > 0) {
                                         resolve(new File([cpuBlob], app.rawFile.name.replace(/\.[^/.]+$/, "") + ".webp", { type: 'image/webp' }));
                                         return;
@@ -2260,7 +2260,7 @@ Object.assign(window.app, {
                         // Nếu tiến trình nền chưa ra webp thì chạy fallback lần cuối
                         if (!compressedFile || (compressedFile.type !== targetMime && compressedFile.type !== 'image/webp')) {
                             const fallbackBlob = compressedFile || app.rawFile;
-                            const cpuBlob = await app.utils.convertToWebpCpu(fallbackBlob, 0.8);
+                            const cpuBlob = await app.utils.convertToWebpCpu(fallbackBlob, 0.95);
                             if (cpuBlob && cpuBlob.size > 0) {
                                 compressedFile = new File([cpuBlob], app.rawFile.name.replace(/\.[^/.]+$/, "") + ".webp", { type: 'image/webp' });
                             }
@@ -3262,7 +3262,7 @@ Object.assign(window.app, {
                         return;
                     }
 
-                    app.utils.canvasToBlobUniversal(canvas, app.utils.getTargetMimeType(), 0.85).then((blob) => {
+                    app.utils.canvasToBlobUniversal(canvas, app.utils.getTargetMimeType(), 0.95).then((blob) => {
                         if (app.crop.originalFile && app.crop.originalFile.name) {
                             blob.name = app.crop.originalFile.name;
                         } else {
