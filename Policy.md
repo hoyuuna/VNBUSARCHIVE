@@ -52,6 +52,7 @@ Khi tải ảnh lên hệ thống, bạn cam kết tuân thủ tuyệt đối qu
 * **Không có giá trị pháp lý:** Hình ảnh và dữ liệu trên hệ thống không được sử dụng làm cơ sở xử lý vi phạm giao thông hoặc nội quy doanh nghiệp (trừ khi có yêu cầu bằng văn bản từ cơ quan có thẩm quyền), do hệ thống không thể đảm bảo dữ liệu chưa qua chỉnh sửa.
 * **Trách nhiệm người dùng:** Người dùng tự chịu trách nhiệm về hình ảnh mình đăng tải. Chúng tôi được miễn trừ mọi trách nhiệm liên quan đến khiếu nại quyền riêng tư do sự bất cẩn của người dùng, hoặc các tranh chấp phát sinh bên ngoài nền tảng.
 * **Hành vi tác nghiệp:** Chúng tôi không quản lý, không xúi giục và không chịu trách nhiệm pháp lý đối với bất kỳ hành vi nào của người dùng trong quá trình đi thu thập hình ảnh thực tế. Người dùng tự chịu 100% trách nhiệm trước pháp luật về an toàn giao thông, an ninh trật tự, hành vi xâm phạm gia cư/khu vực cấm, hoặc các tổn hại về người và tài sản phát sinh trong quá trình tác nghiệp.
+* trong trường hợp xảy ra sự cố kỹ thuật ngoài tầm kiểm soát hoặc cuộc tấn công mạng bất khả kháng, VNBUSARCHIVE sẽ lập tức khắc phục, chủ động thông báo cho người dùng và phối hợp với cơ quan chức năng để xử lý, đồng thời được miễn trừ các nghĩa vụ đền bù tài chính phát sinh.
 
 ### 8. Tiêu chuẩn vô điều kiện về Tên hiển thị và Ảnh đại diện
 Khu vực hồ sơ cá nhân là nơi hiển thị công khai trên bách khoa toàn thư VNBUSARCHIVE. Để bảo vệ tính chuyên nghiệp của dự án và quyền lợi của cộng đồng, bạn bắt buộc phải tuân thủ tuyệt đối các quy định dưới đây. Ban quản trị bảo lưu quyền chủ động gỡ bỏ ảnh đại diện, buộc đổi tên, hoặc khóa vĩnh viễn tài khoản ngay lập tức mà không cần cảnh báo trước nếu phát hiện vi phạm.
@@ -105,7 +106,7 @@ Khi tải ảnh lên, hệ thống tự động quét siêu dữ liệu để l�
 * Lưu trữ nhật ký hoạt động nhằm mục đích đối soát và ngăn chặn hành vi phá hoại.
 
 ### 3. Việc Chia sẻ Dữ liệu
-Chúng tôi tuyệt đối không bán hoặc trao đổi dữ liệu cá nhân của bạn cho bên thứ ba vì mục đích thương mại.
+Chúng tôi cam kết bảo mật tuyệt đối và KHÔNG bán, cho thuê, chia sẻ, tiết lộ hoặc chuyển giao dữ liệu cá nhân của bạn cho bất kỳ bên thứ ba nào, dưới bất kỳ hình thức nào (bao gồm cả mục đích thương mại lẫn phi thương mại), trừ các trường hợp được quy định rõ tại Chính sách này hoặc theo yêu cầu của cơ quan Nhà nước có thẩm quyền.
 * Dữ liệu công khai như hình ảnh, thông số chụp và dữ liệu phương tiện được mở cho cộng đồng.
 * Chúng tôi sử dụng các hạ tầng điện toán đám mây uy tín (Supabase, ImageKit, Cloudflare và các dịch vụ lưu trữ tĩnh) để vận hành. Dữ liệu của bạn được luân chuyển và mã hóa an toàn trên các máy chủ này theo chính sách bảo mật quốc tế.
 
