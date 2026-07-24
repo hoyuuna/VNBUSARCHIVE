@@ -2249,15 +2249,12 @@
                             <button type="button" onclick="app.crop.setRatio(3/2)" class="crop-ratio-btn px-3 py-1.5 text-xs border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition" data-ratio="1.5">3:2</button>
                             <button type="button" onclick="app.crop.setRatio(4/3)" class="crop-ratio-btn px-3 py-1.5 text-xs border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition" data-ratio="1.3333333333333333">4:3</button>
                         </div>
-                        <div id="crop-rotate-controls" class="hidden flex-nowrap gap-1 sm:gap-2 w-full justify-between items-center">
-                            <!-- Spacer to balance the 90 deg button on the right -->
-                            <div class="w-8 sm:w-16 hidden md:block"></div>
-                            
-                            <div class="flex items-center gap-1 sm:gap-2">
+                        <div id="crop-rotate-controls" class="hidden flex-nowrap gap-2 sm:gap-4 w-full items-center">
+                            <div class="flex items-center gap-1 sm:gap-2 flex-1">
                                 <button type="button" onclick="app.crop.stepRotate(-1)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition" title="Nhích trái 1 độ">
                                     <i class="fa-solid fa-minus"></i>
                                 </button>
-                                <div class="flex flex-col items-center justify-center px-1 w-36 sm:w-56 md:w-64">
+                                <div class="flex flex-col items-center justify-center px-1 flex-1">
                                     <div class="flex justify-between w-full text-[10px] font-bold text-gray-500 mb-1">
                                         <span>-45°</span>
                                         <span id="crop-rotate-val">0°</span>
