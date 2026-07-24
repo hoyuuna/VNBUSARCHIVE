@@ -1805,7 +1805,7 @@
             inset: 0;
             pointer-events: none;
             z-index: 16;
-            opacity: 0.5;
+            opacity: 1;
         }
         .ruler-line-v {
             position: absolute;
@@ -1813,6 +1813,7 @@
             bottom: 0;
             width: 1px;
             background: rgba(255, 255, 255, 0.75);
+            box-shadow: 0 0 2px rgba(0, 0, 0, 0.95), 0 0 1px rgba(0, 0, 0, 1);
         }
         .ruler-line-center {
             position: absolute;
@@ -1820,18 +1821,6 @@
             bottom: 0;
             width: 2px;
             background: #ffffff;
-        }
-        
-        #admin-zoom-ruler-overlay,
-        .admin-photo-ruler-overlay {
-            opacity: 1 !important;
-        }
-        #admin-zoom-ruler-overlay .ruler-line-v,
-        .admin-photo-ruler-overlay .ruler-line-v {
-            box-shadow: 0 0 2px rgba(0, 0, 0, 0.95), 0 0 1px rgba(0, 0, 0, 1);
-        }
-        #admin-zoom-ruler-overlay .ruler-line-center,
-        .admin-photo-ruler-overlay .ruler-line-center {
             box-shadow: 0 0 4px rgba(0, 0, 0, 0.95), 0 0 1px rgba(0, 0, 0, 1);
         }
         .ruler-badge {
