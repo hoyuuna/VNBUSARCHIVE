@@ -2120,7 +2120,14 @@ cleanupState: () => {
                             const coords = [parseFloat(lat), parseFloat(lon)];
                             app.uploadMap.setView(coords, 15);
                             if (app.uploadMarker) app.uploadMap.removeLayer(app.uploadMarker);
-                            app.uploadMarker = L.marker(coords).addTo(app.uploadMap);
+                            app.uploadMarker = L.marker(coords, {
+                                icon: L.icon({
+                                    iconUrl: '/media/vnba.png',
+                                    iconSize: [32, 32],
+                                    iconAnchor: [16, 32],
+                                    popupAnchor: [0, -32]
+                                })
+                            }).addTo(app.uploadMap);
                         }
                     } catch (e) { }
                 },
@@ -2144,7 +2151,14 @@ cleanupState: () => {
                             const coords = [parseFloat(lat), parseFloat(lon)];
                             app.detailMap.setView(coords, 15);
                             if (app.detailMarker) app.detailMap.removeLayer(app.detailMarker);
-                            app.detailMarker = L.marker(coords).addTo(app.detailMap);
+                            app.detailMarker = L.marker(coords, {
+                                icon: L.icon({
+                                    iconUrl: '/media/vnba.png',
+                                    iconSize: [32, 32],
+                                    iconAnchor: [16, 32],
+                                    popupAnchor: [0, -32]
+                                })
+                            }).addTo(app.detailMap);
                             setTimeout(() => app.detailMap.invalidateSize(), 200);
                         } else {
                             mapEl.style.display = 'none';

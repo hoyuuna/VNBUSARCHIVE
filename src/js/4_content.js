@@ -449,7 +449,14 @@ Object.assign(window.app, {
                     app.uploadMap.on('click', async (e) => {
                         const { lat, lng } = e.latlng;
                         if (app.uploadMarker) app.uploadMap.removeLayer(app.uploadMarker);
-                        app.uploadMarker = L.marker([lat, lng]).addTo(app.uploadMap);
+                        app.uploadMarker = L.marker([lat, lng], {
+                            icon: L.icon({
+                                iconUrl: '/media/vnba.png',
+                                iconSize: [32, 32],
+                                iconAnchor: [16, 32],
+                                popupAnchor: [0, -32]
+                            })
+                        }).addTo(app.uploadMap);
 
                         const address = await app.utils.reverseGeocode(lat, lng);
                         document.getElementById('up-location').value = address;
