@@ -2123,9 +2123,9 @@ cleanupState: () => {
                             app.uploadMarker = L.marker(coords, {
                                 icon: L.icon({
                                     iconUrl: '/media/vnba.png',
-                                    iconSize: [32, 32],
-                                    iconAnchor: [16, 32],
-                                    popupAnchor: [0, -32]
+                                    iconSize: [64, 36],
+                                    iconAnchor: [32, 18],
+                                    popupAnchor: [0, -18]
                                 })
                             }).addTo(app.uploadMap);
                         }
@@ -2154,9 +2154,9 @@ cleanupState: () => {
                             app.detailMarker = L.marker(coords, {
                                 icon: L.icon({
                                     iconUrl: '/media/vnba.png',
-                                    iconSize: [32, 32],
-                                    iconAnchor: [16, 32],
-                                    popupAnchor: [0, -32]
+                                    iconSize: [64, 36],
+                                    iconAnchor: [32, 18],
+                                    popupAnchor: [0, -18]
                                 })
                             }).addTo(app.detailMap);
                             setTimeout(() => app.detailMap.invalidateSize(), 200);

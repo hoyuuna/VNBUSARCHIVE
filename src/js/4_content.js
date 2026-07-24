@@ -452,9 +452,9 @@ Object.assign(window.app, {
                         app.uploadMarker = L.marker([lat, lng], {
                             icon: L.icon({
                                 iconUrl: '/media/vnba.png',
-                                iconSize: [32, 32],
-                                iconAnchor: [16, 32],
-                                popupAnchor: [0, -32]
+                                iconSize: [64, 36],
+                                iconAnchor: [32, 18],
+                                popupAnchor: [0, -18]
                             })
                         }).addTo(app.uploadMap);
 
