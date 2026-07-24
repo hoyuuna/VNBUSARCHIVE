@@ -2762,54 +2762,7 @@ Object.assign(window.app, {
                 app.crop.eventsAttached = true;
                 
                 // --- PC Mouse Wheel Zoom ---
-                container.addEventListener('wheel', (e) => {
-                    e.preventDefault();
-                    const zoomSpeed = 0.05;
-                    const delta = e.deltaY > 0 ? -zoomSpeed : zoomSpeed;
-                    
-                    app.crop.state.scale += delta;
-                    
-                    if (app.crop.state.scale < app.crop.state.minScale) {
-                        app.crop.state.scale = app.crop.state.minScale;
-                    }
-                    if (app.crop.state.scale > 5) app.crop.state.scale = 5;
-                    
-                    app.crop.applyTransform();
-                }, { passive: false });
-
-                // --- Mobile Pinch-to-Zoom (Touch) ---
-                let initialPinchDist = 0;
-                let initialScale = 1;
-
-                container.addEventListener('touchstart', (e) => {
-                    if (e.touches.length === 2) {
-                        e.preventDefault();
-                        initialPinchDist = Math.hypot(
-                            e.touches[0].clientX - e.touches[1].clientX,
-                            e.touches[0].clientY - e.touches[1].clientY
-                        );
-                        initialScale = app.crop.state.scale;
-                    }
-                }, { passive: false });
-
-                container.addEventListener('touchmove', (e) => {
-                    if (e.touches.length === 2) {
-                        e.preventDefault();
-                        const currentDist = Math.hypot(
-                            e.touches[0].clientX - e.touches[1].clientX,
-                            e.touches[0].clientY - e.touches[1].clientY
-                        );
-                        
-                        app.crop.state.scale = initialScale * (currentDist / initialPinchDist);
-                        
-                        if (app.crop.state.scale < app.crop.state.minScale) {
-                            app.crop.state.scale = app.crop.state.minScale;
-                        }
-                        if (app.crop.state.scale > 5) app.crop.state.scale = 5;
-                        
-                        app.crop.applyTransform();
-                    }
-                }, { passive: false });
+                container.addEventListener('wheel', app.crop.onWheel, { passive: false });
             }
 
             const url = URL.createObjectURL(app.crop.originalFile);
@@ -3014,13 +2967,14 @@ Object.assign(window.app, {
 
         onWheel: (e) => {
             e.preventDefault();
-            // Multiplicative zoom: extremely slow for sensitive PC mouse wheels
-            const zoomFactor = Math.exp(-e.deltaY * 0.000025);
+            // Multiplicative zoom: smooth but responsive (approx 5% per standard scroll tick)
+            const zoomFactor = Math.exp(-e.deltaY * 0.0005);
             app.crop.state.scale *= zoomFactor;
             
             if (app.crop.state.scale < app.crop.state.minScale) {
                 app.crop.state.scale = app.crop.state.minScale;
             }
+            if (app.crop.state.scale > 5) app.crop.state.scale = 5;
             
             app.crop.applyTransform();
         },
