@@ -3289,23 +3289,34 @@ Object.assign(window.app, {
 
 window.addEventListener('keydown', (e) => {
     const cropModal = document.getElementById('crop-modal');
-    if (!cropModal || cropModal.classList.contains('hidden') || !app.crop || !app.crop.cropper) return;
+    if (!cropModal || cropModal.classList.contains('hidden') || !app.crop) return;
     if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target && e.target.tagName)) return;
 
-    if (e.ctrlKey) {
-        if (e.key === '=' || e.key === '+') {
-            e.preventDefault();
-            app.crop.cropper.zoom(0.1);
-            return;
-        } else if (e.key === '-') {
-            e.preventDefault();
-            app.crop.cropper.zoom(-0.1);
-            return;
+    // Handle Zoom (+ / -)
+    if (e.key === '=' || e.key === '+' || e.key === '-') {
+        e.preventDefault();
+        const isZoomIn = (e.key === '=' || e.key === '+');
+        // Without Ctrl: smooth slow zoom (2%). With Ctrl: fast zoom (15%)
+        const zoomFactor = e.ctrlKey ? (isZoomIn ? 1.15 : 1/1.15) : (isZoomIn ? 1.02 : 1/1.02);
+        
+        app.crop.state.scale *= zoomFactor;
+        
+        if (app.crop.state.scale < app.crop.state.minScale) {
+            app.crop.state.scale = app.crop.state.minScale;
         }
+        if (app.crop.state.scale > 5) {
+            app.crop.state.scale = 5;
+        }
+        
+        app.crop.applyTransform();
+        return;
     }
 
+    // Handle Pan (Arrow keys)
     let dx = 0, dy = 0;
-    const step = e.shiftKey ? 10 : 1;
+    // Without Ctrl: slow pan (2px). With Ctrl: fast pan (20px)
+    const step = e.ctrlKey ? 20 : 2;
+    
     if (e.key === 'ArrowLeft') dx = -step;
     else if (e.key === 'ArrowRight') dx = step;
     else if (e.key === 'ArrowUp') dy = -step;
@@ -3313,9 +3324,11 @@ window.addEventListener('keydown', (e) => {
     else return;
 
     e.preventDefault();
-    try {
-        app.crop.cropper.move(-dx, -dy);
-    } catch (err) {}
+    // Moving the camera left (ArrowLeft, dx < 0) means the image moves right (x increases)
+    app.crop.state.x -= dx;
+    app.crop.state.y -= dy;
+    
+    app.crop.applyTransform();
 });
 
 Object.assign(window.app, {
