@@ -2783,10 +2783,11 @@ Object.assign(window.app, {
                             app.crop.state = { x: 0, y: 0, scale: 1, rotation: 0, baseRotation: 0, minScale: 1 };
                         }
                         
+                        const freeRotation = app.crop.state.rotation - (app.crop.state.baseRotation || 0);
                         const rotateSlider = document.getElementById('crop-rotate-slider');
-                        if (rotateSlider) rotateSlider.value = app.crop.state.rotation;
+                        if (rotateSlider) rotateSlider.value = freeRotation;
                         const rotateVal = document.getElementById('crop-rotate-val');
-                        if (rotateVal) rotateVal.innerText = app.crop.state.rotation + '°';
+                        if (rotateVal) rotateVal.innerText = (freeRotation > 0 ? '+' : '') + freeRotation + '°';
                         
                         if (modePanel) modePanel.classList.remove('hidden');
                         app.crop.setModeTab('ratio');
