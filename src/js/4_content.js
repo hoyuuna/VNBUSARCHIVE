@@ -1505,6 +1505,7 @@ Object.assign(window.app, {
                     if (app.webrtc && app.webrtc.resetMobile) app.webrtc.resetMobile();
                     app.rawFile = null;
                     app.crop.sourceImage = null;
+                    app.crop.originalFile = null;
                     app.crop.savedCropData = null;
                     app.crop.savedRatio = 4/3;
                     app.crop.savedState = null;
@@ -1531,6 +1532,7 @@ Object.assign(window.app, {
 
                     app.upload._faceAutoRun = false;
                     app.crop.sourceImage = null;
+                    app.crop.originalFile = null;
                     app.crop.savedCropData = null;
                     app.crop.savedRatio = 4/3;
                     app.crop.savedState = null;
@@ -3304,6 +3306,18 @@ Object.assign(window.app, {
             app.crop.state.scale = app.crop.state.minScale;
             app.crop.applyTransform();
             app.crop.updateRatioButtons(currentRatio);
+
+            if (app.crop.mode === 'main' && app.crop.originalFile) {
+                app.rawFile = app.crop.originalFile;
+                const url = URL.createObjectURL(app.rawFile);
+                const previewImg = document.getElementById('preview-img');
+                if (previewImg) previewImg.src = url;
+
+                document.querySelectorAll('.blur-panel').forEach(p => p.remove());
+                if (app.upload.updateBlurBtn) app.upload.updateBlurBtn();
+                if (app.upload.resetWm) app.upload.resetWm();
+                if (app.upload.resetFilters) app.upload.resetFilters();
+            }
         }
     }
 });
