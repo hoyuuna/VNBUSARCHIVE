@@ -3314,8 +3314,8 @@ window.addEventListener('keydown', (e) => {
 
     // Handle Pan (Arrow keys)
     let dx = 0, dy = 0;
-    // Without Ctrl: slow pan (2px). With Ctrl: fast pan (20px)
-    const step = e.ctrlKey ? 20 : 2;
+    // Without Ctrl: ultra slow smooth pan (0.5px). With Ctrl: fast pan (20px)
+    const step = e.ctrlKey ? 20 : 0.5;
     
     if (e.key === 'ArrowLeft') dx = -step;
     else if (e.key === 'ArrowRight') dx = step;
