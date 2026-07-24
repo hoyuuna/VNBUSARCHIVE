@@ -3153,9 +3153,23 @@ Object.assign(window.app, {
                 overlayBox.insertAdjacentHTML('beforeend', app.crop.getRulerHTML());
                 overlay = overlayBox.querySelector('.crop-ruler-overlay');
             }
+            
+            const gridV = document.getElementById('crop-grid-v');
+            const crossH = document.getElementById('crop-crosshair-h');
+            const crossV = document.getElementById('crop-crosshair-v');
+            
             if (overlay) {
-                if (app.crop.isRulerEnabled) overlay.classList.remove('hidden');
-                else overlay.classList.add('hidden');
+                if (app.crop.isRulerEnabled) {
+                    overlay.classList.remove('hidden');
+                    if(gridV) gridV.classList.add('hidden');
+                    if(crossH) crossH.classList.add('hidden');
+                    if(crossV) crossV.classList.add('hidden');
+                } else {
+                    overlay.classList.add('hidden');
+                    if(gridV) gridV.classList.remove('hidden');
+                    if(crossH) crossH.classList.remove('hidden');
+                    if(crossV) crossV.classList.remove('hidden');
+                }
             }
         },
 
