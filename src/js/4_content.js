@@ -3014,8 +3014,8 @@ Object.assign(window.app, {
 
         onWheel: (e) => {
             e.preventDefault();
-            // Multiplicative zoom: extremely smooth and slow for PC (1/4 of previous speed)
-            const zoomFactor = Math.exp(-e.deltaY * 0.000125);
+            // Multiplicative zoom: extremely slow for sensitive PC mouse wheels
+            const zoomFactor = Math.exp(-e.deltaY * 0.000025);
             app.crop.state.scale *= zoomFactor;
             
             if (app.crop.state.scale < app.crop.state.minScale) {
@@ -3933,18 +3933,7 @@ Object.assign(window.app, {
                     }
 
                     try {
-                        const plate = app.currentPlate;
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
-                            .eq('license_plate', plate)
-                            .eq('status', 'approved')
-                            .order('taken_at', { ascending: false, nullsFirst: false })
-                            .order('created_at', { ascending: false });
-
-                        pQuery = app.preference.applyFilter(pQuery);
-
-                        const { data: photos, error } = await pQuery.range(fromRow, toRow);
-                        if (error) throw error;
-
+                        const photos = (app.vehiclePhotosCache || []).slice(fromRow, toRow + 1);
                         if (photos && photos.length > 0) {
                             if (grid) grid.innerHTML = photos.map(p => app.views.renderPhotoCard(p)).join('');
                         } else {

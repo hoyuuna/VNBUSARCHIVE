@@ -1875,19 +1875,23 @@ Object.assign(window.app, {
                         const historyPlates = historyRes.data ? historyRes.data.map(h => h.plate).filter(Boolean) : [];
                         const allPlatesToFetch = [...new Set([plate, ...historyPlates])];
 
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`, { count: 'exact' })
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                                 .in('license_plate', allPlatesToFetch)
-                                .eq('status', 'approved')
-                                .order('taken_at', { ascending: false, nullsFirst: false })
-                                .order('created_at', { ascending: false });
+                                .eq('status', 'approved');
 
                         pQuery = app.preference.applyFilter(pQuery);
-                        const allPhotosRes = await pQuery.range(0, vehSize - 1);
+                        const allPhotosRes = await pQuery; // Fetch all photos for client-side sorting/pagination
 
 // BẮT LỖI RACE CONDITION
                     if (window.location.pathname !== `/vehicle/${encodeURIComponent(plate)}`) return;
 
-                        const allPhotos = allPhotosRes.data || [];
+                        let allPhotos = allPhotosRes.data || [];
+                        // Sort photos by taken_at descending, fallback to created_at
+                        allPhotos.sort((a, b) => {
+                            const timeA = a.taken_at ? new Date(a.taken_at).getTime() : new Date(a.created_at).getTime();
+                            const timeB = b.taken_at ? new Date(b.taken_at).getTime() : new Date(b.created_at).getTime();
+                            return timeB - timeA;
+                        });
 
                         // XE CÓ THỂ CHƯA CÓ ROW TRONG BẢNG vehicles (chỉ có ảnh).
                         // DỰNG THÔNG TIN TỪ ẢNH + LỊCH SỬ thay vì báo lỗi.
@@ -1915,8 +1919,11 @@ Object.assign(window.app, {
 
                         const pageTitle = `Hồ sơ xe ${vehicle.license_plate} | VNBUSARCHIVE`;
                         app.vehiclePhotosCache = allPhotos;
-                        app.vehicle.totalCount = allPhotosRes.count || allPhotos.length;
+                        app.vehicle.totalCount = allPhotos.length;
                         app.vehicle.totalPages = Math.ceil(app.vehicle.totalCount / vehSize);
+                        
+                        // Lấy danh sách ảnh hiển thị cho trang đầu tiên
+                        const firstPagePhotos = allPhotos.slice(0, vehSize);
                         // Lấy ảnh ở đầu danh sách (mới chụp nhất theo taken_at)
                         const topPhoto = allPhotos.length > 0 ? allPhotos[0] : null;
                         const isCoach = topPhoto && topPhoto.type === 'coach';
@@ -2063,7 +2070,7 @@ Object.assign(window.app, {
                         let photosHTML = '<p class="text-xs text-gray-500">Chưa có ảnh nào cho xe này.</p>';
                         let loadMoreHtml = '';
                         if (allPhotos.length > 0) {
-                            photosHTML = `<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" id="vehicle-photo-grid">${allPhotos.map(p => app.views.renderPhotoCard(p)).join('')}</div>`;
+                            photosHTML = `<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" id="vehicle-photo-grid">${firstPagePhotos.map(p => app.views.renderPhotoCard(p)).join('')}</div>`;
                             if (app.vehicle.totalPages > 1) {
                                 loadMoreHtml = '<div id="vehicle-load-more-container" class="mt-6 w-full flex justify-center hidden"></div>';
                             }
