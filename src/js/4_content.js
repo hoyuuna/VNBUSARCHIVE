@@ -1401,7 +1401,7 @@ Object.assign(window.app, {
                         const finalBlob = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none', { embedBlind: false });
                         const targetMime = app.utils.getTargetMimeType();
                         const compressOptions = {
-                            maxSizeMB: 10,
+                            maxSizeMB: 1,
                             maxWidthOrHeight: 1920,
                             useWebWorker: true,
                             fileType: targetMime,
@@ -1874,7 +1874,7 @@ Object.assign(window.app, {
                                     }
                                 }
                                 const targetMime = app.utils.getTargetMimeType();
-                                let convertedBlob = await imageCompression(fileToCompress, { maxSizeMB: 10, maxWidthOrHeight: 1920, useWebWorker: true, fileType: targetMime, initialQuality: 0.8 });
+                                let convertedBlob = await imageCompression(fileToCompress, { maxSizeMB: 1, maxWidthOrHeight: 1920, useWebWorker: true, fileType: targetMime, initialQuality: 0.8 });
                                 if (!convertedBlob) convertedBlob = fileToCompress;
                                 const newUrl = URL.createObjectURL(convertedBlob);
                                 const newImg = new Image();
@@ -2186,7 +2186,7 @@ Object.assign(window.app, {
 
                                 // Thực hiện nhúng Blind Watermark + dấu chìm hiển thị và nén ảnh trong lúc người dùng giải Captcha
                                 const finalBlob = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none', { embedBlind: true });
-                                const compressOptions = { maxSizeMB: 10, maxWidthOrHeight: 1920, useWebWorker: true, fileType: targetMime, initialQuality: 0.8 };
+                                const compressOptions = { maxSizeMB: 1, maxWidthOrHeight: 1920, useWebWorker: true, fileType: targetMime, initialQuality: 0.8 };
                                 let blobToProcess = null;
                                 try {
                                     blobToProcess = await imageCompression(finalBlob, compressOptions);
