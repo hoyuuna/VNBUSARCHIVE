@@ -1507,6 +1507,7 @@ Object.assign(window.app, {
                     app.crop.sourceImage = null;
                     app.crop.savedCropData = null;
                     app.crop.savedRatio = 4/3;
+                    app.crop.savedState = null;
                     app.currentExif = { camera: 'N/A', params: 'N/A' };
 
                     const upCamera = document.getElementById('up-camera');
@@ -1532,6 +1533,7 @@ Object.assign(window.app, {
                     app.crop.sourceImage = null;
                     app.crop.savedCropData = null;
                     app.crop.savedRatio = 4/3;
+                    app.crop.savedState = null;
 
                     const dropZone = document.getElementById('drop-zone');
                     const visualEl = dropZone ? dropZone.querySelector('.pointer-events-none') : null;
@@ -2773,12 +2775,16 @@ Object.assign(window.app, {
                 
                 setTimeout(() => {
                     if (mode === 'main') {
-                        app.crop.state = { x: 0, y: 0, scale: 1, rotation: 0, baseRotation: 0, minScale: 1 };
+                        if (app.crop.savedState) {
+                            app.crop.state = { ...app.crop.savedState };
+                        } else {
+                            app.crop.state = { x: 0, y: 0, scale: 1, rotation: 0, baseRotation: 0, minScale: 1 };
+                        }
                         
                         const rotateSlider = document.getElementById('crop-rotate-slider');
-                        if (rotateSlider) rotateSlider.value = 0;
+                        if (rotateSlider) rotateSlider.value = app.crop.state.rotation;
                         const rotateVal = document.getElementById('crop-rotate-val');
-                        if (rotateVal) rotateVal.innerText = '0°';
+                        if (rotateVal) rotateVal.innerText = app.crop.state.rotation + '°';
                         
                         if (modePanel) modePanel.classList.remove('hidden');
                         app.crop.setModeTab('ratio');
@@ -2802,9 +2808,15 @@ Object.assign(window.app, {
                         app.crop.updateRatioButtons(app.crop.savedRatio);
                         app.crop.setFixedCropBox(app.crop.savedRatio);
                         app.crop.updateMinScale();
-                        app.crop.state.scale = app.crop.state.minScale;
-                        app.crop.state.x = 0;
-                        app.crop.state.y = 0;
+                        if (!app.crop.savedState) {
+                            app.crop.state.scale = app.crop.state.minScale;
+                            app.crop.state.x = 0;
+                            app.crop.state.y = 0;
+                        } else {
+                            if (app.crop.state.scale < app.crop.state.minScale) {
+                                app.crop.state.scale = app.crop.state.minScale;
+                            }
+                        }
                         app.crop.applyTransform();
                         app.crop.updateRulerUI();
                     }
@@ -3227,6 +3239,7 @@ Object.assign(window.app, {
 
                         const wasMandatory = app.crop.isMandatory;
                         app.crop.isMandatory = false;
+                        app.crop.savedState = { ...app.crop.state };
                         app.crop.close();
 
                         if (wasMandatory) {
@@ -3271,6 +3284,7 @@ Object.assign(window.app, {
         },
         
         reset: () => {
+            app.crop.savedState = null;
             app.crop.state = { x: 0, y: 0, scale: 1, rotation: 0, baseRotation: 0, minScale: 1 };
             const rotateSlider = document.getElementById('crop-rotate-slider');
             if (rotateSlider) rotateSlider.value = 0;
