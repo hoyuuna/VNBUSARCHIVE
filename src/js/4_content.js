@@ -1400,14 +1400,16 @@ Object.assign(window.app, {
                         const username = app.username || "Guest";
                         const finalBlob = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none', { embedBlind: false });
                         const targetMime = app.utils.getTargetMimeType();
-                        const compressOptions = {
-                            maxSizeMB: 1,
-                            maxWidthOrHeight: 1920,
-                            useWebWorker: true,
-                            fileType: targetMime,
-                            initialQuality: 0.95
-                        };
-                        let compressedFile = await imageCompression(finalBlob, compressOptions);
+                        let compressedFile = null;
+                        try {
+                            compressedFile = await app.utils.compressToSizeLoop(finalBlob, targetMime, 1);
+                        } catch (e) {
+                            console.warn("compressToSizeLoop lỗi:", e);
+                            app.ui.showAlert(e.message.replace("BLIND_WM_ERROR:", ""));
+                            btn.innerHTML = originalText;
+                            btn.disabled = false;
+                            return;
+                        }
                         if (!compressedFile) compressedFile = finalBlob;
                         app.upload.readyBlob = compressedFile;
                     } catch (err) {
@@ -1874,7 +1876,7 @@ Object.assign(window.app, {
                                     }
                                 }
                                 const targetMime = app.utils.getTargetMimeType();
-                                let convertedBlob = await imageCompression(fileToCompress, { maxSizeMB: 1, maxWidthOrHeight: 1920, useWebWorker: true, fileType: targetMime, initialQuality: 0.8 });
+                                let convertedBlob = await app.utils.compressToSizeLoop(fileToCompress, targetMime, 1);
                                 if (!convertedBlob) convertedBlob = fileToCompress;
                                 const newUrl = URL.createObjectURL(convertedBlob);
                                 const newImg = new Image();
@@ -2186,23 +2188,15 @@ Object.assign(window.app, {
 
                                 // Thực hiện nhúng Blind Watermark + dấu chìm hiển thị và nén ảnh trong lúc người dùng giải Captcha
                                 const finalBlob = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none', { embedBlind: true });
-                                const compressOptions = { maxSizeMB: 1, maxWidthOrHeight: 1920, useWebWorker: true, fileType: targetMime, initialQuality: 0.95 };
                                 let blobToProcess = null;
                                 try {
-                                    blobToProcess = await imageCompression(finalBlob, compressOptions);
+                                    blobToProcess = await app.utils.compressToSizeLoop(finalBlob, targetMime, 1);
                                 } catch (e) {
-                                    console.warn("imageCompression lỗi:", e);
+                                    console.warn("compressToSizeLoop lỗi:", e);
+                                    reject(e);
+                                    return;
                                 }
-                                if (!blobToProcess) blobToProcess = finalBlob;
 
-                                // Chạy convertToWebpCpu trong nền trong lúc giải captcha
-                                if (blobToProcess && blobToProcess.type !== targetMime) {
-                                    const cpuBlob = await app.utils.convertToWebpCpu(blobToProcess, 0.95);
-                                    if (cpuBlob && cpuBlob.size > 0) {
-                                        resolve(new File([cpuBlob], app.rawFile.name.replace(/\.[^/.]+$/, "") + ".webp", { type: 'image/webp' }));
-                                        return;
-                                    }
-                                }
                                 if (blobToProcess && blobToProcess instanceof Blob && !(blobToProcess instanceof File)) {
                                     const ext = blobToProcess.type === 'image/webp' ? 'webp' : 'jpg';
                                     resolve(new File([blobToProcess], app.rawFile.name.replace(/\.[^/.]+$/, "") + "." + ext, { type: blobToProcess.type || targetMime }));
@@ -2257,13 +2251,9 @@ Object.assign(window.app, {
                             return app.ui.showAlert(msg);
                         }
 
-                        // Nếu tiến trình nền chưa ra webp thì chạy fallback lần cuối
-                        if (!compressedFile || (compressedFile.type !== targetMime && compressedFile.type !== 'image/webp')) {
-                            const fallbackBlob = compressedFile || app.rawFile;
-                            const cpuBlob = await app.utils.convertToWebpCpu(fallbackBlob, 0.95);
-                            if (cpuBlob && cpuBlob.size > 0) {
-                                compressedFile = new File([cpuBlob], app.rawFile.name.replace(/\.[^/.]+$/, "") + ".webp", { type: 'image/webp' });
-                            }
+                        // Vì compressToSizeLoop đã thử mọi cách nén (kể cả fallback) và chắc chắn đạt chuẩn hoặc báo lỗi, ta có thể tin tưởng compressedFile
+                        if (compressedFile && compressedFile instanceof Blob && !(compressedFile instanceof File)) {
+                            compressedFile = new File([compressedFile], app.rawFile.name.replace(/\.[^/.]+$/, "") + ".webp", { type: compressedFile.type });
                         }
 
                         if (!compressedFile) {

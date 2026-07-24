@@ -1056,6 +1056,80 @@ Object.assign(window.app, {
                         return null;
                     }
                 },
+                compressToSizeLoop: async (imageSource, targetMime = 'image/webp', maxSizeMB = 1) => {
+                    const maxSizeBytes = maxSizeMB * 1024 * 1024;
+                    let currentQuality = 0.80;
+                    
+                    const url = imageSource instanceof Blob || imageSource instanceof File ? URL.createObjectURL(imageSource) : imageSource;
+                    const img = new Image();
+                    img.src = url;
+                    await new Promise((resolve, reject) => {
+                        img.onload = resolve;
+                        img.onerror = () => reject(new Error("Lỗi tải ảnh để nén vòng lặp"));
+                    });
+                    if (imageSource instanceof Blob || imageSource instanceof File) URL.revokeObjectURL(url);
+
+                    let w = img.naturalWidth || img.width;
+                    let h = img.naturalHeight || img.height;
+                    if (w > 1920 || h > 1920) {
+                        const ratio = Math.min(1920 / w, 1920 / h);
+                        w = Math.round(w * ratio);
+                        h = Math.round(h * ratio);
+                    }
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w;
+                    canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, w, h);
+                    
+                    let compressedBlob = null;
+                    let hasWebpNative = false;
+                    
+                    // Thử encode native WebP
+                    while (currentQuality >= 0.65) {
+                        compressedBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', currentQuality));
+                        if (compressedBlob && compressedBlob.type === 'image/webp') {
+                            hasWebpNative = true;
+                            if (compressedBlob.size <= maxSizeBytes) {
+                                return compressedBlob;
+                            }
+                        }
+                        currentQuality = parseFloat((currentQuality - 0.05).toFixed(2));
+                    }
+                    
+                    // Nếu WebP native thất bại (trả về size quá lớn hoặc type ko phải webp), thử dùng WASM
+                    if (!hasWebpNative || (compressedBlob && compressedBlob.size > maxSizeBytes)) {
+                        try {
+                            const { encode } = await import("https://esm.sh/@jsquash/webp@1.2.0");
+                            const imageData = ctx.getImageData(0, 0, w, h);
+                            currentQuality = 0.80;
+                            while (currentQuality >= 0.65) {
+                                let q = Math.round(currentQuality * 100);
+                                let webpBuffer = await encode(imageData, { quality: q });
+                                let wasmBlob = new Blob([webpBuffer], { type: 'image/webp' });
+                                if (wasmBlob.size <= maxSizeBytes) {
+                                    return wasmBlob;
+                                }
+                                currentQuality = parseFloat((currentQuality - 0.05).toFixed(2));
+                            }
+                        } catch (e) {
+                            console.warn("WASM WebP loop fallback error:", e);
+                        }
+                    }
+
+                    // Fallback JPEG nếu tất cả đều không đạt dung lượng
+                    currentQuality = 0.80;
+                    while (currentQuality >= 0.65) {
+                        compressedBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', currentQuality));
+                        if (compressedBlob && compressedBlob.size <= maxSizeBytes) {
+                            return compressedBlob;
+                        }
+                        currentQuality = parseFloat((currentQuality - 0.05).toFixed(2));
+                    }
+
+                    throw new Error(`BLIND_WM_ERROR:Ảnh quá chi tiết, không thể nén xuống dưới ${maxSizeMB}MB (chất lượng tối thiểu 65%). Vui lòng cắt nhỏ hoặc chọn ảnh khác.`);
+                },
                 canvasToBlobUniversal: async (canvas, targetMime = 'image/webp', quality = 0.95) => {
                     const nativeBlob = await new Promise((resolve) => {
                         canvas.toBlob((blob) => resolve(blob), targetMime, quality);
