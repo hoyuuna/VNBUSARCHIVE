@@ -4231,7 +4231,7 @@ Object.assign(window.app, {
                                 const { error } = await window.sb.from('edit_requests').insert(reqData);
                                 if (error) throw error;
 
-                                app.ui.showAlert("Yêu cầu cập nhật lịch sử đã được gửi và chờ Admin duyệt.");
+                                app.ui.showAlert("Yêu cầu cập nhật lịch sử đã được gửi và chờ Admin duyệt. Bạn có thể kiểm tra trạng thái trong trang Hồ sơ của tôi.");
                                 app.vehicle.toggleEditHistory(app.vehicle.currentHistoryPrefix);
                             } catch (err) {
                                 app.ui.showAlert("Lỗi gửi yêu cầu: " + err.message);
