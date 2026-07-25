@@ -1236,6 +1236,17 @@ Object.assign(window.app, {
                     else if (req.status === 'pending') statusHtml = '<span class="text-orange-500 font-bold bg-orange-50 border border-orange-200 px-2 py-0.5 rounded text-xs">Đang chờ</span>';
                     else statusHtml = '<span class="text-red-500 font-bold bg-red-50 border border-red-200 px-2 py-0.5 rounded text-xs">Từ chối</span>';
 
+                    let contextText = '';
+                    if (req.new_data?.request_type === 'delete_photo' && req.new_data?.photo_id) {
+                        contextText = `Ảnh ${req.new_data.photo_id} ${req.license_plate ? '- ' + req.license_plate : ''}`;
+                    } else if (req.license_plate) {
+                        contextText = req.license_plate;
+                    } else if (req.new_data?.operator_name) {
+                        contextText = req.new_data.operator_name;
+                    } else if (req.new_data?.model_name) {
+                        contextText = req.new_data.model_name;
+                    }
+
                     let detailsHtml = `
                         <div class="flex justify-between items-center mb-3">
                             <span class="text-gray-500 font-medium">Trạng thái:</span>
@@ -1244,6 +1255,10 @@ Object.assign(window.app, {
                         <div class="flex justify-between items-center mb-3">
                             <span class="text-gray-500 font-medium">Loại yêu cầu:</span>
                             <span class="font-bold text-gray-800 text-right">${reqTypeMap[req.new_data?.request_type] || 'Khác'}</span>
+                        </div>
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-gray-500 font-medium">Đối tượng:</span>
+                            <span class="font-bold text-gray-800 text-right">${contextText ? app.utils.cleanText(contextText) : 'Hệ thống'}</span>
                         </div>
                         <div class="flex justify-between items-center mb-3">
                             <span class="text-gray-500 font-medium">Ngày tạo:</span>
@@ -1266,7 +1281,7 @@ Object.assign(window.app, {
                         detailsHtml += `
                             <div class="mt-4 text-left">
                                 <span class="text-gray-500 font-medium block mb-1">Ghi chú của Admin:</span>
-                                <div class="bg-blue-50 p-2.5 rounded border border-blue-100 text-blue-800 italic text-sm">
+                                <div class="bg-gray-50 p-2.5 rounded border border-gray-100 text-gray-700 italic text-sm">
                                     ${app.utils.cleanText(req.admin_note)}
                                 </div>
                             </div>
@@ -1278,7 +1293,9 @@ Object.assign(window.app, {
                             app.views.cancelRequest(id);
                         }, () => {}, { 
                             title: 'Chi tiết yêu cầu', 
-                            btnOkText: 'Hủy yêu cầu'
+                            btnOkText: 'Hủy yêu cầu',
+                            btnCancelText: 'Đồng ý',
+                            isDestructive: true
                         });
                     } else {
                         app.ui.showAlert(detailsHtml, null, null, { 
@@ -1302,7 +1319,7 @@ Object.assign(window.app, {
                             console.error(err);
                             app.ui.showAlert("Lỗi khi hủy yêu cầu: " + err.message);
                         }
-                    }, () => {}, { title: "Xác nhận hủy", btnOkText: "Xác nhận" });
+                    }, () => {}, { title: "Xác nhận hủy", btnOkText: "Xác nhận", btnCancelText: "Đóng", isDestructive: true });
                 },
                 fetchLikedPhotosPage: async (page) => {
                     app.likedPage = page;

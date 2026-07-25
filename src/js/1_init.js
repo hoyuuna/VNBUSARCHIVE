@@ -324,6 +324,12 @@ Object.assign(window.app, {
                         let defaultText = options.btnOkText || "Đồng ý";
                         okBtn.style.display = options.hideButtons ? 'none' : 'inline-flex';
 
+                        if (options.isDestructive) {
+                            okBtn.className = "w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition";
+                        } else {
+                            okBtn.className = "w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-black text-base font-medium text-white hover:bg-gray-800 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition";
+                        }
+
                         if (options.countdown) {
                             okBtn.disabled = true;
                             okBtn.classList.add('opacity-50', 'cursor-not-allowed');
