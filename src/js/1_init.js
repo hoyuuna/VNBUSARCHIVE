@@ -403,14 +403,10 @@ Object.assign(window.app, {
                         content.classList.remove('modal-content-leave');
                         app.ui.unlockScroll();
 
-                        if (isOk && app.alertCallback) {
-                            app.alertCallback();
-                        } else if (!isOk && app.alertCancelCallback) {
-                            app.alertCancelCallback();
-                        }
-
+                        const cb = isOk ? app.alertCallback : app.alertCancelCallback;
                         app.alertCallback = null;
                         app.alertCancelCallback = null;
+                        if (cb) cb();
                     }, 200);
                 },
                 showQuotaInfo: () => {
