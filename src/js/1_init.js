@@ -409,11 +409,6 @@ Object.assign(window.app, {
 
                         app.alertCallback = null;
                         app.alertCancelCallback = null;
-                        const cancelBtn = document.getElementById('custom-alert-cancel-btn');
-                        if (cancelBtn) {
-                            cancelBtn.classList.add('hidden');
-                            cancelBtn.style.display = 'none';
-                        }
                     }, 200);
                 },
                 showQuotaInfo: () => {

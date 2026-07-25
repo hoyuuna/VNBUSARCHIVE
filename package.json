@@ -4,6 +4,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.89.0",
+    "jsdom": "^29.1.1",
     "marked": "^15.0.0",
     "resend": "^4.0.0"
   }
