@@ -1289,13 +1289,13 @@ Object.assign(window.app, {
                     }
 
                     if (req.status === 'pending') {
-                        app.ui.showAlert(detailsHtml, () => {
+                        app.ui.showAlert(detailsHtml, null, () => {
                             app.views.cancelRequest(id);
-                        }, () => {}, { 
+                        }, { 
                             title: 'Chi tiết yêu cầu', 
-                            btnOkText: 'Hủy yêu cầu',
-                            btnCancelText: 'Đồng ý',
-                            isDestructive: true
+                            btnOkText: 'Đồng ý',
+                            btnCancelText: 'Hủy yêu cầu',
+                            isCancelDestructive: true
                         });
                     } else {
                         app.ui.showAlert(detailsHtml, null, null, { 
@@ -1319,7 +1319,7 @@ Object.assign(window.app, {
                             console.error(err);
                             app.ui.showAlert("Lỗi khi hủy yêu cầu: " + err.message);
                         }
-                    }, () => {}, { title: "Xác nhận hủy", btnOkText: "Xác nhận", btnCancelText: "Đóng", isDestructive: true });
+                    }, () => {}, { title: "Xác nhận hủy", btnOkText: "Xác nhận", btnCancelText: "Hủy" });
                 },
                 fetchLikedPhotosPage: async (page) => {
                     app.likedPage = page;
