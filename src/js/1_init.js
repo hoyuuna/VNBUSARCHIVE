@@ -318,7 +318,10 @@ Object.assign(window.app, {
                     const iconBox = document.getElementById('custom-alert-icon');
 
                     if (titleEl) titleEl.innerText = options.title || "Thông báo";
-                    if (iconBox) iconBox.style.display = options.hideButtons ? 'none' : 'flex';
+                    if (iconBox) {
+                        iconBox.style.display = options.hideButtons ? 'none' : 'flex';
+                        iconBox.innerHTML = options.iconHtml || '<i class="fa-solid fa-bell text-xl text-black"></i>';
+                    }
 
                     if (okBtn) {
                         let defaultText = options.btnOkText || "Đồng ý";

@@ -1293,6 +1293,7 @@ Object.assign(window.app, {
                             app.views.cancelRequest(id);
                         }, () => {}, { 
                             title: 'Chi tiết yêu cầu', 
+                            iconHtml: '<i class="fa-solid fa-file-invoice text-xl text-black"></i>',
                             btnOkText: 'Hủy yêu cầu',
                             btnCancelText: 'Đồng ý',
                             isDestructive: true,
@@ -1300,7 +1301,8 @@ Object.assign(window.app, {
                         });
                     } else {
                         app.ui.showAlert(detailsHtml, null, null, { 
-                            title: 'Chi tiết yêu cầu' 
+                            title: 'Chi tiết yêu cầu',
+                            iconHtml: '<i class="fa-solid fa-file-invoice text-xl text-black"></i>'
                         });
                     }
                 },
