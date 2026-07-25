@@ -1289,13 +1289,14 @@ Object.assign(window.app, {
                     }
 
                     if (req.status === 'pending') {
-                        app.ui.showAlert(detailsHtml, null, () => {
+                        app.ui.showAlert(detailsHtml, () => {
                             app.views.cancelRequest(id);
-                        }, { 
+                        }, () => {}, { 
                             title: 'Chi tiết yêu cầu', 
-                            btnOkText: 'Đồng ý',
-                            btnCancelText: 'Hủy yêu cầu',
-                            isCancelDestructive: true
+                            btnOkText: 'Hủy yêu cầu',
+                            btnCancelText: 'Đồng ý',
+                            isDestructive: true,
+                            isCancelPrimary: true
                         });
                     } else {
                         app.ui.showAlert(detailsHtml, null, null, { 
