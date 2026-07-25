@@ -1171,8 +1171,8 @@ Object.assign(window.app, {
                     };
 
                     grid.innerHTML = requests.map(req => {
-                        let cardStyleClasses = "profile-photo-item cursor-pointer group transition-all duration-300 relative flex flex-col items-center justify-center p-3 text-center bg-gray-50 rounded-lg min-h-[80px]";
-                        let statusText = '';
+                        let cardStyleClasses = "cursor-pointer transition-all duration-300 relative flex flex-col items-center justify-center p-3 text-center bg-gray-50 rounded-lg border-2";
+                        let statusHtml = '';
                         let typeText = reqTypeMap[req.new_data?.request_type] || 'khác';
                         let contextText = '';
 
@@ -1187,26 +1187,24 @@ Object.assign(window.app, {
                         }
 
                         if (req.status === 'approved') {
-                            cardStyleClasses += " !border-2 !border-green-500 shadow-[0_0_8px_rgba(34,197,94,0.3)] hover:shadow-[0_0_14px_rgba(34,197,94,0.6)] hover:z-10 bg-green-50/30";
-                            statusText = "Đã duyệt";
+                            cardStyleClasses += " border-green-500 shadow-[0_0_8px_rgba(34,197,94,0.3)] hover:shadow-[0_0_14px_rgba(34,197,94,0.6)] bg-green-50/30";
+                            statusHtml = '<span class="mt-2 text-xs font-bold text-green-600">Đã duyệt</span>';
                         } else if (req.status === 'pending') {
-                            cardStyleClasses += " !border-2 !border-[#f58e27] shadow-[0_0_8px_rgba(245,142,39,0.3)] hover:shadow-[0_0_14px_rgba(245,142,39,0.6)] hover:z-10 bg-orange-50/30";
-                            statusText = "Đang chờ duyệt";
+                            cardStyleClasses += " border-[#f58e27] shadow-[0_0_8px_rgba(245,142,39,0.3)] hover:shadow-[0_0_14px_rgba(245,142,39,0.6)] bg-orange-50/30";
+                            statusHtml = '<span class="mt-2 text-xs font-bold text-orange-500">Đang chờ duyệt</span>';
                         } else if (req.status === 'denied' || req.status === 'rejected') {
-                            cardStyleClasses += " !border-2 !border-red-500 shadow-[0_0_8px_rgba(239,68,68,0.3)] hover:shadow-[0_0_14px_rgba(239,68,68,0.6)] hover:z-10 bg-red-50/30";
-                            statusText = "Từ chối";
+                            cardStyleClasses += " border-red-500 shadow-[0_0_8px_rgba(239,68,68,0.3)] hover:shadow-[0_0_14px_rgba(239,68,68,0.6)] bg-red-50/30";
+                            statusHtml = '<span class="mt-2 text-xs font-bold text-red-500">Từ chối</span>';
                         }
 
                         if (!app.views._requestsCache) app.views._requestsCache = {};
                         app.views._requestsCache[req.id] = req;
 
                         return `
-                            <div class="${cardStyleClasses} overflow-hidden" onclick="app.views.showRequestDetails('${req.id}')">
+                            <div class="${cardStyleClasses}" onclick="app.views.showRequestDetails('${req.id}')">
                                 <span class="block font-bold text-gray-800 text-[11px] mb-1">Yêu cầu ${typeText}</span>
                                 ${contextText ? `<span class="block text-gray-600 text-[10px] font-mono tracking-wider bg-white px-2 py-0.5 border border-gray-100 rounded shadow-sm max-w-[90%] truncate">${app.utils.cleanText(contextText)}</span>` : ''}
-                                <span class="hidden group-hover:flex absolute inset-0 bg-black/80 text-white text-[11px] font-bold rounded-lg items-center justify-center tracking-wide backdrop-blur-sm z-20 transition-all duration-300">
-                                    ${statusText}
-                                </span>
+                                ${statusHtml}
                             </div>
                         `;
                     }).join('');
@@ -1228,10 +1226,6 @@ Object.assign(window.app, {
                 showRequestDetails: (id) => {
                     const req = app.views._requestsCache?.[id];
                     if (!req) return;
-
-                    const modal = document.getElementById('modal-request-details');
-                    const content = document.getElementById('request-details-content');
-                    const cancelBtn = document.getElementById('btn-cancel-request');
 
                     const reqTypeMap = {
                         'update_history': 'Sửa lịch sử',
@@ -1264,7 +1258,7 @@ Object.assign(window.app, {
 
                     if (req.new_data?.reason) {
                         detailsHtml += `
-                            <div class="pt-2 mt-2">
+                            <div class="pt-2 mt-2 text-left">
                                 <span class="text-gray-500 font-medium block mb-1">Lý do/Ghi chú:</span>
                                 <div class="bg-gray-50 p-2.5 rounded border border-gray-100 text-gray-700 italic text-sm">
                                     ${app.utils.cleanText(req.new_data.reason)}
@@ -1275,7 +1269,7 @@ Object.assign(window.app, {
 
                     if (req.admin_note) {
                         detailsHtml += `
-                            <div class="pt-2 mt-2">
+                            <div class="pt-2 mt-2 text-left">
                                 <span class="text-gray-500 font-medium block mb-1">Ghi chú của Admin:</span>
                                 <div class="bg-blue-50 p-2.5 rounded border border-blue-100 text-blue-800 italic text-sm">
                                     ${app.utils.cleanText(req.admin_note)}
@@ -1284,46 +1278,36 @@ Object.assign(window.app, {
                         `;
                     }
 
-                    content.innerHTML = detailsHtml;
-
                     if (req.status === 'pending') {
-                        cancelBtn.classList.remove('hidden');
-                        cancelBtn.onclick = () => app.views.cancelRequest(id);
+                        app.ui.showAlert(detailsHtml, () => {
+                            app.views.cancelRequest(id);
+                        }, () => {}, { 
+                            title: 'Chi tiết yêu cầu', 
+                            btnOkText: 'Hủy yêu cầu'
+                        });
                     } else {
-                        cancelBtn.classList.add('hidden');
+                        app.ui.showAlert(detailsHtml, null, null, { 
+                            title: 'Chi tiết yêu cầu' 
+                        });
                     }
-
-                    modal.classList.add('opacity-100', 'pointer-events-auto');
-                    modal.firstElementChild.classList.add('translate-y-0');
                 },
 
                 cancelRequest: async (id) => {
                     const req = app.views._requestsCache?.[id];
                     if (!req || req.status !== 'pending') return;
 
-                    app.ui.showConfirm("Xác nhận hủy", "Bạn có chắc chắn muốn hủy yêu cầu này không? Hành động này không thể hoàn tác.", async () => {
-                        const cancelBtn = document.getElementById('btn-cancel-request');
-                        const originalBtnHtml = cancelBtn.innerHTML;
-                        cancelBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang hủy...';
-                        cancelBtn.disabled = true;
-
+                    app.ui.showAlert("Bạn có chắc chắn muốn hủy yêu cầu này không? Hành động này không thể hoàn tác.", async () => {
                         try {
                             const { error } = await window.sb.from('edit_requests').delete().eq('id', id).eq('requester_id', app.user.id);
                             if (error) throw error;
-
-                            app.ui.showAlert("Đã hủy yêu cầu thành công!");
-                            document.getElementById('modal-request-details').classList.remove('opacity-100', 'pointer-events-auto');
-                            document.getElementById('modal-request-details').firstElementChild.classList.remove('translate-y-0');
                             
                             app.views.fetchProfileRequests(1);
+                            app.ui.showAlert("Đã hủy yêu cầu thành công!", null, null, { title: 'Thành công' });
                         } catch (err) {
                             console.error(err);
                             app.ui.showAlert("Lỗi khi hủy yêu cầu: " + err.message);
-                        } finally {
-                            cancelBtn.innerHTML = originalBtnHtml;
-                            cancelBtn.disabled = false;
                         }
-                    });
+                    }, () => {}, { title: "Xác nhận hủy", btnOkText: "Xác nhận" });
                 },
                 fetchLikedPhotosPage: async (page) => {
                     app.likedPage = page;
