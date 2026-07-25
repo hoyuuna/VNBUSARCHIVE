@@ -4666,6 +4666,8 @@ Object.assign(window.app, {
 
                     if (!results || results.length === 0) {
                         grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500">Không tìm thấy kết quả phù hợp.</div>';
+                        document.getElementById('search-load-more-container')?.classList.add('hidden');
+                        app.searchTotalPages = 0;
                         return;
                     }
 
