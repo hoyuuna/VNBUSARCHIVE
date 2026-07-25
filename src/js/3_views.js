@@ -1237,15 +1237,15 @@ Object.assign(window.app, {
                     else statusHtml = '<span class="text-red-500 font-bold bg-red-50 border border-red-200 px-2 py-0.5 rounded text-xs">Từ chối</span>';
 
                     let detailsHtml = `
-                        <div class="flex justify-between items-center pb-2 border-b border-gray-100">
+                        <div class="flex justify-between items-center mb-3">
                             <span class="text-gray-500 font-medium">Trạng thái:</span>
                             ${statusHtml}
                         </div>
-                        <div class="flex justify-between items-center pb-2 border-b border-gray-100 mt-2">
+                        <div class="flex justify-between items-center mb-3">
                             <span class="text-gray-500 font-medium">Loại yêu cầu:</span>
                             <span class="font-bold text-gray-800 text-right">${reqTypeMap[req.new_data?.request_type] || 'Khác'}</span>
                         </div>
-                        <div class="flex justify-between items-center pb-2 border-b border-gray-100 mt-2">
+                        <div class="flex justify-between items-center mb-3">
                             <span class="text-gray-500 font-medium">Ngày tạo:</span>
                             <span class="text-gray-700 text-right">${new Date(req.created_at).toLocaleString('vi-VN')}</span>
                         </div>
@@ -1253,7 +1253,7 @@ Object.assign(window.app, {
 
                     if (req.new_data?.reason) {
                         detailsHtml += `
-                            <div class="pt-2 mt-2 text-left">
+                            <div class="mt-4 text-left">
                                 <span class="text-gray-500 font-medium block mb-1">Lý do/Ghi chú:</span>
                                 <div class="bg-gray-50 p-2.5 rounded border border-gray-100 text-gray-700 italic text-sm">
                                     ${app.utils.cleanText(req.new_data.reason)}
@@ -1264,7 +1264,7 @@ Object.assign(window.app, {
 
                     if (req.admin_note) {
                         detailsHtml += `
-                            <div class="pt-2 mt-2 text-left">
+                            <div class="mt-4 text-left">
                                 <span class="text-gray-500 font-medium block mb-1">Ghi chú của Admin:</span>
                                 <div class="bg-blue-50 p-2.5 rounded border border-blue-100 text-blue-800 italic text-sm">
                                     ${app.utils.cleanText(req.admin_note)}
