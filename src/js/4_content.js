@@ -2554,7 +2554,8 @@ Object.assign(window.app, {
                                     if (result.details) errorDetail += ` | Details: ${result.details}`;
                                     if (result.code) errorDetail += ` | Code: ${result.code}`;
                                     if (result.hint) errorDetail += ` | Hint: ${result.hint}`;
-                                    throw new Error(errorDetail || 'Máy chủ từ chối yêu cầu Upload.');
+                                    lastUploadErr = new Error(errorDetail || 'Máy chủ từ chối yêu cầu Upload.');
+                                    break;
                                 }
                                 break;
                             } catch (err) {
