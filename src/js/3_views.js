@@ -1171,8 +1171,7 @@ Object.assign(window.app, {
                     };
 
                     grid.innerHTML = requests.map(req => {
-                        let cardStyleClasses = "cursor-pointer transition-all duration-300 relative flex flex-col items-center justify-center p-3 text-center bg-gray-50 rounded-lg border-2";
-                        let statusHtml = '';
+                        let cardStyleClasses = "cursor-pointer transition-all duration-300 relative flex flex-col items-start justify-center p-3 text-left bg-white rounded-xl border-2";
                         let typeText = reqTypeMap[req.new_data?.request_type] || 'khác';
                         let contextText = '';
 
@@ -1187,14 +1186,11 @@ Object.assign(window.app, {
                         }
 
                         if (req.status === 'approved') {
-                            cardStyleClasses += " border-green-500 shadow-[0_0_8px_rgba(34,197,94,0.3)] hover:shadow-[0_0_14px_rgba(34,197,94,0.6)] bg-green-50/30";
-                            statusHtml = '<span class="mt-2 text-xs font-bold text-green-600">Đã duyệt</span>';
+                            cardStyleClasses += " border-green-500 shadow-[0_0_8px_rgba(34,197,94,0.2)] hover:shadow-[0_0_14px_rgba(34,197,94,0.4)] hover:-translate-y-0.5";
                         } else if (req.status === 'pending') {
-                            cardStyleClasses += " border-[#f58e27] shadow-[0_0_8px_rgba(245,142,39,0.3)] hover:shadow-[0_0_14px_rgba(245,142,39,0.6)] bg-orange-50/30";
-                            statusHtml = '<span class="mt-2 text-xs font-bold text-orange-500">Đang chờ duyệt</span>';
+                            cardStyleClasses += " border-[#f58e27] shadow-[0_0_8px_rgba(245,142,39,0.2)] hover:shadow-[0_0_14px_rgba(245,142,39,0.4)] hover:-translate-y-0.5";
                         } else if (req.status === 'denied' || req.status === 'rejected') {
-                            cardStyleClasses += " border-red-500 shadow-[0_0_8px_rgba(239,68,68,0.3)] hover:shadow-[0_0_14px_rgba(239,68,68,0.6)] bg-red-50/30";
-                            statusHtml = '<span class="mt-2 text-xs font-bold text-red-500">Từ chối</span>';
+                            cardStyleClasses += " border-red-500 shadow-[0_0_8px_rgba(239,68,68,0.2)] hover:shadow-[0_0_14px_rgba(239,68,68,0.4)] hover:-translate-y-0.5";
                         }
 
                         if (!app.views._requestsCache) app.views._requestsCache = {};
@@ -1202,9 +1198,8 @@ Object.assign(window.app, {
 
                         return `
                             <div class="${cardStyleClasses}" onclick="app.views.showRequestDetails('${req.id}')">
-                                <span class="block font-bold text-gray-800 text-[11px] mb-1">Yêu cầu ${typeText}</span>
-                                ${contextText ? `<span class="block text-gray-600 text-[10px] font-mono tracking-wider bg-white px-2 py-0.5 border border-gray-100 rounded shadow-sm max-w-[90%] truncate">${app.utils.cleanText(contextText)}</span>` : ''}
-                                ${statusHtml}
+                                <span class="block font-bold text-gray-900 text-sm mb-0.5 w-full truncate">Yêu cầu ${typeText}</span>
+                                ${contextText ? `<span class="block text-gray-500 text-xs tracking-wide w-full truncate">${app.utils.cleanText(contextText)}</span>` : '<span class="block text-gray-400 text-xs tracking-wide w-full truncate">Hệ thống</span>'}
                             </div>
                         `;
                     }).join('');
