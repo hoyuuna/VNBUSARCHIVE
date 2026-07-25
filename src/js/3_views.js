@@ -3420,7 +3420,7 @@ Object.assign(window.app, {
                                 const { error } = await window.sb.from('edit_requests').insert(reqData);
                                 if (error) throw error;
 
-                                app.ui.showAlert("Đã gửi yêu cầu cập nhật thông tin đơn vị vận hành và đang chờ Admin duyệt.");
+                                app.ui.showAlert("Đã gửi yêu cầu cập nhật thông tin đơn vị vận hành và đang chờ Admin duyệt. Bạn có thể kiểm tra trạng thái trong trang Hồ sơ của tôi.");
                                 app.operator.closeEditPrompt();
                             }
                         } catch (err) {
@@ -3721,7 +3721,7 @@ Object.assign(window.app, {
                                 const { error } = await window.sb.from('edit_requests').insert(reqData);
                                 if (error) throw error;
 
-                                app.ui.showAlert("Đã gửi yêu cầu cập nhật thông tin Dòng xe và đang chờ Admin duyệt.");
+                                app.ui.showAlert("Đã gửi yêu cầu cập nhật thông tin Dòng xe và đang chờ Admin duyệt. Bạn có thể kiểm tra trạng thái trong trang Hồ sơ của tôi.");
                                 app.model.closeEditPrompt();
                             }
                         } catch (err) {

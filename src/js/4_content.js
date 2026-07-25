@@ -3474,7 +3474,7 @@ Object.assign(window.app, {
                                     status: 'pending'
                                 });
                                 if (error) throw error;
-                                app.ui.showAlert("Yêu cầu xóa ảnh đã được gửi và đang chờ Admin duyệt.");
+                                app.ui.showAlert("Yêu cầu xóa ảnh đã được gửi và đang chờ Admin duyệt. Bạn có thể kiểm tra trạng thái trong trang Hồ sơ của tôi.");
                             } catch (err) { app.ui.showAlert("Lỗi: " + err.message); }
                         });
                     }
@@ -4381,7 +4381,7 @@ Object.assign(window.app, {
                                 requester_id: app.user.id, license_plate: plate, new_data: { ...newData, request_type: 'update_vehicle_details' }, status: 'pending'
                             });
                             if (error) throw error;
-                            app.ui.showAlert("Đã gửi yêu cầu chỉnh sửa và đang chờ Admin duyệt.");
+                            app.ui.showAlert("Đã gửi yêu cầu chỉnh sửa và đang chờ Admin duyệt. Bạn có thể kiểm tra trạng thái trong trang Hồ sơ của tôi.");
                             app.vehicle.toggleVehiclePageEdit(plate);
                         }
                     } catch (err) { app.ui.showAlert("Lỗi: " + err.message); } finally { btnSave.disabled = false; btnSave.innerHTML = 'Gửi yêu cầu'; }
@@ -4659,7 +4659,7 @@ Object.assign(window.app, {
                             const { data, error } = await window.sb.from('edit_requests').insert(reqData).select().single();
                             if (error) throw error;
 
-                            app.ui.showAlert("Yêu cầu chỉnh sửa đã được gửi và đang chờ Admin duyệt.");
+                            app.ui.showAlert("Yêu cầu chỉnh sửa đã được gửi và đang chờ Admin duyệt. Bạn có thể kiểm tra trạng thái trong trang Hồ sơ của tôi.");
                             app.edit.cancel();
                         }
                     } catch (err) {
