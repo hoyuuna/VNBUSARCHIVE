@@ -964,6 +964,12 @@ Object.assign(window.app, {
                     if (isOwnProfile) {
                         await app.views.fetchLikedPhotosPage(app.likedPage || 1);
                         app.views.fetchProfileRequests(1);
+                    } else {
+                        const reqSec = document.getElementById('my-requests-section');
+                        if (reqSec) reqSec.classList.add('hidden');
+                        
+                        const likedSec = document.getElementById('acc-liked-section');
+                        if (likedSec) likedSec.classList.add('hidden');
                     }
 
                     app.lastLoadedUsername = targetUsername;
