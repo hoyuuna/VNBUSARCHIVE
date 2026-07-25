@@ -4897,6 +4897,18 @@
                             <div id="my-photos-grid" class="profile-photo-grid">
                                 <p class="text-xs text-gray-500">Đang tải...</p>
                             </div>
+                            
+                            <div id="profile-load-more-container" class="mt-6 flex justify-center hidden">
+                                <!-- Existing pagination logic will inject into this or create it if not exist, wait, the pagination in profile is dynamically injected into my-photos-grid's parent? Let's check that later. Actually I will just insert my-requests-section below it. -->
+                            </div>
+
+                            <div id="my-requests-section" class="hidden mt-10">
+                                <h4 class="font-bold text-sm uppercase mb-3 text-gray-800">Yêu cầu của bạn</h4>
+                                <div id="my-requests-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                                    <p class="text-xs text-gray-500 col-span-full">Đang tải...</p>
+                                </div>
+                                <div id="requests-load-more-container" class="mt-4 flex justify-center hidden"></div>
+                            </div>
 
                             <div id="acc-liked-section" class="hidden">
                                 <h4 class="font-bold text-sm uppercase mt-10 mb-3 text-gray-800">Ảnh đã thích</h4>
@@ -6158,6 +6170,27 @@
         </div>
     </div>
 
+    <!-- MODAL CHI TIẾT YÊU CẦU -->
+    <div id="modal-request-details" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-white w-full max-w-md rounded-xl shadow-2xl overflow-hidden transform translate-y-8 transition-transform duration-300">
+            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                <h3 class="font-black text-lg text-gray-800 tracking-tight">Chi tiết yêu cầu</h3>
+                <button onclick="document.getElementById('modal-request-details').classList.remove('opacity-100', 'pointer-events-auto'); document.getElementById('modal-request-details').firstElementChild.classList.remove('translate-y-0');" class="text-gray-400 hover:text-red-500 transition-colors">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <div id="request-details-content" class="text-sm text-gray-600 mb-6 space-y-3">
+                    <!-- Chi tiết yêu cầu được inject ở đây -->
+                </div>
+                <div class="flex gap-3 mt-6 pt-4 border-t border-gray-100 justify-end" id="request-details-actions">
+                    <button onclick="document.getElementById('modal-request-details').classList.remove('opacity-100', 'pointer-events-auto'); document.getElementById('modal-request-details').firstElementChild.classList.remove('translate-y-0');" class="px-4 py-2 bg-gray-100 text-gray-700 font-bold rounded hover:bg-gray-200 transition-colors text-sm flex-1">Đóng</button>
+                    <button id="btn-cancel-request" class="px-4 py-2 bg-red-500 text-white font-bold rounded hover:bg-red-600 transition-colors text-sm flex-1 hidden">
+                        <i class="fa-solid fa-trash-can mr-1.5"></i> Hủy yêu cầu
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
-
 </html>

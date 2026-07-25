@@ -961,7 +961,10 @@ Object.assign(window.app, {
                     app.views.updateSortFilterUI();
                     await app.views.fetchProfilePhotosPage(app.profilePage || 1);
 
-                    if (isOwnProfile) await app.views.fetchLikedPhotosPage(app.likedPage || 1);
+                    if (isOwnProfile) {
+                        await app.views.fetchLikedPhotosPage(app.likedPage || 1);
+                        app.views.fetchProfileRequests(1);
+                    }
 
                     app.lastLoadedUsername = targetUsername;
 
@@ -1116,6 +1119,211 @@ Object.assign(window.app, {
                     if (totalPages <= 1) { pagerEl.innerHTML = ''; return; }
                     pagerEl.innerHTML = `<div id="profile-pagination-container" class="mt-4 w-full"></div><p class="text-center text-[10px] text-gray-400 mt-3">Trang ${page}/${totalPages} · Tổng ${count} ảnh</p>`;
                     app.utils.renderPagination('profile-pagination-container', page, totalPages, (newPage) => app.views.fetchProfilePhotosPage(newPage));
+                },
+
+                fetchProfileRequests: async (page = 1) => {
+                    const grid = document.getElementById('my-requests-grid');
+                    if (!app.user) return;
+                    if (page === 1) grid.innerHTML = '<p class="text-xs text-gray-500 col-span-full text-center py-10"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</p>';
+                    
+                    const pageSize = 12;
+                    const fromRow = (page - 1) * pageSize;
+                    const toRow = fromRow + pageSize - 1;
+
+                    try {
+                        const { data: reqs, error, count } = await window.sb.from('edit_requests')
+                            .select('*', { count: 'exact' })
+                            .eq('requester_id', app.user.id)
+                            .order('created_at', { ascending: false })
+                            .range(fromRow, toRow);
+
+                        if (error) throw error;
+                        app.views.renderProfileRequestsGridHTML(reqs, count, page);
+                    } catch (err) {
+                        console.error(err);
+                        grid.innerHTML = '<p class="text-xs text-red-500 col-span-full text-center py-4">Lỗi tải dữ liệu.</p>';
+                    }
+                },
+
+                renderProfileRequestsGridHTML: (requests, count, page) => {
+                    const grid = document.getElementById('my-requests-grid');
+                    const section = document.getElementById('my-requests-section');
+                    
+                    if (!requests || requests.length === 0) {
+                        if (page === 1) {
+                            section.classList.add('hidden');
+                        } else {
+                            grid.innerHTML = '<p class="text-xs text-gray-500 col-span-full text-center py-4">Không có dữ liệu.</p>';
+                        }
+                        document.getElementById('requests-load-more-container').classList.add('hidden');
+                        return;
+                    }
+                    
+                    section.classList.remove('hidden');
+
+                    const reqTypeMap = {
+                        'update_history': 'sửa lịch sử',
+                        'delete_photo': 'xóa ảnh',
+                        'update_vehicle_details': 'sửa chi tiết xe',
+                        'update_vehicle_info': 'sửa thông tin xe',
+                        'update_operator_info': 'sửa thông tin nhà xe',
+                        'update_model_info': 'sửa thông tin dòng xe'
+                    };
+
+                    grid.innerHTML = requests.map(req => {
+                        let cardStyleClasses = "profile-photo-item cursor-pointer group transition-all duration-300 relative flex flex-col items-center justify-center p-3 text-center bg-gray-50 rounded-lg min-h-[80px]";
+                        let statusText = '';
+                        let typeText = reqTypeMap[req.new_data?.request_type] || 'khác';
+                        let contextText = '';
+
+                        if (req.new_data?.request_type === 'delete_photo' && req.new_data?.photo_id) {
+                            contextText = `Ảnh ${req.new_data.photo_id} ${req.license_plate ? '- ' + req.license_plate : ''}`;
+                        } else if (req.license_plate) {
+                            contextText = req.license_plate;
+                        } else if (req.new_data?.operator_name) {
+                            contextText = req.new_data.operator_name;
+                        } else if (req.new_data?.model_name) {
+                            contextText = req.new_data.model_name;
+                        }
+
+                        if (req.status === 'approved') {
+                            cardStyleClasses += " !border-2 !border-green-500 shadow-[0_0_8px_rgba(34,197,94,0.3)] hover:shadow-[0_0_14px_rgba(34,197,94,0.6)] hover:z-10 bg-green-50/30";
+                            statusText = "Đã duyệt";
+                        } else if (req.status === 'pending') {
+                            cardStyleClasses += " !border-2 !border-[#f58e27] shadow-[0_0_8px_rgba(245,142,39,0.3)] hover:shadow-[0_0_14px_rgba(245,142,39,0.6)] hover:z-10 bg-orange-50/30";
+                            statusText = "Đang chờ duyệt";
+                        } else if (req.status === 'denied' || req.status === 'rejected') {
+                            cardStyleClasses += " !border-2 !border-red-500 shadow-[0_0_8px_rgba(239,68,68,0.3)] hover:shadow-[0_0_14px_rgba(239,68,68,0.6)] hover:z-10 bg-red-50/30";
+                            statusText = "Từ chối";
+                        }
+
+                        if (!app.views._requestsCache) app.views._requestsCache = {};
+                        app.views._requestsCache[req.id] = req;
+
+                        return `
+                            <div class="${cardStyleClasses} overflow-hidden" onclick="app.views.showRequestDetails('${req.id}')">
+                                <span class="block font-bold text-gray-800 text-[11px] mb-1">Yêu cầu ${typeText}</span>
+                                ${contextText ? `<span class="block text-gray-600 text-[10px] font-mono tracking-wider bg-white px-2 py-0.5 border border-gray-100 rounded shadow-sm max-w-[90%] truncate">${app.utils.cleanText(contextText)}</span>` : ''}
+                                <span class="hidden group-hover:flex absolute inset-0 bg-black/80 text-white text-[11px] font-bold rounded-lg items-center justify-center tracking-wide backdrop-blur-sm z-20 transition-all duration-300">
+                                    ${statusText}
+                                </span>
+                            </div>
+                        `;
+                    }).join('');
+
+                    const size = 12;
+                    const totalPages = Math.ceil(count / size);
+                    const pagerContainer = document.getElementById('requests-load-more-container');
+                    
+                    if (totalPages <= 1) { 
+                        pagerContainer.classList.add('hidden'); 
+                        pagerContainer.innerHTML = '';
+                    } else {
+                        pagerContainer.classList.remove('hidden');
+                        pagerContainer.innerHTML = `<div id="requests-pagination-container" class="w-full"></div><p class="text-center w-full text-[10px] text-gray-400 mt-2 block w-full">Trang ${page}/${totalPages} · Tổng ${count} yêu cầu</p>`;
+                        app.utils.renderPagination('requests-pagination-container', page, totalPages, (newPage) => app.views.fetchProfileRequests(newPage));
+                    }
+                },
+
+                showRequestDetails: (id) => {
+                    const req = app.views._requestsCache?.[id];
+                    if (!req) return;
+
+                    const modal = document.getElementById('modal-request-details');
+                    const content = document.getElementById('request-details-content');
+                    const cancelBtn = document.getElementById('btn-cancel-request');
+
+                    const reqTypeMap = {
+                        'update_history': 'Sửa lịch sử',
+                        'delete_photo': 'Xóa ảnh',
+                        'update_vehicle_details': 'Sửa thông tin chi tiết xe',
+                        'update_vehicle_info': 'Sửa thông tin xe',
+                        'update_operator_info': 'Sửa thông tin nhà xe',
+                        'update_model_info': 'Sửa thông tin dòng xe'
+                    };
+
+                    let statusHtml = '';
+                    if (req.status === 'approved') statusHtml = '<span class="text-green-600 font-bold bg-green-50 border border-green-200 px-2 py-0.5 rounded text-xs">Đã duyệt</span>';
+                    else if (req.status === 'pending') statusHtml = '<span class="text-orange-500 font-bold bg-orange-50 border border-orange-200 px-2 py-0.5 rounded text-xs">Đang chờ</span>';
+                    else statusHtml = '<span class="text-red-500 font-bold bg-red-50 border border-red-200 px-2 py-0.5 rounded text-xs">Từ chối</span>';
+
+                    let detailsHtml = `
+                        <div class="flex justify-between items-center pb-2 border-b border-gray-100">
+                            <span class="text-gray-500 font-medium">Trạng thái:</span>
+                            ${statusHtml}
+                        </div>
+                        <div class="flex justify-between items-center pb-2 border-b border-gray-100 mt-2">
+                            <span class="text-gray-500 font-medium">Loại yêu cầu:</span>
+                            <span class="font-bold text-gray-800 text-right">${reqTypeMap[req.new_data?.request_type] || 'Khác'}</span>
+                        </div>
+                        <div class="flex justify-between items-center pb-2 border-b border-gray-100 mt-2">
+                            <span class="text-gray-500 font-medium">Ngày tạo:</span>
+                            <span class="text-gray-700 text-right">${new Date(req.created_at).toLocaleString('vi-VN')}</span>
+                        </div>
+                    `;
+
+                    if (req.new_data?.reason) {
+                        detailsHtml += `
+                            <div class="pt-2 mt-2">
+                                <span class="text-gray-500 font-medium block mb-1">Lý do/Ghi chú:</span>
+                                <div class="bg-gray-50 p-2.5 rounded border border-gray-100 text-gray-700 italic text-sm">
+                                    ${app.utils.cleanText(req.new_data.reason)}
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    if (req.admin_note) {
+                        detailsHtml += `
+                            <div class="pt-2 mt-2">
+                                <span class="text-gray-500 font-medium block mb-1">Ghi chú của Admin:</span>
+                                <div class="bg-blue-50 p-2.5 rounded border border-blue-100 text-blue-800 italic text-sm">
+                                    ${app.utils.cleanText(req.admin_note)}
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    content.innerHTML = detailsHtml;
+
+                    if (req.status === 'pending') {
+                        cancelBtn.classList.remove('hidden');
+                        cancelBtn.onclick = () => app.views.cancelRequest(id);
+                    } else {
+                        cancelBtn.classList.add('hidden');
+                    }
+
+                    modal.classList.add('opacity-100', 'pointer-events-auto');
+                    modal.firstElementChild.classList.add('translate-y-0');
+                },
+
+                cancelRequest: async (id) => {
+                    const req = app.views._requestsCache?.[id];
+                    if (!req || req.status !== 'pending') return;
+
+                    app.ui.showConfirm("Xác nhận hủy", "Bạn có chắc chắn muốn hủy yêu cầu này không? Hành động này không thể hoàn tác.", async () => {
+                        const cancelBtn = document.getElementById('btn-cancel-request');
+                        const originalBtnHtml = cancelBtn.innerHTML;
+                        cancelBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang hủy...';
+                        cancelBtn.disabled = true;
+
+                        try {
+                            const { error } = await window.sb.from('edit_requests').delete().eq('id', id).eq('requester_id', app.user.id);
+                            if (error) throw error;
+
+                            app.ui.showAlert("Đã hủy yêu cầu thành công!");
+                            document.getElementById('modal-request-details').classList.remove('opacity-100', 'pointer-events-auto');
+                            document.getElementById('modal-request-details').firstElementChild.classList.remove('translate-y-0');
+                            
+                            app.views.fetchProfileRequests(1);
+                        } catch (err) {
+                            console.error(err);
+                            app.ui.showAlert("Lỗi khi hủy yêu cầu: " + err.message);
+                        } finally {
+                            cancelBtn.innerHTML = originalBtnHtml;
+                            cancelBtn.disabled = false;
+                        }
+                    });
                 },
                 fetchLikedPhotosPage: async (page) => {
                     app.likedPage = page;
