@@ -4328,6 +4328,7 @@ Object.assign(window.app, {
 
                 const grid = document.getElementById('search-photo-grid');
                 grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tìm kiếm...</div>';
+                document.getElementById('search-load-more-container')?.classList.add('hidden');
 
                 try {
                     const isIdSearch = query.match(/\/photo\/(\d+)/i) || (filterType === 'all' ? query.match(/^#(\d+)$/) : null);
