@@ -1649,7 +1649,7 @@ Object.assign(window.app, {
                             if (!model) {
                                 if (make || lens || software) {
                                     model = make ? (lens ? `${make} (${lens})` : `${make} Camera`) : (lens || software);
-                                } else if (fNumber && exposureTime && iso && dateTimeOriginal) {
+                                } else if (exposureTime && iso && dateTimeOriginal) {
                                     model = "Camera (Đã ẩn Model)";
                                 }
                             }
@@ -1659,7 +1659,7 @@ Object.assign(window.app, {
                             const validateAndResolve = (fraudFlag) => {
                                 if (!model) { reject("Ảnh không chứa thông tin EXIF thiết bị (Model máy ảnh). Vui lòng chọn ảnh gốc chưa qua chỉnh sửa." + helpLinkHTML); return; }
                                 if (!dateTimeOriginal) { reject("Ảnh không chứa thông tin ngày chụp (EXIF Date). Việc có ngày chụp gốc là bắt buộc. Vui lòng chọn file ảnh nguyên bản." + helpLinkHTML); return; }
-                                if (!fNumber || !exposureTime || !iso) { reject("Ảnh bị thiếu thông số kỹ thuật máy ảnh (Khẩu độ, Tốc độ, ISO). Hệ thống bắt buộc yêu cầu các thông số này để xác thực ảnh gốc." + helpLinkHTML); return; }
+                                if (!exposureTime || !iso) { reject("Ảnh bị thiếu thông số kỹ thuật máy ảnh (Tốc độ, ISO). Hệ thống bắt buộc yêu cầu các thông số này để xác thực ảnh gốc." + helpLinkHTML); return; }
 
                                 let shutter = exposureTime;
                                 if (exposureTime && exposureTime < 1) shutter = `1/${Math.round(1 / exposureTime)}`;
@@ -1678,7 +1678,7 @@ Object.assign(window.app, {
 
                                 resolve({
                                     camera: model,
-                                    params: `f/${fNumber} | ${shutter}s | ISO ${iso}`,
+                                    params: fNumber ? `f/${fNumber} | ${shutter}s | ISO ${iso}` : `${shutter}s | ISO ${iso}`,
                                     date: dateStr,
                                     gps: {
                                         latDec: tags.latitude,
