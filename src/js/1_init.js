@@ -4910,7 +4910,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const filterMenu = document.getElementById('search-filter-menu');
         const isFilterMenuOpen = filterMenu && filterMenu.classList.contains('active');
         const searchSuggestions = document.getElementById('main-search-suggestions');
-        const isSuggestionsOpen = searchSuggestions && searchSuggestions.innerHTML.trim() !== '';
+        const isSuggestionsOpen = searchSuggestions && searchSuggestions.classList.contains('active');
 
         if (isSearchFocused || isUserMenuOpen || isFilterMenuOpen || isSuggestionsOpen) {
             header.style.transform = 'translateY(0)';
