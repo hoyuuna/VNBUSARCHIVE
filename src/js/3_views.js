@@ -2924,7 +2924,7 @@ Object.assign(window.app, {
                     document.getElementById('adv-operator-btn').disabled = true;
                     
                     const valContainer = document.getElementById('adv-filter-value-container');
-                    valContainer.innerHTML = '<input type="text" id="adv-filter-value" placeholder="Nhập giá trị..." class="w-full px-3.5 py-2.5 text-sm font-medium bg-white/90 border border-gray-300 hover:border-black rounded-xl outline-none focus:ring-2 focus:ring-black transition-all shadow-sm disabled:bg-gray-100 disabled:shadow-none text-gray-800" disabled>';
+                    valContainer.innerHTML = '<input type="text" id="adv-filter-value" placeholder="Nhập giá trị..." class="w-full bg-white/90 border border-gray-300 hover:border-black rounded-xl p-3.5 text-sm font-medium text-gray-800 transition-all shadow-sm focus:ring-2 focus:ring-black outline-none disabled:bg-gray-100 disabled:shadow-none disabled:cursor-not-allowed disabled:hover:border-gray-300" disabled>';
                     
                     // Reset trạng thái selected cho tất cả các menu trong modal
                     document.querySelectorAll('#advanced-filter-modal .filter-item').forEach(item => {
@@ -3061,7 +3061,7 @@ Object.assign(window.app, {
                             </div>
                         `;
                     } else {
-                        valContainer.innerHTML = '<input type="text" id="adv-filter-value" placeholder="Nhập giá trị..." class="w-full px-3.5 py-2.5 text-sm font-medium bg-white/90 border border-gray-300 hover:border-black rounded-xl outline-none focus:ring-2 focus:ring-black transition-all shadow-sm text-gray-800">';
+                        valContainer.innerHTML = '<input type="text" id="adv-filter-value" placeholder="Nhập giá trị..." class="w-full bg-white/90 border border-gray-300 hover:border-black rounded-xl p-3.5 text-sm font-medium text-gray-800 transition-all shadow-sm focus:ring-2 focus:ring-black outline-none">';
                     }
                 },
 
