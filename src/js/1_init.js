@@ -4898,43 +4898,56 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     let lastScrollY = window.scrollY;
-    // Hide threshold to avoid seeing the gap above the header at the top
+    let lastScrollDirection = 'up';
     const threshold = 200; 
 
-    window.addEventListener('scroll', () => {
+    const checkHeaderState = () => {
         const currentScrollY = window.scrollY;
         
-        // Check if user is interacting with search or dropdowns
         const isSearchFocused = document.activeElement && document.activeElement.id === 'search-input';
-        
         const userMenu = document.getElementById('user-dropdown');
         const isUserMenuOpen = userMenu && userMenu.classList.contains('opacity-100');
-        
         const filterMenu = document.getElementById('search-filter-menu');
         const isFilterMenuOpen = filterMenu && filterMenu.classList.contains('active');
-        
         const searchSuggestions = document.getElementById('main-search-suggestions');
         const isSuggestionsOpen = searchSuggestions && searchSuggestions.innerHTML.trim() !== '';
 
         if (isSearchFocused || isUserMenuOpen || isFilterMenuOpen || isSuggestionsOpen) {
             header.style.transform = 'translateY(0)';
-            lastScrollY = currentScrollY;
             return;
         }
-        
+
         if (currentScrollY > threshold) {
-            if (currentScrollY > lastScrollY) {
-                // Scrolling down -> hide header
+            if (lastScrollDirection === 'down') {
                 header.style.transform = 'translateY(-100%)';
             } else {
-                // Scrolling up -> show header
                 header.style.transform = 'translateY(0)';
             }
         } else {
-            // Near the top -> always show header
             header.style.transform = 'translateY(0)';
         }
+    };
+
+    window.addEventListener('scroll', () => {
+        const currentScrollY = window.scrollY;
         
+        if (currentScrollY > lastScrollY) {
+            lastScrollDirection = 'down';
+        } else if (currentScrollY < lastScrollY) {
+            lastScrollDirection = 'up';
+        }
+        
+        checkHeaderState();
         lastScrollY = currentScrollY;
     }, { passive: true });
+
+    // Handle clicks outside / losing focus to re-hide header if needed
+    document.addEventListener('click', () => {
+        setTimeout(checkHeaderState, 50);
+    });
+    
+    // Also bind to focusout in case keyboard navigation is used
+    document.addEventListener('focusout', () => {
+        setTimeout(checkHeaderState, 50);
+    });
 });
