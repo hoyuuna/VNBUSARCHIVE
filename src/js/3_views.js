@@ -3072,7 +3072,7 @@ Object.assign(window.app, {
                             </div>
                         `;
                     } else {
-                        valContainer.innerHTML = '<input type="text" id="adv-filter-value" placeholder="Nhập giá trị..." class="w-full bg-white border border-gray-300 hover:border-black rounded-xl p-3.5 text-sm font-bold text-gray-700 transition-all shadow-sm focus:ring-2 focus:ring-black outline-none">';
+                        valContainer.innerHTML = '<input type="text" id="adv-filter-value" placeholder="Nhập giá trị..." autocomplete="off" oninput="app.search.triggerAdvSuggestion(this.value)" onkeydown="if(event.key===\'Escape\') { const box = document.getElementById(\'adv-filter-suggestions\'); if(box) box.classList.remove(\'active\'); } if(event.key===\'Enter\') { const box = document.getElementById(\'adv-filter-suggestions\'); if(box) box.classList.remove(\'active\'); app.search.applyAdvancedFilter(); }" class="w-full bg-white border border-gray-300 hover:border-black rounded-xl p-3.5 text-sm font-bold text-gray-700 transition-all shadow-sm focus:ring-2 focus:ring-black outline-none">';
                     }
                 },
 
@@ -3348,6 +3348,95 @@ Object.assign(window.app, {
                     }
                 },
                 
+                triggerAdvSuggestion: async (query) => {
+                    const box = document.getElementById('adv-filter-suggestions');
+                    const fieldKey = document.getElementById('adv-field-select').value;
+                    
+                    if (!app.suggestionTimeouts) app.suggestionTimeouts = {};
+                    if (app.suggestionTimeouts['adv']) clearTimeout(app.suggestionTimeouts['adv']);
+                    
+                    if (!fieldKey || query.length < 1) {
+                        if (box) box.classList.remove('active');
+                        return;
+                    }
+
+                    // Chỉ hỗ trợ các trường text
+                    const supportedFields = ['license_plate', 'route_no', 'operator', 'model', 'location', 'camera_model', 'uploader'];
+                    if (!supportedFields.includes(fieldKey)) {
+                        if (box) box.classList.remove('active');
+                        return;
+                    }
+
+                    app.suggestionTimeouts['adv'] = setTimeout(async () => {
+                        if (app.suggestionControllers && app.suggestionControllers['adv']) app.suggestionControllers['adv'].abort();
+                        
+                        const controller = new AbortController();
+                        if (!app.suggestionControllers) app.suggestionControllers = {};
+                        app.suggestionControllers['adv'] = controller;
+                        
+                        try {
+                            let table = 'photos';
+                            let col = fieldKey;
+                            let selectStr = col;
+                            
+                            if (fieldKey === 'license_plate') {
+                                table = 'vehicles';
+                                selectStr = 'license_plate, photos!inner(status)';
+                            } else if (fieldKey === 'uploader') {
+                                table = 'profiles';
+                                col = 'username';
+                                selectStr = 'username';
+                            }
+                            
+                            let sbQuery = window.sb.from(table).select(selectStr);
+                            if (table === 'photos') {
+                                sbQuery = sbQuery.eq('status', 'approved').not(col, 'is', null).neq(col, '').neq(col, '---');
+                            } else if (table === 'vehicles') {
+                                sbQuery = sbQuery.eq('photos.status', 'approved');
+                            }
+                            
+                            let normalizedQuery = query.toLowerCase().trim();
+                            if (fieldKey === 'license_plate') normalizedQuery = app.utils.normalizePlateQuery(normalizedQuery);
+                            
+                            sbQuery = sbQuery.ilike(col, `%${normalizedQuery}%`);
+                            
+                            const { data } = await sbQuery.limit(30).abortSignal(controller.signal);
+                            if (data && data.length > 0) {
+                                // Lấy unique values
+                                const uniqueVals = new Set();
+                                data.forEach(item => {
+                                    if (item[col]) uniqueVals.add(String(item[col]));
+                                });
+                                
+                                const valList = Array.from(uniqueVals).slice(0, 10);
+                                if (valList.length > 0) {
+                                    const html = valList.map(v => {
+                                        let safeRawJS = v.replace(/'/g, "\\'").replace(/"/g, '\\"');
+                                        let clickAction = `document.getElementById('adv-filter-value').value = '${safeRawJS}'; document.getElementById('adv-filter-suggestions').classList.remove('active');`;
+                                        
+                                        return `<div class="filter-item flex items-center p-2.5 rounded-lg cursor-pointer hover:bg-black/5 text-sm transition-colors text-gray-700" onmousedown="event.preventDefault(); ${clickAction}">
+                                            <span class="font-bold">${v}</span>
+                                        </div>`;
+                                    }).join('');
+                                    
+                                    if (box) {
+                                        box.innerHTML = `<div class="p-1.5 flex flex-col gap-1 custom-scrollbar max-h-60 overflow-y-auto bg-white/70 backdrop-blur-xl border border-white/60 rounded-xl shadow-lg">${html}</div>`;
+                                        box.classList.add('active');
+                                    }
+                                } else {
+                                    if (box) box.classList.remove('active');
+                                }
+                            } else {
+                                if (box) box.classList.remove('active');
+                            }
+                        } catch (err) {
+                            if (err.name !== 'AbortError') {
+                                console.error('Adv suggestion error:', err);
+                            }
+                        }
+                    }, 250);
+                },
+
                 triggerMainSuggestion: async (query, inputId = 'search-input', sugId = 'main-search-suggestions') => {
                     const box = document.getElementById(sugId);
                     if (app.suggestionTimeouts[inputId]) clearTimeout(app.suggestionTimeouts[inputId]);

@@ -2979,7 +2979,7 @@ Object.assign(window.app, {
                     const advSugBox = document.getElementById('adv-filter-suggestions');
                     const advInputContainer = document.getElementById('adv-filter-value-container');
                     if (advSugBox && advInputContainer && !advSugBox.contains(e.target) && !advInputContainer.contains(e.target)) {
-                        advSugBox.classList.add('hidden');
+                        advSugBox.classList.remove('active');
                     }
 
                     const userMenuDropdown = document.getElementById('user-dropdown');
