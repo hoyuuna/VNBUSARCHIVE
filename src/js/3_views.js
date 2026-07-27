@@ -2908,8 +2908,8 @@ Object.assign(window.app, {
 
                 openAdvancedFilterModal: () => {
                     if (app.search.advancedFilters.length >= 15) {
-                        if (app.toast) app.toast.show('error', 'Giới hạn', 'Bạn chỉ được thêm tối đa 15 bộ lọc cùng lúc!');
-                        else alert('Bạn chỉ được thêm tối đa 15 bộ lọc cùng lúc!');
+                        if (app.toast) app.toast.show('error', 'Giới hạn', 'Bạn chỉ được thêm tối đa 15 bộ lọc!');
+                        else alert('Bạn chỉ được thêm tối đa 15 bộ lọc!');
                         return;
                     }
                     const modal = document.getElementById('advanced-filter-modal');
@@ -2924,17 +2924,13 @@ Object.assign(window.app, {
                     valContainer.innerHTML = '<input type="text" id="adv-filter-value" placeholder="Nhập giá trị..." class="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 hover:border-gray-300 rounded-md outline-none focus:border-gray-400 focus:ring-1 transition-all shadow-sm text-gray-700" disabled>';
                     
                     modal.classList.remove('hidden');
-                    if(app.ui && app.ui.lockScroll) app.ui.lockScroll();
+                    app.ui?.lockScroll?.();
                 },
-                
-                openAdvancedFilter: () => {
-                    app.search.openAdvancedFilterModal();
-                },
-                
+
                 closeAdvancedFilterModal: () => {
                     const modal = document.getElementById('advanced-filter-modal');
                     if (modal) modal.classList.add('hidden');
-                    if(app.ui && app.ui.unlockScroll) app.ui.unlockScroll();
+                    app.ui?.unlockScroll?.();
                 },
 
                 onAdvancedFieldChange: () => {
@@ -2978,8 +2974,8 @@ Object.assign(window.app, {
                         return;
                     }
 
-                    const fieldConfig = app.search.FIELD_CONFIGS[fieldKey];
-                    const opConfig = fieldConfig.ops.find(o => o.v === opKey);
+                    const fieldConfig = app.search.FIELD_CONFIGS[fieldKey] || { label: fieldKey, ops: [] };
+                    const opConfig = (fieldConfig.ops || []).find(o => o.v === opKey);
 
                     let displayVal = val;
                     if (fieldKey === 'type') displayVal = (val === 'bus' ? 'Xe Buýt' : 'Xe Khách');
@@ -2989,11 +2985,12 @@ Object.assign(window.app, {
                         field: fieldKey,
                         fieldLabel: fieldConfig.label,
                         op: opKey,
-                        opLabel: opConfig ? opConfig.l.split(' ')[0] : opKey,
+                        opLabel: opConfig ? opConfig.l : opKey,
                         value: val,
                         displayVal: displayVal
                     };
 
+                    app.search.advancedFilters = app.search.advancedFilters || [];
                     app.search.advancedFilters.push(filterObj);
                     app.currentFilter = 'advanced';
 
@@ -3005,51 +3002,51 @@ Object.assign(window.app, {
                 },
 
                 renderAdvancedFilterChips: () => {
-                    const container = document.getElementById('advanced-filter-chips');
-                    const clearBtn = document.getElementById('btn-clear-advanced-filters');
-                    
-                    const headerContainer = document.getElementById('header-advanced-modules');
-                    const pageContainer = document.getElementById('page-advanced-modules');
+                    const headerBox = document.getElementById('header-advanced-modules');
+                    const pageBox = document.getElementById('page-advanced-modules');
 
-                    if (!app.search.advancedFilters || app.search.advancedFilters.length === 0) {
-                        if (container) container.innerHTML = '';
-                        if (clearBtn) clearBtn.classList.add('hidden');
-                        
-                        const addBtn = `<button onclick="app.search.openAdvancedFilterModal()" class="shrink-0 text-[11px] md:text-sm font-bold text-gray-500 bg-white border border-gray-200 hover:border-gray-300 hover:text-black rounded px-2 md:px-3 py-1 shadow-sm transition">+ Thêm bộ lọc</button>`;
-                        if (headerContainer) headerContainer.innerHTML = addBtn;
-                        if (pageContainer) pageContainer.innerHTML = addBtn;
-                        return;
-                    }
+                    const isAdvanced = app.currentFilter === 'advanced';
 
-                    const chipsHtml = app.search.advancedFilters.map(f => `
-                        <div class="inline-flex items-center gap-1.5 bg-black text-white text-xs font-semibold px-2.5 py-1 rounded-full shadow-sm">
-                            <span class="text-gray-300">${f.fieldLabel}</span>
-                            <span class="text-yellow-400 font-bold">${f.opLabel}</span>
-                            <span class="font-bold underline underline-offset-2">${app.utils.escapeAttr(f.displayVal || f.value)}</span>
-                            <button onclick="app.search.removeAdvancedFilter('${f.id}')" class="ml-1 text-gray-400 hover:text-red-400 transition">
-                                <i class="fa-solid fa-xmark text-xs"></i>
+                    [headerBox, pageBox].forEach(box => {
+                        if (!box) return;
+
+                        if (!isAdvanced) {
+                            box.classList.add('hidden');
+                            box.innerHTML = '';
+                            return;
+                        }
+
+                        box.classList.remove('hidden');
+
+                        let html = (app.search.advancedFilters || []).map(f => `
+                            <span class="inline-flex items-center gap-1 bg-black text-white text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0 shadow-sm">
+                                <span>${f.fieldLabel}</span>
+                                <span class="text-amber-300 font-bold">${f.opLabel}</span>
+                                <span class="underline">${f.displayVal}</span>
+                                <button type="button" onclick="event.stopPropagation(); app.search.removeAdvancedFilter('${f.id}')" class="ml-0.5 text-gray-300 hover:text-red-400">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </span>
+                        `).join('');
+
+                        html += `
+                            <button type="button" onclick="event.stopPropagation(); app.search.openAdvancedFilterModal()" class="shrink-0 text-[11px] font-bold text-gray-700 bg-white border border-gray-300 hover:bg-gray-100 rounded-full px-2 py-0.5 shadow-sm transition">
+                                + Thêm
                             </button>
-                        </div>
-                    `).join('');
+                        `;
 
-                    if (container) container.innerHTML = chipsHtml;
-                    if (clearBtn) clearBtn.classList.remove('hidden');
-                    
-                    const headerChipsHtml = app.search.advancedFilters.map(f => `
-                        <div class="shrink-0 inline-flex items-center gap-1.5 bg-black text-white text-[10px] md:text-xs font-semibold px-2 py-1 rounded-full shadow-sm max-w-[200px] md:max-w-none">
-                            <span class="text-gray-300 truncate">${f.fieldLabel}</span>
-                            <span class="text-yellow-400 font-bold">${f.opLabel}</span>
-                            <span class="font-bold underline underline-offset-2 truncate">${app.utils.escapeAttr(f.displayVal || f.value)}</span>
-                            <button onclick="app.search.removeAdvancedFilter('${f.id}')" class="ml-0.5 text-gray-400 hover:text-red-400 transition">
-                                <i class="fa-solid fa-xmark text-xs"></i>
-                            </button>
-                        </div>
-                    `).join('');
-                    
-                    const addBtnHtml = app.search.advancedFilters.length < 15 ? `<button onclick="app.search.openAdvancedFilterModal()" class="shrink-0 text-[11px] md:text-sm font-bold text-gray-500 bg-white border border-gray-200 hover:border-gray-300 hover:text-black rounded px-2 md:px-3 py-1 shadow-sm transition">+ Thêm bộ lọc</button>` : '';
-                    
-                    if (headerContainer) headerContainer.innerHTML = headerChipsHtml + addBtnHtml;
-                    if (pageContainer) pageContainer.innerHTML = headerChipsHtml + addBtnHtml;
+                        if (app.search.advancedFilters && app.search.advancedFilters.length > 0) {
+                            html += `
+                                <button type="button" onclick="event.stopPropagation(); app.search.clearAdvancedFilters()" class="shrink-0 text-[11px] font-bold text-red-600 hover:underline px-1 py-0.5">
+                                    Xóa hết
+                                </button>
+                            `;
+                        }
+
+                        box.innerHTML = html;
+                        // HIDE THE SEARCH TEXT UNDERNEATH
+                        box.classList.add('bg-white');
+                    });
                 },
 
                 removeAdvancedFilter: (id) => {
@@ -3068,125 +3065,44 @@ Object.assign(window.app, {
                     app.handleSearch(true, 'page-search-input');
                 },
 
-
-                currentExactPrefix: '', 
-                
-                initExactRouteMenu: () => {
-                    // Đổi chữ Tắt thành Toàn quốc cho xịn
-                    const renderHtml = `<div class="px-3 py-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100 mb-1 bg-gray-50">Tìm theo khu vực</div>`
-                        + `<div class="filter-item ${!app.search.currentExactPrefix ? 'selected' : ''}" onclick="app.search.setExactRoute('')"><span>Toàn quốc</span> <i class="fa-solid fa-check ${!app.search.currentExactPrefix ? '' : 'opacity-0'} check-icon"></i></div>` 
-                        + app.utils.provinceData.map(p => {
-                            const prefix = Array.isArray(p.ky_hieu) ? p.ky_hieu[0] : p.ky_hieu.split(',')[0];
-                            const isSelected = app.search.currentExactPrefix === prefix;
-                            return `<div class="filter-item ${isSelected ? 'selected' : ''}" onclick="app.search.setExactRoute('${prefix}', '${p.ten}')">
-                                <span>${p.ten}</span> <i class="fa-solid fa-check ${isSelected ? '' : 'opacity-0'} check-icon"></i>
-                            </div>`;
-                        }).join('');
-                    
-                    const pgMenu = document.getElementById('exact-route-page-menu');
-                    if (pgMenu) pgMenu.innerHTML = renderHtml;
+                openAdvancedFilter: () => {
+                    app.search.openAdvancedFilterModal();
                 },
 
-                setExactRoute: (prefix, name = 'Toàn quốc') => {
-                    app.search.currentExactPrefix = prefix;
-                    app.search.currentExactProvName = prefix ? name : null;
-                    document.getElementById('exact-route-page-menu')?.classList.remove('active');
-                    app.search.syncExactUI(prefix, prefix ? name : null);
-                    
-                    if (window.location.pathname.includes('/search')) {
-                        app.handleSearch(true);
-                    }
-                },
+                setFilter: (filter, triggerSearch = true) => {
+                    app.currentFilter = filter;
 
-                syncExactUI: (prefix, explicitName = null) => {
-                    app.search.currentExactPrefix = prefix || '';
-                    let provName = 'Toàn quốc'; // Mặc định là Toàn quốc
-                    if (explicitName && explicitName !== 'Toàn quốc') {
-                        provName = explicitName;
-                        app.search.currentExactProvName = explicitName;
-                    } else if (prefix && app.utils.provinceData) {
-                        const prov = app.utils.provinceData.find(p => {
-                            const k = Array.isArray(p.ky_hieu) ? p.ky_hieu : p.ky_hieu.split(',');
-                            return k.map(s => s.trim()).includes(prefix);
-                        });
-                        if (prov) {
-                            provName = prov.ten;
-                            app.search.currentExactProvName = prov.ten;
-                        }
-                    } else {
-                        app.search.currentExactProvName = null;
-                    }
-                    
-                    const pgLabel = document.getElementById('exact-route-page-label');
-                    if (pgLabel) {
-                        pgLabel.innerText = provName;
-                        const btn = pgLabel.parentElement;
-                        
-                        if (prefix) {
-                            // CÓ TỈNH: Pill đen, chữ trắng, bo hơi vuông, bóng nổi nhẹ
-                            btn.className = "py-1.5 px-3 md:py-2 md:px-3.5 text-[11px] md:text-xs font-bold text-white bg-black border border-black rounded-md transition-all duration-200 flex items-center justify-center max-w-[140px] shadow-md cursor-pointer hover:bg-gray-800";
-                        } else {
-                            // TOÀN QUỐC (TẮT): Pill trắng, viền xám, chữ xám, bo hơi vuông
-                            btn.className = "py-1.5 px-3 md:py-2 md:px-3.5 text-[11px] md:text-xs font-semibold text-gray-600 bg-white border border-gray-300 hover:border-gray-400 hover:text-black hover:bg-gray-50 rounded-md transition-all duration-200 flex items-center justify-center max-w-[140px] shadow-sm cursor-pointer";
-                        }
-                    }
-                    
-                    app.search.initExactRouteMenu();
-                },
-
-                toggleFilter: (menuId = 'search-filter-menu') => {
-                    document.getElementById(menuId).classList.toggle('active');
-                },
-                
-                setFilter: (type, updateUrl = true) => {
-                    app.currentFilter = type;
-
-                    document.querySelectorAll('#search-filter-menu .filter-item, #page-search-filter-menu .filter-item').forEach(item => {
-                        item.classList.remove('selected');
-                        item.querySelector('.check-icon')?.classList.add('opacity-0');
-                        if (item.dataset.filter === type) {
+                    // Đánh dấu tick đen đồng bộ cho tất cả các menu filter
+                    document.querySelectorAll('.filter-menu .filter-item').forEach(item => {
+                        const itemFilter = item.getAttribute('data-filter');
+                        const checkIcon = item.querySelector('.check-icon');
+                        if (itemFilter === filter) {
                             item.classList.add('selected');
-                            item.querySelector('.check-icon')?.classList.remove('opacity-0');
+                            if (checkIcon) checkIcon.classList.remove('opacity-0');
+                        } else {
+                            item.classList.remove('selected');
+                            if (checkIcon) checkIcon.classList.add('opacity-0');
                         }
                     });
 
-                    document.getElementById('search-filter-menu')?.classList.remove('active');
-                    document.getElementById('page-search-filter-menu')?.classList.remove('active');
+                    // An toàn: Đóng tất cả menu filter thả xuống
+                    document.querySelectorAll('.filter-menu').forEach(m => m.classList.remove('active'));
 
+                    app.search.renderAdvancedFilterChips();
+
+                    // Restore exact-route toggling for route search
                     const pageExact = document.getElementById('exact-route-page-box');
                     const ctrlKHeader = document.getElementById('header-ctrl-k');
                     const ctrlKPage = document.getElementById('page-search-ctrl-k');
                     
-                    const headerInput = document.getElementById('search-input');
-                    const pageInput = document.getElementById('page-search-input');
-                    const headerAdv = document.getElementById('header-advanced-modules');
-                    const pageAdv = document.getElementById('page-advanced-modules');
-                    
-                    if (type === 'advanced') {
-                        if (headerInput) headerInput.classList.add('hidden');
-                        if (pageInput) pageInput.classList.add('hidden');
+                    if (filter === 'route') {
+                        if (pageExact) pageExact.classList.remove('hidden');
                         if (ctrlKHeader) ctrlKHeader.classList.add('!hidden');
                         if (ctrlKPage) ctrlKPage.classList.add('!hidden');
-                        if (headerAdv) headerAdv.classList.remove('hidden');
-                        if (pageAdv) pageAdv.classList.remove('hidden');
-                        if (pageExact) pageExact.classList.add('hidden');
-                        
-                        if (app.search.advancedFilters.length === 0) {
-                            app.search.openAdvancedFilter();
-                        }
+                        if (app.utils.provinceData && app.utils.provinceData.length > 0) app.search.initExactRouteMenu();
                     } else {
-                        if (headerInput) headerInput.classList.remove('hidden');
-                        if (pageInput) pageInput.classList.remove('hidden');
-                        if (headerAdv) headerAdv.classList.add('hidden');
-                        if (pageAdv) pageAdv.classList.add('hidden');
-                        
-                        if (type === 'route') {
-                            if (pageExact) pageExact.classList.remove('hidden');
-                            if (ctrlKHeader) ctrlKHeader.classList.add('!hidden');
-                            if (ctrlKPage) ctrlKPage.classList.add('!hidden');
-                            if (app.utils.provinceData && app.utils.provinceData.length > 0) app.search.initExactRouteMenu();
-                        } else {
-                            if (pageExact) pageExact.classList.add('hidden');
+                        if (pageExact) pageExact.classList.add('hidden');
+                        if (filter !== 'advanced') {
                             if (ctrlKHeader) ctrlKHeader.classList.remove('!hidden');
                             if (ctrlKPage) ctrlKPage.classList.remove('!hidden');
                             app.search.currentExactPrefix = ''; 
@@ -3194,11 +3110,22 @@ Object.assign(window.app, {
                         }
                     }
 
-                    if (updateUrl && window.location.pathname.includes('/search')) {
+                    if (filter === 'advanced') {
+                        if (ctrlKHeader) ctrlKHeader.classList.add('!hidden');
+                        if (ctrlKPage) ctrlKPage.classList.add('!hidden');
+                    }
+
+                    // Chỉ mở popup nếu người dùng CHỦ ĐỘNG bấm chọn "Nâng cao" và CHƯA CÓ bộ lọc nào
+                    if (filter === 'advanced' && triggerSearch && (!app.search.advancedFilters || app.search.advancedFilters.length === 0)) {
+                        app.search.openAdvancedFilterModal();
+                        return;
+                    }
+
+                    if (triggerSearch) {
                         app.handleSearch(true);
                     }
                 },
-                
+
                 triggerMainSuggestion: async (query, inputId = 'search-input', sugId = 'main-search-suggestions') => {
                     const box = document.getElementById(sugId);
                     if (app.suggestionTimeouts[inputId]) clearTimeout(app.suggestionTimeouts[inputId]);

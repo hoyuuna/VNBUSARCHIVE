@@ -3006,8 +3006,8 @@
                                 <div class="filter-item" onclick="app.search.setFilter('camera')" data-filter="camera">
                                     <span>Thiết bị chụp</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
                                 </div>
-                                <div class="filter-item border-t border-gray-100" onclick="app.search.setFilter('advanced')" data-filter="advanced">
-                                    <span class="text-blue-600 font-bold"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Nâng cao</span> <i class="fa-solid fa-check opacity-0 check-icon text-blue-600"></i>
+                                <div class="filter-item" onclick="app.search.setFilter('advanced')" data-filter="advanced">
+                                    <span>Nâng cao</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
                                 </div>
                             </div>
                         </div>
@@ -3429,6 +3429,9 @@
                                 <div class="filter-item" onclick="app.search.setFilter('camera')" data-filter="camera">
                                     <span>Thiết bị chụp</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
                                 </div>
+                                <div class="filter-item" onclick="app.search.setFilter('advanced')" data-filter="advanced">
+                                    <span>Nâng cao</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
+                                </div>
                             </div>
                         </div>
 
@@ -3438,21 +3441,7 @@
                         </button>
                     </div>
 
-                    <!-- KHU VỰC ADVANCED FILTER (Chips & Button) -->
-                    <div class="mt-3 flex flex-wrap items-center gap-2" id="advanced-filters-container">
-                        <!-- Container for filter chips -->
-                        <div id="advanced-filter-chips" class="flex flex-wrap items-center gap-2 empty:hidden"></div>
-                        
-                        <!-- Nút + Thêm bộ lọc -->
-                        <button id="btn-add-advanced-filter" onclick="app.search.openAdvancedFilterModal()" class="px-3 py-1.5 text-xs font-bold text-gray-600 bg-white border border-gray-300 hover:border-gray-400 hover:text-black hover:bg-gray-50 rounded-md transition-all shadow-sm flex items-center gap-1.5">
-                            <i class="fa-solid fa-sliders"></i> Bộ lọc nâng cao
-                        </button>
-                        
-                        <!-- Nút Xóa tất cả -->
-                        <button id="btn-clear-advanced-filters" onclick="app.search.clearAdvancedFilters()" class="hidden px-3 py-1.5 text-xs font-bold text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-all">
-                            Xóa tất cả
-                        </button>
-                    </div>
+
 
 
                 </div>
