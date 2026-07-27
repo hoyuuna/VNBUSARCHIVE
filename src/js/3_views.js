@@ -2914,16 +2914,15 @@ Object.assign(window.app, {
                     // Reset fields
                     const fieldSelect = document.getElementById('adv-field-select');
                     const operatorSelect = document.getElementById('adv-operator-select');
-                    const valueInput = document.getElementById('adv-filter-value');
+                    const valueContainer = document.getElementById('adv-filter-value-container');
                     
                     if(fieldSelect) fieldSelect.value = "";
                     if(operatorSelect) {
                         operatorSelect.innerHTML = '<option value="" disabled selected>-- Chọn toán tử --</option>';
                         operatorSelect.disabled = true;
                     }
-                    if(valueInput) {
-                        valueInput.value = "";
-                        valueInput.disabled = true;
+                    if(valueContainer) {
+                        valueContainer.innerHTML = '<input type="text" id="adv-filter-value" placeholder="Nhập giá trị..." class="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 hover:border-gray-300 rounded-md outline-none focus:border-gray-400 focus:ring-1 transition-all shadow-sm disabled:bg-gray-100 disabled:shadow-none text-gray-700" disabled>';
                     }
                 },
                 
@@ -2942,19 +2941,45 @@ Object.assign(window.app, {
                 onAdvancedFieldChange: () => {
                     const fieldSelect = document.getElementById('adv-field-select');
                     const operatorSelect = document.getElementById('adv-operator-select');
-                    const valueInput = document.getElementById('adv-filter-value');
+                    const valueContainer = document.getElementById('adv-filter-value-container');
                     
-                    if(!fieldSelect || !operatorSelect || !valueInput) return;
+                    if(!fieldSelect || !operatorSelect || !valueContainer) return;
                     
                     const field = fieldSelect.value;
                     if(!field) {
                         operatorSelect.disabled = true;
-                        valueInput.disabled = true;
+                        valueContainer.innerHTML = '<input type="text" id="adv-filter-value" placeholder="Nhập giá trị..." class="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 hover:border-gray-300 rounded-md outline-none focus:border-gray-400 focus:ring-1 transition-all shadow-sm disabled:bg-gray-100 disabled:shadow-none text-gray-700" disabled>';
                         return;
                     }
                     
                     operatorSelect.disabled = false;
-                    valueInput.disabled = false;
+                    
+                    if (field === 'type') {
+                        valueContainer.innerHTML = `
+                            <select id="adv-filter-value" class="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 hover:border-gray-300 rounded-md outline-none focus:border-gray-400 focus:ring-1 transition-all appearance-none cursor-pointer shadow-sm text-gray-700">
+                                <option value="bus">Xe buýt (bus)</option>
+                                <option value="coach">Xe khách (coach)</option>
+                            </select>
+                        `;
+                    } else if (field === 'taken_at') {
+                        valueContainer.innerHTML = `
+                            <input type="date" id="adv-filter-value" class="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 hover:border-gray-300 rounded-md outline-none focus:border-gray-400 focus:ring-1 transition-all shadow-sm text-gray-700">
+                        `;
+                    } else if (field === 'province') {
+                        let opts = (app.utils.provinceData || []).map(p => {
+                            const prefix = Array.isArray(p.ky_hieu) ? p.ky_hieu[0] : p.ky_hieu.split(',')[0];
+                            return `<option value="${prefix}">${p.ten}</option>`;
+                        }).join('');
+                        valueContainer.innerHTML = `
+                            <select id="adv-filter-value" class="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 hover:border-gray-300 rounded-md outline-none focus:border-gray-400 focus:ring-1 transition-all appearance-none cursor-pointer shadow-sm text-gray-700">
+                                ${opts}
+                            </select>
+                        `;
+                    } else {
+                        valueContainer.innerHTML = `
+                            <input type="text" id="adv-filter-value" autocomplete="off" placeholder="Nhập giá trị..." class="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 hover:border-gray-300 rounded-md outline-none focus:border-gray-400 focus:ring-1 transition-all shadow-sm text-gray-700">
+                        `;
+                    }
                     
                     let ops = [];
                     if (['license_plate', 'route_no', 'operator', 'model', 'uploader'].includes(field)) {
