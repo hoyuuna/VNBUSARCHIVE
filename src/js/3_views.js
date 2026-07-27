@@ -2924,7 +2924,7 @@ Object.assign(window.app, {
                     document.getElementById('adv-operator-btn').disabled = true;
                     
                     const valContainer = document.getElementById('adv-filter-value-container');
-                    valContainer.innerHTML = '<input type="text" id="adv-filter-value" placeholder="Nhập giá trị..." class="w-full bg-white/90 border border-gray-300 hover:border-black rounded-xl p-3.5 text-sm font-medium text-gray-800 transition-all shadow-sm focus:ring-2 focus:ring-black outline-none disabled:bg-gray-100 disabled:shadow-none disabled:cursor-not-allowed disabled:hover:border-gray-300" disabled>';
+                    valContainer.innerHTML = '<input type="text" id="adv-filter-value" placeholder="Nhập giá trị..." class="w-full bg-white border border-gray-300 hover:border-black rounded-xl p-3.5 text-sm font-bold text-gray-700 transition-all shadow-sm focus:ring-2 focus:ring-black outline-none disabled:bg-gray-100 disabled:shadow-none disabled:cursor-not-allowed disabled:hover:border-gray-300 disabled:font-medium disabled:text-gray-400" disabled>';
                     
                     // Reset trạng thái selected cho tất cả các menu trong modal
                     document.querySelectorAll('#advanced-filter-modal .filter-item').forEach(item => {
@@ -3039,7 +3039,7 @@ Object.assign(window.app, {
                     } else if (config.type === 'select_type') {
                         valContainer.innerHTML = `
                             <input type="hidden" id="adv-filter-value" value="">
-                            <button type="button" id="adv-val-btn" onclick="document.getElementById('adv-val-menu').classList.toggle('active')" class="w-full flex items-center justify-between bg-white/90 border border-gray-300 hover:border-black rounded-xl p-3.5 text-sm font-medium text-gray-800 transition-all shadow-sm focus:ring-2 focus:ring-black outline-none">
+                            <button type="button" id="adv-val-btn" onclick="document.getElementById('adv-val-menu').classList.toggle('active')" class="w-full flex items-center justify-between bg-white border border-gray-300 hover:border-black hover:bg-gray-50 rounded-xl p-3.5 text-sm font-bold text-gray-700 transition-all shadow-sm focus:ring-2 focus:ring-black outline-none">
                                 <span id="adv-val-label" class="truncate pr-4">-- Chọn loại xe --</span>
                                 <i class="fa-solid fa-chevron-down text-gray-400 shrink-0"></i>
                             </button>
@@ -3055,7 +3055,7 @@ Object.assign(window.app, {
                         }
                         valContainer.innerHTML = `
                             <input type="hidden" id="adv-filter-value" value="">
-                            <button type="button" id="adv-val-btn" onclick="document.getElementById('adv-val-menu').classList.toggle('active')" class="w-full flex items-center justify-between bg-white/90 border border-gray-300 hover:border-black rounded-xl p-3.5 text-sm font-medium text-gray-800 transition-all shadow-sm focus:ring-2 focus:ring-black outline-none">
+                            <button type="button" id="adv-val-btn" onclick="document.getElementById('adv-val-menu').classList.toggle('active')" class="w-full flex items-center justify-between bg-white border border-gray-300 hover:border-black hover:bg-gray-50 rounded-xl p-3.5 text-sm font-bold text-gray-700 transition-all shadow-sm focus:ring-2 focus:ring-black outline-none">
                                 <span id="adv-val-label" class="truncate pr-4">-- Chọn tỉnh thành --</span>
                                 <i class="fa-solid fa-chevron-down text-gray-400 shrink-0"></i>
                             </button>
@@ -3064,7 +3064,7 @@ Object.assign(window.app, {
                             </div>
                         `;
                     } else {
-                        valContainer.innerHTML = '<input type="text" id="adv-filter-value" placeholder="Nhập giá trị..." class="w-full bg-white/90 border border-gray-300 hover:border-black rounded-xl p-3.5 text-sm font-medium text-gray-800 transition-all shadow-sm focus:ring-2 focus:ring-black outline-none">';
+                        valContainer.innerHTML = '<input type="text" id="adv-filter-value" placeholder="Nhập giá trị..." class="w-full bg-white border border-gray-300 hover:border-black rounded-xl p-3.5 text-sm font-bold text-gray-700 transition-all shadow-sm focus:ring-2 focus:ring-black outline-none">';
                     }
                 },
 

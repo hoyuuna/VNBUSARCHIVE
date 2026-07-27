@@ -1577,6 +1577,7 @@
         #captcha-content,
         #webrtc-qr-content,
         #qr-login-host-content, #qr-login-confirm-content,
+        #advanced-filter-content,
         #achievement-content {
             background-color: rgba(255, 255, 255, 0.7) !important;
             backdrop-filter: blur(20px) !important;
@@ -1594,6 +1595,7 @@
         #upload-info-content > div,
         #settings-content > div,
         #newsboard-content > div,
+        #advanced-filter-content > div,
         #docs-content > div {
             background-color: transparent !important;
             border-color: rgba(0, 0, 0, 0.05) !important;
@@ -6195,7 +6197,7 @@
 
     <!-- MODAL ADVANCED FILTER -->
     <div id="advanced-filter-modal" class="hidden fixed inset-0 flex items-center justify-center p-4" style="z-index: 99999; background-color: rgba(0, 0, 0, 0) !important; backdrop-filter: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important;">
-        <div id="advanced-filter-content" class="relative w-full max-w-lg bg-white/80 backdrop-blur-2xl border border-white/60 shadow-2xl rounded-2xl p-6 transform transition-all">
+        <div id="advanced-filter-content" class="relative w-full max-w-lg rounded-2xl p-6 flex flex-col overflow-hidden">
             <div class="flex justify-between items-center mb-5 pb-3 border-b border-gray-200/60">
                 <h4 class="text-base font-bold text-black uppercase tracking-tight flex items-center gap-2">
                     <i class="fa-solid fa-sliders text-gray-500"></i> Thêm bộ lọc nâng cao
@@ -6210,7 +6212,7 @@
                 <div class="relative w-full">
                     <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">1. Chọn trường dữ liệu</label>
                     <input type="hidden" id="adv-field-select" value="">
-                    <button type="button" id="adv-field-btn" onclick="document.getElementById('adv-field-menu').classList.toggle('active')" class="w-full flex items-center justify-between bg-white/90 border border-gray-300 hover:border-black rounded-xl p-3.5 text-sm font-medium text-gray-800 transition-all shadow-sm focus:ring-2 focus:ring-black outline-none">
+                    <button type="button" id="adv-field-btn" onclick="document.getElementById('adv-field-menu').classList.toggle('active')" class="w-full flex items-center justify-between bg-white border border-gray-300 hover:border-black hover:bg-gray-50 rounded-xl p-3.5 text-sm font-bold text-gray-700 transition-all shadow-sm focus:ring-2 focus:ring-black outline-none">
                         <span id="adv-field-label" class="truncate pr-4">-- Chọn trường --</span>
                         <i class="fa-solid fa-chevron-down text-gray-400 shrink-0"></i>
                     </button>
@@ -6232,7 +6234,7 @@
                 <div class="relative w-full">
                     <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">2. Điều kiện so sánh</label>
                     <input type="hidden" id="adv-operator-select" value="">
-                    <button type="button" id="adv-operator-btn" onclick="if(!this.disabled) document.getElementById('adv-operator-menu').classList.toggle('active')" class="w-full flex items-center justify-between bg-white/90 border border-gray-300 rounded-xl p-3.5 text-sm font-medium text-gray-800 transition-all shadow-sm focus:ring-2 focus:ring-black outline-none disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed disabled:hover:border-gray-300 hover:border-black" disabled>
+                    <button type="button" id="adv-operator-btn" onclick="if(!this.disabled) document.getElementById('adv-operator-menu').classList.toggle('active')" class="w-full flex items-center justify-between bg-white border border-gray-300 hover:border-black hover:bg-gray-50 rounded-xl p-3.5 text-sm font-bold text-gray-700 transition-all shadow-sm focus:ring-2 focus:ring-black outline-none disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed disabled:hover:border-gray-300 disabled:hover:bg-gray-100" disabled>
                         <span id="adv-operator-label" class="truncate pr-4">-- Chọn điều kiện --</span>
                         <i class="fa-solid fa-chevron-down text-gray-400 shrink-0"></i>
                     </button>
@@ -6244,7 +6246,7 @@
                 <div class="relative">
                     <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">3. Giá trị cần lọc</label>
                     <div id="adv-filter-value-container">
-                        <input type="text" id="adv-filter-value" placeholder="Nhập giá trị..." class="w-full bg-white/90 border border-gray-300 hover:border-black rounded-xl p-3.5 text-sm font-medium text-gray-800 transition-all shadow-sm focus:ring-2 focus:ring-black outline-none disabled:bg-gray-100 disabled:shadow-none disabled:cursor-not-allowed disabled:hover:border-gray-300" disabled>
+                        <input type="text" id="adv-filter-value" placeholder="Nhập giá trị..." class="w-full bg-white border border-gray-300 hover:border-black rounded-xl p-3.5 text-sm font-bold text-gray-700 transition-all shadow-sm focus:ring-2 focus:ring-black outline-none disabled:bg-gray-100 disabled:shadow-none disabled:cursor-not-allowed disabled:hover:border-gray-300 disabled:font-medium disabled:text-gray-400" disabled>
                     </div>
                 </div>
 
