@@ -2900,7 +2900,6 @@ Object.assign(window.app, {
                     'model':        { label: 'Dòng xe',        type: 'text', ops: [{v:'ilike', l:'Chứa'}, {v:'eq', l:'Bằng'}, {v:'neq', l:'Khác'}, {v:'not_ilike', l:'Không chứa'}] },
                     'location':     { label: 'Vị trí chụp',    type: 'text', ops: [{v:'ilike', l:'Chứa'}, {v:'not_ilike', l:'Không chứa'}, {v:'eq', l:'Bằng'}] },
                     'type':         { label: 'Loại xe',        type: 'select_type', ops: [{v:'eq', l:'Bằng'}, {v:'neq', l:'Khác'}] },
-                    'province':     { label: 'Tuyến của tỉnh', type: 'select_province', ops: [{v:'eq', l:'Bằng'}, {v:'neq', l:'Khác'}] },
                     'camera_model': { label: 'Thiết bị chụp',  type: 'text', ops: [{v:'ilike', l:'Chứa'}, {v:'eq', l:'Bằng'}, {v:'neq', l:'Khác'}] },
                     'taken_at':     { label: 'Ngày chụp',      type: 'date', ops: [{v:'eq', l:'Bằng'}, {v:'gt', l:'Sau ngày'}, {v:'gte', l:'Từ ngày'}, {v:'lt', l:'Trước ngày'}, {v:'lte', l:'Đến ngày'}, {v:'neq', l:'Khác'}] },
                     'uploader':     { label: 'Người đăng',     type: 'text', ops: [{v:'ilike', l:'Chứa'}, {v:'eq', l:'Bằng'}, {v:'neq', l:'Khác'}] }
@@ -3056,21 +3055,7 @@ Object.assign(window.app, {
                                 <div class="filter-item" onclick="app.search.selectAdvVal('coach', 'Xe Khách', this)"><span class="font-bold">Xe Khách</span><i class="fa-solid fa-check opacity-0 check-icon ml-auto"></i></div>
                             </div>
                         `;
-                    } else if (config.type === 'select_province') {
-                        let provOptions = '';
-                        if (app.utils.provinceData && app.utils.provinceData.length) {
-                            provOptions = app.utils.provinceData.map(p => `<div class="filter-item" onclick="app.search.selectAdvVal('${p.ten}', '${p.ten}', this)"><span class="font-bold">${p.ten}</span><i class="fa-solid fa-check opacity-0 check-icon ml-auto"></i></div>`).join('');
-                        }
-                        valContainer.innerHTML = `
-                            <input type="hidden" id="adv-filter-value" value="">
-                            <button type="button" id="adv-val-btn" onclick="document.getElementById('adv-val-menu').classList.toggle('active')" class="w-full flex items-center justify-between bg-white border border-gray-300 hover:border-black hover:bg-gray-50 rounded-xl p-3.5 text-sm font-bold text-gray-700 transition-all shadow-sm focus:ring-2 focus:ring-black outline-none">
-                                <span id="adv-val-label" class="truncate pr-4">-- Chọn tỉnh thành --</span>
-                                <i class="fa-solid fa-chevron-down text-gray-400 shrink-0"></i>
-                            </button>
-                            <div id="adv-val-menu" class="filter-menu left-0 right-0 origin-top mt-2 !max-h-[250px] !z-[999]" style="width: 100% !important;">
-                                ${provOptions}
-                            </div>
-                        `;
+
                     } else {
                         valContainer.innerHTML = '<input type="text" id="adv-filter-value" placeholder="Nhập giá trị..." autocomplete="off" oninput="app.search.triggerAdvSuggestion(this.value)" onkeydown="if(event.key===\'Escape\') { const box = document.getElementById(\'adv-filter-suggestions\'); if(box) box.classList.remove(\'active\'); } if(event.key===\'Enter\') { const box = document.getElementById(\'adv-filter-suggestions\'); if(box) box.classList.remove(\'active\'); app.search.applyAdvancedFilter(); }" class="w-full bg-white border border-gray-300 hover:border-black rounded-xl p-3.5 text-sm font-bold text-gray-700 transition-all shadow-sm focus:ring-2 focus:ring-black outline-none">';
                     }
