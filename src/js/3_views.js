@@ -2937,6 +2937,9 @@ Object.assign(window.app, {
                     content.classList.remove('modal-content-leave');
                     content.classList.add('modal-content-enter');
                     app.ui?.lockScroll?.();
+                    setTimeout(() => {
+                        content.classList.remove('modal-content-enter');
+                    }, 300);
                 },
                 
                 openAdvancedFilter: () => {
