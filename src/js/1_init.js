@@ -4886,3 +4886,37 @@ dropdown.innerHTML = `
                 if (app.auth && app.auth.updateUUIDBox) app.auth.updateUUIDBox();
             }
 });
+
+// Sticky auto-hide header logic
+document.addEventListener('DOMContentLoaded', () => {
+    const header = document.querySelector('header');
+    if (!header) return;
+
+    // Ensure the header has transition for smooth hiding/showing
+    if (!header.classList.contains('transition-transform')) {
+        header.classList.add('transition-transform', 'duration-300');
+    }
+
+    let lastScrollY = window.scrollY;
+    // Hide threshold to avoid seeing the gap above the header at the top
+    const threshold = 200; 
+
+    window.addEventListener('scroll', () => {
+        const currentScrollY = window.scrollY;
+        
+        if (currentScrollY > threshold) {
+            if (currentScrollY > lastScrollY) {
+                // Scrolling down -> hide header
+                header.style.transform = 'translateY(-100%)';
+            } else {
+                // Scrolling up -> show header
+                header.style.transform = 'translateY(0)';
+            }
+        } else {
+            // Near the top -> always show header
+            header.style.transform = 'translateY(0)';
+        }
+        
+        lastScrollY = currentScrollY;
+    }, { passive: true });
+});
