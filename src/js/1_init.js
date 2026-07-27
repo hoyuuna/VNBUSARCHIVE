@@ -4377,11 +4377,14 @@ Object.assign(window.app, {
                 const currentSearchToken = Date.now();
                 app.searchToken = currentSearchToken;
 
-                let recents = JSON.parse(localStorage.getItem('vnbus_recent_searches') || '[]');
-                recents = recents.filter(r => r.query !== query);
-                recents.unshift({ query, filter: filterType, prefix: prefixToUrl });
-                if (recents.length > 5) recents.pop();
-                localStorage.setItem('vnbus_recent_searches', JSON.stringify(recents));
+                if (filterType !== 'advanced') {
+                    let recents = JSON.parse(localStorage.getItem('vnbus_recent_searches') || '[]');
+                    recents = recents.filter(r => r.query !== query);
+                    recents.unshift({ query, filter: filterType, prefix: prefixToUrl });
+                    if (recents.length > 5) recents.pop();
+                    localStorage.setItem('vnbus_recent_searches', JSON.stringify(recents));
+                }
+
 
                 app.views.switch('search', false);
                 app.currentViewMode = 'search';

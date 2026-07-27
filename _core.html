@@ -2952,7 +2952,7 @@
                              <input type="text" id="search-input" placeholder="Tìm kiếm..." autocomplete="one-time-code"
                                   class="peer px-3 py-2 md:pr-14 text-sm outline-none w-full bg-transparent placeholder-gray-400">
                              <!-- Advanced Modules Container (Hidden by default) -->
-                             <div id="header-advanced-modules" class="hidden absolute inset-0 flex items-center gap-1 overflow-x-auto no-scrollbar pl-2 pr-2 bg-transparent z-20">
+                             <div id="header-advanced-modules" class="hidden absolute inset-0 flex items-center gap-1 overflow-x-auto pb-1 pl-2 pr-2 bg-transparent z-20">
                                  <button onclick="app.search.openAdvancedFilter()" class="shrink-0 text-[11px] font-bold text-gray-500 bg-white border border-gray-200 hover:border-gray-300 hover:text-black rounded px-2 py-1 shadow-sm transition">
                                      + Thêm bộ lọc
                                  </button>
@@ -2965,7 +2965,7 @@
                          </div>
                          <div id="main-search-suggestions" class="suggestion-box" style="top: calc(100% + 4px);"></div>
 
-                        <button id="btn-clear-search" onclick="app.utils.navigate('/')"
+                        <button id="btn-clear-search" onclick="if(app.search) app.search.clearAdvancedFilters(); app.utils.navigate('/')"
                             class="hidden text-gray-400 hover:text-red-500 px-2">
                             <i class="fa-solid fa-xmark"></i>
                         </button>
@@ -3366,7 +3366,7 @@
                             <input type="text" id="page-search-input" placeholder="Tìm kiếm..." autocomplete="one-time-code" class="peer px-3 py-2 text-base md:text-lg outline-none w-full bg-transparent placeholder-gray-400 font-medium h-full">
                             
                             <!-- Advanced Modules Container (Hidden by default) -->
-                            <div id="page-advanced-modules" class="hidden absolute inset-0 flex items-center gap-1 overflow-x-auto no-scrollbar pl-2 pr-2 bg-transparent z-20">
+                            <div id="page-advanced-modules" class="hidden absolute inset-0 flex items-center gap-1 overflow-x-auto pb-1 pl-2 pr-2 bg-transparent z-20">
                                 <button onclick="app.search.openAdvancedFilter()" class="shrink-0 text-xs md:text-sm font-bold text-gray-500 bg-white border border-gray-200 hover:border-gray-300 hover:text-black rounded px-3 py-1.5 shadow-sm transition">
                                     + Thêm bộ lọc
                                 </button>
@@ -3394,7 +3394,7 @@
                         <div id="page-search-suggestions" class="suggestion-box" style="top: calc(100% + 4px);"></div>
 
                         <!-- Nút Xóa Chữ (X) -->
-                        <button id="btn-page-clear-search" onclick="app.utils.navigate('/')" class="hidden text-gray-400 hover:text-red-500 px-3 md:px-4 h-full flex items-center justify-center border-l border-transparent">
+                        <button id="btn-page-clear-search" onclick="if(app.search) app.search.clearAdvancedFilters(); app.utils.navigate('/')" class="hidden text-gray-400 hover:text-red-500 px-3 md:px-4 h-full flex items-center justify-center border-l border-transparent">
                             <i class="fa-solid fa-xmark text-lg"></i>
                         </button>
 
@@ -6215,16 +6215,16 @@
                         <i class="fa-solid fa-chevron-down text-gray-400 shrink-0"></i>
                     </button>
                     <div id="adv-field-menu" class="filter-menu left-0 right-0 origin-top mt-2 !max-h-[250px] !z-[999]" style="width: 100% !important;">
-                        <div class="filter-item" onclick="app.search.selectAdvField('license_plate', 'Biển kiểm soát')"><span class="font-bold">Biển kiểm soát</span></div>
-                        <div class="filter-item" onclick="app.search.selectAdvField('route_no', 'Mã số tuyến')"><span class="font-bold">Mã số tuyến</span></div>
-                        <div class="filter-item" onclick="app.search.selectAdvField('operator', 'Đơn vị vận hành')"><span class="font-bold">Đơn vị vận hành</span></div>
-                        <div class="filter-item" onclick="app.search.selectAdvField('model', 'Dòng xe')"><span class="font-bold">Dòng xe</span></div>
-                        <div class="filter-item" onclick="app.search.selectAdvField('location', 'Vị trí chụp')"><span class="font-bold">Vị trí chụp</span></div>
-                        <div class="filter-item" onclick="app.search.selectAdvField('type', 'Loại xe')"><span class="font-bold">Loại xe</span></div>
-                        <div class="filter-item" onclick="app.search.selectAdvField('province', 'Tuyến của tỉnh')"><span class="font-bold">Tuyến của tỉnh</span></div>
-                        <div class="filter-item" onclick="app.search.selectAdvField('camera_model', 'Thiết bị chụp')"><span class="font-bold">Thiết bị chụp</span></div>
-                        <div class="filter-item" onclick="app.search.selectAdvField('taken_at', 'Ngày chụp')"><span class="font-bold">Ngày chụp</span></div>
-                        <div class="filter-item" onclick="app.search.selectAdvField('uploader', 'Người đăng')"><span class="font-bold">Người đăng</span></div>
+                        <div class="filter-item" onclick="app.search.selectAdvField('license_plate', 'Biển kiểm soát', this)"><span class="font-bold">Biển kiểm soát</span><i class="fa-solid fa-check opacity-0 check-icon ml-auto"></i></div>
+                        <div class="filter-item" onclick="app.search.selectAdvField('route_no', 'Mã số tuyến', this)"><span class="font-bold">Mã số tuyến</span><i class="fa-solid fa-check opacity-0 check-icon ml-auto"></i></div>
+                        <div class="filter-item" onclick="app.search.selectAdvField('operator', 'Đơn vị vận hành', this)"><span class="font-bold">Đơn vị vận hành</span><i class="fa-solid fa-check opacity-0 check-icon ml-auto"></i></div>
+                        <div class="filter-item" onclick="app.search.selectAdvField('model', 'Dòng xe', this)"><span class="font-bold">Dòng xe</span><i class="fa-solid fa-check opacity-0 check-icon ml-auto"></i></div>
+                        <div class="filter-item" onclick="app.search.selectAdvField('location', 'Vị trí chụp', this)"><span class="font-bold">Vị trí chụp</span><i class="fa-solid fa-check opacity-0 check-icon ml-auto"></i></div>
+                        <div class="filter-item" onclick="app.search.selectAdvField('type', 'Loại xe', this)"><span class="font-bold">Loại xe</span><i class="fa-solid fa-check opacity-0 check-icon ml-auto"></i></div>
+                        <div class="filter-item" onclick="app.search.selectAdvField('province', 'Tuyến của tỉnh', this)"><span class="font-bold">Tuyến của tỉnh</span><i class="fa-solid fa-check opacity-0 check-icon ml-auto"></i></div>
+                        <div class="filter-item" onclick="app.search.selectAdvField('camera_model', 'Thiết bị chụp', this)"><span class="font-bold">Thiết bị chụp</span><i class="fa-solid fa-check opacity-0 check-icon ml-auto"></i></div>
+                        <div class="filter-item" onclick="app.search.selectAdvField('taken_at', 'Ngày chụp', this)"><span class="font-bold">Ngày chụp</span><i class="fa-solid fa-check opacity-0 check-icon ml-auto"></i></div>
+                        <div class="filter-item" onclick="app.search.selectAdvField('uploader', 'Người đăng', this)"><span class="font-bold">Người đăng</span><i class="fa-solid fa-check opacity-0 check-icon ml-auto"></i></div>
                     </div>
                 </div>
 

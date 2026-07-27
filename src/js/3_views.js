@@ -2894,16 +2894,16 @@ Object.assign(window.app, {
                 advancedFilters: [],
                 
                 FIELD_CONFIGS: {
-                    'license_plate': { label: 'Biển kiểm soát', type: 'text', ops: [{v:'ilike', l:'Chứa (Bao gồm)'}, {v:'eq', l:'= Bằng chính xác'}, {v:'neq', l:'≠ Khác'}, {v:'not_ilike', l:'Không chứa'}] },
-                    'route_no':     { label: 'Mã số tuyến',   type: 'text', ops: [{v:'ilike', l:'Chứa (Bao gồm)'}, {v:'eq', l:'= Bằng chính xác'}, {v:'neq', l:'≠ Khác'}, {v:'not_ilike', l:'Không chứa'}] },
-                    'operator':     { label: 'Đơn vị vận hành', type: 'text', ops: [{v:'ilike', l:'Chứa (Bao gồm)'}, {v:'eq', l:'= Bằng chính xác'}, {v:'neq', l:'≠ Khác'}, {v:'not_ilike', l:'Không chứa'}] },
-                    'model':        { label: 'Dòng xe',        type: 'text', ops: [{v:'ilike', l:'Chứa (Bao gồm)'}, {v:'eq', l:'= Bằng chính xác'}, {v:'neq', l:'≠ Khác'}, {v:'not_ilike', l:'Không chứa'}] },
-                    'location':     { label: 'Vị trí chụp',    type: 'text', ops: [{v:'ilike', l:'Chứa (Bao gồm)'}, {v:'not_ilike', l:'Không chứa'}, {v:'eq', l:'= Bằng chính xác'}] },
-                    'type':         { label: 'Loại xe',        type: 'select_type', ops: [{v:'eq', l:'= Đúng là'}, {v:'neq', l:'≠ Không phải là'}] },
-                    'province':     { label: 'Tuyến của tỉnh', type: 'select_province', ops: [{v:'eq', l:'= Thuộc tỉnh'}, {v:'neq', l:'≠ Không thuộc tỉnh'}] },
-                    'camera_model': { label: 'Thiết bị chụp',  type: 'text', ops: [{v:'ilike', l:'Chứa (Bao gồm)'}, {v:'eq', l:'= Đúng thiết bị'}, {v:'neq', l:'≠ Khác thiết bị'}] },
-                    'taken_at':     { label: 'Ngày chụp',      type: 'date', ops: [{v:'eq', l:'= Đúng ngày'}, {v:'gt', l:'> Sau ngày'}, {v:'gte', l:'≥ Từ ngày'}, {v:'lt', l:'< Trước ngày'}, {v:'lte', l:'≤ Đến ngày'}, {v:'neq', l:'≠ Khác ngày'}] },
-                    'uploader':     { label: 'Người đăng',     type: 'text', ops: [{v:'ilike', l:'Chứa (Bao gồm)'}, {v:'eq', l:'= Đúng tên'}, {v:'neq', l:'≠ Khác tên'}] }
+                    'license_plate': { label: 'Biển kiểm soát', type: 'text', ops: [{v:'ilike', l:'Chứa'}, {v:'eq', l:'Bằng'}, {v:'neq', l:'Khác'}, {v:'not_ilike', l:'Không chứa'}] },
+                    'route_no':     { label: 'Mã số tuyến',   type: 'text', ops: [{v:'ilike', l:'Chứa'}, {v:'eq', l:'Bằng'}, {v:'neq', l:'Khác'}, {v:'not_ilike', l:'Không chứa'}] },
+                    'operator':     { label: 'Đơn vị vận hành', type: 'text', ops: [{v:'ilike', l:'Chứa'}, {v:'eq', l:'Bằng'}, {v:'neq', l:'Khác'}, {v:'not_ilike', l:'Không chứa'}] },
+                    'model':        { label: 'Dòng xe',        type: 'text', ops: [{v:'ilike', l:'Chứa'}, {v:'eq', l:'Bằng'}, {v:'neq', l:'Khác'}, {v:'not_ilike', l:'Không chứa'}] },
+                    'location':     { label: 'Vị trí chụp',    type: 'text', ops: [{v:'ilike', l:'Chứa'}, {v:'not_ilike', l:'Không chứa'}, {v:'eq', l:'Bằng'}] },
+                    'type':         { label: 'Loại xe',        type: 'select_type', ops: [{v:'eq', l:'Bằng'}, {v:'neq', l:'Khác'}] },
+                    'province':     { label: 'Tuyến của tỉnh', type: 'select_province', ops: [{v:'eq', l:'Bằng'}, {v:'neq', l:'Khác'}] },
+                    'camera_model': { label: 'Thiết bị chụp',  type: 'text', ops: [{v:'ilike', l:'Chứa'}, {v:'eq', l:'Bằng'}, {v:'neq', l:'Khác'}] },
+                    'taken_at':     { label: 'Ngày chụp',      type: 'date', ops: [{v:'eq', l:'Bằng'}, {v:'gt', l:'Sau ngày'}, {v:'gte', l:'Từ ngày'}, {v:'lt', l:'Trước ngày'}, {v:'lte', l:'Đến ngày'}, {v:'neq', l:'Khác'}] },
+                    'uploader':     { label: 'Người đăng',     type: 'text', ops: [{v:'ilike', l:'Chứa'}, {v:'eq', l:'Bằng'}, {v:'neq', l:'Khác'}] }
                 },
 
                 openAdvancedFilterModal: () => {
@@ -2951,23 +2951,53 @@ Object.assign(window.app, {
                     }, 200);
                 },
 
-                selectAdvField: (val, label) => {
+                selectAdvField: (val, label, el) => {
                     document.getElementById('adv-field-select').value = val;
                     document.getElementById('adv-field-label').innerText = label;
                     document.getElementById('adv-field-menu').classList.remove('active');
+                    document.querySelectorAll('#adv-field-menu .filter-item').forEach(item => {
+                        item.classList.remove('selected');
+                        const icon = item.querySelector('.check-icon');
+                        if (icon) icon.classList.add('opacity-0');
+                    });
+                    if (el) {
+                        el.classList.add('selected');
+                        const icon = el.querySelector('.check-icon');
+                        if (icon) icon.classList.remove('opacity-0');
+                    }
                     app.search.onAdvancedFieldChange();
                 },
                 
-                selectAdvOp: (val, label) => {
+                selectAdvOp: (val, label, el) => {
                     document.getElementById('adv-operator-select').value = val;
                     document.getElementById('adv-operator-label').innerText = label;
                     document.getElementById('adv-operator-menu').classList.remove('active');
+                    document.querySelectorAll('#adv-operator-menu .filter-item').forEach(item => {
+                        item.classList.remove('selected');
+                        const icon = item.querySelector('.check-icon');
+                        if (icon) icon.classList.add('opacity-0');
+                    });
+                    if (el) {
+                        el.classList.add('selected');
+                        const icon = el.querySelector('.check-icon');
+                        if (icon) icon.classList.remove('opacity-0');
+                    }
                 },
 
-                selectAdvVal: (val, label) => {
+                selectAdvVal: (val, label, el) => {
                     document.getElementById('adv-filter-value').value = val;
                     document.getElementById('adv-val-label').innerText = label;
                     document.getElementById('adv-val-menu').classList.remove('active');
+                    document.querySelectorAll('#adv-val-menu .filter-item').forEach(item => {
+                        item.classList.remove('selected');
+                        const icon = item.querySelector('.check-icon');
+                        if (icon) icon.classList.add('opacity-0');
+                    });
+                    if (el) {
+                        el.classList.add('selected');
+                        const icon = el.querySelector('.check-icon');
+                        if (icon) icon.classList.remove('opacity-0');
+                    }
                 },
 
                 onAdvancedFieldChange: () => {
@@ -2976,10 +3006,18 @@ Object.assign(window.app, {
                     if (!config) return;
 
                     const opMenu = document.getElementById('adv-operator-menu');
-                    opMenu.innerHTML = config.ops.map(o => `<div class="filter-item" onclick="app.search.selectAdvOp('${o.v}', '${o.l}')"><span class="font-bold">${o.l}</span></div>`).join('');
+                    opMenu.innerHTML = config.ops.map(o => `<div class="filter-item" onclick="app.search.selectAdvOp('${o.v}', '${o.l}', this)"><span class="font-bold">${o.l}</span><i class="fa-solid fa-check opacity-0 check-icon ml-auto"></i></div>`).join('');
                     
                     document.getElementById('adv-operator-select').value = config.ops[0].v;
                     document.getElementById('adv-operator-label').innerText = config.ops[0].l;
+                    
+                    const firstOp = opMenu.querySelector('.filter-item');
+                    if (firstOp) {
+                        firstOp.classList.add('selected');
+                        const icon = firstOp.querySelector('.check-icon');
+                        if (icon) icon.classList.remove('opacity-0');
+                    }
+                    
                     document.getElementById('adv-operator-btn').disabled = false;
 
                     const valContainer = document.getElementById('adv-filter-value-container');
@@ -2993,14 +3031,14 @@ Object.assign(window.app, {
                                 <i class="fa-solid fa-chevron-down text-gray-400 shrink-0"></i>
                             </button>
                             <div id="adv-val-menu" class="filter-menu left-0 right-0 origin-top mt-2 !max-h-[250px] !z-[999]" style="width: 100% !important;">
-                                <div class="filter-item" onclick="app.search.selectAdvVal('bus', 'Xe Buýt')"><span class="font-bold">Xe Buýt</span></div>
-                                <div class="filter-item" onclick="app.search.selectAdvVal('coach', 'Xe Khách')"><span class="font-bold">Xe Khách</span></div>
+                                <div class="filter-item" onclick="app.search.selectAdvVal('bus', 'Xe Buýt', this)"><span class="font-bold">Xe Buýt</span><i class="fa-solid fa-check opacity-0 check-icon ml-auto"></i></div>
+                                <div class="filter-item" onclick="app.search.selectAdvVal('coach', 'Xe Khách', this)"><span class="font-bold">Xe Khách</span><i class="fa-solid fa-check opacity-0 check-icon ml-auto"></i></div>
                             </div>
                         `;
                     } else if (config.type === 'select_province') {
                         let provOptions = '';
                         if (app.utils.provinceData && app.utils.provinceData.length) {
-                            provOptions = app.utils.provinceData.map(p => `<div class="filter-item" onclick="app.search.selectAdvVal('${p.ten}', '${p.ten}')"><span class="font-bold">${p.ten}</span></div>`).join('');
+                            provOptions = app.utils.provinceData.map(p => `<div class="filter-item" onclick="app.search.selectAdvVal('${p.ten}', '${p.ten}', this)"><span class="font-bold">${p.ten}</span><i class="fa-solid fa-check opacity-0 check-icon ml-auto"></i></div>`).join('');
                         }
                         valContainer.innerHTML = `
                             <input type="hidden" id="adv-filter-value" value="">
@@ -3074,7 +3112,7 @@ Object.assign(window.app, {
                         box.classList.remove('hidden');
 
                         let html = (app.search.advancedFilters || []).map(f => `
-                            <div class="inline-flex items-center gap-1.5 py-1 px-2.5 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm shrink-0">
+                            <div class="inline-flex items-center gap-1.5 py-1 px-2.5 text-xs font-semibold text-gray-700 bg-white border border-gray-300 hover:border-gray-500 rounded-md shadow-sm shrink-0 cursor-pointer transition-colors" onclick="event.stopPropagation(); app.search.editAdvancedFilter('${f.id}')">
                                 <span class="text-gray-500 font-normal">${f.fieldLabel}:</span>
                                 <span class="font-bold text-black">${f.opLabel} "${f.displayVal}"</span>
                                 <button type="button" onclick="event.stopPropagation(); app.search.removeAdvancedFilter('${f.id}')" class="ml-1 text-gray-400 hover:text-red-600 transition">
@@ -3100,6 +3138,38 @@ Object.assign(window.app, {
                     }
                     app.search.renderAdvancedFilterChips();
                     app.handleSearch(true, 'page-search-input');
+                },
+
+                editAdvancedFilter: (id) => {
+                    const f = app.search.advancedFilters.find(x => x.id === id);
+                    if (!f) return;
+                    
+                    app.search.openAdvancedFilterModal();
+                    
+                    // Xóa filter cũ
+                    app.search.advancedFilters = app.search.advancedFilters.filter(x => x.id !== id);
+                    app.search.renderAdvancedFilterChips();
+
+                    const fieldItems = document.querySelectorAll('#adv-field-menu .filter-item');
+                    let fieldEl = null;
+                    fieldItems.forEach(item => {
+                        if (item.getAttribute('onclick').includes(`'${f.field}'`)) fieldEl = item;
+                    });
+                    app.search.selectAdvField(f.field, f.fieldLabel, fieldEl);
+                    
+                    setTimeout(() => {
+                        const opItems = document.querySelectorAll('#adv-operator-menu .filter-item');
+                        let opEl = null;
+                        opItems.forEach(item => {
+                            if (item.getAttribute('onclick').includes(`'${f.op}'`)) opEl = item;
+                        });
+                        app.search.selectAdvOp(f.op, f.opLabel, opEl);
+                        
+                        const valInput = document.getElementById('adv-filter-value');
+                        if (valInput) valInput.value = f.value;
+                        const valLabel = document.getElementById('adv-val-label');
+                        if (valLabel && f.displayVal) valLabel.innerText = f.displayVal;
+                    }, 10);
                 },
 
                 clearAdvancedFilters: () => {
