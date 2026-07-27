@@ -4315,14 +4315,17 @@ Object.assign(window.app, {
                 const filterType = app.currentFilter;
 
                 const hasProvinceFilter = Boolean(app.search?.currentExactPrefix || app.search?.currentExactProvName);
-                if (!query && !hasProvinceFilter) {
+                const hasAdvancedFilters = filterType === 'advanced' && app.search.advancedFilters && app.search.advancedFilters.length > 0;
+                
+                if (!query && !hasProvinceFilter && !hasAdvancedFilters) {
                     if (clearBtn) clearBtn.classList.add('hidden');
                     if (pageClearBtn) pageClearBtn.classList.add('hidden');
                     if (window.location.pathname !== '/') app.utils.navigate('/');
                     return app.views.loadHome();
                 } else {
-                    if (clearBtn) clearBtn.classList.toggle('hidden', !query && !hasProvinceFilter);
-                    if (pageClearBtn) pageClearBtn.classList.toggle('hidden', !query && !hasProvinceFilter);
+                    const hideClearBtn = !query && !hasProvinceFilter && !hasAdvancedFilters;
+                    if (clearBtn) clearBtn.classList.toggle('hidden', hideClearBtn);
+                    if (pageClearBtn) pageClearBtn.classList.toggle('hidden', hideClearBtn);
                 }
 
                 const currentParams = new URLSearchParams(window.location.search);
