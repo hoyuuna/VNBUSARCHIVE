@@ -3366,6 +3366,8 @@ Object.assign(window.app, {
                     }
 
                     if (q) {
+                        const decodedQ = decodeURIComponent(q);
+                        const headerInp = document.getElementById('search-input');
                         const pageInp = document.getElementById('page-search-input');
                         if (headerInp) headerInp.value = decodedQ;
                         if (pageInp) pageInp.value = decodedQ;
