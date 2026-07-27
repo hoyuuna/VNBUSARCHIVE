@@ -2893,57 +2893,81 @@ Object.assign(window.app, {
   search: {
                 advancedFilters: [],
                 
-                toggleAdvancedFilterPopover: () => {
-                    const popover = document.getElementById('advanced-filter-popover');
-                    if (popover.classList.contains('hidden')) {
-                        if (app.search.advancedFilters.length >= 15) {
-                            app.ui.showAlert("Đã đạt giới hạn tối đa 15 bộ lọc nâng cao.");
-                            return;
-                        }
-                        popover.classList.remove('hidden');
-                        setTimeout(() => {
-                            popover.classList.remove('opacity-0', 'scale-95');
-                            popover.classList.add('opacity-100', 'scale-100');
-                        }, 10);
-                        document.getElementById('adv-filter-field').value = '';
-                        document.getElementById('adv-filter-operator').innerHTML = '<option value="" disabled selected>-- Chọn toán tử --</option>';
-                        document.getElementById('adv-filter-operator').disabled = true;
-                        document.getElementById('adv-filter-value').value = '';
-                        document.getElementById('adv-filter-value').disabled = true;
-                        document.getElementById('adv-filter-suggestions').classList.add('hidden');
-                    } else {
-                        app.search.closeAdvancedFilterPopover();
+                selectedAdvancedField: null,
+                selectedAdvancedFieldLabel: null,
+                selectedAdvancedOperator: null,
+                selectedAdvancedOperatorLabel: null,
+
+                openAdvancedFilterModal: () => {
+                    const modal = document.getElementById('advanced-filter-modal');
+                    if (app.search.advancedFilters.length >= 15) {
+                        app.ui.showAlert("Đã đạt giới hạn tối đa 15 bộ lọc nâng cao.");
+                        return;
                     }
+                    modal.classList.remove('hidden');
+                    const content = modal.querySelector('.modal-content');
+                    if (content) {
+                        content.classList.remove('modal-content-leave');
+                        content.classList.add('modal-content-enter');
+                    }
+                    
+                    // Reset fields
+                    app.search.selectedAdvancedField = null;
+                    app.search.selectedAdvancedFieldLabel = null;
+                    app.search.selectedAdvancedOperator = null;
+                    app.search.selectedAdvancedOperatorLabel = null;
+                    
+                    document.getElementById('adv-field-label').innerText = '-- Chọn trường dữ liệu --';
+                    document.getElementById('adv-operator-label').innerText = '-- Chọn toán tử --';
+                    document.getElementById('adv-operator-btn').disabled = true;
+                    document.getElementById('adv-operator-menu').innerHTML = '';
+                    
+                    const valueContainer = document.getElementById('adv-filter-value-container');
+                    valueContainer.innerHTML = '<input type="text" id="adv-filter-value" oninput="app.search.onAdvancedValueInput()" placeholder="Nhập giá trị..." class="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 hover:border-gray-300 rounded-md outline-none focus:border-gray-400 focus:ring-1 transition-all shadow-sm disabled:bg-gray-100 disabled:shadow-none" disabled>';
+                    document.getElementById('adv-filter-suggestions').classList.add('hidden');
+                    
+                    document.getElementById('adv-field-menu').classList.remove('active');
+                    document.getElementById('adv-operator-menu').classList.remove('active');
                 },
                 
-                closeAdvancedFilterPopover: () => {
-                    const popover = document.getElementById('advanced-filter-popover');
-                    popover.classList.remove('opacity-100', 'scale-100');
-                    popover.classList.add('opacity-0', 'scale-95');
+                closeAdvancedFilterModal: () => {
+                    const modal = document.getElementById('advanced-filter-modal');
+                    const content = modal.querySelector('.modal-content');
+                    if (content) {
+                        content.classList.remove('modal-content-enter');
+                        content.classList.add('modal-content-leave');
+                    }
                     setTimeout(() => {
-                        popover.classList.add('hidden');
+                        modal.classList.add('hidden');
                     }, 200);
                 },
 
-                onAdvancedFieldChange: () => {
-                    const field = document.getElementById('adv-filter-field').value;
-                    const operatorSelect = document.getElementById('adv-filter-operator');
+                selectAdvancedField: (field, label) => {
+                    app.search.selectedAdvancedField = field;
+                    app.search.selectedAdvancedFieldLabel = label;
+                    document.getElementById('adv-field-label').innerText = label;
+                    document.getElementById('adv-field-menu').classList.remove('active');
                     
-                    operatorSelect.disabled = false;
+                    const operatorBtn = document.getElementById('adv-operator-btn');
+                    operatorBtn.disabled = false;
                     document.getElementById('adv-filter-suggestions').classList.add('hidden');
+                    
+                    app.search.selectedAdvancedOperator = null;
+                    app.search.selectedAdvancedOperatorLabel = null;
+                    document.getElementById('adv-operator-label').innerText = '-- Chọn toán tử --';
                     
                     const valueContainer = document.getElementById('adv-filter-value-container');
                     
                     if (field === 'type') {
                         valueContainer.innerHTML = `
-                            <select id="adv-filter-value" class="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-md outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400 transition-shadow appearance-none cursor-pointer">
+                            <select id="adv-filter-value" class="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 hover:border-gray-300 rounded-md outline-none focus:border-gray-400 focus:ring-1 transition-all appearance-none cursor-pointer shadow-sm">
                                 <option value="bus">Xe buýt (bus)</option>
                                 <option value="coach">Xe khách (coach)</option>
                             </select>
                         `;
                     } else if (field === 'taken_at') {
                         valueContainer.innerHTML = `
-                            <input type="date" id="adv-filter-value" class="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-md outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400 transition-shadow">
+                            <input type="date" id="adv-filter-value" class="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 hover:border-gray-300 rounded-md outline-none focus:border-gray-400 focus:ring-1 transition-all shadow-sm">
                         `;
                     } else if (field === 'province') {
                         let opts = (app.utils.provinceData || []).map(p => {
@@ -2951,13 +2975,13 @@ Object.assign(window.app, {
                             return `<option value="${prefix}">${p.ten}</option>`;
                         }).join('');
                         valueContainer.innerHTML = `
-                            <select id="adv-filter-value" class="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-md outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400 transition-shadow appearance-none cursor-pointer">
+                            <select id="adv-filter-value" class="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 hover:border-gray-300 rounded-md outline-none focus:border-gray-400 focus:ring-1 transition-all appearance-none cursor-pointer shadow-sm">
                                 ${opts}
                             </select>
                         `;
                     } else {
                         valueContainer.innerHTML = `
-                            <input type="text" id="adv-filter-value" oninput="app.search.onAdvancedValueInput()" autocomplete="off" placeholder="Nhập giá trị..." class="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-md outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400 transition-shadow">
+                            <input type="text" id="adv-filter-value" oninput="app.search.onAdvancedValueInput()" autocomplete="off" placeholder="Nhập giá trị..." class="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 hover:border-gray-300 rounded-md outline-none focus:border-gray-400 focus:ring-1 transition-all shadow-sm">
                         `;
                     }
                     
@@ -2989,13 +3013,23 @@ Object.assign(window.app, {
                         ];
                     }
 
-                    operatorSelect.innerHTML = ops.map(op => `<option value="${op.val}">${op.label}</option>`).join('');
+                    const operatorMenu = document.getElementById('adv-operator-menu');
+                    operatorMenu.innerHTML = ops.map(op => `
+                        <button onclick="app.search.selectAdvancedOperator('${op.val}', '${op.label}')" class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 transition-colors">${op.label}</button>
+                    `).join('');
+                },
+                
+                selectAdvancedOperator: (op, label) => {
+                    app.search.selectedAdvancedOperator = op;
+                    app.search.selectedAdvancedOperatorLabel = label;
+                    document.getElementById('adv-operator-label').innerText = label;
+                    document.getElementById('adv-operator-menu').classList.remove('active');
                 },
 
                 advFilterDebounceTimeout: null,
 
                 onAdvancedValueInput: () => {
-                    const field = document.getElementById('adv-filter-field').value;
+                    const field = app.search.selectedAdvancedField;
                     const valEl = document.getElementById('adv-filter-value');
                     if (!valEl) return;
                     const val = valEl.value.trim();
@@ -3050,13 +3084,13 @@ Object.assign(window.app, {
                 },
 
                 applyAdvancedFilter: () => {
-                    const fieldSelect = document.getElementById('adv-filter-field');
-                    const opSelect = document.getElementById('adv-filter-operator');
-                    const valInput = document.getElementById('adv-filter-value');
+                    const field = app.search.selectedAdvancedField;
+                    const op = app.search.selectedAdvancedOperator;
+                    const fieldLabel = app.search.selectedAdvancedFieldLabel;
+                    const opLabel = app.search.selectedAdvancedOperatorLabel;
                     
-                    const field = fieldSelect.value;
-                    const op = opSelect.value;
-                    const val = valInput.value.trim();
+                    const valInput = document.getElementById('adv-filter-value');
+                    const val = valInput ? valInput.value.trim() : '';
                     
                     if (!field || !op || !val) {
                         app.toast.show('error', 'Lỗi', 'Vui lòng điền đầy đủ Trường, Toán tử và Giá trị!');
@@ -3069,14 +3103,12 @@ Object.assign(window.app, {
                     }
 
                     const id = Date.now().toString() + Math.random().toString(36).substring(2, 5);
-                    const fieldLabel = fieldSelect.options[fieldSelect.selectedIndex].text;
-                    const opLabel = opSelect.options[opSelect.selectedIndex].text;
                     
                     app.search.advancedFilters.push({
                         id, field, fieldLabel, op, opLabel, value: val
                     });
 
-                    app.search.closeAdvancedFilterPopover();
+                    app.search.closeAdvancedFilterModal();
                     app.search.renderAdvancedFilterChips();
                     
                     if (window.location.pathname.includes('/search')) {

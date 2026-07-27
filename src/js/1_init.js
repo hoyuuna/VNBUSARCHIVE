@@ -2976,6 +2976,12 @@ Object.assign(window.app, {
                         }
                     });
 
+                    const advSugBox = document.getElementById('adv-filter-suggestions');
+                    const advInputContainer = document.getElementById('adv-filter-value-container');
+                    if (advSugBox && advInputContainer && !advSugBox.contains(e.target) && !advInputContainer.contains(e.target)) {
+                        advSugBox.classList.add('hidden');
+                    }
+
                     const userMenuDropdown = document.getElementById('user-dropdown');
                     const userMenuContainer = document.getElementById('user-menu-container');
                     if (userMenuDropdown && userMenuContainer && !userMenuDropdown.contains(e.target) && !userMenuContainer.contains(e.target)) {
@@ -3355,9 +3361,11 @@ Object.assign(window.app, {
                     } else {
                         app.search.advancedFilters = [];
                     }
-                    app.search.renderAdvancedFilterChips();                    if (q) {
-                        const decodedQ = decodeURIComponent(q);
-                        const headerInp = document.getElementById('search-input');
+                    if (typeof app.search.renderAdvancedFilterChips === 'function') {
+                        app.search.renderAdvancedFilterChips();
+                    }
+
+                    if (q) {
                         const pageInp = document.getElementById('page-search-input');
                         if (headerInp) headerInp.value = decodedQ;
                         if (pageInp) pageInp.value = decodedQ;
