@@ -2898,7 +2898,7 @@ Object.assign(window.app, {
                 selectedAdvancedOperator: null,
                 selectedAdvancedOperatorLabel: null,
 
-                openAdvancedFilterModal: () => {
+                openAdvancedFilter: () => {
                     const modal = document.getElementById('advanced-filter-modal');
                     if (app.search.advancedFilters.length >= 15) {
                         app.ui.showAlert("Đã đạt giới hạn tối đa 15 bộ lọc nâng cao.");
@@ -2912,22 +2912,19 @@ Object.assign(window.app, {
                     }
                     
                     // Reset fields
-                    app.search.selectedAdvancedField = null;
-                    app.search.selectedAdvancedFieldLabel = null;
-                    app.search.selectedAdvancedOperator = null;
-                    app.search.selectedAdvancedOperatorLabel = null;
+                    const fieldSelect = document.getElementById('adv-field-select');
+                    const operatorSelect = document.getElementById('adv-operator-select');
+                    const valueInput = document.getElementById('adv-filter-value');
                     
-                    document.getElementById('adv-field-label').innerText = '-- Chọn trường dữ liệu --';
-                    document.getElementById('adv-operator-label').innerText = '-- Chọn toán tử --';
-                    document.getElementById('adv-operator-btn').disabled = true;
-                    document.getElementById('adv-operator-menu').innerHTML = '';
-                    
-                    const valueContainer = document.getElementById('adv-filter-value-container');
-                    valueContainer.innerHTML = '<input type="text" id="adv-filter-value" oninput="app.search.onAdvancedValueInput()" placeholder="Nhập giá trị..." class="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 hover:border-gray-300 rounded-md outline-none focus:border-gray-400 focus:ring-1 transition-all shadow-sm disabled:bg-gray-100 disabled:shadow-none" disabled>';
-                    document.getElementById('adv-filter-suggestions').classList.add('hidden');
-                    
-                    document.getElementById('adv-field-menu').classList.remove('active');
-                    document.getElementById('adv-operator-menu').classList.remove('active');
+                    if(fieldSelect) fieldSelect.value = "";
+                    if(operatorSelect) {
+                        operatorSelect.innerHTML = '<option value="" disabled selected>-- Chọn toán tử --</option>';
+                        operatorSelect.disabled = true;
+                    }
+                    if(valueInput) {
+                        valueInput.value = "";
+                        valueInput.disabled = true;
+                    }
                 },
                 
                 closeAdvancedFilterModal: () => {
@@ -2942,48 +2939,22 @@ Object.assign(window.app, {
                     }, 200);
                 },
 
-                selectAdvancedField: (field, label) => {
-                    app.search.selectedAdvancedField = field;
-                    app.search.selectedAdvancedFieldLabel = label;
-                    document.getElementById('adv-field-label').innerText = label;
-                    document.getElementById('adv-field-menu').classList.remove('active');
+                onAdvancedFieldChange: () => {
+                    const fieldSelect = document.getElementById('adv-field-select');
+                    const operatorSelect = document.getElementById('adv-operator-select');
+                    const valueInput = document.getElementById('adv-filter-value');
                     
-                    const operatorBtn = document.getElementById('adv-operator-btn');
-                    operatorBtn.disabled = false;
-                    document.getElementById('adv-filter-suggestions').classList.add('hidden');
+                    if(!fieldSelect || !operatorSelect || !valueInput) return;
                     
-                    app.search.selectedAdvancedOperator = null;
-                    app.search.selectedAdvancedOperatorLabel = null;
-                    document.getElementById('adv-operator-label').innerText = '-- Chọn toán tử --';
-                    
-                    const valueContainer = document.getElementById('adv-filter-value-container');
-                    
-                    if (field === 'type') {
-                        valueContainer.innerHTML = `
-                            <select id="adv-filter-value" class="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 hover:border-gray-300 rounded-md outline-none focus:border-gray-400 focus:ring-1 transition-all appearance-none cursor-pointer shadow-sm">
-                                <option value="bus">Xe buýt (bus)</option>
-                                <option value="coach">Xe khách (coach)</option>
-                            </select>
-                        `;
-                    } else if (field === 'taken_at') {
-                        valueContainer.innerHTML = `
-                            <input type="date" id="adv-filter-value" class="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 hover:border-gray-300 rounded-md outline-none focus:border-gray-400 focus:ring-1 transition-all shadow-sm">
-                        `;
-                    } else if (field === 'province') {
-                        let opts = (app.utils.provinceData || []).map(p => {
-                            const prefix = Array.isArray(p.ky_hieu) ? p.ky_hieu[0] : p.ky_hieu.split(',')[0];
-                            return `<option value="${prefix}">${p.ten}</option>`;
-                        }).join('');
-                        valueContainer.innerHTML = `
-                            <select id="adv-filter-value" class="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 hover:border-gray-300 rounded-md outline-none focus:border-gray-400 focus:ring-1 transition-all appearance-none cursor-pointer shadow-sm">
-                                ${opts}
-                            </select>
-                        `;
-                    } else {
-                        valueContainer.innerHTML = `
-                            <input type="text" id="adv-filter-value" oninput="app.search.onAdvancedValueInput()" autocomplete="off" placeholder="Nhập giá trị..." class="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 hover:border-gray-300 rounded-md outline-none focus:border-gray-400 focus:ring-1 transition-all shadow-sm">
-                        `;
+                    const field = fieldSelect.value;
+                    if(!field) {
+                        operatorSelect.disabled = true;
+                        valueInput.disabled = true;
+                        return;
                     }
+                    
+                    operatorSelect.disabled = false;
+                    valueInput.disabled = false;
                     
                     let ops = [];
                     if (['license_plate', 'route_no', 'operator', 'model', 'uploader'].includes(field)) {
@@ -3012,90 +2983,29 @@ Object.assign(window.app, {
                             { val: 'lte', label: '≤ Đến ngày' }
                         ];
                     }
-
-                    const operatorMenu = document.getElementById('adv-operator-menu');
-                    operatorMenu.innerHTML = ops.map(op => `
-                        <button onclick="app.search.selectAdvancedOperator('${op.val}', '${op.label}')" class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 transition-colors">${op.label}</button>
-                    `).join('');
-                },
-                
-                selectAdvancedOperator: (op, label) => {
-                    app.search.selectedAdvancedOperator = op;
-                    app.search.selectedAdvancedOperatorLabel = label;
-                    document.getElementById('adv-operator-label').innerText = label;
-                    document.getElementById('adv-operator-menu').classList.remove('active');
-                },
-
-                advFilterDebounceTimeout: null,
-
-                onAdvancedValueInput: () => {
-                    const field = app.search.selectedAdvancedField;
-                    const valEl = document.getElementById('adv-filter-value');
-                    if (!valEl) return;
-                    const val = valEl.value.trim();
-                    const sugBox = document.getElementById('adv-filter-suggestions');
                     
-                    if (!['operator', 'model', 'route_no', 'license_plate', 'uploader', 'camera_model'].includes(field)) {
-                        sugBox.classList.add('hidden');
-                        return;
-                    }
-                    
-                    if (val.length < 2) {
-                        sugBox.classList.add('hidden');
-                        return;
-                    }
-
-                    if (app.search.advFilterDebounceTimeout) clearTimeout(app.search.advFilterDebounceTimeout);
-                    
-                    app.search.advFilterDebounceTimeout = setTimeout(async () => {
-                        sugBox.innerHTML = '<div class="px-3 py-2 text-xs text-gray-500"><i class="fa-solid fa-spinner fa-spin"></i> Đang tìm kiếm...</div>';
-                        sugBox.classList.remove('hidden');
-                        
-                        try {
-                            let results = [];
-                            if (field === 'uploader') {
-                                const { data } = await window.sb.from('profiles').select('username').ilike('username', `%${val}%`).limit(10);
-                                if (data) results = data.map(d => d.username);
-                            } else if (field === 'model' || field === 'license_plate') {
-                                const { data } = await window.sb.from('vehicles').select(field).ilike(field, `%${val}%`).limit(10);
-                                if (data) results = data.map(d => d[field]);
-                            } else {
-                                // operator, route_no, camera_model
-                                const { data } = await window.sb.from('photos').select(field).ilike(field, `%${val}%`).eq('status', 'approved').limit(10);
-                                if (data) results = data.map(d => d[field]);
-                            }
-                            
-                            // Remove duplicates
-                            results = [...new Set(results)].filter(Boolean);
-                            
-                            if (results.length === 0) {
-                                sugBox.innerHTML = '<div class="px-3 py-2 text-xs text-gray-500">Không có kết quả.</div>';
-                            } else {
-                                sugBox.innerHTML = results.map(r => `
-                                    <div class="px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer transition text-black font-medium border-b border-gray-100 last:border-b-0" onclick="document.getElementById('adv-filter-value').value = '${app.utils.escapeAttr(r)}'; document.getElementById('adv-filter-suggestions').classList.add('hidden');">
-                                        ${app.utils.escapeAttr(r)}
-                                    </div>
-                                `).join('');
-                            }
-                        } catch (err) {
-                            sugBox.classList.add('hidden');
-                        }
-                    }, 300);
+                    operatorSelect.innerHTML = '<option value="" disabled selected>-- Chọn toán tử --</option>' + 
+                        ops.map(op => `<option value="${op.val}">${op.label}</option>`).join('');
                 },
 
                 applyAdvancedFilter: () => {
-                    const field = app.search.selectedAdvancedField;
-                    const op = app.search.selectedAdvancedOperator;
-                    const fieldLabel = app.search.selectedAdvancedFieldLabel;
-                    const opLabel = app.search.selectedAdvancedOperatorLabel;
-                    
+                    const fieldSelect = document.getElementById('adv-field-select');
+                    const opSelect = document.getElementById('adv-operator-select');
                     const valInput = document.getElementById('adv-filter-value');
-                    const val = valInput ? valInput.value.trim() : '';
+                    
+                    if (!fieldSelect || !opSelect || !valInput) return;
+                    
+                    const field = fieldSelect.value;
+                    const op = opSelect.value;
+                    const val = valInput.value.trim();
                     
                     if (!field || !op || !val) {
                         app.toast.show('error', 'Lỗi', 'Vui lòng điền đầy đủ Trường, Toán tử và Giá trị!');
                         return;
                     }
+                    
+                    const fieldLabel = fieldSelect.options[fieldSelect.selectedIndex].text;
+                    const opLabel = opSelect.options[opSelect.selectedIndex].text;
                     
                     if (app.search.advancedFilters.length >= 15) {
                         app.toast.show('error', 'Lỗi', 'Đã đạt giới hạn tối đa 15 bộ lọc nâng cao.');
@@ -3133,31 +3043,29 @@ Object.assign(window.app, {
                 },
 
                 renderAdvancedFilterChips: () => {
-                    const container = document.getElementById('advanced-filter-chips');
-                    const clearBtn = document.getElementById('btn-clear-advanced-filters');
-                    const addBtn = document.getElementById('btn-add-advanced-filter');
+                    const headerContainer = document.getElementById('header-advanced-modules');
+                    const pageContainer = document.getElementById('page-advanced-modules');
                     
-                    if (!container) return;
-
-                    container.innerHTML = app.search.advancedFilters.map(f => `
-                        <div class="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 border border-gray-200 rounded-md text-xs">
-                            <span class="font-bold text-gray-700">${f.fieldLabel}</span>
-                            <span class="text-gray-500 font-mono text-[10px] bg-white px-1 border border-gray-300 rounded">${f.opLabel}</span>
-                            <span class="font-bold text-blue-700">${app.utils.escapeAttr(f.value)}</span>
+                    const chipsHtml = app.search.advancedFilters.map(f => `
+                        <div class="flex items-center gap-1.5 px-2 md:px-3 py-1 bg-white border border-gray-200 rounded-md text-xs shrink-0 shadow-sm">
+                            <span class="font-bold text-gray-700 whitespace-nowrap">${f.fieldLabel}</span>
+                            <span class="text-gray-500 font-mono text-[10px] bg-gray-50 px-1 border border-gray-100 rounded whitespace-nowrap">${f.opLabel}</span>
+                            <span class="font-bold text-blue-700 whitespace-nowrap">${app.utils.escapeAttr(f.value)}</span>
                             <button onclick="app.search.removeAdvancedFilter('${f.id}')" class="ml-1 text-gray-400 hover:text-red-500"><i class="fa-solid fa-xmark"></i></button>
                         </div>
                     `).join('');
+                    
+                    const addBtnHtml = app.search.advancedFilters.length < 15 ? `
+                        <button onclick="app.search.openAdvancedFilter()" class="shrink-0 text-[11px] md:text-sm font-bold text-gray-500 bg-white border border-gray-200 hover:border-gray-300 hover:text-black rounded px-2 md:px-3 py-1 shadow-sm transition">
+                            + Thêm bộ lọc
+                        </button>
+                    ` : '';
 
-                    if (app.search.advancedFilters.length > 0) {
-                        clearBtn.classList.remove('hidden');
-                    } else {
-                        clearBtn.classList.add('hidden');
+                    if (headerContainer) {
+                        headerContainer.innerHTML = chipsHtml + addBtnHtml;
                     }
-
-                    if (app.search.advancedFilters.length >= 15) {
-                        addBtn.classList.add('hidden');
-                    } else {
-                        addBtn.classList.remove('hidden');
+                    if (pageContainer) {
+                        pageContainer.innerHTML = chipsHtml + addBtnHtml;
                     }
                 },
 
@@ -3246,17 +3154,44 @@ Object.assign(window.app, {
                     document.getElementById('page-search-filter-menu')?.classList.remove('active');
 
                     const pageExact = document.getElementById('exact-route-page-box');
-                    const ctrlK = document.getElementById('page-search-ctrl-k');
+                    const ctrlKHeader = document.getElementById('header-ctrl-k');
+                    const ctrlKPage = document.getElementById('page-search-ctrl-k');
                     
-                    if (type === 'route') {
-                        if (pageExact) pageExact.classList.remove('hidden');
-                        if (ctrlK) ctrlK.classList.add('!hidden');
-                        if (app.utils.provinceData.length > 0) app.search.initExactRouteMenu();
-                    } else {
+                    const headerInput = document.getElementById('search-input');
+                    const pageInput = document.getElementById('page-search-input');
+                    const headerAdv = document.getElementById('header-advanced-modules');
+                    const pageAdv = document.getElementById('page-advanced-modules');
+                    
+                    if (type === 'advanced') {
+                        if (headerInput) headerInput.classList.add('hidden');
+                        if (pageInput) pageInput.classList.add('hidden');
+                        if (ctrlKHeader) ctrlKHeader.classList.add('!hidden');
+                        if (ctrlKPage) ctrlKPage.classList.add('!hidden');
+                        if (headerAdv) headerAdv.classList.remove('hidden');
+                        if (pageAdv) pageAdv.classList.remove('hidden');
                         if (pageExact) pageExact.classList.add('hidden');
-                        if (ctrlK) ctrlK.classList.remove('!hidden');
-                        app.search.currentExactPrefix = ''; 
-                        app.search.syncExactUI('');
+                        
+                        if (app.search.advancedFilters.length === 0) {
+                            app.search.openAdvancedFilter();
+                        }
+                    } else {
+                        if (headerInput) headerInput.classList.remove('hidden');
+                        if (pageInput) pageInput.classList.remove('hidden');
+                        if (headerAdv) headerAdv.classList.add('hidden');
+                        if (pageAdv) pageAdv.classList.add('hidden');
+                        
+                        if (type === 'route') {
+                            if (pageExact) pageExact.classList.remove('hidden');
+                            if (ctrlKHeader) ctrlKHeader.classList.add('!hidden');
+                            if (ctrlKPage) ctrlKPage.classList.add('!hidden');
+                            if (app.utils.provinceData && app.utils.provinceData.length > 0) app.search.initExactRouteMenu();
+                        } else {
+                            if (pageExact) pageExact.classList.add('hidden');
+                            if (ctrlKHeader) ctrlKHeader.classList.remove('!hidden');
+                            if (ctrlKPage) ctrlKPage.classList.remove('!hidden');
+                            app.search.currentExactPrefix = ''; 
+                            app.search.syncExactUI('');
+                        }
                     }
 
                     if (updateUrl && window.location.pathname.includes('/search')) {
