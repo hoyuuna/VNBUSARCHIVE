@@ -6248,10 +6248,15 @@
                     </div>
                 </div>
 
-                <!-- Nút Áp dụng -->
-                <button id="btn-adv-filter-apply" onclick="app.search.applyAdvancedFilter()" class="w-full mt-6 py-3 bg-black text-white text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-gray-800 transition shadow-md">
-                    Thêm vào bộ lọc
-                </button>
+                <!-- Nút Hủy và Áp dụng -->
+                <div class="flex gap-3 mt-6">
+                    <button onclick="app.search.closeAdvancedFilterModal()" class="w-full py-3 bg-white text-gray-700 border border-gray-300 text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-gray-50 transition shadow-sm">
+                        Hủy
+                    </button>
+                    <button id="btn-adv-filter-apply" onclick="app.search.applyAdvancedFilter()" class="w-full py-3 bg-black text-white text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-gray-800 transition shadow-md">
+                        Thêm vào bộ lọc
+                    </button>
+                </div>
             </div>
         </div>
     </div>

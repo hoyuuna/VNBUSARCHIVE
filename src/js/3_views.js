@@ -2926,6 +2926,13 @@ Object.assign(window.app, {
                     const valContainer = document.getElementById('adv-filter-value-container');
                     valContainer.innerHTML = '<input type="text" id="adv-filter-value" placeholder="Nhập giá trị..." class="w-full px-3.5 py-2.5 text-sm font-medium bg-white/90 border border-gray-300 hover:border-black rounded-xl outline-none focus:ring-2 focus:ring-black transition-all shadow-sm disabled:bg-gray-100 disabled:shadow-none text-gray-800" disabled>';
                     
+                    // Reset trạng thái selected cho tất cả các menu trong modal
+                    document.querySelectorAll('#advanced-filter-modal .filter-item').forEach(item => {
+                        item.classList.remove('selected');
+                        const icon = item.querySelector('.check-icon');
+                        if (icon) icon.classList.add('opacity-0');
+                    });
+                    
                     modal.classList.remove('hidden');
                     content.classList.remove('modal-content-leave');
                     content.classList.add('modal-content-enter');
@@ -2948,6 +2955,9 @@ Object.assign(window.app, {
                         modal.classList.add('hidden');
                         content.classList.remove('modal-content-leave');
                         app.ui?.unlockScroll?.();
+                        app.search.editingFilterId = null;
+                        const btn = document.getElementById('btn-adv-filter-apply');
+                        if(btn) btn.innerText = 'Thêm vào bộ lọc';
                     }, 200);
                 },
 
@@ -3084,6 +3094,15 @@ Object.assign(window.app, {
                     };
 
                     app.search.advancedFilters = app.search.advancedFilters || [];
+                    
+                    if (app.search.editingFilterId) {
+                        filterObj.id = app.search.editingFilterId;
+                        app.search.advancedFilters = app.search.advancedFilters.filter(x => x.id !== app.search.editingFilterId);
+                        app.search.editingFilterId = null;
+                        const btn = document.getElementById('btn-adv-filter-apply');
+                        if(btn) btn.innerText = 'Thêm vào bộ lọc';
+                    }
+                    
                     app.search.advancedFilters.push(filterObj);
                     app.currentFilter = 'advanced';
 
@@ -3146,9 +3165,9 @@ Object.assign(window.app, {
                     
                     app.search.openAdvancedFilterModal();
                     
-                    // Xóa filter cũ
-                    app.search.advancedFilters = app.search.advancedFilters.filter(x => x.id !== id);
-                    app.search.renderAdvancedFilterChips();
+                    app.search.editingFilterId = id;
+                    const btn = document.getElementById('btn-adv-filter-apply');
+                    if(btn) btn.innerText = 'Cập nhật';
 
                     const fieldItems = document.querySelectorAll('#adv-field-menu .filter-item');
                     let fieldEl = null;
@@ -3280,6 +3299,10 @@ Object.assign(window.app, {
                         if (ctrlKHeader) ctrlKHeader.classList.add('!hidden');
                         if (ctrlKPage) ctrlKPage.classList.add('!hidden');
                         if (app.utils.provinceData && app.utils.provinceData.length > 0) app.search.initExactRouteMenu();
+                        const hInp = document.getElementById('search-input');
+                        const pInp = document.getElementById('page-search-input');
+                        if(hInp) hInp.placeholder = 'Tìm kiếm...';
+                        if(pInp) pInp.placeholder = 'Tìm kiếm...';
                     } else {
                         if (pageExact) pageExact.classList.add('hidden');
                         if (filter !== 'advanced') {
@@ -3287,12 +3310,20 @@ Object.assign(window.app, {
                             if (ctrlKPage) ctrlKPage.classList.remove('!hidden');
                             app.search.currentExactPrefix = ''; 
                             app.search.syncExactUI('');
+                            const hInp = document.getElementById('search-input');
+                            const pInp = document.getElementById('page-search-input');
+                            if(hInp) hInp.placeholder = 'Tìm kiếm...';
+                            if(pInp) pInp.placeholder = 'Tìm kiếm...';
                         }
                     }
 
                     if (filter === 'advanced') {
                         if (ctrlKHeader) ctrlKHeader.classList.add('!hidden');
                         if (ctrlKPage) ctrlKPage.classList.add('!hidden');
+                        const hInp = document.getElementById('search-input');
+                        const pInp = document.getElementById('page-search-input');
+                        if(hInp) { hInp.placeholder = ''; hInp.value = ''; }
+                        if(pInp) { pInp.placeholder = ''; pInp.value = ''; }
                     }
 
                     // Chỉ mở popup nếu người dùng CHỦ ĐỘNG bấm chọn "Nâng cao" và CHƯA CÓ bộ lọc nào
