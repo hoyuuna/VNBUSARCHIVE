@@ -6208,35 +6208,43 @@
             <div class="space-y-4">
                 <!-- Chọn Trường (Field) -->
                 <div class="relative w-full">
-                    <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5" for="adv-field-select">1. Chọn trường dữ liệu</label>
-                    <select id="adv-field-select" onchange="app.search.onAdvancedFieldChange()" class="w-full px-3.5 py-2.5 text-sm font-medium bg-white/90 border border-gray-300 hover:border-black rounded-xl outline-none focus:ring-2 focus:ring-black transition-all shadow-sm text-gray-800 cursor-pointer">
-                        <option value="" disabled selected>-- Chọn trường --</option>
-                        <option value="license_plate">Biển kiểm soát</option>
-                        <option value="route_no">Mã số tuyến</option>
-                        <option value="operator">Đơn vị vận hành</option>
-                        <option value="model">Dòng xe</option>
-                        <option value="location">Vị trí chụp</option>
-                        <option value="type">Loại xe</option>
-                        <option value="province">Tuyến của tỉnh</option>
-                        <option value="camera_model">Thiết bị chụp</option>
-                        <option value="taken_at">Ngày chụp</option>
-                        <option value="uploader">Người đăng</option>
-                    </select>
+                    <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">1. Chọn trường dữ liệu</label>
+                    <input type="hidden" id="adv-field-select" value="">
+                    <button type="button" id="adv-field-btn" onclick="document.getElementById('adv-field-menu').classList.toggle('active')" class="w-full flex items-center justify-between bg-white/90 border border-gray-300 hover:border-black rounded-xl p-3.5 text-sm font-medium text-gray-800 transition-all shadow-sm focus:ring-2 focus:ring-black outline-none">
+                        <span id="adv-field-label" class="truncate pr-4">-- Chọn trường --</span>
+                        <i class="fa-solid fa-chevron-down text-gray-400 shrink-0"></i>
+                    </button>
+                    <div id="adv-field-menu" class="filter-menu left-0 right-0 origin-top mt-2 !max-h-[250px] !z-[999]" style="width: 100% !important;">
+                        <div class="filter-item" onclick="app.search.selectAdvField('license_plate', 'Biển kiểm soát')"><span class="font-bold">Biển kiểm soát</span></div>
+                        <div class="filter-item" onclick="app.search.selectAdvField('route_no', 'Mã số tuyến')"><span class="font-bold">Mã số tuyến</span></div>
+                        <div class="filter-item" onclick="app.search.selectAdvField('operator', 'Đơn vị vận hành')"><span class="font-bold">Đơn vị vận hành</span></div>
+                        <div class="filter-item" onclick="app.search.selectAdvField('model', 'Dòng xe')"><span class="font-bold">Dòng xe</span></div>
+                        <div class="filter-item" onclick="app.search.selectAdvField('location', 'Vị trí chụp')"><span class="font-bold">Vị trí chụp</span></div>
+                        <div class="filter-item" onclick="app.search.selectAdvField('type', 'Loại xe')"><span class="font-bold">Loại xe</span></div>
+                        <div class="filter-item" onclick="app.search.selectAdvField('province', 'Tuyến của tỉnh')"><span class="font-bold">Tuyến của tỉnh</span></div>
+                        <div class="filter-item" onclick="app.search.selectAdvField('camera_model', 'Thiết bị chụp')"><span class="font-bold">Thiết bị chụp</span></div>
+                        <div class="filter-item" onclick="app.search.selectAdvField('taken_at', 'Ngày chụp')"><span class="font-bold">Ngày chụp</span></div>
+                        <div class="filter-item" onclick="app.search.selectAdvField('uploader', 'Người đăng')"><span class="font-bold">Người đăng</span></div>
+                    </div>
                 </div>
 
                 <!-- Chọn Toán tử (Operator) -->
                 <div class="relative w-full">
-                    <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5" for="adv-operator-select">2. Điều kiện so sánh</label>
-                    <select id="adv-operator-select" class="w-full px-3.5 py-2.5 text-sm font-medium bg-white/90 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-black transition-all shadow-sm text-gray-800 cursor-pointer disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed hover:border-black" disabled>
-                        <option value="" disabled selected>-- Chọn điều kiện --</option>
-                    </select>
+                    <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">2. Điều kiện so sánh</label>
+                    <input type="hidden" id="adv-operator-select" value="">
+                    <button type="button" id="adv-operator-btn" onclick="if(!this.disabled) document.getElementById('adv-operator-menu').classList.toggle('active')" class="w-full flex items-center justify-between bg-white/90 border border-gray-300 rounded-xl p-3.5 text-sm font-medium text-gray-800 transition-all shadow-sm focus:ring-2 focus:ring-black outline-none disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed disabled:hover:border-gray-300 hover:border-black" disabled>
+                        <span id="adv-operator-label" class="truncate pr-4">-- Chọn điều kiện --</span>
+                        <i class="fa-solid fa-chevron-down text-gray-400 shrink-0"></i>
+                    </button>
+                    <div id="adv-operator-menu" class="filter-menu left-0 right-0 origin-top mt-2 !max-h-[250px] !z-[999]" style="width: 100% !important;">
+                    </div>
                 </div>
 
                 <!-- Nhập Giá trị (Value) -->
                 <div class="relative">
-                    <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5" for="adv-filter-value">3. Giá trị cần lọc</label>
+                    <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">3. Giá trị cần lọc</label>
                     <div id="adv-filter-value-container">
-                        <input type="text" id="adv-filter-value" placeholder="Nhập giá trị..." class="w-full px-3.5 py-2.5 text-sm font-medium bg-white/90 border border-gray-300 hover:border-black rounded-xl outline-none focus:ring-2 focus:ring-black transition-all shadow-sm disabled:bg-gray-100 disabled:shadow-none text-gray-800">
+                        <input type="text" id="adv-filter-value" placeholder="Nhập giá trị..." class="w-full px-3.5 py-2.5 text-sm font-medium bg-white/90 border border-gray-300 rounded-xl outline-none shadow-sm disabled:bg-gray-100 disabled:shadow-none text-gray-800" disabled>
                     </div>
                 </div>
 
