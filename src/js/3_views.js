@@ -2916,6 +2916,11 @@ Object.assign(window.app, {
                     const content = document.getElementById('advanced-filter-content');
                     if (!modal || !content) return;
                     
+                    if (!app.search.editingFilterId) {
+                        const btn = document.getElementById('btn-adv-filter-apply');
+                        if(btn) btn.innerText = 'Thêm vào bộ lọc';
+                    }
+                    
                     document.getElementById('adv-field-select').value = '';
                     document.getElementById('adv-field-label').innerText = '-- Chọn trường --';
                     
@@ -2924,7 +2929,10 @@ Object.assign(window.app, {
                     document.getElementById('adv-operator-btn').disabled = true;
                     
                     const valContainer = document.getElementById('adv-filter-value-container');
-                    valContainer.innerHTML = '<input type="text" id="adv-filter-value" placeholder="Nhập giá trị..." class="w-full bg-white border border-gray-300 hover:border-black rounded-xl p-3.5 text-sm font-bold text-gray-700 transition-all shadow-sm focus:ring-2 focus:ring-black outline-none disabled:bg-gray-100 disabled:shadow-none disabled:cursor-not-allowed disabled:hover:border-gray-300 disabled:font-medium disabled:text-gray-400" disabled>';
+                    valContainer.innerHTML = '<input type="text" id="adv-filter-value" placeholder="Nhập giá trị..." autocomplete="off" value="" class="w-full bg-white border border-gray-300 hover:border-black rounded-xl p-3.5 text-sm font-bold text-gray-700 transition-all shadow-sm focus:ring-2 focus:ring-black outline-none disabled:bg-gray-100 disabled:shadow-none disabled:cursor-not-allowed disabled:hover:border-gray-300 disabled:font-medium disabled:text-gray-400" disabled>';
+                    
+                    const valInp = document.getElementById('adv-filter-value');
+                    if (valInp) valInp.value = '';
                     
                     // Reset trạng thái selected cho tất cả các menu trong modal
                     document.querySelectorAll('#advanced-filter-modal .filter-item').forEach(item => {
