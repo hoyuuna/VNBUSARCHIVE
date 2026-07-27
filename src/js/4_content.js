@@ -3106,6 +3106,31 @@ Object.assign(window.app, {
         },
 
         toggleRuler: () => {
+            const willEnable = !app.crop.isRulerEnabled;
+            if (willEnable && !localStorage.getItem('vnbus_ruler_guide_shown')) {
+                app.ui.showAlert(
+                    `<div class="text-left">
+                        <p class="text-sm text-gray-700 mb-2">Xác định 2 điểm xa nhất ngoài cùng bên trái và bên phải của xe (mép xe có thể là bất kỳ bộ phận nào, không tính gương chiếu hậu).</p>
+                        <p class="text-sm text-gray-700 mb-2">Xe được coi là căn giữa chuẩn khi khoảng cách từ mép trái và mép phải của xe đến vạch tâm (0) là tương đương nhau.</p>
+                        <p class="text-sm font-bold text-gray-800 mt-3 mb-1">Lưu ý:</p>
+                        <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1 mb-4">
+                            <li><b>Gương chiếu hậu:</b> Dù không tính vào điểm căn mép xe, nhưng gương chiếu hậu vẫn phải hiển thị đầy đủ trong khung hình, không bị cắt mất.</li>
+                            <li><b>Khoảng cách:</b> Đảm bảo tổng thể xe không quá gần hoặc quá xa khung hình, góc chụp rõ ràng và thẩm mỹ.</li>
+                        </ul>
+                        <p class="text-[11px] font-bold text-red-500 uppercase">HƯỚNG DẪN NÀY CHỈ XUẤT HIỆN 1 LẦN</p>
+                    </div>`,
+                    () => {
+                        localStorage.setItem('vnbus_ruler_guide_shown', 'true');
+                        app.crop.isRulerEnabled = true;
+                        localStorage.setItem('cropRulerEnabled', true);
+                        app.crop.updateRulerUI();
+                    },
+                    null,
+                    { title: "Hướng dẫn sử dụng thước ngang", btnOkText: "Đồng ý", iconHtml: '<i class="fa-solid fa-ruler-horizontal text-xl text-black"></i>' }
+                );
+                return;
+            }
+
             app.crop.isRulerEnabled = !app.crop.isRulerEnabled;
             localStorage.setItem('cropRulerEnabled', app.crop.isRulerEnabled);
             app.crop.updateRulerUI();
