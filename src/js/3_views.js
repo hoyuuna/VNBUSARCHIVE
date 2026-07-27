@@ -2891,6 +2891,244 @@ Object.assign(window.app, {
 
 Object.assign(window.app, {
   search: {
+                advancedFilters: [],
+                
+                toggleAdvancedFilterPopover: () => {
+                    const popover = document.getElementById('advanced-filter-popover');
+                    if (popover.classList.contains('hidden')) {
+                        if (app.search.advancedFilters.length >= 15) {
+                            app.ui.showAlert("Đã đạt giới hạn tối đa 15 bộ lọc nâng cao.");
+                            return;
+                        }
+                        popover.classList.remove('hidden');
+                        setTimeout(() => {
+                            popover.classList.remove('opacity-0', 'scale-95');
+                            popover.classList.add('opacity-100', 'scale-100');
+                        }, 10);
+                        document.getElementById('adv-filter-field').value = '';
+                        document.getElementById('adv-filter-operator').innerHTML = '<option value="" disabled selected>-- Chọn toán tử --</option>';
+                        document.getElementById('adv-filter-operator').disabled = true;
+                        document.getElementById('adv-filter-value').value = '';
+                        document.getElementById('adv-filter-value').disabled = true;
+                        document.getElementById('adv-filter-suggestions').classList.add('hidden');
+                    } else {
+                        app.search.closeAdvancedFilterPopover();
+                    }
+                },
+                
+                closeAdvancedFilterPopover: () => {
+                    const popover = document.getElementById('advanced-filter-popover');
+                    popover.classList.remove('opacity-100', 'scale-100');
+                    popover.classList.add('opacity-0', 'scale-95');
+                    setTimeout(() => {
+                        popover.classList.add('hidden');
+                    }, 200);
+                },
+
+                onAdvancedFieldChange: () => {
+                    const field = document.getElementById('adv-filter-field').value;
+                    const operatorSelect = document.getElementById('adv-filter-operator');
+                    
+                    operatorSelect.disabled = false;
+                    document.getElementById('adv-filter-suggestions').classList.add('hidden');
+                    
+                    const valueContainer = document.getElementById('adv-filter-value-container');
+                    
+                    if (field === 'type') {
+                        valueContainer.innerHTML = `
+                            <select id="adv-filter-value" class="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-md outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400 transition-shadow appearance-none cursor-pointer">
+                                <option value="bus">Xe buýt (bus)</option>
+                                <option value="coach">Xe khách (coach)</option>
+                            </select>
+                        `;
+                    } else if (field === 'taken_at') {
+                        valueContainer.innerHTML = `
+                            <input type="date" id="adv-filter-value" class="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-md outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400 transition-shadow">
+                        `;
+                    } else if (field === 'province') {
+                        let opts = (app.utils.provinceData || []).map(p => {
+                            const prefix = Array.isArray(p.ky_hieu) ? p.ky_hieu[0] : p.ky_hieu.split(',')[0];
+                            return `<option value="${prefix}">${p.ten}</option>`;
+                        }).join('');
+                        valueContainer.innerHTML = `
+                            <select id="adv-filter-value" class="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-md outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400 transition-shadow appearance-none cursor-pointer">
+                                ${opts}
+                            </select>
+                        `;
+                    } else {
+                        valueContainer.innerHTML = `
+                            <input type="text" id="adv-filter-value" oninput="app.search.onAdvancedValueInput()" autocomplete="off" placeholder="Nhập giá trị..." class="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-md outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400 transition-shadow">
+                        `;
+                    }
+                    
+                    let ops = [];
+                    if (['license_plate', 'route_no', 'operator', 'model', 'uploader'].includes(field)) {
+                        ops = [
+                            { val: 'eq', label: '= Bằng' },
+                            { val: 'neq', label: '≠ Khác' },
+                            { val: 'ilike', label: 'Chứa (Bao gồm)' },
+                            { val: 'not_ilike', label: 'Không chứa' }
+                        ];
+                    } else if (['location', 'camera_model'].includes(field)) {
+                        ops = [
+                            { val: 'ilike', label: 'Chứa (Bao gồm)' },
+                            { val: 'not_ilike', label: 'Không chứa' }
+                        ];
+                    } else if (['type', 'province'].includes(field)) {
+                        ops = [
+                            { val: 'eq', label: '= Bằng' },
+                            { val: 'neq', label: '≠ Khác' }
+                        ];
+                    } else if (field === 'taken_at') {
+                        ops = [
+                            { val: 'eq', label: '= Đúng ngày' },
+                            { val: 'gt', label: '> Sau ngày' },
+                            { val: 'gte', label: '≥ Từ ngày' },
+                            { val: 'lt', label: '< Trước ngày' },
+                            { val: 'lte', label: '≤ Đến ngày' }
+                        ];
+                    }
+
+                    operatorSelect.innerHTML = ops.map(op => `<option value="${op.val}">${op.label}</option>`).join('');
+                },
+
+                advFilterDebounceTimeout: null,
+
+                onAdvancedValueInput: () => {
+                    const field = document.getElementById('adv-filter-field').value;
+                    const valEl = document.getElementById('adv-filter-value');
+                    if (!valEl) return;
+                    const val = valEl.value.trim();
+                    const sugBox = document.getElementById('adv-filter-suggestions');
+                    
+                    if (!['operator', 'model', 'route_no', 'license_plate', 'uploader', 'camera_model'].includes(field)) {
+                        sugBox.classList.add('hidden');
+                        return;
+                    }
+                    
+                    if (val.length < 2) {
+                        sugBox.classList.add('hidden');
+                        return;
+                    }
+
+                    if (app.search.advFilterDebounceTimeout) clearTimeout(app.search.advFilterDebounceTimeout);
+                    
+                    app.search.advFilterDebounceTimeout = setTimeout(async () => {
+                        sugBox.innerHTML = '<div class="px-3 py-2 text-xs text-gray-500"><i class="fa-solid fa-spinner fa-spin"></i> Đang tìm kiếm...</div>';
+                        sugBox.classList.remove('hidden');
+                        
+                        try {
+                            let results = [];
+                            if (field === 'uploader') {
+                                const { data } = await window.sb.from('profiles').select('username').ilike('username', `%${val}%`).limit(10);
+                                if (data) results = data.map(d => d.username);
+                            } else if (field === 'model' || field === 'license_plate') {
+                                const { data } = await window.sb.from('vehicles').select(field).ilike(field, `%${val}%`).limit(10);
+                                if (data) results = data.map(d => d[field]);
+                            } else {
+                                // operator, route_no, camera_model
+                                const { data } = await window.sb.from('photos').select(field).ilike(field, `%${val}%`).eq('status', 'approved').limit(10);
+                                if (data) results = data.map(d => d[field]);
+                            }
+                            
+                            // Remove duplicates
+                            results = [...new Set(results)].filter(Boolean);
+                            
+                            if (results.length === 0) {
+                                sugBox.innerHTML = '<div class="px-3 py-2 text-xs text-gray-500">Không có kết quả.</div>';
+                            } else {
+                                sugBox.innerHTML = results.map(r => `
+                                    <div class="px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer transition text-black font-medium border-b border-gray-100 last:border-b-0" onclick="document.getElementById('adv-filter-value').value = '${app.utils.escapeAttr(r)}'; document.getElementById('adv-filter-suggestions').classList.add('hidden');">
+                                        ${app.utils.escapeAttr(r)}
+                                    </div>
+                                `).join('');
+                            }
+                        } catch (err) {
+                            sugBox.classList.add('hidden');
+                        }
+                    }, 300);
+                },
+
+                applyAdvancedFilter: () => {
+                    const fieldSelect = document.getElementById('adv-filter-field');
+                    const opSelect = document.getElementById('adv-filter-operator');
+                    const valInput = document.getElementById('adv-filter-value');
+                    
+                    const field = fieldSelect.value;
+                    const op = opSelect.value;
+                    const val = valInput.value.trim();
+                    
+                    if (!field || !op || !val) {
+                        app.toast.show('error', 'Lỗi', 'Vui lòng điền đầy đủ Trường, Toán tử và Giá trị!');
+                        return;
+                    }
+                    
+                    if (app.search.advancedFilters.length >= 15) {
+                        app.toast.show('error', 'Lỗi', 'Đã đạt giới hạn tối đa 15 bộ lọc nâng cao.');
+                        return;
+                    }
+
+                    const id = Date.now().toString() + Math.random().toString(36).substring(2, 5);
+                    const fieldLabel = fieldSelect.options[fieldSelect.selectedIndex].text;
+                    const opLabel = opSelect.options[opSelect.selectedIndex].text;
+                    
+                    app.search.advancedFilters.push({
+                        id, field, fieldLabel, op, opLabel, value: val
+                    });
+
+                    app.search.closeAdvancedFilterPopover();
+                    app.search.renderAdvancedFilterChips();
+                    
+                    if (window.location.pathname.includes('/search')) {
+                        app.handleSearch(true);
+                    }
+                },
+
+                removeAdvancedFilter: (id) => {
+                    app.search.advancedFilters = app.search.advancedFilters.filter(f => f.id !== id);
+                    app.search.renderAdvancedFilterChips();
+                    if (window.location.pathname.includes('/search')) {
+                        app.handleSearch(true);
+                    }
+                },
+
+                clearAdvancedFilters: () => {
+                    app.search.advancedFilters = [];
+                    app.search.renderAdvancedFilterChips();
+                    if (window.location.pathname.includes('/search')) {
+                        app.handleSearch(true);
+                    }
+                },
+
+                renderAdvancedFilterChips: () => {
+                    const container = document.getElementById('advanced-filter-chips');
+                    const clearBtn = document.getElementById('btn-clear-advanced-filters');
+                    const addBtn = document.getElementById('btn-add-advanced-filter');
+                    
+                    if (!container) return;
+
+                    container.innerHTML = app.search.advancedFilters.map(f => `
+                        <div class="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 border border-gray-200 rounded-md text-xs">
+                            <span class="font-bold text-gray-700">${f.fieldLabel}</span>
+                            <span class="text-gray-500 font-mono text-[10px] bg-white px-1 border border-gray-300 rounded">${f.opLabel}</span>
+                            <span class="font-bold text-blue-700">${app.utils.escapeAttr(f.value)}</span>
+                            <button onclick="app.search.removeAdvancedFilter('${f.id}')" class="ml-1 text-gray-400 hover:text-red-500"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                    `).join('');
+
+                    if (app.search.advancedFilters.length > 0) {
+                        clearBtn.classList.remove('hidden');
+                    } else {
+                        clearBtn.classList.add('hidden');
+                    }
+
+                    if (app.search.advancedFilters.length >= 15) {
+                        addBtn.classList.add('hidden');
+                    } else {
+                        addBtn.classList.remove('hidden');
+                    }
+                },
+
                 currentExactPrefix: '', 
                 
                 initExactRouteMenu: () => {

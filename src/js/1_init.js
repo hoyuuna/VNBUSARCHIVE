@@ -3328,7 +3328,34 @@ Object.assign(window.app, {
                         app.search.syncExactUI(searchParams.get('prefix') || '');
                     }
 
-                    if (q) {
+                    // Decode &f= params
+                    const fParams = searchParams.getAll('f');
+                    if (fParams && fParams.length > 0) {
+                        app.search.advancedFilters = fParams.map(fp => {
+                            const parts = decodeURIComponent(fp).split(':');
+                            if (parts.length === 3) {
+                                let fieldLabel = parts[0];
+                                let opLabel = parts[1];
+                                
+                                // Temporary fallback labels
+                                const fMap = { 'license_plate': 'Biển kiểm soát', 'route_no': 'Mã số tuyến', 'operator': 'Đơn vị vận hành', 'model': 'Dòng xe', 'location': 'Vị trí chụp', 'type': 'Loại xe', 'province': 'Tuyến của tỉnh', 'camera_model': 'Thiết bị chụp', 'taken_at': 'Ngày chụp', 'uploader': 'Người đăng' };
+                                const opMap = { 'eq': '= Bằng', 'neq': '≠ Khác', 'ilike': 'Chứa (Bao gồm)', 'not_ilike': 'Không chứa', 'gt': '> Sau ngày', 'gte': '≥ Từ ngày', 'lt': '< Trước ngày', 'lte': '≤ Đến ngày' };
+                                
+                                return {
+                                    id: Date.now().toString() + Math.random().toString(36).substring(2, 5),
+                                    field: parts[0],
+                                    fieldLabel: fMap[parts[0]] || parts[0],
+                                    op: parts[1],
+                                    opLabel: opMap[parts[1]] || parts[1],
+                                    value: parts[2]
+                                };
+                            }
+                            return null;
+                        }).filter(Boolean);
+                    } else {
+                        app.search.advancedFilters = [];
+                    }
+                    app.search.renderAdvancedFilterChips();                    if (q) {
                         const decodedQ = decodeURIComponent(q);
                         const headerInp = document.getElementById('search-input');
                         const pageInp = document.getElementById('page-search-input');
@@ -4299,14 +4326,25 @@ Object.assign(window.app, {
 
                 const currentUrlPrefix = currentParams.get('prefix') || '';
 
-                if (!window.location.pathname.includes('/search') || currentParams.get('q') !== query || filterFromUrl !== filterType || currentUrlPrefix !== prefixToUrl) {
+                // Advanced Search Logic (URL check)
+                const currentFiltersUrlStr = currentParams.getAll('f').join('|');
+                const advancedFiltersStr = (app.search.advancedFilters || []).map(f => `${f.field}:${f.op}:${f.value}`).join('|');
+
+                if (!window.location.pathname.includes('/search') || currentParams.get('q') !== query || filterFromUrl !== filterType || currentUrlPrefix !== prefixToUrl || currentFiltersUrlStr !== advancedFiltersStr) {
                     let url = `/search?q=${encodeURIComponent(query)}&filter=${filterType}`;
                     if (prefixToUrl) url += `&prefix=${encodeURIComponent(prefixToUrl)}`;
+                    
+                    if (app.search.advancedFilters && app.search.advancedFilters.length > 0) {
+                        app.search.advancedFilters.forEach(f => {
+                            url += `&f=${encodeURIComponent(`${f.field}:${f.op}:${f.value}`)}`;
+                        });
+                    }
+                    
                     app.utils.navigate(url);
                     return;
                 }
 
-                if (app.lastSearchQuery === query && app.lastSearchFilter === filterType && app.lastSearchPrefix === prefixToUrl && !forceRefresh) {
+                if (app.lastSearchQuery === query && app.lastSearchFilter === filterType && app.lastSearchPrefix === prefixToUrl && app.lastAdvancedFiltersStr === advancedFiltersStr && !forceRefresh) {
                     app.views.switch('search', false);
                     app.loadingBar.finish();
                     return;
@@ -4314,6 +4352,7 @@ Object.assign(window.app, {
                 app.lastSearchQuery = query;
                 app.lastSearchFilter = filterType;
                 app.lastSearchPrefix = prefixToUrl;
+                app.lastAdvancedFiltersStr = advancedFiltersStr;
                 
                 const currentSearchToken = Date.now();
                 app.searchToken = currentSearchToken;
@@ -4589,8 +4628,12 @@ Object.assign(window.app, {
 
 
                     // ================= TÌM KIẾM ẢNH CHÍNH =================
-                    const profileSelect = (filterType === 'uploader') ? 'profiles!inner(id, username, role, subroles, ban_status)' : 'profiles(id, username, role, subroles, ban_status)';
-                        let photoQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, ${profileSelect}, vehicles${filterType === 'model' ? '!inner' : ''}(model)`, { count: 'exact' }).eq('status', 'approved');
+                    let needsModelJoin = filterType === 'model' || (app.search.advancedFilters || []).some(f => f.field === 'model');
+                    let profileSelect = (filterType === 'uploader' || (app.search.advancedFilters || []).some(f => f.field === 'uploader')) 
+                        ? 'profiles!inner(id, username, role, subroles, ban_status)' 
+                        : 'profiles(id, username, role, subroles, ban_status)';
+                    
+                    let photoQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, ${profileSelect}, vehicles${needsModelJoin ? '!inner' : ''}(model)`, { count: 'exact' }).eq('status', 'approved');
                     photoQuery = app.preference.applyFilter(photoQuery);
 
                     if (filterType === 'route') {
@@ -4660,6 +4703,24 @@ Object.assign(window.app, {
                             if (uploaderIds.length > 0) orConditions.push(`uploader_id.in.(${uploaderIds.join(',')})`);
                             
                             photoQuery = photoQuery.or(orConditions.join(','));
+                        });
+                    }
+
+                    // ADVANCED FILTERS APPLY
+                    if (app.search.advancedFilters && app.search.advancedFilters.length > 0) {
+                        app.search.advancedFilters.forEach(f => {
+                            let fld = f.field;
+                            if (fld === 'uploader') fld = 'profiles.username';
+                            else if (fld === 'model') fld = 'vehicles.model';
+                            
+                            if (f.op === 'eq') photoQuery = photoQuery.eq(fld, f.value);
+                            else if (f.op === 'neq') photoQuery = photoQuery.neq(fld, f.value);
+                            else if (f.op === 'ilike') photoQuery = photoQuery.ilike(fld, `%${f.value}%`);
+                            else if (f.op === 'not_ilike') photoQuery = photoQuery.not('ilike', fld, `%${f.value}%`);
+                            else if (f.op === 'gt') photoQuery = photoQuery.gt(fld, f.value);
+                            else if (f.op === 'gte') photoQuery = photoQuery.gte(fld, f.value);
+                            else if (f.op === 'lt') photoQuery = photoQuery.lt(fld, f.value);
+                            else if (f.op === 'lte') photoQuery = photoQuery.lte(fld, f.value);
                         });
                     }
 
