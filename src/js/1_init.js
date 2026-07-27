@@ -3326,7 +3326,6 @@ Object.assign(window.app, {
                     const q = searchParams.get('q');
                     let filter = searchParams.get('filter') || 'all';
 
-                    // Nếu gặp URL format cũ (còn lưu lại) thì ép chuyển qua chuẩn mới
                     if (filter === 'absolute_route') filter = 'route'; 
 
                     app.search.setFilter(filter, false);
@@ -3334,46 +3333,54 @@ Object.assign(window.app, {
                         app.search.syncExactUI(searchParams.get('prefix') || '');
                     }
 
-                    // Decode &f= params
+                    // Decode &f= params (Giải mã tham số bộ lọc nâng cao từ URL)
                     const fParams = searchParams.getAll('f');
                     if (fParams && fParams.length > 0) {
                         app.search.advancedFilters = fParams.map(fp => {
                             const parts = decodeURIComponent(fp).split(':');
                             if (parts.length === 3) {
-                                let fieldLabel = parts[0];
-                                let opLabel = parts[1];
+                                const fMap = app.search.FIELD_CONFIGS || {};
+                                const fieldCfg = fMap[parts[0]] || { label: parts[0] };
                                 
-                                // Temporary fallback labels
-                                const fMap = { 'license_plate': 'Biển kiểm soát', 'route_no': 'Mã số tuyến', 'operator': 'Đơn vị vận hành', 'model': 'Dòng xe', 'location': 'Vị trí chụp', 'type': 'Loại xe', 'province': 'Tuyến của tỉnh', 'camera_model': 'Thiết bị chụp', 'taken_at': 'Ngày chụp', 'uploader': 'Người đăng' };
-                                const opMap = { 'eq': '= Bằng', 'neq': '≠ Khác', 'ilike': 'Chứa (Bao gồm)', 'not_ilike': 'Không chứa', 'gt': '> Sau ngày', 'gte': '≥ Từ ngày', 'lt': '< Trước ngày', 'lte': '≤ Đến ngày' };
+                                const opMap = { 'eq': '= Bằng', 'neq': '≠ Khác', 'ilike': 'Chứa', 'not_ilike': 'Không chứa', 'gt': '> Sau', 'gte': '≥ Từ', 'lt': '< Trước', 'lte': '≤ Đến' };
                                 
+                                let valDisplay = parts[2];
+                                if (parts[0] === 'type') valDisplay = parts[2] === 'bus' ? 'Xe Buýt' : 'Xe Khách';
+
                                 return {
                                     id: Date.now().toString() + Math.random().toString(36).substring(2, 5),
                                     field: parts[0],
-                                    fieldLabel: fMap[parts[0]] || parts[0],
+                                    fieldLabel: fieldCfg.label || parts[0],
                                     op: parts[1],
                                     opLabel: opMap[parts[1]] || parts[1],
-                                    value: parts[2]
+                                    value: parts[2],
+                                    displayVal: valDisplay
                                 };
                             }
                             return null;
                         }).filter(Boolean);
-                    } else {
+                    } else if (filter !== 'advanced') {
                         app.search.advancedFilters = [];
                     }
-                    if (typeof app.search.renderAdvancedFilterChips === 'function') {
-                        app.search.renderAdvancedFilterChips();
-                    }
 
-                    if (q) {
-                        const decodedQ = decodeURIComponent(q);
+                    // FIX SỰ CỐ: Nếu có từ khóa Q HOẶC có Bộ Lọc Nâng Cao -> BẮT BUỘC chuyển sang giao diện Search
+                    const hasAdvanced = filter === 'advanced' || (fParams && fParams.length > 0) || (app.search.advancedFilters && app.search.advancedFilters.length > 0);
+                    
+                    if (q !== null || hasAdvanced || searchParams.has('q')) {
+                        const decodedQ = q ? decodeURIComponent(q) : '';
                         const headerInp = document.getElementById('search-input');
                         const pageInp = document.getElementById('page-search-input');
                         if (headerInp) headerInp.value = decodedQ;
                         if (pageInp) pageInp.value = decodedQ;
-                        app.views.switch('search', false);
+                        
+                        app.views.switch('search', false); // ÉP MỞ TRANG SEARCH
+                        if (typeof app.search.renderAdvancedFilterChips === 'function') {
+                            app.search.renderAdvancedFilterChips();
+                        }
                         app.handleSearch(false);
-                    } else app.views.loadHome();
+                    } else {
+                        app.views.loadHome();
+                    }
                 } else {
                     app.views.switch('home', false);
                     app.views.loadHome();

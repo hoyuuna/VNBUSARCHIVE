@@ -3000,6 +3000,7 @@ Object.assign(window.app, {
                     app.search.renderAdvancedFilterChips();
                     app.search.closeAdvancedFilterModal();
 
+                    app.views.switch('search', false);
                     app.handleSearch(true, 'page-search-input');
                 },
 
