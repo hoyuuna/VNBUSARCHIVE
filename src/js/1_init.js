@@ -4899,6 +4899,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let lastScrollY = window.scrollY;
     let lastScrollDirection = 'up';
+    let isHoveringHeaderArea = false;
     const threshold = 200; 
 
     const checkHeaderState = () => {
@@ -4912,7 +4913,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const searchSuggestions = document.getElementById('main-search-suggestions');
         const isSuggestionsOpen = searchSuggestions && searchSuggestions.classList.contains('active');
 
-        if (isSearchFocused || isUserMenuOpen || isFilterMenuOpen || isSuggestionsOpen) {
+        if (isSearchFocused || isUserMenuOpen || isFilterMenuOpen || isSuggestionsOpen || isHoveringHeaderArea) {
             header.style.transform = 'translateY(0)';
             return;
         }
@@ -4949,5 +4950,28 @@ document.addEventListener('DOMContentLoaded', () => {
     // Also bind to focusout in case keyboard navigation is used
     document.addEventListener('focusout', () => {
         setTimeout(checkHeaderState, 50);
+    });
+
+    // Handle mouse hover over the top area of the screen
+    document.addEventListener('mousemove', (e) => {
+        const wasHovering = isHoveringHeaderArea;
+        // 90px is roughly the height of the header + padding
+        if (e.clientY <= 90) {
+            isHoveringHeaderArea = true;
+        } else {
+            isHoveringHeaderArea = false;
+        }
+
+        if (wasHovering !== isHoveringHeaderArea) {
+            checkHeaderState();
+        }
+    });
+
+    // Handle mouse leaving the window completely
+    document.addEventListener('mouseleave', () => {
+        if (isHoveringHeaderArea) {
+            isHoveringHeaderArea = false;
+            checkHeaderState();
+        }
     });
 });
