@@ -2893,206 +2893,180 @@ Object.assign(window.app, {
   search: {
                 advancedFilters: [],
                 
-                selectedAdvancedField: null,
-                selectedAdvancedFieldLabel: null,
-                selectedAdvancedOperator: null,
-                selectedAdvancedOperatorLabel: null,
+                FIELD_CONFIGS: {
+                    'license_plate': { label: 'Biển kiểm soát', type: 'text', ops: [{v:'ilike', l:'Chứa (Bao gồm)'}, {v:'eq', l:'= Bằng chính xác'}, {v:'neq', l:'≠ Khác'}, {v:'not_ilike', l:'Không chứa'}] },
+                    'route_no':     { label: 'Mã số tuyến',   type: 'text', ops: [{v:'ilike', l:'Chứa (Bao gồm)'}, {v:'eq', l:'= Bằng chính xác'}, {v:'neq', l:'≠ Khác'}] },
+                    'operator':     { label: 'Đơn vị vận hành', type: 'text', ops: [{v:'ilike', l:'Chứa (Bao gồm)'}, {v:'eq', l:'= Bằng chính xác'}, {v:'neq', l:'≠ Khác'}] },
+                    'model':        { label: 'Dòng xe',        type: 'text', ops: [{v:'ilike', l:'Chứa (Bao gồm)'}, {v:'eq', l:'= Bằng chính xác'}, {v:'neq', l:'≠ Khác'}] },
+                    'location':     { label: 'Vị trí chụp',    type: 'text', ops: [{v:'ilike', l:'Chứa (Bao gồm)'}, {v:'not_ilike', l:'Không chứa'}] },
+                    'type':         { label: 'Loại xe',        type: 'select_type', ops: [{v:'eq', l:'= Bằng chính xác'}, {v:'neq', l:'≠ Khác'}] },
+                    'province':     { label: 'Tuyến của tỉnh', type: 'select_province', ops: [{v:'eq', l:'= Bằng chính xác'}, {v:'neq', l:'≠ Khác'}] },
+                    'camera_model': { label: 'Thiết bị chụp',  type: 'text', ops: [{v:'ilike', l:'Chứa (Bao gồm)'}] },
+                    'taken_at':     { label: 'Ngày chụp',      type: 'date', ops: [{v:'eq', l:'= Đúng ngày'}, {v:'gt', l:'> Sau ngày'}, {v:'gte', l:'≥ Từ ngày'}, {v:'lt', l:'< Trước ngày'}, {v:'lte', l:'≤ Đến ngày'}] },
+                    'uploader':     { label: 'Người đăng',     type: 'text', ops: [{v:'ilike', l:'Chứa (Bao gồm)'}, {v:'eq', l:'= Bằng chính xác'}] }
+                },
 
-                openAdvancedFilter: () => {
-                    const modal = document.getElementById('advanced-filter-modal');
+                openAdvancedFilterModal: () => {
                     if (app.search.advancedFilters.length >= 15) {
-                        app.ui.showAlert("Đã đạt giới hạn tối đa 15 bộ lọc nâng cao.");
+                        if (app.toast) app.toast.show('error', 'Giới hạn', 'Bạn chỉ được thêm tối đa 15 bộ lọc cùng lúc!');
+                        else alert('Bạn chỉ được thêm tối đa 15 bộ lọc cùng lúc!');
                         return;
                     }
+                    const modal = document.getElementById('advanced-filter-modal');
+                    if (!modal) return;
+                    
+                    document.getElementById('adv-field-select').value = '';
+                    const opSelect = document.getElementById('adv-operator-select');
+                    opSelect.innerHTML = '<option value="" disabled selected>-- Chọn toán tử --</option>';
+                    opSelect.disabled = true;
+                    
+                    const valContainer = document.getElementById('adv-filter-value-container');
+                    valContainer.innerHTML = '<input type="text" id="adv-filter-value" placeholder="Nhập giá trị..." class="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 hover:border-gray-300 rounded-md outline-none focus:border-gray-400 focus:ring-1 transition-all shadow-sm text-gray-700" disabled>';
+                    
                     modal.classList.remove('hidden');
-                    const content = modal.querySelector('.modal-content');
-                    if (content) {
-                        content.classList.remove('modal-content-leave');
-                        content.classList.add('modal-content-enter');
-                    }
-                    
-                    // Reset fields
-                    const fieldSelect = document.getElementById('adv-field-select');
-                    const operatorSelect = document.getElementById('adv-operator-select');
-                    const valueContainer = document.getElementById('adv-filter-value-container');
-                    
-                    if(fieldSelect) fieldSelect.value = "";
-                    if(operatorSelect) {
-                        operatorSelect.innerHTML = '<option value="" disabled selected>-- Chọn toán tử --</option>';
-                        operatorSelect.disabled = true;
-                    }
-                    if(valueContainer) {
-                        valueContainer.innerHTML = '<input type="text" id="adv-filter-value" placeholder="Nhập giá trị..." class="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 hover:border-gray-300 rounded-md outline-none focus:border-gray-400 focus:ring-1 transition-all shadow-sm disabled:bg-gray-100 disabled:shadow-none text-gray-700" disabled>';
-                    }
+                    if(app.ui && app.ui.lockScroll) app.ui.lockScroll();
+                },
+                
+                openAdvancedFilter: () => {
+                    app.search.openAdvancedFilterModal();
                 },
                 
                 closeAdvancedFilterModal: () => {
                     const modal = document.getElementById('advanced-filter-modal');
-                    const content = modal.querySelector('.modal-content');
-                    if (content) {
-                        content.classList.remove('modal-content-enter');
-                        content.classList.add('modal-content-leave');
-                    }
-                    setTimeout(() => {
-                        modal.classList.add('hidden');
-                    }, 200);
+                    if (modal) modal.classList.add('hidden');
+                    if(app.ui && app.ui.unlockScroll) app.ui.unlockScroll();
                 },
 
                 onAdvancedFieldChange: () => {
-                    const fieldSelect = document.getElementById('adv-field-select');
-                    const operatorSelect = document.getElementById('adv-operator-select');
-                    const valueContainer = document.getElementById('adv-filter-value-container');
-                    
-                    if(!fieldSelect || !operatorSelect || !valueContainer) return;
-                    
-                    const field = fieldSelect.value;
-                    if(!field) {
-                        operatorSelect.disabled = true;
-                        valueContainer.innerHTML = '<input type="text" id="adv-filter-value" placeholder="Nhập giá trị..." class="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 hover:border-gray-300 rounded-md outline-none focus:border-gray-400 focus:ring-1 transition-all shadow-sm disabled:bg-gray-100 disabled:shadow-none text-gray-700" disabled>';
-                        return;
-                    }
-                    
-                    operatorSelect.disabled = false;
-                    
-                    if (field === 'type') {
-                        valueContainer.innerHTML = `
-                            <select id="adv-filter-value" class="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 hover:border-gray-300 rounded-md outline-none focus:border-gray-400 focus:ring-1 transition-all appearance-none cursor-pointer shadow-sm text-gray-700">
-                                <option value="bus">Xe buýt (bus)</option>
-                                <option value="coach">Xe khách (coach)</option>
-                            </select>
-                        `;
-                    } else if (field === 'taken_at') {
-                        valueContainer.innerHTML = `
-                            <input type="date" id="adv-filter-value" class="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 hover:border-gray-300 rounded-md outline-none focus:border-gray-400 focus:ring-1 transition-all shadow-sm text-gray-700">
-                        `;
-                    } else if (field === 'province') {
-                        let opts = (app.utils.provinceData || []).map(p => {
-                            const prefix = Array.isArray(p.ky_hieu) ? p.ky_hieu[0] : p.ky_hieu.split(',')[0];
-                            return `<option value="${prefix}">${p.ten}</option>`;
-                        }).join('');
-                        valueContainer.innerHTML = `
-                            <select id="adv-filter-value" class="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 hover:border-gray-300 rounded-md outline-none focus:border-gray-400 focus:ring-1 transition-all appearance-none cursor-pointer shadow-sm text-gray-700">
-                                ${opts}
-                            </select>
-                        `;
+                    const fieldKey = document.getElementById('adv-field-select').value;
+                    const config = app.search.FIELD_CONFIGS[fieldKey];
+                    if (!config) return;
+
+                    const opSelect = document.getElementById('adv-operator-select');
+                    opSelect.innerHTML = config.ops.map(o => `<option value="${o.v}">${o.l}</option>`).join('');
+                    opSelect.disabled = false;
+
+                    const valContainer = document.getElementById('adv-filter-value-container');
+                    if (config.type === 'date') {
+                        valContainer.innerHTML = '<input type="date" id="adv-filter-value" class="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 hover:border-gray-300 rounded-md outline-none focus:border-gray-400 focus:ring-1 transition-all shadow-sm text-gray-700">';
+                    } else if (config.type === 'select_type') {
+                        valContainer.innerHTML = `
+                            <select id="adv-filter-value" class="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 hover:border-gray-300 rounded-md outline-none focus:border-gray-400 focus:ring-1 transition-all shadow-sm text-gray-700 cursor-pointer">
+                                <option value="bus">Xe Buýt</option>
+                                <option value="coach">Xe Khách</option>
+                            </select>`;
+                    } else if (config.type === 'select_province') {
+                        let provOptions = '<option value="" disabled selected>-- Chọn tỉnh thành --</option>';
+                        if (app.utils.provinceData && app.utils.provinceData.length) {
+                            provOptions += app.utils.provinceData.map(p => `<option value="${p.ten}">${p.ten}</option>`).join('');
+                        }
+                        valContainer.innerHTML = `<select id="adv-filter-value" class="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 hover:border-gray-300 rounded-md outline-none focus:border-gray-400 focus:ring-1 transition-all shadow-sm text-gray-700 cursor-pointer">${provOptions}</select>`;
                     } else {
-                        valueContainer.innerHTML = `
-                            <input type="text" id="adv-filter-value" autocomplete="off" placeholder="Nhập giá trị..." class="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 hover:border-gray-300 rounded-md outline-none focus:border-gray-400 focus:ring-1 transition-all shadow-sm text-gray-700">
-                        `;
+                        valContainer.innerHTML = '<input type="text" id="adv-filter-value" placeholder="Nhập giá trị..." class="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 hover:border-gray-300 rounded-md outline-none focus:border-gray-400 focus:ring-1 transition-all shadow-sm text-gray-700">';
                     }
-                    
-                    let ops = [];
-                    if (['license_plate', 'route_no', 'operator', 'model', 'uploader'].includes(field)) {
-                        ops = [
-                            { val: 'eq', label: '= Bằng' },
-                            { val: 'neq', label: '≠ Khác' },
-                            { val: 'ilike', label: 'Chứa (Bao gồm)' },
-                            { val: 'not_ilike', label: 'Không chứa' }
-                        ];
-                    } else if (['location', 'camera_model'].includes(field)) {
-                        ops = [
-                            { val: 'ilike', label: 'Chứa (Bao gồm)' },
-                            { val: 'not_ilike', label: 'Không chứa' }
-                        ];
-                    } else if (['type', 'province'].includes(field)) {
-                        ops = [
-                            { val: 'eq', label: '= Bằng' },
-                            { val: 'neq', label: '≠ Khác' }
-                        ];
-                    } else if (field === 'taken_at') {
-                        ops = [
-                            { val: 'eq', label: '= Đúng ngày' },
-                            { val: 'gt', label: '> Sau ngày' },
-                            { val: 'gte', label: '≥ Từ ngày' },
-                            { val: 'lt', label: '< Trước ngày' },
-                            { val: 'lte', label: '≤ Đến ngày' }
-                        ];
-                    }
-                    
-                    operatorSelect.innerHTML = '<option value="" disabled selected>-- Chọn toán tử --</option>' + 
-                        ops.map(op => `<option value="${op.val}">${op.label}</option>`).join('');
                 },
 
                 applyAdvancedFilter: () => {
-                    const fieldSelect = document.getElementById('adv-field-select');
-                    const opSelect = document.getElementById('adv-operator-select');
+                    const fieldKey = document.getElementById('adv-field-select').value;
+                    const opKey = document.getElementById('adv-operator-select').value;
                     const valInput = document.getElementById('adv-filter-value');
-                    
-                    if (!fieldSelect || !opSelect || !valInput) return;
-                    
-                    const field = fieldSelect.value;
-                    const op = opSelect.value;
-                    const val = valInput.value.trim();
-                    
-                    if (!field || !op || !val) {
-                        app.toast.show('error', 'Lỗi', 'Vui lòng điền đầy đủ Trường, Toán tử và Giá trị!');
-                        return;
-                    }
-                    
-                    const fieldLabel = fieldSelect.options[fieldSelect.selectedIndex].text;
-                    const opLabel = opSelect.options[opSelect.selectedIndex].text;
-                    
-                    if (app.search.advancedFilters.length >= 15) {
-                        app.toast.show('error', 'Lỗi', 'Đã đạt giới hạn tối đa 15 bộ lọc nâng cao.');
+                    const val = valInput ? valInput.value.trim() : '';
+
+                    if (!fieldKey || !opKey || !val) {
+                        if (app.toast) app.toast.show('error', 'Chưa hoàn tất', 'Vui lòng chọn đầy đủ Trường, Điều kiện và Giá trị!');
+                        else alert('Vui lòng chọn đầy đủ Trường, Điều kiện và Giá trị!');
                         return;
                     }
 
-                    const id = Date.now().toString() + Math.random().toString(36).substring(2, 5);
-                    
-                    app.search.advancedFilters.push({
-                        id, field, fieldLabel, op, opLabel, value: val
-                    });
+                    const fieldConfig = app.search.FIELD_CONFIGS[fieldKey];
+                    const opConfig = fieldConfig.ops.find(o => o.v === opKey);
 
-                    app.search.closeAdvancedFilterModal();
+                    let displayVal = val;
+                    if (fieldKey === 'type') displayVal = (val === 'bus' ? 'Xe Buýt' : 'Xe Khách');
+
+                    const filterObj = {
+                        id: Date.now().toString() + Math.random().toString(36).substring(2, 5),
+                        field: fieldKey,
+                        fieldLabel: fieldConfig.label,
+                        op: opKey,
+                        opLabel: opConfig ? opConfig.l.split(' ')[0] : opKey,
+                        value: val,
+                        displayVal: displayVal
+                    };
+
+                    app.search.advancedFilters.push(filterObj);
+                    app.currentFilter = 'advanced';
+
                     app.search.renderAdvancedFilterChips();
+                    app.search.closeAdvancedFilterModal();
+
+                    app.handleSearch(true, 'page-search-input');
+                },
+
+                renderAdvancedFilterChips: () => {
+                    const container = document.getElementById('advanced-filter-chips');
+                    const clearBtn = document.getElementById('btn-clear-advanced-filters');
                     
-                    if (window.location.pathname.includes('/search')) {
-                        app.handleSearch(true);
+                    const headerContainer = document.getElementById('header-advanced-modules');
+                    const pageContainer = document.getElementById('page-advanced-modules');
+
+                    if (!app.search.advancedFilters || app.search.advancedFilters.length === 0) {
+                        if (container) container.innerHTML = '';
+                        if (clearBtn) clearBtn.classList.add('hidden');
+                        
+                        const addBtn = `<button onclick="app.search.openAdvancedFilterModal()" class="shrink-0 text-[11px] md:text-sm font-bold text-gray-500 bg-white border border-gray-200 hover:border-gray-300 hover:text-black rounded px-2 md:px-3 py-1 shadow-sm transition">+ Thêm bộ lọc</button>`;
+                        if (headerContainer) headerContainer.innerHTML = addBtn;
+                        if (pageContainer) pageContainer.innerHTML = addBtn;
+                        return;
                     }
+
+                    const chipsHtml = app.search.advancedFilters.map(f => `
+                        <div class="inline-flex items-center gap-1.5 bg-black text-white text-xs font-semibold px-2.5 py-1 rounded-full shadow-sm">
+                            <span class="text-gray-300">${f.fieldLabel}</span>
+                            <span class="text-yellow-400 font-bold">${f.opLabel}</span>
+                            <span class="font-bold underline underline-offset-2">${app.utils.escapeAttr(f.displayVal || f.value)}</span>
+                            <button onclick="app.search.removeAdvancedFilter('${f.id}')" class="ml-1 text-gray-400 hover:text-red-400 transition">
+                                <i class="fa-solid fa-xmark text-xs"></i>
+                            </button>
+                        </div>
+                    `).join('');
+
+                    if (container) container.innerHTML = chipsHtml;
+                    if (clearBtn) clearBtn.classList.remove('hidden');
+                    
+                    const headerChipsHtml = app.search.advancedFilters.map(f => `
+                        <div class="shrink-0 inline-flex items-center gap-1.5 bg-black text-white text-[10px] md:text-xs font-semibold px-2 py-1 rounded-full shadow-sm max-w-[200px] md:max-w-none">
+                            <span class="text-gray-300 truncate">${f.fieldLabel}</span>
+                            <span class="text-yellow-400 font-bold">${f.opLabel}</span>
+                            <span class="font-bold underline underline-offset-2 truncate">${app.utils.escapeAttr(f.displayVal || f.value)}</span>
+                            <button onclick="app.search.removeAdvancedFilter('${f.id}')" class="ml-0.5 text-gray-400 hover:text-red-400 transition">
+                                <i class="fa-solid fa-xmark text-xs"></i>
+                            </button>
+                        </div>
+                    `).join('');
+                    
+                    const addBtnHtml = app.search.advancedFilters.length < 15 ? `<button onclick="app.search.openAdvancedFilterModal()" class="shrink-0 text-[11px] md:text-sm font-bold text-gray-500 bg-white border border-gray-200 hover:border-gray-300 hover:text-black rounded px-2 md:px-3 py-1 shadow-sm transition">+ Thêm bộ lọc</button>` : '';
+                    
+                    if (headerContainer) headerContainer.innerHTML = headerChipsHtml + addBtnHtml;
+                    if (pageContainer) pageContainer.innerHTML = headerChipsHtml + addBtnHtml;
                 },
 
                 removeAdvancedFilter: (id) => {
                     app.search.advancedFilters = app.search.advancedFilters.filter(f => f.id !== id);
-                    app.search.renderAdvancedFilterChips();
-                    if (window.location.pathname.includes('/search')) {
-                        app.handleSearch(true);
+                    if (app.search.advancedFilters.length === 0) {
+                        app.currentFilter = 'all';
                     }
+                    app.search.renderAdvancedFilterChips();
+                    app.handleSearch(true, 'page-search-input');
                 },
 
                 clearAdvancedFilters: () => {
                     app.search.advancedFilters = [];
+                    app.currentFilter = 'all';
                     app.search.renderAdvancedFilterChips();
-                    if (window.location.pathname.includes('/search')) {
-                        app.handleSearch(true);
-                    }
+                    app.handleSearch(true, 'page-search-input');
                 },
 
-                renderAdvancedFilterChips: () => {
-                    const headerContainer = document.getElementById('header-advanced-modules');
-                    const pageContainer = document.getElementById('page-advanced-modules');
-                    
-                    const chipsHtml = app.search.advancedFilters.map(f => `
-                        <div class="flex items-center gap-1.5 px-2 md:px-3 py-1 bg-white border border-gray-200 rounded-md text-xs shrink-0 shadow-sm">
-                            <span class="font-bold text-gray-700 whitespace-nowrap">${f.fieldLabel}</span>
-                            <span class="text-gray-500 font-mono text-[10px] bg-gray-50 px-1 border border-gray-100 rounded whitespace-nowrap">${f.opLabel}</span>
-                            <span class="font-bold text-blue-700 whitespace-nowrap">${app.utils.escapeAttr(f.value)}</span>
-                            <button onclick="app.search.removeAdvancedFilter('${f.id}')" class="ml-1 text-gray-400 hover:text-red-500"><i class="fa-solid fa-xmark"></i></button>
-                        </div>
-                    `).join('');
-                    
-                    const addBtnHtml = app.search.advancedFilters.length < 15 ? `
-                        <button onclick="app.search.openAdvancedFilter()" class="shrink-0 text-[11px] md:text-sm font-bold text-gray-500 bg-white border border-gray-200 hover:border-gray-300 hover:text-black rounded px-2 md:px-3 py-1 shadow-sm transition">
-                            + Thêm bộ lọc
-                        </button>
-                    ` : '';
-
-                    if (headerContainer) {
-                        headerContainer.innerHTML = chipsHtml + addBtnHtml;
-                    }
-                    if (pageContainer) {
-                        pageContainer.innerHTML = chipsHtml + addBtnHtml;
-                    }
-                },
 
                 currentExactPrefix: '', 
                 
