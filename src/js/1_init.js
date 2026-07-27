@@ -4904,6 +4904,24 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('scroll', () => {
         const currentScrollY = window.scrollY;
         
+        // Check if user is interacting with search or dropdowns
+        const isSearchFocused = document.activeElement && document.activeElement.id === 'search-input';
+        
+        const userMenu = document.getElementById('user-dropdown');
+        const isUserMenuOpen = userMenu && userMenu.classList.contains('opacity-100');
+        
+        const filterMenu = document.getElementById('search-filter-menu');
+        const isFilterMenuOpen = filterMenu && filterMenu.classList.contains('active');
+        
+        const searchSuggestions = document.getElementById('main-search-suggestions');
+        const isSuggestionsOpen = searchSuggestions && searchSuggestions.innerHTML.trim() !== '';
+
+        if (isSearchFocused || isUserMenuOpen || isFilterMenuOpen || isSuggestionsOpen) {
+            header.style.transform = 'translateY(0)';
+            lastScrollY = currentScrollY;
+            return;
+        }
+        
         if (currentScrollY > threshold) {
             if (currentScrollY > lastScrollY) {
                 // Scrolling down -> hide header
