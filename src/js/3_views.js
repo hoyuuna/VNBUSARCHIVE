@@ -2895,35 +2895,38 @@ Object.assign(window.app, {
                 
                 FIELD_CONFIGS: {
                     'license_plate': { label: 'Biển kiểm soát', type: 'text', ops: [{v:'ilike', l:'Chứa (Bao gồm)'}, {v:'eq', l:'= Bằng chính xác'}, {v:'neq', l:'≠ Khác'}, {v:'not_ilike', l:'Không chứa'}] },
-                    'route_no':     { label: 'Mã số tuyến',   type: 'text', ops: [{v:'ilike', l:'Chứa (Bao gồm)'}, {v:'eq', l:'= Bằng chính xác'}, {v:'neq', l:'≠ Khác'}] },
-                    'operator':     { label: 'Đơn vị vận hành', type: 'text', ops: [{v:'ilike', l:'Chứa (Bao gồm)'}, {v:'eq', l:'= Bằng chính xác'}, {v:'neq', l:'≠ Khác'}] },
-                    'model':        { label: 'Dòng xe',        type: 'text', ops: [{v:'ilike', l:'Chứa (Bao gồm)'}, {v:'eq', l:'= Bằng chính xác'}, {v:'neq', l:'≠ Khác'}] },
-                    'location':     { label: 'Vị trí chụp',    type: 'text', ops: [{v:'ilike', l:'Chứa (Bao gồm)'}, {v:'not_ilike', l:'Không chứa'}] },
-                    'type':         { label: 'Loại xe',        type: 'select_type', ops: [{v:'eq', l:'= Bằng chính xác'}, {v:'neq', l:'≠ Khác'}] },
-                    'province':     { label: 'Tuyến của tỉnh', type: 'select_province', ops: [{v:'eq', l:'= Bằng chính xác'}, {v:'neq', l:'≠ Khác'}] },
-                    'camera_model': { label: 'Thiết bị chụp',  type: 'text', ops: [{v:'ilike', l:'Chứa (Bao gồm)'}] },
-                    'taken_at':     { label: 'Ngày chụp',      type: 'date', ops: [{v:'eq', l:'= Đúng ngày'}, {v:'gt', l:'> Sau ngày'}, {v:'gte', l:'≥ Từ ngày'}, {v:'lt', l:'< Trước ngày'}, {v:'lte', l:'≤ Đến ngày'}] },
-                    'uploader':     { label: 'Người đăng',     type: 'text', ops: [{v:'ilike', l:'Chứa (Bao gồm)'}, {v:'eq', l:'= Bằng chính xác'}] }
+                    'route_no':     { label: 'Mã số tuyến',   type: 'text', ops: [{v:'ilike', l:'Chứa (Bao gồm)'}, {v:'eq', l:'= Bằng chính xác'}, {v:'neq', l:'≠ Khác'}, {v:'not_ilike', l:'Không chứa'}] },
+                    'operator':     { label: 'Đơn vị vận hành', type: 'text', ops: [{v:'ilike', l:'Chứa (Bao gồm)'}, {v:'eq', l:'= Bằng chính xác'}, {v:'neq', l:'≠ Khác'}, {v:'not_ilike', l:'Không chứa'}] },
+                    'model':        { label: 'Dòng xe',        type: 'text', ops: [{v:'ilike', l:'Chứa (Bao gồm)'}, {v:'eq', l:'= Bằng chính xác'}, {v:'neq', l:'≠ Khác'}, {v:'not_ilike', l:'Không chứa'}] },
+                    'location':     { label: 'Vị trí chụp',    type: 'text', ops: [{v:'ilike', l:'Chứa (Bao gồm)'}, {v:'not_ilike', l:'Không chứa'}, {v:'eq', l:'= Bằng chính xác'}] },
+                    'type':         { label: 'Loại xe',        type: 'select_type', ops: [{v:'eq', l:'= Đúng là'}, {v:'neq', l:'≠ Không phải là'}] },
+                    'province':     { label: 'Tuyến của tỉnh', type: 'select_province', ops: [{v:'eq', l:'= Thuộc tỉnh'}, {v:'neq', l:'≠ Không thuộc tỉnh'}] },
+                    'camera_model': { label: 'Thiết bị chụp',  type: 'text', ops: [{v:'ilike', l:'Chứa (Bao gồm)'}, {v:'eq', l:'= Đúng thiết bị'}, {v:'neq', l:'≠ Khác thiết bị'}] },
+                    'taken_at':     { label: 'Ngày chụp',      type: 'date', ops: [{v:'eq', l:'= Đúng ngày'}, {v:'gt', l:'> Sau ngày'}, {v:'gte', l:'≥ Từ ngày'}, {v:'lt', l:'< Trước ngày'}, {v:'lte', l:'≤ Đến ngày'}, {v:'neq', l:'≠ Khác ngày'}] },
+                    'uploader':     { label: 'Người đăng',     type: 'text', ops: [{v:'ilike', l:'Chứa (Bao gồm)'}, {v:'eq', l:'= Đúng tên'}, {v:'neq', l:'≠ Khác tên'}] }
                 },
 
                 openAdvancedFilterModal: () => {
                     if (app.search.advancedFilters.length >= 15) {
-                        if (app.toast) app.toast.show('error', 'Giới hạn', 'Bạn chỉ được thêm tối đa 15 bộ lọc!');
-                        else alert('Bạn chỉ được thêm tối đa 15 bộ lọc!');
+                        if (app.toast) app.toast.show('error', 'Giới hạn', 'Tối đa 15 bộ lọc!');
+                        else alert('Tối đa 15 bộ lọc!');
                         return;
                     }
                     const modal = document.getElementById('advanced-filter-modal');
-                    if (!modal) return;
+                    const content = document.getElementById('advanced-filter-content');
+                    if (!modal || !content) return;
                     
                     document.getElementById('adv-field-select').value = '';
                     const opSelect = document.getElementById('adv-operator-select');
-                    opSelect.innerHTML = '<option value="" disabled selected>-- Chọn toán tử --</option>';
+                    opSelect.innerHTML = '<option value="" disabled selected>-- Chọn điều kiện --</option>';
                     opSelect.disabled = true;
                     
                     const valContainer = document.getElementById('adv-filter-value-container');
-                    valContainer.innerHTML = '<input type="text" id="adv-filter-value" placeholder="Nhập giá trị..." class="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 hover:border-gray-300 rounded-md outline-none focus:border-gray-400 focus:ring-1 transition-all shadow-sm text-gray-700" disabled>';
+                    valContainer.innerHTML = '<input type="text" id="adv-filter-value" placeholder="Nhập giá trị..." class="w-full px-3.5 py-2.5 text-sm font-medium bg-white/90 border border-gray-300 rounded-xl outline-none shadow-sm text-gray-700" disabled>';
                     
                     modal.classList.remove('hidden');
+                    content.classList.remove('modal-content-leave');
+                    content.classList.add('modal-content-enter');
                     app.ui?.lockScroll?.();
                 },
                 
@@ -2933,8 +2936,17 @@ Object.assign(window.app, {
                 
                 closeAdvancedFilterModal: () => {
                     const modal = document.getElementById('advanced-filter-modal');
-                    if (modal) modal.classList.add('hidden');
-                    app.ui?.unlockScroll?.();
+                    const content = document.getElementById('advanced-filter-content');
+                    if (!modal || !content) return;
+
+                    content.classList.remove('modal-content-enter');
+                    content.classList.add('modal-content-leave');
+
+                    setTimeout(() => {
+                        modal.classList.add('hidden');
+                        content.classList.remove('modal-content-leave');
+                        app.ui?.unlockScroll?.();
+                    }, 200);
                 },
 
                 onAdvancedFieldChange: () => {
@@ -2948,10 +2960,10 @@ Object.assign(window.app, {
 
                     const valContainer = document.getElementById('adv-filter-value-container');
                     if (config.type === 'date') {
-                        valContainer.innerHTML = '<input type="date" id="adv-filter-value" class="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 hover:border-gray-300 rounded-md outline-none focus:border-gray-400 focus:ring-1 transition-all shadow-sm text-gray-700">';
+                        valContainer.innerHTML = '<input type="date" id="adv-filter-value" class="w-full px-3.5 py-2.5 text-sm font-medium bg-white/90 border border-gray-300 hover:border-black rounded-xl outline-none focus:ring-2 focus:ring-black transition-all shadow-sm text-gray-800">';
                     } else if (config.type === 'select_type') {
                         valContainer.innerHTML = `
-                            <select id="adv-filter-value" class="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 hover:border-gray-300 rounded-md outline-none focus:border-gray-400 focus:ring-1 transition-all shadow-sm text-gray-700 cursor-pointer">
+                            <select id="adv-filter-value" class="w-full px-3.5 py-2.5 text-sm font-medium bg-white/90 border border-gray-300 hover:border-black rounded-xl outline-none focus:ring-2 focus:ring-black transition-all shadow-sm text-gray-800 cursor-pointer">
                                 <option value="bus">Xe Buýt</option>
                                 <option value="coach">Xe Khách</option>
                             </select>`;
@@ -2960,9 +2972,9 @@ Object.assign(window.app, {
                         if (app.utils.provinceData && app.utils.provinceData.length) {
                             provOptions += app.utils.provinceData.map(p => `<option value="${p.ten}">${p.ten}</option>`).join('');
                         }
-                        valContainer.innerHTML = `<select id="adv-filter-value" class="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 hover:border-gray-300 rounded-md outline-none focus:border-gray-400 focus:ring-1 transition-all shadow-sm text-gray-700 cursor-pointer">${provOptions}</select>`;
+                        valContainer.innerHTML = `<select id="adv-filter-value" class="w-full px-3.5 py-2.5 text-sm font-medium bg-white/90 border border-gray-300 hover:border-black rounded-xl outline-none focus:ring-2 focus:ring-black transition-all shadow-sm text-gray-800 cursor-pointer">${provOptions}</select>`;
                     } else {
-                        valContainer.innerHTML = '<input type="text" id="adv-filter-value" placeholder="Nhập giá trị..." class="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 hover:border-gray-300 rounded-md outline-none focus:border-gray-400 focus:ring-1 transition-all shadow-sm text-gray-700">';
+                        valContainer.innerHTML = '<input type="text" id="adv-filter-value" placeholder="Nhập giá trị..." class="w-full px-3.5 py-2.5 text-sm font-medium bg-white/90 border border-gray-300 hover:border-black rounded-xl outline-none focus:ring-2 focus:ring-black transition-all shadow-sm text-gray-800">';
                     }
                 },
 
@@ -2973,8 +2985,8 @@ Object.assign(window.app, {
                     const val = valInput ? valInput.value.trim() : '';
 
                     if (!fieldKey || !opKey || !val) {
-                        if (app.toast) app.toast.show('error', 'Chưa hoàn tất', 'Vui lòng chọn đầy đủ Trường, Điều kiện và Giá trị!');
-                        else alert('Vui lòng chọn đầy đủ Trường, Điều kiện và Giá trị!');
+                        if (app.toast) app.toast.show('error', 'Lỗi', 'Vui lòng điền đủ Trường, Điều kiện và Giá trị!');
+                        else alert('Vui lòng điền đủ Trường, Điều kiện và Giá trị!');
                         return;
                     }
 
@@ -2989,7 +3001,7 @@ Object.assign(window.app, {
                         field: fieldKey,
                         fieldLabel: fieldConfig.label,
                         op: opKey,
-                        opLabel: opConfig ? opConfig.l : opKey,
+                        opLabel: opConfig ? opConfig.l.split(' ')[0] : opKey,
                         value: val,
                         displayVal: displayVal
                     };
@@ -3023,33 +3035,22 @@ Object.assign(window.app, {
                         box.classList.remove('hidden');
 
                         let html = (app.search.advancedFilters || []).map(f => `
-                            <span class="inline-flex items-center gap-1 bg-black text-white text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0 shadow-sm">
-                                <span>${f.fieldLabel}</span>
-                                <span class="text-amber-300 font-bold">${f.opLabel}</span>
-                                <span class="underline">${f.displayVal}</span>
-                                <button type="button" onclick="event.stopPropagation(); app.search.removeAdvancedFilter('${f.id}')" class="ml-0.5 text-gray-300 hover:text-red-400">
+                            <div class="inline-flex items-center gap-1.5 py-1 px-2.5 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm shrink-0">
+                                <span class="text-gray-500 font-normal">${f.fieldLabel}:</span>
+                                <span class="font-bold text-black">${f.opLabel} "${f.displayVal}"</span>
+                                <button type="button" onclick="event.stopPropagation(); app.search.removeAdvancedFilter('${f.id}')" class="ml-1 text-gray-400 hover:text-red-600 transition">
                                     <i class="fa-solid fa-xmark"></i>
                                 </button>
-                            </span>
+                            </div>
                         `).join('');
 
                         html += `
-                            <button type="button" onclick="event.stopPropagation(); app.search.openAdvancedFilterModal()" class="shrink-0 text-[11px] font-bold text-gray-700 bg-white border border-gray-300 hover:bg-gray-100 rounded-full px-2 py-0.5 shadow-sm transition">
+                            <button type="button" onclick="event.stopPropagation(); app.search.openAdvancedFilterModal()" class="shrink-0 text-xs font-bold text-gray-600 bg-white border border-gray-300 hover:border-gray-400 hover:text-black rounded-md py-1 px-2.5 shadow-sm transition">
                                 + Thêm
                             </button>
                         `;
 
-                        if (app.search.advancedFilters && app.search.advancedFilters.length > 0) {
-                            html += `
-                                <button type="button" onclick="event.stopPropagation(); app.search.clearAdvancedFilters()" class="shrink-0 text-[11px] font-bold text-red-600 hover:underline px-1 py-0.5">
-                                    Xóa hết
-                                </button>
-                            `;
-                        }
-
                         box.innerHTML = html;
-                        // Add bg-white to hide search input visually since it's no longer hidden by setFilter
-                        box.classList.add('bg-white');
                     });
                 },
 

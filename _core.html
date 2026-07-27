@@ -6195,20 +6195,22 @@
 
     <!-- MODAL ADVANCED FILTER -->
     <div id="advanced-filter-modal" class="hidden fixed inset-0 flex items-center justify-center p-4" style="z-index: 99999; background-color: rgba(0, 0, 0, 0) !important; backdrop-filter: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important;">
-        <div class="modal-content relative w-full max-w-lg bg-white/70 backdrop-blur-2xl border border-white/40 shadow-island rounded-xl p-5">
-            <div class="flex justify-between items-center mb-4">
-                <h4 class="text-base font-bold text-gray-800">Thêm bộ lọc nâng cao</h4>
-                <button onclick="app.search.closeAdvancedFilterModal()" class="text-gray-400 hover:text-red-500 transition">
-                    <i class="fa-solid fa-xmark text-xl"></i>
+        <div id="advanced-filter-content" class="relative w-full max-w-lg bg-white/80 backdrop-blur-2xl border border-white/60 shadow-2xl rounded-2xl p-6 transform transition-all">
+            <div class="flex justify-between items-center mb-5 pb-3 border-b border-gray-200/60">
+                <h4 class="text-base font-bold text-black uppercase tracking-tight flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-gray-500"></i> Thêm bộ lọc nâng cao
+                </h4>
+                <button onclick="app.search.closeAdvancedFilterModal()" class="text-gray-400 hover:text-red-500 transition text-lg px-1">
+                    <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
             
             <div class="space-y-4">
-                <!-- Chọn Trường (Field) - Native Select -->
+                <!-- Chọn Trường (Field) -->
                 <div class="relative w-full">
-                    <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1.5" for="adv-field-select">1. Chọn trường</label>
-                    <select id="adv-field-select" onchange="app.search.onAdvancedFieldChange()" class="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 hover:border-gray-300 rounded-md outline-none focus:border-gray-400 focus:ring-1 transition-all shadow-sm text-gray-700 cursor-pointer">
-                        <option value="" disabled selected>-- Chọn trường dữ liệu --</option>
+                    <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5" for="adv-field-select">1. Chọn trường dữ liệu</label>
+                    <select id="adv-field-select" onchange="app.search.onAdvancedFieldChange()" class="w-full px-3.5 py-2.5 text-sm font-medium bg-white/90 border border-gray-300 hover:border-black rounded-xl outline-none focus:ring-2 focus:ring-black transition-all shadow-sm text-gray-800 cursor-pointer">
+                        <option value="" disabled selected>-- Chọn trường --</option>
                         <option value="license_plate">Biển kiểm soát</option>
                         <option value="route_no">Mã số tuyến</option>
                         <option value="operator">Đơn vị vận hành</option>
@@ -6222,24 +6224,24 @@
                     </select>
                 </div>
 
-                <!-- Chọn Toán tử (Operator) - Native Select -->
+                <!-- Chọn Toán tử (Operator) -->
                 <div class="relative w-full">
-                    <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1.5" for="adv-operator-select">2. Điều kiện lọc</label>
-                    <select id="adv-operator-select" class="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 rounded-md outline-none focus:border-gray-400 focus:ring-1 transition-all shadow-sm text-gray-700 cursor-pointer disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed hover:border-gray-300" disabled>
-                        <option value="" disabled selected>-- Chọn toán tử --</option>
+                    <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5" for="adv-operator-select">2. Điều kiện so sánh</label>
+                    <select id="adv-operator-select" class="w-full px-3.5 py-2.5 text-sm font-medium bg-white/90 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-black transition-all shadow-sm text-gray-800 cursor-pointer disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed hover:border-black" disabled>
+                        <option value="" disabled selected>-- Chọn điều kiện --</option>
                     </select>
                 </div>
 
                 <!-- Nhập Giá trị (Value) -->
                 <div class="relative">
-                    <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1.5" for="adv-filter-value">3. Giá trị</label>
+                    <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5" for="adv-filter-value">3. Giá trị cần lọc</label>
                     <div id="adv-filter-value-container">
-                        <input type="text" id="adv-filter-value" placeholder="Nhập giá trị..." class="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 hover:border-gray-300 rounded-md outline-none focus:border-gray-400 focus:ring-1 transition-all shadow-sm disabled:bg-gray-100 disabled:shadow-none text-gray-700">
+                        <input type="text" id="adv-filter-value" placeholder="Nhập giá trị..." class="w-full px-3.5 py-2.5 text-sm font-medium bg-white/90 border border-gray-300 hover:border-black rounded-xl outline-none focus:ring-2 focus:ring-black transition-all shadow-sm disabled:bg-gray-100 disabled:shadow-none text-gray-800">
                     </div>
                 </div>
 
-                <!-- Nút Thêm -->
-                <button id="btn-adv-filter-apply" onclick="app.search.applyAdvancedFilter()" class="w-full mt-4 py-2.5 bg-black text-white text-sm font-bold rounded-md hover:bg-gray-800 transition shadow-sm border border-gray-900">
+                <!-- Nút Áp dụng -->
+                <button id="btn-adv-filter-apply" onclick="app.search.applyAdvancedFilter()" class="w-full mt-6 py-3 bg-black text-white text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-gray-800 transition shadow-md">
                     Thêm vào bộ lọc
                 </button>
             </div>
