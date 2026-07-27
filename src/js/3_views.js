@@ -2926,7 +2926,11 @@ Object.assign(window.app, {
                     modal.classList.remove('hidden');
                     app.ui?.lockScroll?.();
                 },
-
+                
+                openAdvancedFilter: () => {
+                    app.search.openAdvancedFilterModal();
+                },
+                
                 closeAdvancedFilterModal: () => {
                     const modal = document.getElementById('advanced-filter-modal');
                     if (modal) modal.classList.add('hidden');
@@ -3044,7 +3048,7 @@ Object.assign(window.app, {
                         }
 
                         box.innerHTML = html;
-                        // HIDE THE SEARCH TEXT UNDERNEATH
+                        // Add bg-white to hide search input visually since it's no longer hidden by setFilter
                         box.classList.add('bg-white');
                     });
                 },
@@ -3065,10 +3069,76 @@ Object.assign(window.app, {
                     app.handleSearch(true, 'page-search-input');
                 },
 
-                openAdvancedFilter: () => {
-                    app.search.openAdvancedFilterModal();
+
+                currentExactPrefix: '', 
+                
+                initExactRouteMenu: () => {
+                    // Đổi chữ Tắt thành Toàn quốc cho xịn
+                    const renderHtml = `<div class="px-3 py-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100 mb-1 bg-gray-50">Tìm theo khu vực</div>`
+                        + `<div class="filter-item ${!app.search.currentExactPrefix ? 'selected' : ''}" onclick="app.search.setExactRoute('')"><span>Toàn quốc</span> <i class="fa-solid fa-check ${!app.search.currentExactPrefix ? '' : 'opacity-0'} check-icon"></i></div>` 
+                        + app.utils.provinceData.map(p => {
+                            const prefix = Array.isArray(p.ky_hieu) ? p.ky_hieu[0] : p.ky_hieu.split(',')[0];
+                            const isSelected = app.search.currentExactPrefix === prefix;
+                            return `<div class="filter-item ${isSelected ? 'selected' : ''}" onclick="app.search.setExactRoute('${prefix}', '${p.ten}')">
+                                <span>${p.ten}</span> <i class="fa-solid fa-check ${isSelected ? '' : 'opacity-0'} check-icon"></i>
+                            </div>`;
+                        }).join('');
+                    
+                    const pgMenu = document.getElementById('exact-route-page-menu');
+                    if (pgMenu) pgMenu.innerHTML = renderHtml;
                 },
 
+                setExactRoute: (prefix, name = 'Toàn quốc') => {
+                    app.search.currentExactPrefix = prefix;
+                    app.search.currentExactProvName = prefix ? name : null;
+                    document.getElementById('exact-route-page-menu')?.classList.remove('active');
+                    app.search.syncExactUI(prefix, prefix ? name : null);
+                    
+                    if (window.location.pathname.includes('/search')) {
+                        app.handleSearch(true);
+                    }
+                },
+
+                syncExactUI: (prefix, explicitName = null) => {
+                    app.search.currentExactPrefix = prefix || '';
+                    let provName = 'Toàn quốc'; // Mặc định là Toàn quốc
+                    if (explicitName && explicitName !== 'Toàn quốc') {
+                        provName = explicitName;
+                        app.search.currentExactProvName = explicitName;
+                    } else if (prefix && app.utils.provinceData) {
+                        const prov = app.utils.provinceData.find(p => {
+                            const k = Array.isArray(p.ky_hieu) ? p.ky_hieu : p.ky_hieu.split(',');
+                            return k.map(s => s.trim()).includes(prefix);
+                        });
+                        if (prov) {
+                            provName = prov.ten;
+                            app.search.currentExactProvName = prov.ten;
+                        }
+                    } else {
+                        app.search.currentExactProvName = null;
+                    }
+                    
+                    const pgLabel = document.getElementById('exact-route-page-label');
+                    if (pgLabel) {
+                        pgLabel.innerText = provName;
+                        const btn = pgLabel.parentElement;
+                        
+                        if (prefix) {
+                            // CÓ TỈNH: Pill đen, chữ trắng, bo hơi vuông, bóng nổi nhẹ
+                            btn.className = "py-1.5 px-3 md:py-2 md:px-3.5 text-[11px] md:text-xs font-bold text-white bg-black border border-black rounded-md transition-all duration-200 flex items-center justify-center max-w-[140px] shadow-md cursor-pointer hover:bg-gray-800";
+                        } else {
+                            // TOÀN QUỐC (TẮT): Pill trắng, viền xám, chữ xám, bo hơi vuông
+                            btn.className = "py-1.5 px-3 md:py-2 md:px-3.5 text-[11px] md:text-xs font-semibold text-gray-600 bg-white border border-gray-300 hover:border-gray-400 hover:text-black hover:bg-gray-50 rounded-md transition-all duration-200 flex items-center justify-center max-w-[140px] shadow-sm cursor-pointer";
+                        }
+                    }
+                    
+                    app.search.initExactRouteMenu();
+                },
+
+                toggleFilter: (menuId = 'search-filter-menu') => {
+                    document.getElementById(menuId).classList.toggle('active');
+                },
+                
                 setFilter: (filter, triggerSearch = true) => {
                     app.currentFilter = filter;
 
@@ -3125,7 +3195,7 @@ Object.assign(window.app, {
                         app.handleSearch(true);
                     }
                 },
-
+                
                 triggerMainSuggestion: async (query, inputId = 'search-input', sugId = 'main-search-suggestions') => {
                     const box = document.getElementById(sugId);
                     if (app.suggestionTimeouts[inputId]) clearTimeout(app.suggestionTimeouts[inputId]);
