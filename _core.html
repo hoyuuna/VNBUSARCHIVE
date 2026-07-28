@@ -1586,12 +1586,6 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
         }
 
-        /* Fix nested backdrop-filter bug for dropdowns inside advanced-filter-modal */
-        #advanced-filter-content {
-            backdrop-filter: none !important;
-            -webkit-backdrop-filter: none !important;
-        }
-
         /* Bóc các lớp nền trắng/xám dư thừa bên trong Modal để thấy kính xuyên thấu */
         #crop-content > div,
         #custom-alert-content > div,
@@ -6202,13 +6196,16 @@
     </div>
 
     <!-- MODAL ADVANCED FILTER -->
-    <div id="advanced-filter-modal" class="hidden fixed inset-0 flex items-center justify-center p-4" style="z-index: 99999; background-color: rgba(0, 0, 0, 0) !important; backdrop-filter: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important;">
+    <div id="advanced-filter-modal" class="hidden fixed inset-0 flex items-center justify-center p-4" style="z-index: 99999;">
+        <!-- Tách riêng lớp kính mờ ra một div độc lập để không gây lỗi nested backdrop-filter cho dropdown -->
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="app.search.closeAdvancedFilterModal()"></div>
         <div id="advanced-filter-content" class="relative w-full max-w-lg rounded-2xl p-6 flex flex-col">
             <div class="flex justify-between items-center mb-5 pb-3 border-b border-gray-200/60">
                 <h4 class="text-base font-bold text-black uppercase tracking-tight flex items-center gap-2">
                     <i class="fa-solid fa-sliders text-gray-500"></i> Thêm bộ lọc nâng cao
                 </h4>
                 <button onclick="app.search.closeAdvancedFilterModal()" class="text-gray-400 hover:text-red-500 transition text-lg px-1">
+
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
