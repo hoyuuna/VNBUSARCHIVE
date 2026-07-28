@@ -3198,6 +3198,62 @@ Object.assign(window.app, {
                     app.handleSearch(true, 'page-search-input');
                 },
 
+                applyAdvancedFiltersToQuery: (q) => {
+                    if (!app.search.advancedFilters || app.search.advancedFilters.length === 0) return q;
+
+                    const grouped = {};
+                    app.search.advancedFilters.forEach(f => {
+                        if (!grouped[f.field]) grouped[f.field] = [];
+                        grouped[f.field].push(f);
+                    });
+
+                    Object.keys(grouped).forEach(rawFld => {
+                        const filters = grouped[rawFld];
+                        let fld = rawFld;
+                        let foreignTbl = null;
+                        if (fld === 'uploader') {
+                            fld = 'username';
+                            foreignTbl = 'profiles';
+                        } else if (fld === 'model') {
+                            fld = 'model';
+                            foreignTbl = 'vehicles';
+                        }
+
+                        const eqLikeFilters = filters.filter(f => f.op === 'eq' || f.op === 'ilike');
+                        const otherFilters = filters.filter(f => f.op !== 'eq' && f.op !== 'ilike');
+
+                        if (eqLikeFilters.length > 1) {
+                            const orConds = eqLikeFilters.map(f => {
+                                const safeVal = (f.value || '').replace(/"/g, '').replace(/,/g, '\\,');
+                                if (f.op === 'eq') return `${fld}.eq."${safeVal}"`;
+                                if (f.op === 'ilike') return `${fld}.ilike."%${safeVal}%"`;
+                            });
+                            if (foreignTbl) {
+                                q = q.or(orConds.join(','), { referencedTable: foreignTbl });
+                            } else {
+                                q = q.or(orConds.join(','));
+                            }
+                        } else {
+                            eqLikeFilters.forEach(f => otherFilters.push(f));
+                        }
+
+                        otherFilters.forEach(f => {
+                            let dbFld = fld;
+                            if (foreignTbl) dbFld = `${foreignTbl}.${fld}`;
+
+                            if (f.op === 'eq') q = q.eq(dbFld, f.value);
+                            else if (f.op === 'neq') q = q.neq(dbFld, f.value);
+                            else if (f.op === 'ilike') q = q.ilike(dbFld, `%${f.value}%`);
+                            else if (f.op === 'not_ilike') q = q.not('ilike', dbFld, `%${f.value}%`);
+                            else if (f.op === 'gt') q = q.gt(dbFld, f.value);
+                            else if (f.op === 'gte') q = q.gte(dbFld, f.value);
+                            else if (f.op === 'lt') q = q.lt(dbFld, f.value);
+                            else if (f.op === 'lte') q = q.lte(dbFld, f.value);
+                        });
+                    });
+                    return q;
+                },
+
 
                 currentExactPrefix: '', 
                 
