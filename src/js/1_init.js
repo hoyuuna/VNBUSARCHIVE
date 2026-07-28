@@ -2994,7 +2994,8 @@ Object.assign(window.app, {
                 app.utils.fetchTopUploaders();
 
 
-                if (app.realtimeChannel) {
+                app.initRealtimeChannel = () => {
+                    if (app.realtimeChannel) {
                     window.sb.removeChannel(app.realtimeChannel);
                 }
 
@@ -3178,6 +3179,8 @@ Object.assign(window.app, {
                             app.setRealtimeStatus(false);
                         }
                     });
+                };
+                app.initRealtimeChannel();
 
                 window.addEventListener('visibilitychange', () => {
 
@@ -3186,22 +3189,21 @@ Object.assign(window.app, {
                             app.reinitializeComponents();
                         }
 
-                        const state = app.realtimeChannel?.state;
+                        const state = (app.realtimeChannel?.state || '').toLowerCase();
                         if (state !== 'joined' && state !== 'joining') {
                             console.log('🔄 Tab visible: Reconnecting Realtime...');
                             app.setRealtimeStatus(false);
-                            if (app.realtimeChannel) window.sb.removeChannel(app.realtimeChannel);
-                            window.sb.realtime.connect();
+                            if (typeof app.initRealtimeChannel === 'function') app.initRealtimeChannel();
                         }
                     }
                 });
 
                 window.addEventListener('offline', () => app.setRealtimeStatus(false));
                 window.addEventListener('online', () => {
-                    if (app.realtimeChannel && app.realtimeChannel.state !== 'joined' && app.realtimeChannel.state !== 'joining') {
+                    const state = (app.realtimeChannel?.state || '').toLowerCase();
+                    if (app.realtimeChannel && state !== 'joined' && state !== 'joining') {
                         app.setRealtimeStatus(false);
-                        if (app.realtimeChannel) window.sb.removeChannel(app.realtimeChannel);
-                        window.sb.realtime.connect();
+                        if (typeof app.initRealtimeChannel === 'function') app.initRealtimeChannel();
                     } else {
                         app.setRealtimeStatus(true);
                     }
