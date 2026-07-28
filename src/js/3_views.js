@@ -569,6 +569,10 @@ Object.assign(window.app, {
                             searchWords.forEach(w => { sQuery = sQuery.ilike('profiles.username', `%${w}%`); });
                         } else if (filterType === 'model') {
                             searchWords.forEach(w => { sQuery = sQuery.ilike('vehicles.model', `%${w}%`); });
+                        } else if (filterType === 'advanced') {
+                            if (app.search.advancedFilters && app.search.advancedFilters.length > 0) {
+                                sQuery = app.search.applyAdvancedFiltersToQuery(sQuery);
+                            }
                         } else {
                             searchWords.forEach(w => {
                                 const safeW = w.replace(/"/g, '');

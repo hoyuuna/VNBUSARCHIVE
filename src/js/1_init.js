@@ -4733,20 +4733,7 @@ Object.assign(window.app, {
 
                     // ADVANCED FILTERS APPLY
                     if (app.search.advancedFilters && app.search.advancedFilters.length > 0) {
-                        app.search.advancedFilters.forEach(f => {
-                            let fld = f.field;
-                            if (fld === 'uploader') fld = 'profiles.username';
-                            else if (fld === 'model') fld = 'vehicles.model';
-                            
-                            if (f.op === 'eq') photoQuery = photoQuery.eq(fld, f.value);
-                            else if (f.op === 'neq') photoQuery = photoQuery.neq(fld, f.value);
-                            else if (f.op === 'ilike') photoQuery = photoQuery.ilike(fld, `%${f.value}%`);
-                            else if (f.op === 'not_ilike') photoQuery = photoQuery.not('ilike', fld, `%${f.value}%`);
-                            else if (f.op === 'gt') photoQuery = photoQuery.gt(fld, f.value);
-                            else if (f.op === 'gte') photoQuery = photoQuery.gte(fld, f.value);
-                            else if (f.op === 'lt') photoQuery = photoQuery.lt(fld, f.value);
-                            else if (f.op === 'lte') photoQuery = photoQuery.lte(fld, f.value);
-                        });
+                        photoQuery = app.search.applyAdvancedFiltersToQuery(photoQuery);
                     }
 
                     // PHÂN TRANG: CHỈ KÉO TRANG ĐẦU (24 ẢNH) THAY VÌ LIMIT(500)
