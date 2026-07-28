@@ -4653,8 +4653,8 @@ Object.assign(window.app, {
 
 
                     // ================= TÌM KIẾM ẢNH CHÍNH =================
-                    let needsModelJoin = filterType === 'model' || (app.search.advancedFilters || []).some(f => f.field === 'model');
-                    let profileSelect = (filterType === 'uploader' || (app.search.advancedFilters || []).some(f => f.field === 'uploader')) 
+                    let needsModelJoin = filterType === 'model' || (filterType === 'advanced' && (app.search.advancedFilters || []).some(f => f.field === 'model'));
+                    let profileSelect = (filterType === 'uploader' || (filterType === 'advanced' && (app.search.advancedFilters || []).some(f => f.field === 'uploader'))) 
                         ? 'profiles!inner(id, username, role, subroles, ban_status)' 
                         : 'profiles(id, username, role, subroles, ban_status)';
                     
@@ -4732,7 +4732,7 @@ Object.assign(window.app, {
                     }
 
                     // ADVANCED FILTERS APPLY
-                    if (app.search.advancedFilters && app.search.advancedFilters.length > 0) {
+                    if (filterType === 'advanced' && app.search.advancedFilters && app.search.advancedFilters.length > 0) {
                         photoQuery = app.search.applyAdvancedFiltersToQuery(photoQuery);
                     }
 
