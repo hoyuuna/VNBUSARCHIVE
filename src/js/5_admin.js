@@ -1119,6 +1119,10 @@ Object.assign(window.app, {
                                         <div class="admin-card-body text-xs">
                                             <p class="font-bold text-sm mb-3 text-black"><i class="fa-solid fa-building mr-1 text-gray-400"></i> ${app.utils.escapeAttr(d.operator_name)}</p>
                                             <div class="mb-2">
+                                                <span class="admin-label">Công ty mẹ</span>
+                                                <input type="text" id="req-op-parent-${r.id}" value="${app.utils.escapeAttr(d.parent_operator || '')}" class="admin-input" placeholder="Tùy chọn">
+                                            </div>
+                                            <div class="mb-2">
                                                 <span class="admin-label">Logo URL</span>
                                                 <input type="text" id="req-op-logo-${r.id}" value="${app.utils.escapeAttr(d.logo_url || '')}" class="admin-input">
                                                 ${d.logo_url ? `<img src="${app.utils.escapeAttr(d.logo_url.includes('wsrv.nl') ? d.logo_url : 'https://wsrv.nl/?url=' + encodeURIComponent(d.logo_url))}" class="mt-1 h-8 w-8 object-cover rounded border border-gray-200">` : ''}
@@ -2966,15 +2970,18 @@ app.admin.fetchManagerData('denied');
                         else if (reqType === 'operator_info' || req.new_data.request_type === 'update_operator_info') {
                             const logo = document.getElementById(`req-op-logo-${id}`).value.trim();
                             const desc = document.getElementById(`req-op-desc-${id}`).value.trim();
+                            const parentOpEl = document.getElementById(`req-op-parent-${id}`);
+                            const parentOp = parentOpEl ? parentOpEl.value.trim() : (req.new_data.parent_operator || '');
                             
-                            if (!logo && !desc) {
+                            if (!logo && !desc && !parentOp) {
                                 const { error } = await window.sb.from('operator_info').delete().eq('operator_name', req.new_data.operator_name);
                                 if (error) throw error;
                             } else {
                                 const { error } = await window.sb.from('operator_info').upsert({
                                     operator_name: req.new_data.operator_name,
                                     logo_url: logo || null,
-                                    description: desc || null
+                                    description: desc || null,
+                                    parent_operator: parentOp || null
                                 });
                                 if (error) throw error;
                             }

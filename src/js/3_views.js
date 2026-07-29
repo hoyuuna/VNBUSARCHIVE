@@ -2458,7 +2458,8 @@ Object.assign(window.app, {
 
                     try {
                         // Gọi DB Lấy thông tin Operator (Logo, Mô tả)
-                        const { data: opInfo } = await window.sb.from('operator_info').select('operator_name, logo_url, description').eq('operator_name', operatorName).maybeSingle();
+                        const { data: opInfo } = await window.sb.from('operator_info').select('operator_name, logo_url, description, parent_operator').eq('operator_name', operatorName).maybeSingle();
+                        const { data: childOps } = await window.sb.from('operator_info').select('operator_name').eq('parent_operator', operatorName);
                         
                         const logoEl = document.getElementById('operator-logo');
                         const fallbackEl = document.getElementById('operator-logo-fallback');
@@ -2478,6 +2479,22 @@ Object.assign(window.app, {
                             descEl.classList.remove('hidden');
                         } else {
                             descEl.classList.add('hidden');
+                        }
+
+                        const ecoEl = document.getElementById('operator-parent-child');
+                        let ecoHtml = '';
+                        if (opInfo && opInfo.parent_operator) {
+                            ecoHtml += `<div><span class="font-bold text-gray-500 uppercase text-[10px] tracking-widest mr-2">Trực thuộc:</span><a href="javascript:void(0)" onclick="app.utils.navigate('/operator/' + encodeURIComponent('${app.utils.escapeAttr(opInfo.parent_operator)}'))" class="text-blue-600 font-bold hover:underline">${app.utils.escapeHtml(opInfo.parent_operator)}</a></div>`;
+                        }
+                        if (childOps && childOps.length > 0) {
+                            const childLinks = childOps.map(c => `<a href="javascript:void(0)" onclick="app.utils.navigate('/operator/' + encodeURIComponent('${app.utils.escapeAttr(c.operator_name)}'))" class="text-blue-600 font-bold hover:underline">${app.utils.escapeHtml(c.operator_name)}</a>`).join(', ');
+                            ecoHtml += `<div><span class="font-bold text-gray-500 uppercase text-[10px] tracking-widest mr-2">Công ty con:</span>${childLinks}</div>`;
+                        }
+                        if (ecoHtml) {
+                            ecoEl.innerHTML = ecoHtml;
+                            ecoEl.classList.remove('hidden');
+                        } else {
+                            ecoEl.classList.add('hidden');
                         }
 
                         // =========================================================
@@ -3810,6 +3827,7 @@ Object.assign(window.app, {
                     
                     document.getElementById('op-edit-logo').value = '';
                     document.getElementById('op-edit-desc').value = '';
+                    document.getElementById('op-edit-parent').value = '';
                     
                     // Cập nhật UI theo Role (Quyền)
                     if (app.role === 'admin' || app.role === 'manager') {
@@ -3821,10 +3839,11 @@ Object.assign(window.app, {
                     }
 
                     try {
-                        const { data: opInfo } = await window.sb.from('operator_info').select('operator_name, logo_url, description').eq('operator_name', app.currentOperator).maybeSingle();
+                        const { data: opInfo } = await window.sb.from('operator_info').select('operator_name, logo_url, description, parent_operator').eq('operator_name', app.currentOperator).maybeSingle();
                         if (opInfo) {
                             document.getElementById('op-edit-logo').value = opInfo.logo_url || '';
                             document.getElementById('op-edit-desc').value = opInfo.description || '';
+                            document.getElementById('op-edit-parent').value = opInfo.parent_operator || '';
                         }
                     } catch(e) {}
 
@@ -3849,11 +3868,24 @@ Object.assign(window.app, {
                     if (!app.user) return;
                     const logo = document.getElementById('op-edit-logo').value.trim();
                     const desc = document.getElementById('op-edit-desc').value.trim();
+                    const parentOp = document.getElementById('op-edit-parent').value.trim();
                     const btn = document.getElementById('btn-save-operator');
 
                     const executeSave = async () => {
                         if (logo && !/^https?:\/\//i.test(logo)) {
                             return app.ui.showAlert("Logo URL phải bắt đầu bằng http:// hoặc https://");
+                        }
+                        
+                        if (parentOp) {
+                            if (parentOp.toLowerCase() === app.currentOperator.toLowerCase()) {
+                                return app.ui.showAlert("Công ty mẹ không thể là chính nó.");
+                            }
+                            const { data: checkOp } = await window.sb.from('photos').select('operator').ilike('operator', parentOp).limit(1);
+                            const { data: checkOpInfo } = await window.sb.from('operator_info').select('operator_name').ilike('operator_name', parentOp).limit(1);
+                            
+                            if ((!checkOp || checkOp.length === 0) && (!checkOpInfo || checkOpInfo.length === 0)) {
+                                return app.ui.showAlert(`Nhà xe "${parentOp}" chưa tồn tại trên hệ thống. Không thể thiết lập làm công ty mẹ.`);
+                            }
                         }
 
                         if (app.role !== 'admin' && app.role !== 'manager') {
@@ -3871,14 +3903,15 @@ Object.assign(window.app, {
 
                         try {
                             if (app.role === 'admin' || app.role === 'manager') {
-                                if (!logo && !desc) {
+                                if (!logo && !desc && !parentOp) {
                                     const { error } = await window.sb.from('operator_info').delete().eq('operator_name', app.currentOperator);
                                     if (error) throw error;
                                 } else {
                                     const { error } = await window.sb.from('operator_info').upsert({
                                         operator_name: app.currentOperator,
                                         logo_url: logo || null,
-                                        description: desc || null
+                                        description: desc || null,
+                                        parent_operator: parentOp || null
                                     });
                                     if (error) throw error;
                                 }
@@ -3888,7 +3921,7 @@ Object.assign(window.app, {
                                 app.views.loadOperatorPage(app.currentOperator);
                                 
                                 if (app.admin && app.admin.logAction) {
-                                    app.admin.logAction('update_operator_direct', app.currentOperator, { logo_url: logo, description: desc });
+                                    app.admin.logAction('update_operator_direct', app.currentOperator, { logo_url: logo, description: desc, parent_operator: parentOp });
                                 }
                             } else {
                                 const { count, error: checkErr } = await window.sb.from('edit_requests')
@@ -3908,7 +3941,8 @@ Object.assign(window.app, {
                                         request_type: 'update_operator_info',
                                         operator_name: app.currentOperator,
                                         description: desc,
-                                        logo_url: logo
+                                        logo_url: logo,
+                                        parent_operator: parentOp
                                     },
                                     status: 'pending'
                                 };
