@@ -719,11 +719,11 @@ Object.assign(window.app, {
                     app._isOwnProfile = isOwnProfile;
                     app.lastLoadedUsername = targetUsername;
 
-                    app.views.switch('account', false);
                     document.title = isOwnProfile ? 'Tài khoản của tôi | VNBUSARCHIVE' : `Hồ sơ: ${targetUsername} | VNBUSARCHIVE`;
 
                     // Nếu quay lại cùng 1 profile và đã có giao diện -> Bỏ qua phần gọi API tạo giao diện lại
                     if (isReturningToSameProfile && document.getElementById('acc-name').innerText !== '...') {
+                        app.views.switch('account', false);
                         app.loadingBar.finish();
                         return;
                     }
@@ -978,6 +978,7 @@ Object.assign(window.app, {
 
                     app.lastLoadedUsername = targetUsername;
 
+                    app.views.switch('account', false);
                     app.loadingBar.finish();
                 },
 
@@ -1903,6 +1904,7 @@ Object.assign(window.app, {
                         }
                     }
 
+                    app.views.switch('detail', false);
                     app.loadingBar.finish();
                 },
 
@@ -2061,6 +2063,7 @@ Object.assign(window.app, {
                     // --- SỬA LỖI TRẮNG TRANG: TÁCH RIÊNG BIẾN CACHE CỦA XE ---
                     // Không dùng chung app.currentPlate với trang ảnh nữa, mà dùng app.vehicle._renderedPlate
                     if (app.vehicle._renderedPlate === plate && document.getElementById('vehicle').innerHTML.includes('history-table') && !forceRefresh) {
+                        app.views.switch('vehicle', false);
                         app.loadingBar.finish();
                         return;
                     }
@@ -2389,11 +2392,13 @@ Object.assign(window.app, {
                             app.vehicle.renderVehiclePagination();
                         }
                         app.vehicle._renderedPlate = plate; // ĐÁNH DẤU XE NÀY ĐÃ RENDER THÀNH CÔNG
+                        app.views.switch('vehicle', false);
                         app.loadingBar.finish();
 
                     } catch (err) {
                         console.error("Lỗi khi tải trang xe:", err);
                         container.innerHTML = `<p class="text-center text-red-500 p-10">Đã xảy ra lỗi: ${err.message}</p>`;
+                        app.views.switch('vehicle', false);
                         app.loadingBar.finish();
                     }
                 },
@@ -2554,6 +2559,7 @@ Object.assign(window.app, {
                             document.getElementById('op-stat-routes').innerText = '0';
                             document.getElementById('op-stat-views').innerText = '0';
                             document.getElementById('op-stats-tabs-wrapper').classList.add('hidden');
+                            app.views.switch('operator-view', false);
                             app.loadingBar.finish();
                             return;
                         }
@@ -2756,6 +2762,7 @@ Object.assign(window.app, {
                     } catch (err) {
                         grid.innerHTML = `<div class="col-span-full text-center py-10 text-red-500">Lỗi lấy dữ liệu: ${err.message}</div>`;
                     }
+                    app.views.switch('operator-view', false);
                     app.loadingBar.finish();
                 },
 
@@ -4011,7 +4018,6 @@ Object.assign(window.app, {
                         return;
                     }
 
-                    app.views.switch('model-view', false);
                     document.title = `${modelName} | VNBUSARCHIVE`;
                     app.model.currentModel = modelName;
                     app.model.modelLoadedCount = 0;
@@ -4105,6 +4111,7 @@ Object.assign(window.app, {
                             document.getElementById('mdl-stat-vehicles').innerText = '0';
                             document.getElementById('mdl-stat-ops').innerText = '0';
                             document.getElementById('mdl-stat-views').innerText = '0';
+                            app.views.switch('model-view', false);
                             app.loadingBar.finish();
                             return;
                         }
@@ -4143,6 +4150,7 @@ Object.assign(window.app, {
                     } catch (err) {
                         grid.innerHTML = `<div class="col-span-full text-center py-10 text-red-500">Lỗi lấy dữ liệu: ${err.message}</div>`;
                     }
+                    app.views.switch('model-view', false);
                     app.loadingBar.finish();
                 },
 

@@ -3256,7 +3256,6 @@ Object.assign(window.app, {
                     if (app.user && !isRecovery) app.utils.navigate('/');
                     else app.views.switch('auth', false);
                 } else if (path === '/setting' || path === '/settings') {
-                    app.views.switch('account', false);
                     app.views.loadAccount();
                     setTimeout(() => {
                         app.settings.open();
@@ -3268,12 +3267,10 @@ Object.assign(window.app, {
                 } else if (path === '/profile/comments') {
                     app.comments.openDashboard();
                 } else if (path === '/profile') {
-                    app.views.switch('account', false);
                     app.views.loadAccount();
                 } else if (path.startsWith('/user/')) {
                     const username = decodeURIComponent(path.split('/')[2]);
                     if (username) {
-                        app.views.switch('account', false);
                         app.views.loadAccount(username);
                     } else app.views.loadHome();
                 } else if (path === '/upload') {
@@ -3302,25 +3299,21 @@ Object.assign(window.app, {
                 } else if (path.startsWith('/photo/')) {
                     const id = path.split('/')[2];
                     if (id) {
-                        app.views.switch('detail', false);
                         app.views.loadDetail(id);
                     }
                 } else if (path.startsWith('/vehicle/')) {
                     const plate = decodeURIComponent(path.split('/')[2]);
                     if (plate) {
-                        app.views.switch('vehicle', false);
                         app.views.loadVehiclePage(plate);
                     } else app.views.loadHome();
                 } else if (path.startsWith('/operator/')) {
                     const operatorName = decodeURIComponent(path.substring('/operator/'.length));
                     if (operatorName) {
-                        app.views.switch('operator-view', false);
                         app.views.loadOperatorPage(operatorName);
                     } else app.views.loadHome();
                 } else if (path.startsWith('/model/')) {
                     const modelName = decodeURIComponent(path.substring('/model/'.length));
                     if (modelName) {
-                        app.views.switch('model-view', false);
                         app.model.loadModelPage(modelName);
                     } else app.views.loadHome();
                 } else if (path.startsWith('/search')) {
