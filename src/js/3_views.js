@@ -1446,6 +1446,9 @@ Object.assign(window.app, {
                     const statLikes = document.getElementById('stat-likes');
                     if (statLikes) statLikes.innerText = '0';
                     
+                    const detailCopyright = document.getElementById('detail-copyright');
+                    if (detailCopyright) detailCopyright.innerHTML = '...';
+                    
                     ['info-plate', 'info-operator', 'info-route', 'info-model', 'info-location', 'info-note', 'info-camera', 'info-exif-params'].forEach(id => {
                         const el = document.getElementById(id);
                         if (el) el.value = '';
