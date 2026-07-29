@@ -719,11 +719,11 @@ Object.assign(window.app, {
                     app._isOwnProfile = isOwnProfile;
                     app.lastLoadedUsername = targetUsername;
 
+                    app.views.switch('account', false);
                     document.title = isOwnProfile ? 'Tài khoản của tôi | VNBUSARCHIVE' : `Hồ sơ: ${targetUsername} | VNBUSARCHIVE`;
 
                     // Nếu quay lại cùng 1 profile và đã có giao diện -> Bỏ qua phần gọi API tạo giao diện lại
                     if (isReturningToSameProfile && document.getElementById('acc-name').innerText !== '...') {
-                        app.views.switch('account', false);
                         app.loadingBar.finish();
                         return;
                     }
@@ -978,7 +978,6 @@ Object.assign(window.app, {
 
                     app.lastLoadedUsername = targetUsername;
 
-                    app.views.switch('account', false);
                     app.loadingBar.finish();
                 },
 
@@ -1410,9 +1409,10 @@ Object.assign(window.app, {
                         return;
                     }
 
+                    app.views.switch('detail', false);
+
                     // --- KIỂM TRA BỘ NHỚ TẠM: NẾU VÀO LẠI ĐÚNG ẢNH ĐÓ THÌ MỞ LUÔN, KHÔNG TẢI LẠI ---
                     if (app.currentPhoto && String(app.currentPhoto.id) === String(photoId) && !forceRefresh) {
-                        app.views.switch('detail', false);
                         app.loadingBar.finish();
                         return;
                     }
@@ -1904,7 +1904,6 @@ Object.assign(window.app, {
                         }
                     }
 
-                    app.views.switch('detail', false);
                     app.loadingBar.finish();
                 },
 
@@ -2059,11 +2058,12 @@ Object.assign(window.app, {
                         app.utils.navigate(`/vehicle/${encodeURIComponent(plate)}`);
                         return;
                     }
+                    
+                    app.views.switch('vehicle', false);
 
                     // --- SỬA LỖI TRẮNG TRANG: TÁCH RIÊNG BIẾN CACHE CỦA XE ---
                     // Không dùng chung app.currentPlate với trang ảnh nữa, mà dùng app.vehicle._renderedPlate
                     if (app.vehicle._renderedPlate === plate && document.getElementById('vehicle').innerHTML.includes('history-table') && !forceRefresh) {
-                        app.views.switch('vehicle', false);
                         app.loadingBar.finish();
                         return;
                     }
@@ -2392,13 +2392,11 @@ Object.assign(window.app, {
                             app.vehicle.renderVehiclePagination();
                         }
                         app.vehicle._renderedPlate = plate; // ĐÁNH DẤU XE NÀY ĐÃ RENDER THÀNH CÔNG
-                        app.views.switch('vehicle', false);
                         app.loadingBar.finish();
 
                     } catch (err) {
                         console.error("Lỗi khi tải trang xe:", err);
                         container.innerHTML = `<p class="text-center text-red-500 p-10">Đã xảy ra lỗi: ${err.message}</p>`;
-                        app.views.switch('vehicle', false);
                         app.loadingBar.finish();
                     }
                 },
@@ -2418,31 +2416,13 @@ Object.assign(window.app, {
 
                     // --- KIỂM TRA BỘ NHỚ TẠM ---
                     if (app.currentOperator === operatorName && app.operatorPhotos && app.operatorPhotos.length > 0 && !forceRefresh) {
-                        app.views.switch('operator-view', false);
                         app.loadingBar.finish();
                         return;
                     }
 
-                    app.views.switch('operator-view', false);
                     document.title = `${operatorName} | VNBUSARCHIVE`;
                     app.currentOperator = operatorName;
                     app.operatorLoadedCount = 0;
-
-                    // Giải quyết tên đơn vị thực tế trong DB (xử lý biến thể khoảng trắng/ký tự ẩn)
-                    const targetNorm = app.utils.normOperator(operatorName).toLowerCase();
-                    let resolvedOperator = operatorName;
-                    try {
-                        const { data: opCandidates } = await window.sb
-                            .from('photos')
-                            .select('operator')
-                            .eq('status', 'approved')
-                            .not('operator', 'is', null)
-                            .limit(50);
-                        if (opCandidates && opCandidates.length > 0) {
-                            const match = opCandidates.find(r => app.utils.normOperator(r.operator).toLowerCase() === targetNorm);
-                            if (match) resolvedOperator = match.operator;
-                        }
-                    } catch (e) { /* fallback to original name */ }
 
                     // --- RESET UI TRỐNG ĐỂ CHỐNG NHÁY THÔNG TIN CŨ ---
                     document.getElementById('crumb-operator').innerText = operatorName;
@@ -2460,6 +2440,22 @@ Object.assign(window.app, {
                     grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tổng hợp dữ liệu...</div>';
                     document.getElementById('operator-load-more-container').classList.add('hidden');
                     // --------------------------------------------------
+
+                    // Giải quyết tên đơn vị thực tế trong DB (xử lý biến thể khoảng trắng/ký tự ẩn)
+                    const targetNorm = app.utils.normOperator(operatorName).toLowerCase();
+                    let resolvedOperator = operatorName;
+                    try {
+                        const { data: opCandidates } = await window.sb
+                            .from('photos')
+                            .select('operator')
+                            .eq('status', 'approved')
+                            .not('operator', 'is', null)
+                            .limit(50);
+                        if (opCandidates && opCandidates.length > 0) {
+                            const match = opCandidates.find(r => app.utils.normOperator(r.operator).toLowerCase() === targetNorm);
+                            if (match) resolvedOperator = match.operator;
+                        }
+                    } catch (e) { /* fallback to original name */ }
 
                     try {
                         // Gọi DB Lấy thông tin Operator (Logo, Mô tả)
@@ -2559,7 +2555,6 @@ Object.assign(window.app, {
                             document.getElementById('op-stat-routes').innerText = '0';
                             document.getElementById('op-stat-views').innerText = '0';
                             document.getElementById('op-stats-tabs-wrapper').classList.add('hidden');
-                            app.views.switch('operator-view', false);
                             app.loadingBar.finish();
                             return;
                         }
@@ -2762,7 +2757,6 @@ Object.assign(window.app, {
                     } catch (err) {
                         grid.innerHTML = `<div class="col-span-full text-center py-10 text-red-500">Lỗi lấy dữ liệu: ${err.message}</div>`;
                     }
-                    app.views.switch('operator-view', false);
                     app.loadingBar.finish();
                 },
 
@@ -4111,7 +4105,6 @@ Object.assign(window.app, {
                             document.getElementById('mdl-stat-vehicles').innerText = '0';
                             document.getElementById('mdl-stat-ops').innerText = '0';
                             document.getElementById('mdl-stat-views').innerText = '0';
-                            app.views.switch('model-view', false);
                             app.loadingBar.finish();
                             return;
                         }
@@ -4150,7 +4143,6 @@ Object.assign(window.app, {
                     } catch (err) {
                         grid.innerHTML = `<div class="col-span-full text-center py-10 text-red-500">Lỗi lấy dữ liệu: ${err.message}</div>`;
                     }
-                    app.views.switch('model-view', false);
                     app.loadingBar.finish();
                 },
 
