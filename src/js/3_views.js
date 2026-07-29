@@ -1423,8 +1423,10 @@ Object.assign(window.app, {
                     
                     const imgEl = document.getElementById('detail-img');
                     if (imgEl) {
+                        imgEl.onload = null;
+                        imgEl.onerror = null;
                         imgEl.style.opacity = '0';
-                        imgEl.src = ''; // Force clear immediately to bypass CSS transition duration
+                        imgEl.removeAttribute('src'); // Force clear without triggering old onerror handlers
                         const wrapper = imgEl.closest('.img-wrapper');
                         if (wrapper) {
                             const errorBox = wrapper.querySelector('.img-error');
