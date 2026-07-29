@@ -3884,8 +3884,26 @@ Object.assign(window.app, {
                     const btn = document.getElementById('btn-save-operator');
 
                     const executeSave = async () => {
-                        if (logo && !/^https?:\/\//i.test(logo)) {
-                            return app.ui.showAlert("Logo URL phải bắt đầu bằng http:// hoặc https://");
+                        if (logo) {
+                            if (!/^https?:\/\//i.test(logo)) {
+                                return app.ui.showAlert("Logo URL phải bắt đầu bằng http:// hoặc https://");
+                            }
+                            const origTextTemp = btn.innerHTML;
+                            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang kiểm tra ảnh...';
+                            btn.disabled = true;
+                            const isValidImg = await new Promise(resolve => {
+                                const img = new Image();
+                                img.onload = () => resolve(true);
+                                img.onerror = () => resolve(false);
+                                img.src = logo.includes('wsrv.nl') ? logo : 'https://wsrv.nl/?url=' + encodeURIComponent(logo);
+                            });
+                            if (!isValidImg) {
+                                btn.innerHTML = origTextTemp;
+                                btn.disabled = false;
+                                return app.ui.showAlert("Không thể tải được ảnh từ đường dẫn Logo bạn đã nhập (Hoặc máy chủ ảnh từ chối truy cập).");
+                            }
+                            btn.innerHTML = origTextTemp;
+                            btn.disabled = false;
                         }
                         
                         if (parentOp) {
@@ -4206,8 +4224,26 @@ Object.assign(window.app, {
                     const btn = document.getElementById('btn-save-model');
 
                     const executeSave = async () => {
-                        if (logo && !/^https?:\/\//i.test(logo)) {
-                            return app.ui.showAlert("Logo URL phải bắt đầu bằng http:// hoặc https://");
+                        if (logo) {
+                            if (!/^https?:\/\//i.test(logo)) {
+                                return app.ui.showAlert("Logo URL phải bắt đầu bằng http:// hoặc https://");
+                            }
+                            const origTextTemp = btn.innerHTML;
+                            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang kiểm tra ảnh...';
+                            btn.disabled = true;
+                            const isValidImg = await new Promise(resolve => {
+                                const img = new Image();
+                                img.onload = () => resolve(true);
+                                img.onerror = () => resolve(false);
+                                img.src = logo.includes('wsrv.nl') ? logo : 'https://wsrv.nl/?url=' + encodeURIComponent(logo);
+                            });
+                            if (!isValidImg) {
+                                btn.innerHTML = origTextTemp;
+                                btn.disabled = false;
+                                return app.ui.showAlert("Không thể tải được ảnh từ đường dẫn Logo bạn đã nhập (Hoặc máy chủ ảnh từ chối truy cập).");
+                            }
+                            btn.innerHTML = origTextTemp;
+                            btn.disabled = false;
                         }
 
                         if (app.role !== 'admin' && app.role !== 'manager') {
