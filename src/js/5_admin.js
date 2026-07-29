@@ -1119,7 +1119,7 @@ Object.assign(window.app, {
                                         <div class="admin-card-body text-xs">
                                             <p class="font-bold text-sm mb-3 text-black"><i class="fa-solid fa-building mr-1 text-gray-400"></i> ${app.utils.escapeAttr(d.operator_name)}</p>
                                             <div class="mb-2">
-                                                <span class="admin-label">Công ty mẹ</span>
+                                                <span class="admin-label">ĐVVH mẹ</span>
                                                 <input type="text" id="req-op-parent-${r.id}" value="${app.utils.escapeAttr(d.parent_operator || '')}" class="admin-input" placeholder="Tùy chọn">
                                             </div>
                                             <div class="mb-2">
