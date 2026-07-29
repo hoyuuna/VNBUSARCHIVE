@@ -1424,6 +1424,7 @@ Object.assign(window.app, {
                     const imgEl = document.getElementById('detail-img');
                     if (imgEl) {
                         imgEl.style.opacity = '0';
+                        imgEl.src = ''; // Force clear immediately to bypass CSS transition duration
                         const wrapper = imgEl.closest('.img-wrapper');
                         if (wrapper) {
                             const errorBox = wrapper.querySelector('.img-error');
@@ -2432,6 +2433,11 @@ Object.assign(window.app, {
                     document.getElementById('operator-logo').classList.add('hidden');
                     document.getElementById('operator-logo-fallback').classList.remove('hidden');
                     document.getElementById('operator-desc').classList.add('hidden');
+                    const parentChildEl = document.getElementById('operator-parent-child');
+                    if (parentChildEl) {
+                        parentChildEl.innerHTML = '';
+                        parentChildEl.classList.add('hidden');
+                    }
                     document.getElementById('op-stat-photos').innerText = '...';
                     document.getElementById('op-stat-vehicles').innerText = '...';
                     document.getElementById('op-stat-routes').innerText = '...';
