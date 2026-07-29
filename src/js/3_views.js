@@ -3886,6 +3886,9 @@ Object.assign(window.app, {
                         }
                         
                         if (parentOp) {
+                            if (parentOp.includes(',') && parentOp.split(',').length !== parentOp.split(', ').length) {
+                                return app.ui.showAlert("Sai cấu trúc: Các ĐVVH phải được ngăn cách bằng dấu phẩy và một khoảng trắng (Ví dụ: 'Công ty A, Công ty B').");
+                            }
                             const parents = parentOp.split(',').map(s => s.trim()).filter(Boolean);
                             for (const p of parents) {
                                 if (p.toLowerCase() === app.currentOperator.toLowerCase()) {
