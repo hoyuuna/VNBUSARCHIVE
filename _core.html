@@ -4981,7 +4981,7 @@
                     </div>
                     
                     <!-- Khung hệ sinh thái công ty -->
-                    <div id="operator-parent-child" class="mb-3 p-3 rounded-xl border border-gray-100 bg-white hidden flex flex-col gap-2 text-sm"></div>
+                    <div id="operator-parent-child" class="mb-3 p-4 rounded-xl border border-gray-100 bg-gray-50 shadow-inner hidden flex flex-col gap-2 text-sm"></div>
                     
                     <!-- Khung mô tả -->
                     <div id="operator-desc" class="text-sm text-gray-700 mb-3 whitespace-pre-wrap leading-relaxed hidden bg-gray-50 p-4 rounded-xl border border-gray-100 shadow-inner"></div>
@@ -6059,17 +6059,17 @@
             <div class="p-5 bg-transparent space-y-4">
                 <p class="text-xs text-gray-600 font-medium leading-relaxed">Thông tin này sẽ được kiểm duyệt bởi Admin. Việc để trống cả 2 ô sẽ làm mới và xóa thông tin hiện tại.</p>
                 <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Công ty mẹ (Tùy chọn)</label>
-                    <input type="text" id="op-edit-parent" class="w-full bg-white/60 border border-gray-300/80 rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all shadow-inner text-black" placeholder="Nhập tên chính xác của công ty mẹ...">
-                    <p class="text-[11px] text-gray-500 mt-1">Chỉ có thể nhập nhà xe đã có sẵn dữ liệu trên hệ thống.</p>
-                </div>
-                <div>
                     <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Logo URL</label>
                     <div class="bg-yellow-50 border border-yellow-200 text-yellow-700 px-3 py-2 rounded-md text-[11px] font-medium mb-2 flex gap-2 items-center">
                         <i class="fa-solid fa-triangle-exclamation"></i>
                         <span>Khuyến cáo dùng ảnh hình vuông, đã được xóa nền hoặc nền có màu trắng. Ảnh có thể được đồng bộ tự động.</span>
                     </div>
                     <input type="text" id="op-edit-logo" class="w-full bg-white/60 border border-gray-300/80 rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all shadow-inner text-black" placeholder="VD: https://imgur.com/xyz.png">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Công ty mẹ</label>
+                    <input type="text" id="op-edit-parent" class="w-full bg-white/60 border border-gray-300/80 rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all shadow-inner text-black" placeholder="Có thể nhập nhiều công ty mẹ, cách nhau bằng dấu phẩy...">
+                    <p class="text-[11px] text-gray-500 mt-1">Chỉ có thể nhập nhà xe đã có sẵn dữ liệu trên hệ thống.</p>
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Mô tả giới thiệu</label>

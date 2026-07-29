@@ -2459,7 +2459,12 @@ Object.assign(window.app, {
                     try {
                         // Gọi DB Lấy thông tin Operator (Logo, Mô tả)
                         const { data: opInfo } = await window.sb.from('operator_info').select('operator_name, logo_url, description, parent_operator').eq('operator_name', operatorName).maybeSingle();
-                        const { data: childOps } = await window.sb.from('operator_info').select('operator_name').eq('parent_operator', operatorName);
+                        const { data: rawChildOps } = await window.sb.from('operator_info').select('operator_name, parent_operator').ilike('parent_operator', `%${operatorName}%`);
+                        const childOps = (rawChildOps || []).filter(op => {
+                            if (!op.parent_operator) return false;
+                            const parents = op.parent_operator.split(',').map(s => s.trim().toLowerCase());
+                            return parents.includes(operatorName.toLowerCase());
+                        });
                         
                         const logoEl = document.getElementById('operator-logo');
                         const fallbackEl = document.getElementById('operator-logo-fallback');
@@ -2484,10 +2489,14 @@ Object.assign(window.app, {
                         const ecoEl = document.getElementById('operator-parent-child');
                         let ecoHtml = '';
                         if (opInfo && opInfo.parent_operator) {
-                            ecoHtml += `<div><span class="font-bold text-gray-500 uppercase text-[10px] tracking-widest mr-2">Trực thuộc:</span><a href="javascript:void(0)" onclick="app.utils.navigate('/operator/' + encodeURIComponent('${app.utils.escapeAttr(opInfo.parent_operator)}'))" class="text-blue-600 font-bold hover:underline">${app.utils.escapeHtml(opInfo.parent_operator)}</a></div>`;
+                            const parents = opInfo.parent_operator.split(',').map(s => s.trim()).filter(Boolean);
+                            if (parents.length > 0) {
+                                const parentLinks = parents.map(p => `<a href="javascript:void(0)" onclick="app.utils.navigate('/operator/' + encodeURIComponent('${app.utils.escapeAttr(p)}'))" class="text-black font-bold hover:underline">${app.utils.escapeHtml(p)}</a>`).join(', ');
+                                ecoHtml += `<div><span class="font-bold text-gray-500 uppercase text-[10px] tracking-widest mr-2">Công ty mẹ:</span>${parentLinks}</div>`;
+                            }
                         }
                         if (childOps && childOps.length > 0) {
-                            const childLinks = childOps.map(c => `<a href="javascript:void(0)" onclick="app.utils.navigate('/operator/' + encodeURIComponent('${app.utils.escapeAttr(c.operator_name)}'))" class="text-blue-600 font-bold hover:underline">${app.utils.escapeHtml(c.operator_name)}</a>`).join(', ');
+                            const childLinks = childOps.map(c => `<a href="javascript:void(0)" onclick="app.utils.navigate('/operator/' + encodeURIComponent('${app.utils.escapeAttr(c.operator_name)}'))" class="text-black font-bold hover:underline">${app.utils.escapeHtml(c.operator_name)}</a>`).join(', ');
                             ecoHtml += `<div><span class="font-bold text-gray-500 uppercase text-[10px] tracking-widest mr-2">Công ty con:</span>${childLinks}</div>`;
                         }
                         if (ecoHtml) {
@@ -3877,14 +3886,17 @@ Object.assign(window.app, {
                         }
                         
                         if (parentOp) {
-                            if (parentOp.toLowerCase() === app.currentOperator.toLowerCase()) {
-                                return app.ui.showAlert("Công ty mẹ không thể là chính nó.");
-                            }
-                            const { data: checkOp } = await window.sb.from('photos').select('operator').ilike('operator', parentOp).limit(1);
-                            const { data: checkOpInfo } = await window.sb.from('operator_info').select('operator_name').ilike('operator_name', parentOp).limit(1);
-                            
-                            if ((!checkOp || checkOp.length === 0) && (!checkOpInfo || checkOpInfo.length === 0)) {
-                                return app.ui.showAlert(`Nhà xe "${parentOp}" chưa tồn tại trên hệ thống. Không thể thiết lập làm công ty mẹ.`);
+                            const parents = parentOp.split(',').map(s => s.trim()).filter(Boolean);
+                            for (const p of parents) {
+                                if (p.toLowerCase() === app.currentOperator.toLowerCase()) {
+                                    return app.ui.showAlert(`Công ty mẹ không thể là chính nó (${p}).`);
+                                }
+                                const { data: checkOp } = await window.sb.from('photos').select('operator').ilike('operator', p).limit(1);
+                                const { data: checkOpInfo } = await window.sb.from('operator_info').select('operator_name').ilike('operator_name', p).limit(1);
+                                
+                                if ((!checkOp || checkOp.length === 0) && (!checkOpInfo || checkOpInfo.length === 0)) {
+                                    return app.ui.showAlert(`Nhà xe "${p}" chưa tồn tại trên hệ thống. Không thể thiết lập làm công ty mẹ.`);
+                                }
                             }
                         }
 
