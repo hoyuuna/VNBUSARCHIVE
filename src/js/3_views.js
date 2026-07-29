@@ -2414,6 +2414,8 @@ Object.assign(window.app, {
                         return;
                     }
 
+                    app.views.switch('operator-view', false);
+
                     // --- KIỂM TRA BỘ NHỚ TẠM ---
                     if (app.currentOperator === operatorName && app.operatorPhotos && app.operatorPhotos.length > 0 && !forceRefresh) {
                         app.loadingBar.finish();
@@ -4005,9 +4007,10 @@ Object.assign(window.app, {
                         return;
                     }
 
+                    app.views.switch('model-view', false);
+
                     // --- KIỂM TRA BỘ NHỚ TẠM ---
                     if (app.model.currentModel === modelName && app.model.modelPhotos && app.model.modelPhotos.length > 0 && !forceRefresh) {
-                        app.views.switch('model-view', false);
                         app.loadingBar.finish();
                         return;
                     }
