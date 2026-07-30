@@ -1683,7 +1683,17 @@ Object.assign(window.app, {
                     const lblDetailRoute = document.getElementById('lbl-detail-route');
                     if (lblDetailRoute) lblDetailRoute.innerText = snapshot.type === 'coach' ? 'Lộ trình' : 'Mã số tuyến';
                     if (elInfoModel) elInfoModel.value = snapshot.model || 'Đã bị xóa';
-                    if (elInfoLocation) elInfoLocation.value = photo.location || '---';
+                    if (elInfoLocation) {
+                        elInfoLocation.value = photo.location || '---';
+                        const warningEl = document.getElementById('info-interior-warning');
+                        if (warningEl) {
+                            if ((photo.location || '').trim() === 'Chụp trong xe') {
+                                warningEl.classList.remove('hidden');
+                            } else {
+                                warningEl.classList.add('hidden');
+                            }
+                        }
+                    }
                     if (elInfoProvince) {
                         app.views.selectInfoProvince(photo.province || '');
                     }

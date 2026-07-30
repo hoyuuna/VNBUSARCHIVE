@@ -3639,6 +3639,10 @@ div[id$="-modal"] > div > * {
                                             <td class="label bg-gray-50 border-r border-b border-gray-200">Vị trí chụp</td>
                                             <td class="value-cell border-b border-gray-200">
                                                 <input type="text" id="info-location" class="info-input text-gray-700" readonly>
+                                                <div id="info-interior-warning" class="hidden mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded-lg text-[11px] text-yellow-800 font-bold flex items-start gap-2 mb-2">
+                                                    <i class="fa-solid fa-triangle-exclamation mt-0.5"></i>
+                                                    <p class="m-0 leading-snug">Đây là ảnh chụp nội thất xe (được đăng tải trước ngày 30/7/2026).</p>
+                                                </div>
                                                 <div id="detail-map"></div>
                                             </td>
                                         </tr>
@@ -4683,7 +4687,7 @@ div[id$="-modal"] > div > * {
                                     <input type="text" id="up-location" tabindex="6"
                                         class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition"
                                         oninput="if(this.value.trim().toLowerCase() === 'chụp trong xe') { this.value = ''; app.ui.showAlert('Vui lòng tích chọn ô Chụp trong xe bên dưới thay vì nhập tay!'); }">
-                                    <div class="mt-2.5">
+                                    <div class="mt-2.5 hidden">
                                         <label class="flex items-start cursor-pointer group select-none w-max">
                                             <input type="checkbox" id="up-location-inside" onchange="app.upload.toggleInsideVehicle(this.checked)" class="custom-cb-input sr-only">
                                             <div class="custom-cb-box shrink-0 shadow-sm">
@@ -4693,11 +4697,11 @@ div[id$="-modal"] > div > * {
                                         </label>
                                     </div>
                                     <p id="err-up-location" class="upload-req-err hidden text-[11px] mt-1 text-red-600 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Vui lòng nhập Vị trí chụp</p>
-                                    <div id="up-interior-warning" class="hidden mt-2 p-3 bg-red-50 border border-red-200 rounded-lg shadow-sm flex items-start gap-2.5 fade-zoom-in">
-                                        <i class="fa-solid fa-triangle-exclamation text-red-500 mt-0.5 text-sm"></i>
-                                        <p class="text-[11px] font-bold text-red-700 leading-snug m-0">Vị trí chụp "Chụp trong xe" chỉ áp dụng cho ảnh chụp nội thất xe, vui lòng tuân thủ NGHIÊM NGẶT theo quy định kiểm duyệt, ảnh loại này sẽ được kiểm duyệt gắt gao hơn thông thường rất nhiều.</p>
-                                    </div>
                                     <div id="upload-map" class="mt-2 border border-gray-300 rounded-md"></div>
+                                    <div class="mt-2 p-3 bg-gray-50 border border-gray-200 rounded-lg shadow-sm flex items-start gap-2.5">
+                                        <i class="fa-solid fa-circle-info text-gray-500 mt-0.5 text-sm"></i>
+                                        <p class="text-[11px] font-bold text-gray-700 leading-snug m-0">Từ ngày 30/7/2026, nền tảng không còn hỗ trợ nhận ảnh nội thất xe.</p>
+                                    </div>
                                 </div>
                                 <div class="md:col-span-2 hidden">
                                     <label class="text-xs text-gray-500 font-bold block mb-1.5 uppercase">Tuyến của tỉnh <span class="text-red-500">*</span></label>
