@@ -63,7 +63,7 @@ const buildContactEmailHtml = ({ name, ticketId, supportType, message }) => {
                     <tr>
                         <td align="left" style="padding-bottom: 24px; font-family: 'Be Vietnam Pro', Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #4a4a4a; font-weight: 400;">
                             <p style="margin: 0 0 16px 0;">
-                                Xin chào <strong style="color: #000000; font-weight: 600;">\${escapeHtml(name)}</strong>,
+                                Xin chào <strong style="color: #000000; font-weight: 600;">${escapeHtml(name)}</strong>,
                             </p>
                             <p style="margin: 0 0 16px 0; font-size: 13px; color: #666666; font-style: italic; background-color: #f9f9f9; padding: 12px; border-radius: 8px;">
                                 ⚠️ <strong style="color: #000000;">Lưu ý bảo mật:</strong> Đây là email tự động xác nhận yêu cầu hỗ trợ từ VNBUSARCHIVE. Nếu bạn không gửi yêu cầu này, vui lòng bỏ qua email.
@@ -75,10 +75,10 @@ const buildContactEmailHtml = ({ name, ticketId, supportType, message }) => {
                             <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f9f9f9; border-radius: 8px; margin-bottom: 24px;">
                                 <tr>
                                     <td style="padding: 20px; font-family: 'Be Vietnam Pro', Arial, sans-serif;">
-                                        <p style="margin: 0 0 12px; font-size: 14px; color: #000000;"><strong>ID:</strong> <span style="color: #4a4a4a;">\${escapeHtml(ticketId)}</span></p>
-                                        <p style="margin: 0 0 12px; font-size: 14px; color: #000000;"><strong>Loại hình:</strong> <span style="color: #4a4a4a;">\${escapeHtml(supportType)}</span></p>
+                                        <p style="margin: 0 0 12px; font-size: 14px; color: #000000;"><strong>ID:</strong> <span style="color: #4a4a4a;">${escapeHtml(ticketId)}</span></p>
+                                        <p style="margin: 0 0 12px; font-size: 14px; color: #000000;"><strong>Loại hình:</strong> <span style="color: #4a4a4a;">${escapeHtml(supportType)}</span></p>
                                         <p style="margin: 0 0 8px; font-size: 14px; color: #000000;"><strong>Nội dung:</strong></p>
-                                        <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #4a4a4a; white-space: pre-wrap;">\${escapeHtml(message)}</p>
+                                        <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #4a4a4a; white-space: pre-wrap;">${escapeHtml(message)}</p>
                                     </td>
                                 </tr>
                             </table>

@@ -107,16 +107,16 @@ async function handleSendEmail(request, env, body) {
                         <tr>
                             <td align="left" style="padding-bottom: 24px; font-family: 'Be Vietnam Pro', Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #4a4a4a; font-weight: 400;">
                                 <p style="margin: 0 0 16px 0;">
-                                    Xin chào <strong style="color: #000000; font-weight: 600;">\${escapeHtml(recipientName)}</strong>,
+                                    Xin chào <strong style="color: #000000; font-weight: 600;">${escapeHtml(recipientName)}</strong>,
                                 </p>
 
                                 <div class="markdown-content" style="margin: 0 0 24px; font-size: 14px; line-height: 1.6; color: #4a4a4a; text-align: left;">
-                                    \${htmlContent}
+                                    ${htmlContent}
                                 </div>
 
                                 <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #000000; font-weight: 500;">
                                     Thân gửi,<br>
-                                    <strong style="font-weight: 600;">\${adminName}</strong>
+                                    <strong style="font-weight: 600;">${adminName}</strong>
                                 </p>
                             </td>
                         </tr>
