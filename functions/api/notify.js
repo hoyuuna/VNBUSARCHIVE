@@ -103,13 +103,6 @@ async function handleSendEmail(request, env, body) {
                             </td>
                         </tr>
 
-                        <tr>
-                            <td align="center" style="padding-bottom: 16px;">
-                                <h1 style="margin: 0; font-family: 'Be Vietnam Pro', Arial, sans-serif; font-size: 20px; font-weight: 700; color: #000000; line-height: 1.4; letter-spacing: -0.3px;">
-                                    Thông báo từ VNBUSARCHIVE
-                                </h1>
-                            </td>
-                        </tr>
 
                         <tr>
                             <td align="left" style="padding-bottom: 24px; font-family: 'Be Vietnam Pro', Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #4a4a4a; font-weight: 400;">
