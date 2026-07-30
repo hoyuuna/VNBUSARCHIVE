@@ -63,6 +63,26 @@ Tài liệu này quy định các tiêu chuẩn kỹ thuật về hình ảnh v�
 | <img src="https://i.postimg.cc/7PSNXqSC/IMG_8131.jpg" width="300"> | ❌ **TỪ CHỐI** | **Lỗi:** Cháy sáng (Overexposed) nghiêm trọng. |
 | <img src="https://i.postimg.cc/rmm3qgbw/IMG-20260323-125800.jpg" width="300"> | ❌ **TỪ CHỐI** | **Lỗi:** Xuất hiện vật cản (người đi đường) lấp chủ thể. |
 
+### B7. Tiêu chuẩn riêng đối với Ảnh chụp Nội thất (Trong xe)
+*Bên cạnh các quy định kỹ thuật chung, hình ảnh chụp bên trong không gian phương tiện (nội thất) phải tuân thủ nghiêm ngặt các điều kiện sau:*
+
+* **B7.1. Bố cục và Góc chụp:**
+  * **Vị trí chụp:** Chấp nhận hình ảnh chụp từ bất kỳ vị trí nào bên trong xe (đầu xe, giữa thân xe hoặc đuôi xe).
+  * **Phạm vi bao quát:** Khung hình phải thể hiện được góc nhìn rộng, rõ ràng và bao quát các bộ phận/kết cấu không gian nội thất (hàng ghế, lối đi, trần xe, vô lăng/cabin...).
+  * **Hạn chế:** Từ chối ảnh có chủ thể chính là cảnh vật bên ngoài (chụp hướng chủ yếu ra cửa sổ/cửa kính) hoặc ảnh cận cảnh một chi tiết quá nhỏ không đại diện được cho tổng thể nội thất.
+* **B7.2. Định danh bắt buộc (BKS nội thất):**
+  * Bắt buộc phải nhìn thấy và nhận diện rõ ràng **Biển kiểm soát (BKS)** được dán/treo ở khu vực bên trong xe (thường dán tại vị trí đầu xe, khu vực cabin hoặc phía trên kính lái).
+  * Ký tự BKS phải đọc được bằng mắt thường, không bị che khuất, lóa sáng hoặc mờ nhòe.
+* **B7.3. Mật độ hành khách & Quyền riêng tư:**
+  * **Mật độ:** Không chấp nhận ảnh chụp khi xe quá đông đúc, chen chúc (gây che khuất hầu hết không gian và chi tiết nội thất). Ưu tiên chụp khi xe trống/vắng khách hoặc tại điểm đầu/cuối tuyến.
+  * **Quyền riêng tư (Bắt buộc):** Bắt buộc làm mờ (blur) hoặc che khuất toàn bộ khuôn mặt của hành khách, tài xế và nhân viên phục vụ xuất hiện trong ảnh.
+  * **Quy tắc che:** Áp dụng theo điều khoản **B4.3** (vùng làm mờ không được đè lên BKS nội thất, bảng thông tin, vô lăng hay các chi tiết kết cấu của xe).
+* **B7.4. Ánh sáng & Yếu tố kỹ thuật:**
+  * Khung hình phải đủ sáng, rõ nét, hạn chế tối đa hiện tượng ngược sáng mạnh từ cửa sổ chiếu vào.
+  * Tuân thủ hoàn toàn các quy định về Tốc độ/Độ nét (**B3.1**), Cấm can thiệp AI (**B3.2**) và Giữ nguyên EXIF (**B3.3**).
+* **B7.5. An toàn & Văn minh:**
+  * Người chụp phải đảm bảo trật tự, không làm ảnh hưởng đến hành khách khác và tuyệt đối không gây mất tập trung cho tài xế khi xe đang vận hành (tuân thủ **B5.4**).
+
 ---
 
 ## PHẦN C: QUY CHUẨN NHẬP LIỆU
