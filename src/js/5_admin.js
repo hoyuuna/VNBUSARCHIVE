@@ -136,7 +136,6 @@ Object.assign(window.app, {
                                             if (canDeny) {
                                                 actionButtons += `<button onclick="app.admin.denyPhoto('${p.id}', '${p.uploader_id}', this)" class="flex-1 bg-red-600 text-white py-1.5 text-xs font-bold rounded hover:bg-red-700">TỪ CHỐI</button>`;
                                             }
-                                        }
 
                                         actionButtons += '</div>';
                                         return actionButtons;
