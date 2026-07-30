@@ -54,36 +54,30 @@ const buildContactEmailHtml = ({ name, ticketId, supportType, message }) => {
 
                     <tr>
                         <td align="center" style="padding-bottom: 16px;">
-                            <h1 style="margin: 0; font-family: 'Be Vietnam Pro', Arial, sans-serif; font-size: 20px; font-weight: 700; color: #000000; line-height: 1.4; letter-spacing: -0.3px; text-transform: uppercase;">
-                                THÔNG TIN HỖ TRỢ ĐÃ ĐƯỢC GỬI
+                            <h1 style="margin: 0; font-family: 'Be Vietnam Pro', Arial, sans-serif; font-size: 20px; font-weight: 700; color: #000000; line-height: 1.4; letter-spacing: -0.3px;">
+                                Thông tin hỗ trợ đã được gửi
                             </h1>
                         </td>
                     </tr>
 
                     <tr>
-                        <td align="left" style="padding-bottom: 24px; font-family: 'Be Vietnam Pro', Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #4a4a4a; font-weight: 400;">
-                            <p style="margin: 0 0 16px 0;">
+                        <td align="center" style="padding-bottom: 24px; font-family: 'Be Vietnam Pro', Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #4a4a4a; font-weight: 400;">
+                            <p style="margin: 0 0 12px 0;">
                                 Xin chào <strong style="color: #000000; font-weight: 600;">${escapeHtml(name)}</strong>,
                             </p>
-                            <p style="margin: 0 0 16px 0; font-size: 13px; color: #666666; font-style: italic; background-color: #f9f9f9; padding: 12px; border-radius: 8px;">
+                            <p style="margin: 0 0 12px 0;">
                                 ⚠️ <strong style="color: #000000;">Lưu ý bảo mật:</strong> Đây là email tự động xác nhận yêu cầu hỗ trợ từ VNBUSARCHIVE. Nếu bạn không gửi yêu cầu này, vui lòng bỏ qua email.
                             </p>
                             <p style="margin: 0 0 24px 0;">
                                 Cảm ơn bạn đã liên hệ với VNBUSARCHIVE, dưới đây là thông tin bạn đã cung cấp:
                             </p>
                             
-                            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f9f9f9; border-radius: 8px; margin-bottom: 24px;">
-                                <tr>
-                                    <td style="padding: 20px; font-family: 'Be Vietnam Pro', Arial, sans-serif;">
-                                        <p style="margin: 0 0 12px; font-size: 14px; color: #000000;"><strong>ID:</strong> <span style="color: #4a4a4a;">${escapeHtml(ticketId)}</span></p>
-                                        <p style="margin: 0 0 12px; font-size: 14px; color: #000000;"><strong>Loại hình:</strong> <span style="color: #4a4a4a;">${escapeHtml(supportType)}</span></p>
-                                        <p style="margin: 0 0 8px; font-size: 14px; color: #000000;"><strong>Nội dung:</strong></p>
-                                        <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #4a4a4a; white-space: pre-wrap;">${escapeHtml(message)}</p>
-                                    </td>
-                                </tr>
-                            </table>
+                            <p style="margin: 0 0 12px 0;"><strong style="color: #000000;">ID:</strong> ${escapeHtml(ticketId)}</p>
+                            <p style="margin: 0 0 12px 0;"><strong style="color: #000000;">Loại hình:</strong> ${escapeHtml(supportType)}</p>
+                            <p style="margin: 0 0 8px 0;"><strong style="color: #000000;">Nội dung:</strong></p>
+                            <p style="margin: 0 0 24px 0; white-space: pre-wrap; text-align: left; display: inline-block; width: 100%;">${escapeHtml(message)}</p>
 
-                            <p style="margin: 0 0 16px 0;">
+                            <p style="margin: 0 0 12px 0;">
                                 <strong style="color: #000000;">Lưu ý:</strong> Các yêu cầu đơn giản có thể sẽ không nhận được phản hồi, tuy nhiên chúng tôi vẫn tiến hành xử lý như thông thường.
                             </p>
                             <p style="margin: 0;">
@@ -93,7 +87,7 @@ const buildContactEmailHtml = ({ name, ticketId, supportType, message }) => {
                     </tr>
 
                     <tr>
-                        <td align="center" style="font-family: 'Be Vietnam Pro', Arial, sans-serif; font-size: 13px; line-height: 1.6; color: #666666; border-top: 1px solid #eeeeee; padding-top: 24px;">
+                        <td align="center" style="font-family: 'Be Vietnam Pro', Arial, sans-serif; font-size: 13px; line-height: 1.6; color: #666666;">
                             Bạn không thể trả lời email này, vui lòng liên hệ qua email <a href="mailto:lienhe@vnbusarchive.io.vn" style="color: #000000; text-decoration: underline; font-weight: 500;">lienhe@vnbusarchive.io.vn</a> để tiếp tục.
                         </td>
                     </tr>
