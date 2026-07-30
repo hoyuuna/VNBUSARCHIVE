@@ -4370,15 +4370,12 @@ Object.assign(window.app, {
                         // Handle special logic for the note field
                         if (id === 'vehicle-edit-note') {
                             const displayDiv = document.getElementById('vehicle-note-display');
-                            const alertDiv = document.getElementById('vehicle-note-alert');
                             if (!input.readOnly) {
                                 if (displayDiv) displayDiv.classList.add('hidden');
-                                if (alertDiv) alertDiv.classList.remove('hidden');
                                 input.classList.remove('hidden', 'cursor-not-allowed');
                                 input.classList.add('bg-white', 'focus:ring-2', 'focus:ring-black', 'block');
                             } else {
                                 if (displayDiv) displayDiv.classList.remove('hidden');
-                                if (alertDiv) alertDiv.classList.add('hidden');
                                 input.classList.add('hidden', 'cursor-not-allowed');
                                 input.classList.remove('bg-white', 'focus:ring-2', 'focus:ring-black', 'block');
                             }

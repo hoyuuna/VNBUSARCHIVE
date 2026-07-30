@@ -2381,9 +2381,6 @@ Object.assign(window.app, {
                                                 <td class="value-cell relative">
                                                     <div id="vehicle-note-display" class="info-input text-gray-700 w-full min-h-[40px] block bg-gray-50 cursor-not-allowed whitespace-pre-wrap break-words border border-transparent px-3 py-2 text-sm">${app.utils.linkify(app.utils.escapeAttr(vehicle.note || ''))}</div>
                                                     <textarea id="vehicle-edit-note" rows="2" class="info-input text-gray-700 w-full resize-y min-h-[40px] hidden cursor-not-allowed" readonly>${app.utils.escapeAttr(vehicle.note || '')}</textarea>
-                                                    <div id="vehicle-note-alert" class="hidden mt-2 p-2.5 bg-blue-50 text-blue-800 border border-blue-200 rounded text-xs leading-relaxed">
-                                                        Hãy đánh dấu trích dẫn ngay sau nội dung bằng ký hiệu <code>(x)</code> (với x là số thứ tự bắt đầu từ 1, tăng dần liên tục), sau đó cách đúng một dòng trống để tạo phần danh sách nguồn ở dưới cùng theo cú pháp <code>(x): [URL báo chính thống]</code>; khi cần bổ sung thông tin, hãy viết tiếp nội dung mới lên phía trên dòng trống và chèn link nguồn tương ứng xuống cuối danh sách.
-                                                    </div>
                                                 </td>
                                             </tr>
                                         </table>
@@ -2395,9 +2392,19 @@ Object.assign(window.app, {
                                         </button>
                                     </div>
 
-                                    <div id="vehicle-edit-actions" class="hidden mb-6 justify-end gap-3">
-                                        <button onclick="app.vehicle.toggleVehiclePageEdit('${plate}')" class="text-xs text-gray-500 hover:text-black font-medium">Hủy bỏ</button>
-                                        <button id="btn-vehicle-save" onclick="app.vehicle.saveVehiclePageChanges('${plate}')" class="bg-black text-white text-xs font-bold px-4 py-2 rounded-md hover:bg-gray-800 transition shadow-sm">Gửi yêu cầu</button>
+                                    <div id="vehicle-edit-actions" class="hidden mb-6 flex-col gap-3">
+                                        <div class="flex justify-end gap-3">
+                                            <button onclick="app.vehicle.toggleVehiclePageEdit('${plate}')" class="text-xs text-gray-500 hover:text-black font-medium">Hủy bỏ</button>
+                                            <button id="btn-vehicle-save" onclick="app.vehicle.saveVehiclePageChanges('${plate}')" class="bg-black text-white text-xs font-bold px-4 py-2 rounded-md hover:bg-gray-800 transition shadow-sm">Gửi yêu cầu</button>
+                                        </div>
+                                        <div class="bg-amber-50 text-amber-800 text-xs p-3 border border-amber-200 rounded-lg">
+                                            <div class="flex gap-2 items-start">
+                                                <i class="fa-solid fa-circle-info mt-0.5"></i>
+                                                <div class="leading-relaxed">
+                                                    Hãy đánh dấu trích dẫn ngay sau nội dung bằng ký hiệu <code>(x)</code> (với x là số thứ tự bắt đầu từ 1, tăng dần liên tục), sau đó cách đúng một dòng trống để tạo phần danh sách nguồn ở dưới cùng theo cú pháp <code>(x): [URL báo chính thống]</code>; khi cần bổ sung thông tin, hãy viết tiếp nội dung mới lên phía trên dòng trống và chèn link nguồn tương ứng xuống cuối danh sách.
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
