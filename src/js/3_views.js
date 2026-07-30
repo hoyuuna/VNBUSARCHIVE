@@ -2381,6 +2381,9 @@ Object.assign(window.app, {
                                                 <td class="value-cell relative">
                                                     <div id="vehicle-note-display" class="info-input text-gray-700 w-full min-h-[40px] block bg-gray-50 cursor-not-allowed whitespace-pre-wrap break-words border border-transparent px-3 py-2 text-sm">${app.utils.linkify(app.utils.escapeAttr(vehicle.note || ''))}</div>
                                                     <textarea id="vehicle-edit-note" rows="2" class="info-input text-gray-700 w-full resize-y min-h-[40px] hidden cursor-not-allowed" readonly>${app.utils.escapeAttr(vehicle.note || '')}</textarea>
+                                                    <div id="vehicle-note-alert" class="hidden mt-2 p-2.5 bg-blue-50 text-blue-800 border border-blue-200 rounded text-xs leading-relaxed">
+                                                        Hãy đánh dấu trích dẫn ngay sau nội dung bằng ký hiệu <code>(x)</code> (với x là số thứ tự bắt đầu từ 1, tăng dần liên tục), sau đó cách đúng một dòng trống để tạo phần danh sách nguồn ở dưới cùng theo cú pháp <code>(x): [URL báo chính thống]</code>; khi cần bổ sung thông tin, hãy viết tiếp nội dung mới lên phía trên dòng trống và chèn link nguồn tương ứng xuống cuối danh sách.
+                                                    </div>
                                                 </td>
                                             </tr>
                                         </table>
