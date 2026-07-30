@@ -110,7 +110,7 @@ Object.assign(window.app, {
                                                     <div id="adm-sug-model-${p.id}" class="suggestion-box"></div>
                                                 </div>
                                             </div>
-                                            <div><span class="admin-label">Vị trí</span><input type="text" id="adm-p-location-${p.id}" value="${location}" class="admin-input" onchange="app.admin.checkDuplicateDateAdmin('${p.id}', '${p.uploader_id}', '${p.taken_at ? p.taken_at.split('T')[0] : ''}')" ${app.user.id !== '12fc8d3a-e8dc-48b1-bc47-0a518a1ec88b' ? 'disabled title="Chỉ người dùng đặc quyền được sửa thông tin vị trí"' : ''}></div>
+                                            <div><span class="admin-label">Vị trí</span><input type="text" id="adm-p-location-${p.id}" value="${location}" class="admin-input" onchange="app.admin.checkDuplicateDateAdmin('${p.id}', '${p.uploader_id}', '${p.taken_at ? p.taken_at.split('T')[0] : ''}')" ${app.user.id !== '12fc8d3a-e8dc-48b1-bc47-0a518a1ec88b' && location.trim() === 'Chụp trong xe' ? 'disabled title="Chỉ người dùng đặc quyền được sửa vị trí ảnh chụp trong xe"' : ''}></div>
                                             <div class="hidden">
                                                 <select id="adm-p-province-${p.id}">
                                                     <option value="${prov || ''}" selected>${prov || ''}</option>
@@ -1049,7 +1049,7 @@ Object.assign(window.app, {
                                                     </select>
                                                 </div>
                                             </div>
-                                            <div class="mb-2"><span class="admin-label">Vị trí (Chỉ cập nhật ảnh này)</span><input type="text" id="req-loc-${r.id}" value="${app.utils.escapeAttr(d.location || '')}" class="admin-input" ${app.user.id !== '12fc8d3a-e8dc-48b1-bc47-0a518a1ec88b' ? 'disabled title="Chỉ người dùng đặc quyền được sửa thông tin vị trí"' : ''}></div>
+                                            <div class="mb-2"><span class="admin-label">Vị trí (Chỉ cập nhật ảnh này)</span><input type="text" id="req-loc-${r.id}" value="${app.utils.escapeAttr(d.location || '')}" class="admin-input" ${app.user.id !== '12fc8d3a-e8dc-48b1-bc47-0a518a1ec88b' && (curP.location || '').trim() === 'Chụp trong xe' ? 'disabled title="Chỉ người dùng đặc quyền được sửa vị trí ảnh chụp trong xe"' : ''}></div>
                                             <div class="mb-2"><span class="admin-label">Ghi chú (Chỉ cập nhật ảnh này)</span><textarea id="req-note-${r.id}" class="admin-input">${app.utils.cleanText(d.note || '')}</textarea></div>
 
                                             <div class="flex gap-2 mt-3">
@@ -3086,9 +3086,9 @@ app.admin.fetchManagerData('denied');
                             const originalData = app.admin.originalData && app.admin.originalData['req_' + id] ? app.admin.originalData['req_' + id] : null;
                             const oldLoc = originalData ? (originalData.location || '') : '';
                             
-                            if (loc !== oldLoc && app.user.id !== '12fc8d3a-e8dc-48b1-bc47-0a518a1ec88b') {
+                            if (loc !== oldLoc && (oldLoc === 'Chụp trong xe' || loc === 'Chụp trong xe') && app.user.id !== '12fc8d3a-e8dc-48b1-bc47-0a518a1ec88b') {
                                 btn.innerText = "DUYỆT"; btn.disabled = false; btn.classList.remove('btn-loading');
-                                return app.ui.showAlert("Chỉ có người dùng đặc quyền mới được phép duyệt thay đổi thông tin vị trí!");
+                                return app.ui.showAlert("Chỉ có người dùng đặc quyền mới được phép đổi vị trí thành/từ Chụp trong xe!");
                             }
 
                             if (await app.utils.checkModelDuplicatePolicy(plate, model)) {
