@@ -75,69 +75,70 @@ async function handleSendEmail(request, env, body) {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Thông báo từ VNBUSARCHIVE</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
         <style>
             body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
             table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
             img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
             table { border-collapse: collapse !important; }
-            body { height: 100% !important; margin: 0 !important; padding: 0 !important; width: 100% !important; }
+            body { height: 100% !important; margin: 0 !important; padding: 0 !important; width: 100% !important; background-color: #ffffff !important; }
+            a[x-apple-data-detectors] { color: inherit !important; text-decoration: none !important; font-size: inherit !important; font-family: inherit !important; font-weight: inherit !important; line-height: inherit !important; }
             .markdown-content p { margin-top: 0; margin-bottom: 1em; }
-            .markdown-content a { color: #2563eb; text-decoration: none; }
-            .markdown-content blockquote { border-left: 4px solid #e4e4e7; margin: 0; padding-left: 1em; color: #71717a; }
+            .markdown-content a { color: #000000; text-decoration: underline; font-weight: 500; }
+            .markdown-content blockquote { border-left: 4px solid #e4e4e7; margin: 0; padding-left: 1em; color: #666666; }
         </style>
     </head>
-    <body style="background-color: #fafafa; margin: 0 !important; padding: 0 !important; font-family: Arial, sans-serif; color: #09090b;">
-        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #fafafa;">
+    <body style="background-color: #ffffff; margin: 0 !important; padding: 0 !important; font-family: 'Be Vietnam Pro', Arial, sans-serif; color: #000000; text-align: center;">
+
+        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #ffffff;">
             <tr>
-                <td align="center" style="padding: 50px 20px;">
-                    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 500px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e4e4e7; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); overflow: hidden;">
+                <td align="center" style="padding: 40px 20px;">
+                    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 480px; margin: 0 auto; background-color: #ffffff; text-align: center;">
+                        
                         <tr>
-                            <td align="center" style="padding: 40px 30px 20px;">
-                                <table border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
-                                    <tr>
-                                        <td align="right" valign="middle" style="padding-right: 12px;">
-                                            <img src="https://files.catbox.moe/crxvn6.png" alt="VNBUSARCHIVE Logo" width="45" style="display: block;">
-                                        </td>
-                                        <td align="left" valign="middle">
-                                            <h1 style="margin: 0; font-size: 20px; font-weight: 800; font-style: italic; letter-spacing: 1.5px; color: #000000; line-height: 1;">
-                                                VNBUSARCHIVE
-                                            </h1>
-                                        </td>
-                                    </tr>
-                                </table>
+                            <td align="center" style="padding-bottom: 32px;">
+                                <img src="https://files.catbox.moe/j2iq29.png" alt="VNBUSARCHIVE" style="display: block; max-width: 180px; width: 100%; height: auto; margin: 0 auto;">
                             </td>
                         </tr>
+
                         <tr>
-                            <td align="center" style="padding: 0 30px;">
-                                <div style="height: 1px; background-color: #f4f4f5; width: 100%;"></div>
+                            <td align="center" style="padding-bottom: 16px;">
+                                <h1 style="margin: 0; font-family: 'Be Vietnam Pro', Arial, sans-serif; font-size: 20px; font-weight: 700; color: #000000; line-height: 1.4; letter-spacing: -0.3px;">
+                                    Thông báo từ VNBUSARCHIVE
+                                </h1>
                             </td>
                         </tr>
+
                         <tr>
-                            <td align="left" style="padding: 30px;">
-                                <p style="margin: 0 0 20px; font-size: 14px; line-height: 1.6; color: #52525b; font-weight: 500;">
-                                    Xin chào <strong>${escapeHtml(recipientName)}</strong>,
+                            <td align="left" style="padding-bottom: 24px; font-family: 'Be Vietnam Pro', Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #4a4a4a; font-weight: 400;">
+                                <p style="margin: 0 0 16px 0;">
+                                    Xin chào <strong style="color: #000000; font-weight: 600;">\${escapeHtml(recipientName)}</strong>,
                                 </p>
 
-                                <div class="markdown-content" style="margin: 0 0 30px; font-size: 14px; line-height: 1.6; color: #3f3f46;">
-                                    ${htmlContent}
+                                <div class="markdown-content" style="margin: 0 0 24px; font-size: 14px; line-height: 1.6; color: #4a4a4a; text-align: left;">
+                                    \${htmlContent}
                                 </div>
 
-                                <p style="margin: 0 0 30px; font-size: 14px; line-height: 1.6; color: #09090b;">
+                                <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #000000; font-weight: 500;">
                                     Thân gửi,<br>
-                                    <strong>${adminName}</strong>
-                                </p>
-
-                                <div style="height: 1px; background-color: #f4f4f5; width: 100%; margin-bottom: 20px;"></div>
-
-                                <p style="margin: 0; font-size: 12px; line-height: 1.5; color: #a1a1aa; font-style: italic;">
-                                    Bạn không thể trả lời email này, vui lòng liên hệ qua email <a href="mailto:lienhe@vnbusarchive.io.vn" style="color: #71717a; text-decoration: underline;">lienhe@vnbusarchive.io.vn</a> để tiếp tục.
+                                    <strong style="font-weight: 600;">\${adminName}</strong>
                                 </p>
                             </td>
                         </tr>
+
+                        <tr>
+                            <td align="center" style="font-family: 'Be Vietnam Pro', Arial, sans-serif; font-size: 13px; line-height: 1.6; color: #666666; border-top: 1px solid #eeeeee; padding-top: 24px;">
+                                Bạn không thể trả lời email này, vui lòng liên hệ qua email <a href="mailto:lienhe@vnbusarchive.io.vn" style="color: #000000; text-decoration: underline; font-weight: 500;">lienhe@vnbusarchive.io.vn</a> để tiếp tục.
+                            </td>
+                        </tr>
+
                     </table>
                 </td>
             </tr>
         </table>
+
     </body>
     </html>
     `;
