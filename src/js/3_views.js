@@ -2150,8 +2150,11 @@ Object.assign(window.app, {
                         
                         // Lấy danh sách ảnh hiển thị cho trang đầu tiên
                         const firstPagePhotos = allPhotos.slice(0, vehSize);
-                        // Lấy ảnh ở đầu danh sách (mới chụp nhất theo taken_at)
-                        const topPhoto = allPhotos.length > 0 ? allPhotos[0] : null;
+                        // Lấy ảnh ở đầu danh sách (mới chụp nhất theo taken_at), ưu tiên ảnh ngoại thất làm ảnh đại diện
+                        let topPhoto = null;
+                        if (allPhotos.length > 0) {
+                            topPhoto = allPhotos.find(p => (p.location || '').trim() !== 'Chụp trong xe') || allPhotos[0];
+                        }
                         const isCoach = topPhoto && topPhoto.type === 'coach';
 
 
