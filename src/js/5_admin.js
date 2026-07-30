@@ -1017,6 +1017,17 @@ Object.assign(window.app, {
                                     <div class="admin-card overflow-visible">
                                         <div class="admin-card-header"><span class="font-bold text-xs uppercase text-blue-600">SỬA THÔNG TIN</span><span class="text-xs text-gray-500">${app.utils.cleanText(username)}</span></div>
                                         <div class="admin-card-body text-xs">
+                                            <p class="mb-2 text-xs font-bold text-gray-500">Thông tin gốc (Hiện tại):</p>
+                                            <div class="space-y-1 mb-4 text-xs opacity-75 border p-2 rounded bg-gray-50">
+                                                <div><span class="font-bold">BKS:</span> ${app.utils.escapeAttr(curV.license_plate || '-')}</div>
+                                                <div><span class="font-bold">Đơn vị:</span> ${app.utils.escapeAttr(curP.operator || '-')}</div>
+                                                <div><span class="font-bold">Dòng xe:</span> ${app.utils.escapeAttr(curV.model || '-')}</div>
+                                                <div><span class="font-bold">Tuyến:</span> ${app.utils.escapeAttr(curP.route_no || '-')}</div>
+                                                <div><span class="font-bold">Loại xe:</span> ${curP.type === 'coach' ? 'Xe khách' : (curP.type === 'bus' ? 'Xe buýt' : '-')}</div>
+                                                <div><span class="font-bold">Vị trí:</span> ${app.utils.escapeAttr(curP.location || '-')}</div>
+                                                <div><span class="font-bold">Ghi chú:</span> ${app.utils.escapeAttr(curP.note || '-')}</div>
+                                            </div>
+                                            <p class="mb-2 font-bold text-red-500">[MỚI] Yêu cầu cập nhật thành:</p>
                                             <div class="grid grid-cols-2 gap-2 mb-2">
                                                 <div><span class="admin-label">BKS ${d.license_plate !== curV.license_plate ? tagNew : ''}</span><input type="text" id="req-plate-${r.id}" value="${app.utils.escapeAttr(d.license_plate)}" class="admin-input font-bold transition-all" oninput="app.utils.formatPlateInput(this)" onchange="app.admin.checkPlateAdmin(this, '${r.id}', 'req')"></div>
                                                 <div>
