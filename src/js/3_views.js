@@ -2095,7 +2095,7 @@ Object.assign(window.app, {
                         const vehSize = app.vehicle.VEHICLE_PAGE_SIZE || 12;
 
                         const [vehicleRes, historyRes] = await Promise.all([
-                            window.sb.from('vehicles').select('license_plate, model, operator, note').eq('license_plate', plate).maybeSingle(),
+                            window.sb.from('vehicles').select('license_plate, model, note').eq('license_plate', plate).maybeSingle(),
                             window.sb.from('vehicle_history').select('id, license_plate, plate, operator, route, note, effective_date, display_order').eq('license_plate', plate).order('display_order', { ascending: true })
                         ]);
 
