@@ -2234,6 +2234,7 @@ Object.assign(window.app, {
                         }
 
                         app.currentPlate = vehicle.license_plate;
+                        app.currentVehicle = vehicle;
                         app.vehicle.currentHistoryData = historyData;
 
                         let historyHTML = '<div class="p-3 text-xs text-gray-500">Chưa có lịch sử hoạt động.</div>';

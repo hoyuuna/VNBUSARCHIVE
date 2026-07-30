@@ -989,9 +989,23 @@ Object.assign(window.app, {
                             }
 
                             const photoIdsReq = reqs.map(r => r.new_data.photo_id).filter(Boolean);
-                            const { data: curPhotos } = await window.sb.from('photos').select('id, operator, route_no, type, province').in('id', photoIdsReq);
+                            const { data: curPhotos } = await window.sb.from('photos').select('id, operator, route_no, type, province, location, note').in('id', photoIdsReq);
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
                             const pMap = {}; if (curPhotos) curPhotos.forEach(p => pMap[p.id] = p);
+
+                            const opNamesReq = reqs.map(r => r.new_data.operator_name).filter(Boolean);
+                            let opMap = {};
+                            if (opNamesReq.length > 0) {
+                                const { data: curOps } = await window.sb.from('operator_info').select('*').in('operator_name', opNamesReq);
+                                if (curOps) curOps.forEach(o => opMap[o.operator_name] = o);
+                            }
+
+                            const mdlNamesReq = reqs.map(r => r.new_data.model_name).filter(Boolean);
+                            let mdlMap = {};
+                            if (mdlNamesReq.length > 0) {
+                                const { data: curMdls } = await window.sb.from('model_info').select('*').in('model_name', mdlNamesReq);
+                                if (curMdls) curMdls.forEach(m => mdlMap[m.model_name] = m);
+                            }
 
                             content.innerHTML = reqs.map(r => {
                                 const d = r.new_data;
@@ -999,6 +1013,8 @@ Object.assign(window.app, {
                                 const username = userMap[r.requester_id] || 'Ẩn danh';
                                 const curV = vMap[r.license_plate] || {};
                                 const curP = pMap[d.photo_id] || {};
+                                const curOp = opMap[d.operator_name] || {};
+                                const curMdl = mdlMap[d.model_name] || {};
 
                                 if (type === 'update_vehicle_info') {
                                     const tagNew = '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>';
@@ -1147,6 +1163,13 @@ Object.assign(window.app, {
                                     <div class="admin-card overflow-visible">
                                         <div class="admin-card-header"><span class="font-bold text-xs uppercase text-purple-600">SỬA HỒ SƠ XE: ${r.license_plate}</span><span class="text-xs text-gray-500">${username}</span></div>
                                         <div class="admin-card-body text-xs">
+                                            <p class="mb-2 text-xs font-bold text-gray-500">Thông tin gốc (Hiện tại):</p>
+                                            <div class="space-y-1 mb-4 text-xs opacity-75 border p-2 rounded bg-gray-50">
+                                                <div><span class="font-bold">BKS:</span> ${app.utils.escapeAttr(curV.license_plate || '-')}</div>
+                                                <div><span class="font-bold">Dòng xe:</span> ${app.utils.escapeAttr(curV.model || '-')}</div>
+                                                <div><span class="font-bold">Ghi chú:</span> ${app.utils.escapeAttr(curV.note || '-')}</div>
+                                            </div>
+                                            <p class="mb-2 font-bold text-red-500">[MỚI] Yêu cầu cập nhật thành:</p>
                                             <div class="mb-2">
                                                 <span class="admin-label">Dòng xe ${d.model !== curV.model ? tagNew : ''}</span>
                                                 <div class="relative">
@@ -1169,18 +1192,25 @@ Object.assign(window.app, {
                                     <div class="admin-card overflow-visible">
                                         <div class="admin-card-header bg-orange-50"><span class="font-bold text-xs uppercase text-orange-600">CẬP NHẬT NHÀ XE</span><span class="text-xs text-gray-500">${username}</span></div>
                                         <div class="admin-card-body text-xs">
-                                            <p class="font-bold text-sm mb-3 text-black"><i class="fa-solid fa-building mr-1 text-gray-400"></i> ${app.utils.escapeAttr(d.operator_name)}</p>
+                                            <p class="font-bold text-sm mb-2 text-black"><i class="fa-solid fa-building mr-1 text-gray-400"></i> ${app.utils.escapeAttr(d.operator_name)}</p>
+                                            <p class="mb-2 text-xs font-bold text-gray-500">Thông tin gốc (Hiện tại):</p>
+                                            <div class="space-y-1 mb-4 text-xs opacity-75 border p-2 rounded bg-gray-50">
+                                                <div><span class="font-bold">ĐVVH mẹ:</span> ${app.utils.escapeAttr(curOp.parent_operator || '-')}</div>
+                                                <div><span class="font-bold">Logo URL:</span> ${curOp.logo_url ? `<a href="${app.utils.escapeAttr(curOp.logo_url)}" target="_blank" class="text-blue-500 underline">[Xem Ảnh]</a>` : '-'}</div>
+                                                <div><span class="font-bold">Mô tả:</span> ${app.utils.escapeAttr(curOp.description || '-')}</div>
+                                            </div>
+                                            <p class="mb-2 font-bold text-red-500">[MỚI] Yêu cầu cập nhật thành:</p>
                                             <div class="mb-2">
-                                                <span class="admin-label">ĐVVH mẹ</span>
+                                                <span class="admin-label">ĐVVH mẹ ${d.parent_operator !== curOp.parent_operator ? '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>' : ''}</span>
                                                 <input type="text" id="req-op-parent-${r.id}" value="${app.utils.escapeAttr(d.parent_operator || '')}" class="admin-input" placeholder="Tùy chọn">
                                             </div>
                                             <div class="mb-2">
-                                                <span class="admin-label">Logo URL</span>
+                                                <span class="admin-label">Logo URL ${d.logo_url !== curOp.logo_url ? '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>' : ''}</span>
                                                 <input type="text" id="req-op-logo-${r.id}" value="${app.utils.escapeAttr(d.logo_url || '')}" class="admin-input">
                                                 ${d.logo_url ? `<img src="${app.utils.escapeAttr(d.logo_url.includes('wsrv.nl') ? d.logo_url : 'https://wsrv.nl/?url=' + encodeURIComponent(d.logo_url))}" class="mt-1 h-8 w-8 object-cover rounded border border-gray-200">` : ''}
                                             </div>
                                             <div class="mb-2">
-                                                <span class="admin-label">Mô tả</span>
+                                                <span class="admin-label">Mô tả ${d.description !== curOp.description ? '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>' : ''}</span>
                                                 <textarea id="req-op-desc-${r.id}" class="admin-input" rows="4">${app.utils.escapeAttr(d.description || '')}</textarea>
                                             </div>
                                             <div class="flex gap-2 mt-3">
@@ -1194,14 +1224,20 @@ Object.assign(window.app, {
                                     <div class="admin-card overflow-visible">
                                         <div class="admin-card-header bg-purple-50"><span class="font-bold text-xs uppercase text-purple-600">CẬP NHẬT DÒNG XE</span><span class="text-xs text-gray-500">${username}</span></div>
                                         <div class="admin-card-body text-xs">
-                                            <p class="font-bold text-sm mb-3 text-black"><i class="fa-solid fa-layer-group mr-1 text-gray-400"></i> ${app.utils.escapeAttr(d.model_name)}</p>
+                                            <p class="font-bold text-sm mb-2 text-black"><i class="fa-solid fa-layer-group mr-1 text-gray-400"></i> ${app.utils.escapeAttr(d.model_name)}</p>
+                                            <p class="mb-2 text-xs font-bold text-gray-500">Thông tin gốc (Hiện tại):</p>
+                                            <div class="space-y-1 mb-4 text-xs opacity-75 border p-2 rounded bg-gray-50">
+                                                <div><span class="font-bold">Logo Hãng:</span> ${curMdl.logo_url ? `<a href="${app.utils.escapeAttr(curMdl.logo_url)}" target="_blank" class="text-blue-500 underline">[Xem Ảnh]</a>` : '-'}</div>
+                                                <div><span class="font-bold">Mô tả:</span> ${app.utils.escapeAttr(curMdl.description || '-')}</div>
+                                            </div>
+                                            <p class="mb-2 font-bold text-red-500">[MỚI] Yêu cầu cập nhật thành:</p>
                                             <div class="mb-2">
-                                                <span class="admin-label">Logo Hãng (Tự động đồng bộ hãng)</span>
+                                                <span class="admin-label">Logo Hãng (Tự động đồng bộ hãng) ${d.logo_url !== curMdl.logo_url ? '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>' : ''}</span>
                                                 <input type="text" id="req-mdl-logo-${r.id}" value="${app.utils.escapeAttr(d.logo_url || '')}" class="admin-input">
                                                 ${d.logo_url ? `<img src="${app.utils.escapeAttr(d.logo_url.includes('wsrv.nl') ? d.logo_url : 'https://wsrv.nl/?url=' + encodeURIComponent(d.logo_url))}" class="mt-1 h-8 w-auto max-w-[80px] object-contain rounded border border-gray-200">` : ''}
                                             </div>
                                             <div class="mb-2">
-                                                <span class="admin-label">Mô tả chi tiết Model</span>
+                                                <span class="admin-label">Mô tả chi tiết Model ${d.description !== curMdl.description ? '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>' : ''}</span>
                                                 <textarea id="req-mdl-desc-${r.id}" class="admin-input" rows="4">${app.utils.escapeAttr(d.description || '')}</textarea>
                                             </div>
                                             <div class="flex gap-2 mt-3">
