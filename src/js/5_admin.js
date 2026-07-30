@@ -3125,8 +3125,7 @@ app.admin.fetchManagerData('denied');
                             }
 
                             const { error } = await window.sb.from('vehicles')
-                                .update({ model: finalModel, note: finalNote })
-                                .eq('license_plate', req.license_plate);
+                                .upsert({ license_plate: req.license_plate, model: finalModel, note: finalNote }, { onConflict: 'license_plate' });
                             if (error) throw error;
                         }
 

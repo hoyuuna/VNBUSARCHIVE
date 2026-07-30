@@ -4418,7 +4418,7 @@ Object.assign(window.app, {
                         }
                         if (app.role === 'admin' || app.role === 'manager') {
 
-                            const { error } = await window.sb.from('vehicles').update(newData).eq('license_plate', plate);
+                            const { error } = await window.sb.from('vehicles').upsert({ license_plate: plate, ...newData }, { onConflict: 'license_plate' });
                             if (error) throw error;
                             app.toast.show('success', 'Đã lưu thay đổi', 'Thông tin xe đã được cập nhật thành công.');
                             app.views.loadVehiclePage(plate, true);
