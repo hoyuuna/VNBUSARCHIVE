@@ -110,7 +110,7 @@ Object.assign(window.app, {
                                                     <div id="adm-sug-model-${p.id}" class="suggestion-box"></div>
                                                 </div>
                                             </div>
-                                            <div><span class="admin-label">Vị trí</span><input type="text" id="adm-p-location-${p.id}" value="${location}" class="admin-input" onchange="app.admin.checkDuplicateDateAdmin('${p.id}', '${p.uploader_id}', '${p.taken_at ? p.taken_at.split('T')[0] : ''}')" ${app.user.id !== '12fc8d3a-e8dc-48b1-bc47-0a518a1ec88b' && location.trim() === 'Chụp trong xe' ? 'disabled title="Chỉ người dùng đặc quyền được sửa vị trí ảnh chụp trong xe"' : ''}></div>
+                                            <div><span class="admin-label">Vị trí</span><input type="text" id="adm-p-location-${p.id}" value="${location}" class="admin-input" onchange="app.admin.checkDuplicateDateAdmin('${p.id}', '${p.uploader_id}', '${p.taken_at ? p.taken_at.split('T')[0] : ''}')"></div>
                                             <div class="hidden">
                                                 <select id="adm-p-province-${p.id}">
                                                     <option value="${prov || ''}" selected>${prov || ''}</option>
@@ -125,21 +125,13 @@ Object.assign(window.app, {
 
                                         let actionButtons = '<div class="flex gap-2 mt-2">';
 
-                                        const isInterior = location.trim() === 'Chụp trong xe';
-                                        const isSpecialUser = app.user.id === '12fc8d3a-e8dc-48b1-bc47-0a518a1ec88b';
-                                        
-                                        if (isInterior && !isSpecialUser) {
-                                            actionButtons += `<div class="flex-1 bg-gray-100 text-gray-400 py-1.5 text-xs font-bold rounded text-center border border-gray-200 cursor-not-allowed">
-                                                <i class="fa-solid fa-lock mr-1"></i> Thiếu quyền duyệt ảnh trong xe
-                                            </div>`;
+                                        if (canApprove) {
+                                            actionButtons += `<button onclick="app.admin.approvePhoto('${p.id}', '${p.uploader_id}', this)" class="flex-1 bg-green-600 text-white py-1.5 text-xs font-bold rounded hover:bg-green-700">DUYỆT</button>`;
                                         } else {
-                                            if (canApprove) {
-                                                actionButtons += `<button onclick="app.admin.approvePhoto('${p.id}', '${p.uploader_id}', this)" class="flex-1 bg-green-600 text-white py-1.5 text-xs font-bold rounded hover:bg-green-700">DUYỆT</button>`;
-                                            } else {
-                                                actionButtons += `<div class="flex-1 bg-gray-100 text-gray-400 py-1.5 text-xs font-bold rounded text-center border border-gray-200 cursor-not-allowed">
-                                                    <i class="fa-solid fa-lock mr-1"></i> Không thể tự duyệt
-                                                </div>`;
-                                            }
+                                            actionButtons += `<div class="flex-1 bg-gray-100 text-gray-400 py-1.5 text-xs font-bold rounded text-center border border-gray-200 cursor-not-allowed">
+                                                <i class="fa-solid fa-lock mr-1"></i> Không thể tự duyệt
+                                            </div>`;
+                                        }
 
                                             if (canDeny) {
                                                 actionButtons += `<button onclick="app.admin.denyPhoto('${p.id}', '${p.uploader_id}', this)" class="flex-1 bg-red-600 text-white py-1.5 text-xs font-bold rounded hover:bg-red-700">TỪ CHỐI</button>`;
@@ -1060,7 +1052,7 @@ Object.assign(window.app, {
                                                     </select>
                                                 </div>
                                             </div>
-                                            <div class="mb-2"><span class="admin-label">Vị trí (Chỉ cập nhật ảnh này)</span><input type="text" id="req-loc-${r.id}" value="${app.utils.escapeAttr(d.location || '')}" class="admin-input" ${app.user.id !== '12fc8d3a-e8dc-48b1-bc47-0a518a1ec88b' && (curP.location || '').trim() === 'Chụp trong xe' ? 'disabled title="Chỉ người dùng đặc quyền được sửa vị trí ảnh chụp trong xe"' : ''}></div>
+                                            <div class="mb-2"><span class="admin-label">Vị trí (Chỉ cập nhật ảnh này)</span><input type="text" id="req-loc-${r.id}" value="${app.utils.escapeAttr(d.location || '')}" class="admin-input"></div>
                                             <div class="mb-2"><span class="admin-label">Ghi chú (Chỉ cập nhật ảnh này)</span><textarea id="req-note-${r.id}" class="admin-input">${app.utils.cleanText(d.note || '')}</textarea></div>
 
                                             <div class="flex gap-2 mt-3">
@@ -2872,17 +2864,7 @@ app.admin.fetchManagerData('denied');
                         const provinceEl = document.getElementById(`adm-p-province-${id}`);
                         const province = provinceEl ? provinceEl.value : '';
 
-                        if (location === 'Chụp trong xe' && app.user.id !== '12fc8d3a-e8dc-48b1-bc47-0a518a1ec88b') {
-                            if (cardEl && parentEl) {
-                                if (originalNextSibling && originalNextSibling !== cardEl) parentEl.insertBefore(cardEl, originalNextSibling);
-                                else parentEl.appendChild(cardEl);
-                                cardEl.querySelectorAll('input, select, textarea, button').forEach(el => el.disabled = false);
-                                cardEl.style.opacity = '1';
-                                cardEl.style.pointerEvents = 'auto';
-                            }
-                            btn.innerText = "DUYỆT"; btn.disabled = false; btn.classList.remove('btn-loading');
-                            return app.ui.showAlert("Chỉ có người dùng đặc quyền mới được phép duyệt ảnh Chụp trong xe!");
-                        }
+
 
                         if (await app.utils.checkModelDuplicatePolicy(plate, model)) {
                             if (cardEl && parentEl) {
@@ -2994,17 +2976,7 @@ app.admin.fetchManagerData('denied');
                                 const plate = document.getElementById(`adm-p-plate-${id}`).value.trim();
                                 const location = document.getElementById(`adm-p-location-${id}`)?.value?.trim();
                                 
-                                if (location === 'Chụp trong xe' && app.user.id !== '12fc8d3a-e8dc-48b1-bc47-0a518a1ec88b') {
-                                    if (cardEl && parentEl) {
-                                        if (originalNextSibling && originalNextSibling !== cardEl) parentEl.insertBefore(cardEl, originalNextSibling);
-                                        else parentEl.appendChild(cardEl);
-                                        cardEl.querySelectorAll('input, select, textarea, button').forEach(el => el.disabled = false);
-                                        cardEl.style.opacity = '1';
-                                        cardEl.style.pointerEvents = 'auto';
-                                    }
-                                    btn.innerText = "TỪ CHỐI"; btn.disabled = false; btn.classList.remove('btn-loading');
-                                    return app.ui.showAlert("Chỉ có người dùng đặc quyền mới được phép từ chối ảnh Chụp trong xe!");
-                                }
+
 
                                 const res = await fetch('/api/admin/action', {
                                     method: 'POST',
@@ -3097,10 +3069,7 @@ app.admin.fetchManagerData('denied');
                             const originalData = app.admin.originalData && app.admin.originalData['req_' + id] ? app.admin.originalData['req_' + id] : null;
                             const oldLoc = originalData ? (originalData.location || '') : '';
                             
-                            if (loc !== oldLoc && (oldLoc === 'Chụp trong xe' || loc === 'Chụp trong xe') && app.user.id !== '12fc8d3a-e8dc-48b1-bc47-0a518a1ec88b') {
-                                btn.innerText = "DUYỆT"; btn.disabled = false; btn.classList.remove('btn-loading');
-                                return app.ui.showAlert("Chỉ có người dùng đặc quyền mới được phép đổi vị trí thành/từ Chụp trong xe!");
-                            }
+
 
                             if (await app.utils.checkModelDuplicatePolicy(plate, model)) {
                                 btn.innerText = "DUYỆT"; btn.disabled = false; btn.classList.remove('btn-loading');
