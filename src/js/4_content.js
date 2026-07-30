@@ -401,7 +401,7 @@ Object.assign(window.app, {
                     try {
                         const { data: existingPhotos, error: checkErr } = await window.sb
                             .from('photos')
-                            .select('taken_at')
+                            .select('taken_at, location')
                             .eq('uploader_id', app.user.id)
                             .eq('license_plate', cleanPlate)
                             .neq('status', 'denied');
@@ -409,9 +409,13 @@ Object.assign(window.app, {
                         if (myToken !== app.upload._dupToken) return;
 
                         if (!checkErr && existingPhotos && existingPhotos.length > 0) {
+                            const valLocation = document.getElementById('up-location').value.trim();
+                            const isInterior = valLocation === 'Chụp trong xe';
+
                             const isDuplicateDate = existingPhotos.some(p => {
                                 if (!p.taken_at) return false;
-                                return p.taken_at.split('T')[0] === valDate;
+                                const pIsInterior = (p.location || '').trim() === 'Chụp trong xe';
+                                return p.taken_at.split('T')[0] === valDate && pIsInterior === isInterior;
                             });
 
                             if (isDuplicateDate) {
@@ -458,6 +462,7 @@ Object.assign(window.app, {
                             mapEl.style.opacity = '1';
                         }
                     }
+                    app.upload.checkDuplicateRealtime();
                 },
 
                 initMap: () => {

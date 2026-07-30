@@ -110,7 +110,7 @@ Object.assign(window.app, {
                                                     <div id="adm-sug-model-${p.id}" class="suggestion-box"></div>
                                                 </div>
                                             </div>
-                                            <div><span class="admin-label">Vị trí</span><input type="text" id="adm-p-location-${p.id}" value="${location}" class="admin-input"></div>
+                                            <div><span class="admin-label">Vị trí</span><input type="text" id="adm-p-location-${p.id}" value="${location}" class="admin-input" onchange="app.admin.checkDuplicateDateAdmin('${p.id}', '${p.uploader_id}', '${p.taken_at ? p.taken_at.split('T')[0] : ''}')"></div>
                                             <div class="hidden">
                                                 <select id="adm-p-province-${p.id}">
                                                     <option value="${prov || ''}" selected>${prov || ''}</option>
@@ -335,6 +335,51 @@ Object.assign(window.app, {
                         }
                     } catch (e) {
                         console.error("Lỗi tự điền BKS Admin:", e);
+                    }
+                },
+
+                checkDuplicateDateAdmin: async (id, uploaderId, takenAtStr) => {
+                    if (!takenAtStr) return;
+                    const locInput = document.getElementById(`adm-p-location-${id}`);
+                    const plateInput = document.getElementById(`adm-p-plate-${id}`);
+                    if (!locInput || !plateInput) return;
+
+                    const isInterior = locInput.value.trim() === 'Chụp trong xe';
+                    const cleanPlate = plateInput.value.replace(/[^A-Z0-9-]/gi, '').toUpperCase();
+
+                    try {
+                        const { data: existingPhotos, error } = await window.sb
+                            .from('photos')
+                            .select('id, taken_at, location')
+                            .eq('uploader_id', uploaderId)
+                            .eq('license_plate', cleanPlate)
+                            .neq('status', 'denied')
+                            .neq('id', id);
+
+                        let warnEl = document.getElementById(`adm-p-location-${id}-warning`);
+                        if (!error && existingPhotos && existingPhotos.length > 0) {
+                            const isDuplicateDate = existingPhotos.some(p => {
+                                if (!p.taken_at) return false;
+                                const pIsInterior = (p.location || '').trim() === 'Chụp trong xe';
+                                return p.taken_at.split('T')[0] === takenAtStr && pIsInterior === isInterior;
+                            });
+
+                            if (isDuplicateDate) {
+                                if (!warnEl) {
+                                    warnEl = document.createElement('div');
+                                    warnEl.id = `adm-p-location-${id}-warning`;
+                                    warnEl.className = 'text-orange-600 text-[10px] font-bold mt-1 leading-tight bg-orange-50 p-1 rounded border border-orange-200';
+                                    locInput.parentNode.appendChild(warnEl);
+                                }
+                                warnEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> CẢNH BÁO: Người dùng này đã có ảnh (cùng loại nội/ngoại thất) của xe này chụp trong ngày ${takenAtStr.split('-').reverse().join('/')}!`;
+                            } else if (warnEl) {
+                                warnEl.remove();
+                            }
+                        } else if (warnEl) {
+                            warnEl.remove();
+                        }
+                    } catch (err) {
+                        console.error('Lỗi checkDuplicateDateAdmin:', err);
                     }
                 },
 
