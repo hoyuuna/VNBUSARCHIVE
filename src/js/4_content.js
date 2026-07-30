@@ -4482,9 +4482,7 @@ Object.assign(window.app, {
                                 
                                 if (input.id === 'info-note') {
                                     const displayDiv = document.getElementById('info-note-display');
-                                    const alertDiv = document.getElementById('info-note-alert');
                                     if (displayDiv) displayDiv.classList.add('hidden');
-                                    if (alertDiv) alertDiv.classList.remove('hidden');
                                     input.classList.remove('hidden', 'cursor-not-allowed');
                                     input.classList.add('bg-white', 'focus:ring-2', 'focus:ring-black', 'block');
                                 }
@@ -4525,9 +4523,7 @@ Object.assign(window.app, {
                             input.readOnly = true;
                             if (input.id === 'info-note') {
                                 const displayDiv = document.getElementById('info-note-display');
-                                const alertDiv = document.getElementById('info-note-alert');
                                 if (displayDiv) displayDiv.classList.remove('hidden');
-                                if (alertDiv) alertDiv.classList.add('hidden');
                                 input.classList.add('hidden', 'cursor-not-allowed');
                                 input.classList.remove('bg-white', 'focus:ring-2', 'focus:ring-black', 'block');
                             }
