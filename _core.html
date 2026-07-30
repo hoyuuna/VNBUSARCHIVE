@@ -3588,6 +3588,13 @@ div[id$="-modal"] > div > * {
                                 <span id="edit-notice-text">Bạn đang ở chế độ chỉnh sửa. Thay đổi sẽ được gửi yêu cầu duyệt.</span>
                             </div>
 
+                            <div id="info-interior-warning" class="hidden bg-yellow-50 text-yellow-800 text-xs p-3 border border-yellow-200 rounded-lg mb-3">
+                                <div class="flex items-start gap-2">
+                                    <i class="fa-solid fa-triangle-exclamation mt-0.5"></i>
+                                    <p class="m-0 leading-snug">Đây là ảnh được đăng tải trước ngày 30/7/2026. Từ ngày 30/7/2026, nền tảng không còn hỗ trợ nhận ảnh nội thất xe.</p>
+                                </div>
+                            </div>
+
                             <form id="inline-edit-form">
                                 <div class="border border-gray-200 rounded-lg overflow-visible bg-white">
                                     <table class="info-table border-gray-200 w-full" style="margin-bottom: 0 !important;">
@@ -3639,10 +3646,6 @@ div[id$="-modal"] > div > * {
                                             <td class="label bg-gray-50 border-r border-b border-gray-200">Vị trí chụp</td>
                                             <td class="value-cell border-b border-gray-200">
                                                 <input type="text" id="info-location" class="info-input text-gray-700" readonly>
-                                                <div id="info-interior-warning" class="hidden mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded-lg text-[11px] text-yellow-800 font-bold flex items-start gap-2 mb-2">
-                                                    <i class="fa-solid fa-triangle-exclamation mt-0.5"></i>
-                                                    <p class="m-0 leading-snug">Đây là ảnh chụp nội thất xe (được đăng tải trước ngày 30/7/2026).</p>
-                                                </div>
                                                 <div id="detail-map"></div>
                                             </td>
                                         </tr>
