@@ -447,6 +447,7 @@ Object.assign(window.app, {
                 toggleInsideVehicle: (checked) => {
                     const locInput = document.getElementById('up-location');
                     const mapEl = document.getElementById('upload-map');
+                    const warningEl = document.getElementById('up-interior-warning');
                     if (checked) {
                         locInput.value = 'Chụp trong xe';
                         locInput.disabled = true;
@@ -454,13 +455,15 @@ Object.assign(window.app, {
                             mapEl.style.pointerEvents = 'none';
                             mapEl.style.opacity = '0.5';
                         }
+                        if (warningEl) warningEl.classList.remove('hidden');
                     } else {
-                        locInput.value = '';
+                        if (locInput.value === 'Chụp trong xe') locInput.value = '';
                         locInput.disabled = false;
                         if (mapEl) {
                             mapEl.style.pointerEvents = 'auto';
                             mapEl.style.opacity = '1';
                         }
+                        if (warningEl) warningEl.classList.add('hidden');
                     }
                     app.upload.checkDuplicateRealtime();
                 },

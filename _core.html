@@ -4681,7 +4681,8 @@ div[id$="-modal"] > div > * {
                                     <label class="text-xs text-gray-500 font-bold block mb-1.5 uppercase">Vị trí chụp
                                         <span class="text-red-500">*</span></label>
                                     <input type="text" id="up-location" tabindex="6"
-                                        class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition">
+                                        class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition"
+                                        oninput="if(this.value.trim().toLowerCase() === 'chụp trong xe') { this.value = ''; app.ui.showAlert('Vui lòng tích chọn ô Chụp trong xe bên dưới thay vì nhập tay!'); }">
                                     <div class="mt-2.5">
                                         <label class="flex items-start cursor-pointer group select-none w-max">
                                             <input type="checkbox" id="up-location-inside" onchange="app.upload.toggleInsideVehicle(this.checked)" class="custom-cb-input sr-only">
@@ -4693,6 +4694,9 @@ div[id$="-modal"] > div > * {
                                     </div>
                                     <p id="err-up-location" class="upload-req-err hidden text-[11px] mt-1 text-red-600 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Vui lòng nhập Vị trí chụp</p>
                                     <div id="upload-map" class="mt-2 border border-gray-300 rounded-md"></div>
+                                    <div id="up-interior-warning" class="hidden mt-2 p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-[11px] leading-relaxed shadow-sm">
+                                        <i class="fa-solid fa-triangle-exclamation mr-1.5"></i>Vị trí chụp "Chụp trong xe" chỉ áp dụng cho ảnh chụp nội thất xe, vui lòng tuân thủ NGHIÊM NGẶT theo quy định kiểm duyệt, ảnh loại này sẽ được kiểm duyệt gắt gao hơn thông thường rất nhiều.
+                                    </div>
                                 </div>
                                 <div class="md:col-span-2 hidden">
                                     <label class="text-xs text-gray-500 font-bold block mb-1.5 uppercase">Tuyến của tỉnh <span class="text-red-500">*</span></label>
