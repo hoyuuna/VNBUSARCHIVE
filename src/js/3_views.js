@@ -2476,7 +2476,7 @@ Object.assign(window.app, {
                         const { data: rawChildOps } = await window.sb.from('operator_info').select('operator_name, parent_operator').ilike('parent_operator', `%${operatorName}%`);
                         const childOps = (rawChildOps || []).filter(op => {
                             if (!op.parent_operator) return false;
-                            const parents = op.parent_operator.split(',').map(s => s.trim().toLowerCase());
+                            const parents = op.parent_operator.split(';').map(s => s.trim().toLowerCase());
                             return parents.includes(operatorName.toLowerCase());
                         });
                         
@@ -2503,7 +2503,7 @@ Object.assign(window.app, {
                         const ecoEl = document.getElementById('operator-parent-child');
                         let ecoHtml = '';
                         if (opInfo && opInfo.parent_operator) {
-                            const parents = opInfo.parent_operator.split(',').map(s => s.trim()).filter(Boolean);
+                            const parents = opInfo.parent_operator.split(';').map(s => s.trim()).filter(Boolean);
                             if (parents.length > 0) {
                                 const parentLinks = parents.map(p => `<a href="javascript:void(0)" onclick="app.utils.navigate('/operator/' + encodeURIComponent('${app.utils.escapeAttr(p)}'))" class="text-black font-bold hover:underline">${app.utils.escapeHtml(p)}</a>`).join(', ');
                                 ecoHtml += `<div><span class="font-bold text-gray-500 uppercase text-[10px] tracking-widest mr-2">ĐVVH mẹ:</span>${parentLinks}</div>`;
@@ -3918,10 +3918,10 @@ Object.assign(window.app, {
                         }
                         
                         if (parentOp) {
-                            if (parentOp.includes(',') && parentOp.split(',').length !== parentOp.split(', ').length) {
-                                return app.ui.showAlert("Sai cấu trúc: Các ĐVVH phải được ngăn cách bằng dấu phẩy và một khoảng trắng (Ví dụ: 'Công ty A, Công ty B').");
+                            if (parentOp.includes(';') && parentOp.split(';').length !== parentOp.split('; ').length) {
+                                return app.ui.showAlert("Sai cấu trúc: Các ĐVVH phải được ngăn cách bằng dấu chấm phẩy và một khoảng trắng (Ví dụ: 'Công ty A; Công ty B').");
                             }
-                            const parents = parentOp.split(',').map(s => s.trim()).filter(Boolean);
+                            const parents = parentOp.split(';').map(s => s.trim()).filter(Boolean);
                             for (const p of parents) {
                                 if (p.toLowerCase() === app.currentOperator.toLowerCase()) {
                                     return app.ui.showAlert(`ĐVVH mẹ không thể là chính nó (${p}).`);

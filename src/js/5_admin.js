@@ -2973,9 +2973,9 @@ app.admin.fetchManagerData('denied');
                             const parentOpEl = document.getElementById(`req-op-parent-${id}`);
                             const parentOp = parentOpEl ? parentOpEl.value.trim() : (req.new_data.parent_operator || '');
                             
-                            if (parentOp && parentOp.includes(',') && parentOp.split(',').length !== parentOp.split(', ').length) {
+                            if (parentOp && parentOp.includes(';') && parentOp.split(';').length !== parentOp.split('; ').length) {
                                 btn.innerText = "DUYỆT"; btn.disabled = false; btn.classList.remove('btn-loading');
-                                return app.ui.showAlert("Sai cấu trúc: Các ĐVVH phải được ngăn cách bằng dấu phẩy và một khoảng trắng (Ví dụ: 'Công ty A, Công ty B').");
+                                return app.ui.showAlert("Sai cấu trúc: Các ĐVVH phải được ngăn cách bằng dấu chấm phẩy và một khoảng trắng (Ví dụ: 'Công ty A; Công ty B').");
                             }
                             
                             if (!logo && !desc && !parentOp) {
