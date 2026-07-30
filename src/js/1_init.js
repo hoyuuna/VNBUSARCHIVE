@@ -1609,6 +1609,14 @@ cleanupState: () => {
                         .replace(/>/g, '&gt;');
                 },
 
+                linkify: (str) => {
+                    if (!str) return '';
+                    const urlRegex = /(https?:\/\/[^\s]+)/g;
+                    return str.replace(urlRegex, function(url) {
+                        return `<a href="${url}" target="_blank" class="text-blue-500 hover:underline break-all">${url}</a>`;
+                    });
+                },
+
 
 
                 resolveSandboxUrls: async (items) => {

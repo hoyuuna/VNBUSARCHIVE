@@ -1697,7 +1697,17 @@ Object.assign(window.app, {
                     if (elInfoProvince) {
                         app.views.selectInfoProvince(photo.province || '');
                     }
-                    if (elInfoNote) elInfoNote.value = photo.note || '---';
+                    if (elInfoNote) {
+                        elInfoNote.value = photo.note || '---';
+                        const elInfoNoteDisplay = document.getElementById('info-note-display');
+                        if (elInfoNoteDisplay) {
+                            if (photo.note) {
+                                elInfoNoteDisplay.innerHTML = app.utils.linkify(app.utils.escapeAttr(photo.note));
+                            } else {
+                                elInfoNoteDisplay.innerText = '---';
+                            }
+                        }
+                    }
 
                     const displayDate = photo.taken_at || photo.created_at;
                     if (elInfoDate) elInfoDate.value = displayDate ? displayDate.split('T')[0] : '';
@@ -2368,8 +2378,9 @@ Object.assign(window.app, {
                                             </tr>
                                             <tr>
                                                 <td class="label bg-gray-50 border-r border-gray-200">Ghi chú</td>
-                                                <td class="value-cell">
-                                                    <textarea id="vehicle-edit-note" rows="2" class="info-input text-gray-700 w-full resize-y min-h-[40px] block cursor-not-allowed" readonly>${app.utils.escapeAttr(vehicle.note || '')}</textarea>
+                                                <td class="value-cell relative">
+                                                    <div id="vehicle-note-display" class="info-input text-gray-700 w-full min-h-[40px] block bg-gray-50 cursor-not-allowed whitespace-pre-wrap break-words border border-transparent px-3 py-2 text-sm">${app.utils.linkify(app.utils.escapeAttr(vehicle.note || ''))}</div>
+                                                    <textarea id="vehicle-edit-note" rows="2" class="info-input text-gray-700 w-full resize-y min-h-[40px] hidden cursor-not-allowed" readonly>${app.utils.escapeAttr(vehicle.note || '')}</textarea>
                                                 </td>
                                             </tr>
                                         </table>

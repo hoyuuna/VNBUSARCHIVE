@@ -4366,12 +4366,27 @@ Object.assign(window.app, {
                     fields.forEach(id => {
                         const input = document.getElementById(id);
                         input.readOnly = !input.readOnly;
-                        if (!input.readOnly) {
-                             input.classList.add('bg-white', 'focus:ring-2', 'focus:ring-black');
-                             input.classList.remove('bg-gray-50', 'cursor-not-allowed');
+                        
+                        // Handle special logic for the note field
+                        if (id === 'vehicle-edit-note') {
+                            const displayDiv = document.getElementById('vehicle-note-display');
+                            if (!input.readOnly) {
+                                if (displayDiv) displayDiv.classList.add('hidden');
+                                input.classList.remove('hidden', 'cursor-not-allowed');
+                                input.classList.add('bg-white', 'focus:ring-2', 'focus:ring-black', 'block');
+                            } else {
+                                if (displayDiv) displayDiv.classList.remove('hidden');
+                                input.classList.add('hidden', 'cursor-not-allowed');
+                                input.classList.remove('bg-white', 'focus:ring-2', 'focus:ring-black', 'block');
+                            }
                         } else {
-                             input.classList.remove('bg-white', 'focus:ring-2', 'focus:ring-black');
-                             input.classList.add('bg-gray-50', 'cursor-not-allowed');
+                            if (!input.readOnly) {
+                                 input.classList.add('bg-white', 'focus:ring-2', 'focus:ring-black');
+                                 input.classList.remove('bg-gray-50', 'cursor-not-allowed');
+                            } else {
+                                 input.classList.remove('bg-white', 'focus:ring-2', 'focus:ring-black');
+                                 input.classList.add('bg-gray-50', 'cursor-not-allowed');
+                            }
                         }
                     });
 
@@ -4461,6 +4476,13 @@ Object.assign(window.app, {
                             if (input.tagName === 'SELECT') { input.disabled = false; } 
                             else {
                                 if (input.id !== 'info-plate' && input.id !== 'info-date') input.readOnly = false;
+                                
+                                if (input.id === 'info-note') {
+                                    const displayDiv = document.getElementById('info-note-display');
+                                    if (displayDiv) displayDiv.classList.add('hidden');
+                                    input.classList.remove('hidden', 'cursor-not-allowed');
+                                    input.classList.add('bg-white', 'focus:ring-2', 'focus:ring-black', 'block');
+                                }
                             }
                         });
 
@@ -4494,7 +4516,15 @@ Object.assign(window.app, {
                     const formInputs = document.querySelectorAll('#inline-edit-form .info-input');
                     formInputs.forEach(input => {
                         if (input.tagName === 'SELECT') input.disabled = true;
-                        else input.readOnly = true;
+                        else {
+                            input.readOnly = true;
+                            if (input.id === 'info-note') {
+                                const displayDiv = document.getElementById('info-note-display');
+                                if (displayDiv) displayDiv.classList.remove('hidden');
+                                input.classList.add('hidden', 'cursor-not-allowed');
+                                input.classList.remove('bg-white', 'focus:ring-2', 'focus:ring-black', 'block');
+                            }
+                        }
                     });
 
                     const provBtn = document.getElementById('info-province-btn');
