@@ -440,6 +440,26 @@ Object.assign(window.app, {
                     }
                 },
 
+                toggleInsideVehicle: (checked) => {
+                    const locInput = document.getElementById('up-location');
+                    const mapEl = document.getElementById('upload-map');
+                    if (checked) {
+                        locInput.value = 'Chụp trong xe';
+                        locInput.disabled = true;
+                        if (mapEl) {
+                            mapEl.style.pointerEvents = 'none';
+                            mapEl.style.opacity = '0.5';
+                        }
+                    } else {
+                        locInput.value = '';
+                        locInput.disabled = false;
+                        if (mapEl) {
+                            mapEl.style.pointerEvents = 'auto';
+                            mapEl.style.opacity = '1';
+                        }
+                    }
+                },
+
                 initMap: () => {
                     app.uploadMap = L.map('upload-map').setView([10.762622, 106.660172], 13);
                     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png', {

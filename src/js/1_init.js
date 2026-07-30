@@ -2218,6 +2218,7 @@ cleanupState: () => {
                 showDetailMap: async (locationText) => {
                     const mapEl = document.getElementById('detail-map');
                     mapEl.style.display = 'block';
+                    mapEl.style.pointerEvents = 'none';
 
                     if (!app.detailMap) {
                         app.detailMap = L.map('detail-map').setView([10.762622, 106.660172], 13);
