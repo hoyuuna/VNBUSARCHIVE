@@ -395,7 +395,6 @@ Object.assign(window.app, {
                 saveEmailDraft: () => {
                     try {
                         const draft = {
-                            targetUser: document.getElementById('email-target-user')?.value || '',
                             customAddress: document.getElementById('email-custom-address')?.value || '',
                             subject: document.getElementById('email-subject')?.value || '',
                             content: document.getElementById('email-content')?.value || '',
@@ -410,11 +409,8 @@ Object.assign(window.app, {
                         const savedStr = localStorage.getItem('vbs_manager_email_draft');
                         if (!savedStr) return;
                         const saved = JSON.parse(savedStr);
-                        const sel = document.getElementById('email-target-user');
-                        if (sel && saved.targetUser !== undefined) sel.value = saved.targetUser;
                         const cust = document.getElementById('email-custom-address');
                         if (cust && saved.customAddress !== undefined) cust.value = saved.customAddress;
-                        if (app.admin.toggleEmailCustom) app.admin.toggleEmailCustom();
                         const sub = document.getElementById('email-subject');
                         if (sub && saved.subject !== undefined) sub.value = saved.subject;
                         const cnt = document.getElementById('email-content');
@@ -2491,17 +2487,14 @@ app.admin.fetchManagerData('denied');
                 },
 
                 // --- CÁC HÀM MỚI CHO TÍNH NĂNG GỬI EMAIL ---
+                _emailUsersRaw: [],
+
                 fetchUsersForEmail: async () => {
                     try {
-                        const { data: users } = await window.sb.from('profiles').select('id, username').order('created_at', { ascending: false }).limit(100);
-                        const select = document.getElementById('email-target-user');
-                        if (users && select) {
-                            users.forEach(u => {
-                                const opt = document.createElement('option');
-                                opt.value = u.id;
-                                opt.innerText = u.username;
-                                select.appendChild(opt);
-                            });
+                        const { data: users } = await window.sb.from('profiles').select('id, username, role').order('created_at', { ascending: false });
+                        if (users) {
+                            app.admin._emailUsersRaw = users;
+                            app.admin.renderEmailUserList(users);
                             if (app.admin.manager?.activeTab === 'email') {
                                 app.admin.restoreEmailDraft();
                             }
@@ -2509,16 +2502,81 @@ app.admin.fetchManagerData('denied');
                     } catch (e) { console.error("Lỗi lấy danh sách user:", e); }
                 },
 
+                renderEmailUserList: (users) => {
+                    const listEl = document.getElementById('email-user-list');
+                    if (!listEl) return;
+                    listEl.innerHTML = '';
+                    
+                    const customId = 'custom';
+                    const customDiv = document.createElement('div');
+                    customDiv.className = 'flex items-center gap-2 p-2 hover:bg-gray-50 rounded border border-transparent hover:border-gray-100 transition';
+                    customDiv.innerHTML = `
+                        <input type="checkbox" id="email-u-${customId}" value="${customId}" class="email-user-cb cursor-pointer" onchange="app.admin.updateEmailSelectedCount(); app.admin.toggleEmailCustom();">
+                        <label for="email-u-${customId}" class="cursor-pointer flex-1 select-none">
+                            <p class="text-xs font-bold text-gray-800">Tùy chỉnh (Nhập địa chỉ)</p>
+                            <p class="text-[10px] text-gray-500">Gửi đến người ngoài hệ thống</p>
+                        </label>
+                    `;
+                    listEl.appendChild(customDiv);
+
+                    const customInputDiv = document.createElement('div');
+                    customInputDiv.id = 'email-custom-input-box';
+                    customInputDiv.className = 'hidden mb-2 px-2';
+                    customInputDiv.innerHTML = `<input type="text" id="email-custom-address" placeholder="Nhập email (ngăn cách bằng dấu phẩy)..." class="w-full text-xs p-2 border border-gray-300 rounded focus:border-black outline-none" oninput="app.admin.saveEmailDraft()">`;
+                    listEl.appendChild(customInputDiv);
+
+                    users.forEach(u => {
+                        const div = document.createElement('div');
+                        div.className = 'flex items-center gap-2 p-2 hover:bg-gray-50 rounded border border-transparent hover:border-gray-100 transition';
+                        div.innerHTML = `
+                            <input type="checkbox" id="email-u-${u.id}" value="${u.id}" class="email-user-cb cursor-pointer" onchange="app.admin.updateEmailSelectedCount()">
+                            <label for="email-u-${u.id}" class="cursor-pointer flex-1 select-none flex items-center justify-between">
+                                <div>
+                                    <p class="text-xs font-bold text-gray-800">${app.utils.escapeHtml(u.username)}</p>
+                                    <p class="text-[10px] text-gray-500">${app.utils.escapeHtml(u.id)}</p>
+                                </div>
+                                <span class="text-[9px] px-1.5 py-0.5 rounded ${u.role === 'manager' || u.role === 'admin' ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-600'} font-bold uppercase">${u.role}</span>
+                            </label>
+                        `;
+                        listEl.appendChild(div);
+                    });
+
+                    document.getElementById('email-total-cnt').innerText = users.length;
+                    app.admin.updateEmailSelectedCount();
+                },
+
+                filterEmailUsers: (term) => {
+                    if (!app.admin._emailUsersRaw) return;
+                    const lower = term.toLowerCase().trim();
+                    const filtered = app.admin._emailUsersRaw.filter(u => 
+                        (u.username && u.username.toLowerCase().includes(lower)) || 
+                        (u.id && u.id.toLowerCase().includes(lower)) || 
+                        (u.role && u.role.toLowerCase().includes(lower))
+                    );
+                    app.admin.renderEmailUserList(filtered);
+                },
+
+                toggleSelectAllEmail: (isChecked) => {
+                    const cbs = document.querySelectorAll('.email-user-cb');
+                    cbs.forEach(cb => {
+                        if (cb.value !== 'custom') cb.checked = isChecked;
+                    });
+                    app.admin.updateEmailSelectedCount();
+                },
+
+                updateEmailSelectedCount: () => {
+                    const cbs = document.querySelectorAll('.email-user-cb:checked');
+                    const cntEl = document.getElementById('email-selected-cnt');
+                    if (cntEl) cntEl.innerText = `${cbs.length} đã chọn`;
+                },
+
                 toggleEmailCustom: () => {
-                    const select = document.getElementById('email-target-user');
-                    const customInput = document.getElementById('email-custom-address');
-                    if (select.value === 'custom') {
-                        customInput.classList.remove('hidden');
-                        customInput.required = true;
-                    } else {
-                        customInput.classList.add('hidden');
-                        customInput.required = false;
-                        customInput.value = '';
+                    const cb = document.getElementById('email-u-custom');
+                    const box = document.getElementById('email-custom-input-box');
+                    if (cb && cb.checked) {
+                        box.classList.remove('hidden');
+                    } else if (box) {
+                        box.classList.add('hidden');
                     }
                 },
 
@@ -2538,6 +2596,7 @@ app.admin.fetchManagerData('denied');
                 previewEmailMd: () => {
                     const content = document.getElementById('email-content').value;
                     const previewBox = document.getElementById('email-md-preview');
+                    if (!previewBox) return;
                     if (previewBox.classList.contains('hidden')) {
                         previewBox.classList.remove('hidden');
                         previewBox.innerHTML = DOMPurify.sanitize(app.admin.formatEmailMarkdown(content || '*Chưa có nội dung*'));
@@ -2546,58 +2605,96 @@ app.admin.fetchManagerData('denied');
                     }
                 },
 
-                submitEmail: async (e) => {
+                clearEmailForm: () => {
+                    const form = document.getElementById('mgr-email-form');
+                    if (form) form.reset();
+                    const cbs = document.querySelectorAll('.email-user-cb');
+                    cbs.forEach(cb => cb.checked = false);
+                    const selectAll = document.getElementById('email-select-all');
+                    if (selectAll) selectAll.checked = false;
+                    app.admin.updateEmailSelectedCount();
+                    app.admin.toggleEmailCustom();
+                    app.admin.clearEmailDraft();
+                    const previewBox = document.getElementById('email-md-preview');
+                    if (previewBox) previewBox.classList.add('hidden');
+                },
+
+                sendMassEmail: async (e) => {
                     e.preventDefault();
-                    if (app.role !== 'manager') return app.ui.showAlert("Chỉ Quản lý mới có thể sử dụng chức năng này.");
+                    if (app.role !== 'manager' && app.role !== 'admin') return app.ui.showAlert("Chỉ Quản trị viên/Quản lý mới có thể sử dụng chức năng này.");
 
-                    const selectVal = document.getElementById('email-target-user').value;
-                    const customEmail = document.getElementById('email-custom-address').value.trim();
-                    const subject = document.getElementById('email-subject').value.trim();
-                    const content = document.getElementById('email-content').value.trim();
-                    const isAnonymous = document.getElementById('email-is-anonymous').checked;
+                    const selectedCbs = Array.from(document.querySelectorAll('.email-user-cb:checked')).map(cb => cb.value);
+                    if (selectedCbs.length === 0) return app.ui.showAlert("Vui lòng chọn ít nhất 1 người nhận!");
+                    
+                    const isCustomSelected = selectedCbs.includes('custom');
+                    let customEmail = '';
+                    if (isCustomSelected) {
+                        customEmail = document.getElementById('email-custom-address')?.value.trim();
+                        if (!customEmail) return app.ui.showAlert("Vui lòng nhập Email tùy chỉnh!");
+                    }
 
-                    if (!selectVal) return app.ui.showAlert("Vui lòng chọn người nhận!");
-                    if (selectVal === 'custom' && !customEmail) return app.ui.showAlert("Vui lòng nhập Email tùy chỉnh!");
+                    const targetUsers = selectedCbs.filter(val => val !== 'custom');
+                    const subject = document.getElementById('email-subject')?.value.trim();
+                    const content = document.getElementById('email-content')?.value.trim();
+                    const isAnonymousCheckbox = document.getElementById('email-is-anonymous');
+                    const isAnonymous = isAnonymousCheckbox ? isAnonymousCheckbox.checked : false;
+
                     if (!subject || !content) return app.ui.showAlert("Vui lòng nhập Tiêu đề và Nội dung!");
 
-                    const btn = document.getElementById('btn-send-email');
+                    const btn = document.getElementById('email-send-btn');
+                    if (!btn) return;
                     const origHTML = btn.innerHTML;
                     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi...';
                     btn.disabled = true;
 
                     try {
                         const { data: { session } } = await window.sb.auth.getSession();
+                        let successCount = 0;
+                        let errCount = 0;
 
-                        const payload = {
-                            action: 'email',
-                            targetUserId: selectVal !== 'custom' ? selectVal : null,
-                            customEmail: selectVal === 'custom' ? customEmail : null,
-                            subject: subject,
-                            markdownContent: content,
-                            isAnonymous: isAnonymous
-                        };
+                        if (isCustomSelected && customEmail) {
+                            const customEmails = customEmail.split(',').map(em => em.trim()).filter(Boolean);
+                            for (const email of customEmails) {
+                                const payload = {
+                                    action: 'email',
+                                    targetUserId: null,
+                                    customEmail: email,
+                                    subject: subject,
+                                    markdownContent: content,
+                                    isAnonymous: isAnonymous
+                                };
+                                const res = await fetch('/api/notify', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token}` },
+                                    body: JSON.stringify(payload)
+                                });
+                                if (res.ok) successCount++; else errCount++;
+                            }
+                        }
 
-                        const res = await fetch('/api/notify', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${session?.access_token}`
-                            },
-                            body: JSON.stringify(payload)
-                        });
+                        for (const userId of targetUsers) {
+                            const payload = {
+                                action: 'email',
+                                targetUserId: userId,
+                                customEmail: null,
+                                subject: subject,
+                                markdownContent: content,
+                                isAnonymous: isAnonymous
+                            };
+                            const res = await fetch('/api/notify', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token}` },
+                                body: JSON.stringify(payload)
+                            });
+                            if (res.ok) successCount++; else errCount++;
+                        }
 
-                        const data = await res.json();
-                        if (!res.ok) throw new Error(data.error || 'Lỗi không xác định từ Server');
-
-                        app.ui.showAlert("Đã gửi Email thành công!");
-                        document.getElementById('admin-email-form').reset();
-                        document.getElementById('email-md-preview').classList.add('hidden');
-                        app.admin.toggleEmailCustom();
-                        app.admin.clearEmailDraft();
-                        app.admin.logAction('send_email', selectVal === 'custom' ? customEmail : selectVal, { subject: subject, isAnonymous: isAnonymous });
+                        app.ui.showAlert(`Hoàn tất gửi Email. Thành công: ${successCount}, Thất bại: ${errCount}`);
+                        app.admin.clearEmailForm();
+                        app.admin.logAction('send_email', 'mass_email', { subject: subject, successCount, errCount });
 
                     } catch (err) {
-                        app.ui.showAlert("Gửi Email thất bại: " + err.message);
+                        app.ui.showAlert("Lỗi gửi Email: " + err.message);
                     } finally {
                         btn.innerHTML = origHTML;
                         btn.disabled = false;
