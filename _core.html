@@ -157,6 +157,14 @@
 
     <style>
 /* ==========================================
+   MODAL / POPUP GLOBALS
+========================================== */
+div[id$="-modal"] > div {
+    max-height: calc(100dvh - 3rem) !important;
+    overflow-y: auto !important;
+}
+
+/* ==========================================
    TOAST NOTIFICATION (POP-UP TỪ DƯỚI HEADER)
 ========================================== */
 .toast-enter {
