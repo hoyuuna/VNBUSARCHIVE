@@ -69,6 +69,8 @@ Tài liệu này quy định các tiêu chuẩn kỹ thuật về hình ảnh v�
 * **B7.1. Bố cục và Góc chụp:**
   * **Vị trí chụp:** Chấp nhận hình ảnh chụp từ bất kỳ vị trí nào bên trong xe (đầu xe, giữa thân xe hoặc đuôi xe).
   * **Phạm vi bao quát:** Khung hình phải thể hiện được góc nhìn rộng, rõ ràng và bao quát các bộ phận/kết cấu không gian nội thất (hàng ghế, lối đi, trần xe, vô lăng/cabin...).
+  * **Góc hướng ống kính:** Hướng chụp cần ưu tiên giữ độ thẳng tương đối dọc theo chiều xe, **không được quay/xoay quá nhiều về hẳn một bên**. *(Chấp nhận góc nghiêng nhẹ nếu mục đích để lấy thêm chi tiết không gian, nhưng từ chối ảnh quay quá chéo làm mất tầm nhìn tổng thể).*
+  * **Vật cản nội thất:** Các bộ phận bên trong xe (như tựa đầu ghế, cột chống, tay cầm...) không được che khuất quá nhiều diện tích khung hình hoặc cản trở tầm nhìn đối với không gian còn lại.
   * **Hạn chế:** Từ chối ảnh có chủ thể chính là cảnh vật bên ngoài (chụp hướng chủ yếu ra cửa sổ/cửa kính) hoặc ảnh cận cảnh một chi tiết quá nhỏ không đại diện được cho tổng thể nội thất.
 * **B7.2. Định danh bắt buộc (BKS nội thất):**
   * Bắt buộc phải nhìn thấy và nhận diện rõ ràng **Biển kiểm soát (BKS)** được dán/treo ở khu vực bên trong xe (thường dán tại vị trí đầu xe, khu vực cabin hoặc phía trên kính lái).
