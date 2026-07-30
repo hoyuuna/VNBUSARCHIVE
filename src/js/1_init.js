@@ -1613,7 +1613,7 @@ cleanupState: () => {
                     if (!str) return '';
                     const urlRegex = /(https?:\/\/[^\s]+)/g;
                     return str.replace(urlRegex, function(url) {
-                        return `<a href="${url}" target="_blank" class="text-blue-500 hover:underline break-all">${url}</a>`;
+                        return `<a href="${url}" target="_blank" class="text-black font-medium hover:underline break-all">${url}</a>`;
                     });
                 },
 
