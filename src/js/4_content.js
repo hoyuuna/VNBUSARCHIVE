@@ -4570,7 +4570,7 @@ Object.assign(window.app, {
                         location: document.getElementById('info-location').value,
                         province: document.getElementById('info-province')?.value || null,
                         note: document.getElementById('info-note').value,
-                        taken_at: app.currentPhoto.taken_at
+                        taken_at: app.currentPhoto.taken_at || document.getElementById('info-date').value
                     };
 
                     let missingFields = [];
