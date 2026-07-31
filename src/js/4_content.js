@@ -3664,7 +3664,10 @@ Object.assign(window.app, {
                     const canDelete = isMe || app.role === 'admin' || app.role === 'manager';
                     const authorDisplay = app.utils.formatProfileDisplay(c.profiles);
                     const avatar = authorDisplay.avatar;
-                    const badges = authorDisplay.isBanned ? '' : app.utils.getBadgesHTML(c.user_id, c.profiles?.role, c.profiles?.subroles);
+                    let badges = authorDisplay.isBanned ? '' : app.utils.getBadgesHTML(c.user_id, c.profiles?.role, c.profiles?.subroles);
+                    if (app.currentPhoto && c.user_id === app.currentPhoto.uploader_id) {
+                        badges += `<span class="badge-shiny" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);" title="Người đăng"><i class="fa-solid fa-pen mr-1 text-[10px]"></i> Người đăng</span>`;
+                    }
 
                     const toolbar = app.user ? `
                         <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;">
@@ -3726,7 +3729,10 @@ Object.assign(window.app, {
                     const canDelete = isMe || app.role === 'admin' || app.role === 'manager';
                     const authorDisplay = app.utils.formatProfileDisplay(r.profiles);
                     const avatar = authorDisplay.avatar;
-                    const badges = authorDisplay.isBanned ? '' : app.utils.getBadgesHTML(r.user_id, r.profiles?.role, r.profiles?.subroles);
+                    let badges = authorDisplay.isBanned ? '' : app.utils.getBadgesHTML(r.user_id, r.profiles?.role, r.profiles?.subroles);
+                    if (app.currentPhoto && r.user_id === app.currentPhoto.uploader_id) {
+                        badges += `<span class="badge-shiny" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);" title="Người đăng"><i class="fa-solid fa-pen mr-1 text-[10px]"></i> Người đăng</span>`;
+                    }
 
                     const toolbar = app.user ? `
                         <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;">
