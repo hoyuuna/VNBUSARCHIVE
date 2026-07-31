@@ -449,6 +449,7 @@ async function handleContactSubmit(request, env) {
         'appeal': { title: 'Thắc mắc kiểm duyệt / Kháng cáo ảnh từ chối', color: 0x00ccff }, 
         'account': { title: 'Hỗ trợ / Kháng cáo về tài khoản', color: 0x00ccff },
         'general': { title: 'Hỗ trợ chung', color: 0x999999 }, 
+        'contribution': { title: 'Đóng góp chung', color: 0x999999 },
         'other': { title: 'Vấn đề khác', color: 0x999999 }
     };
     
