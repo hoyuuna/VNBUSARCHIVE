@@ -291,6 +291,7 @@ Object.assign(window.app, {
                                 .select('url, vehicles!inner(model)')
                                 .eq('status', 'approved')
                                 .eq('vehicles.model', modelName)
+                                .neq('location', 'Chụp trong xe')
                                 .order('created_at', { ascending: false })
                                 .limit(1)
                                 .maybeSingle();
