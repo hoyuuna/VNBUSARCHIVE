@@ -665,8 +665,8 @@ Object.assign(window.app, {
                     // Sử dụng mode 'thumb' để tối ưu kích thước ảnh preview
                     const proxyUrl = app.utils.getProxiedUrl(p.url, `${safePlate}.jpg`, 'thumb');
 
-                    // Lấy Ngày chụp (taken_at) thay vì Ngày đăng
-                    const dateStr = p.taken_at ? p.taken_at.split('T')[0].split('-').reverse().join('/') : new Date(p.created_at).toLocaleDateString('vi-VN');
+                    // Chỉ hiển thị Ngày chụp (taken_at) nếu có
+                    const dateHtml = p.taken_at ? `<span class="shrink-0"><i class="fa-regular fa-calendar mr-1"></i>${p.taken_at.split('T')[0].split('-').reverse().join('/')}</span>` : '';
 
                     return `
                         <div data-id="${p.id}" class="bg-white border border-gray-200 hover:border-gray-300 hover:shadow-lg cursor-pointer rounded-xl p-2 transition-all flex flex-col fade-zoom-in-page" onclick="app.views.loadDetail(${p.id})">
@@ -692,7 +692,7 @@ Object.assign(window.app, {
                                 </div>
                                 <div class="text-[10px] text-gray-400 mt-2 flex justify-between">
                                     <span class="truncate pr-2">${safeUser}</span>
-                                    <span class="shrink-0"><i class="fa-regular fa-calendar mr-1"></i>${dateStr}</span>
+                                    ${dateHtml}
                                 </div>
                             </div>
                         </div>
