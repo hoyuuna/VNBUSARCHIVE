@@ -1709,8 +1709,16 @@ Object.assign(window.app, {
                         }
                     }
 
-                    const displayDate = photo.taken_at || photo.created_at;
-                    if (elInfoDate) elInfoDate.value = displayDate ? displayDate.split('T')[0] : '';
+                    const trInfoDate = document.getElementById('tr-info-date');
+                    if (elInfoDate) {
+                        if (photo.taken_at) {
+                            elInfoDate.value = photo.taken_at.split('T')[0];
+                            if (trInfoDate) trInfoDate.style.display = '';
+                        } else {
+                            elInfoDate.value = '';
+                            if (trInfoDate) trInfoDate.style.display = 'none';
+                        }
+                    }
                     if (elInfoCamera) elInfoCamera.value = photo.camera_model || 'N/A';
                     if (elInfoExif) elInfoExif.value = photo.exif_params || 'N/A';
 
@@ -2132,11 +2140,14 @@ Object.assign(window.app, {
                     if (window.location.pathname !== `/vehicle/${encodeURIComponent(plate)}`) return;
 
                         let allPhotos = allPhotosRes.data || [];
-                        // Sort photos by taken_at descending, fallback to created_at
+                        // Sort photos by taken_at descending, photos without taken_at go to the bottom
                         allPhotos.sort((a, b) => {
-                            const timeA = a.taken_at ? new Date(a.taken_at).getTime() : new Date(a.created_at).getTime();
-                            const timeB = b.taken_at ? new Date(b.taken_at).getTime() : new Date(b.created_at).getTime();
-                            return timeB - timeA;
+                            if (!a.taken_at && !b.taken_at) {
+                                return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+                            }
+                            if (!a.taken_at) return 1;
+                            if (!b.taken_at) return -1;
+                            return new Date(b.taken_at).getTime() - new Date(a.taken_at).getTime();
                         });
 
                         // XE CÓ THỂ CHƯA CÓ ROW TRONG BẢNG vehicles (chỉ có ảnh).

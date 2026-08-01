@@ -4570,13 +4570,12 @@ Object.assign(window.app, {
                         location: document.getElementById('info-location').value,
                         province: document.getElementById('info-province')?.value || null,
                         note: document.getElementById('info-note').value,
-                        taken_at: app.currentPhoto.taken_at || document.getElementById('info-date').value
+                        taken_at: app.currentPhoto.taken_at || null
                     };
 
                     let missingFields = [];
                     if (!payload.type) missingFields.push("Loại xe");
                     if (!payload.license_plate) missingFields.push("Biển kiểm soát");
-                    if (!payload.taken_at) missingFields.push("Ngày chụp");
                     if (!payload.route) missingFields.push("Mã số tuyến / Lộ trình");
                     if (!payload.operator) missingFields.push("Đơn vị vận hành");
                     if (!payload.model) missingFields.push("Dòng xe (Model)");
