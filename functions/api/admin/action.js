@@ -108,7 +108,20 @@ export async function onRequestPost(context) {
                 const { data: currentHistory } = await sb.from('vehicle_history')
                     .select('*').eq('license_plate', plate).order('effective_date', { ascending: false }).limit(1);
 
-                const latestHist = currentHistory && currentHistory.length > 0 ? currentHistory[0] : null;
+                let latestHist = currentHistory && currentHistory.length > 0 ? currentHistory[0] : null;
+
+                if (latestHist) {
+                    const textCheck = `${latestHist.route || ''} ${latestHist.operator || ''} ${latestHist.note || ''}`.toLowerCase();
+                    const isStopped = textCheck.includes('dừng hoạt động') || textCheck.includes('ngừng hoạt động') || textCheck.includes('thanh lý') || textCheck.includes('thu hồi');
+                    if (isStopped) {
+                        await sb.from('vehicle_history').delete().eq('id', latestHist.id);
+                        
+                        const { data: prevHistory } = await sb.from('vehicle_history')
+                            .select('*').eq('license_plate', plate).order('effective_date', { ascending: false }).limit(1);
+                        latestHist = prevHistory && prevHistory.length > 0 ? prevHistory[0] : null;
+                    }
+                }
+
                 const takenDateObj = photo.taken_at ? new Date(photo.taken_at) : new Date();
                 const takenDateString = takenDateObj.toISOString().split('T')[0];
 
