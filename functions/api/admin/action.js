@@ -105,10 +105,11 @@ export async function onRequestPost(context) {
             const isSpecialRoute = specialRoutes.includes(route);
 
             if (!isSpecialRoute) {
-                const { data: currentHistory } = await sb.from('vehicle_history')
-                    .select('*').eq('license_plate', plate).order('effective_date', { ascending: false }).limit(1);
+                let { data: currentHistory } = await sb.from('vehicle_history')
+                    .select('*').eq('license_plate', plate).order('effective_date', { ascending: false });
 
-                let latestHist = currentHistory && currentHistory.length > 0 ? currentHistory[0] : null;
+                currentHistory = currentHistory || [];
+                let latestHist = currentHistory.length > 0 ? currentHistory[0] : null;
 
                 if (latestHist) {
                     const textCheck = `${latestHist.route || ''} ${latestHist.operator || ''} ${latestHist.note || ''}`.toLowerCase();
@@ -116,28 +117,48 @@ export async function onRequestPost(context) {
                     if (isStopped) {
                         await sb.from('vehicle_history').delete().eq('id', latestHist.id);
                         
-                        const { data: prevHistory } = await sb.from('vehicle_history')
-                            .select('*').eq('license_plate', plate).order('effective_date', { ascending: false }).limit(1);
-                        latestHist = prevHistory && prevHistory.length > 0 ? prevHistory[0] : null;
+                        currentHistory = currentHistory.filter(h => h.id !== latestHist.id);
+                        latestHist = currentHistory.length > 0 ? currentHistory[0] : null;
                     }
                 }
 
                 const takenDateObj = photo.taken_at ? new Date(photo.taken_at) : new Date();
                 const takenDateString = takenDateObj.toISOString().split('T')[0];
 
-                if (!latestHist || latestHist.operator !== op || latestHist.route !== route) {
-                    const { count } = await sb.from('vehicle_history').select('*', { count: 'exact', head: true }).eq('license_plate', plate);
-                    await sb.from('vehicle_history').insert({
-                        license_plate: plate, operator: op, route: route,
-                        display_order: count || 0,
-                        effective_date: takenDateString
-                    });
-                } else {
-                    const oldDateObj = latestHist.effective_date ? new Date(latestHist.effective_date) : new Date();
-                    if (takenDateObj < oldDateObj || !latestHist.effective_date) {
-                        await sb.from('vehicle_history').update({
+                const isNewerThanLatest = !latestHist || !latestHist.effective_date || takenDateObj >= new Date(latestHist.effective_date);
+                const existingMatch = currentHistory.find(h => h.route === route && h.operator === op);
+
+                if (isNewerThanLatest) {
+                    if (!latestHist || latestHist.operator !== op || latestHist.route !== route) {
+                        const { count } = await sb.from('vehicle_history').select('*', { count: 'exact', head: true }).eq('license_plate', plate);
+                        await sb.from('vehicle_history').insert({
+                            license_plate: plate, operator: op, route: route,
+                            display_order: count || 0,
                             effective_date: takenDateString
-                        }).eq('id', latestHist.id);
+                        });
+                    } else {
+                        const oldDateObj = latestHist.effective_date ? new Date(latestHist.effective_date) : new Date();
+                        if (takenDateObj < oldDateObj || !latestHist.effective_date) {
+                            await sb.from('vehicle_history').update({
+                                effective_date: takenDateString
+                            }).eq('id', latestHist.id);
+                        }
+                    }
+                } else {
+                    if (existingMatch) {
+                        const oldDateObj = existingMatch.effective_date ? new Date(existingMatch.effective_date) : new Date();
+                        if (takenDateObj < oldDateObj || !existingMatch.effective_date) {
+                            await sb.from('vehicle_history').update({
+                                effective_date: takenDateString
+                            }).eq('id', existingMatch.id);
+                        }
+                    } else {
+                        const { count } = await sb.from('vehicle_history').select('*', { count: 'exact', head: true }).eq('license_plate', plate);
+                        await sb.from('vehicle_history').insert({
+                            license_plate: plate, operator: op, route: route,
+                            display_order: count || 0,
+                            effective_date: takenDateString
+                        });
                     }
                 }
             }
