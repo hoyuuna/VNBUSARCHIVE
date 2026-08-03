@@ -121,22 +121,28 @@ Object.assign(window.app, {
                                         <div><span class="admin-label">Ghi chú</span><textarea id="adm-p-note-${p.id}" rows="2" class="admin-input">${note}</textarea></div>
                                         ${(() => {
                                         const isOwnPhoto = p.uploader_id === app.user.id;
-                                        const canApprove = !isOwnPhoto || app.role === 'manager';
-                                        const canDeny = !isOwnPhoto || app.role === 'manager';
+                                        const canApprove = (!isOwnPhoto || app.role === 'manager') && !p._isReviewedByMe;
+                                        const canDeny = (!isOwnPhoto || app.role === 'manager') && !p._isReviewedByMe;
 
                                         let actionButtons = '<div class="flex gap-2 mt-2">';
 
-                                        if (canApprove) {
-                                            actionButtons += `<button onclick="app.admin.approvePhoto('${p.id}', '${p.uploader_id}', this)" class="flex-1 bg-green-600 text-white py-1.5 text-xs font-bold rounded hover:bg-green-700">DUYỆT</button>`;
-                                        } else {
+                                        if (p._isReviewedByMe) {
                                             actionButtons += `<div class="flex-1 bg-gray-100 text-gray-400 py-1.5 text-xs font-bold rounded text-center border border-gray-200 cursor-not-allowed">
-                                                <i class="fa-solid fa-lock mr-1"></i> Không thể tự duyệt
+                                                <i class="fa-solid fa-check mr-1"></i> Bạn đã duyệt
                                             </div>`;
-                                        }
+                                        } else {
+                                            if (canApprove) {
+                                                actionButtons += `<button onclick="app.admin.approvePhoto('${p.id}', '${p.uploader_id}', this)" class="flex-1 bg-green-600 text-white py-1.5 text-xs font-bold rounded hover:bg-green-700">DUYỆT</button>`;
+                                            } else {
+                                                actionButtons += `<div class="flex-1 bg-gray-100 text-gray-400 py-1.5 text-xs font-bold rounded text-center border border-gray-200 cursor-not-allowed">
+                                                    <i class="fa-solid fa-lock mr-1"></i> Không thể tự duyệt
+                                                </div>`;
+                                            }
 
                                             if (canDeny) {
                                                 actionButtons += `<button onclick="app.admin.denyPhoto('${p.id}', '${p.uploader_id}', this)" class="flex-1 bg-red-600 text-white py-1.5 text-xs font-bold rounded hover:bg-red-700">TỪ CHỐI</button>`;
                                             }
+                                        }
 
                                         actionButtons += '</div>';
                                         return actionButtons;
@@ -703,9 +709,7 @@ Object.assign(window.app, {
                                     }
                                 });
                                 rawPhotos = Array.from(idMap.values()).sort((a,b) => a.id - b.id);
-                                if (reviewedIds.length > 0) {
-                                    rawPhotos = rawPhotos.filter(p => !reviewedIds.includes(p.id));
-                                }
+                                rawPhotos.forEach(p => p._isReviewedByMe = reviewedIds.includes(p.id));
                             } catch(e) { console.warn('Lỗi fetch pending:', e); }
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
 
@@ -806,6 +810,14 @@ Object.assign(window.app, {
                             app.admin.approvedModelSet = approvedModelSet;
 
                             const photos = rawPhotos.sort((a, b) => {
+                                if (a._isReviewedByMe && !b._isReviewedByMe) return 1;
+                                if (!a._isReviewedByMe && b._isReviewedByMe) return -1;
+                                
+                                const aStarted = (a.reviewer_count || 0) > 0;
+                                const bStarted = (b.reviewer_count || 0) > 0;
+                                if (aStarted && !bStarted) return -1;
+                                if (!aStarted && bStarted) return 1;
+
                                 const roleA = a.profiles?.role || 'user';
                                 const roleB = b.profiles?.role || 'user';
                                 const isPrivilegedA = (roleA === 'admin' || roleA === 'manager') ? 1 : 0;
