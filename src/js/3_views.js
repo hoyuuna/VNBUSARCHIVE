@@ -1008,7 +1008,7 @@ Object.assign(window.app, {
                     let photos, count, error;
 
                     if (app.views.currentProfileSort === 'most_liked') {
-                        let allQuery = window.sb.from('photos').select('id, url, status, views, license_plate').eq('uploader_id', app.currentProfileId);
+                        let allQuery = window.sb.from('photos').select('id, url, status, views, license_plate, review_progress').eq('uploader_id', app.currentProfileId);
                         if (!app._isOwnProfile) allQuery = allQuery.eq('status', 'approved');
                         else if (app.views.currentProfileFilter !== 'all') allQuery = allQuery.eq('status', app.views.currentProfileFilter);
                         allQuery = app.preference.applyFilter(allQuery);
@@ -1038,7 +1038,7 @@ Object.assign(window.app, {
                             photos = allPhotos.slice(fromRow, toRow + 1);
                         }
                     } else {
-                        let query = window.sb.from('photos').select('id, url, status, views, license_plate', { count: 'exact' }).eq('uploader_id', app.currentProfileId);
+                        let query = window.sb.from('photos').select('id, url, status, views, license_plate, review_progress', { count: 'exact' }).eq('uploader_id', app.currentProfileId);
 
                         if (!app._isOwnProfile) query = query.eq('status', 'approved');
                         else if (app.views.currentProfileFilter !== 'all') query = query.eq('status', app.views.currentProfileFilter);

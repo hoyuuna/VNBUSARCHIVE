@@ -258,11 +258,21 @@ export async function onRequestPost(context) {
             });
         } else {
             // Chỉ cập nhật tiến độ (VD: 1/2)
-            await sb.from('photos').update({
+            const updatePayload = {
                 review_progress: newProgress,
                 reviewer_count: newReviewerCount,
                 needs_third: needsThird
-            }).eq('id', photoId);
+            };
+            if (action === 'approve') {
+                updatePayload.license_plate = plate;
+                updatePayload.note = note;
+                updatePayload.location = location;
+                updatePayload.province = province || null;
+                updatePayload.operator = op;
+                updatePayload.type = type;
+                updatePayload.route_no = route;
+            }
+            await sb.from('photos').update(updatePayload).eq('id', photoId);
         }
 
         return new Response(JSON.stringify({ success: true }), {
