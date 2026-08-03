@@ -68,6 +68,7 @@ Object.assign(window.app, {
                                             <span class="font-bold text-sm">${safePlate}</span>
                                             ${plateKey && plateKey !== '---' && !approvedPlateSet.has(plateKey) ? '<span class="badge-xe-moi"><i class="fa-solid fa-sparkles"></i> XE MỚI</span>' : ''}
                                             ${p.suspected_exif_fraud ? '<span class="bg-red-600 text-white px-1.5 py-0.5 rounded text-[10px] font-bold ml-1 tracking-wider whitespace-nowrap"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Nghi ngờ gian lận</span>' : ''}
+                                            ${p.reviewer_count > 0 ? `<span class="bg-blue-600 text-white px-1.5 py-0.5 rounded text-[10px] font-bold ml-1 tracking-wider whitespace-nowrap"><i class="fa-solid fa-users mr-1"></i>Đã có ${p.reviewer_count} người duyệt</span>` : ''}
                                         </div>
                                         <span class="text-xs text-gray-500">${safeUsername}</span>
                                     </div>
@@ -664,6 +665,14 @@ Object.assign(window.app, {
                             let totalPending = 0;
 
                             let rawPhotos = [];
+                            let reviewedIds = [];
+                            try {
+                                if (app.user && app.user.id) {
+                                    const { data: myReviews } = await window.sb.from('photo_reviews').select('photo_id').eq('admin_id', app.user.id);
+                                    if (myReviews) reviewedIds = myReviews.map(r => r.photo_id);
+                                }
+                            } catch(e) {}
+                            
                             try {
                                 const [sbRes, apiRes] = await Promise.all([
                                     window.sb.from('photos').select('*, profiles(username, role), vehicles(model)', { count: 'exact' }).eq('status', 'pending').order('id', { ascending: true }).range(fromRow, toRow).then(r => r).catch(() => ({ data: [], count: 0 })),
@@ -694,6 +703,9 @@ Object.assign(window.app, {
                                     }
                                 });
                                 rawPhotos = Array.from(idMap.values()).sort((a,b) => a.id - b.id);
+                                if (reviewedIds.length > 0) {
+                                    rawPhotos = rawPhotos.filter(p => !reviewedIds.includes(p.id));
+                                }
                             } catch(e) { console.warn('Lỗi fetch pending:', e); }
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
 

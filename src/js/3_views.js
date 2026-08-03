@@ -1084,7 +1084,8 @@ Object.assign(window.app, {
                                 textHtml = `<span class="block truncate font-bold drop-shadow-md">${app.utils.cleanText(app.utils.displayPlate(p.license_plate))}</span>`;
                             } else if (p.status === 'pending') {
                                 cardStyleClasses += " !border-2 !border-[#f58e27] shadow-[0_0_8px_rgba(245,142,39,0.5)] hover:shadow-[0_0_14px_rgba(245,142,39,0.8)] hover:z-10";
-                                textHtml = `<span class="block truncate group-hover:hidden">${app.utils.cleanText(app.utils.displayPlate(p.license_plate))}</span><span class="hidden truncate group-hover:block font-bold drop-shadow-md tracking-wide">Đang chờ duyệt...</span>`;
+                                const prog = p.review_progress || '0/2';
+                                textHtml = `<span class="block truncate group-hover:hidden">${app.utils.cleanText(app.utils.displayPlate(p.license_plate))}</span><span class="hidden truncate group-hover:block font-bold drop-shadow-md tracking-wide" title="Ảnh của bạn đã được ${prog} người duyệt">Đang chờ duyệt... (${prog})</span>`;
                             } else if (p.status === 'denied') {
                                 cardStyleClasses += " !border-2 !border-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)] hover:shadow-[0_0_14px_rgba(239,68,68,0.8)] hover:z-10";
                                 textHtml = `<span class="block truncate group-hover:hidden">${app.utils.cleanText(app.utils.displayPlate(p.license_plate))}</span><span class="hidden truncate group-hover:block font-bold drop-shadow-md tracking-wide">Đã bị từ chối</span>`;
@@ -1550,6 +1551,10 @@ Object.assign(window.app, {
                         if (queueBox) {
                             queueBox.classList.remove('hidden');
                             document.getElementById('pending-queue-count').innerText = '...';
+                            const progEl = document.getElementById('pending-review-progress');
+                            if (progEl) {
+                                progEl.innerText = `Ảnh của bạn đã được ${photo.review_progress || '0/2'} người duyệt.`;
+                            }
 
                             window.sb.from('photos').select('id, created_at, profiles(role)').eq('status', 'pending')
                                 .then(({ data, error }) => {

@@ -49,7 +49,47 @@ export async function onRequestPost(context) {
             return new Response(JSON.stringify({ error: 'Missing parameters' }), { status: 400 });
         }
         
-        if (action === 'approve') {
+        const { data: currentPhotoRes, error: pGetErr } = await sb.from('photos').select('*').eq('id', photoId).single();
+        if (pGetErr || !currentPhotoRes) {
+            return new Response(JSON.stringify({ error: 'Không tìm thấy ảnh.' }), { status: 404 });
+        }
+        const photo = currentPhotoRes;
+
+        let isFinalApprove = false;
+        let isFinalDeny = false;
+        let newProgress = photo.review_progress || '0/2';
+        let newReviewerCount = photo.reviewer_count || 0;
+        let needsThird = photo.needs_third || false;
+        let finalDenialReason = reason || 'Từ chối ảnh';
+
+        // Tự duyệt ảnh của chính mình nếu là manager
+        if (user.id === photo.uploader_id && profiles[0].role === 'manager') {
+            if (action === 'approve') isFinalApprove = true;
+            if (action === 'deny') isFinalDeny = true;
+        } else {
+            // Ghi nhận review
+            await sbAdmin.from('photo_reviews').upsert({
+                photo_id: photoId, admin_id: user.id, action: action, reason: reason || null
+            }, { onConflict: 'photo_id,admin_id' });
+
+            // Đếm số lượng review
+            const { data: reviews } = await sbAdmin.from('photo_reviews').select('action, reason').eq('photo_id', photoId);
+            const approves = reviews.filter(r => r.action === 'approve').length;
+            const denies = reviews.filter(r => r.action === 'deny').length;
+
+            if (approves >= 2) isFinalApprove = true;
+            else if (denies >= 2) {
+                isFinalDeny = true;
+                const denyReviews = reviews.filter(r => r.action === 'deny');
+                finalDenialReason = denyReviews.map((r, i) => `#${i + 1}: ${r.reason || 'Không có lý do'}`).join('\n');
+            } else if (approves === 1 && denies === 1) {
+                newReviewerCount = 2; needsThird = true; newProgress = '2/2 (+1)';
+            } else {
+                newReviewerCount = approves + denies; newProgress = `${newReviewerCount}/2`;
+            }
+        }
+
+        if (isFinalApprove) {
             if (plate && plate.includes('-') && model) {
                 const parts = plate.split('-');
                 if (parts.length >= 2 && !isNaN(parts[1])) {
@@ -73,10 +113,6 @@ export async function onRequestPost(context) {
                 }
             }
 
-            const { data: currentPhotoRes, error: pGetErr } = await sb.from('photos').select('url, taken_at').eq('id', photoId).single();
-            if (pGetErr) throw pGetErr;
-            const photo = currentPhotoRes || {};
-
             // Hệ thống Sandbox đã bị khai tử: ảnh pending/denied đã nằm trên CDN thật.
             // finalUrl lấy trực tiếp từ photo.url (phải là URL https hợp lệ).
             let finalUrl = photo.url;
@@ -98,7 +134,10 @@ export async function onRequestPost(context) {
                 status: 'approved',
                 operator: op,
                 type: type,
-                route_no: route
+                route_no: route,
+                review_progress: newProgress,
+                reviewer_count: newReviewerCount,
+                needs_third: needsThird
             }).eq('id', photoId);
 
             const specialRoutes = ['Ngoài giờ hoạt động', 'Chưa hoạt động'];
@@ -170,19 +209,17 @@ export async function onRequestPost(context) {
                 details: JSON.stringify({ plate, operator: op })
             });
 
-        } else if (action === 'deny') {
-            const { data: currentPhotoRes, error: pGetErr } = await sb.from('photos').select('id, url, status, license_plate, uploader_id').eq('id', photoId).single();
-            if (pGetErr || !currentPhotoRes) {
-                return new Response(JSON.stringify({ error: 'Không tìm thấy ảnh cần từ chối/xóa.' }), { status: 404 });
-            }
-
-            const targetPlate = plate || currentPhotoRes.license_plate;
+        } else if (isFinalDeny) {
+            const targetPlate = plate || photo.license_plate;
 
             // Hệ thống Sandbox đã khai tử: ảnh denied GIỮ NGUYÊN trên CDN (url https thật),
             // chỉ chuyển status sang 'denied' để ẩn khỏi feed chính. Ảnh vẫn hiển thị với chủ nhân.
             const { error: updateErr } = await sb.from('photos').update({
                 status: 'denied',
-                denial_reason: reason || 'Từ chối ảnh'
+                denial_reason: finalDenialReason,
+                review_progress: newProgress,
+                reviewer_count: newReviewerCount,
+                needs_third: needsThird
             }).eq('id', photoId);
             if (updateErr) {
                 return new Response(JSON.stringify({ error: `Lỗi cập nhật trạng thái ảnh (${updateErr.message})` }), { status: 500 });
@@ -217,10 +254,15 @@ export async function onRequestPost(context) {
                 admin_id: user.id,
                 action_type: 'deny_photo',
                 target_id: photoId,
-                details: JSON.stringify({ plate: targetPlate, reason: reason || 'Đã xóa/từ chối ảnh' })
+                details: JSON.stringify({ plate: targetPlate, reason: finalDenialReason })
             });
         } else {
-            return new Response(JSON.stringify({ error: 'Invalid action' }), { status: 400 });
+            // Chỉ cập nhật tiến độ (VD: 1/2)
+            await sb.from('photos').update({
+                review_progress: newProgress,
+                reviewer_count: newReviewerCount,
+                needs_third: needsThird
+            }).eq('id', photoId);
         }
 
         return new Response(JSON.stringify({ success: true }), {
