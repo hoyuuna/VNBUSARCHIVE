@@ -154,19 +154,21 @@ export async function onRequestPost(context) {
                 currentHistory = currentHistory || [];
                 let latestHist = currentHistory.length > 0 ? currentHistory[0] : null;
 
+                const takenDateObj = photo.taken_at ? new Date(photo.taken_at) : new Date();
+                const takenDateString = takenDateObj.toISOString().split('T')[0];
+
                 if (latestHist) {
                     const textCheck = `${latestHist.route || ''} ${latestHist.operator || ''} ${latestHist.note || ''}`.toLowerCase();
                     const isStopped = textCheck.includes('dừng hoạt động') || textCheck.includes('ngừng hoạt động') || textCheck.includes('thanh lý') || textCheck.includes('thu hồi');
-                    if (isStopped) {
+                    const latestHistDate = new Date(latestHist.effective_date);
+                    // Chỉ xóa lịch sử dừng hoạt động nếu ảnh mới chứng minh xe hoạt động SAU hoặc BẰNG ngày dừng
+                    if (isStopped && takenDateObj >= latestHistDate) {
                         await sbAdmin.from('vehicle_history').delete().eq('id', latestHist.id);
                         
                         currentHistory = currentHistory.filter(h => h.id !== latestHist.id);
                         latestHist = currentHistory.length > 0 ? currentHistory[0] : null;
                     }
                 }
-
-                const takenDateObj = photo.taken_at ? new Date(photo.taken_at) : new Date();
-                const takenDateString = takenDateObj.toISOString().split('T')[0];
 
                 const isNewerThanLatest = !latestHist || !latestHist.effective_date || takenDateObj >= new Date(latestHist.effective_date);
                 const existingMatch = currentHistory.find(h => h.route === route && h.operator === op);
