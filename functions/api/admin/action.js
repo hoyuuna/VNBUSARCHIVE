@@ -34,13 +34,13 @@ export async function onRequestPost(context) {
             return new Response(JSON.stringify({ error: 'Invalid token' }), { status: 401 });
         }
         
-        const { data: profiles } = await sb.from('profiles').select('role').eq('id', user.id);
+        const sbAdmin = env.SUPABASE_SERVICE_ROLE_KEY ? createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY) : sb;
+        
+        const { data: profiles } = await sbAdmin.from('profiles').select('role').eq('id', user.id);
         
         if (!profiles || profiles.length === 0 || !['admin', 'manager'].includes(profiles[0].role)) {
             return new Response(JSON.stringify({ error: 'Forbidden: Admin access required' }), { status: 403 });
         }
-
-        const sbAdmin = env.SUPABASE_SERVICE_ROLE_KEY ? createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY) : sb;
         
         const body = await request.json();
         const { action, photoId, reason, plate, op, type, route, model, location, note, province } = body;
@@ -49,7 +49,7 @@ export async function onRequestPost(context) {
             return new Response(JSON.stringify({ error: 'Missing parameters' }), { status: 400 });
         }
         
-        const { data: currentPhotoRes, error: pGetErr } = await sb.from('photos').select('*').eq('id', photoId).single();
+        const { data: currentPhotoRes, error: pGetErr } = await sbAdmin.from('photos').select('*').eq('id', photoId).single();
         if (pGetErr || !currentPhotoRes) {
             return new Response(JSON.stringify({ error: 'Không tìm thấy ảnh.' }), { status: 404 });
         }
@@ -94,7 +94,7 @@ export async function onRequestPost(context) {
                 const parts = plate.split('-');
                 if (parts.length >= 2 && !isNaN(parts[1])) {
                     const basePlate = parts[0];
-                    const { data: relatedVehicles } = await sb.from('vehicles').select('license_plate, model').ilike('license_plate', `${basePlate}%`);
+                    const { data: relatedVehicles } = await sbAdmin.from('vehicles').select('license_plate, model').ilike('license_plate', `${basePlate}%`);
                     if (relatedVehicles && relatedVehicles.length > 0) {
                         const currentModelLower = model.trim().toLowerCase();
                         const duplicateVehicle = relatedVehicles.find(v => {
@@ -121,11 +121,11 @@ export async function onRequestPost(context) {
                 return new Response(JSON.stringify({ error: "Không thể duyệt: Dữ liệu ảnh không hợp lệ hoặc chưa được tải thành công lên máy chủ CDN thực!" }), { status: 400 });
             }
 
-            const { error: vError } = await sb.from('vehicles')
+            const { error: vError } = await sbAdmin.from('vehicles')
                 .upsert({ license_plate: plate, model: model }, { onConflict: 'license_plate' });
             if (vError) throw vError;
 
-            await sb.from('photos').update({
+            const { error: photoUpdateErr } = await sbAdmin.from('photos').update({
                 url: finalUrl,
                 license_plate: plate,
                 note: note,
@@ -139,12 +139,16 @@ export async function onRequestPost(context) {
                 reviewer_count: newReviewerCount,
                 needs_third: needsThird
             }).eq('id', photoId);
+            
+            if (photoUpdateErr) {
+                return new Response(JSON.stringify({ error: `Lỗi lưu trạng thái duyệt cuối cùng: ${photoUpdateErr.message}` }), { status: 500 });
+            }
 
             const specialRoutes = ['Ngoài giờ hoạt động', 'Chưa hoạt động'];
             const isSpecialRoute = specialRoutes.includes(route);
 
             if (!isSpecialRoute) {
-                let { data: currentHistory } = await sb.from('vehicle_history')
+                let { data: currentHistory } = await sbAdmin.from('vehicle_history')
                     .select('*').eq('license_plate', plate).order('effective_date', { ascending: false });
 
                 currentHistory = currentHistory || [];
@@ -154,7 +158,7 @@ export async function onRequestPost(context) {
                     const textCheck = `${latestHist.route || ''} ${latestHist.operator || ''} ${latestHist.note || ''}`.toLowerCase();
                     const isStopped = textCheck.includes('dừng hoạt động') || textCheck.includes('ngừng hoạt động') || textCheck.includes('thanh lý') || textCheck.includes('thu hồi');
                     if (isStopped) {
-                        await sb.from('vehicle_history').delete().eq('id', latestHist.id);
+                        await sbAdmin.from('vehicle_history').delete().eq('id', latestHist.id);
                         
                         currentHistory = currentHistory.filter(h => h.id !== latestHist.id);
                         latestHist = currentHistory.length > 0 ? currentHistory[0] : null;
@@ -169,8 +173,8 @@ export async function onRequestPost(context) {
 
                 if (isNewerThanLatest) {
                     if (!latestHist || latestHist.operator !== op || latestHist.route !== route) {
-                        const { count } = await sb.from('vehicle_history').select('*', { count: 'exact', head: true }).eq('license_plate', plate);
-                        await sb.from('vehicle_history').insert({
+                        const { count } = await sbAdmin.from('vehicle_history').select('*', { count: 'exact', head: true }).eq('license_plate', plate);
+                        await sbAdmin.from('vehicle_history').insert({
                             license_plate: plate, operator: op, route: route,
                             display_order: count || 0,
                             effective_date: takenDateString
@@ -178,7 +182,7 @@ export async function onRequestPost(context) {
                     } else {
                         const oldDateObj = latestHist.effective_date ? new Date(latestHist.effective_date) : new Date();
                         if (takenDateObj < oldDateObj || !latestHist.effective_date) {
-                            await sb.from('vehicle_history').update({
+                            await sbAdmin.from('vehicle_history').update({
                                 effective_date: takenDateString
                             }).eq('id', latestHist.id);
                         }
@@ -187,13 +191,13 @@ export async function onRequestPost(context) {
                     if (existingMatch) {
                         const oldDateObj = existingMatch.effective_date ? new Date(existingMatch.effective_date) : new Date();
                         if (takenDateObj < oldDateObj || !existingMatch.effective_date) {
-                            await sb.from('vehicle_history').update({
+                            await sbAdmin.from('vehicle_history').update({
                                 effective_date: takenDateString
                             }).eq('id', existingMatch.id);
                         }
                     } else {
-                        const { count } = await sb.from('vehicle_history').select('*', { count: 'exact', head: true }).eq('license_plate', plate);
-                        await sb.from('vehicle_history').insert({
+                        const { count } = await sbAdmin.from('vehicle_history').select('*', { count: 'exact', head: true }).eq('license_plate', plate);
+                        await sbAdmin.from('vehicle_history').insert({
                             license_plate: plate, operator: op, route: route,
                             display_order: count || 0,
                             effective_date: takenDateString
@@ -202,7 +206,7 @@ export async function onRequestPost(context) {
                 }
             }
 
-            await sb.from('admin_audit_logs').insert({
+            await sbAdmin.from('admin_audit_logs').insert({
                 admin_id: user.id,
                 action_type: 'approve_photo',
                 target_id: photoId,
@@ -214,7 +218,7 @@ export async function onRequestPost(context) {
 
             // Hệ thống Sandbox đã khai tử: ảnh denied GIỮ NGUYÊN trên CDN (url https thật),
             // chỉ chuyển status sang 'denied' để ẩn khỏi feed chính. Ảnh vẫn hiển thị với chủ nhân.
-            const { error: updateErr } = await sb.from('photos').update({
+            const { error: updateErr } = await sbAdmin.from('photos').update({
                 status: 'denied',
                 denial_reason: finalDenialReason,
                 review_progress: newProgress,
@@ -227,11 +231,11 @@ export async function onRequestPost(context) {
             
             if (targetPlate) {
                 try {
-                    const { data: approvedPhotos } = await sb.from('photos').select('route_no, operator').eq('license_plate', targetPlate).eq('status', 'approved');
+                    const { data: approvedPhotos } = await sbAdmin.from('photos').select('route_no, operator').eq('license_plate', targetPlate).eq('status', 'approved');
                     if (!approvedPhotos || approvedPhotos.length === 0) {
-                        await sb.from('vehicle_history').delete().eq('license_plate', targetPlate);
+                        await sbAdmin.from('vehicle_history').delete().eq('license_plate', targetPlate);
                     } else {
-                        const { data: history } = await sb.from('vehicle_history').select('*').eq('license_plate', targetPlate);
+                        const { data: history } = await sbAdmin.from('vehicle_history').select('*').eq('license_plate', targetPlate);
                         if (history && history.length > 0) {
                             const specialRoutes = ['Ngoài giờ hoạt động', 'Chưa hoạt động'];
                             const activePhotos = approvedPhotos.filter(p => !specialRoutes.includes(p.route_no));
@@ -239,7 +243,7 @@ export async function onRequestPost(context) {
                                 if (!specialRoutes.includes(h.route)) {
                                     const hasPhoto = activePhotos.some(p => p.route_no === h.route && p.operator === h.operator);
                                     if (!hasPhoto) {
-                                        await sb.from('vehicle_history').delete().eq('id', h.id);
+                                        await sbAdmin.from('vehicle_history').delete().eq('id', h.id);
                                     }
                                 }
                             }
@@ -250,7 +254,7 @@ export async function onRequestPost(context) {
                 }
             }
             
-            await sb.from('admin_audit_logs').insert({
+            await sbAdmin.from('admin_audit_logs').insert({
                 admin_id: user.id,
                 action_type: 'deny_photo',
                 target_id: photoId,
@@ -272,7 +276,10 @@ export async function onRequestPost(context) {
                 updatePayload.type = type;
                 updatePayload.route_no = route;
             }
-            await sb.from('photos').update(updatePayload).eq('id', photoId);
+            const { error: updateErr } = await sbAdmin.from('photos').update(updatePayload).eq('id', photoId);
+            if (updateErr) {
+                return new Response(JSON.stringify({ error: `Lỗi cập nhật tiến độ ảnh: ${updateErr.message}` }), { status: 500 });
+            }
         }
 
         return new Response(JSON.stringify({ success: true }), {

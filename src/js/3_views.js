@@ -1472,7 +1472,7 @@ Object.assign(window.app, {
 
                     let { data: photo } = await window.sb
                         .from('photos')
-                        .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, profiles(id, username, avatar_url, role, subroles, ban_status), vehicles(model)`)
+                        .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, review_progress, reviewer_count, profiles(id, username, avatar_url, role, subroles, ban_status), vehicles(model)`)
                         .eq('id', photoId)
                         .single();
 
