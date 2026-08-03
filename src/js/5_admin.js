@@ -654,9 +654,13 @@ Object.assign(window.app, {
                     });
 
                     const toggleBar = document.getElementById('adm-photo-grid-toggle-bar');
-                    if (toggleBar) {
-                        if (tab === 'photos') toggleBar.classList.remove('hidden');
-                        else toggleBar.classList.add('hidden');
+                    const photoBanner = document.getElementById('adm-photo-banner');
+                    if (tab === 'photos') {
+                        if (toggleBar) toggleBar.classList.remove('hidden');
+                        if (photoBanner) photoBanner.classList.remove('hidden');
+                    } else {
+                        if (toggleBar) toggleBar.classList.add('hidden');
+                        if (photoBanner) photoBanner.classList.add('hidden');
                     }
                     if (app.admin.update3x3UI) app.admin.update3x3UI();
                     if (app.admin.updateRulerUI) app.admin.updateRulerUI();
