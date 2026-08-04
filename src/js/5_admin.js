@@ -62,13 +62,13 @@ Object.assign(window.app, {
                     const hideClass = (app.admin.isHideMineEnabled && isOwnPhoto) ? 'hidden' : '';
 
                     return `
-                                <div id="adm-photo-card-${p.id}" class="admin-card overflow-visible ${hideClass}" data-photo-id="${p.id}" data-privileged="${(p.profiles?.role === 'admin' || p.profiles?.role === 'manager') ? 'true' : 'false'}" data-is-own="${isOwnPhoto ? 'true' : 'false'}">
+                                <div id="adm-photo-card-${p.id}" class="admin-card relative overflow-visible ${hideClass}" data-photo-id="${p.id}" data-privileged="${(p.profiles?.role === 'admin' || p.profiles?.role === 'manager') ? 'true' : 'false'}" data-is-own="${isOwnPhoto ? 'true' : 'false'}">
+                                    ${p.reviewer_count > 0 ? `<div class="absolute -top-3 -right-2 bg-blue-600 text-white text-[11px] font-bold px-3 py-1 rounded shadow-md z-20 transform rotate-3 border border-blue-700 whitespace-nowrap"><i class="fa-solid fa-users mr-1"></i>Đã có ${p.reviewer_count} người lựa chọn</div>` : ''}
                                     <div class="admin-card-header">
                                         <div class="flex items-center gap-2">
                                             <span class="font-bold text-sm">${safePlate}</span>
                                             ${plateKey && plateKey !== '---' && !approvedPlateSet.has(plateKey) ? '<span class="badge-xe-moi"><i class="fa-solid fa-sparkles"></i> XE MỚI</span>' : ''}
                                             ${p.suspected_exif_fraud ? '<span class="bg-red-600 text-white px-1.5 py-0.5 rounded text-[10px] font-bold ml-1 tracking-wider whitespace-nowrap"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Nghi ngờ gian lận</span>' : ''}
-                                            ${p.reviewer_count > 0 ? `<span class="bg-blue-600 text-white px-1.5 py-0.5 rounded text-[10px] font-bold ml-1 tracking-wider whitespace-nowrap"><i class="fa-solid fa-users mr-1"></i>Đã có ${p.reviewer_count} người lựa chọn</span>` : ''}
                                         </div>
                                         <span class="text-xs text-gray-500">${safeUsername}</span>
                                     </div>
