@@ -63,8 +63,8 @@ Object.assign(window.app, {
 
                     return `
                                 <div id="adm-photo-card-${p.id}" class="admin-card relative overflow-visible ${hideClass}" data-photo-id="${p.id}" data-privileged="${(p.profiles?.role === 'admin' || p.profiles?.role === 'manager') ? 'true' : 'false'}" data-is-own="${isOwnPhoto ? 'true' : 'false'}">
-                                    ${p.reviewer_count > 0 ? `<div class="absolute -top-3 -right-2 bg-blue-600 text-white text-[11px] font-bold px-3 py-1 rounded shadow-md z-20 transform rotate-3 border border-blue-700 whitespace-nowrap"><i class="fa-solid fa-users mr-1"></i>Đã có ${p.reviewer_count} người lựa chọn</div>` : ''}
-                                    <div class="admin-card-header">
+                                    ${p.reviewer_count > 0 ? `<div class="absolute -top-6 left-4 bg-blue-600 text-white text-[11px] font-bold px-4 pt-1.5 pb-4 rounded-t-md border border-blue-700 border-b-0 -z-10 whitespace-nowrap shadow-sm"><i class="fa-solid fa-users mr-1"></i>Đã có ${p.reviewer_count} người lựa chọn</div>` : ''}
+                                    <div class="admin-card-header relative z-10 bg-white rounded-t-lg">
                                         <div class="flex items-center gap-2">
                                             <span class="font-bold text-sm">${safePlate}</span>
                                             ${plateKey && plateKey !== '---' && !approvedPlateSet.has(plateKey) ? '<span class="badge-xe-moi"><i class="fa-solid fa-sparkles"></i> XE MỚI</span>' : ''}
