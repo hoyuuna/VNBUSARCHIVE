@@ -4,8 +4,6 @@
 
 Tài liệu này quy định các tiêu chuẩn kỹ thuật về hình ảnh và siêu dữ liệu nhằm xây dựng cơ sở dữ liệu phương tiện chất lượng cao. Yêu cầu toàn bộ thành viên đọc kỹ và tuân thủ nghiêm ngặt trước khi đóng góp.
 
-**Mọi hình ảnh đăng tải hiện đều phải thông qua ít nhất 2 vòng kiểm duyệt độc lập bởi 2 thành viên khác nhau trong Ban quản trị.**
-
 ## PHẦN A: QUY ĐỊNH CHUNG
 **A1.1. Phạm vi tiếp nhận:** Hệ thống hiện tại chấp nhận dữ liệu của cả **Xe buýt** và **Xe khách**.
 
