@@ -145,7 +145,7 @@ Object.assign(window.app, {
                                         ${(() => {
                                         const isOwnPhoto = p.uploader_id === app.user.id;
                                         const canApprove = (!isOwnPhoto || app.role === 'manager') && !p._isReviewedByMe;
-                                        const canDeny = (app.role === 'manager') && !p._isReviewedByMe;
+                                        const canDeny = (!isOwnPhoto || app.role === 'manager') && !p._isReviewedByMe;
 
                                         let actionButtons = '<div class="flex gap-2 mt-2">';
 

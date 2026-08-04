@@ -64,11 +64,8 @@ export async function onRequestPost(context) {
 
         const userRole = profiles[0].role;
         if (userRole === 'admin') {
-            if (action === 'deny') {
-                return new Response(JSON.stringify({ error: 'Quyền bị từ chối: Chỉ Manager mới có quyền từ chối ảnh.' }), { status: 403 });
-            }
-            if (action === 'approve' && photo.status !== 'pending') {
-                return new Response(JSON.stringify({ error: 'Quyền bị từ chối: Chỉ Manager mới có quyền duyệt lại hoặc ghi đè ảnh.' }), { status: 403 });
+            if (photo.status !== 'pending') {
+                return new Response(JSON.stringify({ error: 'Quyền bị từ chối: Chỉ Manager mới có quyền ghi đè (duyệt lại/từ chối lại) ảnh đã có kết quả.' }), { status: 403 });
             }
         }
 
