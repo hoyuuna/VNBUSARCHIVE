@@ -62,6 +62,16 @@ export async function onRequestPost(context) {
         let needsThird = photo.needs_third || false;
         let finalDenialReason = reason || 'Từ chối ảnh';
 
+        const userRole = profiles[0].role;
+        if (userRole === 'admin') {
+            if (action === 'deny') {
+                return new Response(JSON.stringify({ error: 'Quyền bị từ chối: Chỉ Manager mới có quyền từ chối ảnh.' }), { status: 403 });
+            }
+            if (action === 'approve' && photo.status !== 'pending') {
+                return new Response(JSON.stringify({ error: 'Quyền bị từ chối: Chỉ Manager mới có quyền duyệt lại hoặc ghi đè ảnh.' }), { status: 403 });
+            }
+        }
+
         // Ảnh đã được duyệt/từ chối thì được phép Ghi đè (override) bằng 1 click
         if (photo.status === 'approved' || photo.status === 'denied') {
             if (action === 'approve') isFinalApprove = true;

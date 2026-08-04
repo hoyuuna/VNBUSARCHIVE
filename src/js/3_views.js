@@ -1790,7 +1790,7 @@ Object.assign(window.app, {
                         }
                         deleteBtn.onclick = () => app.photo.requestDelete();
                     }
-                    else if (app.user && (app.role === 'manager' || app.role === 'admin') && !isDenied) {
+                    else if (app.user && app.role === 'manager' && !isDenied) {
                         deleteBtn.classList.remove('hidden');
                         deleteBtn.disabled = false;
                         deleteBtn.innerHTML = '<i class="fa-solid fa-radiation mr-1"></i> Quản lý: Xóa ảnh này';
@@ -1843,7 +1843,7 @@ Object.assign(window.app, {
                         };
                     }
 
-                    if (app.user && (app.role === 'manager' || app.role === 'admin') && isDenied) {
+                    if (app.user && app.role === 'manager' && isDenied) {
                         if (reapproveBtn) {
                             reapproveBtn.innerHTML = '<i class="fa-solid fa-rotate-left mr-1"></i> Quản lý: Duyệt lại ảnh này';
                             reapproveBtn.classList.remove('hidden');

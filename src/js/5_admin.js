@@ -145,7 +145,7 @@ Object.assign(window.app, {
                                         ${(() => {
                                         const isOwnPhoto = p.uploader_id === app.user.id;
                                         const canApprove = (!isOwnPhoto || app.role === 'manager') && !p._isReviewedByMe;
-                                        const canDeny = (!isOwnPhoto || app.role === 'manager') && !p._isReviewedByMe;
+                                        const canDeny = (app.role === 'manager') && !p._isReviewedByMe;
 
                                         let actionButtons = '<div class="flex gap-2 mt-2">';
 
@@ -979,8 +979,12 @@ Object.assign(window.app, {
                                         <p class="font-bold text-sm mb-1">${photo?.license_plate || 'Đã mất dữ liệu'}</p>
                                         <div class="mb-3 mt-2"><span class="admin-label">Lý do user nhập:</span><p class="bg-gray-50 p-2 border rounded text-red-700 italic">"${userReason}"</p></div>
                                         <div class="flex gap-2 mt-3">
+                                        ${app.role === 'manager' ? `
                                             <button onclick="app.admin.approveDeleteReq('${req.id}', '${req.new_data.photo_id}', '${req.requester_id}', '${userReason}', this)" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">DUYỆT XÓA</button>
                                             <button onclick="app.admin.denyReq('${req.id}', this)" class="flex-1 bg-gray-600 text-white py-1.5 font-bold rounded hover:bg-gray-700">TỪ CHỐI</button>
+                                        ` : `
+                                            <div class="flex-1 bg-gray-100 text-gray-400 py-1.5 font-bold rounded text-center border border-gray-200 cursor-not-allowed">Chỉ Manager được duyệt</div>
+                                        `}
                                         </div>
                                     </div>
                                 </div>`
@@ -1266,7 +1270,7 @@ Object.assign(window.app, {
                                             </div>
                                             <div class="flex gap-2 mt-3">
                                                 <button onclick="app.admin.approveReq('${r.id}', this, 'operator_info')" class="flex-1 bg-green-600 text-white py-1.5 font-bold rounded hover:bg-green-700">DUYỆT</button>
-                                                <button onclick="app.admin.denyReq('${r.id}', this)" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">TỪ CHỐI</button>
+                                                ${app.role === 'manager' ? `<button onclick="app.admin.denyReq('${r.id}', this)" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">TỪ CHỐI</button>` : ''}
                                             </div>
                                         </div>
                                     </div>`;

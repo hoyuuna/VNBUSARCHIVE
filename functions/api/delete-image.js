@@ -29,9 +29,9 @@ export async function onRequest(context) {
             env.SUPABASE_SERVICE_ROLE_KEY
         );
         const { data: profile } = await supabaseAdmin.from('profiles').select('role').eq('id', user.id).single();
-        const isManagerOrAdmin = profile && (profile.role === 'admin' || profile.role === 'manager');
+        const isManager = profile && profile.role === 'manager';
 
-        if (!isManagerOrAdmin) {
+        if (!isManager) {
             // 1. Kiểm tra trong bảng photos
             let photoOwner = null;
             if (photoId) {
