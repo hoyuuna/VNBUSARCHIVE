@@ -62,10 +62,22 @@ export async function onRequestPost(context) {
         let needsThird = photo.needs_third || false;
         let finalDenialReason = reason || 'Từ chối ảnh';
 
-        // Tự duyệt ảnh của chính mình nếu là manager
-        if (user.id === photo.uploader_id && profiles[0].role === 'manager') {
+        // Tự duyệt ảnh của chính mình nếu là manager, HOẶC ảnh đã được duyệt/từ chối (Ghi đè - override)
+        if ((user.id === photo.uploader_id && profiles[0].role === 'manager') || photo.status === 'approved' || photo.status === 'denied') {
             if (action === 'approve') isFinalApprove = true;
-            if (action === 'deny') isFinalDeny = true;
+            if (action === 'deny') {
+                isFinalDeny = true;
+                finalDenialReason = reason || 'Admin/Manager ghi đè: Từ chối ảnh';
+            }
+            
+            // Ghi nhận review của người thực hiện ghi đè
+            await sbAdmin.from('photo_reviews').upsert({
+                photo_id: photoId, admin_id: user.id, action: action, reason: reason || null
+            }, { onConflict: 'photo_id,admin_id' });
+            
+            // Nếu ghi đè, có thể giữ nguyên progress cũ hoặc set thành 1/1 (tuỳ chọn)
+            newProgress = photo.review_progress;
+            newReviewerCount = photo.reviewer_count;
         } else {
             // Ghi nhận review
             await sbAdmin.from('photo_reviews').upsert({
