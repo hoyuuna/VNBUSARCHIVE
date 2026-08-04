@@ -4270,7 +4270,7 @@ Object.assign(window.app, {
                             <p class="text-red-500 font-bold py-4 text-center"><i class="fa-solid fa-triangle-exclamation"></i> Không thể tải nội dung tự động.</p>
                             <div class="text-center mt-2">
                                 <a href="${url.replace('raw.githubusercontent.com/hoyuuna', 'github.com/hoyuuna').replace('/refs/heads/', '/blob/')}" target="_blank" class="inline-flex items-center gap-1.5 bg-black text-white px-4 py-2 rounded-md font-bold hover:bg-gray-800 transition text-[11px] uppercase">
-                                    <i class="fa-brands fa-github text-sm"></i> Xem trực tiếp trên GitHub
+                                    <i class="fa-solid fa-arrow-up-right-from-square text-sm"></i> Xem chi tiết
                                 </a>
                             </div>
                         `;
