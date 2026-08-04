@@ -43,7 +43,7 @@ export async function onRequest(context) {
         if (id) {
             let query = supabaseAdmin
                 .from('photos')
-                .select(`*, profiles(id, username, avatar_url, role, subroles, ban_status), vehicles(model)`)
+                .select(`*, profiles(id, username, avatar_url, role, subroles, ban_status), vehicles(model), photo_reviews(action, reason, admin_id)`)
                 .eq('id', id);
 
             if (!isManagerOrAdmin) {
@@ -67,7 +67,7 @@ export async function onRequest(context) {
 
             const { data: photos, error: dbErr } = await supabaseAdmin
                 .from('photos')
-                .select('*, profiles(username, role), vehicles(model)')
+                .select('*, profiles(username, role), vehicles(model), photo_reviews(action, reason, admin_id)')
                 .eq('status', status)
                 .order('created_at', { ascending: false })
                 .limit(500);

@@ -61,9 +61,32 @@ Object.assign(window.app, {
                     const isOwnPhoto = Boolean(app.user && (p.uploader_id === app.user.id || p.user_id === app.user.id));
                     const hideClass = (app.admin.isHideMineEnabled && isOwnPhoto) ? 'hidden' : '';
 
+                    let reviewTabHtml = '';
+                    if (p.photo_reviews && p.photo_reviews.length > 0) {
+                        const approves = p.photo_reviews.filter(r => r.action === 'approve').length;
+                        const denies = p.photo_reviews.filter(r => r.action === 'deny').length;
+                        const denyReasons = p.photo_reviews.filter(r => r.action === 'deny' && r.reason).map(r => r.reason).join(' | ');
+                        
+                        let colorClass = 'bg-blue-600 border-blue-700 text-white';
+                        if (approves > 0 && denies === 0) colorClass = 'bg-green-600 border-green-700 text-white';
+                        else if (denies > 0 && approves === 0) colorClass = 'bg-red-600 border-red-700 text-white';
+                        else if (approves > 0 && denies > 0) colorClass = 'bg-yellow-500 border-yellow-600 text-yellow-900';
+
+                        let textParts = [];
+                        if (approves > 0) textParts.push(`${approves} đồng ý`);
+                        if (denies > 0) textParts.push(`${denies} từ chối`);
+                        
+                        let mainText = textParts.join(' + ');
+                        if (denyReasons) mainText += `: (${denyReasons})`;
+                        
+                        reviewTabHtml = `<div class="absolute bottom-[calc(100%-12px)] left-0 w-full max-w-full ${colorClass} text-[11px] font-bold px-4 pt-1.5 pb-[14px] rounded-t-md border border-b-0 -z-10 shadow-sm leading-snug"><i class="fa-solid fa-users mr-1"></i>${mainText}</div>`;
+                    } else if (p.reviewer_count > 0) {
+                        reviewTabHtml = `<div class="absolute bottom-[calc(100%-12px)] left-0 bg-blue-600 border-blue-700 text-white text-[11px] font-bold px-4 pt-1.5 pb-[14px] rounded-t-md border border-b-0 -z-10 shadow-sm leading-snug whitespace-nowrap"><i class="fa-solid fa-users mr-1"></i>Đã có ${p.reviewer_count} người lựa chọn</div>`;
+                    }
+
                     return `
-                                <div id="adm-photo-card-${p.id}" class="admin-card relative overflow-visible mt-8 ${hideClass}" data-photo-id="${p.id}" data-privileged="${(p.profiles?.role === 'admin' || p.profiles?.role === 'manager') ? 'true' : 'false'}" data-is-own="${isOwnPhoto ? 'true' : 'false'}">
-                                    ${p.reviewer_count > 0 ? `<div class="absolute -top-7 left-0 bg-blue-600 text-white text-[11px] font-bold px-4 pt-1.5 pb-5 rounded-t-md border border-blue-700 border-b-0 -z-10 whitespace-nowrap shadow-sm"><i class="fa-solid fa-users mr-1"></i>Đã có ${p.reviewer_count} người lựa chọn</div>` : ''}
+                                <div id="adm-photo-card-${p.id}" class="admin-card relative overflow-visible mt-12 ${hideClass}" data-photo-id="${p.id}" data-privileged="${(p.profiles?.role === 'admin' || p.profiles?.role === 'manager') ? 'true' : 'false'}" data-is-own="${isOwnPhoto ? 'true' : 'false'}">
+                                    ${reviewTabHtml}
                                     <div class="admin-card-header relative z-10 bg-white rounded-t-lg">
                                         <div class="flex items-center gap-2">
                                             <span class="font-bold text-sm">${safePlate}</span>
@@ -685,7 +708,7 @@ Object.assign(window.app, {
                             
                             try {
                                 const [sbRes, apiRes] = await Promise.all([
-                                    window.sb.from('photos').select('*, profiles(username, role), vehicles(model)', { count: 'exact' }).eq('status', 'pending').order('id', { ascending: true }).range(fromRow, toRow).then(r => r).catch(() => ({ data: [], count: 0 })),
+                                    window.sb.from('photos').select('*, profiles(username, role), vehicles(model), photo_reviews(action, reason, admin_id)', { count: 'exact' }).eq('status', 'pending').order('id', { ascending: true }).range(fromRow, toRow).then(r => r).catch(() => ({ data: [], count: 0 })),
                                     (async () => {
                                         try {
                                             const sessionRes = await window.sb.auth.getSession();
