@@ -289,6 +289,10 @@ export async function onRequestPost(context) {
                 updatePayload.operator = op;
                 updatePayload.type = type;
                 updatePayload.route_no = route;
+                
+                if (plate && model) {
+                    await sbAdmin.from('vehicles').upsert({ license_plate: plate, model: model }, { onConflict: 'license_plate' });
+                }
             }
             const { error: updateErr } = await sbAdmin.from('photos').update(updatePayload).eq('id', photoId);
             if (updateErr) {
