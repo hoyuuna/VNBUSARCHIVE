@@ -246,9 +246,7 @@ export async function onRequestPost(context) {
             if (targetPlate) {
                 try {
                     const { data: approvedPhotos } = await sbAdmin.from('photos').select('route_no, operator').eq('license_plate', targetPlate).eq('status', 'approved');
-                    if (!approvedPhotos || approvedPhotos.length === 0) {
-                        await sbAdmin.from('vehicle_history').delete().eq('license_plate', targetPlate);
-                    } else {
+                    if (approvedPhotos && approvedPhotos.length > 0) {
                         const { data: history } = await sbAdmin.from('vehicle_history').select('*').eq('license_plate', targetPlate);
                         if (history && history.length > 0) {
                             const specialRoutes = ['Ngoài giờ hoạt động', 'Chưa hoạt động'];

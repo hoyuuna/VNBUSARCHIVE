@@ -1476,8 +1476,8 @@ Object.assign(window.app, {
                         .eq('id', photoId)
                         .single();
 
-                    // Nếu RLS bên client chặn (ví dụ Admin/Manager xem ảnh denied hoặc pending của người khác), gọi backend API
-                    if (!photo && app.user && (app.role === 'admin' || app.role === 'manager')) {
+                    // Nếu RLS bên client chặn (ví dụ uploader xem ảnh denied hoặc Admin/Manager xem ảnh của người khác), gọi backend API
+                    if (!photo && app.user) {
                         try {
                             const sessionRes = await window.sb.auth.getSession();
                             const token = sessionRes.data.session?.access_token;
