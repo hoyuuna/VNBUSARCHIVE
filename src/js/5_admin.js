@@ -62,8 +62,8 @@ Object.assign(window.app, {
                     const hideClass = (app.admin.isHideMineEnabled && isOwnPhoto) ? 'hidden' : '';
 
                     return `
-                                <div id="adm-photo-card-${p.id}" class="admin-card relative overflow-visible ${hideClass}" data-photo-id="${p.id}" data-privileged="${(p.profiles?.role === 'admin' || p.profiles?.role === 'manager') ? 'true' : 'false'}" data-is-own="${isOwnPhoto ? 'true' : 'false'}">
-                                    ${p.reviewer_count > 0 ? `<div class="absolute -top-6 left-4 bg-blue-600 text-white text-[11px] font-bold px-4 pt-1.5 pb-4 rounded-t-md border border-blue-700 border-b-0 -z-10 whitespace-nowrap shadow-sm"><i class="fa-solid fa-users mr-1"></i>Đã có ${p.reviewer_count} người lựa chọn</div>` : ''}
+                                <div id="adm-photo-card-${p.id}" class="admin-card relative overflow-visible mt-8 ${hideClass}" data-photo-id="${p.id}" data-privileged="${(p.profiles?.role === 'admin' || p.profiles?.role === 'manager') ? 'true' : 'false'}" data-is-own="${isOwnPhoto ? 'true' : 'false'}">
+                                    ${p.reviewer_count > 0 ? `<div class="absolute -top-7 left-0 bg-blue-600 text-white text-[11px] font-bold px-4 pt-1.5 pb-5 rounded-t-md border border-blue-700 border-b-0 -z-10 whitespace-nowrap shadow-sm"><i class="fa-solid fa-users mr-1"></i>Đã có ${p.reviewer_count} người lựa chọn</div>` : ''}
                                     <div class="admin-card-header relative z-10 bg-white rounded-t-lg">
                                         <div class="flex items-center gap-2">
                                             <span class="font-bold text-sm">${safePlate}</span>
