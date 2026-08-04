@@ -2685,15 +2685,15 @@ div[id$="-modal"] > div > * {
                 </div>
 
                 <!-- Nội dung -->
-                <div class="flex flex-col md:flex-row flex-1 overflow-hidden rounded-b-2xl">
+                <div class="flex flex-col lg:flex-row flex-1 overflow-hidden rounded-b-2xl">
 
                     <!-- Sidebar mục lục -->
-                    <div class="w-full md:w-1/3 border-b md:border-b-0 md:border-r border-gray-200/50 overflow-y-auto p-3 shrink-0 h-1/3 md:h-full bg-white/30" id="newsboard-toc">
+                    <div class="w-full lg:w-1/3 border-b lg:border-b-0 lg:border-r border-gray-200/50 overflow-y-auto p-3 shrink-0 h-1/3 lg:h-full bg-white/30" id="newsboard-toc">
                         <!-- Javascript sẽ tự động chèn mục lục vào đây -->
                     </div>
 
                     <!-- Khung hiển thị chi tiết -->
-                    <div class="w-full md:w-2/3 overflow-y-auto p-5 md:p-8 h-2/3 md:h-full relative flex-1 bg-white/30">
+                    <div class="w-full lg:w-2/3 overflow-y-auto p-5 lg:p-8 h-2/3 lg:h-full relative flex-1 bg-white/30">
                         <div class="max-w-2xl mx-auto">
                             <!-- Khối Tác giả và Ngày -->
                             <div class="flex items-center gap-3 mb-4">
@@ -2942,29 +2942,29 @@ div[id$="-modal"] > div > * {
         <header class="fixed top-0 left-0 right-0 z-[2000] flex justify-center pt-4 px-4 pointer-events-none" style="z-index: 2000 !important;">
             <div
                 class="w-full max-w-7xl bg-white/80 backdrop-blur-md border border-white/20 shadow-island rounded-2xl pointer-events-auto transition-all duration-300 relative">
-                <div class="flex flex-wrap md:flex-nowrap justify-between items-center px-4 py-2 md:h-16">
-                    <a href="/" class="flex items-center gap-2 cursor-pointer md:mb-0 mr-auto no-underline shrink-0">
+                <div class="flex flex-wrap lg:flex-nowrap justify-between items-center px-4 py-2 lg:h-16">
+                    <a href="/" class="flex items-center gap-2 cursor-pointer lg:mb-0 mr-auto no-underline shrink-0">
                         <!-- TODO: Change back to previous logo later: https://ik.imagekit.io/hoyuuna/Logo/logo304.png -->
                         <img src="/media/vnba.png" alt="VNBUSARCHIVE"
-                            class="h-8 md:h-10 w-auto object-contain" decoding="async">
+                            class="h-8 lg:h-10 w-auto object-contain" decoding="async">
                     </a>
 
                     <nav
-                        class="flex gap-4 text-sm font-semibold text-gray-600 items-center order-2 md:order-3 ml-2 md:ml-6 shrink-0">
+                        class="flex gap-4 text-sm font-semibold text-gray-600 items-center order-2 lg:order-3 ml-2 lg:ml-6 shrink-0">
                         <a href="https://discord.com/invite/BNWyqbuvwq" target="_blank" class="nav-link">
-                            <i class="fa-brands fa-discord md:mr-1"></i> <span class="hidden md:inline">Discord</span>
+                            <i class="fa-brands fa-discord lg:mr-1"></i> <span class="hidden lg:inline">Discord</span>
                         </a>
 
                         <button onclick="app.newsboard.open()" class="nav-link relative cursor-pointer">
-                            <i class="fa-solid fa-bell md:mr-1"></i>
-                            <span class="hidden md:inline">Bảng tin</span>
+                            <i class="fa-solid fa-bell lg:mr-1"></i>
+                            <span class="hidden lg:inline">Bảng tin</span>
                         </button>
 
 
                         <div class="relative" id="user-menu-container">
                             <button onclick="app.ui.toggleUserMenu()" class="nav-link relative flex items-center gap-1 cursor-pointer">
-                                <i class="fa-solid fa-circle-user md:mr-1"></i>
-                                <span id="nav-username" class="hidden md:inline">Tài khoản</span>
+                                <i class="fa-solid fa-circle-user lg:mr-1"></i>
+                                <span id="nav-username" class="hidden lg:inline">Tài khoản</span>
                             </button>
                             <div id="user-dropdown" class="absolute top-full left-1/2 mt-2 w-48 border border-white/50 rounded-lg shadow-xl z-[9000] overflow-hidden transform opacity-0 -translate-y-4 pointer-events-none transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] origin-top" style="z-index: 2100 !important;">
 
@@ -2972,20 +2972,20 @@ div[id$="-modal"] > div > * {
                         </div>
                         <a href="/admin" id="nav-admin"
                             class="hidden nav-link text-red-600 transition-colors duration-200">
-                            <i id="nav-admin-icon" class="fa-solid fa-shield-halved md:mr-1"></i> <span
-                                class="hidden md:inline">Admin</span>
+                            <i id="nav-admin-icon" class="fa-solid fa-shield-halved lg:mr-1"></i> <span
+                                class="hidden lg:inline">Admin</span>
                         </a>
                         <a href="/upload"
-                            class="text-white bg-black px-4 py-2 rounded-md hover:bg-gray-800 transition shadow-sm text-xs md:text-sm">
-                            <i class="fa-solid fa-upload md:mr-1"></i> <span class="hidden md:inline">Đăng ảnh</span>
+                            class="text-white bg-black px-4 py-2 rounded-md hover:bg-gray-800 transition shadow-sm text-xs lg:text-sm">
+                            <i class="fa-solid fa-upload lg:mr-1"></i> <span class="hidden lg:inline">Đăng ảnh</span>
                         </a>
                     </nav>
 
 <div id="header-search-box"
-                             class="w-full md:w-auto order-3 md:order-2 mt-3 md:mt-0 flex items-center border border-gray-200 rounded-md bg-gray-50/50 relative focus-within:ring-2 focus-within:ring-black/10 focus-within:bg-white transition-all">
-                         <div class="relative w-full md:w-64 flex items-center">
+                             class="w-full lg:w-auto order-3 lg:order-2 mt-3 lg:mt-0 flex items-center border border-gray-200 rounded-md bg-gray-50/50 relative focus-within:ring-2 focus-within:ring-black/10 focus-within:bg-white transition-all">
+                         <div class="relative w-full lg:w-64 flex items-center">
                              <input type="text" id="search-input" placeholder="Tìm kiếm..." autocomplete="one-time-code"
-                                  class="peer px-3 py-2 md:pr-14 text-sm outline-none w-full bg-transparent placeholder-gray-400">
+                                  class="peer px-3 py-2 lg:pr-14 text-sm outline-none w-full bg-transparent placeholder-gray-400">
                              <!-- Advanced Modules Container (Hidden by default) -->
                              <div id="header-advanced-modules" class="hidden absolute inset-0 flex items-center gap-1 overflow-x-auto pb-1 pl-2 pr-2 bg-transparent z-20">
                                  <button onclick="app.search.openAdvancedFilter()" class="shrink-0 text-[11px] font-bold text-gray-500 bg-white border border-gray-200 hover:border-gray-300 hover:text-black rounded px-2 py-1 shadow-sm transition">
@@ -2993,7 +2993,7 @@ div[id$="-modal"] > div > * {
                                  </button>
                              </div>
                              <!-- Icon Ctrl K (Hoạt động bằng CSS: tự động ẩn/trượt ra khi có text) -->
-                             <div id="header-ctrl-k" class="absolute right-2 hidden md:flex items-center gap-1 pointer-events-none transition-all duration-300 opacity-0 translate-x-2 peer-placeholder-shown:opacity-100 peer-placeholder-shown:translate-x-0 z-10">
+                             <div id="header-ctrl-k" class="absolute right-2 hidden lg:flex items-center gap-1 pointer-events-none transition-all duration-300 opacity-0 translate-x-2 peer-placeholder-shown:opacity-100 peer-placeholder-shown:translate-x-0 z-10">
                                  <kbd class="bg-white border border-gray-200 rounded px-1.5 py-[1px] text-[10px] font-bold text-gray-400 shadow-sm font-sans">Ctrl</kbd>
                                  <kbd class="bg-white border border-gray-200 rounded px-1.5 py-[1px] text-[10px] font-bold text-gray-400 shadow-sm font-sans">K</kbd>
                              </div>
@@ -3067,9 +3067,9 @@ div[id$="-modal"] > div > * {
                     <button onclick="app.settings.close()" class="text-gray-400 hover:text-red-500 transition text-xl px-2"><i class="fa-solid fa-xmark"></i></button>
                 </div>
 
-                <div class="flex flex-col md:flex-row flex-1 overflow-hidden rounded-b-2xl">
+                <div class="flex flex-col lg:flex-row flex-1 overflow-hidden rounded-b-2xl">
                     <!-- SIDEBAR ĐIỀU HƯỚNG -->
-                    <div class="w-full md:w-1/4 h-1/3 md:h-full border-b md:border-b-0 md:border-r border-gray-200/50 p-2 md:p-3 shrink-0 bg-gray-50/30 flex flex-col relative z-20">
+                    <div class="w-full lg:w-1/4 h-1/3 lg:h-full border-b lg:border-b-0 lg:border-r border-gray-200/50 p-2 lg:p-3 shrink-0 bg-gray-50/30 flex flex-col relative z-20">
 
                         <!-- THANH TÌM KIẾM MỤC LỤC -->
                         <div class="relative w-full mb-3 z-50 shrink-0">
@@ -3081,7 +3081,7 @@ div[id$="-modal"] > div > * {
                         </div>
 
                         <!-- MENU CHÍNH -->
-                        <div id="set-menu-main" class="flex flex-col gap-2 overflow-y-auto h-full w-full pb-2 md:pb-0 pr-1">
+                        <div id="set-menu-main" class="flex flex-col gap-2 overflow-y-auto h-full w-full pb-2 lg:pb-0 pr-1">
                             <!-- Nút Tài khoản có mũi tên -->
                             <button onclick="app.settings.openAccountMenu()" id="set-tab-account-trigger" class="account-only-btn w-full flex items-center justify-between text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 group shrink-0">
                                 <div class="flex items-center"><i class="fa-solid fa-user-shield w-6 text-center mr-2"></i> Tài khoản</div>
@@ -3143,7 +3143,7 @@ div[id$="-modal"] > div > * {
 
                     </div>
 
-                    <div class="w-full md:w-3/4 p-4 md:p-8 overflow-y-auto relative flex-1">
+                    <div class="w-full lg:w-3/4 p-4 lg:p-8 overflow-y-auto relative flex-1">
 
                         <!-- MÀN HÌNH TRỐNG KHI MỚI VÀO -->
                         <div id="set-content-blank" class="h-full fade-zoom-in px-4 hidden">
@@ -3281,7 +3281,7 @@ div[id$="-modal"] > div > * {
                 </div>
             </div>
         </div>
-        <div id="header-spacer" class="h-28 md:h-24 transition-all duration-300"></div>
+        <div id="header-spacer" class="h-28 lg:h-24 transition-all duration-300"></div>
 
         <main class="max-w-7xl mx-auto px-4 py-6 min-h-screen">
 
@@ -4817,8 +4817,8 @@ div[id$="-modal"] > div > * {
             </div>
 
             <div id="account" class="view-section">
-                <div class="flex flex-col md:flex-row gap-6">
-                    <div class="w-full md:w-1/4">
+                <div class="flex flex-col lg:flex-row gap-6">
+                    <div class="w-full lg:w-1/4">
                         <div
                             class="bg-white border border-vbs-border shadow-sm p-6 text-center rounded-lg relative overflow-hidden">
                             <div
@@ -4839,7 +4839,7 @@ div[id$="-modal"] > div > * {
                             </button>
                         </div>
                     </div>
-                    <div class="w-full md:w-3/4">
+                    <div class="w-full lg:w-3/4">
                         <div class="bg-white border border-vbs-border shadow-sm p-6 rounded-lg">
                             <h3 class="font-bold text-lg tracking-tight uppercase text-gray-800 mb-4" id="profile-stats-title">THỐNG KÊ HOẠT ĐỘNG</h3>
                             <div class="stats-grid mb-4">
@@ -4872,10 +4872,10 @@ div[id$="-modal"] > div > * {
                                     Giới thiệu bản thân
                                 </h3>
                                 
-                                <div class="bg-white border border-[#e4e4e7] shadow-sm rounded-2xl overflow-hidden flex flex-col md:flex-row items-stretch">
+                                <div class="bg-white border border-[#e4e4e7] shadow-sm rounded-2xl overflow-hidden flex flex-col lg:flex-row items-stretch">
                                     
                                     <!-- CỘT TRÁI: ẢNH TÂM ĐẮC -->
-                                    <div class="w-full md:w-5/12 p-4 md:p-5 border-b md:border-b-0 md:border-r border-[#e4e4e7] bg-gray-50/50 flex flex-col">
+                                    <div class="w-full lg:w-5/12 p-4 lg:p-5 border-b lg:border-b-0 lg:border-r border-[#e4e4e7] bg-gray-50/50 flex flex-col">
                                         <p class="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-3 text-center md:text-left shrink-0">Ảnh tâm đắc nhất</p>
                                         
                                         <!-- Khung ảnh 4:3 -->
@@ -4909,7 +4909,7 @@ div[id$="-modal"] > div > * {
                                     </div>
 
                                     <!-- CỘT PHẢI: TIỂU SỬ -->
-                                    <div class="w-full md:w-7/12 p-4 md:p-5 flex flex-col bg-white overflow-hidden">
+                                    <div class="w-full lg:w-7/12 p-4 lg:p-5 flex flex-col bg-white overflow-hidden">
                                         <div class="mb-3 shrink-0">
                                             <p class="text-[11px] font-bold text-gray-500 uppercase tracking-widest text-center md:text-left">Tiểu sử</p>
                                         </div>
@@ -5262,9 +5262,9 @@ div[id$="-modal"] > div > * {
 
         <div class="max-w-7xl mx-auto px-4 pb-8 mt-12">
             <footer
-                class="bg-white/80 backdrop-blur-md border border-gray-200 shadow-island rounded-2xl p-5 md:p-6 flex flex-col md:flex-row justify-between items-center transition-all duration-300">
+                class="bg-white/80 backdrop-blur-md border border-gray-200 shadow-island rounded-2xl p-5 lg:p-6 flex flex-col lg:flex-row justify-between items-center transition-all duration-300">
 
-                <div class="flex flex-col items-center md:items-start gap-1">
+                <div class="flex flex-col items-center lg:items-start gap-1">
                     <div class="flex items-center gap-2">
                         <img src="/media/vnba.png" alt="VNBUSARCHIVE Logo"
                             class="h-8 md:h-10 w-auto object-contain" loading="lazy" decoding="async">
@@ -5276,7 +5276,7 @@ div[id$="-modal"] > div > * {
                 </div>
 
 
-                <div class="flex gap-3 mt-5 md:mt-0">
+                <div class="flex gap-3 mt-5 lg:mt-0">
                     <a href="https://facebook.com/vnbusarchive/" target="_blank"
                         class="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-50 text-gray-600 border border-gray-200 hover:bg-[#1877F2] hover:text-white hover:border-[#1877F2] transition-all shadow-sm font-bold text-xs md:text-sm"
                         title="Facebook">
