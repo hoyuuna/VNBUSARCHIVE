@@ -241,7 +241,7 @@ Object.assign(window.app, {
                         container.innerHTML = html;
                         container.dataset.loaded = 'true';
                     } catch (e) {
-                        container.innerHTML = '<p class="text-red-500 font-bold py-4 text-center"><i class="fa-solid fa-triangle-exclamation"></i> Không thể tải nội dung tự động. Vui lòng nhấn "Xem chi tiết trên GitHub" bên dưới.</p>';
+                        container.innerHTML = '<p class="text-red-500 font-bold py-4 text-center"><i class="fa-solid fa-triangle-exclamation"></i> Không thể tải nội dung tự động. Vui lòng nhấn "Xem chi tiết" bên dưới.</p>';
                     }
                 },
 
