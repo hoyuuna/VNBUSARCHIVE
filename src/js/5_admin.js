@@ -2900,7 +2900,7 @@ app.admin.fetchManagerData('denied');
                     if (app.isRealtimeConnected === false) {
                         return app.ui.showAlert("Mất kết nối Realtime với máy chủ! Đã tạm khóa chức năng duyệt và can thiệp ảnh để tránh lệch dữ liệu.");
                     }
-                    if (app.user.id === uploaderId && app.role !== 'manager') {
+                    if (app.user.id === uploaderId) {
                         return app.ui.showAlert("Bạn không thể tự duyệt ảnh của mình!");
                     }
                     if (document.activeElement) document.activeElement.blur();
@@ -3013,7 +3013,7 @@ app.admin.fetchManagerData('denied');
                     if (app.role !== 'manager' && app.role !== 'admin') {
                         return app.ui.showAlert("Chỉ Kiểm duyệt/Quản lý mới có quyền từ chối ảnh!");
                     }
-                    if (app.user.id === uploaderId && app.role !== 'manager') {
+                    if (app.user.id === uploaderId) {
                         return app.ui.showAlert("Bạn không thể tự từ chối ảnh của chính mình!");
                     }
                     app.ui.showDenyPrompt("Từ chối ảnh", (reason) => {

@@ -62,8 +62,8 @@ export async function onRequestPost(context) {
         let needsThird = photo.needs_third || false;
         let finalDenialReason = reason || 'Từ chối ảnh';
 
-        // Tự duyệt ảnh của chính mình nếu là manager, HOẶC ảnh đã được duyệt/từ chối (Ghi đè - override)
-        if ((user.id === photo.uploader_id && profiles[0].role === 'manager') || photo.status === 'approved' || photo.status === 'denied') {
+        // Ảnh đã được duyệt/từ chối thì được phép Ghi đè (override) bằng 1 click
+        if (photo.status === 'approved' || photo.status === 'denied') {
             if (action === 'approve') isFinalApprove = true;
             if (action === 'deny') {
                 isFinalDeny = true;
