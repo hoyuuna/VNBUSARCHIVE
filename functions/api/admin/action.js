@@ -300,7 +300,7 @@ export async function onRequestPost(context) {
             }
         }
 
-        return new Response(JSON.stringify({ success: true }), {
+        return new Response(JSON.stringify({ success: true, isFinal: isFinalApprove || isFinalDeny }), {
             headers: { 'Content-Type': 'application/json' }
         });
         
