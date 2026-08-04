@@ -21,6 +21,14 @@ Tài liệu này quy định các tiêu chuẩn kỹ thuật về hình ảnh v�
   * **Đối với xe khách:** Chỉ chấp nhận phương tiện thuộc các hãng, doanh nghiệp vận tải quy mô lớn hoặc có tuyến cố định. Từ chối phương tiện cá nhân, hộ gia đình, nhà xe nhỏ lẻ.
 * **B1.3. Bối cảnh chụp:** Khung hình sạch sẽ, không xuất hiện rác thải, vết bẩn lớn hoặc các chi tiết gây phản cảm. Không chấp nhận ảnh chụp vội, thiếu chủ đích.
 
+### B1.4. Giá trị Lưu trữ và Thẩm mỹ:
+
+* Hệ thống ưu tiên các bức ảnh có tính thẩm mỹ, góc nhìn đẹp, ánh sáng hài hòa và thể hiện rõ nét đặc trưng của phương tiện.
+
+* Cấm ảnh chụp đối phó/chất lượng thấp: Từ chối các bức ảnh tuy đạt chuẩn kỹ thuật cơ bản nhưng thiếu tính nghệ thuật nghiêm trọng, ví dụ: góc chụp "chết" (vô hồn), ánh sáng tù túng, khung cảnh xung quanh lộn xộn/mất thẩm mỹ, hoặc ảnh chụp vội vã chỉ nhằm mục đích lấy số lượng (spam).
+
+* Quyền quyết định cuối cùng: BQT có quyền từ chối xuất bản bất kỳ bức ảnh nào nếu đánh giá bức ảnh đó "Không có giá trị lưu trữ hoặc không đạt chất lượng thị giác chung của hệ thống" dù ảnh không vi phạm các lỗi kỹ thuật ở mục B2, B3.
+
 ### B2. Định chuẩn Bố cục
 * **B2.1. Vị trí chủ thể:** Xe là đối tượng chính, phải nằm trọn vẹn ở trung tâm khung hình. Tuyệt đối không cắt xén các chi tiết viền (đầu, đuôi, nóc, bánh xe).
 * **B2.2. Khoảng lề:** Phải duy trì không gian cân đối giữa các viền ngoài cùng của xe với cạnh bức ảnh. Chủ thể không được nằm quá sát mép ảnh hoặc chiếm tỷ lệ quá nhỏ.
