@@ -1,5 +1,7 @@
 # CHÍNH SÁCH BẢO MẬT & ĐIỀU KHOẢN DỊCH VỤ - VNBUSARCHIVE
 
+**👉 LƯU Ý: Cập nhật lần cuối 08/04/2026**
+
 Chào mừng bạn đến với VNBUSARCHIVE. Đây là một dự án cộng đồng phi lợi nhuận được lập ra với mục đích lưu trữ, bảo tồn hình ảnh và dữ liệu lịch sử của các phương tiện giao thông công cộng tại Việt Nam.
 
 Bằng việc truy cập, đăng ký tài khoản, sử dụng hệ thống giao tiếp lập trình hoặc đóng góp hình ảnh và dữ liệu, bạn đồng ý tuân thủ toàn bộ các Điều khoản Dịch vụ và Chính sách Bảo mật được quy định chi tiết dưới đây. Vui lòng đọc kỹ trước khi sử dụng. Nếu bạn không đồng ý với bất kỳ điều khoản nào, vui lòng ngừng sử dụng hệ thống của chúng tôi.
@@ -117,7 +119,7 @@ Chúng tôi cam kết bảo mật tuyệt đối và KHÔNG bán, cho thuê, chi
 ### 5. Quyền lợi đối với Dữ liệu
 * **Truy cập và Chỉnh sửa:** Tự do thay đổi thông tin hồ sơ, quản lý các liên kết tài khoản mạng xã hội.
 * **Xóa nội dung:** Bạn có thể yêu cầu xóa hình ảnh do mình đăng tải (cần quản trị viên phê duyệt). Nếu ảnh chưa được phê duyệt, bạn có thể tự thu hồi ngay lập tức.
-* **Xóa tài khoản:** Liên hệ ban quản trị để xóa tài khoản. Lưu ý quan trọng đối với kho lưu trữ: Khi tài khoản bị xóa, các thông tin cá nhân (Email, Mật khẩu, Tên hiển thị, Liên kết mạng xã hội) sẽ bị xóa bỏ hoàn toàn hoặc ẩn danh hóa. Tuy nhiên, để duy trì tính vẹn toàn của cơ sở dữ liệu lịch sử, những hình ảnh và thông tin phương tiện bạn đã đóng góp (đã được duyệt công khai) sẽ tiếp tục được lưu giữ trên hệ thống dưới trạng thái tác giả là "Người dùng ẩn danh", trừ khi bạn có yêu cầu xóa từng ảnh cụ thể với lý do chính đáng và được Ban quản trị chấp thuận trước khi xóa tài khoản.
+* **Xóa tài khoản:** Liên hệ ban quản trị để xóa tài khoản. Lưu ý quan trọng đối với kho lưu trữ: Khi tài khoản bị xóa, các thông tin cá nhân (Email, Mật khẩu, Tên hiển thị, Liên kết mạng xã hội) sẽ bị xóa bỏ hoàn toàn hoặc ẩn danh hóa. Tuy nhiên, để duy trì tính vẹn toàn của cơ sở dữ liệu lịch sử, những hình ảnh và thông tin phương tiện bạn đã đóng góp (đã được duyệt công khai) sẽ tiếp tục được lưu giữ trên hệ thống dưới trạng thái tác giả là "Người dùng ẩn danh", trừ khi bạn có yêu cầu xóa từng ảnh cụ thể với lý do chính đáng và được Ban quản trị chấp thuận trước khi xóa tài khoản. Hình ảnh đã đóng dấu watermark tên hiển thị trước thời điểm xóa tài khoản sẽ giữ nguyên dấu bản quyền đó trên ảnh và không thể tự động chỉnh sửa lại watermark.
 * **Đặc quyền máy chủ:** Khi tài khoản đạt các cột mốc đóng góp nhất định, bạn có thể nhận các huy hiệu định danh trên máy chủ giao tiếp cộng đồng (Discord), bao gồm cả quyền khởi tạo chức danh mang màu sắc và tên gọi tùy chỉnh.
 * **Quyền riêng tư về vị trí:** Nếu không muốn chia sẻ tọa độ, vui lòng tắt tính năng gắn thẻ địa lý trên thiết bị chụp trước khi tạo tệp ảnh.
 
