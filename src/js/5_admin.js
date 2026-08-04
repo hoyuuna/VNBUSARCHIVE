@@ -68,7 +68,7 @@ Object.assign(window.app, {
                                             <span class="font-bold text-sm">${safePlate}</span>
                                             ${plateKey && plateKey !== '---' && !approvedPlateSet.has(plateKey) ? '<span class="badge-xe-moi"><i class="fa-solid fa-sparkles"></i> XE MỚI</span>' : ''}
                                             ${p.suspected_exif_fraud ? '<span class="bg-red-600 text-white px-1.5 py-0.5 rounded text-[10px] font-bold ml-1 tracking-wider whitespace-nowrap"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Nghi ngờ gian lận</span>' : ''}
-                                            ${p.reviewer_count > 0 ? `<span class="bg-blue-600 text-white px-1.5 py-0.5 rounded text-[10px] font-bold ml-1 tracking-wider whitespace-nowrap"><i class="fa-solid fa-users mr-1"></i>Đã có ${p.reviewer_count} người duyệt</span>` : ''}
+                                            ${p.reviewer_count > 0 ? `<span class="bg-blue-600 text-white px-1.5 py-0.5 rounded text-[10px] font-bold ml-1 tracking-wider whitespace-nowrap"><i class="fa-solid fa-users mr-1"></i>Đã có ${p.reviewer_count} người lựa chọn</span>` : ''}
                                         </div>
                                         <span class="text-xs text-gray-500">${safeUsername}</span>
                                     </div>
