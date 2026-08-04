@@ -79,13 +79,13 @@ Object.assign(window.app, {
                         let mainText = textParts.join(' + ');
                         if (denyReasons) mainText += `: (${denyReasons})`;
                         
-                        reviewTabHtml = `<div class="absolute bottom-[calc(100%-12px)] left-0 w-full max-w-full ${colorClass} text-[11px] font-bold px-4 pt-1.5 pb-[14px] rounded-t-md border border-b-0 -z-10 shadow-sm leading-snug"><i class="fa-solid fa-users mr-1"></i>${mainText}</div>`;
+                        reviewTabHtml = `<div class="absolute bottom-[calc(100%-14px)] left-0 w-full max-w-full ${colorClass} text-[11px] font-bold px-4 pt-2.5 pb-[18px] rounded-t-md border border-b-0 -z-10 shadow-sm leading-relaxed"><i class="fa-solid fa-users mr-1"></i>${mainText}</div>`;
                     } else if (p.reviewer_count > 0) {
-                        reviewTabHtml = `<div class="absolute bottom-[calc(100%-12px)] left-0 bg-blue-600 border-blue-700 text-white text-[11px] font-bold px-4 pt-1.5 pb-[14px] rounded-t-md border border-b-0 -z-10 shadow-sm leading-snug whitespace-nowrap"><i class="fa-solid fa-users mr-1"></i>Đã có ${p.reviewer_count} người lựa chọn</div>`;
+                        reviewTabHtml = `<div class="absolute bottom-[calc(100%-14px)] left-0 bg-blue-600 border-blue-700 text-white text-[11px] font-bold px-4 pt-2.5 pb-[18px] rounded-t-md border border-b-0 -z-10 shadow-sm leading-relaxed whitespace-nowrap"><i class="fa-solid fa-users mr-1"></i>Đã có ${p.reviewer_count} người lựa chọn</div>`;
                     }
 
                     return `
-                                <div id="adm-photo-card-${p.id}" class="admin-card relative overflow-visible mt-12 ${hideClass}" data-photo-id="${p.id}" data-privileged="${(p.profiles?.role === 'admin' || p.profiles?.role === 'manager') ? 'true' : 'false'}" data-is-own="${isOwnPhoto ? 'true' : 'false'}">
+                                <div id="adm-photo-card-${p.id}" class="admin-card relative overflow-visible mt-14 ${hideClass}" data-photo-id="${p.id}" data-privileged="${(p.profiles?.role === 'admin' || p.profiles?.role === 'manager') ? 'true' : 'false'}" data-is-own="${isOwnPhoto ? 'true' : 'false'}">
                                     ${reviewTabHtml}
                                     <div class="admin-card-header relative z-10 bg-white rounded-t-lg">
                                         <div class="flex items-center gap-2">
