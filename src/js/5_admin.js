@@ -2997,23 +2997,35 @@ app.admin.fetchManagerData('denied');
                             throw new Error(errText);
                         }
 
+                        let isFinal = true;
+                        try {
+                            const resJson = await res.json();
+                            if (resJson && typeof resJson.isFinal !== 'undefined') {
+                                isFinal = resJson.isFinal;
+                            }
+                        } catch(e) {}
+
                         if (cardEl) {
                             if (document.activeElement && cardEl.contains(document.activeElement)) {
                                 document.activeElement.blur();
                             }
-                            cardEl.style.transition = 'all 0.35s ease';
-                            cardEl.style.opacity = '0';
-                            cardEl.style.transform = 'scale(0.92)';
-                            cardEl.style.maxHeight = '0px';
-                            cardEl.style.margin = '0px';
-                            cardEl.style.padding = '0px';
-                            cardEl.style.overflow = 'hidden';
-                            setTimeout(() => {
-                                cardEl.remove();
-                                if (parentEl && !parentEl.querySelector('.admin-card')) {
-                                    app.admin.loadTab('photos', false, true);
-                                }
-                            }, 350);
+                            if (!isFinal) {
+                                app.admin.loadTab('photos', false, true);
+                            } else {
+                                cardEl.style.transition = 'all 0.35s ease';
+                                cardEl.style.opacity = '0';
+                                cardEl.style.transform = 'scale(0.92)';
+                                cardEl.style.maxHeight = '0px';
+                                cardEl.style.margin = '0px';
+                                cardEl.style.padding = '0px';
+                                cardEl.style.overflow = 'hidden';
+                                setTimeout(() => {
+                                    cardEl.remove();
+                                    if (parentEl && !parentEl.querySelector('.admin-card')) {
+                                        app.admin.loadTab('photos', false, true);
+                                    }
+                                }, 350);
+                            }
                         } else if (parentEl && !parentEl.querySelector('.admin-card')) {
                             app.admin.loadTab('photos', false, true);
                         }
@@ -3096,25 +3108,37 @@ app.admin.fetchManagerData('denied');
                                     throw new Error(errText);
                                 }
 
+                                let isFinal = true;
+                                try {
+                                    const resJson = await res.json();
+                                    if (resJson && typeof resJson.isFinal !== 'undefined') {
+                                        isFinal = resJson.isFinal;
+                                    }
+                                } catch(e) {}
+
                                 const cardEl = document.getElementById(`adm-photo-card-${id}`);
                                 const parentEl = cardEl?.parentElement;
                                 if (cardEl) {
                                     if (document.activeElement && cardEl.contains(document.activeElement)) {
                                         document.activeElement.blur();
                                     }
-                                    cardEl.style.transition = 'all 0.35s ease';
-                                    cardEl.style.opacity = '0';
-                                    cardEl.style.transform = 'scale(0.92)';
-                                    cardEl.style.maxHeight = '0px';
-                                    cardEl.style.margin = '0px';
-                                    cardEl.style.padding = '0px';
-                                    cardEl.style.overflow = 'hidden';
-                                    setTimeout(() => {
-                                        cardEl.remove();
-                                        if (parentEl && !parentEl.querySelector('.admin-card')) {
-                                            app.admin.loadTab('photos', false, true);
-                                        }
-                                    }, 350);
+                                    if (!isFinal) {
+                                        app.admin.loadTab('photos', false, true);
+                                    } else {
+                                        cardEl.style.transition = 'all 0.35s ease';
+                                        cardEl.style.opacity = '0';
+                                        cardEl.style.transform = 'scale(0.92)';
+                                        cardEl.style.maxHeight = '0px';
+                                        cardEl.style.margin = '0px';
+                                        cardEl.style.padding = '0px';
+                                        cardEl.style.overflow = 'hidden';
+                                        setTimeout(() => {
+                                            cardEl.remove();
+                                            if (parentEl && !parentEl.querySelector('.admin-card')) {
+                                                app.admin.loadTab('photos', false, true);
+                                            }
+                                        }, 350);
+                                    }
                                 } else if (parentEl && !parentEl.querySelector('.admin-card')) {
                                     app.admin.loadTab('photos', false, true);
                                 }
