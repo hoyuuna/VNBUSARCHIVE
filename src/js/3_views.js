@@ -1541,6 +1541,59 @@ Object.assign(window.app, {
                         }
                         document.getElementById('denial-reason-box').classList.remove('hidden');
                         document.getElementById('denial-reason-text').innerText = photo.denial_reason || 'Không rõ lý do';
+
+                        const suggestBox = document.getElementById('denial-improvement-box');
+                        const suggestContent = document.getElementById('denial-improvement-content');
+                        if (suggestBox && suggestContent) {
+                            const suggestionsMap = {
+                                'B1.1': 'Ảnh của bạn chưa phù hợp vì dự án hiện tại chỉ tiếp nhận phương tiện hoạt động tại Việt Nam.',
+                                'B1.2': 'Dự án không tiếp nhận xe cá nhân, hộ gia đình, nhà xe nhỏ lẻ hoặc cơ quan Nhà nước/Quân đội.',
+                                'B1.3': 'Vui lòng chọn bối cảnh chụp phù hợp hơn, tránh các chi tiết phản cảm hoặc thiếu chủ đích.',
+                                'B1.4': 'Ảnh chưa đạt yêu cầu về thẩm mỹ hoặc không có giá trị lưu trữ cho hệ thống. Hãy thử chụp ở góc máy và thời điểm khác.',
+                                'B2.1': 'Hãy đảm bảo chụp toàn bộ chiếc xe, không để đầu, đuôi, nóc, bánh xe hoặc gương chiếu hậu bị lẹm hoặc cắt xén khỏi khung hình.',
+                                'B2.2': 'Hãy chú ý tỷ lệ khung hình, giữ cho xe nằm ở trung tâm và không bị lệch hoặc quá nhỏ/quá lớn so với bức ảnh.',
+                                'B2.3': 'Khi chụp, hãy giữ camera thẳng, tránh làm khung hình bị nghiêng so với đường chân trời hoặc các công trình xung quanh.',
+                                'B2.4': 'Hãy chụp ở các góc độ tiêu chuẩn (góc chéo 3/4 trước/sau, ngang hông, hoặc thẳng đầu/đuôi) để thể hiện rõ thiết kế xe.',
+                                'B2.5': 'Đảm bảo không có người, xe máy, cột điện hoặc chướng ngại vật khác che khuất các phần quan trọng của xe.',
+                                'B3.1': 'Hãy kiểm tra lại điểm lấy nét và độ sáng. Tránh chụp khi xe đang di chuyển quá nhanh gây nhòe, hoặc trong điều kiện ánh sáng quá yếu/ngược sáng.',
+                                'B3.2': 'Vui lòng giữ nguyên bản ảnh chụp, không sử dụng các công cụ AI để upscale hoặc làm biến dạng các chi tiết của xe.',
+                                'B3.4': 'Vui lòng không chèn thêm watermark, logo hoặc chữ ký cá nhân vào ảnh trước khi tải lên.',
+                                'B4.1': 'Hãy đảm bảo biển số xe rõ nét, không bị lóa sáng hay mờ để có thể dễ dàng nhận diện và phân loại.',
+                                'B4.2': 'Hãy nhớ làm mờ khuôn mặt của tài xế và hành khách để tôn trọng quyền riêng tư trước khi tải ảnh lên nhé.',
+                                'B4.3': 'Khi làm mờ khuôn mặt, hãy cẩn thận để không làm mờ lẹm vào các chi tiết của xe (kính lái, gương, logo...).',
+                                'B4.4': 'Hãy kiểm tra kỹ và làm mờ tất cả khuôn mặt có thể nhận diện được trong khung hình.',
+                                'B5.1': 'Vui lòng chỉ tải lên những bức ảnh do chính bạn chụp, không sử dụng ảnh của người khác.',
+                                'B5.2': 'Tránh chụp ảnh ở những khu vực nội bộ, bến bãi riêng tư khi chưa được sự cho phép của ban quản lý.',
+                                'B5.3': 'Tuyệt đối không chụp ảnh tại các khu vực an ninh quốc gia, quân sự hoặc những nơi có biển cấm quay phim chụp ảnh.',
+                                'B5.4': 'Hãy chú ý an toàn cho bản thân và người khác. Không đứng ở các vị trí nguy hiểm hoặc cản trở giao thông để chụp ảnh.',
+                                'B7.1': 'Với ảnh chụp nội thất, hãy chọn góc máy rộng để bao quát không gian, hướng máy thẳng và tránh để các vật thể gần che khuất tầm nhìn.'
+                            };
+                            
+                            const codes = [];
+                            if (photo.denial_reason) {
+                                const matches = photo.denial_reason.match(/\[(B\d+\.\d+)\]/g);
+                                if (matches) {
+                                    matches.forEach(m => {
+                                        const code = m.replace(/\[|\]/g, '');
+                                        if (suggestionsMap[code] && !codes.includes(code)) {
+                                            codes.push(code);
+                                        }
+                                    });
+                                }
+                            }
+                            
+                            if (codes.length > 0) {
+                                let html = '<ul class="list-disc ml-4 text-xs text-blue-800 space-y-1.5">';
+                                codes.forEach(c => {
+                                    html += `<li><strong class="font-bold">Lỗi [${c}]:</strong> ${suggestionsMap[c]}</li>`;
+                                });
+                                html += '</ul>';
+                                suggestContent.innerHTML = html;
+                                suggestBox.classList.remove('hidden');
+                            } else {
+                                suggestBox.classList.add('hidden');
+                            }
+                        }
                     } else {
                         document.getElementById('denial-reason-box').classList.add('hidden');
                     }
