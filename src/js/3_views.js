@@ -2553,6 +2553,7 @@ Object.assign(window.app, {
                     document.getElementById('op-stat-routes').innerText = '...';
                     document.getElementById('op-stat-views').innerText = '...';
                     document.getElementById('op-stats-tabs-wrapper').classList.add('hidden');
+                    document.getElementById('op-stats-grid').classList.remove('hidden');
                     
                     const grid = document.getElementById('operator-photo-grid');
                     grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tổng hợp dữ liệu...</div>';
@@ -2675,6 +2676,7 @@ Object.assign(window.app, {
                             document.getElementById('op-stat-routes').innerText = '0';
                             document.getElementById('op-stat-views').innerText = '0';
                             document.getElementById('op-stats-tabs-wrapper').classList.add('hidden');
+                            document.getElementById('op-stats-grid').classList.add('hidden');
                             hasMainPhotos = false;
                         }
 
@@ -2691,10 +2693,17 @@ Object.assign(window.app, {
                         const totalVehicles = (stats.total_vehicles != null) ? stats.total_vehicles : uniquePlates.size;
                         const totalRoutes = (stats.total_routes != null) ? stats.total_routes : uniqueRoutes.size;
 
-                        document.getElementById('op-stat-photos').innerText = app.utils.formatCompact(stats.total_photos || allStatsData.length);
+                        const totalPhotosStat = stats.total_photos || allStatsData.length;
+                        document.getElementById('op-stat-photos').innerText = app.utils.formatCompact(totalPhotosStat);
                         document.getElementById('op-stat-vehicles').innerText = app.utils.formatCompact(totalVehicles);
                         document.getElementById('op-stat-routes').innerText = app.utils.formatCompact(totalRoutes);
                         document.getElementById('op-stat-views').innerText = app.utils.formatCompact(totalViews);
+                        
+                        if (totalPhotosStat === 0 && totalVehicles === 0 && totalRoutes === 0 && totalViews === 0) {
+                            document.getElementById('op-stats-grid').classList.add('hidden');
+                        } else {
+                            document.getElementById('op-stats-grid').classList.remove('hidden');
+                        }
 
                         // 2. TÍNH TOÁN BẢNG CƠ CẤU DÒNG XE TỪ LỊCH SỬ HOẠT ĐỘNG (VEHICLE_HISTORY)
                         const absoluteLatestStatus = new Map();
@@ -4208,7 +4217,9 @@ Object.assign(window.app, {
                     document.getElementById('mdl-stat-photos').innerText = '...';
                     document.getElementById('mdl-stat-vehicles').innerText = '...';
                     document.getElementById('mdl-stat-ops').innerText = '...';
+                    document.getElementById('mdl-stat-ops').innerText = '...';
                     document.getElementById('mdl-stat-views').innerText = '...';
+                    document.getElementById('mdl-stats-grid').classList.remove('hidden');
                     
                     const grid = document.getElementById('model-photo-grid');
                     grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tổng hợp dữ liệu...</div>';
@@ -4289,6 +4300,7 @@ Object.assign(window.app, {
                             document.getElementById('mdl-stat-vehicles').innerText = '0';
                             document.getElementById('mdl-stat-ops').innerText = '0';
                             document.getElementById('mdl-stat-views').innerText = '0';
+                            document.getElementById('mdl-stats-grid').classList.add('hidden');
                             app.loadingBar.finish();
                             return;
                         }
