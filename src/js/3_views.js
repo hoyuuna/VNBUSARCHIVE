@@ -2621,13 +2621,13 @@ Object.assign(window.app, {
                         if (opInfo && opInfo.parent_operator) {
                             const parents = opInfo.parent_operator.split(';').map(s => s.trim()).filter(Boolean);
                             if (parents.length > 0) {
-                                const parentLinks = parents.map(p => `<a href="javascript:void(0)" onclick="app.utils.navigate('/operator/' + encodeURIComponent('${app.utils.escapeAttr(p)}'))" class="text-black font-bold hover:underline">${app.utils.escapeHtml(p)}</a>`).join(', ');
-                                ecoHtml += `<div><span class="font-bold text-gray-500 uppercase text-[10px] tracking-widest mr-2">ĐVVH mẹ:</span>${parentLinks}</div>`;
+                                const parentLinks = parents.map(p => `<li><a href="javascript:void(0)" onclick="app.utils.navigate('/operator/' + encodeURIComponent('${app.utils.escapeAttr(p)}'))" class="text-black font-bold hover:underline">${app.utils.escapeHtml(p)}</a></li>`).join('');
+                                ecoHtml += `<div><div class="font-bold text-gray-500 uppercase text-[10px] tracking-widest mb-1.5">ĐVVH mẹ:</div><ul class="list-disc pl-5 marker:text-gray-400 space-y-1.5">${parentLinks}</ul></div>`;
                             }
                         }
                         if (childOps && childOps.length > 0) {
-                            const childLinks = childOps.map(c => `<a href="javascript:void(0)" onclick="app.utils.navigate('/operator/' + encodeURIComponent('${app.utils.escapeAttr(c.operator_name)}'))" class="text-black font-bold hover:underline">${app.utils.escapeHtml(c.operator_name)}</a>`).join(', ');
-                            ecoHtml += `<div><span class="font-bold text-gray-500 uppercase text-[10px] tracking-widest mr-2">ĐVVH con:</span>${childLinks}</div>`;
+                            const childLinks = childOps.map(c => `<li><a href="javascript:void(0)" onclick="app.utils.navigate('/operator/' + encodeURIComponent('${app.utils.escapeAttr(c.operator_name)}'))" class="text-black font-bold hover:underline">${app.utils.escapeHtml(c.operator_name)}</a></li>`).join('');
+                            ecoHtml += `<div><div class="font-bold text-gray-500 uppercase text-[10px] tracking-widest mb-1.5">ĐVVH con:</div><ul class="list-disc pl-5 marker:text-gray-400 space-y-1.5">${childLinks}</ul></div>`;
                         }
                         if (ecoHtml) {
                             ecoEl.innerHTML = ecoHtml;
