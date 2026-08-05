@@ -4482,30 +4482,29 @@ Object.assign(window.app, {
                                     });
                                 }
 
-                                // Đơn vị có logo/thông tin nhưng KHÔNG có ảnh duyệt nào sẽ bị ẩn, TRỪ KHI nó là đơn vị mẹ của đơn vị khác
-                                if (infoRes.data) {
-                                    const { data: allOpsForSearch } = await window.sb.from('operator_info').select('parent_operator');
-                                    const parentSetForSearch = new Set();
-                                    if (allOpsForSearch) {
-                                        allOpsForSearch.forEach(op => {
-                                            if (op.parent_operator) {
-                                                op.parent_operator.split(';').forEach(p => parentSetForSearch.add(app.utils.normOperator(p).toLowerCase()));
-                                            }
-                                        });
-                                    }
-
-                                    infoRes.data.forEach(info => {
-                                        if (info.operator_name) {
-                                            opInfoMap[info.operator_name.toLowerCase()] = info;
-                                            const key = info.operator_name.toLowerCase();
-                                            const normKey = app.utils.normOperator(info.operator_name).toLowerCase();
-                                            // Nếu chưa có trong uniqueOpsMap (tức là chưa có ảnh) thì kiểm tra xem nó có phải đơn vị mẹ không
-                                            if (!uniqueOpsMap.has(key) && parentSetForSearch.has(normKey)) {
-                                                uniqueOpsMap.set(key, info.operator_name);
-                                            }
+                                // Các đơn vị mẹ luôn được phép hiển thị dù chưa có ảnh hay logo
+                                const { data: allOpsForSearch } = await window.sb.from('operator_info').select('parent_operator');
+                                const parentMapForSearch = new Map();
+                                if (allOpsForSearch) {
+                                    allOpsForSearch.forEach(op => {
+                                        if (op.parent_operator) {
+                                            op.parent_operator.split(';').forEach(p => {
+                                                const orig = p.trim();
+                                                if (orig) parentMapForSearch.set(app.utils.normOperator(orig).toLowerCase(), orig);
+                                            });
                                         }
                                     });
                                 }
+
+                                parentMapForSearch.forEach((origName, normKey) => {
+                                    const matches = searchWords.every(w => origName.toLowerCase().includes(w));
+                                    if (matches) {
+                                        const key = origName.toLowerCase();
+                                        if (!uniqueOpsMap.has(key)) {
+                                            uniqueOpsMap.set(key, origName);
+                                        }
+                                    }
+                                });
 
                                 const finalOps = Array.from(uniqueOpsMap.values()).slice(0, 4);
 

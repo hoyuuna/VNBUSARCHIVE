@@ -3776,26 +3776,26 @@ Object.assign(window.app, {
                                         sbQuery.limit(30).abortSignal(controller.signal)
                                     ]);
                                     if (photoRes.data) data = data.concat(photoRes.data);
-                                    if (infoRes.data) {
-                                        const { data: allOpsForSug } = await window.sb.from('operator_info').select('parent_operator');
-                                        const parentSetForSug = new Set();
-                                        if (allOpsForSug) {
-                                            allOpsForSug.forEach(op => {
-                                                if (op.parent_operator) {
-                                                    op.parent_operator.split(';').forEach(p => parentSetForSug.add(app.utils.normOperator(p).toLowerCase()));
-                                                }
-                                            });
-                                        }
-
-                                        infoRes.data.forEach(item => {
-                                            if (item.operator_name) {
-                                                const normKey = app.utils.normOperator(item.operator_name).toLowerCase();
-                                                if (parentSetForSug.has(normKey)) {
-                                                    data.push({ operator: item.operator_name });
-                                                }
+                                    // Các đơn vị mẹ luôn được phép hiển thị dù chưa có ảnh hay logo
+                                    const { data: allOpsForSug } = await window.sb.from('operator_info').select('parent_operator');
+                                    const parentMapForSug = new Map();
+                                    if (allOpsForSug) {
+                                        allOpsForSug.forEach(op => {
+                                            if (op.parent_operator) {
+                                                op.parent_operator.split(';').forEach(p => {
+                                                    const orig = p.trim();
+                                                    if (orig) parentMapForSug.set(app.utils.normOperator(orig).toLowerCase(), orig);
+                                                });
                                             }
                                         });
                                     }
+
+                                    parentMapForSug.forEach((origName, normKey) => {
+                                        const matches = searchWords.every(w => origName.toLowerCase().includes(w));
+                                        if (matches) {
+                                            data.push({ operator: origName });
+                                        }
+                                    });
                                 } else {
                                     const res = await sbQuery.limit(30).abortSignal(controller.signal);
                                     data = res.data;
