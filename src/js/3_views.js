@@ -2535,6 +2535,7 @@ Object.assign(window.app, {
                     document.title = `${operatorName} | VNBUSARCHIVE`;
                     app.currentOperator = operatorName;
                     app.operatorLoadedCount = 0;
+                    app.operator.totalPages = 0;
 
                     // --- RESET UI TRỐNG ĐỂ CHỐNG NHÁY THÔNG TIN CŨ ---
                     document.getElementById('crumb-operator').innerText = operatorName;
@@ -2555,6 +2556,7 @@ Object.assign(window.app, {
                     
                     const grid = document.getElementById('operator-photo-grid');
                     grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tổng hợp dữ liệu...</div>';
+                    document.getElementById('operator-load-more-container').innerHTML = '';
                     document.getElementById('operator-load-more-container').classList.add('hidden');
                     // --------------------------------------------------
 
@@ -4145,6 +4147,7 @@ Object.assign(window.app, {
                     document.title = `${modelName} | VNBUSARCHIVE`;
                     app.model.currentModel = modelName;
                     app.model.modelLoadedCount = 0;
+                    app.model.totalPages = 0;
 
                     // --- RESET UI TRỐNG ĐỂ CHỐNG NHÁY THÔNG TIN CŨ ---
                     document.getElementById('crumb-model-profile').innerText = modelName;
@@ -4159,6 +4162,7 @@ Object.assign(window.app, {
                     
                     const grid = document.getElementById('model-photo-grid');
                     grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tổng hợp dữ liệu...</div>';
+                    document.getElementById('model-load-more-container').innerHTML = '';
                     document.getElementById('model-load-more-container').classList.add('hidden');
                     // --------------------------------------------------
 
