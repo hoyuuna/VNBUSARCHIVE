@@ -1406,12 +1406,43 @@ Object.assign(window.app, {
                     // Auto compression removed to save CPU during edit
                 },
                 
-                previewBlob: () => {
-                    if (!app.upload.readyBlob) {
-                        return app.ui.showAlert("Ảnh chưa được xử lý xong, vui lòng đợi thêm 1 chút hoặc thử kéo/thả lại chữ ký!");
+                previewBlob: async (btn) => {
+                    if (!app.rawFile || !app.user) {
+                        return app.ui.showAlert("Bạn chưa chọn ảnh hoặc chưa đăng nhập!");
                     }
-                    const url = URL.createObjectURL(app.upload.readyBlob);
-                    app.ui.showAlert(`<img src="${url}" class="w-full rounded-lg shadow-sm" style="max-height: 70vh; object-fit: contain;">`, null, null, { title: "Xem trước ảnh xuất ra", btnOkText: "Đóng" });
+                    const originalText = btn ? btn.innerHTML : '<i class="fa-solid fa-image"></i> Xem trước bản xuất ra';
+                    if (btn) {
+                        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang render...';
+                        btn.disabled = true;
+                    }
+                    try {
+                        let username = document.getElementById('username')?.value?.trim();
+                        if (!username && app.user && app.user.id) {
+                            try {
+                                const { data } = await window.sb.from('profiles').select('username').eq('id', app.user.id).single();
+                                if (data) username = data.username;
+                            } catch (e) {}
+                        }
+                        if (!username) username = app.username || "Guest";
+                        
+                        const isBlind = (app.wmState && app.wmState.mode === 'advanced');
+                        const previewBlob = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none', { embedBlind: isBlind });
+                        
+                        const url = URL.createObjectURL(previewBlob);
+                        app.ui.showAlert(`<img src="${url}" class="w-full rounded-lg shadow-sm" style="max-height: 70vh; object-fit: contain;">`, null, null, { title: "Xem trước ảnh xuất ra", btnOkText: "Đóng" });
+                    } catch (err) {
+                        console.error("Lỗi khi xem trước ảnh:", err);
+                        if (err && err.message && err.message.includes("BLIND_WM_ERROR:")) {
+                            app.ui.showAlert(err.message.replace("BLIND_WM_ERROR:", ""));
+                        } else {
+                            app.ui.showAlert("Lỗi khi kết xuất ảnh xem trước: " + err.message);
+                        }
+                    } finally {
+                        if (btn) {
+                            btn.innerHTML = originalText;
+                            btn.disabled = false;
+                        }
+                    }
                 },
 
                 currentFilters: 'none',
