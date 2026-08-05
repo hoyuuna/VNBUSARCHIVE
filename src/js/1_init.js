@@ -1819,7 +1819,7 @@ cleanupState: () => {
                                     });
                                 }
 
-                                const barHeight = height * 0.064;
+                                const barHeight = height * 0.0576;
                                 const barY = height - barHeight;
                                 const fontSize = barHeight * 0.4;
                                 const scale = pos.scale || 1.0;
