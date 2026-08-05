@@ -2834,8 +2834,8 @@ Object.assign(window.app, {
                 img.onerror = null;
                 
                 setTimeout(() => {
-                    if (mode === 'main') {
-                        if (app.crop.savedState) {
+                    if (mode === 'main' || mode === 'avatar') {
+                        if (app.crop.savedState && mode === 'main') {
                             app.crop.state = { ...app.crop.savedState };
                         } else {
                             app.crop.state = { x: 0, y: 0, scale: 1, rotation: 0, baseRotation: 0, minScale: 1 };
@@ -2850,26 +2850,34 @@ Object.assign(window.app, {
                         if (modePanel) modePanel.classList.remove('hidden');
                         app.crop.setModeTab('ratio');
 
-                        if(ratioContainer) ratioContainer.classList.remove('hidden');
+                        const rulerBtn = document.getElementById('btn-crop-toggle-ruler');
+                        if (mode === 'avatar') {
+                            if (ratioContainer) ratioContainer.classList.add('hidden');
+                            if (rulerBtn && rulerBtn.parentElement) rulerBtn.parentElement.classList.add('hidden');
+                            app.crop.savedRatio = 1;
+                        } else {
+                            if (ratioContainer) ratioContainer.classList.remove('hidden');
+                            if (rulerBtn && rulerBtn.parentElement) rulerBtn.parentElement.classList.remove('hidden');
 
-                        if (typeof app.crop.savedRatio !== 'number' || isNaN(app.crop.savedRatio)) {
-                            const imgRatio = img.naturalWidth / img.naturalHeight;
-                            const presets = [16/9, 3/2, 4/3];
-                            let bestRatio = 4/3;
-                            let minDiff = 0.05;
-                            for (let r of presets) {
-                                if (Math.abs(imgRatio - r) < minDiff) {
-                                    bestRatio = r;
-                                    minDiff = Math.abs(imgRatio - r);
+                            if (typeof app.crop.savedRatio !== 'number' || isNaN(app.crop.savedRatio)) {
+                                const imgRatio = img.naturalWidth / img.naturalHeight;
+                                const presets = [16/9, 3/2, 4/3];
+                                let bestRatio = 4/3;
+                                let minDiff = 0.05;
+                                for (let r of presets) {
+                                    if (Math.abs(imgRatio - r) < minDiff) {
+                                        bestRatio = r;
+                                        minDiff = Math.abs(imgRatio - r);
+                                    }
                                 }
+                                app.crop.savedRatio = bestRatio;
                             }
-                            app.crop.savedRatio = bestRatio;
                         }
 
                         app.crop.updateRatioButtons(app.crop.savedRatio);
                         app.crop.setFixedCropBox(app.crop.savedRatio);
                         app.crop.updateMinScale();
-                        if (!app.crop.savedState) {
+                        if (!app.crop.savedState || mode === 'avatar') {
                             app.crop.state.scale = app.crop.state.minScale;
                             app.crop.state.x = 0;
                             app.crop.state.y = 0;
