@@ -1596,6 +1596,8 @@ Object.assign(window.app, {
                         }
                     } else {
                         document.getElementById('denial-reason-box').classList.add('hidden');
+                        const suggestBox = document.getElementById('denial-improvement-box');
+                        if (suggestBox) suggestBox.classList.add('hidden');
                     }
 
                     if (isPending) {
