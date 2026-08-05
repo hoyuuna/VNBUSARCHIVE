@@ -2635,7 +2635,7 @@ Object.assign(window.app, {
                         const ecoEl = document.getElementById('operator-parent-child');
                         let ecoHtml = '';
                         if (opInfo && opInfo.parent_operator) {
-                            const parents = opInfo.parent_operator.split(';').map(s => s.trim()).filter(Boolean);
+                            const parents = opInfo.parent_operator.split(';').map(s => s.trim()).filter(Boolean).sort((a, b) => a.localeCompare(b, 'vi'));
                             if (parents.length > 0) {
                                 const parentLinks = parents.map(p => {
                                     let isParentInactive = false;
@@ -2651,7 +2651,7 @@ Object.assign(window.app, {
                             }
                         }
                         if (childOps && childOps.length > 0) {
-                            const childLinks = childOps.map(c => {
+                            const childLinks = [...childOps].sort((a, b) => a.operator_name.localeCompare(b.operator_name, 'vi')).map(c => {
                                 let isChildInactive = c.description && c.description.startsWith('[STOPPED]');
                                 const classes = isChildInactive ? "text-gray-400 opacity-70 font-bold leading-tight" : "text-black font-bold hover:underline leading-tight";
                                 const suffix = isChildInactive ? " (Dừng hoạt động)" : "";
