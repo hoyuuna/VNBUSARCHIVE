@@ -5043,7 +5043,16 @@ div[id$="-modal"] > div > * {
                     <span id="crumb-operator" class="font-bold text-black overflow-x-auto whitespace-nowrap no-scrollbar shrink min-w-0 block">...</span>
                 </div>
 
-                <div class="bg-white border border-vbs-border shadow-sm rounded-lg p-6 md:p-8 mb-6 relative overflow-hidden">
+                <div id="operator-empty-state" class="hidden text-center py-20 bg-white border border-vbs-border shadow-sm rounded-lg mb-6">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-50 mb-4 border border-gray-100">
+                        <i class="fa-solid fa-ghost text-2xl text-gray-300"></i>
+                    </div>
+                    <h2 class="text-xl md:text-2xl font-black uppercase text-gray-400 tracking-tight mb-2">Đơn vị trống</h2>
+                    <p class="text-sm text-gray-500 max-w-md mx-auto">Đơn vị này hiện không có ảnh nào và cũng không quản lý đơn vị con nào.</p>
+                </div>
+
+                <div id="operator-profile-content">
+                    <div class="bg-white border border-vbs-border shadow-sm rounded-lg p-6 md:p-8 mb-6 relative overflow-hidden">
                     <div class="flex items-center gap-4 w-full min-w-0 max-w-full mb-6">
                         <!-- NẾU CÓ LOGO: Hình vuông, dùng object-contain để hiển thị trọn vẹn logo trong suốt -->
                         <img id="operator-logo" src="" class="hidden w-16 h-16 md:w-20 md:h-20 object-contain shrink-0" onerror="this.classList.add('hidden'); document.getElementById('operator-logo-fallback').classList.remove('hidden');">
@@ -5183,6 +5192,7 @@ div[id$="-modal"] > div > * {
                         <h3 class="text-lg font-bold uppercase text-black tracking-tight">Đơn vị con</h3>
                     </div>
                     <div id="op-child-photos-container" class="flex flex-col gap-10"></div>
+                </div>
                 </div>
             </div>
             <!-- KẾT THÚC GIAO DIỆN PROFILE ĐƠN VỊ VẬN HÀNH -->

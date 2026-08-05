@@ -2538,6 +2538,8 @@ Object.assign(window.app, {
                     app.operator.totalPages = 0;
 
                     // --- RESET UI TRỐNG ĐỂ CHỐNG NHÁY THÔNG TIN CŨ ---
+                    document.getElementById('operator-empty-state').classList.add('hidden');
+                    document.getElementById('operator-profile-content').classList.remove('hidden');
                     document.getElementById('crumb-operator').innerText = operatorName;
                     document.getElementById('operator-title').innerText = operatorName;
                     document.getElementById('operator-logo').classList.add('hidden');
@@ -2928,6 +2930,11 @@ Object.assign(window.app, {
                             }
                         } else {
                             document.getElementById('op-child-photos-wrapper').classList.add('hidden');
+                        }
+
+                        if (!hasMainPhotos && childOps.length === 0) {
+                            document.getElementById('operator-profile-content').classList.add('hidden');
+                            document.getElementById('operator-empty-state').classList.remove('hidden');
                         }
 
                     } catch (err) {
