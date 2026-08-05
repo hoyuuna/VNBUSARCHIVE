@@ -3229,9 +3229,12 @@ Object.assign(window.app, {
         },
 
         updateRulerUI: () => {
+            const isAvatar = app.crop.mode === 'avatar';
+            const showRuler = app.crop.isRulerEnabled && !isAvatar;
+
             const btn = document.getElementById('btn-crop-toggle-ruler');
             if (btn) {
-                if (app.crop.isRulerEnabled) {
+                if (showRuler) {
                     btn.className = "px-3 py-2 sm:px-3 sm:py-1.5 text-xs bg-black text-white border border-black rounded-md font-bold transition flex items-center justify-center gap-1.5";
                 } else {
                     btn.className = "px-3 py-2 sm:px-3 sm:py-1.5 text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition flex items-center justify-center gap-1.5";
@@ -3250,7 +3253,7 @@ Object.assign(window.app, {
             const crossV = document.getElementById('crop-crosshair-v');
             
             if (overlay) {
-                if (app.crop.isRulerEnabled) {
+                if (showRuler) {
                     overlay.classList.remove('hidden');
                     if(gridV) gridV.classList.add('hidden');
                     if(crossH) crossH.classList.add('hidden');
