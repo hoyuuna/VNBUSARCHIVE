@@ -1587,7 +1587,7 @@ Object.assign(window.app, {
                                     html += `<li><strong class="font-bold">Lỗi [${c}]:</strong> ${suggestionsMap[c]}</li>`;
                                 });
                                 html += '</ul>';
-                                html += '<p class="text-[11px] text-blue-600/80 italic mt-4 flex items-start gap-1.5"><i class="fa-solid fa-circle-info mt-0.5"></i> <span>Đây là góp ý tự động, có thể sẽ không phản ánh thực tế tình trạng ảnh. Vui lòng chỉ sử dụng để tham khảo.</span></p>';
+                                html += '<p class="text-[11px] text-blue-800 italic mt-4 flex items-start gap-1.5"><i class="fa-solid fa-circle-info mt-0.5"></i> <span>Đây là góp ý tự động, có thể sẽ không phản ánh thực tế tình trạng ảnh. Vui lòng chỉ sử dụng để tham khảo.</span></p>';
                                 suggestContent.innerHTML = html;
                                 suggestBox.classList.remove('hidden');
                             } else {
