@@ -3759,7 +3759,25 @@ Object.assign(window.app, {
                                 });
 
                                 sbQuery = app.preference.applyFilter(sbQuery, table);
-                                const { data } = await sbQuery.limit(30).abortSignal(controller.signal);
+                                
+                                let data = [];
+                                if (table === 'photos' && col === 'operator') {
+                                    let infoQuery = window.sb.from('operator_info').select('operator_name');
+                                    searchWords.forEach(word => { infoQuery = infoQuery.ilike('operator_name', `%${word}%`); });
+                                    const [infoRes, photoRes] = await Promise.all([
+                                        infoQuery.limit(30).abortSignal(controller.signal),
+                                        sbQuery.limit(30).abortSignal(controller.signal)
+                                    ]);
+                                    if (photoRes.data) data = data.concat(photoRes.data);
+                                    if (infoRes.data) {
+                                        infoRes.data.forEach(item => {
+                                            if (item.operator_name) data.push({ operator: item.operator_name });
+                                        });
+                                    }
+                                } else {
+                                    const res = await sbQuery.limit(30).abortSignal(controller.signal);
+                                    data = res.data;
+                                }
                                 
                                 if (data) {
                                     if (col === 'route_no') {

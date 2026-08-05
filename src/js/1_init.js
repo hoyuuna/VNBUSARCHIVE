@@ -4487,6 +4487,10 @@ Object.assign(window.app, {
                                     infoRes.data.forEach(info => {
                                         if (info.operator_name) {
                                             opInfoMap[info.operator_name.toLowerCase()] = info;
+                                            const key = info.operator_name.toLowerCase();
+                                            if (!uniqueOpsMap.has(key)) {
+                                                uniqueOpsMap.set(key, info.operator_name);
+                                            }
                                         }
                                     });
                                 }
