@@ -3777,8 +3777,23 @@ Object.assign(window.app, {
                                     ]);
                                     if (photoRes.data) data = data.concat(photoRes.data);
                                     if (infoRes.data) {
+                                        const { data: allOpsForSug } = await window.sb.from('operator_info').select('parent_operator');
+                                        const parentSetForSug = new Set();
+                                        if (allOpsForSug) {
+                                            allOpsForSug.forEach(op => {
+                                                if (op.parent_operator) {
+                                                    op.parent_operator.split(';').forEach(p => parentSetForSug.add(app.utils.normOperator(p).toLowerCase()));
+                                                }
+                                            });
+                                        }
+
                                         infoRes.data.forEach(item => {
-                                            if (item.operator_name) data.push({ operator: item.operator_name });
+                                            if (item.operator_name) {
+                                                const normKey = app.utils.normOperator(item.operator_name).toLowerCase();
+                                                if (parentSetForSug.has(normKey)) {
+                                                    data.push({ operator: item.operator_name });
+                                                }
+                                            }
                                         });
                                     }
                                 } else {

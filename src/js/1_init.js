@@ -4482,13 +4482,25 @@ Object.assign(window.app, {
                                     });
                                 }
 
-                                // Đơn vị có logo/thông tin nhưng KHÔNG có ảnh duyệt nào sẽ bị ẩn
+                                // Đơn vị có logo/thông tin nhưng KHÔNG có ảnh duyệt nào sẽ bị ẩn, TRỪ KHI nó là đơn vị mẹ của đơn vị khác
                                 if (infoRes.data) {
+                                    const { data: allOpsForSearch } = await window.sb.from('operator_info').select('parent_operator');
+                                    const parentSetForSearch = new Set();
+                                    if (allOpsForSearch) {
+                                        allOpsForSearch.forEach(op => {
+                                            if (op.parent_operator) {
+                                                op.parent_operator.split(';').forEach(p => parentSetForSearch.add(app.utils.normOperator(p).toLowerCase()));
+                                            }
+                                        });
+                                    }
+
                                     infoRes.data.forEach(info => {
                                         if (info.operator_name) {
                                             opInfoMap[info.operator_name.toLowerCase()] = info;
                                             const key = info.operator_name.toLowerCase();
-                                            if (!uniqueOpsMap.has(key)) {
+                                            const normKey = app.utils.normOperator(info.operator_name).toLowerCase();
+                                            // Nếu chưa có trong uniqueOpsMap (tức là chưa có ảnh) thì kiểm tra xem nó có phải đơn vị mẹ không
+                                            if (!uniqueOpsMap.has(key) && parentSetForSearch.has(normKey)) {
                                                 uniqueOpsMap.set(key, info.operator_name);
                                             }
                                         }
