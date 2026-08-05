@@ -2615,7 +2615,7 @@ Object.assign(window.app, {
                             let desc = opInfo.description;
                             let inactiveBadge = '';
                             if (desc.startsWith('[STOPPED]')) {
-                                inactiveBadge = '<span class="bg-black text-white text-[10px] px-2 py-0.5 rounded ml-2 align-middle font-bold border border-black shrink-0 uppercase tracking-widest">Dừng hoạt động</span>';
+                                inactiveBadge = '<span class="bg-black text-white text-[10px] px-2 py-0.5 rounded font-bold border border-black shrink-0 uppercase tracking-widest">Dừng hoạt động</span>';
                                 desc = desc.replace(/^\[STOPPED\]\s*/, '');
                             }
                             if (inactiveBadge) {
