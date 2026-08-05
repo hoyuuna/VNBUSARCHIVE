@@ -4030,12 +4030,6 @@ Object.assign(window.app, {
                                 if (p.toLowerCase() === app.currentOperator.toLowerCase()) {
                                     return app.ui.showAlert(`ĐVVH mẹ không thể là chính nó (${p}).`);
                                 }
-                                const { data: checkOp } = await window.sb.from('photos').select('operator').ilike('operator', p).limit(1);
-                                const { data: checkOpInfo } = await window.sb.from('operator_info').select('operator_name').ilike('operator_name', p).limit(1);
-                                
-                                if ((!checkOp || checkOp.length === 0) && (!checkOpInfo || checkOpInfo.length === 0)) {
-                                    return app.ui.showAlert(`Nhà xe "${p}" chưa tồn tại trên hệ thống. Không thể thiết lập làm ĐVVH mẹ.`);
-                                }
                             }
                         }
 
