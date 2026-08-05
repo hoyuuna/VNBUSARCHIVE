@@ -867,12 +867,22 @@ Object.assign(window.app, {
                                     }
                                 });
                                 photos.forEach(p => {
-                                    if (!document.getElementById(`adm-photo-card-${p.id}`)) {
+                                    const existingCard = document.getElementById(`adm-photo-card-${p.id}`);
+                                    if (!existingCard) {
                                         const tempDiv = document.createElement('div');
                                         tempDiv.innerHTML = app.admin.renderSinglePhotoCardHTML(p, approvedPlateSet, approvedOpSet, approvedRouteSet, approvedModelSet);
                                         const newEl = tempDiv.firstElementChild;
                                         if (newEl && content) {
                                             content.appendChild(newEl);
+                                        }
+                                    } else {
+                                        if (!existingCard.contains(document.activeElement)) {
+                                            const tempDiv = document.createElement('div');
+                                            tempDiv.innerHTML = app.admin.renderSinglePhotoCardHTML(p, approvedPlateSet, approvedOpSet, approvedRouteSet, approvedModelSet);
+                                            const newEl = tempDiv.firstElementChild;
+                                            if (newEl) {
+                                                existingCard.replaceWith(newEl);
+                                            }
                                         }
                                     }
                                 });
