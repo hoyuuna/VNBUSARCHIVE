@@ -3101,7 +3101,7 @@ Object.assign(window.app, {
         },
 
         slideRotate: (val) => {
-            const freeRotation = parseInt(val, 10);
+            const freeRotation = parseFloat(val);
             app.crop.state.rotation = (app.crop.state.baseRotation || 0) + freeRotation;
             const rotateVal = document.getElementById('crop-rotate-val');
             if (rotateVal) {
@@ -3113,7 +3113,7 @@ Object.assign(window.app, {
 
         stepRotate: (delta) => {
             const rotateSlider = document.getElementById('crop-rotate-slider');
-            let currentFree = rotateSlider ? parseInt(rotateSlider.value, 10) : 0;
+            let currentFree = rotateSlider ? parseFloat(rotateSlider.value) : 0;
             let newVal = currentFree + delta;
             if (newVal < -45) newVal = -45;
             if (newVal > 45) newVal = 45;
