@@ -1582,7 +1582,7 @@ Object.assign(window.app, {
                             }
                             
                             if (codes.length > 0) {
-                                let html = '<ul class="list-disc ml-4 text-xs text-blue-800 space-y-1.5">';
+                                let html = '<ul class="list-disc ml-5 text-sm text-blue-800 space-y-3 leading-relaxed">';
                                 codes.forEach(c => {
                                     html += `<li><strong class="font-bold">Lỗi [${c}]:</strong> ${suggestionsMap[c]}</li>`;
                                 });
