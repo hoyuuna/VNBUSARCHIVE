@@ -2001,12 +2001,12 @@ Object.assign(window.app, {
                             // ========================================================
                             // ĐỒNG BỘ 100% CÔNG THỨC TOÁN HỌC TỪ CANVAS MÀ BẠN ĐÃ VIẾT
                             // ========================================================
-                            // barHeight = height * 0.08
-                            // fontSize = barHeight * 0.4 = height * 0.032
-                            // watermark = fontSize * 3 = height * 0.096
+                            // barHeight = height * 0.064
+                            // fontSize = barHeight * 0.4 = height * 0.0256
+                            // watermark = height * 0.096
 
-                            const barHeight = finalH * 0.08;
-                            const baseFontSize = finalH * 0.032;
+                            const barHeight = finalH * 0.064;
+                            const baseFontSize = finalH * 0.0256;
                             const watermarkFontSize = finalH * 0.096;
 
                             // 1. Kích thước & Lề của thanh Footer dưới đáy ảnh

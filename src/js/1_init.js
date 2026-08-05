@@ -1819,11 +1819,11 @@ cleanupState: () => {
                                     });
                                 }
 
-                                const barHeight = height * 0.08;
+                                const barHeight = height * 0.064;
                                 const barY = height - barHeight;
                                 const fontSize = barHeight * 0.4;
                                 const scale = pos.scale || 1.0;
-                                const wmFontSize = fontSize * 3 * scale;
+                                const wmFontSize = height * 0.096 * scale;
                                 const fontFace = '"Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
 
                                 try {
