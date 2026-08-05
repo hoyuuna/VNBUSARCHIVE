@@ -1421,6 +1421,21 @@ div[id$="-modal"] > div > * {
             }
         }
 
+        @keyframes slideDownFade {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+                max-height: 0;
+                overflow: hidden;
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+                max-height: 800px;
+                overflow: hidden;
+            }
+        }
+
         #auth.active {
             display: flex !important;
         }
@@ -3598,7 +3613,7 @@ div[id$="-modal"] > div > * {
                                 Góp ý cải thiện ảnh
                                 <i class="fa-solid fa-chevron-down text-xs transition-transform group-open:rotate-180 ml-auto"></i>
                             </summary>
-                            <div id="denial-improvement-content" class="mt-4 group-open:animate-[fadeZoomIn_0.4s_ease-out_forwards]">
+                            <div id="denial-improvement-content" class="mt-4 group-open:animate-[slideDownFade_0.3s_ease-out_forwards]">
                             </div>
                         </details>
 
