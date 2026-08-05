@@ -4966,7 +4966,14 @@ Object.assign(window.app, {
                 let targetUsername = userMatch[1] ? decodeURIComponent(userMatch[1]) : (app.username || '');
                 if (!targetUsername) return;
                 try {
-                    const { data: uData, error: uErr } = await window.sb.from('profiles').select('id, username, avatar_url, role, subroles').eq('username', targetUsername).single();
+                    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(targetUsername);
+                    let query = window.sb.from('profiles').select('id, username, avatar_url, role, subroles');
+                    if (isUuid) {
+                        query = query.eq('id', targetUsername);
+                    } else {
+                        query = query.eq('username', targetUsername);
+                    }
+                    const { data: uData, error: uErr } = await query.single();
                     if (uErr || !uData) throw new Error("Hồ sơ người dùng không tồn tại.");
                     const { count } = await window.sb.from('photos').select('*', { count: 'exact', head: true }).eq('uploader_id', uData.id).eq('status', 'approved');
                     const avatarSrc = uData.avatar_url ? app.utils.getProxiedUrl(uData.avatar_url.replace(/"/g, ''), 'avatar.jpg', 'avatar') : 'https://files.catbox.moe/zzh1q1.png';
