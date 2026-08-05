@@ -2581,12 +2581,19 @@ Object.assign(window.app, {
 
                     try {
                         // Gọi DB Lấy thông tin Operator (Logo, Mô tả)
-                        const { data: opInfo } = await window.sb.from('operator_info').select('operator_name, logo_url, description, parent_operator').eq('operator_name', operatorName).maybeSingle();
-                        const { data: rawChildOps } = await window.sb.from('operator_info').select('operator_name, parent_operator').ilike('parent_operator', `%${operatorName}%`);
-                        const childOps = (rawChildOps || []).filter(op => {
-                            if (!op.parent_operator) return false;
-                            const parents = op.parent_operator.split(';').map(s => s.trim().toLowerCase());
-                            return parents.includes(operatorName.toLowerCase());
+                        // Lấy tất cả để filter robust bằng JS (tránh lỗi dư khoảng trắng, dấu câu)
+                        const { data: allOps } = await window.sb.from('operator_info').select('operator_name, logo_url, description, parent_operator');
+                        let opInfo = null;
+                        let rawChildOps = [];
+                        if (allOps) {
+                            // Ưu tiên khớp chính xác, sau đó khớp chuẩn hóa
+                            opInfo = allOps.find(o => o.operator_name === operatorName) || allOps.find(o => app.utils.normOperator(o.operator_name).toLowerCase() === targetNorm);
+                            rawChildOps = allOps.filter(o => o.parent_operator);
+                        }
+
+                        const childOps = rawChildOps.filter(op => {
+                            const parents = op.parent_operator.split(';').map(s => app.utils.normOperator(s).toLowerCase());
+                            return parents.includes(targetNorm);
                         });
                         
                         const logoEl = document.getElementById('operator-logo');
