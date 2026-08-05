@@ -1274,10 +1274,24 @@ Object.assign(window.app, {
                                                 <input type="text" id="req-op-logo-${r.id}" value="${app.utils.escapeAttr(d.logo_url || '')}" class="admin-input">
                                                 ${d.logo_url ? `<img src="${app.utils.escapeAttr(d.logo_url.includes('wsrv.nl') ? d.logo_url : 'https://wsrv.nl/?url=' + encodeURIComponent(d.logo_url))}" class="mt-1 h-8 w-8 object-cover rounded border border-gray-200">` : ''}
                                             </div>
-                                            <div class="mb-2">
-                                                <span class="admin-label">Mô tả ${d.description !== curOp.description ? '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>' : ''}</span>
-                                                <textarea id="req-op-desc-${r.id}" class="admin-input" rows="4">${app.utils.escapeAttr(d.description || '')}</textarea>
-                                            </div>
+                                            ${(() => {
+                                                let isInactiveReq = false;
+                                                let rawDescReq = d.description || '';
+                                                if (rawDescReq.startsWith('[STOPPED]')) {
+                                                    isInactiveReq = true;
+                                                    rawDescReq = rawDescReq.replace(/^\[STOPPED\]\s*/, '');
+                                                }
+                                                return `
+                                                <div class="mb-2">
+                                                    <span class="admin-label">Mô tả ${d.description !== curOp.description ? '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>' : ''}</span>
+                                                    <textarea id="req-op-desc-${r.id}" class="admin-input" rows="4">${app.utils.escapeAttr(rawDescReq)}</textarea>
+                                                </div>
+                                                <div class="mb-3 mt-1 flex items-center gap-2 bg-red-50 p-2 rounded border border-red-200">
+                                                    <input type="checkbox" id="req-op-inactive-${r.id}" ${isInactiveReq ? 'checked' : ''} class="w-4 h-4 cursor-pointer">
+                                                    <label for="req-op-inactive-${r.id}" class="text-xs font-bold text-red-700 cursor-pointer uppercase">Đánh dấu đơn vị này đã dừng hoạt động</label>
+                                                </div>
+                                                `;
+                                            })()}
                                             <div class="flex gap-2 mt-3">
                                                 <button onclick="app.admin.approveReq('${r.id}', this, 'operator_info')" class="flex-1 bg-green-600 text-white py-1.5 font-bold rounded hover:bg-green-700">DUYỆT</button>
                                                 ${app.role === 'manager' ? `<button onclick="app.admin.denyReq('${r.id}', this)" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">TỪ CHỐI</button>` : ''}
@@ -3265,7 +3279,11 @@ app.admin.fetchManagerData('denied');
 
                         else if (reqType === 'operator_info' || req.new_data.request_type === 'update_operator_info') {
                             const logo = document.getElementById(`req-op-logo-${id}`).value.trim();
-                            const desc = document.getElementById(`req-op-desc-${id}`).value.trim();
+                            let desc = document.getElementById(`req-op-desc-${id}`).value.trim();
+                            const isInactiveEl = document.getElementById(`req-op-inactive-${id}`);
+                            if (isInactiveEl && isInactiveEl.checked) {
+                                desc = '[STOPPED] ' + desc;
+                            }
                             const parentOpEl = document.getElementById(`req-op-parent-${id}`);
                             const parentOp = parentOpEl ? parentOpEl.value.trim() : (req.new_data.parent_operator || '');
                             

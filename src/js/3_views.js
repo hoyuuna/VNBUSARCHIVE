@@ -2612,8 +2612,22 @@ Object.assign(window.app, {
                         }
 
                         if (opInfo && opInfo.description) {
-                            descEl.innerHTML = app.utils.cleanText(opInfo.description).replace(/\n/g, '<br>');
-                            descEl.classList.remove('hidden');
+                            let desc = opInfo.description;
+                            let inactiveBadge = '';
+                            if (desc.startsWith('[STOPPED]')) {
+                                inactiveBadge = '<span class="bg-red-100 text-red-600 text-[10px] px-2 py-0.5 rounded ml-2 align-middle font-bold border border-red-200 shrink-0 uppercase tracking-widest">Dừng hoạt động</span>';
+                                desc = desc.replace(/^\[STOPPED\]\s*/, '');
+                            }
+                            if (inactiveBadge) {
+                                document.getElementById('operator-title').innerHTML = app.utils.escapeHtml(resolvedOperator) + inactiveBadge;
+                            }
+                            
+                            if (desc) {
+                                descEl.innerHTML = app.utils.cleanText(desc).replace(/\n/g, '<br>');
+                                descEl.classList.remove('hidden');
+                            } else {
+                                descEl.classList.add('hidden');
+                            }
                         } else {
                             descEl.classList.add('hidden');
                         }
@@ -2623,12 +2637,26 @@ Object.assign(window.app, {
                         if (opInfo && opInfo.parent_operator) {
                             const parents = opInfo.parent_operator.split(';').map(s => s.trim()).filter(Boolean);
                             if (parents.length > 0) {
-                                const parentLinks = parents.map(p => `<div><a href="javascript:void(0)" onclick="app.utils.navigate('/operator/' + encodeURIComponent('${app.utils.escapeAttr(p)}'))" class="text-black font-bold hover:underline leading-tight">${app.utils.escapeHtml(p)}</a></div>`).join('');
+                                const parentLinks = parents.map(p => {
+                                    let isParentInactive = false;
+                                    if (allOps) {
+                                        const pInfo = allOps.find(o => app.utils.normOperator(o.operator_name).toLowerCase() === app.utils.normOperator(p).toLowerCase());
+                                        if (pInfo && pInfo.description && pInfo.description.startsWith('[STOPPED]')) isParentInactive = true;
+                                    }
+                                    const classes = isParentInactive ? "text-gray-400 opacity-70 font-bold leading-tight" : "text-black font-bold hover:underline leading-tight";
+                                    const suffix = isParentInactive ? " (Dừng hoạt động)" : "";
+                                    return `<div><a href="javascript:void(0)" onclick="app.utils.navigate('/operator/' + encodeURIComponent('${app.utils.escapeAttr(p)}'))" class="${classes}">${app.utils.escapeHtml(p)}${suffix}</a></div>`;
+                                }).join('');
                                 ecoHtml += `<div class="flex items-baseline"><div class="font-bold text-gray-500 uppercase text-[10px] tracking-widest mr-2 shrink-0">ĐVVH mẹ:</div><div class="flex flex-col gap-1.5">${parentLinks}</div></div>`;
                             }
                         }
                         if (childOps && childOps.length > 0) {
-                            const childLinks = childOps.map(c => `<div><a href="javascript:void(0)" onclick="app.utils.navigate('/operator/' + encodeURIComponent('${app.utils.escapeAttr(c.operator_name)}'))" class="text-black font-bold hover:underline leading-tight">${app.utils.escapeHtml(c.operator_name)}</a></div>`).join('');
+                            const childLinks = childOps.map(c => {
+                                let isChildInactive = c.description && c.description.startsWith('[STOPPED]');
+                                const classes = isChildInactive ? "text-gray-400 opacity-70 font-bold leading-tight" : "text-black font-bold hover:underline leading-tight";
+                                const suffix = isChildInactive ? " (Dừng hoạt động)" : "";
+                                return `<div><a href="javascript:void(0)" onclick="app.utils.navigate('/operator/' + encodeURIComponent('${app.utils.escapeAttr(c.operator_name)}'))" class="${classes}">${app.utils.escapeHtml(c.operator_name)}${suffix}</a></div>`;
+                            }).join('');
                             ecoHtml += `<div class="flex items-baseline"><div class="font-bold text-gray-500 uppercase text-[10px] tracking-widest mr-2 shrink-0">ĐVVH con:</div><div class="flex flex-col gap-1.5">${childLinks}</div></div>`;
                         }
                         if (ecoHtml) {
@@ -4065,6 +4093,7 @@ Object.assign(window.app, {
                     document.getElementById('op-edit-logo').value = '';
                     document.getElementById('op-edit-desc').value = '';
                     document.getElementById('op-edit-parent').value = '';
+                    document.getElementById('op-edit-inactive').checked = false;
                     
                     // Cập nhật UI theo Role (Quyền)
                     if (app.role === 'admin' || app.role === 'manager') {
@@ -4079,7 +4108,12 @@ Object.assign(window.app, {
                         const { data: opInfo } = await window.sb.from('operator_info').select('operator_name, logo_url, description, parent_operator').eq('operator_name', app.currentOperator).maybeSingle();
                         if (opInfo) {
                             document.getElementById('op-edit-logo').value = opInfo.logo_url || '';
-                            document.getElementById('op-edit-desc').value = opInfo.description || '';
+                            let desc = opInfo.description || '';
+                            if (desc.startsWith('[STOPPED]')) {
+                                document.getElementById('op-edit-inactive').checked = true;
+                                desc = desc.replace(/^\[STOPPED\]\s*/, '');
+                            }
+                            document.getElementById('op-edit-desc').value = desc;
                             document.getElementById('op-edit-parent').value = opInfo.parent_operator || '';
                         }
                     } catch(e) {}
@@ -4104,9 +4138,14 @@ Object.assign(window.app, {
                 submitEdit: async () => {
                     if (!app.user) return;
                     const logo = document.getElementById('op-edit-logo').value.trim();
-                    const desc = document.getElementById('op-edit-desc').value.trim();
+                    let desc = document.getElementById('op-edit-desc').value.trim();
                     const parentOp = document.getElementById('op-edit-parent').value.trim();
+                    const isInactive = document.getElementById('op-edit-inactive').checked;
                     const btn = document.getElementById('btn-save-operator');
+
+                    if (isInactive) {
+                        desc = '[STOPPED] ' + desc;
+                    }
 
                     const executeSave = async () => {
                         if (logo) {
