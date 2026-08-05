@@ -1286,9 +1286,12 @@ Object.assign(window.app, {
                                                     <span class="admin-label">Mô tả ${d.description !== curOp.description ? '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>' : ''}</span>
                                                     <textarea id="req-op-desc-${r.id}" class="admin-input" rows="4">${app.utils.escapeAttr(rawDescReq)}</textarea>
                                                 </div>
-                                                <div class="mb-3 mt-1 flex items-center gap-2 bg-red-50 p-2 rounded border border-red-200">
-                                                    <input type="checkbox" id="req-op-inactive-${r.id}" ${isInactiveReq ? 'checked' : ''} class="w-4 h-4 cursor-pointer">
-                                                    <label for="req-op-inactive-${r.id}" class="text-xs font-bold text-red-700 cursor-pointer uppercase">Đánh dấu đơn vị này đã dừng hoạt động</label>
+                                                <div class="mb-3 mt-1 flex items-center justify-between bg-red-50 p-2 rounded border border-red-200">
+                                                    <span class="text-xs font-bold text-red-700 uppercase">Đánh dấu đơn vị này đã dừng hoạt động</span>
+                                                    <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-4 self-center">
+                                                        <input type="checkbox" id="req-op-inactive-${r.id}" ${isInactiveReq ? 'checked' : ''} class="sr-only peer">
+                                                        <div class="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-red-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all shadow-inner"></div>
+                                                    </label>
                                                 </div>
                                                 `;
                                             })()}

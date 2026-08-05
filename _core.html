@@ -6171,10 +6171,13 @@ div[id$="-modal"] > div > * {
                     <p class="text-[11px] text-gray-500 mt-1">Chỉ có thể nhập nhà xe đã có sẵn dữ liệu trên hệ thống. Ngăn cách nhiều ĐVVH bằng dấu chấm phẩy và khoảng trắng.</p>
                 </div>
                 <div>
-                    <label class="flex items-center gap-2 cursor-pointer bg-white/60 border border-gray-300/80 rounded-xl p-3 shadow-inner hover:bg-gray-50 transition-all">
-                        <input type="checkbox" id="op-edit-inactive" class="w-4 h-4 text-black rounded border-gray-300 focus:ring-black">
+                    <div class="flex items-center justify-between bg-white/60 border border-gray-300/80 rounded-xl p-3 shadow-inner hover:bg-gray-50 transition-all">
                         <span class="text-sm font-bold text-gray-700">Đánh dấu đơn vị này đã dừng hoạt động</span>
-                    </label>
+                        <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-4 self-center">
+                            <input type="checkbox" id="op-edit-inactive" class="sr-only peer">
+                            <div class="w-11 h-6 bg-black rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all shadow-inner"></div>
+                        </label>
+                    </div>
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Mô tả giới thiệu</label>
