@@ -5163,16 +5163,26 @@ div[id$="-modal"] > div > * {
                     </div>
                 </div>
 
-                <div class="flex items-center gap-2 mb-4">
-                    <h3 class="text-lg font-bold uppercase text-black tracking-tight">Thư viện ảnh</h3>
+                <div id="op-main-photos-wrapper" class="hidden">
+                    <div class="flex items-center gap-2 mb-4">
+                        <h3 class="text-lg font-bold uppercase text-black tracking-tight">Thư viện ảnh</h3>
+                    </div>
+                    
+                    <div id="operator-photo-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+                    
+                    <div id="operator-load-more-container" class="text-center mt-8 hidden">
+                        <button onclick="app.views.loadMoreOperatorPhotos()" class="bg-white border border-gray-300 text-gray-700 px-6 py-2.5 text-sm font-bold rounded-md hover:bg-gray-50 hover:border-gray-400 transition shadow-sm">
+                            Xem thêm <i class="fa-solid fa-chevron-down ml-1"></i>
+                        </button>
+                    </div>
                 </div>
-                
-                <div id="operator-photo-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
-                
-                <div id="operator-load-more-container" class="text-center mt-8 hidden">
-                    <button onclick="app.views.loadMoreOperatorPhotos()" class="bg-white border border-gray-300 text-gray-700 px-6 py-2.5 text-sm font-bold rounded-md hover:bg-gray-50 hover:border-gray-400 transition shadow-sm">
-                        Xem thêm <i class="fa-solid fa-chevron-down ml-1"></i>
-                    </button>
+
+                <!-- KHU VỰC ĐƠN VỊ CON -->
+                <div id="op-child-photos-wrapper" class="hidden mt-10">
+                    <div class="flex items-center gap-2 mb-4 border-t border-gray-200 pt-8">
+                        <h3 class="text-lg font-bold uppercase text-black tracking-tight">Đơn vị con</h3>
+                    </div>
+                    <div id="op-child-photos-container" class="flex flex-col gap-10"></div>
                 </div>
             </div>
             <!-- KẾT THÚC GIAO DIỆN PROFILE ĐƠN VỊ VẬN HÀNH -->
