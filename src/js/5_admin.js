@@ -2945,12 +2945,16 @@ app.admin.fetchManagerData('denied');
                     const parentEl = cardEl ? cardEl.parentElement : null;
                     const originalNextSibling = cardEl ? cardEl.nextElementSibling : null;
 
+                    const currentScrollY = window.scrollY;
+
                     if (cardEl && parentEl) {
                         parentEl.appendChild(cardEl);
                         cardEl.querySelectorAll('input, select, textarea, button').forEach(el => el.disabled = true);
                         cardEl.style.opacity = '0.55';
                         cardEl.style.pointerEvents = 'none';
                     }
+
+                    window.scrollTo({ top: currentScrollY, behavior: 'instant' });
 
                     btn.innerText = "Đang tải lên CDN..."; btn.disabled = true; btn.classList.add('btn-loading');
                     try {
@@ -3076,12 +3080,17 @@ app.admin.fetchManagerData('denied');
                         const parentEl = cardEl?.parentElement;
                         const originalNextSibling = cardEl ? cardEl.nextElementSibling : null;
 
+                        const currentScrollY = window.scrollY;
+
                         if (cardEl && parentEl) {
                             parentEl.appendChild(cardEl);
                             cardEl.querySelectorAll('input, select, textarea, button').forEach(el => el.disabled = true);
                             cardEl.style.opacity = '0.55';
                             cardEl.style.pointerEvents = 'none';
                         }
+                        
+                        window.scrollTo({ top: currentScrollY, behavior: 'instant' });
+
                         btn.innerText = "Đang xử lý..."; btn.disabled = true; btn.classList.add('btn-loading');
                         (async () => {
                             try {
