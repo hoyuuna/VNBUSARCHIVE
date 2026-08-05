@@ -303,6 +303,13 @@ export async function onRequestPost(context) {
             if (updateErr) {
                 return new Response(JSON.stringify({ error: `Lỗi cập nhật tiến độ ảnh: ${updateErr.message}` }), { status: 500 });
             }
+            
+            await sbAdmin.from('admin_audit_logs').insert({
+                admin_id: user.id,
+                action_type: action === 'approve' ? 'vote_approve_photo' : 'vote_deny_photo',
+                target_id: photoId,
+                details: JSON.stringify(action === 'approve' ? { plate, operator: op } : { reason: reason || 'Từ chối' })
+            });
         }
 
         return new Response(JSON.stringify({ success: true, isFinal: isFinalApprove || isFinalDeny }), {
