@@ -587,6 +587,8 @@ Object.assign(window.app, {
                         resizeStartY = e.clientY || (e.touches && e.touches[0].clientY);
                         initialWidth = panel.offsetWidth;
                         initialHeight = panel.offsetHeight;
+                        initialLeft = panel.offsetLeft;
+                        initialTop = panel.offsetTop;
                     };
 
                     resizeHandle.addEventListener('mousedown', startResize);
@@ -614,12 +616,36 @@ Object.assign(window.app, {
 
                             let newWidth = initialWidth + dx;
                             let newHeight = initialHeight + dy;
+                            
+                            let newLeft = initialLeft;
+                            let newTop = initialTop;
 
-                            const minBlurW = Math.max(8, container.offsetWidth * 0.02);
-                            const minBlurH = Math.max(8, container.offsetHeight * 0.02);
-                            newWidth = Math.max(minBlurW, Math.min(newWidth, container.offsetWidth - panel.offsetLeft));
-                            newHeight = Math.max(minBlurH, Math.min(newHeight, container.offsetHeight - panel.offsetTop));
+                            if (newWidth < 0) {
+                                newLeft = initialLeft + newWidth;
+                                newWidth = Math.abs(newWidth);
+                            }
+                            if (newHeight < 0) {
+                                newTop = initialTop + newHeight;
+                                newHeight = Math.abs(newHeight);
+                            }
 
+                            if (newLeft < 0) {
+                                newWidth += newLeft;
+                                newLeft = 0;
+                            }
+                            if (newTop < 0) {
+                                newHeight += newTop;
+                                newTop = 0;
+                            }
+                            if (newLeft + newWidth > container.offsetWidth) {
+                                newWidth = container.offsetWidth - newLeft;
+                            }
+                            if (newTop + newHeight > container.offsetHeight) {
+                                newHeight = container.offsetHeight - newTop;
+                            }
+
+                            panel.style.left = newLeft + 'px';
+                            panel.style.top = newTop + 'px';
                             panel.style.width = newWidth + 'px';
                             panel.style.height = newHeight + 'px';
                             updateButtonsPosition();
