@@ -6337,7 +6337,7 @@ div[id$="-modal"] > div > * {
             
             <div class="space-y-4">
                 <!-- Chọn Trường (Field) -->
-                <div class="relative w-full">
+                <div class="relative w-full z-[60]">
                     <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">1. Chọn trường dữ liệu</label>
                     <input type="hidden" id="adv-field-select" value="">
                     <button type="button" id="adv-field-btn" onclick="document.getElementById('adv-field-menu').classList.toggle('active')" class="w-full flex items-center justify-between bg-white border border-gray-300 hover:border-black hover:bg-gray-50 rounded-xl p-3.5 text-sm font-bold text-gray-700 transition-all shadow-sm focus:ring-2 focus:ring-black outline-none">
@@ -6358,7 +6358,7 @@ div[id$="-modal"] > div > * {
                 </div>
 
                 <!-- Chọn Toán tử (Operator) -->
-                <div class="relative w-full">
+                <div class="relative w-full z-[50]">
                     <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">2. Điều kiện so sánh</label>
                     <input type="hidden" id="adv-operator-select" value="">
                     <button type="button" id="adv-operator-btn" onclick="if(!this.disabled) document.getElementById('adv-operator-menu').classList.toggle('active')" class="w-full flex items-center justify-between bg-white border border-gray-300 hover:border-black hover:bg-gray-50 rounded-xl p-3.5 text-sm font-bold text-gray-700 transition-all shadow-sm focus:ring-2 focus:ring-black outline-none disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed disabled:hover:border-gray-300 disabled:hover:bg-gray-100" disabled>
@@ -6370,7 +6370,7 @@ div[id$="-modal"] > div > * {
                 </div>
 
                 <!-- Nhập Giá trị (Value) -->
-                <div class="relative">
+                <div class="relative z-[40] w-full">
                     <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">3. Giá trị cần lọc</label>
                     <div id="adv-filter-value-container">
                         <input type="text" id="adv-filter-value" placeholder="Nhập giá trị..." class="w-full bg-white border border-gray-300 hover:border-black rounded-xl p-3.5 text-sm font-bold text-gray-700 transition-all shadow-sm focus:ring-2 focus:ring-black outline-none disabled:bg-gray-100 disabled:shadow-none disabled:cursor-not-allowed disabled:hover:border-gray-300 disabled:font-medium disabled:text-gray-400" disabled>
