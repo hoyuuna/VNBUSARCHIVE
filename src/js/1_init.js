@@ -3019,6 +3019,22 @@ Object.assign(window.app, {
                             app.views.loadHome(true);
                         }
                     })
+                    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'admin_notes' }, payload => {
+                        if (payload.new && payload.new.id === 1) {
+                            const noteEl = document.getElementById('adm-board-note');
+                            if (noteEl && document.activeElement !== noteEl) {
+                                noteEl.value = payload.new.content || '';
+                            }
+                        }
+                    })
+                    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'admin_notes' }, payload => {
+                        if (payload.new && payload.new.id === 1) {
+                            const noteEl = document.getElementById('adm-board-note');
+                            if (noteEl && document.activeElement !== noteEl) {
+                                noteEl.value = payload.new.content || '';
+                            }
+                        }
+                    })
                     .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'photos' }, payload => {
                         if (app.currentPhoto && app.currentPhoto.id === payload.new.id) {
                             const viewEl = document.getElementById('stat-views');
