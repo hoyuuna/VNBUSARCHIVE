@@ -621,7 +621,44 @@ Object.assign(window.app, {
                     }, 200);
                 },
 
+                fetchAdminNote: async function() {
+                    try {
+                        const { data, error } = await window.sb.from('admin_notes').select('content').eq('id', 1).single();
+                        if (error && error.code !== 'PGRST116') throw error;
+                        const note = data ? data.content : '';
+                        document.getElementById('adm-board-note').value = note;
+                        document.getElementById('adm-general-note').classList.remove('hidden');
+                    } catch (e) {
+                        console.error('fetchAdminNote error:', e);
+                    }
+                },
+                saveBoardNote: async function(btn) {
+                    const content = document.getElementById('adm-board-note').value.trim();
+                    const ogText = btn.innerHTML;
+                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+                    btn.disabled = true;
+                    try {
+                        const { error } = await window.sb.from('admin_notes').upsert({
+                            id: 1,
+                            content: content,
+                            updated_at: new Date().toISOString(),
+                            updated_by: app.user.id
+                        }, { onConflict: 'id' });
+                        if (error) throw error;
+                        app.ui.showAlert('Đã lưu ghi chú chung thành công!');
+                    } catch (e) {
+                        app.ui.showAlert('Lỗi khi lưu ghi chú: ' + e.message);
+                    } finally {
+                        btn.innerHTML = ogText;
+                        btn.disabled = false;
+                    }
+                },
+                
                 loadTab: async (tab = 'photos', forceReload = true, preserveScroll = false) => {
+                    if (!app.admin._noteFetched) {
+                        app.admin._noteFetched = true;
+                        app.admin.fetchAdminNote();
+                    }
                     app.adminTab = tab;
                     app.admin.refreshCounts().then(total => app.admin.checkNotification());
 
@@ -677,13 +714,10 @@ Object.assign(window.app, {
                     });
 
                     const toggleBar = document.getElementById('adm-photo-grid-toggle-bar');
-                    const photoBanner = document.getElementById('adm-photo-banner');
                     if (tab === 'photos') {
                         if (toggleBar) toggleBar.classList.remove('hidden');
-                        if (photoBanner) photoBanner.classList.remove('hidden');
                     } else {
                         if (toggleBar) toggleBar.classList.add('hidden');
-                        if (photoBanner) photoBanner.classList.add('hidden');
                     }
                     if (app.admin.update3x3UI) app.admin.update3x3UI();
                     if (app.admin.updateRulerUI) app.admin.updateRulerUI();

@@ -4827,9 +4827,15 @@ div[id$="-modal"] > div > * {
                     </div>
                 </div>
 
-                <div id="adm-photo-banner" class="hidden bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-lg mb-6 shadow-sm flex items-center gap-3">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
-                    <strong class="font-bold">KHÔNG để dành ảnh trừ khi không biết thông tin - Tuân thủ luật, lưu ý trường hợp đặc biệt - Lưu ý kiểm tra che mặt hành khách/tài xế/người đi đường v..v..</strong>
+                <div id="adm-general-note" class="bg-yellow-50 border border-yellow-200 text-yellow-800 p-4 rounded-lg mb-6 shadow-sm flex flex-col gap-2 relative group hidden">
+                    <div class="flex items-center gap-2 mb-1">
+                        <i class="fa-solid fa-clipboard-list"></i>
+                        <span class="font-bold text-sm uppercase">Ghi chú chung cho Admin / Manager</span>
+                    </div>
+                    <textarea id="adm-board-note" class="w-full bg-yellow-100/50 border border-yellow-300 rounded p-3 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 min-h-[80px]" placeholder="Đang tải ghi chú..."></textarea>
+                    <div class="flex justify-end mt-1">
+                        <button id="btn-save-adm-note" onclick="app.admin.saveBoardNote(this)" class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-1.5 px-4 rounded text-xs transition"><i class="fa-solid fa-floppy-disk mr-1"></i> Lưu ghi chú</button>
+                    </div>
                 </div>
 
                 <div id="admin-content" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
