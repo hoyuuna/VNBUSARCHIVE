@@ -2711,25 +2711,24 @@ Object.assign(window.app, {
                 }
 
                 // Network Resilience (Tích hợp Toast mới)
+                let offlineTimer = null;
                 window.addEventListener('offline', () => {
-                    document.body.classList.add('is-offline');
-                    if (app.toast.currentOfflineToast) app.toast.currentOfflineToast(); // Đóng cái cũ nếu có
-                    app.toast.currentOfflineToast = app.toast.show('offline', 'Mất kết nối Internet', 'Bạn đang ngoại tuyến. Dữ liệu sẽ không thể đồng bộ.', 0);
+                    offlineTimer = setTimeout(() => {
+                        document.body.classList.add('is-offline');
+                        if (app.toast.currentOfflineToast) app.toast.currentOfflineToast(); // Đóng cái cũ nếu có
+                        app.toast.currentOfflineToast = app.toast.show('offline', 'Mất kết nối Internet', 'Bạn đang ngoại tuyến. Dữ liệu sẽ không thể đồng bộ.', 0);
+                    }, 3000);
                 });
                 
                 window.addEventListener('online', () => {
+                    if (offlineTimer) clearTimeout(offlineTimer);
                     document.body.classList.remove('is-offline');
                     if (app.toast.currentOfflineToast) {
                         app.toast.currentOfflineToast(); // Ẩn thông báo lỗi
                         app.toast.currentOfflineToast = null;
+                        app.toast.show('success', 'Đã khôi phục kết nối', 'Mạng Internet đã hoạt động trở lại.', 5000);
                     }
-                    app.toast.show('success', 'Đã khôi phục kết nối', 'Mạng Internet đã hoạt động trở lại.', 5000);
                 });
-                
-                if (!navigator.onLine) {
-                    document.body.classList.add('is-offline');
-                    app.toast.currentOfflineToast = app.toast.show('offline', 'Mất kết nối Internet', 'Bạn đang ngoại tuyến. Dữ liệu sẽ không thể đồng bộ.', 0);
-                }
 
 
                 // Upload Form Auto-save Draft on Exit
