@@ -2508,7 +2508,7 @@ Object.assign(window.app, {
 
                         const last7AM = app.utils.getLast7AM_UTC7();
                         const { count } = await window.sb.from('photos')
-                            .select('*', { count: 'exact', head: true })
+                            .select('*', { count: 'estimated', head: true })
                             .gte('created_at', last7AM);
 
                         app.upload.currentQuota = { limit: limitNum, count: count || 0 };
@@ -3548,7 +3548,7 @@ Object.assign(window.app, {
                         // [BẢO VỆ] Kiểm tra xem ảnh này đã có yêu cầu nào đang chờ duyệt chưa
                         try {
                             const { count, error: checkErr } = await window.sb.from('edit_requests')
-                                .select('*', { count: 'exact', head: true })
+                                .select('*', { count: 'estimated', head: true })
                                 .eq('status', 'pending')
                                 .contains('new_data', { photo_id: p.id });
 
@@ -3639,14 +3639,14 @@ Object.assign(window.app, {
                         if (countEl) {
                             const { count: totalCount } = await window.sb
                                 .from('photo_comments')
-                                .select('*', { count: 'exact', head: true })
+                                .select('*', { count: 'estimated', head: true })
                                 .eq('photo_id', photoId);
                             countEl.innerText = totalCount || 0;
                         }
 
                         const result = await window.sb
                             .from('photo_comments')
-                            .select('*, profiles(id, username, avatar_url, role, subroles, ban_status)', { count: 'exact' })
+                            .select('*, profiles(id, username, avatar_url, role, subroles, ban_status)', { count: 'estimated' })
                             .eq('photo_id', photoId)
                             .is('parent_id', null)
                             .order('created_at', { ascending: false })
@@ -3660,7 +3660,7 @@ Object.assign(window.app, {
                             useThreads = false;
                             const fallback = await window.sb
                                 .from('photo_comments')
-                                .select('*, profiles(id, username, avatar_url, role, subroles, ban_status)', { count: 'exact' })
+                                .select('*, profiles(id, username, avatar_url, role, subroles, ban_status)', { count: 'estimated' })
                                 .eq('photo_id', photoId)
                                 .order('created_at', { ascending: false })
                                 .range(from, to);
@@ -4321,7 +4321,7 @@ Object.assign(window.app, {
                         } else {
                             try {
                                 // [BẢO VỆ] Kiểm tra xem đã có yêu cầu nào đang chờ duyệt cho xe này chưa
-                                const { count, error: checkErr } = await window.sb.from('edit_requests').select('*', { count: 'exact', head: true }).eq('license_plate', app.currentPlate).eq('status', 'pending').contains('new_data', { request_type: 'update_history' });
+                                const { count, error: checkErr } = await window.sb.from('edit_requests').select('*', { count: 'estimated', head: true }).eq('license_plate', app.currentPlate).eq('status', 'pending').contains('new_data', { request_type: 'update_history' });
                                 if (count > 0) return app.ui.showAlert("Có yêu cầu chỉnh sửa lịch sử khác đang chờ duyệt cho xe này. Vui lòng thử lại sau.");
 
                                 const reqData = {
@@ -4392,7 +4392,7 @@ Object.assign(window.app, {
                                     }).eq('id', history[0].id);
                                 }
                             } else {
-                                const { count } = await window.sb.from('vehicle_history').select('*', { count: 'exact', head: true }).eq('license_plate', plate);
+                                const { count } = await window.sb.from('vehicle_history').select('*', { count: 'estimated', head: true }).eq('license_plate', plate);
                                 await window.sb.from('vehicle_history').insert({
                                     license_plate: plate,
                                     effective_date: targetDate,
@@ -4488,7 +4488,7 @@ Object.assign(window.app, {
                             app.views.loadVehiclePage(plate, true);
                         } else {
                             // [BẢO VỆ] Kiểm tra xem đã có yêu cầu nào đang chờ duyệt cho xe này chưa
-                            const { count } = await window.sb.from('edit_requests').select('*', { count: 'exact', head: true }).eq('license_plate', plate).eq('status', 'pending').contains('new_data', { request_type: 'update_vehicle_details' });
+                            const { count } = await window.sb.from('edit_requests').select('*', { count: 'estimated', head: true }).eq('license_plate', plate).eq('status', 'pending').contains('new_data', { request_type: 'update_vehicle_details' });
                             if (count > 0) {
                                 btnSave.disabled = false; btnSave.innerHTML = 'Gửi yêu cầu';
                                 return app.ui.showAlert("Có yêu cầu chỉnh sửa hồ sơ khác đang chờ duyệt cho xe này. Vui lòng thử lại sau.");
@@ -4766,7 +4766,7 @@ Object.assign(window.app, {
                         } else {
                             // [BẢO VỆ] Kiểm tra xem ảnh này đã có yêu cầu nào đang chờ duyệt chưa
                             const { count, error: checkErr } = await window.sb.from('edit_requests')
-                                .select('*', { count: 'exact', head: true })
+                                .select('*', { count: 'estimated', head: true })
                                 .eq('status', 'pending')
                                 .contains('new_data', { photo_id: app.currentPhoto.id });
                                 

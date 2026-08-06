@@ -3008,7 +3008,7 @@ Object.assign(window.app, {
                     window.sb.removeChannel(app.realtimeChannel);
                 }
 
-                app.realtimeChannel = window.sb.channel('global-changes')
+                let channel = window.sb.channel('global-changes')
                     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'photos', filter: 'status=eq.approved' }, payload => {
                         if (app.currentViewMode === 'home') {
                             const now = Date.now();
@@ -3018,8 +3018,10 @@ Object.assign(window.app, {
                             app._lastHomeRealtimeReload = now;
                             app.views.loadHome(true);
                         }
-                    })
-                    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'admin_notes' }, payload => {
+                    });
+                    
+                if (app.role === 'admin' || app.role === 'manager') {
+                    channel = channel.on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'admin_notes' }, payload => {
                         if (payload.new && payload.new.id === 1) {
                             const noteEl = document.getElementById('adm-board-note');
                             if (noteEl && document.activeElement !== noteEl) {
@@ -3033,9 +3035,10 @@ Object.assign(window.app, {
                             if (noteEl && document.activeElement !== noteEl) {
                                 noteEl.value = payload.new.content || '';
                             }
-                        }
-                    })
-                    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'photos' }, payload => {
+                        });
+                }
+                
+                channel = channel.on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'photos' }, payload => {
                         if (app.currentPhoto && app.currentPhoto.id === payload.new.id) {
                             const viewEl = document.getElementById('stat-views');
                             if (viewEl) viewEl.innerText = payload.new.views || 0;
@@ -3085,9 +3088,10 @@ Object.assign(window.app, {
                                 }
                             }, 350);
                             if (app.admin && app.admin.refreshCounts) app.admin.refreshCounts();
-                        }
-                    })
-                    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'photos', filter: 'status=eq.pending' }, async payload => {
+                        });
+                        
+                if (app.role === 'admin' || app.role === 'manager') {
+                    channel = channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'photos', filter: 'status=eq.pending' }, async payload => {
                         if (app.adminTab === 'photos' && (app.role === 'admin' || app.role === 'manager') && payload.new && payload.new.id) {
                             try {
                                 const { data: newPhoto } = await window.sb.from('photos').select('*, profiles(username, role), vehicles(model)').eq('id', payload.new.id).maybeSingle();
@@ -3185,8 +3189,10 @@ Object.assign(window.app, {
                                 console.error('Realtime insert photo error:', err);
                             }
                         }
-                    })
-                    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'vehicles' }, payload => {
+                    });
+                }
+                
+                channel = channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'vehicles' }, payload => {
                         const upPlate = document.getElementById('up-plate');
                         if (document.getElementById('upload').classList.contains('active') && upPlate && upPlate.value) {
                             if (upPlate.value.replace(/[^A-Z0-9]/gi, '').toUpperCase() === payload.new.license_plate) {
@@ -3204,6 +3210,7 @@ Object.assign(window.app, {
                             app.setRealtimeStatus(false);
                         }
                     });
+                app.realtimeChannel = channel;
                 };
                 app.initRealtimeChannel();
 
@@ -3840,7 +3847,7 @@ Object.assign(window.app, {
                         const { data: { session } } = await window.sb.auth.getSession();
                         if (!session) return;
                         
-                        const { count } = await window.sb.from('photos').select('*', { count: 'exact', head: true }).eq('uploader_id', app.user.id).eq('status', 'approved');
+                        const { count } = await window.sb.from('photos').select('*', { count: 'estimated', head: true }).eq('uploader_id', app.user.id).eq('status', 'approved');
                         
                         const res = await fetch('/api/discord', {
                             method: 'POST',
@@ -4041,7 +4048,7 @@ Object.assign(window.app, {
                         }
 
                         const { count } = await window.sb.from('photos')
-                            .select('*', { count: 'exact', head: true })
+                            .select('*', { count: 'estimated', head: true })
                             .eq('uploader_id', app.user.id)
                             .eq('status', 'approved');
 
@@ -4448,7 +4455,7 @@ Object.assign(window.app, {
                                         const uDisplay = app.utils.formatProfileDisplay(user);
                                         if (uDisplay.isBanned) continue; // Ẩn hoàn toàn người dùng bị cấm khỏi search
 
-                                        const { count } = await window.sb.from('photos').select('*', { count: 'exact', head: true }).eq('uploader_id', user.id).eq('status', 'approved');
+                                        const { count } = await window.sb.from('photos').select('*', { count: 'estimated', head: true }).eq('uploader_id', user.id).eq('status', 'approved');
                                         const avatarSrc = uDisplay.avatar;
                                         const userBadges = app.utils.getBadgesHTML(user.id, user.role, user.subroles);
                                         uploaderCards.push(`
@@ -4691,7 +4698,7 @@ Object.assign(window.app, {
                         ? 'profiles!inner(id, username, role, subroles, ban_status)' 
                         : 'profiles(id, username, role, subroles, ban_status)';
                     
-                    let photoQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, ${profileSelect}, vehicles${needsModelJoin ? '!inner' : ''}(model)`, { count: 'exact' }).eq('status', 'approved');
+                    let photoQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, ${profileSelect}, vehicles${needsModelJoin ? '!inner' : ''}(model)`, { count: 'estimated' }).eq('status', 'approved');
                     photoQuery = app.preference.applyFilter(photoQuery);
 
                     if (filterType === 'route') {
@@ -4960,8 +4967,10 @@ dropdown.innerHTML = `
                         if (app.role === 'manager') {
                             document.getElementById('adm-tab-manager').classList.remove('hidden');
                         }
+                        if (typeof app.initRealtimeChannel === 'function') app.initRealtimeChannel();
                     } else {
                         document.getElementById('nav-admin').classList.add('hidden');
+                        if (typeof app.initRealtimeChannel === 'function') app.initRealtimeChannel();
                     }
 
                     // Đã tắt tự động nhảy sang Telegram
