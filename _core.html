@@ -4827,14 +4827,14 @@ div[id$="-modal"] > div > * {
                     </div>
                 </div>
 
-                <div id="adm-general-note" class="bg-yellow-50 border border-yellow-200 text-yellow-800 p-4 rounded-lg mb-6 shadow-sm flex flex-col gap-2 relative group hidden">
+                <div id="adm-general-note" class="bg-white border border-gray-200 text-gray-800 p-4 rounded-lg mb-6 shadow-sm flex flex-col gap-2 relative group hidden">
                     <div class="flex items-center gap-2 mb-1">
-                        <i class="fa-solid fa-clipboard-list"></i>
-                        <span class="font-bold text-sm uppercase">Ghi chú chung cho Admin / Manager</span>
+                        <i class="fa-solid fa-clipboard-list text-gray-600"></i>
+                        <span class="font-bold text-sm uppercase">Ghi chú chung</span>
                     </div>
-                    <textarea id="adm-board-note" class="w-full bg-yellow-100/50 border border-yellow-300 rounded p-3 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 min-h-[80px]" placeholder="Đang tải ghi chú..."></textarea>
+                    <textarea id="adm-board-note" class="w-full bg-gray-50 border border-gray-300 rounded p-3 text-sm focus:outline-none focus:ring-2 focus:ring-black min-h-[80px] transition-colors" placeholder="Đang tải ghi chú..."></textarea>
                     <div class="flex justify-end mt-1">
-                        <button id="btn-save-adm-note" onclick="app.admin.saveBoardNote(this)" class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-1.5 px-4 rounded text-xs transition"><i class="fa-solid fa-floppy-disk mr-1"></i> Lưu ghi chú</button>
+                        <button id="btn-save-adm-note" onclick="app.admin.saveBoardNote(this)" class="bg-black hover:bg-gray-800 text-white font-bold py-1.5 px-4 rounded text-xs transition"><i class="fa-solid fa-floppy-disk mr-1"></i> Lưu ghi chú</button>
                     </div>
                 </div>
 
