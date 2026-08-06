@@ -3116,10 +3116,9 @@ Object.assign(window.app, {
                                         }
                                         const opKey = app.utils.cleanText(newPhoto.operator || '').trim().toLowerCase();
                                         if (opKey && opKey !== '---' && !opSet.has(opKey)) {
-                                            const { data: vData } = await window.sb.from('vehicles').select('operator').ilike('operator', opKey).limit(1);
                                             const { data: oData } = await window.sb.from('operator_info').select('operator_name').ilike('operator_name', opKey).limit(1);
                                             const { data: pData } = await window.sb.from('photos').select('operator').eq('status', 'approved').ilike('operator', opKey).limit(1);
-                                            if ((vData && vData.length > 0) || (oData && oData.length > 0) || (pData && pData.length > 0)) opSet.add(opKey);
+                                            if ((oData && oData.length > 0) || (pData && pData.length > 0)) opSet.add(opKey);
                                         }
                                         const routeKey = app.utils.cleanText(newPhoto.route_no || '').trim().toLowerCase();
                                         if (routeKey && routeKey !== '---' && !routeSet.has(routeKey)) {
@@ -3130,9 +3129,8 @@ Object.assign(window.app, {
                                                 const pad = stripped.padStart(2, '0');
                                                 variants.push(num, pad, 'tuyến ' + num, 'tuyến ' + pad);
                                             }
-                                            const { data: vData } = await window.sb.from('vehicles').select('route_no').in('route_no', variants).limit(1);
                                             const { data: pData } = await window.sb.from('photos').select('route_no').eq('status', 'approved').in('route_no', variants).limit(1);
-                                            if ((vData && vData.length > 0) || (pData && pData.length > 0)) {
+                                            if (pData && pData.length > 0) {
                                                 variants.forEach(v => routeSet.add(v.toLowerCase()));
                                             }
                                         }

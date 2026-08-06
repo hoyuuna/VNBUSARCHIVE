@@ -839,18 +839,14 @@ Object.assign(window.app, {
                                 opsVariants.length > 0 ? window.sb.from('photos').select('operator').eq('status', 'approved').in('operator', opsVariants).then(r => {
                                     (r.data || []).forEach(p => { if (p.operator && p.operator !== '---' && p.operator !== 'Đang cập nhật') approvedOpSet.add(app.utils.cleanText(p.operator).trim().toLowerCase()); });
                                 }).catch(() => {}) : Promise.resolve(),
-                                opsVariants.length > 0 ? window.sb.from('vehicles').select('operator, photos!inner(status)').eq('photos.status', 'approved').in('operator', opsVariants).then(r => {
-                                    (r.data || []).forEach(v => { if (v.photos && v.photos.length > 0 && v.operator && v.operator !== '---' && v.operator !== 'Đang cập nhật') approvedOpSet.add(app.utils.cleanText(v.operator).trim().toLowerCase()); });
-                                }).catch(() => {}) : Promise.resolve(),
+
                                 opsVariants.length > 0 ? window.sb.from('operator_info').select('operator_name').in('operator_name', opsVariants).then(r => {
                                     (r.data || []).forEach(o => { if (o.operator_name) approvedOpSet.add(app.utils.cleanText(o.operator_name).trim().toLowerCase()); });
                                 }).catch(() => {}) : Promise.resolve(),
                                 routesVariants.length > 0 ? window.sb.from('photos').select('route_no').eq('status', 'approved').in('route_no', routesVariants).then(r => {
                                     (r.data || []).forEach(p => { if (p.route_no && p.route_no !== '---') addRouteVariants(approvedRouteSet, p.route_no); });
                                 }).catch(() => {}) : Promise.resolve(),
-                                routesVariants.length > 0 ? window.sb.from('vehicles').select('route_no, photos!inner(status)').eq('photos.status', 'approved').in('route_no', routesVariants).then(r => {
-                                    (r.data || []).forEach(v => { if (v.photos && v.photos.length > 0 && v.route_no && v.route_no !== '---') addRouteVariants(approvedRouteSet, v.route_no); });
-                                }).catch(() => {}) : Promise.resolve(),
+
                                 modelsVariants.length > 0 ? window.sb.from('vehicles').select('model, photos!inner(status)').eq('photos.status', 'approved').in('model', modelsVariants).then(r => {
                                     (r.data || []).forEach(v => { if (v.photos && v.photos.length > 0 && v.model && v.model !== '---') approvedModelSet.add(app.utils.cleanText(v.model).trim().toLowerCase()); });
                                 }).catch(() => {}) : Promise.resolve()
