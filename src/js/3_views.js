@@ -2596,7 +2596,7 @@ Object.assign(window.app, {
                         const childOps = rawChildOps.filter(op => {
                             const parents = op.parent_operator.split(';').map(s => app.utils.normOperator(s).toLowerCase());
                             return parents.includes(targetNorm);
-                        });
+                        }).sort((a, b) => a.operator_name.localeCompare(b.operator_name, 'vi'));
                         
                         const logoEl = document.getElementById('operator-logo');
                         const fallbackEl = document.getElementById('operator-logo-fallback');
@@ -2651,7 +2651,7 @@ Object.assign(window.app, {
                             }
                         }
                         if (childOps && childOps.length > 0) {
-                            const childLinks = [...childOps].sort((a, b) => a.operator_name.localeCompare(b.operator_name, 'vi')).map(c => {
+                            const childLinks = childOps.map(c => {
                                 let isChildInactive = c.description && c.description.startsWith('[STOPPED]');
                                 const classes = isChildInactive ? "text-gray-400 opacity-70 font-bold leading-tight" : "text-black font-bold hover:underline leading-tight";
                                 const suffix = isChildInactive ? " (Dừng hoạt động)" : "";
