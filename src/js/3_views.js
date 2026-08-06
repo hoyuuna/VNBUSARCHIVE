@@ -884,7 +884,12 @@ Object.assign(window.app, {
                     const likedSection = document.getElementById('acc-liked-section');
                     const reportBtn = document.getElementById('btn-report-profile');
                     const editProfileBtn = document.getElementById('btn-edit-profile');
-                    const manageCommentBtn = document.getElementById('btn-manage-comments'); // Lấy nút Quản lý BL
+                    const shareProfileBtn = document.getElementById('btn-share-profile');
+                    const manageCommentBtn = document.getElementById('btn-manage-comments'); 
+                    
+                    if (shareProfileBtn) {
+                        shareProfileBtn.onclick = () => app.utils.shareProfile(targetUserId, displayUsername);
+                    }
 
                     if (isOwnProfile) {
                         likedSection.classList.remove('hidden');

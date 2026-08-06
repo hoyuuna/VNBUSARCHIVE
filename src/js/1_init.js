@@ -1443,6 +1443,24 @@ cleanupState: () => {
                     container.innerHTML = '';
                     container.appendChild(wrap);
                 },
+                shareProfile: (userId, userName) => {
+                    const id = userId || app.user?.id;
+                    const name = userName || app.user?.username || 'Người dùng';
+                    if (!id) return;
+                    const profileUrl = window.location.origin + '/user/' + id;
+                    if (navigator.share) {
+                        navigator.share({
+                            title: 'Hồ sơ của ' + name,
+                            url: profileUrl
+                        }).catch(console.error);
+                    } else {
+                        navigator.clipboard.writeText(profileUrl).then(() => {
+                            app.toast.show('success', 'Thành công', 'Đã sao chép liên kết hồ sơ!', 3000);
+                        }).catch(() => {
+                            app.toast.show('error', 'Lỗi', 'Không thể sao chép liên kết.', 3000);
+                        });
+                    }
+                },
                 updateBreadcrumbs: () => {
                     const state = window.history.state;
                     const parent = state?.parentInfo || { name: "Trang chủ", url: "/" };

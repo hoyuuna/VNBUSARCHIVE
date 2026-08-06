@@ -4855,10 +4855,16 @@ div[id$="-modal"] > div > * {
                             </div>
                             <h2 id="acc-name" class="font-bold text-lg text-black mb-3.5">...</h2>
 
-                            <button id="btn-edit-profile" onclick="app.settings.open('profile', 'account')"
-                                class="hidden mx-auto bg-gray-100 hover:bg-black hover:text-white text-gray-800 text-xs font-bold py-2 px-4 rounded-lg items-center justify-center gap-1.5 transition mb-4 mt-1 shadow-sm border border-gray-200">
-                                <i class="fa-solid fa-pen-to-square"></i> Sửa hồ sơ
-                            </button>
+                            <div class="flex items-center justify-center gap-2 mb-4 mt-1">
+                                <button id="btn-edit-profile" onclick="app.settings.open('profile', 'account')"
+                                    class="hidden bg-gray-100 hover:bg-black hover:text-white text-gray-800 text-xs font-bold py-2 px-4 rounded-lg items-center justify-center gap-1.5 transition shadow-sm border border-gray-200">
+                                    <i class="fa-solid fa-pen-to-square"></i> Sửa hồ sơ
+                                </button>
+                                <button id="btn-share-profile" onclick="app.utils.shareProfile()"
+                                    class="flex bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white text-xs font-bold py-2 px-4 rounded-lg items-center justify-center gap-1.5 transition shadow-sm border border-blue-200">
+                                    <i class="fa-solid fa-share-nodes"></i> Chia sẻ
+                                </button>
+                            </div>
 
                             <button id="btn-report-profile" onclick="app.views.loadContact()"
                                 class="hidden mx-auto text-[10px] text-red-500 hover:text-red-700 font-bold items-center gap-1 transition mb-4">
