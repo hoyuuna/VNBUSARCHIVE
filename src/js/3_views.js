@@ -2925,47 +2925,10 @@ Object.assign(window.app, {
 
                         // --- XỬ LÝ ẢNH ĐƠN VỊ CON ---
                         if (childOps && childOps.length > 0) {
-                            const childPhotosHtml = [];
-                            
-                            for (const child of childOps) {
-                                let cQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
-                                    .eq('status', 'approved')
-                                    .ilike('operator', child.operator_name)
-                                    .order('taken_at', { ascending: false, nullsFirst: false })
-                                    .order('created_at', { ascending: false })
-                                    .limit(4);
-                                
-                                cQuery = app.preference.applyFilter(cQuery);
-                                const { data: cPhotos, error: cErr } = await cQuery;
-                                
-                                if (!cErr && cPhotos && cPhotos.length > 0) {
-                                    const encodedName = encodeURIComponent(child.operator_name);
-                                    let html = `
-                                        <div class="child-operator-section">
-                                            <div class="flex items-center gap-2 mb-3">
-                                                <h4 class="text-md font-bold uppercase text-black tracking-tight">${app.utils.escapeHtml(child.operator_name)}</h4>
-                                            </div>
-                                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                                ${cPhotos.map(p => app.views.renderPhotoCard(p)).join('')}
-                                            </div>
-                                            <div class="text-center mt-4">
-                                                <button onclick="app.utils.navigate('/operator/' + encodeURIComponent('${app.utils.escapeAttr(child.operator_name)}'))" class="bg-white border border-gray-300 text-gray-700 px-6 py-2 text-sm font-bold rounded-md hover:bg-gray-50 hover:border-gray-400 transition shadow-sm">
-                                                    Xem chi tiết đơn vị này <i class="fa-solid fa-arrow-right ml-1"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    `;
-                                    childPhotosHtml.push(html);
-                                }
-                            }
-                            
-                            if (childPhotosHtml.length > 0) {
-                                document.getElementById('op-child-photos-wrapper').classList.remove('hidden');
-                                document.getElementById('op-child-photos-container').innerHTML = childPhotosHtml.join('');
-                            } else {
-                                document.getElementById('op-child-photos-wrapper').classList.add('hidden');
-                            }
+                            app.operator.allChildOps = childOps;
+                            await app.views.fetchChildOpsPage(1);
                         } else {
+                            app.operator.allChildOps = [];
                             document.getElementById('op-child-photos-wrapper').classList.add('hidden');
                         }
 
