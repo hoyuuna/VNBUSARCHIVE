@@ -3015,57 +3015,24 @@ Object.assign(window.app, {
                 
                 renderChildOpsPagination: () => {
                     const paginator = document.getElementById('op-child-pagination');
-                    const totalPages = app.operator.childOpsTotalPages || 1;
-                    const currentPage = app.operator.childOpsCurrentPage || 1;
-                    
-                    if (totalPages <= 1) {
+                    if (paginator) {
                         paginator.innerHTML = '';
-                        return;
-                    }
-
-                    let html = '<div class="flex justify-center items-center gap-2 flex-wrap">';
-                    
-                    // Prev Button
-                    if (currentPage > 1) {
-                        html += `<button onclick="app.views.fetchChildOpsPage(${currentPage - 1})" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-50 font-medium">Trước</button>`;
-                    } else {
-                        html += `<button disabled class="px-3 py-1 bg-gray-100 border border-gray-200 text-gray-400 rounded font-medium cursor-not-allowed">Trước</button>`;
-                    }
-                    
-                    // Page numbers
-                    let startPage = Math.max(1, currentPage - 2);
-                    let endPage = Math.min(totalPages, startPage + 4);
-                    if (endPage - startPage < 4) {
-                        startPage = Math.max(1, endPage - 4);
-                    }
-
-                    if (startPage > 1) {
-                        html += `<button onclick="app.views.fetchChildOpsPage(1)" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-50 font-medium">1</button>`;
-                        if (startPage > 2) html += `<span class="text-gray-500 px-1">...</span>`;
-                    }
-
-                    for (let i = startPage; i <= endPage; i++) {
-                        if (i === currentPage) {
-                            html += `<button class="px-3 py-1 bg-black text-white border border-black rounded font-bold">${i}</button>`;
+                        if (app.operator.childOpsTotalPages > 1) {
+                            paginator.classList.remove('hidden');
+                            app.utils.renderPagination('op-child-pagination', app.operator.childOpsCurrentPage, app.operator.childOpsTotalPages, (newPage) => {
+                                const container = document.getElementById('op-child-photos-container');
+                                if (container) {
+                                    const offset = 80; 
+                                    const elementPosition = container.getBoundingClientRect().top;
+                                    const offsetPosition = elementPosition + window.pageYOffset - offset;
+                                    window.scrollTo({ top: offsetPosition, behavior: "smooth" });
+                                }
+                                app.views.fetchChildOpsPage(newPage);
+                            });
                         } else {
-                            html += `<button onclick="app.views.fetchChildOpsPage(${i})" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-50 font-medium">${i}</button>`;
+                            paginator.classList.add('hidden');
                         }
                     }
-
-                    if (endPage < totalPages) {
-                        if (endPage < totalPages - 1) html += `<span class="text-gray-500 px-1">...</span>`;
-                        html += `<button onclick="app.views.fetchChildOpsPage(${totalPages})" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-50 font-medium">${totalPages}</button>`;
-                    }
-                    
-                    // Next Button
-                    if (currentPage < totalPages) {
-                        html += `<button onclick="app.views.fetchChildOpsPage(${currentPage + 1})" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-50 font-medium">Tiếp</button>`;
-                    } else {
-                        html += `<button disabled class="px-3 py-1 bg-gray-100 border border-gray-200 text-gray-400 rounded font-medium cursor-not-allowed">Tiếp</button>`;
-                    }
-                    
-                    html += '</div>';
-                    paginator.innerHTML = html;
                 },
 
                 fetchOperatorPhotosPage: async (page) => {
