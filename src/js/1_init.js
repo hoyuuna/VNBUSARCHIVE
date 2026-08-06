@@ -3035,7 +3035,8 @@ Object.assign(window.app, {
                             if (noteEl && document.activeElement !== noteEl) {
                                 noteEl.value = payload.new.content || '';
                             }
-                        });
+                        }
+                    });
                 }
                 
                 channel = channel.on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'photos' }, payload => {
@@ -3088,7 +3089,8 @@ Object.assign(window.app, {
                                 }
                             }, 350);
                             if (app.admin && app.admin.refreshCounts) app.admin.refreshCounts();
-                        });
+                        }
+                    });
                         
                 if (app.role === 'admin' || app.role === 'manager') {
                     channel = channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'photos', filter: 'status=eq.pending' }, async payload => {
