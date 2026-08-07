@@ -4176,7 +4176,6 @@ Object.assign(window.app, {
                 },
 
                 renderEditList: (prefix = app.vehicle.currentHistoryPrefix) => {
-                    app.vehicle.sortTempHistory();
                     const container = document.getElementById(prefix + 'sortable-history');
                     container.innerHTML = '';
 
@@ -4231,7 +4230,6 @@ Object.assign(window.app, {
                             return app.vehicle.renderEditList(prefix);
                         }
                         app.vehicle.tempHistory[index][field] = parsed || '';
-                        app.vehicle.renderEditList(prefix);
                     } else {
                         app.vehicle.tempHistory[index][field] = value;
                     }
