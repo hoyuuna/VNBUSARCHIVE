@@ -1098,7 +1098,20 @@ Object.assign(window.app, {
                         }
 
                         const proxyUrl = app.utils.getProxiedUrl(p.url, 'profile.jpg', 'thumb');
-                        if (proxyUrl === 'SANDBOX_DELETED' || p._isSandboxMissing) {
+                        if (p.url === 'https://cdn.vnbusarchive.io.vn/file/daonguyenthanhnhan') {
+                            return `
+                                <div class="${cardStyleClasses}" onclick="app.views.loadDetail('${p.id}')">
+                                    <div class="w-full h-full bg-gray-500 flex flex-col items-center justify-center p-2 text-center text-white select-none">
+                                        <i class="fa-solid fa-clock-rotate-left text-xl text-gray-300 mb-1"></i>
+                                        <span class="font-bold text-xs tracking-wider">${app.utils.cleanText(app.utils.displayPlate(p.license_plate))}</span>
+                                        <span class="text-[10px] text-gray-200 mt-0.5">Ảnh đã bị xóa</span>
+                                    </div>
+                                    <div class="absolute bottom-0 left-0 bg-black/70 text-white text-[10px] w-full p-1.5 backdrop-blur-sm transition-all duration-300">
+                                        ${textHtml}
+                                    </div>
+                                </div>
+                            `;
+                        } else if (proxyUrl === 'SANDBOX_DELETED' || p._isSandboxMissing) {
                             return `
                                 <div class="${cardStyleClasses}" onclick="app.views.loadDetail('${p.id}')">
                                     <div class="w-full h-full bg-gray-500 flex flex-col items-center justify-center p-2 text-center text-white select-none">
@@ -1695,7 +1708,20 @@ Object.assign(window.app, {
                     const errBox2 = wrapper2 ? wrapper2.querySelector('.img-error') : null;
                     const spinner2 = wrapper2 ? wrapper2.querySelector('.img-spinner') : null;
 
-                    if (proxyUrl === 'SANDBOX_DELETED' || photo._isSandboxMissing) {
+                    if (photo.url === 'https://cdn.vnbusarchive.io.vn/file/daonguyenthanhnhan') {
+                        imgEl.style.display = 'none';
+                        if (spinner2) spinner2.style.display = 'none';
+                        if (errBox2) {
+                            errBox2.className = "img-error absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-gray-200 text-gray-800 z-10 select-none rounded-md";
+                            errBox2.innerHTML = `
+                                <i class="fa-solid fa-clock-rotate-left text-gray-500 text-5xl mb-4"></i>
+                                <p class="text-base text-gray-800 font-bold mb-2">Ảnh bị từ chối đã xóa sau 15 ngày</p>
+                                <p class="text-sm text-gray-600 mb-4">Bạn sẽ không thể thực hiện kháng cáo. Bạn có thể xóa thông tin khỏi cơ sở dữ liệu bằng cách Yêu cầu xóa ảnh.</p>
+                                <button onclick="app.photo.requestDelete()" class="px-4 py-2 border border-red-500 text-red-600 bg-white hover:bg-red-50 font-bold rounded-md shadow-sm transition"><i class="fa-solid fa-trash-can mr-1"></i> Yêu cầu xóa ảnh</button>
+                            `;
+                            errBox2.classList.remove('hidden');
+                        }
+                    } else if (proxyUrl === 'SANDBOX_DELETED' || photo._isSandboxMissing) {
                         imgEl.style.display = 'none';
                         if (spinner2) spinner2.style.display = 'none';
                         if (errBox2) {
