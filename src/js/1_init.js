@@ -1682,7 +1682,7 @@ cleanupState: () => {
                     const list = Array.isArray(items) ? items : [items];
                     list.forEach(item => {
                         if (item && typeof item === 'object' && item.url && typeof item.url === 'string') {
-                            if (item.url.startsWith('sandbox:') || item.url.startsWith('data:')) {
+                            if (item.url.startsWith('sandbox:') || item.url.startsWith('data:') || item.url === 'https://cdn.vnbusarchive.io.vn/file/daonguyenthanhnhan') {
                                 item._isSandboxMissing = true;
                             }
                         }
@@ -1691,8 +1691,8 @@ cleanupState: () => {
 
                 getProxiedUrl: (url, filename = 'image.jpg', type = 'full') => {
                     if (!url) return '';
-                    // Dữ liệu cũ dạng sandbox:/data: không còn hợp lệ -> trả về rỗng để UI hiện placeholder
-                    if (typeof url === 'string' && (url.startsWith('data:') || url.startsWith('sandbox:'))) return '';
+                    // Dữ liệu cũ dạng sandbox:/data: hoặc link ảnh xóa không hợp lệ -> trả về rỗng để UI hiện placeholder
+                    if (typeof url === 'string' && (url.startsWith('data:') || url.startsWith('sandbox:') || url === 'https://cdn.vnbusarchive.io.vn/file/daonguyenthanhnhan')) return '';
 
                     const safeName = filename.replace(/[^a-z0-9A-Z.-]/gi, '_');
 
