@@ -2380,7 +2380,7 @@ Object.assign(window.app, {
                                 <h4 class="font-bold text-xs text-amber-900 mt-4 mb-2">Thêm mốc lịch sử mới</h4>
                                 <div class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center bg-white p-3 border border-gray-200 rounded-md text-xs">
                                     <input type="text" id="veh-hist-new-plate" placeholder="Biển số (tùy chọn)" class="hist-input sm:flex-1" oninput="app.utils.formatPlateInput(this)">
-                                    <input type="date" id="veh-hist-new-date" class="hist-input sm:flex-1" title="Ngày áp dụng">
+                                    <input type="text" id="veh-hist-new-date" class="hist-input sm:flex-1 text-center font-mono" placeholder="DD/MM/YYYY" maxlength="10" oninput="app.utils.formatDateInput(this)" title="Ngày áp dụng">
                                     <input type="text" id="veh-hist-new-op" placeholder="Đơn vị vận hành" class="hist-input sm:flex-1" oninput="app.utils.formatNoPunctuation(this)">
                                     <input type="text" id="veh-hist-new-route" placeholder="Mã số tuyến" class="hist-input sm:flex-1">
                                     <input type="text" id="veh-hist-new-note" placeholder="Ghi chú" class="hist-input sm:flex-1">

@@ -1207,9 +1207,9 @@ Object.assign(window.app, {
                                                     <span class="admin-label">Biển số cũ ${plateTag}</span>
                                                     <input type="text" id="req-h-plate-${r.id}-${i}" value="${app.utils.escapeAttr(h.plate || '')}" class="admin-input font-bold" oninput="app.utils.formatPlateInput(this)" onchange="app.admin.checkPlateAdmin(this, '${r.id}_${i}', 'req-h')">
                                                 </div>
-                                                <div>
-                                                    <span class="admin-label">Ngày hiệu lực ${dateTag}</span>
-                                                    <input type="date" id="req-h-date-${r.id}-${i}" value="${h.effective_date || ''}" class="admin-input">
+                                                <div class="flex flex-col min-w-[120px] flex-1">
+                                                    <label class="text-[10px] text-gray-500 font-bold mb-1 ml-1 uppercase">Ngày ${dateTag}</label>
+                                                    <input type="text" id="req-h-date-${r.id}-${i}" placeholder="DD/MM/YYYY" maxlength="10" oninput="app.utils.formatDateInput(this)" value="${app.utils.escapeAttr(app.utils.formatDateToDDMMYYYY(h.effective_date) || '')}" class="admin-input font-mono text-center">
                                                 </div>
                                             </div>
                                             <div class="grid grid-cols-2 gap-2 mb-2">
@@ -2857,7 +2857,7 @@ app.admin.fetchManagerData('denied');
                     }
                 },
 
-                // --- ĐÂY LÀ 2 HÀM BẠN ĐANG THIẾU DẪN ĐẾN LỖI ---
+                // --- CÁC HÀM MỚI CHO TÍNH NĂNG CẤU HÌNH ---
                 renderManagerSettings: async () => {
                     const container = document.getElementById('mgr-settings-content');
                     container.innerHTML = '<p class="text-gray-500 italic"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Đang tải dữ liệu...</p>';
@@ -2975,8 +2975,7 @@ app.admin.fetchManagerData('denied');
                         btn.disabled = false;
                     }
                 },
-                // ------------------------------------------
-
+                
                 approvePhoto: async (id, uploaderId, btn) => {
                     if (app.isRealtimeConnected === false) {
                         return app.ui.showAlert("Mất kết nối Realtime với máy chủ! Đã tạm khóa chức năng duyệt và can thiệp ảnh để tránh lệch dữ liệu.");
@@ -3362,16 +3361,22 @@ app.admin.fetchManagerData('denied');
 
                         else {
                             let newItems = [];
+                            let hasError = false;
                             if (reqType === 'history') {
                                 // Lấy từ input
                                 for (let i = 0; i < historyCount; i++) {
+                                    const rDate = document.getElementById(`req-h-date-${id}-${i}`).value;
+                                    const parsedDate = app.utils.parseDDMMYYYYToDate(rDate);
+                                    if (rDate && !parsedDate) {
+                                        hasError = true;
+                                    }
                                     newItems.push({
                                         license_plate: req.license_plate,
                                         plate: document.getElementById(`req-h-plate-${id}-${i}`).value || null,
                                         operator: document.getElementById(`req-h-op-${id}-${i}`).value,
                                         route: document.getElementById(`req-h-route-${id}-${i}`).value,
                                         note: document.getElementById(`req-h-note-${id}-${i}`).value,
-                                        effective_date: document.getElementById(`req-h-date-${id}-${i}`).value || null,
+                                        effective_date: parsedDate || null,
                                         display_order: i
                                     });
                                 }
@@ -3394,6 +3399,10 @@ app.admin.fetchManagerData('denied');
                             const currentPlate = req.license_plate;
                             const newHistoryPlates = [...new Set(newItems.map(p => p.plate).filter(p => p && p !== currentPlate))];
                             
+                            if (hasError) {
+                                return app.ui.showAlert("Có lỗi ở mốc thời gian lịch sử! Vui lòng kiểm tra và nhập đúng định dạng DD/MM/YYYY.");
+                            }
+
                             // 1. Tách (Un-merge) các xe đã bị loại khỏi lịch sử
                             const { data: unmergeCandidates } = await window.sb.from('vehicles').select('license_plate, note').like('note', `%[MERGED_INTO:${currentPlate}]%`);
                             if (unmergeCandidates) {

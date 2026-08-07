@@ -4190,7 +4190,7 @@ Object.assign(window.app, {
                             </div>
                             <div class="flex flex-col sm:flex-1 min-w-0">
                                 <span class="sm:hidden font-bold text-gray-500 mb-1">Ngày áp dụng</span>
-                                <input type="date" value="${app.utils.escapeAttr(h.effective_date || '')}" onchange="app.vehicle.updateHistoryItem(${index}, 'effective_date', this.value, '${prefix}')" class="hist-input">
+                                <input type="text" placeholder="DD/MM/YYYY" maxlength="10" oninput="app.utils.formatDateInput(this)" value="${app.utils.escapeAttr(app.utils.formatDateToDDMMYYYY(h.effective_date) || '')}" onchange="app.vehicle.updateHistoryItem(${index}, 'effective_date', this.value, '${prefix}')" class="hist-input text-center font-mono w-28">
                             </div>
                             <div class="flex flex-col sm:flex-1 min-w-0">
                                 <span class="sm:hidden font-bold text-gray-500 mb-1">Đơn vị</span>
@@ -4224,9 +4224,16 @@ Object.assign(window.app, {
                 },
 
                 updateHistoryItem: (index, field, value, prefix) => {
-                    app.vehicle.tempHistory[index][field] = value;
                     if (field === 'effective_date') {
+                        const parsed = app.utils.parseDDMMYYYYToDate(value);
+                        if (!parsed && value.trim() !== '') {
+                            app.ui.showAlert("Ngày không hợp lệ! Vui lòng nhập đúng định dạng DD/MM/YYYY (ví dụ: 15/08/2023).");
+                            return app.vehicle.renderEditList(prefix);
+                        }
+                        app.vehicle.tempHistory[index][field] = parsed || '';
                         app.vehicle.renderEditList(prefix);
+                    } else {
+                        app.vehicle.tempHistory[index][field] = value;
                     }
                 },
 
@@ -4237,13 +4244,15 @@ Object.assign(window.app, {
                 },
 
                 addHistoryItem: (prefix = '') => {
-                    const dateVal = document.getElementById(prefix + 'hist-new-date').value;
+                    const rawDate = document.getElementById(prefix + 'hist-new-date').value;
+                    const dateVal = app.utils.parseDDMMYYYYToDate(rawDate);
                     const op = document.getElementById(prefix + 'hist-new-op').value;
                     const route = document.getElementById(prefix + 'hist-new-route').value;
                     const note = document.getElementById(prefix + 'hist-new-note') ? document.getElementById(prefix + 'hist-new-note').value : '';
                     const plate = document.getElementById(prefix + 'hist-new-plate') ? document.getElementById(prefix + 'hist-new-plate').value.trim() : '';
 
-                    if(!dateVal || !op) return app.ui.showAlert("Vui lòng nhập Ngày áp dụng và Đơn vị vận hành!");
+                    if(!rawDate || !op) return app.ui.showAlert("Vui lòng nhập Ngày áp dụng và Đơn vị vận hành!");
+                    if(!dateVal) return app.ui.showAlert("Ngày không hợp lệ! Vui lòng nhập đúng định dạng DD/MM/YYYY.");
 
                     app.vehicle.tempHistory.push({
                         license_plate: app.currentPlate,

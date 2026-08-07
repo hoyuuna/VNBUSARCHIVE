@@ -1482,6 +1482,44 @@ cleanupState: () => {
                         el.setSelectionRange(start, end);
                     }
                 },
+                formatDateInput: (el) => {
+                    let val = el.value.replace(/\D/g, '');
+                    if (val.length > 8) val = val.substring(0, 8);
+                    let formatted = '';
+                    if (val.length > 0) formatted += val.substring(0, 2);
+                    if (val.length > 2) formatted += '/' + val.substring(2, 4);
+                    if (val.length > 4) formatted += '/' + val.substring(4, 8);
+                    
+                    const oldLen = el.value.length;
+                    const oldStart = el.selectionStart;
+                    el.value = formatted;
+                    const diff = formatted.length - oldLen;
+                    el.setSelectionRange(oldStart + diff, oldStart + diff);
+                },
+                formatDateToDDMMYYYY: (dateStr) => {
+                    if (!dateStr) return '';
+                    const parts = dateStr.split('-');
+                    if (parts.length === 3) {
+                        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+                    }
+                    return dateStr;
+                },
+                parseDDMMYYYYToDate: (str) => {
+                    if (!str || str.length !== 10) return null;
+                    const parts = str.split('/');
+                    if (parts.length !== 3) return null;
+                    const d = parseInt(parts[0], 10);
+                    const m = parseInt(parts[1], 10);
+                    const y = parseInt(parts[2], 10);
+                    
+                    if (isNaN(d) || isNaN(m) || isNaN(y)) return null;
+                    if (m < 1 || m > 12) return null;
+                    const daysInMonth = new Date(y, m, 0).getDate();
+                    if (d < 1 || d > daysInMonth) return null;
+                    if (y < 1900 || y > 2100) return null;
+                    
+                    return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                },
                 formatNoPunctuation: (el) => {
                     // Đã gỡ bỏ giới hạn dấu câu theo yêu cầu (cho phép người dùng nhập tự do)
                     return;
