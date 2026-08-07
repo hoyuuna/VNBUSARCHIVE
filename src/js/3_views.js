@@ -1426,6 +1426,10 @@ Object.assign(window.app, {
                     // --- RESET UI AN TOÀN TRƯỚC KHI TẢI DATA ---
                     document.getElementById('detail-title').innerText = 'Đang tải dữ liệu...';
                     document.getElementById('crumb-model').innerText = '...';
+
+                    const btnToggleEdit = document.getElementById('btn-toggle-edit');
+                    if (btnToggleEdit) btnToggleEdit.disabled = true;
+
                     
                     const imgEl = document.getElementById('detail-img');
                     if (imgEl) {
@@ -1508,6 +1512,7 @@ Object.assign(window.app, {
 
                     app.currentPhoto = photo;
                     app.currentPlate = photo.license_plate;
+                    if (btnToggleEdit) btnToggleEdit.disabled = false;
                     await app.utils.resolveSandboxUrls([photo]);
                     const v = photo.vehicles;
 

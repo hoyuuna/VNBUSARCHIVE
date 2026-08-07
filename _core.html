@@ -3693,8 +3693,8 @@ div[id$="-modal"] > div > * {
 
                                 <!-- Nút Sửa hiện ở đáy thay vì đè lên viền bảng -->
                                 <div id="edit-trigger-container" class="mt-3">
-                                    <button type="button" id="btn-toggle-edit" onclick="app.edit.toggleInlineEdit()"
-                                        class="w-full bg-white border border-gray-300 text-gray-700 py-2.5 text-sm font-bold rounded-md hover:bg-gray-50 transition shadow-sm flex justify-center items-center gap-1.5">
+                                    <button type="button" id="btn-toggle-edit" onclick="app.edit.toggleInlineEdit()" disabled
+                                        class="w-full bg-white border border-gray-300 text-gray-700 py-2.5 text-sm font-bold rounded-md hover:bg-gray-50 transition shadow-sm flex justify-center items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
                                         <i class="fa-solid fa-pen-to-square"></i> <span id="btn-edit-label">Sửa thông tin ảnh</span>
                                     </button>
                                 </div>
