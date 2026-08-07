@@ -2262,6 +2262,13 @@ Object.assign(window.app, {
                         return app.ui.showAlert(msg, null, null, { title: "Thiếu thông tin" });
                     }
 
+                    const btn = document.getElementById('btn-submit');
+                    if (btn.disabled || btn.dataset.submitting === "true") return;
+                    const originalText = btn.innerHTML;
+                    btn.disabled = true;
+                    btn.dataset.submitting = "true";
+                    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...`;
+
                     // 1. Kích hoạt mở Captcha NGAY LẬP TỨC để phản ứng tức thời (0ms delay)
                     const captchaPromise = app.captcha.request();
 
@@ -2304,14 +2311,13 @@ Object.assign(window.app, {
                     try {
                         captchaResponse = await captchaPromise;
                     } catch (err) {
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                        delete btn.dataset.submitting;
                         if (err.message === "CAPTCHA_CANCELLED") return; 
                         return app.ui.showAlert("Lỗi xác thực Captcha.");
                     }
 
-                    const btn = document.getElementById('btn-submit');
-                    const originalText = btn.innerHTML;
-
-                    btn.disabled = true;
                     btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang nén ảnh...`;
 
                     // Giao tiếp qua Toast
@@ -2400,6 +2406,7 @@ Object.assign(window.app, {
                     } finally {
                         btn.innerHTML = originalText;
                         btn.disabled = false;
+                        delete btn.dataset.submitting;
                     }
                 },
 
