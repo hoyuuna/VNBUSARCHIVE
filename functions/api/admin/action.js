@@ -156,7 +156,8 @@ export async function onRequestPost(context) {
                 route_no: route,
                 review_progress: newProgress,
                 reviewer_count: newReviewerCount,
-                needs_third: needsThird
+                needs_third: needsThird,
+                audit_date: new Date().toISOString()
             }).eq('id', photoId);
             
             if (photoUpdateErr) {
@@ -244,7 +245,8 @@ export async function onRequestPost(context) {
                 denial_reason: finalDenialReason,
                 review_progress: newProgress,
                 reviewer_count: newReviewerCount,
-                needs_third: needsThird
+                needs_third: needsThird,
+                audit_date: new Date().toISOString()
             }).eq('id', photoId);
             if (updateErr) {
                 return new Response(JSON.stringify({ error: `Lỗi cập nhật trạng thái ảnh (${updateErr.message})` }), { status: 500 });
