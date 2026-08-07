@@ -1716,8 +1716,7 @@ Object.assign(window.app, {
                             errBox2.innerHTML = `
                                 <i class="fa-solid fa-clock-rotate-left text-gray-500 text-5xl mb-4"></i>
                                 <p class="text-base text-gray-800 font-bold mb-2">Ảnh bị từ chối đã xóa sau 15 ngày</p>
-                                <p class="text-sm text-gray-600 mb-4">Bạn sẽ không thể thực hiện kháng cáo. Bạn có thể xóa thông tin khỏi cơ sở dữ liệu bằng cách Yêu cầu xóa ảnh.</p>
-                                <button onclick="app.photo.requestDelete()" class="px-4 py-2 border border-red-500 text-red-600 bg-white hover:bg-red-50 font-bold rounded-md shadow-sm transition"><i class="fa-solid fa-trash-can mr-1"></i> Yêu cầu xóa ảnh</button>
+                                <p class="text-sm text-gray-600 mb-4">Bạn sẽ không thể thực hiện kháng cáo. Bạn có thể xóa thông tin khỏi cơ sở dữ liệu bằng cách <a href="javascript:void(0)" onclick="app.photo.requestDelete()" class="font-bold underline hover:text-gray-800 cursor-pointer">Yêu cầu xóa ảnh</a>.</p>
                             `;
                             errBox2.classList.remove('hidden');
                         }
