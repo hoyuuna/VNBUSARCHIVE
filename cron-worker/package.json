@@ -1,0 +1,16 @@
+{
+  "name": "vnbusarchive-cron",
+  "version": "1.0.0",
+  "description": "Cron Worker to clean up denied photos from CDN",
+  "main": "src/index.js",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.42.0"
+  },
+  "devDependencies": {
+    "wrangler": "^3.42.0"
+  }
+}
