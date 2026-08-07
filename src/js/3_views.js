@@ -2560,13 +2560,14 @@ Object.assign(window.app, {
                     app.views.switch('operator-view', false);
 
                     // --- KIỂM TRA BỘ NHỚ TẠM ---
-                    if (app.currentOperator === operatorName && app.operatorPhotos && app.operatorPhotos.length > 0 && !forceRefresh) {
+                    if (app.currentOperator === operatorName && app.operatorLoaded && !forceRefresh) {
                         app.loadingBar.finish();
                         return;
                     }
 
                     document.title = `${operatorName} | VNBUSARCHIVE`;
                     app.currentOperator = operatorName;
+                    app.operatorLoaded = false;
                     app.operatorLoadedCount = 0;
                     app.operator.totalPages = 0;
 
@@ -2967,6 +2968,8 @@ Object.assign(window.app, {
                             document.getElementById('operator-profile-content').classList.add('hidden');
                             document.getElementById('operator-empty-state').classList.remove('hidden');
                         }
+
+                        app.operatorLoaded = true;
 
                     } catch (err) {
                         const grid = document.getElementById('operator-photo-grid');
