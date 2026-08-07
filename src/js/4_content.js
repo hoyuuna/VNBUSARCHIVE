@@ -4192,7 +4192,7 @@ Object.assign(window.app, {
 
                     app.vehicle.tempHistory.forEach((h, index) => {
                         const div = document.createElement('div');
-                        div.className = "flex flex-col sm:flex-row gap-2 items-stretch sm:items-center bg-white p-3 rounded-md text-xs mb-2";
+                        div.className = "flex flex-col sm:flex-row gap-2 items-stretch sm:items-center bg-white p-3 border border-gray-200 rounded-md text-xs mb-2";
                         div.innerHTML = `
                             <div class="flex flex-col sm:flex-1 min-w-0">
                                 <span class="sm:hidden font-bold text-gray-500 mb-1">Biển số</span>
