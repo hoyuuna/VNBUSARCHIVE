@@ -318,7 +318,7 @@ div[id$="-modal"] > div > * {
         }
         .hist-input:focus {
             border-color: #09090b;
-            box-shadow: inset 0 0 0 2px #18181b;
+            box-shadow: 0 0 0 1px #09090b;
         }
         .hist-input::placeholder {
             color: #a1a1aa;
@@ -3741,7 +3741,7 @@ div[id$="-modal"] > div > * {
                             <h4 class="font-bold text-sm mb-1 text-gray-900">Chỉnh sửa lịch sử</h4>
                             <p class="text-[10px] text-gray-500 mb-3">(Mới nhất bên dưới). Thay đổi chỉ được lưu khi bấm "Gửi yêu cầu".</p>
                             <ul id="sortable-history" class="space-y-2 mb-4"></ul>
-                            <div class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center bg-white p-3 border border-gray-200 rounded-md text-xs">
+                            <div class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center bg-white p-3 rounded-md text-xs">
                                 <div class="flex flex-col sm:flex-1 min-w-0">
                                     <span class="sm:hidden font-bold text-gray-500 mb-1">Biển số</span>
                                     <input type="text" id="hist-new-plate" placeholder="Biển số" class="hist-input" oninput="app.utils.formatPlateInput(this)">

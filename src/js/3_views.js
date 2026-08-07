@@ -2378,7 +2378,7 @@ Object.assign(window.app, {
                                 <div id="veh-sortable-history" class="space-y-2 mb-4"></div>
 
                                 <h4 class="font-bold text-xs text-gray-900 mt-4 mb-2">Thêm mốc lịch sử mới</h4>
-                                <div class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center bg-white p-3 border border-gray-200 rounded-md text-xs">
+                                <div class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center bg-white p-3 rounded-md text-xs">
                                     <div class="flex flex-col sm:flex-1 min-w-0">
                                         <span class="sm:hidden font-bold text-gray-500 mb-1">Biển số</span>
                                         <input type="text" id="veh-hist-new-plate" placeholder="Biển số" class="hist-input" oninput="app.utils.formatPlateInput(this)">
