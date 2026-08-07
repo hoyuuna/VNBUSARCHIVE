@@ -3741,12 +3741,30 @@ div[id$="-modal"] > div > * {
                             <h4 class="font-bold text-sm mb-2 text-amber-900">Chỉnh sửa lịch sử (Mới nhất bên dưới)</h4>
                             <p class="text-[10px] text-amber-700 mb-3">Kéo thả để sắp xếp lại. Thay đổi chỉ được lưu khi bấm "Gửi yêu cầu".</p>
                             <ul id="sortable-history" class="space-y-2 mb-4"></ul>
-                            <div class="flex flex-wrap sm:flex-nowrap gap-2">
-                                <input type="text" id="hist-new-plate" placeholder="BKS" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-full sm:w-[18%] rounded bg-white focus:ring-1 focus:ring-amber-500 outline-none transition" oninput="app.utils.formatPlateInput(this)">
-                                <input type="text" id="hist-new-op" placeholder="Đơn vị" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-[48%] sm:w-[22%] rounded bg-white focus:ring-1 focus:ring-amber-500 outline-none transition" oninput="app.utils.formatNoPunctuation(this)">
-                                <input type="text" id="hist-new-route" placeholder="Tuyến" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-[48%] sm:w-[18%] rounded bg-white focus:ring-1 focus:ring-amber-500 outline-none transition">
-                                <input type="date" id="hist-new-date" class="border border-amber-200 p-2 sm:p-1.5 text-xs w-full sm:w-[22%] rounded bg-white text-gray-700 focus:ring-1 focus:ring-amber-500 outline-none transition" title="Ngày áp dụng">
-                                <button id="btn-hist-add" onclick="app.vehicle.addHistoryItem('')" class="bg-green-600 text-white p-2 text-xs rounded font-bold hover:bg-green-700 transition w-full sm:flex-1 shadow-sm">Thêm Mới</button>
+                            <div class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center bg-white p-3 border border-gray-200 rounded-md text-xs">
+                                <div class="flex flex-col sm:flex-1 min-w-0">
+                                    <span class="sm:hidden font-bold text-gray-500 mb-1">Biển số</span>
+                                    <input type="text" id="hist-new-plate" placeholder="Biển số" class="hist-input" oninput="app.utils.formatPlateInput(this)">
+                                </div>
+                                <div class="flex flex-col sm:flex-1 min-w-0">
+                                    <span class="sm:hidden font-bold text-gray-500 mb-1">Ngày áp dụng</span>
+                                    <input type="text" id="hist-new-date" placeholder="DD/MM/YYYY" maxlength="10" oninput="app.utils.formatDateInput(this)" class="hist-input text-center font-mono w-full sm:w-28" title="Ngày áp dụng">
+                                </div>
+                                <div class="flex flex-col sm:flex-1 min-w-0">
+                                    <span class="sm:hidden font-bold text-gray-500 mb-1">Đơn vị</span>
+                                    <input type="text" id="hist-new-op" placeholder="Đơn vị" class="hist-input" oninput="app.utils.formatNoPunctuation(this)">
+                                </div>
+                                <div class="flex flex-col sm:flex-1 min-w-0">
+                                    <span class="sm:hidden font-bold text-gray-500 mb-1">Tuyến</span>
+                                    <input type="text" id="hist-new-route" placeholder="Tuyến" class="hist-input">
+                                </div>
+                                <div class="flex flex-col sm:flex-1 min-w-0">
+                                    <span class="sm:hidden font-bold text-gray-500 mb-1">Ghi chú</span>
+                                    <input type="text" id="hist-new-note" placeholder="Ghi chú" class="hist-input">
+                                </div>
+                                <div class="flex justify-end gap-2 sm:items-center mt-1 sm:mt-0">
+                                    <button type="button" id="btn-hist-add" onclick="app.vehicle.addHistoryItem('')" class="bg-black text-white px-4 py-2 text-xs rounded-md font-bold hover:bg-gray-800 transition shadow-sm w-full sm:w-auto whitespace-nowrap">Thêm Mới</button>
+                                </div>
                             </div>
                             <div class="mt-3 flex justify-end gap-3">
                                 <button onclick="app.vehicle.toggleEditHistory('')" class="text-xs text-gray-500 hover:text-black font-medium">Hủy bỏ</button>
