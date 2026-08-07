@@ -626,7 +626,12 @@ Object.assign(window.app, {
                         const { data, error } = await window.sb.from('admin_notes').select('content').eq('id', 1).single();
                         if (error && error.code !== 'PGRST116') throw error;
                         const note = data ? data.content : '';
-                        document.getElementById('adm-board-note').value = note;
+                        const noteInput = document.getElementById('adm-board-note');
+                        noteInput.value = note;
+                        setTimeout(() => {
+                            noteInput.style.height = '';
+                            noteInput.style.height = noteInput.scrollHeight + 'px';
+                        }, 50);
                         document.getElementById('adm-general-note').classList.remove('hidden');
                     } catch (e) {
                         console.error('fetchAdminNote error:', e);
