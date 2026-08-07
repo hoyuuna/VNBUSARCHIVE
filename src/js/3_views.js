@@ -2370,14 +2370,14 @@ Object.assign(window.app, {
                         }
 
                         const editHistoryUI = `
-                            <div id="veh-history-edit-ui" class="hidden mt-3 bg-amber-50 p-3 border border-amber-200 rounded-lg">
+                            <div id="veh-history-edit-ui" class="hidden mt-3 bg-gray-50 p-3 border border-gray-200 rounded-lg">
                                 <div class="flex justify-between items-center mb-3">
-                                    <h4 class="font-bold text-sm text-amber-900">Sửa trực tiếp danh sách</h4>
-                                    <span class="text-[10px] font-bold text-amber-700 bg-amber-200 px-2 py-1 rounded">Tự động sắp xếp</span>
+                                    <h4 class="font-bold text-sm text-gray-900">Sửa trực tiếp danh sách</h4>
+                                    <span class="text-[10px] font-bold text-gray-700 bg-gray-200 px-2 py-1 rounded">Tự động sắp xếp</span>
                                 </div>
                                 <div id="veh-sortable-history" class="space-y-2 mb-4"></div>
 
-                                <h4 class="font-bold text-xs text-amber-900 mt-4 mb-2">Thêm mốc lịch sử mới</h4>
+                                <h4 class="font-bold text-xs text-gray-900 mt-4 mb-2">Thêm mốc lịch sử mới</h4>
                                 <div class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center bg-white p-3 border border-gray-200 rounded-md text-xs">
                                     <div class="flex flex-col sm:flex-1 min-w-0">
                                         <span class="sm:hidden font-bold text-gray-500 mb-1">Biển số</span>
@@ -2503,10 +2503,10 @@ Object.assign(window.app, {
 
                                 <div>
                                     <h3 class="font-bold text-xs uppercase text-black tracking-wider mb-2.5 px-1">Lịch sử hoạt động</h3>
-                                    <div class="border border-gray-200 rounded-lg overflow-hidden bg-white mb-3 shadow-sm">
+                                    <div id="veh-history-table-container" class="border border-gray-200 rounded-lg overflow-hidden bg-white mb-3 shadow-sm">
                                         ${historyHTML}
                                     </div>
-                                    <div class="mb-6">
+                                    <div id="veh-btn-edit-history-container" class="mb-6">
                                         <button onclick="app.vehicle.toggleEditHistory('veh-')" class="w-full bg-white border border-gray-300 text-gray-700 py-2.5 text-sm font-bold rounded-md hover:bg-gray-50 transition shadow-sm flex justify-center items-center gap-1.5">
                                             <i class="fa-solid fa-clock-rotate-left"></i> Cập nhật lịch sử
                                         </button>
@@ -4172,7 +4172,7 @@ Object.assign(window.app, {
                     
                     // Cập nhật UI theo Role (Quyền)
                     if (app.role === 'admin' || app.role === 'manager') {
-                        btnSave.innerText = "Lưu ngay lập tức";
+                        btnSave.innerText = "Lưu thông tin";
                         warningText.innerHTML = "";
                     } else {
                         btnSave.innerText = "Gửi yêu cầu";
@@ -4516,7 +4516,7 @@ Object.assign(window.app, {
                     document.getElementById('mdl-edit-desc').value = '';
                     
                     if (app.role === 'admin' || app.role === 'manager') {
-                        btnSave.innerText = "Lưu ngay lập tức";
+                        btnSave.innerText = "Lưu thông tin";
                         warningText.innerHTML = "";
                     } else {
                         btnSave.innerText = "Gửi yêu cầu";

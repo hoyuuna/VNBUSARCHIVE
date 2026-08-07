@@ -4153,14 +4153,20 @@ Object.assign(window.app, {
                     if(!app.user) return app.auth.check();
                     app.vehicle.currentHistoryPrefix = prefix;
                     const ui = document.getElementById(prefix + 'history-edit-ui');
+                    const tableContainer = document.getElementById(prefix + 'history-table-container');
+                    const btnContainer = document.getElementById(prefix + 'btn-edit-history-container');
 
                     if(ui.classList.contains('hidden')) {
                         ui.classList.remove('hidden');
+                        if (tableContainer) tableContainer.classList.add('hidden');
+                        if (btnContainer) btnContainer.classList.add('hidden');
 
                         app.vehicle.tempHistory = JSON.parse(JSON.stringify(app.vehicle.currentHistoryData));
                         app.vehicle.renderEditList(prefix);
                     } else {
                         ui.classList.add('hidden');
+                        if (tableContainer) tableContainer.classList.remove('hidden');
+                        if (btnContainer) btnContainer.classList.remove('hidden');
                         app.vehicle.tempHistory =[];
                         document.getElementById(prefix + 'sortable-history').innerHTML = '';
                     }
@@ -4476,7 +4482,7 @@ Object.assign(window.app, {
                         actionsDiv.classList.remove('hidden');
                         actionsDiv.classList.add('flex');
                         if (triggerContainer) triggerContainer.classList.add('hidden');
-                        if (app.role === 'admin' || app.role === 'manager') document.getElementById('btn-vehicle-save').innerText = "Lưu ngay lập tức";
+                        if (app.role === 'admin' || app.role === 'manager') document.getElementById('btn-vehicle-save').innerText = "Lưu thông tin";
                     } else {
                         actionsDiv.classList.add('hidden');
                         actionsDiv.classList.remove('flex');
@@ -4582,12 +4588,11 @@ Object.assign(window.app, {
                         if (triggerContainer) triggerContainer.classList.add('hidden');
                         notice.classList.remove('hidden');
 
+                        noticeText.innerText = "Bạn đang ở chế độ chỉnh sửa (Ngày chụp đã được khóa cố định). Thay đổi sẽ được gửi yêu cầu duyệt hoặc cập nhật trực tiếp tùy quyền hạn.";
                         if (app.role === 'admin' || app.role === 'manager') {
-                            noticeText.innerText = "ADMIN MODE: Bạn đang sửa trực tiếp vào cơ sở dữ liệu (Ngày chụp khóa cố định).";
-                            btnSave.innerText = "Lưu ngay lập tức";
+                            btnSave.innerText = "Lưu thông tin";
                             document.getElementById('info-plate').readOnly = false;
                         } else {
-                            noticeText.innerText = "Bạn đang ở chế độ chỉnh sửa. Thay đổi sẽ được gửi yêu cầu duyệt (Ngày chụp đã được khóa cố định).";
                             btnSave.innerText = "Gửi yêu cầu";
                         }
                     } else {

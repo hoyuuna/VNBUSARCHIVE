@@ -3711,7 +3711,7 @@ div[id$="-modal"] > div > * {
                         
                         <h3 class="font-bold text-xs uppercase text-black tracking-wider mb-2.5 px-1">Lịch sử hoạt động</h3>
 
-                        <div class="border border-gray-200 rounded-lg overflow-hidden bg-white mb-3">
+                        <div id="history-table-container" class="border border-gray-200 rounded-lg overflow-hidden bg-white mb-3">
                             <div class="history-table-wrapper">
                                 <!-- Ép bảng bỏ cằm -->
                                 <table class="history-table" style="margin-bottom: 0 !important;">
@@ -3729,7 +3729,7 @@ div[id$="-modal"] > div > * {
                         </div>
 
                         <!-- Nút cập nhật được dời xuống dưới, làm full viền giống các nút chức năng khác -->
-                        <div class="mb-2">
+                        <div id="btn-edit-history-container" class="mb-2">
                             <button id="btn-edit-history" onclick="app.vehicle.toggleEditHistory('')"
                                 class="w-full bg-white border border-gray-300 text-gray-700 py-2.5 text-sm font-bold rounded-md hover:bg-gray-50 transition shadow-sm flex justify-center items-center gap-1.5">
                                 <i class="fa-solid fa-clock-rotate-left"></i> Cập nhật lịch sử
@@ -3737,9 +3737,9 @@ div[id$="-modal"] > div > * {
                         </div>
 
                         <!-- Giao diện Edit Lịch sử (Chỉ hiện khi bấm nút) -->
-                        <div id="history-edit-ui" class="hidden mt-3 bg-amber-50 p-3 border border-amber-200 rounded-lg">
-                            <h4 class="font-bold text-sm mb-2 text-amber-900">Chỉnh sửa lịch sử (Mới nhất bên dưới)</h4>
-                            <p class="text-[10px] text-amber-700 mb-3">Kéo thả để sắp xếp lại. Thay đổi chỉ được lưu khi bấm "Gửi yêu cầu".</p>
+                        <div id="history-edit-ui" class="hidden mt-3 bg-gray-50 p-3 border border-gray-200 rounded-lg">
+                            <h4 class="font-bold text-sm mb-2 text-gray-900">Chỉnh sửa lịch sử (Mới nhất bên dưới)</h4>
+                            <p class="text-[10px] text-gray-500 mb-3">Thay đổi chỉ được lưu khi bấm "Gửi yêu cầu".</p>
                             <ul id="sortable-history" class="space-y-2 mb-4"></ul>
                             <div class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center bg-white p-3 border border-gray-200 rounded-md text-xs">
                                 <div class="flex flex-col sm:flex-1 min-w-0">
