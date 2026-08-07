@@ -2414,7 +2414,7 @@ Object.assign(window.app, {
                                 </div>
                                 <div class="mt-3 flex justify-end gap-3">
                                     <button onclick="app.vehicle.toggleEditHistory('veh-')" class="text-xs text-gray-500 hover:text-black font-medium">Hủy bỏ</button>
-                                    <button onclick="app.vehicle.saveHistory()" class="bg-black text-white px-4 py-2 text-xs font-bold rounded-md hover:bg-gray-800 transition shadow-sm">Lưu dữ liệu / Gửi yêu cầu</button>
+                                    <button onclick="app.vehicle.saveHistory()" class="bg-black text-white px-4 py-2 text-xs font-bold rounded-md hover:bg-gray-800 transition shadow-sm">Lưu thông tin</button>
                                 </div>
                             </div>
                         `;
@@ -2497,7 +2497,7 @@ Object.assign(window.app, {
                                     <div id="vehicle-edit-actions" class="hidden mb-6 flex-col gap-3">
                                         <div class="flex justify-end gap-3">
                                             <button onclick="app.vehicle.toggleVehiclePageEdit('${plate}')" class="text-xs text-gray-500 hover:text-black font-medium">Hủy bỏ</button>
-                                            <button id="btn-vehicle-save" onclick="app.vehicle.saveVehiclePageChanges('${plate}')" class="bg-black text-white text-xs font-bold px-4 py-2 rounded-md hover:bg-gray-800 transition shadow-sm">Gửi yêu cầu</button>
+                                            <button id="btn-vehicle-save" onclick="app.vehicle.saveVehiclePageChanges('${plate}')" class="bg-black text-white text-xs font-bold px-4 py-2 rounded-md hover:bg-gray-800 transition shadow-sm">Lưu thông tin</button>
                                         </div>
                                         <div class="bg-amber-50 text-amber-800 text-xs p-3 border border-amber-200 rounded-lg">
                                             <div class="flex gap-2 items-start">
@@ -4187,7 +4187,7 @@ Object.assign(window.app, {
                         btnSave.innerText = "Lưu thông tin";
                         warningText.innerHTML = "";
                     } else {
-                        btnSave.innerText = "Gửi yêu cầu";
+                        btnSave.innerText = "Lưu thông tin";
                         warningText.innerText = "Thông tin này sẽ được kiểm duyệt bởi Admin. Việc để trống cả 2 ô sẽ gửi yêu cầu xóa thông tin hiện tại.";
                     }
 
@@ -4531,7 +4531,7 @@ Object.assign(window.app, {
                         btnSave.innerText = "Lưu thông tin";
                         warningText.innerHTML = "";
                     } else {
-                        btnSave.innerText = "Gửi yêu cầu";
+                        btnSave.innerText = "Lưu thông tin";
                         warningText.innerText = "Thông tin này sẽ được kiểm duyệt bởi Admin. Việc để trống cả 2 ô sẽ gửi yêu cầu xóa thông tin hiện tại.";
                     }
 
@@ -5464,7 +5464,7 @@ Object.assign(window.app, {
             }
 
             const origHTML = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi yêu cầu...';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu thông tin...';
             btn.disabled = true;
 
             const payload = {

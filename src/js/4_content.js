@@ -4166,7 +4166,7 @@ Object.assign(window.app, {
 
                         const btnSaveHist = document.getElementById(prefix ? 'btn-save-veh-history' : 'btn-save-history');
                         if (btnSaveHist) {
-                            btnSaveHist.innerText = (app.role === 'admin' || app.role === 'manager') ? "Lưu thông tin" : "Gửi yêu cầu";
+                            btnSaveHist.innerText = "Lưu thông tin";
                         }
                     } else {
                         ui.classList.add('hidden');
@@ -4507,21 +4507,21 @@ Object.assign(window.app, {
 
                     // [BẢO VỆ] Kiểm tra xem có thay đổi không
                     if (app.currentVehicle && newData.model === (app.currentVehicle.model || '') && newData.note === (app.currentVehicle.note || '')) {
-                        btnSave.disabled = false; btnSave.innerHTML = 'Gửi yêu cầu';
+                        btnSave.disabled = false; btnSave.innerHTML = 'Lưu thông tin';
                         return app.ui.showAlert("Không có sự thay đổi nào so với dữ liệu gốc. Yêu cầu bị hủy.");
                     }
 
                     if (app.role !== 'admin' && app.role !== 'manager') {
                         try { await app.captcha.request(); } catch (err) {
                             if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha.");
-                            btnSave.disabled = false; btnSave.innerHTML = 'Gửi yêu cầu';
+                            btnSave.disabled = false; btnSave.innerHTML = 'Lưu thông tin';
                             return;
                         }
                     }
 
                     try {
                         if (newData.model && await app.utils.checkModelDuplicatePolicy(plate, newData.model)) {
-                            btnSave.disabled = false; btnSave.innerHTML = 'Gửi yêu cầu';
+                            btnSave.disabled = false; btnSave.innerHTML = 'Lưu thông tin';
                             return;
                         }
                         if (app.role === 'admin' || app.role === 'manager') {
@@ -4534,7 +4534,7 @@ Object.assign(window.app, {
                             // [BẢO VỆ] Kiểm tra xem đã có yêu cầu nào đang chờ duyệt cho xe này chưa
                             const { count } = await window.sb.from('edit_requests').select('*', { count: 'estimated', head: true }).eq('license_plate', plate).eq('status', 'pending').contains('new_data', { request_type: 'update_vehicle_details' });
                             if (count > 0) {
-                                btnSave.disabled = false; btnSave.innerHTML = 'Gửi yêu cầu';
+                                btnSave.disabled = false; btnSave.innerHTML = 'Lưu thông tin';
                                 return app.ui.showAlert("Có yêu cầu chỉnh sửa hồ sơ khác đang chờ duyệt cho xe này. Vui lòng thử lại sau.");
                             }
 
@@ -4545,7 +4545,7 @@ Object.assign(window.app, {
                             app.ui.showAlert("Đã gửi yêu cầu chỉnh sửa và đang chờ Admin duyệt. Bạn có thể kiểm tra trạng thái trong trang Hồ sơ của tôi.");
                             app.vehicle.toggleVehiclePageEdit(plate);
                         }
-                    } catch (err) { app.ui.showAlert("Lỗi: " + err.message); } finally { btnSave.disabled = false; btnSave.innerHTML = 'Gửi yêu cầu'; }
+                    } catch (err) { app.ui.showAlert("Lỗi: " + err.message); } finally { btnSave.disabled = false; btnSave.innerHTML = 'Lưu thông tin'; }
                 }
             }
 });
@@ -4598,7 +4598,7 @@ Object.assign(window.app, {
                             btnSave.innerText = "Lưu thông tin";
                             document.getElementById('info-plate').readOnly = false;
                         } else {
-                            btnSave.innerText = "Gửi yêu cầu";
+                            btnSave.innerText = "Lưu thông tin";
                         }
                     } else {
                         app.edit.cancel();
