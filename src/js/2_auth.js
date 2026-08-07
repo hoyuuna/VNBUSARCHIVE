@@ -573,7 +573,7 @@ changePassword: async () => {
                         },
                         {
                             btnOkText: "Vẫn đổi",
-                            btnCancelText: "Hủy",
+                            btnCancelText: "Hủy bỏ",
                             title: "Cảnh báo"
                         }
                     );
@@ -601,7 +601,7 @@ changePassword: async () => {
                         {
                             countdown: true,
                             btnOkText: "Tôi đã hiểu",
-                            btnCancelText: "Hủy",
+                            btnCancelText: "Hủy bỏ",
                             title: "Xác nhận hiển thị UUID"
                         }
                     );
@@ -1239,7 +1239,7 @@ Object.assign(window.app, {
                         } catch (e) {
                             app.ui.showAlert("Lỗi gỡ ảnh: " + e.message);
                         }
-                    }, null, { title: "Xác nhận gỡ ảnh", btnOkText: "Gỡ ảnh", btnCancelText: "Hủy" });
+                    }, null, { title: "Xác nhận gỡ ảnh", btnOkText: "Gỡ ảnh", btnCancelText: "Hủy bỏ" });
                 }
             }
 });

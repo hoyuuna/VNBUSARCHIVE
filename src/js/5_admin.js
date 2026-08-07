@@ -2613,7 +2613,7 @@ app.admin.fetchManagerData('denied');
                     }, () => {}, {
                         title: "Xác nhận gỡ cấm",
                         btnOkText: "Gỡ cấm",
-                        btnCancelText: "Hủy"
+                        btnCancelText: "Hủy bỏ"
                     });
                 },
 
@@ -2637,7 +2637,7 @@ app.admin.fetchManagerData('denied');
                     }, () => {}, {
                         title: "Xác nhận xóa tài khoản",
                         btnOkText: "Xóa tài khoản",
-                        btnCancelText: "Hủy",
+                        btnCancelText: "Hủy bỏ",
                         countdown: true
                     });
                 },

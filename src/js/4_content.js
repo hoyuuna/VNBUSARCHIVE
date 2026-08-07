@@ -1132,7 +1132,7 @@ Object.assign(window.app, {
                                             msg.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Đã hủy chuyển đổi loại xe. Không thể tiếp tục đăng tải xe này.';
                                             msg.className = "text-xs mt-1 text-red-600 font-bold";
                                         },
-                                        { title: "Xác nhận chuyển đổi loại xe", btnOkText: "Chuyển đổi", btnCancelText: "Hủy" }
+                                        { title: "Xác nhận chuyển đổi loại xe", btnOkText: "Chuyển đổi", btnCancelText: "Hủy bỏ" }
                                     );
                                 } else {
                                     app.upload.selectType(dbType, true);
@@ -1210,7 +1210,7 @@ Object.assign(window.app, {
                             `Bạn có chắc phương tiện này đã được chuyển đổi công năng thành <b>${typeName}</b>?`,
                             () => { app.upload.performSelectType(type); },
                             () => {},
-                            { countdown: true, btnOkText: "Tôi chắc chắn", btnCancelText: "Hủy", title: "Xác nhận chuyển đổi" }
+                            { countdown: true, btnOkText: "Tôi chắc chắn", btnCancelText: "Hủy bỏ", title: "Xác nhận chuyển đổi" }
                         );
                         return;
                     }
@@ -4015,7 +4015,7 @@ Object.assign(window.app, {
 
                     }, () => {
                         // Hàm Hủy
-                    }, { title: "Xác nhận xóa", btnOkText: "Xóa", btnCancelText: "Hủy" });
+                    }, { title: "Xác nhận xóa", btnOkText: "Xóa", btnCancelText: "Hủy bỏ" });
                 },
                 loadMore: () => {
                     app.comments.page++;
@@ -4390,7 +4390,7 @@ Object.assign(window.app, {
                             "Danh sách lịch sử đang trống. Bạn có muốn xóa hết lịch sử không?",
                             () => { proceedSave(); },
                             () => {},
-                            { title: "Xác nhận xóa", btnOkText: "Đồng ý", btnCancelText: "Hủy" }
+                            { title: "Xác nhận xóa", btnOkText: "Đồng ý", btnCancelText: "Hủy bỏ" }
                         );
                     } else {
                         proceedSave();

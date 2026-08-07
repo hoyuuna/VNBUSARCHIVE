@@ -369,7 +369,7 @@ Object.assign(window.app, {
 
                     if (cancelCallback || options.btnCancelText) {
                         cancelBtn.classList.remove('hidden');
-                        cancelBtn.innerText = options.btnCancelText || "Hủy";
+                        cancelBtn.innerText = options.btnCancelText || "Hủy bỏ";
                         cancelBtn.style.display = options.hideButtons ? 'none' : 'inline-flex';
                         
                         if (options.isCancelDestructive) {
@@ -4275,7 +4275,7 @@ Object.assign(window.app, {
                                     deleteBtn.disabled = false;
                                     okBtn.disabled = false;
                                 }
-                            }, () => {}, { title: "Xác nhận xóa Role", btnCancelText: "Hủy", btnOkText: "Xóa" });
+                            }, () => {}, { title: "Xác nhận xóa Role", btnCancelText: "Hủy bỏ", btnOkText: "Xóa" });
                         };
                     }
 

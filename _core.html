@@ -2223,7 +2223,7 @@ div[id$="-modal"] > div > * {
                     </button>
                     <button type="button" id="custom-alert-cancel-btn" onclick="app.ui.closeAlert(false)"
                         class="hidden mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition">
-                        Hủy
+                        Hủy bỏ
                     </button>
                 </div>
             </div>
@@ -2335,8 +2335,8 @@ div[id$="-modal"] > div > * {
                                 <i class="fa-solid fa-arrow-rotate-left sm:mr-1.5"></i><span class="hidden sm:inline">Đặt lại</span>
                             </button>
                             <div class="flex items-center gap-2">
-                                <button type="button" id="btn-crop-cancel" onclick="app.crop.close()" class="px-4 py-2 sm:px-5 sm:py-2.5 bg-gray-100 border border-gray-300 text-gray-700 text-xs font-bold rounded-md hover:bg-gray-200 transition disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center" title="Hủy">
-                                    <i class="fa-solid fa-xmark sm:mr-1.5"></i><span class="hidden sm:inline">Hủy</span>
+                                <button type="button" id="btn-crop-cancel" onclick="app.crop.close()" class="px-4 py-2 sm:px-5 sm:py-2.5 bg-gray-100 border border-gray-300 text-gray-700 text-xs font-bold rounded-md hover:bg-gray-200 transition disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center" title="Hủy bỏ">
+                                    <i class="fa-solid fa-xmark sm:mr-1.5"></i><span class="hidden sm:inline">Hủy bỏ</span>
                                 </button>
                                 <button type="button" id="btn-crop-apply" onclick="app.crop.apply()" class="px-4 py-2 sm:px-5 sm:py-2.5 bg-black text-white text-xs font-bold rounded-md hover:bg-gray-800 transition shadow-sm disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-1.5" title="Áp dụng">
                                     <i class="fa-solid fa-check text-sm sm:text-xs"></i> <span class="hidden sm:inline">Áp dụng</span>
@@ -2365,7 +2365,7 @@ div[id$="-modal"] > div > * {
                         class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-black text-base font-medium text-white hover:bg-gray-800 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition">Xác
                         nhận</button>
                     <button type="button" onclick="app.ui.closePrompt(false)"
-                        class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition">Hủy</button>
+                        class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition">Hủy bỏ</button>
                 </div>
             </div>
         </div>
@@ -2523,7 +2523,7 @@ div[id$="-modal"] > div > * {
                         class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-bold text-white hover:bg-red-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition">Xác
                         nhận cấm</button>
                     <button type="button" onclick="app.admin.closeBanModal()"
-                        class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-bold text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition">Hủy</button>
+                        class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-bold text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition">Hủy bỏ</button>
                 </div>
             </div>
         </div>
@@ -2665,7 +2665,7 @@ div[id$="-modal"] > div > * {
                         class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-bold text-white hover:bg-red-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition">Xác
                         nhận</button>
                     <button type="button" onclick="app.ui.closeDenyPrompt(false)"
-                        class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-bold text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition">Hủy</button>
+                        class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-bold text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition">Hủy bỏ</button>
                 </div>
             </div>
         </div>
@@ -3175,7 +3175,7 @@ div[id$="-modal"] > div > * {
                                 <p class="text-[11px] md:text-xs text-gray-500 mb-3 leading-relaxed">Tên hiển thị công khai trên hồ sơ của bạn. Tên đăng nhập email vẫn được giữ nguyên.</p>
                                 <div class="flex flex-col sm:flex-row gap-2">
                                     <input type="text" id="set-new-username" placeholder="Nhập tên hiển thị mới" maxlength="20" autocomplete="off" class="w-full sm:flex-1 border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none transition">
-                                    <button onclick="app.auth.changeUsername()" class="w-full sm:w-auto bg-black text-white px-6 py-2.5 text-xs font-bold rounded-md hover:bg-gray-800 transition shadow-sm shrink-0">Lưu</button>
+                                    <button onclick="app.auth.changeUsername()" class="w-full sm:w-auto bg-black text-white px-6 py-2.5 text-xs font-bold rounded-md hover:bg-gray-800 transition shadow-sm shrink-0">Lưu thông tin</button>
                                 </div>
                             </div>
                         </div>
@@ -6204,7 +6204,7 @@ div[id$="-modal"] > div > * {
                 </div>
             </div>
             <div class="bg-gray-50/30 px-5 py-4 flex gap-3">
-                <button type="button" onclick="app.operator.closeEditPrompt()" class="flex-1 rounded-xl shadow-sm px-4 py-2.5 bg-white border border-gray-300 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all">Hủy</button>
+                <button type="button" onclick="app.operator.closeEditPrompt()" class="flex-1 rounded-xl shadow-sm px-4 py-2.5 bg-white border border-gray-300 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all">Hủy bỏ</button>
                 <button type="button" id="btn-save-operator" onclick="app.operator.submitEdit()" class="flex-1 rounded-xl shadow-sm px-4 py-2.5 bg-black border border-black text-sm font-bold text-white hover:bg-gray-800 transition-all">Gửi yêu cầu</button>
             </div>
         </div>
@@ -6233,7 +6233,7 @@ div[id$="-modal"] > div > * {
                 </div>
             </div>
             <div class="bg-gray-50/30 px-5 py-4 flex gap-3">
-                <button type="button" onclick="app.model.closeEditPrompt()" class="flex-1 rounded-xl shadow-sm px-4 py-2.5 bg-white border border-gray-300 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all">Hủy</button>
+                <button type="button" onclick="app.model.closeEditPrompt()" class="flex-1 rounded-xl shadow-sm px-4 py-2.5 bg-white border border-gray-300 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all">Hủy bỏ</button>
                 <button type="button" id="btn-save-model" onclick="app.model.submitEdit()" class="flex-1 rounded-xl shadow-sm px-4 py-2.5 bg-black border border-black text-sm font-bold text-white hover:bg-gray-800 transition-all">Gửi yêu cầu</button>
             </div>
         </div>
@@ -6281,7 +6281,7 @@ div[id$="-modal"] > div > * {
 
             <!-- NÚT XÁC NHẬN -->
             <div class="bg-gray-50/50 px-5 py-4 flex gap-3 rounded-b-2xl shrink-0">
-                <button type="button" onclick="app.profileIntro.closePhotoSelector()" class="flex-1 rounded-xl shadow-sm px-4 py-2.5 bg-white border border-gray-300 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all">Hủy</button>
+                <button type="button" onclick="app.profileIntro.closePhotoSelector()" class="flex-1 rounded-xl shadow-sm px-4 py-2.5 bg-white border border-gray-300 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all">Hủy bỏ</button>
                 <button type="button" id="btn-save-fav-photo" onclick="app.profileIntro.confirmSaveFavPhoto()" disabled class="flex-1 rounded-xl shadow-sm px-4 py-2.5 bg-black border border-black text-sm font-bold text-white hover:bg-gray-800 transition-all opacity-50 cursor-not-allowed">Xác nhận đặt ảnh</button>
             </div>
         </div>
@@ -6394,7 +6394,7 @@ div[id$="-modal"] > div > * {
                 <!-- Nút Hủy và Áp dụng -->
                 <div class="flex gap-3 mt-6">
                     <button onclick="app.search.closeAdvancedFilterModal()" class="w-full py-3 bg-white text-gray-700 border border-gray-300 text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-gray-50 transition shadow-sm">
-                        Hủy
+                        Hủy bỏ
                     </button>
                     <button id="btn-adv-filter-apply" onclick="app.search.applyAdvancedFilter()" class="w-full py-3 bg-black text-white text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-gray-800 transition shadow-md">
                         Thêm vào bộ lọc

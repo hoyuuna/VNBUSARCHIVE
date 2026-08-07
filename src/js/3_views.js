@@ -1338,7 +1338,7 @@ Object.assign(window.app, {
                             console.error(err);
                             app.ui.showAlert("Lỗi khi hủy yêu cầu: " + err.message);
                         }
-                    }, () => {}, { title: "Xác nhận hủy", btnOkText: "Xác nhận", btnCancelText: "Hủy" });
+                    }, () => {}, { title: "Xác nhận hủy", btnOkText: "Xác nhận", btnCancelText: "Hủy bỏ" });
                 },
                 fetchLikedPhotosPage: async (page) => {
                     app.likedPage = page;
@@ -4347,7 +4347,7 @@ Object.assign(window.app, {
                             "Bạn đã để trống cả 2 ô. Điều này sẽ XÓA thông tin của Đơn vị vận hành hiện tại (trở về mặc định). Bạn có chắc chắn muốn tiếp tục?",
                             () => { executeSave(); },
                             () => {},
-                            { title: "Xác nhận xóa", btnOkText: "Đồng ý", btnCancelText: "Hủy" }
+                            { title: "Xác nhận xóa", btnOkText: "Đồng ý", btnCancelText: "Hủy bỏ" }
                         );
                     } else {
                         executeSave();
@@ -4671,7 +4671,7 @@ Object.assign(window.app, {
                             "Bạn đã để trống cả 2 ô. Bạn có chắc chắn muốn XÓA thông tin của Dòng xe hiện tại không?",
                             () => { executeSave(); },
                             () => {},
-                            { title: "Xác nhận xóa", btnOkText: "Đồng ý", btnCancelText: "Hủy" }
+                            { title: "Xác nhận xóa", btnOkText: "Đồng ý", btnCancelText: "Hủy bỏ" }
                         );
                     } else {
                         executeSave();
