@@ -2002,7 +2002,7 @@ div[id$="-modal"] > div > * {
             <div id="captcha-status" class="text-xs font-bold text-gray-400 mt-2 h-4 text-center">Đang tải biểu mẫu...</div>
 
             <div id="captcha-actions" class="hidden mt-5 w-full flex gap-3">
-                <button onclick="app.captcha.cancel()" class="flex-1 bg-gray-100 text-gray-700 py-2.5 rounded-lg font-bold text-sm hover:bg-gray-200 transition border border-gray-200 shadow-sm">Hủy</button>
+                <button onclick="app.captcha.cancel()" class="flex-1 bg-gray-100 text-gray-700 py-2.5 rounded-lg font-bold text-sm hover:bg-gray-200 transition border border-gray-200 shadow-sm">Hủy bỏ</button>
                 <button onclick="app.captcha.retry()" class="flex-1 bg-black text-white py-2.5 rounded-lg font-bold text-sm hover:bg-gray-800 transition shadow-sm border border-black">Thử lại</button>
             </div>
         </div>
@@ -2404,13 +2404,13 @@ div[id$="-modal"] > div > * {
                 </div>
                 <div class="bg-gray-50/50 px-5 py-4 flex gap-3 rounded-b-xl">
                     <button type="button" onclick="app.ui.closeCustomRolePrompt()" class="flex-1 inline-flex justify-center items-center rounded-lg shadow-sm px-4 py-2.5 bg-white border border-gray-300 text-sm font-bold text-gray-700 hover:bg-gray-50 focus:outline-none transition-all">
-                        Hủy
+                        Hủy bỏ
                     </button>
                     <button type="button" id="cr-delete-btn" class="hidden flex-none inline-flex justify-center items-center rounded-lg shadow-sm px-4 py-2.5 bg-red-600 border border-red-600 text-sm font-bold text-white hover:bg-red-700 focus:outline-none transition-all" title="Xóa Role">
                         <i class="fa-solid fa-trash"></i>
                     </button>
                     <button type="button" id="cr-ok-btn" class="flex-1 inline-flex justify-center items-center rounded-lg shadow-sm px-4 py-2.5 bg-black border border-black text-sm font-bold text-white hover:bg-gray-800 focus:outline-none transition-all">
-                        Lưu thiết lập
+                        Lưu thông tin
                     </button>
                 </div>
             </div>
@@ -3260,7 +3260,7 @@ div[id$="-modal"] > div > * {
                                 </div>
 
                                 <div class="text-right mt-4">
-                                    <button onclick="app.preference.save()" class="bg-black text-white px-6 py-2.5 rounded-lg text-xs font-bold shadow-sm hover:bg-gray-800 transition"><i class="fa-solid fa-floppy-disk mr-1"></i> Lưu thiết lập</button>
+                                    <button onclick="app.preference.save()" class="bg-black text-white px-6 py-2.5 rounded-lg text-xs font-bold shadow-sm hover:bg-gray-800 transition"><i class="fa-solid fa-floppy-disk mr-1"></i> Lưu thông tin</button>
                                 </div>
                             </div>
                         </div>
@@ -3768,7 +3768,7 @@ div[id$="-modal"] > div > * {
                             </div>
                             <div class="mt-3 flex justify-end gap-3">
                                 <button onclick="app.vehicle.toggleEditHistory('')" class="text-xs text-gray-500 hover:text-black font-medium">Hủy bỏ</button>
-                                <button onclick="app.vehicle.saveHistory()" class="bg-black text-white px-4 py-2 text-xs font-bold rounded-md hover:bg-gray-800 transition shadow-sm">Gửi yêu cầu</button>
+                                <button id="btn-save-history" onclick="app.vehicle.saveHistory()" class="bg-black text-white px-4 py-2 text-xs font-bold rounded-md hover:bg-gray-800 transition shadow-sm">Gửi yêu cầu</button>
                             </div>
                         </div>
                     </div>
@@ -4840,7 +4840,7 @@ div[id$="-modal"] > div > * {
                     </div>
                     <textarea id="adm-board-note" oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'" class="w-full bg-gray-50 border border-gray-300 rounded p-3 text-sm focus:outline-none focus:ring-2 focus:ring-black min-h-[80px] transition-colors overflow-hidden" placeholder="Đang tải ghi chú..."></textarea>
                     <div class="flex justify-end mt-1">
-                        <button id="btn-save-adm-note" onclick="app.admin.saveBoardNote(this)" class="bg-black hover:bg-gray-800 text-white font-bold py-1.5 px-4 rounded text-xs transition"><i class="fa-solid fa-floppy-disk mr-1"></i> Lưu ghi chú</button>
+                        <button id="btn-save-adm-note" onclick="app.admin.saveBoardNote(this)" class="bg-black hover:bg-gray-800 text-white font-bold py-1.5 px-4 rounded text-xs transition"><i class="fa-solid fa-floppy-disk mr-1"></i> Lưu thông tin</button>
                     </div>
                 </div>
 
@@ -6161,8 +6161,8 @@ div[id$="-modal"] > div > * {
             </div>
 
             <div class="bg-gray-50/30 px-5 py-4 flex gap-3">
-                <button type="button" onclick="app.profileIntro.closeBioEditor()" class="flex-1 rounded-xl shadow-sm px-4 py-2.5 bg-white border border-gray-300 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all">Hủy</button>
-                <button type="button" id="btn-save-bio" onclick="app.profileIntro.saveBio()" class="flex-1 rounded-xl shadow-sm px-4 py-2.5 bg-black border border-black text-sm font-bold text-white hover:bg-gray-800 transition-all">Lưu tiểu sử</button>
+                <button type="button" onclick="app.profileIntro.closeBioEditor()" class="flex-1 rounded-xl shadow-sm px-4 py-2.5 bg-white border border-gray-300 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all">Hủy bỏ</button>
+                <button type="button" id="btn-save-bio" onclick="app.profileIntro.saveBio()" class="flex-1 rounded-xl shadow-sm px-4 py-2.5 bg-black border border-black text-sm font-bold text-white hover:bg-gray-800 transition-all">Lưu thông tin</button>
             </div>
         </div>
     </div>

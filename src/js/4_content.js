@@ -4163,6 +4163,11 @@ Object.assign(window.app, {
 
                         app.vehicle.tempHistory = JSON.parse(JSON.stringify(app.vehicle.currentHistoryData));
                         app.vehicle.renderEditList(prefix);
+
+                        const btnSaveHist = document.getElementById(prefix ? 'btn-save-veh-history' : 'btn-save-history');
+                        if (btnSaveHist) {
+                            btnSaveHist.innerText = (app.role === 'admin' || app.role === 'manager') ? "Lưu thông tin" : "Gửi yêu cầu";
+                        }
                     } else {
                         ui.classList.add('hidden');
                         if (tableContainer) tableContainer.classList.remove('hidden');
@@ -4924,7 +4929,7 @@ Object.assign(window.app, {
                         }).eq('id', app.user.id).then(({error}) => {});
                     }
 
-                    app.ui.showAlert("Đã lưu thiết lập Cá nhân hóa thành công!");
+                    app.ui.showAlert("Đã lưu thông tin Cá nhân hóa thành công!");
 
                     if (isChanged || isRecChanged) {
                         const path = window.location.pathname;

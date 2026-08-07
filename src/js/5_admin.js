@@ -2900,7 +2900,7 @@ app.admin.fetchManagerData('denied');
                                     <input type="datetime-local" id="mt-time-${cfg.id}" value="${timeVal}" ${!hasTime ? 'disabled' : ''} class="w-full border p-2.5 text-sm rounded disabled:bg-gray-100">
                                 </div>
                             </div>
-                            <div class="mt-4 text-right"><button onclick="app.admin.saveManagerSetting('${cfg.id}', this)" class="bg-black text-white px-5 py-2 text-xs font-bold rounded shadow-sm">Lưu thiết lập</button></div>
+                            <div class="mt-4 text-right"><button onclick="app.admin.saveManagerSetting('${cfg.id}', this)" class="bg-black text-white px-5 py-2 text-xs font-bold rounded shadow-sm">Lưu thông tin</button></div>
                         </div>`;
                      });
 
@@ -2919,7 +2919,7 @@ app.admin.fetchManagerData('denied');
                                 <label class="text-xs font-bold text-blue-900 block mb-1">Số lượng ảnh (Để trống = Không giới hạn, 0 = Tạm dừng nhận)</label>
                                 <input type="number" min="0" id="mt-quota-value" value="${quotaData.reason}" placeholder="Trống = Không giới hạn" class="w-full border border-blue-300 p-2.5 text-sm rounded outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                             </div>
-                            <button onclick="app.admin.saveQuotaSetting(this)" class="bg-blue-600 text-white px-6 py-2.5 text-xs font-bold rounded hover:bg-blue-700 transition shadow-sm h-[42px] whitespace-nowrap"><i class="fa-solid fa-floppy-disk mr-1"></i> Lưu cấu hình</button>
+                            <button onclick="app.admin.saveQuotaSetting(this)" class="bg-blue-600 text-white px-6 py-2.5 text-xs font-bold rounded hover:bg-blue-700 transition shadow-sm h-[42px] whitespace-nowrap"><i class="fa-solid fa-floppy-disk mr-1"></i> Lưu thông tin</button>
                         </div>
                     </div>
                     `;
@@ -2942,7 +2942,7 @@ app.admin.fetchManagerData('denied');
                         }).eq('id', sysId);
                         if (error) throw error;
                         await app.maintenance.fetch();
-                        app.ui.showAlert(`Đã lưu thiết lập cho ${sysId.toUpperCase()}`);
+                        app.ui.showAlert(`Đã lưu thông tin cho ${sysId.toUpperCase()}`);
                     } catch (e) { app.ui.showAlert("Lỗi: " + e.message); }
                     finally { btn.innerHTML = originalHTML; btn.disabled = false; }
                 },
