@@ -1530,6 +1530,10 @@ Object.assign(window.app, {
                             if (snapshot.route_no && snapshot.route_no !== '---') prefs.routes[snapshot.route_no] = (prefs.routes[snapshot.route_no] || 0) + 1;
                             if (snapshot.operator && snapshot.operator !== '---') prefs.ops[snapshot.operator] = (prefs.ops[snapshot.operator] || 0) + 1;
                             if (snapshot.model && snapshot.model !== '---') prefs.models[snapshot.model] = (prefs.models[snapshot.model] || 0) + 1;
+                            document.getElementById('pending-status-box').classList.add('hidden');
+                            document.getElementById('denial-reason-box').classList.add('hidden');
+                            document.getElementById('denial-delete-warning-box').classList.add('hidden');
+                            document.getElementById('denial-improvement-box').classList.add('hidden');
                             localStorage.setItem('vnbus_prefs', JSON.stringify(prefs));
                         } catch (e) { }
                     }
@@ -1551,6 +1555,14 @@ Object.assign(window.app, {
                         }
                         document.getElementById('denial-reason-box').classList.remove('hidden');
                         document.getElementById('denial-reason-text').innerText = photo.denial_reason || 'Không rõ lý do';
+
+                        if (photo.audit_date && photo.url !== 'https://cdn.vnbusarchive.io.vn/file/daonguyenthanhnhan') {
+                            const auditDate = new Date(photo.audit_date);
+                            auditDate.setDate(auditDate.getDate() + 14);
+                            const dateStr = auditDate.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                            document.getElementById('denial-delete-date').innerText = dateStr;
+                            document.getElementById('denial-delete-warning-box').classList.remove('hidden');
+                        }
 
                         const suggestBox = document.getElementById('denial-improvement-box');
                         const suggestContent = document.getElementById('denial-improvement-content');
