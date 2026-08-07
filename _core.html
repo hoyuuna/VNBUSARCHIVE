@@ -3730,8 +3730,8 @@ div[id$="-modal"] > div > * {
 
                         <!-- Nút cập nhật được dời xuống dưới, làm full viền giống các nút chức năng khác -->
                         <div id="btn-edit-history-container" class="mb-2">
-                            <button id="btn-edit-history" onclick="app.vehicle.toggleEditHistory('')"
-                                class="w-full bg-white border border-gray-300 text-gray-700 py-2.5 text-sm font-bold rounded-md hover:bg-gray-50 transition shadow-sm flex justify-center items-center gap-1.5">
+                            <button id="btn-edit-history" onclick="app.vehicle.toggleEditHistory('')" disabled
+                                class="w-full bg-white border border-gray-300 text-gray-700 py-2.5 text-sm font-bold rounded-md hover:bg-gray-50 transition shadow-sm flex justify-center items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
                                 <i class="fa-solid fa-clock-rotate-left"></i> Cập nhật lịch sử
                             </button>
                         </div>

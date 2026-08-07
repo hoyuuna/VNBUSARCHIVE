@@ -2071,6 +2071,9 @@ Object.assign(window.app, {
                     }
                 },
                 loadHistory: async (plate) => {
+                    const btnEditHist = document.getElementById('btn-edit-history');
+                    if (btnEditHist) btnEditHist.disabled = true;
+
                     const editUi = document.getElementById('history-edit-ui');
                     if(editUi) editUi.classList.add('hidden');
                     
@@ -2139,6 +2142,7 @@ Object.assign(window.app, {
                         tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-gray-500">Chưa có lịch sử hoạt động.</td></tr>';
                     }
                     if (document.getElementById('hist-new-plate')) document.getElementById('hist-new-plate').value = plate;
+                    if (btnEditHist) btnEditHist.disabled = false;
                 },
 
                 loadContact: () => {
