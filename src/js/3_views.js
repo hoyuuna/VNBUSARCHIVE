@@ -1573,7 +1573,24 @@ Object.assign(window.app, {
                             const auditDate = new Date(photo.audit_date);
                             auditDate.setDate(auditDate.getDate() + 7);
                             const dateStr = auditDate.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                            document.getElementById('denial-delete-date').innerText = dateStr;
+                            
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0);
+                            const expiryDate = new Date(auditDate);
+                            expiryDate.setHours(0, 0, 0, 0);
+                            const diffTime = expiryDate - today;
+                            const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+                            
+                            let countdownStr = '';
+                            if (diffDays > 0) {
+                                countdownStr = ` (${diffDays} ngày nữa)`;
+                            } else if (diffDays === 0) {
+                                countdownStr = ` (hôm nay)`;
+                            } else {
+                                countdownStr = ` (đã quá hạn)`;
+                            }
+
+                            document.getElementById('denial-delete-date').innerText = dateStr + countdownStr;
                             document.getElementById('denial-delete-warning-box').classList.remove('hidden');
                         }
 
