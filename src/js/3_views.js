@@ -1999,7 +1999,7 @@ Object.assign(window.app, {
                                         throw new Error(errText);
                                     }
 
-                                    app.toast.show('success', 'Đã xóa ảnh', 'Ảnh đã được chuyển về Sandbox và xóa khỏi CDN chính thành công.');
+                                    app.toast.show('success', 'Đã xử lý', 'Ảnh đã bị từ chối và bắt đầu đếm ngược 7 ngày trước khi bị xóa vĩnh viễn.');
                                     deleteBtn.disabled = false;
                                     deleteBtn.innerHTML = '<i class="fa-solid fa-radiation mr-1"></i> Quản lý: Xóa ảnh này';
                                     if (typeof app.ui.closeModal === 'function') app.ui.closeModal('photo-detail-modal');
