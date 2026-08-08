@@ -954,6 +954,57 @@ Object.assign(window.app, {
                         }
                     }
 
+                    if (isOwnProfile) {
+                        window.sb.from('photos')
+                            .select('id, license_plate, audit_date')
+                            .eq('uploader_id', app.currentProfileId)
+                            .eq('status', 'denied')
+                            .neq('url', 'https://cdn.vnbusarchive.io.vn/file/daonguyenthanhnhan')
+                            .not('audit_date', 'is', null)
+                            .then(({ data, error }) => {
+                                const alertBox = document.getElementById('profile-pending-deletion-alert');
+                                if (!alertBox) return;
+                                
+                                if (error || !data || data.length === 0) {
+                                    alertBox.classList.add('hidden');
+                                    return;
+                                }
+
+                                const now = new Date();
+                                now.setHours(0,0,0,0);
+                                
+                                const expiringPhotos = data.filter(p => {
+                                    const auditDate = new Date(p.audit_date);
+                                    auditDate.setDate(auditDate.getDate() + 7);
+                                    const expiryDate = new Date(auditDate);
+                                    expiryDate.setHours(0,0,0,0);
+                                    return (expiryDate - now) >= 0; 
+                                });
+
+                                if (expiringPhotos.length > 0) {
+                                    let html = 'Bạn có ảnh ';
+                                    
+                                    const links = expiringPhotos.map(p => `<a href="javascript:void(0)" onclick="app.views.loadDetail('${p.id}')" class="font-bold underline hover:text-red-900">${app.utils.displayPlate(p.license_plate)}</a>`);
+                                    
+                                    if (links.length === 1) {
+                                        html += links[0];
+                                    } else if (links.length === 2) {
+                                        html += links.join(' và ');
+                                    } else {
+                                        const last = links.pop();
+                                        html += links.join(', ') + ' và ' + last;
+                                    }
+                                    
+                                    html += ' bị từ chối và sắp bị tự động xóa! Vui lòng kiểm tra và gửi yêu cầu kháng cáo trước thời hạn này. Sau khi ảnh bị xóa, bạn sẽ không thể thực hiện kháng cáo.';
+                                    
+                                    document.getElementById('profile-pending-deletion-alert-text').innerHTML = html;
+                                    alertBox.classList.remove('hidden');
+                                } else {
+                                    alertBox.classList.add('hidden');
+                                }
+                            });
+                    }
+
                     if (!isReturningToSameProfile) {
                         app.views.currentProfileSort = 'newest';
                         app.views.currentProfileFilter = 'all';
