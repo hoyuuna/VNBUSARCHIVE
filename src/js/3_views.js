@@ -1571,7 +1571,7 @@ Object.assign(window.app, {
 
                         if (photo.audit_date && photo.url !== 'https://cdn.vnbusarchive.io.vn/file/daonguyenthanhnhan') {
                             const auditDate = new Date(photo.audit_date);
-                            auditDate.setDate(auditDate.getDate() + 14);
+                            auditDate.setDate(auditDate.getDate() + 7);
                             const dateStr = auditDate.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
                             document.getElementById('denial-delete-date').innerText = dateStr;
                             document.getElementById('denial-delete-warning-box').classList.remove('hidden');
@@ -1715,8 +1715,8 @@ Object.assign(window.app, {
                             errBox2.className = "img-error absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-gray-200 text-gray-800 z-10 select-none rounded-md";
                             errBox2.innerHTML = `
                                 <i class="fa-solid fa-clock-rotate-left text-gray-500 text-5xl mb-4"></i>
-                                <p class="text-base text-gray-800 font-bold mb-2">Ảnh bị từ chối đã xóa sau 15 ngày</p>
-                                <p class="text-sm text-gray-600 mb-4">Bạn sẽ không thể thực hiện kháng cáo. Bạn có thể xóa thông tin khỏi cơ sở dữ liệu bằng cách <a href="javascript:void(0)" onclick="app.photo.requestDelete()" class="font-bold underline hover:text-gray-800 cursor-pointer">Yêu cầu xóa ảnh</a>.</p>
+                                <p class="text-base text-gray-800 font-bold mb-2">Ảnh bị từ chối đã xóa sau 7 ngày</p>
+                                <p class="text-sm text-gray-600 mb-4">Bạn sẽ không thể thực hiện kháng cáo. Bạn có thể xóa thông khỏi cơ sở dữ liệu bằng cách <a href="javascript:void(0)" onclick="app.photo.requestDelete()" class="font-bold underline hover:text-gray-800 cursor-pointer">Yêu cầu xóa ảnh</a>.</p>
                             `;
                             errBox2.classList.remove('hidden');
                         }
