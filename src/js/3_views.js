@@ -995,7 +995,7 @@ Object.assign(window.app, {
                                         html += links.join(', ') + ' và ' + last;
                                     }
                                     
-                                    html += ' bị từ chối và sắp bị tự động xóa! Vui lòng kiểm tra và gửi yêu cầu kháng cáo trước thời hạn này. Sau khi ảnh bị xóa, bạn sẽ không thể thực hiện kháng cáo.';
+                                    html += ' bị từ chối và sắp tự động xóa! Vui lòng kiểm tra và gửi yêu cầu kháng cáo trước thời hạn này. Sau khi ảnh bị xóa, bạn sẽ không thể thực hiện kháng cáo.';
                                     
                                     document.getElementById('profile-pending-deletion-alert-text').innerHTML = html;
                                     alertBox.classList.remove('hidden');
