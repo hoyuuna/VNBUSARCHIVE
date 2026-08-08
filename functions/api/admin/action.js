@@ -168,11 +168,12 @@ export async function onRequestPost(context) {
             const isSpecialRoute = specialRoutes.includes(route);
 
             if (!isSpecialRoute) {
+                // Lấy lịch sử theo thứ tự TĂNG DẦN (cũ nhất -> mới nhất)
                 let { data: currentHistory } = await sbAdmin.from('vehicle_history')
-                    .select('*').eq('license_plate', plate).order('effective_date', { ascending: false });
+                    .select('*').eq('license_plate', plate).order('effective_date', { ascending: true });
 
                 currentHistory = currentHistory || [];
-                let latestHist = currentHistory.length > 0 ? currentHistory[0] : null;
+                let latestHist = currentHistory.length > 0 ? currentHistory[currentHistory.length - 1] : null;
 
                 const takenDateObj = photo.taken_at ? new Date(photo.taken_at) : new Date();
                 const takenDateString = takenDateObj.toISOString().split('T')[0];
@@ -180,50 +181,78 @@ export async function onRequestPost(context) {
                 if (latestHist) {
                     const textCheck = `${latestHist.route || ''} ${latestHist.operator || ''} ${latestHist.note || ''}`.toLowerCase();
                     const isStopped = textCheck.includes('dừng hoạt động') || textCheck.includes('ngừng hoạt động') || textCheck.includes('thanh lý') || textCheck.includes('thu hồi');
-                    const latestHistDate = new Date(latestHist.effective_date);
+                    const latestHistDate = latestHist.effective_date ? new Date(latestHist.effective_date) : new Date();
+                    
                     // Chỉ xóa lịch sử dừng hoạt động nếu ảnh mới chứng minh xe hoạt động SAU hoặc BẰNG ngày dừng
                     if (isStopped && takenDateObj >= latestHistDate) {
                         await sbAdmin.from('vehicle_history').delete().eq('id', latestHist.id);
-                        
-                        currentHistory = currentHistory.filter(h => h.id !== latestHist.id);
-                        latestHist = currentHistory.length > 0 ? currentHistory[0] : null;
+                        currentHistory.pop(); // Xóa khỏi mảng cục bộ
                     }
                 }
 
-                const isNewerThanLatest = !latestHist || !latestHist.effective_date || takenDateObj >= new Date(latestHist.effective_date);
-                const existingMatch = currentHistory.find(h => h.route === route && h.operator === op);
+                // 1. Tìm khoảng thời gian (stint) chứa takenDateObj
+                // H_cov là mốc lịch sử gần nhất ở quá khứ so với ảnh
+                let H_cov = null;
+                for (let i = currentHistory.length - 1; i >= 0; i--) {
+                    const hDate = currentHistory[i].effective_date ? new Date(currentHistory[i].effective_date) : new Date();
+                    if (hDate <= takenDateObj) {
+                        H_cov = currentHistory[i];
+                        break;
+                    }
+                }
 
-                if (isNewerThanLatest) {
-                    if (!latestHist || latestHist.operator !== op || latestHist.route !== route) {
-                        const { count } = await sbAdmin.from('vehicle_history').select('*', { count: 'exact', head: true }).eq('license_plate', plate);
-                        await sbAdmin.from('vehicle_history').insert({
-                            license_plate: plate, operator: op, route: route,
-                            display_order: count || 0,
-                            effective_date: takenDateString
-                        });
+                let needInsert = false;
+
+                if (H_cov) {
+                    // Trùng khớp với thông tin đang có trong khoảng thời gian này
+                    if (H_cov.route === route && H_cov.operator === op) {
+                        needInsert = false;
                     } else {
-                        const oldDateObj = latestHist.effective_date ? new Date(latestHist.effective_date) : new Date();
-                        if (takenDateObj < oldDateObj || !latestHist.effective_date) {
-                            await sbAdmin.from('vehicle_history').update({
-                                effective_date: takenDateString
-                            }).eq('id', latestHist.id);
-                        }
+                        needInsert = true;
                     }
                 } else {
-                    if (existingMatch) {
-                        const oldDateObj = existingMatch.effective_date ? new Date(existingMatch.effective_date) : new Date();
-                        if (takenDateObj < oldDateObj || !existingMatch.effective_date) {
+                    // takenDateObj cũ hơn TẤT CẢ các mốc lịch sử đang có
+                    if (currentHistory.length > 0) {
+                        const H_oldest = currentHistory[0];
+                        if (H_oldest.route === route && H_oldest.operator === op) {
+                            // Mở rộng mốc cũ nhất về quá khứ (vì cùng tuyến/nhà xe)
                             await sbAdmin.from('vehicle_history').update({
                                 effective_date: takenDateString
-                            }).eq('id', existingMatch.id);
+                            }).eq('id', H_oldest.id);
+                            needInsert = false;
+                        } else {
+                            needInsert = true;
                         }
                     } else {
-                        const { count } = await sbAdmin.from('vehicle_history').select('*', { count: 'exact', head: true }).eq('license_plate', plate);
-                        await sbAdmin.from('vehicle_history').insert({
-                            license_plate: plate, operator: op, route: route,
-                            display_order: count || 0,
-                            effective_date: takenDateString
-                        });
+                        // Lịch sử hoàn toàn trống
+                        needInsert = true;
+                    }
+                }
+
+                if (needInsert) {
+                    const { count } = await sbAdmin.from('vehicle_history').select('*', { count: 'exact', head: true }).eq('license_plate', plate);
+                    await sbAdmin.from('vehicle_history').insert({
+                        license_plate: plate, operator: op, route: route,
+                        display_order: count || 0,
+                        effective_date: takenDateString
+                    });
+                }
+
+                // 2. Chống Race-Condition & Tự động gộp dữ liệu trùng lặp
+                // Fetch lại để bao gồm cả các lịch sử do các request concurrent vừa insert
+                let { data: freshHistory } = await sbAdmin.from('vehicle_history')
+                    .select('*').eq('license_plate', plate).order('effective_date', { ascending: true });
+                
+                freshHistory = freshHistory || [];
+                for (let i = 1; i < freshHistory.length; i++) {
+                    const prev = freshHistory[i - 1];
+                    const curr = freshHistory[i];
+                    // Nếu 2 mốc lịch sử liên tiếp giống hệt nhau về tuyến và nhà xe
+                    if (curr.route === prev.route && curr.operator === prev.operator) {
+                        // Giữ lại mốc cũ hơn (prev), xóa mốc mới hơn (curr)
+                        await sbAdmin.from('vehicle_history').delete().eq('id', curr.id);
+                        freshHistory.splice(i, 1);
+                        i--; // Lùi index vì mảng đã bị rút ngắn
                     }
                 }
             }
