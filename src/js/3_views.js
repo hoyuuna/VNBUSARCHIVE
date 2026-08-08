@@ -1566,37 +1566,42 @@ Object.assign(window.app, {
                             app.ui.showAlert("Bạn không có quyền xem ảnh bị từ chối này.");
                             return app.views.loadHome();
                         }
-                        document.getElementById('denial-reason-box').classList.remove('hidden');
-                        document.getElementById('denial-reason-text').innerText = photo.denial_reason || 'Không rõ lý do';
+                        if (photo.url !== 'https://cdn.vnbusarchive.io.vn/file/daonguyenthanhnhan') {
+                            document.getElementById('denial-reason-box').classList.remove('hidden');
+                            document.getElementById('denial-reason-text').innerText = photo.denial_reason || 'Không rõ lý do';
 
-                        if (photo.audit_date && photo.url !== 'https://cdn.vnbusarchive.io.vn/file/daonguyenthanhnhan') {
-                            const auditDate = new Date(photo.audit_date);
-                            auditDate.setDate(auditDate.getDate() + 7);
-                            const dateStr = auditDate.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                            
-                            const today = new Date();
-                            today.setHours(0, 0, 0, 0);
-                            const expiryDate = new Date(auditDate);
-                            expiryDate.setHours(0, 0, 0, 0);
-                            const diffTime = expiryDate - today;
-                            const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-                            
-                            let countdownStr = '';
-                            if (diffDays > 0) {
-                                countdownStr = ` (${diffDays} ngày nữa)`;
-                            } else if (diffDays === 0) {
-                                countdownStr = ` (hôm nay)`;
-                            } else {
-                                countdownStr = ` (đã quá hạn)`;
+                            if (photo.audit_date) {
+                                const auditDate = new Date(photo.audit_date);
+                                auditDate.setDate(auditDate.getDate() + 7);
+                                const dateStr = auditDate.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                                
+                                const today = new Date();
+                                today.setHours(0, 0, 0, 0);
+                                const expiryDate = new Date(auditDate);
+                                expiryDate.setHours(0, 0, 0, 0);
+                                const diffTime = expiryDate - today;
+                                const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+                                
+                                let countdownStr = '';
+                                if (diffDays > 0) {
+                                    countdownStr = ` (${diffDays} ngày nữa)`;
+                                } else if (diffDays === 0) {
+                                    countdownStr = ` (hôm nay)`;
+                                } else {
+                                    countdownStr = ` (đã quá hạn)`;
+                                }
+
+                                document.getElementById('denial-delete-date').innerText = dateStr + countdownStr;
+                                document.getElementById('denial-delete-warning-box').classList.remove('hidden');
                             }
-
-                            document.getElementById('denial-delete-date').innerText = dateStr + countdownStr;
-                            document.getElementById('denial-delete-warning-box').classList.remove('hidden');
+                        } else {
+                            document.getElementById('denial-reason-box').classList.add('hidden');
+                            document.getElementById('denial-delete-warning-box').classList.add('hidden');
                         }
 
                         const suggestBox = document.getElementById('denial-improvement-box');
                         const suggestContent = document.getElementById('denial-improvement-content');
-                        if (suggestBox && suggestContent) {
+                        if (suggestBox && suggestContent && photo.url !== 'https://cdn.vnbusarchive.io.vn/file/daonguyenthanhnhan') {
                             const suggestionsMap = {
                                 'B1.1': 'Thư viện của chúng ta hiện chỉ lưu trữ dữ liệu các phương tiện mang biển số và hoạt động tại Việt Nam. Nếu bạn bắt gặp những chiếc xe đẹp ở nước ngoài, hãy giữ lại làm kỷ niệm cá nhân thay vì tải lên hệ thống nhé. Lần tới đi tác nghiệp, bạn để ý chút đến biển số là ổn ngay!',
                                 'B1.2': 'Mẹo nhỏ để bạn không mất công tác nghiệp: Hãy bỏ qua các xe mang biển Xanh hoặc Đỏ. Với xe khách, bạn cứ nhắm vào các xe có logo/tên nhà xe lớn, hoặc có bảng LED/mica chạy tuyến cố định rõ ràng. Chúng ta tạm thời chưa tiếp nhận xe gia đình hay xe không có dấu hiệu nhận diện thương hiệu nhé.',
