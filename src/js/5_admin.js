@@ -163,7 +163,7 @@ Object.assign(window.app, {
                                             }
 
                                             if (canDeny) {
-                                                actionButtons += `<button onclick="app.admin.denyPhoto('${p.id}', '${p.uploader_id}', this)" class="flex-1 bg-red-600 text-white text-xs font-bold rounded-full hover:bg-red-700 flex items-center justify-center">TỪ CHỐI</button>`;
+                                                actionButtons += `<button onclick="app.admin.denyPhoto('${p.id}', '${p.uploader_id}', this)" class="flex-1 bg-transparent border-0 p-0 hover:opacity-80 transition-opacity flex justify-center items-center"><img src="/media/not-umazing.png" alt="TỪ CHỐI" class="h-[52px] w-auto object-contain"></button>`;
                                             }
                                         }
 
