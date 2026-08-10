@@ -1160,7 +1160,7 @@ Object.assign(window.app, {
 
                             let shootersText = "";
                             if (shootersData && shootersData.length > 0) {
-                                const uniqueUsers = [...new Set(shootersData.map(p => app.utils.formatProfileDisplay(p.profiles).username).filter(Boolean))];
+                                const uniqueUsers = [...new Set(shootersData.map(p => app.utils.formatProfileDisplay(p.profiles)).filter(u => !u.isBanned).map(u => u.username).filter(Boolean))];
                                 if (uniqueUsers.length === 1) shootersText = `Xe này cũng đã được chụp bởi <b>${uniqueUsers[0]}</b>.`;
                                 else if (uniqueUsers.length === 2) shootersText = `Xe này cũng đã được chụp bởi <b>${uniqueUsers[0]}</b> và <b>${uniqueUsers[1]}</b>.`;
                                 else if (uniqueUsers.length > 2) shootersText = `Xe này cũng đã được chụp bởi <b>${uniqueUsers[0]}</b>, <b>${uniqueUsers[1]}</b> và <b>${uniqueUsers.length - 2} người khác</b>.`;
