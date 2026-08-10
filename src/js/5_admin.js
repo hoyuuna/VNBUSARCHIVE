@@ -155,7 +155,7 @@ Object.assign(window.app, {
                                             </div>`;
                                         } else {
                                             if (canApprove) {
-                                                actionButtons += `<button onclick="app.admin.approvePhoto('${p.id}', '${p.uploader_id}', this)" class="flex-1 bg-transparent border-0 p-0 hover:opacity-80 transition-opacity flex justify-center items-center"><img src="/media/umazing.png" alt="DUYỆT" class="h-[52px] w-auto object-contain"></button>`;
+                                                actionButtons += `<button onclick="app.admin.approvePhoto('${p.id}', '${p.uploader_id}', this)" class="flex-1 bg-transparent border-0 p-0 hover:opacity-80 active:scale-90 transition-all duration-200 flex justify-center items-center"><img src="/media/umazing.png" alt="DUYỆT" class="h-[52px] w-auto object-contain"></button>`;
                                             } else {
                                                 actionButtons += `<div class="flex-1 bg-gray-100 text-gray-400 text-xs font-bold rounded text-center border border-gray-200 cursor-not-allowed flex items-center justify-center min-h-[52px]">
                                                     <i class="fa-solid fa-lock mr-1"></i> Không tự duyệt
@@ -163,7 +163,7 @@ Object.assign(window.app, {
                                             }
 
                                             if (canDeny) {
-                                                actionButtons += `<button onclick="app.admin.denyPhoto('${p.id}', '${p.uploader_id}', this)" class="flex-1 bg-transparent border-0 p-0 hover:opacity-80 transition-opacity flex justify-center items-center"><img src="/media/not-umazing.png" alt="TỪ CHỐI" class="h-[52px] w-auto object-contain"></button>`;
+                                                actionButtons += `<button onclick="app.admin.denyPhoto('${p.id}', '${p.uploader_id}', this)" class="flex-1 bg-transparent border-0 p-0 hover:opacity-80 active:scale-90 transition-all duration-200 flex justify-center items-center"><img src="/media/not-umazing.png" alt="TỪ CHỐI" class="h-[52px] w-auto object-contain"></button>`;
                                             }
                                         }
 
