@@ -1392,14 +1392,12 @@ Object.assign(window.app, {
                         let newLeft = Math.max(minLeft, Math.min(currentLeft, maxLeft));
                         let newTop = Math.max(minTop, Math.min(currentTop, maxTop));
 
-                        // 4. Nếu có sự điều chỉnh (bị đẩy vào), cập nhật lại CSS và State
-                        if (newLeft !== currentLeft || newTop !== currentTop) {
-                            el.style.left = newLeft + 'px';
-                            el.style.top = newTop + 'px';
-                            
-                            app.wmState.x = newLeft / container.offsetWidth;
-                            app.wmState.y = newTop / container.offsetHeight;
-                        }
+                        // Đảm bảo luôn đồng bộ CSS left/top theo tọa độ đã chuẩn hóa mới nhất
+                        el.style.left = newLeft + 'px';
+                        el.style.top = newTop + 'px';
+                        
+                        app.wmState.x = newLeft / container.offsetWidth;
+                        app.wmState.y = newTop / container.offsetHeight;
                     }
                     
                     // Auto compression removed to save CPU during edit
@@ -2087,6 +2085,12 @@ Object.assign(window.app, {
                                 wmDrag.style.fontSize = watermarkFontSize + 'px';
                                 const currentScale = app.wmState ? (app.wmState.scale || 1.0) : 1.0;
                                 wmDrag.style.transform = `translate(-50%, -50%) scale(${currentScale})`;
+                                
+                                // Đồng bộ lại tọa độ hiển thị (pixel) từ wmState (tỉ lệ) để không bị lệch khi resize màn hình (đặc biệt trên điện thoại)
+                                if (app.wmState) {
+                                    wmDrag.style.left = (app.wmState.x * finalW) + 'px';
+                                    wmDrag.style.top = (app.wmState.y * finalH) + 'px';
+                                }
                             }
                         };
                         updateSize();
