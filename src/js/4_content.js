@@ -1373,8 +1373,10 @@ Object.assign(window.app, {
                         
                         // 2. Tính toán lại ranh giới (Boundaries) với Scale mới
                         // Lấy tọa độ tâm hiện tại theo pixel
-                        let currentLeft = app.wmState.x * container.offsetWidth;
-                        let currentTop = app.wmState.y * container.offsetHeight;
+                        const cRect = container.getBoundingClientRect();
+                        
+                        let currentLeft = app.wmState.x * cRect.width;
+                        let currentTop = app.wmState.y * cRect.height;
                         
                         // Tính nửa chiều rộng và nửa chiều cao thực tế của chữ ký sau khi scale
                         const wHalf = (el.offsetWidth * app.wmState.scale) / 2;
@@ -1382,11 +1384,11 @@ Object.assign(window.app, {
 
                         // Ranh giới an toàn cho X (Trái/Phải)
                         const minLeft = wHalf;
-                        const maxLeft = Math.max(minLeft, container.offsetWidth - wHalf);
+                        const maxLeft = Math.max(minLeft, cRect.width - wHalf);
                         
                         // Ranh giới an toàn cho Y (Trên/Dưới) - Trừ đi 8% của thanh Footer màu đen
                         const minTop = hHalf;
-                        const maxTop = Math.max(minTop, container.offsetHeight - hHalf - (container.offsetHeight * 0.08));
+                        const maxTop = Math.max(minTop, cRect.height - hHalf - (cRect.height * 0.08));
 
                         // 3. Ép tọa độ tâm lùi lại vào trong nếu bị tràn
                         let newLeft = Math.max(minLeft, Math.min(currentLeft, maxLeft));
@@ -1396,8 +1398,8 @@ Object.assign(window.app, {
                         el.style.left = newLeft + 'px';
                         el.style.top = newTop + 'px';
                         
-                        app.wmState.x = newLeft / container.offsetWidth;
-                        app.wmState.y = newTop / container.offsetHeight;
+                        app.wmState.x = newLeft / cRect.width;
+                        app.wmState.y = newTop / cRect.height;
                     }
                     
                     // Auto compression removed to save CPU during edit
@@ -2179,11 +2181,12 @@ Object.assign(window.app, {
                         const wHalf = (el.offsetWidth * scale) / 2;
                         const hHalf = (el.offsetHeight * scale) / 2;
 
+                        const cRect = container.getBoundingClientRect();
                         const minLeft = wHalf;
-                        const maxLeft = Math.max(minLeft, container.offsetWidth - wHalf);
+                        const maxLeft = Math.max(minLeft, cRect.width - wHalf);
                         
                         const minTop = hHalf;
-                        const maxTop = Math.max(minTop, container.offsetHeight - hHalf - (container.offsetHeight * 0.08));
+                        const maxTop = Math.max(minTop, cRect.height - hHalf - (cRect.height * 0.08));
 
                         newLeft = Math.max(minLeft, Math.min(newLeft, maxLeft));
                         newTop = Math.max(minTop, Math.min(newTop, maxTop));
@@ -2191,8 +2194,8 @@ Object.assign(window.app, {
                         el.style.left = newLeft + 'px';
                         el.style.top = newTop + 'px';
 
-                        app.wmState.x = newLeft / container.offsetWidth;
-                        app.wmState.y = newTop / container.offsetHeight;
+                        app.wmState.x = newLeft / cRect.width;
+                        app.wmState.y = newTop / cRect.height;
                     };
 
                     document.addEventListener('mousemove', (e) => {
