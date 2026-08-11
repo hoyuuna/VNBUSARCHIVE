@@ -1254,7 +1254,7 @@ Object.assign(window.app, {
                     const el = document.getElementById('draggable-watermark');
                     if (isBlack) el.classList.add('wm-black');
                     else el.classList.remove('wm-black');
-                    // Auto compression removed to save CPU during edit
+                    if (app.previewUpdateSize) app.previewUpdateSize();
                 },
                 isBlindWatermarkEnabled: (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_mode') === 'advanced'),
                 loadOpenCV: async (progToast) => {
@@ -2084,11 +2084,38 @@ Object.assign(window.app, {
                             // 3. Kích thước Watermark kéo thả chính giữa
                             const wmDrag = document.getElementById('draggable-watermark');
                             if (wmDrag) {
-                                wmDrag.style.fontSize = watermarkFontSize + 'px';
+                                // Vẽ watermark bằng Canvas để khớp 100% textBaseline với lúc Render
+                                let wmCanvas = document.getElementById('preview-wm-canvas');
+                                if (!wmCanvas) {
+                                    wmCanvas = document.createElement('canvas');
+                                    wmCanvas.id = 'preview-wm-canvas';
+                                    wmDrag.innerHTML = '';
+                                    wmDrag.appendChild(wmCanvas);
+                                    wmDrag.style.padding = '0';
+                                    wmDrag.style.border = 'none';
+                                }
+                                
+                                const text = `© ${app.username || 'Guest'}`;
+                                const fontFace = '"Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+                                const font = `700 ${watermarkFontSize}px ${fontFace}`;
+                                
+                                const ctx = wmCanvas.getContext('2d');
+                                ctx.font = font;
+                                const metrics = ctx.measureText(text);
+                                
+                                wmCanvas.width = metrics.width + 4; // đệm ngang tí ti
+                                wmCanvas.height = watermarkFontSize * 1.5; 
+                                
+                                ctx.font = font;
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'middle';
+                                ctx.fillStyle = wmDrag.classList.contains('wm-black') ? 'black' : 'white';
+                                ctx.clearRect(0, 0, wmCanvas.width, wmCanvas.height);
+                                ctx.fillText(text, wmCanvas.width / 2, wmCanvas.height / 2);
+
                                 const currentScale = app.wmState ? (app.wmState.scale || 1.0) : 1.0;
                                 wmDrag.style.transform = `translate(-50%, -50%) scale(${currentScale})`;
                                 
-                                // Đồng bộ lại tọa độ hiển thị (pixel) từ wmState (tỉ lệ) để không bị lệch khi resize màn hình (đặc biệt trên điện thoại)
                                 if (app.wmState) {
                                     wmDrag.style.left = (app.wmState.x * finalW) + 'px';
                                     wmDrag.style.top = (app.wmState.y * finalH) + 'px';
@@ -2154,8 +2181,9 @@ Object.assign(window.app, {
                         isDragging = true;
                         startX = e.clientX;
                         startY = e.clientY;
-                        initialLeft = el.offsetLeft;
-                        initialTop = el.offsetTop;
+                        const cRect = container.getBoundingClientRect();
+                        initialLeft = app.wmState.x * cRect.width;
+                        initialTop = app.wmState.y * cRect.height;
                     });
 
                     el.addEventListener('touchstart', (e) => {
@@ -2164,8 +2192,9 @@ Object.assign(window.app, {
                         isDragging = true;
                         startX = e.touches[0].clientX;
                         startY = e.touches[0].clientY;
-                        initialLeft = el.offsetLeft;
-                        initialTop = el.offsetTop;
+                        const cRect = container.getBoundingClientRect();
+                        initialLeft = app.wmState.x * cRect.width;
+                        initialTop = app.wmState.y * cRect.height;
                     });
 
                     const onMove = (clientX, clientY) => {
