@@ -1003,6 +1003,9 @@ Object.assign(window.app, {
                                     alertBox.classList.add('hidden');
                                 }
                             });
+                    } else {
+                        const alertBox = document.getElementById('profile-pending-deletion-alert');
+                        if (alertBox) alertBox.classList.add('hidden');
                     }
 
                     if (!isReturningToSameProfile) {
