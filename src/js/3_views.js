@@ -979,7 +979,7 @@ Object.assign(window.app, {
                                     const expiryDate = new Date(auditDate);
                                     expiryDate.setHours(0,0,0,0);
                                     return (expiryDate - now) >= 0; 
-                                });
+                                }).sort((a, b) => new Date(b.audit_date) - new Date(a.audit_date));
 
                                 if (expiringPhotos.length > 0) {
                                     let html = 'Bạn có ảnh ';
