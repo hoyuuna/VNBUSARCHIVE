@@ -3445,16 +3445,37 @@ Object.assign(window.app, {
 
                         const response = await fetch(proxyUrl);
                         const blob = await response.blob();
-                        const blobUrl = window.URL.createObjectURL(blob);
-
-                        const a = document.createElement('a');
-                        a.href = blobUrl;
-                        a.download = plateName + '.jpg'; // Đặt tên file khi lưu
-
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        window.URL.revokeObjectURL(blobUrl);
+                        
+                        const img = new Image();
+                        const objectUrl = window.URL.createObjectURL(blob);
+                        
+                        await new Promise((resolve, reject) => {
+                            img.onload = resolve;
+                            img.onerror = reject;
+                            img.src = objectUrl;
+                        });
+                        
+                        const canvas = document.createElement('canvas');
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        const ctx = canvas.getContext('2d');
+                        
+                        // Fill white background for transparent images
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(img, 0, 0);
+                        
+                        canvas.toBlob((jpgBlob) => {
+                            const blobUrl = window.URL.createObjectURL(jpgBlob);
+                            const a = document.createElement('a');
+                            a.href = blobUrl;
+                            a.download = plateName + '.jpg';
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            window.URL.revokeObjectURL(blobUrl);
+                            window.URL.revokeObjectURL(objectUrl);
+                        }, 'image/jpeg', 0.95);
                     } catch (err) {
                         app.ui.showAlert('Lỗi: Không thể tải hình ảnh từ máy chủ!');
                     } finally {
