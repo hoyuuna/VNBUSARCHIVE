@@ -798,122 +798,6 @@ Object.assign(window.app, {
                     return true;
                 },
 
-                loadFaceModel: () => {
-                    if (app.upload._faceModel) return Promise.resolve(app.upload._faceModel);
-                    if (app.upload._faceModelLoading) return app.upload._faceModelLoading;
-
-                    app.upload._faceModelLoading = (async () => {
-                        const vision = await import('https://esm.sh/@mediapipe/tasks-vision@0.10.18');
-                        const fileset = await vision.FilesetResolver.forVisionTasks(
-                            'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/wasm'
-                        );
-                        // Google MediaPipe Face Detector (@mediapipe/tasks-vision)
-                        const modelAssetPath = 'https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite';
-                        // Hạ nhẹ threshold để bắt được mặt mờ/góc lệch, nhưng giữ đủ cao tránh che bừa
-                        const baseOpts = {
-                            baseOptions: { modelAssetPath: modelAssetPath },
-                            runningMode: 'IMAGE',
-                            minDetectionConfidence: 0.25,
-                            minSuppressionThreshold: 0.3
-                        };
-                        let detector;
-                        try {
-                            detector = await vision.FaceDetector.createFromOptions(fileset, { ...baseOpts, baseOptions: { ...baseOpts.baseOptions, delegate: 'GPU' } });
-                        } catch (gpuErr) {
-                            console.warn('Face detector GPU failed, falling back to CPU:', gpuErr);
-                            detector = await vision.FaceDetector.createFromOptions(fileset, { ...baseOpts, baseOptions: { ...baseOpts.baseOptions, delegate: 'CPU' } });
-                        }
-                        app.upload._faceModel = detector;
-                        return detector;
-                    })();
-
-                    return app.upload._faceModelLoading;
-                },
-
-                detectFaces: async () => {
-                    const container = document.getElementById('preview-container');
-                    const previewImg = document.getElementById('preview-img');
-                    if (!container || !previewImg) return;
-
-                    if (app.upload._faceDetecting) return;
-                    app.upload._faceDetecting = true;
-
-                    const autoBtn = document.getElementById('btn-auto-blur');
-                    const autoBtnOrig = autoBtn ? autoBtn.innerHTML : '';
-                    if (autoBtn) {
-                        autoBtn.disabled = true;
-                        autoBtn.classList.add('opacity-60', 'cursor-not-allowed');
-                        autoBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tìm kiếm khuôn mặt...';
-                    }
-
-                    try {
-                        const detector = await app.upload.loadFaceModel();
-
-                        const natW = previewImg.naturalWidth || container.clientWidth;
-                        const natH = previewImg.naturalHeight || container.clientHeight;
-                        // Tăng lên 1920 để bắt được các khuôn mặt nhỏ / ở xa trong ảnh xe buýt
-                        const detW = Math.min(natW, 1920);
-                        const detH = Math.round(natH * (detW / natW));
-
-                        const canvas = document.createElement('canvas');
-                        canvas.width = detW;
-                        canvas.height = detH;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(previewImg, 0, 0, detW, detH);
-
-                        const results = await detector.detect(canvas);
-                        const detections = results.detections || [];
-                        if (detections.length === 0) {
-                            app.toast.show('info', 'Không phát hiện khuôn mặt', 'Hệ thống không tìm thấy khuôn mặt nào trên ảnh này.');
-                            return;
-                        }
-
-                        let added = 0;
-                        detections.forEach(d => {
-                            const box = d.boundingBox;
-                            if (!box) return;
-                            const x = box.originX;
-                            const y = box.originY;
-                            const w = box.width;
-                            const h = box.height;
-
-                            // Bỏ qua face quá nhỏ (<40px trên ảnh detect 1920) để tránh che bừa lung tung
-                            if (w < 40 || h < 40) return;
-
-                            const padX = w * 0.25;
-                            const padY = h * 0.35;
-                            const fx = Math.max(0, x - padX);
-                            const fy = Math.max(0, y - padY);
-                            const fw = Math.min(detW - fx, w + padX * 2);
-                            const fh = Math.min(detH - fy, h + padY * 2);
-
-                            const left = (fx / detW) * container.clientWidth;
-                            const top = (fy / detH) * container.clientHeight;
-                            const pw = (fw / detW) * container.clientWidth;
-                            const ph = (fh / detH) * container.clientHeight;
-
-                            app.upload.buildBlurPanel({ left, top, width: pw, height: ph, auto: true });
-                            added++;
-                        });
-
-                        if (added > 0) {
-                            app.toast.show('success', 'Đã tự động che khuôn mặt', `Phát hiện và che ${added} khuôn mặt. Bạn có thể kéo, đổi kích thước hoặc xóa từng vùng.`);
-                        } else {
-                            app.toast.show('info', 'Không phát hiện khuôn mặt', 'Hệ thống không tìm thấy khuôn mặt nào trên ảnh này.');
-                        }
-                    } catch (err) {
-                        console.error('Auto face-blur skipped:', err);
-                        app.toast.show('error', 'Lỗi tự động làm mờ', 'Không thể chạy nhận diện khuôn mặt: ' + (err && err.message ? err.message : err));
-                    } finally {
-                        app.upload._faceDetecting = false;
-                        if (autoBtn) {
-                            autoBtn.disabled = false;
-                            autoBtn.classList.remove('opacity-60', 'cursor-not-allowed');
-                            autoBtn.innerHTML = autoBtnOrig;
-                        }
-                        app.upload.updateBlurBtn();
-                    }
-                },
 
                 removeBlurPanel: (id) => {
                     const panel = document.getElementById(id);
@@ -1653,8 +1537,7 @@ Object.assign(window.app, {
                         dropZone.style.pointerEvents = 'none';
                         visualEl.innerHTML = '<div class="flex flex-col items-center gap-3 py-4"><i class="fa-solid fa-circle-notch fa-spin text-4xl text-black"></i><p class="text-sm font-bold text-gray-600 mt-3">Đang xử lý ảnh, vui lòng đợi...</p></div>';
                         if (qrWrapper) qrWrapper.classList.add('hidden');
-                        // Bắt đầu tải trước mô hình nhận diện khuôn mặt trong lúc xử lý ảnh
-                        if (app.upload.loadFaceModel) app.upload.loadFaceModel().catch(() => {});
+
                     }
 
                     app.upload.restoreDropZone = () => {
