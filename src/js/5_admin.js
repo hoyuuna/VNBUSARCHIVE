@@ -2689,7 +2689,7 @@ app.admin.fetchManagerData('denied');
                                     <i class="fa-solid fa-check"></i>
                                 </div>
                                 <span class="text-xs font-semibold text-gray-800 group-hover:text-black transition leading-relaxed pt-0.5">
-                                    <strong class="text-sm text-blue-600 block leading-none mb-1">VVBS</strong>
+                                    <strong class="text-sm text-gray-900 block leading-none mb-1">VVBS</strong>
                                     <span class="text-[10px] text-gray-500 block leading-tight">VNBUSARCHIVE Verified Bus Staff.</span>
                                 </span>
                             </label>
