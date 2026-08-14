@@ -328,9 +328,9 @@ Object.assign(window.app, {
                         okBtn.style.display = options.hideButtons ? 'none' : 'inline-flex';
 
                         if (options.isDestructive) {
-                            okBtn.className = "w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition";
+                            okBtn.className = "w-full inline-flex items-center justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition";
                         } else {
-                            okBtn.className = "w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-black text-base font-medium text-white hover:bg-gray-800 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition";
+                            okBtn.className = "w-full inline-flex items-center justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-black text-base font-medium text-white hover:bg-gray-800 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition";
                         }
 
                         if (options.countdown) {
@@ -373,11 +373,11 @@ Object.assign(window.app, {
                         cancelBtn.style.display = options.hideButtons ? 'none' : 'inline-flex';
                         
                         if (options.isCancelDestructive) {
-                            cancelBtn.className = "mt-3 w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition";
+                            cancelBtn.className = "mt-3 w-full inline-flex items-center justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition";
                         } else if (options.isCancelPrimary) {
-                            cancelBtn.className = "mt-3 w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-black text-base font-medium text-white hover:bg-gray-800 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition";
+                            cancelBtn.className = "mt-3 w-full inline-flex items-center justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-black text-base font-medium text-white hover:bg-gray-800 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition";
                         } else {
-                            cancelBtn.className = "mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition";
+                            cancelBtn.className = "mt-3 w-full inline-flex items-center justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition";
                         }
 
                         app.alertCancelCallback = cancelCallback || (() => { });
@@ -417,7 +417,7 @@ Object.assign(window.app, {
                     const helpUrl = 'https://www.vnbusarchive.io.vn/help/1537750814507008101';
                     
                     if (type === 'vvcc') {
-                        desc = `Danh hiệu <b>Verified Content Creator (VVCC)</b> được cấp cho những nhà sáng tạo nội dung có đóng góp tích cực và uy tín trên hệ thống.<br><br><a href="${helpUrl}" target="_blank" class="text-black hover:underline font-bold text-[13px] inline-flex items-center"><i class="fa-solid fa-arrow-up-right-from-square mr-1.5"></i> Tìm hiểu thêm về danh hiệu này</a>`;
+                        desc = `Danh hiệu <b>Verified Content Creator (VVCC)</b> được cấp cho những nhà sáng tạo nội dung có đóng góp tích cực và uy tín trên hệ thống.<br><br><a href="${helpUrl}" target="_blank" class="text-black hover:underline font-bold text-[13px] inline-flex items-center">Tìm hiểu thêm về danh hiệu này</a>`;
                         
                         if (link) {
                             app.ui.showAlert(desc, 
@@ -426,7 +426,7 @@ Object.assign(window.app, {
                                 {
                                     title: "VNBUSARCHIVE Verified",
                                     iconHtml: '<i class="fa-solid fa-circle-check text-3xl text-black"></i>',
-                                    btnOkText: '<i class="fa-solid fa-arrow-up-right-from-square mr-2"></i> Xem kênh',
+                                    btnOkText: '<i class="fa-solid fa-arrow-up-right-from-square mr-2 text-[12px] pt-0.5"></i> Xem kênh',
                                     btnCancelText: "Đóng"
                                 }
                             );
@@ -442,7 +442,7 @@ Object.assign(window.app, {
                             );
                         }
                     } else if (type === 'vvbs') {
-                        desc = `Danh hiệu <b>Verified Bus Staff (VVBS)</b> được cấp cho những nhân viên, phụ xe, tài xế xe buýt đã được xác thực trên hệ thống.<br><br><a href="${helpUrl}" target="_blank" class="text-black hover:underline font-bold text-[13px] inline-flex items-center"><i class="fa-solid fa-arrow-up-right-from-square mr-1.5"></i> Tìm hiểu thêm về danh hiệu này</a>`;
+                        desc = `Danh hiệu <b>Verified Bus Staff (VVBS)</b> được cấp cho những nhân viên, phụ xe, tài xế xe buýt đã được xác thực trên hệ thống.<br><br><a href="${helpUrl}" target="_blank" class="text-black hover:underline font-bold text-[13px] inline-flex items-center">Tìm hiểu thêm về danh hiệu này</a>`;
                         
                         app.ui.showAlert(desc, 
                             null, 
