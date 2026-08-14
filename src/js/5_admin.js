@@ -2668,25 +2668,25 @@ app.admin.fetchManagerData('denied');
 
                     const htmlForm = `
                         <div class="text-left space-y-4 mt-2 max-h-[60vh] overflow-y-auto">
-                            <label class="flex items-center gap-3 cursor-pointer group">
-                                <div class="relative inline-flex items-center shrink-0">
-                                    <input type="checkbox" id="subrole-cb-dev" class="sr-only peer" ${isDev ? 'checked' : ''}>
-                                    <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-black"></div>
+                            <label class="flex items-start gap-2.5 cursor-pointer group select-none">
+                                <input type="checkbox" id="subrole-cb-dev" class="custom-cb-input sr-only" ${isDev ? 'checked' : ''}>
+                                <div class="custom-cb-box shrink-0 shadow-sm mt-0.5">
+                                    <i class="fa-solid fa-check"></i>
                                 </div>
                                 <div>
-                                    <span class="text-sm font-bold text-gray-900 group-hover:text-black transition">Dev (Developer)</span>
-                                    <p class="text-[10px] text-gray-500">Danh hiệu dành cho nhà phát triển hệ thống.</p>
+                                    <span class="text-sm font-bold text-gray-900 group-hover:text-black transition block leading-none mb-1">Dev (Developer)</span>
+                                    <span class="text-[10px] text-gray-500 block leading-tight">Danh hiệu dành cho nhà phát triển hệ thống.</span>
                                 </div>
                             </label>
 
-                            <label class="flex items-center gap-3 cursor-pointer group">
-                                <div class="relative inline-flex items-center shrink-0">
-                                    <input type="checkbox" id="subrole-cb-vvcc" class="sr-only peer" ${isVvcc ? 'checked' : ''} onchange="document.getElementById('subrole-vvcc-link-wrapper').classList.toggle('hidden', !this.checked)">
-                                    <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-black"></div>
+                            <label class="flex items-start gap-2.5 cursor-pointer group select-none mt-4">
+                                <input type="checkbox" id="subrole-cb-vvcc" class="custom-cb-input sr-only" ${isVvcc ? 'checked' : ''} onchange="document.getElementById('subrole-vvcc-link-wrapper').classList.toggle('hidden', !this.checked)">
+                                <div class="custom-cb-box shrink-0 shadow-sm mt-0.5">
+                                    <i class="fa-solid fa-check"></i>
                                 </div>
                                 <div>
-                                    <span class="text-sm font-bold text-gray-900 group-hover:text-black transition">VVCC</span>
-                                    <p class="text-[10px] text-gray-500">VNBUSARCHIVE Verified Content Creator.</p>
+                                    <span class="text-sm font-bold text-gray-900 group-hover:text-black transition block leading-none mb-1">VVCC</span>
+                                    <span class="text-[10px] text-gray-500 block leading-tight">VNBUSARCHIVE Verified Content Creator.</span>
                                 </div>
                             </label>
                             <div id="subrole-vvcc-link-wrapper" class="${isVvcc ? '' : 'hidden'} pl-6 mt-1">
