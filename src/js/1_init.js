@@ -414,10 +414,11 @@ Object.assign(window.app, {
                 },
                 showVerifiedPopup: (type, link) => {
                     let desc = "";
-                    const helpUrl = 'https://www.vnbusarchive.io.vn/help/1537750814507008101';
+                    let helpUrl = "";
                     
                     if (type === 'vvcc') {
-                        desc = `Danh hiệu <b>Verified Content Creator (VVCC)</b> được cấp cho những nhà sáng tạo nội dung có đóng góp tích cực và uy tín trên hệ thống.<br><br><a href="${helpUrl}" target="_blank" class="text-black hover:underline font-bold text-[13px] inline-flex items-center">Tìm hiểu thêm về danh hiệu này</a>`;
+                        helpUrl = 'https://www.vnbusarchive.io.vn/help/1537750814507008101';
+                        desc = `Danh hiệu <b>VNBUSARCHIVE Verified Content Creator</b> được cấp cho các nhà sáng tạo nội dung sở hữu kênh truyền thông đạt chuẩn, có công lan tỏa hình ảnh giao thông công cộng đến với cộng đồng.<br><br><a href="${helpUrl}" target="_blank" class="text-black hover:underline font-bold text-[13px] inline-flex items-center">Tìm hiểu thêm về danh hiệu này</a>`;
                         
                         if (link) {
                             app.ui.showAlert(desc, 
@@ -442,7 +443,8 @@ Object.assign(window.app, {
                             );
                         }
                     } else if (type === 'vvbs') {
-                        desc = `Danh hiệu <b>Verified Bus Staff (VVBS)</b> được cấp cho những nhân viên, phụ xe, tài xế xe buýt đã được xác thực trên hệ thống.<br><br><a href="${helpUrl}" target="_blank" class="text-black hover:underline font-bold text-[13px] inline-flex items-center">Tìm hiểu thêm về danh hiệu này</a>`;
+                        helpUrl = 'https://www.vnbusarchive.io.vn/help/1537761083090018366';
+                        desc = `Danh hiệu <b>VNBUSARCHIVE Verified Bus Staff</b> được cấp nhằm xác nhận và tôn vinh những cán bộ, công nhân viên đang trực tiếp công tác và cống hiến cho ngành giao thông công cộng.<br><br><a href="${helpUrl}" target="_blank" class="text-black hover:underline font-bold text-[13px] inline-flex items-center">Tìm hiểu thêm về danh hiệu này</a>`;
                         
                         app.ui.showAlert(desc, 
                             null, 
