@@ -2668,16 +2668,22 @@ app.admin.fetchManagerData('denied');
 
                     const htmlForm = `
                         <div class="text-left space-y-4 mt-2 max-h-[60vh] overflow-y-auto">
-                            <label class="flex items-start gap-2 cursor-pointer group">
-                                <input type="checkbox" id="subrole-cb-dev" class="mt-0.5 cursor-pointer accent-black w-4 h-4" ${isDev ? 'checked' : ''}>
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <div class="relative inline-flex items-center shrink-0">
+                                    <input type="checkbox" id="subrole-cb-dev" class="sr-only peer" ${isDev ? 'checked' : ''}>
+                                    <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-black"></div>
+                                </div>
                                 <div>
                                     <span class="text-sm font-bold text-gray-900 group-hover:text-black transition">Dev (Developer)</span>
                                     <p class="text-[10px] text-gray-500">Danh hiệu dành cho nhà phát triển hệ thống.</p>
                                 </div>
                             </label>
 
-                            <label class="flex items-start gap-2 cursor-pointer group">
-                                <input type="checkbox" id="subrole-cb-vvcc" class="mt-0.5 cursor-pointer accent-black w-4 h-4" ${isVvcc ? 'checked' : ''} onchange="document.getElementById('subrole-vvcc-link-wrapper').classList.toggle('hidden', !this.checked)">
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <div class="relative inline-flex items-center shrink-0">
+                                    <input type="checkbox" id="subrole-cb-vvcc" class="sr-only peer" ${isVvcc ? 'checked' : ''} onchange="document.getElementById('subrole-vvcc-link-wrapper').classList.toggle('hidden', !this.checked)">
+                                    <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-black"></div>
+                                </div>
                                 <div>
                                     <span class="text-sm font-bold text-gray-900 group-hover:text-black transition">VVCC</span>
                                     <p class="text-[10px] text-gray-500">VNBUSARCHIVE Verified Content Creator.</p>
