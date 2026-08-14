@@ -778,8 +778,11 @@ Object.assign(window.app, {
                                     const getPriority = (photo) => {
                                         const p = photo.profiles;
                                         if (p && (p.role === 'admin' || p.role === 'manager')) return 1;
-                                        if (p && p.subroles && Array.isArray(p.subroles) && p.subroles.some(s => s === 'vvcc' || s.startsWith('vvcc|'))) return 2;
-                                        return 3;
+                                        if (p && p.subroles && Array.isArray(p.subroles)) {
+                                            if (p.subroles.includes('vvbs')) return 2;
+                                            if (p.subroles.some(s => s === 'vvcc' || s.startsWith('vvcc|'))) return 3;
+                                        }
+                                        return 4;
                                     };
                                     const pA = getPriority(a);
                                     const pB = getPriority(b);
@@ -2665,6 +2668,7 @@ app.admin.fetchManagerData('denied');
                     const vvccRole = subroles.find(s => s === 'vvcc' || s.startsWith('vvcc|'));
                     const isVvcc = !!vvccRole;
                     const vvccLink = (vvccRole && vvccRole.includes('|')) ? vvccRole.split('|')[1] : '';
+                    const isVvbs = subroles.includes('vvbs');
 
                     const htmlForm = `
                         <div class="text-left space-y-4 mt-2 max-h-[60vh] overflow-y-auto">
@@ -2676,6 +2680,17 @@ app.admin.fetchManagerData('denied');
                                 <span class="text-xs font-semibold text-gray-800 group-hover:text-black transition leading-relaxed pt-0.5">
                                     <strong class="text-sm text-gray-900 block leading-none mb-1">Dev (Developer)</strong>
                                     <span class="text-[10px] text-gray-500 block leading-tight">Danh hiệu dành cho nhà phát triển hệ thống.</span>
+                                </span>
+                            </label>
+
+                            <label class="flex items-start cursor-pointer group select-none mt-4">
+                                <input type="checkbox" id="subrole-cb-vvbs" class="custom-cb-input sr-only" ${isVvbs ? 'checked' : ''}>
+                                <div class="custom-cb-box shrink-0 shadow-sm">
+                                    <i class="fa-solid fa-check"></i>
+                                </div>
+                                <span class="text-xs font-semibold text-gray-800 group-hover:text-black transition leading-relaxed pt-0.5">
+                                    <strong class="text-sm text-blue-600 block leading-none mb-1">VVBS</strong>
+                                    <span class="text-[10px] text-gray-500 block leading-tight">VNBUSARCHIVE Verified Bus Staff.</span>
                                 </span>
                             </label>
 
@@ -2697,11 +2712,13 @@ app.admin.fetchManagerData('denied');
 
                     app.ui.showAlert(htmlForm, async () => {
                         const cbDev = document.getElementById('subrole-cb-dev').checked;
+                        const cbVvbs = document.getElementById('subrole-cb-vvbs').checked;
                         const cbVvcc = document.getElementById('subrole-cb-vvcc').checked;
                         const linkInput = document.getElementById('subrole-vvcc-link').value.trim();
                         
                         let newSubroles = [];
                         if (cbDev) newSubroles.push('dev');
+                        if (cbVvbs) newSubroles.push('vvbs');
                         if (cbVvcc) {
                             if (linkInput) newSubroles.push(`vvcc|${linkInput}`);
                             else newSubroles.push('vvcc');

@@ -412,6 +412,33 @@ Object.assign(window.app, {
                         if (cb) cb();
                     }, 200);
                 },
+                showVerifiedPopup: (type, link) => {
+                    let desc = "";
+                    let btnsHtml = "";
+                    if (type === 'vvcc') {
+                        desc = "Danh hiệu <b>Verified Content Creator (VVCC)</b> được cấp cho những nhà sáng tạo nội dung có đóng góp tích cực và uy tín trên hệ thống.";
+                        if (link) {
+                            btnsHtml += `<button onclick="window.open('${link}', '_blank'); app.ui.closeAlert();" class="w-full sm:w-auto inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none transition mb-3 sm:mb-0 sm:mr-3"><i class="fa-brands fa-youtube mt-1 mr-1.5 text-xs"></i> Xem kênh</button>`;
+                        }
+                    } else if (type === 'vvbs') {
+                        desc = "Danh hiệu <b>Verified Bus Staff (VVBS)</b> được cấp cho những nhân viên, phụ xe, tài xế xe buýt đã được xác thực trên hệ thống.";
+                    }
+                    
+                    btnsHtml += `<button onclick="window.open('https://www.vnbusarchive.io.vn/help/1537750814507008101', '_blank'); app.ui.closeAlert();" class="w-full sm:w-auto inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-black text-base font-medium text-white hover:bg-gray-800 focus:outline-none transition"><i class="fa-solid fa-circle-info mt-1 mr-1.5 text-xs"></i> Tìm hiểu thêm</button>`;
+                    
+                    const html = `
+                        <div class="text-left text-sm text-gray-600 mb-4">${desc}</div>
+                        <div class="flex flex-col sm:flex-row justify-end mt-2">
+                            ${btnsHtml}
+                        </div>
+                    `;
+                    
+                    app.ui.showAlert(html, null, null, {
+                        title: "VNBUSARCHIVE Verified...",
+                        hideButtons: true,
+                        iconHtml: '<i class="fa-solid fa-circle-check text-xl text-blue-500"></i>'
+                    });
+                },
                 showQuotaInfo: () => {
                     const limitStr = app.maintenance.settings['upload_quota']?.reason;
                     const limitTxt = (limitStr && limitStr.trim() !== '') ? limitStr : 'không giới hạn';
@@ -2614,12 +2641,24 @@ cleanupState: () => {
                             // Sử dụng font icon nhỏ hơn một chút và kích thước cố định cho hình tròn đen
                             const innerHtml = `<i class="fa-solid fa-check text-[9px]"></i>`;
                             // Loại bỏ các padding gốc, dùng width/height cố định tương đương badge thường (14px - 15px)
-                            const styleStr = `background-color: black; color: white; padding: 0; width: 15px; height: 15px; border-radius: 50%; justify-content: center;`;
+                            const styleStr = `background-color: black; color: white; padding: 0; width: 15px; height: 15px; border-radius: 50%; justify-content: center;${enableClick ? ' cursor: pointer;' : ''}`;
                             
-                            if (link && enableClick) {
-                                html += `<a href="${app.utils.escapeHtml(link)}" target="_blank" class="badge-shiny" style="${styleStr}">${innerHtml}</a>`;
+                            if (enableClick) {
+                                html += `<span class="badge-shiny" style="${styleStr}" onclick="app.ui.showVerifiedPopup('vvcc', '${link ? app.utils.escapeHtml(link) : ''}')" title="Verified Content Creator">${innerHtml}</span>`;
                             } else {
-                                html += `<span class="badge-shiny" style="${styleStr}">${innerHtml}</span>`;
+                                html += `<span class="badge-shiny" style="${styleStr}" title="Verified Content Creator">${innerHtml}</span>`;
+                            }
+                        }
+
+                        const vvbsRole = subroles.find(s => s === 'vvbs');
+                        if (vvbsRole) {
+                            const innerHtml = `<i class="fa-solid fa-check text-[9px]"></i>`;
+                            const styleStr = `background-color: #3b82f6; color: white; padding: 0; width: 15px; height: 15px; border-radius: 50%; justify-content: center;${enableClick ? ' cursor: pointer;' : ''}`;
+                            
+                            if (enableClick) {
+                                html += `<span class="badge-shiny" style="${styleStr}" onclick="app.ui.showVerifiedPopup('vvbs', '')" title="Verified Bus Staff">${innerHtml}</span>`;
+                            } else {
+                                html += `<span class="badge-shiny" style="${styleStr}" title="Verified Bus Staff">${innerHtml}</span>`;
                             }
                         }
                     }
