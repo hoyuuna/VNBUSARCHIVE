@@ -1238,7 +1238,8 @@ Object.assign(window.app, {
                         } else {
                             grid.innerHTML = '<p class="text-xs text-gray-500 col-span-full text-center py-4">Không có dữ liệu.</p>';
                         }
-                        document.getElementById('requests-load-more-container').classList.add('hidden');
+                        let pagerEl = document.getElementById('requests-pager');
+                        if (pagerEl) pagerEl.innerHTML = '';
                         return;
                     }
                     
@@ -1289,16 +1290,16 @@ Object.assign(window.app, {
 
                     const size = 12;
                     const totalPages = Math.ceil(count / size);
-                    const pagerContainer = document.getElementById('requests-load-more-container');
-                    
-                    if (totalPages <= 1) { 
-                        pagerContainer.classList.add('hidden'); 
-                        pagerContainer.innerHTML = '';
-                    } else {
-                        pagerContainer.classList.remove('hidden');
-                        pagerContainer.innerHTML = `<div id="requests-pagination-container" class="w-full"></div><p class="text-center w-full text-[10px] text-gray-400 mt-2 block w-full">Trang ${page}/${totalPages} · Tổng ${count} yêu cầu</p>`;
-                        app.utils.renderPagination('requests-pagination-container', page, totalPages, (newPage) => app.views.fetchProfileRequests(newPage));
+                    let pagerEl = document.getElementById('requests-pager');
+                    if (!pagerEl) {
+                        pagerEl = document.createElement('div');
+                        pagerEl.id = 'requests-pager';
+                        grid.parentNode.insertBefore(pagerEl, grid.nextSibling);
                     }
+
+                    if (totalPages <= 1) { pagerEl.innerHTML = ''; return; }
+                    pagerEl.innerHTML = `<div id="requests-pagination-container" class="mt-4 w-full"></div><p class="text-center text-[10px] text-gray-400 mt-3">Trang ${page}/${totalPages} · Tổng ${count} yêu cầu</p>`;
+                    app.utils.renderPagination('requests-pagination-container', page, totalPages, (newPage) => app.views.fetchProfileRequests(newPage));
                 },
 
                 showRequestDetails: (id) => {
