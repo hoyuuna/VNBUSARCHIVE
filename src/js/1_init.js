@@ -415,28 +415,30 @@ Object.assign(window.app, {
                 showVerifiedPopup: (type, link) => {
                     let desc = "";
                     let btnsHtml = "";
+                    const helpUrl = 'https://www.vnbusarchive.io.vn/help/1537750814507008101';
+                    
                     if (type === 'vvcc') {
                         desc = "Danh hiệu <b>Verified Content Creator (VVCC)</b> được cấp cho những nhà sáng tạo nội dung có đóng góp tích cực và uy tín trên hệ thống.";
                         if (link) {
-                            btnsHtml += `<button onclick="window.open('${link}', '_blank'); app.ui.closeAlert();" class="w-full sm:w-auto inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none transition mb-3 sm:mb-0 sm:mr-3"><i class="fa-brands fa-youtube mt-1 mr-1.5 text-xs"></i> Xem kênh</button>`;
+                            btnsHtml += `<button type="button" onclick="window.open('${link}', '_blank')" class="mt-4 w-full inline-flex justify-center items-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-[#ff0000] text-sm font-medium text-white hover:bg-red-700 focus:outline-none transition"><i class="fa-brands fa-youtube mr-2"></i> Xem kênh</button>`;
                         }
                     } else if (type === 'vvbs') {
                         desc = "Danh hiệu <b>Verified Bus Staff (VVBS)</b> được cấp cho những nhân viên, phụ xe, tài xế xe buýt đã được xác thực trên hệ thống.";
                     }
                     
-                    btnsHtml += `<button onclick="window.open('https://www.vnbusarchive.io.vn/help/1537750814507008101', '_blank'); app.ui.closeAlert();" class="w-full sm:w-auto inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-black text-base font-medium text-white hover:bg-gray-800 focus:outline-none transition"><i class="fa-solid fa-circle-info mt-1 mr-1.5 text-xs"></i> Tìm hiểu thêm</button>`;
+                    btnsHtml += `<button type="button" onclick="window.open('${helpUrl}', '_blank')" class="mt-3 w-full inline-flex justify-center items-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none transition"><i class="fa-solid fa-arrow-up-right-from-square mr-2"></i> Tìm hiểu thêm</button>`;
                     
                     const html = `
-                        <div class="text-left text-sm text-gray-600 mb-4">${desc}</div>
-                        <div class="flex flex-col sm:flex-row justify-end mt-2">
+                        <span class="block text-sm text-gray-600">${desc}</span>
+                        <div class="flex flex-col w-full mt-1">
                             ${btnsHtml}
                         </div>
                     `;
                     
                     app.ui.showAlert(html, null, null, {
-                        title: "VNBUSARCHIVE Verified...",
-                        hideButtons: true,
-                        iconHtml: '<i class="fa-solid fa-circle-check text-xl text-blue-500"></i>'
+                        title: "VNBUSARCHIVE Verified",
+                        iconHtml: '<i class="fa-solid fa-circle-check text-3xl text-blue-500"></i>',
+                        btnOkText: "Đóng"
                     });
                 },
                 showQuotaInfo: () => {
