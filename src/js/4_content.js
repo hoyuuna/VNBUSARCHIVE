@@ -811,6 +811,36 @@ Object.assign(window.app, {
                     app.upload.updateBlurBtn();
                 },
 
+                duplicateBlurPanelByIndex: (index) => {
+                    const panels = Array.from(document.querySelectorAll('.blur-panel'));
+                    if (panels[index]) {
+                        const source = panels[index];
+                        const left = parseFloat(source.style.left) || 0;
+                        const top = parseFloat(source.style.top) || 0;
+                        const width = parseFloat(source.style.width) || 50;
+                        const height = parseFloat(source.style.height) || 50;
+                        
+                        const container = document.getElementById('preview-container');
+                        const cw = container ? (container.clientWidth || 320) : 320;
+                        const ch = container ? (container.clientHeight || 240) : 240;
+                        
+                        // Shift slightly (20px), but keep it within bounds if possible
+                        let newLeft = left + 20;
+                        let newTop = top + 20;
+                        if (newLeft + width > cw) newLeft = left - 20;
+                        if (newTop + height > ch) newTop = top - 20;
+
+                        app.upload.buildBlurPanel({
+                            left: newLeft,
+                            top: newTop,
+                            width,
+                            height,
+                            auto: false
+                        });
+                        app.upload.updateBlurBtn();
+                    }
+                },
+
                 toggleBlurPanel: () => {
                     const panel = document.getElementById('blur-adjust-panel');
                     const btn = document.getElementById('btn-add-blur');
@@ -844,8 +874,11 @@ Object.assign(window.app, {
                             for (let i = 0; i < count; i++) {
                                 const auto = document.querySelectorAll('.blur-panel')[i].dataset.auto === '1';
                                 html += `<div class="flex items-center justify-between gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
-                                    <span class="text-[11px] font-bold text-gray-700 truncate"><i class="fa-solid fa-droplet-slash mr-1.5 text-gray-400"></i>Vùng ${i + 1}${auto ? ' <span class="text-[10px] text-blue-600 font-semibold">(tự động)</span>' : ''}</span>
-                                    <button type="button" onclick="app.upload.removeBlurPanelByIndex(${i})" class="shrink-0 flex items-center justify-center w-7 h-7 rounded-md bg-white border border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 transition" title="Xóa vùng này"><i class="fa-solid fa-xmark text-xs"></i></button>
+                                    <span class="text-[11px] font-bold text-gray-700 truncate flex-1"><i class="fa-solid fa-droplet-slash mr-1.5 text-gray-400"></i>Vùng ${i + 1}${auto ? ' <span class="text-[10px] text-blue-600 font-semibold">(tự động)</span>' : ''}</span>
+                                    <div class="flex items-center gap-1.5">
+                                        <button type="button" onclick="app.upload.duplicateBlurPanelByIndex(${i})" class="shrink-0 flex items-center justify-center w-7 h-7 rounded-md bg-white border border-gray-200 text-gray-700 hover:bg-black hover:text-white hover:border-black transition" title="Nhân bản vùng này"><i class="fa-solid fa-copy text-xs"></i></button>
+                                        <button type="button" onclick="app.upload.removeBlurPanelByIndex(${i})" class="shrink-0 flex items-center justify-center w-7 h-7 rounded-md bg-white border border-gray-200 text-gray-700 hover:bg-black hover:text-white hover:border-black transition" title="Xóa vùng này"><i class="fa-solid fa-xmark text-xs"></i></button>
+                                    </div>
                                 </div>`;
                             }
                             list.innerHTML = html;
