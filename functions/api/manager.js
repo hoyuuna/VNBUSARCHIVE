@@ -47,7 +47,7 @@ export async function onRequest(context) {
             const search = body.search || '';
             const status = body.status || 'all';
 
-            let query = supabaseAdmin.from('profiles').select('id, username, ban_status', { count: 'exact' });
+            let query = supabaseAdmin.from('profiles').select('id, username, ban_status, role, subroles', { count: 'exact' });
             if (search) query = query.ilike('username', `%${search}%`);
             if (status === 'banned') {
                 query = query.ilike('ban_status', '%"banned":true%');
@@ -87,6 +87,8 @@ export async function onRequest(context) {
                     id: p.id,
                     username: p.username || 'Unknown',
                     ban_status: banInfo,
+                    role: p.role,
+                    subroles: p.subroles || [],
                     photo_count,
                     email,
                     created_at,
