@@ -145,6 +145,19 @@ export async function onRequest(context) {
             return new Response(JSON.stringify({ success: true, message: "Đã xóa tài khoản vĩnh viễn (các ảnh đã tải lên vẫn được giữ lại)!" }), { status: 200, headers: { 'Content-Type': 'application/json' }});
         }
 
+        if (action === 'update_subroles') {
+            if (!targetUserId) throw new Error("Thiếu targetUserId.");
+            const { newSubroles } = body;
+            
+            const { error: profileError } = await supabaseAdmin.from('profiles').update({
+                subroles: newSubroles
+            }).eq('id', targetUserId);
+            
+            if (profileError) throw profileError;
+            
+            return new Response(JSON.stringify({ success: true, message: "Cập nhật subroles thành công!" }), { status: 200, headers: { 'Content-Type': 'application/json' }});
+        }
+
         if (!targetUserId) throw new Error("Thiếu targetUserId.");
         if (newRole && ['admin', 'manager'].includes(newRole) && profile.role === 'admin') {
             throw new Error("Truy cập bị từ chối: Kiểm duyệt viên (Admin) không có quyền cấp vai trò Kiểm duyệt hoặc Quản lý.");

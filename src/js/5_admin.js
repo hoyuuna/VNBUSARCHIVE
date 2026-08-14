@@ -2702,11 +2702,20 @@ app.admin.fetchManagerData('denied');
                         }
 
                         try {
-                            const { error } = await window.sb.from('profiles').update({ subroles: newSubroles }).eq('id', userId);
-                            if (error) throw error;
+                            const { data: { session } } = await window.sb.auth.getSession();
+                            const response = await fetch('/api/manager', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+                                body: JSON.stringify({ action: 'update_subroles', targetUserId: userId, newSubroles })
+                            });
+                            const data = await response.json();
                             
-                            app.toast.show('success', 'Thành công', 'Đã cập nhật subroles');
-                            app.admin.fetchManagerData('bans');
+                            if (data.success) {
+                                app.toast.show('success', 'Thành công', 'Đã cập nhật subroles');
+                                app.admin.fetchManagerData('bans');
+                            } else {
+                                throw new Error(data.error);
+                            }
                         } catch (e) {
                             app.ui.showAlert("Lỗi: " + e.message);
                         }
