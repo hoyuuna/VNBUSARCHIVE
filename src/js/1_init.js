@@ -337,7 +337,7 @@ Object.assign(window.app, {
                             okBtn.disabled = true;
                             okBtn.classList.add('opacity-50', 'cursor-not-allowed');
                             let timeLeft = 3;
-                            okBtn.innerText = `${defaultText} (${timeLeft})`;
+                            okBtn.innerHTML = `${defaultText} (${timeLeft})`;
 
                             app.ui.alertInterval = setInterval(() => {
                                 timeLeft--;
@@ -345,15 +345,15 @@ Object.assign(window.app, {
                                     clearInterval(app.ui.alertInterval);
                                     okBtn.disabled = false;
                                     okBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                                    okBtn.innerText = defaultText;
+                                    okBtn.innerHTML = defaultText;
                                 } else {
-                                    okBtn.innerText = `${defaultText} (${timeLeft})`;
+                                    okBtn.innerHTML = `${defaultText} (${timeLeft})`;
                                 }
                             }, 1000);
                         } else {
                             okBtn.disabled = false;
                             okBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                            okBtn.innerText = defaultText;
+                            okBtn.innerHTML = defaultText;
                         }
                     }
 
@@ -369,7 +369,7 @@ Object.assign(window.app, {
 
                     if (cancelCallback || options.btnCancelText) {
                         cancelBtn.classList.remove('hidden');
-                        cancelBtn.innerText = options.btnCancelText || "Hủy bỏ";
+                        cancelBtn.innerHTML = options.btnCancelText || "Hủy bỏ";
                         cancelBtn.style.display = options.hideButtons ? 'none' : 'inline-flex';
                         
                         if (options.isCancelDestructive) {
@@ -417,7 +417,7 @@ Object.assign(window.app, {
                     const helpUrl = 'https://www.vnbusarchive.io.vn/help/1537750814507008101';
                     
                     if (type === 'vvcc') {
-                        desc = `Danh hiệu <b>Verified Content Creator (VVCC)</b> được cấp cho những nhà sáng tạo nội dung có đóng góp tích cực và uy tín trên hệ thống.<br><br><a href="${helpUrl}" target="_blank" class="text-blue-600 hover:underline font-medium">Tìm hiểu thêm về danh hiệu này</a>`;
+                        desc = `Danh hiệu <b>Verified Content Creator (VVCC)</b> được cấp cho những nhà sáng tạo nội dung có đóng góp tích cực và uy tín trên hệ thống.<br><br><a href="${helpUrl}" target="_blank" class="text-black hover:underline font-bold text-[13px] inline-flex items-center"><i class="fa-solid fa-arrow-up-right-from-square mr-1.5"></i> Tìm hiểu thêm về danh hiệu này</a>`;
                         
                         if (link) {
                             app.ui.showAlert(desc, 
@@ -425,8 +425,8 @@ Object.assign(window.app, {
                                 null, 
                                 {
                                     title: "VNBUSARCHIVE Verified",
-                                    iconHtml: '<i class="fa-solid fa-circle-check text-xl text-blue-500"></i>',
-                                    btnOkText: "Xem kênh",
+                                    iconHtml: '<i class="fa-solid fa-circle-check text-3xl text-black"></i>',
+                                    btnOkText: '<i class="fa-solid fa-arrow-up-right-from-square mr-2"></i> Xem kênh',
                                     btnCancelText: "Đóng"
                                 }
                             );
@@ -436,22 +436,21 @@ Object.assign(window.app, {
                                 null, 
                                 {
                                     title: "VNBUSARCHIVE Verified",
-                                    iconHtml: '<i class="fa-solid fa-circle-check text-xl text-blue-500"></i>',
+                                    iconHtml: '<i class="fa-solid fa-circle-check text-3xl text-black"></i>',
                                     btnOkText: "Đóng"
                                 }
                             );
                         }
                     } else if (type === 'vvbs') {
-                        desc = "Danh hiệu <b>Verified Bus Staff (VVBS)</b> được cấp cho những nhân viên, phụ xe, tài xế xe buýt đã được xác thực trên hệ thống.";
+                        desc = `Danh hiệu <b>Verified Bus Staff (VVBS)</b> được cấp cho những nhân viên, phụ xe, tài xế xe buýt đã được xác thực trên hệ thống.<br><br><a href="${helpUrl}" target="_blank" class="text-black hover:underline font-bold text-[13px] inline-flex items-center"><i class="fa-solid fa-arrow-up-right-from-square mr-1.5"></i> Tìm hiểu thêm về danh hiệu này</a>`;
                         
                         app.ui.showAlert(desc, 
-                            () => { window.open(helpUrl, '_blank'); }, 
+                            null, 
                             null, 
                             {
                                 title: "VNBUSARCHIVE Verified",
-                                iconHtml: '<i class="fa-solid fa-circle-check text-xl text-blue-500"></i>',
-                                btnOkText: "Tìm hiểu thêm",
-                                btnCancelText: "Đóng"
+                                iconHtml: '<i class="fa-solid fa-circle-check text-3xl text-black"></i>',
+                                btnOkText: "Đóng"
                             }
                         );
                     }
