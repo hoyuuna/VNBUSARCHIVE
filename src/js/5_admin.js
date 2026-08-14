@@ -2668,26 +2668,26 @@ app.admin.fetchManagerData('denied');
 
                     const htmlForm = `
                         <div class="text-left space-y-4 mt-2 max-h-[60vh] overflow-y-auto">
-                            <label class="flex items-start gap-2.5 cursor-pointer group select-none">
+                            <label class="flex items-start cursor-pointer group select-none">
                                 <input type="checkbox" id="subrole-cb-dev" class="custom-cb-input sr-only" ${isDev ? 'checked' : ''}>
-                                <div class="custom-cb-box shrink-0 shadow-sm mt-0.5">
+                                <div class="custom-cb-box shrink-0 shadow-sm">
                                     <i class="fa-solid fa-check"></i>
                                 </div>
-                                <div>
-                                    <span class="text-sm font-bold text-gray-900 group-hover:text-black transition block leading-none mb-1">Dev (Developer)</span>
+                                <span class="text-xs font-semibold text-gray-800 group-hover:text-black transition leading-relaxed pt-0.5">
+                                    <strong class="text-sm text-gray-900 block leading-none mb-1">Dev (Developer)</strong>
                                     <span class="text-[10px] text-gray-500 block leading-tight">Danh hiệu dành cho nhà phát triển hệ thống.</span>
-                                </div>
+                                </span>
                             </label>
 
-                            <label class="flex items-start gap-2.5 cursor-pointer group select-none mt-4">
+                            <label class="flex items-start cursor-pointer group select-none mt-4">
                                 <input type="checkbox" id="subrole-cb-vvcc" class="custom-cb-input sr-only" ${isVvcc ? 'checked' : ''} onchange="document.getElementById('subrole-vvcc-link-wrapper').classList.toggle('hidden', !this.checked)">
-                                <div class="custom-cb-box shrink-0 shadow-sm mt-0.5">
+                                <div class="custom-cb-box shrink-0 shadow-sm">
                                     <i class="fa-solid fa-check"></i>
                                 </div>
-                                <div>
-                                    <span class="text-sm font-bold text-gray-900 group-hover:text-black transition block leading-none mb-1">VVCC</span>
+                                <span class="text-xs font-semibold text-gray-800 group-hover:text-black transition leading-relaxed pt-0.5">
+                                    <strong class="text-sm text-gray-900 block leading-none mb-1">VVCC</strong>
                                     <span class="text-[10px] text-gray-500 block leading-tight">VNBUSARCHIVE Verified Content Creator.</span>
-                                </div>
+                                </span>
                             </label>
                             <div id="subrole-vvcc-link-wrapper" class="${isVvcc ? '' : 'hidden'} pl-6 mt-1">
                                 <input type="text" id="subrole-vvcc-link" placeholder="Nhập Link Kênh (Youtube, Tiktok...)" value="${app.utils.escapeHtml(vvccLink)}" class="w-full bg-white border border-gray-300 rounded-lg p-2 text-xs focus:ring-1 focus:ring-black focus:border-black outline-none transition-all shadow-inner text-black">
