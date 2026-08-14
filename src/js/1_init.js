@@ -2656,9 +2656,10 @@ cleanupState: () => {
                         const vvccRole = subroles.find(s => s === 'vvcc' || s.startsWith('vvcc|'));
                         if (vvccRole) {
                             const link = vvccRole.includes('|') ? vvccRole.split('|')[1] : null;
-                            // Sử dụng font icon nhỏ hơn một chút và kích thước cố định cho hình tròn đen
-                            const innerHtml = `<i class="fa-solid fa-check text-[9px]"></i>`;
-                            const styleStr = `background-color: black; color: white; padding: 0; width: 15px; height: 15px; border-radius: 50%; justify-content: center; align-items: center;${enableClick ? ' cursor: pointer;' : ''}`;
+                            // Chỉnh margin-top: 0.5px cho fa-check để icon nằm chính giữa vòng tròn trên mobile
+                            const innerHtml = `<i class="fa-solid fa-check text-[9px]" style="margin-top: 0.5px;"></i>`;
+                            // Dùng transform để nâng toàn bộ hình tròn lên 1 tí cho thẳng hàng với chữ mà không làm hỏng class gốc
+                            const styleStr = `background-color: black; color: white; padding: 0; width: 15px; height: 15px; border-radius: 50%; justify-content: center; align-items: center; transform: translateY(-1px);${enableClick ? ' cursor: pointer;' : ''}`;
                             
                             if (enableClick) {
                                 html += `<span class="badge-shiny" style="${styleStr}" onclick="app.ui.showVerifiedPopup('vvcc', '${link ? app.utils.escapeHtml(link) : ''}')" title="Verified Content Creator">${innerHtml}</span>`;
@@ -2669,8 +2670,8 @@ cleanupState: () => {
 
                         const vvbsRole = subroles.find(s => s === 'vvbs');
                         if (vvbsRole) {
-                            const innerHtml = `<i class="fa-solid fa-check text-[9px]"></i>`;
-                            const styleStr = `background-color: #3b82f6; color: white; padding: 0; width: 15px; height: 15px; border-radius: 50%; justify-content: center; align-items: center;${enableClick ? ' cursor: pointer;' : ''}`;
+                            const innerHtml = `<i class="fa-solid fa-check text-[9px]" style="margin-top: 0.5px;"></i>`;
+                            const styleStr = `background-color: #3b82f6; color: white; padding: 0; width: 15px; height: 15px; border-radius: 50%; justify-content: center; align-items: center; transform: translateY(-1px);${enableClick ? ' cursor: pointer;' : ''}`;
                             
                             if (enableClick) {
                                 html += `<span class="badge-shiny" style="${styleStr}" onclick="app.ui.showVerifiedPopup('vvbs', '')" title="Verified Bus Staff">${innerHtml}</span>`;
