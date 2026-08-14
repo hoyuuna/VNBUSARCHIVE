@@ -2604,7 +2604,7 @@ cleanupState: () => {
                     return { username, avatar, isBanned, id: profile.id || '', linkId: profile.id || profile.username || '' };
                 },
 
-                getBadgesHTML: (userId, role, subroles = []) => {
+                getBadgesHTML: (userId, role, subroles = [], enableClick = false) => {
                     let html = '';
 
                     if (subroles && Array.isArray(subroles)) {
@@ -2616,7 +2616,8 @@ cleanupState: () => {
                             const innerHtml = `<i class="fa-solid fa-check text-[9px]"></i>`;
                             // Loại bỏ các padding gốc, dùng width/height cố định tương đương badge thường (14px - 15px)
                             const styleStr = `background-color: black; color: white; padding: 0; width: 15px; height: 15px; border-radius: 50%; justify-content: center;`;
-                            if (link) {
+                            
+                            if (link && enableClick) {
                                 html += `<a href="${app.utils.escapeHtml(link)}" target="_blank" class="badge-shiny" style="${styleStr}" title="${vvccTitle}">${innerHtml}</a>`;
                             } else {
                                 html += `<span class="badge-shiny" style="${styleStr}" title="${vvccTitle}">${innerHtml}</span>`;
