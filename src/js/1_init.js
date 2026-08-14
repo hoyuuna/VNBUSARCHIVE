@@ -2618,6 +2618,21 @@ cleanupState: () => {
                         html += `<span class="badge-shiny ${badgeClass}" title="${badgeTitle}"><i class="fa-solid fa-shield-halved mr-1 text-[10px]"></i> ${badgeText}</span>`;
                     }
 
+                    if (subroles && Array.isArray(subroles)) {
+                        const vvccRole = subroles.find(s => s === 'vvcc' || s.startsWith('vvcc|'));
+                        if (vvccRole) {
+                            const link = vvccRole.includes('|') ? vvccRole.split('|')[1] : null;
+                            const vvccTitle = 'VNBUSARCHIVE Verified Content Creator';
+                            const innerHtml = `<i class="fa-solid fa-check text-[10px]"></i>`;
+                            const styleStr = `display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background-color: black; color: white; margin-right: 4px; vertical-align: middle; flex-shrink: 0; position: relative; overflow: hidden;`;
+                            if (link) {
+                                html += `<a href="${app.utils.escapeHtml(link)}" target="_blank" class="badge-shiny" style="${styleStr}" title="${vvccTitle}">${innerHtml}</a>`;
+                            } else {
+                                html += `<span class="badge-shiny" style="${styleStr}" title="${vvccTitle}">${innerHtml}</span>`;
+                            }
+                        }
+                    }
+
                      if (userId && app.topUploaders[userId]) {
                          const rank = app.topUploaders[userId];
                          if (rank === 1) html += `<span class="badge-shiny badge-top1" title="Top 1 Uploader"><i class="fa-solid fa-crown mr-1 text-[10px]"></i> Top 1</span>`;

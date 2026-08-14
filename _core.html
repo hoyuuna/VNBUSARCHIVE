@@ -2416,6 +2416,45 @@ div[id$="-modal"] > div > * {
             </div>
         </div>
 
+        <div id="subrole-prompt-modal" class="hidden fixed inset-0 z-[5000] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+            <div id="subrole-prompt-content" class="bg-gray-50 rounded-xl shadow-2xl max-w-sm w-full border border-gray-200 overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col">
+                <div class="p-5 border-b border-gray-200 shrink-0 bg-white rounded-t-xl">
+                    <h3 class="text-lg font-bold text-black mb-1"><i class="fa-solid fa-tags mr-2 text-blue-600"></i>Quản Lý Subroles</h3>
+                    <p class="text-xs text-gray-500">Tùy chỉnh danh hiệu phụ và liên kết cho người dùng.</p>
+                </div>
+                <div class="p-5 overflow-y-auto space-y-4 max-h-[60vh]">
+                    <input type="hidden" id="subrole-target-id">
+                    
+                    <label class="flex items-start gap-2 cursor-pointer group">
+                        <input type="checkbox" id="subrole-cb-dev" class="mt-0.5 cursor-pointer accent-black w-4 h-4">
+                        <div>
+                            <span class="text-sm font-bold text-gray-900 group-hover:text-black transition">Dev (Developer)</span>
+                            <p class="text-[10px] text-gray-500">Danh hiệu dành cho nhà phát triển hệ thống.</p>
+                        </div>
+                    </label>
+
+                    <label class="flex items-start gap-2 cursor-pointer group">
+                        <input type="checkbox" id="subrole-cb-vvcc" class="mt-0.5 cursor-pointer accent-black w-4 h-4" onchange="document.getElementById('subrole-vvcc-link-wrapper').classList.toggle('hidden', !this.checked)">
+                        <div>
+                            <span class="text-sm font-bold text-gray-900 group-hover:text-black transition">VVCC</span>
+                            <p class="text-[10px] text-gray-500">VNBUSARCHIVE Verified Content Creator.</p>
+                        </div>
+                    </label>
+                    <div id="subrole-vvcc-link-wrapper" class="hidden pl-6 mt-1">
+                        <input type="text" id="subrole-vvcc-link" placeholder="Nhập Link Kênh (Youtube, Tiktok...)" class="w-full bg-white border border-gray-300 rounded-lg p-2 text-xs focus:ring-1 focus:ring-black focus:border-black outline-none transition-all shadow-inner text-black">
+                    </div>
+                </div>
+                <div class="bg-white border-t border-gray-200 px-5 py-4 flex gap-3 rounded-b-xl">
+                    <button type="button" onclick="document.getElementById('subrole-prompt-modal').classList.add('hidden')" class="flex-1 inline-flex justify-center items-center rounded-lg shadow-sm px-4 py-2 bg-white border border-gray-300 text-sm font-bold text-gray-700 hover:bg-gray-50 focus:outline-none transition-all">
+                        Hủy bỏ
+                    </button>
+                    <button type="button" id="btn-save-subroles" onclick="app.admin.managerSaveSubroles()" class="flex-1 inline-flex justify-center items-center rounded-lg shadow-sm px-4 py-2 bg-black border border-black text-sm font-bold text-white hover:bg-gray-800 focus:outline-none transition-all">
+                        Lưu Thay Đổi
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <div id="ban-prompt-modal" class="hidden fixed inset-0 z-[5000] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
             <div id="ban-prompt-content" class="bg-gray-50 rounded-xl shadow-2xl max-w-lg w-full border border-gray-200 overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col max-h-[90vh]">
                 <div class="p-5 border-b border-gray-200 shrink-0 bg-white rounded-t-xl">

@@ -774,7 +774,18 @@ Object.assign(window.app, {
                                         idMap.set(p.id, p);
                                     }
                                 });
-                                rawPhotos = Array.from(idMap.values()).sort((a,b) => a.id - b.id);
+                                rawPhotos = Array.from(idMap.values()).sort((a,b) => {
+                                    const getPriority = (photo) => {
+                                        const p = photo.profiles;
+                                        if (p && (p.role === 'admin' || p.role === 'manager')) return 1;
+                                        if (p && p.subroles && Array.isArray(p.subroles) && p.subroles.some(s => s === 'vvcc' || s.startsWith('vvcc|'))) return 2;
+                                        return 3;
+                                    };
+                                    const pA = getPriority(a);
+                                    const pB = getPriority(b);
+                                    if (pA !== pB) return pA - pB;
+                                    return a.id - b.id;
+                                });
                                 rawPhotos.forEach(p => p._isReviewedByMe = reviewedIds.includes(p.id));
                             } catch(e) { console.warn('Lỗi fetch pending:', e); }
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
@@ -2474,6 +2485,8 @@ app.admin.fetchManagerData('denied');
                                 statusBadge = `<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold inline-block"><i class="fa-solid fa-circle-check"></i> Hoạt động</span>`;
                             }
 
+                            const subroleBtn = `<button onclick="app.admin.managerEditSubrole('${u.id}')" class="px-3 py-1.5 bg-black text-white rounded-md text-xs hover:bg-gray-800 font-bold shadow-sm transition mr-1"><i class="fa-solid fa-tags"></i> Subroles</button>`;
+                            
                             const actionBtn = banInfo.banned
                                 ? `<button onclick="app.admin.managerUnbanUser('${u.id}')" class="px-3 py-1.5 bg-white border border-gray-300 rounded-md text-xs hover:bg-gray-50 text-black font-bold shadow-sm transition">Gỡ cấm</button>`
                                 : `<button onclick="app.admin.managerBanUser('${u.id}')" class="px-3 py-1.5 bg-red-600 text-white rounded-md text-xs hover:bg-red-700 font-bold shadow-sm transition">Cấm</button>`;
@@ -2494,7 +2507,7 @@ app.admin.fetchManagerData('denied');
                                     <div class="text-[11px] text-gray-700 mt-1" title="Đăng nhập lần cuối lúc ${new Date(u.last_sign_in_at).toLocaleString('vi-VN')}"><i class="fa-solid fa-right-to-bracket text-gray-400 w-4"></i> ${new Date(u.last_sign_in_at).toLocaleDateString('vi-VN')}</div>
                                 </td>
                                 <td class="p-3">${statusBadge}</td>
-                                <td class="p-3 text-right align-middle whitespace-nowrap">${actionBtn}${delBtn}</td>
+                                <td class="p-3 text-right align-middle whitespace-nowrap">${subroleBtn}${actionBtn}${delBtn}</td>
                             </tr>`;
                         }).join('');
                     } else {
@@ -2640,6 +2653,72 @@ app.admin.fetchManagerData('denied');
                         btnCancelText: "Hủy bỏ",
                         countdown: true
                     });
+                },
+
+                managerEditSubrole: async (userId) => {
+                    if (app.role !== 'manager') return app.ui.showAlert("Chỉ Quản lý mới có quyền này.");
+                    const user = app.admin.manager.bans.data.find(u => u.id === userId);
+                    if (!user) return;
+                    
+                    document.getElementById('subrole-target-id').value = userId;
+                    const subroles = user.subroles || [];
+                    
+                    const cbDev = document.getElementById('subrole-cb-dev');
+                    const cbVvcc = document.getElementById('subrole-cb-vvcc');
+                    const linkWrapper = document.getElementById('subrole-vvcc-link-wrapper');
+                    const linkInput = document.getElementById('subrole-vvcc-link');
+                    
+                    cbDev.checked = subroles.includes('dev');
+                    
+                    const vvccRole = subroles.find(s => s === 'vvcc' || s.startsWith('vvcc|'));
+                    if (vvccRole) {
+                        cbVvcc.checked = true;
+                        linkWrapper.classList.remove('hidden');
+                        linkInput.value = vvccRole.includes('|') ? vvccRole.split('|')[1] : '';
+                    } else {
+                        cbVvcc.checked = false;
+                        linkWrapper.classList.add('hidden');
+                        linkInput.value = '';
+                    }
+                    
+                    document.getElementById('subrole-prompt-modal').classList.remove('hidden');
+                    setTimeout(() => {
+                        document.getElementById('subrole-prompt-content').classList.remove('opacity-0', 'scale-95');
+                    }, 10);
+                },
+
+                managerSaveSubroles: async () => {
+                    if (app.role !== 'manager') return;
+                    const userId = document.getElementById('subrole-target-id').value;
+                    const cbDev = document.getElementById('subrole-cb-dev').checked;
+                    const cbVvcc = document.getElementById('subrole-cb-vvcc').checked;
+                    const linkInput = document.getElementById('subrole-vvcc-link').value.trim();
+                    
+                    let newSubroles = [];
+                    if (cbDev) newSubroles.push('dev');
+                    if (cbVvcc) {
+                        if (linkInput) newSubroles.push(`vvcc|${linkInput}`);
+                        else newSubroles.push('vvcc');
+                    }
+                    
+                    const btn = document.getElementById('btn-save-subroles');
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+                    btn.disabled = true;
+                    
+                    try {
+                        const { error } = await window.sb.from('profiles').update({ subroles: newSubroles }).eq('id', userId);
+                        if (error) throw error;
+                        
+                        app.toast.show('success', 'Thành công', 'Đã cập nhật subroles');
+                        app.admin.fetchManagerData('bans');
+                        document.getElementById('subrole-prompt-modal').classList.add('hidden');
+                    } catch (e) {
+                        app.ui.showAlert("Lỗi: " + e.message);
+                    } finally {
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                    }
                 },
 
                 // --- CÁC HÀM MỚI CHO TÍNH NĂNG GỬI EMAIL ---
