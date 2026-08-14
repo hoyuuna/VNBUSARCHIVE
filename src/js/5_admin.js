@@ -2697,7 +2697,7 @@ app.admin.fetchManagerData('denied');
                         let newSubroles = [];
                         if (cbDev) newSubroles.push('dev');
                         if (cbVvcc) {
-                            if (linkInput) newSubroles.push(\`vvcc|\${linkInput}\`);
+                            if (linkInput) newSubroles.push(`vvcc|${linkInput}`);
                             else newSubroles.push('vvcc');
                         }
 
