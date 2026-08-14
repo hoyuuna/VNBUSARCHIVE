@@ -2711,7 +2711,8 @@ app.admin.fetchManagerData('denied');
                             app.ui.showAlert("Lỗi: " + e.message);
                         }
                     }, () => {}, {
-                        title: '<i class="fa-solid fa-tags mr-2 text-blue-600"></i>Quản Lý Subroles',
+                        title: 'Quản Lý Subroles',
+                        iconHtml: '<i class="fa-solid fa-tags text-xl text-black"></i>',
                         btnOkText: "Lưu Thay Đổi",
                         btnCancelText: "Hủy bỏ"
                     });
