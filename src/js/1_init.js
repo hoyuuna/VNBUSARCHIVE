@@ -2658,8 +2658,7 @@ cleanupState: () => {
                             const link = vvccRole.includes('|') ? vvccRole.split('|')[1] : null;
                             // Sử dụng font icon nhỏ hơn một chút và kích thước cố định cho hình tròn đen
                             const innerHtml = `<i class="fa-solid fa-check text-[9px]"></i>`;
-                            // Loại bỏ các padding gốc, dùng width/height cố định tương đương badge thường (14px - 15px)
-                            const styleStr = `background-color: black; color: white; padding: 0; width: 15px; height: 15px; border-radius: 50%; justify-content: center;${enableClick ? ' cursor: pointer;' : ''}`;
+                            const styleStr = `background-color: black; color: white; padding: 0; width: 15px; height: 15px; border-radius: 50%; justify-content: center; align-items: center; vertical-align: middle; margin-top: -2px;${enableClick ? ' cursor: pointer;' : ''}`;
                             
                             if (enableClick) {
                                 html += `<span class="badge-shiny" style="${styleStr}" onclick="app.ui.showVerifiedPopup('vvcc', '${link ? app.utils.escapeHtml(link) : ''}')" title="Verified Content Creator">${innerHtml}</span>`;
@@ -2671,7 +2670,7 @@ cleanupState: () => {
                         const vvbsRole = subroles.find(s => s === 'vvbs');
                         if (vvbsRole) {
                             const innerHtml = `<i class="fa-solid fa-check text-[9px]"></i>`;
-                            const styleStr = `background-color: #3b82f6; color: white; padding: 0; width: 15px; height: 15px; border-radius: 50%; justify-content: center;${enableClick ? ' cursor: pointer;' : ''}`;
+                            const styleStr = `background-color: #3b82f6; color: white; padding: 0; width: 15px; height: 15px; border-radius: 50%; justify-content: center; align-items: center; vertical-align: middle; margin-top: -2px;${enableClick ? ' cursor: pointer;' : ''}`;
                             
                             if (enableClick) {
                                 html += `<span class="badge-shiny" style="${styleStr}" onclick="app.ui.showVerifiedPopup('vvbs', '')" title="Verified Bus Staff">${innerHtml}</span>`;
