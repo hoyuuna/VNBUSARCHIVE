@@ -768,7 +768,7 @@ Object.assign(window.app, {
 
                     if (Object.keys(app.topUploaders).length === 0) await app.utils.fetchTopUploaders();
 
-                    const badges = isBannedUser ? '' : app.utils.getBadgesHTML(profile.id, profile.role, profile.subroles);
+                    const badges = isBannedUser ? '' : app.utils.getBadgesHTML(profile.id, profile.role, profile.subroles, true);
                     document.getElementById('acc-name').innerHTML = isBannedUser 
                         ? '<span class="text-black font-bold">Người dùng bị cấm</span>' 
                         : `${profile.username} ${badges}`;
