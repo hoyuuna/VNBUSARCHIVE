@@ -2656,8 +2656,8 @@ cleanupState: () => {
                         const vvccRole = subroles.find(s => s === 'vvcc' || s.startsWith('vvcc|'));
                         if (vvccRole) {
                             const link = vvccRole.includes('|') ? vvccRole.split('|')[1] : null;
-                            // Chỉnh margin-top: 0.5px cho fa-check để icon nằm chính giữa vòng tròn trên mobile
-                            const innerHtml = `<i class="fa-solid fa-check text-[9px]" style="margin-top: 0.5px;"></i>`;
+                            // Sử dụng line-height bằng đúng height của container (15px) và display: block để trick text-engine của mobile tự căn giữa chuẩn
+                            const innerHtml = `<i class="fa-solid fa-check text-[9px]" style="line-height: 15px; display: block;"></i>`;
                             const styleStr = `background-color: black; color: white; padding: 0; width: 15px; height: 15px; border-radius: 50%; justify-content: center; align-items: center;${enableClick ? ' cursor: pointer;' : ''}`;
                             
                             if (enableClick) {
@@ -2669,7 +2669,7 @@ cleanupState: () => {
 
                         const vvbsRole = subroles.find(s => s === 'vvbs');
                         if (vvbsRole) {
-                            const innerHtml = `<i class="fa-solid fa-check text-[9px]" style="margin-top: 0.5px;"></i>`;
+                            const innerHtml = `<i class="fa-solid fa-check text-[9px]" style="line-height: 15px; display: block;"></i>`;
                             const styleStr = `background-color: #3b82f6; color: white; padding: 0; width: 15px; height: 15px; border-radius: 50%; justify-content: center; align-items: center;${enableClick ? ' cursor: pointer;' : ''}`;
                             
                             if (enableClick) {
