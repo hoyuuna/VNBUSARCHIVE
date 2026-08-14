@@ -2623,8 +2623,10 @@ cleanupState: () => {
                         if (vvccRole) {
                             const link = vvccRole.includes('|') ? vvccRole.split('|')[1] : null;
                             const vvccTitle = 'VNBUSARCHIVE Verified Content Creator';
-                            const innerHtml = `<i class="fa-solid fa-check text-[10px]"></i>`;
-                            const styleStr = `display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background-color: black; color: white; margin-right: 4px; vertical-align: middle; flex-shrink: 0; position: relative; overflow: hidden;`;
+                            // Sử dụng font icon nhỏ hơn một chút và kích thước cố định cho hình tròn đen
+                            const innerHtml = `<i class="fa-solid fa-check text-[9px]"></i>`;
+                            // Loại bỏ các padding gốc, dùng width/height cố định tương đương badge thường (14px - 15px)
+                            const styleStr = `background-color: black; color: white; padding: 0; width: 15px; height: 15px; border-radius: 50%; justify-content: center;`;
                             if (link) {
                                 html += `<a href="${app.utils.escapeHtml(link)}" target="_blank" class="badge-shiny" style="${styleStr}" title="${vvccTitle}">${innerHtml}</a>`;
                             } else {
