@@ -2660,65 +2660,61 @@ app.admin.fetchManagerData('denied');
                     const user = app.admin.manager.bans.data.find(u => u.id === userId);
                     if (!user) return;
                     
-                    document.getElementById('subrole-target-id').value = userId;
                     const subroles = user.subroles || [];
-                    
-                    const cbDev = document.getElementById('subrole-cb-dev');
-                    const cbVvcc = document.getElementById('subrole-cb-vvcc');
-                    const linkWrapper = document.getElementById('subrole-vvcc-link-wrapper');
-                    const linkInput = document.getElementById('subrole-vvcc-link');
-                    
-                    cbDev.checked = subroles.includes('dev');
-                    
+                    const isDev = subroles.includes('dev');
                     const vvccRole = subroles.find(s => s === 'vvcc' || s.startsWith('vvcc|'));
-                    if (vvccRole) {
-                        cbVvcc.checked = true;
-                        linkWrapper.classList.remove('hidden');
-                        linkInput.value = vvccRole.includes('|') ? vvccRole.split('|')[1] : '';
-                    } else {
-                        cbVvcc.checked = false;
-                        linkWrapper.classList.add('hidden');
-                        linkInput.value = '';
-                    }
-                    
-                    document.getElementById('subrole-prompt-modal').classList.remove('hidden');
-                    setTimeout(() => {
-                        document.getElementById('subrole-prompt-content').classList.remove('opacity-0', 'scale-95');
-                    }, 10);
-                },
+                    const isVvcc = !!vvccRole;
+                    const vvccLink = (vvccRole && vvccRole.includes('|')) ? vvccRole.split('|')[1] : '';
 
-                managerSaveSubroles: async () => {
-                    if (app.role !== 'manager') return;
-                    const userId = document.getElementById('subrole-target-id').value;
-                    const cbDev = document.getElementById('subrole-cb-dev').checked;
-                    const cbVvcc = document.getElementById('subrole-cb-vvcc').checked;
-                    const linkInput = document.getElementById('subrole-vvcc-link').value.trim();
-                    
-                    let newSubroles = [];
-                    if (cbDev) newSubroles.push('dev');
-                    if (cbVvcc) {
-                        if (linkInput) newSubroles.push(`vvcc|${linkInput}`);
-                        else newSubroles.push('vvcc');
-                    }
-                    
-                    const btn = document.getElementById('btn-save-subroles');
-                    const originalText = btn.innerHTML;
-                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-                    btn.disabled = true;
-                    
-                    try {
-                        const { error } = await window.sb.from('profiles').update({ subroles: newSubroles }).eq('id', userId);
-                        if (error) throw error;
+                    const htmlForm = `
+                        <div class="text-left space-y-4 mt-2 max-h-[60vh] overflow-y-auto">
+                            <label class="flex items-start gap-2 cursor-pointer group">
+                                <input type="checkbox" id="subrole-cb-dev" class="mt-0.5 cursor-pointer accent-black w-4 h-4" ${isDev ? 'checked' : ''}>
+                                <div>
+                                    <span class="text-sm font-bold text-gray-900 group-hover:text-black transition">Dev (Developer)</span>
+                                    <p class="text-[10px] text-gray-500">Danh hiệu dành cho nhà phát triển hệ thống.</p>
+                                </div>
+                            </label>
+
+                            <label class="flex items-start gap-2 cursor-pointer group">
+                                <input type="checkbox" id="subrole-cb-vvcc" class="mt-0.5 cursor-pointer accent-black w-4 h-4" ${isVvcc ? 'checked' : ''} onchange="document.getElementById('subrole-vvcc-link-wrapper').classList.toggle('hidden', !this.checked)">
+                                <div>
+                                    <span class="text-sm font-bold text-gray-900 group-hover:text-black transition">VVCC</span>
+                                    <p class="text-[10px] text-gray-500">VNBUSARCHIVE Verified Content Creator.</p>
+                                </div>
+                            </label>
+                            <div id="subrole-vvcc-link-wrapper" class="${isVvcc ? '' : 'hidden'} pl-6 mt-1">
+                                <input type="text" id="subrole-vvcc-link" placeholder="Nhập Link Kênh (Youtube, Tiktok...)" value="${app.utils.escapeHtml(vvccLink)}" class="w-full bg-white border border-gray-300 rounded-lg p-2 text-xs focus:ring-1 focus:ring-black focus:border-black outline-none transition-all shadow-inner text-black">
+                            </div>
+                        </div>
+                    `;
+
+                    app.ui.showAlert(htmlForm, async () => {
+                        const cbDev = document.getElementById('subrole-cb-dev').checked;
+                        const cbVvcc = document.getElementById('subrole-cb-vvcc').checked;
+                        const linkInput = document.getElementById('subrole-vvcc-link').value.trim();
                         
-                        app.toast.show('success', 'Thành công', 'Đã cập nhật subroles');
-                        app.admin.fetchManagerData('bans');
-                        document.getElementById('subrole-prompt-modal').classList.add('hidden');
-                    } catch (e) {
-                        app.ui.showAlert("Lỗi: " + e.message);
-                    } finally {
-                        btn.innerHTML = originalText;
-                        btn.disabled = false;
-                    }
+                        let newSubroles = [];
+                        if (cbDev) newSubroles.push('dev');
+                        if (cbVvcc) {
+                            if (linkInput) newSubroles.push(\`vvcc|\${linkInput}\`);
+                            else newSubroles.push('vvcc');
+                        }
+
+                        try {
+                            const { error } = await window.sb.from('profiles').update({ subroles: newSubroles }).eq('id', userId);
+                            if (error) throw error;
+                            
+                            app.toast.show('success', 'Thành công', 'Đã cập nhật subroles');
+                            app.admin.fetchManagerData('bans');
+                        } catch (e) {
+                            app.ui.showAlert("Lỗi: " + e.message);
+                        }
+                    }, () => {}, {
+                        title: '<i class="fa-solid fa-tags mr-2 text-blue-600"></i>Quản Lý Subroles',
+                        btnOkText: "Lưu Thay Đổi",
+                        btnCancelText: "Hủy bỏ"
+                    });
                 },
 
                 // --- CÁC HÀM MỚI CHO TÍNH NĂNG GỬI EMAIL ---
