@@ -4334,6 +4334,8 @@ Object.assign(window.app, {
                                 if (payload.length > 0) await window.sb.from('vehicle_history').insert(payload);
 
                                 app.toast.show('success', 'Đã cập nhật', 'Lịch sử hoạt động của xe đã được lưu thành công.');
+                                app.vehicle.toggleEditHistory(app.vehicle.currentHistoryPrefix);
+                                
                                 if (window.location.pathname.startsWith('/vehicle/')) {
                                     app.views.loadVehiclePage(app.currentPlate, true);
                                 } else {

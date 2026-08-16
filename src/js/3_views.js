@@ -2196,12 +2196,12 @@ Object.assign(window.app, {
 
                         const { data: history } = await window.sb
                             .from('vehicle_history')
-                            .select('id, license_plate, operator, route, note, effective_date, display_order')
+                            .select('id, license_plate, plate, operator, route, note, effective_date, display_order')
                             .eq('license_plate', plate);
 
                     // --- CHỐT CHẶN ĐÃ SỬA LỖI: KIỂM TRA BẰNG BIẾN THAY VÌ URL ---
                     if (app.currentPlate !== plate) return;
-                    if (!window.location.pathname.startsWith('/photo/') && !window.location.pathname.startsWith('/vehicle/')) return;
+                    // Bỏ check pathname vì popup có thể mở ở trang chủ (/)
                     // -------------------------------------------------------------
 
                     let parsedHistory = (history || []).map(h => {
