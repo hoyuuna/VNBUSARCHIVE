@@ -31,27 +31,22 @@ try {
             }
         });
 
-        // Tự động tìm thẻ <!-- INJECT_JS --> trong _core.html để chèn code vào
-        const injectTag = '<!-- INJECT_JS -->';
-        if (content.includes(injectTag)) {
-            content = content.replace(injectTag, `\n${combinedJs}\n`);
-            console.log('Đã gộp 5 file JS vào HTML thành công!');
-        } else {
-            console.warn('Không tìm thấy thẻ <!-- INJECT_JS --> trong _core.html. Bỏ qua gộp JS.');
-        }
+        // Lưu file public/app.js
+        const appJsPath = path.join(__dirname, 'public', 'app.js');
+        fs.writeFileSync(appJsPath, combinedJs);
+        console.log('Tạo thành công public/app.js');
 
-        // Mã hóa Base64
-        const base64 = Buffer.from(content).toString('base64');
+        // Lưu trực tiếp nội dung _core.html sang public/index.html
+        const indexHtmlPath = path.join(__dirname, 'public', 'index.html');
+        fs.writeFileSync(indexHtmlPath, content);
         
-        const outPath = path.join(__dirname, 'functions', 'api', '_core.js');
-        // Ensure functions/api exists
-        if (!fs.existsSync(path.dirname(outPath))) {
-            fs.mkdirSync(path.dirname(outPath), { recursive: true });
+        console.log('Tạo thành công public/index.html (Dạng trang web tiêu chuẩn)');
+
+        // (Tuỳ chọn) Cố gắng xóa file _core.js cũ nếu tồn tại
+        const oldCorePath = path.join(__dirname, 'functions', 'api', '_core.js');
+        if (fs.existsSync(oldCorePath)) {
+            try { fs.unlinkSync(oldCorePath); } catch(e){}
         }
-        
-        fs.writeFileSync(outPath, 'export const coreBase64 = `' + base64 + '`;\n');
-        
-        console.log('Tạo thành công functions/api/_core.js (Bảo mật Base64)');
     } else {
         console.warn('_core.html không tồn tại.');
     }

@@ -1,5 +1,4 @@
 import { createClient } from '@supabase/supabase-js';
-import { coreBase64 } from './_core.js';
 
 function validateOriginAndReferer(request) {
     const referer = request.headers.get('referer') || '';
@@ -141,7 +140,7 @@ async function handleGetCore(request, env) {
             'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
             'Pragma': 'no-cache'
         };
-        return new Response(JSON.stringify({ payload: coreBase64 }), { status: 200, headers: noCacheHeaders });
+        return new Response(JSON.stringify({ ok: true }), { status: 200, headers: noCacheHeaders });
     } catch (error) {
         console.error("Loi doc file core:", error);
         const noCacheHeaders = {
@@ -149,7 +148,7 @@ async function handleGetCore(request, env) {
             'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
             'Pragma': 'no-cache'
         };
-        return new Response(JSON.stringify({ payload: coreBase64 }), { status: 200, headers: noCacheHeaders });
+        return new Response(JSON.stringify({ ok: true }), { status: 200, headers: noCacheHeaders });
     }
 }
 
