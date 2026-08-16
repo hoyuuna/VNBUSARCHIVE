@@ -2969,7 +2969,7 @@ div[id$="-modal"] > div > * {
                     <!-- Text chính sách (Đã chỉnh lại margin-top từ 5 xuống 3 cho đều) -->
                     <p class="mt-3 text-[11px] text-gray-500 font-medium leading-relaxed drop-shadow-sm text-center max-w-xs mx-auto">
                         Bằng việc sử dụng website, bạn đã mặc định đồng ý với<br>
-                        <a href="https://github.com/hoyuuna/VNBUSARCHIVE/blob/main/Policy.md" target="_blank" class="text-gray-600 font-bold underline decoration-gray-400 hover:text-black hover:decoration-black transition-colors">chính sách của chúng tôi</a>.
+                        <a href="javascript:void(0)" onclick="app.settings.open('docs-policy', 'docs')" class="text-gray-600 font-bold underline decoration-gray-400 hover:text-black hover:decoration-black transition-colors">chính sách của chúng tôi</a>.
                     </p>
                 </div>
             </div>
@@ -3321,13 +3321,13 @@ div[id$="-modal"] > div > * {
                         <div id="set-content-docs-intro" class="markdown-body hidden" data-url="https://raw.githubusercontent.com/hoyuuna/VNBUSARCHIVE/refs/heads/main/README.md" data-loaded="false">
                             <div class="text-center text-gray-500 py-10"><i class="fa-solid fa-circle-notch fa-spin text-2xl mb-2 text-black"></i><p>Đang tải tài liệu...</p></div>
                         </div>
-                        <div id="set-content-docs-requirements" class="markdown-body hidden" data-url="https://raw.githubusercontent.com/hoyuuna/VNBUSARCHIVE/refs/heads/main/Requirements.md" data-loaded="false">
+                        <div id="set-content-docs-requirements" class="markdown-body hidden" data-url="https://raw.githubusercontent.com/hoyuuna/VNBUSARCHIVE/refs/heads/main/doc/Requirements.md" data-loaded="false">
                             <div class="text-center text-gray-500 py-10"><i class="fa-solid fa-circle-notch fa-spin text-2xl mb-2 text-black"></i><p>Đang tải tài liệu...</p></div>
                         </div>
-                        <div id="set-content-docs-policy" class="markdown-body hidden" data-url="https://raw.githubusercontent.com/hoyuuna/VNBUSARCHIVE/refs/heads/main/Policy.md" data-loaded="false">
+                        <div id="set-content-docs-policy" class="markdown-body hidden" data-url="https://raw.githubusercontent.com/hoyuuna/VNBUSARCHIVE/refs/heads/main/doc/Policy.md" data-loaded="false">
                             <div class="text-center text-gray-500 py-10"><i class="fa-solid fa-circle-notch fa-spin text-2xl mb-2 text-black"></i><p>Đang tải tài liệu...</p></div>
                         </div>
-                        <div id="set-content-docs-chatrule" class="markdown-body hidden" data-url="https://raw.githubusercontent.com/hoyuuna/VNBUSARCHIVE/refs/heads/main/Chat-rule.md" data-loaded="false">
+                        <div id="set-content-docs-chatrule" class="markdown-body hidden" data-url="https://raw.githubusercontent.com/hoyuuna/VNBUSARCHIVE/refs/heads/main/doc/Chat-rule.md" data-loaded="false">
                             <div class="text-center text-gray-500 py-10"><i class="fa-solid fa-circle-notch fa-spin text-2xl mb-2 text-black"></i><p>Đang tải tài liệu...</p></div>
                         </div>
                     </div>
@@ -3608,8 +3608,7 @@ div[id$="-modal"] > div > * {
 
                             <p class="text-xs text-red-600 ml-6">
                                 Bạn có thể tham khảo <a
-                                    href="https://github.com/hoyuuna/VNBUSARCHIVE/blob/main/Requirements.md"
-                                    target="_blank" class="font-bold underline hover:text-red-800">Quy định kiểm duyệt</a> tại đây. Nếu cần giải thích thêm hoặc khiếu nại, hãy <a href="javascript:void(0)" onclick="app.utils.navigate('/contact')"
+                                    href="javascript:void(0)" onclick="app.settings.open('docs-requirements', 'docs')" class="font-bold underline hover:text-red-800">Quy định kiểm duyệt</a> tại đây. Nếu cần giải thích thêm hoặc khiếu nại, hãy <a href="javascript:void(0)" onclick="app.utils.navigate('/contact')"
                                     class="font-bold underline hover:text-red-800">Gửi yêu cầu hỗ trợ</a> cho tụi mình nhé! Bạn vui lòng không xóa ảnh nếu có nhu cầu kháng cáo!
                             </p>
                         </div>
@@ -3939,7 +3938,7 @@ div[id$="-modal"] > div > * {
                             <button onclick="app.comments.post()" id="btn-post-comment"
                                 class="bg-black text-white px-6 rounded-xl font-bold text-sm hover:bg-gray-800 transition shadow-sm flex items-center justify-center shrink-0"> Gửi </button>
                         </div>
-                        <p class="text-[10px] text-gray-400 mt-2 leading-relaxed">Bằng việc comment, bạn đã hoàn toàn đồng ý với <a href="https://github.com/hoyuuna/VNBUSARCHIVE/blob/main/Chat-rule.md" target="_blank" class="text-gray-600 font-bold underline hover:text-black">Tiêu chuẩn bình luận</a> của chúng tôi.</p>
+                        <p class="text-[10px] text-gray-400 mt-2 leading-relaxed">Bằng việc comment, bạn đã hoàn toàn đồng ý với <a href="javascript:void(0)" onclick="app.settings.open('docs-chatrule', 'docs')" class="text-gray-600 font-bold underline hover:text-black">Tiêu chuẩn bình luận</a> của chúng tôi.</p>
                     </div>
 
                     <!-- Khung cuộn chứa bình luận (Cố định cứng chiều cao 550px) -->
@@ -4373,7 +4372,7 @@ div[id$="-modal"] > div > * {
                         </div>
 
                         <div class="mt-4 text-right">
-                            <a href="https://github.com/hoyuuna/VNBUSARCHIVE/blob/main/Requirements.md" target="_blank"
+                            <a href="javascript:void(0)" onclick="app.settings.open('docs-requirements', 'docs')"
                                 class="inline-flex items-center gap-1.5 bg-black text-white px-4 py-2 rounded-md font-bold hover:bg-gray-800 transition shadow-sm text-[11px] uppercase tracking-wide">
                                 <i class="fa-solid fa-arrow-up-right-from-square text-sm"></i> Xem chi tiết
                             </a>
