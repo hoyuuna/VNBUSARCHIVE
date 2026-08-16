@@ -36,9 +36,12 @@ try {
         fs.writeFileSync(appJsPath, combinedJs);
         console.log('Tạo thành công public/app.js');
 
-        // Lưu trực tiếp nội dung _core.html sang public/index.html
+        // Chèn script app.js với cache-buster vào _core.html
+        const finalHtml = content.replace('</body>', `<script src="/app.js?v=${Date.now()}"></script>\n</body>`);
+
+        // Lưu trực tiếp nội dung sang public/index.html
         const indexHtmlPath = path.join(__dirname, 'public', 'index.html');
-        fs.writeFileSync(indexHtmlPath, content);
+        fs.writeFileSync(indexHtmlPath, finalHtml);
         
         console.log('Tạo thành công public/index.html (Dạng trang web tiêu chuẩn)');
 
