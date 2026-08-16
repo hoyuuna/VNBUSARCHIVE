@@ -32,6 +32,8 @@ Vì đây là dự án phi lợi nhuận, mọi sự đóng góp về hình ản
 - **Liên hệ:** [https://www.vnbusarchive.io.vn/contact](https://www.vnbusarchive.io.vn/contact) hoặc lienhe@vnbusarchive.io.vn
 
 **Ủng hộ dự án một ly cà phê 👇❤️**
-
-<img width="300" alt="photo_2026-04-16_12-45-39" src="https://github.com/user-attachments/assets/c7084939-9af7-43b9-a012-1c0f2261e4d7" />
+- **Ngân hàng:** TMCP Ngoại Thương Việt Nam (Vietcombank)
+- **Số tài khoản:** `1054750225`
+- **Tên tài khoản:** NGUYEN HOANG ANH TUAN
+<img src="https://img.vietqr.io/image/vietcombank-1054750225-compact2.png?addInfo=Donate%20VNBUSARCHIVE" width="300"/>
 
