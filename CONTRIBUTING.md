@@ -1,6 +1,6 @@
 # Hướng dẫn đóng góp (Contributing Guidelines)
 
-Chào mừng bạn đến với dự án **VNBUSARCHIVE** (Vietnam Bus Spotter)! Chúng tôi rất vui mừng và hoan nghênh mọi sự đóng góp từ cộng đồng để phát triển dự án ngày một tốt hơn.
+Chào mừng bạn đến với dự án **VNBUSARCHIVE**! Chúng tôi rất vui mừng và hoan nghênh mọi sự đóng góp từ cộng đồng để phát triển dự án ngày một tốt hơn.
 
 Dưới đây là một số hướng dẫn cơ bản giúp bạn dễ dàng tham gia đóng góp vào dự án.
 
