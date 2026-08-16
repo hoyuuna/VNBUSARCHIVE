@@ -1,5 +1,4 @@
 window.app = window.app || {};
-
 Object.assign(window.app, {
   admin: {
                 adminInterval: null,
@@ -7,26 +6,22 @@ Object.assign(window.app, {
                 is3x3Enabled: localStorage.getItem('vbs_admin_grid_3x3') === 'true',
                 isRulerEnabled: localStorage.getItem('vbs_admin_ruler_horiz') === 'true',
                 isHideMineEnabled: localStorage.getItem('vbs_admin_hide_mine') === 'true',
-
                 toggle3x3Grid: () => {
                     app.admin.is3x3Enabled = !app.admin.is3x3Enabled;
                     localStorage.setItem('vbs_admin_grid_3x3', app.admin.is3x3Enabled ? 'true' : 'false');
                     app.admin.update3x3UI();
                 },
-
                 toggleRuler: () => {
                     app.admin.isRulerEnabled = !app.admin.isRulerEnabled;
                     localStorage.setItem('vbs_admin_ruler_horiz', app.admin.isRulerEnabled ? 'true' : 'false');
                     app.admin.updateRulerUI();
                 },
-
                 toggleHideMine: () => {
                     app.admin.isHideMineEnabled = !app.admin.isHideMineEnabled;
                     localStorage.setItem('vbs_admin_hide_mine', app.admin.isHideMineEnabled ? 'true' : 'false');
                     app.admin.updateHideMineUI();
                     app.admin.checkNotification();
                 },
-
                 renderSinglePhotoCardHTML: (p, approvedPlateSet = app.admin?.approvedPlateSet || new Set(), approvedOpSet = app.admin?.approvedOpSet || new Set(), approvedRouteSet = app.admin?.approvedRouteSet || new Set(), approvedModelSet = app.admin?.approvedModelSet || new Set()) => {
                     const op = app.utils.cleanText(p.operator || '');
                     const type = p.type || 'bus';
@@ -39,7 +34,6 @@ Object.assign(window.app, {
                     const safePlate = app.utils.cleanText(p.license_plate);
                     if (!app.admin.originalData) app.admin.originalData = {};
                     app.admin.originalData['photo_' + p.id] = { plate: safePlate, operator: op, type: type, route: route, model: model };
-
                     const tagNew = '<span class="bg-black text-white px-1.5 py-0.5 rounded text-[9px] font-bold ml-1 tracking-wider">MỚI</span>';
                     const opKey = app.utils.cleanText(op || '').trim().toLowerCase();
                     const rawRouteKey = app.utils.cleanText(route || '').trim().toLowerCase();
@@ -48,7 +42,6 @@ Object.assign(window.app, {
                     const paddedRouteKey = /^\d+$/.test(strippedRouteKey) ? strippedRouteKey.padStart(2, '0') : strippedRouteKey;
                     const modelKey = app.utils.cleanText(model || '').trim().toLowerCase();
                     const plateKey = (safePlate || '').trim().toUpperCase();
-
                     const isNewOp = opKey && opKey !== '---' && opKey !== 'đang cập nhật' && opKey !== 'không rõ' && !approvedOpSet.has(opKey);
                     const isNewRoute = route && rawRouteKey !== '---' && rawRouteKey !== 'đang cập nhật' && rawRouteKey !== 'không rõ' && 
                         !approvedRouteSet.has(rawRouteKey) && 
@@ -57,33 +50,26 @@ Object.assign(window.app, {
                         !approvedRouteSet.has(numRouteKey) && 
                         !approvedRouteSet.has(paddedRouteKey);
                     const isNewModel = modelKey && modelKey !== '---' && modelKey !== 'đang cập nhật' && !approvedModelSet.has(modelKey);
-
                     const isOwnPhoto = Boolean(app.user && (p.uploader_id === app.user.id || p.user_id === app.user.id));
                     const hideClass = (app.admin.isHideMineEnabled && isOwnPhoto) ? 'hidden' : '';
-
                     let reviewTabHtml = '';
                     if (p.photo_reviews && p.photo_reviews.length > 0) {
                         const approves = p.photo_reviews.filter(r => r.action === 'approve').length;
                         const denies = p.photo_reviews.filter(r => r.action === 'deny').length;
                         const denyReasons = p.photo_reviews.filter(r => r.action === 'deny' && r.reason).map(r => r.reason).join(' | ');
-                        
                         let colorClass = 'bg-blue-600 border-blue-700 text-white';
                         if (approves > 0 && denies === 0) colorClass = 'bg-green-600 border-green-700 text-white';
                         else if (denies > 0 && approves === 0) colorClass = 'bg-red-600 border-red-700 text-white';
                         else if (approves > 0 && denies > 0) colorClass = 'bg-yellow-500 border-yellow-600 text-yellow-900';
-
                         let textParts = [];
                         if (approves > 0) textParts.push(`${approves} đồng ý`);
                         if (denies > 0) textParts.push(`${denies} từ chối`);
-                        
                         let mainText = textParts.join(' + ');
                         if (denyReasons) mainText += `: (${denyReasons})`;
-                        
                         reviewTabHtml = `<div class="w-full max-w-full ${colorClass} text-[11px] font-bold px-4 pt-2.5 pb-[18px] rounded-t-md border border-b-0 shadow-sm leading-relaxed -mb-3"><i class="fa-solid fa-users mr-1"></i>${mainText}</div>`;
                     } else if (p.reviewer_count > 0) {
                         reviewTabHtml = `<div class="w-full max-w-full bg-blue-600 border-blue-700 text-white text-[11px] font-bold px-4 pt-2.5 pb-[18px] rounded-t-md border border-b-0 shadow-sm leading-relaxed -mb-3"><i class="fa-solid fa-users mr-1"></i>Đã có ${p.reviewer_count} người lựa chọn</div>`;
                     }
-
                     return `
                                 <div id="adm-photo-card-${p.id}" class="admin-card relative overflow-visible mt-8 ${hideClass}" data-photo-id="${p.id}" data-privileged="${(p.profiles?.role === 'admin' || p.profiles?.role === 'manager') ? 'true' : 'false'}" data-is-own="${isOwnPhoto ? 'true' : 'false'}">
                                     ${reviewTabHtml}
@@ -146,9 +132,7 @@ Object.assign(window.app, {
                                         const isOwnPhoto = p.uploader_id === app.user.id;
                                         const canApprove = (!isOwnPhoto || app.role === 'manager') && !p._isReviewedByMe;
                                         const canDeny = (!isOwnPhoto || app.role === 'manager') && !p._isReviewedByMe;
-
                                         let actionButtons = '<div class="flex gap-2 mt-2">';
-
                                         if (p._isReviewedByMe) {
                                             actionButtons += `<div class="flex-1 bg-gray-100 text-gray-400 py-1.5 text-xs font-bold rounded text-center border border-gray-200 cursor-not-allowed">
                                                 <i class="fa-solid fa-check mr-1"></i> Bạn đã duyệt
@@ -161,19 +145,16 @@ Object.assign(window.app, {
                                                     <i class="fa-solid fa-lock mr-1"></i> Không tự duyệt
                                                 </div>`;
                                             }
-
                                             if (canDeny) {
                                                 actionButtons += `<button onclick="app.admin.denyPhoto('${p.id}', '${p.uploader_id}', this)" class="flex-1 bg-transparent border-0 p-0 hover:opacity-80 active:scale-90 transition-all duration-200 flex justify-center items-center"><img src="/media/not-umazing.png" alt="TỪ CHỐI" class="h-[52px] w-auto object-contain"></button>`;
                                             }
                                         }
-
                                         actionButtons += '</div>';
                                         return actionButtons;
                                     })()}
                                     </div>
                                 </div>`;
                 },
-
                 update3x3UI: () => {
                     const btn = document.getElementById('btn-toggle-3x3');
                     const statusText = document.getElementById('status-3x3');
@@ -196,7 +177,6 @@ Object.assign(window.app, {
                         else zoomGrid.classList.add('hidden');
                     }
                 },
-
                 updateRulerUI: () => {
                     const btn = document.getElementById('btn-toggle-ruler');
                     const statusText = document.getElementById('status-ruler');
@@ -219,7 +199,6 @@ Object.assign(window.app, {
                         else zoomRuler.classList.add('hidden');
                     }
                 },
-
                 updateHideMineUI: () => {
                     const btn = document.getElementById('btn-toggle-hide-mine');
                     const statusText = document.getElementById('status-hide-mine');
@@ -237,7 +216,6 @@ Object.assign(window.app, {
                         else card.classList.remove('hidden');
                     });
                 },
-
                 getRulerOverlayHTML: () => {
                     const isHidden = app.admin.isRulerEnabled ? '' : 'hidden';
                     const levels = [
@@ -261,49 +239,36 @@ Object.assign(window.app, {
                     });
                     return `<div class="admin-photo-ruler-overlay ruler-horizontal-overlay ${isHidden}">${linesHtml}</div>`;
                 },
-
                 originalData: {},
                 checkPlateAdmin: async (inputEl, id, type) => {
                     const val = inputEl.value.trim().replace(/[^A-Z0-9-]/gi, '').toUpperCase();
                     inputEl.value = val;
-
                     const origKey = type + '_' + id;
                     const orig = app.admin.originalData[origKey];
                     if (!orig) return;
-
                     let pre;
                     if (type === 'photo') pre = 'adm-p-';
                     else if (type === 'req-h') pre = 'req-h-';
                     else pre = 'req-';
-
                     const elOp = document.getElementById(pre + 'op-' + id);
                     const elType = document.getElementById(pre + 'type-' + id);
                     const elRoute = document.getElementById(pre + 'route-' + id);
                     const elModel = document.getElementById(pre + 'model-' + id);
-
-                    // Trả lại thông tin gốc nếu nhập lại biển số cũ
                     if (val === orig.plate) {
                         if (elOp) elOp.value = orig.operator || '';
                         if (elType) elType.value = orig.type || 'bus';
                         if (elRoute) elRoute.value = orig.route || '';
                         if (elModel) elModel.value = orig.model || '';
-
-                        // Thêm hiệu ứng chớp xanh để báo đã khôi phục
                         inputEl.classList.add('ring-2', 'ring-green-500');
                         setTimeout(() => inputEl.classList.remove('ring-2', 'ring-green-500'), 500);
-
                         const warnEl = document.getElementById(inputEl.id + '-warning');
                         if (warnEl) warnEl.remove();
-
                         return;
                     }
-
-                    // Lấy dữ liệu biển số mới từ DB
                     try {
                         const { data: vData } = await window.sb.from('vehicles').select('*').eq('license_plate', val).maybeSingle();
                         if (vData) {
                             if (elModel) elModel.value = vData.model || '';
-
                             const { data: pDataArray } = await window.sb.from('photos')
                                 .select('operator, route_no, type')
                                 .eq('license_plate', val)
@@ -311,23 +276,17 @@ Object.assign(window.app, {
                                 .order('taken_at', { ascending: false, nullsFirst: false })
                                 .order('created_at', { ascending: false })
                                 .limit(10);
-
                             if (pDataArray && pDataArray.length > 0) {
                                 let validPhoto = pDataArray.find(p => p.route_no !== 'Ngoài giờ hoạt động');
                                 if (!validPhoto) {
                                     validPhoto = { operator: pDataArray[0].operator, route_no: '', type: pDataArray[0].type };
                                 }
-
                                 if (elOp) elOp.value = validPhoto.operator || '';
                                 if (elRoute) elRoute.value = validPhoto.route_no || '';
                                 if (elType) elType.value = validPhoto.type || 'bus';
                             }
-
-                            // Thêm hiệu ứng chớp vàng để báo đã load dữ liệu có sẵn
                             inputEl.classList.add('ring-2', 'ring-amber-500');
                             setTimeout(() => inputEl.classList.remove('ring-2', 'ring-amber-500'), 500);
-
-                            // Xử lý cảnh báo biển số trùng
                             let warnEl = document.getElementById(inputEl.id + '-warning');
                             if (!warnEl) {
                                 warnEl = document.createElement('div');
@@ -344,8 +303,6 @@ Object.assign(window.app, {
                             const warnEl = document.getElementById(inputEl.id + '-warning');
                             if (warnEl) warnEl.remove();
                         }
-
-                        // Cập nhật text biển số trên header và tag XE MỚI dynamically
                         const cardEl = inputEl.closest('.admin-card');
                         if (cardEl && type === 'photo') {
                             const cardHeader = cardEl.querySelector('.admin-card-header');
@@ -367,16 +324,13 @@ Object.assign(window.app, {
                         console.error("Lỗi tự điền BKS Admin:", e);
                     }
                 },
-
                 checkDuplicateDateAdmin: async (id, uploaderId, takenAtStr) => {
                     if (!takenAtStr) return;
                     const locInput = document.getElementById(`adm-p-location-${id}`);
                     const plateInput = document.getElementById(`adm-p-plate-${id}`);
                     if (!locInput || !plateInput) return;
-
                     const isInterior = locInput.value.trim() === 'Chụp trong xe';
                     const cleanPlate = plateInput.value.replace(/[^A-Z0-9-]/gi, '').toUpperCase();
-
                     try {
                         const { data: existingPhotos, error } = await window.sb
                             .from('photos')
@@ -385,7 +339,6 @@ Object.assign(window.app, {
                             .eq('license_plate', cleanPlate)
                             .neq('status', 'denied')
                             .neq('id', id);
-
                         let warnEl = document.getElementById(`adm-p-location-${id}-warning`);
                         if (!error && existingPhotos && existingPhotos.length > 0) {
                             const isDuplicateDate = existingPhotos.some(p => {
@@ -393,7 +346,6 @@ Object.assign(window.app, {
                                 const pIsInterior = (p.location || '').trim() === 'Chụp trong xe';
                                 return p.taken_at.split('T')[0] === takenAtStr && pIsInterior === isInterior;
                             });
-
                             if (isDuplicateDate) {
                                 if (!warnEl) {
                                     warnEl = document.createElement('div');
@@ -412,16 +364,12 @@ Object.assign(window.app, {
                         console.error('Lỗi checkDuplicateDateAdmin:', err);
                     }
                 },
-
-                // --- THÊM STATE CHO TAB MANAGER ---
                 manager: {
                     activeTab: 'denied',
                     denied: { data: [], filtered:[], page: 1, denierMap: {} },
                     logs: { data: [], filtered:[], page: 1 },
                     bans: { data: [], filtered:[], page: 1 }
                 },
-                // ----------------------------------
-
                 saveEmailDraft: () => {
                     try {
                         const draft = {
@@ -433,7 +381,6 @@ Object.assign(window.app, {
                         localStorage.setItem('vbs_manager_email_draft', JSON.stringify(draft));
                     } catch (e) {}
                 },
-
                 restoreEmailDraft: () => {
                     try {
                         const savedStr = localStorage.getItem('vbs_manager_email_draft');
@@ -449,11 +396,9 @@ Object.assign(window.app, {
                         if (anon && saved.isAnonymous !== undefined) anon.checked = saved.isAnonymous;
                     } catch (e) {}
                 },
-
                 clearEmailDraft: () => {
                     try { localStorage.removeItem('vbs_manager_email_draft'); } catch (e) {}
                 },
-
                 logAction: async (actionType, targetId, details) => {
                     if (!app.user) return;
                     try {
@@ -465,16 +410,12 @@ Object.assign(window.app, {
                         });
                     } catch (e) { console.error("Lỗi ghi log:", e); }
                 },
-
                 checkNotification: async () => {
                     if (app.role !== 'admin' && app.role !== 'manager') return;
-
                     const total = await app.admin.refreshCounts();
-
                     const iconEl = document.getElementById('nav-admin-icon');
                     if (app.admin.adminInterval) clearInterval(app.admin.adminInterval);
                     iconEl.className = "fa-solid fa-shield-halved md:mr-1";
-
                     if (total > 0) {
                         let showNumber = false;
                         app.admin.adminInterval = setInterval(() => {
@@ -488,14 +429,12 @@ Object.assign(window.app, {
                         }, 3000);
                     }
                 },
-
                 refreshCounts: async () => {
                     try {
                         const { data: pendingPhotos, error: pErr } = await window.sb.from('photos').select('id, uploader_id').eq('status', 'pending');
                         if (pErr) console.error("Lỗi đếm photos:", pErr);
                         const { data: reqs, error: rErr } = await window.sb.from('edit_requests').select('requester_id, new_data').eq('status', 'pending');
                         if (rErr) console.error("Lỗi đếm edit_requests:", rErr);
-
                         let pCount = 0;
                         if (pendingPhotos) {
                             if (app.admin.isHideMineEnabled && app.user && app.user.id) {
@@ -504,7 +443,6 @@ Object.assign(window.app, {
                                 pCount = pendingPhotos.length;
                             }
                         }
-
                         let editCount = 0;
                         let delCount = 0;
                         if (reqs) {
@@ -516,7 +454,6 @@ Object.assign(window.app, {
                                 else editCount++;
                             });
                         }
-
                         const countPhotosEl = document.getElementById('count-photos');
                         if (countPhotosEl) countPhotosEl.innerText = pCount || 0;
                         const countReqsEl = document.getElementById('count-requests');
@@ -526,11 +463,9 @@ Object.assign(window.app, {
                         if (window.app && window.app.views && window.app.views.updateMilestoneBanner && document.getElementById('milestone-banner')) {
                             window.app.views.updateMilestoneBanner();
                         }
-
                         return (pCount || 0) + editCount + delCount;
                     } catch (err) { console.error("Lỗi đếm:", err); return 0; }
                 },
-
                 openZoom: (url, showToolbar = false, isFromAdminReview = false) => {
                     const modal = document.getElementById('admin-zoom-modal');
                     const img = document.getElementById('admin-zoom-img');
@@ -542,7 +477,6 @@ Object.assign(window.app, {
                     app.ui.lockScroll();
                     container.classList.remove('modal-content-leave');
                     container.classList.add('modal-content-enter');
-
                     const zoomGrid = document.getElementById('admin-zoom-grid-overlay');
                     if (zoomGrid) {
                         if (isFromAdminReview && app.admin.is3x3Enabled) {
@@ -551,7 +485,6 @@ Object.assign(window.app, {
                             zoomGrid.classList.add('hidden');
                         }
                     }
-
                     const zoomRuler = document.getElementById('admin-zoom-ruler-overlay');
                     if (zoomRuler) {
                         if (isFromAdminReview && app.admin.isRulerEnabled) {
@@ -560,8 +493,6 @@ Object.assign(window.app, {
                             zoomRuler.classList.add('hidden');
                         }
                     }
-
-                    // Logic hiển thị Toolbar với Animation Trượt
                     const toolbar = document.getElementById('zoom-toolbar');
                     const hint = document.getElementById('zoom-hint');
                     if(toolbar && hint) {
@@ -569,19 +500,14 @@ Object.assign(window.app, {
                             toolbar.classList.remove('opacity-0', 'translate-y-8', 'pointer-events-none');
                             toolbar.classList.add('opacity-100', 'translate-y-0', 'pointer-events-auto');
                             hint.classList.add('opacity-0');
-
-                            // Đổ dữ liệu
                             const uploaderName = app.utils.cleanText(app.currentPhoto.profiles?.username || 'Ẩn danh');
                             const uploaderAvatar = app.currentPhoto.profiles?.avatar_url ? app.utils.getProxiedUrl(app.currentPhoto.profiles.avatar_url.replace(/"/g, ''), 'avatar.jpg', 'avatar') : 'https://files.catbox.moe/zzh1q1.png';
                             document.getElementById('zoom-uploader-name').innerText = uploaderName;
                             document.getElementById('zoom-uploader-avatar').src = uploaderAvatar;
-
-                            // Check trạng thái
                             const mainLikeBtn = document.getElementById('btn-like');
                             const zBtn = document.getElementById('zoom-btn-like');
                             const isLiked = mainLikeBtn && mainLikeBtn.classList.contains('bg-gray-400');
                             const isDenied = app.currentPhoto.status === 'denied';
-
                             if (isLiked || isDenied) {
                                 zBtn.className = "flex items-center justify-center gap-1.5 bg-black text-white px-3 py-2 md:px-4 md:py-2.5 rounded-lg font-bold text-[11px] md:text-sm transition-colors whitespace-nowrap";
                                 zBtn.innerHTML = isDenied ? '<i class="fa-solid fa-ban text-sm md:text-base"></i> <span class="hidden md:inline">Từ chối</span>' : '<i class="fa-solid fa-check text-sm md:text-base"></i> <span class="hidden md:inline">Đã thích</span>';
@@ -598,21 +524,17 @@ Object.assign(window.app, {
                         }
                     }
                 },
-
                 closeZoom: () => {
                     const modal = document.getElementById('admin-zoom-modal');
                     const img = document.getElementById('admin-zoom-img');
                     const container = document.getElementById('admin-zoom-container') || img;
                     const toolbar = document.getElementById('zoom-toolbar');
-
                     container.classList.remove('modal-content-enter');
                     container.classList.add('modal-content-leave');
-
                     if (toolbar) {
                         toolbar.classList.add('opacity-0', 'translate-y-8', 'pointer-events-none');
                         toolbar.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
                     }
-
                     setTimeout(() => {
                         modal.classList.add('hidden');
                         img.src = "";
@@ -620,7 +542,6 @@ Object.assign(window.app, {
                         app.ui.unlockScroll();
                     }, 200);
                 },
-
                 fetchAdminNote: async function() {
                     try {
                         const { data, error } = await window.sb.from('admin_notes').select('content').eq('id', 1).single();
@@ -658,7 +579,6 @@ Object.assign(window.app, {
                         btn.disabled = false;
                     }
                 },
-                
                 loadTab: async (tab = 'photos', forceReload = true, preserveScroll = false) => {
                     if (!app.admin._noteFetched) {
                         app.admin._noteFetched = true;
@@ -666,18 +586,15 @@ Object.assign(window.app, {
                     }
                     app.adminTab = tab;
                     app.admin.refreshCounts().then(total => app.admin.checkNotification());
-
                     if (app.admin._activeLoadingTab === tab && app.admin._isTabLoading && !preserveScroll && !forceReload) return;
                     app.admin._activeLoadingTab = tab;
                     app.admin._isTabLoading = true;
                     const currentLoadToken = ++app.admin._loadTokenCounter || (app.admin._loadTokenCounter = 1);
                     app.admin._activeLoadToken = currentLoadToken;
-
                     const content = document.getElementById('admin-content');
                     if (!content) return;
                     const savedScrollY = typeof window !== 'undefined' ? window.scrollY : 0;
                     const isSameTabWithContent = (app.adminTab === tab) && (content.querySelector('.admin-card') || content.querySelector('.bg-white') || content.children.length > 0);
-
                     if (tab === 'manager' && document.getElementById('mgr-sec-denied')) {
                         if (app.admin._activeLoadToken === currentLoadToken) {
                             app.admin._isTabLoading = false;
@@ -705,9 +622,6 @@ Object.assign(window.app, {
                         else if (tab === 'manager') loadingMsg = 'Đang tải khu vực quản lý...';
                         content.innerHTML = `<p class="text-gray-500 italic p-4"><i class="fa-solid fa-spinner fa-spin mr-2"></i>${loadingMsg}</p>`;
                     }
-
-
-                    // Update UI Buttons
                     ['photos', 'requests', 'delete', 'manager', 'comments'].forEach(t => {
                         const btn = document.getElementById(`adm-tab-${t}`);
                         if(!btn) return;
@@ -717,7 +631,6 @@ Object.assign(window.app, {
                             btn.className = "px-5 py-2 bg-white border border-gray-300 text-gray-600 font-bold rounded-md text-sm hover:bg-gray-50 transition whitespace-nowrap";
                         }
                     });
-
                     const toggleBar = document.getElementById('adm-photo-grid-toggle-bar');
                     if (tab === 'photos') {
                         if (toggleBar) toggleBar.classList.remove('hidden');
@@ -727,7 +640,6 @@ Object.assign(window.app, {
                     if (app.admin.update3x3UI) app.admin.update3x3UI();
                     if (app.admin.updateRulerUI) app.admin.updateRulerUI();
                     if (app.admin.updateHideMineUI) app.admin.updateHideMineUI();
-
                     try {
                         if (tab === 'photos') {
                             app.adminPendingPage = app.adminPendingPage || 1;
@@ -735,7 +647,6 @@ Object.assign(window.app, {
                             const fromRow = (app.adminPendingPage - 1) * pageSize;
                             const toRow = fromRow + pageSize - 1;
                             let totalPending = 0;
-
                             let rawPhotos = [];
                             let reviewedIds = [];
                             try {
@@ -744,7 +655,6 @@ Object.assign(window.app, {
                                     if (myReviews) reviewedIds = myReviews.map(r => r.photo_id);
                                 }
                             } catch(e) {}
-                            
                             try {
                                 const [sbRes, apiRes] = await Promise.all([
                                     window.sb.from('photos').select('*, profiles(username, role), vehicles(model), photo_reviews(action, reason, admin_id)', { count: 'estimated' }).eq('status', 'pending').order('id', { ascending: true }).range(fromRow, toRow).then(r => r).catch(() => ({ data: [], count: 0 })),
@@ -792,11 +702,9 @@ Object.assign(window.app, {
                                 rawPhotos.forEach(p => p._isReviewedByMe = reviewedIds.includes(p.id));
                             } catch(e) { console.warn('Lỗi fetch pending:', e); }
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
-
                             if (!rawPhotos || rawPhotos.length === 0) { content.innerHTML = '<p class="p-4 text-gray-600">Không có ảnh nào chờ duyệt.</p>'; return; }
                             await app.utils.resolveSandboxUrls(rawPhotos);
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
-
                             const addRouteVariants = (set, s) => {
                                 if (!s || s === '---' || s === 'Đang cập nhật') return;
                                 const clean = app.utils.cleanText(s).trim().toLowerCase();
@@ -812,7 +720,6 @@ Object.assign(window.app, {
                                     set.add('tuyến ' + num); set.add('tuyến ' + pad);
                                 }
                             };
-
                             const getVariants = (arr) => [...new Set(arr.flatMap(s => {
                                 const clean = app.utils.cleanText(s || '').trim();
                                 const cleanLower = clean.toLowerCase();
@@ -828,27 +735,22 @@ Object.assign(window.app, {
                                 }
                                 return res;
                             }).filter(Boolean))];
-
                             let approvedPlateSet = new Set();
                             let approvedOpSet = new Set();
                             let approvedRouteSet = new Set();
                             let approvedModelSet = new Set();
-
                             const pendingPlates = [...new Set(rawPhotos.map(p => p.license_plate).filter(Boolean))];
                             const pendingOps = [...new Set(rawPhotos.map(p => app.utils.cleanText(p.operator || '')).filter(Boolean))];
                             const pendingRoutes = [...new Set(rawPhotos.map(p => app.utils.cleanText(p.route_no || '')).filter(Boolean))];
                             const pendingModels = [...new Set(rawPhotos.map(p => app.utils.cleanText(p.vehicles?.model || '')).filter(Boolean))];
-
                             const platesVariants = pendingPlates.length > 0 ? getVariants(pendingPlates) : [];
                             const opsVariants = pendingOps.length > 0 ? getVariants(pendingOps) : [];
                             const routesVariants = pendingRoutes.length > 0 ? getVariants(pendingRoutes) : [];
                             const modelsVariants = pendingModels.length > 0 ? getVariants(pendingModels) : [];
-
                             await Promise.all([
                                 window.sb.from('operator_info').select('operator_name').then(r => {
                                     (r.data || []).forEach(o => { if (o.operator_name) approvedOpSet.add(app.utils.cleanText(o.operator_name).trim().toLowerCase()); });
                                 }).catch(() => {}),
-
                                 platesVariants.length > 0 ? window.sb.from('photos').select('license_plate').eq('status', 'approved').in('license_plate', platesVariants).then(r => {
                                     (r.data || []).forEach(p => { if (p.license_plate) approvedPlateSet.add(p.license_plate.trim().toUpperCase()); });
                                 }).catch(() => {}) : Promise.resolve(),
@@ -858,45 +760,37 @@ Object.assign(window.app, {
                                 opsVariants.length > 0 ? window.sb.from('photos').select('operator').eq('status', 'approved').in('operator', opsVariants).then(r => {
                                     (r.data || []).forEach(p => { if (p.operator && p.operator !== '---' && p.operator !== 'Đang cập nhật') approvedOpSet.add(app.utils.cleanText(p.operator).trim().toLowerCase()); });
                                 }).catch(() => {}) : Promise.resolve(),
-
                                 opsVariants.length > 0 ? window.sb.from('operator_info').select('operator_name').in('operator_name', opsVariants).then(r => {
                                     (r.data || []).forEach(o => { if (o.operator_name) approvedOpSet.add(app.utils.cleanText(o.operator_name).trim().toLowerCase()); });
                                 }).catch(() => {}) : Promise.resolve(),
                                 routesVariants.length > 0 ? window.sb.from('photos').select('route_no').eq('status', 'approved').in('route_no', routesVariants).then(r => {
                                     (r.data || []).forEach(p => { if (p.route_no && p.route_no !== '---') addRouteVariants(approvedRouteSet, p.route_no); });
                                 }).catch(() => {}) : Promise.resolve(),
-
                                 modelsVariants.length > 0 ? window.sb.from('vehicles').select('model, photos!inner(status)').eq('photos.status', 'approved').in('model', modelsVariants).then(r => {
                                     (r.data || []).forEach(v => { if (v.photos && v.photos.length > 0 && v.model && v.model !== '---') approvedModelSet.add(app.utils.cleanText(v.model).trim().toLowerCase()); });
                                 }).catch(() => {}) : Promise.resolve()
                             ]);
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
-
                             app.admin.approvedPlateSet = approvedPlateSet;
                             app.admin.approvedOpSet = approvedOpSet;
                             app.admin.approvedRouteSet = approvedRouteSet;
                             app.admin.approvedModelSet = approvedModelSet;
-
                             const photos = rawPhotos.sort((a, b) => {
                                 if (a._isReviewedByMe && !b._isReviewedByMe) return 1;
                                 if (!a._isReviewedByMe && b._isReviewedByMe) return -1;
-                                
                                 const aStarted = (a.reviewer_count || 0) > 0;
                                 const bStarted = (b.reviewer_count || 0) > 0;
                                 if (aStarted && !bStarted) return -1;
                                 if (!aStarted && bStarted) return 1;
-
                                 const roleA = a.profiles?.role || 'user';
                                 const roleB = b.profiles?.role || 'user';
                                 const isPrivilegedA = (roleA === 'admin' || roleA === 'manager') ? 1 : 0;
                                 const isPrivilegedB = (roleB === 'admin' || roleB === 'manager') ? 1 : 0;
-
                                 if (isPrivilegedA !== isPrivilegedB) {
                                     return isPrivilegedB - isPrivilegedA;
                                 }
                                 return a.id - b.id;
                             });
-
                             if ((!forceReload || preserveScroll) && content.querySelector('.admin-card') && app.adminTab === 'photos') {
                                 const currentIds = new Set(photos.map(p => String(p.id)));
                                 content.querySelectorAll('.admin-card[data-photo-id]').forEach(card => {
@@ -933,7 +827,6 @@ Object.assign(window.app, {
                             } else {
                                 content.innerHTML = photos.map(p => app.admin.renderSinglePhotoCardHTML(p, approvedPlateSet, approvedOpSet, approvedRouteSet, approvedModelSet)).join('');
                             }
-                            
                             app.adminPendingTotalPages = Math.ceil(totalPending / pageSize);
                             if (app.adminPendingTotalPages > 1) {
                                 const pager = document.createElement('div');
@@ -945,14 +838,11 @@ Object.assign(window.app, {
                                     app.admin.loadTab('photos', true);
                                 });
                             }
-
                             if (app.admin.update3x3UI) app.admin.update3x3UI();
                             if (app.admin.updateRulerUI) app.admin.updateRulerUI();
                             if (app.admin.updateHideMineUI) app.admin.updateHideMineUI();
                         } else if (tab === 'delete') {
                             let html = '';
-
-
                             if (app.role === 'manager') {
                                 html += `
                                 <div class="col-span-full mb-6 p-5 bg-red-50 border border-red-200 rounded-lg shadow-sm">
@@ -965,9 +855,7 @@ Object.assign(window.app, {
                                 </div>
                                 `;
                             }
-
                             html += '<div class="col-span-full"><h3 class="font-bold text-sm mb-3 uppercase">Danh sách user yêu cầu xóa</h3></div>';
-
                             app.adminDeletePage = app.adminDeletePage || 1;
                             const pageSize = 20;
                             const fromRow = (app.adminDeletePage - 1) * pageSize;
@@ -975,26 +863,21 @@ Object.assign(window.app, {
                             let { data: reqs, count, error } = await window.sb.from('edit_requests').select('*', { count: 'estimated' }).eq('status', 'pending').eq('new_data->>request_type', 'delete_photo').range(fromRow, toRow);
                             if (error) throw error;
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
-
                             const deleteReqs = reqs || [];
-
                             if (!deleteReqs || deleteReqs.length === 0) {
                                 content.innerHTML = html + '<p class="col-span-full p-4">Không có yêu cầu xóa nào.</p>';
                                 return;
                             }
-
                             const photoIds = deleteReqs.map(r => r.new_data.photo_id);
                             const { data: photos } = await window.sb.from('photos').select('id, url, license_plate').in('id', photoIds);
                             if (photos && photos.length > 0) await app.utils.resolveSandboxUrls(photos);
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
                             const photoMap = {}; if (photos) photos.forEach(p => photoMap[p.id] = p);
-
                             const userIds = [...new Set(deleteReqs.map(r => r.requester_id))];
                             const { data: users } = await window.sb.from('profiles').select('id, username, role').in('id', userIds);
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
                             const userMap = {}; const roleMap = {};
                             if (users) users.forEach(u => { userMap[u.id] = u.username; roleMap[u.id] = u.role; });
-
                             deleteReqs.sort((a, b) => {
                                 const roleA = roleMap[a.requester_id] || 'user';
                                 const roleB = roleMap[b.requester_id] || 'user';
@@ -1003,12 +886,10 @@ Object.assign(window.app, {
                                 if (isPrivA !== isPrivB) return isPrivB - isPrivA;
                                 return a.id - b.id;
                             });
-
                             html += deleteReqs.map(req => {
                                 const photo = photoMap[req.new_data.photo_id];
                                 const username = app.utils.cleanText(userMap[req.requester_id] || 'Ẩn danh');
                                 const userReason = app.utils.cleanText(req.new_data.reason || 'Không có lý do');
-
                                 return `
                                 <div class="admin-card overflow-visible">
                                     <div class="admin-card-header bg-red-50">
@@ -1040,7 +921,6 @@ Object.assign(window.app, {
                                     </div>
                                 </div>`
                             }).join('');
-
                             content.innerHTML = html;
                             if (count > 0 && Math.ceil(count / pageSize) > 1) {
                                 const pager = document.createElement('div');
@@ -1063,13 +943,11 @@ Object.assign(window.app, {
                             if (error) throw error;
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
                             if (!reqs || reqs.length === 0) { content.innerHTML = '<p class="p-4">Không có yêu cầu nào.</p>'; return; }
-
                             const userIds = [...new Set(reqs.map(r => r.requester_id))];
                             const { data: users } = await window.sb.from('profiles').select('id, username, role').in('id', userIds);
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
                             const userMap = {}; const roleMap = {};
                             if (users) users.forEach(u => { userMap[u.id] = u.username; roleMap[u.id] = u.role; });
-
                             reqs.sort((a, b) => {
                                 const roleA = roleMap[a.requester_id] || 'user';
                                 const roleB = roleMap[b.requester_id] || 'user';
@@ -1078,12 +956,10 @@ Object.assign(window.app, {
                                 if (isPrivA !== isPrivB) return isPrivB - isPrivA;
                                 return a.id - b.id;
                             });
-
                             const plates = reqs.map(r => r.license_plate);
                             const { data: curVehicles } = await window.sb.from('vehicles').select('*').in('license_plate', plates);
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
                             const vMap = {}; if (curVehicles) curVehicles.forEach(v => vMap[v.license_plate] = v);
-
                             const { data: curHistories } = await window.sb.from('vehicle_history').select('*').in('license_plate', plates);
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
                             const hMap = {}; 
@@ -1093,26 +969,22 @@ Object.assign(window.app, {
                                     hMap[h.license_plate].push(h);
                                 });
                             }
-
                             const photoIdsReq = reqs.map(r => r.new_data.photo_id).filter(Boolean);
                             const { data: curPhotos } = await window.sb.from('photos').select('id, operator, route_no, type, province, location, note').in('id', photoIdsReq);
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
                             const pMap = {}; if (curPhotos) curPhotos.forEach(p => pMap[p.id] = p);
-
                             const opNamesReq = reqs.map(r => r.new_data.operator_name).filter(Boolean);
                             let opMap = {};
                             if (opNamesReq.length > 0) {
                                 const { data: curOps } = await window.sb.from('operator_info').select('*').in('operator_name', opNamesReq);
                                 if (curOps) curOps.forEach(o => opMap[o.operator_name] = o);
                             }
-
                             const mdlNamesReq = reqs.map(r => r.new_data.model_name).filter(Boolean);
                             let mdlMap = {};
                             if (mdlNamesReq.length > 0) {
                                 const { data: curMdls } = await window.sb.from('model_info').select('*').in('model_name', mdlNamesReq);
                                 if (curMdls) curMdls.forEach(m => mdlMap[m.model_name] = m);
                             }
-
                             content.innerHTML = reqs.map(r => {
                                 const d = r.new_data;
                                 const type = d.request_type || 'Unknown';
@@ -1121,7 +993,6 @@ Object.assign(window.app, {
                                 const curP = pMap[d.photo_id] || {};
                                 const curOp = opMap[d.operator_name] || {};
                                 const curMdl = mdlMap[d.model_name] || {};
-
                                 if (type === 'update_vehicle_info') {
                                     const tagNew = '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>';
                                     if (!app.admin.originalData) app.admin.originalData = {};
@@ -1175,7 +1046,6 @@ Object.assign(window.app, {
                                             </div>
                                             <div class="mb-2"><span class="admin-label">Vị trí (Chỉ cập nhật ảnh này)</span><input type="text" id="req-loc-${r.id}" value="${app.utils.escapeAttr(d.location || '')}" class="admin-input"></div>
                                             <div class="mb-2"><span class="admin-label">Ghi chú (Chỉ cập nhật ảnh này)</span><textarea id="req-note-${r.id}" class="admin-input">${app.utils.cleanText(d.note || '')}</textarea></div>
-
                                             <div class="flex gap-2 mt-3">
                                                 <button onclick="app.admin.approveReq('${r.id}', this, 'info')" class="flex-1 bg-green-600 text-white py-1.5 font-bold rounded hover:bg-green-700">DUYỆT</button>
                                                 <button onclick="app.admin.denyReq('${r.id}', this)" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">HỦY</button>
@@ -1186,7 +1056,6 @@ Object.assign(window.app, {
                                     if (!app.admin.originalData) app.admin.originalData = {};
                                     const oldHistories = hMap[r.license_plate] || [];
                                     oldHistories.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
-                                    
                                     let oldHHtml = `<p class="mb-2 text-xs font-bold text-gray-500">Lịch sử hiện tại (${oldHistories.length} mục):</p><div class="space-y-1 mb-4 text-xs opacity-75">`;
                                     if (oldHistories.length === 0) {
                                         oldHHtml += `<div class="italic text-gray-400">Không có dữ liệu lịch sử cũ</div>`;
@@ -1196,24 +1065,19 @@ Object.assign(window.app, {
                                         });
                                     }
                                     oldHHtml += `</div>`;
-
                                     let details = oldHHtml + `<p class="mb-2 font-bold text-red-500">[MỚI] Yêu cầu cập nhật thành ${d.history_items.length} mục:</p><div id="req-h-list-${r.id}" class="space-y-2">`;
                                     d.history_items.forEach((h, i) => {
                                         app.admin.originalData[`req-h_${r.id}_${i}`] = { plate: h.plate || '', operator: h.operator || '', route: h.route || '', note: h.note || '' };
-                                        
                                         let oh = oldHistories.find(old => old.plate === h.plate);
                                         if (!oh) oh = oldHistories[i];
                                         oh = oh || {};
-
                                         const tagNew = '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>';
                                         const hasChanged = (oldVal, newVal) => String(oldVal || '').trim() !== String(newVal || '').trim();
-                                        
                                         const plateTag = hasChanged(oh.plate, h.plate) ? tagNew : '';
                                         const dateTag = hasChanged(oh.effective_date, h.effective_date) ? tagNew : '';
                                         const opTag = hasChanged(oh.operator, h.operator) ? tagNew : '';
                                         const routeTag = hasChanged(oh.route, h.route) ? tagNew : '';
                                         const noteTag = hasChanged(oh.note, h.note) ? tagNew : '';
-
                                         details += `
                                         <div class="border border-gray-200 p-2 rounded relative">
                                             <div class="grid grid-cols-2 gap-2 mb-2">
@@ -1384,17 +1248,13 @@ Object.assign(window.app, {
                             if (app.admin.update3x3UI) app.admin.update3x3UI();
                             if (app.admin.updateRulerUI) app.admin.updateRulerUI();
                         }
-
-
                         else if (tab === 'comments') {
                             const { data } = await window.sb.from('photo_comments')
                                 .select('*, profiles(username), photos(license_plate)')
                                 .order('created_at', {ascending: false}).limit(500);
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
-
                             app.admin.commentsData.data = data || [];
                             app.admin.commentsData.page = 1;
-
                             content.innerHTML = `
                             <div class="col-span-full">
                                 <h3 class="font-bold mb-4 uppercase tracking-widest text-sm text-gray-500">Quản lý bình luận toàn hệ thống</h3>
@@ -1416,15 +1276,12 @@ Object.assign(window.app, {
                                 </div>
                                 <div id="adm-comments-pager" class="mt-6 w-full flex justify-center"></div>
                             </div>`;
-
-                            // Gọi hàm render chi tiết
                             app.admin.renderCommentsData();
                         } else if (tab === 'manager') {
                             if (app.role !== 'manager') {
                                 content.innerHTML = '<p class="p-4 text-red-500 font-bold">Bạn không có quyền truy cập khu vực này.</p>';
                                 return;
                             }
-
                             content.className = "col-span-full";
                             content.innerHTML = `
                                 <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-4 md:p-6 mb-6">
@@ -1436,7 +1293,6 @@ Object.assign(window.app, {
                                         <button onclick="app.admin.switchManagerTab('settings')" id="mgr-tab-settings" class="font-bold text-sm px-4 py-2 bg-white text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition whitespace-nowrap"><i class="fa-solid fa-sliders mr-1"></i> Cài đặt</button>
                                         <button onclick="app.admin.switchManagerTab('blindwm')" id="mgr-tab-blindwm" class="font-bold text-sm px-4 py-2 bg-white text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition whitespace-nowrap"><i class="fa-solid fa-fingerprint mr-1"></i> Giải mã Dấu chìm</button>
                                     </div>
-
                                     <!-- TAB: ẢNH BỊ TỪ CHỐI -->
                                     <div id="mgr-sec-denied" class="block">
                                         <div class="flex items-center gap-2 mb-4 bg-gray-50 border border-gray-200 rounded-md px-3">
@@ -1448,7 +1304,6 @@ Object.assign(window.app, {
                                         </div>
                                         <div id="mgr-denied-pager" class="mt-6 w-full flex justify-center"></div>
                                     </div>
-
                                     <!-- TAB: NHẬT KÝ HOẠT ĐỘNG -->
                                     <div id="mgr-sec-logs" class="hidden">
                                         <div class="flex items-center gap-2 mb-4 bg-gray-50 border border-gray-200 rounded-md px-3">
@@ -1472,7 +1327,6 @@ Object.assign(window.app, {
                                         </div>
                                          <div id="mgr-logs-pager" class="mt-6 w-full flex justify-center"></div>
                                      </div>
-
                                     <!-- TAB: GỬI EMAIL -->
                                     <div id="mgr-sec-email" class="hidden">
                                         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -1509,7 +1363,6 @@ Object.assign(window.app, {
                                             </form>
                                         </div>
                                     </div>
-
                                     <!-- TAB: CÀI ĐẶT HỆ THỐNG (MANAGER) -->
                                     <div id="mgr-sec-settings" class="hidden">
                                         <div class="mb-4 bg-blue-50 border border-blue-200 p-4 rounded-md">
@@ -1519,7 +1372,6 @@ Object.assign(window.app, {
                                             <p class="text-gray-500 italic"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải cấu hình...</p>
                                         </div>
                                     </div>
-
                                      <!-- TAB: QUẢN LÝ BAN -->
                                      <div id="mgr-sec-bans" class="hidden">
                                          <div class="flex flex-col gap-3 mb-4">
@@ -1552,7 +1404,6 @@ Object.assign(window.app, {
                                          <div id="mgr-bans-pager" class="mt-6 w-full flex justify-center"></div>
                                      </div>
                                      </div>
-
                                      <!-- TAB: GIẢI MÃ DẤU CHÌM BLIND WATERMARK -->
                                      <div id="mgr-sec-blindwm" class="hidden">
                                          <div class="bg-gray-50 border border-gray-200 rounded-md p-4 mb-6">
@@ -1574,7 +1425,6 @@ Object.assign(window.app, {
                                                  </div>
                                              </div>
                                          </div>
-
                                          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                                              <div class="lg:col-span-1 space-y-4">
                                                  <div id="mgr-wm-drop-zone" ondragover="event.preventDefault(); this.classList.add('border-purple-500','bg-purple-50');" ondragleave="event.preventDefault(); this.classList.remove('border-purple-500','bg-purple-50');" ondrop="event.preventDefault(); this.classList.remove('border-purple-500','bg-purple-50'); if(event.dataTransfer.files.length > 0) app.admin.processBlindWmFile(event.dataTransfer.files[0]);" class="border-2 border-dashed border-gray-300 rounded-md p-6 text-center hover:border-purple-500 transition cursor-pointer bg-white" onclick="document.getElementById('mgr-wm-file-input').click()">
@@ -1583,7 +1433,6 @@ Object.assign(window.app, {
                                                      <p class="text-[11px] text-gray-500">Bắt buộc có để giải mã lấy dấu chìm Watermark</p>
                                                      <input type="file" id="mgr-wm-file-input" accept="image/*" class="hidden" onchange="if(this.files.length > 0) app.admin.processBlindWmFile(this.files[0])">
                                                  </div>
-
                                                  <div id="mgr-wm-ref-drop-zone" ondragover="event.preventDefault(); this.classList.add('border-blue-500','bg-blue-50');" ondragleave="event.preventDefault(); this.classList.remove('border-blue-500','bg-blue-50');" ondrop="event.preventDefault(); this.classList.remove('border-blue-500','bg-blue-50'); if(event.dataTransfer.files.length > 0) app.admin.processBlindWmRefFile(event.dataTransfer.files[0]);" class="border-2 border-dashed border-gray-300 rounded-md p-4 text-center hover:border-blue-500 transition cursor-pointer bg-white" onclick="document.getElementById('mgr-wm-ref-input').click()">
                                                      <div class="flex items-center justify-center gap-2.5">
                                                          <i class="fa-solid fa-images text-2xl text-blue-500"></i>
@@ -1594,7 +1443,6 @@ Object.assign(window.app, {
                                                      </div>
                                                      <input type="file" id="mgr-wm-ref-input" accept="image/*" class="hidden" onchange="if(this.files.length > 0) app.admin.processBlindWmRefFile(this.files[0])">
                                                  </div>
-
                                                  <div id="mgr-wm-status-box" class="hidden border border-gray-200 rounded-md p-4 bg-white space-y-2.5 text-xs">
                                                      <div class="flex justify-between items-center pb-2 border-b border-gray-100">
                                                          <span class="font-bold text-gray-600">Trạng thái:</span>
@@ -1644,7 +1492,6 @@ Object.assign(window.app, {
                                                       </div>
                                                   </div>
                                              </div>
-
                                              <div class="lg:col-span-2 space-y-6">
                                                  <div class="border border-gray-200 rounded-md p-4 bg-white">
                                                      <h5 class="font-bold text-xs uppercase tracking-wider text-gray-600 mb-3">1. Ảnh gốc tải lên</h5>
@@ -1652,7 +1499,6 @@ Object.assign(window.app, {
                                                          <canvas id="mgr-wm-canvas-src" class="max-w-full h-auto object-contain"></canvas>
                                                      </div>
                                                  </div>
-
                                                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                      <div class="border border-gray-200 rounded-md p-4 bg-white">
                                                          <h5 class="font-bold text-xs uppercase tracking-wider text-gray-600 mb-3">2. Phân bố tín hiệu toàn ảnh</h5>
@@ -1670,10 +1516,8 @@ Object.assign(window.app, {
                                              </div>
                                          </div>
                                      </div>
-
                                  </div>
                              `;
-
 app.admin.fetchManagerData('denied');
                              app.admin.fetchManagerData('logs');
                              app.admin.fetchManagerData('bans');
@@ -1682,7 +1526,6 @@ app.admin.fetchManagerData('denied');
                              try { activeSub = sessionStorage.getItem('vbs_mgr_active_tab') || activeSub; } catch(e){}
                              app.admin.switchManagerTab(activeSub);
                         }
-
                     } catch (err) {
                         content.innerHTML = `<p class="p-4 text-red-500 font-bold">Không thể tải dữ liệu: ${err.message}</p>`;
                     } finally {
@@ -1700,12 +1543,9 @@ app.admin.fetchManagerData('denied');
                         }
                     }
                 },
-
-                // --- PHẦN QUẢN LÝ TAB MANAGER ---
                 switchManagerTab: (subTab) => {
                     app.admin.manager.activeTab = subTab;
                     try { sessionStorage.setItem('vbs_mgr_active_tab', subTab); } catch(e){}
-
                     ['denied', 'logs', 'email', 'settings', 'bans', 'blindwm'].forEach(t => {
                         const btn = document.getElementById('mgr-tab-' + t);
                         const sec = document.getElementById('mgr-sec-' + t);
@@ -1719,14 +1559,12 @@ app.admin.fetchManagerData('denied');
                             }
                         }
                     });
-
                     if (subTab === 'settings') {
                         app.admin.renderManagerSettings();
                     } else if (subTab === 'email') {
                         app.admin.restoreEmailDraft();
                     }
                 },
-
                 processBlindWmFile: (file) => {
                     if (!file) return;
                     const url = URL.createObjectURL(file);
@@ -1741,7 +1579,6 @@ app.admin.fetchManagerData('denied');
                         const rstBox = document.getElementById('mgr-wm-rst-box');
                         if (statusBox) statusBox.classList.remove('hidden');
                         if (rstBox) rstBox.classList.remove('hidden');
-
                         const scaleEl = document.getElementById('mgr-wm-scale');
                         const scaleVal = document.getElementById('mgr-wm-scale-val');
                         const dxEl = document.getElementById('mgr-wm-dx');
@@ -1754,7 +1591,6 @@ app.admin.fetchManagerData('denied');
                         if (dxVal) dxVal.innerText = '0 px';
                         if (dyEl) dyEl.value = 0;
                         if (dyVal) dyVal.innerText = '0 px';
-
                         URL.revokeObjectURL(url);
                         const autoRst = document.getElementById('mgr-wm-auto-rst');
                         if (autoRst && autoRst.checked) {
@@ -1765,7 +1601,6 @@ app.admin.fetchManagerData('denied');
                     };
                     img.src = url;
                 },
-
                 processBlindWmRefFile: (file) => {
                     if (!file) return;
                     const url = URL.createObjectURL(file);
@@ -1790,7 +1625,6 @@ app.admin.fetchManagerData('denied');
                     };
                     img.src = url;
                 },
-
                 ensureBlindWmDCT: () => {
                     if (app.admin._dctT && app.admin._dctTt) return;
                     const T = new Float32Array(64);
@@ -1807,7 +1641,6 @@ app.admin.fetchManagerData('denied');
                     app.admin._dctT = T;
                     app.admin._dctTt = Tt;
                 },
-
                 applyBlindWmRST: () => {
                     const img = app.admin._rawBlindImg;
                     const canvasSrc = document.getElementById('mgr-wm-canvas-src');
@@ -1815,10 +1648,8 @@ app.admin.fetchManagerData('denied');
                     const scale = parseInt(document.getElementById('mgr-wm-scale')?.value || 100) / 100;
                     const dx = parseInt(document.getElementById('mgr-wm-dx')?.value || 0);
                     const dy = parseInt(document.getElementById('mgr-wm-dy')?.value || 0);
-
                     const targetW = Math.max(64, Math.round(img.width * scale));
                     const targetH = Math.max(64, Math.round(img.height * scale));
-
                     canvasSrc.width = Math.max(64, targetW - dx);
                     canvasSrc.height = Math.max(64, targetH - dy);
                     const ctx = canvasSrc.getContext('2d');
@@ -1826,15 +1657,12 @@ app.admin.fetchManagerData('denied');
                     ctx.imageSmoothingQuality = 'high';
                     ctx.clearRect(0, 0, canvasSrc.width, canvasSrc.height);
                     ctx.drawImage(img, -dx, -dy, targetW, targetH);
-
                     app.admin.extractBlindWmDCT();
                 },
-
                 autoFindPyramidMatch: async (refImg, patchImg) => {
                     const statusEl = document.getElementById('mgr-wm-ref-status');
                     if (statusEl) statusEl.innerHTML = `<span class="text-purple-600 font-bold"><i class="fa-solid fa-spinner fa-spin mr-1"></i>Đang đối chiếu mảnh cắt với ảnh gốc qua tháp kim tự tháp (Pyramid Matching)...</span>`;
                     await new Promise(r => setTimeout(r, 20));
-
                     const getGray = (img, w, h) => {
                         const canvas = document.createElement('canvas');
                         canvas.width = w;
@@ -1848,7 +1676,6 @@ app.admin.fetchManagerData('denied');
                         }
                         return gray;
                     };
-
                     const computeNCC = (I, iw, ih, T, tw, th, x, y, muT, sigT) => {
                         if (x + tw > iw || y + th > ih || x < 0 || y < 0) return -1;
                         let sumW = 0;
@@ -1874,21 +1701,17 @@ app.admin.fetchManagerData('denied');
                         if (sigW < 1e-5 || sigT < 1e-5) return 0;
                         return num / (sigW * sigT);
                     };
-
                     const coarseMax = 200;
                     const coarseRatio = Math.min(1.0, coarseMax / Math.max(refImg.width, refImg.height));
                     const cw = Math.max(16, Math.round(refImg.width * coarseRatio));
                     const ch = Math.max(16, Math.round(refImg.height * coarseRatio));
                     const coarseRef = getGray(refImg, cw, ch);
-
                     let bestCandidate = { s: 1.0, x: 0, y: 0, score: -2 };
                     const coarseCandidates = [];
-
                     for (let s = 0.35; s <= 2.50; s += 0.05) {
                         const pw = Math.round(patchImg.width * coarseRatio * s);
                         const ph = Math.round(patchImg.height * coarseRatio * s);
                         if (pw < 8 || ph < 8 || pw > cw || ph > ch) continue;
-
                         const coarsePatch = getGray(patchImg, pw, ph);
                         let sumT = 0;
                         for (let i = 0; i < pw * ph; i++) sumT += coarsePatch[i];
@@ -1900,7 +1723,6 @@ app.admin.fetchManagerData('denied');
                         }
                         const sigT = Math.sqrt(sumSqT);
                         if (sigT < 1e-5) continue;
-
                         const stepX = Math.max(1, Math.floor((cw - pw) / 30));
                         const stepY = Math.max(1, Math.floor((ch - ph) / 30));
                         for (let y = 0; y <= ch - ph; y += stepY) {
@@ -1913,23 +1735,19 @@ app.admin.fetchManagerData('denied');
                             }
                         }
                     }
-
                     coarseCandidates.sort((a, b) => b.score - a.score);
                     const topCoarse = coarseCandidates.slice(0, 5);
-
                     const medMax = 450;
                     const medRatio = Math.min(1.0, medMax / Math.max(refImg.width, refImg.height));
                     const mw = Math.max(32, Math.round(refImg.width * medRatio));
                     const mh = Math.max(32, Math.round(refImg.height * medRatio));
                     const medRef = getGray(refImg, mw, mh);
-
                     let medBest = { s: bestCandidate.s, x: 0, y: 0, score: -2 };
                     for (const c of topCoarse) {
                         for (let s = Math.max(0.35, c.s - 0.06); s <= Math.min(2.50, c.s + 0.06); s += 0.015) {
                             const pw = Math.round(patchImg.width * medRatio * s);
                             const ph = Math.round(patchImg.height * medRatio * s);
                             if (pw < 8 || ph < 8 || pw > mw || ph > mh) continue;
-
                             const medPatch = getGray(patchImg, pw, ph);
                             let sumT = 0;
                             for (let i = 0; i < pw * ph; i++) sumT += medPatch[i];
@@ -1941,10 +1759,8 @@ app.admin.fetchManagerData('denied');
                             }
                             const sigT = Math.sqrt(sumSqT);
                             if (sigT < 1e-5) continue;
-
                             const approxX = Math.round(c.x * (medRatio / coarseRatio));
                             const approxY = Math.round(c.y * (medRatio / coarseRatio));
-
                             for (let dy = -6; dy <= 6; dy += 2) {
                                 for (let dx = -6; dx <= 6; dx += 2) {
                                     const x = approxX + dx;
@@ -1957,73 +1773,58 @@ app.admin.fetchManagerData('denied');
                             }
                         }
                     }
-
                     const fullX = Math.round(medBest.x / medRatio);
                     const fullY = Math.round(medBest.y / medRatio);
                     const fullScale = medBest.s;
-
                     const restoredScalePct = Math.round((1.0 / fullScale) * 100);
                     const clampedScale = Math.min(200, Math.max(50, restoredScalePct));
-
                     const dx = ((fullX % 8) + 8) % 8;
                     const dy = ((fullY % 8) + 8) % 8;
-
                     const scaleEl = document.getElementById('mgr-wm-scale');
                     const scaleVal = document.getElementById('mgr-wm-scale-val');
                     const dxEl = document.getElementById('mgr-wm-dx');
                     const dxVal = document.getElementById('mgr-wm-dx-val');
                     const dyEl = document.getElementById('mgr-wm-dy');
                     const dyVal = document.getElementById('mgr-wm-dy-val');
-
                     if (scaleEl) scaleEl.value = clampedScale;
                     if (scaleVal) scaleVal.innerText = clampedScale + '%';
                     if (dxEl) dxEl.value = dx;
                     if (dxVal) dxVal.innerText = dx + ' px';
                     if (dyEl) dyEl.value = dy;
                     if (dyVal) dyVal.innerText = dy + ' px';
-
                     app.admin._wmTileOffsetX = Math.floor((fullX - dx) / 8) % 90;
                     app.admin._wmTileOffsetY = Math.floor((fullY - dy) / 8) % 60;
                     app.admin._wmFullX = fullX - dx;
                     app.admin._wmFullY = fullY - dy;
-
                     const btn = document.getElementById('mgr-wm-autoscan-btn');
                     if (btn) btn.innerHTML = `<i class="fa-solid fa-bolt mr-1"></i> Dò tự động lệch viền`;
-
                     if (statusEl) {
                         const matchPct = Math.min(100, Math.round(Math.max(0, medBest.score) * 100));
                         statusEl.innerHTML = `<span class="text-emerald-700 font-bold"><i class="fa-solid fa-check-double mr-1"></i>Đã ghép mảnh cắt vào ảnh gốc! Tỷ lệ ảnh: ${Math.round(fullScale*100)}% -> Scale khôi phục: ${clampedScale}%, Tọa độ: (${fullX}, ${fullY}) [Khớp: ${matchPct}%]</span>`;
                     }
                     app.admin.applyBlindWmRST();
                 },
-
                 autoScanBlindWmRST: async () => {
                     const img = app.admin._rawBlindImg;
                     const canvasSrc = document.getElementById('mgr-wm-canvas-src');
                     if (!img || !canvasSrc) return;
-
                     const btn = document.getElementById('mgr-wm-autoscan-btn');
                     if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang dò lệch viền...`;
                     await new Promise(r => setTimeout(r, 20));
-
                     if (app.admin._refBlindImg && img.width > 0) {
                         await app.admin.autoFindPyramidMatch(app.admin._refBlindImg, img);
                         return;
                     }
-
                     let scale = parseInt(document.getElementById('mgr-wm-scale')?.value || 100) / 100;
                     const targetW = Math.max(64, Math.round(img.width * scale));
                     const targetH = Math.max(64, Math.round(img.height * scale));
-
                     app.admin.ensureBlindWmDCT();
                     const T = app.admin._dctT;
                     const Tt = app.admin._dctTt;
                     if (!T || !Tt) return;
-
                     const gridW = 90;
                     const gridH = 60;
                     let bestDX = 0, bestDY = 0, bestScore = -1;
-
                     for (let dy = 0; dy < 8; dy++) {
                         for (let dx = 0; dx < 8; dx++) {
                             const w = targetW - dx;
@@ -2031,19 +1832,16 @@ app.admin.fetchManagerData('denied');
                             const blocksX = Math.floor(w / 8);
                             const blocksY = Math.floor(h / 8);
                             if (blocksX <= 0 || blocksY <= 0) continue;
-
                             canvasSrc.width = w;
                             canvasSrc.height = h;
                             const ctx = canvasSrc.getContext('2d', { willReadFrequently: true });
                             ctx.drawImage(img, -dx, -dy, targetW, targetH);
                             const data = ctx.getImageData(0, 0, w, h).data;
-
                             const tileAcc = new Float32Array(gridW * gridH);
                             const tileCount = new Uint32Array(gridW * gridH);
                             const block = new Float32Array(64);
                             const temp = new Float32Array(64);
                             const dct = new Float32Array(64);
-
                             for (let by = 0; by < blocksY; by++) {
                                 for (let bx = 0; bx < blocksX; bx++) {
                                     for (let y = 0; y < 8; y++) {
@@ -2074,7 +1872,6 @@ app.admin.fetchManagerData('denied');
                                     tileCount[gy * gridW + gx]++;
                                 }
                             }
-
                             let mean = 0, count = 0;
                             for (let i = 0; i < gridW * gridH; i++) {
                                 if (tileCount[i] > 0) {
@@ -2091,7 +1888,6 @@ app.admin.fetchManagerData('denied');
                                 }
                             }
                             if (count > 0) variance /= count;
-
                             if (variance > bestScore) {
                                 bestScore = variance;
                                 bestDX = dx;
@@ -2099,7 +1895,6 @@ app.admin.fetchManagerData('denied');
                             }
                         }
                     }
-
                     const dxInput = document.getElementById('mgr-wm-dx');
                     const dyInput = document.getElementById('mgr-wm-dy');
                     const dxVal = document.getElementById('mgr-wm-dx-val');
@@ -2108,51 +1903,41 @@ app.admin.fetchManagerData('denied');
                     if (dyInput) dyInput.value = bestDY;
                     if (dxVal) dxVal.innerText = bestDX + ' px';
                     if (dyVal) dyVal.innerText = bestDY + ' px';
-
                     if (btn) btn.innerHTML = `<i class="fa-solid fa-bolt mr-1"></i> Dò tự động lệch viền`;
                     app.admin.applyBlindWmRST();
                 },
-
                 extractBlindWmDCT: () => {
                     const startTime = performance.now();
                     const canvasSrc = document.getElementById('mgr-wm-canvas-src');
                     const canvasFull = document.getElementById('mgr-wm-canvas-full');
                     const canvasTile = document.getElementById('mgr-wm-canvas-tile');
                     if (!canvasSrc || !canvasFull || !canvasTile || canvasSrc.width === 0) return;
-
                     app.admin.ensureBlindWmDCT();
                     const T = app.admin._dctT;
                     const Tt = app.admin._dctTt;
-
                     const width = canvasSrc.width;
                     const height = canvasSrc.height;
                     const ctxSrc = canvasSrc.getContext('2d');
                     const imgData = ctxSrc.getImageData(0, 0, width, height);
                     const data = imgData.data;
-
                     const blocksX = Math.floor(width / 8);
                     const blocksY = Math.floor(height / 8);
-
                     canvasFull.width = blocksX;
                     canvasFull.height = blocksY;
                     const ctxFull = canvasFull.getContext('2d');
                     const fullImgData = ctxFull.createImageData(blocksX, blocksY);
                     const fullPixels = fullImgData.data;
-
                     const gridW = 90;
                     const gridH = 60;
                     const tileAcc = new Float32Array(gridW * gridH);
                     const tileCount = new Uint32Array(gridW * gridH);
-
                     const block = new Float32Array(64);
                     const temp = new Float32Array(64);
                     const dct = new Float32Array(64);
                     const chkSmooth = document.getElementById('mgr-wm-smooth');
                     const isSmooth = chkSmooth ? chkSmooth.checked : true;
-
                     const blockDiffs = new Float32Array(blocksX * blocksY);
                     const allDiffsList = [];
-
                     for (let by = 0; by < blocksY; by++) {
                         for (let bx = 0; bx < blocksX; bx++) {
                             for (let y = 0; y < 8; y++) {
@@ -2165,7 +1950,6 @@ app.admin.fetchManagerData('denied');
                                     block[y * 8 + x] = 0.299 * r + 0.587 * g + 0.114 * b - 128.0;
                                 }
                             }
-
                             for (let row = 0; row < 8; row++) {
                                 for (let col = 0; col < 8; col++) {
                                     let sum = 0.0;
@@ -2180,16 +1964,13 @@ app.admin.fetchManagerData('denied');
                                     dct[row * 8 + col] = sum;
                                 }
                             }
-
                             const clampPair = (v) => Math.max(-4.5, Math.min(13.5, v));
                             const diff1 = clampPair(dct[3 * 8 + 2] - dct[2 * 8 + 3]);
                             const diff2 = clampPair(dct[4 * 8 + 2] - dct[2 * 8 + 4]);
                             const diff3 = clampPair(dct[4 * 8 + 3] - dct[3 * 8 + 4]);
                             const diff = diff1 + diff2 + diff3;
-
                             blockDiffs[by * blocksX + bx] = diff;
                             allDiffsList.push(diff);
-
                             const offX = app.admin._wmTileOffsetX || 0;
                             const offY = app.admin._wmTileOffsetY || 0;
                             const gx = ((bx + offX) % gridW + gridW) % gridW;
@@ -2199,7 +1980,6 @@ app.admin.fetchManagerData('denied');
                             tileCount[tileIdx]++;
                         }
                     }
-
                     allDiffsList.sort((a, b) => a - b);
                     let fp5 = -4.0, fp95 = 38.0;
                     if (allDiffsList.length > 5) {
@@ -2212,7 +1992,6 @@ app.admin.fetchManagerData('denied');
                         }
                     }
                     const fpMid = (fp5 + fp95) / 2.0;
-
                     for (let by = 0; by < blocksY; by++) {
                         for (let bx = 0; bx < blocksX; bx++) {
                             const diff = blockDiffs[by * blocksX + bx];
@@ -2230,9 +2009,7 @@ app.admin.fetchManagerData('denied');
                             fullPixels[fullIdx + 3] = 255;
                         }
                     }
-
                     ctxFull.putImageData(fullImgData, 0, 0);
-
                     const validTileDiffs = [];
                     for (let i = 0; i < gridW * gridH; i++) {
                         if (tileCount[i] > 0) {
@@ -2251,13 +2028,11 @@ app.admin.fetchManagerData('denied');
                         }
                     }
                     const tpMid = (tp5 + tp95) / 2.0;
-
                     canvasTile.width = gridW;
                     canvasTile.height = gridH;
                     const ctxTile = canvasTile.getContext('2d');
                     const tileImgData = ctxTile.createImageData(gridW, gridH);
                     const tilePixels = tileImgData.data;
-
                     for (let i = 0; i < gridW * gridH; i++) {
                         const idx = i * 4;
                         if (tileCount[i] > 0) {
@@ -2281,7 +2056,6 @@ app.admin.fetchManagerData('denied');
                         }
                     }
                     ctxTile.putImageData(tileImgData, 0, 0);
-
                     const elapsed = (performance.now() - startTime).toFixed(1);
                     const statusBox = document.getElementById('mgr-wm-status-box');
                     const reextractBtn = document.getElementById('mgr-wm-reextract-btn');
@@ -2289,7 +2063,6 @@ app.admin.fetchManagerData('denied');
                     const infoBlocks = document.getElementById('mgr-wm-info-blocks');
                     const infoTime = document.getElementById('mgr-wm-info-time');
                     const badgeStatus = document.getElementById('mgr-wm-badge-status');
-
                     if (statusBox) statusBox.classList.remove('hidden');
                     if (reextractBtn) reextractBtn.classList.remove('hidden');
                     if (infoDim) infoDim.innerText = `${width} × ${height} px`;
@@ -2300,15 +2073,12 @@ app.admin.fetchManagerData('denied');
                         badgeStatus.innerText = "Khôi phục thành công";
                     }
                 },
-
                 _managerSearchTimeout: null,
-                
                 fetchManagerData: async (type) => {
                     try {
                         const state = app.admin.manager[type];
                         state.page = state.page || 1;
                         const q = state.searchQuery || '';
-
                         if (type === 'denied') {
                             const perPage = 50;
                             const fromRow = (state.page - 1) * perPage;
@@ -2324,7 +2094,6 @@ app.admin.fetchManagerData('denied');
                                 if (pData && pData.length > 0) photos = pData;
                                 total = count || 0;
                             } catch(e){}
-
                             const { data: logs } = await window.sb.from('admin_audit_logs').select('target_id, profiles(username)').eq('action_type', 'deny_photo');
                             const denierMap = {};
                             if(logs) logs.forEach(l => { denierMap[l.target_id] = l.profiles?.username || 'Admin'; });
@@ -2337,7 +2106,6 @@ app.admin.fetchManagerData('denied');
                             const perPage = 50;
                             const fromRow = (state.page - 1) * perPage;
                             const toRow = fromRow + perPage - 1;
-                            
                             let query = window.sb.from('admin_audit_logs').select('*, profiles(username)', {count: 'estimated'}).order('created_at', {ascending: false});
                             if (q) {
                                 query = query.or(`action_type.ilike.%${q}%,target_id.ilike.%${q}%`);
@@ -2366,7 +2134,6 @@ app.admin.fetchManagerData('denied');
                             state.data = result.users || [];
                             state.total = result.total || 0;
                         }
-
                         app.admin.renderManagerData(type);
                     } catch (e) {
                         console.error("Lỗi fetch data manager:", e);
@@ -2376,7 +2143,6 @@ app.admin.fetchManagerData('denied');
                         }
                     }
                 },
-
                 filterManagerData: (type, query, statusArg) => {
                     const q = (query || '').toLowerCase().trim();
                     const state = app.admin.manager[type];
@@ -2385,25 +2151,20 @@ app.admin.fetchManagerData('denied');
                         state.currentFilter = statusArg || state.currentFilter || 'all';
                     }
                     state.page = 1;
-                    
                     if (app.admin._managerSearchTimeout) clearTimeout(app.admin._managerSearchTimeout);
                     app.admin._managerSearchTimeout = setTimeout(() => {
                         app.admin.fetchManagerData(type);
                     }, 400);
                 },
-
                 setBanFilter: (status) => {
                     document.querySelectorAll('.ban-flt-btn').forEach(btn => {
                         btn.className = "ban-flt-btn font-bold text-xs px-3 py-1.5 bg-white text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition";
                     });
                     const activeBtn = document.getElementById('ban-flt-' + status);
                     if (activeBtn) activeBtn.className = "ban-flt-btn font-bold text-xs px-3 py-1.5 bg-black text-white rounded-md transition";
-                    
                     app.admin.manager.bans.currentFilter = status;
                     app.admin.filterManagerData('bans', document.getElementById('mgr-ban-search').value, status);
                 },
-
-                // --- Hàm Render cho Tab Quản lý Bình luận (Admin) ---
                 renderCommentsData: () => {
                     const state = app.admin.commentsData;
                     const perPage = 15;
@@ -2411,13 +2172,11 @@ app.admin.fetchManagerData('denied');
                     const slice = state.data.slice((state.page - 1) * perPage, state.page * perPage);
                     const contentEl = document.getElementById('adm-comments-content');
                     const pagerElId = 'adm-comments-pager';
-
                     if (slice.length === 0) {
                         contentEl.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-500 text-sm">Không có bình luận nào trong hệ thống.</td></tr>';
                         document.getElementById(pagerElId).innerHTML = '';
                         return;
                     }
-
                     contentEl.innerHTML = slice.map(c => `
                         <tr class="hover:bg-gray-50 transition">
                             <td class="p-3 text-[11px] text-gray-500">${new Date(c.created_at).toLocaleString('vi-VN')}</td>
@@ -2429,13 +2188,11 @@ app.admin.fetchManagerData('denied');
                             </td>
                         </tr>
                     `).join('');
-
                     app.utils.renderPagination(pagerElId, state.page, totalPages, (newPage) => {
                         app.admin.commentsData.page = newPage;
                         app.admin.renderCommentsData();
                     });
                 },
-
                 renderManagerData: async (type) => {
                     const state = app.admin.manager[type];
                     const perPage = (type === 'denied' || type === 'logs') ? 50 : 15;
@@ -2443,13 +2200,11 @@ app.admin.fetchManagerData('denied');
                     const slice = state.data || [];
                     const contentEl = document.getElementById(`mgr-${type}-content`);
                     const pagerElId = `mgr-${type}-pager`;
-
                     if (slice.length === 0) {
                         contentEl.innerHTML = `<p class="text-gray-500 col-span-full py-4 text-sm px-4">Không tìm thấy dữ liệu.</p>`;
                         document.getElementById(pagerElId).innerHTML = '';
                         return;
                     }
-
                     if (type === 'denied') {
                         await app.utils.resolveSandboxUrls(slice);
                         contentEl.innerHTML = slice.map(p => {
@@ -2472,12 +2227,10 @@ app.admin.fetchManagerData('denied');
                         contentEl.innerHTML = slice.map(u => {
                             let banInfo = { banned: false, reason: '' };
                             try { banInfo = typeof u.ban_status === 'string' ? JSON.parse(u.ban_status) : (u.ban_status || banInfo); } catch(e){}
-                            
                             const threeMonthsAgo = new Date();
                             threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
                             const lastSignIn = new Date(u.last_sign_in_at);
                             const isWarning = lastSignIn < threeMonthsAgo;
-
                             let statusBadge = '';
                             if (banInfo.banned) {
                                 statusBadge = `<span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold inline-block"><i class="fa-solid fa-ban"></i> Bị cấm</span>
@@ -2487,15 +2240,11 @@ app.admin.fetchManagerData('denied');
                             } else {
                                 statusBadge = `<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold inline-block"><i class="fa-solid fa-circle-check"></i> Hoạt động</span>`;
                             }
-
                             const subroleBtn = `<button onclick="app.admin.managerEditSubrole('${u.id}')" class="px-3 py-1.5 bg-black text-white rounded-md text-xs hover:bg-gray-800 font-bold shadow-sm transition mr-1"><i class="fa-solid fa-tags"></i> Subroles</button>`;
-                            
                             const actionBtn = banInfo.banned
                                 ? `<button onclick="app.admin.managerUnbanUser('${u.id}')" class="px-3 py-1.5 bg-white border border-gray-300 rounded-md text-xs hover:bg-gray-50 text-black font-bold shadow-sm transition">Gỡ cấm</button>`
                                 : `<button onclick="app.admin.managerBanUser('${u.id}')" class="px-3 py-1.5 bg-red-600 text-white rounded-md text-xs hover:bg-red-700 font-bold shadow-sm transition">Cấm</button>`;
-                            
                             const delBtn = `<button onclick="app.admin.managerDeleteUser('${u.id}')" class="px-3 py-1.5 bg-gray-200 text-gray-800 rounded-md text-xs hover:bg-gray-300 font-bold shadow-sm transition ml-1"><i class="fa-solid fa-trash-can"></i> Xóa</button>`;
-                            
                             return `<tr class="hover:bg-gray-50 transition border-b border-gray-100">
                                 <td class="p-3">
                                     <div class="font-bold text-black text-[12px]">${app.utils.cleanText(u.username || 'Unknown')}</div>
@@ -2530,7 +2279,6 @@ app.admin.fetchManagerData('denied');
                         document.getElementById(pagerElId).innerHTML = '';
                     }
                 },
-
                 toggleBanSection: (section) => {
                     app.admin.activeBanSection = section;
                     const quickSection = document.getElementById('ban-section-quick');
@@ -2549,22 +2297,18 @@ app.admin.fetchManagerData('denied');
                         btnQuick.className = "w-full bg-white text-gray-700 p-3 text-center font-bold text-sm rounded-lg shadow-sm transition border border-gray-300 hover:bg-gray-50 hover:text-black";
                     }
                 },
-
                 managerBanUser: (userId) => {
                     if (app.role !== 'manager') return app.ui.showAlert("Chỉ Quản lý mới có quyền này.");
                     document.getElementById('ban-target-id').value = userId;
-                    
                     app.admin.toggleBanSection('quick');
                     document.querySelectorAll('.ban-quick-cb').forEach(cb => cb.checked = false);
                     document.getElementById('ban-custom-input').value = '';
-                    
                     const modal = document.getElementById('ban-prompt-modal');
                     modal.classList.remove('hidden');
                     setTimeout(() => {
                         document.getElementById('ban-prompt-content').classList.remove('opacity-0', 'scale-95');
                     }, 10);
                 },
-
                 closeBanModal: () => {
                     const content = document.getElementById('ban-prompt-content');
                     content.classList.add('opacity-0', 'scale-95');
@@ -2572,7 +2316,6 @@ app.admin.fetchManagerData('denied');
                         document.getElementById('ban-prompt-modal').classList.add('hidden');
                     }, 300);
                 },
-
                 submitBanUser: async () => {
                     if (app.role !== 'manager') return app.ui.showAlert("Chỉ Quản lý mới có quyền này.");
                     const userId = document.getElementById('ban-target-id').value;
@@ -2583,12 +2326,9 @@ app.admin.fetchManagerData('denied');
                         const selectedChecks = Array.from(document.querySelectorAll('.ban-quick-cb:checked')).map(cb => cb.value);
                         reason = selectedChecks.join(' + ');
                     }
-                    
                     if (!reason) return app.ui.showAlert("Vui lòng chọn hoặc nhập lý do cấm!");
-                    
                     document.getElementById('btn-submit-ban').innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang xử lý...';
                     document.getElementById('btn-submit-ban').disabled = true;
-
                     try {
                         const { data: { session } } = await window.sb.auth.getSession();
                         const response = await fetch('/api/manager', {
@@ -2608,10 +2348,8 @@ app.admin.fetchManagerData('denied');
                         document.getElementById('btn-submit-ban').disabled = false;
                     }
                 },
-
                 managerUnbanUser: async (userId) => {
                     if (app.role !== 'manager') return app.ui.showAlert("Chỉ Quản lý mới có quyền này.");
-                    
                     app.ui.showAlert("Bạn có chắc muốn gỡ cấm tài khoản này không?", async () => {
                         try {
                             const { data: { session } } = await window.sb.auth.getSession();
@@ -2632,10 +2370,8 @@ app.admin.fetchManagerData('denied');
                         btnCancelText: "Hủy bỏ"
                     });
                 },
-
                 managerDeleteUser: async (userId) => {
                     if (app.role !== 'manager') return app.ui.showAlert("Chỉ Quản lý mới có quyền này.");
-                    
                     app.ui.showAlert("LƯU Ý: Hành động này sẽ XÓA VĨNH VIỄN tài khoản người dùng và không thể khôi phục. Bạn có chắc chắn muốn xóa không?", async () => {
                         try {
                             const { data: { session } } = await window.sb.auth.getSession();
@@ -2657,19 +2393,16 @@ app.admin.fetchManagerData('denied');
                         countdown: true
                     });
                 },
-
                 managerEditSubrole: async (userId) => {
                     if (app.role !== 'manager') return app.ui.showAlert("Chỉ Quản lý mới có quyền này.");
                     const user = app.admin.manager.bans.data.find(u => u.id === userId);
                     if (!user) return;
-                    
                     const subroles = user.subroles || [];
                     const isDev = subroles.includes('dev');
                     const vvccRole = subroles.find(s => s === 'vvcc' || s.startsWith('vvcc|'));
                     const isVvcc = !!vvccRole;
                     const vvccLink = (vvccRole && vvccRole.includes('|')) ? vvccRole.split('|')[1] : '';
                     const isVvbs = subroles.includes('vvbs');
-
                     const htmlForm = `
                         <div class="text-left space-y-4 mt-2 max-h-[60vh] overflow-y-auto">
                             <label class="flex items-start cursor-pointer group select-none">
@@ -2682,7 +2415,6 @@ app.admin.fetchManagerData('denied');
                                     <span class="text-[10px] text-gray-500 block leading-tight">Danh hiệu dành cho nhà phát triển hệ thống.</span>
                                 </span>
                             </label>
-
                             <label class="flex items-start cursor-pointer group select-none mt-4">
                                 <input type="checkbox" id="subrole-cb-vvbs" class="custom-cb-input sr-only" ${isVvbs ? 'checked' : ''}>
                                 <div class="custom-cb-box shrink-0 shadow-sm">
@@ -2693,7 +2425,6 @@ app.admin.fetchManagerData('denied');
                                     <span class="text-[10px] text-gray-500 block leading-tight">VNBUSARCHIVE Verified Bus Staff.</span>
                                 </span>
                             </label>
-
                             <label class="flex items-start cursor-pointer group select-none mt-4">
                                 <input type="checkbox" id="subrole-cb-vvcc" class="custom-cb-input sr-only" ${isVvcc ? 'checked' : ''} onchange="document.getElementById('subrole-vvcc-link-wrapper').classList.toggle('hidden', !this.checked)">
                                 <div class="custom-cb-box shrink-0 shadow-sm">
@@ -2709,13 +2440,11 @@ app.admin.fetchManagerData('denied');
                             </div>
                         </div>
                     `;
-
                     app.ui.showAlert(htmlForm, async () => {
                         const cbDev = document.getElementById('subrole-cb-dev').checked;
                         const cbVvbs = document.getElementById('subrole-cb-vvbs').checked;
                         const cbVvcc = document.getElementById('subrole-cb-vvcc').checked;
                         const linkInput = document.getElementById('subrole-vvcc-link').value.trim();
-                        
                         let newSubroles = [];
                         if (cbDev) newSubroles.push('dev');
                         if (cbVvbs) newSubroles.push('vvbs');
@@ -2723,7 +2452,6 @@ app.admin.fetchManagerData('denied');
                             if (linkInput) newSubroles.push(`vvcc|${linkInput}`);
                             else newSubroles.push('vvcc');
                         }
-
                         try {
                             const { data: { session } } = await window.sb.auth.getSession();
                             const response = await fetch('/api/manager', {
@@ -2732,7 +2460,6 @@ app.admin.fetchManagerData('denied');
                                 body: JSON.stringify({ action: 'update_subroles', targetUserId: userId, newSubroles })
                             });
                             const data = await response.json();
-                            
                             if (data.success) {
                                 app.toast.show('success', 'Thành công', 'Đã cập nhật subroles');
                                 app.admin.fetchManagerData('bans');
@@ -2749,10 +2476,7 @@ app.admin.fetchManagerData('denied');
                         btnCancelText: "Hủy bỏ"
                     });
                 },
-
-                // --- CÁC HÀM MỚI CHO TÍNH NĂNG GỬI EMAIL ---
                 _emailUsersRaw: [],
-
                 fetchUsersForEmail: async () => {
                     try {
                         const { data: users } = await window.sb.from('profiles').select('id, username, role').order('created_at', { ascending: false });
@@ -2765,12 +2489,10 @@ app.admin.fetchManagerData('denied');
                         }
                     } catch (e) { console.error("Lỗi lấy danh sách user:", e); }
                 },
-
                 renderEmailUserList: (users) => {
                     const listEl = document.getElementById('email-user-list');
                     if (!listEl) return;
                     listEl.innerHTML = '';
-                    
                     const customId = 'custom';
                     const customDiv = document.createElement('div');
                     customDiv.className = 'flex items-center gap-2 p-2 hover:bg-gray-50 rounded border border-transparent hover:border-gray-100 transition';
@@ -2782,13 +2504,11 @@ app.admin.fetchManagerData('denied');
                         </label>
                     `;
                     listEl.appendChild(customDiv);
-
                     const customInputDiv = document.createElement('div');
                     customInputDiv.id = 'email-custom-input-box';
                     customInputDiv.className = 'hidden mb-2 px-2';
                     customInputDiv.innerHTML = `<input type="text" id="email-custom-address" placeholder="Nhập email (ngăn cách bằng dấu phẩy)..." class="w-full text-xs p-2 border border-gray-300 rounded focus:border-black outline-none" oninput="app.admin.saveEmailDraft()">`;
                     listEl.appendChild(customInputDiv);
-
                     users.forEach(u => {
                         const div = document.createElement('div');
                         div.className = 'flex items-center gap-2 p-2 hover:bg-gray-50 rounded border border-transparent hover:border-gray-100 transition';
@@ -2804,11 +2524,9 @@ app.admin.fetchManagerData('denied');
                         `;
                         listEl.appendChild(div);
                     });
-
                     document.getElementById('email-total-cnt').innerText = users.length;
                     app.admin.updateEmailSelectedCount();
                 },
-
                 filterEmailUsers: (term) => {
                     if (!app.admin._emailUsersRaw) return;
                     const lower = term.toLowerCase().trim();
@@ -2819,7 +2537,6 @@ app.admin.fetchManagerData('denied');
                     );
                     app.admin.renderEmailUserList(filtered);
                 },
-
                 toggleSelectAllEmail: (isChecked) => {
                     const cbs = document.querySelectorAll('.email-user-cb');
                     cbs.forEach(cb => {
@@ -2827,13 +2544,11 @@ app.admin.fetchManagerData('denied');
                     });
                     app.admin.updateEmailSelectedCount();
                 },
-
                 updateEmailSelectedCount: () => {
                     const cbs = document.querySelectorAll('.email-user-cb:checked');
                     const cntEl = document.getElementById('email-selected-cnt');
                     if (cntEl) cntEl.innerText = `${cbs.length} đã chọn`;
                 },
-
                 toggleEmailCustom: () => {
                     const cb = document.getElementById('email-u-custom');
                     const box = document.getElementById('email-custom-input-box');
@@ -2843,7 +2558,6 @@ app.admin.fetchManagerData('denied');
                         box.classList.add('hidden');
                     }
                 },
-
                 formatEmailMarkdown: (text) => {
                     if (!text) return '';
                     let processed = text;
@@ -2856,7 +2570,6 @@ app.admin.fetchManagerData('denied');
                     });
                     return marked.parse(processed, { breaks: true, gfm: true });
                 },
-
                 previewEmailMd: () => {
                     const content = document.getElementById('email-content').value;
                     const previewBox = document.getElementById('email-md-preview');
@@ -2868,7 +2581,6 @@ app.admin.fetchManagerData('denied');
                         previewBox.classList.add('hidden');
                     }
                 },
-
                 clearEmailForm: () => {
                     const form = document.getElementById('mgr-email-form');
                     if (form) form.reset();
@@ -2882,40 +2594,32 @@ app.admin.fetchManagerData('denied');
                     const previewBox = document.getElementById('email-md-preview');
                     if (previewBox) previewBox.classList.add('hidden');
                 },
-
                 sendMassEmail: async (e) => {
                     e.preventDefault();
                     if (app.role !== 'manager' && app.role !== 'admin') return app.ui.showAlert("Chỉ Quản trị viên/Quản lý mới có thể sử dụng chức năng này.");
-
                     const selectedCbs = Array.from(document.querySelectorAll('.email-user-cb:checked')).map(cb => cb.value);
                     if (selectedCbs.length === 0) return app.ui.showAlert("Vui lòng chọn ít nhất 1 người nhận!");
-                    
                     const isCustomSelected = selectedCbs.includes('custom');
                     let customEmail = '';
                     if (isCustomSelected) {
                         customEmail = document.getElementById('email-custom-address')?.value.trim();
                         if (!customEmail) return app.ui.showAlert("Vui lòng nhập Email tùy chỉnh!");
                     }
-
                     const targetUsers = selectedCbs.filter(val => val !== 'custom');
                     const subject = document.getElementById('email-subject')?.value.trim();
                     const content = document.getElementById('email-content')?.value.trim();
                     const isAnonymousCheckbox = document.getElementById('email-is-anonymous');
                     const isAnonymous = isAnonymousCheckbox ? isAnonymousCheckbox.checked : false;
-
                     if (!subject || !content) return app.ui.showAlert("Vui lòng nhập Tiêu đề và Nội dung!");
-
                     const btn = document.getElementById('email-send-btn');
                     if (!btn) return;
                     const origHTML = btn.innerHTML;
                     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi...';
                     btn.disabled = true;
-
                     try {
                         const { data: { session } } = await window.sb.auth.getSession();
                         let successCount = 0;
                         let errCount = 0;
-
                         if (isCustomSelected && customEmail) {
                             const customEmails = customEmail.split(',').map(em => em.trim()).filter(Boolean);
                             for (const email of customEmails) {
@@ -2935,7 +2639,6 @@ app.admin.fetchManagerData('denied');
                                 if (res.ok) successCount++; else errCount++;
                             }
                         }
-
                         for (const userId of targetUsers) {
                             const payload = {
                                 action: 'email',
@@ -2952,11 +2655,9 @@ app.admin.fetchManagerData('denied');
                             });
                             if (res.ok) successCount++; else errCount++;
                         }
-
                         app.ui.showAlert(`Hoàn tất gửi Email. Thành công: ${successCount}, Thất bại: ${errCount}`);
                         app.admin.clearEmailForm();
                         app.admin.logAction('send_email', 'mass_email', { subject: subject, successCount, errCount });
-
                     } catch (err) {
                         app.ui.showAlert("Lỗi gửi Email: " + err.message);
                     } finally {
@@ -2964,8 +2665,6 @@ app.admin.fetchManagerData('denied');
                         btn.disabled = false;
                     }
                 },
-
-                // --- CÁC HÀM MỚI CHO TÍNH NĂNG CẤU HÌNH ---
                 renderManagerSettings: async () => {
                     const container = document.getElementById('mgr-settings-content');
                     container.innerHTML = '<p class="text-gray-500 italic"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Đang tải dữ liệu...</p>';
@@ -2975,13 +2674,11 @@ app.admin.fetchManagerData('denied');
                         if (container) container.innerHTML = `<p class="text-red-500 py-4">Không thể tải cấu hình bảo trì: ${err.message}</p>`;
                         return;
                     }
-
                     const configs =[
                         { id: 'global', title: 'Cầu chì Tổng (Toàn hệ thống)', icon: 'fa-globe', color: 'red' },
                         { id: 'auth', title: 'Hệ thống Đăng nhập / Đăng ký', icon: 'fa-user-lock', color: 'blue' },
                         { id: 'upload', title: 'Hệ thống Upload Ảnh', icon: 'fa-cloud-arrow-up', color: 'green' }
                     ];
-
                     let html = '';
                     configs.forEach(cfg => {
                         const data = app.maintenance.settings[cfg.id] || { is_active: true, reason: '', auto_reactivate_at: null };
@@ -2992,7 +2689,6 @@ app.admin.fetchManagerData('denied');
                             const tzOffset = d.getTimezoneOffset() * 60000;
                             timeVal = (new Date(d.getTime() - tzOffset)).toISOString().slice(0, 16);
                         }
-
                         html += `<div class="border border-gray-200 rounded-lg p-5 bg-white mb-4">
                             <div class="flex justify-between items-center mb-4">
                                 <h3 class="font-bold text-${cfg.color}-600 uppercase text-sm"><i class="fa-solid ${cfg.icon} mr-2"></i>${cfg.title}</h3>
@@ -3011,9 +2707,7 @@ app.admin.fetchManagerData('denied');
                             <div class="mt-4 text-right"><button onclick="app.admin.saveManagerSetting('${cfg.id}', this)" class="bg-black text-white px-5 py-2 text-xs font-bold rounded shadow-sm">Lưu thông tin</button></div>
                         </div>`;
                      });
-
                     const quotaData = app.maintenance.settings['upload_quota'] || { reason: '' };
-
                     html += `
                     <div class="border border-blue-200 rounded-lg p-5 bg-blue-50/50 mt-6 relative shadow-sm">
                         <div class="flex items-center gap-2 mb-3">
@@ -3021,7 +2715,6 @@ app.admin.fetchManagerData('denied');
                             <h3 class="font-bold text-blue-800 uppercase text-sm">Giới hạn Upload hàng ngày (Quota)</h3>
                         </div>
                         <p class="text-xs text-blue-700 mb-4 leading-relaxed">Giới hạn TỔNG số lượng ảnh <b>toàn hệ thống</b> được phép tiếp nhận trong vòng 24h. Tự động làm mới vào <b>7:00 Sáng giờ Việt Nam</b>.</p>
-
                         <div class="flex items-end gap-3">
                             <div class="flex-1">
                                 <label class="text-xs font-bold text-blue-900 block mb-1">Số lượng ảnh (Để trống = Không giới hạn, 0 = Tạm dừng nhận)</label>
@@ -3031,10 +2724,8 @@ app.admin.fetchManagerData('denied');
                         </div>
                     </div>
                     `;
-
                     container.innerHTML = html;
                 },
-
                 saveManagerSetting: async (sysId, btn) => {
                     const originalHTML = btn.innerHTML;
                     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>'; btn.disabled = true;
@@ -3043,7 +2734,6 @@ app.admin.fetchManagerData('denied');
                     const hasTime = document.getElementById(`mt-has-time-${sysId}`).checked;
                     const timeVal = document.getElementById(`mt-time-${sysId}`).value;
                     let autoReactivate = (isActive || !hasTime) ? null : new Date(timeVal).toISOString();
-
                     try {
                         const { error } = await window.sb.from('system_settings').update({
                             is_active: isActive, reason: reason, auto_reactivate_at: autoReactivate, updated_by: app.user.id
@@ -3056,26 +2746,20 @@ app.admin.fetchManagerData('denied');
                 },
                 saveQuotaSetting: async (btn) => {
                     if (app.role !== 'manager') return;
-
                     const originalHTML = btn.innerHTML;
                     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...';
                     btn.disabled = true;
-
                     const val = document.getElementById('mt-quota-value').value.trim();
-
                     try {
                         const { error } = await window.sb.from('system_settings').update({
                             reason: val,
                             updated_by: app.user.id,
                             updated_at: new Date().toISOString()
                         }).eq('id', 'upload_quota');
-
                         if (error) throw error;
-
                         await app.maintenance.fetch();
                         app.admin.logAction('update_upload_quota', 'upload_quota', { new_limit: val || 'Không giới hạn' });
                         app.ui.showAlert(`Đã cập nhật Giới hạn Upload thành: ${val === '' ? 'Không giới hạn' : val + ' ảnh/ngày'}!`);
-
                     } catch (e) {
                         app.ui.showAlert("Lỗi: " + e.message);
                     } finally {
@@ -3083,7 +2767,6 @@ app.admin.fetchManagerData('denied');
                         btn.disabled = false;
                     }
                 },
-                
                 approvePhoto: async (id, uploaderId, btn) => {
                     if (app.isRealtimeConnected === false) {
                         return app.ui.showAlert("Mất kết nối Realtime với máy chủ! Đã tạm khóa chức năng duyệt và can thiệp ảnh để tránh lệch dữ liệu.");
@@ -3095,18 +2778,14 @@ app.admin.fetchManagerData('denied');
                     const cardEl = btn ? btn.closest('.admin-card') : document.getElementById(`adm-photo-card-${id}`);
                     const parentEl = cardEl ? cardEl.parentElement : null;
                     const originalNextSibling = cardEl ? cardEl.nextElementSibling : null;
-
                     const currentScrollY = window.scrollY;
-
                     if (cardEl && parentEl) {
                         parentEl.appendChild(cardEl);
                         cardEl.querySelectorAll('input, select, textarea, button').forEach(el => el.disabled = true);
                         cardEl.style.opacity = '0.55';
                         cardEl.style.pointerEvents = 'none';
                     }
-
                     window.scrollTo({ top: currentScrollY, behavior: 'instant' });
-
                     btn.innerText = "Đang tải lên CDN..."; btn.disabled = true; btn.classList.add('btn-loading');
                     try {
                         const plate = document.getElementById(`adm-p-plate-${id}`).value.trim();
@@ -3118,9 +2797,6 @@ app.admin.fetchManagerData('denied');
                         const note = document.getElementById(`adm-p-note-${id}`).value.trim();
                         const provinceEl = document.getElementById(`adm-p-province-${id}`);
                         const province = provinceEl ? provinceEl.value : '';
-
-
-
                         if (await app.utils.checkModelDuplicatePolicy(plate, model)) {
                             if (cardEl && parentEl) {
                                 if (originalNextSibling && originalNextSibling !== cardEl) parentEl.insertBefore(cardEl, originalNextSibling);
@@ -3132,7 +2808,6 @@ app.admin.fetchManagerData('denied');
                             btn.innerText = "DUYỆT"; btn.disabled = false; btn.classList.remove('btn-loading');
                             return;
                         }
-
                         const res = await fetch('/api/admin/action', {
                             method: 'POST',
                             headers: {
@@ -3144,7 +2819,6 @@ app.admin.fetchManagerData('denied');
                                 plate, op, type, route, model, location, note, province
                             })
                         });
-
                         if (!res.ok) {
                             let errText = 'Lỗi server (' + res.status + ')';
                             try {
@@ -3165,7 +2839,6 @@ app.admin.fetchManagerData('denied');
                             }
                             throw new Error(errText);
                         }
-
                         let isFinal = true;
                         try {
                             const resJson = await res.json();
@@ -3173,7 +2846,6 @@ app.admin.fetchManagerData('denied');
                                 isFinal = resJson.isFinal;
                             }
                         } catch(e) {}
-
                         if (cardEl) {
                             if (document.activeElement && cardEl.contains(document.activeElement)) {
                                 document.activeElement.blur();
@@ -3225,31 +2897,23 @@ app.admin.fetchManagerData('denied');
                             app.ui.showAlert("Bắt buộc phải nhập lý do!");
                             return;
                         }
-
                         if (document.activeElement) document.activeElement.blur();
                         const cardEl = document.getElementById(`adm-photo-card-${id}`);
                         const parentEl = cardEl?.parentElement;
                         const originalNextSibling = cardEl ? cardEl.nextElementSibling : null;
-
                         const currentScrollY = window.scrollY;
-
                         if (cardEl && parentEl) {
                             parentEl.appendChild(cardEl);
                             cardEl.querySelectorAll('input, select, textarea, button').forEach(el => el.disabled = true);
                             cardEl.style.opacity = '0.55';
                             cardEl.style.pointerEvents = 'none';
                         }
-                        
                         window.scrollTo({ top: currentScrollY, behavior: 'instant' });
-
                         btn.innerText = "Đang xử lý..."; btn.disabled = true; btn.classList.add('btn-loading');
                         (async () => {
                             try {
                                 const plate = document.getElementById(`adm-p-plate-${id}`).value.trim();
                                 const location = document.getElementById(`adm-p-location-${id}`)?.value?.trim();
-                                
-
-
                                 const res = await fetch('/api/admin/action', {
                                     method: 'POST',
                                     headers: {
@@ -3260,7 +2924,6 @@ app.admin.fetchManagerData('denied');
                                         action: 'deny', photoId: id, reason, plate
                                     })
                                 });
-
                                 if (!res.ok) {
                                     let errText = 'Lỗi server (' + res.status + ')';
                                     try {
@@ -3281,7 +2944,6 @@ app.admin.fetchManagerData('denied');
                                     }
                                     throw new Error(errText);
                                 }
-
                                 let isFinal = true;
                                 try {
                                     const resJson = await res.json();
@@ -3289,7 +2951,6 @@ app.admin.fetchManagerData('denied');
                                         isFinal = resJson.isFinal;
                                     }
                                 } catch(e) {}
-
                                 const cardEl = document.getElementById(`adm-photo-card-${id}`);
                                 const parentEl = cardEl?.parentElement;
                                 if (cardEl) {
@@ -3338,7 +2999,6 @@ app.admin.fetchManagerData('denied');
                     btn.innerText = "Đang xử lý..."; btn.disabled = true; btn.classList.add('btn-loading');
                     try {
                         const { data: req } = await window.sb.from('edit_requests').select('*').eq('id', id).single();
-
                         if (reqType === 'info') {
                             const plate = document.getElementById(`req-plate-${id}`).value;
                             const op = document.getElementById(`req-op-${id}`).value;
@@ -3349,25 +3009,18 @@ app.admin.fetchManagerData('denied');
                             const note = document.getElementById(`req-note-${id}`).value;
                             const provinceEl = document.getElementById(`req-province-${id}`);
                             const province = provinceEl ? provinceEl.value : '';
-
                             const originalData = app.admin.originalData && app.admin.originalData['req_' + id] ? app.admin.originalData['req_' + id] : null;
                             const oldLoc = originalData ? (originalData.location || '') : '';
-                            
-
-
                             if (await app.utils.checkModelDuplicatePolicy(plate, model)) {
                                 btn.innerText = "DUYỆT"; btn.disabled = false; btn.classList.remove('btn-loading');
                                 return;
                             }
-
                             const { error: vError } = await window.sb.from('vehicles').upsert({
                                 license_plate: plate, model: model
                             }, { onConflict: 'license_plate' });
                             if (vError) throw vError;
-
                             if (req.new_data.photo_id) {
                                 const { data: oldP } = await window.sb.from('photos').select('license_plate, operator, route_no, taken_at').eq('id', req.new_data.photo_id).single();
-
                                 const { error: pError } = await window.sb.from('photos').update({
                                     license_plate: plate,
                                     note: note,
@@ -3378,7 +3031,6 @@ app.admin.fetchManagerData('denied');
                                     route_no: route
                                 }).eq('id', req.new_data.photo_id);
                                 if (pError) throw pError;
-
                                 if (oldP && oldP.taken_at) {
                                     const isPlateChanged = req.license_plate !== plate || (oldP.license_plate && oldP.license_plate !== plate);
                                     await app.vehicle.syncHistoryOnPhotoEdit(
@@ -3390,30 +3042,24 @@ app.admin.fetchManagerData('denied');
                                     );
                                 }
                             }
-
                             if (req.license_plate !== plate) {
                                 await app.vehicle.cleanupVehicle(req.license_plate);
                             }
                             await app.vehicle.cleanupVehicle(plate);
                         }
-
                         else if (reqType === 'vehicle_details' || req.new_data.request_type === 'update_vehicle_details') {
                             const inputModel = document.getElementById(`req-v-model-${id}`);
                             const inputNote = document.getElementById(`req-v-note-${id}`);
-
                             const finalModel = inputModel ? inputModel.value : req.new_data.model;
                             const finalNote = inputNote ? inputNote.value : req.new_data.note;
-
                             if (await app.utils.checkModelDuplicatePolicy(req.license_plate, finalModel)) {
                                 btn.innerText = "DUYỆT"; btn.disabled = false; btn.classList.remove('btn-loading');
                                 return;
                             }
-
                             const { error } = await window.sb.from('vehicles')
                                 .upsert({ license_plate: req.license_plate, model: finalModel, note: finalNote }, { onConflict: 'license_plate' });
                             if (error) throw error;
                         }
-
                         else if (reqType === 'operator_info' || req.new_data.request_type === 'update_operator_info') {
                             const logo = document.getElementById(`req-op-logo-${id}`).value.trim();
                             let desc = document.getElementById(`req-op-desc-${id}`).value.trim();
@@ -3423,12 +3069,10 @@ app.admin.fetchManagerData('denied');
                             }
                             const parentOpEl = document.getElementById(`req-op-parent-${id}`);
                             const parentOp = parentOpEl ? parentOpEl.value.trim() : (req.new_data.parent_operator || '');
-                            
                             if (parentOp && parentOp.includes(';') && parentOp.split(';').length !== parentOp.split('; ').length) {
                                 btn.innerText = "DUYỆT"; btn.disabled = false; btn.classList.remove('btn-loading');
                                 return app.ui.showAlert("Sai cấu trúc: Các ĐVVH phải được ngăn cách bằng dấu chấm phẩy và một khoảng trắng (Ví dụ: 'Công ty A; Công ty B').");
                             }
-                            
                             if (!logo && !desc && !parentOp) {
                                 const { error } = await window.sb.from('operator_info').delete().eq('operator_name', req.new_data.operator_name);
                                 if (error) throw error;
@@ -3442,17 +3086,14 @@ app.admin.fetchManagerData('denied');
                                 if (error) throw error;
                             }
                         }
-
                         else if (reqType === 'model_info' || req.new_data.request_type === 'update_model_info') {
                             const logo = document.getElementById(`req-mdl-logo-${id}`).value.trim();
                             const desc = document.getElementById(`req-mdl-desc-${id}`).value.trim();
                             const brandName = req.new_data.model_name.split(' ')[0];
-                            
                             if (!logo && !desc) {
                                 const { error: delErr } = await window.sb.from('model_info').delete().eq('model_name', req.new_data.model_name);
                                 if (delErr) throw delErr;
                             } else {
-                                // 1. Lưu thông tin cho dòng xe cụ thể
                                 const { error: upsertErr } = await window.sb.from('model_info').upsert({
                                     model_name: req.new_data.model_name,
                                     logo_url: logo || null,
@@ -3460,18 +3101,14 @@ app.admin.fetchManagerData('denied');
                                 });
                                 if (upsertErr) throw upsertErr;
                             }
-
-                            // 2. Tự động đồng bộ Logo cho toàn bộ hãng
                             await window.sb.from('model_info')
                                 .update({ logo_url: logo || null })
                                 .ilike('model_name', `${brandName}%`);
                         }
-
                         else {
                             let newItems = [];
                             let hasError = false;
                             if (reqType === 'history') {
-                                // Lấy từ input
                                 for (let i = 0; i < historyCount; i++) {
                                     const rDate = document.getElementById(`req-h-date-${id}-${i}`).value;
                                     const parsedDate = app.utils.parseDDMMYYYYToDate(rDate);
@@ -3489,7 +3126,6 @@ app.admin.fetchManagerData('denied');
                                     });
                                 }
                             } else {
-                                // Fallback
                                 if (req.new_data.history_items) {
                                     newItems = req.new_data.history_items.map((item, index) => ({
                                         license_plate: req.license_plate,
@@ -3502,16 +3138,11 @@ app.admin.fetchManagerData('denied');
                                     }));
                                 }
                             }
-
-                            // [HỆ THỐNG GỘP XE] Cơ chế Soft Merge
                             const currentPlate = req.license_plate;
                             const newHistoryPlates = [...new Set(newItems.map(p => p.plate).filter(p => p && p !== currentPlate))];
-                            
                             if (hasError) {
                                 return app.ui.showAlert("Có lỗi ở mốc thời gian lịch sử! Vui lòng kiểm tra và nhập đúng định dạng DD/MM/YYYY.");
                             }
-
-                            // 1. Tách (Un-merge) các xe đã bị loại khỏi lịch sử
                             const { data: unmergeCandidates } = await window.sb.from('vehicles').select('license_plate, note').like('note', `%[MERGED_INTO:${currentPlate}]%`);
                             if (unmergeCandidates) {
                                 for (const v of unmergeCandidates) {
@@ -3521,8 +3152,6 @@ app.admin.fetchManagerData('denied');
                                     }
                                 }
                             }
-
-                            // 2. Gộp (Merge) các xe mới thêm vào lịch sử
                             if (newHistoryPlates.length > 0) {
                                 const { data: existingOldVehicles } = await window.sb.from('vehicles').select('license_plate, note').in('license_plate', newHistoryPlates);
                                 if (existingOldVehicles && existingOldVehicles.length > 0) {
@@ -3535,7 +3164,6 @@ app.admin.fetchManagerData('denied');
                                     }
                                 }
                             }
-
                             await window.sb.from('vehicle_history').delete().eq('license_plate', currentPlate);
                             if (newItems.length > 0) {
                                 await window.sb.from('vehicle_history').insert(newItems);
@@ -3554,18 +3182,14 @@ app.admin.fetchManagerData('denied');
                     if (app.role !== 'manager') return app.ui.showAlert("Chỉ Quản lý mới có quyền sử dụng tính năng này!");
                     const input = document.getElementById('adm-direct-delete-id').value.trim();
                     const reason = document.getElementById('adm-direct-delete-reason').value.trim();
-
                     if (!input || !reason) return app.ui.showAlert("Vui lòng nhập đủ ID (hoặc Link) ảnh và Lý do xóa!");
-
                     let photoId = input;
                     if (input.includes('/photo/')) {
                         try { photoId = input.split('/photo/')[1].split('?')[0].split('/')[0]; }
                         catch (e) { return app.ui.showAlert("Link không hợp lệ!"); }
                     }
-
                     const originalText = btn.innerText;
                     btn.innerText = "Đang xóa..."; btn.disabled = true;
-
                     try {
                         const sessionRes = await window.sb.auth.getSession();
                         const token = sessionRes.data.session?.access_token;
@@ -3581,7 +3205,6 @@ app.admin.fetchManagerData('denied');
                                 reason: reason
                             })
                         });
-
                         if (!res.ok) {
                             let errText = 'Lỗi server (' + res.status + ')';
                             try {
@@ -3592,7 +3215,6 @@ app.admin.fetchManagerData('denied');
                             } catch (e) {}
                             throw new Error(errText);
                         }
-
                         app.toast.show('success', 'Thành công', 'Đã xóa ảnh thành công (đã chuyển về Sandbox và xóa khỏi CDN)!');
                         document.getElementById('adm-direct-delete-id').value = '';
                         document.getElementById('adm-direct-delete-reason').value = '';
@@ -3601,7 +3223,6 @@ app.admin.fetchManagerData('denied');
                     } catch (e) { app.ui.showAlert("Lỗi: " + e.message); }
                     finally { btn.innerText = originalText; btn.disabled = false; }
                 },
-
                 approveDeleteReq: async (reqId, photoId, requesterId, userReason, btn) => {
                     if (app.isRealtimeConnected === false) {
                         return app.ui.showAlert("Mất kết nối Realtime với máy chủ! Đã tạm khóa chức năng duyệt xóa để tránh lệch dữ liệu.");
@@ -3612,14 +3233,10 @@ app.admin.fetchManagerData('denied');
                     btn.innerText = "Đang xử lý...";
                     btn.disabled = true;
                     btn.classList.add('btn-loading');
-
                     try {
-                        // CẬP NHẬT TRUY VẤN: Lấy thêm cột 'url' để truyền qua API
                         const { data: photo } = await window.sb.from('photos').select('license_plate, url').eq('id', photoId).single();
                         const plate = photo ? photo.license_plate : 'đã chọn';
                         const imgUrl = photo ? photo.url : null;
-
-                        // 1. Gọi API Xóa ảnh khỏi CDN/Sandbox
                         if (imgUrl || photoId) {
                             const { data: { session } } = await window.sb.auth.getSession();
                             await fetch('/api/delete-image', {
@@ -3631,19 +3248,14 @@ app.admin.fetchManagerData('denied');
                                 body: JSON.stringify({ imageUrl: imgUrl, photoId: photoId })
                             });
                         }
-
-                        // 2. Xóa dữ liệu Database (ảnh trên CDN đã được xóa ở bước 1)
                         const { error: delError } = await window.sb.from('photos').delete().eq('id', photoId);
                         if (delError) throw delError;
-
                         await app.vehicle.cleanupVehicle(plate);
                         await window.sb.from('edit_requests').update({ status: 'approved' }).eq('id', reqId);
-
                         app.toast.show('success', 'Thành công', 'Đã duyệt yêu cầu và xóa ảnh vĩnh viễn thành công!');
                         app.admin.logAction('approve_delete_req', photoId, { plate: plate });
                         if (document.activeElement) document.activeElement.blur();
                         app.admin.loadTab('delete', false, true);
-
                     } catch (err) {
                         app.ui.showAlert("Lỗi khi duyệt xóa: " + err.message);
                         btn.innerText = "DUYỆT XÓA";
@@ -3660,11 +3272,8 @@ app.admin.fetchManagerData('denied');
                         try {
                             const { data: req } = await window.sb.from('edit_requests').select('requester_id, license_plate, new_data').eq('id', reqId).single();
                             await window.sb.from('edit_requests').update({ status: 'denied' }).eq('id', reqId);
-
                             let actionName = req.new_data.request_type === 'delete_photo' ? 'xóa ảnh' : 'chỉnh sửa';
                             let reasonMsg = reason ? ` Lý do: ${reason}` : '';
-
-
                             if (document.activeElement) document.activeElement.blur();
                             if (req.new_data.request_type === 'delete_photo') app.admin.loadTab('delete', false, true);
                             else app.admin.loadTab('requests', false, true);
@@ -3676,53 +3285,43 @@ app.admin.fetchManagerData('denied');
                 }
             }
 });
-
 Object.assign(window.app, {
   achievement: {
                 open: async () => {
                     const modal = document.getElementById('achievement-modal');
                     const content = document.getElementById('achievement-content');
-
                     document.getElementById('my-top-route').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-sm text-gray-400"></i>';
                     document.getElementById('my-top-plate').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-sm text-gray-400"></i>';
                     document.getElementById('my-top-model').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-sm text-gray-400"></i>';
-
                     modal.classList.remove('hidden');
                     app.ui.lockScroll();
                     setTimeout(() => {
                         content.classList.remove('opacity-0', 'scale-95');
                         content.classList.add('opacity-100', 'scale-100');
                     }, 10);
-
                     try {
                         const { data: photos, error } = await window.sb.from('photos')
                             .select('route_no, license_plate, vehicles(model)')
                             .eq('uploader_id', app.currentProfileId || app.user.id)
                             .eq('status', 'approved');
-
                         if (error) throw error;
-
                         const routeFreq = {}; const plateFreq = {}; const modelFreq = {};
                         (photos || []).forEach(p => {
                             const r = p.route_no;
                             const pl = p.license_plate;
                             const m = p.vehicles ? p.vehicles.model : null;
-
                             if (r && r !== '---' && r !== 'N/A') routeFreq[r] = (routeFreq[r] || 0) + 1;
                             if (pl) plateFreq[pl] = (plateFreq[pl] || 0) + 1;
                             if (m && m !== '---' && m !== 'N/A') modelFreq[m] = (modelFreq[m] || 0) + 1;
                         });
-
                         const getTop = (obj) => {
                             const entries = Object.entries(obj);
                             if (entries.length === 0) return '---';
                             return entries.sort((a, b) => b[1] - a[1])[0][0];
                         };
-
                         const topRoute = getTop(routeFreq);
                         const topPlateRaw = getTop(plateFreq);
                         const topModel = getTop(modelFreq);
-
                         document.getElementById('my-top-route').innerText = topRoute;
                         document.getElementById('my-top-plate').innerText = topPlateRaw !== '---' ? app.utils.displayPlate(topPlateRaw) : '---';
                         document.getElementById('my-top-model').innerText = topModel;
@@ -3744,4 +3343,4 @@ Object.assign(window.app, {
                     }, 200);
                 }
             }
-});
+});

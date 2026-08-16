@@ -1,5 +1,4 @@
 window.app = window.app || {};
-
 window.addEventListener('unhandledrejection', function(event) {
     if (event.reason && event.reason.message && event.reason.message.includes("Unexpected token '<'")) {
         if (window.app && window.app.toast) {
@@ -9,7 +8,6 @@ window.addEventListener('unhandledrejection', function(event) {
         }
     }
 });
-
 window.addEventListener('error', function(event) {
     if (event.message && event.message.includes("Unexpected token '<'")) {
         if (window.app && window.app.toast) {
@@ -19,18 +17,14 @@ window.addEventListener('error', function(event) {
         }
     }
 });
-
 Object.assign(window.app, {
   toast: {
                 currentOfflineToast: null,
-                
                 show: (type, title, message, duration = 10000, onClickAction = null) => {
                     const container = document.getElementById('toast-container');
                     if (!container) return null;
-
                     const toast = document.createElement('div');
                     toast.className = 'toast-card toast-enter bg-white/90 backdrop-blur-xl border border-gray-200 shadow-2xl rounded-2xl p-4 flex items-start gap-3 w-11/12 max-w-sm cursor-pointer mx-auto';
-
                     let iconHtml = '';
                     if (type === 'success') {
                         iconHtml = '<div class="w-8 h-8 rounded-full bg-green-50 text-green-600 flex items-center justify-center shrink-0 border border-green-100 shadow-sm"><i class="fa-solid fa-check text-sm"></i></div>';
@@ -41,7 +35,6 @@ Object.assign(window.app, {
                     } else {
                         iconHtml = '<div class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100 shadow-sm"><i class="fa-solid fa-bell text-sm"></i></div>';
                     }
-
                     toast.innerHTML = `
                         ${iconHtml}
                         <div class="flex-1 overflow-hidden pointer-events-none select-none">
@@ -49,9 +42,7 @@ Object.assign(window.app, {
                             ${message ? `<p class="text-[12px] text-gray-500 mt-1 leading-relaxed">${message}</p>` : ''}
                         </div>
                     `;
-
                     container.prepend(toast);
-
                     const removeToast = () => {
                         toast.style.animation = 'none';
                         toast.style.transition = 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease-out';
@@ -60,16 +51,13 @@ Object.assign(window.app, {
                         toast.style.opacity = '0';
                         setTimeout(() => toast.remove(), 300);
                     };
-
                     let timeout;
                     if (duration > 0) timeout = setTimeout(removeToast, duration);
-
                     let startX = 0, startY = 0, currentX = 0, currentY = 0;
                     let lastX = 0, lastY = 0, lastTime = 0;
                     let velocityX = 0, velocityY = 0;
                     let isDragging = false;
                     let hasMoved = false;
-
                     const onStart = (e) => {
                         isDragging = true;
                         hasMoved = false; 
@@ -82,25 +70,21 @@ Object.assign(window.app, {
                         toast.style.transform = 'scale(0.95)';
                         if (timeout) clearTimeout(timeout);
                     };
-
                     const onMove = (e) => {
                         if (!isDragging) return;
                         currentX = e.touches ? e.touches[0].clientX : e.clientX;
                         currentY = e.touches ? e.touches[0].clientY : e.clientY;
                         const diffX = currentX - startX;
                         let diffY = currentY - startY;
-
                         if (Math.abs(diffX) > 5 || Math.abs(diffY) > 5) {
                             hasMoved = true;
                             toast.style.transition = 'none'; 
                         }
-
                         if (hasMoved) {
                             if (diffY > 0) diffY = diffY * 0.2; 
                             toast.style.transform = `translate(${diffX}px, ${diffY}px)`;
                             const distance = Math.sqrt(diffX * diffX + diffY * diffY);
                             toast.style.opacity = Math.max(0, 1 - distance / 200);
-
                             const now = Date.now();
                             const dt = now - lastTime;
                             if (dt > 0) {
@@ -110,14 +94,11 @@ Object.assign(window.app, {
                             lastX = currentX; lastY = currentY; lastTime = now;
                         }
                     };
-
                     const onEnd = () => {
                         if (!isDragging) return;
                         isDragging = false;
-                        
                         toast.style.transition = 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease-out';
                         void toast.offsetHeight;
-
                         if (!hasMoved) {
                             toast.style.transform = 'scale(1)';
                             toast.style.opacity = '1';
@@ -129,19 +110,15 @@ Object.assign(window.app, {
                             }
                             return;
                         }
-
                         const diffX = currentX - startX;
                         const diffY = currentY - startY;
                         const isSwipeFastX = Math.abs(velocityX) > 0.5;
                         const isSwipeFastY = velocityY < -0.5; 
-                        
                         if (Math.abs(diffX) > 60 || diffY < -40 || isSwipeFastX || isSwipeFastY) {
                             let endX = diffX;
                             let endY = diffY < 0 ? diffY : 0;
-
                             if (Math.abs(diffX) > 60 || isSwipeFastX) endX = Math.sign(diffX || velocityX) * window.innerWidth;
                             else if (diffY < -40 || isSwipeFastY) endY = -window.innerHeight;
-                            
                             toast.style.transform = `translate(${endX}px, ${endY}px)`;
                             toast.style.opacity = '0';
                             setTimeout(() => toast.remove(), 300);
@@ -151,7 +128,6 @@ Object.assign(window.app, {
                             if (duration > 0) timeout = setTimeout(removeToast, duration);
                         }
                     };
-
                     toast.addEventListener('touchstart', onStart, { passive: true });
                     toast.addEventListener('touchmove', onMove, { passive: true });
                     toast.addEventListener('touchend', onEnd);
@@ -159,20 +135,15 @@ Object.assign(window.app, {
                     toast.addEventListener('mouseleave', onEnd);
                     toast.addEventListener('mousemove', onMove);
                     toast.addEventListener('mouseup', onEnd);
-
                     return removeToast;
                 },
-
-                // [MỚI] TOAST ĐẶC BIỆT: KHÔNG THỂ TẮT, CHỈ DÙNG CHO TIẾN TRÌNH UPLOAD HÀNG ĐỢI
                 createProgress: (title) => {
                     const container = document.getElementById('toast-container');
                     if (!container) return null;
-
                     const toastId = 'toast-prog-' + Date.now();
                     const toast = document.createElement('div');
                     toast.className = 'toast-card toast-enter bg-white/95 backdrop-blur-2xl border border-gray-200 shadow-2xl rounded-2xl p-4 flex items-center gap-3 w-11/12 max-w-sm mx-auto pointer-events-auto';
                     toast.id = toastId;
-
                     toast.innerHTML = `
                         <div class="relative w-8 h-8 flex justify-center items-center shrink-0">
                             <svg class="w-full h-full transform -rotate-90 absolute inset-0" viewBox="0 0 120 120">
@@ -186,33 +157,25 @@ Object.assign(window.app, {
                             <p id="${toastId}-desc" class="text-[12px] text-gray-500 mt-0.5 leading-relaxed truncate">Vui lòng đợi trong giây lát...</p>
                         </div>
                     `;
-
                     container.prepend(toast);
-
-                    // Hiệu ứng "Díu lại" khi cố vuốt tắt Toast này
                     let startY = 0, currentY = 0, isDragging = false;
                     toast.addEventListener('touchstart', (e) => { 
                         isDragging = true; startY = e.touches[0].clientY; 
                         toast.style.transition = 'none'; 
                     }, {passive: true});
-                    
                     toast.addEventListener('touchmove', (e) => {
                         if(!isDragging) return;
                         currentY = e.touches[0].clientY;
                         let diffY = currentY - startY;
-                        // Kháng cự lại lực kéo (Díu lại)
                         if (diffY < 0) diffY = diffY * 0.25;
                         else diffY = diffY * 0.1;
                         toast.style.transform = `translateY(${diffY}px)`;
                     }, {passive: true});
-                    
                     toast.addEventListener('touchend', () => {
                         isDragging = false;
-                        // Nảy đàn hồi về lại vị trí 0
                         toast.style.transition = 'transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
                         toast.style.transform = 'translateY(0) scale(1)';
                     });
-
                     return {
                         id: toastId,
                         element: toast,
@@ -237,7 +200,6 @@ Object.assign(window.app, {
                 }
             }
 });
-
 Object.assign(window.app, {
   loadingBar: {
                 interval: null,
@@ -246,24 +208,18 @@ Object.assign(window.app, {
                 start: () => {
                     const bar = document.getElementById('top-loading-bar');
                     if (!bar) return;
-
-                    // Xóa dứt điểm các vòng lặp cũ nếu người dùng click liên tục
                     clearInterval(app.loadingBar.interval);
                     clearTimeout(app.loadingBar.timeout1);
                     clearTimeout(app.loadingBar.timeout2);
-
                     bar.style.transition = 'none';
                     bar.style.width = '0%';
                     bar.style.opacity = '1';
-
-                    void bar.offsetWidth; // Ép trình duyệt reset CSS ngay lập tức
-
+                    void bar.offsetWidth; 
                     bar.style.transition = 'width 0.3s ease, opacity 0.2s ease';
-                    bar.style.width = '30%'; // Phóng nhanh lên 30% cho mượt
-
+                    bar.style.width = '30%'; 
                     let progress = 30;
                     app.loadingBar.interval = setInterval(() => {
-                        progress += (100 - progress) * 0.1; // Chạy chậm dần về 90%
+                        progress += (100 - progress) * 0.1; 
                         if (progress > 90) progress = 90;
                         bar.style.width = progress + '%';
                     }, 150);
@@ -271,44 +227,33 @@ Object.assign(window.app, {
                 finish: () => {
                     const bar = document.getElementById('top-loading-bar');
                     if (!bar) return;
-
                     clearInterval(app.loadingBar.interval);
                     clearTimeout(app.loadingBar.timeout1);
                     clearTimeout(app.loadingBar.timeout2);
-
                     bar.style.transition = 'width 0.2s ease-out, opacity 0.2s ease';
-                    bar.style.width = '100%'; // Phóng thẳng lên 100%
-
+                    bar.style.width = '100%'; 
                     app.loadingBar.timeout1 = setTimeout(() => {
-                        bar.style.opacity = '0'; // Mờ dần
+                        bar.style.opacity = '0'; 
                         app.loadingBar.timeout2 = setTimeout(() => {
                             bar.style.transition = 'none';
-                            bar.style.width = '0%'; // Reset ngầm
+                            bar.style.width = '0%'; 
                         }, 250);
                     }, 250);
                 }
             }
 });
-
 Object.assign(window.app, {
   ui: {
                 alertInterval: null,
                 showAlert: (msg, okCallback = null, cancelCallback = null, options = {}) => {
-                    // TỰ ĐỘNG BẮT CÁC THÔNG BÁO THÀNH CÔNG VÀ CHUYỂN SANG TOAST
                     const cleanMsg = (msg || '').toLowerCase();
                     const isSuccess = cleanMsg.includes('thành công') || cleanMsg.includes('đã lưu') || cleanMsg.includes('đã cập nhật');
-                    
-                    // Chỉ chuyển sang Toast nếu nó KHÔNG CÓ callback bắt buộc (nút bấm làm hành động gì đó)
                     if (isSuccess && !okCallback && !cancelCallback && !options.countdown) {
-                        // Gọi Toast và bỏ qua việc bật Modal Alert
                         app.toast.show('success', 'Thành công', msg);
                         return;
                     }
-
                     if (app.ui.alertInterval) clearInterval(app.ui.alertInterval);
-
                     document.getElementById('custom-alert-msg').innerHTML = msg;
-
                     const modal = document.getElementById('custom-alert-modal');
                     const content = document.getElementById('custom-alert-content');
                     const titleEl = document.getElementById('custom-alert-title');
@@ -316,29 +261,24 @@ Object.assign(window.app, {
                     const okBtn = document.getElementById('custom-alert-ok-btn');
                     const cancelBtn = document.getElementById('custom-alert-cancel-btn');
                     const iconBox = document.getElementById('custom-alert-icon');
-
                     if (titleEl) titleEl.innerText = options.title || "Thông báo";
                     if (iconBox) {
                         iconBox.style.display = options.hideButtons ? 'none' : 'flex';
                         iconBox.innerHTML = options.iconHtml || '<i class="fa-solid fa-bell text-xl text-black"></i>';
                     }
-
                     if (okBtn) {
                         let defaultText = options.btnOkText || "Đồng ý";
                         okBtn.style.display = options.hideButtons ? 'none' : 'inline-flex';
-
                         if (options.isDestructive) {
                             okBtn.className = "w-full inline-flex items-center justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition";
                         } else {
                             okBtn.className = "w-full inline-flex items-center justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-black text-base font-medium text-white hover:bg-gray-800 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition";
                         }
-
                         if (options.countdown) {
                             okBtn.disabled = true;
                             okBtn.classList.add('opacity-50', 'cursor-not-allowed');
                             let timeLeft = 3;
                             okBtn.innerHTML = `${defaultText} (${timeLeft})`;
-
                             app.ui.alertInterval = setInterval(() => {
                                 timeLeft--;
                                 if (timeLeft <= 0) {
@@ -356,7 +296,6 @@ Object.assign(window.app, {
                             okBtn.innerHTML = defaultText;
                         }
                     }
-
                     if (imgEl) {
                         if (options.imgSrc) {
                             imgEl.src = options.imgSrc;
@@ -366,12 +305,10 @@ Object.assign(window.app, {
                             imgEl.classList.add('hidden');
                         }
                     }
-
                     if (cancelCallback || options.btnCancelText) {
                         cancelBtn.classList.remove('hidden');
                         cancelBtn.innerHTML = options.btnCancelText || "Hủy bỏ";
                         cancelBtn.style.display = options.hideButtons ? 'none' : 'inline-flex';
-                        
                         if (options.isCancelDestructive) {
                             cancelBtn.className = "mt-3 w-full inline-flex items-center justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition";
                         } else if (options.isCancelPrimary) {
@@ -379,14 +316,12 @@ Object.assign(window.app, {
                         } else {
                             cancelBtn.className = "mt-3 w-full inline-flex items-center justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition";
                         }
-
                         app.alertCancelCallback = cancelCallback || (() => { });
                     } else {
                         cancelBtn.classList.add('hidden');
                         cancelBtn.style.display = 'none';
                         app.alertCancelCallback = null;
                     }
-
                     modal.classList.remove('hidden');
                     content.classList.remove('modal-content-leave');
                     content.classList.add('modal-content-enter');
@@ -397,15 +332,12 @@ Object.assign(window.app, {
                     if (app.ui.alertInterval) clearInterval(app.ui.alertInterval);
                     const modal = document.getElementById('custom-alert-modal');
                     const content = document.getElementById('custom-alert-content');
-
                     content.classList.remove('modal-content-enter');
                     content.classList.add('modal-content-leave');
-
                     setTimeout(() => {
                         modal.classList.add('hidden');
                         content.classList.remove('modal-content-leave');
                         app.ui.unlockScroll();
-
                         const cb = isOk ? app.alertCallback : app.alertCancelCallback;
                         app.alertCallback = null;
                         app.alertCancelCallback = null;
@@ -415,11 +347,9 @@ Object.assign(window.app, {
                 showVerifiedPopup: (type, link) => {
                     let desc = "";
                     let helpUrl = "";
-                    
                     if (type === 'vvcc') {
                         helpUrl = 'https://www.vnbusarchive.io.vn/help/1537750814507008101';
                         desc = `Danh hiệu <b>VNBUSARCHIVE Verified Content Creator</b> được cấp cho các nhà sáng tạo nội dung sở hữu kênh truyền thông đạt chuẩn, có công lan tỏa hình ảnh giao thông công cộng đến với cộng đồng.<br><br><a href="${helpUrl}" target="_blank" class="text-black hover:underline font-bold text-[13px] inline-flex items-center">Tìm hiểu thêm về danh hiệu này</a>`;
-                        
                         if (link) {
                             app.ui.showAlert(desc, 
                                 () => { window.open(link, '_blank'); }, 
@@ -445,7 +375,6 @@ Object.assign(window.app, {
                     } else if (type === 'vvbs') {
                         helpUrl = 'https://www.vnbusarchive.io.vn/help/1537761083090018366';
                         desc = `Danh hiệu <b>VNBUSARCHIVE Verified Bus Staff</b> được cấp nhằm xác nhận và tôn vinh những cán bộ, công nhân viên đang trực tiếp công tác và cống hiến cho ngành giao thông công cộng.<br><br><a href="${helpUrl}" target="_blank" class="text-black hover:underline font-bold text-[13px] inline-flex items-center">Tìm hiểu thêm về danh hiệu này</a>`;
-                        
                         app.ui.showAlert(desc, 
                             null, 
                             null, 
@@ -460,7 +389,6 @@ Object.assign(window.app, {
                 showQuotaInfo: () => {
                     const limitStr = app.maintenance.settings['upload_quota']?.reason;
                     const limitTxt = (limitStr && limitStr.trim() !== '') ? limitStr : 'không giới hạn';
-
                     app.ui.showAlert(
                         `Nhằm bảo vệ hạ tầng máy chủ và dung lượng lưu trữ, hệ thống chỉ tiếp nhận tổng cộng tối đa <b>${limitTxt} ảnh</b> hàng ngày (áp dụng chung cho toàn server).<br><br>Chu kỳ sẽ được tự động đặt lại vào mỗi <b>7 giờ sáng (Giờ Việt Nam)</b>.`,
                         null, null, { title: "Chính sách giới hạn đăng tải", btnOkText: "Đã hiểu" }
@@ -473,31 +401,23 @@ Object.assign(window.app, {
                     const msgEl = document.getElementById('custom-prompt-msg');
                     const inputEl = document.getElementById('custom-prompt-input');
                     const okBtn = document.getElementById('custom-prompt-ok-btn');
-
                     titleEl.innerText = "Nhập thông tin";
                     msgEl.innerText = msg;
                     inputEl.value = defaultValue;
-
                     modal.classList.remove('hidden');
                     content.classList.remove('modal-content-leave');
                     content.classList.add('modal-content-enter');
                     app.promptCallback = callback;
                     app.ui.lockScroll();
-
-
                     setTimeout(() => {
                         inputEl.focus();
                         inputEl.select();
                     }, 200);
-
-
                     inputEl.onkeydown = (e) => {
                         if (e.key === 'Enter') {
                             app.ui.closePrompt(true);
                         }
                     };
-
-
                     okBtn.onclick = () => {
                         if (!inputEl.value.trim()) {
                             app.ui.showAlert("Vui lòng nhập nội dung, không được để trống!");
@@ -510,39 +430,31 @@ Object.assign(window.app, {
                      const modal = document.getElementById('custom-prompt-modal');
                      const content = document.getElementById('custom-prompt-content');
                      const inputEl = document.getElementById('custom-prompt-input');
-
                      content.classList.remove('modal-content-enter');
                      content.classList.add('modal-content-leave');
-
                      setTimeout(() => {
                          modal.classList.add('hidden');
                          content.classList.remove('modal-content-leave');
                          app.ui.unlockScroll();
-
                          if (isOk && app.promptCallback) {
                              const value = inputEl.value.trim();
                              app.promptCallback(value);
                          }
-
                          app.promptCallback = null;
                          inputEl.value = '';
                      }, 200);
                  },
-
 closeCustomRolePrompt: () => {
                     const modal = document.getElementById('custom-role-modal');
                     const content = document.getElementById('custom-role-content');
-
                     content.classList.remove('modal-content-enter');
                     content.classList.add('modal-content-leave');
-
                     setTimeout(() => {
                         modal.classList.add('hidden');
                         content.classList.remove('modal-content-leave');
                         app.ui.unlockScroll();
                     }, 200);
                 },
-
                  filterDenyQuick: (query) => {
                     const q = (query || '').trim().toLowerCase();
                     const section = document.getElementById('deny-section-quick');
@@ -553,74 +465,48 @@ closeCustomRolePrompt: () => {
                         lbl.style.display = (!q || text.includes(q)) ? '' : 'none';
                     });
                 },
-
                  toggleDenySection: (section) => {
                     app.activeDenySection = section;
-
                     const quickSection = document.getElementById('deny-section-quick');
                     const customSection = document.getElementById('deny-section-custom');
                     const btnQuick = document.getElementById('btn-deny-quick');
                     const btnCustom = document.getElementById('btn-deny-custom');
-
                     if (section === 'quick') {
-
                         quickSection.classList.remove('hidden');
                         customSection.classList.add('hidden');
-
                         const searchEl = document.getElementById('deny-quick-search');
                         if (searchEl) {
                             searchEl.value = '';
                             app.ui.filterDenyQuick('');
                         }
-
-
                         btnQuick.className = "w-full bg-black text-white p-3 text-center font-bold text-sm rounded-lg shadow-sm transition border border-black";
                         btnCustom.className = "w-full bg-white text-gray-700 p-3 text-center font-bold text-sm rounded-lg shadow-sm transition border border-gray-300 hover:bg-gray-50 hover:text-black";
-
-
                         document.getElementById('deny-custom-input').value = '';
                     } else if (section === 'custom') {
-
                         quickSection.classList.add('hidden');
                         customSection.classList.remove('hidden');
-
-
                         btnQuick.className = "w-full bg-white text-gray-700 p-3 text-center font-bold text-sm rounded-lg shadow-sm transition border border-gray-300 hover:bg-gray-50 hover:text-black";
                         btnCustom.className = "w-full bg-black text-white p-3 text-center font-bold text-sm rounded-lg shadow-sm transition border border-black";
-
-
                         document.querySelectorAll('.deny-quick-cb').forEach(cb => cb.checked = false);
                     }
                 },
-
                 showDenyPrompt: (titleStr, callback) => {
                     const modal = document.getElementById('deny-prompt-modal');
                     const content = document.getElementById('deny-prompt-content');
                     const titleEl = document.getElementById('deny-prompt-title');
                     const okBtn = document.getElementById('deny-prompt-ok-btn');
                     const customInput = document.getElementById('deny-custom-input');
-
-
                     titleEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-2"></i>${titleStr || 'Từ chối ảnh'}`;
-
-
                     customInput.value = '';
                     document.querySelectorAll('.deny-quick-cb').forEach(cb => cb.checked = false);
-
-
                     app.ui.toggleDenySection('quick');
-
                     modal.classList.remove('hidden');
                     content.classList.remove('modal-content-leave');
                     content.classList.add('modal-content-enter');
                     app.denyPromptCallback = callback;
                     app.ui.lockScroll();
-
-
                     okBtn.onclick = () => {
                         let reasonString = '';
-
-
                         if (app.activeDenySection === 'quick') {
                             const selectedChecks = Array.from(document.querySelectorAll('.deny-quick-cb:checked')).map(cb => cb.value);
                             if (selectedChecks.length === 0) {
@@ -628,7 +514,6 @@ closeCustomRolePrompt: () => {
                                 return;
                             }
                             reasonString = selectedChecks.join(' + ');
-
                         } else if (app.activeDenySection === 'custom') {
                             const customText = customInput.value.trim();
                             if (!customText) {
@@ -638,23 +523,18 @@ closeCustomRolePrompt: () => {
                             }
                             reasonString = customText;
                         }
-
                         app.ui.closeDenyPrompt(true, reasonString);
                     };
                 },
-
                 closeDenyPrompt: (isOk, reasonString = '') => {
                     const modal = document.getElementById('deny-prompt-modal');
                     const content = document.getElementById('deny-prompt-content');
-
                     content.classList.remove('modal-content-enter');
                     content.classList.add('modal-content-leave');
-
                     setTimeout(() => {
                         modal.classList.add('hidden');
                         content.classList.remove('modal-content-leave');
                         app.ui.unlockScroll();
-
                         if (isOk && app.denyPromptCallback) {
                             app.denyPromptCallback(reasonString);
                         }
@@ -667,26 +547,20 @@ closeCustomRolePrompt: () => {
                     const circle = document.getElementById('up-progress-circle');
                     const text = document.getElementById('up-progress-text');
                     if (!circle || !text) return;
-                    
                     circle.style.transition = `stroke-dashoffset ${durationMs}ms ease-out, stroke 0.5s ease`;
                     const targetOffset = 339.29 * (1 - targetPercent / 100);
                     circle.setAttribute('stroke-dashoffset', targetOffset.toString());
-                    
                     if (app.ui.progressInterval) clearInterval(app.ui.progressInterval);
-                    
                     const stepCount = durationMs / 30;
                     const stepSize = (targetPercent - app.ui.uploadProgressValue) / stepCount;
-                    
                     app.ui.progressInterval = setInterval(() => {
                         app.ui.uploadProgressValue += stepSize;
-                        
                         let displayValue = Math.round(app.ui.uploadProgressValue);
                         if ((stepSize > 0 && displayValue >= targetPercent) || (stepSize < 0 && displayValue <= targetPercent)) {
                             app.ui.uploadProgressValue = targetPercent;
                             displayValue = targetPercent;
                             clearInterval(app.ui.progressInterval);
                         }
-                        
                         if (text.innerText.includes('%')) {
                             text.innerText = displayValue + '%';
                         }
@@ -702,35 +576,28 @@ closeCustomRolePrompt: () => {
                     const errorBox = document.getElementById('up-progress-error');
                     const infoBox = document.getElementById('up-progress-info');
                     const actions = document.getElementById('up-progress-actions');
-
                     circle.style.transition = 'none';
                     circle.setAttribute('stroke-dashoffset', '339.29');
                     circle.setAttribute('stroke', '#18181b');
-
                     app.ui.uploadProgressValue = 0;
                     text.innerHTML = '0%';
                     text.className = 'absolute inset-0 flex items-center justify-center text-2xl font-bold text-black';
                     title.innerText = 'Đang chuẩn bị...';
                     title.className = 'text-lg font-bold text-gray-900 mb-1';
                     desc.innerText = 'Vui lòng không rời khỏi trang';
-
                     errorBox.classList.add('hidden');
                     if (infoBox) infoBox.classList.add('hidden');
                     actions.classList.add('hidden');
                     actions.innerHTML = '';
-
                     modal.classList.remove('hidden');
                     content.classList.remove('modal-content-leave');
-
                     content.style.opacity = '1';
                     content.classList.add('modal-content-enter');
                     app.ui.lockScroll();
-
                     setTimeout(() => {
                         app.ui.setUploadProgress(15, 800);
                     }, 150);
                 },
-
                 updateUploadSuccess: () => {
                     const circle = document.getElementById('up-progress-circle');
                     const text = document.getElementById('up-progress-text');
@@ -739,13 +606,10 @@ closeCustomRolePrompt: () => {
                     const infoBox = document.getElementById('up-progress-info');
                     const queueCountSpan = document.getElementById('up-progress-queue-count');
                     const actions = document.getElementById('up-progress-actions');
-
                     circle.style.transition = 'stroke-dashoffset 0.8s ease-out, stroke 0.5s ease';
                     circle.setAttribute('stroke-dashoffset', '0');
                     circle.setAttribute('stroke', '#16a34a');
-
                     if (app.ui.progressInterval) clearInterval(app.ui.progressInterval);
-                    
                     const interval = setInterval(() => {
                         app.ui.uploadProgressValue += 2;
                         if (app.ui.uploadProgressValue >= 100) {
@@ -757,24 +621,17 @@ closeCustomRolePrompt: () => {
                             if (text.innerText.includes('%')) text.innerText = Math.round(app.ui.uploadProgressValue) + '%';
                         }
                     }, 20);
-
                     title.innerText = 'Ảnh đã upload thành công';
                     title.classList.replace('text-gray-900', 'text-green-600');
                     desc.innerText = 'Ảnh sẽ xuất hiện sau khi được admin duyệt!';
-
-                    // Bật ô màu vàng và fetch số lượng hàng đợi
                     if (infoBox && queueCountSpan) {
                         infoBox.classList.remove('hidden');
                         queueCountSpan.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-
-                        // THÊM: Tính toán hàng đợi có ưu tiên Admin/Manager
                         window.sb.from('photos').select('id, created_at, uploader_id, profiles(role)').eq('status', 'pending')
                             .then(({ data, error }) => {
                                 if (!error && data) {
                                     let ahead = 0;
                                     const isMePrivileged = (app.role === 'admin' || app.role === 'manager');
-
-                                    // Lấy ảnh mới nhất vừa được thêm
                                     const myPhotos = data.filter(p => p.uploader_id === app.user.id).sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
                                     if (myPhotos.length === 0) {
                                         queueCountSpan.innerText = Math.max(0, data.length - 1);
@@ -782,13 +639,11 @@ closeCustomRolePrompt: () => {
                                     }
                                     const myPhoto = myPhotos[0];
                                     const myTime = new Date(myPhoto.created_at).getTime();
-
                                     data.forEach(p => {
                                         if (p.id === myPhoto.id) return;
                                         const pRole = p.profiles?.role || 'user';
                                         const pPrivileged = (pRole === 'admin' || pRole === 'manager');
                                         const pTime = new Date(p.created_at).getTime();
-
                                         if (isMePrivileged) {
                                             if (pPrivileged && pTime < myTime) ahead++;
                                         } else {
@@ -802,15 +657,13 @@ closeCustomRolePrompt: () => {
                                 }
                             });
                     }
-
-                    actions.className = "mt-6 flex gap-3 justify-center w-full"; // Khôi phục class xếp ngang
+                    actions.className = "mt-6 flex gap-3 justify-center w-full"; 
                     actions.innerHTML = `
                         <button onclick="app.utils.cleanupState(); window.scrollTo({ top: 0, behavior: 'smooth' });" class="flex-1 bg-white border border-gray-300 text-gray-700 py-2.5 rounded-md font-bold text-xs hover:bg-gray-50 transition shadow-sm">Upload thêm</button>
                         <button onclick="app.utils.navigate('/');" class="flex-1 bg-black text-white py-2.5 rounded-md font-bold text-xs hover:bg-gray-800 transition shadow-sm">Trang chủ</button>
                     `;
                     actions.classList.remove('hidden');
                 },
-
                 updateUploadError: (errMsg) => {
                     const circle = document.getElementById('up-progress-circle');
                     const text = document.getElementById('up-progress-text');
@@ -818,13 +671,9 @@ closeCustomRolePrompt: () => {
                     const desc = document.getElementById('up-progress-desc');
                     const errorBox = document.getElementById('up-progress-error');
                     const actions = document.getElementById('up-progress-actions');
-
-
                     circle.style.transition = 'stroke-dashoffset 0.5s ease-out, stroke 0.5s ease';
                     circle.setAttribute('stroke-dashoffset', '339.29');
                     circle.setAttribute('stroke', '#dc2626');
-
-
                     let current = parseInt(text.innerText) || 80;
                     const interval = setInterval(() => {
                         current -= 5;
@@ -837,17 +686,12 @@ closeCustomRolePrompt: () => {
                             if (text.innerText.includes('%')) text.innerText = current + '%';
                         }
                     }, 10);
-
                     title.innerText = 'Không thể tải ảnh lên';
                     title.classList.replace('text-gray-900', 'text-red-600');
-
-                    // Phân loại lỗi để hiển thị tiêu đề chính xác
                     let cleanMsg = errMsg;
                     if (errMsg.includes('EXCEPTION:')) {
                         cleanMsg = errMsg.split('EXCEPTION:')[1].trim();
                     }
-
-                    // Tự động điều chỉnh tiêu đề nếu lỗi liên quan đến xác thực/hệ thống
                     if (errMsg.toLowerCase().includes('cloudflare') || errMsg.toLowerCase().includes('turnstile')) {
                         title.innerText = 'Lỗi xác thực bảo mật';
                     } else if (errMsg.toLowerCase().includes('image') || errMsg.toLowerCase().includes('upload')) {
@@ -855,19 +699,13 @@ closeCustomRolePrompt: () => {
                     } else {
                         title.innerText = 'Không thể tải ảnh lên';
                     }
-
                     desc.innerHTML = `<b class="text-red-700">${cleanMsg}</b>`;
-                    
                     const isReported = !errMsg.includes('NO_REPORT'); 
                     const pureErrMsg = errMsg.replace('[NO_REPORT] ', '');
-
-                    // Chỉ để lại mã lỗi gốc trong hộp đỏ
                     errorBox.innerHTML = `Mã lỗi: ${pureErrMsg}`;
                     errorBox.classList.remove('hidden');
-
                     const statusText = isReported ? "Lỗi này đã được thông báo tự động." : "Lỗi này sẽ KHÔNG được thông báo tự động.";
-
-                    actions.className = "mt-5 flex flex-col w-full"; // Ghi đè class để xếp dọc
+                    actions.className = "mt-5 flex flex-col w-full"; 
                     actions.innerHTML = `
                         <div class="text-[10px] text-black font-medium text-center mb-3">
                             <span class="inline-flex flex-wrap justify-center items-center gap-1">
@@ -881,7 +719,6 @@ closeCustomRolePrompt: () => {
                         </div>
                     `;
                 },
-
                 closeUploadProgress: () => {
                     const modal = document.getElementById('upload-progress-modal');
                     modal.classList.add('hidden');
@@ -906,13 +743,11 @@ closeCustomRolePrompt: () => {
                 closeUserDropdown: () => app.ui.toggleUserMenu(false)
             }
 });
-
 Object.assign(window.app, {
   maintenance: {
                 settings: {},
                 timer: null,
                 isBypassed: false,
-
                 fetch: async () => {
                     try {
                         const { data, error } = await window.sb.from('system_settings').select('id, is_active, auto_reactivate_at, reason');
@@ -921,96 +756,67 @@ Object.assign(window.app, {
                         }
                     } catch (e) { console.error("Lỗi lấy thông tin bảo trì", e); }
                 },
-
                 check: (sysId) => {
-                    if (app.maintenance.isBypassed) return false; // Manager bypass
-
-                    // Kiểm tra cầu chì tổng trước, sau đó mới đến module cụ thể
+                    if (app.maintenance.isBypassed) return false; 
                     const target = app.maintenance.settings['global']?.is_active === false
                                  ? app.maintenance.settings['global']
                                  : app.maintenance.settings[sysId];
-
                     if (!target) return false;
-
-                    // Nếu is_active = false, luôn hiển thị màn hình bảo trì (không tự mở lại khi hết giờ).
-                    // auto_reactivate_at giờ chỉ dùng làm thời gian dự kiến để đếm ngược.
                     if (target.is_active === false) {
                         return target;
                     }
                     return false;
                 },
-
                 showScreen: (targetData) => {
                     const screen = document.getElementById('maintenance-screen');
-
-                    // Ẩn triệt để giao diện nền phía sau để không bị hở khi cuộn trên Mobile
                     document.querySelectorAll('header, main, footer, #header-spacer').forEach(el => el.style.display = 'none');
                     document.body.style.backgroundColor = '#ffffff';
-
-                    // Cập nhật text lý do
                     document.getElementById('mt-reason').innerText = targetData.reason || "Hệ thống đang được bảo trì, vui lòng quay lại sau.";
-
-                    // Hiện nút cho Manager
                     if (app.role === 'manager') {
                         document.getElementById('mt-manager-bypass').classList.remove('hidden');
                     }
-
                     if (app.maintenance.timer) clearInterval(app.maintenance.timer);
-
                     const countdownEl = document.getElementById('mt-countdown');
-
                     if (targetData.auto_reactivate_at) {
                         const autoTime = new Date(targetData.auto_reactivate_at).getTime();
-
                         app.maintenance.timer = setInterval(() => {
                             const now = Date.now();
                             const distance = autoTime - now;
-
                             if (distance < 0) {
                                 clearInterval(app.maintenance.timer);
                                 countdownEl.innerText = "Cập nhật sau";
                                 countdownEl.className = "text-xl font-bold tracking-normal text-gray-400";
                                 return;
                             }
-
                             const d = Math.floor(distance / (1000 * 60 * 60 * 24));
                             const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                             const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
                             const s = Math.floor((distance % (1000 * 60)) / 1000);
-
                             let timeStr = "";
                             if(d > 0) timeStr += `${d}d `;
                             timeStr += `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-
                             countdownEl.innerText = timeStr;
                         }, 1000);
                     } else {
                         countdownEl.innerText = "Cập nhật sau";
-                        countdownEl.className = "text-xl font-bold tracking-normal text-gray-400"; // Đổi style nếu không có giờ
+                        countdownEl.className = "text-xl font-bold tracking-normal text-gray-400"; 
                     }
-
                     screen.classList.remove('hidden');
-                    app.ui.lockScroll(); // Khóa cuộn trang
+                    app.ui.lockScroll(); 
                 },
-
                 hideScreen: () => {
                     document.getElementById('maintenance-screen').classList.add('hidden');
-
-                    // Trả lại giao diện nền khi tắt bảo trì
                     document.querySelectorAll('header, main, footer, #header-spacer').forEach(el => el.style.display = '');
                     document.body.style.backgroundColor = '';
-
                     if (app.maintenance.timer) clearInterval(app.maintenance.timer);
                 },
-
                 bypass: () => {
                     app.maintenance.isBypassed = true;
                     app.maintenance.hideScreen();
-                    app.handleRoute(); // Khởi động lại route
+                    app.handleRoute(); 
                 }
             }
 });
-
 Object.assign(window.app, {
   utils: {
                 isValidUsername: (name) => {
@@ -1036,9 +842,7 @@ Object.assign(window.app, {
                     temp.innerHTML = html;
                     return (temp.textContent || temp.innerText || '').replace(/\s+/g, ' ').trim();
                 },
-                // Thêm hàm resetTurnstile dùng chung này vào đầu object utils
                 resetTurnstile: (selector) => {
-                    // Đã chuyển sang dùng Popup (app.captcha), hàm này bị vô hiệu hóa
                 },
                 isIOS: () => {
                     return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -1053,7 +857,6 @@ Object.assign(window.app, {
                     if (!file) return null;
                     const isHeic = /\.(heic|heif)$/i.test(file.name) || file.type === 'image/heic' || file.type === 'image/heif';
                     if (!isHeic) return file;
-
                     let heicBlob = null;
                     if (window.heic2any) {
                         const result = await window.heic2any({ blob: file, toType: 'image/jpeg', quality: 0.95 });
@@ -1085,7 +888,6 @@ Object.assign(window.app, {
                                 img.onerror = () => reject(new Error("Lỗi tải ảnh để encode WebP CPU"));
                             });
                             if (imageSource instanceof Blob || imageSource instanceof File) URL.revokeObjectURL(url);
-
                             let w = img.naturalWidth || img.width;
                             let h = img.naturalHeight || img.height;
                             if (w > 1920 || h > 1920) {
@@ -1093,14 +895,12 @@ Object.assign(window.app, {
                                 w = Math.round(w * ratio);
                                 h = Math.round(h * ratio);
                             }
-
                             const canvas = document.createElement('canvas');
                             canvas.width = w;
                             canvas.height = h;
                             const ctx = canvas.getContext('2d');
                             ctx.drawImage(img, 0, 0, w, h);
                             const imageData = ctx.getImageData(0, 0, w, h);
-
                             let q = Math.round(initialQuality * 100);
                             let webpBuffer = await encode(imageData, { quality: q });
                             return new Blob([webpBuffer], { type: 'image/webp' });
@@ -1113,7 +913,6 @@ Object.assign(window.app, {
                 compressToSizeLoop: async (imageSource, targetMime = 'image/webp', maxSizeMB = 1) => {
                     const maxSizeBytes = maxSizeMB * 1024 * 1024;
                     let currentQuality = 0.80;
-                    
                     const url = imageSource instanceof Blob || imageSource instanceof File ? URL.createObjectURL(imageSource) : imageSource;
                     const img = new Image();
                     img.src = url;
@@ -1122,7 +921,6 @@ Object.assign(window.app, {
                         img.onerror = () => reject(new Error("Lỗi tải ảnh để nén vòng lặp"));
                     });
                     if (imageSource instanceof Blob || imageSource instanceof File) URL.revokeObjectURL(url);
-
                     let w = img.naturalWidth || img.width;
                     let h = img.naturalHeight || img.height;
                     if (w > 1920 || h > 1920) {
@@ -1130,17 +928,13 @@ Object.assign(window.app, {
                         w = Math.round(w * ratio);
                         h = Math.round(h * ratio);
                     }
-
                     const canvas = document.createElement('canvas');
                     canvas.width = w;
                     canvas.height = h;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, w, h);
-                    
                     let compressedBlob = null;
                     let hasWebpNative = false;
-                    
-                    // Thử encode native WebP
                     while (currentQuality >= 0.65) {
                         compressedBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', currentQuality));
                         if (compressedBlob && compressedBlob.type === 'image/webp') {
@@ -1151,8 +945,6 @@ Object.assign(window.app, {
                         }
                         currentQuality = parseFloat((currentQuality - 0.05).toFixed(2));
                     }
-                    
-                    // Nếu WebP native thất bại (trả về size quá lớn hoặc type ko phải webp), thử dùng WASM
                     if (!hasWebpNative || (compressedBlob && compressedBlob.size > maxSizeBytes)) {
                         try {
                             const { encode } = await import("https://esm.sh/@jsquash/webp@1.2.0");
@@ -1171,8 +963,6 @@ Object.assign(window.app, {
                             console.warn("WASM WebP loop fallback error:", e);
                         }
                     }
-
-                    // Fallback JPEG nếu tất cả đều không đạt dung lượng
                     currentQuality = 0.80;
                     while (currentQuality >= 0.65) {
                         compressedBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', currentQuality));
@@ -1181,7 +971,6 @@ Object.assign(window.app, {
                         }
                         currentQuality = parseFloat((currentQuality - 0.05).toFixed(2));
                     }
-
                     throw new Error(`BLIND_WM_ERROR:Ảnh quá chi tiết, không thể nén xuống dưới ${maxSizeMB}MB (chất lượng tối thiểu 65%). Vui lòng cắt nhỏ hoặc chọn ảnh khác.`);
                 },
                 canvasToBlobUniversal: async (canvas, targetMime = 'image/webp', quality = 0.95) => {
@@ -1196,7 +985,6 @@ Object.assign(window.app, {
                         canvas.toBlob((blob) => resolve(blob), 'image/jpeg', quality);
                     });
                 },
-
                 handleImgLoad: (img) => {
                     img.style.opacity = '1';
                     const wrapper = img.closest('.img-wrapper');
@@ -1205,7 +993,6 @@ Object.assign(window.app, {
                         if (spinner) spinner.style.display = 'none';
                     }
                 },
-
                 handleImgError: (img) => {
                     const wrapper = img.closest('.img-wrapper');
                     if (wrapper) {
@@ -1216,7 +1003,6 @@ Object.assign(window.app, {
                         img.style.display = 'none';
                     }
                 },
-
                 navigate: (url) => {
                     if (window.location.pathname + window.location.search === url) {
                         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1224,14 +1010,10 @@ Object.assign(window.app, {
                     }
                     const prevPath = window.location.pathname;
                     const prevFull = prevPath + window.location.search;
-
                     let parentInfo = window.history.state?.parentInfo;
                     const rootPages = ['/', '/profile', '/profile/comments', '/search', '/upload', '/admin', '/contact', '/user/', '/help', '/leaderboard'];
-                    // --- ĐÃ SỬA: KHAI BÁO THÊM TRANG ĐƠN VỊ, DÒNG XE, NGƯỜI DÙNG LÀ TRANG CON ---
                     const isDestLeaf = url.startsWith('/vehicle/') || url.startsWith('/photo/') || url.startsWith('/operator/') || url.startsWith('/model/') || url.startsWith('/user/');
-                    // ----------------------------------------------------------------
                     const isCurrentRoot = rootPages.some(r => prevPath === r || (r !== '/' && prevPath.startsWith(r)));
-
                     if (isCurrentRoot) {
                         let bName = "Trang chủ";
                         if (prevPath === '/profile/comments') bName = "Quản lý bình luận";
@@ -1245,12 +1027,10 @@ Object.assign(window.app, {
                         else if (prevPath === '/help' || prevPath.startsWith('/help/')) bName = "Trung tâm hỗ trợ";
                         parentInfo = { name: bName, url: prevFull };
                     }
-
                     app.previousPath = prevFull;
                     window.history.pushState({ parentInfo: isDestLeaf ? parentInfo : null }, '', url);
                     app.handleRoute();
                 },
-
 cleanupState: () => {
                     if (document.getElementById('upload-form')) {
                         document.getElementById('upload-form').reset();
@@ -1267,42 +1047,29 @@ cleanupState: () => {
                         document.getElementById('locked-msg')?.classList.add('hidden');
                         app.vehicleLocked = false;
                         document.getElementById('plate-msg').innerText = '';
-
-                        // Gọi hàm reset mới, cực kỳ gọn gàng
                         app.utils.resetTurnstile('#upload .cf-turnstile');
                         app.utils.resetTurnstile('#auth .cf-turnstile');
-
-                        // Load lại trạng thái khóa nút theo cá nhân hóa
                         if(app.upload.applyPreferenceUI) app.upload.applyPreferenceUI();
                         document.getElementById('type-msg')?.classList.add('hidden');
                     }
-
                     app.ui.closeUploadProgress();
                     app.ui.closeAlert(false);
                     app.ui.closePrompt(false);
                     if(app.crop && app.crop.close) app.crop.close();
                     if(app.docs && app.docs.close) app.docs.close();
                     if(app.settings && app.settings.close) app.settings.close();
-
-                    // Đóng Zoom Modal nếu đang mở (Xử lý lỗi bấm Back khi đang soi ảnh)
                     const zoomModal = document.getElementById('image-zoom-modal');
                     if (zoomModal && !zoomModal.classList.contains('hidden')) {
                         zoomModal.classList.add('hidden');
                         document.body.style.overflow = '';
                     }
-
-                    // Reset menu tài khoản
                     app.ui.closeUserDropdown();
-
                     document.getElementById('search-filter-menu')?.classList.remove('active');
                     app.ui.toggleUserMenu(false);
-
                     if (app.edit && app.edit.isEditing) app.edit.cancel();
-
                     app.ui.unlockScroll();
                     app.upload.checkQuota();
                 },
-
                 provinceData: [],
                 loadProvinceData: async () => {
                     try {
@@ -1359,19 +1126,16 @@ cleanupState: () => {
                 },
                 verifyImageLoaded: async (url, maxRetries = 3) => {
                     const delay = (ms) => new Promise(res => setTimeout(res, ms));
-
                     for (let i = 0; i < maxRetries; i++) {
                         try {
                             await new Promise((resolve, reject) => {
                                 const img = new Image();
                                 const cacheBuster = url.includes('?') ? '&cb=' : '?cb=';
                                 img.src = url + cacheBuster + new Date().getTime();
-
                         img.onload = async () => {
                                     if (img.naturalWidth > 10) resolve(true);
                                     else reject(new Error("File ảnh bị hỏng hoặc trống."));
                                 };
-
                                 img.onerror = () => {
                                     reject(new Error("Lỗi máy chủ lưu trữ (404 / Bị chặn)."));
                                 };
@@ -1387,72 +1151,51 @@ cleanupState: () => {
                     const container = document.getElementById(containerId);
                     if (!container) return;
                     if (totalPages <= 1) { container.innerHTML = ''; return; }
-
-
                     const delta = 1;
                     const middle = [];
-
                     for (let i = Math.max(2, currentPage - delta); i <= Math.min(totalPages - 1, currentPage + delta); i++) {
                         middle.push(i);
                     }
-
-
                     const leftDots  = middle.length > 0 && middle[0] > 2;
                     const rightDots = middle.length > 0 && middle[middle.length - 1] < totalPages - 1;
-
-
                     const range = [1];
                     if (leftDots)  range.push('..._left');
                     range.push(...middle);
                     if (rightDots) range.push('..._right');
                     if (totalPages > 1) range.push(totalPages);
-
-
                     const wrap = document.createElement('div');
                     wrap.className = 'pagination-wrap';
-
-
                     const prevBtn = document.createElement('button');
                     prevBtn.className = 'page-btn';
                     prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left text-xs"></i>';
                     prevBtn.disabled = currentPage === 1;
                     prevBtn.addEventListener('click', () => onPageChange(currentPage - 1));
                     wrap.appendChild(prevBtn);
-
-
                     range.forEach((p) => {
                         if (typeof p === 'string' && p.startsWith('...')) {
-
                             const dotsBtn = document.createElement('button');
                             dotsBtn.className = 'page-btn dots';
                             dotsBtn.innerHTML = '•••';
                             dotsBtn.style.cursor = 'pointer';
                             dotsBtn.title = 'Nhảy đến trang bất kỳ';
-
                             dotsBtn.addEventListener('click', function () {
-
                                 const jumpWrap = document.createElement('span');
                                 jumpWrap.className = 'page-jump-wrap';
-
                                 const input = document.createElement('input');
                                 input.type = 'number';
                                 input.className = 'page-jump-input';
                                 input.min = 1;
                                 input.max = totalPages;
                                 input.placeholder = '#';
-
                                 const goBtn = document.createElement('button');
                                 goBtn.className = 'page-jump-btn';
                                 goBtn.textContent = '→';
-
                                 const doJump = () => {
                                     const val = parseInt(input.value);
                                     if (val >= 1 && val <= totalPages) onPageChange(val);
                                 };
-
                                 goBtn.addEventListener('click', doJump);
                                 input.addEventListener('keydown', (e) => { if (e.key === 'Enter') doJump(); });
-
                                 input.addEventListener('blur', () => {
                                     setTimeout(() => {
                                         if (!jumpWrap.contains(document.activeElement)) {
@@ -1460,13 +1203,11 @@ cleanupState: () => {
                                         }
                                     }, 150);
                                 });
-
                                 jumpWrap.appendChild(input);
                                 jumpWrap.appendChild(goBtn);
                                 dotsBtn.replaceWith(jumpWrap);
                                 input.focus();
                             });
-
                             wrap.appendChild(dotsBtn);
                         } else {
                             const btn = document.createElement('button');
@@ -1476,15 +1217,12 @@ cleanupState: () => {
                             wrap.appendChild(btn);
                         }
                     });
-
-
                     const nextBtn = document.createElement('button');
                     nextBtn.className = 'page-btn';
                     nextBtn.innerHTML = '<i class="fa-solid fa-chevron-right text-xs"></i>';
                     nextBtn.disabled = currentPage === totalPages;
                     nextBtn.addEventListener('click', () => onPageChange(currentPage + 1));
                     wrap.appendChild(nextBtn);
-
                     container.innerHTML = '';
                     container.appendChild(wrap);
                 },
@@ -1509,14 +1247,11 @@ cleanupState: () => {
                 updateBreadcrumbs: () => {
                     const state = window.history.state;
                     const parent = state?.parentInfo || { name: "Trang chủ", url: "/" };
-
                     document.querySelectorAll('.crumb-back').forEach(el => {
                         el.innerText = parent.name;
                         el.onclick = () => { app.utils.navigate(parent.url); };
                     });
                 },
-
-
                 formatPlateInput: (el) => {
                     let val = el.value;
                     const upperVal = val.toUpperCase();
@@ -1534,7 +1269,6 @@ cleanupState: () => {
                     if (val.length > 0) formatted += val.substring(0, 2);
                     if (val.length > 2) formatted += '/' + val.substring(2, 4);
                     if (val.length > 4) formatted += '/' + val.substring(4, 8);
-                    
                     const oldLen = el.value.length;
                     const oldStart = el.selectionStart;
                     el.value = formatted;
@@ -1556,24 +1290,19 @@ cleanupState: () => {
                     const d = parseInt(parts[0], 10);
                     const m = parseInt(parts[1], 10);
                     const y = parseInt(parts[2], 10);
-                    
                     if (isNaN(d) || isNaN(m) || isNaN(y)) return null;
                     if (m < 1 || m > 12) return null;
                     const daysInMonth = new Date(y, m, 0).getDate();
                     if (d < 1 || d > daysInMonth) return null;
                     if (y < 1900 || y > 2100) return null;
-                    
                     return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
                 },
                 formatNoPunctuation: (el) => {
-                    // Đã gỡ bỏ giới hạn dấu câu theo yêu cầu (cho phép người dùng nhập tự do)
                     return;
                 },
                 fallbackHeroImage: (imgElement, cacheName, currentIndex) => {
                     const photos = app[cacheName];
                     const wrapper = imgElement.closest('#hero-main') || imgElement.closest('.group');
-
-                    // Nếu hết ảnh dự phòng -> Hiện UI báo lỗi đẹp mắt
                     if (!photos || currentIndex >= photos.length - 1) {
                         imgElement.style.display = 'none';
                         if (wrapper) {
@@ -1589,15 +1318,10 @@ cleanupState: () => {
                         }
                         return;
                     }
-
-                    // Thử load ảnh tiếp theo
                     const nextIndex = currentIndex + 1;
                     const nextPhoto = photos[nextIndex];
-
                     imgElement.src = app.utils.getProxiedUrl(nextPhoto.url, 'fallback.jpg', 'thumb');
                     imgElement.setAttribute('onerror', `app.utils.fallbackHeroImage(this, '${cacheName}', ${nextIndex})`);
-
-                    // Cập nhật lại Link click và Text (nếu có)
                     if (wrapper) {
                         wrapper.onclick = () => app.views.loadDetail(nextPhoto.id);
                         if (cacheName === 'topPhotosCache') {
@@ -1616,11 +1340,8 @@ cleanupState: () => {
                 },
                 normalizePlateQuery: (str) => {
                     if (!str) return '';
-                    // Bỏ khoảng trắng, dấu chấm, phẩy, gạch dưới và in hoa
                     let s = str.toUpperCase().replace(/[\s.,_]/g, '');
-                    // Bỏ gạch ngang nếu nó đứng trước chuỗi 3 đến 5 chữ số (Xóa 29F-12345 nhưng giữ lại -1 ở đuôi)
                     s = s.replace(/\-(\d{3,5})(?!\d)/g, '$1');
-                    // Xử lý lỗi gõ dư gạch ngang rác
                     if (s === '-') return '';
                     return s;
                 },
@@ -1699,7 +1420,6 @@ cleanupState: () => {
                     }
                     return p;
                 },
-
                 escapeAttr: (str) => {
                     if (!str) return '';
                     return String(str)
@@ -1709,7 +1429,6 @@ cleanupState: () => {
                         .replace(/</g, '&lt;')
                         .replace(/>/g, '&gt;');
                 },
-
                 linkify: (str) => {
                     if (!str) return '';
                     const urlRegex = /(https?:\/\/[^\s]+)/g;
@@ -1717,12 +1436,7 @@ cleanupState: () => {
                         return `<a href="${url}" target="_blank" class="text-black font-medium hover:underline break-all">${url}</a>`;
                     });
                 },
-
-
-
                 resolveSandboxUrls: async (items) => {
-                    // Hệ thống Sandbox đã bị khai tử: ảnh pending/denied đã nằm trên CDN thật (url https).
-                    // Hàm này giờ chỉ đánh dấu _isSandboxMissing cho các url cũ dạng sandbox: (không còn base64).
                     if (!items) return;
                     const list = Array.isArray(items) ? items : [items];
                     list.forEach(item => {
@@ -1733,40 +1447,25 @@ cleanupState: () => {
                         }
                     });
                 },
-
                 getProxiedUrl: (url, filename = 'image.jpg', type = 'full') => {
                     if (!url) return '';
-                    // Dữ liệu cũ dạng sandbox:/data: hoặc link ảnh xóa không hợp lệ -> trả về rỗng để UI hiện placeholder
                     if (typeof url === 'string' && (url.startsWith('data:') || url.startsWith('sandbox:') || url === 'https://cdn.vnbusarchive.io.vn/file/daonguyenthanhnhan')) return '';
-
                     const safeName = filename.replace(/[^a-z0-9A-Z.-]/gi, '_');
-
                     if (url.includes('ik.imagekit.io')) {
                         let transformations = ['f-webp', 'q-auto'];
-
                         if (type === 'thumb') {
                             transformations.push('w-400', 'h-300', 'c-at_max');
                         } else if (type === 'avatar') {
-                            // Cắt chuẩn 200x200 cho Avatar
                             transformations.push('w-200', 'h-200', 'c-maintain_ratio');
                         }
-
                         const separator = url.includes('?') ? '&' : '?';
                         return `${url}${separator}tr=${transformations.join(',')}`;
                     }
-
                     if (url.includes('catbox.moe') || url.includes('postimg.cc') || url.includes('supabase.co') || url.includes('vnbusarchive.io.vn')) {
                         return url;
                     }
-
                     return url;
                 },
-
-                // =========================================================
-                // HELPER: TÍNH THỐNG KÊ SERVER-SIDE (RPC) + CACHE
-                // Thay thế các vòng lặp kéo 999 dòng về client để tính đếm.
-                // Tránh bón rút Egress: chỉ trả về 1 row tổng hợp từ DB.
-                // =========================================================
                 _statsCache: {},
                 _statsCacheExpire: {},
                 getCachedStats: async (cacheKey, ttlMs, fetchFn) => {
@@ -1779,8 +1478,6 @@ cleanupState: () => {
                     app.utils._statsCacheExpire[cacheKey] = now + ttlMs;
                     return data;
                 },
-
-                // Thống kê tổng quát trang chủ (số ảnh, số xe, số tuyến)
                 getHomeStats: async (prefFilter) => {
                     try {
                         const { data, error } = await window.sb.rpc('get_home_stats', { pref_filter: prefFilter || 'both' });
@@ -1791,8 +1488,6 @@ cleanupState: () => {
                     }
                     return null;
                 },
-
-                // Thống kê theo Đơn vị vận hành (tổng ảnh, views, số xe, số tuyến)
                 getOperatorStats: async (operatorName) => {
                     try {
                         const { data, error } = await window.sb.rpc('get_operator_stats', { op_name: operatorName });
@@ -1803,8 +1498,6 @@ cleanupState: () => {
                     }
                     return null;
                 },
-
-                // Thống kê theo Dòng xe (tổng ảnh, views, số xe, số đơn vị)
                 getModelStats: async (modelName) => {
                     try {
                         const { data, error } = await window.sb.rpc('get_model_stats', { mdl_name: modelName });
@@ -1815,8 +1508,6 @@ cleanupState: () => {
                     }
                     return null;
                 },
-
-                // Debounce helper (dùng cho search thực thi)
                 debounce: (fn, delay = 500) => {
                     let timer = null;
                     return function (...args) {
@@ -1825,8 +1516,6 @@ cleanupState: () => {
                         timer = setTimeout(() => { timer = null; fn.apply(ctx, args); }, delay);
                     };
                 },
-
-
                 updateMetaTags: (title, description, imageUrl) => {
                     document.title = title;
                     const setContent = (selector, content) => {
@@ -1846,7 +1535,6 @@ cleanupState: () => {
                         setContent('meta[name="twitter:image"]', imageUrl);
                     }
                 },
-
                 promiseWithTimeout: (promise, ms = 3000) => {
                     return new Promise((resolve, reject) => {
                         const timeoutId = setTimeout(() => {
@@ -1861,7 +1549,6 @@ cleanupState: () => {
                         });
                     });
                 },
-
                 watermark: (file, username, pos = { x: 0.5, y: 0.5, color: 'white' }, filters = 'none', options = { embedBlind: false }) => {
                     return new Promise((resolve, reject) => {
                         const img = new Image();
@@ -1870,7 +1557,6 @@ cleanupState: () => {
                             try {
                                 const canvas = document.createElement('canvas');
                                 const ctx = canvas.getContext('2d');
-
                                 let width = img.width;
                                 let height = img.height;
                                 const maxDim = 1920;
@@ -1878,55 +1564,43 @@ cleanupState: () => {
                                     if (width > height) { height = Math.round(height * (maxDim / width)); width = maxDim; }
                                     else { width = Math.round(width * (maxDim / height)); height = maxDim; }
                                 }
-
                                 canvas.width = width;
                                 canvas.height = height;
                                 ctx.filter = filters;
                                 ctx.drawImage(img, 0, 0, width, height);
                                 ctx.filter = 'none';
-
                                 const imgEl = document.getElementById('preview-img');
                                 const blurPanels = document.querySelectorAll('.blur-panel');
-
                                 if (imgEl && blurPanels.length > 0) {
                                     const imgRect = imgEl.getBoundingClientRect();
-
                                     blurPanels.forEach(panel => {
                                         const panelRect = panel.getBoundingClientRect();
-
                                         const relX = (panelRect.left - imgRect.left) / imgRect.width;
                                         const relY = (panelRect.top - imgRect.top) / imgRect.height;
                                         const relW = panelRect.width / imgRect.width;
                                         const relH = panelRect.height / imgRect.height;
-
                                         const blurX = Math.floor(width * relX);
                                         const blurY = Math.floor(height * relY);
                                         const blurW = Math.ceil(width * relW);
                                         const blurH = Math.ceil(height * relH);
-
                                         if (blurW > 0 && blurH > 0) {
                                             const tempPanelCanvas = document.createElement('canvas');
                                             tempPanelCanvas.width = blurW;
                                             tempPanelCanvas.height = blurH;
                                             const tempPanelCtx = tempPanelCanvas.getContext('2d');
-
                                             tempPanelCtx.drawImage(ctx.canvas, blurX, blurY, blurW, blurH, 0, 0, blurW, blurH);
-
                                             const panelBlurRadius = Math.max(15, Math.floor(width * 0.015));
                                             StackBlur.canvasRGBA(tempPanelCanvas, 0, 0, blurW, blurH, panelBlurRadius);
-
                                             ctx.drawImage(tempPanelCanvas, blurX, blurY);
                                         }
                                     });
                                 }
-
                                 const barHeight = height * 0.0576;
                                 const barY = height - barHeight;
                                 const fontSize = barHeight * 0.4;
                                 const scale = pos.scale || 1.0;
                                 const wmFontSize = height * 0.096 * scale;
                                 const fontFace = '"Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
-
                                 try {
                                     if (document.fonts && document.fonts.load) {
                                         await Promise.all([
@@ -1940,46 +1614,34 @@ cleanupState: () => {
                                     console.warn("Font preloading error:", e);
                                 }
                                 await document.fonts.ready;
-
                                 const safeBarY = Math.floor(barY);
                                 const safeBarHeight = Math.ceil(barHeight);
-
                                 const tempCanvas = document.createElement('canvas');
                                 tempCanvas.width = width;
                                 tempCanvas.height = safeBarHeight;
                                 const tempCtx = tempCanvas.getContext('2d');
-
                                 tempCtx.drawImage(ctx.canvas, 0, safeBarY, width, safeBarHeight, 0, 0, width, safeBarHeight);
-
                                 const blurRadius = Math.max(5, Math.floor(width * 0.005));
                                 StackBlur.canvasRGBA(tempCanvas, 0, 0, width, safeBarHeight, blurRadius);
-
                                 ctx.drawImage(tempCanvas, 0, safeBarY);
-
                                 ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
                                 ctx.fillRect(0, safeBarY, width, safeBarHeight);
-
                                 ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
                                 ctx.fillRect(0, barY, width, 1.5);
-
                                 ctx.fillStyle = "white";
                                 ctx.textBaseline = 'alphabetic';
                                 ctx.textAlign = 'left';
                                 const textY = height - barHeight / 2 + (fontSize * 0.35);
-
                                 ctx.font = `italic 900 ${fontSize}px ${fontFace}`;
                                 ctx.fillText("VNBUSARCHIVE", barHeight / 2, textY);
-                                
                                 const vnbusWidth = ctx.measureText("VNBUSARCHIVE").width;
                                 ctx.font = `italic 700 ${fontSize * 0.8}px ${fontFace}`;
                                 ctx.fillText(".io.vn", (barHeight / 2) + vnbusWidth, textY);
-
-                                ctx.textBaseline = 'middle'; // Reset textBaseline for the right text
+                                ctx.textBaseline = 'middle'; 
                                 ctx.font = `700 ${fontSize}px ${fontFace}`;
                                 const rightText = `Bản quyền bởi ${username}`;
                                 const rightWidth = ctx.measureText(rightText).width;
                                 ctx.fillText(rightText, width - rightWidth - (barHeight / 2), height - barHeight / 2);
-
                                 const currentMode = pos.mode || (app.wmState && app.wmState.mode) || (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_mode')) || 'basic';
                                 if (currentMode !== 'standard') {
                                     ctx.save();
@@ -1988,12 +1650,10 @@ cleanupState: () => {
                                     ctx.font = `700 ${wmFontSize}px ${fontFace}`;
                                     ctx.textAlign = 'center';
                                     ctx.textBaseline = 'middle';
-
                                     ctx.translate(width * pos.x, height * pos.y);
                                     ctx.fillText(`© ${username}`, 0, 0);
                                     ctx.restore();
                                 }
-
                                  const isBlind = options.embedBlind && ((currentMode === 'advanced') || (app.upload && app.upload.isBlindWatermarkEnabled));
                                  if (isBlind) {
                                      try {
@@ -2004,7 +1664,6 @@ cleanupState: () => {
                                          return;
                                      }
                                  }
-
                                  try {
                                      const blob = await app.utils.canvasToBlobUniversal(canvas, app.utils.getTargetMimeType(), 0.95);
                                      if (blob) resolve(blob);
@@ -2025,7 +1684,6 @@ cleanupState: () => {
                          img.src = url;
                      });
                  },
-
                  embedBlindWatermarkOpenCV: async (canvas, hiddenText) => {
                      const width = canvas.width;
                      const height = canvas.height;
@@ -2035,8 +1693,6 @@ cleanupState: () => {
                      const ctx = canvas.getContext('2d');
                      const imgData = ctx.getImageData(0, 0, width, height);
                      const data = imgData.data;
-
-                     // 1. Tạo ma trận DCT 8x8 và ma trận chuyển vị T, T^t
                      const T = new Float32Array(64);
                      const Tt = new Float32Array(64);
                      const alpha0 = 1.0 / Math.sqrt(2.0);
@@ -2048,8 +1704,6 @@ cleanupState: () => {
                              Tt[x * 8 + u] = val;
                          }
                      }
-
-                     // 2. Tạo lưới chữ ký chuẩn 90x60 (lặp đều 6-10 lần trên ảnh giúp triệt tiêu hoàn toàn nhiễu nền khi giải mã)
                      const gridW = 90;
                      const gridH = 60;
                      const wmCanvas = document.createElement('canvas');
@@ -2061,17 +1715,13 @@ cleanupState: () => {
                      wmCtx.fillStyle = '#ffffff';
                      wmCtx.textAlign = 'center';
                      wmCtx.textBaseline = 'middle';
-                     
-                     // Tách chuỗi rõ ràng 3 dòng trên lưới 90x60
                      const parts = hiddenText.split('/').filter(Boolean);
                      const line1 = "VNBUS";
                      let line2 = parts[0] ? parts[0].replace(/VNBUS/i, '') : "ARCHIVE";
                      if (!line2) line2 = "ARCHIVE";
                      const line3 = parts[1] ? `© ${parts[1]}` : "© VNBUS";
-
                      wmCtx.font = `900 15px "Montserrat", -apple-system, sans-serif`;
                      wmCtx.fillText(line1, gridW / 2, gridH * 0.22);
-
                      let fontSize2 = 13;
                      wmCtx.font = `900 ${fontSize2}px "Montserrat", -apple-system, sans-serif`;
                      const m2 = wmCtx.measureText(line2);
@@ -2080,7 +1730,6 @@ cleanupState: () => {
                      }
                      wmCtx.font = `900 ${fontSize2}px "Montserrat", -apple-system, sans-serif`;
                      wmCtx.fillText(line2, gridW / 2, gridH * 0.50);
-
                      let fontSize3 = 12;
                      wmCtx.font = `900 ${fontSize3}px "Montserrat", -apple-system, sans-serif`;
                      const m3 = wmCtx.measureText(line3);
@@ -2089,33 +1738,26 @@ cleanupState: () => {
                      }
                      wmCtx.font = `900 ${fontSize3}px "Montserrat", -apple-system, sans-serif`;
                      wmCtx.fillText(line3, gridW / 2, gridH * 0.78);
-
                      const wmImgData = wmCtx.getImageData(0, 0, gridW, gridH).data;
                      const wmGrays = new Float32Array(gridW * gridH);
                      for (let i = 0; i < gridW * gridH; i++) {
                          wmGrays[i] = (wmImgData[i * 4] - 128.0) / 128.0;
                      }
-
-                     // 3. Xử lý từng khối 8x8 trên kênh Y (Luminance trong YCbCr)
                      const blocksX = Math.floor(width / 8);
                      const blocksY = Math.floor(height / 8);
                      const block = new Float32Array(64);
                      const temp = new Float32Array(64);
                      const dct = new Float32Array(64);
-
-                     // Ngưỡng chênh lệch tinh tế kết hợp Đa tần số (Multi-Carrier DCT Modulation)
                      for (let by = 0; by < blocksY; by++) {
                          for (let bx = 0; bx < blocksX; bx++) {
                              const gx = bx % gridW;
                              const gy = by % gridH;
-                             
                              let targetDiff = 0;
                              if (wmGrays[gy * gridW + gx] <= -0.9) {
                                  targetDiff = -1.5;
                              } else {
-                                 targetDiff = -1.5 + (wmGrays[gy * gridW + gx] + 1.0) * 12.0; // [-1.5 đến +10.5]
+                                 targetDiff = -1.5 + (wmGrays[gy * gridW + gx] + 1.0) * 12.0; 
                              }
-
                              for (let y = 0; y < 8; y++) {
                                  const py = (by * 8 + y) * width;
                                  for (let x = 0; x < 8; x++) {
@@ -2127,8 +1769,6 @@ cleanupState: () => {
                                      block[y * 8 + x] = Y;
                                  }
                              }
-
-                             // Tính DCT 2D: C = T * block * T^t
                              for (let row = 0; row < 8; row++) {
                                  for (let col = 0; col < 8; col++) {
                                      let sum = 0.0;
@@ -2147,9 +1787,6 @@ cleanupState: () => {
                                      dct[row * 8 + col] = sum;
                                  }
                              }
-
-                             // Điều chế trên 3 cặp tần số trung cao [(3,2)/(2,3), (4,2)/(2,4), (4,3)/(3,4)]
-                             // Mắt người hoàn toàn vô cảm với thay đổi tần số bậc >= 5, giúp ảnh mịn 100% dù soi kỹ
                              const freqPairs = [
                                  [3, 2, 2, 3],
                                  [4, 2, 2, 4],
@@ -2172,8 +1809,6 @@ cleanupState: () => {
                                      }
                                  }
                              }
-
-                             // Tính IDCT 2D: block = T^t * dct * T
                              for (let row = 0; row < 8; row++) {
                                  for (let col = 0; col < 8; col++) {
                                      let sum = 0.0;
@@ -2192,8 +1827,6 @@ cleanupState: () => {
                                      block[row * 8 + col] = sum;
                                  }
                              }
-
-                             // Ghi lại sai lệch Y vào pixel RGB kèm kẹp an toàn ±3.8 giúp không bao giờ bị lộ điểm dị thường
                              for (let y = 0; y < 8; y++) {
                                  const py = (by * 8 + y) * width;
                                  for (let x = 0; x < 8; x++) {
@@ -2204,7 +1837,6 @@ cleanupState: () => {
                                      const oldY = 0.299 * r + 0.587 * g + 0.114 * b - 128.0;
                                      const newY = block[y * 8 + x];
                                      const diff = Math.min(3.8, Math.max(-3.8, newY - oldY));
-
                                      data[idx] = Math.min(255, Math.max(0, Math.round(r + diff)));
                                      data[idx + 1] = Math.min(255, Math.max(0, Math.round(g + diff)));
                                      data[idx + 2] = Math.min(255, Math.max(0, Math.round(b + diff)));
@@ -2212,38 +1844,28 @@ cleanupState: () => {
                              }
                          }
                      }
-
                      ctx.putImageData(imgData, 0, 0);
                  },
-
                 handleLike: async () => {
                     if (!app.user) return app.auth.check();
                     if (!app.currentPhoto) return;
                     if (app.currentPhoto.status === 'denied') return;
-
                     const photoId = app.currentPhoto.id;
                     const likeBtn = document.getElementById('btn-like');
                     const likeCountEl = document.getElementById('stat-likes');
                     let currentCount = parseInt(likeCountEl.innerText) || 0;
-
                     const isLiked = likeBtn.classList.contains('bg-gray-400');
-
                     if (isLiked) {
-                        // Optimistic UI Update: Revert UI immediately
                         likeBtn.classList.replace('bg-gray-400', 'bg-black');
                         likeBtn.innerHTML = '<i class="fa-regular fa-thumbs-up"></i> Thích ảnh này';
                         likeCountEl.innerText = Math.max(0, currentCount - 1);
-
                         const zBtn = document.getElementById('zoom-btn-like');
                         if(zBtn) {
                             zBtn.className = "flex items-center justify-center gap-1.5 text-gray-800 bg-transparent hover:bg-black hover:text-white px-3 py-2 md:px-4 md:py-2.5 rounded-lg font-bold text-[11px] md:text-sm transition-colors whitespace-nowrap";
                             zBtn.innerHTML = '<i class="fa-regular fa-thumbs-up text-sm md:text-base"></i> <span class="hidden md:inline">Thích</span>';
                         }
-
                         const { error } = await window.sb.from('photo_likes').delete().eq('photo_id', photoId).eq('user_id', app.user.id);
-
                         if (error) {
-                            // Rollback UI
                             likeBtn.classList.replace('bg-black', 'bg-gray-400');
                             likeBtn.innerHTML = '<i class="fa-solid fa-check"></i> Đã thích';
                             likeCountEl.innerText = currentCount;
@@ -2254,22 +1876,17 @@ cleanupState: () => {
                             app.ui.showAlert("Lỗi khi bỏ thích: " + error.message);
                         }
                     } else {
-                        // Optimistic UI Update: Update UI immediately
                         likeBtn.classList.replace('bg-black', 'bg-gray-400');
                         likeBtn.innerHTML = '<i class="fa-solid fa-check"></i> Đã thích';
                         likeCountEl.innerText = currentCount + 1;
-
                         const zBtn = document.getElementById('zoom-btn-like');
                         if(zBtn) {
                             zBtn.className = "flex items-center justify-center gap-1.5 bg-black text-white px-3 py-2 md:px-4 md:py-2.5 rounded-lg font-bold text-[11px] md:text-sm transition-colors whitespace-nowrap";
                             zBtn.innerHTML = '<i class="fa-solid fa-check text-sm md:text-base"></i> <span class="hidden md:inline">Đã thích</span>';
                         }
-
                         const { error } = await window.sb.from('photo_likes').insert({ photo_id: photoId, user_id: app.user.id });
-
                         if (error) {
                             if (error.code !== '23505') {
-                                // Rollback UI
                                 likeBtn.classList.replace('bg-gray-400', 'bg-black');
                                 likeBtn.innerHTML = '<i class="fa-regular fa-thumbs-up"></i> Thích ảnh này';
                                 likeCountEl.innerText = currentCount;
@@ -2290,18 +1907,15 @@ cleanupState: () => {
                         const city = addr.city || addr.town || addr.village || addr.state || '';
                         const road = addr.road || '';
                         const suburb = addr.suburb || addr.quarter || '';
-
                         const rawProv = addr.state || addr.city || '';
                         const matchedProv = app.utils.matchProvinceName(rawProv);
                         if (matchedProv && app.upload && app.upload.selectProvince) {
                             app.upload.selectProvince(matchedProv);
                         }
-
                         let result = [road, suburb, city].filter(Boolean).join(', ');
                         return result.replace(', Việt Nam', '');
                     } catch (e) { return "Vị trí không xác định"; }
                 },
-
                 geocodeAddress: async (locationText) => {
                     if (!locationText || locationText.length < 3) return;
                     try {
@@ -2323,19 +1937,16 @@ cleanupState: () => {
                         }
                     } catch (e) { }
                 },
-
                 showDetailMap: async (locationText) => {
                     const mapEl = document.getElementById('detail-map');
                     mapEl.style.display = 'block';
                     mapEl.style.pointerEvents = 'none';
-
                     if (!app.detailMap) {
                         app.detailMap = L.map('detail-map').setView([10.762622, 106.660172], 13);
                         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png', {
                             attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                         }).addTo(app.detailMap);
                     }
-
                     try {
                         const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationText + ', Việt Nam')}&limit=1`);
                         const data = await res.json();
@@ -2358,34 +1969,25 @@ cleanupState: () => {
                         }
                     } catch (e) { mapEl.style.display = 'none'; }
                 },
-
                 triggerRouteSuggestion: async (inputId, suggestionId, query) => {
                     const box = document.getElementById(suggestionId);
                     if (!box) return;
-
                     let currentType = '';
                     if (inputId.startsWith('up-')) currentType = document.getElementById('up-type')?.value || '';
                     else if (inputId.startsWith('info-')) currentType = document.getElementById('info-type')?.value || '';
                     else if (inputId.startsWith('adm-p-')) currentType = document.getElementById(`adm-p-type-${inputId.split('-').pop()}`)?.value || '';
                     else if (inputId.startsWith('req-') && !inputId.startsWith('req-v-')) currentType = document.getElementById(`req-type-${inputId.split('-').pop()}`)?.value || '';
                     else if (app.currentVehicle) currentType = app.currentVehicle.type || '';
-
                     let staticList = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động'];
                     if (currentType === 'coach' || currentType === '') {
                         staticList.unshift('Hợp đồng');
                     }
-
                     let dbRoutes = [];
                     const selectedProv = document.getElementById('up-province')?.value || document.getElementById('info-province')?.value || null;
-
                     try {
                         let rQuery = window.sb.rpc('get_unique_routes');
-
                         if (query.trim().length > 0) {
                             const routeWords = query.trim().split(/\s+/).filter(w => w.length > 0);
-                            // Rpc doesn't support ilike directly if it's returning a table, 
-                            // we need to filter locally or modify the RPC to accept search. 
-                            // For simplicity, we fetch all unique routes (it's a small set of distinct values) and filter locally.
                             const { data } = await rQuery;
                             if (data) {
                                 dbRoutes = data.map(item => item.route_no).filter(Boolean);
@@ -2397,29 +1999,23 @@ cleanupState: () => {
                             }
                         }
                     } catch (e) { console.log("Route suggestion error:", e.message); }
-
-
                     const allRoutes = [...new Set([...staticList, ...dbRoutes])];
                     const filtered = query.length === 0 ? allRoutes : allRoutes.filter(v => v.toLowerCase().includes(query.toLowerCase()));
-
                     if (filtered.length > 0) {
                         box.innerHTML = filtered.map(v => {
                             const safeHTML = app.utils.cleanText(v);
                             const safeJS = v.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-
                             let displayHTML = safeHTML;
                             if (query) {
                                 const escapedQuery = query.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&');
                                 const regex = new RegExp(`(${escapedQuery})`, 'gi');
                                 displayHTML = safeHTML.replace(regex, '<strong class="font-extrabold">$1</strong>');
                             }
-
                             return `<div class="suggestion-item" onmousedown="event.preventDefault(); document.getElementById('${inputId}').value = '${safeJS}'; document.getElementById('${suggestionId}').classList.remove('active'); if('${inputId}' === 'up-route'){ app.upload.autoFillOperatorByRoute(); } if('${inputId}' === 'up-model' && app.upload && app.upload.checkModelPreview){ app.upload.checkModelPreview('${safeJS}'); }">${displayHTML}</div>`;
                         }).join('');
                         box.classList.add('active');
                     } else { box.classList.remove('active'); }
                 },
-
                 triggerSuggestion: async (inputId, suggestionId, query, field = 'model') => {
                     const box = document.getElementById(suggestionId);
                     const inputEl = document.getElementById(inputId);
@@ -2431,71 +2027,51 @@ cleanupState: () => {
                         app.upload.checkModelPreview(query);
                     }
                     if (app.suggestionTimeouts[inputId]) clearTimeout(app.suggestionTimeouts[inputId]);
-
                     let currentType = '';
                     if (inputId.startsWith('up-')) currentType = document.getElementById('up-type')?.value || '';
                     else if (inputId.startsWith('info-')) currentType = document.getElementById('info-type')?.value || '';
                     else if (inputId.startsWith('adm-p-')) currentType = document.getElementById(`adm-p-type-${inputId.split('-').pop()}`)?.value || '';
                     else if (inputId.startsWith('req-') && !inputId.startsWith('req-v-')) currentType = document.getElementById(`req-type-${inputId.split('-').pop()}`)?.value || '';
                     else if (app.currentVehicle) currentType = app.currentVehicle.type || '';
-
-                    // LOGIC MỚI: Tự động phát hiện Input "Tuyến" và "Biển số" tương ứng
                     let routeVal = '';
                     let plateVal = '';
                     if (field === 'model') {
-                        // Ánh xạ ID của ô Tuyến
                         let routeInputId = inputId.replace('model', 'route');
                         let plateInputId = inputId.replace('model', 'plate');
-
                         if (inputId.includes('req-v-model')) {
                             routeInputId = inputId.replace('req-v-model', 'req-route');
                             plateInputId = inputId.replace('req-v-model', 'req-plate');
                         }
-
                         const routeEl = document.getElementById(routeInputId);
                         if (routeEl) routeVal = routeEl.value.trim();
-
                         const plateEl = document.getElementById(plateInputId);
                         if (plateEl) plateVal = plateEl.value.trim();
                     }
-
                     const specialRoutes = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động', 'Xe hợp đồng / Đưa đón', 'Hợp đồng / Đưa đón', 'Hợp đồng'];
                     const isSpecialRoute = specialRoutes.includes(routeVal);
-
-                    // Nếu Query đang rỗng VÀ (không phải trường model HOẶC trường model mà không có tuyến HOẶC tuyến đặc biệt) -> Ẩn box
                     if (query.length < 1 && !(field === 'model' && routeVal.length > 0 && !isSpecialRoute)) {
                         box.classList.remove('active');
                         return;
                     }
-
                     if (app.suggestionControllers && app.suggestionControllers[inputId]) {
                         app.suggestionControllers[inputId].abort();
                     }
-
                     const controller = new AbortController();
                     if (!app.suggestionControllers) app.suggestionControllers = {};
                     app.suggestionControllers[inputId] = controller;
-
                     const table = field === 'operator' ? 'photos' : 'vehicles';
                     const selectField = field === 'operator' ? 'operator' : field;
-
                     const searchWords = query.trim().split(/\s+/).filter(w => w.length > 0);
-
                     try {
                         let data, error;
-
                         if (query.length < 1 && field === 'model' && routeVal.length > 0 && !isSpecialRoute) {
-                            // TRƯỜNG HỢP 1: Query rỗng nhưng có TUYẾN -> Fetch các dòng xe theo Tuyến từ Database
                             let sbQuery = window.sb.from('photos')
                                 .select('vehicles!inner(model)')
                                 .eq('route_no', routeVal)
-                                .eq('status', 'approved'); // CHỈ GỢI Ý TỪ ẢNH ĐÃ ĐƯỢC DUYỆT
-
+                                .eq('status', 'approved'); 
                             if (currentType) {
                                 sbQuery = sbQuery.eq('type', currentType);
                             }
-
-                            // Lọc chính xác theo Tuyến của tỉnh (không trộn với BKS khi đã chọn Tuyến của tỉnh)
                             const selectedProv = document.getElementById('up-province')?.value || null;
                             if (selectedProv && selectedProv !== 'Không xác định') {
                                 sbQuery = sbQuery.eq('province', selectedProv);
@@ -2509,34 +2085,25 @@ cleanupState: () => {
                                     }
                                 }
                             }
-
-                            sbQuery = app.preference.applyFilter(sbQuery); // <--- THÊM DÒNG NÀY
-
+                            sbQuery = app.preference.applyFilter(sbQuery); 
                             const res = await sbQuery.limit(100).abortSignal(controller.signal);
-
                             error = res.error;
                             if (res.data) {
-                                // Trích xuất dữ liệu trả về cho đúng định dạng
                                 data = res.data
                                     .map(item => ({ [selectField]: item.vehicles?.model }))
                                     .filter(item => item[selectField]);
                             }
                         } else {
-                            // TRƯỜNG HỢP 2: Gợi ý bình thường theo Text nhập vào
                             let selectStr = selectField;
                             if (table === 'vehicles') {
                                 selectStr = `${selectField}, photos!inner(status${(app.preference.current !== 'both' || currentType) ? ', type' : ''})`;
                             }
-
                             let sbQuery = window.sb.from(table).select(selectStr);
-
-                            // CHỈ GỢI Ý TỪ ẢNH ĐÃ ĐƯỢC DUYỆT
                             if (table === 'photos') {
                                 sbQuery = sbQuery.eq('status', 'approved');
                             } else if (table === 'vehicles') {
                                 sbQuery = sbQuery.eq('photos.status', 'approved');
                             }
-
                             if (currentType) {
                                 if (table === 'photos') {
                                     sbQuery = sbQuery.eq('type', currentType);
@@ -2544,46 +2111,36 @@ cleanupState: () => {
                                     sbQuery = sbQuery.eq('photos.type', currentType);
                                 }
                             }
-
                             if (table === 'photos') {
                                 const selectedProv = document.getElementById('up-province')?.value || null;
                                 if (selectedProv && selectedProv !== 'Không xác định') {
                                     sbQuery = sbQuery.eq('province', selectedProv);
                                 }
                             }
-
                             searchWords.forEach(word => {
                                 sbQuery = sbQuery.ilike(selectField, `%${word}%`);
                             });
-
                             sbQuery = app.preference.applyFilter(sbQuery, table);
-
                             const res = await sbQuery.limit(15).abortSignal(controller.signal);
                             data = res.data;
                             error = res.error;
                         }
-
                         if (error) { if (error.code === 20 || error.name === 'AbortError') return; throw error; }
-
                         if (data && data.length > 0) {
                             const uniqueVals = [...new Set(data.map(item => item[selectField]).filter(Boolean))];
                             if (uniqueVals.length > 0) {
                                 box.innerHTML = uniqueVals.map(v => {
                                     const safeHTML = app.utils.cleanText(v);
                                     const safeJS = v.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-
                                     let displayHTML = safeHTML;
                                     if (searchWords.length > 0) {
                                         const escapedWords = searchWords.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
                                         const regex = new RegExp(`(${escapedWords})`, 'gi');
                                         displayHTML = safeHTML.replace(regex, '<strong class="font-extrabold">$1</strong>');
                                     }
-
-                                    // Hiển thị thêm nhãn "Dùng ở Tuyến X" (không nhắc gì đến tỉnh)
                                     const labelHtml = (query.length < 1 && field === 'model' && routeVal.length > 0)
                                         ? `<span class="text-[9px] text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded ml-2 font-bold whitespace-nowrap border border-blue-100">Dùng ở Tuyến ${app.utils.cleanText(routeVal)}</span>`
                                         : '';
-
                                      return `<div class="suggestion-item flex justify-between items-start gap-2" onmousedown="event.preventDefault(); const inp = document.getElementById('${inputId}'); inp.value = '${safeJS}'; document.getElementById('${suggestionId}').classList.remove('active'); inp.dispatchEvent(new Event('input')); inp.dispatchEvent(new Event('change'));">
                                                 <span class="break-words whitespace-normal leading-snug">${displayHTML}</span>
                                                 ${labelHtml}
@@ -2596,39 +2153,31 @@ cleanupState: () => {
                         if (e.name !== 'AbortError' && e.message !== 'The user aborted a request.') console.log("Suggestion error:", e.message);
                     }
                 },
-
                 loadAnnouncements: () => {
                     app.newsboard.init();
                 },
-
                 fetchTopUploaders: async () => {
                     try {
                         let allUploaders = [];
                         let from = 0;
                         let step = 999;
                         let fetchMore = true;
-
                         while (fetchMore) {
                             const { data, error } = await window.sb
                                 .from('photos')
                                 .select('uploader_id')
                                 .eq('status', 'approved')
                                 .range(from, from + step);
-
                             if (error || !data) break;
                             allUploaders.push(...data);
-
                             if (data.length <= step) fetchMore = false;
                             from += step + 1;
                         }
-
                         const counts = {};
                         allUploaders.forEach(p => {
                             if (p.uploader_id) counts[p.uploader_id] = (counts[p.uploader_id] || 0) + 1;
                         });
-
                         const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-
                         app.topUploaders = {};
                         app.topUploadersCounts = counts;
                         if (sorted.length > 0) app.topUploaders[sorted[0][0]] = 1;
@@ -2636,7 +2185,6 @@ cleanupState: () => {
                         if (sorted.length > 2) app.topUploaders[sorted[2][0]] = 3;
                     } catch (e) { console.log("Lỗi tải Top:", e); }
                 },
-
                 formatProfileDisplay: (profile) => {
                     if (!profile) return { username: 'Ẩn danh', avatar: DEFAULT_AVATAR, isBanned: false, id: '', linkId: '' };
                     let banInfo = null;
@@ -2648,30 +2196,24 @@ cleanupState: () => {
                     const avatar = isBanned ? DEFAULT_AVATAR : (profile.avatar_url ? app.utils.getProxiedUrl(profile.avatar_url.replace(/"/g, ''), 'avatar.jpg', 'avatar') : DEFAULT_AVATAR);
                     return { username, avatar, isBanned, id: profile.id || '', linkId: profile.id || profile.username || '' };
                 },
-
                 getBadgesHTML: (userId, role, subroles = [], enableClick = false) => {
                     let html = '';
-
                     if (subroles && Array.isArray(subroles)) {
                         const vvccRole = subroles.find(s => s === 'vvcc' || s.startsWith('vvcc|'));
                         if (vvccRole) {
                             const link = vvccRole.includes('|') ? vvccRole.split('|')[1] : null;
-                            // Sử dụng line-height bằng đúng height của container (15px) và display: block để trick text-engine của mobile tự căn giữa chuẩn
                             const innerHtml = `<i class="fa-solid fa-check text-[9px]" style="line-height: 15px; display: block;"></i>`;
                             const styleStr = `background-color: black; color: white; padding: 0; width: 15px; height: 15px; border-radius: 50%; justify-content: center; align-items: center;${enableClick ? ' cursor: pointer;' : ''}`;
-                            
                             if (enableClick) {
                                 html += `<span class="badge-shiny" style="${styleStr}" onclick="app.ui.showVerifiedPopup('vvcc', '${link ? app.utils.escapeHtml(link) : ''}')" title="Verified Content Creator">${innerHtml}</span>`;
                             } else {
                                 html += `<span class="badge-shiny" style="${styleStr}" title="Verified Content Creator">${innerHtml}</span>`;
                             }
                         }
-
                         const vvbsRole = subroles.find(s => s === 'vvbs');
                         if (vvbsRole) {
                             const innerHtml = `<i class="fa-solid fa-check text-[9px]" style="line-height: 15px; display: block;"></i>`;
                             const styleStr = `background-color: #3b82f6; color: white; padding: 0; width: 15px; height: 15px; border-radius: 50%; justify-content: center; align-items: center;${enableClick ? ' cursor: pointer;' : ''}`;
-                            
                             if (enableClick) {
                                 html += `<span class="badge-shiny" style="${styleStr}" onclick="app.ui.showVerifiedPopup('vvbs', '')" title="Verified Bus Staff">${innerHtml}</span>`;
                             } else {
@@ -2679,18 +2221,15 @@ cleanupState: () => {
                             }
                         }
                     }
-
                     if (subroles && subroles.includes('dev')) {
                         html += `<span class="badge-shiny" style="background: linear-gradient(135deg, #22c55e, #15803d);" title="Developer"><i class="fa-solid fa-code mr-1 text-[10px]"></i> Dev</span>`;
                     }
-
                     if (role === 'admin' || role === 'manager') {
                         const badgeClass = role === 'manager' ? 'badge-manager' : 'badge-admin';
                         const badgeText = role === 'manager' ? 'Quản lý' : 'Kiểm duyệt';
                         const badgeTitle = role === 'manager' ? 'Quản lý hệ thống (Quyền cao nhất)' : 'Kiểm duyệt viên';
                         html += `<span class="badge-shiny ${badgeClass}" title="${badgeTitle}"><i class="fa-solid fa-shield-halved mr-1 text-[10px]"></i> ${badgeText}</span>`;
                     }
-
                      if (userId && app.topUploaders[userId]) {
                          const rank = app.topUploaders[userId];
                          if (rank === 1) html += `<span class="badge-shiny badge-top1" title="Top 1 Uploader"><i class="fa-solid fa-crown mr-1 text-[10px]"></i> Top 1</span>`;
@@ -2701,26 +2240,18 @@ cleanupState: () => {
                  },
                  getLast7AM_UTC7: () => {
                      const now = new Date();
-                     // Đổi giờ hiện tại sang UTC+7
                      const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
                      const vnTime = new Date(utc + (3600000 * 7));
-
-                     // Thiết lập mốc 7:00:00 AM
                      let target = new Date(vnTime);
                      target.setHours(7, 0, 0, 0);
-
-                     // Nếu giờ hiện tại VN < 7h sáng, lùi về 7h sáng hôm qua
                      if (vnTime.getTime() < target.getTime()) {
                          target.setDate(target.getDate() - 1);
                      }
-
-                     // Chuyển ngược lại sang chuẩn UTC để query Supabase
                      const targetUTC = new Date(target.getTime() - (3600000 * 7));
                      return targetUTC.toISOString();
                  }
              }
 });
-
 Object.assign(window.app, {
   init: async () => {
         window.onpopstate = () => app.handleRoute();
@@ -2734,13 +2265,10 @@ Object.assign(window.app, {
                 }
             });
         }
-
             let session = null;
-
             try {
                 const { data } = await window.sb.auth.getSession();
                 session = data.session;
-
                 if (session && session.access_token) {
                     fetch('/api/system', {
                         method: 'POST',
@@ -2748,16 +2276,12 @@ Object.assign(window.app, {
                         body: JSON.stringify({ action: 'log_ip' })
                     }).catch(()=>{});
                 }
-
-                // --- CHẶN TÀI KHOẢN CHƯA XÁC MINH NGAY TỪ ĐẦU ---
                 if (session && session.user && !session.user.email_confirmed_at) {
                     document.getElementById('loading-screen').style.display = 'none';
                     if(document.getElementById('app-container')) document.getElementById('app-container').style.display = 'none';
                     app.auth.showVerificationModal(session.user.email);
                     return;
                 }
-                // ---------------------------------------------------
-
                 setTimeout(() => {
                     document.getElementById('loading-screen').style.display = 'none';
                     const appContainer = document.getElementById('app-container');
@@ -2782,32 +2306,22 @@ Object.assign(window.app, {
                         }
                     }, 50);
                 }, 400);
-
                 await app.setUser(session ? session.user : null);
-
                 window.sb.auth.onAuthStateChange(async (event, session) => {
-
                         if (event === 'PASSWORD_RECOVERY') {
-    // Chỉ xử lý trên TAB MỚI (Tab được mở từ Link Email sẽ có chứa chữ type=recovery trên URL)
     if (window.location.hash.includes('type=recovery')) {
         app.auth.mode = 'recovery';
-
-        // Điều hướnh thẳng vào trang Auth để hiện form
         if (window.location.pathname !== '/auth') {
             app.utils.navigate('/auth');
         } else {
             app.views.switch('auth', false);
         }
-
-        // Bắn event gọi AlpineJS đổi giao diện sang Form Nhập mật khẩu mới
         setTimeout(() => {
             window.dispatchEvent(new CustomEvent('set-auth-mode', { detail: 'recovery' }));
         }, 100);
     }
-    // Nếu là TAB CŨ (Trang bạn vừa bấm gửi yêu cầu) -> Return, không làm gì cả!
     return;
 }
-
                         else if (event === 'USER_UPDATED') {
                             const hash = window.location.hash;
                             if (hash && hash.includes('type=email_change')) {
@@ -2817,7 +2331,6 @@ Object.assign(window.app, {
                                 }, 500);
                             }
                         }
-
                         else if (event === 'SIGNED_IN') {
                             const hash = window.location.hash;
                             if (hash && hash.includes('type=signup')) {
@@ -2828,7 +2341,6 @@ Object.assign(window.app, {
                             }
                         }
                     });
-
                 } catch (e) {
                     document.getElementById('loading-screen').style.display = 'none';
                     const appContainer = document.getElementById('app-container');
@@ -2838,39 +2350,32 @@ Object.assign(window.app, {
                     }
                     await app.setUser(null);
                 }
-
-                // Network Resilience (Tích hợp Toast mới)
                 let offlineTimer = null;
                 window.addEventListener('offline', () => {
                     offlineTimer = setTimeout(() => {
                         document.body.classList.add('is-offline');
-                        if (app.toast.currentOfflineToast) app.toast.currentOfflineToast(); // Đóng cái cũ nếu có
+                        if (app.toast.currentOfflineToast) app.toast.currentOfflineToast(); 
                         app.toast.currentOfflineToast = app.toast.show('offline', 'Mất kết nối Internet', 'Bạn đang ngoại tuyến. Dữ liệu sẽ không thể đồng bộ.', 0);
                     }, 3000);
                 });
-                
                 window.addEventListener('online', () => {
                     if (offlineTimer) clearTimeout(offlineTimer);
                     document.body.classList.remove('is-offline');
                     if (app.toast.currentOfflineToast) {
-                        app.toast.currentOfflineToast(); // Ẩn thông báo lỗi
+                        app.toast.currentOfflineToast(); 
                         app.toast.currentOfflineToast = null;
                         app.toast.show('success', 'Đã khôi phục kết nối', 'Mạng Internet đã hoạt động trở lại.', 5000);
                     }
                 });
-
-
-                // Upload Form Auto-save Draft on Exit
                 window.addEventListener('beforeunload', (e) => {
                     if (app.currentViewMode === 'upload') {
                         app.upload.saveDraft();
                     }
                     if (app.upload && app.upload.isQueueProcessing) {
                         e.preventDefault();
-                        e.returnValue = ''; // Chặn đóng tab nếu đang tải dữ liệu ngầm lên
+                        e.returnValue = ''; 
                     }
                 });
-
                 app.scrollPositions = {};
                 app.currentPathForScroll = window.location.pathname + window.location.search;
                 app._isUserScrolling = false;
@@ -2888,18 +2393,11 @@ Object.assign(window.app, {
                 await app.utils.loadProvinceData();
                 app.search.initExactRouteMenu();
                 await app.maintenance.fetch();
-
                 app.preference.load();
-
                 app.onboarding.check();
-
-
-
                 app.handleRoute();
-
                 const upFileEl = document.getElementById('up-file');
                 if (upFileEl) upFileEl.addEventListener('change', app.upload.handleFileSelect);
-
                 const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
                 const webrtcFileEl = document.getElementById('webrtc-mobile-file');
                 const formatHintEl = document.getElementById('upload-format-hint');
@@ -2914,48 +2412,39 @@ Object.assign(window.app, {
                     if (webrtcFileEl) webrtcFileEl.accept = mobileAccept;
                     if (formatHintEl) formatHintEl.innerText = "ĐỊNH DẠNG JPG, PNG, HEIC (RAW CHỈ TRÊN PC)";
                 }
-
-                // Logic Drag & Drop TOÀN MÀN HÌNH (Clean UI: Hình tròn trắng không viền)
                 const dropZone = document.getElementById('drop-zone');
                 if (dropZone) {
                     let dragCounter = 0;
-
                     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
                         window.addEventListener(eventName, e => {
                             e.preventDefault();
                             e.stopPropagation();
                         }, false);
                     });
-
                     window.addEventListener('dragenter', (e) => {
                         const uploadView = document.getElementById('upload');
                         if (!uploadView || !uploadView.classList.contains('active')) return;
-
                         dragCounter++;
                         if (dragCounter === 1) {
-                            // Giao diện ô thông báo màu xanh
                             dropZone.style.backgroundColor = '#eff6ff';
                             dropZone.style.borderColor = '#3b82f6';
                             dropZone.style.color = '#1e40af';
                             dropZone.style.transform = 'scale(1.03)';
                             dropZone.style.boxShadow = '0 25px 50px -12px rgba(59, 130, 246, 0.3)';
                             dropZone.style.transition = 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-
                             const icon = dropZone.querySelector('i');
                             const iconContainer = dropZone.querySelector('.w-16');
-
                             if (icon) {
                                 icon.classList.add('animate-bounce');
-                                icon.style.color = '#000000'; // Đám mây màu đen
+                                icon.style.color = '#000000'; 
                             }
                             if (iconContainer) {
-                                iconContainer.style.backgroundColor = '#ffffff'; // Hình tròn trắng tinh
-                                iconContainer.style.border = 'none';            // Bỏ hoàn toàn viền
-                                iconContainer.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)'; // Thêm đổ bóng nhẹ cho hình tròn nổi lên
+                                iconContainer.style.backgroundColor = '#ffffff'; 
+                                iconContainer.style.border = 'none';            
+                                iconContainer.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)'; 
                             }
                         }
                     });
-
                     const resetDropZoneUI = () => {
                         dropZone.style.backgroundColor = '';
                         dropZone.style.borderColor = '';
@@ -2974,7 +2463,6 @@ Object.assign(window.app, {
                             iconContainer.style.boxShadow = '';
                         }
                     };
-
                     window.addEventListener('dragleave', (e) => {
                         dragCounter--;
                         if (dragCounter <= 0) {
@@ -2982,11 +2470,9 @@ Object.assign(window.app, {
                             resetDropZoneUI();
                         }
                     });
-
                     window.addEventListener('drop', (e) => {
                         dragCounter = 0;
                         resetDropZoneUI();
-
                         const uploadView = document.getElementById('upload');
                         if (uploadView && uploadView.classList.contains('active')) {
                             const dt = e.dataTransfer;
@@ -2999,20 +2485,17 @@ Object.assign(window.app, {
                     });
                 }
                 app.upload.initDraggable();
-
                 document.getElementById('upload-form').addEventListener('submit', app.upload.submit);
                 document.getElementById('inline-edit-form').addEventListener('submit', app.edit.submitInline);
                 document.getElementById('up-plate').addEventListener('blur', app.upload.checkDuplicateRealtime);
                 document.getElementById('up-date').addEventListener('change', app.upload.checkDuplicateRealtime);
                 app.upload.initValidation();
-
                 const fieldMap = {
                     'info-plate': 'plate',
                     'info-operator': 'operator',
                     'info-route': 'route',
                     'info-camera': 'camera'
                 };
-
                 Object.keys(fieldMap).forEach(id => {
                     const el = document.getElementById(id);
                     if(!el) return;
@@ -3042,8 +2525,6 @@ Object.assign(window.app, {
                         }
                     });
                 });
-
-                // XỬ LÝ RIÊNG CHO INFO-MODEL (ĐIỀU HƯỚNG SANG PROFILE DÒNG XE)
                 const elInfoModel = document.getElementById('info-model');
                 if (elInfoModel) {
                     elInfoModel.addEventListener('click', function() {
@@ -3052,14 +2533,11 @@ Object.assign(window.app, {
                         }
                     });
                 }
-
-                // ---- KÍCH HOẠT SỰ KIỆN CHO CẢ 2 Ô TÌM KIẾM ----
                 const clearSearchInput = (inputEl, sugId) => {
                     inputEl.value = '';
                     document.getElementById(sugId).classList.remove('active');
                     app.search.triggerMainSuggestion('', inputEl.id, sugId);
                 };
-
                 document.getElementById('search-input').addEventListener('keydown', function (e) {
                     if (e.key === 'Enter') { document.getElementById('main-search-suggestions').classList.remove('active'); app.handleSearch(true, 'search-input'); }
                     if (e.key === 'Escape') clearSearchInput(e.target, 'main-search-suggestions');
@@ -3073,7 +2551,6 @@ Object.assign(window.app, {
                 document.getElementById('search-input').addEventListener('focus', function (e) {
                     app.search.triggerMainSuggestion(e.target.value.trim(), 'search-input', 'main-search-suggestions');
                 });
-
                 const pageSearchInput = document.getElementById('page-search-input');
                 if (pageSearchInput) {
                     pageSearchInput.addEventListener('keydown', function (e) {
@@ -3090,15 +2567,12 @@ Object.assign(window.app, {
                         app.search.triggerMainSuggestion(e.target.value.trim(), 'page-search-input', 'page-search-suggestions');
                     });
                 }
-
                 document.getElementById('up-location').addEventListener('input', function () {
                     clearTimeout(app.searchTimeout);
                     app.searchTimeout = setTimeout(() => {
                         app.utils.geocodeAddress(this.value);
                     }, 1000);
                 });
-
-                // Sửa logic ẩn menu thả xuống để hỗ trợ nhiều menu Filter
                 document.addEventListener('click', function (e) {
                     document.querySelectorAll('.filter-menu').forEach(menu => {
                         const btn = menu.previousElementSibling;
@@ -3106,48 +2580,39 @@ Object.assign(window.app, {
                             menu.classList.remove('active');
                         }
                     });
-
                     document.querySelectorAll('.suggestion-box').forEach(box => {
                         if (!box.contains(e.target) && !box.previousElementSibling.contains(e.target)) {
                             box.classList.remove('active');
                         }
                     });
-
                     const advSugBox = document.getElementById('adv-filter-suggestions');
                     const advInputContainer = document.getElementById('adv-filter-value-container');
                     if (advSugBox && advInputContainer && !advSugBox.contains(e.target) && !advInputContainer.contains(e.target)) {
                         advSugBox.classList.remove('active');
                     }
-
                     const userMenuDropdown = document.getElementById('user-dropdown');
                     const userMenuContainer = document.getElementById('user-menu-container');
                     if (userMenuDropdown && userMenuContainer && !userMenuDropdown.contains(e.target) && !userMenuContainer.contains(e.target)) {
                         app.ui.toggleUserMenu(false);
                     }
                 });
-
                 app.upload.initMap();
                 app.utils.loadAnnouncements();
                 app.utils.fetchTopUploaders();
-
-
                 app.initRealtimeChannel = () => {
                     if (app.realtimeChannel) {
                     window.sb.removeChannel(app.realtimeChannel);
                 }
-
                 let channel = window.sb.channel('global-changes')
                     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'photos', filter: 'status=eq.approved' }, payload => {
                         if (app.currentViewMode === 'home') {
                             const now = Date.now();
-                            // CHỐNG BẮN REAL: chỉ reload tối đa 1 lần / 30s, và bỏ qua khi user đang cuộn
                             if (app._lastHomeRealtimeReload && now - app._lastHomeRealtimeReload < 30000) return;
                             if (app._isUserScrolling) return;
                             app._lastHomeRealtimeReload = now;
                             app.views.loadHome(true);
                         }
                     });
-                    
                 if (app.role === 'admin' || app.role === 'manager') {
                     channel = channel.on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'admin_notes' }, payload => {
                         if (payload.new && payload.new.id === 1) {
@@ -3166,7 +2631,6 @@ Object.assign(window.app, {
                         }
                     });
                 }
-                
                 channel = channel.on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'photos' }, payload => {
                         if (app.currentPhoto && app.currentPhoto.id === payload.new.id) {
                             const viewEl = document.getElementById('stat-views');
@@ -3219,7 +2683,6 @@ Object.assign(window.app, {
                             if (app.admin && app.admin.refreshCounts) app.admin.refreshCounts();
                         }
                     });
-                        
                 if (app.role === 'admin' || app.role === 'manager') {
                     channel = channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'photos', filter: 'status=eq.pending' }, async payload => {
                         if (app.adminTab === 'photos' && (app.role === 'admin' || app.role === 'manager') && payload.new && payload.new.id) {
@@ -3237,7 +2700,6 @@ Object.assign(window.app, {
                                         let opSet = app.admin?.approvedOpSet || new Set();
                                         let routeSet = app.admin?.approvedRouteSet || new Set();
                                         let modelSet = app.admin?.approvedModelSet || new Set();
-
                                         const plateKey = (newPhoto.license_plate || '').trim().toUpperCase();
                                         if (plateKey && !plateSet.has(plateKey)) {
                                             const { data: vData } = await window.sb.from('vehicles').select('license_plate').eq('license_plate', plateKey).limit(1);
@@ -3270,7 +2732,6 @@ Object.assign(window.app, {
                                             const { data: pData } = await window.sb.from('photos').select('vehicles!inner(model)').eq('status', 'approved').ilike('vehicles.model', modelKey).limit(1);
                                             if ((vData && vData.length > 0) || (pData && pData.length > 0)) modelSet.add(modelKey);
                                         }
-
                                         const tempDiv = document.createElement('div');
                                         tempDiv.innerHTML = app.admin.renderSinglePhotoCardHTML(newPhoto, plateSet, opSet, routeSet, modelSet);
                                         const newCard = tempDiv.firstElementChild;
@@ -3282,11 +2743,9 @@ Object.assign(window.app, {
                                             const newId = Number(newPhoto.id) || 0;
                                             const existingCards = Array.from(content.querySelectorAll('.admin-card'));
                                             let insertBeforeTarget = null;
-
                                             for (const card of existingCards) {
                                                 const isCardPrivileged = card.getAttribute('data-privileged') === 'true';
                                                 const cardId = Number(card.getAttribute('data-photo-id')) || 0;
-
                                                 if (isNewPrivileged) {
                                                     if (!isCardPrivileged || cardId > newId) {
                                                         insertBeforeTarget = card;
@@ -3299,7 +2758,6 @@ Object.assign(window.app, {
                                                     }
                                                 }
                                             }
-
                                             if (insertBeforeTarget) {
                                                 content.insertBefore(newCard, insertBeforeTarget);
                                             } else {
@@ -3319,7 +2777,6 @@ Object.assign(window.app, {
                         }
                     });
                 }
-                
                 channel = channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'vehicles' }, payload => {
                         const upPlate = document.getElementById('up-plate');
                         if (document.getElementById('upload').classList.contains('active') && upPlate && upPlate.value) {
@@ -3328,7 +2785,6 @@ Object.assign(window.app, {
                             }
                         }
                     })
-
                     .subscribe((status, err) => {
                         if (status === 'SUBSCRIBED') {
                             console.log('🔌 Connected to Realtime');
@@ -3341,14 +2797,11 @@ Object.assign(window.app, {
                 app.realtimeChannel = channel;
                 };
                 app.initRealtimeChannel();
-
                 window.addEventListener('visibilitychange', () => {
-
                     if (document.visibilityState === 'visible') {
                         if (!app.isReinitializing) {
                             app.reinitializeComponents();
                         }
-
                         const state = (app.realtimeChannel?.state || '').toLowerCase();
                         if (state !== 'joined' && state !== 'joining') {
                             console.log('🔄 Tab visible: Reconnecting Realtime...');
@@ -3357,7 +2810,6 @@ Object.assign(window.app, {
                         }
                     }
                 });
-
                 window.addEventListener('offline', () => app.setRealtimeStatus(false));
                 window.addEventListener('online', () => {
                     const state = (app.realtimeChannel?.state || '').toLowerCase();
@@ -3370,7 +2822,6 @@ Object.assign(window.app, {
                 });
             }
 });
-
 Object.assign(window.app, {
   isRealtimeConnected: true,
   setRealtimeStatus: (isConnected) => {
@@ -3398,15 +2849,12 @@ Object.assign(window.app, {
       }
   },
   handleRoute: () => {
-                app.loadingBar.start(); // Bật thanh loading ngay lập tức
+                app.loadingBar.start(); 
                 app.utils.cleanupState();
                 if (app.utils && app.utils.updateCanonical) app.utils.updateCanonical();
-
                 const path = window.location.pathname;
                 const searchParams = new URLSearchParams(window.location.search);
                 app.currentPathForScroll = path + window.location.search;
-
-                // CHUYỂN GIAO DIỆN (UI) NGAY LẬP TỨC TRƯỚC, DATA LOAD NGẦM SAU
                 if (path === '/login' && searchParams.get('qr')) {
                     app.views.switch('home', false);
                     setTimeout(() => app.qrLogin.initClient(searchParams.get('qr')), 500);
@@ -3480,15 +2928,11 @@ Object.assign(window.app, {
                     document.title = 'Tìm kiếm | VNBUSARCHIVE';
                     const q = searchParams.get('q');
                     let filter = searchParams.get('filter') || 'all';
-
                     if (filter === 'absolute_route') filter = 'route'; 
-
                     app.search.setFilter(filter, false);
                     if (filter === 'route') {
                         app.search.syncExactUI(searchParams.get('prefix') || '');
                     }
-
-                    // Decode &f= params (Giải mã tham số bộ lọc nâng cao từ URL)
                     const fParams = searchParams.getAll('f');
                     if (fParams && fParams.length > 0) {
                         app.search.advancedFilters = fParams.map(fp => {
@@ -3496,12 +2940,9 @@ Object.assign(window.app, {
                             if (parts.length === 3) {
                                 const fMap = app.search.FIELD_CONFIGS || {};
                                 const fieldCfg = fMap[parts[0]] || { label: parts[0] };
-                                
                                 const opMap = { 'eq': '= Bằng', 'neq': '≠ Khác', 'ilike': 'Chứa', 'not_ilike': 'Không chứa', 'gt': '> Sau', 'gte': '≥ Từ', 'lt': '< Trước', 'lte': '≤ Đến' };
-                                
                                 let valDisplay = parts[2];
                                 if (parts[0] === 'type') valDisplay = parts[2] === 'bus' ? 'Xe Buýt' : 'Xe Khách';
-
                                 return {
                                     id: Date.now().toString() + Math.random().toString(36).substring(2, 5),
                                     field: parts[0],
@@ -3517,18 +2958,14 @@ Object.assign(window.app, {
                     } else if (filter !== 'advanced') {
                         app.search.advancedFilters = [];
                     }
-
-                    // FIX SỰ CỐ: Nếu có từ khóa Q HOẶC có Bộ Lọc Nâng Cao -> BẮT BUỘC chuyển sang giao diện Search
                     const hasAdvanced = filter === 'advanced' || (fParams && fParams.length > 0) || (app.search.advancedFilters && app.search.advancedFilters.length > 0);
-                    
                     if (q !== null || hasAdvanced || searchParams.has('q')) {
                         const decodedQ = q ? decodeURIComponent(q) : '';
                         const headerInp = document.getElementById('search-input');
                         const pageInp = document.getElementById('page-search-input');
                         if (headerInp) headerInp.value = decodedQ;
                         if (pageInp) pageInp.value = decodedQ;
-                        
-                        app.views.switch('search', false); // ÉP MỞ TRANG SEARCH
+                        app.views.switch('search', false); 
                         if (typeof app.search.renderAdvancedFilterChips === 'function') {
                             app.search.renderAdvancedFilterChips();
                         }
@@ -3540,141 +2977,106 @@ Object.assign(window.app, {
                     app.views.switch('home', false);
                     app.views.loadHome();
                 }
-
                 app.utils.updateBreadcrumbs();
-                
-                // Trả cảm giác mượt mà: Bất chấp Database load lâu cỡ nào, thanh Loading chạy xong ngay sau khi đổi UI!
                 setTimeout(() => {
                     app.loadingBar.finish();
                 }, 150);
             }
 });
-
 Object.assign(window.app, {
   previousPath: '/'
 });
-
 Object.assign(window.app, {
   rawFile: null
 });
-
 Object.assign(window.app, {
   wmState: { x: 0.5, y: 0.5, color: 'white', scale: 1.0, mode: (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_mode')) || 'basic' }
 });
-
 Object.assign(window.app, {
   vehicleLocked: false
 });
-
 Object.assign(window.app, {
   currentPlate: null
 });
-
 Object.assign(window.app, {
   currentPhoto: null
 });
-
 Object.assign(window.app, {
   currentVehicle: null
 });
-
 Object.assign(window.app, {
   adminTab: 'photos'
 });
-
 Object.assign(window.app, {
   loadedCount: 0
 });
-
 Object.assign(window.app, {
   uploadMap: null
 });
-
 Object.assign(window.app, {
   uploadMarker: null
 });
-
 Object.assign(window.app, {
   detailMap: null
 });
-
 Object.assign(window.app, {
   detailMarker: null
 });
-
 Object.assign(window.app, {
   currentExif: { camera: 'N/A', params: 'N/A' }
 });
-
 Object.assign(window.app, {
   searchTimeout: null
 });
-
 Object.assign(window.app, {
   currentFilter: 'all'
 });
-
 Object.assign(window.app, {
   alertCallback: null
 });
-
 Object.assign(window.app, {
   alertCancelCallback: null
 });
-
 Object.assign(window.app, {
   isReinitializing: false
 });
-
 Object.assign(window.app, {
   draggableInitialized: false
 });
-
 Object.assign(window.app, {
   suggestionTimeouts: {}
 });
-
 Object.assign(window.app, {
   suggestionControllers: {}
 });
-
 Object.assign(window.app, {
   currentSearchResults: []
 });
-
 Object.assign(window.app, {
   currentSearchCards: []
 });
-
 Object.assign(window.app, {
   loadedSearchCardsCount: 0
 });
-
 Object.assign(window.app, {
   PROFILE_PAGE_SIZE: 12
 });
-
 Object.assign(window.app, {
   profilePage: 1
 });
-
 Object.assign(window.app, {
   likedPage: 1
 });
-
 Object.assign(window.app, {
   currentProfileId: null
 });
-
 Object.assign(window.app, {
   _isOwnProfile: false
 });
-
 Object.assign(window.app, {
   reinitializeComponents: async () => {
                 if (app.isReinitializing) return;
                 app.isReinitializing = true;
-
                 try {
                     if (app.uploadMap) {
                         setTimeout(() => app.uploadMap.invalidateSize(), 100);
@@ -3682,20 +3084,16 @@ Object.assign(window.app, {
                     if (app.detailMap) {
                         setTimeout(() => app.detailMap.invalidateSize(), 100);
                     }
-
                     if (document.getElementById('upload').classList.contains('active')) {
                         app.upload.initDraggable();
                     }
-
                     if (document.getElementById('admin').classList.contains('active')) {
                         app.admin.loadTab(app.adminTab);
                     }
-
                     if (app.suggestionTimeouts) {
                         Object.keys(app.suggestionTimeouts).forEach(key => clearTimeout(app.suggestionTimeouts[key]));
                     }
                     app.suggestionTimeouts = {};
-
                     if (app.suggestionControllers) {
                         Object.keys(app.suggestionControllers).forEach(key => {
                             if (app.suggestionControllers[key]) {
@@ -3704,7 +3102,6 @@ Object.assign(window.app, {
                         });
                     }
                     app.suggestionControllers = {};
-
                 } catch (e) {
                     console.warn('Re-init warning:', e);
                 } finally {
@@ -3712,7 +3109,6 @@ Object.assign(window.app, {
                 }
             }
 });
-
 Object.assign(window.app, {
   searchRedirect: (query, filterType = 'all', prefix = '') => {
                 let url = `/search?q=${encodeURIComponent(query)}&filter=${filterType}`;
@@ -3720,21 +3116,17 @@ Object.assign(window.app, {
                 app.utils.navigate(url);
             }
 });
-
 Object.assign(window.app, {
   notifications: { init: ()=>{}, add: async ()=>{} }
 });
-
 Object.assign(window.app, {
   settings: {
-
                 search: (query, inputId = 'set-search-input-main', sugId = 'set-search-sug-main') => {
                     const box = document.getElementById(sugId);
                     if (!query.trim()) {
                         box.classList.remove('active');
                         return;
                     }
-
                     const keywords = [
                         { text: "Tùy chỉnh hồ sơ", tab: "profile", parent: "account", icon: "fa-user-pen" },
                         { text: "Avatar", tab: "profile", parent: "account", icon: "fa-user-pen" },
@@ -3763,15 +3155,12 @@ Object.assign(window.app, {
                         { text: "Quy tắc bình luận", tab: "docs-chatrule", parent: "docs", icon: "fa-comments" },
                         { text: "Chat rule", tab: "docs-chatrule", parent: "docs", icon: "fa-comments" }
                     ];
-
                     const lowerQ = app.utils.cleanText(query.toLowerCase());
                     const words = lowerQ.split(/\s+/);
-
                     const results = keywords.filter(k => {
                         const target = k.text.toLowerCase();
                         return words.every(w => target.includes(w));
                     });
-
                     if (results.length > 0) {
                         box.innerHTML = results.map(r => `
                             <div class="suggestion-item border-b border-gray-100 last:border-0 flex items-center gap-3 py-3"
@@ -3786,35 +3175,26 @@ Object.assign(window.app, {
                         box.classList.add('active');
                     }
                 },
-
                 jumpTo: (tab, parent) => {
                     app.settings.closeDocsMenu(true);
                     app.settings.closeAccountMenu(true);
                     app.settings.closeAccountMenu(true);
-
                     if (parent === 'account') app.settings.openAccountMenu();
                     if (parent === 'docs') app.settings.openDocsMenu();
-
                     app.settings.switchTab(tab);
                 },
-
                 openAccountMenu: () => {
                     const main = document.getElementById('set-menu-main');
                     const acc = document.getElementById('set-menu-account');
-
                     main.classList.add('hidden');
                     main.classList.remove('flex');
                     acc.classList.remove('hidden');
                     acc.classList.add('flex', 'slide-left-enter');
                     acc.classList.remove('slide-right-enter');
-
-                    // app.settings.switchTab('profile');
                 },
-
                 closeAccountMenu: (instant = false) => {
                     const main = document.getElementById('set-menu-main');
                     const acc = document.getElementById('set-menu-account');
-
                     if (instant) {
                         acc.classList.add('hidden');
                         acc.classList.remove('flex', 'slide-left-enter', 'slide-right-enter');
@@ -3826,35 +3206,24 @@ Object.assign(window.app, {
                         main.classList.remove('hidden');
                         main.classList.add('flex', 'slide-right-enter');
                         main.classList.remove('slide-left-enter');
-                        // Tắt tự động nhảy tab để nội dung bên phải độc lập với menu
-            // app.settings.switchTab(app.user ? 'badges' : 'preference');
                     }
                 },
-
                 open: async (targetTab = null, targetParent = null) => {
                     const modal = document.getElementById('settings-modal');
                     const content = document.getElementById('settings-content');
-
                     app.ui.toggleUserMenu(false);
-
-                    // Reset menu trượt về menu chính
                     app.settings.closeDocsMenu(true);
                     app.settings.closeAccountMenu(true);
-
                     if (targetParent === 'account') app.settings.openAccountMenu();
                     else if (targetParent === 'docs') app.settings.openDocsMenu();
-
                     if (app.user) {
                         document.querySelectorAll('.account-only-btn').forEach(el => el.style.display = '');
-
                         if (app.user.email) {
                             const currentEmailEl = document.getElementById('set-current-email');
                             if (currentEmailEl) currentEmailEl.innerText = app.user.email;
                         }
-
                         app.settings.switchTab(targetTab || 'blank');
                         app.settings.loadIdentities();
-
                         const avatarImg = document.getElementById('set-avatar-img');
                         try {
                             const { data: profile } = await window.sb.from('profiles').select('avatar_url').eq('id', app.user.id).single();
@@ -3869,12 +3238,10 @@ Object.assign(window.app, {
                         }
                         avatarImg.onerror = () => { avatarImg.src = DEFAULT_AVATAR; };
                     } else {
-                        // Khách ẩn phần Tài khoản, mở thẳng Cá nhân hóa
                         document.querySelectorAll('.account-only-btn').forEach(el => el.style.display = 'none');
                         app.settings.switchTab(targetTab || 'blank');
                         app.preference.updateUI();
                     }
-
                     modal.classList.remove('hidden');
                     app.ui.lockScroll();
                     setTimeout(() => {
@@ -3882,7 +3249,6 @@ Object.assign(window.app, {
                         content.classList.add('opacity-100', 'scale-100');
                     }, 10);
                 },
-
                 close: () => {
                     const modal = document.getElementById('settings-modal');
                     const content = document.getElementById('settings-content');
@@ -3893,24 +3259,18 @@ Object.assign(window.app, {
                         app.ui.unlockScroll();
                     }, 200);
                 },
-
                 openDocsMenu: () => {
                     const main = document.getElementById('set-menu-main');
                     const docs = document.getElementById('set-menu-docs');
-
                     main.classList.add('hidden');
                     main.classList.remove('flex');
                     docs.classList.remove('hidden');
                     docs.classList.add('flex', 'slide-left-enter');
                     docs.classList.remove('slide-right-enter');
-
-                    // app.settings.switchTab('docs-intro');
                 },
-
                 closeDocsMenu: (instant = false) => {
                     const main = document.getElementById('set-menu-main');
                     const docs = document.getElementById('set-menu-docs');
-
                     if (instant) {
                         docs.classList.add('hidden');
                         docs.classList.remove('flex', 'slide-left-enter', 'slide-right-enter');
@@ -3922,35 +3282,27 @@ Object.assign(window.app, {
                         main.classList.remove('hidden');
                         main.classList.add('flex', 'slide-right-enter');
                         main.classList.remove('slide-left-enter');
-                        // Tắt tự động nhảy tab để nội dung bên phải độc lập với menu
-            // app.settings.switchTab(app.user ? 'badges' : 'preference');
                     }
                 },
-
                 switchTab: (tab) => {
                     const tabs = ['blank', 'profile', 'security', 'links', 'badges', 'preference', 'docs-intro', 'docs-requirements', 'docs-policy', 'docs-chatrule'];
                     const activeClasses = ['bg-black', 'text-white', 'border-black', 'shadow-sm'];
                     const inactiveClasses = ['bg-white', 'text-gray-600', 'hover:bg-gray-50', 'border-gray-200'];
-
                     tabs.forEach(t => {
                         const btn = document.getElementById('set-tab-' + t);
                         const content = document.getElementById('set-content-' + t);
                         if(!btn || !content) return;
-
                         if(t === tab) {
                             btn.classList.remove(...inactiveClasses);
                             btn.classList.add(...activeClasses);
                             content.classList.remove('hidden');
                             content.classList.add('block');
-
-                            // Nếu là tab tài liệu thì tải nội dung
                             if (t.startsWith('docs-')) {
                                 app.docs.fetchContent(t);
                             } else if (t === 'X') {
-
                             } else if (t === 'preference') {
                                 app.preference.tempSelection = app.preference.current || 'both';
-                                app.preference.tempShowRec = app.preference.showRecommendations; // FIX: Đồng bộ đúng trạng thái
+                                app.preference.tempShowRec = app.preference.showRecommendations; 
                                 app.preference.updateUI();
                             }
                         } else {
@@ -3960,7 +3312,6 @@ Object.assign(window.app, {
                             content.classList.remove('block');
                         }
                     });
-
                     if (tab === 'links') {
                         app.settings.loadIdentities();
                         if (app.settings.loadDiscordVerifyStatus) app.settings.loadDiscordVerifyStatus();
@@ -3974,16 +3325,13 @@ Object.assign(window.app, {
                     try {
                         const { data: { session } } = await window.sb.auth.getSession();
                         if (!session) return;
-                        
                         const { count } = await window.sb.from('photos').select('*', { count: 'estimated', head: true }).eq('uploader_id', app.user.id).eq('status', 'approved');
-                        
                         const res = await fetch('/api/discord', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
                             body: JSON.stringify({ action: 'status' })
                         });
                         const data = await res.json();
-                        
                         if (!data.linked) {
                             actionBtn.innerHTML = `<button onclick="app.settings.jumpTo('badges', 'main')" class="px-4 py-2 bg-black text-white text-xs font-bold rounded hover:bg-gray-800 transition shadow-sm border border-black whitespace-nowrap">Liên kết Discord</button>`;
                             return;
@@ -3992,10 +3340,8 @@ Object.assign(window.app, {
                             actionBtn.innerHTML = `<a href="https://discord.com/invite/BNWyqbuvwq" target="_blank" class="px-4 py-2 bg-[#5865F2] text-white text-xs font-bold rounded hover:bg-[#4752C4] transition shadow-sm border border-[#5865F2] whitespace-nowrap inline-block text-center">Tham gia Server</a>`;
                             return;
                         }
-                        
                         const isClaimed = data.claimedRoles && data.claimedRoles.includes('1519296926477058203');
                         const isEligible = (count || 0) >= 1;
-                        
                         if (isClaimed) {
                             actionBtn.innerHTML = `<button disabled class="px-4 py-2 bg-gray-100 text-gray-400 text-xs font-bold rounded cursor-not-allowed border border-gray-200 whitespace-nowrap"><i class="fa-solid fa-check mr-1"></i> Đã xác minh</button>`;
                         } else if (isEligible) {
@@ -4033,19 +3379,15 @@ Object.assign(window.app, {
                 loadIdentities: async () => {
                     const container = document.getElementById('linked-accounts-container');
                     if(!app.user) return;
-
                     try {
                         const { data: { user }, error } = await window.sb.auth.getUser();
                         if (error || !user) throw error;
-
                         const identities = user.identities || [];
                         const providers = identities.map(id => id.provider);
-
                         const renderProvider = (name, iconClass, colorClass, providerKey) => {
                             const isLinked = providers.includes(providerKey);
                             const identity = identities.find(id => id.provider === providerKey);
                             const identityId = identity ? identity.identity_id : null;
-
                             return `
                             <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 border border-gray-200 rounded-md bg-gray-50 gap-3">
                                 <div class="flex items-center gap-3">
@@ -4066,11 +3408,9 @@ Object.assign(window.app, {
                             </div>
                             `;
                         };
-
                         container.innerHTML =
                             renderProvider('Google', 'fa-brands fa-google', 'bg-red-500', 'google') +
                             renderProvider('Discord', 'fa-brands fa-discord', 'bg-[#5865F2]', 'discord');
-
                     } catch (err) {
                         container.innerHTML = `<p class="text-xs text-red-500">Lỗi lấy thông tin liên kết: ${err.message}</p>`;
                     }
@@ -4093,7 +3433,6 @@ Object.assign(window.app, {
                             try {
                                 const { error } = await window.sb.auth.unlinkIdentity({ identity_id: identityId });
                                 if (error) throw error;
-
                                 app.ui.showAlert(`Đã hủy liên kết với ${providerName} thành công!`);
                                 app.settings.loadIdentities();
                             } catch (err) {
@@ -4108,16 +3447,13 @@ Object.assign(window.app, {
                     const loading = document.getElementById('badge-loading');
                     const reqBox = document.getElementById('badge-requirements');
                     const claimBox = document.getElementById('badge-claim-list');
-
                     loading.classList.remove('hidden');
                     reqBox.classList.add('hidden');
                     claimBox.classList.add('hidden');
-
                     try {
                         const { data: { session } } = await window.sb.auth.getSession();
                         const token = session?.access_token;
                         if (!token) throw new Error("Chưa đăng nhập");
-
                         const res = await fetch('/api/discord', {
                             method: 'POST',
                             headers: {
@@ -4127,24 +3463,18 @@ Object.assign(window.app, {
                             body: JSON.stringify({ action: 'status' })
                         });
                         const data = await res.json();
-                        
                         app.customRoleDetails = data.customRoleDetails || null;
-
                         if (!data.linked || !data.inServer) {
                             loading.classList.add('hidden');
                             reqBox.classList.remove('hidden');
-
                             const reqLinkContainer = document.getElementById('req-link-container');
                             const reqLinkStatus = document.getElementById('req-link-status');
                             const reqLinkAction = document.getElementById('req-link-action');
-
                             const reqServerContainer = document.getElementById('req-server-container');
                             const reqServerStatus = document.getElementById('req-server-status');
                             const reqServerAction = document.getElementById('req-server-action');
-
                             const incompleteClasses = ['bg-red-50', 'border', 'border-red-200'];
                             const completeClasses = ['bg-green-50', 'border', 'border-green-200'];
-
                             if (data.linked) {
                                 reqLinkContainer.classList.add(...completeClasses);
                                 reqLinkContainer.classList.remove(...incompleteClasses);
@@ -4158,7 +3488,6 @@ Object.assign(window.app, {
                                 reqLinkStatus.innerHTML = `<i class="fa-solid fa-times-circle w-5 text-center text-red-600"></i> <span>Chưa liên kết tài khoản Discord</span>`;
                                 reqLinkAction.classList.remove('hidden');
                             }
-
                             if (data.inServer) {
                                 reqServerContainer.classList.add(...completeClasses);
                                 reqServerContainer.classList.remove(...incompleteClasses);
@@ -4174,14 +3503,11 @@ Object.assign(window.app, {
                             }
                             return;
                         }
-
                         const { count } = await window.sb.from('photos')
                             .select('*', { count: 'estimated', head: true })
                             .eq('uploader_id', app.user.id)
                             .eq('status', 'approved');
-
                         document.getElementById('badge-photo-count').innerText = count || 0;
-
 const ROLE_MAP_FRONTEND = {
     50: '1506239795175620728',
     100: '1505158627747561482',
@@ -4189,16 +3515,13 @@ const ROLE_MAP_FRONTEND = {
     500: '1505158986725462078',
     1000: '1505159111686488164'
 };
-
 const tiers = [50, 100, 200, 500, 1000, 2000];
 const grid = document.getElementById('badges-grid');
-
 grid.innerHTML = tiers.map(tier => {
     if (tier === 2000) {
         const hasCustomRole = !!data.customRoleId;
         const isEligible = (count || 0) >= 2000;
         let btnHtml = '';
-
         if (hasCustomRole) {
             btnHtml = `<button onclick="app.openCustomRolePrompt(true)" class="px-4 py-2 bg-gray-100 text-gray-800 text-xs font-bold rounded-md border border-gray-300 hover:bg-gray-200 transition whitespace-nowrap"><i class="fa-solid fa-pen mr-1"></i> Sửa Role</button>`;
         } else if (isEligible) {
@@ -4206,7 +3529,6 @@ grid.innerHTML = tiers.map(tier => {
         } else {
             btnHtml = `<button disabled class="px-4 py-2 bg-gray-50 text-gray-400 text-xs font-bold rounded cursor-not-allowed border border-gray-200 whitespace-nowrap"><i class="fa-solid fa-lock mr-1"></i> Chưa đủ đ/k</button>`;
         }
-
         return `
         <div class="flex items-center justify-between p-3 border border-purple-200 rounded-md bg-purple-50">
             <div class="flex items-center gap-3 overflow-hidden">
@@ -4221,11 +3543,9 @@ grid.innerHTML = tiers.map(tier => {
             <div>${btnHtml}</div>
         </div>`;
     }
-
     const roleId = ROLE_MAP_FRONTEND[tier];
     const isClaimed = data.claimedRoles.includes(roleId);
     const isEligible = (count || 0) >= tier;
-
     let btnHtml = '';
     if (isClaimed) {
         btnHtml = `<button disabled class="px-4 py-2 bg-gray-100 text-gray-400 text-xs font-bold rounded cursor-not-allowed border border-gray-200 whitespace-nowrap"><i class="fa-solid fa-check mr-1"></i> Đã nhận</button>`;
@@ -4234,7 +3554,6 @@ grid.innerHTML = tiers.map(tier => {
     } else {
         btnHtml = `<button disabled class="px-4 py-2 bg-gray-50 text-gray-400 text-xs font-bold rounded cursor-not-allowed border border-gray-200 whitespace-nowrap"><i class="fa-solid fa-lock mr-1"></i> Chưa đủ đ/k</button>`;
     }
-
     return `
     <div class="flex items-center justify-between p-3 border border-gray-200 rounded-md bg-white">
         <div class="flex items-center gap-3 overflow-hidden">
@@ -4249,25 +3568,20 @@ grid.innerHTML = tiers.map(tier => {
         <div>${btnHtml}</div>
     </div>`;
 }).join('');
-
                         loading.classList.add('hidden');
                         claimBox.classList.remove('hidden');
-
                     } catch (err) {
                         loading.innerHTML = `<span class="text-red-500"><i class="fa-solid fa-triangle-exclamation"></i> Lỗi: ${err.message}</span>`;
                     }
                 },
-
                 claimBadge: async (tier) => {
                     const btn = document.getElementById(`btn-claim-${tier}`);
                     const originalText = btn.innerHTML;
                     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
                     btn.disabled = true;
-
                     try {
                         const { data: { session } } = await window.sb.auth.getSession();
                         const token = session?.access_token;
-
                         const res = await fetch('/api/discord', {
                             method: 'POST',
                             headers: {
@@ -4276,14 +3590,10 @@ grid.innerHTML = tiers.map(tier => {
                             },
                             body: JSON.stringify({ action: 'claim', tier: tier })
                         });
-
                         const data = await res.json();
-
                         if (!res.ok) throw new Error(data.error || 'Lỗi không xác định');
-
                         app.toast.show('success', 'Thành công', data.message || "Đã nhận Role thành công!");
                         app.settings.loadBadges();
-
                     } catch (err) {
                         app.ui.showAlert("Lỗi: " + err.message);
                         btn.innerHTML = originalText;
@@ -4292,21 +3602,17 @@ grid.innerHTML = tiers.map(tier => {
 }
                 }
 });
-
 Object.assign(window.app, {
   openCustomRolePrompt: (hasCustomRole = false) => {
                     const modal = document.getElementById('custom-role-modal');
                     const content = document.getElementById('custom-role-content');
                     const okBtn = document.getElementById('cr-ok-btn');
                     const deleteBtn = document.getElementById('cr-delete-btn');
-
                     if (deleteBtn) {
                         deleteBtn.classList.toggle('hidden', !hasCustomRole);
                     }
-
                     const nameInput = document.getElementById('cr-name-input');
                     const colorInput = document.getElementById('cr-color-input');
-
                     if (hasCustomRole && app.customRoleDetails) {
                         if (nameInput) nameInput.value = app.customRoleDetails.name || '';
                         if (colorInput) colorInput.value = app.customRoleDetails.color || '#000000';
@@ -4314,9 +3620,7 @@ Object.assign(window.app, {
                         if (nameInput) nameInput.value = '';
                         if (colorInput) colorInput.value = '#000000';
                     }
-
                     app.ui.lockScroll();
-
                     if (deleteBtn) {
                         deleteBtn.onclick = () => {
                             app.ui.showAlert("Bạn có chắc chắn muốn xóa Custom Role này không? Hành động này không thể hoàn tác.", async () => {
@@ -4324,20 +3628,16 @@ Object.assign(window.app, {
                                 deleteBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
                                 deleteBtn.disabled = true;
                                 okBtn.disabled = true;
-
                                 try {
                                     const { data: { session } } = await window.sb.auth.getSession();
                                     const token = session?.access_token;
-
                                     const res = await fetch('/api/discord', {
                                         method: 'POST',
                                         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                                         body: JSON.stringify({ action: 'delete', tier: 2000 })
                                     });
-
                                     const data = await res.json();
                                     if (!res.ok) throw new Error(data.error || 'Lỗi không xác định');
-
                                     app.ui.closeCustomRolePrompt();
                                     app.toast.show('success', 'Thành công', data.message || "Đã xóa Role thành công!");
                                     app.settings.loadBadges();
@@ -4351,32 +3651,25 @@ Object.assign(window.app, {
                             }, () => {}, { title: "Xác nhận xóa Role", btnCancelText: "Hủy bỏ", btnOkText: "Xóa" });
                         };
                     }
-
                     okBtn.onclick = async () => {
                         const name = document.getElementById('cr-name-input').value.trim();
                         const color = document.getElementById('cr-color-input').value.trim();
-
                         if (!name || name.length < 2) return app.ui.showAlert("Tên Role phải từ 2 ký tự trở lên!");
                         if (!color.match(/^#[0-9A-Fa-f]{6}$/)) return app.ui.showAlert("Mã màu Hex không hợp lệ!");
-
                         const originalText = okBtn.innerHTML;
                         okBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
                         okBtn.disabled = true;
                         if (deleteBtn) deleteBtn.disabled = true;
-
                         try {
                             const { data: { session } } = await window.sb.auth.getSession();
                             const token = session?.access_token;
-
                             const res = await fetch('/api/discord', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                                 body: JSON.stringify({ action: 'claim', tier: 2000, customName: name, customColor: color })
                             });
-
                             const data = await res.json();
                             if (!res.ok) throw new Error(data.error || 'Lỗi không xác định');
-
                             app.ui.closeCustomRolePrompt();
                             app.toast.show('success', 'Thành công', data.message || "Tạo/Sửa Role thành công!");
                             app.settings.loadBadges();
@@ -4388,13 +3681,11 @@ Object.assign(window.app, {
                             if (deleteBtn) deleteBtn.disabled = false;
                         }
                     };
-
                     modal.classList.remove('hidden');
                     content.classList.remove('modal-content-leave');
                     content.classList.add('modal-content-enter');
                 }
 });
-
 Object.assign(window.app, {
   docs: {
                 open: () => {
@@ -4406,13 +3697,11 @@ Object.assign(window.app, {
                 fetchContent: async (tab) => {
                     const container = document.getElementById('set-content-' + tab);
                     if (!container || container.dataset.loaded === 'true') return;
-
                     const url = container.dataset.url;
                     try {
                         const res = await fetch(url);
                         if (!res.ok) throw new Error('Lỗi mạng');
                         const text = await res.text();
-
                         const html = DOMPurify.sanitize(marked.parse(text));
                         container.innerHTML = html;
                         container.dataset.loaded = 'true';
@@ -4429,12 +3718,10 @@ Object.assign(window.app, {
                 }
             }
 });
-
 Object.assign(window.app, {
   handleSearch: async (forceRefresh = false, sourceInputId = null) => {
                 const headerInput = document.getElementById('search-input');
                 const pageInput = document.getElementById('page-search-input');
-
                 const activeId = sourceInputId || document.activeElement?.id;
                 let query = '';
                 if (activeId === 'search-input' && headerInput) {
@@ -4450,14 +3737,11 @@ Object.assign(window.app, {
                     query = headerInput ? headerInput.value.trim() : '';
                     if (pageInput) pageInput.value = query;
                 }
-
-                // Nhận diện tự động chuỗi gõ bằng tay: ví dụ "01 (Hà Nội)"
                 let autoPrefix = null;
                 const provMatch = query.match(/^(.*?)\s*\((.+?)\)$/);
                 if (provMatch) {
                     const extractedRoute = provMatch[1].trim();
                     const extractedProvName = provMatch[2].trim();
-
                     if (app.utils.provinceData && app.utils.provinceData.length) {
                         const prov = app.utils.provinceData.find(p => p.ten.toLowerCase() === extractedProvName.toLowerCase());
                         if (prov && prov.ky_hieu) {
@@ -4465,20 +3749,16 @@ Object.assign(window.app, {
                             query = extractedRoute;
                             headerInput.value = query;
                             if (pageInput) pageInput.value = query;
-                            
                             app.currentFilter = 'route';
-                            app.search.syncExactUI(autoPrefix); // Đồng bộ UI Dropdown mới
+                            app.search.syncExactUI(autoPrefix); 
                         }
                     }
                 }
-
                 const clearBtn = document.getElementById('btn-clear-search');
                 const pageClearBtn = document.getElementById('btn-page-clear-search');
                 const filterType = app.currentFilter;
-
                 const hasProvinceFilter = Boolean(app.search?.currentExactPrefix || app.search?.currentExactProvName);
                 const hasAdvancedFilters = filterType === 'advanced' && app.search.advancedFilters && app.search.advancedFilters.length > 0;
-                
                 if (!query && !hasProvinceFilter && !hasAdvancedFilters) {
                     if (clearBtn) clearBtn.classList.add('hidden');
                     if (pageClearBtn) pageClearBtn.classList.add('hidden');
@@ -4489,36 +3769,25 @@ Object.assign(window.app, {
                     if (clearBtn) clearBtn.classList.toggle('hidden', hideClearBtn);
                     if (pageClearBtn) pageClearBtn.classList.toggle('hidden', hideClearBtn);
                 }
-
                 const currentParams = new URLSearchParams(window.location.search);
                 let filterFromUrl = currentParams.get('filter') || 'all';
-
-                // Bỏ qua legacy của URL cũ
                 if (filterFromUrl === 'absolute_route') filterFromUrl = 'route';
-
                 let prefixToUrl = typeof app.search.currentExactPrefix === 'string' ? app.search.currentExactPrefix : (currentParams.get('prefix') || '');
-                if (filterType !== 'route') prefixToUrl = ''; // Chỉ áp dụng prefix cho route
-
+                if (filterType !== 'route') prefixToUrl = ''; 
                 const currentUrlPrefix = currentParams.get('prefix') || '';
-
-                // Advanced Search Logic (URL check)
                 const currentFiltersUrlStr = currentParams.getAll('f').join('|');
                 const advancedFiltersStr = (app.search.advancedFilters || []).map(f => `${f.field}:${f.op}:${f.value}`).join('|');
-
                 if (!window.location.pathname.includes('/search') || currentParams.get('q') !== query || filterFromUrl !== filterType || currentUrlPrefix !== prefixToUrl || currentFiltersUrlStr !== advancedFiltersStr) {
                     let url = `/search?q=${encodeURIComponent(query)}&filter=${filterType}`;
                     if (prefixToUrl) url += `&prefix=${encodeURIComponent(prefixToUrl)}`;
-                    
                     if (app.search.advancedFilters && app.search.advancedFilters.length > 0) {
                         app.search.advancedFilters.forEach(f => {
                             url += `&f=${encodeURIComponent(`${f.field}:${f.op}:${f.value}`)}`;
                         });
                     }
-                    
                     app.utils.navigate(url);
                     return;
                 }
-
                 if (app.lastSearchQuery === query && app.lastSearchFilter === filterType && app.lastSearchPrefix === prefixToUrl && app.lastAdvancedFiltersStr === advancedFiltersStr && !forceRefresh) {
                     app.views.switch('search', false);
                     app.loadingBar.finish();
@@ -4528,10 +3797,8 @@ Object.assign(window.app, {
                 app.lastSearchFilter = filterType;
                 app.lastSearchPrefix = prefixToUrl;
                 app.lastAdvancedFiltersStr = advancedFiltersStr;
-                
                 const currentSearchToken = Date.now();
                 app.searchToken = currentSearchToken;
-
                 if (filterType !== 'advanced') {
                     let recents = JSON.parse(localStorage.getItem('vnbus_recent_searches') || '[]');
                     recents = recents.filter(r => r.query !== query);
@@ -4539,23 +3806,18 @@ Object.assign(window.app, {
                     if (recents.length > 5) recents.pop();
                     localStorage.setItem('vnbus_recent_searches', JSON.stringify(recents));
                 }
-
-
                 app.views.switch('search', false);
                 app.currentViewMode = 'search';
                 document.title = 'Tìm kiếm | VNBUSARCHIVE';
-
                 const profileCardsContainer = document.getElementById('search-profile-cards');
                 profileCardsContainer.innerHTML = '';
                 profileCardsContainer.classList.add('hidden');
                 document.getElementById('load-more-cards-container')?.classList.add('hidden');
                 app.currentSearchCards =[];
                 app.loadedSearchCardsCount = 0;
-
                 const grid = document.getElementById('search-photo-grid');
                 grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tìm kiếm...</div>';
                 document.getElementById('search-load-more-container')?.classList.add('hidden');
-
                 try {
                     const isIdSearch = query.match(/\/photo\/(\d+)/i) || (filterType === 'all' ? query.match(/^#(\d+)$/) : null);
                     if (isIdSearch) {
@@ -4563,26 +3825,20 @@ Object.assign(window.app, {
                         app.utils.navigate(`/photo/${isIdSearch[1]}`);
                         return;
                     }
-
-                    // Tái sử dụng logic lấy card như cũ (chỉ sửa tên filter)
                     let uploaderCards = [], operatorCards = [], modelCards = [], plateCards = [];
                     let normalizedQuery = query.toLowerCase().replace(/vin bus/g, 'vinbus').replace(/thanh buoi/g, 'thành bưởi').replace(/phuong trang/g, 'phương trang');
                     const searchWords = normalizedQuery.trim().split(/\s+/).filter(w => w.length > 0);
                     const cardPromises = [];
-
-                    // 1. LẤY UPLOADER
                     if (filterType === 'uploader' || filterType === 'all') {
                         cardPromises.push((async () => {
                             try {
                                 let uQuery = window.sb.from('profiles').select('id, username, avatar_url, role, subroles, ban_status');
                                 searchWords.forEach(w => { uQuery = uQuery.ilike('username', `%${w}%`); });
                                 const { data: usersData } = await uQuery.limit(5);
-
                                 if (usersData && usersData.length > 0) {
                                     for (const user of usersData) {
                                         const uDisplay = app.utils.formatProfileDisplay(user);
-                                        if (uDisplay.isBanned) continue; // Ẩn hoàn toàn người dùng bị cấm khỏi search
-
+                                        if (uDisplay.isBanned) continue; 
                                         const { count } = await window.sb.from('photos').select('*', { count: 'estimated', head: true }).eq('uploader_id', user.id).eq('status', 'approved');
                                         const avatarSrc = uDisplay.avatar;
                                         const userBadges = app.utils.getBadgesHTML(user.id, user.role, user.subroles);
@@ -4600,28 +3856,21 @@ Object.assign(window.app, {
                             } catch (e) { console.error("Lỗi tìm Uploader:", e); }
                         })());
                     }
-
-                    // 2. LẤY ĐƠN VỊ VẬN HÀNH
                     if (filterType === 'operator' || filterType === 'all') {
                         cardPromises.push((async () => {
                             try {
                                 let opInfoQuery = window.sb.from('operator_info').select('operator_name, logo_url, description');
                                 let opPhotoQuery = window.sb.from('photos').select('operator').eq('status', 'approved');
-                                
                                 searchWords.forEach(w => { 
                                     opInfoQuery = opInfoQuery.ilike('operator_name', `%${w}%`); 
                                     opPhotoQuery = opPhotoQuery.ilike('operator', `%${w}%`); 
                                 });
-
                                 const [infoRes, photoRes] = await Promise.all([
                                     opInfoQuery.limit(10),
                                     opPhotoQuery.limit(50)
                                 ]);
-
                                 let uniqueOpsMap = new Map();
                                 const opInfoMap = {};
-
-                                // CHỈ lấy đơn vị từ ảnh đã duyệt (nguồn duy nhất đủ điều kiện hiển thị)
                                 if (photoRes.data) {
                                     photoRes.data.forEach(p => {
                                         if (p.operator) {
@@ -4632,8 +3881,6 @@ Object.assign(window.app, {
                                         }
                                     });
                                 }
-
-                                // Các đơn vị mẹ luôn được phép hiển thị dù chưa có ảnh hay logo
                                 const { data: allOpsForSearch } = await window.sb.from('operator_info').select('parent_operator');
                                 const parentMapForSearch = new Map();
                                 if (allOpsForSearch) {
@@ -4646,7 +3893,6 @@ Object.assign(window.app, {
                                         }
                                     });
                                 }
-
                                 parentMapForSearch.forEach((origName, normKey) => {
                                     const matches = searchWords.every(w => origName.toLowerCase().includes(w));
                                     if (matches) {
@@ -4656,9 +3902,7 @@ Object.assign(window.app, {
                                         }
                                     }
                                 });
-
                                 const finalOps = Array.from(uniqueOpsMap.values()).slice(0, 4);
-
                                 const missingInfos = finalOps.filter(op => !opInfoMap[op.toLowerCase()]);
                                 if (missingInfos.length > 0) {
                                     const { data: extraInfos } = await window.sb.from('operator_info').select('operator_name, logo_url, description').in('operator_name', missingInfos);
@@ -4666,15 +3910,12 @@ Object.assign(window.app, {
                                         extraInfos.forEach(info => { opInfoMap[info.operator_name.toLowerCase()] = info; });
                                     }
                                 }
-
                                 for (const op of finalOps) {
                                     const info = opInfoMap[op.toLowerCase()] || {};
                                     const logo = info.logo_url ? app.utils.escapeAttr(info.logo_url.includes('wsrv.nl') ? info.logo_url : 'https://wsrv.nl/?url=' + encodeURIComponent(info.logo_url)) : '';
-                                    
                                     const iconHtml = logo 
                                         ? `<img src="${logo}" class="w-12 h-12 object-contain shrink-0" onerror="this.outerHTML='<div class=&quot;w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0&quot;><i class=&quot;fa-solid fa-building&quot;></i></div>';">` 
                                         : `<div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0"><i class="fa-solid fa-building"></i></div>`;
-
                                     operatorCards.push(`
                                         <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.views.loadOperatorPage('${app.utils.escapeAttr(op)}')">
                                             ${iconHtml}
@@ -4688,27 +3929,21 @@ Object.assign(window.app, {
                             } catch (e) { console.error("Lỗi tìm Đơn vị:", e); }
                         })());
                     }
-
-                    // 3. LẤY DÒNG XE (MODEL)
                     if (filterType === 'model' || filterType === 'all') {
                         cardPromises.push((async () => {
                             try {
                                 let mdlInfoQuery = window.sb.from('model_info').select('model_name, logo_url, description');
                                 let mdlVehicleQuery = window.sb.from('vehicles').select('model, photos!inner(status)').eq('photos.status', 'approved');
-                                
                                 searchWords.forEach(w => { 
                                     mdlInfoQuery = mdlInfoQuery.ilike('model_name', `%${w}%`); 
                                     mdlVehicleQuery = mdlVehicleQuery.ilike('model', `%${w}%`); 
                                 });
-
                                 const [infoRes, vehicleRes] = await Promise.all([
                                     mdlInfoQuery.limit(10),
                                     mdlVehicleQuery.limit(50)
                                 ]);
-
                                 let uniqueModelsMap = new Map();
                                 const mdlInfoMap = {};
-
                                 if (infoRes.data) {
                                     infoRes.data.forEach(info => {
                                         if (info.model_name) {
@@ -4717,7 +3952,6 @@ Object.assign(window.app, {
                                         }
                                     });
                                 }
-
                                 if (vehicleRes.data) {
                                     vehicleRes.data.forEach(v => {
                                         if (v.model) {
@@ -4729,9 +3963,7 @@ Object.assign(window.app, {
                                         }
                                     });
                                 }
-
                                 const finalModels = Array.from(uniqueModelsMap.values()).slice(0, 4);
-
                                 const missingInfos = finalModels.filter(m => !mdlInfoMap[m.toLowerCase()]);
                                 if (missingInfos.length > 0) {
                                     const { data: extraInfos } = await window.sb.from('model_info').select('model_name, logo_url, description').in('model_name', missingInfos);
@@ -4739,11 +3971,9 @@ Object.assign(window.app, {
                                         extraInfos.forEach(info => { mdlInfoMap[info.model_name.toLowerCase()] = info; });
                                     }
                                 }
-
                                 for (const m of finalModels) {
                                     const info = mdlInfoMap[m.toLowerCase()] || {};
                                     let logo = info.logo_url ? app.utils.escapeAttr(info.logo_url.includes('wsrv.nl') ? info.logo_url : 'https://wsrv.nl/?url=' + encodeURIComponent(info.logo_url)) : '';
-                                    
                                     if (!logo) {
                                         const brandName = m.split(' ')[0];
                                         const { data: brandLogoData } = await window.sb.from('model_info')
@@ -4756,11 +3986,9 @@ Object.assign(window.app, {
                                             logo = app.utils.escapeAttr(brandLogoData.logo_url.includes('wsrv.nl') ? brandLogoData.logo_url : 'https://wsrv.nl/?url=' + encodeURIComponent(brandLogoData.logo_url));
                                         }
                                     }
-
                                     const iconHtml = logo 
                                         ? `<img src="${logo}" class="w-12 h-12 object-contain shrink-0" onerror="this.outerHTML='<div class=&quot;w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0&quot;><i class=&quot;fa-solid fa-layer-group&quot;></i></div>';">` 
                                         : `<div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0"><i class="fa-solid fa-layer-group"></i></div>`;
-
                                     modelCards.push(`
                                         <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.model.loadModelPage('${app.utils.escapeAttr(m)}')">
                                             ${iconHtml}
@@ -4774,8 +4002,6 @@ Object.assign(window.app, {
                             } catch (e) { console.error("Lỗi tìm Dòng xe:", e); }
                         })());
                     }
-
-                    // 4. LẤY XE (VEHICLE / PLATE)
                     if (filterType === 'plate' || filterType === 'model' || filterType === 'all') {
                         cardPromises.push((async () => {
                             try {
@@ -4812,23 +4038,16 @@ Object.assign(window.app, {
                             } catch (e) { }
                         })());
                     }
-
                     await Promise.all(cardPromises);
                     if (app.searchToken !== currentSearchToken) return;
-
                     app.currentSearchCards = [...operatorCards, ...modelCards, ...plateCards, ...uploaderCards];
                     app.views.loadMoreSearchCards(true);
-
-
-                    // ================= TÌM KIẾM ẢNH CHÍNH =================
                     let needsModelJoin = filterType === 'model' || (filterType === 'advanced' && (app.search.advancedFilters || []).some(f => f.field === 'model'));
                     let profileSelect = (filterType === 'uploader' || (filterType === 'advanced' && (app.search.advancedFilters || []).some(f => f.field === 'uploader'))) 
                         ? 'profiles!inner(id, username, role, subroles, ban_status)' 
                         : 'profiles(id, username, role, subroles, ban_status)';
-                    
                     let photoQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, ${profileSelect}, vehicles${needsModelJoin ? '!inner' : ''}(model)`, { count: 'estimated' }).eq('status', 'approved');
                     photoQuery = app.preference.applyFilter(photoQuery);
-
                     if (filterType === 'route') {
                         const prefix = prefixToUrl;
                         if (prefix) {
@@ -4863,27 +4082,21 @@ Object.assign(window.app, {
                     } else if (filterType === 'model') {
                         searchWords.forEach(w => { photoQuery = photoQuery.ilike('vehicles.model', `%${w}%`); });
                     } else {
-                        // All
                         let mQ = window.sb.from('vehicles').select('license_plate, photos!inner(status)').eq('photos.status', 'approved');
                         let uQ = window.sb.from('profiles').select('id, ban_status');
-
                         searchWords.forEach(w => {
                             const safeW = w.replace(/"/g, '');
                             mQ = mQ.or(`model.ilike."%${safeW}%",note.ilike."%${safeW}%"`);
                             uQ = uQ.ilike('username', `%${w}%`);
                         });
-
                         const [mRes, uRes] = await Promise.all([mQ.limit(150), uQ.limit(10)]);
                         if (app.searchToken !== currentSearchToken) return;
-
                         const plates = mRes.data ? mRes.data.map(v => v.license_plate) : [];
                         const validUploaders = (uRes.data || []).filter(u => !app.utils.formatProfileDisplay(u).isBanned);
                         const uploaderIds = validUploaders.map(u => u.id);
-
                         searchWords.forEach(w => {
                             const safeW = w.replace(/"/g, '');
                             const safeWPlate = app.utils.normalizePlateQuery(safeW);
-                            
                             let orConditions = [];
                             if (safeWPlate) orConditions.push(`license_plate.ilike."%${safeWPlate}%"`);
                             orConditions.push(`operator.ilike."%${safeW}%"`);
@@ -4891,45 +4104,34 @@ Object.assign(window.app, {
                             orConditions.push(`camera_model.ilike."%${safeW}%"`);
                             orConditions.push(`location.ilike."%${safeW}%"`);
                             orConditions.push(`note.ilike."%${safeW}%"`);
-
                             if (plates.length > 0) orConditions.push(`license_plate.in.(${plates.join(',')})`);
                             if (uploaderIds.length > 0) orConditions.push(`uploader_id.in.(${uploaderIds.join(',')})`);
-                            
                             photoQuery = photoQuery.or(orConditions.join(','));
                         });
                     }
-
-                    // ADVANCED FILTERS APPLY
                     if (filterType === 'advanced' && app.search.advancedFilters && app.search.advancedFilters.length > 0) {
                         photoQuery = app.search.applyAdvancedFiltersToQuery(photoQuery);
                     }
-
-                    // PHÂN TRANG: CHỈ KÉO TRANG ĐẦU (24 ẢNH) THAY VÌ LIMIT(500)
                     app.searchPageSize = 24;
                     app.searchCurrentPage = 1;
                     const { data: results, error, count } = await photoQuery
                         .order('taken_at', { ascending: false, nullsFirst: false })
                         .order('created_at', { ascending: false })
                         .range(0, app.searchPageSize - 1);
-
                     if (app.currentViewMode !== 'search' || app.searchToken !== currentSearchToken) return;
                     if (error) throw error;
-
                     if (!results || results.length === 0) {
                         grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500">Không tìm thấy kết quả phù hợp.</div>';
                         document.getElementById('search-load-more-container')?.classList.add('hidden');
                         app.searchTotalPages = 0;
                         return;
                     }
-
                     app.currentSearchResults = results;
                     app.searchTotalCount = count || results.length;
                     app.searchTotalPages = Math.ceil(app.searchTotalCount / app.searchPageSize);
                     app.loadedCount = results.length;
                     app.searchCurrentPage = 1;
-
                     grid.innerHTML = results.map(p => app.views.renderPhotoCard(p)).join('');
-
                     if (app.searchTotalPages > 1) {
                         document.getElementById('search-load-more-container')?.classList.remove('hidden');
                         app.utils.renderPagination('search-load-more-container', 1, app.searchTotalPages, (newPage) => {
@@ -4938,7 +4140,6 @@ Object.assign(window.app, {
                     } else {
                         document.getElementById('search-load-more-container')?.classList.add('hidden');
                     }
-
                 } catch (err) {
                     console.error(err);
                     grid.innerHTML = `<div class="col-span-full text-center py-10 text-red-500">Lỗi hệ thống: ${err.message}</div>`;
@@ -4946,26 +4147,20 @@ Object.assign(window.app, {
                 app.loadingBar.finish();
             }
 });
-
 Object.assign(window.app, {
   setUser: async (user) => {
                 app.user = user;
                 const dropdown = document.getElementById('user-dropdown');
-
                 if (user) {
-                    // Lấy tên từ metadata (Hỗ trợ Google, Discord, Email)
                     let metaName = user.user_metadata?.username ||
                                    user.user_metadata?.full_name ||
                                    user.user_metadata?.name ||
                                    user.user_metadata?.custom_claims?.global_name ||
                                    (user.email ? user.email.split('@')[0] : 'User');
-
                     let finalName = metaName.substring(0, 20);
                     let finalAvatar = user.user_metadata?.avatar_url || user.user_metadata?.picture || null;
-
                     try {
                         const { data: profile } = await window.sb.from('profiles').select('username, role, preferences, ban_status').eq('id', user.id).maybeSingle();
-
                         if (profile && profile.ban_status) {
                             let banInfo = null;
                             try { banInfo = typeof profile.ban_status === 'string' ? JSON.parse(profile.ban_status) : profile.ban_status; } catch(e){}
@@ -5013,21 +4208,17 @@ Object.assign(window.app, {
                                 return;
                             }
                         }
-
                         let localPref = localStorage.getItem('vnbus_preference') || 'both';
                         let localShowRec = localStorage.getItem('vnbus_show_rec');
                         localShowRec = localShowRec !== null ? localShowRec === 'true' : true;
                         let localWmMode = localStorage.getItem('vnbus_wm_mode') || 'basic';
-
                         if (!profile || !profile.username) {
-                            // Tạo mới user và đẩy thiết lập trình duyệt hiện tại lên Database
                             await window.sb.from('profiles').upsert({
                                 id: user.id,
                                 username: finalName,
                                 avatar_url: finalAvatar,
                                 preferences: { type: localPref, showRec: localShowRec, wmMode: localWmMode }
                             }, { onConflict: 'id' });
-
                             app.username = finalName;
                             app.role = 'user';
                             app.preference.current = localPref;
@@ -5035,22 +4226,17 @@ Object.assign(window.app, {
                         } else {
                             app.username = profile.username;
                             app.role = profile.role || 'user';
-                            // Cấp quyền bypass cho Manager trong phiên này
                             if (app.role === 'manager') {
                                 sessionStorage.setItem('VNBA_SESS_AUTH', 'active');
                             } else {
                                 sessionStorage.removeItem('VNBA_SESS_AUTH');
                             }
-
                             let dbPrefs = profile.preferences;
                             if (dbPrefs && Object.keys(dbPrefs).length > 0) {
-                                // Nếu DB CÓ DỮ LIỆU -> Lấy DB đè lên LocalStorage (Ưu tiên DB)
                                 app.preference.current = dbPrefs.type || 'both';
                                 app.preference.showRecommendations = dbPrefs.showRec !== false;
-
                                 localStorage.setItem('vnbus_preference', app.preference.current);
                                 localStorage.setItem('vnbus_show_rec', app.preference.showRecommendations);
-
                                 if (dbPrefs.wmMode) {
                                     localStorage.setItem('vnbus_wm_mode', dbPrefs.wmMode);
                                     if (app.wmState) app.wmState.mode = dbPrefs.wmMode;
@@ -5060,11 +4246,9 @@ Object.assign(window.app, {
                                     }
                                 }
                             } else {
-                                // Nếu DB TRỐNG (User cũ chưa lưu bao giờ) -> Lấy LocalStorage đẩy lên DB
                                 window.sb.from('profiles').update({
                                     preferences: { type: localPref, showRec: localShowRec, wmMode: localWmMode }
                                 }).eq('id', user.id).then(()=>{});
-
                                 app.preference.current = localPref;
                                 app.preference.showRecommendations = localShowRec;
                             }
@@ -5073,10 +4257,7 @@ Object.assign(window.app, {
                         app.username = finalName;
                         app.role = 'user';
                     }
-
-                    // Render tên lên UI Header
                     document.getElementById('nav-username').innerText = app.username;
-
 dropdown.innerHTML = `
                          <a href="/profile" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-address-card w-5 text-center mr-1"></i> Hồ sơ của tôi</a>
                          <button onclick="app.settings.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-gear w-5 text-center mr-1"></i> Cài đặt</button>
@@ -5084,14 +4265,10 @@ dropdown.innerHTML = `
                          <a href="/contact" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-headset w-5 text-center mr-1"></i> Liên hệ hỗ trợ</a>
                          <button onclick="app.auth.logout()" class="w-full text-left block px-4 py-3 text-sm text-red-600 hover:bg-red-50 font-bold"><i class="fa-solid fa-right-from-bracket w-5 text-center mr-1"></i> Đăng xuất</button>
                      `;
-
                     app.auth.close();
-
                     if (app.role === 'admin' || app.role === 'manager') {
                         document.getElementById('nav-admin').classList.remove('hidden');
                         app.admin.checkNotification();
-
-                        // [THÊM MỚI] Hiển thị tab Quản lý nếu là Manager
                         if (app.role === 'manager') {
                             document.getElementById('adm-tab-manager').classList.remove('hidden');
                         }
@@ -5100,19 +4277,11 @@ dropdown.innerHTML = `
                         document.getElementById('nav-admin').classList.add('hidden');
                         if (typeof app.initRealtimeChannel === 'function') app.initRealtimeChannel();
                     }
-
-                    // Đã tắt tự động nhảy sang Telegram
-
-
-
-
                 } else {
                     document.getElementById('nav-username').innerText = 'Tài khoản';
                     document.getElementById('nav-admin').classList.add('hidden');
                     app.username = 'Guest';
                     app.role = 'user';
-
-
 dropdown.innerHTML = `
                          <a href="/auth" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-arrow-right-to-bracket w-5 text-center mr-1"></i> Đăng nhập</a>
                          <a href="/auth" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-user-plus w-5 text-center mr-1"></i> Tạo tài khoản</a>
@@ -5120,34 +4289,22 @@ dropdown.innerHTML = `
                          <a href="/help" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-book-open w-5 text-center mr-1"></i> Trung tâm hỗ trợ</a>
                          <a href="/contact" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 font-bold"><i class="fa-solid fa-headset w-5 text-center mr-1"></i> Liên hệ hỗ trợ</a>
                      `;
-
-
-
-                    // Đã tắt tự động nhảy sang Telegram
-
                 }
                 if (app.auth && app.auth.updateUUIDBox) app.auth.updateUUIDBox();
             }
 });
-
-// Sticky auto-hide header logic
 document.addEventListener('DOMContentLoaded', () => {
     const header = document.querySelector('header');
     if (!header) return;
-
-    // Ensure the header has transition for smooth hiding/showing
     if (!header.classList.contains('transition-transform')) {
         header.classList.add('transition-transform', 'duration-300');
     }
-
     let lastScrollY = window.scrollY;
     let lastScrollDirection = 'up';
     let isHoveringHeaderArea = false;
     const threshold = 200; 
-
     const checkHeaderState = () => {
         const currentScrollY = window.scrollY;
-        
         const isSearchFocused = document.activeElement && document.activeElement.id === 'search-input';
         const userMenu = document.getElementById('user-dropdown');
         const isUserMenuOpen = userMenu && userMenu.classList.contains('opacity-100');
@@ -5155,12 +4312,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const isFilterMenuOpen = filterMenu && filterMenu.classList.contains('active');
         const searchSuggestions = document.getElementById('main-search-suggestions');
         const isSuggestionsOpen = searchSuggestions && searchSuggestions.classList.contains('active');
-
         if (isSearchFocused || isUserMenuOpen || isFilterMenuOpen || isSuggestionsOpen || isHoveringHeaderArea) {
             header.style.transform = 'translateY(0)';
             return;
         }
-
         if (currentScrollY > threshold) {
             if (lastScrollDirection === 'down') {
                 header.style.transform = 'translateY(-100%)';
@@ -5171,50 +4326,37 @@ document.addEventListener('DOMContentLoaded', () => {
             header.style.transform = 'translateY(0)';
         }
     };
-
     window.addEventListener('scroll', () => {
         const currentScrollY = window.scrollY;
-        
         if (currentScrollY > lastScrollY) {
             lastScrollDirection = 'down';
         } else if (currentScrollY < lastScrollY) {
             lastScrollDirection = 'up';
         }
-        
         checkHeaderState();
         lastScrollY = currentScrollY;
     }, { passive: true });
-
-    // Handle clicks outside / losing focus to re-hide header if needed
     document.addEventListener('click', () => {
         setTimeout(checkHeaderState, 50);
     });
-    
-    // Also bind to focusout in case keyboard navigation is used
     document.addEventListener('focusout', () => {
         setTimeout(checkHeaderState, 50);
     });
-
-    // Handle mouse hover over the top area of the screen
     document.addEventListener('mousemove', (e) => {
         const wasHovering = isHoveringHeaderArea;
-        // 90px is roughly the height of the header + padding
         if (e.clientY <= 90) {
             isHoveringHeaderArea = true;
         } else {
             isHoveringHeaderArea = false;
         }
-
         if (wasHovering !== isHoveringHeaderArea) {
             checkHeaderState();
         }
     });
-
-    // Handle mouse leaving the window completely
     document.addEventListener('mouseleave', () => {
         if (isHoveringHeaderArea) {
             isHoveringHeaderArea = false;
             checkHeaderState();
         }
     });
-});
+});

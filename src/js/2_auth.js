@@ -1,37 +1,31 @@
 window.app = window.app || {};
-
 Object.assign(window.app, {
   auth: {
                 mode: 'login',
                 uuidTimeout: null,
                 unverifiedEmail: null,
-
                 showVerificationModal: (email) => {
                     app.auth.unverifiedEmail = email;
                     const modal = document.getElementById('email-verify-modal');
                     const content = document.getElementById('email-verify-content');
                     if(document.getElementById('verify-modal-email')) document.getElementById('verify-modal-email').innerText = email;
-
                     modal.classList.remove('hidden');
                     setTimeout(() => {
                         content.classList.remove('scale-95', 'opacity-0');
                         content.classList.add('scale-100', 'opacity-100');
                     }, 10);
                 },
-
                 resendVerification: async () => {
                     const btn = document.getElementById('btn-resend-verify');
                     const origHTML = btn.innerHTML;
                     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi...';
                     btn.disabled = true;
-
                     try {
                         const { error } = await window.sb.auth.resend({
                             type: 'signup',
                             email: app.auth.unverifiedEmail,
                             options: { emailRedirectTo: window.location.origin + '/auth' }
                         });
-
                         if (error) {
                             if (error.status === 429) throw new Error("Bạn đã yêu cầu quá nhiều lần. Vui lòng đợi ít phút rồi thử lại.");
                             throw error;
@@ -44,14 +38,11 @@ Object.assign(window.app, {
                         btn.disabled = false;
                     }
                 },
-
                 logoutUnverified: async () => {
-                    // Xóa session, đăng xuất và đẩy về Auth sạch sẽ
                     await window.sb.auth.signOut();
                     sessionStorage.removeItem('VNBA_SESS_AUTH');
-                    window.location.href = '/auth'; // Reset về trang đăng nhập
+                    window.location.href = '/auth'; 
                 },
-
                 signInWithProvider: async (provider) => {
                     let captchaResponse;
                     try {
@@ -60,7 +51,6 @@ Object.assign(window.app, {
                         if (err.message === "CAPTCHA_CANCELLED") return;
                         return app.ui.showAlert("Lỗi xác thực Captcha.");
                     }
-
                     try {
                         const { error } = await window.sb.auth.signInWithOAuth({
                             provider: provider,
@@ -73,13 +63,9 @@ Object.assign(window.app, {
                         app.ui.showAlert("Lỗi đăng nhập: " + err.message);
                     }
                 },
-
                 revealUUID: () => {},
-
                 submitForm: async (e) => {
                     e.preventDefault();
-
-
                     const formData = new FormData(e.target);
                     let captchaResponse;
                     try {
@@ -88,23 +74,17 @@ Object.assign(window.app, {
                         if (err.message === "CAPTCHA_CANCELLED") return;
                         return app.ui.showAlert("Lỗi xác thực Captcha.");
                     }
-
                     const email = document.getElementById('auth-email').value.trim();
                     const password = document.getElementById('auth-password').value;
                     const msgEl = document.getElementById('auth-msg');
                     const btn = document.getElementById('auth-submit-btn');
-
                     const originalHTML = btn.innerHTML;
-
                     msgEl.innerText = "";
                     btn.disabled = true;
                     btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...`;
-
                     try {
                         if (app.auth.mode === 'login') {
                             const { data, error } = await window.sb.auth.signInWithPassword({ email, password });
-
-                            // BẮT LỖI TỪ SUPABASE NẾU BACKEND CẤM LOGIN KHI CHƯA XÁC MINH
                             if (error) {
                                 if (error.message.includes('Email not confirmed') || error.message.includes('not confirmed')) {
                                     app.auth.showVerificationModal(email);
@@ -114,16 +94,12 @@ Object.assign(window.app, {
                                 }
                                 throw error;
                             }
-
-                            // BẮT LỖI BẰNG FRONTEND NẾU BACKEND LỠ CHO ĐĂNG NHẬP NHƯNG CHƯA XÁC MINH
                             if (data.user && !data.user.email_confirmed_at) {
                                 app.auth.showVerificationModal(data.user.email);
                                 btn.disabled = false;
                                 btn.innerHTML = originalHTML;
                                 return;
                             }
-
-                            // KIỂM TRA BAN TRỰC TIẾP TẠI FRONTEND
                             if (data.user) {
                                 const { data: profile } = await window.sb.from('profiles').select('ban_status').eq('id', data.user.id).single();
                                 if (profile && profile.ban_status) {
@@ -137,10 +113,8 @@ Object.assign(window.app, {
                                     }
                                 }
                             }
-
                             await app.setUser(data.user);
                             app.ui.showAlert("Đăng nhập thành công!", () => { window.location.reload(); });
-
                         } else if (app.auth.mode === 'register') {
                             const username = document.getElementById('auth-username').value.trim();
                             if (!username) throw new Error("Vui lòng nhập tên hiển thị.");
@@ -149,24 +123,19 @@ Object.assign(window.app, {
                             if (lowerName === 'người dùng bị cấm' || lowerName === 'nguoi dung bi cam' || lowerName.includes('bị cấm') || lowerName.includes('bi cam')) {
                                 throw new Error("Tên hiển thị này thuộc danh sách hạn chế. Vui lòng chọn tên khác!");
                             }
-
                             const { data: existingUser } = await window.sb.from('profiles')
                                 .select('username')
                                 .ilike('username', username)
                                 .maybeSingle();
-
                             if (existingUser) {
                                 throw new Error("Tên hiển thị này đã tồn tại (không phân biệt viết hoa/thường). Vui lòng chọn tên khác!");
                             }
-
                             const { data, error } = await window.sb.auth.signUp({
                                 email,
                                 password,
                                 options: { data: { username: username } }
                             });
-
                             if (error) throw error;
-
                             app.ui.showAlert(
                                 `<div class="text-left mt-1">
                                     <p class="text-sm text-gray-700 mb-3">Tạo tài khoản thành công! Vui lòng kiểm tra email <b>${email}</b> để xác thực.</p>
@@ -181,15 +150,12 @@ Object.assign(window.app, {
                                 null,
                                 { title: "Xác thực tài khoản", btnOkText: "Đã hiểu" }
                             );
-
                             if (data.session) await app.setUser(data.user);
-
                         } else if (app.auth.mode === 'forgot') {
     const { error } = await window.sb.auth.resetPasswordForEmail(email, {
         redirectTo: window.location.origin + '/auth'
     });
     if (error) throw error;
-
     app.ui.showAlert(
         `<div class="text-left mt-1">
             <p class="text-sm text-gray-700 mb-3">Link khôi phục mật khẩu đã được gửi đến <b>${email}</b>.</p>
@@ -204,14 +170,11 @@ Object.assign(window.app, {
         null,
         { title: "Kiểm tra hộp thư", btnOkText: "Trở lại đăng nhập" }
     );
-
 } else if (app.auth.mode === 'recovery') {
     const newPass = document.getElementById('auth-new-password').value;
     if (!newPass || newPass.length < 6) throw new Error("Mật khẩu phải từ 6 ký tự trở lên.");
-
     const { error } = await window.sb.auth.updateUser({ password: newPass });
     if (error) throw error;
-
     app.ui.showAlert("Đổi mật khẩu thành công! Bạn đã tự động đăng nhập vào hệ thống.", () => {
         window.location.hash = '';
         app.utils.navigate('/');
@@ -223,9 +186,6 @@ Object.assign(window.app, {
                         if (errorMsg === 'User already registered') errorMsg = 'Email này đã được đăng ký.';
                         if (errorMsg.includes('Password should be at least')) errorMsg = 'Mật khẩu phải từ 6 ký tự trở lên.';
                         msgEl.innerText = errorMsg;
-
-
-                        // Gọi hàm bắt lỗi Turnstile mới
                         if (window.turnstile) {
                             app.utils.resetTurnstile('#auth .cf-turnstile');
                         }
@@ -234,17 +194,12 @@ Object.assign(window.app, {
                         btn.innerHTML = originalHTML;
                     }
                 },
-
                 check: () => {
-
                     app.utils.navigate('/auth');
                 },
-
                 close: () => {
-
                     return;
                 },
-
                 logout: async () => {
                     try {
                         await window.sb.auth.signOut(); sessionStorage.removeItem('VNBA_SESS_AUTH');
@@ -263,20 +218,12 @@ Object.assign(window.app, {
                         "<b>CẢNH BÁO:</b> Bạn sẽ bị đăng xuất khỏi <b>TẤT CẢ</b> thiết bị và trình duyệt hiện tại. Bạn có chắc chắn muốn thực hiện?",
                         async () => {
                             try {
-                                // Hiển thị trạng thái đang xử lý trên nút của Popup
                                 const okBtn = document.getElementById('custom-alert-ok-btn');
                                 if(okBtn) { okBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>'; okBtn.disabled = true; }
-
-                                // 1. Gọi lệnh Global SignOut của Supabase
                                 const { error } = await window.sb.auth.signOut({ scope: 'global' });
                                 if (error) throw error;
-
-                                // 2. Xóa sạch LocalStorage để đảm bảo không còn Token rác
                                 localStorage.clear();
-
-                                // 3. Reset state ứng dụng
                                 await app.setUser(null);
-
                                 app.ui.showAlert(
                                     `<div class="text-left">
                                         <p class="text-sm font-bold text-green-600 mb-2"><i class="fa-solid fa-check-circle mr-1"></i> Lệnh đăng xuất đã được gửi!</p>
@@ -297,17 +244,13 @@ Object.assign(window.app, {
 changePassword: async () => {
                     const oldPass = document.getElementById('set-cp-old').value;
                     const newPass = document.getElementById('set-cp-new').value;
-
                     if (!oldPass) return app.ui.showAlert("Vui lòng nhập mật khẩu hiện tại.");
                     if (!newPass || newPass.length < 6) return app.ui.showAlert("Mật khẩu mới phải ít nhất 6 ký tự.");
-
                     try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
-
                     const { error } = await window.sb.auth.updateUser({
                         password: newPass,
                         current_password: oldPass
                     });
-
                     if (error) {
                         let msg = error.message;
                         if (msg.includes('Current password is invalid')) msg = "Mật khẩu hiện tại không đúng.";
@@ -321,39 +264,27 @@ changePassword: async () => {
                 },
                 changeEmail: async (btn) => {
                     if (!app.user) return;
-
                     const newEmail = document.getElementById('set-ce-new').value.trim();
                     const password = document.getElementById('set-ce-password').value;
-
                     if (!newEmail) return app.ui.showAlert("Vui lòng nhập địa chỉ email mới.");
                     if (!password) return app.ui.showAlert("Vui lòng nhập mật khẩu hiện tại để xác nhận.");
                     if (newEmail === app.user.email) return app.ui.showAlert("Email mới không được trùng với email hiện tại.");
-
                     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                     if (!emailRegex.test(newEmail)) return app.ui.showAlert("Định dạng email không hợp lệ.");
-
                     try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
-
                     const originalText = btn.innerHTML;
                     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
                     btn.disabled = true;
-
                     try {
-
                         const currentEmail = app.user.email;
                         const { error: signInError } = await window.sb.auth.signInWithPassword({ email: currentEmail, password: password });
-
                         if (signInError) {
                             throw new Error("Mật khẩu hiện tại không đúng.");
                         }
-
-
                         const { error: updateError } = await window.sb.auth.updateUser({ email: newEmail });
-
                         if (updateError) {
                             throw updateError;
                         }
-
                         app.ui.showAlert(
                             `<div class="text-left mt-1">
                                 <p class="text-sm text-gray-700 mb-3">Vui lòng kiểm tra hộp thư của <b>${newEmail}</b> và bấm vào link xác nhận.</p>
@@ -371,7 +302,6 @@ changePassword: async () => {
                             null,
                             { title: "Yêu cầu đổi Email thành công", btnOkText: "Đã hiểu" }
                         );
-
                     } catch (err) {
                         let msg = err.message;
                         if (msg.includes('already registered')) msg = "Email này đã được sử dụng bởi một tài khoản khác.";
@@ -384,15 +314,12 @@ changePassword: async () => {
                 },
                 updateAvatar: () => {
                     if (!app.user) return;
-
                     const fileInput = document.createElement('input');
                     fileInput.type = 'file';
                     fileInput.accept = 'image/jpeg, image/png, image/webp, image/heic, image/heif, .heic, .heif';
-
                     fileInput.onchange = async (e) => {
                         let file = e.target.files[0];
                         if (!file) return;
-
                         const isHeic = /\.(heic|heif)$/i.test(file.name) || file.type === 'image/heic' || file.type === 'image/heif';
                         if (isHeic) {
                             try {
@@ -404,10 +331,8 @@ changePassword: async () => {
                                 console.warn("Lỗi chuyển đổi avatar HEIF/HEIC:", err);
                             }
                         }
-
                         app.crop.open('avatar', file);
                     };
-
                     fileInput.click();
                 },
                 uploadAvatarBlob: async (blob) => {
@@ -418,7 +343,6 @@ changePassword: async () => {
                         updateAvatarBtn.disabled = true;
                         updateAvatarBtn.classList.add('opacity-50', 'cursor-not-allowed');
                     }
-
                     let captchaResponse;
                     try { captchaResponse = await app.captcha.request(); } catch (err) {
                         if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha.");
@@ -432,10 +356,8 @@ changePassword: async () => {
                         avatarData.append('isAvatar', 'true');
                         avatarData.append('captchaToken', captchaResponse);
                         avatarData.append('fileExtension', app.utils.getTargetExtension());
-
                         const { data: { session } } = await window.sb.auth.getSession();
                         const token = session?.access_token;
-
                         const res = await fetch('/api/upload', {
                             method: 'POST',
                             headers: {
@@ -443,9 +365,7 @@ changePassword: async () => {
                             },
                             body: avatarData
                         });
-
                         const data = await res.json();
-
                         if (data.success) {
                             if (data.url) {
                                 try {
@@ -454,11 +374,9 @@ changePassword: async () => {
                                     console.warn('Backend đã lưu thành công, nhưng CDN đang chậm:', verifyErr);
                                 }
                             }
-
                             app.user.user_metadata = app.user.user_metadata || {};
                             app.user.user_metadata.avatar_url = data.url;
                             window.sb.auth.updateUser({ data: { avatar_url: data.url } }).catch(() => {});
-
                             const proxiedUrl = app.utils.getProxiedUrl(data.url, 'avatar.jpg', 'avatar');
                             const avatarImg = document.getElementById('acc-avatar-img');
                             const avatarIcon = document.getElementById('acc-avatar-icon');
@@ -467,10 +385,8 @@ changePassword: async () => {
                                 avatarImg.classList.remove('hidden');
                                 avatarIcon.classList.add('hidden');
                             }
-
                             const setAvatarImg = document.getElementById('set-avatar-img');
                             if(setAvatarImg) setAvatarImg.src = proxiedUrl;
-
                             app.toast.show('success', 'Thành công', 'Cập nhật ảnh đại diện thành công!');
                         } else {
                             throw new Error(data.error || 'Lỗi upload');
@@ -486,7 +402,6 @@ changePassword: async () => {
                         }
                     }
                 },
-
                 resetAvatar: async () => {
                     if (!app.user) return;
                     try {
@@ -509,56 +424,44 @@ changePassword: async () => {
                                 console.warn('Lỗi khi xóa ảnh avatar cũ khỏi CDN:', delErr);
                             }
                         }
-
                         const { error } = await window.sb.from('profiles').update({ avatar_url: null }).eq('id', app.user.id);
                         if (error) throw error;
-
                         window.sb.auth.updateUser({ data: { avatar_url: null } }).catch(() => {});
                         if (app.user.user_metadata) app.user.user_metadata.avatar_url = null;
-
                         app.ui.showAlert("Đã reset Avatar về mặc định!");
                         app.views.loadAccount();
                     } catch (err) {
                         app.ui.showAlert("Lỗi: " + err.message);
                     }
                 },
-
                 changeUsername: async () => {
                     if (!app.user) return;
                     const newName = document.getElementById('set-new-username').value.trim();
-
                     if (!newName) return app.ui.showAlert("Vui lòng nhập Tên hiển thị mới.");
                     if (!app.utils.isValidUsername(newName)) return app.ui.showAlert("Tên hiển thị từ 3 đến 20 ký tự, chỉ gồm chữ cái, số và dấu cách (không chứa ký tự đặc biệt, kí hiệu hay emoji).");
-                    
                     const lowerNewName = newName.toLowerCase();
                     if (lowerNewName === 'người dùng bị cấm' || lowerNewName === 'nguoi dung bi cam' || lowerNewName.includes('bị cấm') || lowerNewName.includes('bi cam')) {
                         return app.ui.showAlert("Tên hiển thị này thuộc danh sách hạn chế. Vui lòng chọn tên khác!");
                     }
-
                     const { data: existingUser } = await window.sb.from('profiles')
                         .select('username')
                         .ilike('username', newName)
                         .neq('id', app.user.id)
                         .maybeSingle();
-
                     if (existingUser) {
                         return app.ui.showAlert("Tên hiển thị này đã có người sử dụng (không phân biệt viết hoa/thường). Vui lòng chọn tên khác!");
                     }
-
                     app.ui.showAlert(
                         "Cảnh báo: Đổi tên hiển thị sẽ không làm thay đổi dấu bản quyền trên các ảnh đã duyệt trước đó. Bạn có chắc chắn muốn tiếp tục?",
                         async () => {
-
                             try {
-
                                 try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
                                 const { error: dbError } = await window.sb.from('profiles').update({ username: newName }).eq('id', app.user.id);
                                 if (dbError) {
                                     if (dbError.code === '23505') throw new Error("Tên này đã có người sử dụng!");
                                     throw dbError;
                                 }
-
-                                app.username = newName; // Cập nhật biến cục bộ sau khi đổi tên thành công
+                                app.username = newName; 
                                 app.toast.show('success', 'Thành công', 'Đổi Tên hiển thị thành công!');
                                 document.getElementById('set-new-username').value = '';
                                 document.getElementById('nav-username').innerText = newName;
@@ -568,7 +471,6 @@ changePassword: async () => {
                             }
                         },
                         () => {
-
                             console.log("Đã hủy đổi tên hiển thị");
                         },
                         {
@@ -578,17 +480,13 @@ changePassword: async () => {
                         }
                     );
                 },
-
                 showUUID: () => {
                     if (!app.user) return;
-
                     const uuidForm = document.getElementById('show-uuid-form');
-
                     if (!uuidForm.classList.contains('hidden')) {
                         uuidForm.classList.add('hidden');
                         return;
                     }
-
                     app.ui.showAlert(
                         "CẢNH BÁO BẢO MẬT: Mã định danh (UUID) dùng để Admin tra cứu tài khoản của bạn.<br><br><b class='text-red-600'>Vui lòng CHỈ chia sẻ UUID trên các kênh hỗ trợ chính thức được công nhận của VNBUSARCHIVE. Tuyệt đối không gửi cho người lạ!</b>",
                         () => {
@@ -606,7 +504,6 @@ changePassword: async () => {
                         }
                     );
                 },
-
                 updateUUIDBox: () => {
                     const uuidBox = document.getElementById('contact-uuid-box');
                     const uuidInput = document.getElementById('contact-uuid-input');
@@ -620,19 +517,15 @@ changePassword: async () => {
                         }
                     }
                 },
-
                 copyUUID: () => {
                     const uuidInput = document.getElementById('contact-uuid-input') || document.getElementById('set-uuid-input');
                     const copyBtn = document.getElementById('contact-copy-uuid') || document.getElementById('set-copy-uuid');
-
                     if (!uuidInput || !uuidInput.value) return;
-
                     navigator.clipboard.writeText(uuidInput.value).then(() => {
                         const originalHTML = copyBtn.innerHTML;
                         copyBtn.innerHTML = '<i class="fa-solid fa-check"></i> Đã chép';
                         copyBtn.classList.replace('bg-black', 'bg-green-600');
                         copyBtn.classList.replace('hover:bg-gray-800', 'hover:bg-green-700');
-
                         setTimeout(() => {
                             copyBtn.innerHTML = originalHTML;
                             copyBtn.classList.replace('bg-green-600', 'bg-black');
@@ -645,19 +538,15 @@ changePassword: async () => {
                 }
             }
 });
-
 Object.assign(window.app, {
   user: null
 });
-
 Object.assign(window.app, {
   username: 'Guest'
 });
-
 Object.assign(window.app, {
   role: 'user'
 });
-
 Object.assign(window.app, {
   captcha: {
                 widgetId: null,
@@ -665,7 +554,6 @@ Object.assign(window.app, {
                 rejectPromise: null,
                 timeoutTimer: null,
                 isOpen: false,
-
                 request: () => {
                     return new Promise((resolve, reject) => {
                         app.captcha.resolvePromise = resolve;
@@ -673,7 +561,6 @@ Object.assign(window.app, {
                         app.captcha.openModal();
                     });
                 },
-
                 openModal: () => {
                     if(app.captcha.isOpen) return;
                     app.captcha.isOpen = true;
@@ -682,17 +569,14 @@ Object.assign(window.app, {
                     const container = document.getElementById('captcha-container');
                     const status = document.getElementById('captcha-status');
                     const actions = document.getElementById('captcha-actions');
-
                     modal.classList.remove('hidden');
                     setTimeout(() => {
                         modal.classList.remove('opacity-0');
                         content.classList.remove('scale-95');
                     }, 10);
-
                     status.innerText = "Đang kiểm tra...";
                     status.className = "text-xs font-bold text-gray-500 mt-2 h-4 text-center";
                     actions.classList.add('hidden');
-
                     if (window.turnstile) {
                         if (app.captcha.widgetId !== null) {
                             window.turnstile.reset(app.captcha.widgetId);
@@ -710,7 +594,6 @@ Object.assign(window.app, {
                         status.className = "text-xs font-bold text-red-500 mt-2 h-4 text-center";
                         actions.classList.remove('hidden');
                     }
-
                     clearTimeout(app.captcha.timeoutTimer);
                     app.captcha.timeoutTimer = setTimeout(() => {
                         status.innerText = "Kiểm tra quá hạn (12s). Vui lòng thử lại.";
@@ -718,13 +601,11 @@ Object.assign(window.app, {
                         actions.classList.remove('hidden');
                     }, 12000);
                 },
-
                 onSuccess: (token) => {
                     clearTimeout(app.captcha.timeoutTimer);
                     const status = document.getElementById('captcha-status');
                     status.innerText = "Xác thực thành công!";
                     status.className = "text-xs font-bold text-green-600 mt-2 h-4 text-center";
-
                     setTimeout(() => {
                         app.captcha.closeModal();
                         if (app.captcha.resolvePromise) {
@@ -734,7 +615,6 @@ Object.assign(window.app, {
                         }
                     }, 500);
                 },
-
                 onError: () => {
                     clearTimeout(app.captcha.timeoutTimer);
                     const status = document.getElementById('captcha-status');
@@ -743,18 +623,15 @@ Object.assign(window.app, {
                     status.className = "text-xs font-bold text-red-600 mt-2 h-4 text-center";
                     actions.classList.remove('hidden');
                 },
-
                 retry: () => {
                     const actions = document.getElementById('captcha-actions');
                     const status = document.getElementById('captcha-status');
                     actions.classList.add('hidden');
                     status.innerText = "Đang tải lại...";
                     status.className = "text-xs font-bold text-gray-500 mt-2 h-4 text-center";
-
                     if (window.turnstile && app.captcha.widgetId !== null) {
                         window.turnstile.reset(app.captcha.widgetId);
                     }
-
                     clearTimeout(app.captcha.timeoutTimer);
                     app.captcha.timeoutTimer = setTimeout(() => {
                         status.innerText = "Kiểm tra quá hạn (12s). Vui lòng thử lại.";
@@ -762,21 +639,17 @@ Object.assign(window.app, {
                         actions.classList.remove('hidden');
                     }, 12000);
                 },
-
                 closeModal: () => {
                     app.captcha.isOpen = false;
                     clearTimeout(app.captcha.timeoutTimer);
                     const modal = document.getElementById('captcha-modal');
                     const content = document.getElementById('captcha-content');
-
                     modal.classList.add('opacity-0');
                     content.classList.add('scale-95');
-
                     setTimeout(() => {
                         modal.classList.add('hidden');
                     }, 300);
                 },
-
                 cancel: () => {
                     app.captcha.closeModal();
                     if (app.captcha.rejectPromise) {
@@ -787,106 +660,82 @@ Object.assign(window.app, {
                 }
             }
 });
-
 Object.assign(window.app, {
   qrLogin: {
             peer: null,
             conn: null,
             timer: null,
             timeLeft: 180,
-
-            // --- HOST: Máy PC (Mở Modal, Tạo QR, Chờ kết nối) ---
             startHost: () => {
                 const modal = document.getElementById('qr-login-host-modal');
                 const loading = document.getElementById('qr-login-loading');
                 const qrContainer = document.getElementById('qr-login-qrcode-container');
                 const countdownEl = document.getElementById('qr-login-countdown');
                 const statusText = document.getElementById('qr-login-status-text');
-
                 modal.classList.remove('hidden');
                 qrContainer.innerHTML = '';
                 loading.classList.remove('hidden');
                 statusText.innerText = "Đang tạo mã QR...";
                 countdownEl.innerText = "03:00";
                 app.ui.lockScroll();
-
                 if (app.qrLogin.peer) app.qrLogin.peer.destroy();
                 app.qrLogin.peer = new Peer();
-
                 app.qrLogin.peer.on('open', (id) => {
                     loading.classList.add('hidden');
                     const loginUrl = window.location.origin + '/login?qr=' + id;
-
                     new QRCode(qrContainer, {
                         text: loginUrl, width: 224, height: 224,
                         colorDark : "#000000", colorLight : "#ffffff",
                         correctLevel : QRCode.CorrectLevel.H
                     });
-
                     app.qrLogin.startCountdown();
                 });
-
                 app.qrLogin.peer.on('connection', (conn) => {
                     app.qrLogin.conn = conn;
-
                     conn.on('open', () => {
                         loading.classList.remove('hidden');
                         statusText.innerText = "Vui lòng xác nhận trên thiết bị quét...";
                         if(app.qrLogin.timer) clearInterval(app.qrLogin.timer);
                         countdownEl.innerText = "Đang chờ...";
-
-                        // GỬI RAW USER-AGENT TỪ MÁY TÍNH QUA ĐIỆN THOẠI
                         conn.send({ type: 'host_info', userAgent: navigator.userAgent });
                     });
-
                     conn.on('data', async (data) => {
                         if (data.type === 'login_link') {
                             statusText.innerText = "Đang chuyển hướng đăng nhập...";
                             conn.send({ type: 'success' });
-
-                            // CHUẨN CHUYÊN NGHIỆP: ĐIỀU HƯỚNG PC ĐẾN MAGIC LINK DO BACKEND TẠO RA
                             window.location.href = data.url;
-
                         } else if (data.type === 'cancel') {
                             app.ui.showAlert("Đăng nhập bị từ chối từ thiết bị quét.");
                             app.qrLogin.cancelHost();
                         }
                     });
-
                     conn.on('close', () => {
                         app.qrLogin.cancelHost();
                     });
                 });
             },
-
             startCountdown: () => {
                 app.qrLogin.timeLeft = 180;
                 const timerEl = document.getElementById('qr-login-countdown');
-
                 if(app.qrLogin.timer) clearInterval(app.qrLogin.timer);
                 app.qrLogin.timer = setInterval(() => {
                     app.qrLogin.timeLeft--;
                     const m = Math.floor(app.qrLogin.timeLeft / 60).toString().padStart(2, '0');
                     const s = (app.qrLogin.timeLeft % 60).toString().padStart(2, '0');
                     timerEl.innerText = `${m}:${s}`;
-
                     if (app.qrLogin.timeLeft <= 0) {
                         app.ui.showAlert("Mã QR đã hết hạn (3 phút). Vui lòng tạo lại.");
                         app.qrLogin.cancelHost();
                     }
                 }, 1000);
             },
-
             cancelHost: () => {
                 if(app.qrLogin.timer) clearInterval(app.qrLogin.timer);
                 if(app.qrLogin.conn) app.qrLogin.conn.close();
                 if(app.qrLogin.peer) app.qrLogin.peer.destroy();
-
                 document.getElementById('qr-login-host-modal').classList.add('hidden');
                 app.ui.unlockScroll();
             },
-
-            // --- CLIENT: Điện thoại quét mã ---
             initClient: async (hostId) => {
                 if (!app.user) {
                     app.ui.showAlert("Bạn chưa đăng nhập! Vui lòng đăng nhập trên điện thoại này trước khi quét mã QR.", () => {
@@ -894,19 +743,15 @@ Object.assign(window.app, {
                     });
                     return;
                 }
-
                 const modal = document.getElementById('qr-login-confirm-modal');
                 const btnConfirm = document.getElementById('qr-confirm-btn');
                 const avatarImg = document.getElementById('qr-confirm-avatar');
                 const deviceText = document.getElementById('qr-confirm-device');
-
                 btnConfirm.disabled = true;
                 btnConfirm.classList.add('opacity-50', 'cursor-not-allowed');
                 let timeLeft = 10;
                 btnConfirm.innerText = `Đăng nhập (${timeLeft})`;
-
                 document.getElementById('qr-confirm-name').innerText = app.username;
-
                 try {
                     const { data: profile } = await window.sb.from('profiles').select('avatar_url').eq('id', app.user.id).single();
                     if (profile && profile.avatar_url) {
@@ -919,13 +764,10 @@ Object.assign(window.app, {
                 } catch(e) {
                     avatarImg.src = 'https://files.catbox.moe/zzh1q1.png';
                 }
-
                 deviceText.innerText = "Đang kết nối để lấy thông tin thiết bị...";
                 app.qrLogin.getIP();
-
                 modal.classList.remove('hidden');
                 app.ui.lockScroll();
-
                 const cTimer = setInterval(() => {
                     timeLeft--;
                     if (timeLeft <= 0) {
@@ -937,13 +779,10 @@ Object.assign(window.app, {
                         btnConfirm.innerText = `Đăng nhập (${timeLeft})`;
                     }
                 }, 1000);
-
                 if (app.qrLogin.peer) app.qrLogin.peer.destroy();
                 app.qrLogin.peer = new Peer();
-
                 app.qrLogin.peer.on('open', () => {
                     app.qrLogin.conn = app.qrLogin.peer.connect(hostId, { reliable: true });
-
                     app.qrLogin.conn.on('data', (data) => {
                         if (data.type === 'host_info') {
                             deviceText.innerText = data.userAgent || 'Trình duyệt không xác định';
@@ -968,7 +807,6 @@ Object.assign(window.app, {
                             app.qrLogin.closeClient();
                         }
                     });
-
                     app.qrLogin.conn.on('close', () => {
                         app.ui.showAlert("Mất kết nối với thiết bị chờ đăng nhập. Vui lòng quét lại.");
                         app.utils.navigate('/');
@@ -976,7 +814,6 @@ Object.assign(window.app, {
                     });
                 });
             },
-
             getIP: async () => {
                 try {
                     const res = await fetch('https://api.ipify.org?format=json');
@@ -986,21 +823,16 @@ Object.assign(window.app, {
                     document.getElementById('qr-confirm-ip').innerText = 'Không thể lấy IP';
                 }
             },
-
             confirmClient: async () => {
                 const btn = document.getElementById('qr-confirm-btn');
                 btn.disabled = true;
                 btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
-
                 try {
                     const { data, error } = await window.sb.auth.getSession();
                     if (error || !data.session) throw new Error("Lấy Token thất bại. Vui lòng tải lại trang.");
-
                     if (!app.qrLogin.conn || !app.qrLogin.conn.open) {
                         throw new Error("Không thể kết nối với máy chủ chờ. Vui lòng quét lại mã QR.");
                     }
-
-                    // --- CHUẨN CHUYÊN NGHIỆP: GỌI API BACKEND ĐỂ TẠO MAGIC LINK ---
                     const res = await fetch('/api/system', {
                         method: 'POST',
                         headers: {
@@ -1009,23 +841,18 @@ Object.assign(window.app, {
                         },
                         body: JSON.stringify({ action: 'qr-login' })
                     });
-
                     const apiData = await res.json();
                     if (!res.ok) throw new Error(apiData.error || "Không thể tạo token đăng nhập mới từ máy chủ.");
-
-                    // Bắn Magic Link qua cho PC
                     app.qrLogin.conn.send({
                         type: 'login_link',
                         url: apiData.url
                     });
-
                 } catch (e) {
                     app.ui.showAlert(e.message);
                     btn.disabled = false;
                     btn.innerText = "Thử lại";
                 }
             },
-
             cancelClient: () => {
                 if (app.qrLogin.conn && app.qrLogin.conn.open) {
                     app.qrLogin.conn.send({ type: 'cancel' });
@@ -1035,7 +862,6 @@ Object.assign(window.app, {
                 });
                 app.qrLogin.closeClient();
             },
-
             closeClient: () => {
                 if(app.qrLogin.conn) app.qrLogin.conn.close();
                 if(app.qrLogin.peer) app.qrLogin.peer.destroy();
@@ -1044,29 +870,19 @@ Object.assign(window.app, {
             }
         }
 });
-
 Object.assign(window.app, {
   profileIntro: {
                 previewedPhoto: null,
-
-                // ============================================
-                // CÁC HÀM DÀNH CHO XÁC NHẬN ẢNH TÂM ĐẮC
-                // ============================================
-                
                 openPhotoSelector: async () => {
                     const modal = document.getElementById('fav-photo-modal');
                     const content = document.getElementById('fav-photo-content');
-
-                    // Reset giao diện về trạng thái rỗng
                     document.getElementById('fav-photo-url-input').value = '';
                     document.getElementById('fav-photo-preview-area').classList.add('hidden');
                     document.getElementById('fav-photo-error').classList.add('hidden');
-                    
                     const btnSave = document.getElementById('btn-save-fav-photo');
                     btnSave.disabled = true;
                     btnSave.classList.add('opacity-50', 'cursor-not-allowed');
                     app.profileIntro.previewedPhoto = null;
-
                     modal.classList.remove('hidden');
                     app.ui.lockScroll();
                     setTimeout(() => {
@@ -1074,7 +890,6 @@ Object.assign(window.app, {
                         content.classList.add('opacity-100', 'scale-100');
                     }, 10);
                 },
-
                 closePhotoSelector: () => {
                     const modal = document.getElementById('fav-photo-modal');
                     const content = document.getElementById('fav-photo-content');
@@ -1085,7 +900,6 @@ Object.assign(window.app, {
                         app.ui.unlockScroll();
                     }, 200);
                 },
-
                 previewFavPhotoFromUrl: async (url) => {
                     const previewArea = document.getElementById('fav-photo-preview-area');
                     const errorBox = document.getElementById('fav-photo-error');
@@ -1094,110 +908,77 @@ Object.assign(window.app, {
                     const imgEl = document.getElementById('fav-photo-preview-img');
                     const plateEl = document.getElementById('fav-photo-preview-plate');
                     const opEl = document.getElementById('fav-photo-preview-op');
-
-                    // Câu báo lỗi chung
                     const genericErrorMsg = "Ảnh không hợp lệ. Chỉ chấp nhận ảnh VNBUSARCHIVE và là của bạn.";
-
-                    // Reset mọi trạng thái
                     btnSave.disabled = true;
                     btnSave.classList.add('opacity-50', 'cursor-not-allowed');
                     errorBox.classList.add('hidden');
                     previewArea.classList.add('hidden');
                     app.profileIntro.previewedPhoto = null;
-
                     const val = url.trim();
                     if (!val) return;
-
-                    // Kiểm tra URL có đúng định dạng không
                     const match = val.match(/\/photo\/(\d+)/i);
                     if (!match) {
                         errorText.innerText = genericErrorMsg;
                         errorBox.classList.remove('hidden');
-                        return; // Dừng, không hiện preview
+                        return; 
                     }
-
                     const photoId = match[1];
-                    
-                    // Trong lúc chờ API, hiện tạm khung preview dạng đang tải
                     previewArea.classList.remove('hidden');
                     imgEl.src = 'https://placehold.co/400x300/f3f4f6/a1a1aa?text=Dang+tai...';
                     plateEl.innerText = 'Đang kiểm tra dữ liệu...';
                     opEl.innerText = '';
-
                     try {
                         const { data, error } = await window.sb.from('photos')
                             .select('id, url, license_plate, operator, uploader_id, status')
                             .eq('id', photoId)
                             .single();
-
-                        // Các điều kiện từ chối
                         if (error || !data) throw new Error();
                         if (data.status !== 'approved') throw new Error();
                         if (data.uploader_id !== app.user.id) throw new Error();
-
-                        // Nếu qua hết các bài test -> Render ảnh thật
                         app.profileIntro.previewedPhoto = data;
                         imgEl.src = app.utils.getProxiedUrl(data.url, 'preview.jpg', 'thumb');
                         plateEl.innerText = app.utils.displayPlate(data.license_plate);
                         opEl.innerText = data.operator || 'Không rõ đơn vị';
-
                         btnSave.disabled = false;
                         btnSave.classList.remove('opacity-50', 'cursor-not-allowed');
-
                     } catch (e) {
-                        // Nếu ảnh bị lỗi (không tồn tại, chưa duyệt, của người khác) 
-                        // -> ẨN KHUNG PREVIEW ĐI, CHỈ SHOW Ô BÁO LỖI
                         previewArea.classList.add('hidden');
                         errorText.innerText = genericErrorMsg;
                         errorBox.classList.remove('hidden');
                     }
                 },
-
                 confirmSaveFavPhoto: async () => {
                     if (!app.profileIntro.previewedPhoto) return;
-                    
-                    // ===================================
-                    // GỌI CAPTCHA TRƯỚC KHI XỬ LÝ LƯU ẢNH
-                    // ===================================
                     try {
                         await app.captcha.request();
                     } catch (err) {
                         if (err.message !== "CAPTCHA_CANCELLED") {
                             app.ui.showAlert("Lỗi xác thực Captcha.");
                         }
-                        return; // Ngừng thực thi nếu Captcha bị hủy hoặc lỗi
+                        return; 
                     }
-
                     const { id, url } = app.profileIntro.previewedPhoto;
                     const btnSave = document.getElementById('btn-save-fav-photo');
                     const origText = btnSave.innerHTML;
-                    
                     btnSave.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
                     btnSave.disabled = true;
-
                     await app.profileIntro.saveFavPhoto(id, url);
-                    
                     btnSave.innerHTML = origText;
                     btnSave.disabled = false;
                 },
-
                 saveFavPhoto: async (photoId, url) => {
                     try {
                         const { error } = await window.sb.from('profiles').update({ favorite_photo_id: photoId }).eq('id', app.user.id);
                         if (error) throw error;
-
                         app.profileIntro.closePhotoSelector();
-
                         const favContainer = document.getElementById('profile-fav-photo-container');
                         const favControls = document.getElementById('profile-fav-photo-controls');
                         const btnAddFav = document.getElementById('btn-add-fav-photo');
                         const placeholderWrap = document.getElementById('fav-photo-placeholder');
-
                         if(placeholderWrap) {
                             placeholderWrap.classList.add('hidden');
                             placeholderWrap.classList.remove('flex');
                         }
-
                         favContainer.innerHTML = `
                             <img src="${app.utils.getProxiedUrl(url, 'fav.jpg', 'thumb')}" class="absolute inset-0 w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-700 pointer-events-auto" onclick="app.views.loadDetail(${photoId})">
                         `;
@@ -1205,37 +986,29 @@ Object.assign(window.app, {
                         favControls.classList.add('flex');
                         btnAddFav.classList.add('hidden');
                         btnAddFav.classList.remove('flex');
-
                         app.toast.show('success', 'Thành công', 'Đã đặt ảnh tâm đắc thành công!');
-
                     } catch (e) {
                         app.ui.showAlert("Lỗi cài đặt ảnh: " + e.message);
                     }
                 },
-
                 deleteFavPhoto: async () => {
                     app.ui.showAlert("Bạn có chắc chắn muốn gỡ Ảnh tâm đắc?", async () => {
                         try {
                             const { error } = await window.sb.from('profiles').update({ favorite_photo_id: null }).eq('id', app.user.id);
                             if (error) throw error;
-
                             const favContainer = document.getElementById('profile-fav-photo-container');
                             const favControls = document.getElementById('profile-fav-photo-controls');
                             const btnAddFav = document.getElementById('btn-add-fav-photo');
                             const placeholderWrap = document.getElementById('fav-photo-placeholder');
-
                             favContainer.innerHTML = '';
-                            
                             if(placeholderWrap) {
                                 placeholderWrap.classList.add('hidden');
                                 placeholderWrap.classList.remove('flex');
                             }
-
                             favControls.classList.add('hidden');
                             favControls.classList.remove('flex');
                             btnAddFav.classList.remove('hidden');
                             btnAddFav.classList.add('flex');
-
                         } catch (e) {
                             app.ui.showAlert("Lỗi gỡ ảnh: " + e.message);
                         }
@@ -1243,29 +1016,23 @@ Object.assign(window.app, {
                 }
             }
 });
-
 Object.assign(window.app, {
   onboarding: {
                 currentStep: 1,
                 isOpen: false,
-
                 check: () => {
                     const isHome = window.location.pathname === '/' || window.location.pathname === '';
                     const onboarded = localStorage.getItem('vnbus_onboarded');
-
                     if (!onboarded && isHome) {
                         setTimeout(() => { app.onboarding.open(); }, 800);
                     }
                 },
-
                 open: () => {
                     if (app.onboarding.isOpen) return;
                     app.onboarding.isOpen = true;
                     app.onboarding.currentStep = 1;
-
                     app.preference.tempSelection = app.preference.current || 'both';
                     app.onboarding.updatePrefUI();
-
                     if (app.user) {
                         document.getElementById('onb-auth-guest').classList.add('hidden');
                         document.getElementById('onb-auth-logged').classList.remove('hidden');
@@ -1281,9 +1048,7 @@ Object.assign(window.app, {
                         document.getElementById('onb-auth-guest').classList.remove('hidden');
                         document.getElementById('onb-auth-logged').classList.add('hidden');
                     }
-
                     app.onboarding.renderStep(1, false);
-
                     const modal = document.getElementById('onboarding-modal');
                     const content = document.getElementById('onboarding-content');
                     modal.classList.remove('hidden');
@@ -1293,7 +1058,6 @@ Object.assign(window.app, {
                         content.classList.add('opacity-100', 'scale-100');
                     }, 10);
                 },
-
                 next: () => {
                     if (app.onboarding.currentStep < 4) {
                         app.onboarding.currentStep++;
@@ -1302,32 +1066,26 @@ Object.assign(window.app, {
                         app.onboarding.complete(true);
                     }
                 },
-
                 prev: () => {
                     if (app.onboarding.currentStep > 1) {
                         app.onboarding.currentStep--;
                         app.onboarding.renderStep(app.onboarding.currentStep, true);
                     }
                 },
-
                 renderStep: (step, isBackwards) => {
                     const segments = document.querySelectorAll('.onb-segment');
                     segments.forEach((seg, idx) => {
                         if (idx < step) seg.classList.add('active');
                         else seg.classList.remove('active');
                     });
-
                     document.querySelectorAll('.onb-slide').forEach(slide => {
                         slide.classList.remove('active', 'slide-left');
                     });
-
                     const activeSlide = document.getElementById('onb-step-' + step);
                     if (isBackwards) activeSlide.classList.add('slide-left', 'active');
                     else activeSlide.classList.add('active');
-
                     const btnPrev = document.getElementById('onb-btn-prev');
                     const btnNext = document.getElementById('onb-btn-next');
-
                     if (step === 1) {
                         btnPrev.style.visibility = 'hidden';
                         btnNext.innerHTML = 'Tiếp tục <i class="fa-solid fa-arrow-right"></i>';
@@ -1345,7 +1103,6 @@ Object.assign(window.app, {
                         btnNext.style.visibility = 'visible';
                     }
                 },
-
                 updatePrefUI: () => {
                     ['bus', 'coach', 'both'].forEach(type => {
                         const btn = document.getElementById(`onb-pref-${type}`);
@@ -1361,11 +1118,9 @@ Object.assign(window.app, {
                         }
                     });
                 },
-
                 complete: (savePreferences = true, redirectUrl = null) => {
                     localStorage.setItem('vnbus_onboarded', 'true');
                     localStorage.setItem('vnbus_news_last_seen', new Date().toDateString());
-
                     if (savePreferences) {
                         app.preference.current = app.preference.tempSelection || 'both';
                         localStorage.setItem('vnbus_preference', app.preference.current);
@@ -1376,17 +1131,14 @@ Object.assign(window.app, {
                             }).eq('id', app.user.id).then(()=>{});
                         }
                     }
-
                     const modal = document.getElementById('onboarding-modal');
                     const content = document.getElementById('onboarding-content');
                     content.classList.remove('opacity-100', 'scale-100');
                     content.classList.add('opacity-0', 'scale-95');
-
                     setTimeout(() => {
                         modal.classList.add('hidden');
                         app.ui.unlockScroll();
                         app.onboarding.isOpen = false;
-
                         if (redirectUrl) {
                             app.utils.navigate(redirectUrl);
                         } else {
@@ -1395,4 +1147,4 @@ Object.assign(window.app, {
                     }, 200);
                 }
             }
-});
+});
