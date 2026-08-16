@@ -1,0 +1,24 @@
+name: "Đề xuất tính năng mới"
+description: "Chia sẻ ý tưởng của bạn để giúp VNBUSARCHIVE ngày càng hoàn thiện hơn"
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Cảm ơn bạn đã mong muốn đóng góp ý tưởng cho VNBUSARCHIVE. Những đề xuất của bạn là nguồn tài liệu quý giá để chúng tôi tiếp tục nâng cấp và phát triển dự án.
+
+  - type: textarea
+    id: feature-description
+    attributes:
+      label: Chi tiết tính năng đề xuất
+      description: Xin bạn mô tả cụ thể về tính năng mong muốn. Tính năng này sẽ giải quyết vấn đề gì hoặc mang lại trải nghiệm tốt hơn như thế nào cho người dùng?
+      placeholder: Chia sẻ chi tiết ý tưởng của bạn tại đây...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Giải pháp hiện tại hoặc Phương án thay thế
+      description: Trong lúc chờ tính năng này được phát triển, bạn có đang sử dụng cách nào khác để giải quyết nhu cầu này không? (Phần này có thể bỏ trống nếu không có)

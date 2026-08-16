@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Liên hệ
+    url: https://www.vnbusarchive.io.vn/contact
+    about: Nếu bạn có câu hỏi chung hoặc cần trợ giúp, hãy trao đổi với đội ngũ thay vì tạo Issue.

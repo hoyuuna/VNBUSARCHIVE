@@ -1,0 +1,52 @@
+name: "Báo cáo lỗi"
+description: "Hãy cho chúng tôi biết vấn đề bạn gặp phải để cùng hoàn thiện VNBUSARCHIVE"
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Cảm ơn bạn đã dành thời gian phản hồi cho VNBUSARCHIVE. Những thông tin bạn cung cấp dưới đây sẽ rất hữu ích, giúp đội ngũ phát triển nhanh chóng khoanh vùng và khắc phục sự cố.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: Tóm tắt vấn đề
+      description: Bạn có thể mô tả chi tiết hơn về tình trạng không mong muốn vừa xảy ra được không?
+      placeholder: Xin vui lòng chia sẻ chi tiết về sự cố mà bạn đang gặp phải tại đây...
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Hướng dẫn tái hiện sự cố
+      description: Để đội ngũ kỹ thuật có thể kiểm tra chính xác, xin bạn liệt kê các thao tác dẫn đến lỗi này.
+      value: |
+        1. Truy cập vào trang '...'
+        2. Nhấn vào nút '....'
+        3. Thực hiện thao tác '....'
+        4. Kết quả nhận được là... (thay vì kết quả đáng lẽ phải có)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Nền tảng thiết bị
+      description: Xin cho biết bạn đang sử dụng VNBUSARCHIVE trên nền tảng nào?
+      options:
+        - Trình duyệt web (Windows)
+        - Trình duyệt web (Android)
+        - Trình duyệt web (iOS)
+        - Trình duyệt web (MacOS)
+        - Trình duyệt web (Linux)
+        - Khác
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Hình ảnh minh họa hoặc Dữ liệu hệ thống (Log)
+      description: Nếu có thể, xin bạn đính kèm ảnh chụp màn hình hoặc dán trực tiếp log lỗi vào đây. Điều này sẽ giúp đẩy nhanh quá trình xử lý rất nhiều.
