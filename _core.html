@@ -5529,7 +5529,17 @@ div[id$="-modal"] > div > * {
     <script>
         var _pInt = null;
         (function() {
-            document.addEventListener('contextmenu', e => e.preventDefault());
+            document.addEventListener('contextmenu', e => {
+                const tag = e.target.tagName;
+                const isInput = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+                const isLink = tag === 'A' || e.target.closest('a');
+                const isImage = tag === 'IMG';
+                const isTextSelected = window.getSelection().toString().length > 0;
+                
+                if (!isInput && !isLink && !isImage && !isTextSelected) {
+                    e.preventDefault();
+                }
+            });
             document.addEventListener('keydown', e => {
                 if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) || (e.ctrlKey && e.key === 'U')) {
                     e.preventDefault(); return false;
