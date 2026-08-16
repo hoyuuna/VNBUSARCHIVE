@@ -9854,20 +9854,27 @@ Object.assign(window.app, {
             }
             const directBanner = document.getElementById('contact-direct-links-banner');
             const noticeEl = document.getElementById('contact-incorrect-info-notice');
+            const bugNoticeEl = document.getElementById('contact-bug-notice');
             if (app.contact._animTimeout) clearTimeout(app.contact._animTimeout);
-            if (topic === 'incorrect_info') {
+            if (topic === 'incorrect_info' || topic === 'bug') {
                 if (dynamicArea) {
                     dynamicArea.classList.add('hidden');
                     dynamicArea.classList.remove('fade-zoom-in');
                 }
                 if (directBanner) directBanner.classList.add('hidden');
-                if (noticeEl) {
-                    noticeEl.classList.remove('hidden');
-                    noticeEl.classList.remove('fade-zoom-in');
-                    void noticeEl.offsetWidth;
-                    noticeEl.classList.add('fade-zoom-in');
+                
+                if (noticeEl) noticeEl.classList.add('hidden');
+                if (bugNoticeEl) bugNoticeEl.classList.add('hidden');
+                
+                const activeNotice = topic === 'incorrect_info' ? noticeEl : bugNoticeEl;
+                
+                if (activeNotice) {
+                    activeNotice.classList.remove('hidden');
+                    activeNotice.classList.remove('fade-zoom-in');
+                    void activeNotice.offsetWidth;
+                    activeNotice.classList.add('fade-zoom-in');
                     app.contact._animTimeout = setTimeout(() => {
-                        noticeEl.classList.remove('fade-zoom-in');
+                        activeNotice.classList.remove('fade-zoom-in');
                     }, 500);
                 }
                 return;
@@ -9875,6 +9882,10 @@ Object.assign(window.app, {
                 if (noticeEl) {
                     noticeEl.classList.add('hidden');
                     noticeEl.classList.remove('fade-zoom-in');
+                }
+                if (bugNoticeEl) {
+                    bugNoticeEl.classList.add('hidden');
+                    bugNoticeEl.classList.remove('fade-zoom-in');
                 }
                 if (dynamicArea) {
                     dynamicArea.classList.remove('hidden');
