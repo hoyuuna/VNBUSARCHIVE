@@ -3431,7 +3431,8 @@ Object.assign(window.app, {
                         };
                         container.innerHTML =
                             renderProvider('Google', 'fa-brands fa-google', 'bg-red-500', 'google') +
-                            renderProvider('Discord', 'fa-brands fa-discord', 'bg-[#5865F2]', 'discord');
+                            renderProvider('Discord', 'fa-brands fa-discord', 'bg-[#5865F2]', 'discord') +
+                            renderProvider('GitHub', 'fa-brands fa-github', 'bg-[#24292e]', 'github');
                     } catch (err) {
                         container.innerHTML = `<p class="text-xs text-red-500">Lỗi lấy thông tin liên kết: ${err.message}</p>`;
                     }
@@ -4381,6 +4382,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
 /* --- MODULE: 2_auth.js --- */
 window.app = window.app || {};
 Object.assign(window.app, {
