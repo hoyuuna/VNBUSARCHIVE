@@ -200,7 +200,7 @@ Object.assign(window.app, {
                     const container = document.getElementById('upload-rules-content');
                     if (!container || container.dataset.loaded === 'true') return;
                     try {
-                        const res = await fetch('https://raw.githubusercontent.com/hoyuuna/VNBUSARCHIVE/refs/heads/main/Requirements.md');
+                        const res = await fetch('https://raw.githubusercontent.com/hoyuuna/VNBUSARCHIVE/refs/heads/main/doc/Requirements.md');
                         if (!res.ok) throw new Error('Network error');
                         const text = await res.text();
                         const html = DOMPurify.sanitize(marked.parse(text));
