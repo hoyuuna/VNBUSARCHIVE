@@ -231,7 +231,7 @@ Object.assign(window.app, {
                             <div class="img-spinner absolute inset-0 flex items-center justify-center text-gray-400 z-0">
                                 <i class="fa-solid fa-circle-notch fa-spin text-3xl"></i>
                             </div>
-                            <img src="${app.utils.getProxiedUrl(main.url, 'main.jpg', 'full')}"
+                            <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(main.url, 'main.jpg', 'full')}"
                                  onload="app.utils.handleImgLoad(this)"
                                  onerror="app.utils.fallbackHeroImage(this, 'topPhotosCache', 0)"
                                  class="absolute inset-0 w-full h-full object-cover object-center block group-hover:scale-105 transition-all duration-700 opacity-0 z-10">
@@ -251,7 +251,7 @@ Object.assign(window.app, {
                                     <div class="img-spinner absolute inset-0 flex items-center justify-center text-gray-400 z-0">
                                         <i class="fa-solid fa-circle-notch fa-spin text-2xl"></i>
                                     </div>
-                                    <img src="${app.utils.getProxiedUrl(p.url, 'sub.jpg', 'thumb')}"
+                                    <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(p.url, 'sub.jpg', 'thumb')}"
                                          onload="app.utils.handleImgLoad(this)"
                                          onerror="app.utils.fallbackHeroImage(this, 'topPhotosCache', ${i})"
                                          class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-all duration-500 opacity-0 z-10">
@@ -712,7 +712,7 @@ Object.assign(window.app, {
                                 placeholderWrap.classList.add('hidden');
                                 placeholderWrap.classList.remove('flex');
                                 favContainer.innerHTML = `
-                                    <img src="${app.utils.getProxiedUrl(favPhoto.url, 'fav.jpg', 'thumb')}" class="absolute inset-0 w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-700 pointer-events-auto" onclick="app.views.loadDetail(${favPhoto.id})">
+                                    <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(favPhoto.url, 'fav.jpg', 'thumb')}" class="absolute inset-0 w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-700 pointer-events-auto" onclick="app.views.loadDetail(${favPhoto.id})">
                                 `;
                                 if (isOwnProfile) {
                                     favControls.classList.remove('hidden');
@@ -2163,7 +2163,7 @@ Object.assign(window.app, {
                             <div class="bg-white border border-vbs-border shadow-sm rounded-lg p-6 md:p-8 mb-6 relative overflow-hidden">
                                 <div class="flex items-center gap-4 sm:gap-6 w-full min-w-0 max-w-full mb-6">
                                     ${topPhoto ? `
-                                    <img src="${app.utils.getProxiedUrl(topPhoto.url, 'vehicle-top.jpg', 'thumb')}" onerror="app.utils.fallbackHeroImage(this, 'vehiclePhotosCache', 0)" onclick="app.views.loadDetail(${topPhoto.id})" class="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-xl object-cover shrink-0 border border-gray-200 shadow-sm cursor-pointer hover:scale-105 transition duration-300">
+                                    <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(topPhoto.url, 'vehicle-top.jpg', 'thumb')}" onerror="app.utils.fallbackHeroImage(this, 'vehiclePhotosCache', 0)" onclick="app.views.loadDetail(${topPhoto.id})" class="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-xl object-cover shrink-0 border border-gray-200 shadow-sm cursor-pointer hover:scale-105 transition duration-300">
                                     ` : `
                                     <div class="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-xl bg-gray-100 text-gray-400 flex items-center justify-center font-bold text-3xl shrink-0 border border-gray-200">
                                         <i class="fa-solid fa-bus"></i>

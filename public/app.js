@@ -2563,12 +2563,12 @@ Object.assign(window.app, {
                     if (e.key === 'Enter') { document.getElementById('main-search-suggestions').classList.remove('active'); app.handleSearch(true, 'search-input'); }
                     if (e.key === 'Escape') clearSearchInput(e.target, 'main-search-suggestions');
                 });
-                document.getElementById('search-input').addEventListener('input', function (e) {
+                document.getElementById('search-input').addEventListener('input', app.utils.debounce(function (e) {
                     const val = e.target.value;
                     const pageInp = document.getElementById('page-search-input');
                     if (pageInp && document.activeElement === e.target) pageInp.value = val;
                     app.search.triggerMainSuggestion(val.trim(), 'search-input', 'main-search-suggestions');
-                });
+                }, 300));
                 document.getElementById('search-input').addEventListener('focus', function (e) {
                     app.search.triggerMainSuggestion(e.target.value.trim(), 'search-input', 'main-search-suggestions');
                 });
@@ -2578,12 +2578,12 @@ Object.assign(window.app, {
                         if (e.key === 'Enter') { document.getElementById('page-search-suggestions').classList.remove('active'); app.handleSearch(true, 'page-search-input'); }
                         if (e.key === 'Escape') clearSearchInput(e.target, 'page-search-suggestions');
                     });
-                    pageSearchInput.addEventListener('input', function (e) {
+                    pageSearchInput.addEventListener('input', app.utils.debounce(function (e) {
                         const val = e.target.value;
                         const headerInp = document.getElementById('search-input');
                         if (headerInp && document.activeElement === e.target) headerInp.value = val;
                         app.search.triggerMainSuggestion(val.trim(), 'page-search-input', 'page-search-suggestions');
-                    });
+                    }, 300));
                     pageSearchInput.addEventListener('focus', function (e) {
                         app.search.triggerMainSuggestion(e.target.value.trim(), 'page-search-input', 'page-search-suggestions');
                     });
@@ -4348,6 +4348,7 @@ document.addEventListener('DOMContentLoaded', () => {
             header.style.transform = 'translateY(0)';
         }
     };
+    let scrollTicking = false;
     window.addEventListener('scroll', () => {
         const currentScrollY = window.scrollY;
         if (currentScrollY > lastScrollY) {
@@ -4355,8 +4356,14 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (currentScrollY < lastScrollY) {
             lastScrollDirection = 'up';
         }
-        checkHeaderState();
         lastScrollY = currentScrollY;
+        if (!scrollTicking) {
+            window.requestAnimationFrame(() => {
+                checkHeaderState();
+                scrollTicking = false;
+            });
+            scrollTicking = true;
+        }
     }, { passive: true });
     document.addEventListener('click', () => {
         setTimeout(checkHeaderState, 50);
@@ -5366,7 +5373,7 @@ Object.assign(window.app, {
                             placeholderWrap.classList.remove('flex');
                         }
                         favContainer.innerHTML = `
-                            <img src="${app.utils.getProxiedUrl(url, 'fav.jpg', 'thumb')}" class="absolute inset-0 w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-700 pointer-events-auto" onclick="app.views.loadDetail(${photoId})">
+                            <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(url, 'fav.jpg', 'thumb')}" class="absolute inset-0 w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-700 pointer-events-auto" onclick="app.views.loadDetail(${photoId})">
                         `;
                         favControls.classList.remove('hidden');
                         favControls.classList.add('flex');
@@ -5768,7 +5775,7 @@ Object.assign(window.app, {
                             <div class="img-spinner absolute inset-0 flex items-center justify-center text-gray-400 z-0">
                                 <i class="fa-solid fa-circle-notch fa-spin text-3xl"></i>
                             </div>
-                            <img src="${app.utils.getProxiedUrl(main.url, 'main.jpg', 'full')}"
+                            <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(main.url, 'main.jpg', 'full')}"
                                  onload="app.utils.handleImgLoad(this)"
                                  onerror="app.utils.fallbackHeroImage(this, 'topPhotosCache', 0)"
                                  class="absolute inset-0 w-full h-full object-cover object-center block group-hover:scale-105 transition-all duration-700 opacity-0 z-10">
@@ -5788,7 +5795,7 @@ Object.assign(window.app, {
                                     <div class="img-spinner absolute inset-0 flex items-center justify-center text-gray-400 z-0">
                                         <i class="fa-solid fa-circle-notch fa-spin text-2xl"></i>
                                     </div>
-                                    <img src="${app.utils.getProxiedUrl(p.url, 'sub.jpg', 'thumb')}"
+                                    <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(p.url, 'sub.jpg', 'thumb')}"
                                          onload="app.utils.handleImgLoad(this)"
                                          onerror="app.utils.fallbackHeroImage(this, 'topPhotosCache', ${i})"
                                          class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-all duration-500 opacity-0 z-10">
@@ -6249,7 +6256,7 @@ Object.assign(window.app, {
                                 placeholderWrap.classList.add('hidden');
                                 placeholderWrap.classList.remove('flex');
                                 favContainer.innerHTML = `
-                                    <img src="${app.utils.getProxiedUrl(favPhoto.url, 'fav.jpg', 'thumb')}" class="absolute inset-0 w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-700 pointer-events-auto" onclick="app.views.loadDetail(${favPhoto.id})">
+                                    <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(favPhoto.url, 'fav.jpg', 'thumb')}" class="absolute inset-0 w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-700 pointer-events-auto" onclick="app.views.loadDetail(${favPhoto.id})">
                                 `;
                                 if (isOwnProfile) {
                                     favControls.classList.remove('hidden');
@@ -7700,7 +7707,7 @@ Object.assign(window.app, {
                             <div class="bg-white border border-vbs-border shadow-sm rounded-lg p-6 md:p-8 mb-6 relative overflow-hidden">
                                 <div class="flex items-center gap-4 sm:gap-6 w-full min-w-0 max-w-full mb-6">
                                     ${topPhoto ? `
-                                    <img src="${app.utils.getProxiedUrl(topPhoto.url, 'vehicle-top.jpg', 'thumb')}" onerror="app.utils.fallbackHeroImage(this, 'vehiclePhotosCache', 0)" onclick="app.views.loadDetail(${topPhoto.id})" class="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-xl object-cover shrink-0 border border-gray-200 shadow-sm cursor-pointer hover:scale-105 transition duration-300">
+                                    <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(topPhoto.url, 'vehicle-top.jpg', 'thumb')}" onerror="app.utils.fallbackHeroImage(this, 'vehiclePhotosCache', 0)" onclick="app.views.loadDetail(${topPhoto.id})" class="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-xl object-cover shrink-0 border border-gray-200 shadow-sm cursor-pointer hover:scale-105 transition duration-300">
                                     ` : `
                                     <div class="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-xl bg-gray-100 text-gray-400 flex items-center justify-center font-bold text-3xl shrink-0 border border-gray-200">
                                         <i class="fa-solid fa-bus"></i>
