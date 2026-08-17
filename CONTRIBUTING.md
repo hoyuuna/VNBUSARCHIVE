@@ -23,7 +23,7 @@ Lệnh này sẽ gộp và mã hóa Base64 thành payload vào file `functions/a
 1. **Fork** repository này về tài khoản GitHub của bạn.
 2. **Clone** repository đã fork về máy tính:
    ```bash
-   git clone https://github.com/your-username/vietnam-bus-spotter-main.git
+   git clone https://github.com/hoyuuna/VNBUSARCHIVE.git
    ```
 3. **Tạo nhánh mới (Branch)** cho tính năng hoặc bản vá lỗi của bạn:
    ```bash
