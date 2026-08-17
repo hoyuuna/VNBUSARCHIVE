@@ -5620,24 +5620,34 @@ Object.assign(window.app, {
                     }
                     const searchBox = document.getElementById('header-search-box');
                     const headerSpacer = document.getElementById('header-spacer');
-                    if (['upload', 'search', 'mobile-upload'].includes(id)) {
-                        searchBox.classList.add('hidden');
-                        if (headerSpacer) {
-                            headerSpacer.classList.remove('h-28');
-                            headerSpacer.classList.add('h-20');
-                        }
-                        if (id === 'upload') {
-                            app.upload.fetchRequirements();
-                            app.upload.checkQuota();
-                            app.upload.checkAndPromptDraft();
-                            setTimeout(() => app.uploadMap && app.uploadMap.invalidateSize(), 200);
-                            app.utils.resetTurnstile('#upload .cf-turnstile');
-                        }
+                    const mainHeader = document.querySelector('header');
+                    
+                    if (id === 'auth') {
+                        if (mainHeader) mainHeader.style.display = 'none';
+                        if (headerSpacer) headerSpacer.style.display = 'none';
                     } else {
-                        searchBox.classList.remove('hidden');
-                        if (headerSpacer) {
-                            headerSpacer.classList.remove('h-20');
-                            headerSpacer.classList.add('h-28');
+                        if (mainHeader) mainHeader.style.display = '';
+                        if (headerSpacer) headerSpacer.style.display = '';
+                        
+                        if (['upload', 'search', 'mobile-upload'].includes(id)) {
+                            if (searchBox) searchBox.classList.add('hidden');
+                            if (headerSpacer) {
+                                headerSpacer.classList.remove('h-28');
+                                headerSpacer.classList.add('h-20');
+                            }
+                            if (id === 'upload') {
+                                app.upload.fetchRequirements();
+                                app.upload.checkQuota();
+                                app.upload.checkAndPromptDraft();
+                                setTimeout(() => app.uploadMap && app.uploadMap.invalidateSize(), 200);
+                                app.utils.resetTurnstile('#upload .cf-turnstile');
+                            }
+                        } else {
+                            if (searchBox) searchBox.classList.remove('hidden');
+                            if (headerSpacer) {
+                                headerSpacer.classList.remove('h-20');
+                                headerSpacer.classList.add('h-28');
+                            }
                         }
                     }
                     if (id === 'upload' && !app.user) { app.utils.navigate('/auth'); return; }
