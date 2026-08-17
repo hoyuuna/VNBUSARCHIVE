@@ -690,6 +690,7 @@ Object.assign(window.app, {
                                         if (p && (p.role === 'admin' || p.role === 'manager')) return 1;
                                         if (p && p.subroles && Array.isArray(p.subroles)) {
                                             if (p.subroles.includes('vvbs')) return 2;
+                                            if (p.subroles.includes('dev')) return 2.5;
                                             if (p.subroles.some(s => s === 'vvcc' || s.startsWith('vvcc|'))) return 3;
                                         }
                                         return 4;
