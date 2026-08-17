@@ -2325,6 +2325,18 @@ Object.assign(window.app, {
                         }
                     }, 50);
                 }, 400);
+                // Check if there is an error from OAuth linking
+                if (window.location.hash.includes('error_description=')) {
+                    const params = new URLSearchParams(window.location.hash.substring(1));
+                    const errorDesc = params.get('error_description');
+                    if (errorDesc && errorDesc.includes('already linked')) {
+                        setTimeout(() => {
+                            app.ui.showAlert("Tài khoản này đã được liên kết với một người dùng khác. Vui lòng sử dụng tài khoản khác.");
+                            window.history.replaceState(null, null, window.location.pathname);
+                        }, 500);
+                    }
+                }
+
                 await app.setUser(session ? session.user : null);
                 window.sb.auth.onAuthStateChange(async (event, session) => {
                         if (event === 'PASSWORD_RECOVERY') {
@@ -3451,11 +3463,31 @@ Object.assign(window.app, {
                 },
                 unlinkIdentity: async (identityId, providerName) => {
                     app.ui.showAlert(
-                        `Bạn có chắc chắn muốn hủy liên kết tài khoản ${providerName}? Bạn sẽ không thể đăng nhập bằng nền tảng này nữa.`,
+                        `Bạn có chắc chắn muốn hủy liên kết tài khoản ${providerName}? Bạn sẽ không thể đăng nhập bằng nền tảng này nữa. Nếu đã được cấp danh hiệu thông qua nền tảng này, chúng cũng sẽ bị thu hồi.`,
                         async () => {
                             try {
+                                const { data: { session } } = await window.sb.auth.getSession();
+                                if (!session) throw new Error("Chưa đăng nhập");
+
+                                // Call backend API to revoke roles/badges before unlinking
+                                const apiRes = await fetch('/api/unlink', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': `Bearer ${session.access_token}`
+                                    },
+                                    body: JSON.stringify({ provider: providerName.toLowerCase() })
+                                });
+                                
+                                if (!apiRes.ok) {
+                                    const apiData = await apiRes.json();
+                                    console.error("Lỗi thu hồi quyền backend:", apiData.error);
+                                    // Vẫn tiếp tục thực hiện unlink Identity dù backend có lỗi
+                                }
+
                                 const { error } = await window.sb.auth.unlinkIdentity({ identity_id: identityId });
                                 if (error) throw error;
+
                                 app.ui.showAlert(`Đã hủy liên kết với ${providerName} thành công!`);
                                 app.settings.loadIdentities();
                             } catch (err) {
