@@ -3157,7 +3157,7 @@ Object.assign(window.app, {
                         { text: "Liên kết tài khoản", tab: "links", parent: "account", icon: "fa-link" },
                         { text: "Google", tab: "links", parent: "account", icon: "fa-link" },
                         { text: "Discord", tab: "links", parent: "account", icon: "fa-link" },
-                        { text: "Huy hiệu Discord", tab: "badges", parent: "main", icon: "fa-discord" },
+                        { text: "Danh hiệu", tab: "badges", parent: "main", icon: "fa-medal" },
                         { text: "Role", tab: "badges", parent: "main", icon: "fa-discord" },
                         { text: "Cá nhân hóa", tab: "preference", parent: "main", icon: "fa-layer-group" },
                         { text: "Xe buýt", tab: "preference", parent: "main", icon: "fa-layer-group" },
@@ -3335,7 +3335,10 @@ Object.assign(window.app, {
                         app.settings.loadIdentities();
                         if (app.settings.loadDiscordVerifyStatus) app.settings.loadDiscordVerifyStatus();
                     }
-                    if (tab === 'badges') app.settings.loadBadges();
+                    if (tab === 'badges') {
+                        app.settings.loadBadges();
+                        app.settings.loadWebBadges();
+                    }
                 },
                 loadDiscordVerifyStatus: async () => {
                     const actionBtn = document.getElementById('discord-verify-action');
@@ -3462,6 +3465,95 @@ Object.assign(window.app, {
                         () => {},
                         { btnOkText: "Hủy liên kết", btnCancelText: "Đóng", title: "Xác nhận" }
                     );
+                },
+                claimWebBadge: async () => {
+                    const btn = document.getElementById('web-req-claim-action');
+                    if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
+                    try {
+                        const { data: { session } } = await window.sb.auth.getSession();
+                        const res = await fetch('/api/github', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+                            body: JSON.stringify({ action: 'claim' })
+                        });
+                        const data = await res.json();
+                        if (res.ok) {
+                            app.ui.showAlert(data.message || 'Nhận danh hiệu thành công!');
+                            app.settings.loadWebBadges();
+                        } else {
+                            app.ui.showAlert(data.error || 'Lỗi nhận danh hiệu.');
+                            app.settings.loadWebBadges();
+                        }
+                    } catch (err) {
+                        app.ui.showAlert('Lỗi: ' + err.message);
+                        app.settings.loadWebBadges();
+                    }
+                },
+                loadWebBadges: async () => {
+                    const loading = document.getElementById('web-badge-loading');
+                    const reqBox = document.getElementById('web-badge-requirements');
+                    const claimedBox = document.getElementById('web-badge-claimed');
+                    
+                    if (loading) loading.classList.remove('hidden');
+                    if (reqBox) reqBox.classList.add('hidden');
+                    if (claimedBox) claimedBox.classList.add('hidden');
+                    
+                    try {
+                        const { data: { session } } = await window.sb.auth.getSession();
+                        if (!session) return;
+                        
+                        const res = await fetch('/api/github', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+                            body: JSON.stringify({ action: 'status' })
+                        });
+                        const data = await res.json();
+                        
+                        if (loading) loading.classList.add('hidden');
+                        
+                        if (data.isDev) {
+                            if (claimedBox) claimedBox.classList.remove('hidden');
+                            return;
+                        }
+                        
+                        if (reqBox) reqBox.classList.remove('hidden');
+                        
+                        const githubContainer = document.getElementById('web-req-github-container');
+                        const githubStatus = document.getElementById('web-req-github-status');
+                        const githubAction = document.getElementById('web-req-github-action');
+                        const claimAction = document.getElementById('web-req-claim-action');
+                        
+                        if (data.linked) {
+                            githubContainer.className = 'flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-lg bg-green-50 border border-green-200';
+                            githubStatus.className = 'flex items-center gap-3 text-sm font-medium text-green-800';
+                            githubStatus.innerHTML = `<i class="fa-brands fa-github w-5 text-center text-green-600"></i> <span>Đã liên kết GitHub: <b>${data.githubUsername}</b></span>`;
+                            if (githubAction) githubAction.classList.add('hidden');
+                            
+                            if (claimAction) {
+                                claimAction.disabled = false;
+                                claimAction.className = 'text-xs bg-black text-white px-4 py-2 rounded font-bold transition hover:bg-gray-800 shadow-sm';
+                                claimAction.innerText = 'Nhận danh hiệu';
+                                claimAction.onclick = () => app.settings.claimWebBadge();
+                            }
+                        } else {
+                            githubContainer.className = 'flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-lg bg-red-50 border border-red-200';
+                            githubStatus.className = 'flex items-center gap-3 text-sm font-medium text-red-800';
+                            githubStatus.innerHTML = `<i class="fa-solid fa-times-circle w-5 text-center text-red-600"></i> <span>Chưa liên kết tài khoản GitHub</span>`;
+                            if (githubAction) githubAction.classList.remove('hidden');
+                            
+                            if (claimAction) {
+                                claimAction.disabled = true;
+                                claimAction.className = 'text-xs bg-gray-300 text-gray-500 px-4 py-2 rounded font-bold cursor-not-allowed transition';
+                                claimAction.innerText = 'Chưa đủ đ/k';
+                                claimAction.onclick = null;
+                            }
+                        }
+                    } catch (err) {
+                        if (loading) {
+                            loading.innerHTML = `<p class="text-xs text-red-500">Lỗi: ${err.message}</p>`;
+                            loading.classList.remove('hidden');
+                        }
+                    }
                 },
                 loadBadges: async () => {
                     const loading = document.getElementById('badge-loading');
