@@ -201,17 +201,24 @@ Object.assign(window.app, {
                     return;
                 },
                 logout: async () => {
-                    try {
-                        await window.sb.auth.signOut(); sessionStorage.removeItem('VNBA_SESS_AUTH');
-                        await app.setUser(null);
-                        app.ui.toggleUserMenu(false);
-                        app.ui.showAlert("Đã đăng xuất thành công!", () => {
-                            window.location.reload();
-                        });
-                    } catch (err) {
-                        console.error("Lỗi đăng xuất:", err);
-                        app.ui.showAlert("Có lỗi xảy ra khi đăng xuất.");
-                    }
+                    app.ui.showAlert(
+                        "Bạn có chắc chắn muốn đăng xuất khỏi tài khoản?",
+                        async () => {
+                            try {
+                                await window.sb.auth.signOut(); sessionStorage.removeItem('VNBA_SESS_AUTH');
+                                await app.setUser(null);
+                                app.ui.toggleUserMenu(false);
+                                app.ui.showAlert("Đã đăng xuất thành công!", () => {
+                                    window.location.reload();
+                                });
+                            } catch (err) {
+                                console.error("Lỗi đăng xuất:", err);
+                                app.ui.showAlert("Có lỗi xảy ra khi đăng xuất.");
+                            }
+                        },
+                        () => {},
+                        { btnOkText: "Đăng xuất", btnCancelText: "Đóng", title: "Xác nhận", isDestructive: true }
+                    );
                 },
                 logoutAll: async () => {
                     app.ui.showAlert(
@@ -1147,4 +1154,4 @@ Object.assign(window.app, {
                     }, 200);
                 }
             }
-});
+});
