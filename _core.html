@@ -2939,12 +2939,15 @@ div[id$="-modal"] > div > * {
     </button>
 
     <!-- Các nút Social -->
-    <div class="flex gap-3" x-show="mode === 'login' || mode === 'register'" x-cloak>
-        <button type="button" onclick="app.auth.signInWithProvider('google')" class="flex-1 flex items-center justify-center gap-2 bg-white border border-gray-300/80 py-3 rounded-xl hover:bg-gray-50 transition font-bold text-gray-700 shadow-sm backdrop-blur-md">
-            <i class="fa-brands fa-google text-red-500 text-lg"></i> Google
+    <div class="flex gap-2" x-show="mode === 'login' || mode === 'register'" x-cloak>
+        <button type="button" onclick="app.auth.signInWithProvider('google')" class="flex-1 flex items-center justify-center gap-1.5 bg-white border border-gray-300/80 py-3 rounded-xl hover:bg-gray-50 transition font-bold text-gray-700 shadow-sm backdrop-blur-md text-xs sm:text-sm">
+            <i class="fa-brands fa-google text-red-500 text-base"></i> Google
         </button>
-        <button type="button" onclick="app.auth.signInWithProvider('discord')" class="flex-1 flex items-center justify-center gap-2 bg-[#5865F2] py-3 rounded-xl hover:bg-[#4752C4] transition font-bold text-white shadow-sm">
-            <i class="fa-brands fa-discord text-lg"></i> Discord
+        <button type="button" onclick="app.auth.signInWithProvider('discord')" class="flex-1 flex items-center justify-center gap-1.5 bg-[#5865F2] py-3 rounded-xl hover:bg-[#4752C4] transition font-bold text-white shadow-sm text-xs sm:text-sm">
+            <i class="fa-brands fa-discord text-base"></i> Discord
+        </button>
+        <button type="button" onclick="app.auth.signInWithProvider('github')" class="flex-1 flex items-center justify-center gap-1.5 bg-[#24292e] py-3 rounded-xl hover:bg-[#1b1f23] transition font-bold text-white shadow-sm text-xs sm:text-sm">
+            <i class="fa-brands fa-github text-base"></i> GitHub
         </button>
     </div>
 
