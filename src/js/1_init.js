@@ -2098,6 +2098,148 @@ cleanupState: () => {
                                 }
                             }
                             sbQuery = app.preference.applyFilter(sbQuery); 
+                            const res = await sbQuery.limit(100).abortSignal(controller.signal);
+                            error = res.error;
+                            if (res.data) {
+                                data = res.data
+                                    .map(item => ({ [selectField]: item.vehicles?.model }))
+                                    .filter(item => item[selectField]);
+                            }
+                        } else {
+                            let selectStr = selectField;
+                            if (table === 'vehicles') {
+                                selectStr = `${selectField}, photos!inner(status${(app.preference.current !== 'both' || currentType) ? ', type' : ''})`;
+                            }
+                            let sbQuery = window.sb.from(table).select(selectStr);
+                            if (table === 'photos') {
+                                sbQuery = sbQuery.eq('status', 'approved');
+                            } else if (table === 'vehicles') {
+                                sbQuery = sbQuery.eq('photos.status', 'approved');
+                            }
+                            if (currentType) {
+                                if (table === 'photos') {
+                                    sbQuery = sbQuery.eq('type', currentType);
+                                } else if (table === 'vehicles') {
+                                    sbQuery = sbQuery.eq('photos.type', currentType);
+                                }
+                            }
+                            if (table === 'photos') {
+                                const selectedProv = document.getElementById('up-province')?.value || null;
+                                if (selectedProv && selectedProv !== 'Không xác định') {
+                                    sbQuery = sbQuery.eq('province', selectedProv);
+                                }
+                            }
+                            searchWords.forEach(word => {
+                                sbQuery = sbQuery.ilike(selectField, `%${word}%`);
+                            });
+                            sbQuery = app.preference.applyFilter(sbQuery, table);
+                            const res = await sbQuery.limit(15).abortSignal(controller.signal);
+                            data = res.data;
+                            error = res.error;
+                        }
+                        if (error) { if (error.code === 20 || error.name === 'AbortError') return; throw error; }
+                        if (data && data.length > 0) {
+                            const uniqueVals = [...new Set(data.map(item => item[selectField]).filter(Boolean))];
+                            if (uniqueVals.length > 0) {
+                                box.innerHTML = uniqueVals.map(v => {
+                                    const safeHTML = app.utils.cleanText(v);
+                                    const safeJS = v.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                                    let displayHTML = safeHTML;
+                                    if (searchWords.length > 0) {
+                                        const escapedWords = searchWords.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+                                        const regex = new RegExp(`(${escapedWords})`, 'gi');
+                                        displayHTML = safeHTML.replace(regex, '<strong class="font-extrabold">$1</strong>');
+                                    }
+                                    const labelHtml = (query.length < 1 && field === 'model' && routeVal.length > 0)
+                                        ? `<span class="text-[9px] text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded ml-2 font-bold whitespace-nowrap border border-blue-100">Dùng ở Tuyến ${app.utils.cleanText(routeVal)}</span>`
+                                        : '';
+                                     return `<div class="suggestion-item flex justify-between items-start gap-2" onmousedown="event.preventDefault(); const inp = document.getElementById('${inputId}'); inp.value = '${safeJS}'; document.getElementById('${suggestionId}').classList.remove('active'); inp.dispatchEvent(new Event('input')); inp.dispatchEvent(new Event('change'));">
+                                                <span class="break-words whitespace-normal leading-snug">${displayHTML}</span>
+                                                ${labelHtml}
+                                            </div>`;
+                                }).join('');
+                                box.classList.add('active');
+                            } else { box.classList.remove('active'); }
+                        } else { box.classList.remove('active'); }
+                    } catch (e) {
+                        if (e.name !== 'AbortError' && e.message !== 'The user aborted a request.') console.log("Suggestion error:", e.message);
+                    }
+                },
+                loadAnnouncements: () => {
+                    app.newsboard.init();
+                },
+                fetchTopUploaders: async () => {
+                    try {
+                        let allUploaders = [];
+                        let from = 0;
+                        let step = 999;
+                        let fetchMore = true;
+                        while (fetchMore) {
+                            const { data, error } = await window.sb
+                                .from('photos')
+                                .select('uploader_id')
+                                .eq('status', 'approved')
+                                .range(from, from + step);
+                            if (error || !data) break;
+                            allUploaders.push(...data);
+                            if (data.length <= step) fetchMore = false;
+                            from += step + 1;
+                        }
+                        const counts = {};
+                        allUploaders.forEach(p => {
+                            if (p.uploader_id) counts[p.uploader_id] = (counts[p.uploader_id] || 0) + 1;
+                        });
+                        const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+                        app.topUploaders = {};
+                        app.topUploadersCounts = counts;
+                        if (sorted.length > 0) app.topUploaders[sorted[0][0]] = 1;
+                        if (sorted.length > 1) app.topUploaders[sorted[1][0]] = 2;
+                        if (sorted.length > 2) app.topUploaders[sorted[2][0]] = 3;
+                    } catch (e) { console.log("Lỗi tải Top:", e); }
+                },
+                formatProfileDisplay: (profile) => {
+                    if (!profile) return { username: 'Ẩn danh', avatar: DEFAULT_AVATAR, isBanned: false, id: '', linkId: '' };
+                    let banInfo = null;
+                    if (profile.ban_status) {
+                        try { banInfo = typeof profile.ban_status === 'string' ? JSON.parse(profile.ban_status) : profile.ban_status; } catch(e){}
+                    }
+                    const isBanned = banInfo && (banInfo.banned === true || banInfo.banned === 'true');
+                    const username = isBanned ? 'Người dùng bị cấm' : (profile.username || 'Ẩn danh');
+                    const avatar = isBanned ? DEFAULT_AVATAR : (profile.avatar_url ? app.utils.getProxiedUrl(profile.avatar_url.replace(/"/g, ''), 'avatar.jpg', 'avatar') : DEFAULT_AVATAR);
+                    return { username, avatar, isBanned, id: profile.id || '', linkId: profile.id || profile.username || '' };
+                },
+                getBadgesHTML: (userId, role, subroles = [], enableClick = false) => {
+                    let html = '';
+                    if (subroles && Array.isArray(subroles)) {
+                        const vvccRole = subroles.find(s => s === 'vvcc' || s.startsWith('vvcc|'));
+                        if (vvccRole) {
+                            const link = vvccRole.includes('|') ? vvccRole.split('|')[1] : null;
+                            const innerHtml = `<i class="fa-solid fa-check text-[9px]" style="line-height: 15px; display: block;"></i>`;
+                            const styleStr = `background-color: black; color: white; padding: 0; width: 15px; height: 15px; border-radius: 50%; justify-content: center; align-items: center;${enableClick ? ' cursor: pointer;' : ''}`;
+                            if (enableClick) {
+                                html += `<span class="badge-shiny" style="${styleStr}" onclick="app.ui.showVerifiedPopup('vvcc', '${link ? app.utils.escapeHtml(link) : ''}')" title="Verified Content Creator">${innerHtml}</span>`;
+                            } else {
+                                html += `<span class="badge-shiny" style="${styleStr}" title="Verified Content Creator">${innerHtml}</span>`;
+                            }
+                        }
+                        if (subroles.includes('dev')) {
+                            const innerHtml = `<i class="fa-solid fa-code text-[9px]" style="line-height: 15px; display: block;"></i>`;
+                            const styleStr = `background-color: black; color: white; padding: 0; width: 15px; height: 15px; border-radius: 50%; justify-content: center; align-items: center;${enableClick ? ' cursor: pointer;' : ''}`;
+                            if (enableClick) {
+                                html += `<span class="badge-shiny" style="${styleStr}" onclick="app.ui.showVerifiedPopup('dev', '')" title="VNBUSARCHIVE Code Contributor">${innerHtml}</span>`;
+                            } else {
+                                html += `<span class="badge-shiny" style="${styleStr}" title="VNBUSARCHIVE Code Contributor">${innerHtml}</span>`;
+                            }
+                        }
+                        const vvbsRole = subroles.find(s => s === 'vvbs');
+                        if (vvbsRole) {
+                            const innerHtml = `<i class="fa-solid fa-check text-[9px]" style="line-height: 15px; display: block;"></i>`;
+                            const styleStr = `background-color: #3b82f6; color: white; padding: 0; width: 15px; height: 15px; border-radius: 50%; justify-content: center; align-items: center;${enableClick ? ' cursor: pointer;' : ''}`;
+                            if (enableClick) {
+                                html += `<span class="badge-shiny" style="${styleStr}" onclick="app.ui.showVerifiedPopup('vvbs', '')" title="Verified Bus Staff">${innerHtml}</span>`;
+                            } else {
+                                html += `<span class="badge-shiny" style="${styleStr}" title="Verified Bus Staff">${innerHtml}</span>`;
+                            }
                         }
                     }
                     if (subroles && subroles.includes('dev')) {
