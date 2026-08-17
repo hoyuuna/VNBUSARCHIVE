@@ -3491,12 +3491,10 @@ Object.assign(window.app, {
                 },
                 loadWebBadges: async () => {
                     const loading = document.getElementById('web-badge-loading');
-                    const reqBox = document.getElementById('web-badge-requirements');
-                    const claimedBox = document.getElementById('web-badge-claimed');
+                    const claimBox = document.getElementById('web-badge-claim-list');
                     
                     if (loading) loading.classList.remove('hidden');
-                    if (reqBox) reqBox.classList.add('hidden');
-                    if (claimedBox) claimedBox.classList.add('hidden');
+                    if (claimBox) claimBox.classList.add('hidden');
                     
                     try {
                         const { data: { session } } = await window.sb.auth.getSession();
@@ -3510,42 +3508,28 @@ Object.assign(window.app, {
                         const data = await res.json();
                         
                         if (loading) loading.classList.add('hidden');
+                        if (claimBox) claimBox.classList.remove('hidden');
+                        
+                        const claimActionContainer = document.getElementById('web-req-claim-action-container');
+                        const warningMsg = document.getElementById('web-req-github-warning');
                         
                         if (data.isDev) {
-                            if (claimedBox) claimedBox.classList.remove('hidden');
+                            if (warningMsg) warningMsg.classList.add('hidden');
+                            if (claimActionContainer) {
+                                claimActionContainer.innerHTML = `<button disabled class="px-4 py-2 bg-gray-100 text-gray-400 text-xs font-bold rounded cursor-not-allowed border border-gray-200 whitespace-nowrap"><i class="fa-solid fa-check mr-1"></i> Đã nhận</button>`;
+                            }
                             return;
                         }
                         
-                        if (reqBox) reqBox.classList.remove('hidden');
-                        
-                        const githubContainer = document.getElementById('web-req-github-container');
-                        const githubStatus = document.getElementById('web-req-github-status');
-                        const githubAction = document.getElementById('web-req-github-action');
-                        const claimAction = document.getElementById('web-req-claim-action');
-                        
                         if (data.linked) {
-                            githubContainer.className = 'flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-lg bg-green-50 border border-green-200';
-                            githubStatus.className = 'flex items-center gap-3 text-sm font-medium text-green-800';
-                            githubStatus.innerHTML = `<i class="fa-brands fa-github w-5 text-center text-green-600"></i> <span>Đã liên kết GitHub: <b>${data.githubUsername}</b></span>`;
-                            if (githubAction) githubAction.classList.add('hidden');
-                            
-                            if (claimAction) {
-                                claimAction.disabled = false;
-                                claimAction.className = 'text-xs bg-black text-white px-4 py-2 rounded font-bold transition hover:bg-gray-800 shadow-sm';
-                                claimAction.innerText = 'Nhận danh hiệu';
-                                claimAction.onclick = () => app.settings.claimWebBadge();
+                            if (warningMsg) warningMsg.classList.add('hidden');
+                            if (claimActionContainer) {
+                                claimActionContainer.innerHTML = `<button id="web-req-claim-action" onclick="app.settings.claimWebBadge()" class="px-4 py-2 bg-black text-white text-xs font-bold rounded hover:bg-gray-800 transition shadow-sm whitespace-nowrap w-full sm:w-auto">Xác minh ngay</button>`;
                             }
                         } else {
-                            githubContainer.className = 'flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-lg bg-red-50 border border-red-200';
-                            githubStatus.className = 'flex items-center gap-3 text-sm font-medium text-red-800';
-                            githubStatus.innerHTML = `<i class="fa-solid fa-times-circle w-5 text-center text-red-600"></i> <span>Chưa liên kết tài khoản GitHub</span>`;
-                            if (githubAction) githubAction.classList.remove('hidden');
-                            
-                            if (claimAction) {
-                                claimAction.disabled = true;
-                                claimAction.className = 'text-xs bg-gray-300 text-gray-500 px-4 py-2 rounded font-bold cursor-not-allowed transition';
-                                claimAction.innerText = 'Chưa đủ đ/k';
-                                claimAction.onclick = null;
+                            if (warningMsg) warningMsg.classList.remove('hidden');
+                            if (claimActionContainer) {
+                                claimActionContainer.innerHTML = `<button onclick="app.settings.switchTab('links')" class="px-4 py-2 bg-black text-white text-xs font-bold rounded hover:bg-gray-800 transition shadow-sm whitespace-nowrap w-full sm:w-auto">Liên kết GitHub</button>`;
                             }
                         }
                     } catch (err) {

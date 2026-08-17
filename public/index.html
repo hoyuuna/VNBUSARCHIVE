@@ -3274,28 +3274,26 @@ div[id$="-modal"] > div > * {
                             <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm"><h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Nhận Huy hiệu Discord</h3><div id="badge-loading" class="py-6 text-center text-gray-500 text-sm"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang kiểm tra...</div><div id="badge-requirements" class="hidden space-y-3"><div id="req-link-container" class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-lg"><div id="req-link-status"></div><button id="req-link-action" onclick="app.settings.switchTab('links')" class="text-xs bg-black text-white px-4 py-2 rounded font-bold">Liên kết</button></div><div id="req-server-container" class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-lg"><div id="req-server-status"></div><a id="req-server-action" href="https://discord.com/invite/BNWyqbuvwq" target="_blank" class="text-xs bg-[#5865F2] text-white px-4 py-2 rounded font-bold text-center">Tham gia</a></div></div><div id="badge-claim-list" class="hidden space-y-3"><div class="bg-blue-50 text-blue-800 text-xs p-3 rounded-md border border-blue-200 mb-4 font-medium flex items-center justify-between"><span>Số ảnh đã duyệt: <b id="badge-photo-count" class="text-lg ml-1">0</b></span></div><div id="badges-grid" class="grid grid-cols-1 gap-3"></div></div></div>
                             <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm mt-4">
                                 <h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Nhận Danh hiệu Web</h3>
-                                <p class="text-[11px] md:text-xs text-gray-500 mb-3 leading-relaxed">Đóng góp vào mã nguồn mở của dự án để nhận danh hiệu Code Contributor.</p>
-                                <div id="web-badge-loading" class="hidden py-6 text-center text-gray-500 text-sm"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang xử lý...</div>
-                                <div id="web-badge-requirements" class="space-y-3 hidden">
-                                    <div id="web-req-github-container" class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-lg bg-gray-50 border border-gray-200">
-                                        <div id="web-req-github-status" class="flex items-center gap-3 text-sm font-medium text-red-800">
-                                            <i class="fa-solid fa-times-circle w-5 text-center text-red-600"></i>
-                                            <span>Chưa liên kết tài khoản GitHub</span>
+                                <div id="web-badge-loading" class="py-6 text-center text-gray-500 text-sm"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang kiểm tra...</div>
+                                <div id="web-badge-claim-list" class="hidden space-y-3">
+                                    <div class="grid grid-cols-1 gap-3">
+                                        <!-- Danh hiệu Code Contributor -->
+                                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-gray-50">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 shrink-0">
+                                                    <i class="fa-solid fa-code-merge"></i>
+                                                </div>
+                                                <div>
+                                                    <h4 class="font-bold text-sm text-gray-800">Code Contributor <span class="bg-gray-800 text-white px-1.5 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider ml-1">DEV</span></h4>
+                                                    <p class="text-[10px] text-gray-500">Yêu cầu: 1 PR Merge</p>
+                                                    <p id="web-req-github-warning" class="text-[10px] text-red-500 font-medium hidden">Chưa liên kết GitHub</p>
+                                                </div>
+                                            </div>
+                                            <div id="web-req-claim-action-container">
+                                                <button id="web-req-claim-action" disabled class="px-4 py-2 bg-gray-50 text-gray-400 text-xs font-bold rounded cursor-not-allowed border border-gray-200 whitespace-nowrap"><i class="fa-solid fa-lock mr-1"></i> Chưa đủ đ/k</button>
+                                            </div>
                                         </div>
-                                        <button id="web-req-github-action" onclick="app.settings.switchTab('links')" class="text-xs bg-[#24292e] text-white px-4 py-2 rounded font-bold transition hover:bg-[#1b1f23]">Liên kết</button>
                                     </div>
-                                    <div id="web-req-pr-container" class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-lg bg-gray-50 border border-gray-200">
-                                        <div id="web-req-pr-status" class="flex items-center gap-3 text-sm font-medium text-gray-700">
-                                            <i class="fa-solid fa-code-merge w-5 text-center"></i>
-                                            <span>Yêu cầu: 1 Pull Request được Merge</span>
-                                        </div>
-                                        <button id="web-req-claim-action" disabled class="text-xs bg-gray-300 text-gray-500 px-4 py-2 rounded font-bold cursor-not-allowed transition">Chưa đủ đ/k</button>
-                                    </div>
-                                </div>
-                                <div id="web-badge-claimed" class="hidden mt-4 p-4 rounded-lg bg-green-50 border border-green-200 flex flex-col items-center justify-center gap-2">
-                                    <i class="fa-solid fa-circle-check text-green-500 text-3xl"></i>
-                                    <span class="text-green-800 font-bold text-sm">Bạn đã nhận danh hiệu Code Contributor!</span>
-                                    <span class="bg-gray-800 text-white px-2 py-1 rounded text-xs uppercase font-bold tracking-wider inline-block text-center mt-2">DEV</span>
                                 </div>
                             </div>
                         </div>
@@ -6593,6 +6591,6 @@ div[id$="-modal"] > div > * {
     </div>
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed top-24 left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.js?v=1786967460356"></script>
+<script src="/app.js?v=1786969129557"></script>
 </body>
 </html>
