@@ -20,6 +20,7 @@
 
 ## Git Workflow
 - **Rule:** Always automatically commit and push git changes (`git add -A; git commit -m "..."; git push`) after successfully completing user requests or modifying code. **All git commit messages MUST always be written in English.**
+- **Rule:** Ensure all temporary or junk files are deleted before pushing. If they must be kept, they MUST be placed in the `/temp` directory.
 
 ## Frontend Build & Payload Invariant
 - **Rule:** All core frontend logic resides in `src/js/` (`1_init.js` through `5_admin.js`) and `_core.html`. Whenever any file inside `src/js/` or `_core.html` is modified, you **MUST run `node build-core.js`** immediately to bundle and Base64-encode the payload into `functions/api/_core.js`. Never edit `functions/api/_core.js` directly or inject static script logic into `public/index.html`.
