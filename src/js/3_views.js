@@ -3585,7 +3585,7 @@ Object.assign(window.app, {
                         <tr class="hover:bg-gray-50 transition group">
                             <td class="font-medium text-gray-700 max-w-[200px] border-r border-gray-200" title="${app.utils.cleanText(r.displayName || r.route)}">
                                 <div class="overflow-x-auto whitespace-nowrap no-scrollbar">
-                                    <span onclick="app.searchRedirect('${app.utils.escapeAttr(r.route)}', 'route', '${r.prefix || ''}')" class="cursor-pointer hover:text-blue-600 hover:underline font-bold transition text-black">
+                                    <span onclick="app.searchRedirect('${app.utils.escapeAttr(r.route)}', 'route', '${r.prefix || ''}')" class="cursor-pointer hover:underline font-bold transition text-black">
                                         ${app.utils.cleanText(r.displayName || r.route)}
                                     </span>
                                 </div>
