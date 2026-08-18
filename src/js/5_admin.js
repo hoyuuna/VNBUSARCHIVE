@@ -209,7 +209,7 @@ Object.assign(window.app, {
                         });
                     }
                 },
-                updateManagerBlurList: () => {
+                                updateManagerBlurList: () => {
                     const panels = document.querySelectorAll('#manager-blur-container .blur-panel');
                     const count = panels.length;
                     const btn = document.getElementById('btn-manager-add-blur');
