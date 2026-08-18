@@ -15112,7 +15112,7 @@ Object.assign(window.app, {
                                     if (typeof StackBlur !== 'undefined') {
                                         StackBlur.canvasRGBA(tempPanelCanvas, 0, 0, blurW, blurH, panelBlurRadius);
                                     } else {
-                                        tempPanelCtx.filter = \`blur(\${panelBlurRadius}px)\`;
+                                        tempPanelCtx.filter = 'blur(' + panelBlurRadius + 'px)';
                                         tempPanelCtx.drawImage(tempPanelCanvas, 0, 0);
                                     }
                                     ctx.drawImage(tempPanelCanvas, blurX, blurY);
