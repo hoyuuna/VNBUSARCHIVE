@@ -7577,7 +7577,7 @@ Object.assign(window.app, {
                                     <td class="font-bold border-r border-gray-200" style="border-left: 4px solid ${barColor} !important;">${safePlate}</td>
                                     <td class="border-r border-gray-200">${safeOp}</td>
                                     <td class="border-r border-gray-200">${safeRoute}</td>
-                                    <td class="text-xs text-gray-500">${safeNote}</td>
+                                    <td class="text-xs text-gray-500 whitespace-pre-wrap break-words">${safeNote}</td>
                                 </tr>
                             `;
                         });
@@ -7764,7 +7764,7 @@ Object.assign(window.app, {
                                                     <td class="font-bold border-r border-gray-200" style="border-left: 4px solid ${barColor} !important;">${safePlate}</td>
                                                     <td class="border-r border-gray-200">${safeOp}</td>
                                                     <td class="border-r border-gray-200">${safeRoute}</td>
-                                                    <td class="text-xs text-gray-500">${safeNote}</td>
+                                                    <td class="text-xs text-gray-500 whitespace-pre-wrap break-words">${safeNote}</td>
                                                 </tr>`;
                                             }).join('')}
                                         </tbody>
@@ -7779,29 +7779,33 @@ Object.assign(window.app, {
                                 </div>
                                 <div id="veh-sortable-history" class="space-y-2 mb-4"></div>
                                 <h4 class="font-bold text-xs text-gray-900 mt-4 mb-2">Thêm mốc lịch sử mới</h4>
-                                <div class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center bg-white p-3 border border-gray-200 rounded-md text-xs">
-                                    <div class="flex flex-col sm:flex-1 min-w-0">
-                                        <span class="sm:hidden font-bold text-gray-500 mb-1">Biển số</span>
-                                        <input type="text" id="veh-hist-new-plate" placeholder="Biển số" class="hist-input" oninput="app.utils.formatPlateInput(this)">
+                                <div class="flex flex-col gap-2 bg-white p-3 border border-gray-200 rounded-md text-xs">
+                                    <div class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+                                        <div class="flex flex-col sm:flex-1 min-w-0">
+                                            <span class="sm:hidden font-bold text-gray-500 mb-1">Biển số</span>
+                                            <input type="text" id="veh-hist-new-plate" placeholder="Biển số" class="hist-input" oninput="app.utils.formatPlateInput(this)">
+                                        </div>
+                                        <div class="flex flex-col sm:flex-1 min-w-0">
+                                            <span class="sm:hidden font-bold text-gray-500 mb-1">Ngày áp dụng</span>
+                                            <input type="text" id="veh-hist-new-date" placeholder="DD/MM/YYYY" maxlength="10" oninput="app.utils.formatDateInput(this)" class="hist-input text-center font-mono w-full sm:w-28" title="Ngày áp dụng">
+                                        </div>
+                                        <div class="flex flex-col sm:flex-1 min-w-0">
+                                            <span class="sm:hidden font-bold text-gray-500 mb-1">Đơn vị</span>
+                                            <input type="text" id="veh-hist-new-op" placeholder="Đơn vị" class="hist-input" oninput="app.utils.formatNoPunctuation(this)">
+                                        </div>
+                                        <div class="flex flex-col sm:flex-1 min-w-0">
+                                            <span class="sm:hidden font-bold text-gray-500 mb-1">Tuyến</span>
+                                            <input type="text" id="veh-hist-new-route" placeholder="Tuyến" class="hist-input">
+                                        </div>
                                     </div>
-                                    <div class="flex flex-col sm:flex-1 min-w-0">
-                                        <span class="sm:hidden font-bold text-gray-500 mb-1">Ngày áp dụng</span>
-                                        <input type="text" id="veh-hist-new-date" placeholder="DD/MM/YYYY" maxlength="10" oninput="app.utils.formatDateInput(this)" class="hist-input text-center font-mono w-full sm:w-28" title="Ngày áp dụng">
-                                    </div>
-                                    <div class="flex flex-col sm:flex-1 min-w-0">
-                                        <span class="sm:hidden font-bold text-gray-500 mb-1">Đơn vị</span>
-                                        <input type="text" id="veh-hist-new-op" placeholder="Đơn vị" class="hist-input" oninput="app.utils.formatNoPunctuation(this)">
-                                    </div>
-                                    <div class="flex flex-col sm:flex-1 min-w-0">
-                                        <span class="sm:hidden font-bold text-gray-500 mb-1">Tuyến</span>
-                                        <input type="text" id="veh-hist-new-route" placeholder="Tuyến" class="hist-input">
-                                    </div>
-                                    <div class="flex flex-col sm:flex-1 min-w-0">
-                                        <span class="sm:hidden font-bold text-gray-500 mb-1">Ghi chú</span>
-                                        <input type="text" id="veh-hist-new-note" placeholder="Ghi chú" class="hist-input">
-                                    </div>
-                                    <div class="flex justify-end gap-2 sm:items-center mt-1 sm:mt-0">
-                                        <button type="button" onclick="app.vehicle.addHistoryItem('veh-')" class="bg-black text-white px-4 py-2 text-xs rounded-md font-bold hover:bg-gray-800 transition shadow-sm w-full sm:w-auto whitespace-nowrap">Thêm Mới</button>
+                                    <div class="flex flex-col sm:flex-row gap-2 items-start mt-1">
+                                        <div class="flex flex-col flex-1 min-w-0 w-full">
+                                            <span class="sm:hidden font-bold text-gray-500 mb-1">Ghi chú</span>
+                                            <textarea id="veh-hist-new-note" placeholder="Ghi chú" class="hist-input resize-y min-h-[50px] p-2 overflow-hidden w-full" oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'"></textarea>
+                                        </div>
+                                        <div class="flex justify-end gap-2 mt-2 sm:mt-0 w-full sm:w-auto h-full">
+                                            <button type="button" onclick="app.vehicle.addHistoryItem('veh-')" class="bg-black text-white px-4 py-2 text-xs rounded-md font-bold hover:bg-gray-800 transition shadow-sm w-full sm:w-auto min-h-[42px] whitespace-nowrap">Thêm Mới</button>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="mt-3 flex justify-end gap-3">
@@ -14215,31 +14219,35 @@ Object.assign(window.app, {
                     container.innerHTML = '';
                     app.vehicle.tempHistory.forEach((h, index) => {
                         const div = document.createElement('div');
-                        div.className = "flex flex-col sm:flex-row gap-2 items-stretch sm:items-center bg-white p-3 border border-gray-200 rounded-md text-xs mb-2";
+                        div.className = "flex flex-col gap-2 bg-white p-3 border border-gray-200 rounded-md text-xs mb-2";
                         div.innerHTML = `
-                            <div class="flex flex-col sm:flex-1 min-w-0">
-                                <span class="sm:hidden font-bold text-gray-500 mb-1">Biển số</span>
-                                <input type="text" value="${app.utils.escapeAttr(h.plate || app.currentPlate || '')}" placeholder="Biển số" oninput="app.utils.formatPlateInput(this)" onchange="app.vehicle.updateHistoryItem(${index}, 'plate', this.value, '${prefix}')" class="hist-input">
+                            <div class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+                                <div class="flex flex-col sm:flex-1 min-w-0">
+                                    <span class="sm:hidden font-bold text-gray-500 mb-1">Biển số</span>
+                                    <input type="text" value="${app.utils.escapeAttr(h.plate || app.currentPlate || '')}" placeholder="Biển số" oninput="app.utils.formatPlateInput(this)" onchange="app.vehicle.updateHistoryItem(${index}, 'plate', this.value, '${prefix}')" class="hist-input">
+                                </div>
+                                <div class="flex flex-col sm:flex-1 min-w-0">
+                                    <span class="sm:hidden font-bold text-gray-500 mb-1">Ngày áp dụng</span>
+                                    <input type="text" placeholder="DD/MM/YYYY" maxlength="10" oninput="app.utils.formatDateInput(this)" value="${app.utils.escapeAttr(app.utils.formatDateToDDMMYYYY(h.effective_date) || '')}" onchange="app.vehicle.updateHistoryItem(${index}, 'effective_date', this.value, '${prefix}')" class="hist-input text-center font-mono w-28">
+                                </div>
+                                <div class="flex flex-col sm:flex-1 min-w-0">
+                                    <span class="sm:hidden font-bold text-gray-500 mb-1">Đơn vị</span>
+                                    <input type="text" value="${app.utils.escapeAttr(h.operator)}" placeholder="Đơn vị" oninput="app.utils.formatNoPunctuation(this)" onchange="app.vehicle.updateHistoryItem(${index}, 'operator', this.value, '${prefix}')" class="hist-input">
+                                </div>
+                                <div class="flex flex-col sm:flex-1 min-w-0">
+                                    <span class="sm:hidden font-bold text-gray-500 mb-1">Tuyến</span>
+                                    <input type="text" value="${app.utils.escapeAttr(h.route || '')}" placeholder="Tuyến" onchange="app.vehicle.updateHistoryItem(${index}, 'route', this.value, '${prefix}')" class="hist-input">
+                                </div>
                             </div>
-                            <div class="flex flex-col sm:flex-1 min-w-0">
-                                <span class="sm:hidden font-bold text-gray-500 mb-1">Ngày áp dụng</span>
-                                <input type="text" placeholder="DD/MM/YYYY" maxlength="10" oninput="app.utils.formatDateInput(this)" value="${app.utils.escapeAttr(app.utils.formatDateToDDMMYYYY(h.effective_date) || '')}" onchange="app.vehicle.updateHistoryItem(${index}, 'effective_date', this.value, '${prefix}')" class="hist-input text-center font-mono w-28">
-                            </div>
-                            <div class="flex flex-col sm:flex-1 min-w-0">
-                                <span class="sm:hidden font-bold text-gray-500 mb-1">Đơn vị</span>
-                                <input type="text" value="${app.utils.escapeAttr(h.operator)}" placeholder="Đơn vị" oninput="app.utils.formatNoPunctuation(this)" onchange="app.vehicle.updateHistoryItem(${index}, 'operator', this.value, '${prefix}')" class="hist-input">
-                            </div>
-                            <div class="flex flex-col sm:flex-1 min-w-0">
-                                <span class="sm:hidden font-bold text-gray-500 mb-1">Tuyến</span>
-                                <input type="text" value="${app.utils.escapeAttr(h.route || '')}" placeholder="Tuyến" onchange="app.vehicle.updateHistoryItem(${index}, 'route', this.value, '${prefix}')" class="hist-input">
-                            </div>
-                            <div class="flex flex-col sm:flex-1 min-w-0">
-                                <span class="sm:hidden font-bold text-gray-500 mb-1">Ghi chú</span>
-                                <input type="text" value="${app.utils.escapeAttr(h.note || '')}" placeholder="Ghi chú" onchange="app.vehicle.updateHistoryItem(${index}, 'note', this.value, '${prefix}')" class="hist-input">
-                            </div>
-                            <div class="flex justify-end gap-2 sm:items-center mt-1 sm:mt-0">
-                                <button type="button" onclick="app.vehicle.duplicateHistoryItem(${index}, '${prefix}')" class="text-gray-700 hover:text-white hover:bg-black border border-gray-300 rounded-md px-3 py-2 font-bold transition" title="Nhân bản"><i class="fa-solid fa-copy"></i></button>
-                                <button type="button" onclick="app.vehicle.removeHistoryItem(${index}, '${prefix}')" class="text-gray-700 hover:text-white hover:bg-black border border-gray-300 rounded-md px-3 py-2 font-bold transition" title="Xóa"><i class="fa-solid fa-trash"></i></button>
+                            <div class="flex flex-col sm:flex-row gap-2 items-start mt-1">
+                                <div class="flex flex-col flex-1 min-w-0 w-full">
+                                    <span class="sm:hidden font-bold text-gray-500 mb-1">Ghi chú</span>
+                                    <textarea placeholder="Ghi chú" oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'" onchange="app.vehicle.updateHistoryItem(${index}, 'note', this.value, '${prefix}')" class="hist-input resize-y min-h-[50px] p-2 overflow-hidden w-full">${app.utils.escapeHtml(h.note || '')}</textarea>
+                                </div>
+                                <div class="flex justify-end gap-2 mt-2 sm:mt-0 w-full sm:w-auto h-full">
+                                    <button type="button" onclick="app.vehicle.duplicateHistoryItem(${index}, '${prefix}')" class="text-gray-700 hover:text-white hover:bg-black border border-gray-300 rounded-md px-3 py-2 font-bold transition min-h-[42px]" title="Nhân bản"><i class="fa-solid fa-copy"></i></button>
+                                    <button type="button" onclick="app.vehicle.removeHistoryItem(${index}, '${prefix}')" class="text-gray-700 hover:text-white hover:bg-black border border-gray-300 rounded-md px-3 py-2 font-bold transition min-h-[42px]" title="Xóa"><i class="fa-solid fa-trash"></i></button>
+                                </div>
                             </div>
                         `;
                         container.appendChild(div);
