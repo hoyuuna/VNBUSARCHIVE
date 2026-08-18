@@ -14914,21 +14914,25 @@ Object.assign(window.app, {
                     app.admin.updateManagerBlurList();
                     const img = document.getElementById('manager-blur-img');
                     img.src = app.utils.getProxiedUrl(app.currentPhoto.url);
+                    
                     const modal = document.getElementById('manager-edit-modal');
-                    modal.classList.remove('hidden', 'pointer-events-none', 'opacity-0');
-                    modal.classList.add('opacity-100');
                     const content = document.getElementById('manager-edit-content');
-                    content.classList.remove('scale-95');
-                    content.classList.add('scale-100');
+                    
+                    modal.classList.remove('hidden');
+                    setTimeout(() => {
+                        content.classList.remove('opacity-0', 'scale-95');
+                        content.classList.add('opacity-100', 'scale-100');
+                    }, 10);
+                    
                     if (app.ui && app.ui.lockScroll) app.ui.lockScroll();
                 },
                 closeEditPhotoModal: () => {
                     const modal = document.getElementById('manager-edit-modal');
                     const content = document.getElementById('manager-edit-content');
-                    content.classList.remove('scale-100');
-                    content.classList.add('scale-95');
-                    modal.classList.remove('opacity-100');
-                    modal.classList.add('opacity-0', 'pointer-events-none');
+                    
+                    content.classList.remove('opacity-100', 'scale-100');
+                    content.classList.add('opacity-0', 'scale-95');
+                    
                     setTimeout(() => {
                         modal.classList.add('hidden');
                         document.getElementById('manager-blur-img').src = '';
