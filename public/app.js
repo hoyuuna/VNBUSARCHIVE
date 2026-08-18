@@ -2508,9 +2508,10 @@ Object.assign(window.app, {
                         resetDropZoneUI();
                         const uploadView = document.getElementById('upload');
                         if (uploadView && uploadView.classList.contains('active')) {
+                            const fileInput = document.getElementById('up-file');
+                            if (fileInput && fileInput.disabled) return;
                             const dt = e.dataTransfer;
                             if (dt.files && dt.files.length > 0) {
-                                const fileInput = document.getElementById('up-file');
                                 fileInput.files = dt.files;
                                 app.upload.handleFileSelect({ target: fileInput });
                             }
@@ -11982,6 +11983,8 @@ Object.assign(window.app, {
                     if (app.upload.updateBlurBtn) app.upload.updateBlurBtn();
                 },
                 handleFileSelect: async (e) => {
+                    const fileInput = document.getElementById('up-file');
+                    if (fileInput && fileInput.disabled) return;
                     const file = e.target.files[0];
                     if (!file) return;
                     app.upload._faceAutoRun = false;

@@ -1297,6 +1297,8 @@ Object.assign(window.app, {
                     if (app.upload.updateBlurBtn) app.upload.updateBlurBtn();
                 },
                 handleFileSelect: async (e) => {
+                    const fileInput = document.getElementById('up-file');
+                    if (fileInput && fileInput.disabled) return;
                     const file = e.target.files[0];
                     if (!file) return;
                     app.upload._faceAutoRun = false;
