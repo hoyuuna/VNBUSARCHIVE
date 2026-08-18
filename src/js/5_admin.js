@@ -1417,7 +1417,7 @@ Object.assign(window.app, {
                                             </div>
                                             <div>
                                                 <span class="admin-label">Ghi chú ${noteTag}</span>
-                                                <input type="text" id="req-h-note-${r.id}-${i}" value="${app.utils.escapeAttr(h.note || '')}" class="admin-input">
+                                                <textarea id="req-h-note-${r.id}-${i}" class="admin-input resize-y min-h-[50px] overflow-hidden p-2" oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'">${app.utils.escapeHtml(h.note || '')}</textarea>
                                             </div>
                                         </div>
                                         `;
