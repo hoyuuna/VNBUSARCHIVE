@@ -7334,7 +7334,12 @@ Object.assign(window.app, {
                         }
                         deleteBtn.onclick = () => app.photo.requestDelete();
                     }
-                    else if (app.user && app.role === 'manager' && !isDenied) {
+                    
+                    const editBtn = document.getElementById('btn-manager-edit-photo');
+                    if (editBtn) editBtn.classList.add('hidden');
+                    
+                    if (app.user && ['admin', 'manager'].includes(app.role) && !isDenied) {
+                        if (editBtn) editBtn.classList.remove('hidden');
                         deleteBtn.classList.remove('hidden');
                         deleteBtn.disabled = false;
                         deleteBtn.innerHTML = '<i class="fa-solid fa-radiation mr-1"></i> Quản lý: Xóa ảnh này';
@@ -14901,6 +14906,260 @@ Object.assign(window.app, {
                     app.admin.updateHideMineUI();
                     app.admin.checkNotification();
                 },
+
+                // ================= MANAGER EDIT PHOTO =================
+                openEditPhotoModal: async () => {
+                    if (!app.currentPhoto) return;
+                    document.querySelectorAll('#manager-blur-container .blur-panel').forEach(p => p.remove());
+                    app.admin.updateManagerBlurCount();
+                    const img = document.getElementById('manager-blur-img');
+                    img.src = app.utils.getProxiedUrl(app.currentPhoto.url);
+                    const modal = document.getElementById('manager-edit-modal');
+                    modal.classList.remove('hidden', 'pointer-events-none', 'opacity-0');
+                    modal.classList.add('opacity-100');
+                    const content = document.getElementById('manager-edit-content');
+                    content.classList.remove('scale-95');
+                    content.classList.add('scale-100');
+                    if (app.ui && app.ui.lockScroll) app.ui.lockScroll();
+                },
+                closeEditPhotoModal: () => {
+                    const modal = document.getElementById('manager-edit-modal');
+                    const content = document.getElementById('manager-edit-content');
+                    content.classList.remove('scale-100');
+                    content.classList.add('scale-95');
+                    modal.classList.remove('opacity-100');
+                    modal.classList.add('opacity-0', 'pointer-events-none');
+                    setTimeout(() => {
+                        modal.classList.add('hidden');
+                        document.getElementById('manager-blur-img').src = '';
+                        document.querySelectorAll('#manager-blur-container .blur-panel').forEach(p => p.remove());
+                        app.admin.updateManagerBlurCount();
+                        if (app.ui && app.ui.unlockScroll) app.ui.unlockScroll();
+                    }, 200);
+                },
+                updateManagerBlurCount: () => {
+                    const count = document.querySelectorAll('#manager-blur-container .blur-panel').length;
+                    const countEl = document.getElementById('manager-blur-count');
+                    if (countEl) countEl.innerText = count;
+                },
+                removeManagerBlurPanel: (id) => {
+                    const panel = document.getElementById(id);
+                    if (panel) panel.remove();
+                    app.admin.updateManagerBlurCount();
+                },
+                buildManagerBlurPanel: (opts) => {
+                    const container = document.getElementById('manager-blur-container');
+                    if (!container) return null;
+                    const { left, top, width, height } = opts || {};
+                    const id = 'mgr-blur-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+                    const panel = document.createElement('div');
+                    document.querySelectorAll('#manager-blur-container .blur-panel').forEach(p => p.classList.remove('active'));
+                    panel.className = 'blur-panel active';
+                    panel.id = id;
+                    if (left != null) panel.style.left = left + 'px';
+                    if (top != null) panel.style.top = top + 'px';
+                    if (width != null) panel.style.width = width + 'px';
+                    if (height != null) panel.style.height = height + 'px';
+                    panel.innerHTML = `
+                        <button type="button" class="delete-blur" onclick="app.admin.removeManagerBlurPanel('${id}')" title="Xóa vùng này"><i class="fa-solid fa-xmark"></i></button>
+                        <button type="button" class="move-blur" title="Giữ và kéo để di chuyển vùng làm mờ"><i class="fa-solid fa-arrows-up-down-left-right"></i></button>
+                        <div class="resize-handle" style="position: absolute; bottom: 0; right: 0; width: 20px; height: 20px; cursor: nwse-resize; z-index: 10;" title="Kéo để đổi kích thước"></div>
+                    `;
+                    const selectPanel = (e) => {
+                        if (!panel.classList.contains('active')) {
+                            document.querySelectorAll('#manager-blur-container .blur-panel').forEach(p => p.classList.remove('active'));
+                            panel.classList.add('active');
+                        }
+                    };
+                    let isDragging = false;
+                    let dragStartX, dragStartY, initialLeft, initialTop;
+                    const updateButtonsPosition = () => {
+                        const deleteBtn = panel.querySelector('.delete-blur');
+                        const moveBtn = panel.querySelector('.move-blur');
+                        if (!deleteBtn || !moveBtn || !container) return;
+                        if (panel.offsetTop + panel.offsetHeight > container.offsetHeight - 46) moveBtn.classList.add('flip-top'); else moveBtn.classList.remove('flip-top');
+                        if (panel.offsetTop < 18) deleteBtn.classList.add('flip-bottom'); else deleteBtn.classList.remove('flip-bottom');
+                        if (panel.offsetLeft + panel.offsetWidth > container.offsetWidth - 18) deleteBtn.classList.add('inside-right'); else deleteBtn.classList.remove('inside-right');
+                    };
+                    const startDrag = (e) => {
+                        selectPanel(e);
+                        if (e.target.closest('.delete-blur') || e.target.closest('.resize-handle')) return;
+                        e.stopPropagation();
+                        if (e.type === 'touchstart') e.preventDefault();
+                        isDragging = true;
+                        dragStartX = e.clientX || (e.touches && e.touches[0].clientX);
+                        dragStartY = e.clientY || (e.touches && e.touches[0].clientY);
+                        initialLeft = panel.offsetLeft;
+                        initialTop = panel.offsetTop;
+                    };
+                    panel.addEventListener('mousedown', startDrag);
+                    panel.addEventListener('touchstart', startDrag, { passive: false });
+                    let isResizing = false;
+                    let resizeStartX, resizeStartY, initialWidth, initialHeight;
+                    const resizeHandle = panel.querySelector('.resize-handle');
+                    const startResize = (e) => {
+                        selectPanel(e);
+                        e.stopPropagation();
+                        if (e.type === 'touchstart') e.preventDefault();
+                        isResizing = true;
+                        resizeStartX = e.clientX || (e.touches && e.touches[0].clientX);
+                        resizeStartY = e.clientY || (e.touches && e.touches[0].clientY);
+                        initialWidth = panel.offsetWidth;
+                        initialHeight = panel.offsetHeight;
+                        initialLeft = panel.offsetLeft;
+                        initialTop = panel.offsetTop;
+                    };
+                    resizeHandle.addEventListener('mousedown', startResize);
+                    resizeHandle.addEventListener('touchstart', startResize, { passive: false });
+                    const onMove = (clientX, clientY) => {
+                        if (isDragging) {
+                            const dx = clientX - dragStartX;
+                            const dy = clientY - dragStartY;
+                            let newLeft = initialLeft + dx;
+                            let newTop = initialTop + dy;
+                            const maxLeft = container.offsetWidth - panel.offsetWidth;
+                            const maxTop = container.offsetHeight - panel.offsetHeight;
+                            panel.style.left = Math.max(0, Math.min(newLeft, maxLeft)) + 'px';
+                            panel.style.top = Math.max(0, Math.min(newTop, maxTop)) + 'px';
+                            updateButtonsPosition();
+                        } else if (isResizing) {
+                            const dx = clientX - resizeStartX;
+                            const dy = clientY - resizeStartY;
+                            let newWidth = initialWidth + dx;
+                            let newHeight = initialHeight + dy;
+                            let newLeft = initialLeft;
+                            let newTop = initialTop;
+                            if (newWidth < 0) { newLeft = initialLeft + newWidth; newWidth = Math.abs(newWidth); }
+                            if (newHeight < 0) { newTop = initialTop + newHeight; newHeight = Math.abs(newHeight); }
+                            if (newLeft < 0) { newWidth += newLeft; newLeft = 0; }
+                            if (newTop < 0) { newHeight += newTop; newTop = 0; }
+                            if (newLeft + newWidth > container.offsetWidth) newWidth = container.offsetWidth - newLeft;
+                            if (newTop + newHeight > container.offsetHeight) newHeight = container.offsetHeight - newTop;
+                            panel.style.left = newLeft + 'px';
+                            panel.style.top = newTop + 'px';
+                            panel.style.width = newWidth + 'px';
+                            panel.style.height = newHeight + 'px';
+                            updateButtonsPosition();
+                        }
+                    };
+                    const handleMouseMove = (e) => { if (isDragging || isResizing) { e.preventDefault(); onMove(e.clientX, e.clientY); } };
+                    const handleTouchMove = (e) => { if (isDragging || isResizing) { e.preventDefault(); onMove(e.touches[0].clientX, e.touches[0].clientY); } };
+                    const endAction = () => { if (isDragging || isResizing) updateButtonsPosition(); isDragging = false; isResizing = false; };
+                    document.addEventListener('mousemove', handleMouseMove);
+                    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+                    document.addEventListener('mouseup', endAction);
+                    document.addEventListener('touchend', endAction);
+                    document.addEventListener('mousedown', (e) => { if (!panel.contains(e.target) && !e.target.closest('#btn-manager-add-blur')) panel.classList.remove('active'); });
+                    document.addEventListener('touchstart', (e) => { if (!panel.contains(e.target) && !e.target.closest('#btn-manager-add-blur')) panel.classList.remove('active'); });
+                    container.appendChild(panel);
+                    updateButtonsPosition();
+                    app.admin.updateManagerBlurCount();
+                    return id;
+                },
+                toggleBlurPanel: () => {
+                    const container = document.getElementById('manager-blur-container');
+                    if (!container) return;
+                    const cw = container.clientWidth || 320;
+                    const ch = container.clientHeight || 240;
+                    const width = Math.min(80, Math.round(cw * 0.25));
+                    const height = Math.min(50, Math.round(ch * 0.2));
+                    app.admin.buildManagerBlurPanel({
+                        left: Math.round(cw * 0.4),
+                        top: Math.round(ch * 0.4),
+                        width,
+                        height
+                    });
+                },
+                saveEditPhotoBlur: async () => {
+                    if (!app.currentPhoto) return;
+                    const btn = document.getElementById('btn-manager-save-blur');
+                    const origHtml = btn.innerHTML;
+                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
+                    btn.disabled = true;
+
+                    try {
+                        const imgEl = document.getElementById('manager-blur-img');
+                        const blurPanels = document.querySelectorAll('#manager-blur-container .blur-panel');
+                        
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        const width = imgEl.naturalWidth;
+                        const height = imgEl.naturalHeight;
+                        canvas.width = width;
+                        canvas.height = height;
+                        
+                        ctx.drawImage(imgEl, 0, 0, width, height);
+
+                        if (blurPanels.length > 0) {
+                            const imgRect = imgEl.getBoundingClientRect();
+                            blurPanels.forEach(panel => {
+                                const panelRect = panel.getBoundingClientRect();
+                                const relX = (panelRect.left - imgRect.left) / imgRect.width;
+                                const relY = (panelRect.top - imgRect.top) / imgRect.height;
+                                const relW = panelRect.width / imgRect.width;
+                                const relH = panelRect.height / imgRect.height;
+                                const blurX = Math.floor(width * relX);
+                                const blurY = Math.floor(height * relY);
+                                const blurW = Math.ceil(width * relW);
+                                const blurH = Math.ceil(height * relH);
+                                if (blurW > 0 && blurH > 0) {
+                                    const tempPanelCanvas = document.createElement('canvas');
+                                    tempPanelCanvas.width = blurW;
+                                    tempPanelCanvas.height = blurH;
+                                    const tempPanelCtx = tempPanelCanvas.getContext('2d');
+                                    tempPanelCtx.drawImage(ctx.canvas, blurX, blurY, blurW, blurH, 0, 0, blurW, blurH);
+                                    const panelBlurRadius = Math.max(15, Math.floor(width * 0.015));
+                                    if (typeof StackBlur !== 'undefined') {
+                                        StackBlur.canvasRGBA(tempPanelCanvas, 0, 0, blurW, blurH, panelBlurRadius);
+                                    } else {
+                                        tempPanelCtx.filter = \`blur(\${panelBlurRadius}px)\`;
+                                        tempPanelCtx.drawImage(tempPanelCanvas, 0, 0);
+                                    }
+                                    ctx.drawImage(tempPanelCanvas, blurX, blurY);
+                                }
+                            });
+                        }
+
+                        // Generate WebP
+                        const blob = await new Promise((resolve) => {
+                            canvas.toBlob(b => resolve(b), 'image/webp', 0.95);
+                        });
+
+                        const sessionRes = await window.sb.auth.getSession();
+                        const token = sessionRes.data.session?.access_token;
+                        
+                        const formData = new FormData();
+                        formData.append('photoId', app.currentPhoto.id);
+                        formData.append('file', blob, 'edited.webp');
+
+                        const res = await fetch('/api/admin/replace-image', {
+                            method: 'POST',
+                            headers: { 'Authorization': `Bearer ${token}` },
+                            body: formData
+                        });
+
+                        const result = await res.json();
+                        if (!result.success) throw new Error(result.error);
+
+                        app.toast.show('success', 'Đã lưu chỉnh sửa', 'Ảnh đã được làm mờ và cập nhật thành công!');
+                        
+                        app.currentPhoto.url = result.url;
+                        
+                        app.admin.closeEditPhotoModal();
+                        
+                        const detailImg = document.getElementById('detail-img');
+                        if (detailImg) detailImg.src = app.utils.getProxiedUrl(result.url);
+
+                        app.views.loadHome();
+                    } catch (e) {
+                        app.ui.showAlert('Lỗi: ' + e.message);
+                    } finally {
+                        btn.innerHTML = origHtml;
+                        btn.disabled = false;
+                    }
+                },
+                // ======================================================
+
                 renderSinglePhotoCardHTML: (p, approvedPlateSet = app.admin?.approvedPlateSet || new Set(), approvedOpSet = app.admin?.approvedOpSet || new Set(), approvedRouteSet = app.admin?.approvedRouteSet || new Set(), approvedModelSet = app.admin?.approvedModelSet || new Set()) => {
                     const op = app.utils.cleanText(p.operator || '');
                     const type = p.type || 'bus';
