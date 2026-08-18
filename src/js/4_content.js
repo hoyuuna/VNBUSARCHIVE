@@ -1837,7 +1837,7 @@ Object.assign(window.app, {
                     }
                     const q = app.upload.currentQuota;
                     if (q.limit !== null && q.count >= q.limit) {
-                        return app.ui.showAlert(`Hệ thống đã đạt giới hạn nhận ${q.limit} ảnh của ngày hôm nay. Vui lòng quay lại sau 7:00 sáng mai!`);
+                        return app.ui.showAlert(`Bạn đã đạt giới hạn tải lên tối đa ${q.limit} ảnh của ngày hôm nay. Vui lòng quay lại sau 7:00 sáng mai!`);
                     }
                     const valPlate = document.getElementById('up-plate').value.trim();
                     const valOp = document.getElementById('up-operator').value.trim();
@@ -2106,6 +2106,7 @@ Object.assign(window.app, {
                         const last7AM = app.utils.getLast7AM_UTC7();
                         const { count } = await window.sb.from('photos')
                             .select('*', { count: 'estimated', head: true })
+                            .eq('uploader_id', app.user.id)
                             .gte('created_at', last7AM);
                         app.upload.currentQuota = { limit: limitNum, count: count || 0 };
                         textEl.classList.remove('text-black', 'text-amber-500', 'text-red-600');

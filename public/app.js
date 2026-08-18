@@ -404,7 +404,7 @@ Object.assign(window.app, {
                     const limitStr = app.maintenance.settings['upload_quota']?.reason;
                     const limitTxt = (limitStr && limitStr.trim() !== '') ? limitStr : 'không giới hạn';
                     app.ui.showAlert(
-                        `Nhằm bảo vệ hạ tầng máy chủ và dung lượng lưu trữ, hệ thống chỉ tiếp nhận tổng cộng tối đa <b>${limitTxt} ảnh</b> hàng ngày (áp dụng chung cho toàn server).<br><br>Chu kỳ sẽ được tự động đặt lại vào mỗi <b>7 giờ sáng (Giờ Việt Nam)</b>.`,
+                        `Nhằm bảo vệ hạ tầng máy chủ và dung lượng lưu trữ, hệ thống giới hạn mỗi người dùng chỉ được tải lên tối đa <b>${limitTxt} ảnh</b> hàng ngày.<br><br>Chu kỳ sẽ được tự động đặt lại vào mỗi <b>7 giờ sáng (Giờ Việt Nam)</b>.`,
                         null, null, { title: "Chính sách giới hạn đăng tải", btnOkText: "Đã hiểu" }
                     );
                 },
@@ -12522,7 +12522,7 @@ Object.assign(window.app, {
                     }
                     const q = app.upload.currentQuota;
                     if (q.limit !== null && q.count >= q.limit) {
-                        return app.ui.showAlert(`Hệ thống đã đạt giới hạn nhận ${q.limit} ảnh của ngày hôm nay. Vui lòng quay lại sau 7:00 sáng mai!`);
+                        return app.ui.showAlert(`Bạn đã đạt giới hạn tải lên tối đa ${q.limit} ảnh của ngày hôm nay. Vui lòng quay lại sau 7:00 sáng mai!`);
                     }
                     const valPlate = document.getElementById('up-plate').value.trim();
                     const valOp = document.getElementById('up-operator').value.trim();
@@ -12791,6 +12791,7 @@ Object.assign(window.app, {
                         const last7AM = app.utils.getLast7AM_UTC7();
                         const { count } = await window.sb.from('photos')
                             .select('*', { count: 'estimated', head: true })
+                            .eq('uploader_id', app.user.id)
                             .gte('created_at', last7AM);
                         app.upload.currentQuota = { limit: limitNum, count: count || 0 };
                         textEl.classList.remove('text-black', 'text-amber-500', 'text-red-600');
