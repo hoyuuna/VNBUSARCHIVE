@@ -7338,7 +7338,7 @@ Object.assign(window.app, {
                     const editBtn = document.getElementById('btn-manager-edit-photo');
                     if (editBtn) editBtn.classList.add('hidden');
                     
-                    if (app.user && ['admin', 'manager'].includes(app.role) && !isDenied) {
+                    if (app.user && app.role === 'manager' && !isDenied) {
                         if (editBtn) editBtn.classList.remove('hidden');
                         deleteBtn.classList.remove('hidden');
                         deleteBtn.disabled = false;
