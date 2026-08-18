@@ -2455,6 +2455,8 @@ Object.assign(window.app, {
                     window.addEventListener('dragenter', (e) => {
                         const uploadView = document.getElementById('upload');
                         if (!uploadView || !uploadView.classList.contains('active')) return;
+                        const fileInput = document.getElementById('up-file');
+                        if (fileInput && fileInput.disabled) return;
                         dragCounter++;
                         if (dragCounter === 1) {
                             dropZone.style.backgroundColor = '#eff6ff';
