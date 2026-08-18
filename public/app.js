@@ -14913,6 +14913,7 @@ Object.assign(window.app, {
                     document.querySelectorAll('#manager-blur-container .blur-panel').forEach(p => p.remove());
                     app.admin.updateManagerBlurList();
                     const img = document.getElementById('manager-blur-img');
+                    img.crossOrigin = "anonymous";
                     img.src = app.utils.getProxiedUrl(app.currentPhoto.url);
                     
                     const modal = document.getElementById('manager-edit-modal');
