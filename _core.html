@@ -6595,6 +6595,44 @@ div[id$="-modal"] > div > * {
             </div>
         </div>
     </div>
+    
+    <!-- MANAGER EDIT PHOTO MODAL -->
+    <div id="manager-edit-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm transition-opacity opacity-0 pointer-events-none">
+        <div id="manager-edit-content" class="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden transform scale-95 transition-all">
+            <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                <h3 class="text-lg font-black text-gray-800 flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square text-blue-600"></i> Quản lý: Thêm vùng làm mờ
+                </h3>
+                <button type="button" onclick="app.admin.closeEditPhotoModal()" class="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 transition bg-white shadow-sm border border-gray-200">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div class="p-4 md:p-6 overflow-y-auto flex-1 bg-gray-50">
+                <div class="bg-blue-50 border border-blue-200 text-blue-800 px-3 py-2.5 rounded-md mb-4 text-xs font-bold flex items-center shadow-sm">
+                    <i class="fa-solid fa-circle-info mr-2"></i> Kéo vùng làm mờ (Blur) vào các khuôn mặt cần che. Chất lượng ảnh sẽ được giữ nguyên gốc.
+                </div>
+                
+                <div id="manager-blur-container" class="relative mx-auto border border-gray-300 shadow-sm overflow-hidden no-select bg-gray-200 rounded-md">
+                    <img id="manager-blur-img" class="block pointer-events-none w-full h-full object-contain">
+                </div>
+                
+                <div class="mt-4 flex flex-wrap gap-2 items-center justify-between">
+                    <button type="button" id="btn-manager-add-blur" onclick="app.admin.toggleBlurPanel()" class="flex items-center justify-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-4 py-2.5 rounded-lg hover:bg-gray-100 hover:text-black font-bold text-sm transition shadow-sm focus:ring-2 focus:ring-black">
+                        <i class="fa-solid fa-droplet-slash"></i> Thêm ô che (<span id="manager-blur-count">0</span>)
+                    </button>
+                </div>
+            </div>
+            <div class="p-4 bg-white border-t border-gray-100 flex justify-end gap-3 rounded-b-2xl">
+                <button type="button" onclick="app.admin.closeEditPhotoModal()" class="px-5 py-2.5 rounded-xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 hover:text-black transition">
+                    Hủy bỏ
+                </button>
+                <button type="button" id="btn-manager-save-blur" onclick="app.admin.saveEditPhotoBlur()" class="px-5 py-2.5 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-500/20 transition flex items-center gap-2">
+                    <i class="fa-solid fa-floppy-disk"></i> Lưu và Ghi đè
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed top-24 left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
 </body>

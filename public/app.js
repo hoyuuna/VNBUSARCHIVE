@@ -15120,9 +15120,15 @@ Object.assign(window.app, {
                             });
                         }
 
-                        // Generate WebP
+                        // Dò định dạng gốc
+                        const urlLower = app.currentPhoto.url.toLowerCase();
+                        let mimeType = 'image/jpeg';
+                        let ext = 'jpg';
+                        if (urlLower.endsWith('.png')) { mimeType = 'image/png'; ext = 'png'; }
+                        else if (urlLower.endsWith('.webp')) { mimeType = 'image/webp'; ext = 'webp'; }
+
                         const blob = await new Promise((resolve) => {
-                            canvas.toBlob(b => resolve(b), 'image/webp', 0.95);
+                            canvas.toBlob(b => resolve(b), mimeType, 1.0);
                         });
 
                         const sessionRes = await window.sb.auth.getSession();
@@ -15130,7 +15136,7 @@ Object.assign(window.app, {
                         
                         const formData = new FormData();
                         formData.append('photoId', app.currentPhoto.id);
-                        formData.append('file', blob, 'edited.webp');
+                        formData.append('file', blob, 'edited.' + ext);
 
                         const res = await fetch('/api/admin/replace-image', {
                             method: 'POST',

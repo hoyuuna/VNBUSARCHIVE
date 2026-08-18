@@ -39,9 +39,12 @@ export async function onRequest(context) {
         if (file.size > MAX_SIZE) {
             return new Response(JSON.stringify({ success: false, error: 'File quá lớn (tối đa 20MB).' }), { status: 400, headers: { 'Content-Type': 'application/json' }});
         }
-        if (file.type !== 'image/webp') {
-            return new Response(JSON.stringify({ success: false, error: 'Chỉ hỗ trợ WebP cho tính năng sửa ảnh.' }), { status: 400, headers: { 'Content-Type': 'application/json' }});
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+            return new Response(JSON.stringify({ success: false, error: 'Chỉ hỗ trợ JPG, PNG, WEBP.' }), { status: 400, headers: { 'Content-Type': 'application/json' }});
         }
+        let ext = 'jpg';
+        if (file.type === 'image/png') ext = 'png';
+        if (file.type === 'image/webp') ext = 'webp';
 
         // Get current photo
         const { data: photoData, error: photoErr } = await sbAdmin.from('photos').select('url, license_plate').eq('id', photoId).single();
@@ -53,7 +56,7 @@ export async function onRequest(context) {
         // Upload new to CDN
         const randomValues = crypto.getRandomValues(new Uint8Array(6));
         const safeHash = Array.from(randomValues).map(b => b.toString(16).padStart(2, '0')).join('');
-        const fileName = `edited_${Date.now()}_${safeHash}.webp`;
+        const fileName = `edited_${Date.now()}_${safeHash}.${ext}`;
         
         const newFormData = new FormData();
         newFormData.append('file', file, fileName);
