@@ -2096,6 +2096,7 @@ Object.assign(window.app, {
                     const textEl = document.getElementById('upload-quota-text');
                     const fileInput = document.getElementById('up-file');
                     const btnSubmit = document.getElementById('btn-submit');
+                    const qrBtn = document.querySelector('#qr-btn-wrapper button');
                     if (!pill) return;
                     pill.classList.remove('hidden');
                     textEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-gray-400"></i>';
@@ -2117,23 +2118,27 @@ Object.assign(window.app, {
                             textEl.classList.add('text-black');
                             fileInput.disabled = false;
                             fileInput.classList.remove('opacity-50', 'cursor-not-allowed');
+                            if (qrBtn) { qrBtn.disabled = false; qrBtn.classList.remove('opacity-50', 'cursor-not-allowed'); qrBtn.classList.add('hover:bg-gray-50'); }
                         } else {
                             textEl.innerText = `${realCount}/${limitNum} lượt hôm nay`;
                             const remaining = limitNum - realCount;
                             if (limitNum === 0 || remaining <= 0) {
                                 textEl.classList.add('text-red-600');
                                 fileInput.disabled = true;
-                                btnSubmit.disabled = true;
+                                if (btnSubmit) btnSubmit.disabled = true;
                                 fileInput.classList.add('opacity-50', 'cursor-not-allowed');
+                                if (qrBtn) { qrBtn.disabled = true; qrBtn.classList.add('opacity-50', 'cursor-not-allowed'); qrBtn.classList.remove('hover:bg-gray-50'); }
                                 textEl.innerText = limitNum === 0 ? `Hệ thống tạm đóng upload` : `Hết slot hôm nay (${realCount}/${limitNum})`;
                             } else if (remaining <= 3) {
                                 textEl.classList.add('text-amber-500');
                                 fileInput.disabled = false;
                                 fileInput.classList.remove('opacity-50', 'cursor-not-allowed');
+                                if (qrBtn) { qrBtn.disabled = false; qrBtn.classList.remove('opacity-50', 'cursor-not-allowed'); qrBtn.classList.add('hover:bg-gray-50'); }
                             } else {
                                 textEl.classList.add('text-black');
                                 fileInput.disabled = false;
                                 fileInput.classList.remove('opacity-50', 'cursor-not-allowed');
+                                if (qrBtn) { qrBtn.disabled = false; qrBtn.classList.remove('opacity-50', 'cursor-not-allowed'); qrBtn.classList.add('hover:bg-gray-50'); }
                             }
                         }
                     } catch (e) {
