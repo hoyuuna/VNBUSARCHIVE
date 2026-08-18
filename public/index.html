@@ -3849,7 +3849,7 @@ div[id$="-modal"] > div > * {
                                 <div class="flex flex-col sm:flex-row gap-2 items-start mt-1">
                                     <div class="flex flex-col flex-1 min-w-0 w-full">
                                         <span class="sm:hidden font-bold text-gray-500 mb-1">Ghi chú</span>
-                                        <textarea id="hist-new-note" placeholder="Ghi chú" class="hist-input resize-y min-h-[50px] p-2 overflow-hidden w-full" oninput="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'"></textarea>
+                                        <textarea id="hist-new-note" placeholder="Ghi chú" class="hist-input resize-y min-h-[50px] p-2 overflow-hidden w-full" oninput="this.style.height = 'auto'; this.style.height = (this.scrollHeight + (this.offsetHeight - this.clientHeight)) + 'px'"></textarea>
                                     </div>
                                     <div class="flex justify-end gap-2 mt-2 sm:mt-0 w-full sm:w-auto h-full">
                                         <button type="button" id="btn-hist-add" onclick="app.vehicle.addHistoryItem('')" class="bg-black text-white px-4 py-2 text-xs rounded-md font-bold hover:bg-gray-800 transition shadow-sm w-full sm:w-auto min-h-[42px] whitespace-nowrap">Thêm Mới</button>
@@ -4934,7 +4934,7 @@ div[id$="-modal"] > div > * {
                         <i class="fa-solid fa-clipboard-list text-gray-600"></i>
                         <span class="font-bold text-sm uppercase">Ghi chú chung</span>
                     </div>
-                    <textarea id="adm-board-note" oninput="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'" class="w-full bg-gray-50 border border-gray-300 rounded p-3 text-sm focus:outline-none focus:ring-2 focus:ring-black min-h-[80px] transition-colors overflow-hidden" placeholder="Đang tải ghi chú..."></textarea>
+                    <textarea id="adm-board-note" oninput="this.style.height = 'auto'; this.style.height = (this.scrollHeight + (this.offsetHeight - this.clientHeight)) + 'px'" class="w-full bg-gray-50 border border-gray-300 rounded p-3 text-sm focus:outline-none focus:ring-2 focus:ring-black min-h-[80px] transition-colors overflow-hidden" placeholder="Đang tải ghi chú..."></textarea>
                     <div class="flex justify-end mt-1">
                         <button id="btn-save-adm-note" onclick="app.admin.saveBoardNote(this)" class="bg-black hover:bg-gray-800 text-white font-bold py-1.5 px-4 rounded text-xs transition"><i class="fa-solid fa-floppy-disk mr-1"></i> Lưu thông tin</button>
                     </div>
@@ -6643,6 +6643,6 @@ div[id$="-modal"] > div > * {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed top-24 left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.js?v=1787054898362"></script>
+<script src="/app.js?v=1787056148367"></script>
 </body>
 </html>
