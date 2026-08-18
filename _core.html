@@ -6597,17 +6597,17 @@ div[id$="-modal"] > div > * {
     </div>
     
     <!-- MANAGER EDIT PHOTO MODAL -->
-    <div id="manager-edit-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm transition-opacity opacity-0 pointer-events-none">
-        <div id="manager-edit-content" class="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden transform scale-95 transition-all">
-            <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-                <h3 class="text-lg font-black text-gray-800 flex items-center gap-2">
-                    <i class="fa-solid fa-pen-to-square text-blue-600"></i> Quản lý: Thêm vùng làm mờ
+    <div id="manager-edit-modal" class="hidden fixed inset-0 flex items-center justify-center p-4 transition-opacity opacity-0 pointer-events-none" style="z-index: 99999; background-color: rgba(0, 0, 0, 0) !important; backdrop-filter: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important;">
+        <div id="manager-edit-content" class="bg-white/70 backdrop-blur-3xl border border-white/50 rounded-3xl shadow-2xl w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden transform scale-95 transition-all">
+            <div class="px-5 py-5 flex items-center justify-between">
+                <h3 class="text-lg font-black text-black flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square text-gray-700"></i> Quản lý: Thêm vùng làm mờ
                 </h3>
                 <button type="button" onclick="app.admin.closeEditPhotoModal()" class="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 transition bg-white shadow-sm border border-gray-200">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
-            <div class="p-4 md:p-6 overflow-y-auto flex-1 bg-gray-50">
+            <div class="p-4 md:p-6 overflow-y-auto flex-1">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <!-- Ảnh gốc bên trái -->
                     <div>
@@ -6642,11 +6642,11 @@ div[id$="-modal"] > div > * {
                     </div>
                 </div>
             </div>
-            <div class="p-4 bg-white border-t border-gray-100 flex justify-end gap-3 rounded-b-2xl">
-                <button type="button" onclick="app.admin.closeEditPhotoModal()" class="px-5 py-2.5 rounded-xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 hover:text-black transition">
+            <div class="p-4 flex justify-end gap-3 mb-2 px-6">
+                <button type="button" onclick="app.admin.closeEditPhotoModal()" class="px-5 py-2.5 rounded-xl font-bold text-gray-700 bg-white border border-gray-300 hover:border-black transition">
                     Hủy bỏ
                 </button>
-                <button type="button" id="btn-manager-save-blur" onclick="app.admin.saveEditPhotoBlur()" class="px-5 py-2.5 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-500/20 transition flex items-center gap-2">
+                <button type="button" id="btn-manager-save-blur" onclick="app.admin.saveEditPhotoBlur()" class="px-5 py-2.5 rounded-xl font-bold text-white bg-black hover:bg-gray-800 shadow-md transition flex items-center gap-2">
                     <i class="fa-solid fa-floppy-disk"></i> Lưu và Ghi đè
                 </button>
             </div>
