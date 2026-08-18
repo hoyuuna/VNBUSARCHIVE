@@ -7801,7 +7801,7 @@ Object.assign(window.app, {
                                     <div class="flex flex-col sm:flex-row gap-2 items-start mt-1">
                                         <div class="flex flex-col flex-1 min-w-0 w-full">
                                             <span class="sm:hidden font-bold text-gray-500 mb-1">Ghi chú</span>
-                                            <textarea id="veh-hist-new-note" placeholder="Ghi chú" class="hist-input resize-y min-h-[50px] p-2 overflow-hidden w-full" oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'"></textarea>
+                                            <textarea id="veh-hist-new-note" placeholder="Ghi chú" class="hist-input resize-y min-h-[50px] p-2 overflow-hidden w-full" oninput="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'"></textarea>
                                         </div>
                                         <div class="flex justify-end gap-2 mt-2 sm:mt-0 w-full sm:w-auto h-full">
                                             <button type="button" onclick="app.vehicle.addHistoryItem('veh-')" class="bg-black text-white px-4 py-2 text-xs rounded-md font-bold hover:bg-gray-800 transition shadow-sm w-full sm:w-auto min-h-[42px] whitespace-nowrap">Thêm Mới</button>
@@ -14242,7 +14242,7 @@ Object.assign(window.app, {
                             <div class="flex flex-col sm:flex-row gap-2 items-start mt-1">
                                 <div class="flex flex-col flex-1 min-w-0 w-full">
                                     <span class="sm:hidden font-bold text-gray-500 mb-1">Ghi chú</span>
-                                    <textarea placeholder="Ghi chú" oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'" onchange="app.vehicle.updateHistoryItem(${index}, 'note', this.value, '${prefix}')" class="hist-input resize-y min-h-[50px] p-2 overflow-hidden w-full">${app.utils.escapeHtml(h.note || '')}</textarea>
+                                    <textarea placeholder="Ghi chú" oninput="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'" onchange="app.vehicle.updateHistoryItem(${index}, 'note', this.value, '${prefix}')" class="hist-input resize-y min-h-[50px] p-2 overflow-hidden w-full">${app.utils.escapeHtml(h.note || '')}</textarea>
                                 </div>
                                 <div class="flex justify-end gap-2 mt-2 sm:mt-0 w-full sm:w-auto h-full">
                                     <button type="button" onclick="app.vehicle.duplicateHistoryItem(${index}, '${prefix}')" class="text-gray-700 hover:text-white hover:bg-black border border-gray-300 rounded-md px-3 py-2 font-bold transition min-h-[42px]" title="Nhân bản"><i class="fa-solid fa-copy"></i></button>
@@ -14252,6 +14252,12 @@ Object.assign(window.app, {
                         `;
                         container.appendChild(div);
                     });
+                    setTimeout(() => {
+                        container.querySelectorAll('textarea.resize-y').forEach(ta => {
+                            ta.style.height = 'auto';
+                            ta.style.height = ta.scrollHeight + 'px';
+                        });
+                    }, 150);
                     if (app.vehicle.tempHistory.length > 0) {
                         const latest = app.vehicle.tempHistory[app.vehicle.tempHistory.length - 1];
                         const opInput = document.getElementById(prefix + 'hist-new-op');
@@ -14945,9 +14951,11 @@ Object.assign(window.app, {
                     
                     modal.classList.remove('hidden');
                     setTimeout(() => {
-                        content.classList.remove('opacity-0', 'scale-95');
-                        content.classList.add('opacity-100', 'scale-100');
-                    }, 10);
+                                content.querySelectorAll('textarea.resize-y').forEach(ta => {
+                                    ta.style.height = 'auto';
+                                    ta.style.height = ta.scrollHeight + 'px';
+                                });
+                            }, 150);
                     
                     if (app.ui && app.ui.lockScroll) app.ui.lockScroll();
                 },
@@ -16325,7 +16333,7 @@ Object.assign(window.app, {
                                             </div>
                                             <div>
                                                 <span class="admin-label">Ghi chú ${noteTag}</span>
-                                                <textarea id="req-h-note-${r.id}-${i}" class="admin-input resize-y min-h-[50px] overflow-hidden p-2" oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'">${app.utils.escapeHtml(h.note || '')}</textarea>
+                                                <textarea id="req-h-note-${r.id}-${i}" class="admin-input resize-y min-h-[50px] overflow-hidden p-2" oninput="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'">${app.utils.escapeHtml(h.note || '')}</textarea>
                                             </div>
                                         </div>
                                         `;

@@ -37,9 +37,11 @@ Object.assign(window.app, {
                     
                     modal.classList.remove('hidden');
                     setTimeout(() => {
-                        content.classList.remove('opacity-0', 'scale-95');
-                        content.classList.add('opacity-100', 'scale-100');
-                    }, 10);
+                                content.querySelectorAll('textarea.resize-y').forEach(ta => {
+                                    ta.style.height = 'auto';
+                                    ta.style.height = ta.scrollHeight + 'px';
+                                });
+                            }, 150);
                     
                     if (app.ui && app.ui.lockScroll) app.ui.lockScroll();
                 },
@@ -1417,7 +1419,7 @@ Object.assign(window.app, {
                                             </div>
                                             <div>
                                                 <span class="admin-label">Ghi chú ${noteTag}</span>
-                                                <textarea id="req-h-note-${r.id}-${i}" class="admin-input resize-y min-h-[50px] overflow-hidden p-2" oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'">${app.utils.escapeHtml(h.note || '')}</textarea>
+                                                <textarea id="req-h-note-${r.id}-${i}" class="admin-input resize-y min-h-[50px] overflow-hidden p-2" oninput="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'">${app.utils.escapeHtml(h.note || '')}</textarea>
                                             </div>
                                         </div>
                                         `;
