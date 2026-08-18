@@ -15120,15 +15120,9 @@ Object.assign(window.app, {
                             });
                         }
 
-                        // Dò định dạng gốc
-                        const urlLower = app.currentPhoto.url.toLowerCase();
-                        let mimeType = 'image/jpeg';
-                        let ext = 'jpg';
-                        if (urlLower.endsWith('.png')) { mimeType = 'image/png'; ext = 'png'; }
-                        else if (urlLower.endsWith('.webp')) { mimeType = 'image/webp'; ext = 'webp'; }
-
+                        // Ép sang định dạng WebP với chất lượng cao nhất (1.0)
                         const blob = await new Promise((resolve) => {
-                            canvas.toBlob(b => resolve(b), mimeType, 1.0);
+                            canvas.toBlob(b => resolve(b), 'image/webp', 1.0);
                         });
 
                         const sessionRes = await window.sb.auth.getSession();
@@ -15136,7 +15130,7 @@ Object.assign(window.app, {
                         
                         const formData = new FormData();
                         formData.append('photoId', app.currentPhoto.id);
-                        formData.append('file', blob, 'edited.' + ext);
+                        formData.append('file', blob, 'edited.webp');
 
                         const res = await fetch('/api/admin/replace-image', {
                             method: 'POST',
