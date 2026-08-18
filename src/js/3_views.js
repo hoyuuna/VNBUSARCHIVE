@@ -1918,7 +1918,7 @@ Object.assign(window.app, {
                                     <td class="font-bold border-r border-gray-200" style="border-left: 4px solid ${barColor} !important;">${safePlate}</td>
                                     <td class="border-r border-gray-200">${safeOp}</td>
                                     <td class="border-r border-gray-200">${safeRoute}</td>
-                                    <td class="text-xs text-gray-500 whitespace-pre-wrap break-words">${safeNote}</td>
+                                    <td class="text-xs text-gray-500 whitespace-pre-wrap break-words">${app.utils.linkify(safeNote)}</td>
                                 </tr>
                             `;
                         });
@@ -2105,7 +2105,7 @@ Object.assign(window.app, {
                                                     <td class="font-bold border-r border-gray-200" style="border-left: 4px solid ${barColor} !important;">${safePlate}</td>
                                                     <td class="border-r border-gray-200">${safeOp}</td>
                                                     <td class="border-r border-gray-200">${safeRoute}</td>
-                                                    <td class="text-xs text-gray-500 whitespace-pre-wrap break-words">${safeNote}</td>
+                                                    <td class="text-xs text-gray-500 whitespace-pre-wrap break-words">${app.utils.linkify(safeNote)}</td>
                                                 </tr>`;
                                             }).join('')}
                                         </tbody>
