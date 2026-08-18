@@ -6608,18 +6608,38 @@ div[id$="-modal"] > div > * {
                 </button>
             </div>
             <div class="p-4 md:p-6 overflow-y-auto flex-1 bg-gray-50">
-                <div class="bg-blue-50 border border-blue-200 text-blue-800 px-3 py-2.5 rounded-md mb-4 text-xs font-bold flex items-center shadow-sm">
-                    <i class="fa-solid fa-circle-info mr-2"></i> Kéo vùng làm mờ (Blur) vào các khuôn mặt cần che. Chất lượng ảnh sẽ được giữ nguyên gốc.
-                </div>
-                
-                <div id="manager-blur-container" class="relative mx-auto border border-gray-300 shadow-sm overflow-hidden no-select bg-gray-200 rounded-md">
-                    <img id="manager-blur-img" class="block pointer-events-none w-full h-full object-contain">
-                </div>
-                
-                <div class="mt-4 flex flex-wrap gap-2 items-center justify-between">
-                    <button type="button" id="btn-manager-add-blur" onclick="app.admin.toggleBlurPanel()" class="flex items-center justify-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-4 py-2.5 rounded-lg hover:bg-gray-100 hover:text-black font-bold text-sm transition shadow-sm focus:ring-2 focus:ring-black">
-                        <i class="fa-solid fa-droplet-slash"></i> Thêm ô che (<span id="manager-blur-count">0</span>)
-                    </button>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <!-- Ảnh gốc bên trái -->
+                    <div>
+                        <div id="manager-blur-container" class="relative mx-auto border border-gray-300 shadow-sm overflow-hidden no-select bg-gray-200 rounded-md w-full" style="min-height: 200px;">
+                            <img id="manager-blur-img" class="block pointer-events-none w-full h-full object-contain">
+                        </div>
+                    </div>
+                    
+                    <!-- Bảng làm mờ bên phải -->
+                    <div>
+                        <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-4 relative z-30">
+                            <h4 class="font-bold text-sm uppercase text-black mb-3"><i class="fa-solid fa-droplet-slash mr-1.5"></i>Làm mờ / Che vật thể</h4>
+
+                            <div class="mb-3 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2">
+                                <i class="fa-solid fa-triangle-exclamation text-amber-500 mt-0.5 text-xs"></i>
+                                <p class="text-[11px] text-amber-800 font-bold leading-relaxed m-0">Vùng làm mờ/che vật thể tuyệt đối không được đè lên bất kỳ bộ phận nào của xe (thân xe, bánh xe, kính, đèn...), tránh làm ảnh hưởng đến tính toàn vẹn và chi tiết của chủ thể.</p>
+                            </div>
+
+                            <button type="button" id="btn-manager-add-blur" onclick="app.admin.performAddBlurPanel()" class="w-full flex items-center justify-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-100 hover:text-black font-bold text-[11px] sm:text-xs transition shadow-sm focus:ring-2 focus:ring-black mb-3">
+                                <i class="fa-solid fa-plus"></i> Thêm vùng làm mờ
+                            </button>
+
+                            <div id="manager-blur-list" class="flex flex-col gap-2"></div>
+                        </div>
+
+                        <div class="mt-3 flex flex-col gap-2">
+                            <div class="flex items-start gap-2 bg-blue-50/50 border border-blue-100 p-3 rounded-xl shadow-sm">
+                                <i class="fa-solid fa-circle-info text-blue-500 mt-0.5 text-xs"></i>
+                                <p class="text-[11px] text-blue-800 font-medium leading-relaxed m-0">Bạn có thể <b>nhấn giữ & kéo</b> khung làm mờ trên ảnh để di chuyển. Kéo góc phải dưới khung làm mờ để thay đổi kích thước.</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="p-4 bg-white border-t border-gray-100 flex justify-end gap-3 rounded-b-2xl">
@@ -6635,6 +6655,6 @@ div[id$="-modal"] > div > * {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed top-24 left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.js?v=1787020747608"></script>
+<script src="/app.js?v=1787021131288"></script>
 </body>
 </html>

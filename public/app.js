@@ -14911,7 +14911,7 @@ Object.assign(window.app, {
                 openEditPhotoModal: async () => {
                     if (!app.currentPhoto) return;
                     document.querySelectorAll('#manager-blur-container .blur-panel').forEach(p => p.remove());
-                    app.admin.updateManagerBlurCount();
+                    app.admin.updateManagerBlurList();
                     const img = document.getElementById('manager-blur-img');
                     img.src = app.utils.getProxiedUrl(app.currentPhoto.url);
                     const modal = document.getElementById('manager-edit-modal');
@@ -14933,19 +14933,14 @@ Object.assign(window.app, {
                         modal.classList.add('hidden');
                         document.getElementById('manager-blur-img').src = '';
                         document.querySelectorAll('#manager-blur-container .blur-panel').forEach(p => p.remove());
-                        app.admin.updateManagerBlurCount();
+                        app.admin.updateManagerBlurList();
                         if (app.ui && app.ui.unlockScroll) app.ui.unlockScroll();
                     }, 200);
-                },
-                updateManagerBlurCount: () => {
-                    const count = document.querySelectorAll('#manager-blur-container .blur-panel').length;
-                    const countEl = document.getElementById('manager-blur-count');
-                    if (countEl) countEl.innerText = count;
                 },
                 removeManagerBlurPanel: (id) => {
                     const panel = document.getElementById(id);
                     if (panel) panel.remove();
-                    app.admin.updateManagerBlurCount();
+                    app.admin.updateManagerBlurList();
                 },
                 buildManagerBlurPanel: (opts) => {
                     const container = document.getElementById('manager-blur-container');
@@ -15053,10 +15048,10 @@ Object.assign(window.app, {
                     document.addEventListener('touchstart', (e) => { if (!panel.contains(e.target) && !e.target.closest('#btn-manager-add-blur')) panel.classList.remove('active'); });
                     container.appendChild(panel);
                     updateButtonsPosition();
-                    app.admin.updateManagerBlurCount();
+                    app.admin.updateManagerBlurList();
                     return id;
                 },
-                toggleBlurPanel: () => {
+                performAddBlurPanel: () => {
                     const container = document.getElementById('manager-blur-container');
                     if (!container) return;
                     const cw = container.clientWidth || 320;
@@ -15069,6 +15064,60 @@ Object.assign(window.app, {
                         width,
                         height
                     });
+                },
+                removeManagerBlurPanelByIndex: (index) => {
+                    const panels = Array.from(document.querySelectorAll('#manager-blur-container .blur-panel'));
+                    if (panels[index]) panels[index].remove();
+                    app.admin.updateManagerBlurList();
+                },
+                duplicateManagerBlurPanelByIndex: (index) => {
+                    const panels = Array.from(document.querySelectorAll('#manager-blur-container .blur-panel'));
+                    if (panels[index]) {
+                        const source = panels[index];
+                        const left = parseFloat(source.style.left) || 0;
+                        const top = parseFloat(source.style.top) || 0;
+                        const width = parseFloat(source.style.width) || 50;
+                        const height = parseFloat(source.style.height) || 50;
+                        const container = document.getElementById('manager-blur-container');
+                        const cw = container ? (container.clientWidth || 320) : 320;
+                        const ch = container ? (container.clientHeight || 240) : 240;
+                        let newLeft = left + 20;
+                        let newTop = top + 20;
+                        if (newLeft + width > cw) newLeft = left - 20;
+                        if (newTop + height > ch) newTop = top - 20;
+                        app.admin.buildManagerBlurPanel({
+                            left: newLeft,
+                            top: newTop,
+                            width,
+                            height
+                        });
+                    }
+                },
+                updateManagerBlurList: () => {
+                    const panels = document.querySelectorAll('#manager-blur-container .blur-panel');
+                    const count = panels.length;
+                    const btn = document.getElementById('btn-manager-add-blur');
+                    if (btn) {
+                        btn.innerHTML = \`<i class="fa-solid fa-plus"></i> Thêm vùng làm mờ (\${count})\`;
+                    }
+                    const list = document.getElementById('manager-blur-list');
+                    if (list) {
+                        if (count === 0) {
+                            list.innerHTML = \`<p class="text-[11px] text-gray-400 font-medium italic text-center py-1">Chưa có vùng làm mờ nào.</p>\`;
+                        } else {
+                            let html = '';
+                            for (let i = 0; i < count; i++) {
+                                html += \`<div class="flex items-center justify-between gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                                    <span class="text-[11px] font-bold text-gray-700 truncate flex-1"><i class="fa-solid fa-droplet-slash mr-1.5 text-gray-400"></i>Vùng \${i + 1}</span>
+                                    <div class="flex items-center gap-1.5">
+                                        <button type="button" onclick="app.admin.duplicateManagerBlurPanelByIndex(\${i})" class="shrink-0 flex items-center justify-center w-7 h-7 rounded-md bg-white border border-gray-200 text-gray-700 hover:bg-black hover:text-white hover:border-black transition" title="Nhân bản vùng này"><i class="fa-solid fa-copy text-xs"></i></button>
+                                        <button type="button" onclick="app.admin.removeManagerBlurPanelByIndex(\${i})" class="shrink-0 flex items-center justify-center w-7 h-7 rounded-md bg-white border border-gray-200 text-gray-700 hover:bg-black hover:text-white hover:border-black transition" title="Xóa vùng này"><i class="fa-solid fa-xmark text-xs"></i></button>
+                                    </div>
+                                </div>\`;
+                            }
+                            list.innerHTML = html;
+                        }
+                    }
                 },
                 saveEditPhotoBlur: async () => {
                     if (!app.currentPhoto) return;
