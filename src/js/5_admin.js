@@ -37,6 +37,11 @@ Object.assign(window.app, {
                     
                     modal.classList.remove('hidden');
                     setTimeout(() => {
+                        content.classList.remove('opacity-0', 'scale-95');
+                        content.classList.add('opacity-100', 'scale-100');
+                    }, 10);
+                    
+                    setTimeout(() => {
                                 content.querySelectorAll('textarea.resize-y').forEach(ta => {
                                     ta.style.height = 'auto';
                                     ta.style.height = (ta.scrollHeight + (ta.offsetHeight - ta.clientHeight)) + 'px';
