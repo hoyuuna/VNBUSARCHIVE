@@ -1971,6 +1971,16 @@ div[id$="-modal"] > div > * {
 </head>
 
 <body class="antialiased">
+    <!-- GLOBAL AUTOFILL HONEYPOT: hứng autofill của trình duyệt cho mọi trang trừ /auth -->
+    <!-- disabled khi ở /auth để Chrome autofill email/password bình thường -->
+    <input type="text" class="autofill-honeypot" style="display:none;position:absolute;left:-9999px" tabindex="-1" aria-hidden="true" autocomplete="username" />
+    <input type="password" class="autofill-honeypot" style="display:none;position:absolute;left:-9999px" tabindex="-1" aria-hidden="true" autocomplete="current-password" />
+    <script>
+        // Disable honeypot ngay khi ở /auth để không chặn autofill trang đăng nhập
+        if (window.location.pathname === '/auth') {
+            document.querySelectorAll('.autofill-honeypot').forEach(function(el) { el.disabled = true; });
+        }
+    </script>
     <!-- FACEBOOK SDK -->
 
 
