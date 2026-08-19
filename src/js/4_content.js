@@ -60,34 +60,11 @@ Object.assign(window.app, {
                      const route = document.getElementById('up-route')?.value || '';
                      const model = document.getElementById('up-model')?.value || '';
                      const note = document.getElementById('up-note')?.value || '';
-                     
-                     let hasCrop = app.crop && (app.crop.savedState || app.crop.savedCropData);
-                     let hasWm = app.wmState && (app.wmState.mode !== 'basic' || app.wmState.x !== 0.5 || app.wmState.y !== 0.5);
-                     const panels = document.querySelectorAll('.blur-panel');
-                     let hasBlurs = panels.length > 0;
-                     let hasFilters = app.upload && app.upload.currentFilters && app.upload.currentFilters !== 'none';
-
                      const province = document.getElementById('up-province')?.value || '';
                      const location = document.getElementById('up-location')?.value || '';
                      
-                     if (!plate && !operator && !route && !model && !note && !province && !location && !app.rawFile) {
+                     if (!plate && !operator && !route && !model && !note && !province && !location) {
                          return;
-                     }
-
-                     let blurs = [];
-                     const container = document.getElementById('preview-container');
-                     if (container) {
-                         const cw = container.offsetWidth || 1;
-                         const ch = container.offsetHeight || 1;
-                         panels.forEach(panel => {
-                             blurs.push({
-                                 left: panel.offsetLeft / cw,
-                                 top: panel.offsetTop / ch,
-                                 width: panel.offsetWidth / cw,
-                                 height: panel.offsetHeight / ch,
-                                 auto: panel.dataset.auto === '1'
-                             });
-                         });
                      }
 
                      const draft = {
@@ -95,24 +72,9 @@ Object.assign(window.app, {
                          route: route, operator: operator, model: model,
                          location: location,
                          province: province,
-                         date: document.getElementById('up-date')?.value || '', note: note,
-                         crop: {
-                             savedState: app.crop?.savedState,
-                             savedRatio: app.crop?.savedRatio,
-                             customRatio: app.crop?.customRatio,
-                             savedCropData: app.crop?.savedCropData
-                         },
-                         wmState: app.wmState,
-                         blurs: blurs,
-                         filters: app.upload?.currentFilters || 'none',
-                         hasRawFile: !!app.rawFile
+                         date: document.getElementById('up-date')?.value || '', note: note
                      };
                      localStorage.setItem('vnbus_upload_draft', JSON.stringify(draft));
-                     if (app.rawFile && app.db && app.db.savePhoto) {
-                         app.db.savePhoto(app.rawFile);
-                     } else if (app.db && app.db.clearPhoto && !app.rawFile) {
-                         app.db.clearPhoto();
-                     }
                  },
                  startDraftAutoSave: () => {
                      if (!app.upload.draftInterval) {
@@ -137,20 +99,18 @@ Object.assign(window.app, {
                      if (saved) {
                          try {
                              const draft = JSON.parse(saved);
-                             const shouldPrompt = draft.plate || draft.operator || draft.route || draft.model || draft.location || draft.province || draft.note || draft.hasRawFile;
+                             const shouldPrompt = draft.plate || draft.operator || draft.route || draft.model || draft.location || draft.province || draft.note;
                              if (shouldPrompt) {
                                  app.ui.showAlert(
                                      `Bạn có bản nháp có thể phục hồi.`,
                                      () => { app.upload.loadDraft(draft); },
-                                     () => { app.upload.clearDraft(); if (app.db && app.db.clearPhoto) app.db.clearPhoto(); },
+                                     () => { app.upload.clearDraft(); },
                                      { title: "Khôi phục bản nháp", btnOkText: "Đồng ý", btnCancelText: "Hủy" }
                                  );
-                             } else {
                              }
                          } catch (e) { 
                              app.upload.clearDraft(); 
                          }
-                     } else {
                      }
                  },
                  loadDraft: async (draft) => {
@@ -165,30 +125,6 @@ Object.assign(window.app, {
                          if(draft.date) document.getElementById('up-date').value = draft.date;
                          if(draft.note) document.getElementById('up-note').value = draft.note;
                          if(draft.plate) app.upload.checkPlate(draft.plate);
-                         
-                         app.upload._draftPending = {
-                             crop: draft.crop,
-                             wmState: draft.wmState,
-                             blurs: draft.blurs,
-                             filters: draft.filters
-                         };
-
-                         if (draft.hasRawFile && app.db && app.db.getPhoto) {
-                             const photo = await app.db.getPhoto();
-                             if (photo && photo.file) {
-                                 const fileInput = document.getElementById('up-file');
-                                 const dataTransfer = new DataTransfer();
-                                 let photoFile = photo.file;
-                                 if (!(photoFile instanceof File)) {
-                                     photoFile = new File([photoFile], photoFile.name || 'photo.jpg', { type: photoFile.type || 'image/jpeg' });
-                                 }
-                                 dataTransfer.items.add(photoFile);
-                                 fileInput.files = dataTransfer.files;
-                                 const changeEvent = new Event('change', { bubbles: true });
-                                 fileInput.dispatchEvent(changeEvent);
-                             } else {
-                             }
-                         }
                      } catch (e) { console.warn("Lỗi load draft", e); }
                  },
                  clearDraft: () => { 
