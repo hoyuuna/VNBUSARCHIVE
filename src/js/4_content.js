@@ -153,7 +153,7 @@ Object.assign(window.app, {
                          const btn = document.createElement('button');
                          btn.type = 'button';
                          btn.className = 'flex items-center gap-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-[11px] font-medium px-2.5 py-1.5 rounded-md transition select-none truncate max-w-[140px]';
-                         btn.innerHTML = `<i class="fa-solid fa-location-dot opacity-60"></i><span class="truncate">${app.utils.escapeHtml(loc)}</span>`;
+                         btn.innerHTML = `<i class="fa-solid fa-clock-rotate-left opacity-60"></i><span class="truncate">${app.utils.escapeHtml(loc)}</span>`;
                          btn.onclick = () => {
                              const input = document.getElementById('up-location');
                              if (input && !input.disabled) {
