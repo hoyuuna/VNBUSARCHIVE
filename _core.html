@@ -1971,9 +1971,6 @@ div[id$="-modal"] > div > * {
 </head>
 
 <body class="antialiased">
-    <!-- GLOBAL AUTOFILL HONEYPOT: hứng toàn bộ autofill của trình duyệt, tránh điền vào ô thật -->
-    <input type="text" style="display:none;position:absolute;left:-9999px" tabindex="-1" aria-hidden="true" autocomplete="username" />
-    <input type="password" style="display:none;position:absolute;left:-9999px" tabindex="-1" aria-hidden="true" autocomplete="current-password" />
     <!-- FACEBOOK SDK -->
 
 
@@ -3043,7 +3040,7 @@ div[id$="-modal"] > div > * {
 <div id="header-search-box"
                              class="w-full lg:w-auto order-3 lg:order-2 mt-3 lg:mt-0 flex items-center border border-gray-200 rounded-md bg-gray-50/50 relative focus-within:ring-2 focus-within:ring-black/10 focus-within:bg-white transition-all">
                          <div class="relative w-full lg:w-64 flex items-center">
-                             <input type="text" id="search-input" placeholder="Tìm kiếm..." autocomplete="one-time-code"
+                             <input type="text" id="search-input" placeholder="Tìm kiếm..." autocomplete="off"
                                   class="peer px-3 py-2 lg:pr-14 text-sm outline-none w-full bg-transparent placeholder-gray-400">
                              <!-- Advanced Modules Container (Hidden by default) -->
                              <div id="header-advanced-modules" class="hidden absolute inset-0 flex items-center gap-1 overflow-x-auto pb-1 pl-2 pr-2 bg-transparent z-20">
@@ -3479,7 +3476,7 @@ div[id$="-modal"] > div > * {
                     <div class="w-full flex items-center border border-gray-200 rounded-md bg-gray-50/50 relative focus-within:ring-2 focus-within:ring-black/10 focus-within:bg-white transition-all h-12 md:h-14">
 
                         <div class="relative w-full flex items-center h-full pl-1">
-                            <input type="text" id="page-search-input" placeholder="Tìm kiếm..." autocomplete="one-time-code" class="peer px-3 py-2 text-base md:text-lg outline-none w-full bg-transparent placeholder-gray-400 font-medium h-full">
+                            <input type="text" id="page-search-input" placeholder="Tìm kiếm..." autocomplete="off" class="peer px-3 py-2 text-base md:text-lg outline-none w-full bg-transparent placeholder-gray-400 font-medium h-full">
                             
                             <!-- Advanced Modules Container (Hidden by default) -->
                             <div id="page-advanced-modules" class="hidden absolute inset-0 flex items-center gap-1 overflow-x-auto pb-1 pl-2 pr-2 bg-transparent z-20">
