@@ -13652,43 +13652,65 @@ Object.assign(window.app, {
                 downloadImage: async (e) => {
                     if (!app.currentPhoto) return;
                     const btn = e.currentTarget;
-                    const origHtml = btn.innerHTML;
-                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang tải...';
-                    try {
-                        const plateName = app.utils.displayPlate(app.currentPhoto.license_plate) || 'VNBUSARCHIVE';
-                        let proxyUrl = app.utils.getProxiedUrl(app.currentPhoto.url, `${plateName}.jpg`);
-                        const response = await fetch(proxyUrl);
-                        const blob = await response.blob();
-                        const img = new Image();
-                        const objectUrl = window.URL.createObjectURL(blob);
-                        await new Promise((resolve, reject) => {
-                            img.onload = resolve;
-                            img.onerror = reject;
-                            img.src = objectUrl;
-                        });
-                        const canvas = document.createElement('canvas');
-                        canvas.width = img.width;
-                        canvas.height = img.height;
-                        const ctx = canvas.getContext('2d');
-                        ctx.fillStyle = '#FFFFFF';
-                        ctx.fillRect(0, 0, canvas.width, canvas.height);
-                        ctx.drawImage(img, 0, 0);
-                        canvas.toBlob((jpgBlob) => {
-                            const blobUrl = window.URL.createObjectURL(jpgBlob);
-                            const a = document.createElement('a');
-                            a.href = blobUrl;
-                            a.download = plateName + '.jpg';
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                            window.URL.revokeObjectURL(blobUrl);
-                            window.URL.revokeObjectURL(objectUrl);
-                        }, 'image/jpeg', 0.95);
-                    } catch (err) {
-                        app.ui.showAlert('Lỗi: Không thể tải hình ảnh từ máy chủ!');
-                    } finally {
-                        btn.innerHTML = origHtml;
-                    }
+                    
+                    const termsHtml = `
+                        <div class="text-left text-sm text-gray-600 space-y-2">
+                            <p>Khi sử dụng lại ảnh từ hệ thống, bạn phải trích dẫn nguồn đầy đủ và rõ ràng. Tuyệt đối không được xóa, che mờ hoặc chỉnh sửa dấu bản quyền gắn trên ảnh.</p>
+                            <p>Dữ liệu và hình ảnh được cung cấp cho mục đích tra cứu, học tập, nghiên cứu cá nhân. Nghiêm cấm mọi hành vi cào dữ liệu tự động quy mô lớn để kinh doanh hoặc thương mại hóa trái phép.</p>
+                            <p>Nghiêm cấm cắt ghép, chỉnh sửa ảnh để lồng ghép vào các nội dung sai sự thật, tin đồn thất thiệt, bôi nhọ hoặc gây ảnh hưởng đến danh dự của nhân viên vận tải.</p>
+                            <p>Bạn chỉ được cấp quyền sử dụng lại theo quy định cộng đồng. Tác giả gốc hoặc nền tảng VNBUSARCHIVE có toàn quyền khiếu nại bản quyền và yêu cầu gỡ bỏ nếu bạn sử dụng ảnh sai mục đích hoặc vi phạm các điều khoản.</p>
+                            <p>Toàn bộ hình ảnh tải về chỉ mang tính chất tham khảo lịch sử, không được sử dụng làm bằng chứng pháp lý để xử lý vi phạm.</p>
+                        </div>
+                    `;
+
+                    app.ui.showAlert(
+                        termsHtml,
+                        async () => {
+                            const origHtml = btn.innerHTML;
+                            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang tải...';
+                            try {
+                                const plateName = app.utils.displayPlate(app.currentPhoto.license_plate) || 'VNBUSARCHIVE';
+                                let proxyUrl = app.utils.getProxiedUrl(app.currentPhoto.url, `${plateName}.jpg`);
+                                const response = await fetch(proxyUrl);
+                                const blob = await response.blob();
+                                const img = new Image();
+                                const objectUrl = window.URL.createObjectURL(blob);
+                                await new Promise((resolve, reject) => {
+                                    img.onload = resolve;
+                                    img.onerror = reject;
+                                    img.src = objectUrl;
+                                });
+                                const canvas = document.createElement('canvas');
+                                canvas.width = img.width;
+                                canvas.height = img.height;
+                                const ctx = canvas.getContext('2d');
+                                ctx.fillStyle = '#FFFFFF';
+                                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                                ctx.drawImage(img, 0, 0);
+                                canvas.toBlob((jpgBlob) => {
+                                    const blobUrl = window.URL.createObjectURL(jpgBlob);
+                                    const a = document.createElement('a');
+                                    a.href = blobUrl;
+                                    a.download = plateName + '.jpg';
+                                    document.body.appendChild(a);
+                                    a.click();
+                                    document.body.removeChild(a);
+                                    window.URL.revokeObjectURL(blobUrl);
+                                    window.URL.revokeObjectURL(objectUrl);
+                                }, 'image/jpeg', 0.95);
+                            } catch (err) {
+                                app.ui.showAlert('Lỗi: Không thể tải hình ảnh từ máy chủ!');
+                            } finally {
+                                btn.innerHTML = origHtml;
+                            }
+                        },
+                        () => {},
+                        {
+                            title: "Lưu ý bản quyền",
+                            btnOkText: "Đồng ý",
+                            btnCancelText: "Đóng"
+                        }
+                    );
                 },
                 requestDelete: async () => {
                     if (!app.user || !app.currentPhoto) return;
