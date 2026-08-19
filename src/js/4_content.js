@@ -1828,9 +1828,12 @@ Object.assign(window.app, {
                             if (pending.wmState) {
                                 app.wmState = pending.wmState;
                                 const wmDrag = document.getElementById('draggable-watermark');
-                                if (wmDrag) {
-                                    wmDrag.style.left = (app.wmState.x * finalW) + 'px';
-                                    wmDrag.style.top = (app.wmState.y * finalH) + 'px';
+                                const container = document.getElementById('preview-container');
+                                if (wmDrag && container) {
+                                    const cw = container.clientWidth;
+                                    const ch = container.clientHeight;
+                                    wmDrag.style.left = (app.wmState.x * cw) + 'px';
+                                    wmDrag.style.top = (app.wmState.y * ch) + 'px';
                                     wmDrag.style.transform = `translate(-50%, -50%) scale(${app.wmState.scale})`;
                                 }
                             }
