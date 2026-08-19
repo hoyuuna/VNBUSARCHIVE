@@ -924,7 +924,7 @@ Object.assign(window.app, {
                         return null;
                     }
                 },
-                compressToSizeLoop: async (imageSource, targetMime = 'image/webp', targetKB = 300) => {
+                compressToSizeLoop: async (imageSource, targetMime = 'image/webp', targetKB = 500) => {
                     const targetBytes = targetKB * 1024;
                     const url = imageSource instanceof Blob || imageSource instanceof File ? URL.createObjectURL(imageSource) : imageSource;
                     const img = new Image();
@@ -969,6 +969,10 @@ Object.assign(window.app, {
                             break;
                         }
                     }
+                    if (!bestBlob && hasWebpNative) {
+                        let finalBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', 0.70));
+                        if (finalBlob && finalBlob.size <= targetBytes) bestBlob = finalBlob;
+                    }
                     if (bestBlob) return bestBlob;
 
                     // Nếu không có webp native hoặc không đạt dung lượng
@@ -990,6 +994,11 @@ Object.assign(window.app, {
                                     maxQ = midQ;
                                 }
                             }
+                            if (!bestBlob) {
+                                let webpBuffer = await encode(imageData, { quality: 70 });
+                                let wasmBlob = new Blob([webpBuffer], { type: 'image/webp' });
+                                if (wasmBlob.size <= targetBytes) bestBlob = wasmBlob;
+                            }
                             if (bestBlob) return bestBlob;
                         } catch (e) {
                             console.warn("WASM WebP fallback error:", e);
@@ -1009,6 +1018,10 @@ Object.assign(window.app, {
                         } else {
                             maxQ = midQ;
                         }
+                    }
+                    if (!bestBlob) {
+                        let finalBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.70));
+                        if (finalBlob && finalBlob.size <= targetBytes) bestBlob = finalBlob;
                     }
                     if (bestBlob) return bestBlob;
                     
@@ -11900,7 +11913,7 @@ Object.assign(window.app, {
                         const targetMime = app.utils.getTargetMimeType();
                         let compressedFile = null;
                         try {
-                            compressedFile = await app.utils.compressToSizeLoop(finalBlob, targetMime, 300);
+                            compressedFile = await app.utils.compressToSizeLoop(finalBlob, targetMime, 500);
                         } catch (e) {
                             console.warn("compressToSizeLoop lỗi:", e);
                             app.ui.showAlert(e.message.replace("BLIND_WM_ERROR:", ""));
@@ -12323,7 +12336,7 @@ Object.assign(window.app, {
                                     }
                                 }
                                 const targetMime = app.utils.getTargetMimeType();
-                                let convertedBlob = await app.utils.compressToSizeLoop(fileToCompress, targetMime, 300);
+                                let convertedBlob = await app.utils.compressToSizeLoop(fileToCompress, targetMime, 500);
                                 if (!convertedBlob) convertedBlob = fileToCompress;
                                 const newUrl = URL.createObjectURL(convertedBlob);
                                 const newImg = new Image();
@@ -12605,7 +12618,7 @@ Object.assign(window.app, {
                                 const finalBlob = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none', { embedBlind: true });
                                 let blobToProcess = null;
                                 try {
-                                    blobToProcess = await app.utils.compressToSizeLoop(finalBlob, targetMime, 300);
+                                    blobToProcess = await app.utils.compressToSizeLoop(finalBlob, targetMime, 500);
                                 } catch (e) {
                                     console.warn("compressToSizeLoop lỗi:", e);
                                     reject(e);
@@ -15263,7 +15276,7 @@ Object.assign(window.app, {
                         }
 
                         // Ép sang định dạng WebP với chất lượng cao nhất (1.0)
-                        const initialBlob = await new Promise((resolve) => { canvas.toBlob(b => resolve(b), 'image/webp', 1.0); }); const blob = await app.utils.compressToSizeLoop(initialBlob, 'image/webp', 300);
+                        const initialBlob = await new Promise((resolve) => { canvas.toBlob(b => resolve(b), 'image/webp', 1.0); }); const blob = await app.utils.compressToSizeLoop(initialBlob, 'image/webp', 500);
 
                         const sessionRes = await window.sb.auth.getSession();
                         const token = sessionRes.data.session?.access_token;

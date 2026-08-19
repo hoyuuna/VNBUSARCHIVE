@@ -1179,7 +1179,7 @@ Object.assign(window.app, {
                         const targetMime = app.utils.getTargetMimeType();
                         let compressedFile = null;
                         try {
-                            compressedFile = await app.utils.compressToSizeLoop(finalBlob, targetMime, 300);
+                            compressedFile = await app.utils.compressToSizeLoop(finalBlob, targetMime, 500);
                         } catch (e) {
                             console.warn("compressToSizeLoop lỗi:", e);
                             app.ui.showAlert(e.message.replace("BLIND_WM_ERROR:", ""));
@@ -1602,7 +1602,7 @@ Object.assign(window.app, {
                                     }
                                 }
                                 const targetMime = app.utils.getTargetMimeType();
-                                let convertedBlob = await app.utils.compressToSizeLoop(fileToCompress, targetMime, 300);
+                                let convertedBlob = await app.utils.compressToSizeLoop(fileToCompress, targetMime, 500);
                                 if (!convertedBlob) convertedBlob = fileToCompress;
                                 const newUrl = URL.createObjectURL(convertedBlob);
                                 const newImg = new Image();
@@ -1884,7 +1884,7 @@ Object.assign(window.app, {
                                 const finalBlob = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none', { embedBlind: true });
                                 let blobToProcess = null;
                                 try {
-                                    blobToProcess = await app.utils.compressToSizeLoop(finalBlob, targetMime, 300);
+                                    blobToProcess = await app.utils.compressToSizeLoop(finalBlob, targetMime, 500);
                                 } catch (e) {
                                     console.warn("compressToSizeLoop lỗi:", e);
                                     reject(e);

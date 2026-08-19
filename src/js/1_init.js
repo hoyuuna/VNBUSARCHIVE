@@ -922,7 +922,7 @@ Object.assign(window.app, {
                         return null;
                     }
                 },
-                compressToSizeLoop: async (imageSource, targetMime = 'image/webp', targetKB = 300) => {
+                compressToSizeLoop: async (imageSource, targetMime = 'image/webp', targetKB = 500) => {
                     const targetBytes = targetKB * 1024;
                     const url = imageSource instanceof Blob || imageSource instanceof File ? URL.createObjectURL(imageSource) : imageSource;
                     const img = new Image();
@@ -967,6 +967,10 @@ Object.assign(window.app, {
                             break;
                         }
                     }
+                    if (!bestBlob && hasWebpNative) {
+                        let finalBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', 0.70));
+                        if (finalBlob && finalBlob.size <= targetBytes) bestBlob = finalBlob;
+                    }
                     if (bestBlob) return bestBlob;
 
                     // Nếu không có webp native hoặc không đạt dung lượng
@@ -988,6 +992,11 @@ Object.assign(window.app, {
                                     maxQ = midQ;
                                 }
                             }
+                            if (!bestBlob) {
+                                let webpBuffer = await encode(imageData, { quality: 70 });
+                                let wasmBlob = new Blob([webpBuffer], { type: 'image/webp' });
+                                if (wasmBlob.size <= targetBytes) bestBlob = wasmBlob;
+                            }
                             if (bestBlob) return bestBlob;
                         } catch (e) {
                             console.warn("WASM WebP fallback error:", e);
@@ -1007,6 +1016,10 @@ Object.assign(window.app, {
                         } else {
                             maxQ = midQ;
                         }
+                    }
+                    if (!bestBlob) {
+                        let finalBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.70));
+                        if (finalBlob && finalBlob.size <= targetBytes) bestBlob = finalBlob;
                     }
                     if (bestBlob) return bestBlob;
                     
