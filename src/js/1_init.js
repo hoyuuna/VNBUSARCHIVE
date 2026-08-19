@@ -922,9 +922,8 @@ Object.assign(window.app, {
                         return null;
                     }
                 },
-                compressToSizeLoop: async (imageSource, targetMime = 'image/webp', maxSizeMB = 1) => {
-                    const maxSizeBytes = maxSizeMB * 1024 * 1024;
-                    let currentQuality = 0.80;
+                compressToSizeLoop: async (imageSource, targetMime = 'image/webp', targetKB = 300) => {
+                    const targetBytes = targetKB * 1024;
                     const url = imageSource instanceof Blob || imageSource instanceof File ? URL.createObjectURL(imageSource) : imageSource;
                     const img = new Image();
                     img.src = url;
@@ -945,45 +944,73 @@ Object.assign(window.app, {
                     canvas.height = h;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, w, h);
-                    let compressedBlob = null;
+                    
+                    let bestBlob = null;
                     let hasWebpNative = false;
-                    while (currentQuality >= 0.65) {
-                        compressedBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', currentQuality));
+                    
+                    // Thử với WebP Native
+                    let minQ = 0.70;
+                    let maxQ = 0.95;
+                    while (maxQ - minQ >= 0.02) {
+                        let midQ = (minQ + maxQ) / 2;
+                        let q = parseFloat(midQ.toFixed(3));
+                        let compressedBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', q));
                         if (compressedBlob && compressedBlob.type === 'image/webp') {
                             hasWebpNative = true;
-                            if (compressedBlob.size <= maxSizeBytes) {
-                                return compressedBlob;
+                            if (compressedBlob.size <= targetBytes) {
+                                bestBlob = compressedBlob;
+                                minQ = midQ;
+                            } else {
+                                maxQ = midQ;
                             }
+                        } else {
+                            break;
                         }
-                        currentQuality = parseFloat((currentQuality - 0.05).toFixed(2));
                     }
-                    if (!hasWebpNative || (compressedBlob && compressedBlob.size > maxSizeBytes)) {
+                    if (bestBlob) return bestBlob;
+
+                    // Nếu không có webp native hoặc không đạt dung lượng
+                    if (!hasWebpNative) {
                         try {
                             const { encode } = await import("https://esm.sh/@jsquash/webp@1.2.0");
                             const imageData = ctx.getImageData(0, 0, w, h);
-                            currentQuality = 0.80;
-                            while (currentQuality >= 0.65) {
-                                let q = Math.round(currentQuality * 100);
+                            minQ = 0.70;
+                            maxQ = 0.95;
+                            while (maxQ - minQ >= 0.02) {
+                                let midQ = (minQ + maxQ) / 2;
+                                let q = Math.round(midQ * 100);
                                 let webpBuffer = await encode(imageData, { quality: q });
                                 let wasmBlob = new Blob([webpBuffer], { type: 'image/webp' });
-                                if (wasmBlob.size <= maxSizeBytes) {
-                                    return wasmBlob;
+                                if (wasmBlob.size <= targetBytes) {
+                                    bestBlob = wasmBlob;
+                                    minQ = midQ;
+                                } else {
+                                    maxQ = midQ;
                                 }
-                                currentQuality = parseFloat((currentQuality - 0.05).toFixed(2));
                             }
+                            if (bestBlob) return bestBlob;
                         } catch (e) {
-                            console.warn("WASM WebP loop fallback error:", e);
+                            console.warn("WASM WebP fallback error:", e);
                         }
                     }
-                    currentQuality = 0.80;
-                    while (currentQuality >= 0.65) {
-                        compressedBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', currentQuality));
-                        if (compressedBlob && compressedBlob.size <= maxSizeBytes) {
-                            return compressedBlob;
+
+                    // Fallback sang JPEG
+                    minQ = 0.70;
+                    maxQ = 0.95;
+                    while (maxQ - minQ >= 0.02) {
+                        let midQ = (minQ + maxQ) / 2;
+                        let q = parseFloat(midQ.toFixed(3));
+                        let compressedBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', q));
+                        if (compressedBlob && compressedBlob.size <= targetBytes) {
+                            bestBlob = compressedBlob;
+                            minQ = midQ;
+                        } else {
+                            maxQ = midQ;
                         }
-                        currentQuality = parseFloat((currentQuality - 0.05).toFixed(2));
                     }
-                    throw new Error(`BLIND_WM_ERROR:Ảnh quá chi tiết, không thể nén xuống dưới ${maxSizeMB}MB (chất lượng tối thiểu 65%). Vui lòng cắt nhỏ hoặc chọn ảnh khác.`);
+                    if (bestBlob) return bestBlob;
+                    
+                    throw new Error(`BLIND_WM_ERROR:Ảnh quá chi tiết, không thể nén xuống dưới ${targetKB}KB (chất lượng tối thiểu 70%). Vui lòng cắt nhỏ hoặc chọn ảnh khác.`);
                 },
                 canvasToBlobUniversal: async (canvas, targetMime = 'image/webp', quality = 0.95) => {
                     const nativeBlob = await new Promise((resolve) => {
