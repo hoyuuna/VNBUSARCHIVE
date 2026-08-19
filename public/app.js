@@ -338,7 +338,7 @@ Object.assign(window.app, {
                     const content = document.getElementById('custom-alert-content');
                     content.classList.remove('modal-content-enter');
                     content.classList.add('modal-content-leave');
-                    setTimeout(() => {
+                    app.ui.alertCloseTimeout = setTimeout(() => {
                         modal.classList.add('hidden');
                         content.classList.remove('modal-content-leave');
                         app.ui.unlockScroll();
