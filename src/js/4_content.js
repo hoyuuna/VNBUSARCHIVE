@@ -158,14 +158,12 @@ Object.assign(window.app, {
                      
                      if (idx > -1) {
                          app.preference.pinnedLocations.splice(idx, 1);
-                         app.ui.showAlert('Đã bỏ ghim vị trí này.');
                      } else {
                          if (app.preference.pinnedLocations.length >= 10) {
                              app.ui.showAlert('Bạn chỉ có thể ghim tối đa 10 vị trí.');
                              return;
                          }
                          app.preference.pinnedLocations.unshift(loc);
-                         app.ui.showAlert('Đã ghim vị trí.');
                      }
                      
                      app.upload.checkLocationPinStatus(loc);
