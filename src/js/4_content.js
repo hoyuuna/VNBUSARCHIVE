@@ -134,7 +134,9 @@ Object.assign(window.app, {
                              const draft = JSON.parse(saved);
                              if (draft.plate || draft.operator || draft.route || draft.hasRawFile) {
                                  app.ui.showAlert(
-                                     `Bạn có bản nháp có thể phục hồi. Tất cả nội dung văn bản, hình ảnh, hiệu ứng sẽ được tự động khôi phục y hệt như lần cuối bạn chỉnh sửa.`,
+                                     `Bạn có bản nháp có thể phục hồi.`,
+                                     () => { app.upload.loadDraft(draft); },
+                                     () => { app.upload.clearDraft(); if (app.db && app.db.clearPhoto) app.db.clearPhoto(); },
                                      { title: "Khôi phục bản nháp", btnOkText: "Đồng ý", btnCancelText: "Hủy" }
                                  );
                              } else {

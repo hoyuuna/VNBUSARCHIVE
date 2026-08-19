@@ -253,6 +253,7 @@ Object.assign(window.app, {
                         return;
                     }
                     if (app.ui.alertInterval) clearInterval(app.ui.alertInterval);
+                    if (app.ui.alertCloseTimeout) clearTimeout(app.ui.alertCloseTimeout);
                     document.getElementById('custom-alert-msg').innerHTML = msg;
                     const modal = document.getElementById('custom-alert-modal');
                     const content = document.getElementById('custom-alert-content');
@@ -330,6 +331,7 @@ Object.assign(window.app, {
                 },
                 closeAlert: (isOk) => {
                     if (app.ui.alertInterval) clearInterval(app.ui.alertInterval);
+                    if (app.ui.alertCloseTimeout) clearTimeout(app.ui.alertCloseTimeout);
                     const modal = document.getElementById('custom-alert-modal');
                     const content = document.getElementById('custom-alert-content');
                     content.classList.remove('modal-content-enter');
