@@ -10850,6 +10850,14 @@ Object.assign(window.app, {
                              app.upload.saveDraft();
                          }
                      }, 2000);
+                     if (!app.upload.draftUnloadBound) {
+                         window.addEventListener('beforeunload', () => {
+                             if (document.getElementById('upload') && !document.getElementById('upload').classList.contains('hidden')) {
+                                 app.upload.saveDraft();
+                             }
+                         });
+                         app.upload.draftUnloadBound = true;
+                     }
                  },
                  checkAndPromptDraft: () => {
                      app.upload.startDraftAutoSave();
