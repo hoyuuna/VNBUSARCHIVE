@@ -51,36 +51,79 @@ Object.assign(window.app, {
                      menuEl.innerHTML = itemsHtml;
                  },
                  saveDraft: () => {
-                     const plate = document.getElementById('up-plate')?.value || '';
+                     const plateEl = document.getElementById('up-plate');
+                     if (!plateEl) return;
+                     const plate = plateEl.value || '';
                      const operator = document.getElementById('up-operator')?.value || '';
                      const route = document.getElementById('up-route')?.value || '';
                      const model = document.getElementById('up-model')?.value || '';
                      const note = document.getElementById('up-note')?.value || '';
-                     if (!plate && !operator && !route && !model && !note) {
-                         localStorage.removeItem('vnbus_upload_draft');
+                     
+                     let hasCrop = app.crop && (app.crop.savedState || app.crop.savedCropData);
+                     let hasWm = app.wmState && (app.wmState.mode !== 'basic' || app.wmState.x !== 0.5 || app.wmState.y !== 0.5);
+                     const panels = document.querySelectorAll('.blur-panel');
+                     let hasBlurs = panels.length > 0;
+                     let hasFilters = app.upload && app.upload.currentFilters && app.upload.currentFilters !== 'none';
+
+                     if (!plate && !operator && !route && !model && !note && !hasCrop && !hasWm && !hasBlurs && !app.rawFile && !hasFilters) {
                          return;
                      }
+
+                     let blurs = [];
+                     const container = document.getElementById('preview-container');
+                     if (container) {
+                         const cw = container.offsetWidth || 1;
+                         const ch = container.offsetHeight || 1;
+                         panels.forEach(panel => {
+                             blurs.push({
+                                 left: panel.offsetLeft / cw,
+                                 top: panel.offsetTop / ch,
+                                 width: panel.offsetWidth / cw,
+                                 height: panel.offsetHeight / ch,
+                                 auto: panel.dataset.auto === '1'
+                             });
+                         });
+                     }
+
                      const draft = {
                          plate: plate, type: document.getElementById('up-type')?.value || '',
                          route: route, operator: operator, model: model,
                          location: document.getElementById('up-location')?.value || '',
                          province: document.getElementById('up-province')?.value || '',
-                         date: document.getElementById('up-date')?.value || '', note: note
+                         date: document.getElementById('up-date')?.value || '', note: note,
+                         crop: {
+                             savedState: app.crop?.savedState,
+                             savedRatio: app.crop?.savedRatio,
+                             customRatio: app.crop?.customRatio,
+                             savedCropData: app.crop?.savedCropData
+                         },
+                         wmState: app.wmState,
+                         blurs: blurs,
+                         filters: app.upload?.currentFilters || 'none',
+                         hasRawFile: !!app.rawFile
                      };
                      localStorage.setItem('vnbus_upload_draft', JSON.stringify(draft));
                  },
+                 startDraftAutoSave: () => {
+                     if (app.upload.draftInterval) clearInterval(app.upload.draftInterval);
+                     app.upload.draftInterval = setInterval(() => {
+                         if (document.getElementById('upload') && !document.getElementById('upload').classList.contains('hidden')) {
+                             app.upload.saveDraft();
+                         }
+                     }, 2000);
+                 },
                  checkAndPromptDraft: () => {
+                     app.upload.startDraftAutoSave();
                      const saved = localStorage.getItem('vnbus_upload_draft');
                      if (saved) {
                          try {
                              const draft = JSON.parse(saved);
-                             if (draft.plate || draft.operator || draft.route) {
-                                 const plateText = draft.plate ? `xe <b>${draft.plate}</b>` : "một xe chưa rõ BKS";
+                             if (draft.plate || draft.operator || draft.route || draft.hasRawFile) {
                                  app.ui.showAlert(
-                                     `Bạn có bản nháp cho ${plateText}. Bạn có muốn tiếp tục không?<br><br><span class="text-[11px] text-gray-500 italic"><i class="fa-solid fa-circle-info mr-1"></i>Lưu ý: Do chính sách bảo mật của trình duyệt, bạn vẫn cần phải tự chọn lại file ảnh.</span>`,
+                                     `Bạn có bản nháp có thể phục hồi.<br><br><span class="text-[11px] text-gray-500 italic"><i class="fa-solid fa-circle-info mr-1"></i>Lưu ý: Do chính sách bảo mật của trình duyệt, bạn vẫn cần phải tự chọn lại file ảnh. Các thiết lập vùng che, dấu chìm, bộ lọc và văn bản đã được khôi phục.</span>`,
                                      () => { app.upload.loadDraft(draft); },
                                      () => { app.upload.clearDraft(); },
-                                     { title: "Khôi phục bản nháp", btnOkText: "Tiếp tục", btnCancelText: "Bỏ qua" }
+                                     { title: "Khôi phục bản nháp", btnOkText: "Đồng ý", btnCancelText: "Hủy" }
                                  );
                              }
                          } catch (e) { app.upload.clearDraft(); }
@@ -98,6 +141,13 @@ Object.assign(window.app, {
                          if(draft.date) document.getElementById('up-date').value = draft.date;
                          if(draft.note) document.getElementById('up-note').value = draft.note;
                          if(draft.plate) app.upload.checkPlate(draft.plate);
+                         
+                         app.upload._draftPending = {
+                             crop: draft.crop,
+                             wmState: draft.wmState,
+                             blurs: draft.blurs,
+                             filters: draft.filters
+                         };
                      } catch (e) { console.warn("Lỗi load draft", e); }
                  },
                  clearDraft: () => { localStorage.removeItem('vnbus_upload_draft'); },
@@ -1570,7 +1620,8 @@ Object.assign(window.app, {
                             if (!app.crop.sourceImage) {
                                 app.crop.sourceImage = normalizedFile;
                             }
-                            if (!is4by3 && !is3by2 && !is16by9) {
+                            const hasDraftCrop = app.upload._draftPending && app.upload._draftPending.crop && app.upload._draftPending.crop.savedState;
+                            if ((!is4by3 && !is3by2 && !is16by9) || hasDraftCrop) {
                                 app.crop.open('main', normalizedFile, true);
                             } else {
                                 app.upload.setupPreview(normalizedFile);
@@ -1623,7 +1674,8 @@ Object.assign(window.app, {
                                     const is4by3 = Math.abs(ratio - (4/3)) < 0.05;
                                     const is3by2 = Math.abs(ratio - (3/2)) < 0.05;
                                     const is16by9 = Math.abs(ratio - (16/9)) < 0.05;
-                                    if (!is4by3 && !is3by2 && !is16by9) {
+                                    const hasDraftCrop = app.upload._draftPending && app.upload._draftPending.crop && app.upload._draftPending.crop.savedState;
+                                    if ((!is4by3 && !is3by2 && !is16by9) || hasDraftCrop) {
                                         app.crop.open('main', convertedFile, true);
                                     } else {
                                         app.upload.setupPreview(convertedFile);
@@ -1731,6 +1783,34 @@ Object.assign(window.app, {
                         };
                         updateSize();
                         app.previewUpdateSize = updateSize;
+                        
+                        if (app.upload._draftPending) {
+                            const pending = app.upload._draftPending;
+                            if (pending.wmState) {
+                                app.wmState = pending.wmState;
+                                const wmDrag = document.getElementById('draggable-watermark');
+                                if (wmDrag) {
+                                    wmDrag.style.left = (app.wmState.x * finalW) + 'px';
+                                    wmDrag.style.top = (app.wmState.y * finalH) + 'px';
+                                    wmDrag.style.transform = `translate(-50%, -50%) scale(${app.wmState.scale})`;
+                                }
+                            }
+                            if (pending.blurs && pending.blurs.length > 0) {
+                                app.upload._pendingBlurRestore = pending.blurs;
+                                app.upload.restoreBlurAfterRecrop();
+                            }
+                            if (pending.crop) {
+                                app.crop.savedState = pending.crop.savedState || null;
+                                app.crop.savedRatio = pending.crop.savedRatio || null;
+                                app.crop.customRatio = pending.crop.customRatio || null;
+                                app.crop.savedCropData = pending.crop.savedCropData || null;
+                            }
+                            if (pending.filters && pending.filters !== 'none') {
+                                app.upload.currentFilters = pending.filters;
+                            }
+                            app.upload._draftPending = null;
+                        }
+
                         if (app.upload.updateBlurBtn) app.upload.updateBlurBtn();
                     };
                     previewImg.src = url;
@@ -4240,4 +4320,4 @@ document.addEventListener('DOMContentLoaded', () => {
             window.app.upload.setWmMode(savedMode);
         }
     }, 500);
-});
+});
