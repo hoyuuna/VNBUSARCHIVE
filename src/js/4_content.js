@@ -103,6 +103,9 @@ Object.assign(window.app, {
                          hasRawFile: !!app.rawFile
                      };
                      localStorage.setItem('vnbus_upload_draft', JSON.stringify(draft));
+                     if (app.rawFile && app.db && app.db.savePhoto) {
+                         app.db.savePhoto(app.rawFile);
+                     }
                  },
                  startDraftAutoSave: () => {
                      if (app.upload.draftInterval) clearInterval(app.upload.draftInterval);
@@ -120,16 +123,16 @@ Object.assign(window.app, {
                              const draft = JSON.parse(saved);
                              if (draft.plate || draft.operator || draft.route || draft.hasRawFile) {
                                  app.ui.showAlert(
-                                     `Bạn có bản nháp có thể phục hồi.<br><br><span class="text-[11px] text-gray-500 italic"><i class="fa-solid fa-circle-info mr-1"></i>Lưu ý: Do chính sách bảo mật của trình duyệt, bạn vẫn cần phải tự chọn lại file ảnh. Các thiết lập vùng che, dấu chìm, bộ lọc và văn bản đã được khôi phục.</span>`,
+                                     `Bạn có bản nháp có thể phục hồi. Tất cả nội dung văn bản, hình ảnh, hiệu ứng sẽ được tự động khôi phục y hệt như lần cuối bạn chỉnh sửa.`,
                                      () => { app.upload.loadDraft(draft); },
-                                     () => { app.upload.clearDraft(); },
+                                     () => { app.upload.clearDraft(); if (app.db && app.db.clearPhoto) app.db.clearPhoto(); },
                                      { title: "Khôi phục bản nháp", btnOkText: "Đồng ý", btnCancelText: "Hủy" }
                                  );
                              }
                          } catch (e) { app.upload.clearDraft(); }
                      }
                  },
-                 loadDraft: (draft) => {
+                 loadDraft: async (draft) => {
                      try {
                          if(draft.plate) document.getElementById('up-plate').value = draft.plate;
                          if(draft.type) { document.getElementById('up-type').value = draft.type; app.upload.applyPreferenceUI(); }
@@ -148,6 +151,16 @@ Object.assign(window.app, {
                              blurs: draft.blurs,
                              filters: draft.filters
                          };
+
+                         if (draft.hasRawFile && app.db && app.db.getPhoto) {
+                             const photo = await app.db.getPhoto();
+                             if (photo) {
+                                 // Simulate file selection
+                                 app.upload.handleFileSelect({ target: { files: [photo] } });
+                             } else {
+                                 app.ui.showAlert("Không tìm thấy file ảnh gốc trong bộ nhớ tạm. Bạn vui lòng chọn lại file ảnh nhé.", null, null, { title: "Thiếu ảnh" });
+                             }
+                         }
                      } catch (e) { console.warn("Lỗi load draft", e); }
                  },
                  clearDraft: () => { localStorage.removeItem('vnbus_upload_draft'); },
