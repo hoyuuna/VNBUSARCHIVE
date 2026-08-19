@@ -1971,6 +1971,9 @@ div[id$="-modal"] > div > * {
 </head>
 
 <body class="antialiased">
+    <!-- GLOBAL AUTOFILL HONEYPOT: hứng toàn bộ autofill của trình duyệt, tránh điền vào ô thật -->
+    <input type="text" style="display:none;position:absolute;left:-9999px" tabindex="-1" aria-hidden="true" autocomplete="username" />
+    <input type="password" style="display:none;position:absolute;left:-9999px" tabindex="-1" aria-hidden="true" autocomplete="current-password" />
     <!-- FACEBOOK SDK -->
 
 
