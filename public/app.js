@@ -10840,6 +10840,7 @@ Object.assign(window.app, {
                          </div>`;
                      }).join('');
                      menuEl.innerHTML = itemsHtml;
+                     if(app.upload.renderLocationHistory) app.upload.renderLocationHistory();
                  },
                  saveDraft: () => {
                      const plateEl = document.getElementById('up-plate');
@@ -10920,6 +10921,39 @@ Object.assign(window.app, {
                  },
                  clearDraft: () => { 
                      localStorage.removeItem('vnbus_upload_draft'); 
+                 },
+                 saveLocationHistory: (loc) => {
+                     if (!loc || loc === 'Chụp trong xe') return;
+                     let history = JSON.parse(localStorage.getItem('vnbus_location_history') || '[]');
+                     history = history.filter(item => item !== loc);
+                     history.unshift(loc);
+                     if (history.length > 3) history = history.slice(0, 3);
+                     localStorage.setItem('vnbus_location_history', JSON.stringify(history));
+                     if(app.upload.renderLocationHistory) app.upload.renderLocationHistory();
+                 },
+                 renderLocationHistory: () => {
+                     const container = document.getElementById('up-location-history');
+                     if (!container) return;
+                     const history = JSON.parse(localStorage.getItem('vnbus_location_history') || '[]');
+                     if (history.length === 0) {
+                         container.classList.add('hidden');
+                         return;
+                     }
+                     container.innerHTML = '';
+                     history.forEach(loc => {
+                         const btn = document.createElement('button');
+                         btn.type = 'button';
+                         btn.className = 'flex items-center gap-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-[11px] font-medium px-2.5 py-1.5 rounded-md transition select-none truncate max-w-[140px]';
+                         btn.innerHTML = `<i class="fa-solid fa-location-dot opacity-60"></i><span class="truncate">${app.utils.escapeHtml(loc)}</span>`;
+                         btn.onclick = () => {
+                             const input = document.getElementById('up-location');
+                             if (input && !input.disabled) {
+                                 input.value = loc;
+                             }
+                         };
+                         container.appendChild(btn);
+                     });
+                     container.classList.remove('hidden');
                  },
                  autoFillOperatorByRoute: async () => {
                     if (app.vehicleLocked) return;
@@ -12825,6 +12859,7 @@ Object.assign(window.app, {
                             fileType: app.rawFile ? app.rawFile.type : 'N/A'
                         });
                         if (app.upload.currentQuota.limit !== null) app.upload.currentQuota.count++;
+                        if(app.upload && app.upload.saveLocationHistory) app.upload.saveLocationHistory(valLoc);
                         if(app.upload && app.upload.clearDraft) app.upload.clearDraft();
                         if(app.db && app.db.clearPhoto) app.db.clearPhoto();
                         app.utils.cleanupState(); 

@@ -4827,6 +4827,7 @@ div[id$="-modal"] > div > * {
                                     <input type="text" id="up-location" tabindex="6"
                                         class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition"
                                         oninput="if(this.value.trim().toLowerCase() === 'chụp trong xe') { this.value = ''; app.ui.showAlert('Vui lòng tích chọn ô Chụp trong xe bên dưới thay vì nhập tay!'); }">
+                                    <div id="up-location-history" class="mt-2 flex flex-wrap gap-1.5 hidden"></div>
                                     <div class="mt-2.5 hidden">
                                         <label class="flex items-start cursor-pointer group select-none w-max">
                                             <input type="checkbox" id="up-location-inside" onchange="app.upload.toggleInsideVehicle(this.checked)" class="custom-cb-input sr-only">
@@ -6650,6 +6651,6 @@ div[id$="-modal"] > div > * {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed top-24 left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.js?v=1787144267131"></script>
+<script src="/app.js?v=1787145013588"></script>
 </body>
 </html>
