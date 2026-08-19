@@ -4441,7 +4441,7 @@ Object.assign(window.app, {
                                 id: user.id,
                                 username: finalName,
                                 avatar_url: finalAvatar,
-                                preferences: { type: localPref, showRec: localShowRec, wmMode: localWmMode }
+                                preferences: { type: localPref, showRec: localShowRec, wmMode: localWmMode, pinnedLocations: [] }
                             }, { onConflict: 'id' });
                             app.username = finalName;
                             app.role = 'user';
@@ -4459,6 +4459,7 @@ Object.assign(window.app, {
                             if (dbPrefs && Object.keys(dbPrefs).length > 0) {
                                 app.preference.current = dbPrefs.type || 'both';
                                 app.preference.showRecommendations = dbPrefs.showRec !== false;
+                                app.preference.pinnedLocations = dbPrefs.pinnedLocations || [];
                                 localStorage.setItem('vnbus_preference', app.preference.current);
                                 localStorage.setItem('vnbus_show_rec', app.preference.showRecommendations);
                                 if (dbPrefs.wmMode) {
@@ -4471,11 +4472,17 @@ Object.assign(window.app, {
                                 }
                             } else {
                                 window.sb.from('profiles').update({
-                                    preferences: { type: localPref, showRec: localShowRec, wmMode: localWmMode }
+                                    preferences: { type: localPref, showRec: localShowRec, wmMode: localWmMode, pinnedLocations: [] }
                                 }).eq('id', user.id).then(()=>{});
                                 app.preference.current = localPref;
                                 app.preference.showRecommendations = localShowRec;
+                                app.preference.pinnedLocations = [];
                             }
+                        }
+                        if(app.upload && app.upload.renderPinnedLocations) app.upload.renderPinnedLocations();
+                        if(app.upload && app.upload.checkLocationPinStatus) {
+                            const currentLocInput = document.getElementById('up-location');
+                            if(currentLocInput) app.upload.checkLocationPinStatus(currentLocInput.value);
                         }
                     } catch (e) {
                         app.username = finalName;

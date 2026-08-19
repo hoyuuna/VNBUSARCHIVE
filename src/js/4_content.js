@@ -49,7 +49,7 @@ Object.assign(window.app, {
                          </div>`;
                      }).join('');
                      menuEl.innerHTML = itemsHtml;
-                     if(app.upload.renderLocationHistory) app.upload.renderLocationHistory();
+                     if(app.upload.renderPinnedLocations) app.upload.renderPinnedLocations();
                  },
                  saveDraft: () => {
                      const plateEl = document.getElementById('up-plate');
@@ -121,7 +121,10 @@ Object.assign(window.app, {
                          if(draft.route) document.getElementById('up-route').value = draft.route;
                          if(draft.operator) document.getElementById('up-operator').value = draft.operator;
                          if(draft.model) document.getElementById('up-model').value = draft.model;
-                         if(draft.location) document.getElementById('up-location').value = draft.location;
+                         if(draft.location) {
+                             document.getElementById('up-location').value = draft.location;
+                             if(app.upload.checkLocationPinStatus) app.upload.checkLocationPinStatus(draft.location);
+                         }
                          if(draft.province && app.upload.selectProvince) app.upload.selectProvince(draft.province);
                          if(draft.date) document.getElementById('up-date').value = draft.date;
                          if(draft.note) document.getElementById('up-note').value = draft.note;
@@ -131,33 +134,75 @@ Object.assign(window.app, {
                  clearDraft: () => { 
                      localStorage.removeItem('vnbus_upload_draft'); 
                  },
-                 saveLocationHistory: (loc) => {
-                     if (!loc || loc === 'Chụp trong xe') return;
-                     let history = JSON.parse(localStorage.getItem('vnbus_location_history') || '[]');
-                     history = history.filter(item => item !== loc);
-                     history.unshift(loc);
-                     if (history.length > 3) history = history.slice(0, 3);
-                     localStorage.setItem('vnbus_location_history', JSON.stringify(history));
-                     if(app.upload.renderLocationHistory) app.upload.renderLocationHistory();
+                 savePreferencesToServer: async () => {
+                     if (!app.user) return;
+                     try {
+                         await window.sb.from('profiles').update({
+                             preferences: { 
+                                 type: app.preference.current, 
+                                 showRec: app.preference.showRecommendations, 
+                                 wmMode: app.wmState ? app.wmState.mode : 'basic',
+                                 pinnedLocations: app.preference.pinnedLocations || []
+                             }
+                         }).eq('id', app.user.id);
+                     } catch(e) { console.warn("Failed to sync preferences", e); }
                  },
-                 renderLocationHistory: () => {
+                 toggleLocationPin: () => {
+                     const locInput = document.getElementById('up-location');
+                     if (!locInput || locInput.disabled) return;
+                     const loc = locInput.value.trim();
+                     if (!loc || loc === 'Chụp trong xe') return;
+                     
+                     if (!app.preference.pinnedLocations) app.preference.pinnedLocations = [];
+                     const idx = app.preference.pinnedLocations.indexOf(loc);
+                     
+                     if (idx > -1) {
+                         app.preference.pinnedLocations.splice(idx, 1);
+                         app.ui.showAlert('Đã bỏ ghim vị trí này.');
+                     } else {
+                         if (app.preference.pinnedLocations.length >= 10) {
+                             app.ui.showAlert('Bạn chỉ có thể ghim tối đa 10 vị trí.');
+                             return;
+                         }
+                         app.preference.pinnedLocations.unshift(loc);
+                         app.ui.showAlert('Đã ghim vị trí.');
+                     }
+                     
+                     app.upload.checkLocationPinStatus(loc);
+                     app.upload.renderPinnedLocations();
+                     app.upload.savePreferencesToServer();
+                 },
+                 checkLocationPinStatus: (loc) => {
+                     const btn = document.getElementById('up-location-pin-btn');
+                     if (!btn) return;
+                     const currentLoc = (loc || '').trim();
+                     if (!currentLoc || currentLoc === 'Chụp trong xe' || !app.preference.pinnedLocations || !app.preference.pinnedLocations.includes(currentLoc)) {
+                         btn.classList.remove('bg-black', 'text-white', 'border-black');
+                         btn.classList.add('bg-white', 'text-gray-500', 'border-gray-300', 'hover:bg-gray-100');
+                     } else {
+                         btn.classList.remove('bg-white', 'text-gray-500', 'border-gray-300', 'hover:bg-gray-100');
+                         btn.classList.add('bg-black', 'text-white', 'border-black');
+                     }
+                 },
+                 renderPinnedLocations: () => {
                      const container = document.getElementById('up-location-history');
                      if (!container) return;
-                     const history = JSON.parse(localStorage.getItem('vnbus_location_history') || '[]');
-                     if (history.length === 0) {
+                     const pinned = app.preference.pinnedLocations || [];
+                     if (pinned.length === 0) {
                          container.classList.add('hidden');
                          return;
                      }
                      container.innerHTML = '';
-                     history.forEach(loc => {
+                     pinned.forEach(loc => {
                          const btn = document.createElement('button');
                          btn.type = 'button';
                          btn.className = 'flex items-center gap-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-[11px] font-medium px-2.5 py-1.5 rounded-md transition select-none truncate max-w-[140px]';
-                         btn.innerHTML = `<i class="fa-solid fa-clock-rotate-left opacity-60"></i><span class="truncate">${app.utils.escapeHtml(loc)}</span>`;
+                         btn.innerHTML = `<i class="fa-solid fa-thumbtack opacity-60"></i><span class="truncate">${app.utils.escapeHtml(loc)}</span>`;
                          btn.onclick = () => {
                              const input = document.getElementById('up-location');
                              if (input && !input.disabled) {
                                  input.value = loc;
+                                 app.upload.checkLocationPinStatus(loc);
                              }
                          };
                          container.appendChild(btn);
@@ -480,6 +525,7 @@ Object.assign(window.app, {
                         }).addTo(app.uploadMap);
                         const address = await app.utils.reverseGeocode(lat, lng);
                         document.getElementById('up-location').value = address;
+                        if(app.upload.checkLocationPinStatus) app.upload.checkLocationPinStatus(address);
                     });
                 },
                 addBlurPanel: () => {
@@ -1063,7 +1109,7 @@ Object.assign(window.app, {
                             const curPref = localStorage.getItem('vnbus_preference') || 'both';
                             const curShowRec = localStorage.getItem('vnbus_show_rec') !== 'false';
                             window.sb.from('profiles').update({
-                                preferences: { type: curPref, showRec: curShowRec, wmMode: mode }
+                                preferences: { type: curPref, showRec: curShowRec, wmMode: mode, pinnedLocations: (app.preference && app.preference.pinnedLocations) || [] }
                             }).eq('id', app.user.id).then(()=>{});
                         }
                     } catch (e) {}
@@ -1526,6 +1572,7 @@ Object.assign(window.app, {
                             const address = await app.utils.reverseGeocode(latDec, lonDec);
                             if (address && address !== "Vị trí không xác định") {
                                 document.getElementById('up-location').value = address;
+                                if(app.upload.checkLocationPinStatus) app.upload.checkLocationPinStatus(address);
                                 app.utils.geocodeAddress(address);
                             }
                         }
@@ -2068,7 +2115,7 @@ Object.assign(window.app, {
                             fileType: app.rawFile ? app.rawFile.type : 'N/A'
                         });
                         if (app.upload.currentQuota.limit !== null) app.upload.currentQuota.count++;
-                        if(app.upload && app.upload.saveLocationHistory) app.upload.saveLocationHistory(valLoc);
+                        // (Removed location history save on submit)
                         if(app.upload && app.upload.clearDraft) app.upload.clearDraft();
                         if(app.db && app.db.clearPhoto) app.db.clearPhoto();
                         app.utils.cleanupState(); 
@@ -4288,7 +4335,7 @@ Object.assign(window.app, {
                     if (app.user) {
                         const curWmMode = localStorage.getItem('vnbus_wm_mode') || (app.wmState && app.wmState.mode) || 'basic';
                         window.sb.from('profiles').update({
-                            preferences: { type: app.preference.current, showRec: app.preference.showRecommendations, wmMode: curWmMode }
+                            preferences: { type: app.preference.current, showRec: app.preference.showRecommendations, wmMode: curWmMode, pinnedLocations: app.preference.pinnedLocations || [] }
                         }).eq('id', app.user.id).then(({error}) => {});
                     }
                     app.ui.showAlert("Đã lưu thông tin Cá nhân hóa thành công!");
