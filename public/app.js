@@ -446,7 +446,7 @@ Object.assign(window.app, {
                      const inputEl = document.getElementById('custom-prompt-input');
                      content.classList.remove('modal-content-enter');
                      content.classList.add('modal-content-leave');
-                     setTimeout(() => {
+                     app.ui.alertCloseTimeout = setTimeout(() => {
                          modal.classList.add('hidden');
                          content.classList.remove('modal-content-leave');
                          app.ui.unlockScroll();
