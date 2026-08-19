@@ -178,7 +178,11 @@ Object.assign(window.app, {
                              if (photo && photo.file) {
                                  const fileInput = document.getElementById('up-file');
                                  const dataTransfer = new DataTransfer();
-                                 dataTransfer.items.add(photo.file);
+                                 let photoFile = photo.file;
+                                 if (!(photoFile instanceof File)) {
+                                     photoFile = new File([photoFile], photoFile.name || 'photo.jpg', { type: photoFile.type || 'image/jpeg' });
+                                 }
+                                 dataTransfer.items.add(photoFile);
                                  fileInput.files = dataTransfer.files;
                                  const changeEvent = new Event('change', { bubbles: true });
                                  fileInput.dispatchEvent(changeEvent);
