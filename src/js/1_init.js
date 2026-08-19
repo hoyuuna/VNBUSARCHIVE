@@ -18,6 +18,57 @@ window.addEventListener('error', function(event) {
     }
 });
 Object.assign(window.app, {
+  db: {
+      init: () => {
+          return new Promise((resolve, reject) => {
+              const request = indexedDB.open('vnbus_draft_db', 1);
+              request.onupgradeneeded = (e) => {
+                  const db = e.target.result;
+                  if (!db.objectStoreNames.contains('draft_photo')) {
+                      db.createObjectStore('draft_photo');
+                  }
+              };
+              request.onsuccess = (e) => resolve(e.target.result);
+              request.onerror = (e) => reject(e.target.error);
+          });
+      },
+      savePhoto: async (file) => {
+          try {
+              const db = await app.db.init();
+              return new Promise((resolve, reject) => {
+                  const tx = db.transaction('draft_photo', 'readwrite');
+                  const store = tx.objectStore('draft_photo');
+                  const request = store.put({ file: file }, 'current_photo');
+                  request.onsuccess = () => resolve();
+                  request.onerror = (e) => reject(e.target.error);
+              });
+          } catch (e) { console.warn("Lỗi lưu ảnh draft", e); }
+      },
+      getPhoto: async () => {
+          try {
+              const db = await app.db.init();
+              return new Promise((resolve, reject) => {
+                  const tx = db.transaction('draft_photo', 'readonly');
+                  const store = tx.objectStore('draft_photo');
+                  const request = store.get('current_photo');
+                  request.onsuccess = (e) => resolve(e.target.result);
+                  request.onerror = (e) => reject(e.target.error);
+              });
+          } catch (e) { console.warn("Lỗi lấy ảnh draft", e); return null; }
+      },
+      clearPhoto: async () => {
+          try {
+              const db = await app.db.init();
+              return new Promise((resolve, reject) => {
+                  const tx = db.transaction('draft_photo', 'readwrite');
+                  const store = tx.objectStore('draft_photo');
+                  const request = store.delete('current_photo');
+                  request.onsuccess = () => resolve();
+                  request.onerror = (e) => reject(e.target.error);
+              });
+          } catch (e) { console.warn("Lỗi xóa ảnh draft", e); }
+      }
+  },
   toast: {
                 currentOfflineToast: null,
                 show: (type, title, message, duration = 10000, onClickAction = null) => {

@@ -109,7 +109,9 @@ Object.assign(window.app, {
                      };
                      localStorage.setItem('vnbus_upload_draft', JSON.stringify(draft));
                      if (app.rawFile && app.db && app.db.savePhoto) {
-                     } else {
+                         app.db.savePhoto(app.rawFile);
+                     } else if (app.db && app.db.clearPhoto && !app.rawFile) {
+                         app.db.clearPhoto();
                      }
                  },
                  startDraftAutoSave: () => {
