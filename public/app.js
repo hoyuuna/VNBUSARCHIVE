@@ -10956,17 +10956,30 @@ Object.assign(window.app, {
                      
                      if (idx > -1) {
                          app.preference.pinnedLocations.splice(idx, 1);
+                         app.upload.checkLocationPinStatus(loc);
+                         app.upload.savePreferencesToServer();
+                         const container = document.getElementById('up-location-history');
+                         if (container) {
+                             const btnToRemove = Array.from(container.children).find(b => b.dataset.loc === loc);
+                             if (btnToRemove) {
+                                 btnToRemove.classList.remove('scale-100', 'opacity-100');
+                                 btnToRemove.classList.add('scale-0', 'opacity-0');
+                                 setTimeout(() => app.upload.renderPinnedLocations(), 200);
+                             } else {
+                                 app.upload.renderPinnedLocations();
+                             }
+                         }
                      } else {
                          if (app.preference.pinnedLocations.length >= 10) {
                              app.ui.showAlert('Bạn chỉ có thể ghim tối đa 10 vị trí.');
                              return;
                          }
                          app.preference.pinnedLocations.unshift(loc);
+                         app.upload.checkLocationPinStatus(loc);
+                         app.upload.pendingPopLoc = loc;
+                         app.upload.renderPinnedLocations();
+                         app.upload.savePreferencesToServer();
                      }
-                     
-                     app.upload.checkLocationPinStatus(loc);
-                     app.upload.renderPinnedLocations();
-                     app.upload.savePreferencesToServer();
                  },
                  checkLocationPinStatus: (loc) => {
                      const btn = document.getElementById('up-location-pin-btn');
@@ -10992,7 +11005,16 @@ Object.assign(window.app, {
                      pinned.forEach(loc => {
                          const btn = document.createElement('button');
                          btn.type = 'button';
-                         btn.className = 'flex items-center gap-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-[11px] font-medium px-2.5 py-1.5 rounded-md transition select-none truncate max-w-[140px]';
+                         btn.dataset.loc = loc;
+                         
+                         let classes = 'flex items-center gap-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-[11px] font-medium px-2.5 py-1.5 rounded-md transition-all duration-200 ease-out active:scale-95 select-none truncate max-w-[140px] origin-center';
+                         if (app.upload.pendingPopLoc === loc) {
+                             classes += ' scale-0 opacity-0';
+                         } else {
+                             classes += ' scale-100 opacity-100';
+                         }
+                         btn.className = classes;
+                         
                          btn.innerHTML = `<i class="fa-solid fa-thumbtack opacity-60"></i><span class="truncate">${app.utils.escapeHtml(loc)}</span>`;
                          btn.onclick = () => {
                              const input = document.getElementById('up-location');
@@ -11004,6 +11026,17 @@ Object.assign(window.app, {
                          container.appendChild(btn);
                      });
                      container.classList.remove('hidden');
+                     
+                     if (app.upload.pendingPopLoc) {
+                         setTimeout(() => {
+                             const popBtn = Array.from(container.children).find(b => b.dataset.loc === app.upload.pendingPopLoc);
+                             if (popBtn) {
+                                 popBtn.classList.remove('scale-0', 'opacity-0');
+                                 popBtn.classList.add('scale-100', 'opacity-100');
+                             }
+                             app.upload.pendingPopLoc = null;
+                         }, 10);
+                     }
                  },
                  autoFillOperatorByRoute: async () => {
                     if (app.vehicleLocked) return;
