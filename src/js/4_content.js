@@ -51,10 +51,8 @@ Object.assign(window.app, {
                      menuEl.innerHTML = itemsHtml;
                  },
                  saveDraft: () => {
-                     console.log('[DRAFT DEBUG] saveDraft called');
                      const plateEl = document.getElementById('up-plate');
                      if (!plateEl) {
-                         console.log('[DRAFT DEBUG] up-plate not found. Aborting saveDraft.');
                          return;
                      }
                      const plate = plateEl.value || '';
@@ -72,9 +70,7 @@ Object.assign(window.app, {
                      const province = document.getElementById('up-province')?.value || '';
                      const location = document.getElementById('up-location')?.value || '';
                      
-                     console.log('[DRAFT DEBUG] Current input values:', {plate, operator, route, model, note, province, location, rawFile: !!app.rawFile});
                      if (!plate && !operator && !route && !model && !note && !province && !location && !app.rawFile) {
-                         console.log('[DRAFT DEBUG] All relevant inputs are empty. Skipping saveDraft to preserve existing draft if any.');
                          return;
                      }
 
@@ -111,19 +107,19 @@ Object.assign(window.app, {
                          filters: app.upload?.currentFilters || 'none',
                          hasRawFile: !!app.rawFile
                      };
-                     console.log('[DRAFT DEBUG] Saving draft to localStorage:', draft);
                      localStorage.setItem('vnbus_upload_draft', JSON.stringify(draft));
                      if (app.rawFile && app.db && app.db.savePhoto) {
                      } else {
                      }
                  },
                  startDraftAutoSave: () => {
-                     if (app.upload.draftInterval) clearInterval(app.upload.draftInterval);
-                     app.upload.draftInterval = setInterval(() => {
-                         if (document.getElementById('upload') && !document.getElementById('upload').classList.contains('hidden')) {
-                             app.upload.saveDraft();
-                         }
-                     }, 2000);
+                     if (!app.upload.draftInterval) {
+                         app.upload.draftInterval = setInterval(() => {
+                             if (document.getElementById('upload') && !document.getElementById('upload').classList.contains('hidden')) {
+                                 app.upload.saveDraft();
+                             }
+                         }, 5000);
+                     }
                      if (!app.upload.draftUnloadBound) {
                          window.addEventListener('beforeunload', () => {
                              if (document.getElementById('upload') && !document.getElementById('upload').classList.contains('hidden')) {
@@ -134,37 +130,28 @@ Object.assign(window.app, {
                      }
                  },
                  checkAndPromptDraft: () => {
-                     console.log('[DRAFT DEBUG] checkAndPromptDraft called');
                      app.upload.startDraftAutoSave();
                      const saved = localStorage.getItem('vnbus_upload_draft');
-                     console.log('[DRAFT DEBUG] localStorage raw:', saved);
                      if (saved) {
                          try {
                              const draft = JSON.parse(saved);
-                             console.log('[DRAFT DEBUG] parsed draft:', draft);
                              const shouldPrompt = draft.plate || draft.operator || draft.route || draft.model || draft.location || draft.province || draft.note || draft.hasRawFile;
-                             console.log('[DRAFT DEBUG] shouldPrompt evaluates to:', !!shouldPrompt);
                              if (shouldPrompt) {
-                                 console.log('[DRAFT DEBUG] Calling app.ui.showAlert...');
                                  app.ui.showAlert(
                                      `Bạn có bản nháp có thể phục hồi.`,
-                                     () => { console.log('[DRAFT DEBUG] User clicked Load'); app.upload.loadDraft(draft); },
-                                     () => { console.log('[DRAFT DEBUG] User clicked Cancel'); app.upload.clearDraft(); if (app.db && app.db.clearPhoto) app.db.clearPhoto(); },
+                                     () => { app.upload.loadDraft(draft); },
+                                     () => { app.upload.clearDraft(); if (app.db && app.db.clearPhoto) app.db.clearPhoto(); },
                                      { title: "Khôi phục bản nháp", btnOkText: "Đồng ý", btnCancelText: "Hủy" }
                                  );
                              } else {
-                                 console.log('[DRAFT DEBUG] Draft exists but all fields are empty. Ignoring.');
                              }
                          } catch (e) { 
-                             console.warn('[DRAFT DEBUG] JSON parse error:', e);
                              app.upload.clearDraft(); 
                          }
                      } else {
-                         console.log('[DRAFT DEBUG] No draft found in localStorage.');
                      }
                  },
                  loadDraft: async (draft) => {
-                     console.log('[DRAFT DEBUG] loadDraft called with:', draft);
                      try {
                          if(draft.plate) document.getElementById('up-plate').value = draft.plate;
                          if(draft.type) { document.getElementById('up-type').value = draft.type; app.upload.applyPreferenceUI(); }
@@ -185,10 +172,8 @@ Object.assign(window.app, {
                          };
 
                          if (draft.hasRawFile && app.db && app.db.getPhoto) {
-                             console.log('[DRAFT DEBUG] Attempting to load rawFile from IndexedDB...');
                              const photo = await app.db.getPhoto();
                              if (photo && photo.file) {
-                                 console.log('[DRAFT DEBUG] Loaded photo from IndexedDB');
                                  const fileInput = document.getElementById('up-file');
                                  const dataTransfer = new DataTransfer();
                                  dataTransfer.items.add(photo.file);
@@ -196,14 +181,11 @@ Object.assign(window.app, {
                                  const changeEvent = new Event('change', { bubbles: true });
                                  fileInput.dispatchEvent(changeEvent);
                              } else {
-                                 console.log('[DRAFT DEBUG] No photo found in IndexedDB');
                              }
                          }
-                         console.log('[DRAFT DEBUG] loadDraft completed successfully');
-                     } catch (e) { console.warn("[DRAFT DEBUG] Lỗi load draft", e); }
+                     } catch (e) { console.warn("Lỗi load draft", e); }
                  },
                  clearDraft: () => { 
-                     console.log('[DRAFT DEBUG] clearDraft called, removing draft from localStorage');
                      localStorage.removeItem('vnbus_upload_draft'); 
                  },
                  autoFillOperatorByRoute: async () => {

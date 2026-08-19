@@ -418,6 +418,7 @@ Object.assign(window.app, {
                     titleEl.innerText = "Nhập thông tin";
                     msgEl.innerText = msg;
                     inputEl.value = defaultValue;
+                    if (app.ui.promptCloseTimeout) clearTimeout(app.ui.promptCloseTimeout);
                     modal.classList.remove('hidden');
                     content.classList.remove('modal-content-leave');
                     content.classList.add('modal-content-enter');
@@ -439,24 +440,25 @@ Object.assign(window.app, {
                         }
                         app.ui.closePrompt(true);
                     };
-},
-                 closePrompt: (isOk) => {
-                     const modal = document.getElementById('custom-prompt-modal');
-                     const content = document.getElementById('custom-prompt-content');
-                     const inputEl = document.getElementById('custom-prompt-input');
-                     content.classList.remove('modal-content-enter');
-                     content.classList.add('modal-content-leave');
-                     app.ui.alertCloseTimeout = setTimeout(() => {
-                         modal.classList.add('hidden');
-                         content.classList.remove('modal-content-leave');
-                         app.ui.unlockScroll();
-                         if (isOk && app.promptCallback) {
-                             const value = inputEl.value.trim();
-                             app.promptCallback(value);
-                         }
-                         app.promptCallback = null;
-                         inputEl.value = '';
-                     }, 200);
+                },
+                closePrompt: (isOk) => {
+                    if (app.ui.promptCloseTimeout) clearTimeout(app.ui.promptCloseTimeout);
+                    const modal = document.getElementById('custom-prompt-modal');
+                    const content = document.getElementById('custom-prompt-content');
+                    const inputEl = document.getElementById('custom-prompt-input');
+                    content.classList.remove('modal-content-enter');
+                    content.classList.add('modal-content-leave');
+                    app.ui.promptCloseTimeout = setTimeout(() => {
+                        modal.classList.add('hidden');
+                        content.classList.remove('modal-content-leave');
+                        app.ui.unlockScroll();
+                        if (isOk && app.promptCallback) {
+                            const value = inputEl.value.trim();
+                            app.promptCallback(value);
+                        }
+                        app.promptCallback = null;
+                        inputEl.value = '';
+                    }, 200);
                  },
 closeCustomRolePrompt: () => {
                     const modal = document.getElementById('custom-role-modal');
