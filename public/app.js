@@ -10789,7 +10789,6 @@ Object.assign(window.app, {
                  saveDraft: () => {
                      const plateEl = document.getElementById('up-plate');
                      if (!plateEl) {
-                         console.log('[DRAFT DEBUG] saveDraft bị huỷ vì không tìm thấy up-plate');
                          return;
                      }
                      const plate = plateEl.value || '';
@@ -10804,9 +10803,8 @@ Object.assign(window.app, {
                      let hasBlurs = panels.length > 0;
                      let hasFilters = app.upload && app.upload.currentFilters && app.upload.currentFilters !== 'none';
 
-                     console.log('[DRAFT DEBUG] Đánh giá saveDraft:', { plate, operator, route, model, note, hasCrop, hasWm, hasBlurs, hasRawFile: !!app.rawFile, hasFilters });
-                     if (!plate && !operator && !route && !model && !note && !hasCrop && !hasWm && !hasBlurs && !app.rawFile && !hasFilters) {
-                         console.log('[DRAFT DEBUG] Dữ liệu trống, bỏ qua saveDraft');
+                     const province = document.getElementById('up-province')?.value || '';
+                     if (!plate && !operator && !route && !model && !note && !province && !app.rawFile) {
                          return;
                      }
 
@@ -10844,26 +10842,19 @@ Object.assign(window.app, {
                          hasRawFile: !!app.rawFile
                      };
                      localStorage.setItem('vnbus_upload_draft', JSON.stringify(draft));
-                     console.log('[DRAFT DEBUG] Đã lưu vào localStorage:', draft);
                      if (app.rawFile && app.db && app.db.savePhoto) {
-                         console.log('[DRAFT DEBUG] Đang lưu ảnh vào IndexedDB...');
-                         app.db.savePhoto(app.rawFile).then(() => console.log('[DRAFT DEBUG] Đã lưu ảnh vào IndexedDB xong')).catch(e => console.error('[DRAFT DEBUG] Lỗi lưu IDB:', e));
                      } else {
-                         console.log('[DRAFT DEBUG] Bỏ qua lưu IndexedDB vì:', { rawFile: !!app.rawFile, db: !!app.db, savePhoto: !!(app.db && app.db.savePhoto) });
                      }
                  },
                  startDraftAutoSave: () => {
-                     console.log('[DRAFT DEBUG] Bắt đầu startDraftAutoSave');
                      if (app.upload.draftInterval) clearInterval(app.upload.draftInterval);
                      app.upload.draftInterval = setInterval(() => {
                          if (document.getElementById('upload') && !document.getElementById('upload').classList.contains('hidden')) {
-                             console.log('[DRAFT DEBUG] Gọi saveDraft() từ setInterval');
                              app.upload.saveDraft();
                          }
                      }, 2000);
                      if (!app.upload.draftUnloadBound) {
                          window.addEventListener('beforeunload', () => {
-                             console.log('[DRAFT DEBUG] Gọi saveDraft() từ beforeunload');
                              if (document.getElementById('upload') && !document.getElementById('upload').classList.contains('hidden')) {
                                  app.upload.saveDraft();
                              }
@@ -10872,30 +10863,22 @@ Object.assign(window.app, {
                      }
                  },
                  checkAndPromptDraft: () => {
-                     console.log('[DRAFT DEBUG] checkAndPromptDraft được gọi');
                      app.upload.startDraftAutoSave();
                      const saved = localStorage.getItem('vnbus_upload_draft');
-                     console.log('[DRAFT DEBUG] Dữ liệu trong localStorage:', saved);
                      if (saved) {
                          try {
                              const draft = JSON.parse(saved);
                              if (draft.plate || draft.operator || draft.route || draft.hasRawFile) {
-                                 console.log('[DRAFT DEBUG] Thỏa mãn điều kiện, hiển thị popup showAlert...');
                                  app.ui.showAlert(
                                      `Bạn có bản nháp có thể phục hồi. Tất cả nội dung văn bản, hình ảnh, hiệu ứng sẽ được tự động khôi phục y hệt như lần cuối bạn chỉnh sửa.`,
-                                     () => { console.log('[DRAFT DEBUG] Đã chọn ĐỒNG Ý khôi phục'); app.upload.loadDraft(draft); },
-                                     () => { console.log('[DRAFT DEBUG] Đã chọn HỦY bỏ'); app.upload.clearDraft(); if (app.db && app.db.clearPhoto) app.db.clearPhoto(); },
                                      { title: "Khôi phục bản nháp", btnOkText: "Đồng ý", btnCancelText: "Hủy" }
                                  );
                              } else {
-                                 console.log('[DRAFT DEBUG] Dữ liệu draft không đủ điều kiện khôi phục (không có text quan trọng, không có ảnh):', draft);
                              }
                          } catch (e) { 
-                             console.error('[DRAFT DEBUG] Lỗi parse draft', e); 
                              app.upload.clearDraft(); 
                          }
                      } else {
-                         console.log('[DRAFT DEBUG] Không có bản nháp nào trong localStorage');
                      }
                  },
                  loadDraft: async (draft) => {
