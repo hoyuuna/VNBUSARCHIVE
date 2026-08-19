@@ -68,7 +68,8 @@ Object.assign(window.app, {
                      let hasFilters = app.upload && app.upload.currentFilters && app.upload.currentFilters !== 'none';
 
                      const province = document.getElementById('up-province')?.value || '';
-                     if (!plate && !operator && !route && !model && !note && !province && !app.rawFile) {
+                     const location = document.getElementById('up-location')?.value || '';
+                     if (!plate && !operator && !route && !model && !note && !province && !location && !app.rawFile) {
                          return;
                      }
 
@@ -132,7 +133,7 @@ Object.assign(window.app, {
                      if (saved) {
                          try {
                              const draft = JSON.parse(saved);
-                             if (draft.plate || draft.operator || draft.route || draft.hasRawFile) {
+                             if (draft.plate || draft.operator || draft.route || draft.model || draft.location || draft.province || draft.note || draft.hasRawFile) {
                                  app.ui.showAlert(
                                      `Bạn có bản nháp có thể phục hồi.`,
                                      () => { app.upload.loadDraft(draft); },
