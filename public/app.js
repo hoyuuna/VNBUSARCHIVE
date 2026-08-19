@@ -1105,8 +1105,8 @@ cleanupState: () => {
                         app.utils.resetTurnstile('#auth .cf-turnstile');
                         if(app.upload.applyPreferenceUI) app.upload.applyPreferenceUI();
                         document.getElementById('type-msg')?.classList.add('hidden');
-                        if(app.upload && app.upload.clearDraft) app.upload.clearDraft();
-                        if(app.db && app.db.clearPhoto) app.db.clearPhoto();
+                        
+                        
                     }
                     app.ui.closeUploadProgress();
                     app.ui.closeAlert(false);
@@ -12801,6 +12801,8 @@ Object.assign(window.app, {
                             fileType: app.rawFile ? app.rawFile.type : 'N/A'
                         });
                         if (app.upload.currentQuota.limit !== null) app.upload.currentQuota.count++;
+                        if(app.upload && app.upload.clearDraft) app.upload.clearDraft();
+                        if(app.db && app.db.clearPhoto) app.db.clearPhoto();
                         app.utils.cleanupState(); 
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                         app.upload.processQueue();

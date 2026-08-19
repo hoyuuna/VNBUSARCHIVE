@@ -1103,8 +1103,8 @@ cleanupState: () => {
                         app.utils.resetTurnstile('#auth .cf-turnstile');
                         if(app.upload.applyPreferenceUI) app.upload.applyPreferenceUI();
                         document.getElementById('type-msg')?.classList.add('hidden');
-                        if(app.upload && app.upload.clearDraft) app.upload.clearDraft();
-                        if(app.db && app.db.clearPhoto) app.db.clearPhoto();
+                        
+                        
                     }
                     app.ui.closeUploadProgress();
                     app.ui.closeAlert(false);
