@@ -2937,8 +2937,8 @@ Object.assign(window.app, {
                             <p>Khi sử dụng lại ảnh từ hệ thống, bạn phải trích dẫn nguồn đầy đủ và rõ ràng. Tuyệt đối không được xóa, che mờ hoặc chỉnh sửa dấu bản quyền gắn trên ảnh.</p>
                             <p>Dữ liệu và hình ảnh được cung cấp cho mục đích tra cứu, học tập, nghiên cứu cá nhân. Nghiêm cấm mọi hành vi cào dữ liệu tự động quy mô lớn để kinh doanh hoặc thương mại hóa trái phép.</p>
                             <p>Nghiêm cấm cắt ghép, chỉnh sửa ảnh để lồng ghép vào các nội dung sai sự thật, tin đồn thất thiệt, bôi nhọ hoặc gây ảnh hưởng đến danh dự của nhân viên vận tải.</p>
-                            <p>Bạn chỉ được cấp quyền sử dụng lại theo quy định cộng đồng. Tác giả gốc hoặc nền tảng VNBUSARCHIVE có toàn quyền khiếu nại bản quyền và yêu cầu gỡ bỏ nếu bạn sử dụng ảnh sai mục đích hoặc vi phạm các điều khoản.</p>
-                            <p>Toàn bộ hình ảnh tải về chỉ mang tính chất tham khảo lịch sử, không được sử dụng làm bằng chứng pháp lý để xử lý vi phạm.</p>
+                            <p>Bạn chỉ được cấp quyền sử dụng lại theo quy định cộng đồng. Tác giả gốc hoặc VNBUSARCHIVE có toàn quyền khiếu nại bản quyền và yêu cầu gỡ bỏ nếu bạn sử dụng ảnh sai mục đích hoặc vi phạm các điều khoản.</p>
+                            <p>Toàn bộ hình ảnh tải về chỉ mang tính chất tham khảo, không được sử dụng làm bằng chứng pháp lý để xử lý vi phạm.</p>
                         </div>
                     `;
 
