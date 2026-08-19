@@ -5851,13 +5851,9 @@ Object.assign(window.app, {
                     if (id === 'auth') {
                         if (mainHeader) mainHeader.style.display = 'none';
                         if (headerSpacer) headerSpacer.style.display = 'none';
-                        // Tắt honeypot khi vào auth để Chrome autofill hoạt động bình thường
-                        document.querySelectorAll('.autofill-honeypot').forEach(el => el.disabled = true);
                     } else {
                         if (mainHeader) mainHeader.style.display = '';
                         if (headerSpacer) headerSpacer.style.display = '';
-                        // Bật lại honeypot khi rời auth
-                        document.querySelectorAll('.autofill-honeypot').forEach(el => el.disabled = false);
                         
                         if (['upload', 'search', 'mobile-upload'].includes(id)) {
                             if (searchBox) searchBox.classList.add('hidden');
