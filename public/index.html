@@ -2286,7 +2286,7 @@ div[id$="-modal"] > div > * {
                     </div>
                 </div>
                 <div id="crop-container" class="w-full relative flex items-center justify-center select-none overflow-hidden bg-black" style="height: 60vh; min-height: 300px; -webkit-touch-callout: none; touch-action: none;" oncontextmenu="return false;" onmousedown="app.crop.onDragStart(event)" onmousemove="app.crop.onDragMove(event)" onmouseup="app.crop.onDragEnd(event)" onmouseleave="app.crop.onDragEnd(event)" ontouchstart="app.crop.onDragStart(event)" ontouchmove="app.crop.onDragMove(event)" ontouchend="app.crop.onDragEnd(event)">
-                    <img id="crop-image" src="" style="position: absolute; top: 50%; left: 50%; transform-origin: center center; -webkit-touch-callout: none;" draggable="false">
+                    <img id="crop-image" src="" style="position: absolute; top: 50%; left: 50%; transform-origin: center center; -webkit-touch-callout: none; will-change: transform; backface-visibility: hidden;" draggable="false">
                     <div id="crop-overlay-box" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); border: 2px solid rgba(255, 255, 255, 0.5); pointer-events: none; box-shadow: 0 0 0 9999px rgba(0,0,0,0.5); z-index: 10;">
                         <!-- 3x3 Grid Vertical Lines -->
                         <div id="crop-grid-v" style="position: absolute; top: 0; bottom: 0; left: 33.3333%; width: 33.3333%; background-image: repeating-linear-gradient(to bottom, rgba(255,255,255,0.5) 0px, rgba(255,255,255,0.5) 4px, transparent 4px, transparent 8px), repeating-linear-gradient(to bottom, rgba(255,255,255,0.5) 0px, rgba(255,255,255,0.5) 4px, transparent 4px, transparent 8px); background-size: 1px 100%, 1px 100%; background-position: left top, right top; background-repeat: no-repeat; pointer-events: none;"></div>
@@ -6657,6 +6657,6 @@ div[id$="-modal"] > div > * {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed top-24 left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.js?v=1787191509424"></script>
+<script src="/app.js?v=1787198123867"></script>
 </body>
 </html>

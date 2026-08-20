@@ -2671,7 +2671,7 @@ Object.assign(window.app, {
             ly = Math.max(-maxLocalY, Math.min(maxLocalY, ly));
             app.crop.state.x = lx * cos - ly * sin;
             app.crop.state.y = lx * sin + ly * cos;
-            img.style.transform = `translate(calc(-50% + ${app.crop.state.x}px), calc(-50% + ${app.crop.state.y}px)) rotate(${app.crop.state.rotation}deg) scale(${app.crop.state.scale})`;
+            img.style.transform = `translate(calc(-50% + ${app.crop.state.x}px), calc(-50% + ${app.crop.state.y}px)) translateZ(0) rotate(${app.crop.state.rotation}deg) scale(${app.crop.state.scale})`;
         },
         onDragStart: (e) => {
             app.crop.isDragging = true;
