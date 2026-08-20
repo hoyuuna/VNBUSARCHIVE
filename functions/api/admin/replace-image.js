@@ -67,8 +67,9 @@ export async function onRequest(context) {
             body: newFormData
         }).then(res => res.json());
 
-        if (!uploadResult || uploadResult.length === 0 || !uploadResult[0].src) {
-            throw new Error('Lỗi tải ảnh lên CDN.');
+        if (!uploadResult || !uploadResult[0] || !uploadResult[0].src) {
+            console.error('[CDN UPLOAD ERROR]:', JSON.stringify(uploadResult));
+            throw new Error(`Lỗi phản hồi từ máy chủ lưu trữ ảnh: ${JSON.stringify(uploadResult)}`);
         }
         let rawSrc = uploadResult[0].src;
         const finalUrl = rawSrc.startsWith('/') ? `https://cdn.vnbusarchive.io.vn${rawSrc}` : rawSrc;
