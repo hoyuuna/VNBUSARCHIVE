@@ -4684,6 +4684,7 @@ Object.assign(window.app, {
                         const { error } = await window.sb.auth.signInWithOAuth({
                             provider: provider,
                             options: {
+                                captchaToken: captchaResponse,
                                 redirectTo: window.location.origin
                             }
                         });
@@ -4713,7 +4714,7 @@ Object.assign(window.app, {
                     btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...`;
                     try {
                         if (app.auth.mode === 'login') {
-                            const { data, error } = await window.sb.auth.signInWithPassword({ email, password });
+                            const { data, error } = await window.sb.auth.signInWithPassword({ email, password, options: { captchaToken: captchaResponse } });
                             if (error) {
                                 if (error.message.includes('Email not confirmed') || error.message.includes('not confirmed')) {
                                     app.auth.showVerificationModal(email);
@@ -4762,7 +4763,7 @@ Object.assign(window.app, {
                             const { data, error } = await window.sb.auth.signUp({
                                 email,
                                 password,
-                                options: { data: { username: username } }
+                                options: { captchaToken: captchaResponse, data: { username: username } }
                             });
                             if (error) throw error;
                             app.ui.showAlert(
@@ -4782,6 +4783,7 @@ Object.assign(window.app, {
                             if (data.session) await app.setUser(data.user);
                         } else if (app.auth.mode === 'forgot') {
     const { error } = await window.sb.auth.resetPasswordForEmail(email, {
+        captchaToken: captchaResponse,
         redirectTo: window.location.origin + '/auth'
     });
     if (error) throw error;
@@ -4907,13 +4909,14 @@ changePassword: async () => {
                     if (newEmail === app.user.email) return app.ui.showAlert("Email mới không được trùng với email hiện tại.");
                     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                     if (!emailRegex.test(newEmail)) return app.ui.showAlert("Định dạng email không hợp lệ.");
-                    try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
+                    let captchaResponse;
+                    try { captchaResponse = await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
                     const originalText = btn.innerHTML;
                     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
                     btn.disabled = true;
                     try {
                         const currentEmail = app.user.email;
-                        const { error: signInError } = await window.sb.auth.signInWithPassword({ email: currentEmail, password: password });
+                        const { error: signInError } = await window.sb.auth.signInWithPassword({ email: currentEmail, password: password, options: { captchaToken: captchaResponse } });
                         if (signInError) {
                             throw new Error("Mật khẩu hiện tại không đúng.");
                         }
