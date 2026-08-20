@@ -1971,34 +1971,7 @@ div[id$="-modal"] > div > * {
 </head>
 
 <body class="antialiased">
-    <!-- AUTOFILL GUARD: readonly trick - Chrome không điền vào readonly input -->
-    <!-- Khi focus, readonly được gỡ để user có thể gõ bình thường -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Bỏ qua trang /auth, Chrome tự autofill email/password bình thường
-            if (window.location.pathname === '/auth') return;
-            function applyReadonlyTrick(root) {
-                root.querySelectorAll('input[type="text"], input[type="email"], input[type="number"], input[type="tel"], textarea').forEach(function(el) {
-                    // Bỏ qua các ô trong auth form và ô đã có autocomplete cụ thể
-                    if (el.closest('#auth-form')) return;
-                    if (el.getAttribute('autocomplete') === 'username' || el.getAttribute('autocomplete') === 'email') return;
-                    if (el.hasAttribute('data-no-readonly-trick')) return;
-                    el.setAttribute('readonly', true);
-                    el.addEventListener('focus', function() { this.removeAttribute('readonly'); });
-                    el.addEventListener('blur', function() { this.setAttribute('readonly', true); });
-                });
-            }
-            applyReadonlyTrick(document);
-            // Áp dụng lại khi có DOM thay đổi (dynamic content)
-            new MutationObserver(function(mutations) {
-                mutations.forEach(function(m) {
-                    m.addedNodes.forEach(function(node) {
-                        if (node.nodeType === 1) applyReadonlyTrick(node);
-                    });
-                });
-            }).observe(document.body, { childList: true, subtree: true });
-        });
-    </script>
+
     <!-- FACEBOOK SDK -->
 
 
@@ -3068,7 +3041,7 @@ div[id$="-modal"] > div > * {
 <div id="header-search-box"
                              class="w-full lg:w-auto order-3 lg:order-2 mt-3 lg:mt-0 flex items-center border border-gray-200 rounded-md bg-gray-50/50 relative focus-within:ring-2 focus-within:ring-black/10 focus-within:bg-white transition-all">
                          <div class="relative w-full lg:w-64 flex items-center">
-                             <input type="text" id="search-input" placeholder="Tìm kiếm..." autocomplete="off"
+                             <input type="text" id="search-input" placeholder="Tìm kiếm..." autocomplete="one-time-code"
                                   class="peer px-3 py-2 lg:pr-14 text-sm outline-none w-full bg-transparent placeholder-gray-400">
                              <!-- Advanced Modules Container (Hidden by default) -->
                              <div id="header-advanced-modules" class="hidden absolute inset-0 flex items-center gap-1 overflow-x-auto pb-1 pl-2 pr-2 bg-transparent z-20">
@@ -3504,7 +3477,7 @@ div[id$="-modal"] > div > * {
                     <div class="w-full flex items-center border border-gray-200 rounded-md bg-gray-50/50 relative focus-within:ring-2 focus-within:ring-black/10 focus-within:bg-white transition-all h-12 md:h-14">
 
                         <div class="relative w-full flex items-center h-full pl-1">
-                            <input type="text" id="page-search-input" placeholder="Tìm kiếm..." autocomplete="off" class="peer px-3 py-2 text-base md:text-lg outline-none w-full bg-transparent placeholder-gray-400 font-medium h-full">
+                            <input type="text" id="page-search-input" placeholder="Tìm kiếm..." autocomplete="one-time-code" class="peer px-3 py-2 text-base md:text-lg outline-none w-full bg-transparent placeholder-gray-400 font-medium h-full">
                             
                             <!-- Advanced Modules Container (Hidden by default) -->
                             <div id="page-advanced-modules" class="hidden absolute inset-0 flex items-center gap-1 overflow-x-auto pb-1 pl-2 pr-2 bg-transparent z-20">
@@ -3723,7 +3696,7 @@ div[id$="-modal"] > div > * {
                                 <span id="edit-notice-text">Bạn đang ở chế độ chỉnh sửa. Thay đổi sẽ được gửi yêu cầu duyệt.</span>
                             </div>
 
-                            <form id="inline-edit-form" autocomplete="off">
+                            <form id="inline-edit-form">
                                 <div class="border border-gray-200 rounded-lg overflow-visible bg-white">
                                     <table class="info-table border-gray-200 w-full" style="margin-bottom: 0 !important;">
                                         <tr>
@@ -4056,7 +4029,7 @@ div[id$="-modal"] > div > * {
                             <p class="text-[13px] text-gray-500 font-medium leading-relaxed max-w-md mx-auto">Liên hệ hỗ trợ với quản lý VNBUSARCHIVE (không có AI slop ( •̀ ω •́ )✧).</p>
                         </div>
 
-                        <form id="contact-form" onsubmit="app.contact.submit(event)" autocomplete="off">
+                        <form id="contact-form" onsubmit="app.contact.submit(event)">
                             <!-- 1. CHỦ ĐỀ CẦN HỖ TRỢ -->
                             <div class="relative mb-6">
                                 <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Chủ đề cần hỗ trợ <span class="text-red-500">*</span></label>
@@ -4442,7 +4415,7 @@ div[id$="-modal"] > div > * {
                     </div>
 
 
-<form id="upload-form" class="space-y-6" autocomplete="off">
+<form id="upload-form" class="space-y-6">
 
                         <!-- KHUNG CÁ NHÂN HÓA -->
                         <div id="upload-pref-warning" class="hidden bg-blue-50 border border-blue-200 p-4 rounded-md flex items-center justify-between shadow-sm">
