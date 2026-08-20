@@ -3008,20 +3008,20 @@ div[id$="-modal"] > div > * {
 
                     <nav
                         class="flex gap-4 text-sm font-semibold text-gray-600 items-center order-2 lg:order-3 ml-2 lg:ml-6 shrink-0">
-                        <a href="https://discord.com/invite/BNWyqbuvwq" target="_blank" class="nav-link">
-                            <i class="fa-brands fa-discord lg:mr-1"></i> <span class="hidden lg:inline">Discord</span>
+                        <a href="https://discord.com/invite/BNWyqbuvwq" target="_blank" class="nav-link flex items-center gap-1">
+                            <i class="fa-brands fa-discord lg:mr-0.5"></i> <span class="hidden lg:inline">Discord</span>
                         </a>
 
-                        <button onclick="app.newsboard.open()" class="nav-link relative cursor-pointer">
-                            <i class="fa-solid fa-bell lg:mr-1"></i>
+                        <button onclick="app.newsboard.open()" class="nav-link relative cursor-pointer flex items-center gap-1">
+                            <i class="fa-solid fa-bell lg:mr-0.5"></i>
                             <span class="hidden lg:inline">Bảng tin</span>
                         </button>
 
 
-                        <div class="relative" id="user-menu-container">
+                        <div class="relative flex items-center" id="user-menu-container">
                             <button onclick="app.ui.toggleUserMenu()" class="nav-link relative flex items-center gap-1 cursor-pointer">
-                                <img id="nav-user-avatar" src="" loading="lazy" decoding="async" class="hidden w-4 h-4 lg:w-[18px] lg:h-[18px] rounded-full object-cover lg:mr-1">
-                                <span id="nav-user-icon-wrapper"><i id="nav-user-icon" class="fa-solid fa-circle-user lg:mr-1"></i></span>
+                                <img id="nav-user-avatar" src="" loading="lazy" decoding="async" class="hidden w-4 h-4 lg:w-[18px] lg:h-[18px] rounded-full object-cover lg:mr-0.5">
+                                <span id="nav-user-icon-wrapper" class="flex items-center"><i id="nav-user-icon" class="fa-solid fa-circle-user lg:mr-0.5"></i></span>
                                 <span id="nav-username" class="hidden lg:inline">Tài khoản</span>
                             </button>
                             <div id="user-dropdown" class="absolute top-full left-1/2 mt-2 w-48 border border-white/50 rounded-lg shadow-xl z-[9000] overflow-hidden transform opacity-0 -translate-y-4 pointer-events-none transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] origin-top" style="z-index: 2100 !important;">
@@ -3029,8 +3029,8 @@ div[id$="-modal"] > div > * {
                             </div>
                         </div>
                         <a href="/admin" id="nav-admin"
-                            class="hidden nav-link text-red-600 transition-colors duration-200">
-                            <i id="nav-admin-icon" class="fa-solid fa-shield-halved lg:mr-1"></i> <span
+                            class="hidden nav-link text-red-600 transition-colors duration-200 flex items-center gap-1">
+                            <i id="nav-admin-icon" class="fa-solid fa-shield-halved lg:mr-0.5"></i> <span
                                 class="hidden lg:inline">Admin</span>
                         </a>
                         <a href="/upload"
