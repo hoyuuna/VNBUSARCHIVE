@@ -13417,14 +13417,15 @@ Object.assign(window.app, {
                         if (rotateSlider) rotateSlider.value = freeRotation;
                         const rotateVal = document.getElementById('crop-rotate-val');
                         if (rotateVal) rotateVal.innerText = (freeRotation > 0 ? '+' : '') + freeRotation + '°';
-                        if (modePanel) modePanel.classList.remove('hidden');
-                        app.crop.setModeTab('ratio');
                         const rulerBtn = document.getElementById('btn-crop-toggle-ruler');
                         if (mode === 'avatar') {
-                            if (ratioContainer) ratioContainer.classList.add('hidden');
+                            if (modePanel) modePanel.classList.add('hidden');
+                            app.crop.setModeTab('rotate');
                             if (rulerBtn && rulerBtn.parentElement) rulerBtn.parentElement.classList.add('hidden');
                             app.crop.savedRatio = 1;
                         } else {
+                            if (modePanel) modePanel.classList.remove('hidden');
+                            app.crop.setModeTab('ratio');
                             if (ratioContainer) ratioContainer.classList.remove('hidden');
                             if (rulerBtn && rulerBtn.parentElement) rulerBtn.parentElement.classList.remove('hidden');
                             if (typeof app.crop.savedRatio !== 'number' || isNaN(app.crop.savedRatio)) {
