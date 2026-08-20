@@ -4504,12 +4504,12 @@ Object.assign(window.app, {
                             hImg.onerror = () => { hImg.src = DEFAULT_AVATAR; };
                             hImg.classList.remove('hidden');
                         }
-                        const hIcon = document.getElementById('nav-user-icon');
+                        const hIcon = document.getElementById('nav-user-icon-wrapper');
                         if (hIcon) hIcon.classList.add('hidden');
                     } else {
                         const hImg = document.getElementById('nav-user-avatar');
                         if (hImg) hImg.classList.add('hidden');
-                        const hIcon = document.getElementById('nav-user-icon');
+                        const hIcon = document.getElementById('nav-user-icon-wrapper');
                         if (hIcon) hIcon.classList.remove('hidden');
                     }
 dropdown.innerHTML = `
@@ -4535,7 +4535,7 @@ dropdown.innerHTML = `
                     document.getElementById('nav-username').innerText = 'Tài khoản';
                     const hImg = document.getElementById('nav-user-avatar');
                     if (hImg) hImg.classList.add('hidden');
-                    const hIcon = document.getElementById('nav-user-icon');
+                    const hIcon = document.getElementById('nav-user-icon-wrapper');
                     if (hIcon) hIcon.classList.remove('hidden');
                     document.getElementById('nav-admin').classList.add('hidden');
                     app.username = 'Guest';
@@ -5026,7 +5026,7 @@ changePassword: async () => {
                                 hImg.src = proxiedUrl;
                                 hImg.classList.remove('hidden');
                             }
-                            const hIcon = document.getElementById('nav-user-icon');
+                            const hIcon = document.getElementById('nav-user-icon-wrapper');
                             if (hIcon) hIcon.classList.add('hidden');
                             const setAvatarImg = document.getElementById('set-avatar-img');
                             if(setAvatarImg) setAvatarImg.src = proxiedUrl;
@@ -5074,7 +5074,7 @@ changePassword: async () => {
                         app.ui.showAlert("Đã reset Avatar về mặc định!");
                         const hImg = document.getElementById('nav-user-avatar');
                         if (hImg) hImg.classList.add('hidden');
-                        const hIcon = document.getElementById('nav-user-icon');
+                        const hIcon = document.getElementById('nav-user-icon-wrapper');
                         if (hIcon) hIcon.classList.remove('hidden');
                         app.views.loadAccount();
                     } catch (err) {
