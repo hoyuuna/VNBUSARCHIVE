@@ -12542,8 +12542,7 @@ Object.assign(window.app, {
                                     }
                                 }
                                 const targetMime = app.utils.getTargetMimeType();
-                                let convertedBlob = await app.utils.compressToSizeLoop(fileToCompress, targetMime, 500);
-                                if (!convertedBlob) convertedBlob = fileToCompress;
+                                let convertedBlob = fileToCompress; // Removed early compression to allow full res crop
                                 const newUrl = URL.createObjectURL(convertedBlob);
                                 const newImg = new Image();
                                 newImg.onload = () => {
