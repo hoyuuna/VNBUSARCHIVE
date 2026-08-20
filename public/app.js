@@ -1000,6 +1000,8 @@ Object.assign(window.app, {
                     canvas.width = w;
                     canvas.height = h;
                     const ctx = canvas.getContext('2d');
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingQuality = 'high';
                     ctx.drawImage(img, 0, 0, w, h);
                     
                     let bestBlob = null;
@@ -1677,6 +1679,8 @@ cleanupState: () => {
                                 }
                                 canvas.width = width;
                                 canvas.height = height;
+                                ctx.imageSmoothingEnabled = true;
+                                ctx.imageSmoothingQuality = 'high';
                                 ctx.filter = filters;
                                 ctx.drawImage(img, 0, 0, width, height);
                                 ctx.filter = 'none';
@@ -12496,6 +12500,8 @@ Object.assign(window.app, {
                                     tempCanvas.width = w;
                                     tempCanvas.height = h;
                                     const tempCtx = tempCanvas.getContext('2d');
+                                    tempCtx.imageSmoothingEnabled = true;
+                                    tempCtx.imageSmoothingQuality = 'high';
                                     tempCtx.drawImage(img, 0, 0, w, h);
                                     const sdrBlob = await new Promise(res => tempCanvas.toBlob(res, file.type || 'image/jpeg', 0.95));
                                     if (sdrBlob && sdrBlob.size > 0) {

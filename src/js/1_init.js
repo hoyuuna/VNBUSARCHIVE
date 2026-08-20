@@ -998,6 +998,8 @@ Object.assign(window.app, {
                     canvas.width = w;
                     canvas.height = h;
                     const ctx = canvas.getContext('2d');
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingQuality = 'high';
                     ctx.drawImage(img, 0, 0, w, h);
                     
                     let bestBlob = null;
@@ -1675,6 +1677,8 @@ cleanupState: () => {
                                 }
                                 canvas.width = width;
                                 canvas.height = height;
+                                ctx.imageSmoothingEnabled = true;
+                                ctx.imageSmoothingQuality = 'high';
                                 ctx.filter = filters;
                                 ctx.drawImage(img, 0, 0, width, height);
                                 ctx.filter = 'none';

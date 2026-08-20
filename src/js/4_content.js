@@ -1698,6 +1698,8 @@ Object.assign(window.app, {
                                     tempCanvas.width = w;
                                     tempCanvas.height = h;
                                     const tempCtx = tempCanvas.getContext('2d');
+                                    tempCtx.imageSmoothingEnabled = true;
+                                    tempCtx.imageSmoothingQuality = 'high';
                                     tempCtx.drawImage(img, 0, 0, w, h);
                                     const sdrBlob = await new Promise(res => tempCanvas.toBlob(res, file.type || 'image/jpeg', 0.95));
                                     if (sdrBlob && sdrBlob.size > 0) {
