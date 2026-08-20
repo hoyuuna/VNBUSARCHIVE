@@ -4834,7 +4834,7 @@ Object.assign(window.app, {
                         "Bạn có chắc chắn muốn đăng xuất khỏi tài khoản?",
                         async () => {
                             try {
-                                await window.sb.auth.signOut(); sessionStorage.removeItem('VNBA_SESS_AUTH');
+                                await window.sb.auth.signOut({ scope: 'local' }); sessionStorage.removeItem('VNBA_SESS_AUTH');
                                 await app.setUser(null);
                                 app.ui.toggleUserMenu(false);
                                 app.ui.showAlert("Đã đăng xuất thành công!", () => {
