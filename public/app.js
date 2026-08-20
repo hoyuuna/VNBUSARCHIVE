@@ -13343,6 +13343,7 @@ Object.assign(window.app, {
         modeTab: 'ratio',
         isRulerEnabled: localStorage.getItem('cropRulerEnabled') === 'true',
         isMandatory: false,
+        isProcessing: false,
         closeTimeout: null,
         open: async (mode, file = null, isMandatory = false) => {
             if (app.crop.closeTimeout) {
@@ -13421,13 +13422,18 @@ Object.assign(window.app, {
                         if (mode === 'avatar') {
                             if (modePanel) modePanel.classList.add('hidden');
                             app.crop.setModeTab('rotate');
-                            if (rulerBtn && rulerBtn.parentElement) rulerBtn.parentElement.classList.add('hidden');
+                            if (rulerBtn && rulerBtn.parentElement) {
+                                rulerBtn.parentElement.classList.add('invisible');
+                                rulerBtn.parentElement.classList.remove('hidden');
+                            }
                             app.crop.savedRatio = 1;
                         } else {
                             if (modePanel) modePanel.classList.remove('hidden');
                             app.crop.setModeTab('ratio');
                             if (ratioContainer) ratioContainer.classList.remove('hidden');
-                            if (rulerBtn && rulerBtn.parentElement) rulerBtn.parentElement.classList.remove('hidden');
+                            if (rulerBtn && rulerBtn.parentElement) {
+                                rulerBtn.parentElement.classList.remove('invisible', 'hidden');
+                            }
                             if (typeof app.crop.savedRatio !== 'number' || isNaN(app.crop.savedRatio)) {
                                 const imgRatio = img.naturalWidth / img.naturalHeight;
                                 const presets = [16/9, 3/2, 4/3];
@@ -13509,6 +13515,7 @@ Object.assign(window.app, {
             img.style.transform = `translate(calc(-50% + ${app.crop.state.x}px), calc(-50% + ${app.crop.state.y}px)) translateZ(0) rotate(${app.crop.state.rotation}deg) scale(${app.crop.state.scale})`;
         },
         onDragStart: (e) => {
+            if (app.crop.isProcessing) return;
             app.crop.isDragging = true;
             if (e.touches && e.touches.length >= 2) {
                 const t1 = e.touches[0];
@@ -13527,7 +13534,7 @@ Object.assign(window.app, {
             }
         },
         onDragMove: (e) => {
-            if (!app.crop.isDragging) return;
+            if (!app.crop.isDragging || app.crop.isProcessing) return;
             e.preventDefault();
             let clientX, clientY, currentPinchDist = null;
             if (e.touches && e.touches.length >= 2) {
@@ -13804,11 +13811,28 @@ Object.assign(window.app, {
         apply: () => {
             const img = document.getElementById('crop-image');
             const overlay = document.getElementById('crop-overlay-box');
-            if (!img || !overlay || !img.naturalWidth) return;
+            if (!img || !overlay || !img.naturalWidth || app.crop.isProcessing) return;
+            app.crop.isProcessing = true;
+            
             const btn = document.querySelector('#crop-modal button:last-child');
             const originalText = btn.innerHTML;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang cắt...';
-            btn.disabled = true;
+            
+            const allControls = document.querySelectorAll('#crop-modal button, #crop-modal input, .crop-ratio-btn');
+            allControls.forEach(c => {
+                c.dataset.wasDisabled = c.disabled ? "true" : "false";
+                c.disabled = true;
+            });
+            
+            const reenableUI = () => {
+                app.crop.isProcessing = false;
+                allControls.forEach(c => {
+                    if (c.dataset.wasDisabled !== "true") c.disabled = false;
+                });
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            };
+
             setTimeout(() => {
                 const ow = overlay.offsetWidth;
                 const oh = overlay.offsetHeight;
@@ -13833,8 +13857,7 @@ Object.assign(window.app, {
                 if (app.crop.mode === 'main') {
                     if (canvas.height < 1080) {
                         app.ui.showAlert(`Ảnh sau khi cắt có độ phân giải quá thấp (${canvas.width}x${canvas.height}). Yêu cầu chiều cao tối thiểu 1080px.`);
-                        btn.innerHTML = originalText;
-                        btn.disabled = false;
+                        reenableUI();
                         return;
                     }
                     app.utils.canvasToBlobUniversal(canvas, app.utils.getTargetMimeType(), 0.95).then((blob) => {
@@ -13859,20 +13882,17 @@ Object.assign(window.app, {
                             if(app.upload.resetWm) app.upload.resetWm();
                             if(app.upload.resetFilters) app.upload.resetFilters();
                         }
-                        btn.innerHTML = originalText;
-                        btn.disabled = false;
+                        reenableUI();
                     });
                 } else if (app.crop.mode === 'avatar') {
                     app.utils.canvasToBlobUniversal(canvas, app.utils.getTargetMimeType(), 0.8).then(async (blob) => {
                         if (blob.size > 3 * 1024 * 1024) {
                             app.ui.showAlert('Ảnh sau khi cắt vẫn quá lớn (>3MB)! Vui lòng chọn ảnh/vùng nhỏ hơn.');
-                            btn.innerHTML = originalText;
-                            btn.disabled = false;
+                            reenableUI();
                             return;
                         }
                         app.crop.close();
-                        btn.innerHTML = originalText;
-                        btn.disabled = false;
+                        reenableUI();
                         app.auth.uploadAvatarBlob(blob);
                     });
                 }
