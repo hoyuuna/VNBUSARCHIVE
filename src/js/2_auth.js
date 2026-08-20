@@ -392,6 +392,13 @@ changePassword: async () => {
                                 avatarImg.classList.remove('hidden');
                                 avatarIcon.classList.add('hidden');
                             }
+                            const hImg = document.getElementById('nav-user-avatar');
+                            if (hImg) {
+                                hImg.src = proxiedUrl;
+                                hImg.classList.remove('hidden');
+                            }
+                            const hIcon = document.getElementById('nav-user-icon');
+                            if (hIcon) hIcon.classList.add('hidden');
                             const setAvatarImg = document.getElementById('set-avatar-img');
                             if(setAvatarImg) setAvatarImg.src = proxiedUrl;
                             app.toast.show('success', 'Thành công', 'Cập nhật ảnh đại diện thành công!');
@@ -436,6 +443,10 @@ changePassword: async () => {
                         window.sb.auth.updateUser({ data: { avatar_url: null } }).catch(() => {});
                         if (app.user.user_metadata) app.user.user_metadata.avatar_url = null;
                         app.ui.showAlert("Đã reset Avatar về mặc định!");
+                        const hImg = document.getElementById('nav-user-avatar');
+                        if (hImg) hImg.classList.add('hidden');
+                        const hIcon = document.getElementById('nav-user-icon');
+                        if (hIcon) hIcon.classList.remove('hidden');
                         app.views.loadAccount();
                     } catch (err) {
                         app.ui.showAlert("Lỗi: " + err.message);

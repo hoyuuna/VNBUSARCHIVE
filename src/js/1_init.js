@@ -4387,8 +4387,10 @@ Object.assign(window.app, {
                                    (user.email ? user.email.split('@')[0] : 'User');
                     let finalName = metaName.substring(0, 20);
                     let finalAvatar = user.user_metadata?.avatar_url || user.user_metadata?.picture || null;
+                    let currentAvatar = finalAvatar;
                     try {
-                        const { data: profile } = await window.sb.from('profiles').select('username, role, preferences, ban_status').eq('id', user.id).maybeSingle();
+                        const { data: profile } = await window.sb.from('profiles').select('username, avatar_url, role, preferences, ban_status').eq('id', user.id).maybeSingle();
+                        if (profile) currentAvatar = profile.avatar_url || finalAvatar;
                         if (profile && profile.ban_status) {
                             let banInfo = null;
                             try { banInfo = typeof profile.ban_status === 'string' ? JSON.parse(profile.ban_status) : profile.ban_status; } catch(e){}
@@ -4493,6 +4495,21 @@ Object.assign(window.app, {
                         app.role = 'user';
                     }
                     document.getElementById('nav-username').innerText = app.username;
+                    if (currentAvatar) {
+                        const hImg = document.getElementById('nav-user-avatar');
+                        if (hImg) {
+                            hImg.src = app.utils.getProxiedUrl(currentAvatar.replace(/"/g, ''), 'avatar.jpg', 'avatar');
+                            hImg.onerror = () => { hImg.src = DEFAULT_AVATAR; };
+                            hImg.classList.remove('hidden');
+                        }
+                        const hIcon = document.getElementById('nav-user-icon');
+                        if (hIcon) hIcon.classList.add('hidden');
+                    } else {
+                        const hImg = document.getElementById('nav-user-avatar');
+                        if (hImg) hImg.classList.add('hidden');
+                        const hIcon = document.getElementById('nav-user-icon');
+                        if (hIcon) hIcon.classList.remove('hidden');
+                    }
 dropdown.innerHTML = `
                          <a href="/profile" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-address-card w-5 text-center mr-1"></i> Hồ sơ của tôi</a>
                          <button onclick="app.settings.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-gear w-5 text-center mr-1"></i> Cài đặt</button>
@@ -4514,6 +4531,10 @@ dropdown.innerHTML = `
                     }
                 } else {
                     document.getElementById('nav-username').innerText = 'Tài khoản';
+                    const hImg = document.getElementById('nav-user-avatar');
+                    if (hImg) hImg.classList.add('hidden');
+                    const hIcon = document.getElementById('nav-user-icon');
+                    if (hIcon) hIcon.classList.remove('hidden');
                     document.getElementById('nav-admin').classList.add('hidden');
                     app.username = 'Guest';
                     app.role = 'user';
