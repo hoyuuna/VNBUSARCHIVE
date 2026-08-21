@@ -445,6 +445,7 @@ async function handleContactSubmit(request, env) {
         'scam': { title: 'Báo cáo lừa đảo / Hành vi xấu', color: 0xff4444 }, 
         'copyright': { title: 'Báo cáo vi phạm bản quyền ảnh', color: 0xffaa00 }, 
         'report_violation': { title: 'Báo cáo ảnh / bình luận / hồ sơ vi phạm', color: 0xff4444 },
+        'policy_violation': { title: 'Báo cáo ảnh dùng sai chính sách', color: 0xffaa00 },
         'bad_photo': { title: 'Tôi thấy có ảnh chưa đạt chuẩn', color: 0xff8800 },
         'appeal': { title: 'Thắc mắc kiểm duyệt / Kháng cáo ảnh từ chối', color: 0x00ccff }, 
         'account': { title: 'Hỗ trợ / Kháng cáo về tài khoản', color: 0x00ccff },
@@ -466,12 +467,16 @@ async function handleContactSubmit(request, env) {
         rawText += `**Hình thức vi phạm \\***\n${typeStr}\n\n`;
     }
 
+    if (body.policyContent) {
+        rawText += `**Nội dung vi phạm \\***\n${body.policyContent}\n\n`;
+    }
+
     if (photoId) {
         if (String(photoId).startsWith('user:')) {
             const uName = String(photoId).replace('user:', '');
             rawText += `**Hồ sơ User vi phạm \\***\nhttps://www.vnbusarchive.io.vn/user/${encodeURIComponent(uName)}\n\n`;
         } else {
-            const titleStr = (topic === 'copyright' || topic === 'report_violation') ? 'Nội dung vi phạm \\*' : 'Nội dung liên quan \\*';
+            const titleStr = (topic === 'copyright' || topic === 'report_violation') ? 'Nội dung vi phạm \\*' : (topic === 'policy_violation' ? 'Tác phẩm trên VNBUSARCHIVE \\*' : 'Nội dung liên quan \\*');
             rawText += `**${titleStr}**\nhttps://www.vnbusarchive.io.vn/photo/${photoId}\n\n`;
         }
     } else if (externalLink) {
@@ -494,7 +499,7 @@ async function handleContactSubmit(request, env) {
     }
 
     let descLabel = 'Mô tả chi tiết vấn đề \\*';
-    if (topic === 'copyright' || topic === 'report_violation') descLabel = 'Mô tả chi tiết vi phạm \\*';
+    if (topic === 'copyright' || topic === 'report_violation' || topic === 'policy_violation') descLabel = 'Mô tả chi tiết vi phạm \\*';
     else if (topic === 'appeal') descLabel = 'Lý do bạn cho rằng ảnh hợp lệ \\*';
 
     rawText += `**${descLabel}**\n${description}\n\n`;

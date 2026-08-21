@@ -4069,6 +4069,9 @@ div[id$="-modal"] > div > * {
                                     <div class="filter-item" onclick="app.contact.selectTopic('report_violation', 'Báo cáo ảnh / bình luận / hồ sơ vi phạm', this)">
                                         <span class="font-bold">Báo cáo ảnh / bình luận / hồ sơ vi phạm</span>
                                     </div>
+                                    <div class="filter-item" onclick="app.contact.selectTopic('policy_violation', 'Báo cáo ảnh dùng sai chính sách', this)">
+                                        <span class="font-bold">Báo cáo ảnh dùng sai chính sách</span>
+                                    </div>
                                     <div class="filter-item" onclick="app.contact.selectTopic('bad_photo', 'Tôi thấy có ảnh chưa đạt chuẩn', this)">
                                         <span class="font-bold">Tôi thấy có ảnh chưa đạt chuẩn</span>
                                     </div>
@@ -4129,6 +4132,16 @@ div[id$="-modal"] > div > * {
                                             <div class="filter-item" onclick="app.contact.selectCopyrightType('external', 'Ảnh trên nền tảng của tôi bị đăng trái luật lên nền tảng bên ngoài', this)">
                                                 <span class="font-bold">Ảnh trên nền tảng của tôi bị đăng trái luật lên nền tảng bên ngoài</span>
                                             </div>
+                                        </div>
+                                    </div>
+
+                                    <div id="contact-policy-violation-section" class="hidden relative mb-6">
+                                        <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Nội dung vi phạm <span class="text-red-500">*</span></label>
+                                        <div class="relative w-full">
+                                            <span class="absolute inset-y-0 left-0 flex items-center justify-center w-10 text-gray-400 pointer-events-none">
+                                                <i class="fa-solid fa-triangle-exclamation"></i>
+                                            </span>
+                                            <input type="text" id="contact-policy-content" placeholder="Nhập loại/nội dung vi phạm (VD: Ảnh spam, sai quy định...)" class="w-full bg-gray-50 border border-gray-200 rounded-lg py-2.5 pr-3 pl-10 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all text-black">
                                         </div>
                                     </div>
 
