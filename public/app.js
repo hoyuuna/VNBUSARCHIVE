@@ -5130,6 +5130,43 @@ changePassword: async () => {
                         }
                     );
                 },
+                updateContactInfo: async () => {
+                    if (!app.user) return;
+                    const contactEmail = document.getElementById('set-contact-email').value.trim();
+                    if (contactEmail) {
+                        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                        if (!emailRegex.test(contactEmail)) {
+                            return app.ui.showAlert("Email không hợp lệ. Vui lòng kiểm tra lại định dạng email.");
+                        }
+                    }
+                    
+                    app.ui.showAlert(
+                        contactEmail 
+                            ? "Bạn có chắc chắn muốn lưu email liên hệ này? Thông tin này sẽ được công khai trên hồ sơ của bạn."
+                            : "Bạn có chắc chắn muốn xóa email liên hệ? Nút liên hệ sẽ bị ẩn khỏi hồ sơ của bạn.",
+                        async () => {
+                            try {
+                                try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
+                                
+                                const { data: currentProfile, error: fetchError } = await window.sb.from('profiles').select('personalization').eq('id', app.user.id).single();
+                                if (fetchError) throw fetchError;
+
+                                const currentPersonalization = currentProfile.personalization || {};
+                                currentPersonalization.contact_email = contactEmail;
+                                
+                                const { error: dbError } = await window.sb.from('profiles').update({ personalization: currentPersonalization }).eq('id', app.user.id);
+                                if (dbError) throw dbError;
+                                
+                                app.toast.show('success', 'Thành công', contactEmail ? 'Cập nhật thông tin liên hệ thành công!' : 'Đã xóa thông tin liên hệ!');
+                                app.views.loadAccount();
+                            } catch (err) {
+                                app.ui.showAlert("Lỗi: " + err.message);
+                            }
+                        },
+                        null,
+                        { title: "Xác nhận" }
+                    );
+                },
                 showUUID: () => {
                     if (!app.user) return;
                     const uuidForm = document.getElementById('show-uuid-form');
@@ -6444,7 +6481,7 @@ Object.assign(window.app, {
                     document.getElementById('approval-rate-island').classList.add('hidden');
                     const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(targetUsername);
                     const queryCol = isUUID ? 'id' : 'username';
-                    const { data: profile } = await window.sb.from('profiles').select('id, username, avatar_url, role, subroles, favorite_photo_id, created_at, ban_status').eq(queryCol, targetUsername).single();
+                    const { data: profile } = await window.sb.from('profiles').select('id, username, avatar_url, role, subroles, favorite_photo_id, created_at, ban_status, personalization').eq(queryCol, targetUsername).single();
                     if (!profile) {
                         app.ui.showAlert("Không tìm thấy người dùng này.");
                         return app.views.loadHome();
@@ -6563,6 +6600,31 @@ Object.assign(window.app, {
                     const manageCommentBtn = document.getElementById('btn-manage-comments'); 
                     if (shareProfileBtn) {
                         shareProfileBtn.onclick = () => app.utils.shareProfile(targetUserId, displayUsername);
+                    }
+                    
+                    const contactBtn = document.getElementById('btn-contact-profile');
+                    if (contactBtn) {
+                        const personalization = profile.personalization || {};
+                        if (personalization.contact_email && !isBannedUser) {
+                            contactBtn.classList.remove('hidden');
+                            contactBtn.classList.add('flex');
+                            contactBtn.onclick = () => {
+                                app.ui.showAlert(`Email liên hệ: <br><b class="text-blue-600 mt-2 block break-all">${app.utils.escapeHtml(personalization.contact_email)}</b>`, () => {
+                                    navigator.clipboard.writeText(personalization.contact_email).then(() => {
+                                        app.toast.show('success', 'Thành công', 'Đã copy email liên hệ!');
+                                    });
+                                }, null, { title: "Thông tin liên hệ", btnOkText: "Copy Email", btnCancelText: "Đóng" });
+                            };
+                        } else {
+                            contactBtn.classList.add('hidden');
+                            contactBtn.classList.remove('flex');
+                            contactBtn.onclick = null;
+                        }
+                    }
+                    
+                    if (isOwnProfile && document.getElementById('set-contact-email')) {
+                        const personalization = profile.personalization || {};
+                        document.getElementById('set-contact-email').value = personalization.contact_email || '';
                     }
                     if (isOwnProfile) {
                         likedSection.classList.remove('hidden');

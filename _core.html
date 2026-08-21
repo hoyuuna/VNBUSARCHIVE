@@ -3233,6 +3233,14 @@ div[id$="-modal"] > div > * {
                                     <button onclick="app.auth.changeUsername()" class="w-full sm:w-auto bg-black text-white px-6 py-2.5 text-xs font-bold rounded-md hover:bg-gray-800 transition shadow-sm shrink-0">Lưu thông tin</button>
                                 </div>
                             </div>
+                            <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm mt-4">
+                                <h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Thông tin liên hệ</h3>
+                                <p class="text-[11px] md:text-xs text-gray-500 mb-3 leading-relaxed">Hiển thị email trên hồ sơ để người khác có thể liên hệ với bạn. Nếu để trống, nút liên hệ sẽ bị ẩn.</p>
+                                <div class="flex flex-col sm:flex-row gap-2">
+                                    <input type="email" id="set-contact-email" placeholder="Nhập email liên hệ (hoặc để trống để xóa)" autocomplete="off" class="w-full sm:flex-1 border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none transition">
+                                    <button onclick="app.auth.updateContactInfo()" class="w-full sm:w-auto bg-black text-white px-6 py-2.5 text-xs font-bold rounded-md hover:bg-gray-800 transition shadow-sm shrink-0">Lưu thông tin</button>
+                                </div>
+                            </div>
                         </div>
 
                         <div id="set-content-security" class="space-y-4 md:space-y-6 hidden">
@@ -4970,6 +4978,10 @@ div[id$="-modal"] > div > * {
                                 <button id="btn-edit-profile" onclick="app.settings.open('profile', 'account')"
                                     class="hidden bg-gray-100 hover:bg-black hover:text-white text-gray-800 text-xs font-bold py-2 px-4 rounded-lg items-center justify-center gap-1.5 transition shadow-sm border border-gray-200">
                                     <i class="fa-solid fa-pen-to-square"></i> Sửa hồ sơ
+                                </button>
+                                <button id="btn-contact-profile" onclick="app.views.showContactPopup()"
+                                    class="hidden bg-gray-100 hover:bg-black hover:text-white text-gray-800 text-xs font-bold py-2 px-4 rounded-lg items-center justify-center gap-1.5 transition shadow-sm border border-gray-200">
+                                    <i class="fa-solid fa-envelope"></i> Liên hệ
                                 </button>
                                 <button id="btn-share-profile" onclick="app.utils.shareProfile()"
                                     class="flex bg-gray-100 hover:bg-black hover:text-white text-gray-800 text-xs font-bold py-2 px-4 rounded-lg items-center justify-center gap-1.5 transition shadow-sm border border-gray-200">

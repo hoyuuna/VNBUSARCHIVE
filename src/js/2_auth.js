@@ -501,6 +501,43 @@ changePassword: async () => {
                         }
                     );
                 },
+                updateContactInfo: async () => {
+                    if (!app.user) return;
+                    const contactEmail = document.getElementById('set-contact-email').value.trim();
+                    if (contactEmail) {
+                        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                        if (!emailRegex.test(contactEmail)) {
+                            return app.ui.showAlert("Email không hợp lệ. Vui lòng kiểm tra lại định dạng email.");
+                        }
+                    }
+                    
+                    app.ui.showAlert(
+                        contactEmail 
+                            ? "Bạn có chắc chắn muốn lưu email liên hệ này? Thông tin này sẽ được công khai trên hồ sơ của bạn."
+                            : "Bạn có chắc chắn muốn xóa email liên hệ? Nút liên hệ sẽ bị ẩn khỏi hồ sơ của bạn.",
+                        async () => {
+                            try {
+                                try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
+                                
+                                const { data: currentProfile, error: fetchError } = await window.sb.from('profiles').select('personalization').eq('id', app.user.id).single();
+                                if (fetchError) throw fetchError;
+
+                                const currentPersonalization = currentProfile.personalization || {};
+                                currentPersonalization.contact_email = contactEmail;
+                                
+                                const { error: dbError } = await window.sb.from('profiles').update({ personalization: currentPersonalization }).eq('id', app.user.id);
+                                if (dbError) throw dbError;
+                                
+                                app.toast.show('success', 'Thành công', contactEmail ? 'Cập nhật thông tin liên hệ thành công!' : 'Đã xóa thông tin liên hệ!');
+                                app.views.loadAccount();
+                            } catch (err) {
+                                app.ui.showAlert("Lỗi: " + err.message);
+                            }
+                        },
+                        null,
+                        { title: "Xác nhận" }
+                    );
+                },
                 showUUID: () => {
                     if (!app.user) return;
                     const uuidForm = document.getElementById('show-uuid-form');
