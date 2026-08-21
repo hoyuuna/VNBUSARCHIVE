@@ -506,7 +506,7 @@ changePassword: async () => {
                     const contactEmail = document.getElementById('set-contact-email').value.trim();
                     if (contactEmail) {
                         const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-                        if (!emailRegex.test(contactEmail) || contactEmail.length > 100) {
+                        if (!emailRegex.test(contactEmail) || contactEmail.length > 200) {
                             return app.ui.showAlert("Email không hợp lệ. Vui lòng kiểm tra lại định dạng email.");
                         }
                     }
