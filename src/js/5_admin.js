@@ -3088,6 +3088,10 @@ app.admin.fetchManagerData('denied');
                     if (app.user.id === uploaderId) {
                         return app.ui.showAlert("Bạn không thể tự duyệt ảnh của mình!");
                     }
+                    if (btn && btn.disabled) return;
+                    if (btn) btn.disabled = true;
+                    if (btn && btn.disabled) return;
+                    if (btn) btn.disabled = true;
                     if (document.activeElement) document.activeElement.blur();
                     const cardEl = btn ? btn.closest('.admin-card') : document.getElementById(`adm-photo-card-${id}`);
                     const parentEl = cardEl ? cardEl.parentElement : null;

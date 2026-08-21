@@ -92,7 +92,15 @@ export async function onRequestPost(context) {
             }, { onConflict: 'photo_id,admin_id' });
 
             // Đếm số lượng review
-            const { data: reviews } = await sbAdmin.from('photo_reviews').select('action, reason').eq('photo_id', photoId);
+            const { data: rawReviews } = await sbAdmin.from('photo_reviews').select('action, reason, admin_id').eq('photo_id', photoId);
+            
+            // Lọc trùng lặp admin_id phòng trường hợp double click nếu database chưa set unique key
+            const uniqueReviewsMap = new Map();
+            if (rawReviews) {
+                rawReviews.forEach(r => uniqueReviewsMap.set(r.admin_id, r));
+            }
+            const reviews = Array.from(uniqueReviewsMap.values());
+            
             const approves = reviews.filter(r => r.action === 'approve').length;
             const denies = reviews.filter(r => r.action === 'deny').length;
 
