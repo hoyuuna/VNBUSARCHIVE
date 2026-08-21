@@ -6609,11 +6609,22 @@ Object.assign(window.app, {
                             contactBtn.classList.remove('hidden');
                             contactBtn.classList.add('flex');
                             contactBtn.onclick = () => {
-                                app.ui.showAlert(`Email liên hệ: <br><b class="text-blue-600 mt-2 block break-all">${app.utils.escapeHtml(preferences.contact_email)}</b>`, () => {
-                                    navigator.clipboard.writeText(preferences.contact_email).then(() => {
-                                        app.toast.show('success', 'Thành công', 'Đã copy email liên hệ!');
-                                    });
-                                }, null, { title: "Thông tin liên hệ", btnOkText: "Copy Email", btnCancelText: "Đóng" });
+                                const emailEscaped = app.utils.escapeHtml(preferences.contact_email);
+                                const copyBoxHtml = `
+                                    <p class="text-sm text-gray-600 mb-3">Bạn có thể gửi email trực tiếp hoặc sao chép địa chỉ bên dưới:</p>
+                                    <div class="flex flex-col sm:flex-row gap-2">
+                                        <input type="text" readonly value="${emailEscaped}" class="w-full border border-gray-300 py-3 px-3.5 text-xs md:text-sm rounded-xl bg-gray-50 font-mono text-center text-black select-all outline-none font-bold shadow-inner">
+                                        <button onclick="navigator.clipboard.writeText('${emailEscaped}').then(()=>app.toast.show('success', 'Thành công', 'Đã copy email liên hệ!'))" class="w-full sm:w-auto bg-black text-white px-5 py-3 text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-gray-800 transition shrink-0 flex items-center justify-center gap-2 shadow-sm">
+                                            <i class="fa-solid fa-copy"></i> Sao chép
+                                        </button>
+                                    </div>
+                                `;
+                                app.ui.showAlert(
+                                    copyBoxHtml,
+                                    () => { window.location.href = `mailto:${preferences.contact_email}`; },
+                                    null,
+                                    { title: "Thông tin liên hệ", btnOkText: 'Gửi email <i class="fa-solid fa-arrow-up-right-from-square ml-1.5 text-xs"></i>', btnCancelText: "Đóng" }
+                                );
                             };
                         } else {
                             contactBtn.classList.add('hidden');
