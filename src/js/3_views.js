@@ -234,7 +234,7 @@ Object.assign(window.app, {
                             <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(main.url, 'main.jpg', 'full')}"
                                  onload="app.utils.handleImgLoad(this)"
                                  onerror="app.utils.fallbackHeroImage(this, 'topPhotosCache', 0)"
-                                 class="absolute inset-0 w-full h-full object-cover object-center block group-hover:scale-105 transition-all duration-700 opacity-0 z-10">
+                                 class="absolute inset-0 w-full h-full object-cover object-center block transition-all duration-700 opacity-0 z-10">
                             <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/85 via-black/50 to-transparent p-4 pt-14 pointer-events-none z-20 flex flex-col gap-1" style="z-index: 20;">
                                 <p class="text-white font-bold text-xl tracking-tight hero-main-text pointer-events-auto leading-tight truncate" style="text-shadow: 0 2px 4px rgba(0,0,0,0.95);">${safeMainPlate}</p>
                                 <p class="text-white text-xs hero-main-views pointer-events-auto truncate leading-tight font-medium" style="text-shadow: 0 1px 3px rgba(0,0,0,0.95);">${safeMainOperator}</p>
@@ -254,7 +254,7 @@ Object.assign(window.app, {
                                     <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(p.url, 'sub.jpg', 'thumb')}"
                                          onload="app.utils.handleImgLoad(this)"
                                          onerror="app.utils.fallbackHeroImage(this, 'topPhotosCache', ${i})"
-                                         class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-all duration-500 opacity-0 z-10">
+                                         class="absolute inset-0 w-full h-full object-cover transition-all duration-500 opacity-0 z-10">
                                     <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/85 via-black/40 to-transparent p-2.5 pt-8 pointer-events-none z-20 flex flex-col gap-0.5" style="z-index: 20;">
                                         <p class="text-white font-bold text-xs tracking-tight truncate leading-none hero-sub-text" style="text-shadow: 0 1px 3px rgba(0,0,0,0.95);">${safeSubPlate}</p>
                                         <p class="text-white text-[11px] truncate leading-none font-medium hero-sub-operator" style="text-shadow: 0 1px 3px rgba(0,0,0,0.95);">${safeSubOperator}</p>
@@ -412,7 +412,7 @@ Object.assign(window.app, {
                         if (!matched || matched.length === 0) return recSection.classList.add('hidden');
                         recGrid.innerHTML = matched.map(p => `
                             <div class="relative group cursor-pointer aspect-square rounded-md overflow-hidden shadow-sm hover:shadow-lg transition-all border border-white/40" onclick="app.views.loadDetail(${p.id})">
-                                <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(p.url, 'rec.jpg', 'thumb')}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                                <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(p.url, 'rec.jpg', 'thumb')}" class="w-full h-full object-cover transition-transform duration-500">
                                 <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 to-transparent p-2 text-white">
                                     <div class="text-[10px] font-bold truncate tracking-wide">${app.utils.displayPlate(p.license_plate)}</div>
                                 </div>
@@ -588,7 +588,7 @@ Object.assign(window.app, {
                                      onload="app.utils.handleImgLoad(this)"
                                      onerror="app.utils.handleImgError(this)"
                                      alt="Xe buýt ${safePlate}"
-                                     class="absolute inset-0 w-full h-full object-cover opacity-0 transition-all duration-500 hover:scale-105">
+                                     class="absolute inset-0 w-full h-full object-cover opacity-0 transition-all duration-500">
                                 <div class="img-error absolute inset-0 hidden flex-col items-center justify-center p-4 text-center bg-red-50/50">
                                     <i class="fa-solid fa-image-slash text-red-400 text-2xl mb-1"></i>
                                     <span class="text-[10px] font-bold text-red-500 leading-tight">Ảnh hiện không thể<br>được tải</span>
@@ -712,7 +712,7 @@ Object.assign(window.app, {
                                 placeholderWrap.classList.add('hidden');
                                 placeholderWrap.classList.remove('flex');
                                 favContainer.innerHTML = `
-                                    <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(favPhoto.url, 'fav.jpg', 'thumb')}" class="absolute inset-0 w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-700 pointer-events-auto" onclick="app.views.loadDetail(${favPhoto.id})">
+                                    <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(favPhoto.url, 'fav.jpg', 'thumb')}" class="absolute inset-0 w-full h-full object-cover cursor-pointer transition-transform duration-700 pointer-events-auto" onclick="app.views.loadDetail(${favPhoto.id})">
                                 `;
                                 if (isOwnProfile) {
                                     favControls.classList.remove('hidden');
@@ -1894,7 +1894,7 @@ Object.assign(window.app, {
                             else if (p.operator && p.operator !== '---') extraInfo = `<span class="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded text-[10px] font-bold">${p.operator}</span>`;
                             return `
                             <div class="relative group cursor-pointer aspect-[4/3] rounded-md overflow-hidden shadow-sm hover:shadow-lg transition-all border border-gray-200" onclick="app.views.loadDetail(${p.id})">
-                                <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(p.url, 'det_rec.jpg', 'thumb')}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(p.url, 'det_rec.jpg', 'thumb')}" class="w-full h-full object-cover transition-transform duration-500">
                                 <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 via-black/40 to-transparent p-2 text-white flex flex-col justify-end">
                                     <div class="flex items-center justify-between">
                                         <div class="text-xs font-bold truncate tracking-wide">${app.utils.displayPlate(p.license_plate)}</div>
@@ -2215,7 +2215,7 @@ Object.assign(window.app, {
                             <div class="bg-white border border-vbs-border shadow-sm rounded-lg p-6 md:p-8 mb-6 relative overflow-hidden">
                                 <div class="flex items-center gap-4 sm:gap-6 w-full min-w-0 max-w-full mb-6">
                                     ${topPhoto ? `
-                                    <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(topPhoto.url, 'vehicle-top.jpg', 'thumb')}" onerror="app.utils.fallbackHeroImage(this, 'vehiclePhotosCache', 0)" onclick="app.views.loadDetail(${topPhoto.id})" class="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-xl object-cover shrink-0 border border-gray-200 shadow-sm cursor-pointer hover:scale-105 transition duration-300">
+                                    <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(topPhoto.url, 'vehicle-top.jpg', 'thumb')}" onerror="app.utils.fallbackHeroImage(this, 'vehiclePhotosCache', 0)" onclick="app.views.loadDetail(${topPhoto.id})" class="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-xl object-cover shrink-0 border border-gray-200 shadow-sm cursor-pointer transition duration-300">
                                     ` : `
                                     <div class="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-xl bg-gray-100 text-gray-400 flex items-center justify-center font-bold text-3xl shrink-0 border border-gray-200">
                                         <i class="fa-solid fa-bus"></i>
@@ -4977,7 +4977,7 @@ Object.assign(window.app, {
                             <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-[11px] font-black uppercase tracking-wider mb-5 ${style.badgeStyle}">
                                 ${style.icon} ${style.title}
                             </div>
-                            <div class="w-24 h-24 md:w-28 md:h-28 rounded-full overflow-hidden shrink-0 mx-auto border border-gray-200 bg-gray-50 shadow-inner mb-4 group-hover:scale-105 transition-transform">
+                            <div class="w-24 h-24 md:w-28 md:h-28 rounded-full overflow-hidden shrink-0 mx-auto border border-gray-200 bg-gray-50 shadow-inner mb-4 transition-transform">
                                 <img loading="lazy" src="${avatar}" onerror="this.src='${DEFAULT_AVATAR}'" class="w-full h-full object-cover block">
                             </div>
                             <div class="font-extrabold text-black text-xl md:text-2xl w-full truncate mb-2 transition-colors">${app.utils.cleanText(user.username)}</div>

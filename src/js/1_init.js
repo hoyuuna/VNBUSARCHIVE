@@ -1418,7 +1418,7 @@ cleanupState: () => {
                         imgElement.style.display = 'none';
                         if (wrapper) {
                             wrapper.onclick = null;
-                            wrapper.classList.remove('cursor-pointer', 'hover:scale-105');
+                            wrapper.classList.remove('cursor-pointer');
                             let errBox = wrapper.querySelector('.fallback-error');
                             if (!errBox) {
                                 wrapper.innerHTML += `<div class="fallback-error absolute inset-0 flex flex-col items-center justify-center bg-gray-100 z-10 w-full h-full min-h-[200px]">
