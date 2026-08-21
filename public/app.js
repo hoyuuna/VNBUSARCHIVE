@@ -10335,7 +10335,7 @@ Object.assign(window.app, {
                 if (policySection) policySection.classList.remove('hidden');
                 if (titleEl) titleEl.innerHTML = 'Tác phẩm trên VNBUSARCHIVE <span class="text-red-500">*</span>';
                 descLabel.innerHTML = 'Mô tả chi tiết vi phạm <span class="text-red-500">*</span>';
-                photoUrlInput.placeholder = "Paste link ảnh trên VNBUSARCHIVE vào đây (VD: vnbusarchive.io.vn/photo/123)";
+                photoUrlInput.placeholder = "Paste link ảnh trên VNBUSARCHIVE vào đây...";
             }
             else if (topic === 'appeal') {
                 photoSection.classList.remove('hidden');
@@ -10623,7 +10623,7 @@ Object.assign(window.app, {
                 }
                 if (topic === 'policy_violation') {
                     if (!document.getElementById('contact-policy-content').value.trim()) {
-                        return app.ui.showAlert("Vui lòng nhập Nội dung vi phạm.");
+                        return app.ui.showAlert("Vui lòng nhập Link nội dung vi phạm.");
                     }
                 }
             }

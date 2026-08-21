@@ -468,7 +468,7 @@ async function handleContactSubmit(request, env) {
     }
 
     if (body.policyContent) {
-        rawText += `**Nội dung vi phạm \\***\n${body.policyContent}\n\n`;
+        rawText += `**Link nội dung vi phạm \\***\n${body.policyContent}\n\n`;
     }
 
     if (photoId) {
