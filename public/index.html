@@ -935,17 +935,6 @@ div[id$="-modal"] > div > * {
             line-height: 1;
         }
 
-        .badge-shiny::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 40%;
-            height: 100%;
-            background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.5) 50%, rgba(255, 255, 255, 0) 100%);
-            animation: shine 3s infinite;
-            transform: skewX(-20deg);
-        }
 
         /* CSS CỤC TAG BETA DÙNG CHUNG (Đồng bộ form với badge-shiny) */
         .badge-beta {
@@ -974,19 +963,7 @@ div[id$="-modal"] > div > * {
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
-        @keyframes shine {
-            0% {
-                left: -100%;
-            }
 
-            15% {
-                left: 200%;
-            }
-
-            100% {
-                left: 200%;
-            }
-        }
 
         .badge-admin {
             background: linear-gradient(135deg, #eab308, #ca8a04);
@@ -6683,6 +6660,6 @@ div[id$="-modal"] > div > * {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed top-24 left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.js?v=1787314288771"></script>
+<script src="/app.js?v=1787315662538"></script>
 </body>
 </html>

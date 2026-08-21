@@ -935,17 +935,6 @@ div[id$="-modal"] > div > * {
             line-height: 1;
         }
 
-        .badge-shiny::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 40%;
-            height: 100%;
-            background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.5) 50%, rgba(255, 255, 255, 0) 100%);
-            animation: shine 3s infinite;
-            transform: skewX(-20deg);
-        }
 
         /* CSS CỤC TAG BETA DÙNG CHUNG (Đồng bộ form với badge-shiny) */
         .badge-beta {
@@ -974,19 +963,7 @@ div[id$="-modal"] > div > * {
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
-        @keyframes shine {
-            0% {
-                left: -100%;
-            }
 
-            15% {
-                left: 200%;
-            }
-
-            100% {
-                left: 200%;
-            }
-        }
 
         .badge-admin {
             background: linear-gradient(135deg, #eab308, #ca8a04);
