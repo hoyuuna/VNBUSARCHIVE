@@ -519,13 +519,13 @@ changePassword: async () => {
                             try {
                                 try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
                                 
-                                const { data: currentProfile, error: fetchError } = await window.sb.from('profiles').select('personalization').eq('id', app.user.id).single();
+                                const { data: currentProfile, error: fetchError } = await window.sb.from('profiles').select('preferences').eq('id', app.user.id).single();
                                 if (fetchError) throw fetchError;
 
-                                const currentPersonalization = currentProfile.personalization || {};
-                                currentPersonalization.contact_email = contactEmail;
+                                const currentPreferences = currentProfile.preferences || {};
+                                currentPreferences.contact_email = contactEmail;
                                 
-                                const { error: dbError } = await window.sb.from('profiles').update({ personalization: currentPersonalization }).eq('id', app.user.id);
+                                const { error: dbError } = await window.sb.from('profiles').update({ preferences: currentPreferences }).eq('id', app.user.id);
                                 if (dbError) throw dbError;
                                 
                                 app.toast.show('success', 'Thành công', contactEmail ? 'Cập nhật thông tin liên hệ thành công!' : 'Đã xóa thông tin liên hệ!');

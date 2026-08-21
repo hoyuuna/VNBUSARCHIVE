@@ -642,7 +642,7 @@ Object.assign(window.app, {
                     document.getElementById('approval-rate-island').classList.add('hidden');
                     const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(targetUsername);
                     const queryCol = isUUID ? 'id' : 'username';
-                    const { data: profile } = await window.sb.from('profiles').select('id, username, avatar_url, role, subroles, favorite_photo_id, created_at, ban_status, personalization').eq(queryCol, targetUsername).single();
+                    const { data: profile } = await window.sb.from('profiles').select('id, username, avatar_url, role, subroles, favorite_photo_id, created_at, ban_status, preferences').eq(queryCol, targetUsername).single();
                     if (!profile) {
                         app.ui.showAlert("Không tìm thấy người dùng này.");
                         return app.views.loadHome();
@@ -765,13 +765,13 @@ Object.assign(window.app, {
                     
                     const contactBtn = document.getElementById('btn-contact-profile');
                     if (contactBtn) {
-                        const personalization = profile.personalization || {};
-                        if (personalization.contact_email && !isBannedUser) {
+                        const preferences = profile.preferences || {};
+                        if (preferences.contact_email && !isBannedUser) {
                             contactBtn.classList.remove('hidden');
                             contactBtn.classList.add('flex');
                             contactBtn.onclick = () => {
-                                app.ui.showAlert(`Email liên hệ: <br><b class="text-blue-600 mt-2 block break-all">${app.utils.escapeHtml(personalization.contact_email)}</b>`, () => {
-                                    navigator.clipboard.writeText(personalization.contact_email).then(() => {
+                                app.ui.showAlert(`Email liên hệ: <br><b class="text-blue-600 mt-2 block break-all">${app.utils.escapeHtml(preferences.contact_email)}</b>`, () => {
+                                    navigator.clipboard.writeText(preferences.contact_email).then(() => {
                                         app.toast.show('success', 'Thành công', 'Đã copy email liên hệ!');
                                     });
                                 }, null, { title: "Thông tin liên hệ", btnOkText: "Copy Email", btnCancelText: "Đóng" });
@@ -784,8 +784,8 @@ Object.assign(window.app, {
                     }
                     
                     if (isOwnProfile && document.getElementById('set-contact-email')) {
-                        const personalization = profile.personalization || {};
-                        document.getElementById('set-contact-email').value = personalization.contact_email || '';
+                        const preferences = profile.preferences || {};
+                        document.getElementById('set-contact-email').value = preferences.contact_email || '';
                     }
                     if (isOwnProfile) {
                         likedSection.classList.remove('hidden');
