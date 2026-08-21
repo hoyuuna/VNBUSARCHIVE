@@ -3090,8 +3090,6 @@ app.admin.fetchManagerData('denied');
                     }
                     if (btn && btn.disabled) return;
                     if (btn) btn.disabled = true;
-                    if (btn && btn.disabled) return;
-                    if (btn) btn.disabled = true;
                     if (document.activeElement) document.activeElement.blur();
                     const cardEl = btn ? btn.closest('.admin-card') : document.getElementById(`adm-photo-card-${id}`);
                     const parentEl = cardEl ? cardEl.parentElement : null;
@@ -3216,6 +3214,8 @@ app.admin.fetchManagerData('denied');
                             return;
                         }
                         if (document.activeElement) document.activeElement.blur();
+                        if (btn && btn.disabled) return;
+                        if (btn) btn.disabled = true;
                         const cardEl = document.getElementById(`adm-photo-card-${id}`);
                         const parentEl = cardEl?.parentElement;
                         const originalNextSibling = cardEl ? cardEl.nextElementSibling : null;
