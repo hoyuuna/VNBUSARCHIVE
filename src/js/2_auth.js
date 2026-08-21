@@ -513,7 +513,7 @@ changePassword: async () => {
                     
                     app.ui.showAlert(
                         contactEmail 
-                            ? "Bạn có chắc chắn muốn lưu email liên hệ này? Thông tin này sẽ được công khai trên hồ sơ của bạn."
+                            ? "Bạn có chắc chắn muốn lưu email liên hệ này? Thông tin này sẽ được công khai trên hồ sơ của bạn. Khuyến cáo không nên sử dụng email chính."
                             : "Bạn có chắc chắn muốn xóa email liên hệ? Nút liên hệ sẽ bị ẩn khỏi hồ sơ của bạn.",
                         async () => {
                             try {
@@ -534,8 +534,8 @@ changePassword: async () => {
                                 app.ui.showAlert("Lỗi: " + err.message);
                             }
                         },
-                        null,
-                        { title: "Xác nhận" }
+                        () => {},
+                        { title: "Xác nhận", btnCancelText: "Hủy bỏ" }
                     );
                 },
                 showUUID: () => {

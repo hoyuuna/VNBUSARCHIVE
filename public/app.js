@@ -5142,7 +5142,7 @@ changePassword: async () => {
                     
                     app.ui.showAlert(
                         contactEmail 
-                            ? "Bạn có chắc chắn muốn lưu email liên hệ này? Thông tin này sẽ được công khai trên hồ sơ của bạn."
+                            ? "Bạn có chắc chắn muốn lưu email liên hệ này? Thông tin này sẽ được công khai trên hồ sơ của bạn. Khuyến cáo không nên sử dụng email chính."
                             : "Bạn có chắc chắn muốn xóa email liên hệ? Nút liên hệ sẽ bị ẩn khỏi hồ sơ của bạn.",
                         async () => {
                             try {
@@ -5163,8 +5163,8 @@ changePassword: async () => {
                                 app.ui.showAlert("Lỗi: " + err.message);
                             }
                         },
-                        null,
-                        { title: "Xác nhận" }
+                        () => {},
+                        { title: "Xác nhận", btnCancelText: "Hủy bỏ" }
                     );
                 },
                 showUUID: () => {
@@ -6611,11 +6611,16 @@ Object.assign(window.app, {
                             contactBtn.onclick = () => {
                                 const emailEscaped = app.utils.escapeHtml(preferences.contact_email);
                                 const copyBoxHtml = `
-                                    <p class="text-sm text-gray-600 mb-3">Bạn có thể gửi email trực tiếp hoặc sao chép địa chỉ bên dưới:</p>
+                                    <p class="text-sm text-gray-600 mb-3">Liên hệ với <b>${app.utils.escapeHtml(displayUsername)}</b>:</p>
                                     <div class="flex flex-col sm:flex-row gap-2">
                                         <input type="text" readonly value="${emailEscaped}" class="w-full border border-gray-300 py-3 px-3.5 text-xs md:text-sm rounded-xl bg-gray-50 font-mono text-center text-black select-all outline-none font-bold shadow-inner">
                                         <button onclick="navigator.clipboard.writeText('${emailEscaped}').then(()=>app.toast.show('success', 'Thành công', 'Đã copy email liên hệ!'))" class="w-full sm:w-auto bg-black text-white px-5 py-3 text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-gray-800 transition shrink-0 flex items-center justify-center gap-2 shadow-sm">
                                             <i class="fa-solid fa-copy"></i> Sao chép
+                                        </button>
+                                    </div>
+                                    <div class="mt-5 text-center">
+                                        <button onclick="app.ui.closeAlert(false); app.views.loadContact()" class="text-[10px] text-red-500 hover:text-red-700 font-bold items-center gap-1 transition">
+                                            <i class="fa-solid fa-flag"></i> Báo cáo sai phạm
                                         </button>
                                     </div>
                                 `;
