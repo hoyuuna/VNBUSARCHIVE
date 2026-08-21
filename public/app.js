@@ -6022,7 +6022,7 @@ Object.assign(window.app, {
                     const heroMainEl = document.getElementById('hero-main');
                     const heroSubEl = document.getElementById('hero-sub');
                     if (heroMainEl && heroSubEl) {
-                        heroMainEl.className = "w-full md:w-3/5 relative group cursor-pointer bg-gray-100 rounded-md overflow-hidden border border-gray-200";
+                        heroMainEl.className = "w-full md:w-3/5 relative group cursor-pointer bg-gray-100 rounded-md overflow-hidden border border-gray-200 hover:-translate-y-1 hover:shadow-lg transition-all duration-300";
                         heroMainEl.innerHTML = `
                             <div class="w-full flex items-center justify-center text-gray-400" style="min-height: 404px;">
                                 <i class="fa-solid fa-circle-notch fa-spin text-3xl"></i>
@@ -6065,7 +6065,7 @@ Object.assign(window.app, {
                         const main = topPhotos[0];
                         const safeMainPlate = app.utils.displayPlate(app.utils.cleanText(main.license_plate));
                         const safeMainOperator = app.utils.cleanText(main.operator || 'Đang cập nhật');
-                        heroMain.className = "img-wrapper w-full md:w-3/5 relative group cursor-pointer bg-gray-100 rounded-md overflow-hidden border border-gray-200";
+                        heroMain.className = "img-wrapper w-full md:w-3/5 relative group cursor-pointer bg-gray-100 rounded-md overflow-hidden border border-gray-200 hover:-translate-y-1 hover:shadow-lg transition-all duration-300";
                         heroMain.innerHTML = `
                             <div class="img-spinner absolute inset-0 flex items-center justify-center text-gray-400 z-0">
                                 <i class="fa-solid fa-circle-notch fa-spin text-3xl"></i>
@@ -6086,7 +6086,7 @@ Object.assign(window.app, {
                             const safeSubPlate = app.utils.displayPlate(app.utils.cleanText(p.license_plate));
                             const safeSubOperator = app.utils.cleanText(p.operator || 'Đang cập nhật');
                             heroSub.innerHTML += `
-                                <div class="img-wrapper relative group cursor-pointer h-[196px] bg-gray-100 rounded-md overflow-hidden border border-gray-200" onclick="app.views.loadDetail(${p.id})">
+                                <div class="img-wrapper relative group cursor-pointer h-[196px] bg-gray-100 rounded-md overflow-hidden border border-gray-200 hover:-translate-y-1 hover:shadow-lg transition-all duration-300" onclick="app.views.loadDetail(${p.id})">
                                     <div class="img-spinner absolute inset-0 flex items-center justify-center text-gray-400 z-0">
                                         <i class="fa-solid fa-circle-notch fa-spin text-2xl"></i>
                                     </div>
@@ -6250,7 +6250,7 @@ Object.assign(window.app, {
                         let matched = await response.json();
                         if (!matched || matched.length === 0) return recSection.classList.add('hidden');
                         recGrid.innerHTML = matched.map(p => `
-                            <div class="relative group cursor-pointer aspect-square rounded-md overflow-hidden shadow-sm hover:shadow-lg transition-all border border-white/40" onclick="app.views.loadDetail(${p.id})">
+                            <div class="relative group cursor-pointer aspect-square rounded-md overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border border-white/40" onclick="app.views.loadDetail(${p.id})">
                                 <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(p.url, 'rec.jpg', 'thumb')}" class="w-full h-full object-cover transition-transform duration-500">
                                 <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 to-transparent p-2 text-white">
                                     <div class="text-[10px] font-bold truncate tracking-wide">${app.utils.displayPlate(p.license_plate)}</div>
@@ -6418,7 +6418,7 @@ Object.assign(window.app, {
                     const proxyUrl = app.utils.getProxiedUrl(p.url, `${safePlate}.jpg`, 'thumb');
                     const dateHtml = p.taken_at ? `<span class="shrink-0"><i class="fa-regular fa-calendar mr-1"></i>${p.taken_at.split('T')[0].split('-').reverse().join('/')}</span>` : '';
                     return `
-                        <div data-id="${p.id}" class="bg-white border border-gray-200 hover:border-gray-300 hover:shadow-lg cursor-pointer rounded-xl p-2 transition-all flex flex-col fade-zoom-in-page" onclick="app.views.loadDetail(${p.id})">
+                        <div data-id="${p.id}" class="bg-white border border-gray-200 hover:border-gray-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer rounded-xl p-2 transition-all duration-300 flex flex-col fade-zoom-in-page" onclick="app.views.loadDetail(${p.id})">
                             <div class="img-wrapper relative w-full aspect-[4/3] bg-gray-100 rounded-lg overflow-hidden shrink-0 border border-gray-100">
                                 <div class="img-spinner absolute inset-0 flex items-center justify-center text-gray-400">
                                     <i class="fa-solid fa-circle-notch fa-spin text-2xl"></i>
@@ -7121,7 +7121,7 @@ Object.assign(window.app, {
                     grid.innerHTML = likedData.map(item => {
                         const p = item.photos;
                         return `
-                        <div class="profile-photo-item cursor-pointer hover:shadow-md transition-shadow" onclick="app.views.loadDetail(${p.id})">
+                        <div class="profile-photo-item cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-300" onclick="app.views.loadDetail(${p.id})">
                             <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(p.url, 'liked.jpg', 'thumb')}" class="w-full h-full object-cover">
                             <div class="absolute bottom-0 left-0 bg-black/60 text-white text-[10px] w-full p-1.5 truncate backdrop-blur-sm">
                                 ${app.utils.displayPlate(p.license_plate)} - ${p.operator || 'N/A'}
@@ -7732,7 +7732,7 @@ Object.assign(window.app, {
                             if (p.route_no && p.route_no !== '---') extraInfo = `<span class="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[10px] font-bold">${p.route_no}</span>`;
                             else if (p.operator && p.operator !== '---') extraInfo = `<span class="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded text-[10px] font-bold">${p.operator}</span>`;
                             return `
-                            <div class="relative group cursor-pointer aspect-[4/3] rounded-md overflow-hidden shadow-sm hover:shadow-lg transition-all border border-gray-200" onclick="app.views.loadDetail(${p.id})">
+                            <div class="relative group cursor-pointer aspect-[4/3] rounded-md overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border border-gray-200" onclick="app.views.loadDetail(${p.id})">
                                 <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(p.url, 'det_rec.jpg', 'thumb')}" class="w-full h-full object-cover transition-transform duration-500">
                                 <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 via-black/40 to-transparent p-2 text-white flex flex-col justify-end">
                                     <div class="flex items-center justify-between">
