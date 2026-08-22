@@ -6818,9 +6818,9 @@ Object.assign(window.app, {
                     grid.style.opacity = '1';
                     grid.style.pointerEvents = 'auto';
                     grid.innerHTML = photos.map(p => {
-                        let footerStyleClasses = "absolute bottom-2 left-2 right-2 bg-white/90 text-gray-900 text-[10px] rounded-md px-1.5 h-[28px] flex items-center backdrop-blur-md shadow-sm font-medium transition-all duration-300";
-                        let cardStyleClasses = "profile-photo-item cursor-pointer group transition-all duration-300 relative shadow-md hover:-translate-y-1 hover:shadow-xl";
-                        let textHtml = `<span class="block truncate w-full">${app.utils.cleanText(app.utils.displayPlate(p.license_plate))}</span>`;
+                        let footerStyleClasses = "absolute bottom-2 left-2 bg-white/90 text-gray-900 text-[10px] rounded-md pl-1.5 pr-2.5 h-[28px] flex items-center backdrop-blur-md shadow-sm font-medium transition-all duration-300 max-w-[calc(100%-1rem)] inline-flex";
+                        let cardStyleClasses = "profile-photo-item cursor-pointer group relative bg-gray-100 rounded-md overflow-hidden border border-gray-200 shadow-sm hover:-translate-y-1 hover:shadow-lg transition-all duration-300";
+                        let textHtml = `<span class="block truncate">${app.utils.cleanText(app.utils.displayPlate(p.license_plate))}</span>`;
                         
                         if (app._isOwnProfile) {
                             let dotColor = '';
@@ -7130,9 +7130,9 @@ Object.assign(window.app, {
                     grid.innerHTML = likedData.map(item => {
                         const p = item.photos;
                         return `
-                        <div class="profile-photo-item cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-300" onclick="app.views.loadDetail(${p.id})">
+                        <div class="profile-photo-item cursor-pointer group relative bg-gray-100 rounded-md overflow-hidden border border-gray-200 shadow-sm hover:-translate-y-1 hover:shadow-lg transition-all duration-300" onclick="app.views.loadDetail(${p.id})">
                             <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(p.url, 'liked.jpg', 'thumb')}" class="w-full h-full object-cover">
-                            <div class="absolute bottom-2 left-2 right-2 bg-white/90 text-gray-900 text-[10px] rounded-md px-1.5 h-[28px] flex items-center backdrop-blur-md shadow-sm font-medium">
+                            <div class="absolute bottom-2 left-2 bg-white/90 text-gray-900 text-[10px] rounded-md px-2 h-[28px] flex items-center backdrop-blur-md shadow-sm font-medium max-w-[calc(100%-1rem)] inline-flex">
                                 <span class="truncate w-full">${app.utils.displayPlate(p.license_plate)} - ${p.operator || 'N/A'}</span>
                             </div>
                         </div>`
