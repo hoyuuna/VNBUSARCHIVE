@@ -10047,7 +10047,25 @@ Object.assign(window.app, {
                                 opEl.onclick = () => app.views.loadOperatorPage(opText);
                             }
                             
-                            const mdlText = (topPhoto.vehicles && topPhoto.vehicles.model) ? topPhoto.vehicles.model : '---';
+                            let modelCounts = {};
+                            let seenVehicles = new Set();
+                            app.route.routePhotos.forEach(p => {
+                                let lp = p.license_plate?.trim().toUpperCase();
+                                let model = p.vehicles?.model;
+                                if (lp && model && !seenVehicles.has(lp)) {
+                                    seenVehicles.add(lp);
+                                    modelCounts[model] = (modelCounts[model] || 0) + 1;
+                                }
+                            });
+                            let mostFrequentModel = null;
+                            let maxCount = 0;
+                            for (const [model, count] of Object.entries(modelCounts)) {
+                                if (count > maxCount) {
+                                    maxCount = count;
+                                    mostFrequentModel = model;
+                                }
+                            }
+                            const mdlText = mostFrequentModel ? mostFrequentModel : '---';
                             mdlEl.innerText = mdlText;
                             if (mdlText !== '---') {
                                 mdlEl.classList.remove('cursor-not-allowed', 'text-gray-700');
