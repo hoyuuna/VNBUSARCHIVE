@@ -3444,6 +3444,24 @@ app.admin.fetchManagerData('denied');
                                 if (error) throw error;
                             }
                         }
+                        else if (reqType === 'route_info' || req.new_data.request_type === 'update_route_info') {
+                            const isInactive = document.getElementById(`req-route-inactive-${id}`).checked;
+                            const shortPath = document.getElementById(`req-route-short-${id}`).value.trim();
+                            const desc = document.getElementById(`req-route-desc-${id}`).value.trim();
+                            
+                            if (!desc && !shortPath && !isInactive) {
+                                const { error: delErr } = await window.sb.from('route_info').delete().eq('route_name', req.new_data.route_name);
+                                if (delErr) throw delErr;
+                            } else {
+                                const { error: upsertErr } = await window.sb.from('route_info').upsert({
+                                    route_name: req.new_data.route_name,
+                                    short_path: shortPath || null,
+                                    description: desc || null,
+                                    is_inactive: isInactive
+                                });
+                                if (upsertErr) throw upsertErr;
+                            }
+                        }
                         else if (reqType === 'model_info' || req.new_data.request_type === 'update_model_info') {
                             const logo = document.getElementById(`req-mdl-logo-${id}`).value.trim();
                             const desc = document.getElementById(`req-mdl-desc-${id}`).value.trim();
