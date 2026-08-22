@@ -639,7 +639,7 @@ Object.assign(window.app, {
                     document.getElementById('my-stat-likes').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-gray-400"></i>';
                     document.getElementById('my-photos-grid').innerHTML = '<p class="text-xs text-gray-500 col-span-4 text-center py-10"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</p>';
                     document.getElementById('liked-photos-grid').innerHTML = '<p class="text-xs text-gray-500 col-span-4 text-center py-10"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</p>';
-                    document.getElementById('approval-rate-island').classList.add('hidden');
+
                     const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(targetUsername);
                     const queryCol = isUUID ? 'id' : 'username';
                     const { data: profile } = await window.sb.from('profiles').select('id, username, avatar_url, role, subroles, favorite_photo_id, created_at, ban_status, preferences').eq(queryCol, targetUsername).single();
@@ -834,27 +834,6 @@ Object.assign(window.app, {
                         document.getElementById('my-stat-photos').innerText = app.utils.formatCompact(stats[0].total_photos);
                         document.getElementById('my-stat-views').innerText = app.utils.formatCompact(stats[0].total_views);
                         document.getElementById('my-stat-likes').innerText = app.utils.formatCompact(stats[0].total_likes);
-                        const approvalIsland = document.getElementById('approval-rate-island');
-                        if (isOwnProfile && stats[0].total_photos > 0) {
-                            const { count: approvedCount, error: approvedError } = await window.sb.from('photos').select('*', { count: 'estimated', head: true }).eq('uploader_id', targetUserId).eq('status', 'approved');
-                            const { count: deniedCount, error: deniedError } = await window.sb.from('photos').select('*', { count: 'estimated', head: true }).eq('uploader_id', targetUserId).eq('status', 'denied');
-                            const processedCount = (approvedError || deniedError) ? 0 : ((approvedCount || 0) + (deniedCount || 0));
-                            if (processedCount > 0) {
-                                const rate = Math.round(((approvedCount || 0) / processedCount) * 100);
-                                const rateValueEl = document.getElementById('approval-rate-value');
-                                const gradientEl = document.getElementById('approval-gradient');
-                                rateValueEl.innerText = `${rate}%`;
-                                rateValueEl.classList.remove('text-green-600', 'text-red-600');
-                                gradientEl.classList.remove('from-green-100', 'from-red-100');
-                                if (rate >= 85) { rateValueEl.classList.add('text-green-600'); gradientEl.classList.add('from-green-100'); }
-                                else { rateValueEl.classList.add('text-red-600'); gradientEl.classList.add('from-red-100'); }
-                                approvalIsland.classList.remove('hidden');
-                            } else {
-                                approvalIsland.classList.add('hidden');
-                            }
-                        } else if (approvalIsland) {
-                            approvalIsland.classList.add('hidden');
-                        }
                     }
                     if (isOwnProfile) {
                         window.sb.from('photos')
