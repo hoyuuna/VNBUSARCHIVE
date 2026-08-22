@@ -1,4 +1,25 @@
 import { createClient } from '@supabase/supabase-js';
+function validateOriginAndReferer(request) {
+    const referer = request.headers.get('referer') || '';
+    const origin = request.headers.get('origin') || '';
+    const host = request.headers.get('host') || '';
+    const isProduction = host.includes('vnbusarchive.io.vn');
+    
+    if (!isProduction) return true;
+    if (!origin && !referer) return false;
+    
+    function checkDomain(str) {
+        if (!str) return false;
+        try {
+            const u = new URL(str);
+            return u.hostname === 'vnbusarchive.io.vn' || u.hostname.endsWith('.vnbusarchive.io.vn');
+        } catch (e) {
+            return false;
+        }
+    }
+    return checkDomain(origin) || checkDomain(referer);
+}
+
 
 export async function onRequest(context) {
     const { request, env } = context;
@@ -51,6 +72,9 @@ export async function onRequest(context) {
                 const { data: avatarOwner } = await supabaseAdmin.from('profiles').select('id').eq('avatar_url', imageUrl).maybeSingle();
                 if (avatarOwner && avatarOwner.id !== user.id) {
                     return new Response(JSON.stringify({ success: false, error: 'Bạn không có quyền xóa ảnh này.' }), { status: 403, headers: { 'Content-Type': 'application/json' } });
+                }
+                if (!avatarOwner) {
+                    return new Response(JSON.stringify({ success: false, error: 'File không hợp lệ hoặc bạn không có quyền xóa file này.' }), { status: 403, headers: { 'Content-Type': 'application/json' } });
                 }
             }
         }

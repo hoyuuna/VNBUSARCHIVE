@@ -1,4 +1,25 @@
 import { createClient } from '@supabase/supabase-js';
+function validateOriginAndReferer(request) {
+    const referer = request.headers.get('referer') || '';
+    const origin = request.headers.get('origin') || '';
+    const host = request.headers.get('host') || '';
+    const isProduction = host.includes('vnbusarchive.io.vn');
+    
+    if (!isProduction) return true;
+    if (!origin && !referer) return false;
+    
+    function checkDomain(str) {
+        if (!str) return false;
+        try {
+            const u = new URL(str);
+            return u.hostname === 'vnbusarchive.io.vn' || u.hostname.endsWith('.vnbusarchive.io.vn');
+        } catch (e) {
+            return false;
+        }
+    }
+    return checkDomain(origin) || checkDomain(referer);
+}
+
 
 export async function onRequestPost(context) {
     const { request, env } = context;
@@ -356,6 +377,7 @@ export async function onRequestPost(context) {
         });
         
     } catch (err) {
-        return new Response(JSON.stringify({ error: err.message }), { status: 500 });
+        console.error('[ADMIN ACTION ERROR]:', err.message);
+        return new Response(JSON.stringify({ error: 'Đã xảy ra lỗi hệ thống khi thực hiện thao tác duyệt ảnh.' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
     }
 }
