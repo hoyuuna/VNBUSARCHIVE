@@ -4135,6 +4135,17 @@ Object.assign(window.app, {
                                         `;
                                         hasExtraInfo = true;
                                     }
+                                    if (exactInfo.metadata.headway) {
+                                        extraInfoContainer.innerHTML += `
+                                            <div class="flex items-center gap-3 bg-white rounded-lg p-2.5 shadow-sm border border-gray-100">
+                                                <div class="w-7 h-7 rounded-full bg-yellow-100 text-yellow-600 flex items-center justify-center shrink-0">
+                                                    <i class="fa-solid fa-clock text-xs"></i>
+                                                </div>
+                                                <span class="text-xs font-bold text-gray-700">Giãn cách: ${app.utils.escapeHtml(exactInfo.metadata.headway)}</span>
+                                            </div>
+                                        `;
+                                        hasExtraInfo = true;
+                                    }
                                     if (exactInfo.metadata.wheelchair_support) {
                                         extraInfoContainer.innerHTML += `
                                             <div class="flex items-center gap-3 bg-white rounded-lg p-2.5 shadow-sm border border-gray-100">
@@ -4314,6 +4325,7 @@ Object.assign(window.app, {
                     document.getElementById('route-edit-short-path').value = '';
                     document.getElementById('route-edit-desc').value = '';
                     document.getElementById('route-edit-ticket-price').value = '';
+                    document.getElementById('route-edit-headway').value = '';
                     document.getElementById('route-edit-wheelchair').checked = false;
                     if (app.role === 'admin' || app.role === 'manager') {
                         btnSave.innerText = "Lưu thông tin";
@@ -4331,6 +4343,7 @@ Object.assign(window.app, {
                             document.getElementById('route-edit-desc').value = exactInfo.description || '';
                             if (exactInfo.metadata) {
                                 document.getElementById('route-edit-ticket-price').value = exactInfo.metadata.ticket_price || '';
+                                document.getElementById('route-edit-headway').value = exactInfo.metadata.headway || '';
                                 document.getElementById('route-edit-wheelchair').checked = exactInfo.metadata.wheelchair_support || false;
                             }
                         }
@@ -4358,10 +4371,12 @@ Object.assign(window.app, {
                     const shortPath = document.getElementById('route-edit-short-path').value.trim();
                     const isInactive = document.getElementById('route-edit-inactive').checked;
                     const ticketPrice = document.getElementById('route-edit-ticket-price').value.trim();
+                    const headway = document.getElementById('route-edit-headway').value.trim();
                     const wheelchairSupport = document.getElementById('route-edit-wheelchair').checked;
                     
                     let metadata = {};
                     if (ticketPrice) metadata.ticket_price = ticketPrice;
+                    if (headway) metadata.headway = headway;
                     if (wheelchairSupport) metadata.wheelchair_support = wheelchairSupport;
                     const metadataObj = Object.keys(metadata).length > 0 ? metadata : null;
                     
