@@ -9999,6 +9999,14 @@ Object.assign(window.app, {
                         if (error) throw error;
                         
                         app.route.routePhotos = photos || [];
+                        if (app.route.routePhotos.length > 0) {
+                            const topPhoto = app.route.routePhotos[0];
+                            document.getElementById('route-info-operator').value = topPhoto.operator || '---';
+                            document.getElementById('route-info-model').value = (topPhoto.vehicles && topPhoto.vehicles.model) ? topPhoto.vehicles.model : '---';
+                        } else {
+                            document.getElementById('route-info-operator').value = '---';
+                            document.getElementById('route-info-model').value = '---';
+                        }
                         app.route.totalCount = app.route.routePhotos.length;
                         app.route.totalPages = Math.ceil(app.route.totalCount / app.route.ROUTE_PAGE_SIZE);
                         
