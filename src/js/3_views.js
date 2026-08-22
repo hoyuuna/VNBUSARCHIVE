@@ -1000,18 +1000,22 @@ Object.assign(window.app, {
                     grid.style.opacity = '1';
                     grid.style.pointerEvents = 'auto';
                     grid.innerHTML = photos.map(p => {
-                        let cardStyleClasses = "profile-photo-item cursor-pointer group transition-all duration-300 relative hover:-translate-y-1 hover:shadow-lg";
+                        let footerStyleClasses = "absolute bottom-2 left-2 right-2 text-gray-900 text-[10px] rounded-md p-1.5 backdrop-blur-md shadow-sm font-medium transition-all duration-300 bg-white/90";
+                        let cardStyleClasses = "profile-photo-item cursor-pointer group transition-all duration-300 relative";
                         let textHtml = `<span class="block truncate">${app.utils.cleanText(app.utils.displayPlate(p.license_plate))}</span>`;
                         if (app._isOwnProfile) {
                             if (p.status === 'approved') {
-                                cardStyleClasses += " !border-2 !border-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)] hover:shadow-[0_0_14px_rgba(34,197,94,0.8)] hover:z-10";
+                                cardStyleClasses += " hover:z-10";
+                                footerStyleClasses = "absolute bottom-2 left-2 right-2 text-green-900 text-[10px] rounded-md p-1.5 backdrop-blur-md shadow-sm border border-green-200/50 font-medium transition-all duration-300 bg-gradient-to-r from-green-100/90 to-white/90";
                                 textHtml = `<span class="block truncate font-bold">${app.utils.cleanText(app.utils.displayPlate(p.license_plate))}</span>`;
                             } else if (p.status === 'pending') {
-                                cardStyleClasses += " !border-2 !border-[#f58e27] shadow-[0_0_8px_rgba(245,142,39,0.5)] hover:shadow-[0_0_14px_rgba(245,142,39,0.8)] hover:z-10";
+                                cardStyleClasses += " hover:z-10";
+                                footerStyleClasses = "absolute bottom-2 left-2 right-2 text-orange-900 text-[10px] rounded-md p-1.5 backdrop-blur-md shadow-sm border border-orange-200/50 font-medium transition-all duration-300 bg-gradient-to-r from-orange-100/90 to-white/90";
                                 const prog = p.review_progress || '0/2';
                                 textHtml = `<span class="block truncate group-hover:hidden">${app.utils.cleanText(app.utils.displayPlate(p.license_plate))}</span><span class="hidden truncate group-hover:block font-bold tracking-wide" title="Ảnh của bạn đã được ${prog} người duyệt">Đang chờ duyệt... (${prog})</span>`;
                             } else if (p.status === 'denied') {
-                                cardStyleClasses += " !border-2 !border-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)] hover:shadow-[0_0_14px_rgba(239,68,68,0.8)] hover:z-10";
+                                cardStyleClasses += " hover:z-10";
+                                footerStyleClasses = "absolute bottom-2 left-2 right-2 text-red-900 text-[10px] rounded-md p-1.5 backdrop-blur-md shadow-sm border border-red-200/50 font-medium transition-all duration-300 bg-gradient-to-r from-red-100/90 to-white/90";
                                 textHtml = `<span class="block truncate group-hover:hidden">${app.utils.cleanText(app.utils.displayPlate(p.license_plate))}</span><span class="hidden truncate group-hover:block font-bold tracking-wide">Đã bị từ chối</span>`;
                             }
                         }
@@ -1024,7 +1028,7 @@ Object.assign(window.app, {
                                         <span class="font-bold text-xs tracking-wider">${app.utils.cleanText(app.utils.displayPlate(p.license_plate))}</span>
                                         <span class="text-[10px] text-gray-200 mt-0.5">Ảnh đã bị xóa</span>
                                     </div>
-                                    <div class="absolute bottom-2 left-2 right-2 bg-white/90 text-gray-900 text-[10px] rounded-md p-1.5 backdrop-blur-md shadow-sm font-medium transition-all duration-300">
+                                    <div class="${footerStyleClasses}">
                                         ${textHtml}
                                     </div>
                                 </div>
@@ -1037,7 +1041,7 @@ Object.assign(window.app, {
                                         <span class="font-bold text-xs tracking-wider">${app.utils.cleanText(app.utils.displayPlate(p.license_plate))}</span>
                                         <span class="text-[10px] text-gray-200 mt-0.5">Ảnh không khả dụng</span>
                                     </div>
-                                    <div class="absolute bottom-2 left-2 right-2 bg-white/90 text-gray-900 text-[10px] rounded-md p-1.5 backdrop-blur-md shadow-sm font-medium transition-all duration-300">
+                                    <div class="${footerStyleClasses}">
                                         ${textHtml}
                                     </div>
                                 </div>
@@ -1046,7 +1050,7 @@ Object.assign(window.app, {
                         return `
                             <div class="${cardStyleClasses}" onclick="app.views.loadDetail('${p.id}')">
                                 <img loading="lazy" decoding="async" src="${proxyUrl}" class="w-full h-full object-cover">
-                                <div class="absolute bottom-2 left-2 right-2 bg-white/90 text-gray-900 text-[10px] rounded-md p-1.5 backdrop-blur-md shadow-sm font-medium transition-all duration-300">
+                                <div class="${footerStyleClasses}">
                                     ${textHtml}
                                 </div>
                             </div>
@@ -1107,7 +1111,7 @@ Object.assign(window.app, {
                         'update_model_info': 'sửa thông tin dòng xe'
                     };
                     grid.innerHTML = requests.map(req => {
-                        let cardStyleClasses = "cursor-pointer transition-all duration-300 relative flex flex-col items-start justify-center p-3 text-left bg-white rounded-xl border-2";
+                        let cardStyleClasses = "cursor-pointer transition-all duration-300 relative flex flex-col items-start justify-center p-3 text-left bg-gradient-to-r to-white rounded-xl border border-gray-200 shadow-sm hover:-translate-y-1 hover:shadow-md";
                         let typeText = reqTypeMap[req.new_data?.request_type] || 'khác';
                         let contextText = '';
                         if (req.new_data?.request_type === 'delete_photo' && req.new_data?.photo_id) {
@@ -1120,11 +1124,11 @@ Object.assign(window.app, {
                             contextText = req.new_data.model_name;
                         }
                         if (req.status === 'approved') {
-                            cardStyleClasses += " border-green-500 shadow-[0_0_8px_rgba(34,197,94,0.2)] hover:shadow-[0_0_14px_rgba(34,197,94,0.4)] hover:-translate-y-0.5";
+                            cardStyleClasses += " from-green-50/80 hover:from-green-100/80 border-green-200/50";
                         } else if (req.status === 'pending') {
-                            cardStyleClasses += " border-[#f58e27] shadow-[0_0_8px_rgba(245,142,39,0.2)] hover:shadow-[0_0_14px_rgba(245,142,39,0.4)] hover:-translate-y-0.5";
+                            cardStyleClasses += " from-orange-50/80 hover:from-orange-100/80 border-orange-200/50";
                         } else if (req.status === 'denied' || req.status === 'rejected') {
-                            cardStyleClasses += " border-red-500 shadow-[0_0_8px_rgba(239,68,68,0.2)] hover:shadow-[0_0_14px_rgba(239,68,68,0.4)] hover:-translate-y-0.5";
+                            cardStyleClasses += " from-red-50/80 hover:from-red-100/80 border-red-200/50";
                         }
                         if (!app.views._requestsCache) app.views._requestsCache = {};
                         app.views._requestsCache[req.id] = req;
