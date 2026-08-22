@@ -4118,19 +4118,27 @@ Object.assign(window.app, {
                     
                     try {
                         const routeName = decodedProvince ? `${decodedRoute} - ${decodedProvince}` : decodedRoute;
-                        const { data: exactInfo } = await window.sb.from('route_info').select('logo_url, description').eq('route_name', routeName).maybeSingle();
+                        const { data: exactInfo } = await window.sb.from('route_info').select('description, short_path, is_inactive').eq('route_name', routeName).maybeSingle();
 
                         let titleText = decodedRoute;
                         let inactiveBadge = '';
-                        if (exactInfo && exactInfo.description) {
-                            let desc = exactInfo.description;
-                            if (desc.startsWith('[STOPPED]')) {
+                        if (exactInfo) {
+                            if (exactInfo.is_inactive) {
                                 inactiveBadge = '<span class="bg-black text-white text-[10px] px-2 py-0.5 rounded font-bold border border-black shrink-0 uppercase tracking-widest ml-2">Dừng hoạt động</span>';
-                                desc = desc.replace(/^\[STOPPED\]\s*/, '');
                             }
-                            if (desc) {
-                                titleText = `${decodedRoute} (${desc})`;
+                            if (exactInfo.short_path) {
+                                titleText = `${decodedRoute} (${exactInfo.short_path})`;
                             }
+                            const descEl = document.getElementById('route-desc');
+                            if (exactInfo.description) {
+                                descEl.innerHTML = app.utils.cleanText(exactInfo.description).replace(/\n/g, '<br>');
+                                descEl.classList.remove('hidden');
+                            } else {
+                                descEl.classList.add('hidden');
+                            }
+                        } else {
+                            const descEl = document.getElementById('route-desc');
+                            if(descEl) descEl.classList.add('hidden');
                         }
                         document.getElementById('route-profile-title').innerHTML = app.utils.escapeHtml(titleText) + inactiveBadge;
                     } catch (e) {
@@ -4190,6 +4198,7 @@ Object.assign(window.app, {
                     const btnSave = document.getElementById('btn-save-route');
                     const warningText = content.querySelector('p.text-xs');
                     document.getElementById('route-edit-inactive').checked = false;
+                    document.getElementById('route-edit-short-path').value = '';
                     document.getElementById('route-edit-desc').value = '';
                     if (app.role === 'admin' || app.role === 'manager') {
                         btnSave.innerText = "Lưu thông tin";
@@ -4200,14 +4209,11 @@ Object.assign(window.app, {
                     }
                     try {
                         const routeName = app.route.currentProvince ? `${app.route.currentRoute} - ${app.route.currentProvince}` : app.route.currentRoute;
-                        const { data: exactInfo } = await window.sb.from('route_info').select('logo_url, description').eq('route_name', routeName).maybeSingle();
+                        const { data: exactInfo } = await window.sb.from('route_info').select('description, short_path, is_inactive').eq('route_name', routeName).maybeSingle();
                         if (exactInfo) {
-                            let desc = exactInfo.description || '';
-                            if (desc.startsWith('[STOPPED]')) {
-                                document.getElementById('route-edit-inactive').checked = true;
-                                desc = desc.replace(/^\[STOPPED\]\s*/, '');
-                            }
-                            document.getElementById('route-edit-desc').value = desc;
+                            document.getElementById('route-edit-inactive').checked = exactInfo.is_inactive || false;
+                            document.getElementById('route-edit-short-path').value = exactInfo.short_path || '';
+                            document.getElementById('route-edit-desc').value = exactInfo.description || '';
                         }
                     } catch(e) {}
                     modal.classList.remove('hidden');
@@ -4229,11 +4235,9 @@ Object.assign(window.app, {
                 },
                 submitEdit: async () => {
                     if (!app.user) return;
-                    let desc = document.getElementById('route-edit-desc').value.trim();
-                    if (document.getElementById('route-edit-inactive').checked) {
-                        desc = '[STOPPED] ' + desc;
-                        desc = desc.trim();
-                    }
+                    const desc = document.getElementById('route-edit-desc').value.trim();
+                    const shortPath = document.getElementById('route-edit-short-path').value.trim();
+                    const isInactive = document.getElementById('route-edit-inactive').checked;
                     const btn = document.getElementById('btn-save-route');
                     
                     const executeSave = async () => {

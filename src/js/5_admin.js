@@ -1382,13 +1382,23 @@ Object.assign(window.app, {
                                             <p class="mb-2 text-xs font-bold text-gray-500">Thông tin gốc (Hiện tại):</p>
                                             <div class="space-y-1 mb-4 text-xs opacity-75 border p-2 rounded bg-gray-50">
                                                 
+                                                <div><span class="font-bold">Trạng thái:</span> ${curRoute.is_inactive ? '<span class="text-red-500 font-bold">Dừng hoạt động</span>' : 'Đang hoạt động'}</div>
+                                                <div><span class="font-bold">Lộ trình (Rút gọn):</span> ${app.utils.escapeAttr(curRoute.short_path || '-')}</div>
                                                 <div><span class="font-bold">Mô tả:</span> ${app.utils.escapeAttr(curRoute.description || '-')}</div>
                                             </div>
                                             <p class="mb-2 font-bold text-red-500">[MỚI] Yêu cầu cập nhật thành:</p>
                                             
+                                            <div class="mb-2 flex items-center justify-between bg-white border border-gray-300 rounded p-2">
+                                                <span class="text-xs font-bold text-gray-700">Dừng hoạt động ${d.is_inactive !== curRoute.is_inactive ? '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>' : ''}</span>
+                                                <input type="checkbox" id="req-route-inactive-${r.id}" ${d.is_inactive ? 'checked' : ''} class="w-4 h-4 cursor-pointer">
+                                            </div>
                                             <div class="mb-2">
-                                                <span class="admin-label">Lộ trình Tuyến ${d.description !== curRoute.description ? '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>' : ''}</span>
-                                                <textarea id="req-route-desc-${r.id}" class="admin-input" rows="4">${app.utils.escapeAttr(d.description || '')}</textarea>
+                                                <span class="admin-label">Lộ trình (Rút gọn) ${d.short_path !== curRoute.short_path ? '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>' : ''}</span>
+                                                <input type="text" id="req-route-short-${r.id}" class="admin-input" value="${app.utils.escapeAttr(d.short_path || '')}">
+                                            </div>
+                                            <div class="mb-2">
+                                                <span class="admin-label">Mô tả chi tiết ${d.description !== curRoute.description ? '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>' : ''}</span>
+                                                <textarea id="req-route-desc-${r.id}" class="admin-input" rows="3">${app.utils.escapeAttr(d.description || '')}</textarea>
                                             </div>
                                             <div class="flex gap-2 mt-3">
                                                 <button onclick="app.admin.approveReq('${r.id}', this, 'route_info')" class="flex-1 bg-green-600 text-white py-1.5 font-bold rounded hover:bg-green-700">DUYỆT</button>

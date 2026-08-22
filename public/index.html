@@ -5335,10 +5335,9 @@ div[id$="-modal"] > div > * {
                         <div class="overflow-hidden min-w-0 flex-1">
                             <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-widest font-bold mb-1" id="route-province-label">Tuyến xe</p>
                             <h2 id="route-profile-title" class="text-xl md:text-2xl font-black uppercase text-black tracking-tight leading-tight overflow-x-auto whitespace-nowrap no-scrollbar block w-full flex items-center gap-2">...</h2>
-                        </div>
+                                                </div>
                     </div>
-                    
-                    <!-- Khung mô tả -->
+                    <div id="route-desc" class="text-sm text-gray-700 mb-5 whitespace-pre-wrap leading-relaxed hidden bg-gray-50 p-4 rounded-xl border border-gray-100 shadow-inner"></div>            <!-- Khung mô tả -->
                     
 
                     
@@ -6447,7 +6446,7 @@ div[id$="-modal"] > div > * {
                 <button onclick="app.route.closeEditPrompt()" class="text-gray-400 hover:text-red-500 transition text-xl px-2"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="p-5 bg-transparent space-y-4">
-                <p class="text-xs text-gray-600 font-medium leading-relaxed">Thông tin này sẽ được kiểm duyệt bởi Admin. Việc để trống ô sẽ làm mới và xóa thông tin hiện tại.</p>
+                <p class="text-xs text-gray-600 font-medium leading-relaxed">Thông tin này sẽ được kiểm duyệt bởi Admin.</p>
                 
                 <div>
                     <div class="flex items-center justify-between bg-white/60 border border-gray-300/80 rounded-xl p-3 shadow-inner hover:bg-gray-50 transition-all">
@@ -6460,8 +6459,13 @@ div[id$="-modal"] > div > * {
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Lộ trình ngắn gọn</label>
-                    <textarea id="route-edit-desc" rows="2" class="w-full bg-white/60 border border-gray-300/80 rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all shadow-inner resize-none custom-scrollbar text-black" placeholder="VD: Long Biên - Giáp Bát"></textarea>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Lộ trình ngắn gọn (Rút gọn)</label>
+                    <input type="text" id="route-edit-short-path" class="w-full bg-white/60 border border-gray-300/80 rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all shadow-inner text-black" placeholder="VD: Long Biên - Giáp Bát">
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Mô tả chi tiết</label>
+                    <textarea id="route-edit-desc" rows="3" class="w-full bg-white/60 border border-gray-300/80 rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all shadow-inner resize-none custom-scrollbar text-black" placeholder="Cung cấp thông tin về Lộ trình, Giá vé..."></textarea>
                 </div>
             </div>
             <div class="bg-gray-50/30 px-5 py-4 flex gap-3">
@@ -6692,6 +6696,6 @@ div[id$="-modal"] > div > * {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed top-24 left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.js?v=1787409558250"></script>
+<script src="/app.js?v=1787410332171"></script>
 </body>
 </html>
