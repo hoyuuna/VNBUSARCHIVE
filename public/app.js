@@ -2645,18 +2645,23 @@ Object.assign(window.app, {
                                 app.utils.navigate(`/operator/${encodeURIComponent(this.value)}`);
                             }
                             else if (id === 'info-route') {
-                                let provName = '';
-                                const inputProv = document.getElementById('info-province')?.value;
-                                if (inputProv && inputProv !== '---' && inputProv !== 'Không xác định') {
-                                    provName = inputProv;
+                                const typeVal = document.getElementById('info-type')?.value;
+                                if (typeVal === 'coach') {
+                                    app.searchRedirect(this.value, fieldMap[id]);
                                 } else {
-                                    const plateValue = document.getElementById('info-plate')?.value;
-                                    if (plateValue) provName = app.utils.getProvinceFromPlate(plateValue);
-                                }
-                                if (provName && provName !== 'Không xác định' && provName !== 'Biển tạm') {
-                                    app.utils.navigate(`/route/${encodeURIComponent(provName)}/${encodeURIComponent(this.value)}`);
-                                } else {
-                                    app.utils.navigate(`/route/${encodeURIComponent(this.value)}`);
+                                    let provName = '';
+                                    const inputProv = document.getElementById('info-province')?.value;
+                                    if (inputProv && inputProv !== '---' && inputProv !== 'Không xác định') {
+                                        provName = inputProv;
+                                    } else {
+                                        const plateValue = document.getElementById('info-plate')?.value;
+                                        if (plateValue) provName = app.utils.getProvinceFromPlate(plateValue);
+                                    }
+                                    if (provName && provName !== 'Không xác định' && provName !== 'Biển tạm') {
+                                        app.utils.navigate(`/route/${encodeURIComponent(provName)}/${encodeURIComponent(this.value)}`);
+                                    } else {
+                                        app.utils.navigate(`/route/${encodeURIComponent(this.value)}`);
+                                    }
                                 }
                             }
                             else {
@@ -7991,7 +7996,7 @@ Object.assign(window.app, {
                                                 <td class="label bg-gray-50 border-r border-b border-gray-200">${isCoach ? 'Lộ trình' : 'Mã số tuyến'} hiện tại</td>
                                                 <td class="value-cell border-b border-gray-200">
                                                     <div class="relative w-full h-full">
-                                                        <input type="text" id="vehicle-edit-route" value="${currentRouteClientSide}" autocomplete="off" class="info-input text-gray-700 w-full ${currentRouteClientSide ? 'clickable-search' : 'cursor-not-allowed'}" readonly ${currentRouteClientSide ? `onclick="if(this.readOnly && this.value && this.value!=='---') app.utils.navigate('${vehPrefix}' ? '/route/' + encodeURIComponent('${vehPrefix}') + '/' + encodeURIComponent(this.value) : '/route/' + encodeURIComponent(this.value))"` : ''} onfocus="if(!this.readOnly) app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', '')" oninput="app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', this.value)">
+                                                        <input type="text" id="vehicle-edit-route" value="${currentRouteClientSide}" autocomplete="off" class="info-input text-gray-700 w-full ${currentRouteClientSide ? 'clickable-search' : 'cursor-not-allowed'}" readonly ${currentRouteClientSide ? `onclick="if(this.readOnly && this.value && this.value!=='---') { if (${isCoach}) { app.searchRedirect(this.value, 'route'); } else { app.utils.navigate('${vehPrefix}' ? '/route/' + encodeURIComponent('${vehPrefix}') + '/' + encodeURIComponent(this.value) : '/route/' + encodeURIComponent(this.value)); } }"` : ''} onfocus="if(!this.readOnly) app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', '')" oninput="app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', this.value)">
                                                         <div id="veh-sug-route" class="suggestion-box"></div>
                                                     </div>
                                                 </td>

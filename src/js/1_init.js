@@ -2643,18 +2643,23 @@ Object.assign(window.app, {
                                 app.utils.navigate(`/operator/${encodeURIComponent(this.value)}`);
                             }
                             else if (id === 'info-route') {
-                                let provName = '';
-                                const inputProv = document.getElementById('info-province')?.value;
-                                if (inputProv && inputProv !== '---' && inputProv !== 'Không xác định') {
-                                    provName = inputProv;
+                                const typeVal = document.getElementById('info-type')?.value;
+                                if (typeVal === 'coach') {
+                                    app.searchRedirect(this.value, fieldMap[id]);
                                 } else {
-                                    const plateValue = document.getElementById('info-plate')?.value;
-                                    if (plateValue) provName = app.utils.getProvinceFromPlate(plateValue);
-                                }
-                                if (provName && provName !== 'Không xác định' && provName !== 'Biển tạm') {
-                                    app.utils.navigate(`/route/${encodeURIComponent(provName)}/${encodeURIComponent(this.value)}`);
-                                } else {
-                                    app.utils.navigate(`/route/${encodeURIComponent(this.value)}`);
+                                    let provName = '';
+                                    const inputProv = document.getElementById('info-province')?.value;
+                                    if (inputProv && inputProv !== '---' && inputProv !== 'Không xác định') {
+                                        provName = inputProv;
+                                    } else {
+                                        const plateValue = document.getElementById('info-plate')?.value;
+                                        if (plateValue) provName = app.utils.getProvinceFromPlate(plateValue);
+                                    }
+                                    if (provName && provName !== 'Không xác định' && provName !== 'Biển tạm') {
+                                        app.utils.navigate(`/route/${encodeURIComponent(provName)}/${encodeURIComponent(this.value)}`);
+                                    } else {
+                                        app.utils.navigate(`/route/${encodeURIComponent(this.value)}`);
+                                    }
                                 }
                             }
                             else {
