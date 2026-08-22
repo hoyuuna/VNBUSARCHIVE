@@ -6839,19 +6839,19 @@ Object.assign(window.app, {
                     grid.style.opacity = '1';
                     grid.style.pointerEvents = 'auto';
                     grid.innerHTML = photos.map(p => {
-                        let cardStyleClasses = "profile-photo-item cursor-pointer group transition-all duration-300 relative";
+                        let cardStyleClasses = "profile-photo-item cursor-pointer group transition-all duration-300 relative hover:-translate-y-1 hover:shadow-lg";
                         let textHtml = `<span class="block truncate">${app.utils.cleanText(app.utils.displayPlate(p.license_plate))}</span>`;
                         if (app._isOwnProfile) {
                             if (p.status === 'approved') {
                                 cardStyleClasses += " !border-2 !border-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)] hover:shadow-[0_0_14px_rgba(34,197,94,0.8)] hover:z-10";
-                                textHtml = `<span class="block truncate font-bold drop-shadow-md">${app.utils.cleanText(app.utils.displayPlate(p.license_plate))}</span>`;
+                                textHtml = `<span class="block truncate font-bold">${app.utils.cleanText(app.utils.displayPlate(p.license_plate))}</span>`;
                             } else if (p.status === 'pending') {
                                 cardStyleClasses += " !border-2 !border-[#f58e27] shadow-[0_0_8px_rgba(245,142,39,0.5)] hover:shadow-[0_0_14px_rgba(245,142,39,0.8)] hover:z-10";
                                 const prog = p.review_progress || '0/2';
-                                textHtml = `<span class="block truncate group-hover:hidden">${app.utils.cleanText(app.utils.displayPlate(p.license_plate))}</span><span class="hidden truncate group-hover:block font-bold drop-shadow-md tracking-wide" title="Ảnh của bạn đã được ${prog} người duyệt">Đang chờ duyệt... (${prog})</span>`;
+                                textHtml = `<span class="block truncate group-hover:hidden">${app.utils.cleanText(app.utils.displayPlate(p.license_plate))}</span><span class="hidden truncate group-hover:block font-bold tracking-wide" title="Ảnh của bạn đã được ${prog} người duyệt">Đang chờ duyệt... (${prog})</span>`;
                             } else if (p.status === 'denied') {
                                 cardStyleClasses += " !border-2 !border-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)] hover:shadow-[0_0_14px_rgba(239,68,68,0.8)] hover:z-10";
-                                textHtml = `<span class="block truncate group-hover:hidden">${app.utils.cleanText(app.utils.displayPlate(p.license_plate))}</span><span class="hidden truncate group-hover:block font-bold drop-shadow-md tracking-wide">Đã bị từ chối</span>`;
+                                textHtml = `<span class="block truncate group-hover:hidden">${app.utils.cleanText(app.utils.displayPlate(p.license_plate))}</span><span class="hidden truncate group-hover:block font-bold tracking-wide">Đã bị từ chối</span>`;
                             }
                         }
                         const proxyUrl = app.utils.getProxiedUrl(p.url, 'profile.jpg', 'thumb');
@@ -6863,7 +6863,7 @@ Object.assign(window.app, {
                                         <span class="font-bold text-xs tracking-wider">${app.utils.cleanText(app.utils.displayPlate(p.license_plate))}</span>
                                         <span class="text-[10px] text-gray-200 mt-0.5">Ảnh đã bị xóa</span>
                                     </div>
-                                    <div class="absolute bottom-0 left-0 bg-black/70 text-white text-[10px] w-full p-1.5 backdrop-blur-sm transition-all duration-300">
+                                    <div class="absolute bottom-2 left-2 right-2 bg-white/90 text-gray-900 text-[10px] rounded-md p-1.5 backdrop-blur-md shadow-sm font-medium transition-all duration-300">
                                         ${textHtml}
                                     </div>
                                 </div>
@@ -6876,7 +6876,7 @@ Object.assign(window.app, {
                                         <span class="font-bold text-xs tracking-wider">${app.utils.cleanText(app.utils.displayPlate(p.license_plate))}</span>
                                         <span class="text-[10px] text-gray-200 mt-0.5">Ảnh không khả dụng</span>
                                     </div>
-                                    <div class="absolute bottom-0 left-0 bg-black/70 text-white text-[10px] w-full p-1.5 backdrop-blur-sm transition-all duration-300">
+                                    <div class="absolute bottom-2 left-2 right-2 bg-white/90 text-gray-900 text-[10px] rounded-md p-1.5 backdrop-blur-md shadow-sm font-medium transition-all duration-300">
                                         ${textHtml}
                                     </div>
                                 </div>
@@ -6885,7 +6885,7 @@ Object.assign(window.app, {
                         return `
                             <div class="${cardStyleClasses}" onclick="app.views.loadDetail('${p.id}')">
                                 <img loading="lazy" decoding="async" src="${proxyUrl}" class="w-full h-full object-cover">
-                                <div class="absolute bottom-0 left-0 bg-black/70 text-white text-[10px] w-full p-1.5 backdrop-blur-sm transition-all duration-300">
+                                <div class="absolute bottom-2 left-2 right-2 bg-white/90 text-gray-900 text-[10px] rounded-md p-1.5 backdrop-blur-md shadow-sm font-medium transition-all duration-300">
                                     ${textHtml}
                                 </div>
                             </div>
