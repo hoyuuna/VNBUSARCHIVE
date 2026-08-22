@@ -1385,6 +1385,8 @@ Object.assign(window.app, {
                                                 <div><span class="font-bold">Trạng thái:</span> ${curRoute.is_inactive ? '<span class="text-red-500 font-bold">Dừng hoạt động</span>' : 'Đang hoạt động'}</div>
                                                 <div><span class="font-bold">Lộ trình (Rút gọn):</span> ${app.utils.escapeAttr(curRoute.short_path || '-')}</div>
                                                 <div><span class="font-bold">Mô tả:</span> ${app.utils.escapeAttr(curRoute.description || '-')}</div>
+                                                <div><span class="font-bold">Giá vé:</span> ${app.utils.escapeAttr(curRoute.metadata?.ticket_price || '-')}</div>
+                                                <div><span class="font-bold">Xe lăn:</span> ${curRoute.metadata?.wheelchair_support ? 'Có' : 'Không'}</div>
                                             </div>
                                             <p class="mb-2 font-bold text-red-500">[MỚI] Yêu cầu cập nhật thành:</p>
                                             
@@ -1399,6 +1401,14 @@ Object.assign(window.app, {
                                             <div class="mb-2">
                                                 <span class="admin-label">Mô tả chi tiết ${d.description !== curRoute.description ? '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>' : ''}</span>
                                                 <textarea id="req-route-desc-${r.id}" class="admin-input" rows="3">${app.utils.escapeAttr(d.description || '')}</textarea>
+                                            </div>
+                                            <div class="mb-2">
+                                                <span class="admin-label">Giá vé ${d.metadata?.ticket_price !== curRoute.metadata?.ticket_price ? '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>' : ''}</span>
+                                                <input type="text" id="req-route-ticket-${r.id}" class="admin-input" value="${app.utils.escapeAttr(d.metadata?.ticket_price || '')}">
+                                            </div>
+                                            <div class="mb-2 flex items-center justify-between bg-white border border-gray-300 rounded p-2">
+                                                <span class="text-xs font-bold text-gray-700">Có hỗ trợ xe lăn ${d.metadata?.wheelchair_support !== curRoute.metadata?.wheelchair_support ? '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>' : ''}</span>
+                                                <input type="checkbox" id="req-route-wheelchair-${r.id}" ${d.metadata?.wheelchair_support ? 'checked' : ''} class="w-4 h-4 cursor-pointer">
                                             </div>
                                             <div class="flex gap-2 mt-3">
                                                 <button onclick="app.admin.approveReq('${r.id}', this, 'route_info')" class="flex-1 bg-green-600 text-white py-1.5 font-bold rounded hover:bg-green-700">DUYỆT</button>
@@ -3448,8 +3458,15 @@ app.admin.fetchManagerData('denied');
                             const isInactive = document.getElementById(`req-route-inactive-${id}`).checked;
                             const shortPath = document.getElementById(`req-route-short-${id}`).value.trim();
                             const desc = document.getElementById(`req-route-desc-${id}`).value.trim();
+                            const ticketPrice = document.getElementById(`req-route-ticket-${id}`).value.trim();
+                            const wheelchairSupport = document.getElementById(`req-route-wheelchair-${id}`).checked;
                             
-                            if (!desc && !shortPath && !isInactive) {
+                            let metadata = {};
+                            if (ticketPrice) metadata.ticket_price = ticketPrice;
+                            if (wheelchairSupport) metadata.wheelchair_support = wheelchairSupport;
+                            const metadataObj = Object.keys(metadata).length > 0 ? metadata : null;
+                            
+                            if (!desc && !shortPath && !isInactive && !metadataObj) {
                                 const { error: delErr } = await window.sb.from('route_info').delete().eq('route_name', req.new_data.route_name);
                                 if (delErr) throw delErr;
                             } else {
@@ -3457,7 +3474,8 @@ app.admin.fetchManagerData('denied');
                                     route_name: req.new_data.route_name,
                                     short_path: shortPath || null,
                                     description: desc || null,
-                                    is_inactive: isInactive
+                                    is_inactive: isInactive,
+                                    metadata: metadataObj
                                 });
                                 if (upsertErr) throw upsertErr;
                             }

@@ -5359,6 +5359,7 @@ div[id$="-modal"] > div > * {
                                 </tr>
                             </table>
                         </div>
+                        <div id="route-extra-info" class="flex flex-col gap-2 mt-3 hidden"></div>
                     </div>
 
                     <div class="mb-6">
@@ -6465,7 +6466,22 @@ div[id$="-modal"] > div > * {
                 
                 <div>
                     <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Mô tả chi tiết</label>
-                    <textarea id="route-edit-desc" rows="3" class="w-full bg-white/60 border border-gray-300/80 rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all shadow-inner resize-none custom-scrollbar text-black" placeholder="Cung cấp thông tin về Lộ trình, Giá vé..."></textarea>
+                    <textarea id="route-edit-desc" rows="3" class="w-full bg-white/60 border border-gray-300/80 rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all shadow-inner resize-none custom-scrollbar text-black" placeholder="Cung cấp thông tin về Lộ trình..."></textarea>
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Giá vé</label>
+                    <input type="text" id="route-edit-ticket-price" class="w-full bg-white/60 border border-gray-300/80 rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all shadow-inner text-black" placeholder="VD: 9.000đ / lượt">
+                </div>
+                
+                <div>
+                    <div class="flex items-center justify-between bg-white/60 border border-gray-300/80 rounded-xl p-3 shadow-inner hover:bg-gray-50 transition-all">
+                        <span class="text-sm font-bold text-gray-700">Có hỗ trợ xe lăn</span>
+                        <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-4 self-center">
+                            <input type="checkbox" id="route-edit-wheelchair" class="sr-only peer">
+                            <div class="w-11 h-6 bg-black rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all shadow-inner"></div>
+                        </label>
+                    </div>
                 </div>
             </div>
             <div class="bg-gray-50/30 px-5 py-4 flex gap-3">
@@ -6696,6 +6712,6 @@ div[id$="-modal"] > div > * {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed top-24 left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.js?v=1787411678299"></script>
+<script src="/app.js?v=1787412302572"></script>
 </body>
 </html>

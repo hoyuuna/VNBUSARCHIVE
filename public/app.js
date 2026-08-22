@@ -9952,7 +9952,7 @@ Object.assign(window.app, {
                     
                     try {
                         const routeName = decodedProvince ? `${decodedRoute} - ${decodedProvince}` : decodedRoute;
-                        const { data: exactInfo } = await window.sb.from('route_info').select('description, short_path, is_inactive').eq('route_name', routeName).maybeSingle();
+                        const { data: exactInfo } = await window.sb.from('route_info').select('description, short_path, is_inactive, metadata').eq('route_name', routeName).maybeSingle();
 
                         let titleText = decodedRoute;
                         let inactiveBadge = '';
@@ -9970,9 +9970,43 @@ Object.assign(window.app, {
                             } else {
                                 descEl.classList.add('hidden');
                             }
+                            
+                            const extraInfoContainer = document.getElementById('route-extra-info');
+                            if (extraInfoContainer) {
+                                extraInfoContainer.innerHTML = '';
+                                let hasExtraInfo = false;
+                                if (exactInfo.metadata) {
+                                    if (exactInfo.metadata.ticket_price) {
+                                        extraInfoContainer.innerHTML += `
+                                            <div class="flex items-center gap-3 bg-white rounded-lg p-2.5 shadow-sm border border-gray-100">
+                                                <div class="w-7 h-7 rounded-full bg-green-100 text-green-600 flex items-center justify-center shrink-0">
+                                                    <i class="fa-solid fa-ticket text-xs"></i>
+                                                </div>
+                                                <span class="text-xs font-bold text-gray-700">Giá vé: ${app.utils.escapeHtml(exactInfo.metadata.ticket_price)}</span>
+                                            </div>
+                                        `;
+                                        hasExtraInfo = true;
+                                    }
+                                    if (exactInfo.metadata.wheelchair_support) {
+                                        extraInfoContainer.innerHTML += `
+                                            <div class="flex items-center gap-3 bg-white rounded-lg p-2.5 shadow-sm border border-gray-100">
+                                                <div class="w-7 h-7 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                                                    <i class="fa-solid fa-wheelchair text-xs"></i>
+                                                </div>
+                                                <span class="text-xs font-bold text-gray-700">Có hỗ trợ xe lăn</span>
+                                            </div>
+                                        `;
+                                        hasExtraInfo = true;
+                                    }
+                                }
+                                if (hasExtraInfo) extraInfoContainer.classList.remove('hidden');
+                                else extraInfoContainer.classList.add('hidden');
+                            }
                         } else {
                             const descEl = document.getElementById('route-desc');
                             if(descEl) descEl.classList.add('hidden');
+                            const extraInfoContainer = document.getElementById('route-extra-info');
+                            if(extraInfoContainer) extraInfoContainer.classList.add('hidden');
                         }
                         document.getElementById('route-profile-title').innerHTML = app.utils.escapeHtml(titleText) + inactiveBadge;
                     } catch (e) {
@@ -10056,20 +10090,26 @@ Object.assign(window.app, {
                     document.getElementById('route-edit-inactive').checked = false;
                     document.getElementById('route-edit-short-path').value = '';
                     document.getElementById('route-edit-desc').value = '';
+                    document.getElementById('route-edit-ticket-price').value = '';
+                    document.getElementById('route-edit-wheelchair').checked = false;
                     if (app.role === 'admin' || app.role === 'manager') {
                         btnSave.innerText = "Lưu thông tin";
                         warningText.innerHTML = "";
                     } else {
                         btnSave.innerText = "Lưu thông tin";
-                        warningText.innerText = "Thông tin này sẽ được kiểm duyệt bởi Admin. Việc để trống cả 2 ô sẽ gửi yêu cầu xóa thông tin hiện tại.";
+                        warningText.innerText = "Thông tin này sẽ được kiểm duyệt bởi Admin. Việc để trống tất cả sẽ gửi yêu cầu xóa thông tin hiện tại.";
                     }
                     try {
                         const routeName = app.route.currentProvince ? `${app.route.currentRoute} - ${app.route.currentProvince}` : app.route.currentRoute;
-                        const { data: exactInfo } = await window.sb.from('route_info').select('description, short_path, is_inactive').eq('route_name', routeName).maybeSingle();
+                        const { data: exactInfo } = await window.sb.from('route_info').select('description, short_path, is_inactive, metadata').eq('route_name', routeName).maybeSingle();
                         if (exactInfo) {
                             document.getElementById('route-edit-inactive').checked = exactInfo.is_inactive || false;
                             document.getElementById('route-edit-short-path').value = exactInfo.short_path || '';
                             document.getElementById('route-edit-desc').value = exactInfo.description || '';
+                            if (exactInfo.metadata) {
+                                document.getElementById('route-edit-ticket-price').value = exactInfo.metadata.ticket_price || '';
+                                document.getElementById('route-edit-wheelchair').checked = exactInfo.metadata.wheelchair_support || false;
+                            }
                         }
                     } catch(e) {}
                     modal.classList.remove('hidden');
@@ -10094,6 +10134,14 @@ Object.assign(window.app, {
                     const desc = document.getElementById('route-edit-desc').value.trim();
                     const shortPath = document.getElementById('route-edit-short-path').value.trim();
                     const isInactive = document.getElementById('route-edit-inactive').checked;
+                    const ticketPrice = document.getElementById('route-edit-ticket-price').value.trim();
+                    const wheelchairSupport = document.getElementById('route-edit-wheelchair').checked;
+                    
+                    let metadata = {};
+                    if (ticketPrice) metadata.ticket_price = ticketPrice;
+                    if (wheelchairSupport) metadata.wheelchair_support = wheelchairSupport;
+                    const metadataObj = Object.keys(metadata).length > 0 ? metadata : null;
+                    
                     const btn = document.getElementById('btn-save-route');
                     
                     const executeSave = async () => {
@@ -10106,7 +10154,7 @@ Object.assign(window.app, {
                         try {
                             if (app.role === 'admin' || app.role === 'manager') {
                                 const routeName = app.route.currentProvince ? `${app.route.currentRoute} - ${app.route.currentProvince}` : app.route.currentRoute;
-                                if (!desc && !shortPath && !isInactive) {
+                                if (!desc && !shortPath && !isInactive && !metadataObj) {
                                     const { error: delErr } = await window.sb.from('route_info').delete().eq('route_name', routeName);
                                     if (delErr) throw delErr;
                                 } else {
@@ -10114,7 +10162,8 @@ Object.assign(window.app, {
                                         route_name: routeName,
                                         short_path: shortPath || null,
                                         description: desc || null,
-                                        is_inactive: isInactive
+                                        is_inactive: isInactive,
+                                        metadata: metadataObj
                                     });
                                     if (upsertErr) throw upsertErr;
                                 }
@@ -10136,7 +10185,8 @@ Object.assign(window.app, {
                                         route_name: routeName,
                                         short_path: shortPath || null,
                                         description: desc || null,
-                                        is_inactive: isInactive
+                                        is_inactive: isInactive,
+                                        metadata: metadataObj
                                     },
                                     status: 'pending'
                                 };
@@ -16960,6 +17010,8 @@ Object.assign(window.app, {
                                                 <div><span class="font-bold">Trạng thái:</span> ${curRoute.is_inactive ? '<span class="text-red-500 font-bold">Dừng hoạt động</span>' : 'Đang hoạt động'}</div>
                                                 <div><span class="font-bold">Lộ trình (Rút gọn):</span> ${app.utils.escapeAttr(curRoute.short_path || '-')}</div>
                                                 <div><span class="font-bold">Mô tả:</span> ${app.utils.escapeAttr(curRoute.description || '-')}</div>
+                                                <div><span class="font-bold">Giá vé:</span> ${app.utils.escapeAttr(curRoute.metadata?.ticket_price || '-')}</div>
+                                                <div><span class="font-bold">Xe lăn:</span> ${curRoute.metadata?.wheelchair_support ? 'Có' : 'Không'}</div>
                                             </div>
                                             <p class="mb-2 font-bold text-red-500">[MỚI] Yêu cầu cập nhật thành:</p>
                                             
@@ -16974,6 +17026,14 @@ Object.assign(window.app, {
                                             <div class="mb-2">
                                                 <span class="admin-label">Mô tả chi tiết ${d.description !== curRoute.description ? '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>' : ''}</span>
                                                 <textarea id="req-route-desc-${r.id}" class="admin-input" rows="3">${app.utils.escapeAttr(d.description || '')}</textarea>
+                                            </div>
+                                            <div class="mb-2">
+                                                <span class="admin-label">Giá vé ${d.metadata?.ticket_price !== curRoute.metadata?.ticket_price ? '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>' : ''}</span>
+                                                <input type="text" id="req-route-ticket-${r.id}" class="admin-input" value="${app.utils.escapeAttr(d.metadata?.ticket_price || '')}">
+                                            </div>
+                                            <div class="mb-2 flex items-center justify-between bg-white border border-gray-300 rounded p-2">
+                                                <span class="text-xs font-bold text-gray-700">Có hỗ trợ xe lăn ${d.metadata?.wheelchair_support !== curRoute.metadata?.wheelchair_support ? '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>' : ''}</span>
+                                                <input type="checkbox" id="req-route-wheelchair-${r.id}" ${d.metadata?.wheelchair_support ? 'checked' : ''} class="w-4 h-4 cursor-pointer">
                                             </div>
                                             <div class="flex gap-2 mt-3">
                                                 <button onclick="app.admin.approveReq('${r.id}', this, 'route_info')" class="flex-1 bg-green-600 text-white py-1.5 font-bold rounded hover:bg-green-700">DUYỆT</button>
@@ -19023,8 +19083,15 @@ app.admin.fetchManagerData('denied');
                             const isInactive = document.getElementById(`req-route-inactive-${id}`).checked;
                             const shortPath = document.getElementById(`req-route-short-${id}`).value.trim();
                             const desc = document.getElementById(`req-route-desc-${id}`).value.trim();
+                            const ticketPrice = document.getElementById(`req-route-ticket-${id}`).value.trim();
+                            const wheelchairSupport = document.getElementById(`req-route-wheelchair-${id}`).checked;
                             
-                            if (!desc && !shortPath && !isInactive) {
+                            let metadata = {};
+                            if (ticketPrice) metadata.ticket_price = ticketPrice;
+                            if (wheelchairSupport) metadata.wheelchair_support = wheelchairSupport;
+                            const metadataObj = Object.keys(metadata).length > 0 ? metadata : null;
+                            
+                            if (!desc && !shortPath && !isInactive && !metadataObj) {
                                 const { error: delErr } = await window.sb.from('route_info').delete().eq('route_name', req.new_data.route_name);
                                 if (delErr) throw delErr;
                             } else {
@@ -19032,7 +19099,8 @@ app.admin.fetchManagerData('denied');
                                     route_name: req.new_data.route_name,
                                     short_path: shortPath || null,
                                     description: desc || null,
-                                    is_inactive: isInactive
+                                    is_inactive: isInactive,
+                                    metadata: metadataObj
                                 });
                                 if (upsertErr) throw upsertErr;
                             }
