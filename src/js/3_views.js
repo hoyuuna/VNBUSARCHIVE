@@ -120,7 +120,7 @@ Object.assign(window.app, {
                     const depths = {
                         'home': 0,
                         'search': 1, 'account': 1, 'upload': 1, 'mobile-upload': 1, 'admin': 1, 'contact': 1, 'help-list': 1, 'comment-dashboard': 1, 'leaderboard': 1,
-                        'detail': 2, 'vehicle': 2, 'operator-view': 2, 'model-view': 2, 'help-detail': 2
+                        'detail': 2, 'vehicle': 2, 'operator-view': 2, 'model-view': 2, 'route-view': 2, 'help-detail': 2
                     };
                     const currentId = document.querySelector('.view-section.active')?.id || 'home';
                     const currentDepth = depths[currentId] || 0;
@@ -2144,7 +2144,7 @@ Object.assign(window.app, {
                                                 <td class="label bg-gray-50 border-r border-b border-gray-200">${isCoach ? 'Lộ trình' : 'Mã số tuyến'} hiện tại</td>
                                                 <td class="value-cell border-b border-gray-200">
                                                     <div class="relative w-full h-full">
-                                                        <input type="text" id="vehicle-edit-route" value="${currentRouteClientSide}" autocomplete="off" class="info-input text-gray-700 w-full ${currentRouteClientSide ? 'clickable-search' : 'cursor-not-allowed'}" readonly ${currentRouteClientSide ? `onclick="if(this.readOnly && this.value && this.value!=='---') app.searchRedirect(this.value, 'route', '${vehPrefix}')"` : ''} onfocus="if(!this.readOnly) app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', '')" oninput="app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', this.value)">
+                                                        <input type="text" id="vehicle-edit-route" value="${currentRouteClientSide}" autocomplete="off" class="info-input text-gray-700 w-full ${currentRouteClientSide ? 'clickable-search' : 'cursor-not-allowed'}" readonly ${currentRouteClientSide ? `onclick="if(this.readOnly && this.value && this.value!=='---') app.utils.navigate('${vehPrefix}' ? '/route/' + encodeURIComponent('${vehPrefix}') + '/' + encodeURIComponent(this.value) : '/route/' + encodeURIComponent(this.value))"` : ''} onfocus="if(!this.readOnly) app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', '')" oninput="app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', this.value)">
                                                         <div id="veh-sug-route" class="suggestion-box"></div>
                                                     </div>
                                                 </td>
@@ -2745,6 +2745,63 @@ Object.assign(window.app, {
                                     window.scrollTo({ top: offsetPosition, behavior: "smooth" });
                                 }
                                 app.views.fetchModelPhotosPage(newPage);
+                            });
+                        } else {
+                            btnContainer.classList.add('hidden');
+                        }
+                    }
+                },
+                fetchRoutePhotosPage: async (page) => {
+                    const grid = document.getElementById('route-photo-grid');
+                    app.views.routeCurrentPage = page;
+                    const rteSize = app.route.ROUTE_PAGE_SIZE || 12;
+                    const fromRow = (page - 1) * rteSize;
+                    const toRow = fromRow + rteSize - 1;
+                    grid.style.opacity = '0.5';
+                    grid.style.pointerEvents = 'none';
+                    try {
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                            .eq('status', 'approved')
+                            .eq('route_no', app.route.currentRoute)
+                            .order('taken_at', { ascending: false, nullsFirst: false })
+                            .order('created_at', { ascending: false });
+                        
+                        // Nếu có tỉnh, thêm điều kiện tỉnh
+                        if (app.route.currentProvince) {
+                            pQuery = pQuery.eq('province', app.route.currentProvince);
+                        }
+                        
+                        pQuery = app.preference.applyFilter(pQuery);
+                        const { data: photos, error } = await pQuery.range(fromRow, toRow);
+                        if (error) throw error;
+                        if (photos && photos.length > 0) {
+                            grid.innerHTML = photos.map(p => app.views.renderPhotoCard(p)).join('');
+                        } else {
+                            grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500">Không tìm thấy ảnh nào.</div>';
+                        }
+                    } catch (err) {
+                        console.error("Lỗi tải trang ảnh tuyến:", err);
+                    } finally {
+                        grid.style.opacity = '1';
+                        grid.style.pointerEvents = 'auto';
+                    }
+                    app.views.renderRoutePagination();
+                },
+                renderRoutePagination: () => {
+                    const btnContainer = document.getElementById('route-load-more-container');
+                    if (btnContainer) {
+                        btnContainer.innerHTML = '';
+                        if (app.route.totalPages > 1) {
+                            btnContainer.classList.remove('hidden');
+                            app.utils.renderPagination('route-load-more-container', app.views.routeCurrentPage, app.route.totalPages, (newPage) => {
+                                const grid = document.getElementById('route-photo-grid');
+                                if (grid) {
+                                    const offset = 80; 
+                                    const elementPosition = grid.getBoundingClientRect().top;
+                                    const offsetPosition = elementPosition + window.pageYOffset - offset;
+                                    window.scrollTo({ top: offsetPosition, behavior: "smooth" });
+                                }
+                                app.views.fetchRoutePhotosPage(newPage);
                             });
                         } else {
                             btnContainer.classList.add('hidden');
@@ -4012,6 +4069,98 @@ Object.assign(window.app, {
                     }
                 }
             }
+});
+Object.assign(window.app, {
+  route: {
+                currentProvince: '',
+                currentRoute: '',
+                routeLoadedCount: 0,
+                routePhotos: [],
+                ROUTE_PAGE_SIZE: 12,
+                loadRoutePage: async (provinceName, routeNo, forceRefresh = false) => {
+                    const decodedProvince = decodeURIComponent(provinceName || '');
+                    const decodedRoute = decodeURIComponent(routeNo);
+                    const expectedPath = decodedProvince
+                        ? `/route/${encodeURIComponent(decodedProvince)}/${encodeURIComponent(decodedRoute)}`
+                        : `/route/${encodeURIComponent(decodedRoute)}`;
+                    
+                    if (window.location.pathname !== expectedPath) {
+                        app.utils.navigate(expectedPath);
+                        return;
+                    }
+                    app.views.switch('route-view', false);
+                    
+                    if (app.route.currentProvince === decodedProvince && app.route.currentRoute === decodedRoute && app.route.routePhotos && app.route.routePhotos.length > 0 && !forceRefresh) {
+                        app.loadingBar.finish();
+                        return;
+                    }
+                    
+                    const titleText = decodedProvince ? `Tuyến ${decodedRoute} - ${decodedProvince}` : `Tuyến ${decodedRoute}`;
+                    document.title = `${titleText} | VNBUSARCHIVE`;
+                    app.route.currentProvince = decodedProvince;
+                    app.route.currentRoute = decodedRoute;
+                    app.route.routeLoadedCount = 0;
+                    app.route.totalPages = 0;
+                    
+                    document.getElementById('crumb-route-profile').innerText = titleText;
+                    document.getElementById('route-profile-title').innerText = decodedRoute;
+                    document.getElementById('route-province-label').innerText = decodedProvince ? `Tuyến xe - ${decodedProvince}` : 'Tuyến xe';
+                    document.getElementById('route-desc').classList.add('hidden');
+                    
+                    document.getElementById('rte-stat-photos').innerText = '...';
+                    document.getElementById('rte-stat-vehicles').innerText = '...';
+                    document.getElementById('rte-stat-ops').innerText = '...';
+                    document.getElementById('rte-stat-views').innerText = '...';
+                    
+                    document.getElementById('rte-stats-grid').classList.remove('hidden');
+                    
+                    const grid = document.getElementById('route-photo-grid');
+                    grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tổng hợp dữ liệu...</div>';
+                    document.getElementById('route-load-more-container').innerHTML = '';
+                    document.getElementById('route-load-more-container').classList.add('hidden');
+                    
+                    try {
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                            .eq('status', 'approved')
+                            .eq('route_no', decodedRoute);
+                            
+                        if (decodedProvince) {
+                            pQuery = pQuery.eq('province', decodedProvince);
+                        }
+                        
+                        pQuery = app.preference.applyFilter(pQuery);
+                        const { data: photos, error } = await pQuery.order('taken_at', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false });
+                        
+                        if (error) throw error;
+                        
+                        app.route.routePhotos = photos || [];
+                        app.route.totalCount = app.route.routePhotos.length;
+                        app.route.totalPages = Math.ceil(app.route.totalCount / app.route.ROUTE_PAGE_SIZE);
+                        
+                        document.getElementById('rte-stat-photos').innerText = app.utils.formatCompact(app.route.totalCount);
+                        
+                        let totalViews = 0;
+                        const uniqueVehicles = new Set();
+                        const uniqueOps = new Set();
+                        
+                        app.route.routePhotos.forEach(p => {
+                            totalViews += (p.views || 0);
+                            if (p.license_plate) uniqueVehicles.add(p.license_plate.trim().toUpperCase());
+                            if (p.operator && p.operator.trim()) uniqueOps.add(p.operator.trim());
+                        });
+                        
+                        document.getElementById('rte-stat-views').innerText = app.utils.formatCompact(totalViews);
+                        document.getElementById('rte-stat-vehicles').innerText = app.utils.formatCompact(uniqueVehicles.size);
+                        document.getElementById('rte-stat-ops').innerText = app.utils.formatCompact(uniqueOps.size);
+                        
+                        app.views.fetchRoutePhotosPage(1);
+                    } catch (err) {
+                        console.error("Lỗi khi tải dữ liệu tuyến:", err);
+                        grid.innerHTML = '<div class="col-span-full text-center py-10 text-red-500">Đã xảy ra lỗi khi tải dữ liệu. Vui lòng thử lại sau.</div>';
+                    }
+                    app.loadingBar.finish();
+                }
+  }
 });
 Object.assign(window.app, {
   newsboard: {

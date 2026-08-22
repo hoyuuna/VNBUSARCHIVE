@@ -5319,6 +5319,60 @@ div[id$="-modal"] > div > * {
             </div>
             <!-- KẾT THÚC GIAO DIỆN PROFILE DÒNG XE -->
 
+            <!-- GIAO DIỆN PROFILE TUYẾN -->
+            <div id="route-view" class="view-section">
+                <div class="text-[11px] sm:text-xs text-gray-500 mb-4 bg-white px-3 py-2 border border-vbs-border rounded-md shadow-sm flex items-center gap-1.5 sm:gap-2 w-max max-w-full">
+                    <span class="crumb-back cursor-pointer hover:text-black font-medium transition-colors truncate shrink min-w-0">Trang chủ</span>
+                    <i class="fa-solid fa-chevron-right text-[8px] sm:text-[10px] shrink-0 text-gray-400"></i>
+                    <span id="crumb-route-profile" class="font-bold text-black overflow-x-auto whitespace-nowrap no-scrollbar shrink min-w-0 block">...</span>
+                </div>
+
+                <div class="bg-white border border-vbs-border shadow-sm rounded-lg p-6 md:p-8 mb-6 relative overflow-hidden">
+                    <div class="flex items-center gap-4 w-full min-w-0 max-w-full mb-6">
+                        <div id="route-logo-fallback" class="w-16 h-16 md:w-20 md:h-20 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-3xl shrink-0">
+                            <i class="fa-solid fa-route"></i>
+                        </div>
+                        
+                        <div class="overflow-hidden min-w-0 flex-1">
+                            <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-widest font-bold mb-1" id="route-province-label">Tuyến xe</p>
+                            <h2 id="route-profile-title" class="text-xl md:text-3xl font-black uppercase text-black tracking-tight leading-tight overflow-x-auto whitespace-nowrap no-scrollbar block w-full">...</h2>
+                        </div>
+                    </div>
+                    
+                    <!-- Khung mô tả -->
+                    <div id="route-desc" class="text-sm text-gray-700 mb-3 whitespace-pre-wrap leading-relaxed hidden bg-gray-50 p-4 rounded-xl border border-gray-100 shadow-inner"></div>
+
+                    <div id="rte-stats-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Tổng số ảnh</p>
+                            <p id="rte-stat-photos" class="text-2xl font-black text-black">...</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Số xe hoạt động</p>
+                            <p id="rte-stat-vehicles" class="text-2xl font-black text-black">...</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Đơn vị quản lý</p>
+                            <p id="rte-stat-ops" class="text-2xl font-black text-black">...</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Tổng lượt xem</p>
+                            <p id="rte-stat-views" class="text-2xl font-black text-black">...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 mb-4">
+                    <h3 class="text-lg font-bold uppercase text-black tracking-tight">Thư viện ảnh</h3>
+                </div>
+                
+                <div id="route-photo-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+                
+                <div id="route-load-more-container" class="text-center mt-8 hidden">
+                </div>
+            </div>
+            <!-- KẾT THÚC GIAO DIỆN PROFILE TUYẾN -->
+
             <!-- VIEW MỚI: TRUYỀN TẢI DỮ LIỆU -->
             <div id="mobile-upload" class="view-section">
                 <div class="max-w-md mx-auto bg-white border border-vbs-border p-6 sm:p-8 rounded-2xl shadow-sm text-center flex flex-col items-center mt-6 min-h-[55vh] justify-center">
@@ -6583,6 +6637,6 @@ div[id$="-modal"] > div > * {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed top-24 left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.js?v=1787393490080"></script>
+<script src="/app.js?v=1787406958409"></script>
 </body>
 </html>

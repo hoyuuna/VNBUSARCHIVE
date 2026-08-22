@@ -2643,16 +2643,19 @@ Object.assign(window.app, {
                                 app.utils.navigate(`/operator/${encodeURIComponent(this.value)}`);
                             }
                             else if (id === 'info-route') {
-                                const plateValue = document.getElementById('info-plate').value;
-                                let routePrefix = '';
-                                const provName = app.utils.getProvinceFromPlate(plateValue);
-                                if (provName && app.utils.provinceData && app.utils.provinceData.length) {
-                                    const pData = app.utils.provinceData.find(p => p.ten === provName);
-                                    if (pData && pData.ky_hieu) {
-                                        routePrefix = Array.isArray(pData.ky_hieu) ? String(pData.ky_hieu[0]).trim() : String(pData.ky_hieu).split()[0].trim();
-                                    }
+                                let provName = '';
+                                const inputProv = document.getElementById('info-province')?.value;
+                                if (inputProv && inputProv !== '---' && inputProv !== 'Không xác định') {
+                                    provName = inputProv;
+                                } else {
+                                    const plateValue = document.getElementById('info-plate')?.value;
+                                    if (plateValue) provName = app.utils.getProvinceFromPlate(plateValue);
                                 }
-                                app.searchRedirect(this.value, 'route', routePrefix);
+                                if (provName && provName !== 'Không xác định' && provName !== 'Biển tạm') {
+                                    app.utils.navigate(`/route/${encodeURIComponent(provName)}/${encodeURIComponent(this.value)}`);
+                                } else {
+                                    app.utils.navigate(`/route/${encodeURIComponent(this.value)}`);
+                                }
                             }
                             else {
                                 app.searchRedirect(this.value, fieldMap[id]);
@@ -3059,6 +3062,17 @@ Object.assign(window.app, {
                     if (modelName) {
                         app.model.loadModelPage(modelName);
                     } else app.views.loadHome();
+                } else if (path.startsWith('/route/')) {
+                    const segments = path.split('/');
+                    if (segments.length === 4) {
+                        const province = decodeURIComponent(segments[2]);
+                        const routeNo = decodeURIComponent(segments[3]);
+                        app.route.loadRoutePage(province, routeNo);
+                    } else if (segments.length === 3) {
+                        const routeNo = decodeURIComponent(segments[2]);
+                        app.route.loadRoutePage('', routeNo);
+                    } else app.views.loadHome();
+
                 } else if (path.startsWith('/search')) {
                     document.title = 'Tìm kiếm | VNBUSARCHIVE';
                     const q = searchParams.get('q');
