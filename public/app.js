@@ -10083,15 +10083,72 @@ Object.assign(window.app, {
                         
                         let totalViews = 0;
                         const uniqueVehicles = new Set();
-                        const uniqueOps = new Set();
                         
                         app.route.routePhotos.forEach(p => {
                             totalViews += (p.views || 0);
                             if (p.license_plate) uniqueVehicles.add(p.license_plate.trim().toUpperCase());
-                            });
+                        });
                         
                         document.getElementById('rte-stat-views').innerText = app.utils.formatCompact(totalViews);
-                        document.getElementById('rte-stat-vehicles').innerText = app.utils.formatCompact(uniqueVehicles.size);
+                        
+                        const platesArr = Array.from(uniqueVehicles);
+                        let activeVehiclesCount = 0;
+                        
+                        if (platesArr.length > 0) {
+                            try {
+                                const chunkSize = 150;
+                                let allVehPhotos = [];
+                                let allVehHist = [];
+                                for (let i = 0; i < platesArr.length; i += chunkSize) {
+                                    const chunk = platesArr.slice(i, i + chunkSize);
+                                    const [pRes, hRes] = await Promise.all([
+                                        window.sb.from('photos').select('license_plate, route_no, province, taken_at').eq('status', 'approved').in('license_plate', chunk),
+                                        window.sb.from('vehicle_history').select('plate, route, effective_date').in('plate', chunk)
+                                    ]);
+                                    if (pRes.data) allVehPhotos = allVehPhotos.concat(pRes.data);
+                                    if (hRes.data) allVehHist = allVehHist.concat(hRes.data);
+                                }
+                                
+                                allVehPhotos.sort((a, b) => new Date(b.taken_at || '1970-01-01') - new Date(a.taken_at || '1970-01-01'));
+                                allVehHist.sort((a, b) => new Date(b.effective_date || '1970-01-01') - new Date(a.effective_date || '1970-01-01'));
+                                
+                                const specialRoutes = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động'];
+                                
+                                platesArr.forEach(plate => {
+                                    const vPhotos = allVehPhotos.filter(p => p.license_plate.toUpperCase() === plate);
+                                    const vHist = allVehHist.filter(h => h.plate.toUpperCase() === plate);
+                                    
+                                    let currentRouteClientSide = '';
+                                    if (vPhotos.length > 0) {
+                                        const latestPhoto = vPhotos[0];
+                                        const r = (latestPhoto.route_no || '').trim();
+                                        if (r && !specialRoutes.includes(r)) {
+                                            currentRouteClientSide = r;
+                                        } else if (r === 'Ngoài giờ hoạt động') {
+                                            const valid = vPhotos.find(p => p.route_no && !specialRoutes.includes(p.route_no));
+                                            if (valid) currentRouteClientSide = (valid.route_no || '').trim();
+                                        } else if (r === 'Dừng hoạt động' || r === 'Chưa hoạt động') {
+                                            currentRouteClientSide = r;
+                                        }
+                                    }
+                                    if (vHist.length > 0) {
+                                        const histRoute = (vHist[0].route || '').trim();
+                                        if (histRoute && histRoute !== '-' && histRoute !== '---') {
+                                            currentRouteClientSide = histRoute;
+                                        }
+                                    }
+                                    
+                                    if (currentRouteClientSide === decodedRoute) {
+                                        activeVehiclesCount++;
+                                    }
+                                });
+                            } catch (e) {
+                                console.warn("Lỗi kiểm tra trạng thái xe hoạt động:", e);
+                                activeVehiclesCount = platesArr.length;
+                            }
+                        }
+                        
+                        document.getElementById('rte-stat-vehicles').innerText = app.utils.formatCompact(activeVehiclesCount);
                         app.views.fetchRoutePhotosPage(1);
                     } catch (err) {
                         console.error("Lỗi khi tải dữ liệu tuyến:", err);
