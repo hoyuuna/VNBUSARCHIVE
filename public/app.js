@@ -9990,7 +9990,9 @@ Object.assign(window.app, {
                         } else {
                             descEl.classList.add('hidden');
                         }
-
+                    } catch (e) {
+                        console.warn("Lỗi tải thông tin Tuyến:", e);
+                    }
                     
                     try {
                         let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
