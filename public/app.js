@@ -6843,13 +6843,40 @@ Object.assign(window.app, {
                         let cardStyleClasses = "profile-photo-item cursor-pointer group transition-all duration-300 relative shadow-md hover:-translate-y-1 hover:shadow-xl";
                         let textHtml = `<span class="block truncate">${app.utils.cleanText(app.utils.displayPlate(p.license_plate))}</span>`;
                         if (app._isOwnProfile) {
+                            let dotColor = '';
+                            let mainText = app.utils.cleanText(app.utils.displayPlate(p.license_plate));
+                            let hoverText = '';
+                            let isBoldMain = false;
+
                             if (p.status === 'approved') {
-                                textHtml = `<div class="flex items-center gap-1.5 w-full"><span class="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0"></span><span class="truncate font-bold">${app.utils.cleanText(app.utils.displayPlate(p.license_plate))}</span></div>`;
+                                dotColor = 'bg-green-500';
+                                isBoldMain = true;
                             } else if (p.status === 'pending') {
+                                dotColor = 'bg-[#f58e27]';
                                 const prog = p.review_progress || '0/2';
-                                textHtml = `<div class="flex items-center gap-1.5 w-full group-hover:hidden"><span class="w-1.5 h-1.5 rounded-full bg-[#f58e27] shrink-0"></span><span class="truncate">${app.utils.cleanText(app.utils.displayPlate(p.license_plate))}</span></div><div class="hidden items-center gap-1.5 w-full group-hover:flex"><span class="w-1.5 h-1.5 rounded-full bg-[#f58e27] shrink-0"></span><span class="truncate font-bold tracking-wide" title="Ảnh của bạn đã được ${prog} người duyệt">Đang chờ duyệt... (${prog})</span></div>`;
+                                hoverText = `Đang chờ duyệt... (${prog})`;
                             } else if (p.status === 'denied') {
-                                textHtml = `<div class="flex items-center gap-1.5 w-full group-hover:hidden"><span class="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0"></span><span class="truncate">${app.utils.cleanText(app.utils.displayPlate(p.license_plate))}</span></div><div class="hidden items-center gap-1.5 w-full group-hover:flex"><span class="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0"></span><span class="truncate font-bold tracking-wide">Đã bị từ chối</span></div>`;
+                                dotColor = 'bg-red-500';
+                                hoverText = 'Đã bị từ chối';
+                            }
+
+                            if (dotColor) {
+                                if (hoverText) {
+                                    textHtml = `
+                                        <div class="flex items-center gap-1.5 w-full">
+                                            <span class="w-2 h-2 rounded-full ${dotColor} shrink-0 mt-[0.5px]"></span>
+                                            <span class="truncate group-hover:hidden leading-tight ${isBoldMain ? 'font-bold' : ''}">${mainText}</span>
+                                            <span class="truncate font-bold tracking-wide hidden group-hover:block leading-tight" title="${hoverText}">${hoverText}</span>
+                                        </div>
+                                    `;
+                                } else {
+                                    textHtml = `
+                                        <div class="flex items-center gap-1.5 w-full">
+                                            <span class="w-2 h-2 rounded-full ${dotColor} shrink-0 mt-[0.5px]"></span>
+                                            <span class="truncate font-bold leading-tight">${mainText}</span>
+                                        </div>
+                                    `;
+                                }
                             }
                         }
                         const proxyUrl = app.utils.getProxiedUrl(p.url, 'profile.jpg', 'thumb');
@@ -6958,11 +6985,11 @@ Object.assign(window.app, {
                         }
                         let dotHtml = '';
                         if (req.status === 'approved') {
-                            dotHtml = '<span class="w-2 h-2 rounded-full bg-green-500 shrink-0"></span>';
+                            dotHtml = '<span class="w-2 h-2 rounded-full bg-green-500 shrink-0 mt-[1px]"></span>';
                         } else if (req.status === 'pending') {
-                            dotHtml = '<span class="w-2 h-2 rounded-full bg-[#f58e27] shrink-0"></span>';
+                            dotHtml = '<span class="w-2 h-2 rounded-full bg-[#f58e27] shrink-0 mt-[1px]"></span>';
                         } else if (req.status === 'denied' || req.status === 'rejected') {
-                            dotHtml = '<span class="w-2 h-2 rounded-full bg-red-500 shrink-0"></span>';
+                            dotHtml = '<span class="w-2 h-2 rounded-full bg-red-500 shrink-0 mt-[1px]"></span>';
                         }
                         if (!app.views._requestsCache) app.views._requestsCache = {};
                         app.views._requestsCache[req.id] = req;
@@ -6970,7 +6997,7 @@ Object.assign(window.app, {
                             <div class="${cardStyleClasses}" onclick="app.views.showRequestDetails('${req.id}')">
                                 <div class="flex items-center gap-2 mb-0.5 w-full">
                                     ${dotHtml}
-                                    <span class="truncate font-bold text-gray-900 text-sm">Yêu cầu ${typeText}</span>
+                                    <span class="truncate font-bold text-gray-900 text-sm leading-tight">Yêu cầu ${typeText}</span>
                                 </div>
                                 ${contextText ? `<span class="block text-gray-500 text-xs tracking-wide w-full truncate pl-4">${app.utils.cleanText(contextText)}</span>` : '<span class="block text-gray-400 text-xs tracking-wide w-full truncate pl-4">Hệ thống</span>'}
                             </div>
