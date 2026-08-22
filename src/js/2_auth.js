@@ -1185,7 +1185,7 @@ Object.assign(window.app, {
                         if (app.user) {
                             const curWmMode = localStorage.getItem('vnbus_wm_mode') || (app.wmState && app.wmState.mode) || 'basic';
                             window.sb.from('profiles').update({
-                                preferences: { type: app.preference.current, showRec: app.preference.showRecommendations, wmMode: curWmMode, pinnedLocations: app.preference.pinnedLocations || [] }
+                                preferences: { type: app.preference.current, wmMode: curWmMode, pinnedLocations: app.preference.pinnedLocations || [] }
                             }).eq('id', app.user.id).then(()=>{});
                         }
                     }

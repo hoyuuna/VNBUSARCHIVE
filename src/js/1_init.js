@@ -3437,7 +3437,6 @@ Object.assign(window.app, {
                             } else if (t === 'X') {
                             } else if (t === 'preference') {
                                 app.preference.tempSelection = app.preference.current || 'both';
-                                app.preference.tempShowRec = app.preference.showRecommendations; 
                                 app.preference.updateUI();
                             }
                         } else {
@@ -4439,20 +4438,18 @@ Object.assign(window.app, {
                             }
                         }
                         let localPref = localStorage.getItem('vnbus_preference') || 'both';
-                        let localShowRec = localStorage.getItem('vnbus_show_rec');
-                        localShowRec = localShowRec !== null ? localShowRec === 'true' : true;
+
                         let localWmMode = localStorage.getItem('vnbus_wm_mode') || 'basic';
                         if (!profile || !profile.username) {
                             await window.sb.from('profiles').upsert({
                                 id: user.id,
                                 username: finalName,
                                 avatar_url: finalAvatar,
-                                preferences: { type: localPref, showRec: localShowRec, wmMode: localWmMode, pinnedLocations: [] }
+                                preferences: { type: localPref, wmMode: localWmMode, pinnedLocations: [] }
                             }, { onConflict: 'id' });
                             app.username = finalName;
                             app.role = 'user';
                             app.preference.current = localPref;
-                            app.preference.showRecommendations = localShowRec;
                         } else {
                             app.username = profile.username;
                             app.role = profile.role || 'user';
@@ -4464,10 +4461,8 @@ Object.assign(window.app, {
                             let dbPrefs = profile.preferences;
                             if (dbPrefs && Object.keys(dbPrefs).length > 0) {
                                 app.preference.current = dbPrefs.type || 'both';
-                                app.preference.showRecommendations = dbPrefs.showRec !== false;
                                 app.preference.pinnedLocations = dbPrefs.pinnedLocations || [];
                                 localStorage.setItem('vnbus_preference', app.preference.current);
-                                localStorage.setItem('vnbus_show_rec', app.preference.showRecommendations);
                                 if (dbPrefs.wmMode) {
                                     localStorage.setItem('vnbus_wm_mode', dbPrefs.wmMode);
                                     if (app.wmState) app.wmState.mode = dbPrefs.wmMode;
@@ -4478,10 +4473,9 @@ Object.assign(window.app, {
                                 }
                             } else {
                                 window.sb.from('profiles').update({
-                                    preferences: { type: localPref, showRec: localShowRec, wmMode: localWmMode, pinnedLocations: [] }
+                                    preferences: { type: localPref, wmMode: localWmMode, pinnedLocations: [] }
                                 }).eq('id', user.id).then(()=>{});
                                 app.preference.current = localPref;
-                                app.preference.showRecommendations = localShowRec;
                                 app.preference.pinnedLocations = [];
                             }
                         }

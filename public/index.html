@@ -3279,23 +3279,6 @@ div[id$="-modal"] > div > * {
                                     </div>
                                 </div>
 
-                                <!-- CÔNG TẮC GỢI Ý CÁ NHÂN HÓA -->
-                                <div class="mb-6 bg-gray-50 border border-gray-200 rounded-xl p-4 flex items-center justify-between shadow-sm transition-all hover:border-gray-300 group">
-                                    <div class="flex items-start gap-3">
-                                        <div class="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center shrink-0 transition-colors shadow-sm group-hover:border-gray-300">
-                                            <i class="fa-solid fa-wand-magic-sparkles text-lg text-black"></i>
-                                        </div>
-                                        <div class="mt-0.5">
-                                            <h4 class="font-bold text-sm uppercase mb-1 text-black">Gợi ý thông minh</h4>
-                                            <p class="text-[10px] font-medium text-gray-500 leading-snug">Hiển thị các khối "Dành cho bạn" và "Có thể bạn quan tâm" trên hệ thống.</p>
-                                        </div>
-                                    </div>
-                                    <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-4 self-center">
-                                        <input type="checkbox" id="set-pref-toggle-rec" class="sr-only peer" onchange="app.preference.toggleRec(this.checked)">
-                                        <!-- THANH GẠT LUÔN LÀ MÀU ĐEN (bg-black), CHỈ CÓ DẤU CHẤM TRÒN LÀ TRƯỢT -->
-                                        <div class="w-11 h-6 bg-black rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all shadow-inner"></div>
-                                    </label>
-                                </div>
 
                                 <div class="text-right mt-4">
                                     <button onclick="app.preference.save()" class="bg-black text-white px-6 py-2.5 rounded-lg text-xs font-bold shadow-sm hover:bg-gray-800 transition"><i class="fa-solid fa-floppy-disk mr-1"></i> Lưu thông tin</button>
@@ -3363,16 +3346,6 @@ div[id$="-modal"] > div > * {
                 </div>
 
 
-                <div id="recommendation-section"
-                    class="hidden bg-gradient-animated border border-white/50 mb-8 rounded-lg shadow-md overflow-hidden p-4">
-                    <h3
-                        class="font-bold text-lg mb-3 tracking-tight text-gray-800 uppercase flex items-center gap-2 drop-shadow-sm">
-                        <i class="fa-solid fa-sparkles text-pink-600"></i> Dành cho bạn
-                    </h3>
-                    <div id="rec-grid" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-
-                    </div>
-                </div>
 
                 <div
                     class="text-sm text-gray-500 mb-4 font-medium flex flex-col sm:flex-row sm:justify-between sm:items-end gap-2">
@@ -3947,14 +3920,7 @@ div[id$="-modal"] > div > * {
                     </div>
                 </div>
 
-                <!-- MỤC CÓ THỂ BẠN QUAN TÂM -->
-                <div id="detail-recommendation-section" class="mt-12 hidden">
-                    <div class="flex items-center gap-2 mb-4">
-                        <i class="fa-solid fa-sparkles text-pink-600 text-lg"></i>
-                        <h3 class="text-lg font-bold uppercase text-black tracking-tight">Có thể bạn quan tâm</h3>
-                    </div>
-                    <div id="detail-rec-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4"></div>
-                </div>
+
             </div>
 
             <div id="comment-dashboard" class="view-section">
@@ -6617,6 +6583,6 @@ div[id$="-modal"] > div > * {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed top-24 left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.js?v=1787362917755"></script>
+<script src="/app.js?v=1787363671540"></script>
 </body>
 </html>

@@ -140,7 +140,6 @@ Object.assign(window.app, {
                          await window.sb.from('profiles').update({
                              preferences: { 
                                  type: app.preference.current, 
-                                 showRec: app.preference.showRecommendations, 
                                  wmMode: app.wmState ? app.wmState.mode : 'basic',
                                  pinnedLocations: app.preference.pinnedLocations || []
                              }
@@ -1138,9 +1137,8 @@ Object.assign(window.app, {
                         if (typeof localStorage !== 'undefined') localStorage.setItem('vnbus_wm_mode', mode);
                         if (animate && app.user && window.sb) {
                             const curPref = localStorage.getItem('vnbus_preference') || 'both';
-                            const curShowRec = localStorage.getItem('vnbus_show_rec') !== 'false';
                             window.sb.from('profiles').update({
-                                preferences: { type: curPref, showRec: curShowRec, wmMode: mode, pinnedLocations: (app.preference && app.preference.pinnedLocations) || [] }
+                                preferences: { type: curPref, wmMode: mode, pinnedLocations: (app.preference && app.preference.pinnedLocations) || [] }
                             }).eq('id', app.user.id).then(()=>{});
                         }
                     } catch (e) {}
@@ -4325,11 +4323,7 @@ Object.assign(window.app, {
   preference: {
                 current: 'both',
                 tempSelection: 'both',
-                showRecommendations: true,
-                tempShowRec: true,
                 load: () => {
-                    const savedRec = localStorage.getItem('vnbus_show_rec');
-                    if (savedRec !== null) app.preference.showRecommendations = savedRec === 'true';
                     const saved = localStorage.getItem('vnbus_preference');
                     if (saved) {
                         app.preference.current = saved;
@@ -4339,7 +4333,6 @@ Object.assign(window.app, {
                 },
                 open: (isOnboarding = false) => {
                     app.preference.tempSelection = app.preference.current || 'both';
-                    app.preference.tempShowRec = app.preference.showRecommendations;
                     app.settings.open();
                     app.settings.switchTab('preference');
                     app.preference.updateUI();
@@ -4351,14 +4344,7 @@ Object.assign(window.app, {
                         app.onboarding.updatePrefUI();
                     }
                 },
-                toggleRec: (val) => {
-                    app.preference.tempShowRec = val;
-                },
                 updateUI: () => {
-                    const toggleRec = document.getElementById('set-pref-toggle-rec');
-                    if (toggleRec) {
-                        toggleRec.checked = app.preference.tempShowRec;
-                    }
                     ['bus', 'coach', 'both'].forEach(type => {
                         ['pref-btn-', 'set-pref-btn-'].forEach(prefix => {
                             const btn = document.getElementById(`${prefix}${type}`);
@@ -4381,19 +4367,16 @@ Object.assign(window.app, {
                 },
                 save: () => {
                     const isChanged = app.preference.current !== app.preference.tempSelection;
-                    const isRecChanged = app.preference.showRecommendations !== app.preference.tempShowRec;
                     app.preference.current = app.preference.tempSelection;
-                    app.preference.showRecommendations = app.preference.tempShowRec;
                     localStorage.setItem('vnbus_preference', app.preference.current);
-                    localStorage.setItem('vnbus_show_rec', app.preference.showRecommendations);
                     if (app.user) {
                         const curWmMode = localStorage.getItem('vnbus_wm_mode') || (app.wmState && app.wmState.mode) || 'basic';
                         window.sb.from('profiles').update({
-                            preferences: { type: app.preference.current, showRec: app.preference.showRecommendations, wmMode: curWmMode, pinnedLocations: app.preference.pinnedLocations || [] }
+                            preferences: { type: app.preference.current, wmMode: curWmMode, pinnedLocations: app.preference.pinnedLocations || [] }
                         }).eq('id', app.user.id).then(({error}) => {});
                     }
                     app.ui.showAlert("Đã lưu thông tin Cá nhân hóa thành công!");
-                    if (isChanged || isRecChanged) {
+                    if (isChanged) {
                         const path = window.location.pathname;
                         if (path === '/') {
                             app.views.loadHome(true);

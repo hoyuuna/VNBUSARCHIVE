@@ -3439,7 +3439,6 @@ Object.assign(window.app, {
                             } else if (t === 'X') {
                             } else if (t === 'preference') {
                                 app.preference.tempSelection = app.preference.current || 'both';
-                                app.preference.tempShowRec = app.preference.showRecommendations; 
                                 app.preference.updateUI();
                             }
                         } else {
@@ -4441,20 +4440,18 @@ Object.assign(window.app, {
                             }
                         }
                         let localPref = localStorage.getItem('vnbus_preference') || 'both';
-                        let localShowRec = localStorage.getItem('vnbus_show_rec');
-                        localShowRec = localShowRec !== null ? localShowRec === 'true' : true;
+
                         let localWmMode = localStorage.getItem('vnbus_wm_mode') || 'basic';
                         if (!profile || !profile.username) {
                             await window.sb.from('profiles').upsert({
                                 id: user.id,
                                 username: finalName,
                                 avatar_url: finalAvatar,
-                                preferences: { type: localPref, showRec: localShowRec, wmMode: localWmMode, pinnedLocations: [] }
+                                preferences: { type: localPref, wmMode: localWmMode, pinnedLocations: [] }
                             }, { onConflict: 'id' });
                             app.username = finalName;
                             app.role = 'user';
                             app.preference.current = localPref;
-                            app.preference.showRecommendations = localShowRec;
                         } else {
                             app.username = profile.username;
                             app.role = profile.role || 'user';
@@ -4466,10 +4463,8 @@ Object.assign(window.app, {
                             let dbPrefs = profile.preferences;
                             if (dbPrefs && Object.keys(dbPrefs).length > 0) {
                                 app.preference.current = dbPrefs.type || 'both';
-                                app.preference.showRecommendations = dbPrefs.showRec !== false;
                                 app.preference.pinnedLocations = dbPrefs.pinnedLocations || [];
                                 localStorage.setItem('vnbus_preference', app.preference.current);
-                                localStorage.setItem('vnbus_show_rec', app.preference.showRecommendations);
                                 if (dbPrefs.wmMode) {
                                     localStorage.setItem('vnbus_wm_mode', dbPrefs.wmMode);
                                     if (app.wmState) app.wmState.mode = dbPrefs.wmMode;
@@ -4480,10 +4475,9 @@ Object.assign(window.app, {
                                 }
                             } else {
                                 window.sb.from('profiles').update({
-                                    preferences: { type: localPref, showRec: localShowRec, wmMode: localWmMode, pinnedLocations: [] }
+                                    preferences: { type: localPref, wmMode: localWmMode, pinnedLocations: [] }
                                 }).eq('id', user.id).then(()=>{});
                                 app.preference.current = localPref;
-                                app.preference.showRecommendations = localShowRec;
                                 app.preference.pinnedLocations = [];
                             }
                         }
@@ -5814,7 +5808,7 @@ Object.assign(window.app, {
                         if (app.user) {
                             const curWmMode = localStorage.getItem('vnbus_wm_mode') || (app.wmState && app.wmState.mode) || 'basic';
                             window.sb.from('profiles').update({
-                                preferences: { type: app.preference.current, showRec: app.preference.showRecommendations, wmMode: curWmMode, pinnedLocations: app.preference.pinnedLocations || [] }
+                                preferences: { type: app.preference.current, wmMode: curWmMode, pinnedLocations: app.preference.pinnedLocations || [] }
                             }).eq('id', app.user.id).then(()=>{});
                         }
                     }
@@ -6225,43 +6219,7 @@ Object.assign(window.app, {
                         banner.classList.add('hidden');
                     }
                 },
-                loadRecommendations: async () => {
-                    const recSection = document.getElementById('recommendation-section');
-                    const recGrid = document.getElementById('rec-grid');
-                    if (!app.preference.showRecommendations) {
-                        return recSection.classList.add('hidden');
-                    }
-                    try {
-                        let prefs = JSON.parse(localStorage.getItem('vnbus_prefs'));
-                        const getTop = (obj) => Object.keys(obj).reduce((a, b) => obj[a] > obj[b] ? a : b, '');
-                        const topRoute = prefs ? getTop(prefs.routes || {}) : null;
-                        const topOp = prefs ? getTop(prefs.ops || {}) : null;
-                        const topModel = prefs ? getTop(prefs.models || {}) : null;
-                        if (!app.user && !topRoute && !topOp && !topModel) {
-                            return recSection.classList.add('hidden');
-                        }
-                        recSection.classList.remove('hidden');
-                        recGrid.innerHTML = '<div class="col-span-full text-center py-2 text-xs font-bold text-gray-700"><i class="fa-solid fa-spinner fa-spin"></i> Đang chọn lọc...</div>';
-                        const params = new URLSearchParams();
-                        if (topRoute) params.append('topRoute', topRoute);
-                        if (topOp) params.append('topOp', topOp);
-                        if (topModel) params.append('topModel', topModel);
-                        const response = await fetch(`/api/recommendations?${params.toString()}`);
-                        let matched = await response.json();
-                        if (!matched || matched.length === 0) return recSection.classList.add('hidden');
-                        recGrid.innerHTML = matched.map(p => `
-                            <div class="relative group cursor-pointer aspect-square rounded-md overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border border-white/40" onclick="app.views.loadDetail(${p.id})">
-                                <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(p.url, 'rec.jpg', 'thumb')}" class="w-full h-full object-cover transition-transform duration-500">
-                                <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 to-transparent p-2 text-white">
-                                    <div class="text-[10px] font-bold truncate tracking-wide">${app.utils.displayPlate(p.license_plate)}</div>
-                                </div>
-                            </div>
-                        `).join('');
-                    } catch (e) {
-                        console.error("Recommend logic error:", e);
-                        recSection.classList.add('hidden');
-                    }
-                },
+
                 loadMoreSearchCards: (isInitial = false) => {
                     const container = document.getElementById('search-profile-cards');
                     const btnContainer = document.getElementById('load-more-cards-container');
@@ -7687,7 +7645,6 @@ Object.assign(window.app, {
                     } else {
                         document.getElementById('detail-map').style.display = 'none';
                     }
-                    app.views.loadDetailRecommendations(photo, snapshot);
                     app.comments.init(photoId);
                     const fbSection = document.getElementById('fb-comments-section');
                     if (fbCommentsWrapper) {
@@ -7707,59 +7664,7 @@ Object.assign(window.app, {
                     }
                     app.loadingBar.finish();
                 },
-                loadDetailRecommendations: async (photo, snapshot) => {
-                    const recSection = document.getElementById('detail-recommendation-section');
-                    const recGrid = document.getElementById('detail-rec-grid');
-                    if (!recSection || !recGrid) return;
-                    if (!app.preference.showRecommendations) {
-                        return recSection.classList.add('hidden');
-                    }
-                    recSection.classList.add('hidden');
-                    recGrid.innerHTML = '<div class="col-span-full text-center py-4 text-gray-500"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải gợi ý...</div>';
-                    recSection.classList.remove('hidden');
-                    try {
-                        const params = new URLSearchParams({
-                            photoId: photo.id,
-                            uploaderId: photo.uploader_id
-                        });
-                        if (snapshot.operator && snapshot.operator !== '---') params.append('operator', snapshot.operator);
-                        if (snapshot.route_no && snapshot.route_no !== '---') params.append('routeNo', snapshot.route_no);
-                        if (snapshot.model && snapshot.model !== '---') params.append('model', snapshot.model);
-                        const response = await fetch(`/api/recommendations?${params.toString()}`);
-                        const finalPhotos = await response.json();
-                        if (app.currentPhoto && app.currentPhoto.id !== photo.id) return;
-                        if (window.location.pathname !== `/photo/${photo.id}`) return;
-                        if (!finalPhotos || finalPhotos.length === 0) {
-                            return recSection.classList.add('hidden');
-                        }
-                        recGrid.innerHTML = finalPhotos.map(p => {
-                            const uDisplay = app.utils.formatProfileDisplay(p.profiles);
-                            const uploaderName = uDisplay.username;
-                            const role = p.profiles?.role || 'user';
-                            const badgeStr = app.utils.getRoleBadge(role, p.profiles?.subroles);
-                            let extraInfo = '';
-                            if (p.route_no && p.route_no !== '---') extraInfo = `<span class="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[10px] font-bold">${p.route_no}</span>`;
-                            else if (p.operator && p.operator !== '---') extraInfo = `<span class="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded text-[10px] font-bold">${p.operator}</span>`;
-                            return `
-                            <div class="relative group cursor-pointer aspect-[4/3] rounded-md overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border border-gray-200" onclick="app.views.loadDetail(${p.id})">
-                                <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(p.url, 'det_rec.jpg', 'thumb')}" class="w-full h-full object-cover transition-transform duration-500">
-                                <div class="absolute bottom-2 left-2 right-2 bg-white/90 backdrop-blur-md rounded-lg p-2 text-gray-900 shadow-sm flex flex-col justify-end">
-                                    <div class="flex items-center justify-between">
-                                        <div class="text-xs font-bold truncate tracking-wide">${app.utils.displayPlate(p.license_plate)}</div>
-                                        ${extraInfo}
-                                    </div>
-                                    <div class="text-[10px] text-gray-600 truncate mt-0.5 flex items-center gap-1">
-                                        <i class="fa-solid fa-user text-[8px]"></i> ${uploaderName} ${badgeStr}
-                                    </div>
-                                </div>
-                            </div>
-                            `;
-                        }).join('');
-                    } catch (e) {
-                        console.error("Lỗi khi tải gợi ý chi tiết:", e);
-                        recSection.classList.add('hidden');
-                    }
-                },
+
                 loadHistory: async (plate) => {
                     const btnEditHist = document.getElementById('btn-edit-history');
                     if (btnEditHist) btnEditHist.disabled = true;
@@ -11087,7 +10992,6 @@ Object.assign(window.app, {
                          await window.sb.from('profiles').update({
                              preferences: { 
                                  type: app.preference.current, 
-                                 showRec: app.preference.showRecommendations, 
                                  wmMode: app.wmState ? app.wmState.mode : 'basic',
                                  pinnedLocations: app.preference.pinnedLocations || []
                              }
@@ -12085,9 +11989,8 @@ Object.assign(window.app, {
                         if (typeof localStorage !== 'undefined') localStorage.setItem('vnbus_wm_mode', mode);
                         if (animate && app.user && window.sb) {
                             const curPref = localStorage.getItem('vnbus_preference') || 'both';
-                            const curShowRec = localStorage.getItem('vnbus_show_rec') !== 'false';
                             window.sb.from('profiles').update({
-                                preferences: { type: curPref, showRec: curShowRec, wmMode: mode, pinnedLocations: (app.preference && app.preference.pinnedLocations) || [] }
+                                preferences: { type: curPref, wmMode: mode, pinnedLocations: (app.preference && app.preference.pinnedLocations) || [] }
                             }).eq('id', app.user.id).then(()=>{});
                         }
                     } catch (e) {}
@@ -15272,11 +15175,7 @@ Object.assign(window.app, {
   preference: {
                 current: 'both',
                 tempSelection: 'both',
-                showRecommendations: true,
-                tempShowRec: true,
                 load: () => {
-                    const savedRec = localStorage.getItem('vnbus_show_rec');
-                    if (savedRec !== null) app.preference.showRecommendations = savedRec === 'true';
                     const saved = localStorage.getItem('vnbus_preference');
                     if (saved) {
                         app.preference.current = saved;
@@ -15286,7 +15185,6 @@ Object.assign(window.app, {
                 },
                 open: (isOnboarding = false) => {
                     app.preference.tempSelection = app.preference.current || 'both';
-                    app.preference.tempShowRec = app.preference.showRecommendations;
                     app.settings.open();
                     app.settings.switchTab('preference');
                     app.preference.updateUI();
@@ -15298,14 +15196,7 @@ Object.assign(window.app, {
                         app.onboarding.updatePrefUI();
                     }
                 },
-                toggleRec: (val) => {
-                    app.preference.tempShowRec = val;
-                },
                 updateUI: () => {
-                    const toggleRec = document.getElementById('set-pref-toggle-rec');
-                    if (toggleRec) {
-                        toggleRec.checked = app.preference.tempShowRec;
-                    }
                     ['bus', 'coach', 'both'].forEach(type => {
                         ['pref-btn-', 'set-pref-btn-'].forEach(prefix => {
                             const btn = document.getElementById(`${prefix}${type}`);
@@ -15328,19 +15219,16 @@ Object.assign(window.app, {
                 },
                 save: () => {
                     const isChanged = app.preference.current !== app.preference.tempSelection;
-                    const isRecChanged = app.preference.showRecommendations !== app.preference.tempShowRec;
                     app.preference.current = app.preference.tempSelection;
-                    app.preference.showRecommendations = app.preference.tempShowRec;
                     localStorage.setItem('vnbus_preference', app.preference.current);
-                    localStorage.setItem('vnbus_show_rec', app.preference.showRecommendations);
                     if (app.user) {
                         const curWmMode = localStorage.getItem('vnbus_wm_mode') || (app.wmState && app.wmState.mode) || 'basic';
                         window.sb.from('profiles').update({
-                            preferences: { type: app.preference.current, showRec: app.preference.showRecommendations, wmMode: curWmMode, pinnedLocations: app.preference.pinnedLocations || [] }
+                            preferences: { type: app.preference.current, wmMode: curWmMode, pinnedLocations: app.preference.pinnedLocations || [] }
                         }).eq('id', app.user.id).then(({error}) => {});
                     }
                     app.ui.showAlert("Đã lưu thông tin Cá nhân hóa thành công!");
-                    if (isChanged || isRecChanged) {
+                    if (isChanged) {
                         const path = window.location.pathname;
                         if (path === '/') {
                             app.views.loadHome(true);
