@@ -1299,12 +1299,11 @@ Object.assign(window.app, {
                                 const { data: curMdls } = await window.sb.from('model_info').select('*').in('model_name', mdlNamesReq);
                                 if (curMdls) curMdls.forEach(m => mdlMap[m.model_name] = m);
                             }
-                            const routeReqs = reqs.filter(r => r.new_data.request_type === 'update_route_info').map(r => ({ route_no: r.new_data.route_no, province: r.new_data.province }));
+                            const routeReqs = reqs.filter(r => r.new_data.request_type === 'update_route_info').map(r => r.new_data.route_name).filter(Boolean);
                             let routeMap = {};
                             if (routeReqs.length > 0) {
-                                const routeNos = [...new Set(routeReqs.map(r => r.route_no))];
-                                const { data: curRoutes } = await window.sb.from('route_info').select('*').in('route_no', routeNos);
-                                if (curRoutes) curRoutes.forEach(rt => routeMap[`${rt.province || ''}_${rt.route_no}`] = rt);
+                                const { data: curRoutes } = await window.sb.from('route_info').select('*').in('route_name', routeReqs);
+                                if (curRoutes) curRoutes.forEach(rt => routeMap[rt.route_name] = rt);
                             }
                             content.innerHTML = reqs.map(r => {
                                 const d = r.new_data;
@@ -1314,7 +1313,7 @@ Object.assign(window.app, {
                                 const curP = pMap[d.photo_id] || {};
                                 const curOp = opMap[d.operator_name] || {};
                                 const curMdl = mdlMap[d.model_name] || {};
-                                const curRoute = routeMap[`${d.province || ''}_${d.route_no}`] || {};
+                                const curRoute = routeMap[d.route_name] || {};
                                 if (type === 'update_vehicle_info') {
                                     const tagNew = '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>';
                                     if (!app.admin.originalData) app.admin.originalData = {};
@@ -1379,7 +1378,7 @@ Object.assign(window.app, {
                                     <div class="admin-card overflow-visible">
                                         <div class="admin-card-header bg-teal-50"><span class="font-bold text-xs uppercase text-teal-600">CẬP NHẬT TUYẾN</span><span class="text-xs text-gray-500">${username}</span></div>
                                         <div class="admin-card-body text-xs">
-                                            <p class="font-bold text-sm mb-2 text-black"><i class="fa-solid fa-route mr-1 text-gray-400"></i> ${app.utils.escapeAttr(d.route_no)}${d.province ? ` (BKS ${app.utils.escapeAttr(d.province)})` : ''}</p>
+                                            <p class="font-bold text-sm mb-2 text-black"><i class="fa-solid fa-route mr-1 text-gray-400"></i> ${app.utils.escapeAttr(d.route_name)}</p>
                                             <p class="mb-2 text-xs font-bold text-gray-500">Thông tin gốc (Hiện tại):</p>
                                             <div class="space-y-1 mb-4 text-xs opacity-75 border p-2 rounded bg-gray-50">
                                                 <div><span class="font-bold">Logo Tuyến:</span> ${curRoute.logo_url ? `<a href="${app.utils.escapeAttr(curRoute.logo_url)}" target="_blank" class="text-blue-500 underline">[Xem Ảnh]</a>` : '-'}</div>

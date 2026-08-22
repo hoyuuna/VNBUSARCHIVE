@@ -9968,13 +9968,8 @@ Object.assign(window.app, {
                     document.getElementById('route-load-more-container').classList.add('hidden');
                     
                     try {
-                        let routeInfoQuery = window.sb.from('route_info').select('logo_url, description').eq('route_no', decodedRoute);
-                        if (decodedProvince) {
-                            routeInfoQuery = routeInfoQuery.eq('province', decodedProvince);
-                        } else {
-                            routeInfoQuery = routeInfoQuery.is('province', null);
-                        }
-                        const { data: exactInfo } = await routeInfoQuery.maybeSingle();
+                        const routeName = decodedProvince ? `${decodedRoute} - ${decodedProvince}` : decodedRoute;
+                        const { data: exactInfo } = await window.sb.from('route_info').select('logo_url, description').eq('route_name', routeName).maybeSingle();
 
                         const logoEl = document.getElementById('route-logo');
                         const fallbackEl = document.getElementById('route-logo-fallback');
@@ -10054,13 +10049,8 @@ Object.assign(window.app, {
                         warningText.innerText = "Thông tin này sẽ được kiểm duyệt bởi Admin. Việc để trống cả 2 ô sẽ gửi yêu cầu xóa thông tin hiện tại.";
                     }
                     try {
-                        let routeInfoQuery = window.sb.from('route_info').select('logo_url, description').eq('route_no', app.route.currentRoute);
-                        if (app.route.currentProvince) {
-                            routeInfoQuery = routeInfoQuery.eq('province', app.route.currentProvince);
-                        } else {
-                            routeInfoQuery = routeInfoQuery.is('province', null);
-                        }
-                        const { data: exactInfo } = await routeInfoQuery.maybeSingle();
+                        const routeName = app.route.currentProvince ? `${app.route.currentRoute} - ${app.route.currentProvince}` : app.route.currentRoute;
+                        const { data: exactInfo } = await window.sb.from('route_info').select('logo_url, description').eq('route_name', routeName).maybeSingle();
                         if (exactInfo) {
                             document.getElementById('route-edit-desc').value = exactInfo.description || '';
                             document.getElementById('route-edit-logo').value = exactInfo.logo_url || '';
@@ -10117,44 +10107,25 @@ Object.assign(window.app, {
                         btn.disabled = true;
                         try {
                             if (app.role === 'admin' || app.role === 'manager') {
+                                const routeName = app.route.currentProvince ? `${app.route.currentRoute} - ${app.route.currentProvince}` : app.route.currentRoute;
                                 if (!logo && !desc) {
-                                    let delQuery = window.sb.from('route_info').delete().eq('route_no', app.route.currentRoute);
-                                    if (app.route.currentProvince) {
-                                        delQuery = delQuery.eq('province', app.route.currentProvince);
-                                    } else {
-                                        delQuery = delQuery.is('province', null);
-                                    }
-                                    const { error: delErr } = await delQuery;
+                                    const { error: delErr } = await window.sb.from('route_info').delete().eq('route_name', routeName);
                                     if (delErr) throw delErr;
                                 } else {
-                                    let existQuery = window.sb.from('route_info').select('id').eq('route_no', app.route.currentRoute);
-                                    if (app.route.currentProvince) existQuery = existQuery.eq('province', app.route.currentProvince);
-                                    else existQuery = existQuery.is('province', null);
-                                    
-                                    const { data: existingData } = await existQuery.maybeSingle();
-                                    
-                                    if (existingData) {
-                                        const { error: updateErr } = await window.sb.from('route_info').update({
-                                            logo_url: logo || null,
-                                            description: desc || null
-                                        }).eq('id', existingData.id);
-                                        if (updateErr) throw updateErr;
-                                    } else {
-                                        const { error: insertErr } = await window.sb.from('route_info').insert({
-                                            route_no: app.route.currentRoute,
-                                            province: app.route.currentProvince || null,
-                                            logo_url: logo || null,
-                                            description: desc || null
-                                        });
-                                        if (insertErr) throw insertErr;
-                                    }
+                                    const { error: upsertErr } = await window.sb.from('route_info').upsert({
+                                        route_name: routeName,
+                                        logo_url: logo || null,
+                                        description: desc || null
+                                    });
+                                    if (upsertErr) throw upsertErr;
                                 }
                                 app.toast.show('success', 'Thành công', 'Đã lưu thông tin Tuyến!');
                                 app.route.closeEditPrompt();
                                 app.route.loadRoutePage(app.route.currentProvince, app.route.currentRoute, true);
                             } else {
+                                const routeName = app.route.currentProvince ? `${app.route.currentRoute} - ${app.route.currentProvince}` : app.route.currentRoute;
                                 let checkQuery = window.sb.from('edit_requests').select('*', { count: 'estimated', head: true }).eq('status', 'pending');
-                                const { count, error: checkErr } = await checkQuery.contains('new_data', { request_type: 'update_route_info', route_no: app.route.currentRoute, province: app.route.currentProvince || null });
+                                const { count, error: checkErr } = await checkQuery.contains('new_data', { request_type: 'update_route_info', route_name: routeName });
                                 if (checkErr) throw checkErr;
                                 if (count > 0) throw new Error("Đã có một yêu cầu cập nhật thông tin cho tuyến này đang chờ duyệt.");
                                 
@@ -10163,8 +10134,7 @@ Object.assign(window.app, {
                                     license_plate: 'ROUTE_INFO',
                                     new_data: {
                                         request_type: 'update_route_info',
-                                        route_no: app.route.currentRoute,
-                                        province: app.route.currentProvince || null,
+                                        route_name: routeName,
                                         description: desc,
                                         logo_url: logo
                                     },
@@ -16913,12 +16883,11 @@ Object.assign(window.app, {
                                 const { data: curMdls } = await window.sb.from('model_info').select('*').in('model_name', mdlNamesReq);
                                 if (curMdls) curMdls.forEach(m => mdlMap[m.model_name] = m);
                             }
-                            const routeReqs = reqs.filter(r => r.new_data.request_type === 'update_route_info').map(r => ({ route_no: r.new_data.route_no, province: r.new_data.province }));
+                            const routeReqs = reqs.filter(r => r.new_data.request_type === 'update_route_info').map(r => r.new_data.route_name).filter(Boolean);
                             let routeMap = {};
                             if (routeReqs.length > 0) {
-                                const routeNos = [...new Set(routeReqs.map(r => r.route_no))];
-                                const { data: curRoutes } = await window.sb.from('route_info').select('*').in('route_no', routeNos);
-                                if (curRoutes) curRoutes.forEach(rt => routeMap[`${rt.province || ''}_${rt.route_no}`] = rt);
+                                const { data: curRoutes } = await window.sb.from('route_info').select('*').in('route_name', routeReqs);
+                                if (curRoutes) curRoutes.forEach(rt => routeMap[rt.route_name] = rt);
                             }
                             content.innerHTML = reqs.map(r => {
                                 const d = r.new_data;
@@ -16928,7 +16897,7 @@ Object.assign(window.app, {
                                 const curP = pMap[d.photo_id] || {};
                                 const curOp = opMap[d.operator_name] || {};
                                 const curMdl = mdlMap[d.model_name] || {};
-                                const curRoute = routeMap[`${d.province || ''}_${d.route_no}`] || {};
+                                const curRoute = routeMap[d.route_name] || {};
                                 if (type === 'update_vehicle_info') {
                                     const tagNew = '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>';
                                     if (!app.admin.originalData) app.admin.originalData = {};
@@ -16993,7 +16962,7 @@ Object.assign(window.app, {
                                     <div class="admin-card overflow-visible">
                                         <div class="admin-card-header bg-teal-50"><span class="font-bold text-xs uppercase text-teal-600">CẬP NHẬT TUYẾN</span><span class="text-xs text-gray-500">${username}</span></div>
                                         <div class="admin-card-body text-xs">
-                                            <p class="font-bold text-sm mb-2 text-black"><i class="fa-solid fa-route mr-1 text-gray-400"></i> ${app.utils.escapeAttr(d.route_no)}${d.province ? ` (BKS ${app.utils.escapeAttr(d.province)})` : ''}</p>
+                                            <p class="font-bold text-sm mb-2 text-black"><i class="fa-solid fa-route mr-1 text-gray-400"></i> ${app.utils.escapeAttr(d.route_name)}</p>
                                             <p class="mb-2 text-xs font-bold text-gray-500">Thông tin gốc (Hiện tại):</p>
                                             <div class="space-y-1 mb-4 text-xs opacity-75 border p-2 rounded bg-gray-50">
                                                 <div><span class="font-bold">Logo Tuyến:</span> ${curRoute.logo_url ? `<a href="${app.utils.escapeAttr(curRoute.logo_url)}" target="_blank" class="text-blue-500 underline">[Xem Ảnh]</a>` : '-'}</div>
