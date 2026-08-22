@@ -9989,13 +9989,35 @@ Object.assign(window.app, {
                         if (error) throw error;
                         
                         app.route.routePhotos = photos || [];
+                        const opEl = document.getElementById('route-info-operator');
+                        const mdlEl = document.getElementById('route-info-model');
+                        
+                        opEl.className = 'info-input text-gray-700 w-full cursor-not-allowed flex items-center h-full min-h-[36px]';
+                        opEl.onclick = null;
+                        mdlEl.className = 'info-input text-gray-700 w-full cursor-not-allowed flex items-center h-full min-h-[36px]';
+                        mdlEl.onclick = null;
+                        
                         if (app.route.routePhotos.length > 0) {
                             const topPhoto = app.route.routePhotos[0];
-                            document.getElementById('route-info-operator').value = topPhoto.operator || '---';
-                            document.getElementById('route-info-model').value = (topPhoto.vehicles && topPhoto.vehicles.model) ? topPhoto.vehicles.model : '---';
+                            
+                            const opText = topPhoto.operator || '---';
+                            opEl.innerText = opText;
+                            if (opText !== '---') {
+                                opEl.classList.remove('cursor-not-allowed', 'text-gray-700');
+                                opEl.classList.add('cursor-pointer', 'text-blue-600', 'font-bold', 'hover:underline');
+                                opEl.onclick = () => app.views.loadOperatorPage(opText);
+                            }
+                            
+                            const mdlText = (topPhoto.vehicles && topPhoto.vehicles.model) ? topPhoto.vehicles.model : '---';
+                            mdlEl.innerText = mdlText;
+                            if (mdlText !== '---') {
+                                mdlEl.classList.remove('cursor-not-allowed', 'text-gray-700');
+                                mdlEl.classList.add('cursor-pointer', 'text-blue-600', 'font-bold', 'hover:underline');
+                                mdlEl.onclick = () => app.views.loadModelPage(mdlText);
+                            }
                         } else {
-                            document.getElementById('route-info-operator').value = '---';
-                            document.getElementById('route-info-model').value = '---';
+                            opEl.innerText = '---';
+                            mdlEl.innerText = '---';
                         }
                         app.route.totalCount = app.route.routePhotos.length;
                         app.route.totalPages = Math.ceil(app.route.totalCount / app.route.ROUTE_PAGE_SIZE);
