@@ -5329,20 +5329,35 @@ div[id$="-modal"] > div > * {
 
                 <div class="bg-white border border-vbs-border shadow-sm rounded-lg p-6 md:p-8 mb-6 relative overflow-hidden">
                     <div class="flex items-center gap-4 w-full min-w-0 max-w-full mb-6">
-                        <img id="route-logo" src="" class="hidden w-16 h-16 md:w-20 md:h-20 object-contain shrink-0" onerror="this.classList.add('hidden'); document.getElementById('route-logo-fallback').classList.remove('hidden');">
-                        
-                        <div id="route-logo-fallback" class="w-16 h-16 md:w-20 md:h-20 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-3xl shrink-0">
-                            <i class="fa-solid fa-route"></i>
-                        </div>
-                        
                         <div class="overflow-hidden min-w-0 flex-1">
                             <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-widest font-bold mb-1" id="route-province-label">Tuyến xe</p>
-                            <h2 id="route-profile-title" class="text-xl md:text-3xl font-black uppercase text-black tracking-tight leading-tight overflow-x-auto whitespace-nowrap no-scrollbar block w-full">...</h2>
+                            <h2 id="route-profile-title" class="text-xl md:text-2xl font-black uppercase text-black tracking-tight leading-tight overflow-x-auto whitespace-nowrap no-scrollbar block w-full flex items-center gap-2">...</h2>
                         </div>
                     </div>
                     
                     <!-- Khung mô tả -->
-                    <div id="route-desc" class="text-sm text-gray-700 mb-3 whitespace-pre-wrap leading-relaxed hidden bg-gray-50 p-4 rounded-xl border border-gray-100 shadow-inner"></div>
+                    
+
+                    
+                    <div class="mb-8">
+                        <h3 class="font-bold text-xs uppercase text-black tracking-wider mb-2.5 px-1">Thông tin chi tiết</h3>
+                        <div class="border border-gray-200 rounded-lg overflow-hidden bg-white mb-3 shadow-sm">
+                            <table class="info-table border-gray-200 w-full" style="margin-bottom: 0 !important;">
+                                <tr>
+                                    <td class="label bg-gray-50 border-r border-b border-gray-200" style="width: 35%">Đơn vị vận hành</td>
+                                    <td class="value-cell border-b border-gray-200">
+                                        <input type="text" id="route-info-operator" class="info-input text-gray-700 w-full cursor-not-allowed" readonly value="...">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="label bg-gray-50 border-r border-gray-200">Dòng xe</td>
+                                    <td class="value-cell relative">
+                                        <input type="text" id="route-info-model" class="info-input text-gray-700 w-full cursor-not-allowed" readonly value="...">
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
 
                     <div class="mb-6">
                         <button onclick="app.route.openEditPrompt()" class="w-full bg-white border border-gray-300 text-gray-700 py-2.5 text-sm font-bold rounded-md hover:bg-gray-50 transition shadow-sm flex justify-center items-center gap-1.5">
@@ -5350,7 +5365,7 @@ div[id$="-modal"] > div > * {
                         </button>
                     </div>
 
-                    <div id="rte-stats-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                    <div id="rte-stats-grid" class="grid grid-cols-3 gap-4 mt-6">
                         <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
                             <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Tổng số ảnh</p>
                             <p id="rte-stat-photos" class="text-2xl font-black text-black">...</p>
@@ -5359,10 +5374,7 @@ div[id$="-modal"] > div > * {
                             <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Số xe hoạt động</p>
                             <p id="rte-stat-vehicles" class="text-2xl font-black text-black">...</p>
                         </div>
-                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Đơn vị quản lý</p>
-                            <p id="rte-stat-ops" class="text-2xl font-black text-black">...</p>
-                        </div>
+                        
                         <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
                             <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Tổng lượt xem</p>
                             <p id="rte-stat-views" class="text-2xl font-black text-black">...</p>
@@ -6441,9 +6453,20 @@ div[id$="-modal"] > div > * {
                     </div>
                     <input type="text" id="route-edit-logo" class="w-full bg-white/60 border border-gray-300/80 rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all shadow-inner text-black" placeholder="VD: https://imgur.com/xyz.png">
                 </div>
+                
                 <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Mô tả chi tiết Tuyến này</label>
-                    <textarea id="route-edit-desc" rows="4" class="w-full bg-white/60 border border-gray-300/80 rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all shadow-inner resize-none custom-scrollbar text-black" placeholder="Cung cấp thông tin về Lộ trình, Giá vé, Đơn vị vận hành..."></textarea>
+                    <div class="flex items-center justify-between bg-white/60 border border-gray-300/80 rounded-xl p-3 shadow-inner hover:bg-gray-50 transition-all">
+                        <span class="text-sm font-bold text-gray-700">Đánh dấu tuyến này đã dừng hoạt động</span>
+                        <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-4 self-center">
+                            <input type="checkbox" id="route-edit-inactive" class="sr-only peer">
+                            <div class="w-11 h-6 bg-black rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all shadow-inner"></div>
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Lộ trình ngắn gọn (VD: Long Biên - Giáp Bát) Tuyến này</label>
+                    <textarea id="route-edit-desc" rows="2" class="w-full bg-white/60 border border-gray-300/80 rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all shadow-inner resize-none custom-scrollbar text-black" placeholder="Cung cấp thông tin về Lộ trình, Giá vé, Đơn vị vận hành..."></textarea>
                 </div>
             </div>
             <div class="bg-gray-50/30 px-5 py-4 flex gap-3">

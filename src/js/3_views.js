@@ -3748,8 +3748,7 @@ Object.assign(window.app, {
                                 } else {
                                     const { error } = await window.sb.from('operator_info').upsert({
                                         operator_name: app.currentOperator,
-                                        logo_url: logo || null,
-                                        description: desc || null,
+                                                                                description: desc || null,
                                         parent_operator: parentOp || null
                                     });
                                     if (error) throw error;
@@ -3758,7 +3757,7 @@ Object.assign(window.app, {
                                 app.operator.closeEditPrompt();
                                 app.views.loadOperatorPage(app.currentOperator);
                                 if (app.admin && app.admin.logAction) {
-                                    app.admin.logAction('update_operator_direct', app.currentOperator, { logo_url: logo, description: desc, parent_operator: parentOp });
+                                    app.admin.logAction('update_operator_direct', app.currentOperator, { logo_url: null, description: desc, parent_operator: parentOp });
                                 }
                             } else {
                                 const { count, error: checkErr } = await window.sb.from('edit_requests')
@@ -3776,8 +3775,7 @@ Object.assign(window.app, {
                                         request_type: 'update_operator_info',
                                         operator_name: app.currentOperator,
                                         description: desc,
-                                        logo_url: logo,
-                                        parent_operator: parentOp
+                                                                                parent_operator: parentOp
                                     },
                                     status: 'pending'
                                 };
@@ -3793,7 +3791,7 @@ Object.assign(window.app, {
                             btn.disabled = false;
                         }
                     };
-                    if (!logo && !desc) {
+                    if (!desc) {
                         app.ui.showAlert(
                             "Bạn đã để trống cả 2 ô. Điều này sẽ XÓA thông tin của Đơn vị vận hành hiện tại (trở về mặc định). Bạn có chắc chắn muốn tiếp tục?",
                             () => { executeSave(); },
@@ -3888,7 +3886,6 @@ Object.assign(window.app, {
                         const statsData = stats; 
                         const totalViews = stats.total_views || 0;
                         const uniquePlates = new Set();
-                        const uniqueOps = new Set();
                         if (stats.total_vehicles != null) {
                         }
                         const mdlPhotoCount = stats.total_photos || 0;
@@ -4007,25 +4004,24 @@ Object.assign(window.app, {
                         try {
                             const brandName = app.model.currentModel.split(' ')[0];
                             if (app.role === 'admin' || app.role === 'manager') {
-                                if (!logo && !desc) {
+                                if (!desc) {
                                     const { error: delErr } = await window.sb.from('model_info').delete().eq('model_name', app.model.currentModel);
                                     if (delErr) throw delErr;
                                 } else {
                                     const { error: upsertErr } = await window.sb.from('model_info').upsert({
                                         model_name: app.model.currentModel,
-                                        logo_url: logo || null,
-                                        description: desc || null
+                                                                                description: desc || null
                                     });
                                     if (upsertErr) throw upsertErr;
                                 }
                                 await window.sb.from('model_info')
-                                    .update({ logo_url: logo || null })
+                                    .update({ logo_url: null || null })
                                     .ilike('model_name', `${brandName}%`);
                                 app.toast.show('success', 'Thành công', 'Đã lưu và đồng bộ thông tin Dòng xe!');
                                 app.model.closeEditPrompt();
                                 app.model.loadModelPage(app.model.currentModel);
                                 if (app.admin && app.admin.logAction) {
-                                    app.admin.logAction('update_model_direct', app.model.currentModel, { logo_url: logo, description: desc, brand_sync: brandName });
+                                    app.admin.logAction('update_model_direct', app.model.currentModel, { logo_url: null, description: desc, brand_sync: brandName });
                                 }
                             } else {
                                 const { count, error: checkErr } = await window.sb.from('edit_requests')
@@ -4041,7 +4037,7 @@ Object.assign(window.app, {
                                         request_type: 'update_model_info',
                                         model_name: app.model.currentModel,
                                         description: desc,
-                                        logo_url: logo
+                                        logo_url: null
                                     },
                                     status: 'pending'
                                 };
@@ -4057,7 +4053,7 @@ Object.assign(window.app, {
                             btn.disabled = false;
                         }
                     };
-                    if (!logo && !desc) {
+                    if (!desc) {
                         app.ui.showAlert(
                             "Bạn đã để trống cả 2 ô. Bạn có chắc chắn muốn XÓA thông tin của Dòng xe hiện tại không?",
                             () => { executeSave(); },
@@ -4104,14 +4100,14 @@ Object.assign(window.app, {
                     
                     document.getElementById('crumb-route-profile').innerText = titleText;
                     document.getElementById('route-profile-title').innerText = decodedRoute;
-                    document.getElementById('route-province-label').innerText = decodedProvince ? `Tuyến xe - ${decodedProvince}` : 'Tuyến xe';
-                    document.getElementById('route-desc').classList.add('hidden');
-                    document.getElementById('route-logo').classList.add('hidden');
-                    document.getElementById('route-logo-fallback').classList.remove('hidden');
+                    document.getElementById('route-province-label').innerText = 'Tuyến xe';
+                    
+                    
+                    
                     
                     document.getElementById('rte-stat-photos').innerText = '...';
                     document.getElementById('rte-stat-vehicles').innerText = '...';
-                    document.getElementById('rte-stat-ops').innerText = '...';
+                    
                     document.getElementById('rte-stat-views').innerText = '...';
                     document.getElementById('rte-stats-grid').classList.remove('hidden');
                     
@@ -4124,25 +4120,19 @@ Object.assign(window.app, {
                         const routeName = decodedProvince ? `${decodedRoute} - ${decodedProvince}` : decodedRoute;
                         const { data: exactInfo } = await window.sb.from('route_info').select('logo_url, description').eq('route_name', routeName).maybeSingle();
 
-                        const logoEl = document.getElementById('route-logo');
-                        const fallbackEl = document.getElementById('route-logo-fallback');
-                        const descEl = document.getElementById('route-desc');
-
-                        if (exactInfo && exactInfo.logo_url) {
-                            logoEl.src = exactInfo.logo_url.includes('wsrv.nl') ? exactInfo.logo_url : 'https://wsrv.nl/?url=' + encodeURIComponent(exactInfo.logo_url);
-                            logoEl.classList.remove('hidden');
-                            fallbackEl.classList.add('hidden');
-                        } else {
-                            logoEl.classList.add('hidden');
-                            fallbackEl.classList.remove('hidden');
-                        }
-
+                        let titleText = decodedRoute;
+                        let inactiveBadge = '';
                         if (exactInfo && exactInfo.description) {
-                            descEl.innerHTML = app.utils.cleanText(exactInfo.description).replace(/\n/g, '<br>');
-                            descEl.classList.remove('hidden');
-                        } else {
-                            descEl.classList.add('hidden');
+                            let desc = exactInfo.description;
+                            if (desc.startsWith('[STOPPED]')) {
+                                inactiveBadge = '<span class="bg-black text-white text-[10px] px-2 py-0.5 rounded font-bold border border-black shrink-0 uppercase tracking-widest ml-2">Dừng hoạt động</span>';
+                                desc = desc.replace(/^\[STOPPED\]\s*/, '');
+                            }
+                            if (desc) {
+                                titleText = `${decodedRoute} (${desc})`;
+                            }
                         }
+                        document.getElementById('route-profile-title').innerHTML = app.utils.escapeHtml(titleText) + inactiveBadge;
                     } catch (e) {
                         console.warn("Lỗi tải thông tin Tuyến:", e);
                     }
@@ -4174,13 +4164,10 @@ Object.assign(window.app, {
                         app.route.routePhotos.forEach(p => {
                             totalViews += (p.views || 0);
                             if (p.license_plate) uniqueVehicles.add(p.license_plate.trim().toUpperCase());
-                            if (p.operator && p.operator.trim()) uniqueOps.add(p.operator.trim());
-                        });
+                            });
                         
                         document.getElementById('rte-stat-views').innerText = app.utils.formatCompact(totalViews);
                         document.getElementById('rte-stat-vehicles').innerText = app.utils.formatCompact(uniqueVehicles.size);
-                        document.getElementById('rte-stat-ops').innerText = app.utils.formatCompact(uniqueOps.size);
-                        
                         app.views.fetchRoutePhotosPage(1);
                     } catch (err) {
                         console.error("Lỗi khi tải dữ liệu tuyến:", err);
@@ -4194,7 +4181,7 @@ Object.assign(window.app, {
                     const content = document.getElementById('route-edit-content');
                     const btnSave = document.getElementById('btn-save-route');
                     const warningText = content.querySelector('p.text-xs');
-                    document.getElementById('route-edit-logo').value = '';
+                    document.getElementById('route-edit-inactive').checked = false;
                     document.getElementById('route-edit-desc').value = '';
                     if (app.role === 'admin' || app.role === 'manager') {
                         btnSave.innerText = "Lưu thông tin";
@@ -4207,8 +4194,12 @@ Object.assign(window.app, {
                         const routeName = app.route.currentProvince ? `${app.route.currentRoute} - ${app.route.currentProvince}` : app.route.currentRoute;
                         const { data: exactInfo } = await window.sb.from('route_info').select('logo_url, description').eq('route_name', routeName).maybeSingle();
                         if (exactInfo) {
-                            document.getElementById('route-edit-desc').value = exactInfo.description || '';
-                            document.getElementById('route-edit-logo').value = exactInfo.logo_url || '';
+                            let desc = exactInfo.description || '';
+                            if (desc.startsWith('[STOPPED]')) {
+                                document.getElementById('route-edit-inactive').checked = true;
+                                desc = desc.replace(/^\[STOPPED\]\s*/, '');
+                            }
+                            document.getElementById('route-edit-desc').value = desc;
                         }
                     } catch(e) {}
                     modal.classList.remove('hidden');
@@ -4230,30 +4221,14 @@ Object.assign(window.app, {
                 },
                 submitEdit: async () => {
                     if (!app.user) return;
-                    const logo = document.getElementById('route-edit-logo').value.trim();
-                    const desc = document.getElementById('route-edit-desc').value.trim();
+                    let desc = document.getElementById('route-edit-desc').value.trim();
+                    if (document.getElementById('route-edit-inactive').checked) {
+                        desc = '[STOPPED] ' + desc;
+                        desc = desc.trim();
+                    }
                     const btn = document.getElementById('btn-save-route');
                     
                     const executeSave = async () => {
-                        if (logo) {
-                            if (!/^https?:\/\//i.test(logo)) return app.ui.showAlert("Logo URL phải bắt đầu bằng http:// hoặc https://");
-                            const origTextTemp = btn.innerHTML;
-                            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang kiểm tra ảnh...';
-                            btn.disabled = true;
-                            const isValidImg = await new Promise(resolve => {
-                                const img = new Image();
-                                img.onload = () => resolve(true);
-                                img.onerror = () => resolve(false);
-                                img.src = logo.includes('wsrv.nl') ? logo : 'https://wsrv.nl/?url=' + encodeURIComponent(logo);
-                            });
-                            if (!isValidImg) {
-                                btn.innerHTML = origTextTemp;
-                                btn.disabled = false;
-                                return app.ui.showAlert("Không thể tải được ảnh từ đường dẫn Logo bạn đã nhập (Hoặc máy chủ ảnh từ chối truy cập).");
-                            }
-                            btn.innerHTML = origTextTemp;
-                            btn.disabled = false;
-                        }
                         if (app.role !== 'admin' && app.role !== 'manager') {
                             try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
                         }
@@ -4263,14 +4238,13 @@ Object.assign(window.app, {
                         try {
                             if (app.role === 'admin' || app.role === 'manager') {
                                 const routeName = app.route.currentProvince ? `${app.route.currentRoute} - ${app.route.currentProvince}` : app.route.currentRoute;
-                                if (!logo && !desc) {
+                                if (!desc) {
                                     const { error: delErr } = await window.sb.from('route_info').delete().eq('route_name', routeName);
                                     if (delErr) throw delErr;
                                 } else {
                                     const { error: upsertErr } = await window.sb.from('route_info').upsert({
                                         route_name: routeName,
-                                        logo_url: logo || null,
-                                        description: desc || null
+                                                                                description: desc || null
                                     });
                                     if (upsertErr) throw upsertErr;
                                 }
@@ -4291,7 +4265,7 @@ Object.assign(window.app, {
                                         request_type: 'update_route_info',
                                         route_name: routeName,
                                         description: desc,
-                                        logo_url: logo
+                                        logo_url: null
                                     },
                                     status: 'pending'
                                 };
@@ -4308,7 +4282,7 @@ Object.assign(window.app, {
                         }
                     };
                     
-                    if (!logo && !desc) {
+                    if (!desc) {
                         app.ui.showAlert(
                             "Bạn đã để trống cả 2 ô. Bạn có chắc chắn muốn XÓA thông tin của Tuyến hiện tại không?",
                             () => { executeSave(); },
