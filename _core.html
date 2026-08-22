@@ -2955,7 +2955,7 @@ div[id$="-modal"] > div > * {
                     <a href="/" class="flex items-center gap-2 cursor-pointer lg:mb-0 mr-auto no-underline shrink-0">
                         <!-- TODO: Change back to previous logo later: https://ik.imagekit.io/hoyuuna/Logo/logo304.png -->
                         <img src="/media/vnba.png" alt="VNBUSARCHIVE"
-                            class="h-8 lg:h-10 w-auto object-contain" decoding="async">
+                            class="h-8 lg:h-10 w-auto max-w-[200px] max-h-10 shrink-0 object-contain" decoding="async">
                     </a>
 
                     <nav
@@ -3015,9 +3015,9 @@ div[id$="-modal"] > div > * {
                             <i class="fa-solid fa-xmark"></i>
                         </button>
 
-                        <div class="relative border-l border-gray-200 h-full flex items-center">
+                        <div class="relative border-l border-gray-200 self-stretch flex items-center">
                             <button id="btn-filter-toggle" onclick="app.search.toggleFilter()"
-                                class="text-gray-500 hover:text-black px-3 py-2 h-full transition-colors"
+                                class="text-gray-500 hover:text-black px-3 py-2 transition-colors"
                                 title="Bộ lọc tìm kiếm">
                                 <i class="fa-solid fa-filter"></i>
                             </button>
