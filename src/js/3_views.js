@@ -1284,7 +1284,7 @@ Object.assign(window.app, {
                         return `
                         <div class="profile-photo-item cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-300" onclick="app.views.loadDetail(${p.id})">
                             <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(p.url, 'liked.jpg', 'thumb')}" class="w-full h-full object-cover">
-                            <div class="absolute bottom-0 left-0 bg-black/60 text-white text-[10px] w-full p-1.5 truncate backdrop-blur-sm">
+                            <div class="absolute bottom-2 left-2 right-2 bg-white/90 text-gray-900 text-[10px] rounded-md p-1.5 truncate backdrop-blur-md shadow-sm font-medium">
                                 ${app.utils.displayPlate(p.license_plate)} - ${p.operator || 'N/A'}
                             </div>
                         </div>`
@@ -1895,12 +1895,12 @@ Object.assign(window.app, {
                             return `
                             <div class="relative group cursor-pointer aspect-[4/3] rounded-md overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border border-gray-200" onclick="app.views.loadDetail(${p.id})">
                                 <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(p.url, 'det_rec.jpg', 'thumb')}" class="w-full h-full object-cover transition-transform duration-500">
-                                <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 via-black/40 to-transparent p-2 text-white flex flex-col justify-end">
+                                <div class="absolute bottom-2 left-2 right-2 bg-white/90 backdrop-blur-md rounded-lg p-2 text-gray-900 shadow-sm flex flex-col justify-end">
                                     <div class="flex items-center justify-between">
                                         <div class="text-xs font-bold truncate tracking-wide">${app.utils.displayPlate(p.license_plate)}</div>
                                         ${extraInfo}
                                     </div>
-                                    <div class="text-[10px] text-gray-300 truncate mt-0.5 flex items-center gap-1">
+                                    <div class="text-[10px] text-gray-600 truncate mt-0.5 flex items-center gap-1">
                                         <i class="fa-solid fa-user text-[8px]"></i> ${uploaderName} ${badgeStr}
                                     </div>
                                 </div>
