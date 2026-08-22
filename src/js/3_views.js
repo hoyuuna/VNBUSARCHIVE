@@ -950,38 +950,22 @@ Object.assign(window.app, {
                         if (app._isOwnProfile) {
                             let dotColor = '';
                             let mainText = app.utils.cleanText(app.utils.displayPlate(p.license_plate));
-                            let hoverText = '';
-                            let isBoldMain = false;
 
                             if (p.status === 'approved') {
                                 dotColor = 'bg-green-500';
-                                isBoldMain = true;
                             } else if (p.status === 'pending') {
                                 dotColor = 'bg-[#f58e27]';
-                                const prog = p.review_progress || '0/2';
-                                hoverText = `Đang chờ duyệt... (${prog})`;
                             } else if (p.status === 'denied') {
                                 dotColor = 'bg-red-500';
-                                hoverText = 'Đã bị từ chối';
                             }
 
                             if (dotColor) {
-                                if (hoverText) {
-                                    textHtml = `
-                                        <span class="w-2 h-2 rounded-full ${dotColor} shrink-0 mr-1.5 block"></span>
-                                        <div class="flex-1 min-w-0">
-                                            <span class="truncate block group-hover:hidden ${isBoldMain ? 'font-bold' : ''}">${mainText}</span>
-                                            <span class="truncate block font-bold tracking-wide hidden group-hover:block" title="${hoverText}">${hoverText}</span>
-                                        </div>
-                                    `;
-                                } else {
-                                    textHtml = `
-                                        <span class="w-2 h-2 rounded-full ${dotColor} shrink-0 mr-1.5 block"></span>
-                                        <div class="flex-1 min-w-0">
-                                            <span class="truncate block font-bold">${mainText}</span>
-                                        </div>
-                                    `;
-                                }
+                                textHtml = `
+                                    <span class="w-2 h-2 rounded-full ${dotColor} shrink-0 mr-1.5 block"></span>
+                                    <div class="flex-1 min-w-0">
+                                        <span class="truncate block font-bold">${mainText}</span>
+                                    </div>
+                                `;
                             }
                         }
                         const proxyUrl = app.utils.getProxiedUrl(p.url, 'profile.jpg', 'thumb');
@@ -1448,12 +1432,12 @@ Object.assign(window.app, {
                                 }
                             }
                             if (codes.length > 0) {
-                                let html = '<ul class="list-disc ml-5 text-sm text-blue-800 space-y-3 leading-relaxed">';
+                                let html = '<ul class="list-disc ml-5 text-sm text-gray-800 space-y-3 leading-relaxed">';
                                 codes.forEach(c => {
                                     html += `<li><strong class="font-bold">Lỗi [${c}]:</strong> ${suggestionsMap[c]}</li>`;
                                 });
                                 html += '</ul>';
-                                html += '<p class="text-[11px] text-blue-800 italic mt-4 flex items-start gap-1.5"><i class="fa-solid fa-circle-info mt-0.5"></i> <span>Đây là góp ý tự động, có thể sẽ không phản ánh thực tế tình trạng ảnh. Vui lòng chỉ sử dụng để tham khảo.</span></p>';
+                                html += '<p class="text-[11px] text-gray-500 italic mt-4 flex items-start gap-1.5"><i class="fa-solid fa-circle-info mt-0.5"></i> <span>Đây là góp ý tự động, có thể sẽ không phản ánh thực tế tình trạng ảnh. Vui lòng chỉ sử dụng để tham khảo.</span></p>';
                                 suggestContent.innerHTML = html;
                                 suggestBox.classList.remove('hidden');
                             } else {
