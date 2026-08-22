@@ -9982,7 +9982,7 @@ Object.assign(window.app, {
                                                 <div class="w-7 h-7 rounded-full bg-green-100 text-green-600 flex items-center justify-center shrink-0">
                                                     <i class="fa-solid fa-ticket text-xs"></i>
                                                 </div>
-                                                <span class="text-xs font-bold text-gray-700">Giá vé: ${app.utils.escapeHtml(exactInfo.metadata.ticket_price)}</span>
+                                                <span class="text-xs font-bold text-gray-700">Giá vé lượt: ${app.utils.escapeHtml(exactInfo.metadata.ticket_price)}</span>
                                             </div>
                                         `;
                                         hasExtraInfo = true;
@@ -17085,7 +17085,7 @@ Object.assign(window.app, {
                                                 <div><span class="font-bold">Trạng thái:</span> ${curRoute.is_inactive ? '<span class="text-red-500 font-bold">Dừng hoạt động</span>' : 'Đang hoạt động'}</div>
                                                 <div><span class="font-bold">Lộ trình (Rút gọn):</span> ${app.utils.escapeAttr(curRoute.short_path || '-')}</div>
                                                 <div><span class="font-bold">Mô tả:</span> ${app.utils.escapeAttr(curRoute.description || '-')}</div>
-                                                <div><span class="font-bold">Giá vé:</span> ${app.utils.escapeAttr(curRoute.metadata?.ticket_price || '-')}</div>
+                                                <div><span class="font-bold">Giá vé lượt:</span> ${app.utils.escapeAttr(curRoute.metadata?.ticket_price || '-')}</div>
                                                 <div><span class="font-bold">Xe lăn:</span> ${curRoute.metadata?.wheelchair_support ? 'Có' : 'Không'}</div>
                                             </div>
                                             <p class="mb-2 font-bold text-red-500">[MỚI] Yêu cầu cập nhật thành:</p>
@@ -17103,7 +17103,7 @@ Object.assign(window.app, {
                                                 <textarea id="req-route-desc-${r.id}" class="admin-input" rows="3">${app.utils.escapeAttr(d.description || '')}</textarea>
                                             </div>
                                             <div class="mb-2">
-                                                <span class="admin-label">Giá vé ${d.metadata?.ticket_price !== curRoute.metadata?.ticket_price ? '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>' : ''}</span>
+                                                <span class="admin-label">Giá vé lượt ${d.metadata?.ticket_price !== curRoute.metadata?.ticket_price ? '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>' : ''}</span>
                                                 <input type="text" id="req-route-ticket-${r.id}" class="admin-input" value="${app.utils.escapeAttr(d.metadata?.ticket_price || '')}">
                                             </div>
                                             <div class="mb-2 flex items-center justify-between bg-white border border-gray-300 rounded p-2">
