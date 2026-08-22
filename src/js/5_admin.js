@@ -1299,6 +1299,13 @@ Object.assign(window.app, {
                                 const { data: curMdls } = await window.sb.from('model_info').select('*').in('model_name', mdlNamesReq);
                                 if (curMdls) curMdls.forEach(m => mdlMap[m.model_name] = m);
                             }
+                            const routeReqs = reqs.filter(r => r.new_data.request_type === 'update_route_info').map(r => ({ route_no: r.new_data.route_no, province: r.new_data.province }));
+                            let routeMap = {};
+                            if (routeReqs.length > 0) {
+                                const routeNos = [...new Set(routeReqs.map(r => r.route_no))];
+                                const { data: curRoutes } = await window.sb.from('route_info').select('*').in('route_no', routeNos);
+                                if (curRoutes) curRoutes.forEach(rt => routeMap[`${rt.province || ''}_${rt.route_no}`] = rt);
+                            }
                             content.innerHTML = reqs.map(r => {
                                 const d = r.new_data;
                                 const type = d.request_type || 'Unknown';
@@ -1307,6 +1314,7 @@ Object.assign(window.app, {
                                 const curP = pMap[d.photo_id] || {};
                                 const curOp = opMap[d.operator_name] || {};
                                 const curMdl = mdlMap[d.model_name] || {};
+                                const curRoute = routeMap[`${d.province || ''}_${d.route_no}`] || {};
                                 if (type === 'update_vehicle_info') {
                                     const tagNew = '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>';
                                     if (!app.admin.originalData) app.admin.originalData = {};
@@ -1363,6 +1371,33 @@ Object.assign(window.app, {
                                             <div class="flex gap-2 mt-3">
                                                 <button onclick="app.admin.approveReq('${r.id}', this, 'info')" class="flex-1 bg-green-600 text-white py-1.5 font-bold rounded hover:bg-green-700">DUYỆT</button>
                                                 <button onclick="app.admin.denyReq('${r.id}', this)" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">HỦY</button>
+                                            </div>
+                                        </div>
+                                    </div>`;
+                                } else if (type === 'update_route_info') {
+                                    return `
+                                    <div class="admin-card overflow-visible">
+                                        <div class="admin-card-header bg-teal-50"><span class="font-bold text-xs uppercase text-teal-600">CẬP NHẬT TUYẾN</span><span class="text-xs text-gray-500">${username}</span></div>
+                                        <div class="admin-card-body text-xs">
+                                            <p class="font-bold text-sm mb-2 text-black"><i class="fa-solid fa-route mr-1 text-gray-400"></i> ${app.utils.escapeAttr(d.route_no)}${d.province ? ` (BKS ${app.utils.escapeAttr(d.province)})` : ''}</p>
+                                            <p class="mb-2 text-xs font-bold text-gray-500">Thông tin gốc (Hiện tại):</p>
+                                            <div class="space-y-1 mb-4 text-xs opacity-75 border p-2 rounded bg-gray-50">
+                                                <div><span class="font-bold">Logo Tuyến:</span> ${curRoute.logo_url ? `<a href="${app.utils.escapeAttr(curRoute.logo_url)}" target="_blank" class="text-blue-500 underline">[Xem Ảnh]</a>` : '-'}</div>
+                                                <div><span class="font-bold">Mô tả:</span> ${app.utils.escapeAttr(curRoute.description || '-')}</div>
+                                            </div>
+                                            <p class="mb-2 font-bold text-red-500">[MỚI] Yêu cầu cập nhật thành:</p>
+                                            <div class="mb-2">
+                                                <span class="admin-label">Logo Tuyến ${d.logo_url !== curRoute.logo_url ? '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>' : ''}</span>
+                                                <input type="text" id="req-route-logo-${r.id}" value="${app.utils.escapeAttr(d.logo_url || '')}" class="admin-input">
+                                                ${d.logo_url ? `<img src="${app.utils.escapeAttr(d.logo_url.includes('wsrv.nl') ? d.logo_url : 'https://wsrv.nl/?url=' + encodeURIComponent(d.logo_url))}" class="mt-1 h-8 w-auto max-w-[80px] object-contain rounded border border-gray-200">` : ''}
+                                            </div>
+                                            <div class="mb-2">
+                                                <span class="admin-label">Mô tả chi tiết Tuyến ${d.description !== curRoute.description ? '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>' : ''}</span>
+                                                <textarea id="req-route-desc-${r.id}" class="admin-input" rows="4">${app.utils.escapeAttr(d.description || '')}</textarea>
+                                            </div>
+                                            <div class="flex gap-2 mt-3">
+                                                <button onclick="app.admin.approveReq('${r.id}', this, 'route_info')" class="flex-1 bg-green-600 text-white py-1.5 font-bold rounded hover:bg-green-700">DUYỆT</button>
+                                                <button onclick="app.admin.denyReq('${r.id}', this)" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">TỪ CHỐI</button>
                                             </div>
                                         </div>
                                     </div>`;

@@ -4106,18 +4106,49 @@ Object.assign(window.app, {
                     document.getElementById('route-profile-title').innerText = decodedRoute;
                     document.getElementById('route-province-label').innerText = decodedProvince ? `Tuyến xe - ${decodedProvince}` : 'Tuyến xe';
                     document.getElementById('route-desc').classList.add('hidden');
+                    document.getElementById('route-logo').classList.add('hidden');
+                    document.getElementById('route-logo-fallback').classList.remove('hidden');
                     
                     document.getElementById('rte-stat-photos').innerText = '...';
                     document.getElementById('rte-stat-vehicles').innerText = '...';
                     document.getElementById('rte-stat-ops').innerText = '...';
                     document.getElementById('rte-stat-views').innerText = '...';
-                    
                     document.getElementById('rte-stats-grid').classList.remove('hidden');
                     
                     const grid = document.getElementById('route-photo-grid');
                     grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tổng hợp dữ liệu...</div>';
                     document.getElementById('route-load-more-container').innerHTML = '';
                     document.getElementById('route-load-more-container').classList.add('hidden');
+                    
+                    try {
+                        let routeInfoQuery = window.sb.from('route_info').select('logo_url, description').eq('route_no', decodedRoute);
+                        if (decodedProvince) {
+                            routeInfoQuery = routeInfoQuery.eq('province', decodedProvince);
+                        } else {
+                            routeInfoQuery = routeInfoQuery.is('province', null);
+                        }
+                        const { data: exactInfo } = await routeInfoQuery.maybeSingle();
+
+                        const logoEl = document.getElementById('route-logo');
+                        const fallbackEl = document.getElementById('route-logo-fallback');
+                        const descEl = document.getElementById('route-desc');
+
+                        if (exactInfo && exactInfo.logo_url) {
+                            logoEl.src = exactInfo.logo_url.includes('wsrv.nl') ? exactInfo.logo_url : 'https://wsrv.nl/?url=' + encodeURIComponent(exactInfo.logo_url);
+                            logoEl.classList.remove('hidden');
+                            fallbackEl.classList.add('hidden');
+                        } else {
+                            logoEl.classList.add('hidden');
+                            fallbackEl.classList.remove('hidden');
+                        }
+
+                        if (exactInfo && exactInfo.description) {
+                            descEl.innerHTML = app.utils.cleanText(exactInfo.description).replace(/\n/g, '<br>');
+                            descEl.classList.remove('hidden');
+                        } else {
+                            descEl.classList.add('hidden');
+                        }
+
                     
                     try {
                         let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
@@ -4159,6 +4190,162 @@ Object.assign(window.app, {
                         grid.innerHTML = '<div class="col-span-full text-center py-10 text-red-500">Đã xảy ra lỗi khi tải dữ liệu. Vui lòng thử lại sau.</div>';
                     }
                     app.loadingBar.finish();
+                },
+                openEditPrompt: async () => {
+                    if (!app.user) return app.auth.check();
+                    const modal = document.getElementById('route-edit-modal');
+                    const content = document.getElementById('route-edit-content');
+                    const btnSave = document.getElementById('btn-save-route');
+                    const warningText = content.querySelector('p.text-xs');
+                    document.getElementById('route-edit-logo').value = '';
+                    document.getElementById('route-edit-desc').value = '';
+                    if (app.role === 'admin' || app.role === 'manager') {
+                        btnSave.innerText = "Lưu thông tin";
+                        warningText.innerHTML = "";
+                    } else {
+                        btnSave.innerText = "Lưu thông tin";
+                        warningText.innerText = "Thông tin này sẽ được kiểm duyệt bởi Admin. Việc để trống cả 2 ô sẽ gửi yêu cầu xóa thông tin hiện tại.";
+                    }
+                    try {
+                        let routeInfoQuery = window.sb.from('route_info').select('logo_url, description').eq('route_no', app.route.currentRoute);
+                        if (app.route.currentProvince) {
+                            routeInfoQuery = routeInfoQuery.eq('province', app.route.currentProvince);
+                        } else {
+                            routeInfoQuery = routeInfoQuery.is('province', null);
+                        }
+                        const { data: exactInfo } = await routeInfoQuery.maybeSingle();
+                        if (exactInfo) {
+                            document.getElementById('route-edit-desc').value = exactInfo.description || '';
+                            document.getElementById('route-edit-logo').value = exactInfo.logo_url || '';
+                        }
+                    } catch(e) {}
+                    modal.classList.remove('hidden');
+                    app.ui.lockScroll();
+                    setTimeout(() => {
+                        content.classList.remove('opacity-0', 'scale-95');
+                        content.classList.add('opacity-100', 'scale-100');
+                    }, 10);
+                },
+                closeEditPrompt: () => {
+                    const modal = document.getElementById('route-edit-modal');
+                    const content = document.getElementById('route-edit-content');
+                    content.classList.remove('opacity-100', 'scale-100');
+                    content.classList.add('opacity-0', 'scale-95');
+                    setTimeout(() => {
+                        modal.classList.add('hidden');
+                        app.ui.unlockScroll();
+                    }, 200);
+                },
+                submitEdit: async () => {
+                    if (!app.user) return;
+                    const logo = document.getElementById('route-edit-logo').value.trim();
+                    const desc = document.getElementById('route-edit-desc').value.trim();
+                    const btn = document.getElementById('btn-save-route');
+                    
+                    const executeSave = async () => {
+                        if (logo) {
+                            if (!/^https?:\/\//i.test(logo)) return app.ui.showAlert("Logo URL phải bắt đầu bằng http:// hoặc https://");
+                            const origTextTemp = btn.innerHTML;
+                            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang kiểm tra ảnh...';
+                            btn.disabled = true;
+                            const isValidImg = await new Promise(resolve => {
+                                const img = new Image();
+                                img.onload = () => resolve(true);
+                                img.onerror = () => resolve(false);
+                                img.src = logo.includes('wsrv.nl') ? logo : 'https://wsrv.nl/?url=' + encodeURIComponent(logo);
+                            });
+                            if (!isValidImg) {
+                                btn.innerHTML = origTextTemp;
+                                btn.disabled = false;
+                                return app.ui.showAlert("Không thể tải được ảnh từ đường dẫn Logo bạn đã nhập (Hoặc máy chủ ảnh từ chối truy cập).");
+                            }
+                            btn.innerHTML = origTextTemp;
+                            btn.disabled = false;
+                        }
+                        if (app.role !== 'admin' && app.role !== 'manager') {
+                            try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
+                        }
+                        const origText = btn.innerHTML;
+                        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
+                        btn.disabled = true;
+                        try {
+                            if (app.role === 'admin' || app.role === 'manager') {
+                                if (!logo && !desc) {
+                                    let delQuery = window.sb.from('route_info').delete().eq('route_no', app.route.currentRoute);
+                                    if (app.route.currentProvince) {
+                                        delQuery = delQuery.eq('province', app.route.currentProvince);
+                                    } else {
+                                        delQuery = delQuery.is('province', null);
+                                    }
+                                    const { error: delErr } = await delQuery;
+                                    if (delErr) throw delErr;
+                                } else {
+                                    let existQuery = window.sb.from('route_info').select('id').eq('route_no', app.route.currentRoute);
+                                    if (app.route.currentProvince) existQuery = existQuery.eq('province', app.route.currentProvince);
+                                    else existQuery = existQuery.is('province', null);
+                                    
+                                    const { data: existingData } = await existQuery.maybeSingle();
+                                    
+                                    if (existingData) {
+                                        const { error: updateErr } = await window.sb.from('route_info').update({
+                                            logo_url: logo || null,
+                                            description: desc || null
+                                        }).eq('id', existingData.id);
+                                        if (updateErr) throw updateErr;
+                                    } else {
+                                        const { error: insertErr } = await window.sb.from('route_info').insert({
+                                            route_no: app.route.currentRoute,
+                                            province: app.route.currentProvince || null,
+                                            logo_url: logo || null,
+                                            description: desc || null
+                                        });
+                                        if (insertErr) throw insertErr;
+                                    }
+                                }
+                                app.toast.show('success', 'Thành công', 'Đã lưu thông tin Tuyến!');
+                                app.route.closeEditPrompt();
+                                app.route.loadRoutePage(app.route.currentProvince, app.route.currentRoute, true);
+                            } else {
+                                let checkQuery = window.sb.from('edit_requests').select('*', { count: 'estimated', head: true }).eq('status', 'pending');
+                                const { count, error: checkErr } = await checkQuery.contains('new_data', { request_type: 'update_route_info', route_no: app.route.currentRoute, province: app.route.currentProvince || null });
+                                if (checkErr) throw checkErr;
+                                if (count > 0) throw new Error("Đã có một yêu cầu cập nhật thông tin cho tuyến này đang chờ duyệt.");
+                                
+                                const reqData = {
+                                    requester_id: app.user.id,
+                                    license_plate: 'ROUTE_INFO',
+                                    new_data: {
+                                        request_type: 'update_route_info',
+                                        route_no: app.route.currentRoute,
+                                        province: app.route.currentProvince || null,
+                                        description: desc,
+                                        logo_url: logo
+                                    },
+                                    status: 'pending'
+                                };
+                                const { error } = await window.sb.from('edit_requests').insert(reqData);
+                                if (error) throw error;
+                                app.ui.showAlert("Đã gửi yêu cầu cập nhật thông tin Tuyến và đang chờ Admin duyệt.");
+                                app.route.closeEditPrompt();
+                            }
+                        } catch (err) {
+                            app.ui.showAlert("Lỗi: " + err.message);
+                        } finally {
+                            btn.innerHTML = origText;
+                            btn.disabled = false;
+                        }
+                    };
+                    
+                    if (!logo && !desc) {
+                        app.ui.showAlert(
+                            "Bạn đã để trống cả 2 ô. Bạn có chắc chắn muốn XÓA thông tin của Tuyến hiện tại không?",
+                            () => { executeSave(); },
+                            () => {},
+                            { title: "Xác nhận xóa", btnOkText: "Đồng ý", btnCancelText: "Hủy bỏ" }
+                        );
+                    } else {
+                        executeSave();
+                    }
                 }
   }
 });
