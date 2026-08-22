@@ -6842,6 +6842,7 @@ Object.assign(window.app, {
                         let footerStyleClasses = "absolute bottom-2 left-2 right-2 bg-white/90 text-gray-900 text-[10px] rounded-md p-1.5 backdrop-blur-md shadow-sm font-medium transition-all duration-300";
                         let cardStyleClasses = "profile-photo-item cursor-pointer group transition-all duration-300 relative shadow-md hover:-translate-y-1 hover:shadow-xl";
                         let textHtml = `<span class="block truncate">${app.utils.cleanText(app.utils.displayPlate(p.license_plate))}</span>`;
+                        
                         if (app._isOwnProfile) {
                             let dotColor = '';
                             let mainText = app.utils.cleanText(app.utils.displayPlate(p.license_plate));
@@ -6861,19 +6862,20 @@ Object.assign(window.app, {
                             }
 
                             if (dotColor) {
+                                footerStyleClasses += " flex flex-row items-center";
                                 if (hoverText) {
                                     textHtml = `
-                                        <div class="flex items-center gap-1.5 w-full">
-                                            <span class="w-2 h-2 rounded-full ${dotColor} shrink-0 mt-[0.5px]"></span>
-                                            <span class="truncate group-hover:hidden leading-tight ${isBoldMain ? 'font-bold' : ''}">${mainText}</span>
-                                            <span class="truncate font-bold tracking-wide hidden group-hover:block leading-tight" title="${hoverText}">${hoverText}</span>
+                                        <span class="w-2 h-2 rounded-full ${dotColor} shrink-0 mr-1.5 block"></span>
+                                        <div class="flex-1 min-w-0">
+                                            <span class="truncate block group-hover:hidden ${isBoldMain ? 'font-bold' : ''}">${mainText}</span>
+                                            <span class="truncate block font-bold tracking-wide hidden group-hover:block" title="${hoverText}">${hoverText}</span>
                                         </div>
                                     `;
                                 } else {
                                     textHtml = `
-                                        <div class="flex items-center gap-1.5 w-full">
-                                            <span class="w-2 h-2 rounded-full ${dotColor} shrink-0 mt-[0.5px]"></span>
-                                            <span class="truncate font-bold leading-tight">${mainText}</span>
+                                        <span class="w-2 h-2 rounded-full ${dotColor} shrink-0 mr-1.5 block"></span>
+                                        <div class="flex-1 min-w-0">
+                                            <span class="truncate block font-bold">${mainText}</span>
                                         </div>
                                     `;
                                 }
@@ -6971,7 +6973,7 @@ Object.assign(window.app, {
                         'update_model_info': 'sửa thông tin dòng xe'
                     };
                     grid.innerHTML = requests.map(req => {
-                        let cardStyleClasses = "cursor-pointer transition-all duration-300 relative flex flex-col items-start justify-center p-3 text-left bg-white rounded-xl border border-gray-200 shadow-md hover:-translate-y-1 hover:shadow-xl";
+                        let cardStyleClasses = "cursor-pointer transition-all duration-300 relative flex flex-row items-center p-3 text-left bg-white rounded-xl border border-gray-200 shadow-md hover:-translate-y-1 hover:shadow-xl";
                         let typeText = reqTypeMap[req.new_data?.request_type] || 'khác';
                         let contextText = '';
                         if (req.new_data?.request_type === 'delete_photo' && req.new_data?.photo_id) {
@@ -6985,21 +6987,21 @@ Object.assign(window.app, {
                         }
                         let dotHtml = '';
                         if (req.status === 'approved') {
-                            dotHtml = '<span class="w-2 h-2 rounded-full bg-green-500 shrink-0 mt-[1px]"></span>';
+                            dotHtml = '<span class="w-2 h-2 rounded-full bg-green-500 shrink-0 block mr-3"></span>';
                         } else if (req.status === 'pending') {
-                            dotHtml = '<span class="w-2 h-2 rounded-full bg-[#f58e27] shrink-0 mt-[1px]"></span>';
+                            dotHtml = '<span class="w-2 h-2 rounded-full bg-[#f58e27] shrink-0 block mr-3"></span>';
                         } else if (req.status === 'denied' || req.status === 'rejected') {
-                            dotHtml = '<span class="w-2 h-2 rounded-full bg-red-500 shrink-0 mt-[1px]"></span>';
+                            dotHtml = '<span class="w-2 h-2 rounded-full bg-red-500 shrink-0 block mr-3"></span>';
                         }
                         if (!app.views._requestsCache) app.views._requestsCache = {};
                         app.views._requestsCache[req.id] = req;
                         return `
                             <div class="${cardStyleClasses}" onclick="app.views.showRequestDetails('${req.id}')">
-                                <div class="flex items-center gap-2 mb-0.5 w-full">
-                                    ${dotHtml}
-                                    <span class="truncate font-bold text-gray-900 text-sm leading-tight">Yêu cầu ${typeText}</span>
+                                ${dotHtml}
+                                <div class="flex-1 min-w-0 flex flex-col justify-center">
+                                    <span class="truncate font-bold text-gray-900 text-sm leading-tight mb-0.5">Yêu cầu ${typeText}</span>
+                                    ${contextText ? `<span class="block text-gray-500 text-xs tracking-wide w-full truncate">${app.utils.cleanText(contextText)}</span>` : '<span class="block text-gray-400 text-xs tracking-wide w-full truncate">Hệ thống</span>'}
                                 </div>
-                                ${contextText ? `<span class="block text-gray-500 text-xs tracking-wide w-full truncate pl-4">${app.utils.cleanText(contextText)}</span>` : '<span class="block text-gray-400 text-xs tracking-wide w-full truncate pl-4">Hệ thống</span>'}
                             </div>
                         `;
                     }).join('');
