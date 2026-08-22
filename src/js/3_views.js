@@ -4141,7 +4141,7 @@ Object.assign(window.app, {
                                                 <div class="w-7 h-7 rounded-full bg-yellow-100 text-yellow-600 flex items-center justify-center shrink-0">
                                                     <i class="fa-solid fa-clock text-xs"></i>
                                                 </div>
-                                                <span class="text-xs font-bold text-gray-700">Giãn cách: ${app.utils.escapeHtml(exactInfo.metadata.headway)}</span>
+                                                <span class="text-xs font-bold text-gray-700">Giãn cách, TG hoạt động: ${app.utils.escapeHtml(exactInfo.metadata.headway)}</span>
                                             </div>
                                         `;
                                         hasExtraInfo = true;

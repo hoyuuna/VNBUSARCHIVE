@@ -1386,7 +1386,7 @@ Object.assign(window.app, {
                                                 <div><span class="font-bold">Lộ trình (Rút gọn):</span> ${app.utils.escapeAttr(curRoute.short_path || '-')}</div>
                                                 <div><span class="font-bold">Mô tả:</span> ${app.utils.escapeAttr(curRoute.description || '-')}</div>
                                                 <div><span class="font-bold">Giá vé lượt:</span> ${app.utils.escapeAttr(curRoute.metadata?.ticket_price || '-')}</div>
-                                                <div><span class="font-bold">Giãn cách:</span> ${app.utils.escapeAttr(curRoute.metadata?.headway || '-')}</div>
+                                                <div><span class="font-bold">Giãn cách, TG hoạt động:</span> ${app.utils.escapeAttr(curRoute.metadata?.headway || '-')}</div>
                                                 <div><span class="font-bold">Xe lăn:</span> ${curRoute.metadata?.wheelchair_support ? 'Có' : 'Không'}</div>
                                             </div>
                                             <p class="mb-2 font-bold text-red-500">[MỚI] Yêu cầu cập nhật thành:</p>
@@ -1408,7 +1408,7 @@ Object.assign(window.app, {
                                                 <input type="text" id="req-route-ticket-${r.id}" class="admin-input" value="${app.utils.escapeAttr(d.metadata?.ticket_price || '')}">
                                             </div>
                                             <div class="mb-2">
-                                                <span class="admin-label">Giãn cách chuyến ${d.metadata?.headway !== curRoute.metadata?.headway ? '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>' : ''}</span>
+                                                <span class="admin-label">Giãn cách, TG hoạt động ${d.metadata?.headway !== curRoute.metadata?.headway ? '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>' : ''}</span>
                                                 <input type="text" id="req-route-headway-${r.id}" class="admin-input" value="${app.utils.escapeAttr(d.metadata?.headway || '')}">
                                             </div>
                                             <div class="mb-2 flex items-center justify-between bg-white border border-gray-300 rounded p-2">
