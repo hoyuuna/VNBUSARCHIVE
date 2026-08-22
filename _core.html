@@ -5329,7 +5329,7 @@ div[id$="-modal"] > div > * {
 
                 <div class="bg-white border border-vbs-border shadow-sm rounded-lg p-6 md:p-8 mb-6 relative overflow-hidden">
                     <div class="flex items-center gap-4 w-full min-w-0 max-w-full mb-6">
-                        <div id="route-logo-fallback" class="w-16 h-16 md:w-20 md:h-20 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-3xl shrink-0 border border-blue-100">
+                        <div id="route-logo-fallback" class="w-16 h-16 md:w-20 md:h-20 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-3xl shrink-0">
                             <i class="fa-solid fa-route"></i>
                         </div>
                         <div class="overflow-hidden min-w-0 flex-1">
@@ -6447,15 +6447,7 @@ div[id$="-modal"] > div > * {
                 <button onclick="app.route.closeEditPrompt()" class="text-gray-400 hover:text-red-500 transition text-xl px-2"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="p-5 bg-transparent space-y-4">
-                <p class="text-xs text-gray-600 font-medium leading-relaxed">Thông tin này sẽ được kiểm duyệt bởi Admin. Việc để trống cả 2 ô sẽ làm mới và xóa thông tin hiện tại.</p>
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Logo Tuyến / Đơn vị (URL)</label>
-                    <div class="bg-blue-50 border border-blue-200 text-blue-800 px-3 py-2 rounded-md text-[11px] font-medium mb-2 flex gap-2 items-start">
-                        <i class="fa-solid fa-bolt mt-0.5"></i>
-                        <span class="leading-relaxed">Khuyến cáo dùng ảnh hình vuông, đã được xóa nền hoặc nền có màu trắng.</span>
-                    </div>
-                    <input type="text" id="route-edit-logo" class="w-full bg-white/60 border border-gray-300/80 rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all shadow-inner text-black" placeholder="VD: https://imgur.com/xyz.png">
-                </div>
+                <p class="text-xs text-gray-600 font-medium leading-relaxed">Thông tin này sẽ được kiểm duyệt bởi Admin. Việc để trống ô sẽ làm mới và xóa thông tin hiện tại.</p>
                 
                 <div>
                     <div class="flex items-center justify-between bg-white/60 border border-gray-300/80 rounded-xl p-3 shadow-inner hover:bg-gray-50 transition-all">
@@ -6468,8 +6460,8 @@ div[id$="-modal"] > div > * {
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Lộ trình ngắn gọn (VD: Long Biên - Giáp Bát) Tuyến này</label>
-                    <textarea id="route-edit-desc" rows="2" class="w-full bg-white/60 border border-gray-300/80 rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all shadow-inner resize-none custom-scrollbar text-black" placeholder="Cung cấp thông tin về Lộ trình, Giá vé, Đơn vị vận hành..."></textarea>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Lộ trình ngắn gọn</label>
+                    <textarea id="route-edit-desc" rows="2" class="w-full bg-white/60 border border-gray-300/80 rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all shadow-inner resize-none custom-scrollbar text-black" placeholder="VD: Long Biên - Giáp Bát"></textarea>
                 </div>
             </div>
             <div class="bg-gray-50/30 px-5 py-4 flex gap-3">
