@@ -9638,16 +9638,7 @@ Object.assign(window.app, {
                             btn.disabled = false;
                         }
                     };
-                    if (!desc) {
-                        app.ui.showAlert(
-                            "Bạn đã để trống cả 2 ô. Điều này sẽ XÓA thông tin của Đơn vị vận hành hiện tại (trở về mặc định). Bạn có chắc chắn muốn tiếp tục?",
-                            () => { executeSave(); },
-                            () => {},
-                            { title: "Xác nhận xóa", btnOkText: "Đồng ý", btnCancelText: "Hủy bỏ" }
-                        );
-                    } else {
-                        executeSave();
-                    }
+                    executeSave();
                 }
             }
 });
@@ -9900,16 +9891,7 @@ Object.assign(window.app, {
                             btn.disabled = false;
                         }
                     };
-                    if (!desc) {
-                        app.ui.showAlert(
-                            "Bạn đã để trống cả 2 ô. Bạn có chắc chắn muốn XÓA thông tin của Dòng xe hiện tại không?",
-                            () => { executeSave(); },
-                            () => {},
-                            { title: "Xác nhận xóa", btnOkText: "Đồng ý", btnCancelText: "Hủy bỏ" }
-                        );
-                    } else {
-                        executeSave();
-                    }
+                    executeSave();
                 }
             }
 });
@@ -10141,16 +10123,7 @@ Object.assign(window.app, {
                         }
                     };
                     
-                    if (!desc) {
-                        app.ui.showAlert(
-                            "Bạn đã để trống cả 2 ô. Bạn có chắc chắn muốn XÓA thông tin của Tuyến hiện tại không?",
-                            () => { executeSave(); },
-                            () => {},
-                            { title: "Xác nhận xóa", btnOkText: "Đồng ý", btnCancelText: "Hủy bỏ" }
-                        );
-                    } else {
-                        executeSave();
-                    }
+                    executeSave();
                 }
   }
 });
