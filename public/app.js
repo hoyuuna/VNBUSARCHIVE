@@ -10079,13 +10079,15 @@ Object.assign(window.app, {
                         try {
                             if (app.role === 'admin' || app.role === 'manager') {
                                 const routeName = app.route.currentProvince ? `${app.route.currentRoute} - ${app.route.currentProvince}` : app.route.currentRoute;
-                                if (!desc) {
+                                if (!desc && !shortPath && !isInactive) {
                                     const { error: delErr } = await window.sb.from('route_info').delete().eq('route_name', routeName);
                                     if (delErr) throw delErr;
                                 } else {
                                     const { error: upsertErr } = await window.sb.from('route_info').upsert({
                                         route_name: routeName,
-                                                                                description: desc || null
+                                        short_path: shortPath || null,
+                                        description: desc || null,
+                                        is_inactive: isInactive
                                     });
                                     if (upsertErr) throw upsertErr;
                                 }
@@ -10105,8 +10107,9 @@ Object.assign(window.app, {
                                     new_data: {
                                         request_type: 'update_route_info',
                                         route_name: routeName,
-                                        description: desc,
-                                        logo_url: null
+                                        short_path: shortPath || null,
+                                        description: desc || null,
+                                        is_inactive: isInactive
                                     },
                                     status: 'pending'
                                 };
