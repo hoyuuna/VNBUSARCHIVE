@@ -4436,7 +4436,20 @@ Object.assign(window.app, {
                     document.getElementById('route-edit-ticket-price').value = '';
                     document.getElementById('route-edit-headway').value = '';
                     document.getElementById('route-edit-wheelchair').checked = false;
-                    document.getElementById('route-edit-icon').value = 'default';
+                    const iconTypeInit = 'default';
+                      document.getElementById('route-edit-icon').value = iconTypeInit;
+                      document.getElementById('route-icon-label').innerText = 'Mặc định';
+                      document.querySelectorAll('.route-icon-item').forEach(el => {
+                          el.classList.remove('selected');
+                          const icon = el.querySelector('.check-icon');
+                          if(icon) icon.classList.add('opacity-0');
+                      });
+                      const selectedInit = document.querySelector(`.route-icon-item[data-val="${iconTypeInit}"]`);
+                      if(selectedInit) {
+                          selectedInit.classList.add('selected');
+                          const icon = selectedInit.querySelector('.check-icon');
+                          if(icon) icon.classList.remove('opacity-0');
+                      }
                     if (app.role === 'admin' || app.role === 'manager') {
                         btnSave.innerText = "Lưu thông tin";
                         warningText.innerHTML = "";
@@ -4455,7 +4468,23 @@ Object.assign(window.app, {
                                 document.getElementById('route-edit-ticket-price').value = exactInfo.metadata.ticket_price || '';
                                 document.getElementById('route-edit-headway').value = exactInfo.metadata.headway || '';
                                 document.getElementById('route-edit-wheelchair').checked = exactInfo.metadata.wheelchair_support || false;
-                                document.getElementById('route-edit-icon').value = exactInfo.metadata.icon_type || 'default';
+                                let iconTypeMeta = exactInfo.metadata.icon_type || 'default';
+                                let iconLabelMeta = 'Mặc định';
+                                if (iconTypeMeta === 'circle') iconLabelMeta = 'Hình tròn (Max 5 kí tự)';
+                                else if (iconTypeMeta === 'trapezoid') iconLabelMeta = 'Hình thang cân (Max 5 kí tự)';
+                                document.getElementById('route-edit-icon').value = iconTypeMeta;
+                                document.getElementById('route-icon-label').innerText = iconLabelMeta;
+                                document.querySelectorAll('.route-icon-item').forEach(el => {
+                                    el.classList.remove('selected');
+                                    const icon = el.querySelector('.check-icon');
+                                    if(icon) icon.classList.add('opacity-0');
+                                });
+                                const selectedMeta = document.querySelector(`.route-icon-item[data-val="${iconTypeMeta}"]`);
+                                if(selectedMeta) {
+                                    selectedMeta.classList.add('selected');
+                                    const icon = selectedMeta.querySelector('.check-icon');
+                                    if(icon) icon.classList.remove('opacity-0');
+                                }
                             }
                         }
                         
@@ -5638,3 +5667,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 100);
 });
+
+
+app.views.selectRouteIcon = function(val, label) {
+    document.getElementById('route-edit-icon').value = val;
+    document.getElementById('route-icon-label').innerText = label;
+    document.querySelectorAll('.route-icon-item').forEach(el => {
+        el.classList.remove('selected');
+        const icon = el.querySelector('.check-icon');
+        if(icon) icon.classList.add('opacity-0');
+    });
+    const selectedEl = document.querySelector(`.route-icon-item[data-val="${val}"]`);
+    if(selectedEl) {
+        selectedEl.classList.add('selected');
+        const icon = selectedEl.querySelector('.check-icon');
+        if(icon) icon.classList.remove('opacity-0');
+    }
+    document.getElementById('route-icon-menu').classList.remove('active');
+};
