@@ -4385,12 +4385,20 @@ Object.assign(window.app, {
                         }
                         
                         // Fetch borrowed photos
-                          const { data: bPhotos } = await window.sb.from('photos').select('id').eq('borrowed_route', routeName);
+                          const { data: bPhotos } = await window.sb.from('photos').select('id, license_plate').eq('borrowed_route', routeName);
                           let bList = [];
-                          if (bPhotos && bPhotos.length > 0) bList.push(...bPhotos.map(p => p.id));
+                          let plates = [];
                           if (exactInfo && exactInfo.metadata && exactInfo.metadata.borrowed_plates) {
-                              bList.push(...exactInfo.metadata.borrowed_plates);
+                              plates = exactInfo.metadata.borrowed_plates;
                           }
+                          if (bPhotos && bPhotos.length > 0) {
+                              bPhotos.forEach(p => {
+                                  if (!plates.some(pl => pl.toLowerCase() === p.license_plate.toLowerCase())) {
+                                      bList.push(p.id);
+                                  }
+                              });
+                          }
+                          bList.push(...plates);
                           document.getElementById('route-edit-borrowed').value = bList.join(', ');
                     } catch(e) {
                         console.error("Lỗi khi load dữ liệu sửa tuyến:", e);
