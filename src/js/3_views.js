@@ -4346,7 +4346,17 @@ Object.assign(window.app, {
                                 document.getElementById('route-edit-wheelchair').checked = exactInfo.metadata.wheelchair_support || false;
                             }
                         }
-                    } catch(e) {}
+                        
+                        // Fetch borrowed photos
+                        const { data: bPhotos } = await window.sb.from('photos').select('id').eq('borrowed_route', routeName);
+                        if (bPhotos && bPhotos.length > 0) {
+                            document.getElementById('route-edit-borrowed').value = bPhotos.map(p => p.id).join(', ');
+                        } else {
+                            document.getElementById('route-edit-borrowed').value = '';
+                        }
+                    } catch(e) {
+                        console.error("Lỗi khi load dữ liệu sửa tuyến:", e);
+                    }
                     modal.classList.remove('hidden');
                     app.ui.lockScroll();
                     setTimeout(() => {
@@ -4372,6 +4382,7 @@ Object.assign(window.app, {
                     const ticketPrice = document.getElementById('route-edit-ticket-price').value.trim();
                     const headway = document.getElementById('route-edit-headway').value.trim();
                     const wheelchairSupport = document.getElementById('route-edit-wheelchair').checked;
+                    const borrowedPhotosStr = document.getElementById('route-edit-borrowed').value.trim();
                     
                     let metadata = {};
                     if (ticketPrice) metadata.ticket_price = ticketPrice;
@@ -4404,6 +4415,40 @@ Object.assign(window.app, {
                                     });
                                     if (upsertErr) throw upsertErr;
                                 }
+                                
+                                // Xử lý cập nhật ID ảnh vá tuyến
+                                const newBorrowedIds = borrowedPhotosStr ? borrowedPhotosStr.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n)) : [];
+                                const { data: curBorrowed } = await window.sb.from('photos').select('id, license_plate').eq('borrowed_route', routeName);
+                                const curIds = curBorrowed ? curBorrowed.map(p => p.id) : [];
+                                
+                                const addedIdsRaw = newBorrowedIds.filter(id => !curIds.includes(id));
+                                const removedIds = curIds.filter(id => !newBorrowedIds.includes(id));
+                                
+                                if (addedIdsRaw.length > 0) {
+                                    const expectedRouteNo = routeName.split(' - ')[0];
+                                    const { data: validPhotos } = await window.sb.from('photos').select('id, route_no').in('id', addedIdsRaw);
+                                    const trulyAddedIds = (validPhotos || []).filter(p => p.route_no === expectedRouteNo).map(p => p.id);
+                                    
+                                    if (trulyAddedIds.length > 0) {
+                                        await window.sb.from('photos').update({ borrowed_route: routeName, province: app.route.currentProvince || '' }).in('id', trulyAddedIds);
+                                    }
+                                }
+                                if (removedIds.length > 0) {
+                                    const removedPhotos = curBorrowed.filter(p => removedIds.includes(p.id));
+                                    for (const p of removedPhotos) {
+                                        let defProv = 'Chưa xác định';
+                                        const match = p.license_plate.match(/^(\d{2})/);
+                                        if (match && app.utils.provinceData) {
+                                            const num = match[1];
+                                            const pData = app.utils.provinceData.find(pd => {
+                                                if (Array.isArray(pd.ky_hieu)) return pd.ky_hieu.includes(parseInt(num)) || pd.ky_hieu.includes(num);
+                                                return String(pd.ky_hieu).split(',').map(s=>s.trim()).includes(num);
+                                            });
+                                            if (pData) defProv = pData.ten;
+                                        }
+                                        await window.sb.from('photos').update({ borrowed_route: null, province: defProv }).eq('id', p.id);
+                                    }
+                                }
                                 app.toast.show('success', 'Thành công', 'Đã lưu thông tin Tuyến!');
                                 app.route.closeEditPrompt();
                                 app.route.loadRoutePage(app.route.currentProvince, app.route.currentRoute, true);
@@ -4423,7 +4468,8 @@ Object.assign(window.app, {
                                         short_path: shortPath || null,
                                         description: desc || null,
                                         is_inactive: isInactive,
-                                        metadata: metadataObj
+                                        metadata: metadataObj,
+                                        borrowed_photos_str: borrowedPhotosStr
                                     },
                                     status: 'pending'
                                 };
