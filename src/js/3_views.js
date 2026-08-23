@@ -4108,6 +4108,13 @@ Object.assign(window.app, {
                 loadRoutePage: async (provinceName, routeNo, forceRefresh = false) => {
                     const decodedProvince = decodeURIComponent(provinceName || '');
                     const decodedRoute = decodeURIComponent(routeNo);
+                    
+                    if (!decodedProvince || decodedProvince.trim() === '') {
+                        app.toast.show('error', 'Lỗi truy cập', 'Tuyến này không tồn tại thông tin tỉnh thành. Nó có thể là xe khách hoặc dữ liệu không hợp lệ nên không được hỗ trợ hồ sơ.');
+                        app.utils.navigate('/');
+                        return;
+                    }
+                    
                     const expectedPath = decodedProvince
                         ? `/route/${encodeURIComponent(decodedProvince)}/${encodeURIComponent(decodedRoute)}`
                         : `/route/${encodeURIComponent(decodedRoute)}`;
