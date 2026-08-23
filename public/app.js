@@ -4269,7 +4269,15 @@ Object.assign(window.app, {
                                             }
                                         }
                                     });
-                                    const finalRoutes = Array.from(uniqueRoutesMap.values()).slice(0, 4);
+                                    let allRoutes = Array.from(uniqueRoutesMap.values());
+                                    const activeProvFilter = app.search?.currentExactProvName;
+                                    if (activeProvFilter) {
+                                        allRoutes = allRoutes.filter(r => r.p && r.p.toLowerCase().includes(activeProvFilter.toLowerCase()));
+                                    } else {
+                                        // if no province filter, only show routes that have a province (block coach/invalid)
+                                        allRoutes = allRoutes.filter(r => r.p && r.p.trim() !== '');
+                                    }
+                                    const finalRoutes = allRoutes.slice(0, 4);
                                     let shortPaths = {};
                                     if (finalRoutes.length > 0) {
                                         const dbNames = finalRoutes.map(i => i.dbName);
