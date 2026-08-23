@@ -7449,9 +7449,6 @@ Object.assign(window.app, {
                             }
                         }
                     }
-                    
-                        
-                    }
                     if (elInfoNote) {
                         elInfoNote.value = photo.note || '---';
                         const elInfoNoteDisplay = document.getElementById('info-note-display');
