@@ -2151,7 +2151,7 @@ let currentRouteProvName = null;
                                                 <td class="label bg-gray-50 border-r border-b border-gray-200">${isCoach ? 'Lộ trình' : 'Mã số tuyến'} hiện tại</td>
                                                 <td class="value-cell border-b border-gray-200">
                                                     <div class="relative w-full h-full">
-                                                        <input type="text" id="vehicle-edit-route" value="${currentRouteClientSide}" autocomplete="off" class="info-input text-gray-700 w-full ${currentRouteClientSide ? 'clickable-search' : 'cursor-not-allowed'}" readonly ${currentRouteClientSide ? `onclick="if(this.readOnly && this.value && this.value!=='---') { if (${isCoach}) { app.searchRedirect(this.value, 'route'); } else { app.utils.navigate('${vehPrefix}' ? '/route/' + encodeURIComponent('${vehPrefix}') + '/' + encodeURIComponent(this.value) : '/route/' + encodeURIComponent(this.value)); } }"` : ''} onfocus="if(!this.readOnly) app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', '')" oninput="app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', this.value)">
+                                                        <input type="text" id="vehicle-edit-route" value="${currentRouteClientSide}" autocomplete="off" class="info-input text-gray-700 w-full ${currentRouteClientSide ? 'clickable-search' : 'cursor-not-allowed'}" readonly ${currentRouteClientSide ? `onclick="if(this.readOnly && this.value && this.value!=='---') { if (${isCoach}) { app.searchRedirect(this.value, 'route'); } else { app.utils.navigate('${vehProvName}' ? '/route/' + encodeURIComponent('${vehProvName}') + '/' + encodeURIComponent(this.value) : '/route/' + encodeURIComponent(this.value)); } }"` : ''} onfocus="if(!this.readOnly) app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', '')" oninput="app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', this.value)">
                                                         <div id="veh-sug-route" class="suggestion-box"></div>
                                                     </div>
                                                 </td>
@@ -2418,6 +2418,20 @@ let currentRouteProvName = null;
                         }
                         const absoluteLatestStatus = new Map();
                         const uniquePlatesArr = Array.from(uniquePlates);
+                        let plateToBorrowed = new Map();
+                        for (let i = 0; i < uniquePlatesArr.length; i += 150) {
+                            const chunk = uniquePlatesArr.slice(i, i + 150);
+                            const { data: bData } = await window.sb.from('photos')
+                                .select('license_plate, borrowed_route')
+                                .in('license_plate', chunk)
+                                .eq('status', 'approved')
+                                .not('borrowed_route', 'is', null);
+                            if (bData) {
+                                bData.forEach(p => {
+                                    plateToBorrowed.set(p.license_plate.toUpperCase(), p.borrowed_route);
+                                });
+                            }
+                        }
                         for (let i = 0; i < uniquePlatesArr.length; i += 150) {
                             const chunk = uniquePlatesArr.slice(i, i + 150);
                             const { data } = await window.sb.from('vehicle_history')
@@ -2464,8 +2478,9 @@ let currentRouteProvName = null;
                                 if (!latestCleanRouteMap.has(pl)) {
                                     let r = p.route_no.trim();
                                     let prov = '';
-                                    if (p.borrowed_route) {
-                                        const parts = p.borrowed_route.split(' - ');
+                                    const bRoute = p.borrowed_route || plateToBorrowed.get(pl);
+                                    if (bRoute) {
+                                        const parts = bRoute.split(' - ');
                                         r = parts[0].trim();
                                         if (parts.length > 1) prov = parts[1].trim();
                                     } else {
