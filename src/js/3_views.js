@@ -4260,6 +4260,8 @@ Object.assign(window.app, {
                                 app.views.loadHome();
                                 app.ui.showAlert("Trang không tồn tại hoặc tuyến này là tuyến hợp đồng (xe khách) nên không có hồ sơ xe riêng.");
                                 return;
+                            } else if (coachCount > 0) {
+                                app.route.routePhotos = app.route.routePhotos.filter(p => p.type !== 'coach');
                             }
                         }
                         
