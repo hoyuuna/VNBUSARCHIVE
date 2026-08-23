@@ -178,7 +178,7 @@ export async function onRequestPost(context) {
                 license_plate: plate,
                 note: note,
                 location: location,
-                province: province || null,
+
                 status: 'approved',
                 operator: op,
                 type: type,

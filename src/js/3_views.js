@@ -210,7 +210,7 @@ Object.assign(window.app, {
                     if (!topPhotos || topPhotos.length === 0) {
                         let topQuery = window.sb
                             .from('photos')
-                            .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                            .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                             .eq('status', 'approved')
                             .order('views', { ascending: false, nullsFirst: false })
                             .limit(5);
@@ -271,7 +271,7 @@ Object.assign(window.app, {
                     const homeSize = 20;
                     let gridQuery = window.sb
                         .from('photos')
-                        .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`, { count: 'estimated' })
+                        .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`, { count: 'estimated' })
                         .eq('status', 'approved')
                         .order('created_at', { ascending: false })
                         .range(0, homeSize - 1);
@@ -421,7 +421,7 @@ Object.assign(window.app, {
                     try {
                         const filterType = app.currentFilter;
                         const profileSelect = (filterType === 'uploader') ? 'profiles!inner(id, username, role, subroles, ban_status)' : 'profiles(id, username, role, subroles, ban_status)';
-                        let sQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, ${profileSelect}, vehicles${filterType === 'model' ? '!inner' : ''}(model)`).eq('status', 'approved');
+                        let sQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, ${profileSelect}, vehicles${filterType === 'model' ? '!inner' : ''}(model)`).eq('status', 'approved');
                         sQuery = app.preference.applyFilter(sQuery);
                         const query = (document.getElementById('page-search-input') || document.getElementById('search-input'))?.value.trim() || '';
                         const searchWords = query.toLowerCase().split(/\s+/).filter(w => w.length > 0);
@@ -439,7 +439,7 @@ Object.assign(window.app, {
                                 const relatedPrefixes = app.utils.getRelatedPrefixes(prefix);
                                 const prefixOrCond = relatedPrefixes.map(p => `license_plate.ilike.${p}%`).join(',');
                                 if (provName) {
-                                    sQuery = sQuery.eq('route_no', query).or(`province.eq."${provName}",${prefixOrCond}`);
+                                    sQuery = sQuery.eq('route_no', query).or(`borrowed_route.eq."${query} - ${provName}",${prefixOrCond}`);
                                 } else {
                                     sQuery = sQuery.eq('route_no', query).or(prefixOrCond);
                                 }
@@ -512,7 +512,7 @@ Object.assign(window.app, {
                     try {
                         let moreQuery = window.sb
                             .from('photos')
-                            .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                            .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                             .eq('status', 'approved')
                             .order('created_at', { ascending: false })
                             .range(fromRow, toRow);
@@ -1310,7 +1310,7 @@ Object.assign(window.app, {
                     if (fbCommentsWrapper) fbCommentsWrapper.innerHTML = '';
                     let { data: photo } = await window.sb
                         .from('photos')
-                        .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, audit_date, views, review_progress, reviewer_count, profiles(id, username, avatar_url, role, subroles, ban_status), vehicles(model)`)
+                        .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, audit_date, views, review_progress, reviewer_count, profiles(id, username, avatar_url, role, subroles, ban_status), vehicles(model)`)
                         .eq('id', photoId)
                         .single();
                     if (!photo && app.user) {
@@ -1574,7 +1574,7 @@ Object.assign(window.app, {
                     const elInfoModel = document.getElementById('info-model');
                     const elInfoType = document.getElementById('info-type');
                     const elInfoLocation = document.getElementById('info-location');
-                    const elInfoProvince = document.getElementById('info-province');
+                    
                     const elInfoNote = document.getElementById('info-note');
                     const elInfoDate = document.getElementById('info-date');
                     const elInfoCamera = document.getElementById('info-camera');
@@ -1597,8 +1597,8 @@ Object.assign(window.app, {
                             }
                         }
                     }
-                    if (elInfoProvince) {
-                        app.views.selectInfoProvince(photo.province || '');
+                    
+                        
                     }
                     if (elInfoNote) {
                         elInfoNote.value = photo.note || '---';
@@ -1761,7 +1761,7 @@ Object.assign(window.app, {
                                                 model: photo.vehicles?.model || photo.model || '',
                                                 location: photo.location || '',
                                                 note: photo.note || '',
-                                                province: photo.province || ''
+
                                             })
                                         });
                                         if (!res.ok) {
@@ -1914,7 +1914,7 @@ Object.assign(window.app, {
                         }
                         const historyPlates = historyRes.data ? historyRes.data.map(h => h.plate).filter(Boolean) : [];
                         const allPlatesToFetch = [...new Set([plate, ...historyPlates])];
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                                 .in('license_plate', allPlatesToFetch)
                                 .eq('status', 'approved');
                         pQuery = app.preference.applyFilter(pQuery);
@@ -2524,7 +2524,7 @@ Object.assign(window.app, {
                         app.currentOperatorResolved = resolvedOperator;
                         app.views.operatorCurrentPage = 1;
                         const opSize = app.views.OPERATOR_PAGE_SIZE || 12;
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`, { count: 'estimated' })
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`, { count: 'estimated' })
                             .eq('status', 'approved')
                             .ilike('operator', resolvedOperator)
                             .order('taken_at', { ascending: false, nullsFirst: false })
@@ -2577,7 +2577,7 @@ Object.assign(window.app, {
                     try {
                         const childPhotosHtml = [];
                         for (const child of pageChildOps) {
-                            let cQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                            let cQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                                 .eq('status', 'approved')
                                 .ilike('operator', child.operator_name)
                                 .order('taken_at', { ascending: false, nullsFirst: false })
@@ -2650,7 +2650,7 @@ Object.assign(window.app, {
                     grid.style.opacity = '0.5';
                     grid.style.pointerEvents = 'none';
                     try {
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                             .eq('status', 'approved')
                             .ilike('operator', app.currentOperatorResolved)
                             .order('taken_at', { ascending: false, nullsFirst: false })
@@ -2701,7 +2701,7 @@ Object.assign(window.app, {
                     grid.style.opacity = '0.5';
                     grid.style.pointerEvents = 'none';
                     try {
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles!inner(model)`)
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles!inner(model)`)
                             .eq('status', 'approved')
                             .eq('vehicles.model', app.model.currentModel)
                             .order('taken_at', { ascending: false, nullsFirst: false })
@@ -2752,7 +2752,7 @@ Object.assign(window.app, {
                     grid.style.opacity = '0.5';
                     grid.style.pointerEvents = 'none';
                     try {
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                             .eq('status', 'approved')
                             .eq('route_no', app.route.currentRoute)
                             .order('taken_at', { ascending: false, nullsFirst: false })
@@ -3890,7 +3890,7 @@ Object.assign(window.app, {
                         document.getElementById('mdl-stat-views').innerText = app.utils.formatCompact(totalViews);
                         app.views.modelCurrentPage = 1;
                         const mdlSize = app.views.MODEL_PAGE_SIZE || 12;
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles!inner(model)`, { count: 'estimated' })
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles!inner(model)`, { count: 'estimated' })
                             .eq('status', 'approved')
                             .eq('vehicles.model', modelName)
                             .order('taken_at', { ascending: false, nullsFirst: false })
@@ -4166,7 +4166,7 @@ Object.assign(window.app, {
                     }
                     
                     try {
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                             .eq('status', 'approved')
                             .eq('route_no', decodedRoute);
                             
@@ -4260,7 +4260,7 @@ Object.assign(window.app, {
                                 for (let i = 0; i < platesArr.length; i += chunkSize) {
                                     const chunk = platesArr.slice(i, i + chunkSize);
                                     const [pRes, hRes] = await Promise.all([
-                                        window.sb.from('photos').select('license_plate, route_no, province, taken_at').eq('status', 'approved').in('license_plate', chunk),
+                                        window.sb.from('photos').select('license_plate, route_no, borrowed_route, taken_at').eq('status', 'approved').in('license_plate', chunk),
                                         window.sb.from('vehicle_history').select('plate, route, effective_date').in('plate', chunk)
                                     ]);
                                     if (pRes.data) allVehPhotos = allVehPhotos.concat(pRes.data);
@@ -4430,7 +4430,7 @@ Object.assign(window.app, {
                                     const trulyAddedIds = (validPhotos || []).filter(p => p.route_no === expectedRouteNo).map(p => p.id);
                                     
                                     if (trulyAddedIds.length > 0) {
-                                        await window.sb.from('photos').update({ borrowed_route: routeName, province: app.route.currentProvince || '' }).in('id', trulyAddedIds);
+                                        await window.sb.from('photos').update({ borrowed_route: routeName }).in('id', trulyAddedIds);
                                     }
                                 }
                                 if (removedIds.length > 0) {
@@ -4446,7 +4446,7 @@ Object.assign(window.app, {
                                             });
                                             if (pData) defProv = pData.ten;
                                         }
-                                        await window.sb.from('photos').update({ borrowed_route: null, province: defProv }).eq('id', p.id);
+                                        await window.sb.from('photos').update({ borrowed_route: null }).eq('id', p.id);
                                     }
                                 }
                                 app.toast.show('success', 'Thành công', 'Đã lưu thông tin Tuyến!');
@@ -5476,4 +5476,4 @@ document.addEventListener('DOMContentLoaded', () => {
             };
         }
     }, 100);
-});
+});

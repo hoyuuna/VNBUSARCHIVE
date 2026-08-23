@@ -434,12 +434,8 @@ Object.assign(window.app, {
                                                 </div>
                                             </div>
                                             <div><span class="admin-label">Vị trí</span><input type="text" id="adm-p-location-${p.id}" value="${location}" class="admin-input" onchange="app.admin.checkDuplicateDateAdmin('${p.id}', '${p.uploader_id}', '${p.taken_at ? p.taken_at.split('T')[0] : ''}')"></div>
-                                            <div class="hidden">
-                                                <select id="adm-p-province-${p.id}">
-                                                    <option value="${prov || ''}" selected>${prov || ''}</option>
-                                                </select>
-                                            </div>
                                         </div>
+
                                         <div><span class="admin-label">Ghi chú</span><textarea id="adm-p-note-${p.id}" rows="2" class="admin-input">${note}</textarea></div>
                                         ${(() => {
                                         const isOwnPhoto = p.uploader_id === app.user.id;
@@ -1284,7 +1280,7 @@ Object.assign(window.app, {
                                 });
                             }
                             const photoIdsReq = reqs.map(r => r.new_data.photo_id).filter(Boolean);
-                            const { data: curPhotos } = await window.sb.from('photos').select('id, operator, route_no, type, province, location, note').in('id', photoIdsReq);
+                            const { data: curPhotos } = await window.sb.from('photos').select('id, operator, route_no, type, borrowed_route, location, note').in('id', photoIdsReq);
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
                             const pMap = {}; if (curPhotos) curPhotos.forEach(p => pMap[p.id] = p);
                             const opNamesReq = reqs.map(r => r.new_data.operator_name).filter(Boolean);
@@ -1359,11 +1355,6 @@ Object.assign(window.app, {
                                             </div>
                                             <div class="grid grid-cols-1 gap-2 mb-2">
                                                 <div><span class="admin-label">Loại xe ${d.type !== curP.type ? tagNew : ''}</span><select id="req-type-${r.id}" class="admin-input"><option value="bus" ${d.type === 'bus' ? 'selected' : ''}>Xe buýt</option><option value="coach" ${d.type === 'coach' ? 'selected' : ''}>Xe khách</option></select></div>
-                                                <div class="hidden">
-                                                    <select id="req-province-${r.id}">
-                                                        <option value="${d.province || curP.province || ''}" selected>${d.province || curP.province || ''}</option>
-                                                    </select>
-                                                </div>
                                             </div>
                                             <div class="mb-2"><span class="admin-label">Vị trí (Chỉ cập nhật ảnh này)</span><input type="text" id="req-loc-${r.id}" value="${app.utils.escapeAttr(d.location || '')}" class="admin-input"></div>
                                             <div class="mb-2"><span class="admin-label">Ghi chú (Chỉ cập nhật ảnh này)</span><textarea id="req-note-${r.id}" class="admin-input">${app.utils.cleanText(d.note || '')}</textarea></div>
@@ -3512,7 +3503,7 @@ app.admin.fetchManagerData('denied');
                                 const trulyAddedIds = (validPhotos || []).filter(p => p.route_no === expectedRouteNo).map(p => p.id);
                                 
                                 if (trulyAddedIds.length > 0) {
-                                    await window.sb.from('photos').update({ borrowed_route: req.new_data.route_name, province: targetProvince }).in('id', trulyAddedIds);
+                                    await window.sb.from('photos').update({ borrowed_route: req.new_data.route_name }).in('id', trulyAddedIds);
                                 }
                             }
                             if (removedIds.length > 0) {
@@ -3528,7 +3519,7 @@ app.admin.fetchManagerData('denied');
                                         });
                                         if (pData) defProv = pData.ten;
                                     }
-                                    await window.sb.from('photos').update({ borrowed_route: null, province: defProv }).eq('id', p.id);
+                                    await window.sb.from('photos').update({ borrowed_route: null }).eq('id', p.id);
                                 }
                             }
                         }
@@ -3789,4 +3780,4 @@ Object.assign(window.app, {
                     }, 200);
                 }
             }
-});
+});

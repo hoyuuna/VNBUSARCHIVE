@@ -65,7 +65,7 @@ export async function onRequest(context) {
             route: sanitizeString(formData.get('meta_route')),
             model: sanitizeString(formData.get('meta_model')),
             location: sanitizeString(formData.get('meta_location')),
-            province: sanitizeString(formData.get('meta_province')),
+
             note: sanitizeString(formData.get('meta_note')),
             taken_at: formData.get('meta_taken_at'),
             username: sanitizeString(formData.get('meta_username')),
@@ -207,7 +207,7 @@ export async function onRequest(context) {
                     uploader_id: userId,
                     license_plate: metadata.plate,
                     location: metadata.location,
-                    province: metadata.province || null,
+
                     note: metadata.note,
                     status: 'pending',
                     camera_model: metadata.camera_model,
