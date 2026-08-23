@@ -10067,6 +10067,30 @@ Object.assign(window.app, {
                                 descEl.classList.add('hidden');
                             }
                             
+                            let iconHtml = '<i class="fa-solid fa-route"></i>';
+                            let iconClass = "w-16 h-16 md:w-20 md:h-20 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-3xl shrink-0";
+                            if (exactInfo.metadata && exactInfo.metadata.icon_type && exactInfo.metadata.icon_type !== 'default') {
+                                const type = exactInfo.metadata.icon_type;
+                                const shortRouteName = decodedRoute.length <= 5 ? decodedRoute : decodedRoute.substring(0, 5);
+                                if (type === 'circle') {
+                                    iconClass = "w-16 h-16 md:w-20 md:h-20 rounded-full bg-white flex items-center justify-center shrink-0 border-[3px] border-black shadow-sm overflow-hidden";
+                                    iconHtml = `<span class="mt-1" style="font-family: 'Impact', sans-serif; color: #dc2626; -webkit-text-stroke: 1px black; font-size: 2rem; letter-spacing: 0px;">${shortRouteName}</span>`;
+                                } else if (type === 'trapezoid') {
+                                    iconClass = "w-16 h-16 md:w-20 md:h-20 flex flex-col items-center justify-center shrink-0 relative";
+                                    iconHtml = `
+                                    <svg viewBox="0 0 100 100" class="absolute inset-0 w-full h-full text-white overflow-visible drop-shadow-sm" preserveAspectRatio="none">
+                                        <polygon points="15,15 85,15 100,85 0,85" fill="white" stroke="black" stroke-width="6" stroke-linejoin="round"/>
+                                    </svg>
+                                    <span class="relative z-10 mt-1" style="font-family: 'Impact', sans-serif; color: #dc2626; -webkit-text-stroke: 1px black; font-size: 2rem; letter-spacing: 0px;">${shortRouteName}</span>`;
+                                }
+                            }
+                            
+                            const logoFallbackEl = document.getElementById('route-logo-fallback');
+                            if (logoFallbackEl) {
+                                logoFallbackEl.className = iconClass;
+                                logoFallbackEl.innerHTML = iconHtml;
+                            }
+                            
                             const extraInfoContainer = document.getElementById('route-extra-info');
                             if (extraInfoContainer) {
                                 extraInfoContainer.innerHTML = '';
@@ -10302,6 +10326,7 @@ Object.assign(window.app, {
                     document.getElementById('route-edit-ticket-price').value = '';
                     document.getElementById('route-edit-headway').value = '';
                     document.getElementById('route-edit-wheelchair').checked = false;
+                    document.getElementById('route-edit-icon').value = 'default';
                     if (app.role === 'admin' || app.role === 'manager') {
                         btnSave.innerText = "Lưu thông tin";
                         warningText.innerHTML = "";
@@ -10320,6 +10345,7 @@ Object.assign(window.app, {
                                 document.getElementById('route-edit-ticket-price').value = exactInfo.metadata.ticket_price || '';
                                 document.getElementById('route-edit-headway').value = exactInfo.metadata.headway || '';
                                 document.getElementById('route-edit-wheelchair').checked = exactInfo.metadata.wheelchair_support || false;
+                                document.getElementById('route-edit-icon').value = exactInfo.metadata.icon_type || 'default';
                             }
                         }
                         
@@ -10373,6 +10399,17 @@ Object.assign(window.app, {
                     if (ticketPrice) metadata.ticket_price = ticketPrice;
                     if (headway) metadata.headway = headway;
                     if (wheelchairSupport) metadata.wheelchair_support = wheelchairSupport;
+                    
+                    const iconType = document.getElementById('route-edit-icon').value;
+                    if (iconType !== 'default') {
+                        const expectedRouteNo = (app.route.currentProvince ? `${app.route.currentRoute} - ${app.route.currentProvince}` : app.route.currentRoute).split(' - ')[0];
+                        if (expectedRouteNo.length <= 5) {
+                            metadata.icon_type = iconType;
+                        } else {
+                            app.toast.show('warning', 'Lưu ý', 'Tên tuyến dài hơn 5 kí tự không thể sử dụng icon tùy chỉnh. Đã tự động chuyển về mặc định.');
+                        }
+                    }
+                    
                     let metadataObj = Object.keys(metadata).length > 0 ? metadata : null;
                       const rawInputList = borrowedPhotosStr ? borrowedPhotosStr.split(',').map(s => s.trim()).filter(Boolean) : [];
                       const enteredIdsStr = rawInputList.filter(s => /^\d+$/.test(s));

@@ -6466,6 +6466,15 @@ div[id$="-modal"] > div > * {
                 </div>
 
                 <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Kiểu Icon hiển thị</label>
+                    <select id="route-edit-icon" class="w-full bg-white/60 border border-gray-300/80 rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all shadow-inner text-black">
+                        <option value="default">Mặc định</option>
+                        <option value="circle">Hình tròn (Max 5 kí tự)</option>
+                        <option value="trapezoid">Hình thang cân (Max 5 kí tự)</option>
+                    </select>
+                </div>
+
+                <div>
                     <label class="block text-xs font-bold text-gray-700 uppercase mb-1">ID ảnh / Xe vá tuyến</label>
                     <input type="text" id="route-edit-borrowed" class="w-full bg-white/60 border border-gray-300/80 rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all shadow-inner text-black" placeholder="VD: 12345, 12A34567" oninput="this.value = this.value.toUpperCase()">
                     <p class="text-[10px] text-gray-500 mt-1 font-medium">Nhập ID ảnh (VD: 123) hoặc Biển số xe (VD: 12A34567, 12A34567-1). Ngăn cách bằng dấu phẩy. Ảnh/Xe sẽ tự động được gán về tuyến này.</p>
@@ -6699,6 +6708,6 @@ div[id$="-modal"] > div > * {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed top-24 left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.js?v=1787479475974"></script>
+<script src="/app.js?v=1787480357551"></script>
 </body>
 </html>
