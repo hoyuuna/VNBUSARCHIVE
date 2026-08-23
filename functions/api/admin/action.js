@@ -350,7 +350,6 @@ export async function onRequestPost(context) {
                 updatePayload.license_plate = plate;
                 updatePayload.note = note;
                 updatePayload.location = location;
-                updatePayload.province = province || null;
                 updatePayload.operator = op;
                 updatePayload.type = type;
                 updatePayload.route_no = route;
