@@ -4060,7 +4060,7 @@ Object.assign(window.app, {
                         app.utils.navigate(`/photo/${isIdSearch[1]}`);
                         return;
                     }
-                    let uploaderCards = [], operatorCards = [], modelCards = [], plateCards = [];
+                    let uploaderCards = [], operatorCards = [], modelCards = [], plateCards = [], routeCards = [];
                     let normalizedQuery = query.toLowerCase().replace(/vin bus/g, 'vinbus').replace(/thanh buoi/g, 'thành bưởi').replace(/phuong trang/g, 'phương trang');
                     const searchWords = normalizedQuery.trim().split(/\s+/).filter(w => w.length > 0);
                     const cardPromises = [];
@@ -4237,6 +4237,39 @@ Object.assign(window.app, {
                             } catch (e) { console.error("Lỗi tìm Dòng xe:", e); }
                         })());
                     }
+                                                            if (filterType === 'route' || filterType === 'all') {
+                        cardPromises.push((async () => {
+                            try {
+                                let rQuery = window.sb.from('photos').select('route_no, operator').eq('status', 'approved');
+                                searchWords.forEach(w => { rQuery = rQuery.ilike('route_no', `%${w}%`); });
+                                const { data: rData } = await rQuery.limit(50);
+                                if (rData) {
+                                    let uniqueRoutesMap = new Map();
+                                    rData.forEach(p => {
+                                        if (p.route_no && p.route_no !== 'Khác' && p.route_no !== 'Không rõ') {
+                                            const key = p.route_no.toLowerCase();
+                                            if (!uniqueRoutesMap.has(key)) {
+                                                uniqueRoutesMap.set(key, { r: p.route_no, op: p.operator });
+                                            }
+                                        }
+                                    });
+                                    const finalRoutes = Array.from(uniqueRoutesMap.values()).slice(0, 4);
+                                    for (const info of finalRoutes) {
+                                        const r = info.r;
+                                        routeCards.push(`
+                                            <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.searchRedirect('${app.utils.escapeAttr(r)}', 'route')">
+                                                <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0"><i class="fa-solid fa-route"></i></div>
+                                                <div class="overflow-hidden min-w-0 flex-1">
+                                                    <div class="font-bold text-black text-sm overflow-x-auto whitespace-nowrap no-scrollbar">${app.utils.cleanText(r)}</div>
+                                                    <div class="text-[10px] text-gray-500 uppercase tracking-widest mt-0.5 font-bold">Tuyến xe</div>
+                                                </div>
+                                            </div>
+                                        `);
+                                    }
+                                }
+                            } catch (e) { console.error("Lỗi tìm Tuyến:", e); }
+                        })());
+                    }
                     if (filterType === 'plate' || filterType === 'model' || filterType === 'all') {
                         cardPromises.push((async () => {
                             try {
@@ -4275,7 +4308,7 @@ Object.assign(window.app, {
                     }
                     await Promise.all(cardPromises);
                     if (app.searchToken !== currentSearchToken) return;
-                    app.currentSearchCards = [...operatorCards, ...modelCards, ...plateCards, ...uploaderCards];
+                    app.currentSearchCards = [...routeCards, ...operatorCards, ...modelCards, ...plateCards, ...uploaderCards];
                     app.views.loadMoreSearchCards(true);
                     let needsModelJoin = filterType === 'model' || (filterType === 'advanced' && (app.search.advancedFilters || []).some(f => f.field === 'model'));
                     let profileSelect = (filterType === 'uploader' || (filterType === 'advanced' && (app.search.advancedFilters || []).some(f => f.field === 'uploader'))) 
