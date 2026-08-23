@@ -2648,9 +2648,8 @@ Object.assign(window.app, {
                                     app.searchRedirect(this.value, fieldMap[id]);
                                 } else {
                                     let provName = '';
-                                    const inputProv = document.getElementById('info-province')?.value;
-                                    if (inputProv && inputProv !== '---' && inputProv !== 'Không xác định') {
-                                        provName = inputProv;
+                                    if (el.dataset.borrowed) {
+                                        provName = el.dataset.borrowed.split(' - ')[1];
                                     } else {
                                         const plateValue = document.getElementById('info-plate')?.value;
                                         if (plateValue) provName = app.utils.getProvinceFromPlate(plateValue);
@@ -4306,11 +4305,11 @@ Object.assign(window.app, {
                                 if (prov) provName = prov.ten;
                             }
                             const relatedPrefixes = app.utils.getRelatedPrefixes(prefix);
-                            const prefixOrCond = relatedPrefixes.map(p => `license_plate.ilike.${p}%`).join(',');
+                            const plateFilter = relatedPrefixes.length > 1 ? `or(${relatedPrefixes.map(p => `license_plate.ilike.${p}%`).join(',')})` : `license_plate.ilike.${relatedPrefixes[0]}%`;
                             if (provName) {
-                                photoQuery = photoQuery.eq('route_no', query).or(`borrowed_route.eq."${query} - ${provName}",${prefixOrCond}`);
+                                photoQuery = photoQuery.eq('route_no', query).or(`borrowed_route.eq."${query} - ${provName}",and(borrowed_route.is.null,${plateFilter})`);
                             } else {
-                                photoQuery = photoQuery.eq('route_no', query).or(prefixOrCond);
+                                photoQuery = photoQuery.eq('route_no', query).or(`and(borrowed_route.is.null,${plateFilter})`);
                             }
                         } else {
                             searchWords.forEach(w => { photoQuery = photoQuery.ilike('route_no', `%${w}%`); });

@@ -2650,9 +2650,8 @@ Object.assign(window.app, {
                                     app.searchRedirect(this.value, fieldMap[id]);
                                 } else {
                                     let provName = '';
-                                    const inputProv = document.getElementById('info-province')?.value;
-                                    if (inputProv && inputProv !== '---' && inputProv !== 'Không xác định') {
-                                        provName = inputProv;
+                                    if (el.dataset.borrowed) {
+                                        provName = el.dataset.borrowed.split(' - ')[1];
                                     } else {
                                         const plateValue = document.getElementById('info-plate')?.value;
                                         if (plateValue) provName = app.utils.getProvinceFromPlate(plateValue);
@@ -4308,11 +4307,11 @@ Object.assign(window.app, {
                                 if (prov) provName = prov.ten;
                             }
                             const relatedPrefixes = app.utils.getRelatedPrefixes(prefix);
-                            const prefixOrCond = relatedPrefixes.map(p => `license_plate.ilike.${p}%`).join(',');
+                            const plateFilter = relatedPrefixes.length > 1 ? `or(${relatedPrefixes.map(p => `license_plate.ilike.${p}%`).join(',')})` : `license_plate.ilike.${relatedPrefixes[0]}%`;
                             if (provName) {
-                                photoQuery = photoQuery.eq('route_no', query).or(`borrowed_route.eq."${query} - ${provName}",${prefixOrCond}`);
+                                photoQuery = photoQuery.eq('route_no', query).or(`borrowed_route.eq."${query} - ${provName}",and(borrowed_route.is.null,${plateFilter})`);
                             } else {
-                                photoQuery = photoQuery.eq('route_no', query).or(prefixOrCond);
+                                photoQuery = photoQuery.eq('route_no', query).or(`and(borrowed_route.is.null,${plateFilter})`);
                             }
                         } else {
                             searchWords.forEach(w => { photoQuery = photoQuery.ilike('route_no', `%${w}%`); });
@@ -6289,11 +6288,11 @@ Object.assign(window.app, {
                                     if (prov) provName = prov.ten;
                                 }
                                 const relatedPrefixes = app.utils.getRelatedPrefixes(prefix);
-                                const prefixOrCond = relatedPrefixes.map(p => `license_plate.ilike.${p}%`).join(',');
+                                const plateFilter = relatedPrefixes.length > 1 ? `or(${relatedPrefixes.map(p => `license_plate.ilike.${p}%`).join(',')})` : `license_plate.ilike.${relatedPrefixes[0]}%`;
                                 if (provName) {
-                                    sQuery = sQuery.eq('route_no', query).or(`borrowed_route.eq."${query} - ${provName}",${prefixOrCond}`);
+                                    sQuery = sQuery.eq('route_no', query).or(`borrowed_route.eq."${query} - ${provName}",and(borrowed_route.is.null,${plateFilter})`);
                                 } else {
-                                    sQuery = sQuery.eq('route_no', query).or(prefixOrCond);
+                                    sQuery = sQuery.eq('route_no', query).or(`and(borrowed_route.is.null,${plateFilter})`);
                                 }
                             } else {
                                 searchWords.forEach(w => { sQuery = sQuery.ilike('route_no', `%${w}%`); });
@@ -7434,7 +7433,14 @@ Object.assign(window.app, {
                     if (elInfoPlate) elInfoPlate.value = photo.license_plate;
                     if (elInfoOperator) elInfoOperator.value = snapshot.operator || 'Đã bị xóa';
                     if (elInfoType) elInfoType.value = snapshot.type || 'bus';
-                    if (elInfoRoute) elInfoRoute.value = snapshot.route_no || 'Đã bị xóa';
+                    if (elInfoRoute) {
+                        elInfoRoute.value = snapshot.route_no || 'Đã bị xóa';
+                        if (photo.borrowed_route) {
+                            elInfoRoute.dataset.borrowed = photo.borrowed_route;
+                        } else {
+                            delete elInfoRoute.dataset.borrowed;
+                        }
+                    }
                     const lblDetailRoute = document.getElementById('lbl-detail-route');
                     if (lblDetailRoute) lblDetailRoute.innerText = snapshot.type === 'coach' ? 'Lộ trình' : 'Mã số tuyến';
                     if (elInfoModel) elInfoModel.value = snapshot.model || 'Đã bị xóa';
@@ -8618,8 +8624,8 @@ Object.assign(window.app, {
                             }
                             if (prefix) {
                                 const relatedPrefixes = app.utils.getRelatedPrefixes(prefix);
-                                const prefixOrCond = relatedPrefixes.map(p => `license_plate.ilike.${p}%`).join(',');
-                                pQuery = pQuery.or(`borrowed_route.eq."${app.route.currentRoute} - ${app.route.currentProvince}",${prefixOrCond}`);
+                                const plateFilter = relatedPrefixes.length > 1 ? `or(${relatedPrefixes.map(p => `license_plate.ilike.${p}%`).join(',')})` : `license_plate.ilike.${relatedPrefixes[0]}%`;
+                                pQuery = pQuery.or(`borrowed_route.eq."${app.route.currentRoute} - ${app.route.currentProvince}",and(borrowed_route.is.null,${plateFilter})`);
                             } else {
                                 pQuery = pQuery.eq('borrowed_route', `${app.route.currentRoute} - ${app.route.currentProvince}`);
                             }
@@ -10043,8 +10049,8 @@ Object.assign(window.app, {
                             }
                             if (prefix) {
                                 const relatedPrefixes = app.utils.getRelatedPrefixes(prefix);
-                                const prefixOrCond = relatedPrefixes.map(p => `license_plate.ilike.${p}%`).join(',');
-                                pQuery = pQuery.or(`borrowed_route.eq."${decodedRoute} - ${decodedProvince}",${prefixOrCond}`);
+                                const plateFilter = relatedPrefixes.length > 1 ? `or(${relatedPrefixes.map(p => `license_plate.ilike.${p}%`).join(',')})` : `license_plate.ilike.${relatedPrefixes[0]}%`;
+                                pQuery = pQuery.or(`borrowed_route.eq."${decodedRoute} - ${decodedProvince}",and(borrowed_route.is.null,${plateFilter})`);
                             } else {
                                 pQuery = pQuery.eq('borrowed_route', `${decodedRoute} - ${decodedProvince}`);
                             }
@@ -10056,11 +10062,6 @@ Object.assign(window.app, {
                         if (error) throw error;
                         
                         app.route.routePhotos = photos || [];
-                        
-                        if (app.route.routePhotos.length === 0 && !exactInfo) {
-                            app.ui.showAlert("Không tìm thấy thông tin cho tuyến này.", () => app.views.loadHome());
-                            return;
-                        }
                         
                         const opEl = document.getElementById('route-info-operator');
                         const mdlEl = document.getElementById('route-info-model');
