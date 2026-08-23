@@ -2504,15 +2504,7 @@ Object.assign(window.app, {
                             if (operatesInMultipleProvinces && rData.prov) {
                                 displayName = `${rData.route} (${rData.prov})`;
                             }
-                            try {
-                                if (rData.prov && app.utils.provinceData && app.utils.provinceData.length) {
-                                    const provData = app.utils.provinceData.find(p => p.ten === rData.prov);
-                                    if (provData && provData.ky_hieu) {
-                                        prefix = Array.isArray(provData.ky_hieu) ? String(provData.ky_hieu[0]).trim() : String(provData.ky_hieu).split(',')[0].trim();
-                                    }
-                                }
-                            } catch (e) { }
-                            activeRoutes.push({ route: rData.route, displayName: displayName, prefix: prefix, vehicleCount: rData.count, mainModel: maxModel });
+                            activeRoutes.push({ route: rData.route, displayName: displayName, prov: rData.prov, vehicleCount: rData.count, mainModel: maxModel });
                         });
                         activeRoutes.sort((a, b) => {
                             if (b.vehicleCount !== a.vehicleCount) {
@@ -3608,7 +3600,7 @@ Object.assign(window.app, {
                         <tr class="hover:bg-gray-50 transition group">
                             <td class="font-medium text-gray-700 max-w-[200px] border-r border-gray-200" title="${app.utils.cleanText(r.displayName || r.route)}">
                                 <div class="overflow-x-auto whitespace-nowrap no-scrollbar">
-                                    <span onclick="app.utils.navigate('${r.prefix ? '/route/' + encodeURIComponent(r.prefix) + '/' + encodeURIComponent(r.route) : '/route/' + encodeURIComponent(r.route)}')" class="cursor-pointer hover:underline font-bold transition text-black">
+                                    <span onclick="app.utils.navigate('${r.prov ? '/route/' + encodeURIComponent(r.prov) + '/' + encodeURIComponent(r.route) : '/route/' + encodeURIComponent(r.route)}')" class="cursor-pointer hover:underline font-bold transition text-black">
                                         ${app.utils.cleanText(r.displayName || r.route)}
                                     </span>
                                 </div>
@@ -4098,10 +4090,11 @@ Object.assign(window.app, {
                     document.getElementById('route-load-more-container').innerHTML = '';
                     document.getElementById('route-load-more-container').classList.add('hidden');
                     
+                    let exactInfo = null;
                     try {
                         const routeName = decodedProvince ? `${decodedRoute} - ${decodedProvince}` : decodedRoute;
-                        const { data: exactInfo } = await window.sb.from('route_info').select('description, short_path, is_inactive, metadata').eq('route_name', routeName).maybeSingle();
-
+                        const { data } = await window.sb.from('route_info').select('description, short_path, is_inactive, metadata').eq('route_name', routeName).maybeSingle();
+                        exactInfo = data;
                         let titleText = decodedRoute;
                         let inactiveBadge = '';
                         if (exactInfo) {
@@ -4187,6 +4180,12 @@ Object.assign(window.app, {
                         if (error) throw error;
                         
                         app.route.routePhotos = photos || [];
+                        
+                        if (app.route.routePhotos.length === 0 && !exactInfo) {
+                            app.ui.showAlert("Không tìm thấy thông tin cho tuyến này.", () => app.views.loadHome());
+                            return;
+                        }
+                        
                         const opEl = document.getElementById('route-info-operator');
                         const mdlEl = document.getElementById('route-info-model');
                         
