@@ -6466,9 +6466,9 @@ div[id$="-modal"] > div > * {
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">ID Ảnh vá tuyến</label>
-                    <input type="text" id="route-edit-borrowed" class="w-full bg-white/60 border border-gray-300/80 rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all shadow-inner text-black" placeholder="VD: 12345, 12346">
-                    <p class="text-[10px] text-gray-500 mt-1 font-medium">Nhập ID các ảnh chạy vá tuyến này (cách nhau bởi dấu phẩy). Ảnh sẽ tự động được đổi biển tỉnh về tuyến này.</p>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">ID ảnh / Xe vá tuyến</label>
+                    <input type="text" id="route-edit-borrowed" class="w-full bg-white/60 border border-gray-300/80 rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all shadow-inner text-black" placeholder="VD: 12345, 12A34567" oninput="this.value = this.value.toUpperCase()">
+                    <p class="text-[10px] text-gray-500 mt-1 font-medium">Nhập ID ảnh (VD: 123) hoặc Biển số xe (VD: 12A34567, 12A34567-1). Ngăn cách bằng dấu phẩy. Ảnh/Xe sẽ tự động được gán về tuyến này.</p>
                 </div>
             </div>
             <div class="bg-gray-50/30 px-5 py-4 flex gap-3">

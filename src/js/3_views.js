@@ -3750,6 +3750,17 @@ Object.assign(window.app, {
                         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
                         btn.disabled = true;
                         try {
+                            if (enteredPlates.length > 0) {
+                                const { data: existVeh, error: existErr } = await window.sb.from('vehicles').select('license_plate').in('license_plate', enteredPlates);
+                                if (existErr) throw existErr;
+                                const existingP = existVeh.map(v => v.license_plate.toUpperCase());
+                                const invalidP = enteredPlates.filter(p => !existingP.includes(p.toUpperCase()));
+                                if (invalidP.length > 0) {
+                                    btn.innerHTML = origText;
+                                    btn.disabled = false;
+                                    return app.ui.showAlert(`Lỗi: Các biển số xe sau không tồn tại trên hệ thống: ${invalidP.join(', ')}`);
+                                }
+                            }
                             if (app.role === 'admin' || app.role === 'manager') {
                                 if (!logo && !desc && !parentOp) {
                                     const { error } = await window.sb.from('operator_info').delete().eq('operator_name', app.currentOperator);

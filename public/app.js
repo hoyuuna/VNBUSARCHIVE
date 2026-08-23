@@ -9645,6 +9645,17 @@ Object.assign(window.app, {
                         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
                         btn.disabled = true;
                         try {
+                            if (enteredPlates.length > 0) {
+                                const { data: existVeh, error: existErr } = await window.sb.from('vehicles').select('license_plate').in('license_plate', enteredPlates);
+                                if (existErr) throw existErr;
+                                const existingP = existVeh.map(v => v.license_plate.toUpperCase());
+                                const invalidP = enteredPlates.filter(p => !existingP.includes(p.toUpperCase()));
+                                if (invalidP.length > 0) {
+                                    btn.innerHTML = origText;
+                                    btn.disabled = false;
+                                    return app.ui.showAlert(`Lỗi: Các biển số xe sau không tồn tại trên hệ thống: ${invalidP.join(', ')}`);
+                                }
+                            }
                             if (app.role === 'admin' || app.role === 'manager') {
                                 if (!logo && !desc && !parentOp) {
                                     const { error } = await window.sb.from('operator_info').delete().eq('operator_name', app.currentOperator);
@@ -19323,6 +19334,17 @@ app.admin.fetchManagerData('denied');
                             let metadataObj = Object.keys(metadata).length > 0 ? metadata : null;
                             const rawInputListAdmin = borrowedPhotosStr ? borrowedPhotosStr.split(',').map(s => s.trim()).filter(Boolean) : [];
                             const enteredPlatesAdmin = rawInputListAdmin.filter(s => !/^\d+$/.test(s));
+                            if (enteredPlatesAdmin.length > 0) {
+                                const { data: existVeh, error: existErr } = await window.sb.from('vehicles').select('license_plate').in('license_plate', enteredPlatesAdmin);
+                                if (existErr) throw existErr;
+                                const existingP = existVeh.map(v => v.license_plate.toUpperCase());
+                                const invalidP = enteredPlatesAdmin.filter(p => !existingP.includes(p.toUpperCase()));
+                                if (invalidP.length > 0) {
+                                    btn.innerHTML = originalText;
+                                    btn.disabled = false;
+                                    return app.ui.showAlert(`Lỗi: Các biển số xe sau không tồn tại trên hệ thống: ${invalidP.join(', ')}`);
+                                }
+                            }
                             if (enteredPlatesAdmin.length > 0) {
                                 metadataObj = metadataObj || {};
                                 metadataObj.borrowed_plates = enteredPlatesAdmin;
