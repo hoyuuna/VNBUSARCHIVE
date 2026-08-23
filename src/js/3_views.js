@@ -4223,7 +4223,7 @@ Object.assign(window.app, {
                                                 <div class="w-7 h-7 rounded-full bg-green-100 text-green-600 flex items-center justify-center shrink-0">
                                                     <i class="fa-solid fa-ticket text-xs"></i>
                                                 </div>
-                                                <span class="text-xs font-bold text-gray-700">Giá vé: ${app.utils.escapeHtml(exactInfo.metadata.ticket_price)}</span>
+                                                <span class="text-xs font-bold text-gray-700">Giá vé lượt: ${app.utils.escapeHtml(exactInfo.metadata.ticket_price)}</span>
                                             </div>
                                         `;
                                         hasExtraInfo = true;
