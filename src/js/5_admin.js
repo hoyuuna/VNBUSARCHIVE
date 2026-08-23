@@ -3393,7 +3393,6 @@ app.admin.fetchManagerData('denied');
                                     license_plate: plate,
                                     note: note,
                                     location: loc,
-                                    province: province || null,
                                     operator: op,
                                     type: type,
                                     route_no: route
