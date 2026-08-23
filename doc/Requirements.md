@@ -1,6 +1,6 @@
 # QUY CHUẨN VÀ HƯỚNG DẪN ĐĂNG TẢI DỮ LIỆU HÌNH ẢNH
 
-**👉 LƯU Ý: Cập nhật lần cuối 09/08/2026**
+**👉 LƯU Ý: Cập nhật lần cuối 23/08/2026**
 
 Tài liệu này quy định các tiêu chuẩn kỹ thuật về hình ảnh và siêu dữ liệu nhằm xây dựng cơ sở dữ liệu phương tiện chất lượng cao. Yêu cầu toàn bộ thành viên đọc kỹ và tuân thủ nghiêm ngặt trước khi đóng góp.
 
