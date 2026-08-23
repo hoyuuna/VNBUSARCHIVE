@@ -169,11 +169,28 @@ export async function onRequestPost(context) {
                 return new Response(JSON.stringify({ error: "Không thể duyệt: Dữ liệu ảnh không hợp lệ hoặc chưa được tải thành công lên máy chủ CDN thực!" }), { status: 400 });
             }
 
+                        let borrowedRouteToAssign = null;
+            if (route) {
+                const { data: rtInfo } = await sbAdmin.from('route_info')
+                    .select('route_name, metadata')
+                    .like('route_name', `${route} - %`);
+                if (rtInfo) {
+                    for (const rt of rtInfo) {
+                        if (rt.metadata && rt.metadata.borrowed_plates && Array.isArray(rt.metadata.borrowed_plates)) {
+                            if (rt.metadata.borrowed_plates.some(p => p.toLowerCase() === plate.toLowerCase())) {
+                                borrowedRouteToAssign = rt.route_name;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
             const { error: vError } = await sbAdmin.from('vehicles')
                 .upsert({ license_plate: plate, model: model }, { onConflict: 'license_plate' });
             if (vError) throw vError;
 
-            const { error: photoUpdateErr } = await sbAdmin.from('photos').update({
+            const updatePayload = {
                 url: finalUrl,
                 license_plate: plate,
                 note: note,
@@ -187,7 +204,12 @@ export async function onRequestPost(context) {
                 reviewer_count: newReviewerCount,
                 needs_third: needsThird,
                 audit_date: new Date().toISOString()
-            }).eq('id', photoId);
+            };
+            if (borrowedRouteToAssign) {
+                updatePayload.borrowed_route = borrowedRouteToAssign;
+            }
+            
+            const { error: photoUpdateErr } = await sbAdmin.from('photos').update(updatePayload).eq('id', photoId);
             
             if (photoUpdateErr) {
                 return new Response(JSON.stringify({ error: `Lỗi lưu trạng thái duyệt cuối cùng: ${photoUpdateErr.message}` }), { status: 500 });

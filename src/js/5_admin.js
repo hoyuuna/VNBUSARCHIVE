@@ -3471,7 +3471,16 @@ app.admin.fetchManagerData('denied');
                             if (ticketPrice) metadata.ticket_price = ticketPrice;
                             if (headway) metadata.headway = headway;
                             if (wheelchairSupport) metadata.wheelchair_support = wheelchairSupport;
-                            const metadataObj = Object.keys(metadata).length > 0 ? metadata : null;
+                            let metadataObj = Object.keys(metadata).length > 0 ? metadata : null;
+                            const rawInputListAdmin = borrowedPhotosStr ? borrowedPhotosStr.split(',').map(s => s.trim()).filter(Boolean) : [];
+                            const enteredPlatesAdmin = rawInputListAdmin.filter(s => !/^\d+$/.test(s));
+                            if (enteredPlatesAdmin.length > 0) {
+                                metadataObj = metadataObj || {};
+                                metadataObj.borrowed_plates = enteredPlatesAdmin;
+                            } else if (metadataObj && metadataObj.borrowed_plates) {
+                                delete metadataObj.borrowed_plates;
+                                if (Object.keys(metadataObj).length === 0) metadataObj = null;
+                            }
                             
                             if (!desc && !shortPath && !isInactive && !metadataObj) {
                                 const { error: delErr } = await window.sb.from('route_info').delete().eq('route_name', req.new_data.route_name);
@@ -3487,18 +3496,33 @@ app.admin.fetchManagerData('denied');
                                 if (upsertErr) throw upsertErr;
                             }
                             
-                            // Xử lý cập nhật ID ảnh vá tuyến
-                            const newBorrowedIds = borrowedPhotosStr ? borrowedPhotosStr.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n)) : [];
+                            // Xử lý cập nhật ID ảnh và biển số xe vá tuyến
+                            const rawInputList = borrowedPhotosStr ? borrowedPhotosStr.split(',').map(s => s.trim()).filter(Boolean) : [];
+                            const enteredIdsStr = rawInputList.filter(s => /^\d+$/.test(s));
+                            const enteredPlates = rawInputList.filter(s => !/^\d+$/.test(s));
+                            const newBorrowedIds = enteredIdsStr.map(Number);
+                            
                             const { data: curBorrowed } = await window.sb.from('photos').select('id, license_plate').eq('borrowed_route', req.new_data.route_name);
                             const curIds = curBorrowed ? curBorrowed.map(p => p.id) : [];
                             
                             const addedIdsRaw = newBorrowedIds.filter(id => !curIds.includes(id));
                             const removedIds = curIds.filter(id => !newBorrowedIds.includes(id));
                             
+                            const expectedRouteNo = req.new_data.route_name.split(' - ')[0];
                             const targetProvince = req.new_data.route_name.split(' - ')[1] || '';
                             
+                            if (enteredPlates.length > 0) {
+                                const { data: retroPhotos } = await window.sb.from('photos').select('id, route_no').in('license_plate', enteredPlates).eq('route_no', expectedRouteNo);
+                                if (retroPhotos && retroPhotos.length > 0) {
+                                    retroPhotos.forEach(p => {
+                                        if (!curIds.includes(p.id) && !addedIdsRaw.includes(p.id)) {
+                                            addedIdsRaw.push(p.id);
+                                        }
+                                    });
+                                }
+                            }
+                            
                             if (addedIdsRaw.length > 0) {
-                                const expectedRouteNo = req.new_data.route_name.split(' - ')[0];
                                 const { data: validPhotos } = await window.sb.from('photos').select('id, route_no').in('id', addedIdsRaw);
                                 const trulyAddedIds = (validPhotos || []).filter(p => p.route_no === expectedRouteNo).map(p => p.id);
                                 
@@ -3506,8 +3530,17 @@ app.admin.fetchManagerData('denied');
                                     await window.sb.from('photos').update({ borrowed_route: req.new_data.route_name }).in('id', trulyAddedIds);
                                 }
                             }
-                            if (removedIds.length > 0) {
-                                const removedPhotos = curBorrowed.filter(p => removedIds.includes(p.id));
+                            
+                            let finalRemovedIds = removedIds;
+                            if (enteredPlates.length > 0 && curBorrowed) {
+                                finalRemovedIds = removedIds.filter(id => {
+                                    const photo = curBorrowed.find(p => p.id === id);
+                                    return !(photo && enteredPlates.some(plate => plate.toLowerCase() === photo.license_plate.toLowerCase()));
+                                });
+                            }
+                            
+                            if (finalRemovedIds.length > 0) {
+                                const removedPhotos = curBorrowed.filter(p => finalRemovedIds.includes(p.id));
                                 for (const p of removedPhotos) {
                                     let defProv = 'Chưa xác định';
                                     const match = p.license_plate.match(/^(\d{2})/);

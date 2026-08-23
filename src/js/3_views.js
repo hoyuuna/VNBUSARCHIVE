@@ -4374,12 +4374,13 @@ Object.assign(window.app, {
                         }
                         
                         // Fetch borrowed photos
-                        const { data: bPhotos } = await window.sb.from('photos').select('id').eq('borrowed_route', routeName);
-                        if (bPhotos && bPhotos.length > 0) {
-                            document.getElementById('route-edit-borrowed').value = bPhotos.map(p => p.id).join(', ');
-                        } else {
-                            document.getElementById('route-edit-borrowed').value = '';
-                        }
+                          const { data: bPhotos } = await window.sb.from('photos').select('id').eq('borrowed_route', routeName);
+                          let bList = [];
+                          if (bPhotos && bPhotos.length > 0) bList.push(...bPhotos.map(p => p.id));
+                          if (exactInfo && exactInfo.metadata && exactInfo.metadata.borrowed_plates) {
+                              bList.push(...exactInfo.metadata.borrowed_plates);
+                          }
+                          document.getElementById('route-edit-borrowed').value = bList.join(', ');
                     } catch(e) {
                         console.error("Lỗi khi load dữ liệu sửa tuyến:", e);
                     }
@@ -4414,7 +4415,19 @@ Object.assign(window.app, {
                     if (ticketPrice) metadata.ticket_price = ticketPrice;
                     if (headway) metadata.headway = headway;
                     if (wheelchairSupport) metadata.wheelchair_support = wheelchairSupport;
-                    const metadataObj = Object.keys(metadata).length > 0 ? metadata : null;
+                    let metadataObj = Object.keys(metadata).length > 0 ? metadata : null;
+                      const rawInputList = borrowedPhotosStr ? borrowedPhotosStr.split(',').map(s => s.trim()).filter(Boolean) : [];
+                      const enteredIdsStr = rawInputList.filter(s => /^\d+$/.test(s));
+                      const enteredPlates = rawInputList.filter(s => !/^\d+$/.test(s));
+                      const newBorrowedIds = enteredIdsStr.map(Number);
+                      
+                      if (enteredPlates.length > 0) {
+                          metadataObj = metadataObj || {};
+                          metadataObj.borrowed_plates = enteredPlates;
+                      } else if (metadataObj && metadataObj.borrowed_plates) {
+                          delete metadataObj.borrowed_plates;
+                          if (Object.keys(metadataObj).length === 0) metadataObj = null;
+                      }
                     
                     const btn = document.getElementById('btn-save-route');
                     
@@ -4442,25 +4455,42 @@ Object.assign(window.app, {
                                     if (upsertErr) throw upsertErr;
                                 }
                                 
-                                // Xử lý cập nhật ID ảnh vá tuyến
-                                const newBorrowedIds = borrowedPhotosStr ? borrowedPhotosStr.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n)) : [];
-                                const { data: curBorrowed } = await window.sb.from('photos').select('id, license_plate').eq('borrowed_route', routeName);
-                                const curIds = curBorrowed ? curBorrowed.map(p => p.id) : [];
-                                
-                                const addedIdsRaw = newBorrowedIds.filter(id => !curIds.includes(id));
-                                const removedIds = curIds.filter(id => !newBorrowedIds.includes(id));
-                                
-                                if (addedIdsRaw.length > 0) {
-                                    const expectedRouteNo = routeName.split(' - ')[0];
-                                    const { data: validPhotos } = await window.sb.from('photos').select('id, route_no').in('id', addedIdsRaw);
-                                    const trulyAddedIds = (validPhotos || []).filter(p => p.route_no === expectedRouteNo).map(p => p.id);
-                                    
-                                    if (trulyAddedIds.length > 0) {
-                                        await window.sb.from('photos').update({ borrowed_route: routeName }).in('id', trulyAddedIds);
-                                    }
-                                }
-                                if (removedIds.length > 0) {
-                                    const removedPhotos = curBorrowed.filter(p => removedIds.includes(p.id));
+                                // Xử lý cập nhật ID ảnh và biển số xe vá tuyến
+                                  const { data: curBorrowed } = await window.sb.from('photos').select('id, license_plate').eq('borrowed_route', routeName);
+                                  const curIds = curBorrowed ? curBorrowed.map(p => p.id) : [];
+                                  const addedIdsRaw = newBorrowedIds.filter(id => !curIds.includes(id));
+                                  const removedIds = curIds.filter(id => !newBorrowedIds.includes(id));
+                                  
+                                  const expectedRouteNo = routeName.split(' - ')[0];
+                                  if (enteredPlates.length > 0) {
+                                      const { data: retroPhotos } = await window.sb.from('photos').select('id, route_no').in('license_plate', enteredPlates).eq('route_no', expectedRouteNo);
+                                      if (retroPhotos && retroPhotos.length > 0) {
+                                          retroPhotos.forEach(p => {
+                                              if (!curIds.includes(p.id) && !addedIdsRaw.includes(p.id)) {
+                                                  addedIdsRaw.push(p.id);
+                                              }
+                                          });
+                                      }
+                                  }
+                                  
+                                  if (addedIdsRaw.length > 0) {
+                                      const { data: validPhotos } = await window.sb.from('photos').select('id, route_no').in('id', addedIdsRaw);
+                                      const trulyAddedIds = (validPhotos || []).filter(p => p.route_no === expectedRouteNo).map(p => p.id);
+                                      
+                                      if (trulyAddedIds.length > 0) {
+                                          await window.sb.from('photos').update({ borrowed_route: routeName }).in('id', trulyAddedIds);
+                                      }
+                                  }
+                                  
+                                  let finalRemovedIds = removedIds;
+                                  if (enteredPlates.length > 0 && curBorrowed) {
+                                      finalRemovedIds = removedIds.filter(id => {
+                                          const photo = curBorrowed.find(p => p.id === id);
+                                          return !(photo && enteredPlates.some(plate => plate.toLowerCase() === photo.license_plate.toLowerCase()));
+                                      });
+                                  }
+                                  if (finalRemovedIds.length > 0) {
+                                    const removedPhotos = curBorrowed.filter(p => finalRemovedIds.includes(p.id));
                                     for (const p of removedPhotos) {
                                         let defProv = 'Chưa xác định';
                                         const match = p.license_plate.match(/^(\d{2})/);
