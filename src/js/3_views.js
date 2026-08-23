@@ -4235,10 +4235,20 @@ Object.assign(window.app, {
                             }
                         } else {
                             const descEl = document.getElementById('route-desc');
-                            if(descEl) descEl.classList.add('hidden');
+                            if (descEl) descEl.classList.add('hidden');
                             const extraInfoContainer = document.getElementById('route-extra-info');
-                            if(extraInfoContainer) extraInfoContainer.classList.add('hidden');
+                            if (extraInfoContainer) {
+                                extraInfoContainer.innerHTML = '';
+                                extraInfoContainer.classList.add('hidden');
+                            }
                         }
+                        
+                        const logoFallbackEl = document.getElementById('route-logo-fallback');
+                        if (logoFallbackEl) {
+                            logoFallbackEl.className = iconClass;
+                            logoFallbackEl.innerHTML = iconHtml;
+                        }
+                        
                         document.getElementById('route-profile-title').innerHTML = app.utils.escapeHtml(titleText) + inactiveBadge;
                     } catch (e) {
                         console.warn("Lỗi tải thông tin Tuyến:", e);
