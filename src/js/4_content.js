@@ -2021,14 +2021,6 @@ Object.assign(window.app, {
                     const valModel = document.getElementById('up-model').value.trim();
                     const valLoc = document.getElementById('up-location').value.trim();
                     const valDate = document.getElementById('up-date').value;
-                    let valProvince = document.getElementById('up-province').value.trim();
-                    if (!valProvince && valPlate) {
-                        const autoProv = app.utils.getProvinceFromPlate(valPlate);
-                        if (autoProv && autoProv !== 'Không xác định') {
-                            app.upload.selectProvince(autoProv);
-                            valProvince = autoProv;
-                        }
-                    }
                     let missingFields = [];
                     if (!valType) missingFields.push("Loại xe (Xe Buýt/Khách)");
                     if (!valPlate) missingFields.push("Biển kiểm soát");
@@ -2195,7 +2187,7 @@ Object.assign(window.app, {
                             }
                         }
                     });
-                    const provVal = document.getElementById('up-province')?.value.trim();
+                    const provVal = document.getElementById('up-province')?.value?.trim();
                     const provBtn = document.getElementById('up-province-btn');
                     const provErr = document.getElementById('err-up-province');
                     if (provBtn && provErr) {
