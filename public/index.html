@@ -6468,11 +6468,24 @@ div[id$="-modal"] > div > * {
 
                 <div>
                     <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Kiểu Icon hiển thị</label>
-                    <select id="route-edit-icon" class="w-full bg-white/60 border border-gray-300/80 rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all shadow-inner text-black">
-                        <option value="default">Mặc định</option>
-                        <option value="circle">Hình tròn (Max 5 kí tự)</option>
-                        <option value="trapezoid">Hình thang cân (Max 5 kí tự)</option>
-                    </select>
+                    <input type="hidden" id="route-edit-icon" value="default">
+                    <div class="relative w-full z-40">
+                        <button type="button" onclick="document.getElementById('route-icon-menu').classList.toggle('active')" id="btn-route-icon" class="w-full bg-white/60 border border-gray-300/80 rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all shadow-inner text-black flex justify-between items-center text-left">
+                            <span id="route-icon-label">Mặc định</span>
+                            <i class="fa-solid fa-chevron-down text-gray-500 text-xs"></i>
+                        </button>
+                        <div id="route-icon-menu" class="filter-menu w-full mt-1 left-0 origin-top">
+                            <div class="filter-item selected route-icon-item" onclick="app.views.selectRouteIcon('default', 'Mặc định')" data-val="default">
+                                <span>Mặc định</span> <i class="fa-solid fa-check check-icon"></i>
+                            </div>
+                            <div class="filter-item route-icon-item" onclick="app.views.selectRouteIcon('circle', 'Hình tròn (Max 5 kí tự)')" data-val="circle">
+                                <span>Hình tròn (Max 5 kí tự)</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
+                            </div>
+                            <div class="filter-item route-icon-item" onclick="app.views.selectRouteIcon('trapezoid', 'Hình thang cân (Max 5 kí tự)')" data-val="trapezoid">
+                                <span>Hình thang cân (Max 5 kí tự)</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div>
@@ -6709,6 +6722,6 @@ div[id$="-modal"] > div > * {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed top-24 left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.js?v=1787482660880"></script>
+<script src="/app.js?v=1787483368702"></script>
 </body>
 </html>
