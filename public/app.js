@@ -4273,17 +4273,39 @@ Object.assign(window.app, {
                                     let shortPaths = {};
                                     if (finalRoutes.length > 0) {
                                         const dbNames = finalRoutes.map(i => i.dbName);
-                                        const { data: rtInfo } = await window.sb.from('route_info').select('route_name, short_path').in('route_name', dbNames);
-                                        if (rtInfo) rtInfo.forEach(rt => { shortPaths[rt.route_name.toLowerCase()] = rt.short_path; });
+                                        const { data: rtInfo } = await window.sb.from('route_info').select('route_name, short_path, metadata').in('route_name', dbNames);
+                                        if (rtInfo) rtInfo.forEach(rt => { shortPaths[rt.route_name.toLowerCase()] = { short: rt.short_path, meta: rt.metadata }; });
                                     }
                                     for (const info of finalRoutes) {
                                         let displayR = app.utils.cleanText(info.r) + (info.p ? ` (${info.p})` : '');
-                                        let sp = shortPaths[info.dbName.toLowerCase()];
+                                        let rtData = shortPaths[info.dbName.toLowerCase()] || {};
+                                        let sp = rtData.short;
+                                        let metadata = rtData.meta;
                                         if (sp) displayR += ` (${app.utils.cleanText(sp)})`;
+                                        
+                                        let iconHtml = '<i class="fa-solid fa-route"></i>';
+                                        let iconClass = "w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0";
+                                        
+                                        if (metadata && metadata.icon_type && metadata.icon_type !== 'default') {
+                                            const type = metadata.icon_type;
+                                            const shortRouteName = info.r.length <= 5 ? info.r : info.r.substring(0, 5);
+                                            if (type === 'circle') {
+                                                iconClass = "w-12 h-12 rounded-full bg-white flex items-center justify-center shrink-0 border-[2px] border-black shadow-sm overflow-hidden";
+                                                iconHtml = `<span class="mt-0.5" style="font-family: 'Impact', 'Anton', sans-serif; color: #dc2626; font-size: 1.25rem; letter-spacing: 0px;">${shortRouteName}</span>`;
+                                            } else if (type === 'trapezoid') {
+                                                iconClass = "w-12 h-12 flex flex-col items-center justify-center shrink-0 relative";
+                                                iconHtml = `
+                                                <svg viewBox="0 0 100 100" class="absolute inset-0 w-full h-full text-white overflow-visible drop-shadow-sm" preserveAspectRatio="none">
+                                                    <polygon points="15,15 85,15 100,85 0,85" fill="white" stroke="black" stroke-width="6" stroke-linejoin="round"/>
+                                                </svg>
+                                                <span class="relative z-10 mt-0.5" style="font-family: 'Impact', 'Anton', sans-serif; color: #dc2626; font-size: 1.25rem; letter-spacing: 0px;">${shortRouteName}</span>`;
+                                            }
+                                        }
+                                        
                                         const routeUrl = info.p ? `/route/${encodeURIComponent(info.p)}/${encodeURIComponent(info.r)}` : `/route/${encodeURIComponent(info.r)}`;
                                         routeCards.push(`
                                             <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.utils.navigate('${routeUrl.replace(/'/g, "\\'")}')">
-                                                <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0"><i class="fa-solid fa-route"></i></div>
+                                                <div class="${iconClass}">${iconHtml}</div>
                                                 <div class="overflow-hidden min-w-0 flex-1">
                                                     <div class="font-bold text-black text-sm overflow-x-auto whitespace-nowrap no-scrollbar">${displayR}</div>
                                                     <div class="text-[10px] text-gray-500 uppercase tracking-widest mt-0.5 font-bold">Tuyến xe</div>
@@ -10074,14 +10096,14 @@ Object.assign(window.app, {
                                 const shortRouteName = decodedRoute.length <= 5 ? decodedRoute : decodedRoute.substring(0, 5);
                                 if (type === 'circle') {
                                     iconClass = "w-16 h-16 md:w-20 md:h-20 rounded-full bg-white flex items-center justify-center shrink-0 border-[3px] border-black shadow-sm overflow-hidden";
-                                    iconHtml = `<span class="mt-1" style="font-family: 'Impact', sans-serif; color: #dc2626; font-size: 2rem; letter-spacing: 0px;">${shortRouteName}</span>`;
+                                    iconHtml = `<span class="mt-1" style="font-family: 'Impact', 'Anton', sans-serif; color: #dc2626; font-size: 2rem; letter-spacing: 0px;">${shortRouteName}</span>`;
                                 } else if (type === 'trapezoid') {
                                     iconClass = "w-16 h-16 md:w-20 md:h-20 flex flex-col items-center justify-center shrink-0 relative";
                                     iconHtml = `
                                     <svg viewBox="0 0 100 100" class="absolute inset-0 w-full h-full text-white overflow-visible drop-shadow-sm" preserveAspectRatio="none">
                                         <polygon points="15,15 85,15 100,85 0,85" fill="white" stroke="black" stroke-width="6" stroke-linejoin="round"/>
                                     </svg>
-                                    <span class="relative z-10 mt-1" style="font-family: 'Impact', sans-serif; color: #dc2626; font-size: 2rem; letter-spacing: 0px;">${shortRouteName}</span>`;
+                                    <span class="relative z-10 mt-1" style="font-family: 'Impact', 'Anton', sans-serif; color: #dc2626; font-size: 2rem; letter-spacing: 0px;">${shortRouteName}</span>`;
                                 }
                             }
                             
