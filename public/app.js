@@ -10051,12 +10051,20 @@ Object.assign(window.app, {
                     const decodedProvince = decodeURIComponent(provinceName || '');
                     const decodedRoute = decodeURIComponent(routeNo);
                     
-                    if (!decodedProvince || decodedProvince.trim() === '') {
+if (!decodedProvince || decodedProvince.trim() === '') {
                         app.toast.show('error', 'Lỗi truy cập', 'Tuyến này không tồn tại thông tin tỉnh thành. Nó có thể là xe khách hoặc dữ liệu không hợp lệ nên không được hỗ trợ hồ sơ.');
                         app.utils.navigate('/');
                         return;
                     }
-                    
+
+                    // Check for special routes that don't have profiles
+                    const specialRoutes = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động'];
+                    if (specialRoutes.includes(decodedRoute)) {
+                        app.toast.show('error', 'Tuyến không có hồ sơ', `Tuyến "${decodedRoute}" không có thông tin hồ sơ. Chuyển hướng đến tìm kiếm...`);
+                        app.searchRedirect(decodedRoute, 'all');
+                        return;
+                    }
+
                     const expectedPath = decodedProvince
                         ? `/route/${encodeURIComponent(decodedProvince)}/${encodeURIComponent(decodedRoute)}`
                         : `/route/${encodeURIComponent(decodedRoute)}`;
@@ -10380,15 +10388,22 @@ Object.assign(window.app, {
                         }
                         
                         document.getElementById('rte-stat-vehicles').innerText = app.utils.formatCompact(activeVehiclesCount);
-                        app.views.fetchRoutePhotosPage(1);
-                    } catch (err) {
-                        console.error("Lỗi khi tải dữ liệu tuyến:", err);
-                        grid.innerHTML = '<div class="col-span-full text-center py-10 text-red-500">Đã xảy ra lỗi khi tải dữ liệu. Vui lòng thử lại sau.</div>';
-                    }
-                    app.loadingBar.finish();
-                },
-                openEditPrompt: async () => {
-                    if (!app.user) return app.auth.check();
+app.views.fetchRoutePhotosPage(1);
+                     } catch (err) {
+                         console.error("Lỗi khi tải dữ liệu tuyến:", err);
+                         grid.innerHTML = '<div class="col-span-full text-center py-10 text-red-500">Đã xảy ra lỗi khi tải dữ liệu. Vui lòng thử lại sau.</div>';
+                     }
+                     app.loadingBar.finish();
+                 },
+                 openEditPrompt: async () => {
+                     // Check for special routes that don't have profiles
+                     const specialRoutes = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động'];
+                     if (specialRoutes.includes(app.route.currentRoute)) {
+                         app.toast.show('error', 'Tuyến không có hồ sơ', `Tuyến "${app.route.currentRoute}" không có thông tin hồ sơ để chỉnh sửa.`);
+                         return;
+                     }
+                     
+                     if (!app.user) return app.auth.check();
                     const modal = document.getElementById('route-edit-modal');
                     const content = document.getElementById('route-edit-content');
                     const btnSave = document.getElementById('btn-save-route');
