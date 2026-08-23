@@ -10151,13 +10151,13 @@ Object.assign(window.app, {
                         app.route.routePhotos = photos || [];
                         
                         if (app.route.routePhotos.length > 0) {
-                            const coachCount = app.route.routePhotos.filter(p => p.type === 'coach').length;
-                            const busCount = app.route.routePhotos.filter(p => p.type === 'bus').length;
-                            if (coachCount > 0 && coachCount >= busCount) {
+                            const hasNonCoach = app.route.routePhotos.some(p => p.type !== 'coach');
+                            const hasCoach = app.route.routePhotos.some(p => p.type === 'coach');
+                            if (hasCoach && !hasNonCoach) {
                                 app.views.loadHome();
                                 app.ui.showAlert("Trang không tồn tại hoặc tuyến này là tuyến hợp đồng (xe khách) nên không có hồ sơ xe riêng.");
                                 return;
-                            } else if (coachCount > 0) {
+                            } else if (hasCoach) {
                                 app.route.routePhotos = app.route.routePhotos.filter(p => p.type !== 'coach');
                             }
                         }
