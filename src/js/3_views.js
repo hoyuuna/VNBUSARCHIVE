@@ -4186,11 +4186,17 @@ Object.assign(window.app, {
                                 const shortRouteName = decodedRoute.length <= 5 ? decodedRoute : decodedRoute.substring(0, 5);
 
                                 if (type === 'circle') {
-                                    iconClass = "w-16 h-16 md:w-20 md:h-20 rounded-full shrink-0 overflow-hidden relative";
-                                    iconHtml = `<svg viewBox="0 0 100 100" class="w-full h-full" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="46" fill="white" stroke="black" stroke-width="8"/><text x="50" y="53" text-anchor="middle" dominant-baseline="middle" font-family="Anton,sans-serif" fill="#dc2626" font-weight="400" textLength="86" lengthAdjust="spacingAndGlyphs">${shortRouteName}</text></svg>`;
+                                    iconClass = "w-16 h-16 md:w-20 md:h-20 rounded-full bg-white flex items-center justify-center shrink-0 border-[3px] border-black shadow-sm overflow-hidden";
+                                    const fSizeP = [null,'2.4rem','1.9rem','1.25rem','0.95rem','0.78rem'][Math.min(shortRouteName.length,5)] || '0.78rem';
+                                    iconHtml = `<span style="font-weight: 400; font-family: 'Anton', sans-serif; color: #dc2626; font-size: ${fSizeP}; white-space: nowrap; line-height: 1;">${shortRouteName}</span>`;
                                 } else if (type === 'trapezoid') {
-                                    iconClass = "w-16 h-16 md:w-20 md:h-20 shrink-0 relative";
-                                    iconHtml = `<svg viewBox="0 0 100 100" class="absolute inset-0 w-full h-full overflow-visible drop-shadow-sm" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><polygon points="15,15 85,15 100,85 0,85" fill="white" stroke="black" stroke-width="4" stroke-linejoin="round"/><text x="50" y="56" text-anchor="middle" dominant-baseline="middle" font-family="Anton,sans-serif" fill="#dc2626" font-weight="400" textLength="68" lengthAdjust="spacingAndGlyphs">${shortRouteName}</text></svg>`;
+                                    iconClass = "w-16 h-16 md:w-20 md:h-20 flex flex-col items-center justify-center shrink-0 relative";
+                                    const fSizeT = [null,'2.4rem','1.9rem','1.25rem','0.95rem','0.78rem'][Math.min(shortRouteName.length,5)] || '0.78rem';
+                                    iconHtml = `
+                                    <svg viewBox="0 0 100 100" class="absolute inset-0 w-full h-full overflow-visible drop-shadow-sm" preserveAspectRatio="none">
+                                        <polygon points="15,15 85,15 100,85 0,85" fill="white" stroke="black" stroke-width="4" stroke-linejoin="round"/>
+                                    </svg>
+                                    <span class="relative z-10" style="font-weight: 400; font-family: 'Anton', sans-serif; color: #dc2626; font-size: ${fSizeT}; white-space: nowrap; line-height: 1;">${shortRouteName}</span>`;
                                 }
                             }
                             
