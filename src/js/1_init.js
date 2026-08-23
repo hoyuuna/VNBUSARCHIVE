@@ -4292,7 +4292,7 @@ Object.assign(window.app, {
                     let profileSelect = (filterType === 'uploader' || (filterType === 'advanced' && (app.search.advancedFilters || []).some(f => f.field === 'uploader'))) 
                         ? 'profiles!inner(id, username, role, subroles, ban_status)' 
                         : 'profiles(id, username, role, subroles, ban_status)';
-                    let photoQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, province, camera_model, location, status, denial_reason, views, ${profileSelect}, vehicles${needsModelJoin ? '!inner' : ''}(model)`, { count: 'estimated' }).eq('status', 'approved');
+                    let photoQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, ${profileSelect}, vehicles${needsModelJoin ? '!inner' : ''}(model)`, { count: 'estimated' }).eq('status', 'approved');
                     photoQuery = app.preference.applyFilter(photoQuery);
                     if (filterType === 'route') {
                         const prefix = prefixToUrl;
@@ -4308,7 +4308,7 @@ Object.assign(window.app, {
                             const relatedPrefixes = app.utils.getRelatedPrefixes(prefix);
                             const prefixOrCond = relatedPrefixes.map(p => `license_plate.ilike.${p}%`).join(',');
                             if (provName) {
-                                photoQuery = photoQuery.eq('route_no', query).or(`province.eq."${provName}",${prefixOrCond}`);
+                                photoQuery = photoQuery.eq('route_no', query).or(`borrowed_route.eq."${query} - ${provName}",${prefixOrCond}`);
                             } else {
                                 photoQuery = photoQuery.eq('route_no', query).or(prefixOrCond);
                             }
