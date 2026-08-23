@@ -4237,7 +4237,7 @@ Object.assign(window.app, {
                             } catch (e) { console.error("Lỗi tìm Dòng xe:", e); }
                         })());
                     }
-                                                                                                    if (filterType === 'route' || filterType === 'all') {
+                                                                                                                        if (filterType === 'route' || filterType === 'all') {
                         cardPromises.push((async () => {
                             try {
                                 let rQuery = window.sb.from('photos').select('route_no, type, license_plate, borrowed_route').eq('status', 'approved');
@@ -4254,8 +4254,8 @@ Object.assign(window.app, {
                                                     if (parts.length > 1) prov = parts.slice(1).join(' - ').trim();
                                                 }
                                                 if (!prov && p.license_plate) {
-                                                    prov = app.utils.getProvPrefix ? app.utils.getProvPrefix(p.license_plate) : '';
-                                                    if (prov === 'Không xác định' || prov === 'Biển tạm' || prov.includes('quân đội')) prov = '';
+                                                    prov = app.utils.getProvinceFromPlate ? app.utils.getProvinceFromPlate(p.license_plate) : '';
+                                                    if (prov === 'Không xác định' || prov === 'Biển tạm' || prov.includes('quân đội') || prov === 'Buýt sân bay') prov = '';
                                                 }
                                             }
                                             const routeNameDB = prov ? `${p.route_no} - ${prov}` : p.route_no;
