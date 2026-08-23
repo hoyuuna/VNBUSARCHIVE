@@ -49,7 +49,10 @@ VNBUSARCHIVE là thư viện tư liệu, không phải nền tảng chia sẻ �
 ### B4. Nhận diện & Quyền riêng tư
 * **B4.1. Biển kiểm soát (BKS):** Yêu cầu bắt buộc. Phải hiển thị rõ ràng, đọc được bằng mắt thường (chấp nhận cả biển kim loại và decal).
 * **B4.2. Quyền riêng tư:** Bắt buộc che/làm mờ rõ khuôn mặt hành khách hoặc tài xế (nếu ảnh cận cảnh).
-* **B4.3. Quy tắc làm mờ:** Vùng làm mờ tuyệt đối không đè lên các chi tiết của xe (thân, bánh, kính, đèn...).
+* **B4.3. Quy tắc làm mờ:** Yêu cầu tính chính xác và thẩm mỹ cao khi thao tác.
+  * **Kích thước và vị trí:** Vùng làm mờ phải được tinh chỉnh kích thước vừa vặn và đặt trúng đích lên đối tượng cần che.
+  * **Cấm lạm dụng thao tác:** Nghiêm cấm việc một vùng làm mờ có kích thước quá lớn để che phủ cả một khoảng rộng chỉ vì mục đích thao tác nhanh. 
+  * **Bảo toàn chi tiết xe:** Vùng làm mờ tuyệt đối không được chờm/đè lên các chi tiết của xe đang là chủ thể.
 * **B4.4. Xử lý ảnh tai nạn/va chạm:** 
   * Che BKS của phương tiện khác (xe tải, ô tô con, xe máy...).
   * **Không che** BKS nếu là va chạm giữa hai xe buýt/xe khách với nhau.
