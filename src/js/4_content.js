@@ -4152,7 +4152,6 @@ Object.assign(window.app, {
                         route: document.getElementById('info-route').value,
                         model: document.getElementById('info-model').value,
                         location: document.getElementById('info-location').value,
-                        province: document.getElementById('info-province')?.value || null,
                         note: document.getElementById('info-note').value,
                         taken_at: app.currentPhoto.taken_at || null
                     };
@@ -4225,7 +4224,6 @@ Object.assign(window.app, {
                             const { error: pError } = await window.sb.from('photos').update({
                                 license_plate: payload.license_plate,
                                 location: payload.location,
-                                province: payload.province,
                                 note: payload.note,
                                 operator: payload.operator,
                                 type: payload.type,
@@ -4265,7 +4263,6 @@ Object.assign(window.app, {
                             await app.vehicle.cleanupVehicle(payload.license_plate);
                             app.currentPhoto.license_plate = payload.license_plate;
                             app.currentPhoto.location = payload.location;
-                            app.currentPhoto.province = payload.province;
                             app.currentPhoto.note = payload.note;
                             app.currentPhoto.operator = payload.operator;
                             app.currentPhoto.type = payload.type;

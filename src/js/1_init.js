@@ -2096,7 +2096,6 @@ cleanupState: () => {
                         staticList.unshift('Hợp đồng');
                     }
                     let dbRoutes = [];
-                    const selectedProv = document.getElementById('up-province')?.value || document.getElementById('info-province')?.value || null;
                     try {
                         let rQuery = window.sb.rpc('get_unique_routes');
                         if (query.trim().length > 0) {
@@ -2185,10 +2184,7 @@ cleanupState: () => {
                             if (currentType) {
                                 sbQuery = sbQuery.eq('type', currentType);
                             }
-                            const selectedProv = document.getElementById('up-province')?.value || null;
-                            if (selectedProv && selectedProv !== 'Không xác định') {
-                                sbQuery = sbQuery.eq('province', selectedProv);
-                            } else if (plateVal && plateVal.length >= 2) {
+                            if (plateVal && plateVal.length >= 2) {
                                 const prefix = plateVal.substring(0, 2);
                                 if (!isNaN(prefix)) {
                                     const relatedPrefixes = app.utils.getRelatedPrefixes(prefix);
@@ -2222,12 +2218,6 @@ cleanupState: () => {
                                     sbQuery = sbQuery.eq('type', currentType);
                                 } else if (table === 'vehicles') {
                                     sbQuery = sbQuery.eq('photos.type', currentType);
-                                }
-                            }
-                            if (table === 'photos') {
-                                const selectedProv = document.getElementById('up-province')?.value || null;
-                                if (selectedProv && selectedProv !== 'Không xác định') {
-                                    sbQuery = sbQuery.eq('province', selectedProv);
                                 }
                             }
                             searchWords.forEach(word => {

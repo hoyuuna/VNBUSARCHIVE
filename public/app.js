@@ -2098,7 +2098,6 @@ cleanupState: () => {
                         staticList.unshift('Hợp đồng');
                     }
                     let dbRoutes = [];
-                    const selectedProv = document.getElementById('up-province')?.value || document.getElementById('info-province')?.value || null;
                     try {
                         let rQuery = window.sb.rpc('get_unique_routes');
                         if (query.trim().length > 0) {
@@ -2187,10 +2186,7 @@ cleanupState: () => {
                             if (currentType) {
                                 sbQuery = sbQuery.eq('type', currentType);
                             }
-                            const selectedProv = document.getElementById('up-province')?.value || null;
-                            if (selectedProv && selectedProv !== 'Không xác định') {
-                                sbQuery = sbQuery.eq('province', selectedProv);
-                            } else if (plateVal && plateVal.length >= 2) {
+                            if (plateVal && plateVal.length >= 2) {
                                 const prefix = plateVal.substring(0, 2);
                                 if (!isNaN(prefix)) {
                                     const relatedPrefixes = app.utils.getRelatedPrefixes(prefix);
@@ -2224,12 +2220,6 @@ cleanupState: () => {
                                     sbQuery = sbQuery.eq('type', currentType);
                                 } else if (table === 'vehicles') {
                                     sbQuery = sbQuery.eq('photos.type', currentType);
-                                }
-                            }
-                            if (table === 'photos') {
-                                const selectedProv = document.getElementById('up-province')?.value || null;
-                                if (selectedProv && selectedProv !== 'Không xác định') {
-                                    sbQuery = sbQuery.eq('province', selectedProv);
                                 }
                             }
                             searchWords.forEach(word => {
@@ -15510,7 +15500,6 @@ Object.assign(window.app, {
                         route: document.getElementById('info-route').value,
                         model: document.getElementById('info-model').value,
                         location: document.getElementById('info-location').value,
-                        province: document.getElementById('info-province')?.value || null,
                         note: document.getElementById('info-note').value,
                         taken_at: app.currentPhoto.taken_at || null
                     };
@@ -15583,7 +15572,6 @@ Object.assign(window.app, {
                             const { error: pError } = await window.sb.from('photos').update({
                                 license_plate: payload.license_plate,
                                 location: payload.location,
-                                province: payload.province,
                                 note: payload.note,
                                 operator: payload.operator,
                                 type: payload.type,
@@ -15623,7 +15611,6 @@ Object.assign(window.app, {
                             await app.vehicle.cleanupVehicle(payload.license_plate);
                             app.currentPhoto.license_plate = payload.license_plate;
                             app.currentPhoto.location = payload.location;
-                            app.currentPhoto.province = payload.province;
                             app.currentPhoto.note = payload.note;
                             app.currentPhoto.operator = payload.operator;
                             app.currentPhoto.type = payload.type;
