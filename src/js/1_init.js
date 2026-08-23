@@ -2634,7 +2634,9 @@ Object.assign(window.app, {
                             }
                             else if (id === 'info-route') {
                                 const typeVal = document.getElementById('info-type')?.value;
-                                if (typeVal === 'coach') {
+                                const specialRoutes = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động'];
+                                // Gộp chung điều kiện Xe khách (coach) và Các tuyến đặc biệt
+                                if (typeVal === 'coach' || specialRoutes.includes(this.value.trim())) {
                                     app.searchRedirect(this.value, fieldMap[id]);
                                 } else {
                                     let provName = '';
@@ -4245,7 +4247,7 @@ Object.assign(window.app, {
                                 const { data: rData } = await rQuery.limit(50);
                                 if (rData) {
                                     let uniqueRoutesMap = new Map();
-                                    const specialRoutes = ['Dừng hoạt động', 'Ngoại giờ hoạt động', 'Chưa hoạt động', 'Hợp đồng', 'Xe hợp đồng / Đưa đón'];
+                                    const specialRoutes = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động', 'Hợp đồng', 'Xe hợp đồng / Đưa đón'];
                                     rData.forEach(p => {
                                         if (p.type === 'coach') return;
                                         if (p.route_no && p.route_no !== 'Khác' && p.route_no !== 'Không rõ' && !specialRoutes.includes(p.route_no)) {
