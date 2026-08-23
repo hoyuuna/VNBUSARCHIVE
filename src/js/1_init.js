@@ -4245,8 +4245,10 @@ Object.assign(window.app, {
                                 const { data: rData } = await rQuery.limit(50);
                                 if (rData) {
                                     let uniqueRoutesMap = new Map();
+                                    const specialRoutes = ['Dừng hoạt động', 'Ngoại giờ hoạt động', 'Chưa hoạt động', 'Hợp đồng', 'Xe hợp đồng / Đưa đón'];
                                     rData.forEach(p => {
-                                        if (p.route_no && p.route_no !== 'Khác' && p.route_no !== 'Không rõ') {
+                                        if (p.type === 'coach') return;
+                                        if (p.route_no && p.route_no !== 'Khác' && p.route_no !== 'Không rõ' && !specialRoutes.includes(p.route_no)) {
                                             let prov = '';
                                             if (p.type !== 'coach') {
                                                 if (p.borrowed_route) {

@@ -4247,8 +4247,10 @@ Object.assign(window.app, {
                                 const { data: rData } = await rQuery.limit(50);
                                 if (rData) {
                                     let uniqueRoutesMap = new Map();
+                                    const specialRoutes = ['Dừng hoạt động', 'Ngoại giờ hoạt động', 'Chưa hoạt động', 'Hợp đồng', 'Xe hợp đồng / Đưa đón'];
                                     rData.forEach(p => {
-                                        if (p.route_no && p.route_no !== 'Khác' && p.route_no !== 'Không rõ') {
+                                        if (p.type === 'coach') return;
+                                        if (p.route_no && p.route_no !== 'Khác' && p.route_no !== 'Không rõ' && !specialRoutes.includes(p.route_no)) {
                                             let prov = '';
                                             if (p.type !== 'coach') {
                                                 if (p.borrowed_route) {
@@ -8314,16 +8316,18 @@ let currentRouteProvName = null;
                         const absoluteLatestStatus = new Map();
                         const uniquePlatesArr = Array.from(uniquePlates);
                         let plateToBorrowed = new Map();
+                        let plateToType = new Map();
                         for (let i = 0; i < uniquePlatesArr.length; i += 150) {
                             const chunk = uniquePlatesArr.slice(i, i + 150);
                             const { data: bData } = await window.sb.from('photos')
-                                .select('license_plate, borrowed_route')
+                                .select('license_plate, borrowed_route, type')
                                 .in('license_plate', chunk)
-                                .eq('status', 'approved')
-                                .not('borrowed_route', 'is', null);
+                                .eq('status', 'approved');
                             if (bData) {
                                 bData.forEach(p => {
-                                    plateToBorrowed.set(p.license_plate.toUpperCase(), p.borrowed_route);
+                                    const pl = p.license_plate.toUpperCase();
+                                    if (p.borrowed_route) plateToBorrowed.set(pl, p.borrowed_route);
+                                    if (p.type === 'coach') plateToType.set(pl, 'coach');
                                 });
                             }
                         }
@@ -8405,9 +8409,10 @@ let currentRouteProvName = null;
                                     const prov = rDataMap.prov;
                                     const routeKey = cleanRoute.toLowerCase() + '|' + prov;
                                     if (!activeRoutesMap.has(routeKey)) {
-                                        activeRoutesMap.set(routeKey, { route: cleanRoute, prov: prov, count: 0, models: {} });
+                                        activeRoutesMap.set(routeKey, { route: cleanRoute, prov: prov, count: 0, models: {}, isCoach: false });
                                     }
                                     const rData = activeRoutesMap.get(routeKey);
+                                    if (plateToType.get(pl) === 'coach') rData.isCoach = true;
                                     rData.count++;
                                     rData.models[model] = (rData.models[model] || 0) + 1;
                                     if (prov) operatorProvinces.add(prov);
@@ -8430,7 +8435,7 @@ let currentRouteProvName = null;
                             if (operatesInMultipleProvinces && rData.prov) {
                                 displayName = `${rData.route} (${rData.prov})`;
                             }
-                            activeRoutes.push({ route: rData.route, displayName: displayName, prov: rData.prov, vehicleCount: rData.count, mainModel: maxModel });
+                            activeRoutes.push({ route: rData.route, displayName: displayName, prov: rData.prov, vehicleCount: rData.count, mainModel: maxModel, isCoach: rData.isCoach });
                         });
                         activeRoutes.sort((a, b) => {
                             if (b.vehicleCount !== a.vehicleCount) {
@@ -9539,7 +9544,7 @@ Object.assign(window.app, {
                         <tr class="hover:bg-gray-50 transition group">
                             <td class="font-medium text-gray-700 max-w-[200px] border-r border-gray-200" title="${app.utils.cleanText(r.displayName || r.route)}">
                                 <div class="overflow-x-auto whitespace-nowrap no-scrollbar">
-                                    <span onclick="app.utils.navigate('${r.prov ? '/route/' + encodeURIComponent(r.prov) + '/' + encodeURIComponent(r.route) : '/route/' + encodeURIComponent(r.route)}')" class="cursor-pointer hover:underline font-bold transition text-black">
+                                    <span onclick="if(${r.isCoach ? 'true' : 'false'}) { app.searchRedirect('${app.utils.escapeAttr(r.route)}', 'route'); } else { app.utils.navigate('${r.prov ? '/route/' + encodeURIComponent(r.prov) + '/' + encodeURIComponent(r.route) : '/route/' + encodeURIComponent(r.route)}'); }" class="cursor-pointer hover:underline font-bold transition text-black">
                                         ${app.utils.cleanText(r.displayName || r.route)}
                                     </span>
                                 </div>
@@ -10144,6 +10149,16 @@ Object.assign(window.app, {
                         if (error) throw error;
                         
                         app.route.routePhotos = photos || [];
+                        
+                        if (app.route.routePhotos.length > 0) {
+                            const coachCount = app.route.routePhotos.filter(p => p.type === 'coach').length;
+                            const busCount = app.route.routePhotos.filter(p => p.type === 'bus').length;
+                            if (coachCount > 0 && coachCount >= busCount) {
+                                app.views.loadHome();
+                                app.ui.showAlert("Trang không tồn tại hoặc tuyến này là tuyến hợp đồng (xe khách) nên không có hồ sơ xe riêng.");
+                                return;
+                            }
+                        }
                         
                         const opEl = document.getElementById('route-info-operator');
                         const mdlEl = document.getElementById('route-info-model');
