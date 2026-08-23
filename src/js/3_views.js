@@ -4187,11 +4187,11 @@ Object.assign(window.app, {
 
                                 if (type === 'circle') {
                                     iconClass = "w-16 h-16 md:w-20 md:h-20 rounded-full bg-white flex items-center justify-center shrink-0 border-[3px] border-black shadow-sm overflow-hidden";
-                                    const fSizeP = [null,'2.4rem','1.9rem','1.25rem','0.95rem','0.78rem'][Math.min(shortRouteName.length,5)] || '0.78rem';
+                                    const fSizeP = [null,'3.4rem','2rem','1.35rem','1rem','0.8rem'][Math.min(shortRouteName.length,5)] || '0.8rem';
                                     iconHtml = `<span style="font-weight: 400; font-family: 'Anton', sans-serif; color: #dc2626; font-size: ${fSizeP}; white-space: nowrap; line-height: 1;">${shortRouteName}</span>`;
                                 } else if (type === 'trapezoid') {
                                     iconClass = "w-16 h-16 md:w-20 md:h-20 flex flex-col items-center justify-center shrink-0 relative";
-                                    const fSizeT = [null,'2.4rem','1.9rem','1.25rem','0.95rem','0.78rem'][Math.min(shortRouteName.length,5)] || '0.78rem';
+                                    const fSizeT = [null,'3.4rem','2rem','1.35rem','1rem','0.8rem'][Math.min(shortRouteName.length,5)] || '0.8rem';
                                     iconHtml = `
                                     <svg viewBox="0 0 100 100" class="absolute inset-0 w-full h-full overflow-visible drop-shadow-sm" preserveAspectRatio="none">
                                         <polygon points="15,15 85,15 100,85 0,85" fill="white" stroke="black" stroke-width="4" stroke-linejoin="round"/>
