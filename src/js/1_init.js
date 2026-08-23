@@ -4290,14 +4290,14 @@ Object.assign(window.app, {
                                             let fSizeCard = shortRouteName.length > 3 ? '1rem' : '1.25rem';
                                             if (type === 'circle') {
                                                 iconClass = "w-12 h-12 rounded-full bg-white flex items-center justify-center shrink-0 border-[2px] border-black shadow-sm overflow-hidden";
-                                                iconHtml = `<span style="font-family: 'Anton', sans-serif; color: #dc2626; font-size: ${fSizeCard}; letter-spacing: 0px; white-space: nowrap; line-height: 1; transform: translateY(1px);">${shortRouteName}</span>`;
+                                                iconHtml = `<span style="font-weight: 400; font-family: 'Anton', sans-serif; color: #dc2626; font-size: ${fSizeCard}; letter-spacing: 0px; white-space: nowrap; line-height: 1; transform: translateY(1px);">${shortRouteName}</span>`;
                                             } else if (type === 'trapezoid') {
                                                 iconClass = "w-12 h-12 flex flex-col items-center justify-center shrink-0 relative";
                                                 iconHtml = `
                                                 <svg viewBox="0 0 100 100" class="absolute inset-0 w-full h-full text-white overflow-visible drop-shadow-sm" preserveAspectRatio="none">
                                                     <polygon points="15,15 85,15 100,85 0,85" fill="white" stroke="black" stroke-width="4" stroke-linejoin="round"/>
                                                 </svg>
-                                                <span class="relative z-10" style="font-family: 'Anton', sans-serif; color: #dc2626; font-size: ${fSizeCard}; letter-spacing: 0px; white-space: nowrap; line-height: 1; transform: translateY(1px);">${shortRouteName}</span>`;
+                                                <span class="relative z-10" style="font-weight: 400; font-family: 'Anton', sans-serif; color: #dc2626; font-size: ${fSizeCard}; letter-spacing: 0px; white-space: nowrap; line-height: 1; transform: translateY(1px);">${shortRouteName}</span>`;
                                             }
                                         }
                                         
