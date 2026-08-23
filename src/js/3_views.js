@@ -4177,7 +4177,7 @@ Object.assign(window.app, {
                             if (exactInfo.metadata && exactInfo.metadata.icon_type && exactInfo.metadata.icon_type !== 'default') {
                                 const type = exactInfo.metadata.icon_type;
                                 const shortRouteName = decodedRoute.length <= 5 ? decodedRoute : decodedRoute.substring(0, 5);
-                                let fSize = shortRouteName.length > 3 ? '1.5rem' : '2rem';
+                                let fSize = shortRouteName.length > 4 ? '1.15rem' : (shortRouteName.length > 3 ? '1.4rem' : '2rem');
                                 if (type === 'circle') {
                                     iconClass = "w-16 h-16 md:w-20 md:h-20 rounded-full bg-white flex items-center justify-center shrink-0 border-[3px] border-black shadow-sm overflow-hidden";
                                     iconHtml = `<span style="font-weight: 400; font-family: 'Anton', sans-serif; color: #dc2626; font-size: ${fSize}; letter-spacing: 0px; white-space: nowrap; line-height: 1; transform: translateY(1px);">${shortRouteName}</span>`;
