@@ -4132,7 +4132,7 @@ Object.assign(window.app, {
                     
                     document.getElementById('crumb-route-profile').innerText = titleText;
                     document.getElementById('route-profile-title').innerText = decodedRoute;
-                    document.getElementById('route-province-label').innerText = 'Tuyến xe';
+                    document.getElementById('route-province-label').innerText = decodedProvince ? `Tuyến buýt ${decodedProvince}` : 'Tuyến buýt';
                     
                     
                     
