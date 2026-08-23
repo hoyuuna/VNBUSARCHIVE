@@ -7871,19 +7871,22 @@ Object.assign(window.app, {
                         }).sort((a, b) => new Date(a.effective_date || '1970-01-01') - new Date(b.effective_date || '1970-01-01'));
                         const specialRoutes = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động'];
                         let currentRouteClientSide = '';
-                        let currentOpClientSide = '';
+let currentOpClientSide = '';
+let currentRouteProvName = null;
                         if (allPhotos.length > 0) {
                             const latestPhoto = allPhotos[0];
                             currentOpClientSide = latestPhoto.operator || '';
                             const r = (latestPhoto.route_no || '').trim();
                             if (r && !specialRoutes.includes(r)) {
                                 currentRouteClientSide = r;
+                                if (latestPhoto.borrowed_route) { const parts = latestPhoto.borrowed_route.split(' - '); if (parts.length > 1) currentRouteProvName = parts[1].trim(); }
                             } else if (r === 'Ngoài giờ hoạt động') {
                                 const validPhotos = allPhotos.filter(p => p.route_no && !specialRoutes.includes(p.route_no));
                                 if (validPhotos.length > 0) {
                                     const latestValid = validPhotos[0];
                                     currentRouteClientSide = (latestValid.route_no || '').trim();
                                     currentOpClientSide = latestValid.operator || '';
+                                    if (latestValid.borrowed_route) { const parts = latestValid.borrowed_route.split(' - '); if (parts.length > 1) currentRouteProvName = parts[1].trim(); }
                                 }
                             } else if (r === 'Dừng hoạt động' || r === 'Chưa hoạt động') {
                                 currentRouteClientSide = r;
@@ -7907,7 +7910,7 @@ Object.assign(window.app, {
                         const pageDesc = tailPartsClient.length > 0 ? `${baseDescClient} - ${tailPartsClient.join(' - ')}.` : `${baseDescClient}.`;
                         app.utils.updateMetaTags(pageTitle, pageDesc, topPhoto ? app.utils.getProxiedUrl(topPhoto.url) : '');
                         let vehPrefix = '';
-                        const vehProvName = app.utils.getProvinceFromPlate(vehicle.license_plate);
+                        const vehProvName = currentRouteProvName || app.utils.getProvinceFromPlate(vehicle.license_plate);
                         if (vehProvName && app.utils.provinceData && app.utils.provinceData.length) {
                             const pData = app.utils.provinceData.find(p => p.ten === vehProvName);
                             if (pData && pData.ky_hieu) {
@@ -8354,7 +8357,19 @@ Object.assign(window.app, {
                             if (p.license_plate && p.route_no && p.route_no !== '---') {
                                 const pl = p.license_plate.toUpperCase();
                                 if (!latestCleanRouteMap.has(pl)) {
-                                    latestCleanRouteMap.set(pl, p.route_no.trim());
+                                    let r = p.route_no.trim();
+                                    let prov = '';
+                                    if (p.borrowed_route) {
+                                        const parts = p.borrowed_route.split(' - ');
+                                        r = parts[0].trim();
+                                        if (parts.length > 1) prov = parts[1].trim();
+                                    } else {
+                                        const extractedProv = app.utils.getProvinceFromPlate(pl);
+                                        if (extractedProv && !extractedProv.includes('KhA') && !extractedProv.includes('Bi')) {
+                                            prov = extractedProv;
+                                        }
+                                    }
+                                    latestCleanRouteMap.set(pl, { route: r, prov: prov });
                                 }
                             }
                         });
@@ -8369,13 +8384,10 @@ Object.assign(window.app, {
                             if (currentOp.toLowerCase() !== operatorName.toLowerCase()) isInactive = true;
                             else if (routeRaw === 'Dừng hoạt động') isInactive = true;
                             if (!isInactive) {
-                                const cleanRoute = latestCleanRouteMap.get(pl);
-                                if (cleanRoute && cleanRoute !== '---' && !specialRoutes.includes(cleanRoute)) {
-                                    const extractedProv = app.utils.getProvinceFromPlate(pl);
-                                    let prov = '';
-                                    if (extractedProv && extractedProv !== 'Không xác định' && extractedProv !== 'Biển tạm') {
-                                        prov = extractedProv;
-                                    }
+                                const rDataMap = latestCleanRouteMap.get(pl);
+                                if (rDataMap && rDataMap.route && rDataMap.route !== '---' && !specialRoutes.includes(rDataMap.route)) {
+                                    const cleanRoute = rDataMap.route;
+                                    const prov = rDataMap.prov;
                                     const routeKey = cleanRoute.toLowerCase() + '|' + prov;
                                     if (!activeRoutesMap.has(routeKey)) {
                                         activeRoutesMap.set(routeKey, { route: cleanRoute, prov: prov, count: 0, models: {} });
