@@ -8607,9 +8607,22 @@ Object.assign(window.app, {
                             .order('taken_at', { ascending: false, nullsFirst: false })
                             .order('created_at', { ascending: false });
                         
-                        // Nếu có tỉnh, thêm điều kiện tỉnh
                         if (app.route.currentProvince) {
-                            pQuery = pQuery.eq('province', app.route.currentProvince);
+                            let prefix = '';
+                            if (app.utils.provinceData) {
+                                const prov = app.utils.provinceData.find(p => p.ten === app.route.currentProvince);
+                                if (prov) {
+                                    if (Array.isArray(prov.ky_hieu)) prefix = prov.ky_hieu[0];
+                                    else prefix = String(prov.ky_hieu).split(',')[0].trim();
+                                }
+                            }
+                            if (prefix) {
+                                const relatedPrefixes = app.utils.getRelatedPrefixes(prefix);
+                                const prefixOrCond = relatedPrefixes.map(p => `license_plate.ilike.${p}%`).join(',');
+                                pQuery = pQuery.or(`borrowed_route.eq."${app.route.currentRoute} - ${app.route.currentProvince}",${prefixOrCond}`);
+                            } else {
+                                pQuery = pQuery.eq('borrowed_route', `${app.route.currentRoute} - ${app.route.currentProvince}`);
+                            }
                         }
                         
                         pQuery = app.preference.applyFilter(pQuery);
@@ -9216,7 +9229,7 @@ Object.assign(window.app, {
                                 if (table === 'vehicles') {
                                     selectStr = `${col}, photos!inner(status${app.preference.current !== 'both' ? ', type' : ''})`;
                                 }
-                                if (table === 'photos' && col === 'route_no') selectStr = 'route_no, province, license_plate';
+                                if (table === 'photos' && col === 'route_no') selectStr = 'route_no, borrowed_route, license_plate';
                                 let sbQuery = window.sb.from(table).select(selectStr);
                                 if (table === 'photos') {
                                     sbQuery = sbQuery.eq('status', 'approved').not(col, 'is', null).neq(col, '').neq(col, '---');
@@ -9266,7 +9279,7 @@ Object.assign(window.app, {
                                         data.forEach(item => {
                                             const r = item.route_no;
                                             if (!r) return;
-                                            let prov = item.province || '';
+                                            let prov = item.borrowed_route ? item.borrowed_route.split(' - ')[1] : '';
                                             if (prov === 'Không xác định') prov = '';
                                             if (!prov && item.license_plate) {
                                                 const extractedProv = app.utils.getProvinceFromPlate(item.license_plate);
@@ -10020,7 +10033,21 @@ Object.assign(window.app, {
                             .eq('route_no', decodedRoute);
                             
                         if (decodedProvince) {
-                            pQuery = pQuery.eq('province', decodedProvince);
+                            let prefix = '';
+                            if (app.utils.provinceData) {
+                                const prov = app.utils.provinceData.find(p => p.ten === decodedProvince);
+                                if (prov) {
+                                    if (Array.isArray(prov.ky_hieu)) prefix = prov.ky_hieu[0];
+                                    else prefix = String(prov.ky_hieu).split(',')[0].trim();
+                                }
+                            }
+                            if (prefix) {
+                                const relatedPrefixes = app.utils.getRelatedPrefixes(prefix);
+                                const prefixOrCond = relatedPrefixes.map(p => `license_plate.ilike.${p}%`).join(',');
+                                pQuery = pQuery.or(`borrowed_route.eq."${decodedRoute} - ${decodedProvince}",${prefixOrCond}`);
+                            } else {
+                                pQuery = pQuery.eq('borrowed_route', `${decodedRoute} - ${decodedProvince}`);
+                            }
                         }
                         
                         pQuery = app.preference.applyFilter(pQuery);
