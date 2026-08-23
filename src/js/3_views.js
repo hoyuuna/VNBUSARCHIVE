@@ -4187,11 +4187,23 @@ Object.assign(window.app, {
 
                                 if (type === 'circle') {
                                     iconClass = "w-16 h-16 md:w-20 md:h-20 rounded-full bg-white flex items-center justify-center shrink-0 border-[3px] border-black shadow-sm overflow-hidden";
-                                    const fSizeP = [null,'3.4rem','2rem','1.35rem','1rem','0.8rem'][Math.min(shortRouteName.length,5)] || '0.8rem';
+                                    await document.fonts.load('400 1em Anton');
+                                    const _cp = document.createElement('canvas'); const _xp = _cp.getContext('2d');
+                                    _xp.font = '400 100px Anton, sans-serif';
+                                    const _mp = _xp.measureText(shortRouteName);
+                                    const _sqP = 39; // 95% of inscribed square for w-16 circle
+                                    const _scP = Math.min(_sqP / _mp.width, _sqP / (_mp.actualBoundingBoxAscent || 72));
+                                    const fSizeP = (_scP * 100).toFixed(1) + 'px';
                                     iconHtml = `<span style="font-weight: 400; font-family: 'Anton', sans-serif; color: #dc2626; font-size: ${fSizeP}; white-space: nowrap; line-height: 1;">${shortRouteName}</span>`;
                                 } else if (type === 'trapezoid') {
                                     iconClass = "w-16 h-16 md:w-20 md:h-20 flex flex-col items-center justify-center shrink-0 relative";
-                                    const fSizeT = [null,'3.4rem','2rem','1.35rem','1rem','0.8rem'][Math.min(shortRouteName.length,5)] || '0.8rem';
+                                    await document.fonts.load('400 1em Anton');
+                                    const _ct = document.createElement('canvas'); const _xt = _ct.getContext('2d');
+                                    _xt.font = '400 100px Anton, sans-serif';
+                                    const _mt = _xt.measureText(shortRouteName);
+                                    const _sqT = 35; // usable space in trapezoid center
+                                    const _scT = Math.min(_sqT / _mt.width, _sqT / (_mt.actualBoundingBoxAscent || 72));
+                                    const fSizeT = (_scT * 100).toFixed(1) + 'px';
                                     iconHtml = `
                                     <svg viewBox="0 0 100 100" class="absolute inset-0 w-full h-full overflow-visible drop-shadow-sm" preserveAspectRatio="none">
                                         <polygon points="15,15 85,15 100,85 0,85" fill="white" stroke="black" stroke-width="4" stroke-linejoin="round"/>

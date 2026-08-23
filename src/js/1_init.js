@@ -4298,11 +4298,23 @@ Object.assign(window.app, {
 
                                             if (type === 'circle') {
                                                 iconClass = "w-12 h-12 rounded-full bg-white flex items-center justify-center shrink-0 border-[2px] border-black shadow-sm overflow-hidden";
-                                                const fSizePC = [null,'2.5rem','1.5rem','1rem','0.75rem','0.6rem'][Math.min(shortRouteName.length,5)] || '0.6rem';
+                                                await document.fonts.load('400 1em Anton');
+                                                const _cpc = document.createElement('canvas'); const _xpc = _cpc.getContext('2d');
+                                                _xpc.font = '400 100px Anton, sans-serif';
+                                                const _mpc = _xpc.measureText(shortRouteName);
+                                                const _sqPC = 29.5; // 95% of inscribed square for w-12 circle
+                                                const _scPC = Math.min(_sqPC / _mpc.width, _sqPC / (_mpc.actualBoundingBoxAscent || 72));
+                                                const fSizePC = (_scPC * 100).toFixed(1) + 'px';
                                                 iconHtml = `<span style="font-weight: 400; font-family: 'Anton', sans-serif; color: #dc2626; font-size: ${fSizePC}; white-space: nowrap; line-height: 1;">${shortRouteName}</span>`;
                                             } else if (type === 'trapezoid') {
                                                 iconClass = "w-12 h-12 flex flex-col items-center justify-center shrink-0 relative";
-                                                const fSizeTC = [null,'2.5rem','1.5rem','1rem','0.75rem','0.6rem'][Math.min(shortRouteName.length,5)] || '0.6rem';
+                                                await document.fonts.load('400 1em Anton');
+                                                const _ctc = document.createElement('canvas'); const _xtc = _ctc.getContext('2d');
+                                                _xtc.font = '400 100px Anton, sans-serif';
+                                                const _mtc = _xtc.measureText(shortRouteName);
+                                                const _sqTC = 26; // usable space in trapezoid center for card
+                                                const _scTC = Math.min(_sqTC / _mtc.width, _sqTC / (_mtc.actualBoundingBoxAscent || 72));
+                                                const fSizeTC = (_scTC * 100).toFixed(1) + 'px';
                                                 iconHtml = `
                                                 <svg viewBox="0 0 100 100" class="absolute inset-0 w-full h-full text-white overflow-visible drop-shadow-sm" preserveAspectRatio="none">
                                                     <polygon points="15,15 85,15 100,85 0,85" fill="white" stroke="black" stroke-width="4" stroke-linejoin="round"/>
