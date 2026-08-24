@@ -17451,6 +17451,14 @@ Object.assign(window.app, {
                                         </div>
                                     </div>`;
                                 } else if (type === 'update_route_info') {
+                                    const curIcon = curRoute.metadata?.icon_type || 'default';
+                                    const reqIcon = d.metadata?.icon_type || 'default';
+                                    const getIconLabel = (val) => {
+                                        if (val === 'circle') return 'Hình tròn';
+                                        if (val === 'trapezoid') return 'Hình thang cân';
+                                        return 'Mặc định';
+                                    };
+                                    
                                     return `
                                     <div class="admin-card overflow-visible">
                                         <div class="admin-card-header bg-teal-50"><span class="font-bold text-xs uppercase text-teal-600">CẬP NHẬT TUYẾN</span><span class="text-xs text-gray-500">${username}</span></div>
@@ -17463,8 +17471,9 @@ Object.assign(window.app, {
                                                 <div><span class="font-bold">Lộ trình (Rút gọn):</span> ${app.utils.escapeAttr(curRoute.short_path || '-')}</div>
                                                 <div><span class="font-bold">Mô tả:</span> ${app.utils.escapeAttr(curRoute.description || '-')}</div>
                                                 <div><span class="font-bold">Giá vé lượt:</span> ${app.utils.escapeAttr(curRoute.metadata?.ticket_price || '-')}</div>
-                                                <div><span class="font-bold">Giãn cách, TG hoạt động:</span> ${app.utils.escapeAttr(curRoute.metadata?.headway || '-')}</div>
+                                                <div><span class="font-bold">Giãn cách, TG:</span> ${app.utils.escapeAttr(curRoute.metadata?.headway || '-')}</div>
                                                 <div><span class="font-bold">Xe lăn:</span> ${curRoute.metadata?.wheelchair_support ? 'Có' : 'Không'}</div>
+                                                <div><span class="font-bold">Kiểu Icon:</span> ${getIconLabel(curIcon)}</div>
                                             </div>
                                             <p class="mb-2 font-bold text-red-500">[MỚI] Yêu cầu cập nhật thành:</p>
                                             
@@ -17491,6 +17500,14 @@ Object.assign(window.app, {
                                             <div class="mb-2 flex items-center justify-between bg-white border border-gray-300 rounded p-2">
                                                 <span class="text-xs font-bold text-gray-700">Có hỗ trợ xe lăn ${d.metadata?.wheelchair_support !== curRoute.metadata?.wheelchair_support ? '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>' : ''}</span>
                                                 <input type="checkbox" id="req-route-wheelchair-${r.id}" ${d.metadata?.wheelchair_support ? 'checked' : ''} class="w-4 h-4 cursor-pointer">
+                                            </div>
+                                            <div class="mb-2">
+                                                <span class="admin-label">Kiểu Icon hiển thị ${reqIcon !== curIcon ? '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>' : ''}</span>
+                                                <select id="req-route-icon-${r.id}" class="admin-input">
+                                                    <option value="default" ${reqIcon === 'default' ? 'selected' : ''}>Mặc định</option>
+                                                    <option value="circle" ${reqIcon === 'circle' ? 'selected' : ''}>Hình tròn (Max 5 kí tự)</option>
+                                                    <option value="trapezoid" ${reqIcon === 'trapezoid' ? 'selected' : ''}>Hình thang cân (Max 5 kí tự)</option>
+                                                </select>
                                             </div>
                                             <div class="mb-2">
                                                 <span class="admin-label">ID ảnh vá tuyến ${d.borrowed_photos_str !== undefined ? '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>' : ''}</span>
@@ -19550,12 +19567,23 @@ app.admin.fetchManagerData('denied');
                             const ticketPrice = document.getElementById(`req-route-ticket-${id}`).value.trim();
                             const headway = document.getElementById(`req-route-headway-${id}`).value.trim();
                             const wheelchairSupport = document.getElementById(`req-route-wheelchair-${id}`).checked;
+                            const iconType = document.getElementById(`req-route-icon-${id}`).value;
                             const borrowedPhotosStr = document.getElementById(`req-route-borrowed-${id}`)?.value.trim();
                             
                             let metadata = {};
                             if (ticketPrice) metadata.ticket_price = ticketPrice;
                             if (headway) metadata.headway = headway;
                             if (wheelchairSupport) metadata.wheelchair_support = wheelchairSupport;
+                            
+                            if (iconType !== 'default') {
+                                const expectedRouteNo = req.new_data.route_name.split(' - ')[0];
+                                if (expectedRouteNo.length <= 5) {
+                                    metadata.icon_type = iconType;
+                                } else {
+                                    app.toast.show('warning', 'Lưu ý', 'Tên tuyến dài hơn 5 kí tự không thể sử dụng icon tùy chỉnh. Đã tự động chuyển về mặc định.');
+                                }
+                            }
+
                             let metadataObj = Object.keys(metadata).length > 0 ? metadata : null;
                             const rawInputListAdmin = borrowedPhotosStr ? borrowedPhotosStr.split(',').map(s => s.trim()).filter(Boolean) : [];
                             const enteredPlatesAdmin = rawInputListAdmin.filter(s => !/^\d+$/.test(s));
