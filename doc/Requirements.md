@@ -1,6 +1,6 @@
 # QUY CHUẨN VÀ HƯỚNG DẪN ĐĂNG TẢI DỮ LIỆU HÌNH ẢNH
 
-**👉 LƯU Ý: Cập nhật lần cuối 23/08/2026**
+**👉 LƯU Ý: Cập nhật lần cuối 25/08/2026**
 
 Tài liệu này quy định các tiêu chuẩn kỹ thuật về hình ảnh và siêu dữ liệu nhằm xây dựng cơ sở dữ liệu phương tiện chất lượng cao. Yêu cầu toàn bộ thành viên đọc kỹ và tuân thủ nghiêm ngặt trước khi đóng góp.
 
@@ -37,7 +37,7 @@ VNBUSARCHIVE là thư viện tư liệu, không phải nền tảng chia sẻ �
 * **B2.3. Định dạng và Độ cân bằng:** 
   * Tỉ lệ khung hình ngang chuẩn: `4:3`, `3:2` hoặc `16:9`. 
   * Đường chân trời, mặt đường hoặc các đường thẳng kiến trúc làm nền (cột điện, tòa nhà) phải được cân bằng (xoay thẳng). Từ chối ảnh bị nghiêng lệch góc (Ngoại trừ góc chụp đặc thù từ trên cao).
-* **B2.4. Góc chụp:** Ưu tiên lấy được 2 phía của xe. Chấp nhận góc chụp 1 phía với thân xe. Từ chối góc chụp 1 phía chỉ thấy đầu xe/đuôi xe. (Quy định này sẽ không áp dụng cho ảnh chụp 1 phía đầu xe có chủ thể từ 2 xe trở lên).
+* **B2.4. Góc chụp:** Ưu tiên lấy được 2 phía (trước, sau, trái, phải) của xe. Chấp nhận góc chụp 1 phía với thân xe. Từ chối góc chụp 1 phía chỉ thấy đầu xe/đuôi xe (kể cả khi chụp từ góc nhìn từ trên xuống dưới hay từ dưới lên trên). (Quy định này sẽ không áp dụng cho ảnh chụp 1 phía đầu xe có chủ thể từ 2 xe trở lên).
 * **B2.5. Vật cản:** Chủ thể không bị che khuất bởi phương tiện khác, con người, hoặc cảnh quan (cây cối, cột điện...).
 
 ### B3. Thông số kỹ thuật & Siêu dữ liệu
