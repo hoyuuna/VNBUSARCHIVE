@@ -206,6 +206,6 @@ export async function onRequest(context) {
 
     } catch (error) {
         console.error('[Manager Error]:', error.message);
-        return new Response(JSON.stringify({ success: false, error: 'Đã xảy ra lỗi khi thực hiện thao tác quản lý.' }), { status: 400, headers: { 'Content-Type': 'application/json' }});
+        return new Response(JSON.stringify({ success: false, error: 'Lỗi quản lý: ' + error.message }), { status: 400, headers: { 'Content-Type': 'application/json' }});
     }
 }

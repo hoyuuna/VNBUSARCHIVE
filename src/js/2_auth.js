@@ -1184,9 +1184,13 @@ Object.assign(window.app, {
                         localStorage.setItem('vnbus_preference', app.preference.current);
                         if (app.user) {
                             const curWmMode = localStorage.getItem('vnbus_wm_mode') || (app.wmState && app.wmState.mode) || 'basic';
-                            window.sb.from('profiles').update({
-                                preferences: { type: app.preference.current, wmMode: curWmMode, pinnedLocations: app.preference.pinnedLocations || [] }
-                            }).eq('id', app.user.id).then(()=>{});
+                            window.sb.from('profiles').select('preferences').eq('id', app.user.id).single().then(({data}) => {
+                                const existingPrefs = (data && data.preferences) ? data.preferences : {};
+                                existingPrefs.type = app.preference.current;
+                                existingPrefs.wmMode = curWmMode;
+                                existingPrefs.pinnedLocations = app.preference.pinnedLocations || [];
+                                window.sb.from('profiles').update({ preferences: existingPrefs }).eq('id', app.user.id).then(()=>{});
+                            });
                         }
                     }
                     const modal = document.getElementById('onboarding-modal');

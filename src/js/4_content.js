@@ -137,12 +137,14 @@ Object.assign(window.app, {
                  savePreferencesToServer: async () => {
                      if (!app.user) return;
                      try {
+                         const { data } = await window.sb.from('profiles').select('preferences').eq('id', app.user.id).single();
+                         const existingPrefs = (data && data.preferences) ? data.preferences : {};
+                         existingPrefs.type = app.preference.current;
+                         existingPrefs.wmMode = app.wmState ? app.wmState.mode : 'basic';
+                         existingPrefs.pinnedLocations = app.preference.pinnedLocations || [];
+                         
                          await window.sb.from('profiles').update({
-                             preferences: { 
-                                 type: app.preference.current, 
-                                 wmMode: app.wmState ? app.wmState.mode : 'basic',
-                                 pinnedLocations: app.preference.pinnedLocations || []
-                             }
+                             preferences: existingPrefs
                          }).eq('id', app.user.id);
                      } catch(e) { console.warn("Failed to sync preferences", e); }
                  },
@@ -1137,9 +1139,13 @@ Object.assign(window.app, {
                         if (typeof localStorage !== 'undefined') localStorage.setItem('vnbus_wm_mode', mode);
                         if (animate && app.user && window.sb) {
                             const curPref = localStorage.getItem('vnbus_preference') || 'both';
-                            window.sb.from('profiles').update({
-                                preferences: { type: curPref, wmMode: mode, pinnedLocations: (app.preference && app.preference.pinnedLocations) || [] }
-                            }).eq('id', app.user.id).then(()=>{});
+                            window.sb.from('profiles').select('preferences').eq('id', app.user.id).single().then(({data}) => {
+                                const existingPrefs = (data && data.preferences) ? data.preferences : {};
+                                existingPrefs.type = curPref;
+                                existingPrefs.wmMode = mode;
+                                existingPrefs.pinnedLocations = (app.preference && app.preference.pinnedLocations) || [];
+                                window.sb.from('profiles').update({ preferences: existingPrefs }).eq('id', app.user.id).then(()=>{});
+                            });
                         }
                     } catch (e) {}
                     ['standard', 'basic', 'advanced'].forEach(m => {
@@ -3184,6 +3190,16 @@ Object.assign(window.app, {
                 requestDelete: async () => {
                     if (!app.user || !app.currentPhoto) return;
                     const p = app.currentPhoto;
+                    
+                    if (p.status === 'approved') {
+                        const uploadedTime = new Date(p.created_at).getTime();
+                        const hoursSinceUpload = (Date.now() - uploadedTime) / (1000 * 60 * 60);
+                        if (hoursSinceUpload < 24) {
+                            const remainingHours = Math.ceil(24 - hoursSinceUpload);
+                            return app.ui.showAlert(`Ảnh này mới được đăng tải. Bạn chỉ có thể yêu cầu xóa ảnh sau khi đã trôi qua 24 giờ kể từ lúc đăng (Vui lòng quay lại sau khoảng ${remainingHours} tiếng nữa).`);
+                        }
+                    }
+
                     const isPendingOrDenied = (p.status === 'pending' || p.status === 'denied');
                     if (isPendingOrDenied) {
                         app.ui.showAlert(
@@ -4360,9 +4376,13 @@ Object.assign(window.app, {
                     localStorage.setItem('vnbus_preference', app.preference.current);
                     if (app.user) {
                         const curWmMode = localStorage.getItem('vnbus_wm_mode') || (app.wmState && app.wmState.mode) || 'basic';
-                        window.sb.from('profiles').update({
-                            preferences: { type: app.preference.current, wmMode: curWmMode, pinnedLocations: app.preference.pinnedLocations || [] }
-                        }).eq('id', app.user.id).then(({error}) => {});
+                        window.sb.from('profiles').select('preferences').eq('id', app.user.id).single().then(({data}) => {
+                            const existingPrefs = (data && data.preferences) ? data.preferences : {};
+                            existingPrefs.type = app.preference.current;
+                            existingPrefs.wmMode = curWmMode;
+                            existingPrefs.pinnedLocations = app.preference.pinnedLocations || [];
+                            window.sb.from('profiles').update({ preferences: existingPrefs }).eq('id', app.user.id).then(()=>{});
+                        });
                     }
                     app.ui.showAlert("Đã lưu thông tin Cá nhân hóa thành công!");
                     if (isChanged) {

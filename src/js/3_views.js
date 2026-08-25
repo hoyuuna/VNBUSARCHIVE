@@ -335,7 +335,6 @@ Object.assign(window.app, {
                         console.error("Lỗi tải thông kê:", e);
                     }
                     app.newsboard.checkAndShow();
-                    app.views.loadRecommendations();
                     app.loadingBar.finish();
                 },
                 updateMilestoneBanner: async (photoCount = null) => {
