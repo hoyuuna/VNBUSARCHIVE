@@ -13734,7 +13734,6 @@ Object.assign(window.app, {
                     btn.disabled = true;
                     btn.dataset.submitting = "true";
                     btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...`;
-                    const captchaPromise = app.captcha.request();
                     const bgWebpPromise = new Promise((resolve, reject) => {
                         setTimeout(async () => {
                             try {
@@ -13765,16 +13764,6 @@ Object.assign(window.app, {
                             }
                         }, 50);
                     });
-                    let captchaResponse;
-                    try {
-                        captchaResponse = await captchaPromise;
-                    } catch (err) {
-                        btn.innerHTML = originalText;
-                        btn.disabled = false;
-                        delete btn.dataset.submitting;
-                        if (err.message === "CAPTCHA_CANCELLED") return; 
-                        return app.ui.showAlert("Lỗi xác thực Captcha.");
-                    }
                     btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang nén ảnh...`;
                     if (!app.upload.activeProgressToast) {
                         app.upload.activeProgressToast = app.toast.createProgress('Đang chuẩn bị ảnh...');
@@ -13807,7 +13796,6 @@ Object.assign(window.app, {
                         const uploadData = new FormData();
                         uploadData.append('file', compressedFile);
                         uploadData.append('userId', app.user.id);
-                        uploadData.append('captchaToken', captchaResponse);
                         uploadData.append('fileExtension', app.utils.getTargetExtension());
                         uploadData.append('meta_plate', valPlate.replace(/[^A-Z0-9-]/gi, '').toUpperCase());
                         uploadData.append('meta_operator', app.utils.fixUnicode(valOp));

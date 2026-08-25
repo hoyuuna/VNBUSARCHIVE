@@ -93,32 +93,6 @@ export async function onRequest(context) {
             return new Response(JSON.stringify({ success: false, error: 'Loại file không hợp lệ (chỉ chấp nhận ảnh và file RAW).' }), { status: 400, headers: { 'Content-Type': 'application/json' }});
         }
 
-        if (!isAvatar) {
-            if (!captchaToken) return new Response(JSON.stringify({ success: false, error: 'Thiếu mã xác thực (Captcha).' }), { status: 400, headers: { 'Content-Type': 'application/json' }});
-
-            const secretKey = env.CAPTCHA_SECRET || env.TURNSTILE_SECRET_KEY;
-            if (!secretKey) {
-                console.error("Lỗi cấu hình: Thiếu biến môi trường CAPTCHA_SECRET hoặc TURNSTILE_SECRET_KEY");
-                return new Response(JSON.stringify({ success: false, error: 'Lỗi cấu hình máy chủ: Thiếu Secret Key của Captcha.' }), { status: 500, headers: { 'Content-Type': 'application/json' }});
-            }
-
-            const formData = new URLSearchParams();
-            formData.append('secret', secretKey);
-            formData.append('response', captchaToken);
-
-            const verifyRes = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: formData.toString(),
-            });
-
-            const verifyData = await verifyRes.json();
-            if (!verifyData.success) {
-                console.error('Turnstile verification failed:', verifyData['error-codes']);
-                return new Response(JSON.stringify({ success: false, error: 'Xác thực Cloudflare Turnstile thất bại!' }), { status: 400, headers: { 'Content-Type': 'application/json' }});
-            }
-        }
-
         const randomValues = crypto.getRandomValues(new Uint8Array(6));
         const safeHash = Array.from(randomValues).map(b => b.toString(16).padStart(2, '0')).join('');
         const fileName = `img_${Date.now()}_${safeHash}.${fileExtension}`;
