@@ -13764,11 +13764,32 @@ Object.assign(window.app, {
                             }
                         }, 50);
                     });
-                    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang nén ảnh...`;
+                    
+                    // --- MỚI: QUẢN LÝ TIẾN TRÌNH ẢO VÀ ĐẾM SỐ ẢNH ---
+                    app.upload.activeUploadsCount = (app.upload.activeUploadsCount || 0) + 1;
+                    const updateToastText = () => {
+                        return app.upload.activeUploadsCount > 1 
+                            ? `Đang tải ${app.upload.activeUploadsCount} ảnh lên máy chủ...` 
+                            : 'Đang tải ảnh lên máy chủ...';
+                    };
+
                     if (!app.upload.activeProgressToast) {
-                        app.upload.activeProgressToast = app.toast.createProgress('Đang chuẩn bị ảnh...');
+                        app.upload.activeProgressToast = app.toast.createProgress(updateToastText());
+                        app.upload.fakeProgress = 0;
+                        if (app.upload.fakeProgressInterval) clearInterval(app.upload.fakeProgressInterval);
+                        app.upload.fakeProgressInterval = setInterval(() => {
+                            if (app.upload.fakeProgress < 85) app.upload.fakeProgress += (Math.random() * 4 + 1);
+                            else if (app.upload.fakeProgress < 96) app.upload.fakeProgress += 0.2;
+                            
+                            if (app.upload.activeProgressToast) {
+                                app.upload.activeProgressToast.update(app.upload.fakeProgress, updateToastText(), 'Vui lòng không rời khỏi trang');
+                            }
+                        }, 200);
+                    } else {
+                        app.upload.activeProgressToast.update(app.upload.fakeProgress, updateToastText(), 'Vui lòng không rời khỏi trang');
                     }
-                    app.upload.activeProgressToast.update(20, 'Đang chuẩn bị ảnh...', 'Áp dụng Watermark & Nén (Không chuyển trang)...');
+                    // ---------------------------------------------
+
                     try {
                         let originalSizeKB = (app.rawFile.size / 1024).toFixed(2);
                         const username = app.username || "Guest";
@@ -13826,10 +13847,18 @@ Object.assign(window.app, {
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                         app.upload.processQueue();
                     } catch (err) {
-                        if (app.upload.activeProgressToast) {
-                            app.upload.activeProgressToast.remove();
-                            app.upload.activeProgressToast = null;
+                        app.upload.activeUploadsCount = Math.max(0, (app.upload.activeUploadsCount || 1) - 1);
+                        if (app.upload.activeUploadsCount === 0) {
+                            if (app.upload.fakeProgressInterval) clearInterval(app.upload.fakeProgressInterval);
+                            if (app.upload.activeProgressToast) {
+                                app.upload.activeProgressToast.remove();
+                                app.upload.activeProgressToast = null;
+                            }
+                        } else if (app.upload.activeProgressToast) {
+                            const title = app.upload.activeUploadsCount > 1 ? `Đang tải ${app.upload.activeUploadsCount} ảnh lên máy chủ...` : 'Đang tải ảnh lên máy chủ...';
+                            app.upload.activeProgressToast.update(app.upload.fakeProgress, title, 'Vui lòng không rời khỏi trang');
                         }
+
                         app.ui.showUploadProgress(); 
                         app.ui.updateUploadError(err.message);
                     } finally {
@@ -14008,12 +14037,6 @@ Object.assign(window.app, {
                     app.upload.isQueueProcessing = true;
                     while (app.upload.uploadQueue.length > 0) {
                         const item = app.upload.uploadQueue[0];
-                        const remaining = app.upload.uploadQueue.length;
-                        if (!app.upload.activeProgressToast) {
-                            app.upload.activeProgressToast = app.toast.createProgress('Đang tải lên...');
-                        }
-                        const titleText = remaining > 1 ? `Đang xử lý tiếp (${remaining} ảnh xếp hàng)...` : `Đang tải lên máy chủ...`;
-                        app.upload.activeProgressToast.update(50, titleText, `BKS: ${item.plate}`);
                         let token;
                         try {
                             const { data: { session } } = await window.sb.auth.getSession();
@@ -14087,9 +14110,13 @@ Object.assign(window.app, {
                                     console.error('[EXHAUSTIVE UPLOAD LOG - DELETE FALLBACK ERROR]:', delErr);
                                 }
                             }
-                            if (app.upload.activeProgressToast) {
-                                app.upload.activeProgressToast.remove();
-                                app.upload.activeProgressToast = null;
+                            app.upload.activeUploadsCount = Math.max(0, (app.upload.activeUploadsCount || 1) - 1);
+                            if (app.upload.activeUploadsCount === 0) {
+                                if (app.upload.fakeProgressInterval) clearInterval(app.upload.fakeProgressInterval);
+                                if (app.upload.activeProgressToast) {
+                                    app.upload.activeProgressToast.remove();
+                                    app.upload.activeProgressToast = null;
+                                }
                             }
                             app.upload.uploadQueue.shift();
                             app.upload.isQueueProcessing = false;
@@ -14120,7 +14147,23 @@ Object.assign(window.app, {
                             app.ui.updateUploadError(uiErrorMsg);
                             break; 
                         }
-                        app.upload.activeProgressToast.update(100, `Hoàn thành ${item.plate}!`, 'Đang đồng bộ dữ liệu...');
+                        app.upload.activeUploadsCount = Math.max(0, (app.upload.activeUploadsCount || 1) - 1);
+                        if (app.upload.activeUploadsCount === 0) {
+                            if (app.upload.fakeProgressInterval) clearInterval(app.upload.fakeProgressInterval);
+                            if (app.upload.activeProgressToast) {
+                                app.upload.activeProgressToast.update(100, `Hoàn tất tải lên!`, 'Đang đồng bộ dữ liệu...');
+                                setTimeout(() => {
+                                    if (app.upload.activeProgressToast) {
+                                        app.upload.activeProgressToast.remove();
+                                        app.upload.activeProgressToast = null;
+                                    }
+                                }, 500);
+                            }
+                        } else if (app.upload.activeProgressToast) {
+                            const title = app.upload.activeUploadsCount > 1 ? `Đang tải ${app.upload.activeUploadsCount} ảnh lên máy chủ...` : 'Đang tải ảnh lên máy chủ...';
+                            app.upload.activeProgressToast.update(app.upload.fakeProgress, title, 'Vui lòng không rời khỏi trang');
+                        }
+
                         app.upload.uploadQueue.shift(); 
                         let queueCount = '?';
                         let newPhotoId = null;
@@ -14155,6 +14198,8 @@ Object.assign(window.app, {
                         );
                     }
                     if (app.upload.uploadQueue.length === 0) {
+                        app.upload.activeUploadsCount = 0;
+                        if (app.upload.fakeProgressInterval) clearInterval(app.upload.fakeProgressInterval);
                         if (app.upload.activeProgressToast) {
                             app.upload.activeProgressToast.remove();
                             app.upload.activeProgressToast = null;
