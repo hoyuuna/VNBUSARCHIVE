@@ -1155,6 +1155,12 @@ cleanupState: () => {
                         });
                         app.upload.removeImage();
                         if (app.upload && app.upload.selectProvince) app.upload.selectProvince('');
+                        
+                        // Tự động reset lại nút Ghim địa điểm về trạng thái gốc
+                        if (app.upload && app.upload.checkLocationPinStatus) {
+                            app.upload.checkLocationPinStatus('');
+                        }
+
                         document.getElementById('locked-msg')?.classList.add('hidden');
                         app.vehicleLocked = false;
                         document.getElementById('plate-msg').innerText = '';
