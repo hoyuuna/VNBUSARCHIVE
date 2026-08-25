@@ -792,13 +792,23 @@ Object.assign(window.app, {
                     document.getElementById('my-stat-photos').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-gray-400"></i>';
                     document.getElementById('my-stat-views').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-gray-400"></i>';
                     document.getElementById('my-stat-likes').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-gray-400"></i>';
-                    const { data: stats, error: statsError } = await window.sb.rpc('get_user_profile_stats', { target_user_id: targetUserId, is_own_profile: isOwnProfile });
-                    if (!statsError && stats && stats.length > 0) {
-                        document.getElementById('my-stat-photos').innerText = app.utils.formatCompact(stats[0].total_photos);
-                        document.getElementById('my-stat-views').innerText = app.utils.formatCompact(stats[0].total_views);
-                        document.getElementById('my-stat-likes').innerText = app.utils.formatCompact(stats[0].total_likes);
-                    }
+                    
+                    // 1. CHẠY NGẦM THỐNG KÊ (BỎ AWAIT)
+                    window.sb.rpc('get_user_profile_stats', { target_user_id: targetUserId, is_own_profile: isOwnProfile })
+                        .then(({ data: stats, error: statsError }) => {
+                            if (!statsError && stats && stats.length > 0) {
+                                document.getElementById('my-stat-photos').innerText = app.utils.formatCompact(stats[0].total_photos);
+                                document.getElementById('my-stat-views').innerText = app.utils.formatCompact(stats[0].total_views);
+                                document.getElementById('my-stat-likes').innerText = app.utils.formatCompact(stats[0].total_likes);
+                            } else {
+                                document.getElementById('my-stat-photos').innerText = '0';
+                                document.getElementById('my-stat-views').innerText = '0';
+                                document.getElementById('my-stat-likes').innerText = '0';
+                            }
+                        });
+
                     if (isOwnProfile) {
+                        // Cảnh báo xóa ảnh
                         window.sb.from('photos')
                             .select('id, license_plate, audit_date')
                             .eq('uploader_id', app.currentProfileId)
@@ -824,14 +834,9 @@ Object.assign(window.app, {
                                 if (expiringPhotos.length > 0) {
                                     let html = 'Bạn có ảnh ';
                                     const links = expiringPhotos.map(p => `<a href="javascript:void(0)" onclick="app.views.loadDetail('${p.id}')" class="font-bold underline hover:text-red-900">${app.utils.displayPlate(p.license_plate)}</a>`);
-                                    if (links.length === 1) {
-                                        html += links[0];
-                                    } else if (links.length === 2) {
-                                        html += links.join(' và ');
-                                    } else {
-                                        const last = links.pop();
-                                        html += links.join(', ') + ' và ' + last;
-                                    }
+                                    if (links.length === 1) html += links[0];
+                                    else if (links.length === 2) html += links.join(' và ');
+                                    else { const last = links.pop(); html += links.join(', ') + ' và ' + last; }
                                     html += ' bị từ chối và sắp tự động xóa! Vui lòng kiểm tra và gửi yêu cầu kháng cáo trước thời hạn này. Sau khi ảnh bị xóa, bạn sẽ không thể thực hiện kháng cáo.';
                                     document.getElementById('profile-pending-deletion-alert-text').innerHTML = html;
                                     alertBox.classList.remove('hidden');
@@ -843,6 +848,7 @@ Object.assign(window.app, {
                         const alertBox = document.getElementById('profile-pending-deletion-alert');
                         if (alertBox) alertBox.classList.add('hidden');
                     }
+
                     if (!isReturningToSameProfile) {
                         app.views.currentProfileSort = 'newest';
                         app.views.currentProfileFilter = 'all';
@@ -855,9 +861,12 @@ Object.assign(window.app, {
                         else filterContainer.classList.add('hidden');
                     }
                     app.views.updateSortFilterUI();
-                    await app.views.fetchProfilePhotosPage(app.profilePage || 1);
+                    
+                    // 2. GỌI ĐỒNG LOẠT CÁC LƯỚI ẢNH (BỎ AWAIT ĐỂ CHẠY SONG SONG)
+                    app.views.fetchProfilePhotosPage(app.profilePage || 1);
+                    
                     if (isOwnProfile) {
-                        await app.views.fetchLikedPhotosPage(app.likedPage || 1);
+                        app.views.fetchLikedPhotosPage(app.likedPage || 1);
                         app.views.fetchProfileRequests(1);
                     } else {
                         const reqSec = document.getElementById('my-requests-section');
@@ -865,8 +874,9 @@ Object.assign(window.app, {
                         const likedSec = document.getElementById('acc-liked-section');
                         if (likedSec) likedSec.classList.add('hidden');
                     }
+                    
                     app.lastLoadedUsername = targetUsername;
-                    app.loadingBar.finish();
+                    app.loadingBar.finish(); // Dừng thanh bar trên cùng ngay lập tức, nhường lại màn hình cho các ô tự quay.
                 },
                 fetchProfilePhotosPage: async (page) => {
                     app.profilePage = page;
