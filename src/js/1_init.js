@@ -767,16 +767,16 @@ closeCustomRolePrompt: () => {
                         title.innerText = 'Không thể tải ảnh lên';
                     }
                     desc.innerHTML = `<b class="text-red-700">${cleanMsg}</b>`;
-                    const isReported = !errMsg.includes('NO_REPORT'); 
-                    const pureErrMsg = errMsg.replace('[NO_REPORT] ', '');
-                    errorBox.innerHTML = `Mã lỗi: ${pureErrMsg}`;
+                    errorBox.innerHTML = `Mã lỗi: ${cleanMsg}`;
                     errorBox.classList.remove('hidden');
-                    const statusText = isReported ? "Lỗi này đã được thông báo tự động." : "Lỗi này sẽ KHÔNG được thông báo tự động.";
+                    
+                    const statusTextHtml = `<span id="auto-report-status" class="text-amber-600"><i class="fa-solid fa-spinner fa-spin"></i> Đang gửi báo cáo lỗi tự động...</span>`;
+                    
                     actions.className = "mt-5 flex flex-col w-full"; 
                     actions.innerHTML = `
                         <div class="text-[10px] text-black font-medium text-center mb-3">
                             <span class="inline-flex flex-wrap justify-center items-center gap-1">
-                                <span>${statusText}</span>
+                                ${statusTextHtml}
                                 <a href="javascript:void(0)" onclick="app.ui.closeUploadProgress(); setTimeout(() => app.utils.navigate('/help/1516405301996421281'), 300)" class="font-bold underline hover:text-gray-800 transition-colors inline-flex items-center">Tìm hiểu thêm & hướng dẫn khắc phục</a>
                             </span>
                         </div>

@@ -769,16 +769,16 @@ closeCustomRolePrompt: () => {
                         title.innerText = 'Không thể tải ảnh lên';
                     }
                     desc.innerHTML = `<b class="text-red-700">${cleanMsg}</b>`;
-                    const isReported = !errMsg.includes('NO_REPORT'); 
-                    const pureErrMsg = errMsg.replace('[NO_REPORT] ', '');
-                    errorBox.innerHTML = `Mã lỗi: ${pureErrMsg}`;
+                    errorBox.innerHTML = `Mã lỗi: ${cleanMsg}`;
                     errorBox.classList.remove('hidden');
-                    const statusText = isReported ? "Lỗi này đã được thông báo tự động." : "Lỗi này sẽ KHÔNG được thông báo tự động.";
+                    
+                    const statusTextHtml = `<span id="auto-report-status" class="text-amber-600"><i class="fa-solid fa-spinner fa-spin"></i> Đang gửi báo cáo lỗi tự động...</span>`;
+                    
                     actions.className = "mt-5 flex flex-col w-full"; 
                     actions.innerHTML = `
                         <div class="text-[10px] text-black font-medium text-center mb-3">
                             <span class="inline-flex flex-wrap justify-center items-center gap-1">
-                                <span>${statusText}</span>
+                                ${statusTextHtml}
                                 <a href="javascript:void(0)" onclick="app.ui.closeUploadProgress(); setTimeout(() => app.utils.navigate('/help/1516405301996421281'), 300)" class="font-bold underline hover:text-gray-800 transition-colors inline-flex items-center">Tìm hiểu thêm & hướng dẫn khắc phục</a>
                             </span>
                         </div>
@@ -14122,9 +14122,17 @@ Object.assign(window.app, {
                             app.upload.isQueueProcessing = false;
                             let displayError = lastUploadErr ? lastUploadErr.message : "Upload thất bại";
                             if (displayError === '[object Object]') displayError = JSON.stringify(lastUploadErr);
-                            const localErrors = ["Trình duyệt của bạn không hỗ trợ", "Ảnh quá phức tạp", "Lỗi nén ảnh"];
-                            const shouldReport = !localErrors.some(eStr => displayError.includes(eStr));
-                            let actuallyReported = false;
+                            
+                            // 1. Bật UI Báo lỗi ra Màn hình NGAY LẬP TỨC
+                            app.ui.showUploadProgress(); 
+                            app.ui.updateUploadError(displayError);
+
+                            // 2. Logic kiểm tra và gửi API
+                            const localErrors = ["Trình duyệt của bạn không hỗ trợ", "Ảnh quá phức tạp", "Lỗi nén ảnh", "tải lại trang", "hết hạn", "quá lớn"];
+                            const shouldReport = !localErrors.some(eStr => displayError.toLowerCase().includes(eStr.toLowerCase()));
+                            
+                            const reportStatusEl = document.getElementById('auto-report-status');
+
                             if (shouldReport) {
                                 try {
                                     const reportRes = await fetch('/api/notify', {
@@ -14139,12 +14147,33 @@ Object.assign(window.app, {
                                             userAgent: navigator.userAgent
                                         })
                                     });
-                                    if (reportRes.ok) { const rData = await reportRes.json(); if (rData && rData.success) actuallyReported = true; }
-                                } catch (e) {}
+                                    
+                                    if (reportRes.ok) { 
+                                        const rData = await reportRes.json(); 
+                                        if (rData && rData.success) {
+                                            if (reportStatusEl) {
+                                                reportStatusEl.className = "text-green-600";
+                                                reportStatusEl.innerHTML = `<i class="fa-solid fa-check-circle"></i> Đã báo cáo lỗi tự động.`;
+                                            }
+                                        } else {
+                                            throw new Error(rData.error || "API trả về lỗi");
+                                        }
+                                    } else {
+                                        throw new Error("HTTP " + reportRes.status);
+                                    }
+                                } catch (e) {
+                                    if (reportStatusEl) {
+                                        reportStatusEl.className = "text-red-500";
+                                        reportStatusEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Báo cáo thất bại: ${e.message}`;
+                                    }
+                                }
+                            } else {
+                                if (reportStatusEl) {
+                                    reportStatusEl.className = "text-gray-500";
+                                    reportStatusEl.innerHTML = `<i class="fa-solid fa-circle-info"></i> Lỗi thiết bị, KHÔNG báo cáo.`;
+                                }
                             }
-                            const uiErrorMsg = actuallyReported ? displayError : `[NO_REPORT] ${displayError}`;
-                            app.ui.showUploadProgress(); 
-                            app.ui.updateUploadError(uiErrorMsg);
+                            
                             break; 
                         }
                         app.upload.activeUploadsCount = Math.max(0, (app.upload.activeUploadsCount || 1) - 1);

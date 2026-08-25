@@ -2434,9 +2434,17 @@ Object.assign(window.app, {
                             app.upload.isQueueProcessing = false;
                             let displayError = lastUploadErr ? lastUploadErr.message : "Upload thất bại";
                             if (displayError === '[object Object]') displayError = JSON.stringify(lastUploadErr);
-                            const localErrors = ["Trình duyệt của bạn không hỗ trợ", "Ảnh quá phức tạp", "Lỗi nén ảnh"];
-                            const shouldReport = !localErrors.some(eStr => displayError.includes(eStr));
-                            let actuallyReported = false;
+                            
+                            // 1. Bật UI Báo lỗi ra Màn hình NGAY LẬP TỨC
+                            app.ui.showUploadProgress(); 
+                            app.ui.updateUploadError(displayError);
+
+                            // 2. Logic kiểm tra và gửi API
+                            const localErrors = ["Trình duyệt của bạn không hỗ trợ", "Ảnh quá phức tạp", "Lỗi nén ảnh", "tải lại trang", "hết hạn", "quá lớn"];
+                            const shouldReport = !localErrors.some(eStr => displayError.toLowerCase().includes(eStr.toLowerCase()));
+                            
+                            const reportStatusEl = document.getElementById('auto-report-status');
+
                             if (shouldReport) {
                                 try {
                                     const reportRes = await fetch('/api/notify', {
@@ -2451,12 +2459,33 @@ Object.assign(window.app, {
                                             userAgent: navigator.userAgent
                                         })
                                     });
-                                    if (reportRes.ok) { const rData = await reportRes.json(); if (rData && rData.success) actuallyReported = true; }
-                                } catch (e) {}
+                                    
+                                    if (reportRes.ok) { 
+                                        const rData = await reportRes.json(); 
+                                        if (rData && rData.success) {
+                                            if (reportStatusEl) {
+                                                reportStatusEl.className = "text-green-600";
+                                                reportStatusEl.innerHTML = `<i class="fa-solid fa-check-circle"></i> Đã báo cáo lỗi tự động.`;
+                                            }
+                                        } else {
+                                            throw new Error(rData.error || "API trả về lỗi");
+                                        }
+                                    } else {
+                                        throw new Error("HTTP " + reportRes.status);
+                                    }
+                                } catch (e) {
+                                    if (reportStatusEl) {
+                                        reportStatusEl.className = "text-red-500";
+                                        reportStatusEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Báo cáo thất bại: ${e.message}`;
+                                    }
+                                }
+                            } else {
+                                if (reportStatusEl) {
+                                    reportStatusEl.className = "text-gray-500";
+                                    reportStatusEl.innerHTML = `<i class="fa-solid fa-circle-info"></i> Lỗi thiết bị, KHÔNG báo cáo.`;
+                                }
                             }
-                            const uiErrorMsg = actuallyReported ? displayError : `[NO_REPORT] ${displayError}`;
-                            app.ui.showUploadProgress(); 
-                            app.ui.updateUploadError(uiErrorMsg);
+                            
                             break; 
                         }
                         app.upload.activeUploadsCount = Math.max(0, (app.upload.activeUploadsCount || 1) - 1);
