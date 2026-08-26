@@ -1,6 +1,6 @@
 # QUY CHUẨN VÀ HƯỚNG DẪN ĐĂNG TẢI DỮ LIỆU HÌNH ẢNH
 
-**👉 LƯU Ý: Cập nhật lần cuối 25/08/2026**
+**👉 LƯU Ý: Cập nhật lần cuối 26/08/2026**
 
 Tài liệu này quy định các tiêu chuẩn kỹ thuật về hình ảnh và siêu dữ liệu nhằm xây dựng cơ sở dữ liệu phương tiện chất lượng cao. Yêu cầu toàn bộ thành viên đọc kỹ và tuân thủ nghiêm ngặt trước khi đóng góp.
 
@@ -41,10 +41,11 @@ VNBUSARCHIVE là thư viện tư liệu, không phải nền tảng chia sẻ �
 * **B2.5. Vật cản:** Chủ thể không bị che khuất bởi phương tiện khác, con người, hoặc cảnh quan (cây cối, cột điện...).
 
 ### B3. Thông số kỹ thuật & Siêu dữ liệu
-* **B3.1. Chất lượng ảnh:** Độ sắc nét, độ sáng và độ tương phản phải đạt mức tiêu chuẩn. Từ chối ảnh mờ nhòe do rung tay, sai nét hoặc do chuyển động.
+* **B3.1. Chất lượng ảnh:** Độ sắc nét, độ sáng và độ tương phản phải đạt mức tiêu chuẩn. Từ chối ảnh mờ nhòe do rung tay hoặc do chuyển động.
 * **B3.2. Tính nguyên bản:** Cấm sử dụng AI (Upscale) để can thiệp, làm nét hoặc thay đổi chi tiết phương tiện.
 * **B3.3. Dữ liệu (EXIF):** Tệp tin gốc bắt buộc chứa dữ liệu máy ảnh và thời gian chụp.
 * **B3.4. Đóng dấu (Watermark):** Cấm chèn chữ ký/logo cá nhân. Hệ thống sẽ tự động đóng dấu bản quyền khi xuất bản.
+* **B3.5. Sai lệch tiêu cự:** Từ chối ảnh sử dụng camera góc siêu rộng (tiêu cự quá nhỏ) gây tình trạng móp méo, biến dạng tỷ lệ thực tế của phương tiện.
 
 ### B4. Nhận diện & Quyền riêng tư
 * **B4.1. Biển kiểm soát (BKS):** Yêu cầu bắt buộc. Phải hiển thị rõ ràng, đọc được bằng mắt thường (chấp nhận cả biển kim loại và decal).
