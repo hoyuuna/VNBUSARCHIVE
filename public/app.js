@@ -7447,15 +7447,20 @@ Object.assign(window.app, {
                                 html += '</div>';
                                 html += '<p class="text-[11px] text-gray-400 italic mt-4 flex items-start gap-1.5"><i class="fa-solid fa-circle-info mt-0.5"></i> <span>Đây là góp ý tự động, có thể sẽ không phản ánh thực tế tình trạng ảnh. Vui lòng chỉ sử dụng để tham khảo.</span></p>';
                                 suggestContent.innerHTML = html;
+                                suggestBox.removeAttribute('open');
                                 suggestBox.classList.remove('hidden');
                             } else {
+                                suggestBox.removeAttribute('open');
                                 suggestBox.classList.add('hidden');
                             }
                         }
                     } else {
                         document.getElementById('denial-reason-box').classList.add('hidden');
                         const suggestBox = document.getElementById('denial-improvement-box');
-                        if (suggestBox) suggestBox.classList.add('hidden');
+                        if (suggestBox) {
+                            suggestBox.removeAttribute('open');
+                            suggestBox.classList.add('hidden');
+                        }
                     }
                     if (isPending) {
                         document.getElementById('pending-status-box').classList.remove('hidden');
