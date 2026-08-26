@@ -7423,7 +7423,12 @@ Object.assign(window.app, {
                                 while ((match = regex.exec(photo.denial_reason)) !== null) {
                                     const code = match[1];
                                     let reasonText = match[2].trim();
-                                    reasonText = reasonText.replace(/,$/, '').trim();
+                                    // Bỏ dấu +, dấu phẩy, hoặc các ký tự phân cách thừa ở cuối
+                                    reasonText = reasonText.replace(/[\+\,\;]+$/, '').trim();
+                                    // Bỏ đoạn kiểu `#2:` bị dính vào do format của chuỗi tổng
+                                    reasonText = reasonText.replace(/#\d+:?$/, '').trim();
+                                    // Đề phòng còn dấu + nữa
+                                    reasonText = reasonText.replace(/\+$/, '').trim();
                                     if (suggestionsMap[code] && !codes.includes(code)) {
                                         codes.push(code);
                                         fullReasons[code] = reasonText;
