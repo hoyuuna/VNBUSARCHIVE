@@ -3617,13 +3617,18 @@ div[id$="-modal"] > div > * {
                         </div>
 
                         <!-- Dropdown Góp ý cải thiện ảnh (Độc lập) -->
-                        <details id="denial-improvement-box" class="hidden mb-6 group bg-white border border-gray-200 rounded-xl shadow-sm p-4 transition-all duration-300">
-                            <summary class="cursor-pointer text-black text-sm font-bold flex items-center gap-2 select-none">
-                                <i class="fa-solid fa-lightbulb text-black text-lg"></i>
-                                Góp ý cải thiện ảnh
-                                <i class="fa-solid fa-chevron-down text-xs transition-transform group-open:rotate-180 ml-auto"></i>
+                        <details id="denial-improvement-box" class="hidden mb-6 group bg-white border border-gray-200 rounded-xl shadow-sm transition-all duration-300">
+                            <summary class="relative cursor-pointer text-sm flex items-center select-none overflow-hidden rounded-xl">
+                                <div class="absolute inset-0 bg-gradient-to-r from-pink-50 to-blue-50 transition-opacity duration-500 group-open:opacity-0"></div>
+                                <div class="relative z-10 w-full flex items-center gap-2 p-4">
+                                    <i class="fa-solid fa-lightbulb transition-colors duration-500 text-pink-500 group-open:text-black text-lg"></i>
+                                    <span class="font-bold transition-all duration-500 bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-blue-500 group-open:from-black group-open:to-black">
+                                        Góp ý cải thiện ảnh
+                                    </span>
+                                    <i class="fa-solid fa-chevron-right text-xs transition-all duration-500 group-open:rotate-90 ml-auto text-blue-500 group-open:text-black"></i>
+                                </div>
                             </summary>
-                            <div id="denial-improvement-content" class="mt-4 group-open:animate-[slideDownFade_0.3s_ease-out_forwards]">
+                            <div id="denial-improvement-content" class="px-4 pb-4 group-open:animate-[slideDownFade_0.3s_ease-out_forwards]">
                             </div>
                         </details>
 
@@ -6726,6 +6731,6 @@ div[id$="-modal"] > div > * {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed top-24 left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.js?v=1787742071639"></script>
+<script src="/app.js?v=1787742679644"></script>
 </body>
 </html>

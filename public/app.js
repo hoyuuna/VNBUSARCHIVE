@@ -7428,15 +7428,15 @@ Object.assign(window.app, {
                                 }
                             }
                             if (codes.length > 0) {
-                                let html = '<div class="space-y-4">';
+                                let html = '<div class="space-y-3">';
                                 codes.forEach(c => {
-                                    html += `<div>
-                                                <span class="text-xs font-bold text-black uppercase block mb-1">Mã lỗi [${c}]</span>
+                                    html += `<div class="bg-gray-50 p-3.5 md:p-4 rounded-xl border border-gray-100 shadow-inner">
+                                                <span class="text-sm font-bold text-black uppercase block mb-1">LỖI [${c}]:</span>
                                                 <p class="text-[13px] text-gray-700 leading-relaxed">${suggestionsMap[c]}</p>
                                              </div>`;
                                 });
                                 html += '</div>';
-                                html += '<p class="text-[11px] text-gray-400 italic mt-5 flex items-start gap-1.5"><i class="fa-solid fa-circle-info mt-0.5"></i> <span>Đây là góp ý tự động, có thể sẽ không phản ánh thực tế tình trạng ảnh. Vui lòng chỉ sử dụng để tham khảo.</span></p>';
+                                html += '<p class="text-[11px] text-gray-400 italic mt-4 flex items-start gap-1.5"><i class="fa-solid fa-circle-info mt-0.5"></i> <span>Đây là góp ý tự động, có thể sẽ không phản ánh thực tế tình trạng ảnh. Vui lòng chỉ sử dụng để tham khảo.</span></p>';
                                 suggestContent.innerHTML = html;
                                 suggestBox.classList.remove('hidden');
                             } else {
