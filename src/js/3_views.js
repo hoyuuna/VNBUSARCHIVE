@@ -3549,6 +3549,9 @@ Object.assign(window.app, {
                                 if (data) results = [...new Set(data.map(item => item.username).filter(Boolean))].map(val => ({ text: val, label: 'Người đăng' }));
                             }
                             if (results.length > 0) {
+                                // GỌI HÀM SẮP XẾP ĐỐI TƯỢNG {text, label}
+                                results = app.utils.sortMatchesByRelevance(results, query, item => item.text);
+
                                 const labelToFilter = { 'BKS': 'plate', 'Tuyến': 'route', 'Đơn vị vận hành': 'operator', 'Dòng xe': 'model', 'Vị trí': 'location', 'Thiết bị': 'camera', 'Người đăng': 'uploader' };
                                 box.innerHTML = results.slice(0, 10).map(item => {
                                     const safeText = app.utils.cleanText(item.text);

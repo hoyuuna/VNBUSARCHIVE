@@ -2088,6 +2088,30 @@ cleanupState: () => {
                         }
                     } catch (e) { mapEl.style.display = 'none'; }
                 },
+                
+                // THUẬT TOÁN SẮP XẾP ĐỘ PHÙ HỢP
+                sortMatchesByRelevance: (items, query, extractTextFn = null) => {
+                    if (!query) return items;
+                    const q = query.toLowerCase().trim();
+                    const safeRegex = new RegExp(`(?:^|\\s|-|_)${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?:\\s|-|_|$)`, 'i');
+                    return items.sort((a, b) => {
+                        const textA = (extractTextFn ? extractTextFn(a) : a).toLowerCase();
+                        const textB = (extractTextFn ? extractTextFn(b) : b).toLowerCase();
+                        if (textA === q && textB !== q) return -1;
+                        if (textB === q && textA !== q) return 1;
+                        const startsA = textA.startsWith(q);
+                        const startsB = textB.startsWith(q);
+                        if (startsA && !startsB) return -1;
+                        if (startsB && !startsA) return 1;
+                        const wordA = safeRegex.test(textA);
+                        const wordB = safeRegex.test(textB);
+                        if (wordA && !wordB) return -1;
+                        if (wordB && !wordA) return 1;
+                        if (textA.length !== textB.length) return textA.length - textB.length;
+                        return textA.localeCompare(textB, 'vi');
+                    });
+                },
+                
                 triggerRouteSuggestion: async (inputId, suggestionId, query) => {
                     const box = document.getElementById(suggestionId);
                     if (!box) return;
@@ -2119,6 +2143,10 @@ cleanupState: () => {
                     } catch (e) { console.log("Route suggestion error:", e.message); }
                     const allRoutes = [...new Set([...staticList, ...dbRoutes])];
                     const filtered = query.length === 0 ? allRoutes : allRoutes.filter(v => v.toLowerCase().includes(query.toLowerCase()));
+                    
+                    // GỌI HÀM SẮP XẾP
+                    if (query.length > 0) app.utils.sortMatchesByRelevance(filtered, query);
+
                     if (filtered.length > 0) {
                         box.innerHTML = filtered.map(v => {
                             const safeHTML = app.utils.cleanText(v);
@@ -2237,6 +2265,10 @@ cleanupState: () => {
                         if (error) { if (error.code === 20 || error.name === 'AbortError') return; throw error; }
                         if (data && data.length > 0) {
                             const uniqueVals = [...new Set(data.map(item => item[selectField]).filter(Boolean))];
+                            
+                            // GỌI HÀM SẮP XẾP
+                            if (query.length > 0) app.utils.sortMatchesByRelevance(uniqueVals, query);
+
                             if (uniqueVals.length > 0) {
                                 box.innerHTML = uniqueVals.map(v => {
                                     const safeHTML = app.utils.cleanText(v);
