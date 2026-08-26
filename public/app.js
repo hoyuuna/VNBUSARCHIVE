@@ -4179,7 +4179,7 @@ Object.assign(window.app, {
                                         }
                                     }
                                 });
-                                const finalOps = Array.from(uniqueOpsMap.values()).slice(0, 4);
+                                const finalOps = Array.from(uniqueOpsMap.values()).slice(0, 15);
                                 const missingInfos = finalOps.filter(op => !opInfoMap[op.toLowerCase()]);
                                 if (missingInfos.length > 0) {
                                     const { data: extraInfos } = await window.sb.from('operator_info').select('operator_name, logo_url, description').in('operator_name', missingInfos);
@@ -4240,7 +4240,7 @@ Object.assign(window.app, {
                                         }
                                     });
                                 }
-                                const finalModels = Array.from(uniqueModelsMap.values()).slice(0, 4);
+                                const finalModels = Array.from(uniqueModelsMap.values()).slice(0, 15);
                                 const missingInfos = finalModels.filter(m => !mdlInfoMap[m.toLowerCase()]);
                                 if (missingInfos.length > 0) {
                                     const { data: extraInfos } = await window.sb.from('model_info').select('model_name, logo_url, description').in('model_name', missingInfos);
@@ -4317,7 +4317,7 @@ Object.assign(window.app, {
                                         // if no province filter, only show routes that have a province (block coach/invalid)
                                         allRoutes = allRoutes.filter(r => r.p && r.p.trim() !== '');
                                     }
-                                    const finalRoutes = allRoutes.slice(0, 4);
+                                    const finalRoutes = allRoutes.slice(0, 15);
                                     let shortPaths = {};
                                     if (finalRoutes.length > 0) {
                                         const dbNames = finalRoutes.map(i => i.dbName);
