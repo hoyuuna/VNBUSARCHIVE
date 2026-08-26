@@ -1430,22 +1430,26 @@ Object.assign(window.app, {
                                 'B5.4': 'Góc chụp này có vẻ bạn đang đứng ở vị trí hơi nguy hiểm hoặc dưới lòng đường rồi. Khi đi săn ảnh, hãy chọn vị trí an toàn trên vỉa hè hoặc cầu vượt đi bộ nhé. Tuyệt đối không cản trở luồng giao thông. Nếu xe ở xa, cứ tận dụng tính năng zoom của camera. An toàn cho bạn và mọi người xung quanh là quan trọng nhất!'
                             };
                             const codes = [];
+                            const fullReasons = {};
                             if (photo.denial_reason) {
-                                const matches = photo.denial_reason.match(/\[(B\d+\.\d+)\]/g);
-                                if (matches) {
-                                    matches.forEach(m => {
-                                        const code = m.replace(/\[|\]/g, '');
-                                        if (suggestionsMap[code] && !codes.includes(code)) {
-                                            codes.push(code);
-                                        }
-                                    });
+                                const regex = /\[(B\d+\.\d+)\]([^\[]*)/g;
+                                let match;
+                                while ((match = regex.exec(photo.denial_reason)) !== null) {
+                                    const code = match[1];
+                                    let reasonText = match[2].trim();
+                                    reasonText = reasonText.replace(/,$/, '').trim();
+                                    if (suggestionsMap[code] && !codes.includes(code)) {
+                                        codes.push(code);
+                                        fullReasons[code] = reasonText;
+                                    }
                                 }
                             }
                             if (codes.length > 0) {
                                 let html = '<div class="space-y-3">';
                                 codes.forEach(c => {
+                                    const titleStr = fullReasons[c] ? `LỖI [${c}]: ${fullReasons[c]}` : `LỖI [${c}]:`;
                                     html += `<div class="bg-gray-50 p-3.5 md:p-4 rounded-xl border border-gray-100 shadow-inner">
-                                                <span class="text-sm font-bold text-black uppercase block mb-1">LỖI [${c}]:</span>
+                                                <span class="text-sm font-bold text-black block mb-2 leading-snug">${titleStr}</span>
                                                 <p class="text-[13px] text-gray-700 leading-relaxed">${suggestionsMap[c]}</p>
                                              </div>`;
                                 });
