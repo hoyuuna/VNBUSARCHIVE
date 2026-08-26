@@ -15,7 +15,7 @@ VNBUSARCHIVE cung cấp một nền tảng bách khoa toàn thư mở dành cho 
 
 ### 2. Quy định về Tài khoản Người dùng
 Để đóng góp hình ảnh, tương tác và sử dụng các tính năng cá nhân hóa, bạn cần có tài khoản trên hệ thống.
-* **Đăng ký và Liên kết:** Bạn có thể đăng ký bằng thư điện tử hợp lệ và mật khẩu (tối thiểu 6 ký tự), hoặc sử dụng tính năng đăng nhập liên kết qua hệ thống của bên thứ ba (Google, Discord). Tên hiển thị yêu cầu độ dài từ 3 đến 20 ký tự.
+* **Đăng ký và Liên kết:** Bạn có thể đăng ký bằng thư điện tử hợp lệ và mật khẩu (tối thiểu 6 ký tự), hoặc sử dụng tính năng đăng nhập liên kết qua hệ thống của bên thứ ba (Google, Discord, GitHub). Tên hiển thị yêu cầu độ dài từ 3 đến 20 ký tự.
 * **Bảo mật tài khoản:** Bạn hoàn toàn chịu trách nhiệm bảo vệ thông tin đăng nhập của mình. VNBUSARCHIVE không chịu trách nhiệm cho bất kỳ tổn thất nào phát sinh từ việc tài khoản bị truy cập trái phép. Việc xác thực tự động được bảo vệ bởi hệ thống chống người máy của Cloudflare.
 * **Mã định danh:** Hệ thống cấp cho mỗi tài khoản một mã định danh duy nhất để quản trị viên đối soát kỹ thuật. Bạn tuyệt đối không chia sẻ mã này cho người lạ, chỉ cung cấp qua các kênh hỗ trợ chính thức khi có yêu cầu.
 * **Thay đổi thông tin:** Bạn có quyền thay đổi tên hiển thị, thư điện tử và ảnh đại diện (định dạng tệp ảnh tiêu chuẩn, dung lượng tối đa 3MB). Việc đổi tên hiển thị sẽ không làm thay đổi dấu bản quyền trên các hình ảnh đã được duyệt trước đó.
@@ -26,10 +26,10 @@ VNBUSARCHIVE cung cấp một nền tảng bách khoa toàn thư mở dành cho 
 Khi tải ảnh lên hệ thống, bạn cam kết tuân thủ tuyệt đối quy chuẩn kiểm duyệt sau:
 * **Quyền sở hữu:** Chỉ tải lên những hình ảnh do chính tay bạn chụp. Nghiêm cấm hành vi sao chép ảnh từ các nguồn khác.
 * **Bố cục và Cắt ảnh:** Khung hình phải lấy trọn vẹn phương tiện, không bị cắt xén các bộ phận quan trọng. Hệ thống tích hợp sẵn công cụ cắt ảnh với các tỉ lệ chuẩn (16:9, 3:2, 4:3) bắt buộc áp dụng đối với ảnh sai tỉ lệ.
-* **Chất lượng kỹ thuật:** Ảnh phải rõ nét, đủ độ sáng, thấy rõ biển kiểm soát. Nghiêm cấm sử dụng trí tuệ nhân tạo để làm nét hoặc can thiệp làm sai lệch chi tiết nguyên bản. Hệ thống cho phép điều chỉnh màu sắc cơ bản (độ sáng, tương phản, độ bão hòa) nhưng sẽ từ chối nếu lạm dụng làm mất tính chân thực. Kích thước tệp tải lên tối đa là 30MB.
+* **Chất lượng kỹ thuật:** Ảnh phải rõ nét, đủ độ sáng, thấy rõ biển kiểm soát. Nghiêm cấm sử dụng trí tuệ nhân tạo để làm nét hoặc can thiệp làm sai lệch chi tiết nguyên bản. Hệ thống cho phép điều chỉnh màu sắc cơ bản (độ sáng, tương phản, độ bão hòa) nhưng sẽ từ chối nếu lạm dụng làm mất tính chân thực. Kích thước tệp tải lên tối đa là 20MB.
 * **Dấu bản quyền:** Không tự chèn chữ ký cá nhân vào ảnh. Hệ thống sẽ tự động đóng dấu bản quyền mang tên hiển thị của bạn. Bạn được quyền tùy chọn màu sắc (trắng/đen) và di chuyển vị trí dấu bản quyền sao cho phù hợp với bức ảnh.
-* **Quyền riêng tư:** Hệ thống cung cấp công cụ làm mờ trực tiếp (tối đa 5 vùng hiển thị). Bạn bắt buộc phải làm mờ khuôn mặt người rõ nét (hành khách, tài xế) hoặc biển số của các phương tiện không liên quan.
-* **Giới hạn tải lên:** Nhằm bảo vệ hạ tầng máy chủ, **hệ thống áp dụng giới hạn tổng số lượng ảnh được tải lên trong ngày đối với toàn bộ nền tảng** (chứ không giới hạn riêng biệt cho từng người dùng). **Hạn mức tổng này sẽ tự động làm mới vào lúc 7:00 sáng hàng ngày (theo giờ Việt Nam)** và được quản trị viên điều chỉnh tùy theo tình hình thực tế hạ tầng.
+* **Quyền riêng tư:** Hệ thống cung cấp công cụ làm mờ trực tiếp. Bạn bắt buộc phải làm mờ khuôn mặt người rõ nét (hành khách, tài xế) hoặc biển số của các phương tiện không liên quan.
+* **Giới hạn tải lên:** Nhằm bảo vệ hạ tầng máy chủ, **hệ thống áp dụng giới hạn tổng số lượng ảnh được tải lên trong ngày đối với từng người dùng**. **Hạn mức này sẽ tự động làm mới vào lúc 7:00 sáng hàng ngày (theo giờ Việt Nam)** và được quản trị viên điều chỉnh tùy theo tình hình thực tế hạ tầng.
 
 ### 4. Quyền Sở hữu Trí tuệ và Cấp phép
 * **Đối với người dùng:** Bạn giữ toàn bộ bản quyền gốc đối với hình ảnh gốc ban đầu của mình. Khi tải lên, bạn cấp cho chúng tôi giấy phép không độc quyền, miễn phí, vĩnh viễn để hiển thị, lưu trữ, tối ưu hóa và phân phối hình ảnh đã được gán nhãn VNBUSARCHIVE cho cộng đồng. Đồng thời, bạn phải tự chịu trách nhiệm hoàn toàn về bản quyền của ảnh gốc. Chúng tôi miễn trừ mọi trách nhiệm và hỗ trợ nếu xảy ra tranh chấp liên quan đến ảnh gốc, và sẽ chỉ cung cấp sự hỗ trợ đối với các hình ảnh đã được gán nhãn chính thức của VNBUSARCHIVE.
@@ -89,7 +89,7 @@ Chúng tôi cam kết bảo vệ quyền riêng tư của bạn. Dưới đây l
 
 ### 1. Dữ liệu chúng tôi thu thập
 **1.1. Dữ liệu cung cấp trực tiếp:**
-* Thông tin đăng ký: Thư điện tử, mật khẩu (được mã hóa một chiều), tên hiển thị và thông tin từ nền tảng liên kết (Google, Discord).
+* Thông tin đăng ký: Thư điện tử, mật khẩu (được mã hóa một chiều), tên hiển thị và thông tin từ nền tảng liên kết (Google, Discord, GitHub).
 * Nội dung tương tác: Hình ảnh, bình luận, dữ liệu phương tiện, lý do từ chối/xóa ảnh.
 * Thông tin giao tiếp: Nội dung trao đổi qua hệ thống phiếu hỗ trợ Discord, trang mạng xã hội hoặc thư điện tử hỗ trợ.
 
