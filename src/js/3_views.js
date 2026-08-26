@@ -1442,12 +1442,15 @@ Object.assign(window.app, {
                                 }
                             }
                             if (codes.length > 0) {
-                                let html = '<ul class="list-disc ml-5 text-sm text-gray-800 space-y-3 leading-relaxed">';
+                                let html = '<div class="space-y-4">';
                                 codes.forEach(c => {
-                                    html += `<li><strong class="font-bold">Lỗi [${c}]:</strong> ${suggestionsMap[c]}</li>`;
+                                    html += `<div>
+                                                <span class="text-xs font-bold text-black uppercase block mb-1">Mã lỗi [${c}]</span>
+                                                <p class="text-[13px] text-gray-700 leading-relaxed">${suggestionsMap[c]}</p>
+                                             </div>`;
                                 });
-                                html += '</ul>';
-                                html += '<p class="text-[11px] text-gray-500 italic mt-4 flex items-start gap-1.5"><i class="fa-solid fa-circle-info mt-0.5"></i> <span>Đây là góp ý tự động, có thể sẽ không phản ánh thực tế tình trạng ảnh. Vui lòng chỉ sử dụng để tham khảo.</span></p>';
+                                html += '</div>';
+                                html += '<p class="text-[11px] text-gray-400 italic mt-5 flex items-start gap-1.5"><i class="fa-solid fa-circle-info mt-0.5"></i> <span>Đây là góp ý tự động, có thể sẽ không phản ánh thực tế tình trạng ảnh. Vui lòng chỉ sử dụng để tham khảo.</span></p>';
                                 suggestContent.innerHTML = html;
                                 suggestBox.classList.remove('hidden');
                             } else {
