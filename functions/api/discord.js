@@ -527,12 +527,13 @@ async function handleContactSubmit(request, env) {
         rawText += `**Minh chứng / Tác phẩm gốc của bạn \\***\n${originalWork}\n\n`;
     }
 
-    let descLabel = 'Mô tả chi tiết vấn đề \\*';
-    if (topic === 'copyright' || topic === 'report_violation' || topic === 'policy_violation') descLabel = 'Mô tả chi tiết vi phạm \\*';
-    else if (topic === 'appeal') descLabel = 'Lý do bạn cho rằng ảnh hợp lệ \\*';
-    else if (topic === 'privacy') descLabel = 'Mô tả chi tiết vị trí cần che/xóa \\*';
+    if (topic !== 'privacy') {
+        let descLabel = 'Mô tả chi tiết vấn đề \\*';
+        if (topic === 'copyright' || topic === 'report_violation' || topic === 'policy_violation') descLabel = 'Mô tả chi tiết vi phạm \\*';
+        else if (topic === 'appeal') descLabel = 'Lý do bạn cho rằng ảnh hợp lệ \\*';
 
-    rawText += `**${descLabel}**\n${description}\n\n`;
+        rawText += `**${descLabel}**\n${description}\n\n`;
+    }
 
     const METHOD_NAMES = {
         'account_email': 'Email tài khoản',

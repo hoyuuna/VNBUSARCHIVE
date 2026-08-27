@@ -5108,6 +5108,9 @@ Object.assign(window.app, {
             const titleEl = document.getElementById('contact-content-title');
             const policySection = document.getElementById('contact-policy-violation-section');
             const privacySection = document.getElementById('contact-privacy-action-section');
+            const descSection = document.getElementById('contact-desc-section');
+            if (descSection) descSection.classList.remove('hidden');
+
             if (topic === 'copyright') {
                 photoSection.classList.remove('hidden');
                 originalWorkSection.classList.remove('hidden');
@@ -5165,8 +5168,8 @@ Object.assign(window.app, {
                 if (copySection) copySection.classList.add('hidden');
                 if (policySection) policySection.classList.add('hidden');
                 if (privacySection) privacySection.classList.remove('hidden');
+                if (descSection) descSection.classList.add('hidden');
                 if (titleEl) titleEl.innerHTML = 'Nội dung liên quan <span class="text-red-500">*</span>';
-                descLabel.innerHTML = 'Mô tả chi tiết vị trí cần che/xóa <span class="text-red-500">*</span>';
                 photoUrlInput.placeholder = "Paste link ảnh VNBUSARCHIVE vào đây...";
                 const firstPrivacyItem = document.querySelector('#contact-privacy-action-menu .filter-item');
                 if (app.contact.selectPrivacyAction) app.contact.selectPrivacyAction('blur', 'Che mờ các khuôn mặt xuất hiện trong ảnh', firstPrivacyItem);
@@ -5459,7 +5462,7 @@ Object.assign(window.app, {
                     }
                 }
             }
-            if (!desc || desc.length < 10) return app.ui.showAlert("Vui lòng mô tả chi tiết vấn đề (Ít nhất 10 ký tự).");
+            if (topic !== 'privacy' && (!desc || desc.length < 10)) return app.ui.showAlert("Vui lòng mô tả chi tiết vấn đề (Ít nhất 10 ký tự).");
             if (!methodVal) return app.ui.showAlert("Vui lòng nhập địa chỉ email để chúng tôi có thể phản hồi.");
             if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(methodVal)) {
                 return app.ui.showAlert("Email không hợp lệ.");
