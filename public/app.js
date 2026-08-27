@@ -7697,9 +7697,9 @@ Object.assign(window.app, {
                     const editBtn = document.getElementById('btn-manager-edit-photo');
                     if (editBtn) editBtn.classList.add('hidden');
                     
-                    if (app.user && app.role === 'manager' && !isDenied) {
+                    if (app.user && (app.role === 'manager' || app.role === 'admin') && !isDenied) {
                         if (editBtn) editBtn.classList.remove('hidden');
-                        if (app.user.id !== photo.uploader_id) {
+                        if (app.user.id !== photo.uploader_id && app.role === 'manager') {
                             deleteBtn.classList.remove('hidden');
                             deleteBtn.disabled = false;
                             deleteBtn.innerHTML = '<i class="fa-solid fa-radiation mr-1"></i> Quản lý: Xóa ảnh này';
