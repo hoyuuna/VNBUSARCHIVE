@@ -1,6 +1,6 @@
 # CHÍNH SÁCH BẢO MẬT & ĐIỀU KHOẢN DỊCH VỤ - VNBUSARCHIVE
 
-**👉 LƯU Ý: Cập nhật lần cuối 26/08/2026**
+**👉 LƯU Ý: Cập nhật lần cuối 27/08/2026**
 
 Chào mừng bạn đến với VNBUSARCHIVE. Đây là một dự án cộng đồng phi lợi nhuận được lập ra với mục đích lưu trữ, bảo tồn hình ảnh và dữ liệu lịch sử của các phương tiện giao thông công cộng tại Việt Nam.
 
@@ -80,6 +80,15 @@ Khu vực hồ sơ cá nhân là nơi hiển thị công khai trên bách khoa t
 * **An toàn Kỹ thuật & An toàn Thông tin:**
   * Nghiêm cấm sử dụng hình ảnh chứa mã QR, mã vạch để điều hướng người dùng tới các trang web lừa đảo, chứa mã độc.
   * Hạn chế sử dụng ảnh động (GIF). Nghiêm cấm tải lên các ảnh động chớp nháy liên tục, đổi màu tốc độ cao hoặc các ảo ảnh quang học có nguy cơ gây chứng động kinh nhạy cảm với ánh sáng (Photosensitive Epilepsy) cho người xem khác.
+
+### 9. Tiếp nhận và Xử lý Khiếu nại Quyền riêng tư (Take-down Policy)
+Nhằm tuân thủ quy định pháp luật về bảo vệ dữ liệu cá nhân và quyền đối với hình ảnh (Bộ luật Dân sự 2015, Nghị định 13/2023/NĐ-CP), VNBUSARCHIVE thiết lập quy trình giải quyết khiếu nại như sau:
+
+* **Quyền khiếu nại:** Bất kỳ cá nhân nào xuất hiện rõ khuôn mặt hoặc có dữ liệu nhận diện riêng tư trong các hình ảnh lưu trữ trên hệ thống đều có quyền yêu cầu can thiệp bằng cách gửi báo cáo qua kênh [Liên hệ/Hỗ trợ] chính thức của nền tảng.
+* **Quy trình xử lý:**
+  * **Tiếp nhận & Xác minh:** Ban quản trị phản hồi và đối soát nội dung khiếu nại trong vòng 24–72 giờ kể từ khi nhận đủ thông tin.
+  * **Áp dụng biện pháp xử lý:** Tùy theo mức độ vi phạm và nguyện vọng hợp lý của người yêu cầu, Ban quản trị có toàn quyền áp dụng công cụ làm mờ/che khuất phần nhận diện cá nhân trực tiếp trên hệ thống, hoặc gỡ bỏ/ẩn hoàn toàn bức ảnh khỏi chế độ xem công khai.
+* **Quyền hạn của Nền tảng:** Để đảm bảo tính an toàn pháp lý chung cho toàn bộ dự án, Ban quản trị bảo lưu quyền tự động chỉnh sửa, làm mờ bổ sung hoặc xóa vĩnh viễn bất kỳ hình ảnh nào có tranh chấp/khiếu nại mà không cần thông báo trước hay cần sự đồng thuận từ người đã tải ảnh lên. Người tải ảnh lên chịu hoàn toàn trách nhiệm liên đới nếu cố tình đăng tải các hình ảnh vi phạm nghiêm trọng quyền riêng tư đã được quy định tại Điều khoản này.
 
 ---
 
