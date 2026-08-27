@@ -464,7 +464,7 @@ async function handleContactSubmit(request, env) {
     if (!reportChannelId) return new Response(JSON.stringify({ error: 'Thiếu config kênh Report' }), { status: 500 });
 
     const TOPIC_CONFIG = {
-        'privacy': { title: 'Khiếu nại Quyền riêng tư và Gỡ bỏ Dữ liệu', color: 0xff0000 },
+        'privacy': { title: 'Khiếu nại quyền riêng tư', color: 0xff0000 },
         'bug': { title: 'Báo cáo lỗi hệ thống', color: 0xff4444 }, 
         'scam': { title: 'Báo cáo lừa đảo / Hành vi xấu', color: 0xff4444 }, 
         'copyright': { title: 'Báo cáo vi phạm bản quyền ảnh', color: 0xffaa00 }, 
@@ -492,7 +492,7 @@ async function handleContactSubmit(request, env) {
     }
 
     if (topic === 'privacy') {
-        const privacyActionStr = (body.privacyAction === 'takedown') ? 'Đặt ảnh về riêng tư và xóa sau 7 ngày' : 'Che mờ các khuôn mặt xuất hiện trong ảnh';
+        const privacyActionStr = (body.privacyAction === 'takedown') ? 'Đặt ảnh về riêng tư và xóa hoàn toàn khỏi hệ thống (ảnh sẽ được đặt về riêng tư ngay lập tức sau khi yêu cầu được tiếp nhận và sẽ chờ khiếu nại 7 ngày trước khi bị xóa hoàn toàn)' : 'Che mờ các khuôn mặt xuất hiện trong ảnh';
         rawText += `**Phương pháp xử lý \\***\n${privacyActionStr}\n\n`;
     }
 
