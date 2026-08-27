@@ -3965,10 +3965,13 @@ div[id$="-modal"] > div > * {
                                 </button>
 
                                 <!-- ÉP CỨNG style="width: 100% !important" ĐỂ ĐÈ CSS GỐC CỦA FILTER-MENU VÀ XÓA ICON CHECK -->
-                                <div id="contact-topic-menu" class="filter-menu left-0 right-0 origin-top mt-2 !max-h-[300px] !z-[999]" style="width: 100% !important;">
-                                    <div class="filter-item" onclick="app.contact.selectTopic('bug', 'Báo cáo lỗi hệ thống', this)">
-                                        <span class="font-bold">Báo cáo lỗi hệ thống</span>
-                                    </div>
+                                    <div id="contact-topic-menu" class="filter-menu left-0 right-0 origin-top mt-2 !max-h-[300px] !z-[999]" style="width: 100% !important;">
+                                        <div class="filter-item" onclick="app.contact.selectTopic('privacy', 'Khiếu nại Quyền riêng tư và Gỡ bỏ Dữ liệu', this)">
+                                            <span class="font-bold text-red-600">Khiếu nại Quyền riêng tư và Gỡ bỏ Dữ liệu</span>
+                                        </div>
+                                        <div class="filter-item" onclick="app.contact.selectTopic('bug', 'Báo cáo lỗi hệ thống', this)">
+                                            <span class="font-bold">Báo cáo lỗi hệ thống</span>
+                                        </div>
                                     <div class="filter-item" onclick="app.contact.selectTopic('scam', 'Báo cáo lừa đảo / Hành vi xấu', this)">
                                         <span class="font-bold">Báo cáo lừa đảo / Hành vi xấu</span>
                                     </div>
@@ -4046,6 +4049,26 @@ div[id$="-modal"] > div > * {
                                             </div>
                                             <div class="filter-item" onclick="app.contact.selectCopyrightType('external', 'Ảnh trên nền tảng của tôi bị đăng trái luật lên nền tảng bên ngoài', this)">
                                                 <span class="font-bold">Ảnh trên nền tảng của tôi bị đăng trái luật lên nền tảng bên ngoài</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- DROPDOWN PHƯƠNG PHÁP XỬ LÝ (Quyền riêng tư) -->
+                                    <div id="contact-privacy-action-section" class="hidden relative mb-6">
+                                        <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Phương pháp xử lý <span class="text-red-500">*</span></label>
+                                        <input type="hidden" id="contact-privacy-action" value="blur">
+                                        
+                                        <button type="button" id="contact-privacy-action-btn" onclick="document.getElementById('contact-privacy-action-menu').classList.toggle('active')" class="w-full flex items-center justify-between bg-white border border-gray-300 hover:border-black hover:bg-gray-50 rounded-xl p-3.5 text-sm font-bold text-gray-700 transition-all shadow-sm focus:ring-2 focus:ring-black outline-none">
+                                            <span id="contact-privacy-action-label" class="truncate pr-4 text-black">Che mờ các khuôn mặt xuất hiện trong ảnh</span>
+                                            <i class="fa-solid fa-chevron-down text-gray-400 shrink-0"></i>
+                                        </button>
+
+                                        <div id="contact-privacy-action-menu" class="filter-menu left-0 right-0 origin-top mt-2 !max-h-[300px] !z-[999]" style="width: 100% !important;">
+                                            <div class="filter-item selected" onclick="app.contact.selectPrivacyAction('blur', 'Che mờ các khuôn mặt xuất hiện trong ảnh', this)">
+                                                <span class="font-bold">Che mờ các khuôn mặt xuất hiện trong ảnh</span>
+                                            </div>
+                                            <div class="filter-item" onclick="app.contact.selectPrivacyAction('takedown', 'Đặt ảnh về riêng tư và xóa sau 7 ngày', this)">
+                                                <span class="font-bold">Đặt ảnh về riêng tư và xóa sau 7 ngày</span>
                                             </div>
                                         </div>
                                     </div>

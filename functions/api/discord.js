@@ -464,6 +464,7 @@ async function handleContactSubmit(request, env) {
     if (!reportChannelId) return new Response(JSON.stringify({ error: 'Thiếu config kênh Report' }), { status: 500 });
 
     const TOPIC_CONFIG = {
+        'privacy': { title: 'Khiếu nại Quyền riêng tư và Gỡ bỏ Dữ liệu', color: 0xff0000 },
         'bug': { title: 'Báo cáo lỗi hệ thống', color: 0xff4444 }, 
         'scam': { title: 'Báo cáo lừa đảo / Hành vi xấu', color: 0xff4444 }, 
         'copyright': { title: 'Báo cáo vi phạm bản quyền ảnh', color: 0xffaa00 }, 
@@ -488,6 +489,11 @@ async function handleContactSubmit(request, env) {
     if (topic === 'copyright') {
         const typeStr = (copyrightType === 'external') ? 'Ảnh trên nền tảng của tôi bị đăng trái luật lên nền tảng bên ngoài' : 'Ảnh của tôi bị đăng trái luật lên nền tảng';
         rawText += `**Hình thức vi phạm \\***\n${typeStr}\n\n`;
+    }
+
+    if (topic === 'privacy') {
+        const privacyActionStr = (body.privacyAction === 'takedown') ? 'Đặt ảnh về riêng tư và xóa sau 7 ngày' : 'Che mờ các khuôn mặt xuất hiện trong ảnh';
+        rawText += `**Phương pháp xử lý \\***\n${privacyActionStr}\n\n`;
     }
 
     if (body.policyContent) {
@@ -524,6 +530,7 @@ async function handleContactSubmit(request, env) {
     let descLabel = 'Mô tả chi tiết vấn đề \\*';
     if (topic === 'copyright' || topic === 'report_violation' || topic === 'policy_violation') descLabel = 'Mô tả chi tiết vi phạm \\*';
     else if (topic === 'appeal') descLabel = 'Lý do bạn cho rằng ảnh hợp lệ \\*';
+    else if (topic === 'privacy') descLabel = 'Mô tả chi tiết vị trí cần che/xóa \\*';
 
     rawText += `**${descLabel}**\n${description}\n\n`;
 

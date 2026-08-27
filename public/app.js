@@ -11093,11 +11093,13 @@ Object.assign(window.app, {
             const copySection = document.getElementById('contact-copyright-type-section');
             const titleEl = document.getElementById('contact-content-title');
             const policySection = document.getElementById('contact-policy-violation-section');
+            const privacySection = document.getElementById('contact-privacy-action-section');
             if (topic === 'copyright') {
                 photoSection.classList.remove('hidden');
                 originalWorkSection.classList.remove('hidden');
                 if (copySection) copySection.classList.remove('hidden');
                 if (policySection) policySection.classList.add('hidden');
+                if (privacySection) privacySection.classList.add('hidden');
                 if (titleEl) titleEl.innerHTML = 'Nội dung vi phạm <span class="text-red-500">*</span>';
                 descLabel.innerHTML = 'Mô tả chi tiết vi phạm <span class="text-red-500">*</span>';
                 const firstCopyItem = document.querySelector('#contact-copyright-menu .filter-item');
@@ -11108,6 +11110,7 @@ Object.assign(window.app, {
                 originalWorkSection.classList.add('hidden');
                 if (copySection) copySection.classList.add('hidden');
                 if (policySection) policySection.classList.add('hidden');
+                if (privacySection) privacySection.classList.add('hidden');
                 if (titleEl) titleEl.innerHTML = 'Nội dung vi phạm <span class="text-red-500">*</span>';
                 descLabel.innerHTML = 'Mô tả chi tiết vi phạm <span class="text-red-500">*</span>';
                 photoUrlInput.placeholder = "Paste link ảnh / link hồ sơ user / link bình luận vào đây...";
@@ -11117,6 +11120,7 @@ Object.assign(window.app, {
                 originalWorkSection.classList.add('hidden');
                 if (copySection) copySection.classList.add('hidden');
                 if (policySection) policySection.classList.remove('hidden');
+                if (privacySection) privacySection.classList.add('hidden');
                 if (titleEl) titleEl.innerHTML = 'Tác phẩm trên VNBUSARCHIVE <span class="text-red-500">*</span>';
                 descLabel.innerHTML = 'Mô tả chi tiết vi phạm <span class="text-red-500">*</span>';
                 photoUrlInput.placeholder = "Paste link ảnh trên VNBUSARCHIVE vào đây...";
@@ -11126,6 +11130,7 @@ Object.assign(window.app, {
                 originalWorkSection.classList.add('hidden');
                 if (copySection) copySection.classList.add('hidden');
                 if (policySection) policySection.classList.add('hidden');
+                if (privacySection) privacySection.classList.add('hidden');
                 if (titleEl) titleEl.innerHTML = 'Nội dung liên quan <span class="text-red-500">*</span>';
                 descLabel.innerHTML = 'Lý do bạn cho rằng ảnh hợp lệ <span class="text-red-500">*</span>';
                 photoUrlInput.placeholder = "Paste link ảnh BỊ TỪ CHỐI của bạn vào đây...";
@@ -11135,18 +11140,47 @@ Object.assign(window.app, {
                 originalWorkSection.classList.add('hidden');
                 if (copySection) copySection.classList.add('hidden');
                 if (policySection) policySection.classList.add('hidden');
+                if (privacySection) privacySection.classList.add('hidden');
                 if (titleEl) titleEl.innerHTML = 'Nội dung liên quan <span class="text-red-500">*</span>';
                 descLabel.innerHTML = 'Mô tả chi tiết <span class="text-red-500">*</span>';
                 photoUrlInput.placeholder = "Paste link ảnh VNBUSARCHIVE chưa đạt chuẩn vào đây...";
             } 
+            else if (topic === 'privacy') {
+                photoSection.classList.remove('hidden');
+                originalWorkSection.classList.add('hidden');
+                if (copySection) copySection.classList.add('hidden');
+                if (policySection) policySection.classList.add('hidden');
+                if (privacySection) privacySection.classList.remove('hidden');
+                if (titleEl) titleEl.innerHTML = 'Nội dung liên quan <span class="text-red-500">*</span>';
+                descLabel.innerHTML = 'Mô tả chi tiết vị trí cần che/xóa <span class="text-red-500">*</span>';
+                photoUrlInput.placeholder = "Paste link ảnh VNBUSARCHIVE vào đây...";
+                const firstPrivacyItem = document.querySelector('#contact-privacy-action-menu .filter-item');
+                if (app.contact.selectPrivacyAction) app.contact.selectPrivacyAction('blur', 'Che mờ các khuôn mặt xuất hiện trong ảnh', firstPrivacyItem);
+            }
             else {
                 photoSection.classList.add('hidden');
                 originalWorkSection.classList.add('hidden');
                 if (copySection) copySection.classList.add('hidden');
                 if (policySection) policySection.classList.add('hidden');
+                if (privacySection) privacySection.classList.add('hidden');
                 if (titleEl) titleEl.innerHTML = 'Nội dung liên quan <span class="text-red-500">*</span>';
                 descLabel.innerHTML = 'Mô tả chi tiết vấn đề <span class="text-red-500">*</span>';
             }
+        },
+        selectPrivacyAction: (val, label, el) => {
+            const typeInput = document.getElementById('contact-privacy-action');
+            if (typeInput) typeInput.value = val;
+            const labelEl = document.getElementById('contact-privacy-action-label');
+            if (labelEl) {
+                labelEl.innerText = label;
+                labelEl.classList.add('text-black');
+            }
+            document.querySelectorAll('#contact-privacy-action-menu .filter-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            if (el) el.classList.add('selected');
+            const menuEl = document.getElementById('contact-privacy-action-menu');
+            if (menuEl) menuEl.classList.remove('active');
         },
         selectCopyrightType: (val, label, el) => {
             if (val === 'external' && !app.user) {
@@ -11386,7 +11420,7 @@ Object.assign(window.app, {
             if ((chk1 && !chk1.checked) || (chk2 && !chk2.checked)) {
                 return app.ui.showAlert("Vui lòng xác nhận và đồng ý với các mục tuyên bố cam kết bắt buộc!");
             }
-            if (topic === 'copyright' || topic === 'appeal' || topic === 'report_violation' || topic === 'bad_photo' || topic === 'policy_violation') {
+            if (topic === 'copyright' || topic === 'appeal' || topic === 'report_violation' || topic === 'bad_photo' || topic === 'policy_violation' || topic === 'privacy') {
                 if (!app.contact.isExternalLink && !app.contact.currentPreviewId && !(topic === 'report_violation' && document.getElementById('contact-photo-url').value.trim())) {
                     const msg = (topic === 'report_violation') ? "Vui lòng nhập Link ảnh / bình luận / hồ sơ hợp lệ." : "Vui lòng nhập Link ảnh VNBUSARCHIVE hợp lệ.";
                     return app.ui.showAlert(msg);
@@ -11435,12 +11469,13 @@ Object.assign(window.app, {
                 captcha: captchaResponse,
                 userId: app.user ? app.user.id : null,
                 userName: app.username || 'Khách (Chưa đăng nhập)',
-                photoId: (topic === 'copyright' || topic === 'appeal' || topic === 'report_violation' || topic === 'bad_photo' || topic === 'policy_violation') ? (!app.contact.isExternalLink ? app.contact.currentPreviewId : null) : null,
-                externalLink: (topic === 'copyright' || topic === 'appeal' || topic === 'report_violation' || topic === 'bad_photo' || topic === 'policy_violation') ? ((app.contact.isExternalLink || (topic === 'report_violation' && !app.contact.currentPreviewId)) ? document.getElementById('contact-photo-url').value.trim() : null) : null,
+                photoId: (topic === 'copyright' || topic === 'appeal' || topic === 'report_violation' || topic === 'bad_photo' || topic === 'policy_violation' || topic === 'privacy') ? (!app.contact.isExternalLink ? app.contact.currentPreviewId : null) : null,
+                externalLink: (topic === 'copyright' || topic === 'appeal' || topic === 'report_violation' || topic === 'bad_photo' || topic === 'policy_violation' || topic === 'privacy') ? ((app.contact.isExternalLink || (topic === 'report_violation' && !app.contact.currentPreviewId)) ? document.getElementById('contact-photo-url').value.trim() : null) : null,
                 originalWork: (topic === 'copyright') ? (app.contact.isExternalLink && app.contact.currentOrigPreviewId ? `https://www.vnbusarchive.io.vn/photo/${app.contact.currentOrigPreviewId}` : (originalWork || null)) : null,
                 legalName: (topic === 'copyright') ? (legalName || null) : null,
                 copyrightType: (topic === 'copyright') ? (document.getElementById('contact-copyright-type')?.value || 'internal') : null,
-                policyContent: (topic === 'policy_violation') ? document.getElementById('contact-policy-content').value.trim() : null
+                policyContent: (topic === 'policy_violation') ? document.getElementById('contact-policy-content').value.trim() : null,
+                privacyAction: (topic === 'privacy') ? (document.getElementById('contact-privacy-action')?.value || 'blur') : null
             };
             try {
                 const reqOpts = {
