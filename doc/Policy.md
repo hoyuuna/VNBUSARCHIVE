@@ -1,6 +1,6 @@
 # CHÍNH SÁCH BẢO MẬT & ĐIỀU KHOẢN DỊCH VỤ - VNBUSARCHIVE
 
-**👉 LƯU Ý: Cập nhật lần cuối 27/08/2026**
+**👉 LƯU Ý: Cập nhật lần cuối 31/08/2026**
 
 Chào mừng bạn đến với VNBUSARCHIVE. Đây là một dự án cộng đồng phi lợi nhuận được lập ra với mục đích lưu trữ, bảo tồn hình ảnh và dữ liệu lịch sử của các phương tiện giao thông công cộng tại Việt Nam.
 
@@ -89,6 +89,27 @@ Nhằm tuân thủ quy định pháp luật về bảo vệ dữ liệu cá nhâ
   * **Tiếp nhận & Xác minh:** Ban quản trị phản hồi và đối soát nội dung khiếu nại trong vòng 24–72 giờ kể từ khi nhận đủ thông tin.
   * **Áp dụng biện pháp xử lý:** Tùy theo mức độ vi phạm và nguyện vọng hợp lý của người yêu cầu, Ban quản trị có toàn quyền áp dụng công cụ làm mờ/che khuất phần nhận diện cá nhân trực tiếp trên hệ thống, hoặc gỡ bỏ/ẩn hoàn toàn bức ảnh khỏi chế độ xem công khai.
 * **Quyền hạn của Nền tảng:** Để đảm bảo tính an toàn pháp lý chung cho toàn bộ dự án, Ban quản trị bảo lưu quyền tự động chỉnh sửa, làm mờ bổ sung hoặc xóa vĩnh viễn bất kỳ hình ảnh nào có tranh chấp/khiếu nại mà không cần thông báo trước hay cần sự đồng thuận từ người đã tải ảnh lên. Người tải ảnh lên chịu hoàn toàn trách nhiệm liên đới nếu cố tình đăng tải các hình ảnh vi phạm nghiêm trọng quyền riêng tư đã được quy định tại Điều khoản này.
+
+​### 10. Quy Chuẩn Nhận Diện Thương Hiệu & Sử Dụng Logo VNBUSARCHIVE
+​Logo và hệ thống nhận diện thương hiệu là tài sản trí tuệ độc quyền của VNBUSARCHIVE. Nhằm bảo vệ tính toàn vẹn của thương hiệu và tránh gây hiểu lầm cho cộng đồng, mọi hành vi sử dụng logo đều phải tuân thủ nghiêm ngặt các quy định sau:
+
+**​10.1. Cấu trúc và Quy chuẩn Kỹ thuật của Logo**
+Hệ thống nhận diện chính thức của VNBUSARCHIVE bao gồm 02 thành phần cấu thành:
+
+​* **Logo biểu tượng (Logo hình):** Biểu trưng đồ họa chính thức của dự án.
+​Logo chữ (Wordmark): Sử dụng định dạng phông chữ chuẩn Montserrat ExtraBold Italic, chỉ áp dụng hai phiên bản màu sắc đơn sắc: Màu Trắng (cho nền tối) hoặc Màu Đen (cho nền sáng).
+
+* **​Quy tắc phối hợp và hiển thị:**
+​Có thể sử dụng riêng lẻ từng thành phần (chỉ dùng Logo hình hoặc chỉ dùng Logo chữ) trong các trường hợp được cấp phép.
+​Trong trường hợp kết hợp cả hai thành phần: Logo chữ bắt buộc phải đặt ở phía bên phải của Logo hình. Nghiêm cấm thay đổi vị trí tương quan (không đặt chữ bên trái, bên trên, bên dưới, hoặc đè lên biểu tượng).
+​Nghiêm cấm mọi hành vi biến dạng tỷ lệ (kéo giãn, bóp méo), tự ý thay đổi phông chữ, áp dụng sai mã màu, thêm hiệu ứng viền/đổ bóng lạ làm biến đổi thiết kế gốc.
+
+​**10.2. Phạm vi và Điều kiện Sử dụng**
+​Cấm tạo nhận thức sai lệch về quan hệ hợp tác: Nghiêm cấm tuyệt đối mọi cá nhân, tổ chức, hội nhóm hoặc đơn vị truyền thông tự ý sử dụng logo VNBUSARCHIVE theo cách tạo ra sự hiểu nhầm rằng VNBUSARCHIVE là đối tác tài trợ, đơn vị bảo trợ, đồng tổ chức, chứng thực hoặc có liên kết thương mại/dự án với bên thứ ba khi chưa có thỏa thuận chính thức.
+
+* **​Quy định xin phép bắt buộc:** Mọi mục đích sử dụng logo VNBUSARCHIVE (bao gồm nhưng không giới hạn ở: in ấn ấn phẩm, sản phẩm lưu niệm, tài liệu nghiên cứu, truyền thông số, video, trang mạng xã hội) bắt buộc phải gửi yêu cầu và nhận được văn bản chấp thuận chính thức từ Ban Quản trị VNBUSARCHIVE trước khi phát hành.
+ 
+* **​Xử lý vi phạm:** Mọi hành vi tự ý sử dụng, cắt ghép hoặc mạo danh thương hiệu VNBUSARCHIVE sẽ bị yêu cầu gỡ bỏ ngay lập tức, áp dụng các biện pháp khiếu nại bản quyền (DMCA) và xử lý theo quy định pháp luật hiện hành.
 
 ---
 
