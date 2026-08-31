@@ -91,9 +91,11 @@ Nhằm tuân thủ quy định pháp luật về bảo vệ dữ liệu cá nhâ
 * **Quyền hạn của Nền tảng:** Để đảm bảo tính an toàn pháp lý chung cho toàn bộ dự án, Ban quản trị bảo lưu quyền tự động chỉnh sửa, làm mờ bổ sung hoặc xóa vĩnh viễn bất kỳ hình ảnh nào có tranh chấp/khiếu nại mà không cần thông báo trước hay cần sự đồng thuận từ người đã tải ảnh lên. Người tải ảnh lên chịu hoàn toàn trách nhiệm liên đới nếu cố tình đăng tải các hình ảnh vi phạm nghiêm trọng quyền riêng tư đã được quy định tại Điều khoản này.
 
 ​### 10. Quy Chuẩn Nhận Diện Thương Hiệu & Sử Dụng Logo VNBUSARCHIVE
+
 ​Logo và hệ thống nhận diện thương hiệu là tài sản trí tuệ độc quyền của VNBUSARCHIVE. Nhằm bảo vệ tính toàn vẹn của thương hiệu và tránh gây hiểu lầm cho cộng đồng, mọi hành vi sử dụng logo đều phải tuân thủ nghiêm ngặt các quy định sau:
 
 **​10.1. Cấu trúc và Quy chuẩn Kỹ thuật của Logo**
+
 Hệ thống nhận diện chính thức của VNBUSARCHIVE bao gồm 02 thành phần cấu thành:
 
 ​* **Logo biểu tượng (Logo hình):** Biểu trưng đồ họa chính thức của dự án.
@@ -105,6 +107,7 @@ Hệ thống nhận diện chính thức của VNBUSARCHIVE bao gồm 02 thành 
 ​Nghiêm cấm mọi hành vi biến dạng tỷ lệ (kéo giãn, bóp méo), tự ý thay đổi phông chữ, áp dụng sai mã màu, thêm hiệu ứng viền/đổ bóng lạ làm biến đổi thiết kế gốc.
 
 ​**10.2. Phạm vi và Điều kiện Sử dụng**
+
 ​Cấm tạo nhận thức sai lệch về quan hệ hợp tác: Nghiêm cấm tuyệt đối mọi cá nhân, tổ chức, hội nhóm hoặc đơn vị truyền thông tự ý sử dụng logo VNBUSARCHIVE theo cách tạo ra sự hiểu nhầm rằng VNBUSARCHIVE là đối tác tài trợ, đơn vị bảo trợ, đồng tổ chức, chứng thực hoặc có liên kết thương mại/dự án với bên thứ ba khi chưa có thỏa thuận chính thức.
 
 * **​Quy định xin phép bắt buộc:** Mọi mục đích sử dụng logo VNBUSARCHIVE (bao gồm nhưng không giới hạn ở: in ấn ấn phẩm, sản phẩm lưu niệm, tài liệu nghiên cứu, truyền thông số, video, trang mạng xã hội) bắt buộc phải gửi yêu cầu và nhận được văn bản chấp thuận chính thức từ Ban Quản trị VNBUSARCHIVE trước khi phát hành.
