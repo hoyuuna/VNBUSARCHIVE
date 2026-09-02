@@ -2184,7 +2184,7 @@ div[id$="-modal"] > div > * {
         </div>
 
 
-        <div id="crop-modal" class="hidden fixed inset-0 z-[4000] flex flex-col items-center justify-center p-2 sm:p-4">
+        <div id="crop-modal" class="hidden fixed inset-0 z-[4000] flex flex-col items-center justify-center p-2 sm:p-4 backdrop-blur-md">
             <div id="crop-content" class="w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col overflow-hidden transform transition-all opacity-0 scale-95">
                 <div class="p-3 md:p-4 border-b border-gray-200/50 flex justify-between items-center shrink-0 bg-white z-10">
                     <h3 class="font-bold text-sm md:text-base uppercase text-black"><i class="fa-solid fa-crop-simple mr-2"></i> Cắt ảnh</h3>
@@ -2197,7 +2197,7 @@ div[id$="-modal"] > div > * {
                         <button type="button" id="btn-crop-mode-rotate" onclick="app.crop.setModeTab('rotate')" class="relative z-20 px-2 py-1.5 rounded-lg text-xs font-bold transition-colors duration-200 text-gray-500 hover:text-black">Xoay ảnh</button>
                     </div>
                 </div>
-                <div id="crop-container" class="w-full relative flex items-center justify-center select-none overflow-hidden bg-black" style="height: 60vh; min-height: 300px; -webkit-touch-callout: none; touch-action: none;" oncontextmenu="return false;" onmousedown="app.crop.onDragStart(event)" onmousemove="app.crop.onDragMove(event)" onmouseup="app.crop.onDragEnd(event)" onmouseleave="app.crop.onDragEnd(event)" ontouchstart="app.crop.onDragStart(event)" ontouchmove="app.crop.onDragMove(event)" ontouchend="app.crop.onDragEnd(event)">
+                <div id="crop-container" class="w-full relative flex items-center justify-center select-none overflow-hidden bg-gray-300" style="height: 60vh; min-height: 300px; -webkit-touch-callout: none; touch-action: none;" oncontextmenu="return false;" onmousedown="app.crop.onDragStart(event)" onmousemove="app.crop.onDragMove(event)" onmouseup="app.crop.onDragEnd(event)" onmouseleave="app.crop.onDragEnd(event)" ontouchstart="app.crop.onDragStart(event)" ontouchmove="app.crop.onDragMove(event)" ontouchend="app.crop.onDragEnd(event)">
                     <img id="crop-image" src="" style="position: absolute; top: 50%; left: 50%; transform-origin: center center; -webkit-touch-callout: none; will-change: transform; backface-visibility: hidden;" draggable="false">
                     <div id="crop-overlay-box" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); border: 2px solid rgba(255, 255, 255, 0.5); pointer-events: none; box-shadow: 0 0 0 9999px rgba(0,0,0,0.5); z-index: 10;">
                         <!-- 3x3 Grid Vertical Lines -->
