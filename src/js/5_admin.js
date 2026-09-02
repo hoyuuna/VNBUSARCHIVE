@@ -406,7 +406,10 @@ Object.assign(window.app, {
                                         <button onclick="app.admin.openZoom('${app.utils.getProxiedUrl(p.url)}', false, true)" class="absolute top-2 right-2 bg-black/50 text-white w-8 h-8 rounded hover:bg-black flex items-center justify-center transition z-20" title="Soi ảnh"><i class="fa-solid fa-expand"></i></button>
                                     </div>
                                     <div class="admin-card-body">
-                                        <p class="text-[10px] text-gray-500 mb-2"><b>Ngày chụp:</b> ${p.taken_at ? p.taken_at.split('T')[0] : 'Không rõ'} | <b>Camera:</b> ${p.camera_model}</p>
+                                        <div class="mb-2">
+                                            <p class="text-[10px] text-gray-500"><b>Ngày:</b> ${p.taken_at ? p.taken_at.split('T')[0] : 'Không rõ'} | <b>Máy:</b> ${p.camera_model || 'Không rõ'}</p>
+                                            ${p.exif_params ? `<p class="text-[10px] text-gray-500 mt-0.5 truncate" title="${p.exif_params}"><b>Thông số:</b> ${p.exif_params}</p>` : ''}
+                                        </div>
                                         <div class="grid grid-cols-2 gap-2 mb-2">
                                             <div><span class="admin-label">Biển số</span><input type="text" id="adm-p-plate-${p.id}" value="${safePlate}" class="admin-input transition-all" oninput="app.utils.formatPlateInput(this)" onchange="app.admin.checkPlateAdmin(this, '${p.id}', 'photo')"></div>
                                             <div>
