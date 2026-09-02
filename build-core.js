@@ -20,10 +20,12 @@ try {
             '5_admin.js'
         ];
         
-        // Generate version string
+        // Generate version string (Force UTC+7)
         const pad = (n) => String(n).padStart(2, '0');
         const now = new Date();
-        const versionStr = `${String(now.getFullYear()).slice(-2)}.${pad(now.getMonth()+1)}.${pad(now.getDate())}.${pad(now.getHours())}.${pad(now.getMinutes())}.${pad(now.getSeconds())}`;
+        const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+        const gmt7 = new Date(utc + (3600000 * 7));
+        const versionStr = `${String(gmt7.getFullYear()).slice(-2)}.${pad(gmt7.getMonth()+1)}.${pad(gmt7.getDate())}.${pad(gmt7.getHours())}.${pad(gmt7.getMinutes())}.${pad(gmt7.getSeconds())}`;
         
         const versionJsonPath = path.join(__dirname, 'version.json');
         fs.writeFileSync(versionJsonPath, JSON.stringify({ version: versionStr }));

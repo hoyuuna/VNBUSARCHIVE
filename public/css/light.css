@@ -1,0 +1,73 @@
+/* ==========================================
+   VNBUSARCHIVE - FLAT LIGHT THEME (OVERRIDE LAYER)
+========================================== */
+
+/* 1. Nền như quyển vở (không tint đen) */
+body, body.theme-light {
+    background-color: #fdfcf8 !important; /* Màu giấy ấm nhạt */
+    background-image: 
+        linear-gradient(#e5e7eb 1px, transparent 1px),
+        linear-gradient(90deg, #e5e7eb 1px, transparent 1px) !important;
+    background-size: 20px 20px !important;
+    color: #18181b !important;
+}
+
+/* 2. Ép phẳng tất cả mọi thứ (Không blur, không bóng mờ) */
+.backdrop-blur-md, .backdrop-blur-sm, .backdrop-blur, * {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+/* Biến các thẻ có shadow (vốn là thẻ nổi) thành thẻ phẳng CÓ VIỀN */
+.shadow-2xl, .shadow-xl, .shadow-lg, .shadow-md, .shadow-sm, .shadow-island {
+    box-shadow: none !important;
+    border: 1px solid #18181b !important;
+}
+
+/* 3. Khôi phục màu nền tĩnh cho các class kính mờ */
+.bg-white\/90, .bg-white\/80, .bg-white\/70, .bg-white\/60 {
+    background-color: #ffffff !important;
+}
+.bg-black\/60, .bg-black\/40 {
+    background-color: rgba(0, 0, 0, 0.75) !important;
+}
+
+/* 4. Bo góc duy nhất nhẹ nhàng (giữ nguyên tròn cho avatar) */
+.rounded-3xl, .rounded-2xl, .rounded-xl, .rounded-lg {
+    border-radius: 8px !important;
+}
+.rounded-full {
+    border-radius: 9999px !important; 
+}
+
+/* 5. Đổi màu các viền có sẵn thành viền đen (nhưng giữ nguyên độ dày/kiểu viền cũ) */
+.border-white\/20, .border-white\/30, .border-gray-100, .border-gray-200, .border-gray-300 {
+    border-color: #18181b !important;
+    /* KHÔNG force border-width ở đây để tránh lỗi viền 4 cạnh đè nhau */
+}
+
+/* 6. Fix text hover không gạch chân */
+a, button, [role="button"] {
+    text-decoration: none !important;
+}
+a:hover, button:hover, [role="button"]:hover {
+    text-decoration: none !important;
+}
+
+/* Nút đen */
+.bg-black:hover {
+    background-color: #27272a !important; 
+}
+
+/* Header border - Bỏ thanh kẻ ngang vô tội vạ, để header tự dựa vào viền của component bên trong */
+/* header, .sticky.top-0 { border-bottom: none !important; } */
+
+/* Input form: Fix outline */
+input, textarea, select {
+    outline: none !important;
+}
+input:focus, textarea:focus, select:focus {
+    border-color: #18181b !important;
+    box-shadow: none !important;
+    outline: none !important;
+}

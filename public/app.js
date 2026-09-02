@@ -1,4 +1,4 @@
-window.APP_VERSION = "26.09.02.18.45.12";
+window.APP_VERSION = "26.09.02.20.16.45";
 
 /* --- MODULE: 1_init.js --- */
 window.app = window.app || {};
@@ -2986,7 +2986,7 @@ Object.assign(window.app, {
                                 }, null, { 
                                     title: "Cập nhật", 
                                     btnOkText: '<i class="fa-solid fa-rotate-right mr-1"></i> Tải lại trang',
-                                    iconHtml: '<i class="fa-solid fa-cloud-arrow-down text-xl text-blue-600"></i>'
+                                    iconHtml: '<i class="fa-solid fa-cloud-arrow-down text-xl text-black"></i>'
                                 });
                             }
                         }

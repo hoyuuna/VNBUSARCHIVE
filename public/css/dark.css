@@ -1,0 +1,80 @@
+/* ==========================================
+   VNBUSARCHIVE - FLAT DARK THEME (OVERRIDE LAYER)
+========================================== */
+
+/* 1. Nền tối (không kẻ vở) */
+body.theme-dark {
+    background-color: #18181b !important;
+    background-image: none !important;
+    color: #ffffff !important;
+}
+
+/* 2. Ép phẳng tất cả mọi thứ */
+.theme-dark .backdrop-blur-md, .theme-dark .backdrop-blur-sm, .theme-dark .backdrop-blur, .theme-dark * {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+/* Biến các thẻ nổi (shadow) thành thẻ phẳng CÓ VIỀN TRẮNG */
+.theme-dark .shadow-2xl, .theme-dark .shadow-xl, .theme-dark .shadow-lg, .theme-dark .shadow-md, .theme-dark .shadow-sm, .theme-dark .shadow-island {
+    box-shadow: none !important;
+    border: 1px solid #ffffff !important;
+}
+
+/* 3. Màu nền tĩnh đen tuyền cho các class kính mờ và thẻ trắng */
+.theme-dark .bg-white, .theme-dark .bg-white\/90, .theme-dark .bg-white\/80, .theme-dark .bg-white\/70, .theme-dark .bg-white\/60, .theme-dark .bg-gray-50, .theme-dark .bg-gray-100 {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+
+.theme-dark .bg-black\/60, .theme-dark .bg-black\/40 {
+    background-color: rgba(0, 0, 0, 0.85) !important;
+}
+
+/* 4. Bo góc duy nhất nhẹ nhàng */
+.theme-dark .rounded-3xl, .theme-dark .rounded-2xl, .theme-dark .rounded-xl, .theme-dark .rounded-lg {
+    border-radius: 8px !important;
+}
+.theme-dark .rounded-full {
+    border-radius: 9999px !important; 
+}
+
+/* 5. Đổi màu các viền thành trắng (nhưng không force độ dày) */
+.theme-dark .border-white\/20, .theme-dark .border-white\/30, .theme-dark .border-gray-100, .theme-dark .border-gray-200, .theme-dark .border-gray-300, .theme-dark .border, .theme-dark .border-black {
+    border-color: #ffffff !important;
+}
+
+/* 6. Fix text hover không gạch chân */
+.theme-dark a, .theme-dark button, .theme-dark [role="button"] {
+    text-decoration: none !important;
+}
+.theme-dark a:hover, .theme-dark button:hover, .theme-dark [role="button"]:hover {
+    text-decoration: none !important;
+}
+
+/* Nút bấm cũ là đen, nay trong dark mode đổi thành trắng chữ đen */
+.theme-dark .bg-black {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+}
+.theme-dark .bg-black:hover {
+    background-color: #d4d4d8 !important; 
+}
+
+/* Header border - Removed */
+
+/* Text màu xám đổi thành xám sáng hơn để dễ đọc */
+.theme-dark .text-gray-700, .theme-dark .text-gray-600, .theme-dark .text-gray-500, .theme-dark .text-gray-400 {
+    color: #a1a1aa !important;
+}
+
+.theme-dark input, .theme-dark textarea, .theme-dark select {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    outline: none !important;
+}
+.theme-dark input:focus, .theme-dark textarea:focus, .theme-dark select:focus {
+    border-color: #ffffff !important;
+    box-shadow: none !important;
+    outline: none !important;
+}

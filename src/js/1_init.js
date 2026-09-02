@@ -2983,7 +2983,7 @@ Object.assign(window.app, {
                                 }, null, { 
                                     title: "Cập nhật", 
                                     btnOkText: '<i class="fa-solid fa-rotate-right mr-1"></i> Tải lại trang',
-                                    iconHtml: '<i class="fa-solid fa-cloud-arrow-down text-xl text-blue-600"></i>'
+                                    iconHtml: '<i class="fa-solid fa-cloud-arrow-down text-xl text-black"></i>'
                                 });
                             }
                         }
