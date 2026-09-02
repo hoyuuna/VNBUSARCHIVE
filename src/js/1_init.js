@@ -2768,7 +2768,7 @@ Object.assign(window.app, {
                         app.ui.toggleUserMenu(false);
                     }
                 });
-                app.upload.initMap();
+
                 app.utils.loadAnnouncements();
                 app.utils.fetchTopUploaders();
                 app.initRealtimeChannel = () => {

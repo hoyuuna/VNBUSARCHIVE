@@ -102,7 +102,7 @@ Object.assign(window.app, {
                                 app.upload.fetchRequirements();
                                 app.upload.checkQuota();
                                 app.upload.checkAndPromptDraft();
-                                setTimeout(() => app.uploadMap && app.uploadMap.invalidateSize(), 200);
+
                                 app.utils.resetTurnstile('#upload .cf-turnstile');
                             }
                         } else {
@@ -1822,11 +1822,7 @@ Object.assign(window.app, {
                     const historyPlate = v?.license_plate || photo.license_plate;
                     if (window.location.pathname !== `/photo/${photoId}`) return;
                     app.views.loadHistory(historyPlate);
-                    if (photo.location && photo.location !== '---') {
-                        app.utils.showDetailMap(photo.location);
-                    } else {
-                        document.getElementById('detail-map').style.display = 'none';
-                    }
+
                     app.comments.init(photoId);
                     const fbSection = document.getElementById('fb-comments-section');
                     if (fbCommentsWrapper) {

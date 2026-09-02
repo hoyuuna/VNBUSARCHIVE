@@ -518,48 +518,19 @@ Object.assign(window.app, {
                 },
                 toggleInsideVehicle: (checked) => {
                     const locInput = document.getElementById('up-location');
-                    const mapEl = document.getElementById('upload-map');
                     const warningEl = document.getElementById('up-interior-warning');
                     if (checked) {
                         locInput.value = 'Chụp trong xe';
                         locInput.disabled = true;
-                        if (mapEl) {
-                            mapEl.style.pointerEvents = 'none';
-                            mapEl.style.opacity = '0.5';
-                        }
                         if (warningEl) warningEl.classList.remove('hidden');
                     } else {
                         if (locInput.value === 'Chụp trong xe') locInput.value = '';
                         locInput.disabled = false;
-                        if (mapEl) {
-                            mapEl.style.pointerEvents = 'auto';
-                            mapEl.style.opacity = '1';
-                        }
                         if (warningEl) warningEl.classList.add('hidden');
                     }
                     app.upload.checkDuplicateRealtime();
                 },
-                initMap: () => {
-                    app.uploadMap = L.map('upload-map').setView([10.762622, 106.660172], 13);
-                    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png', {
-                        attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    }).addTo(app.uploadMap);
-                    app.uploadMap.on('click', async (e) => {
-                        const { lat, lng } = e.latlng;
-                        if (app.uploadMarker) app.uploadMap.removeLayer(app.uploadMarker);
-                        app.uploadMarker = L.marker([lat, lng], {
-                            icon: L.icon({
-                                iconUrl: '/media/vnba.png',
-                                iconSize: [64, 36],
-                                iconAnchor: [32, 18],
-                                popupAnchor: [0, -18]
-                            })
-                        }).addTo(app.uploadMap);
-                        const address = await app.utils.reverseGeocode(lat, lng);
-                        document.getElementById('up-location').value = address;
-                        if(app.upload.checkLocationPinStatus) app.upload.checkLocationPinStatus(address);
-                    });
-                },
+
                 addBlurPanel: () => {
                     app.upload.performAddBlurPanel();
                 },
