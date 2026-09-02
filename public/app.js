@@ -16724,10 +16724,7 @@ Object.assign(window.app, {
                                         <button onclick="app.admin.openZoom('${app.utils.getProxiedUrl(p.url)}', false, true)" class="absolute top-2 right-2 bg-black/50 text-white w-8 h-8 rounded hover:bg-black flex items-center justify-center transition z-20" title="Soi ảnh"><i class="fa-solid fa-expand"></i></button>
                                     </div>
                                     <div class="admin-card-body">
-                                        <div class="mb-2">
-                                            <p class="text-[10px] text-gray-500 mb-1.5"><b>Ngày:</b> ${p.taken_at ? p.taken_at.split('T')[0] : 'Không rõ'} | <b>Máy:</b> ${p.camera_model || 'Không rõ'}</p>
-                                            ${p.exif_params ? `<div><span class="admin-label">Thông số ảnh (EXIF)</span><input type="text" class="admin-input bg-gray-50 !text-gray-500 truncate" value="${p.exif_params}" disabled title="${p.exif_params}"></div>` : ''}
-                                        </div>
+
                                         <div class="grid grid-cols-2 gap-2 mb-2">
                                             <div><span class="admin-label">Biển số</span><input type="text" id="adm-p-plate-${p.id}" value="${safePlate}" class="admin-input transition-all" oninput="app.utils.formatPlateInput(this)" onchange="app.admin.checkPlateAdmin(this, '${p.id}', 'photo')"></div>
                                             <div>
@@ -16758,6 +16755,12 @@ Object.assign(window.app, {
                                         </div>
 
                                         <div><span class="admin-label">Ghi chú</span><textarea id="adm-p-note-${p.id}" rows="2" class="admin-input">${note}</textarea></div>
+                                        
+                                        <div class="grid grid-cols-2 gap-2 mt-2">
+                                            <div><span class="admin-label">Ngày chụp (Gốc)</span><input type="text" class="admin-input bg-gray-50 !text-gray-500" value="${p.taken_at ? p.taken_at.split('T')[0] : 'Không rõ'}" disabled></div>
+                                            <div><span class="admin-label">Thiết bị chụp</span><input type="text" class="admin-input bg-gray-50 !text-gray-500 truncate" value="${p.camera_model || 'Không rõ'}" disabled title="${p.camera_model || 'Không rõ'}"></div>
+                                        </div>
+                                        ${p.exif_params ? `<div class="mt-2"><span class="admin-label">Thông số quang học (EXIF)</span><input type="text" class="admin-input bg-gray-50 !text-gray-500 truncate" value="${p.exif_params}" disabled title="${p.exif_params}"></div>` : ''}
                                         ${(() => {
                                         const isOwnPhoto = p.uploader_id === app.user.id;
                                         const canApprove = (!isOwnPhoto || app.role === 'manager') && !p._isReviewedByMe;
