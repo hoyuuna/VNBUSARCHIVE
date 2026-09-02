@@ -1,10 +1,9 @@
 const fs = require('fs');
-let light = fs.readFileSync('public/css/light.css', 'utf8');
-light = light.replace(/background-attachment:\s*fixed\s*!important;\n?/g, '');
-fs.writeFileSync('public/css/light.css', light);
+let buildCore = fs.readFileSync('build-core.js', 'utf8');
 
-let dark = fs.readFileSync('public/css/dark.css', 'utf8');
-dark = dark.replace(/background-attachment:\s*fixed\s*!important;\n?/g, '');
-fs.writeFileSync('public/css/dark.css', dark);
+const newHeaders = "const headersContent = `/*\\n  Content-Security-Policy: ${cspString}\\n  Referrer-Policy: strict-origin-when-cross-origin\\n\\n/index.html\\n  Cache-Control: no-cache, no-store, must-revalidate\\n\\n/\\n  Cache-Control: no-cache, no-store, must-revalidate\\n\\n/tailwind.css\\n  Cache-Control: no-store, no-cache, must-revalidate, max-age=0\\n  Pragma: no-cache\\n  Expires: 0\\n`;";
 
-console.log('Removed background-attachment: fixed from both CSS files.');
+buildCore = buildCore.replace(/const headersContent = `\/\*\\n  Content-Security-Policy: \$\{cspString\}\\n  Referrer-Policy: strict-origin-when-cross-origin\\n\\n\/tailwind\.css\\n  Cache-Control: no-store, no-cache, must-revalidate, max-age=0\\n  Pragma: no-cache\\n  Expires: 0\\n`;/, newHeaders);
+
+fs.writeFileSync('build-core.js', buildCore);
+console.log('Updated headers in build-core.js.');

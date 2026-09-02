@@ -1875,7 +1875,7 @@ div[id$="-modal"] > div > * {
     <script>
         (function() {
             var theme = 'light'; localStorage.setItem('vnbus_theme', 'light');
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=BUILD_VERSION_PLACEHOLDER" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = '#fdfcf8';
         })();
