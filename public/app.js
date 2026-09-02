@@ -13324,7 +13324,9 @@ Object.assign(window.app, {
                             const shutterVal = tags.ShutterSpeedValue !== undefined ? Number(tags.ShutterSpeedValue) : undefined;
                             if (expTime && shutterVal !== undefined && !isNaN(shutterVal)) {
                                 const expectedShutter = -Math.log2(expTime);
-                                if (Math.abs(expectedShutter - shutterVal) > 0.5) { reject("EXIF không hợp lệ"); return; }
+                                const isApexMatch = Math.abs(expectedShutter - shutterVal) <= 0.5;
+                                const isFirmwareBugMatch = Math.abs(expTime - shutterVal) < 0.001 || (expTime > 0 && Math.abs((expTime - shutterVal) / expTime) < 0.05);
+                                if (!isApexMatch && !isFirmwareBugMatch) { reject("EXIF không hợp lệ"); return; }
                             }
                             const fLen = Number(tags.FocalLength || tags.focalLength);
                             const f35 = Number(tags.FocalLengthIn35mmFormat || tags.FocalLengthIn35mmFilm);
