@@ -1167,11 +1167,11 @@ Object.assign(window.app, {
                         if (!btn) return;
                         if (app.preference.tempSelection === type) {
                             btn.className = "pref-option cursor-pointer border border-black bg-black text-white rounded-xl p-3.5 shadow-md transition-all flex items-center gap-4 scale-[1.02]";
-                            btn.querySelector('.rounded-full').className = "w-10 h-10 rounded-full bg-white/20 border border-white/30 flex items-center justify-center shrink-0 transition-colors";
+                            btn.querySelector('.rounded-full').className = "w-10 h-10 rounded-full bg-white text-black border-transparent flex items-center justify-center shrink-0 transition-colors";
                             btn.querySelector('p').className = "text-[11px] font-medium text-gray-300 mt-0.5";
                         } else {
-                            btn.className = "pref-option cursor-pointer border border-gray-300 bg-white/70 backdrop-blur-md rounded-xl p-3.5 shadow-sm hover:shadow-md hover:border-black transition-all flex items-center gap-4 scale-100";
-                            btn.querySelector('.rounded-full').className = "w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0 transition-colors";
+                            btn.className = "pref-option cursor-pointer border border-gray-300 bg-white text-gray-800 rounded-xl p-3.5 shadow-sm hover:shadow-md hover:border-gray-400 transition-all flex items-center gap-4 scale-100";
+                            btn.querySelector('.rounded-full').className = "w-10 h-10 rounded-full bg-gray-100 text-gray-800 border-transparent flex items-center justify-center shrink-0 transition-colors";
                             btn.querySelector('p').className = "text-[11px] font-medium text-gray-500 mt-0.5";
                         }
                     });

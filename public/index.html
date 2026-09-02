@@ -1872,7 +1872,14 @@ div[id$="-modal"] > div > * {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <meta property="fb:app_id" content="1523055899365050" />
-    <link rel="stylesheet" href="/css/light.css" id="theme-css">
+    <script>
+        (function() {
+            var theme = localStorage.getItem('vnbus_theme') || 'light';
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css" id="theme-css">');
+            document.documentElement.classList.add('theme-' + theme);
+            document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
+        })();
+    </script>
 </head>
 
 <body class="antialiased">
@@ -3236,6 +3243,20 @@ div[id$="-modal"] > div > * {
                                     </div>
                                 </div>
 
+                                <div class="mt-8 pt-6">
+                                    <h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Giao diện hiển thị</h3>
+                                    <p class="text-[11px] md:text-xs text-gray-500 mb-5 leading-relaxed">Lựa chọn chủ đề màu sắc cho toàn hệ thống.</p>
+                                    <div class="grid grid-cols-2 gap-4 mb-6">
+                                        <div id="set-theme-btn-light" onclick="app.preference.setTheme('light')" class="theme-option cursor-pointer border border-gray-300 bg-white text-gray-800 rounded-xl p-5 shadow-sm hover:shadow-md hover:border-gray-400 transition-all duration-200 flex flex-col items-center justify-center gap-2">
+                                            <i class="fa-solid fa-sun text-2xl"></i>
+                                            <span class="font-bold text-sm uppercase mt-1">Nền Sáng</span>
+                                        </div>
+                                        <div id="set-theme-btn-dark" onclick="app.preference.setTheme('dark')" class="theme-option cursor-pointer border border-gray-300 bg-white text-gray-800 rounded-xl p-5 shadow-sm hover:shadow-md hover:border-gray-400 transition-all duration-200 flex flex-col items-center justify-center gap-2">
+                                            <i class="fa-solid fa-moon text-2xl"></i>
+                                            <span class="font-bold text-sm uppercase mt-1">Nền Tối</span>
+                                        </div>
+                                    </div>
+                                </div>
 
                                 <div class="text-right mt-4">
                                     <button onclick="app.preference.save()" class="bg-black text-white px-6 py-2.5 rounded-lg text-xs font-bold shadow-sm hover:bg-gray-800 transition"><i class="fa-solid fa-floppy-disk mr-1"></i> Lưu thông tin</button>
@@ -6704,6 +6725,6 @@ div[id$="-modal"] > div > * {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed top-24 left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.js?v=1788357237493"></script>
+<script src="/app.js?v=1788357800505"></script>
 </body>
 </html>

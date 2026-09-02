@@ -1,4 +1,4 @@
-window.APP_VERSION = "26.09.02.20.53.57";
+window.APP_VERSION = "26.09.02.21.03.20";
 
 /* --- MODULE: 1_init.js --- */
 window.app = window.app || {};
@@ -5964,11 +5964,11 @@ Object.assign(window.app, {
                         if (!btn) return;
                         if (app.preference.tempSelection === type) {
                             btn.className = "pref-option cursor-pointer border border-black bg-black text-white rounded-xl p-3.5 shadow-md transition-all flex items-center gap-4 scale-[1.02]";
-                            btn.querySelector('.rounded-full').className = "w-10 h-10 rounded-full bg-white/20 border border-white/30 flex items-center justify-center shrink-0 transition-colors";
+                            btn.querySelector('.rounded-full').className = "w-10 h-10 rounded-full bg-white text-black border-transparent flex items-center justify-center shrink-0 transition-colors";
                             btn.querySelector('p').className = "text-[11px] font-medium text-gray-300 mt-0.5";
                         } else {
-                            btn.className = "pref-option cursor-pointer border border-gray-300 bg-white/70 backdrop-blur-md rounded-xl p-3.5 shadow-sm hover:shadow-md hover:border-black transition-all flex items-center gap-4 scale-100";
-                            btn.querySelector('.rounded-full').className = "w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0 transition-colors";
+                            btn.className = "pref-option cursor-pointer border border-gray-300 bg-white text-gray-800 rounded-xl p-3.5 shadow-sm hover:shadow-md hover:border-gray-400 transition-all flex items-center gap-4 scale-100";
+                            btn.querySelector('.rounded-full').className = "w-10 h-10 rounded-full bg-gray-100 text-gray-800 border-transparent flex items-center justify-center shrink-0 transition-colors";
                             btn.querySelector('p').className = "text-[11px] font-medium text-gray-500 mt-0.5";
                         }
                     });
@@ -16258,7 +16258,39 @@ Object.assign(window.app, {
                     app.settings.switchTab('preference');
                     app.preference.updateUI();
                 },
-                select: (val) => {
+                
+                theme: localStorage.getItem('vnbus_theme') || 'light',
+                setTheme: (theme) => {
+                    app.preference.theme = theme;
+                    localStorage.setItem('vnbus_theme', theme);
+                    document.getElementById('theme-css').href = '/css/' + theme + '.css';
+                    document.documentElement.classList.remove('theme-light', 'theme-dark');
+                    document.documentElement.classList.add('theme-' + theme);
+                    document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
+                    app.preference.updateThemeUI();
+                    
+                    if (app.user) {
+                        window.sb.from('profiles').select('preferences').eq('id', app.user.id).single().then(({data}) => {
+                            const existingPrefs = (data && data.preferences) ? data.preferences : {};
+                            existingPrefs.theme = theme;
+                            window.sb.from('profiles').update({ preferences: existingPrefs }).eq('id', app.user.id).then(()=>{});
+                        });
+                    }
+                },
+                                updateThemeUI: () => {
+                    const btnLight = document.getElementById('set-theme-btn-light');
+                    const btnDark = document.getElementById('set-theme-btn-dark');
+                    if (!btnLight || !btnDark) return;
+                    
+                    if (app.preference.theme === 'dark') {
+                        btnDark.className = "theme-option cursor-pointer border border-black bg-black text-white rounded-xl p-5 shadow-md transition-all duration-200 flex flex-col items-center justify-center gap-2 scale-[1.02]";
+                        btnLight.className = "theme-option cursor-pointer border border-gray-300 bg-white text-gray-800 rounded-xl p-5 shadow-sm hover:border-gray-400 transition-all duration-200 flex flex-col items-center justify-center gap-2 scale-100";
+                    } else {
+                        btnLight.className = "theme-option cursor-pointer border border-black bg-black text-white rounded-xl p-5 shadow-md transition-all duration-200 flex flex-col items-center justify-center gap-2 scale-[1.02]";
+                        btnDark.className = "theme-option cursor-pointer border border-gray-300 bg-white text-gray-800 rounded-xl p-5 shadow-sm hover:border-gray-400 transition-all duration-200 flex flex-col items-center justify-center gap-2 scale-100";
+                    }
+                },
+select: (val) => {
                     app.preference.tempSelection = val;
                     app.preference.updateUI();
                     if (app.onboarding && app.onboarding.isOpen) {
@@ -16266,6 +16298,7 @@ Object.assign(window.app, {
                     }
                 },
                 updateUI: () => {
+                    if(app.preference.updateThemeUI) app.preference.updateThemeUI();
                     ['bus', 'coach', 'both'].forEach(type => {
                         ['pref-btn-', 'set-pref-btn-'].forEach(prefix => {
                             const btn = document.getElementById(`${prefix}${type}`);
@@ -16274,13 +16307,13 @@ Object.assign(window.app, {
                             const p = btn.querySelector('.pref-desc');
                             if (app.preference.tempSelection === type) {
                                 btn.className = `pref-option cursor-pointer border border-black bg-black text-white rounded-xl p-4 shadow-md transition-all duration-200 flex items-start gap-3 scale-[1.02]`;
-                                iconBg.classList.replace('bg-gray-100', 'bg-white/20');
-                                iconBg.classList.replace('border-transparent', 'border-white/30');
+                                iconBg.classList.replace('bg-gray-100', 'bg-white'); iconBg.classList.add('text-black');
+                                iconBg.classList.replace('border-transparent', 'border-black');
                                 if (p) p.classList.replace('text-gray-500', 'text-gray-300');
                             } else {
                                 btn.className = `pref-option cursor-pointer border border-gray-300 bg-white text-gray-800 rounded-xl p-4 shadow-sm hover:shadow-md hover:border-gray-400 transition-all duration-200 flex items-start gap-3 scale-100`;
-                                iconBg.classList.replace('bg-white/20', 'bg-gray-100');
-                                iconBg.classList.replace('border-white/30', 'border-transparent');
+                                iconBg.classList.replace('bg-white', 'bg-gray-100'); iconBg.classList.remove('text-black');
+                                iconBg.classList.replace('border-black', 'border-transparent');
                                 if (p) p.classList.replace('text-gray-300', 'text-gray-500');
                             }
                         });
