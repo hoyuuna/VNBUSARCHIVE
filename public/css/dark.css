@@ -11,11 +11,11 @@ html.theme-dark body, .theme-dark {
 
 /* KHỚP MÀN HÌNH LOADING */
 .theme-dark #loading-screen {
-    background-color: #18181b !important;
+    background-color: #18181b !important; 
     background-image: none !important;
 }
 
-/* Biến các thẻ nổi (shadow) thành thẻ phẳng CÓ VIỀN TRẮNG */
+/* Biến các thẻ có shadow thành thẻ phẳng CÓ VIỀN */
 .theme-dark .shadow-2xl, .theme-dark .shadow-xl, .theme-dark .shadow-lg, .theme-dark .shadow-md, .theme-dark .shadow-sm, .theme-dark .shadow-island, .theme-dark .shadow-\[0_1px_2px_0_rgba\(0\,0\,0\,0\.05\)\] {
     box-shadow: none !important;
     border: 1px solid #ffffff !important;
@@ -30,17 +30,25 @@ html.theme-dark body, .theme-dark {
     background-color: #000000 !important;
     border: 1px solid #ffffff !important;
     box-shadow: none !important;
+    color: #ffffff !important;
 }
 
-/* 3. Màu nền tĩnh đen tuyền cho TOÀN BỘ các class kính mờ và thẻ stat-item */
+/* Đảo màu mọi background từ trắng/xám sáng sang đen và màu chữ sang trắng */
 .theme-dark .bg-white, .theme-dark .bg-gray-50, .theme-dark .bg-gray-100, .theme-dark .stat-item,
 .theme-dark .bg-white\/95, .theme-dark .bg-white\/90, .theme-dark .bg-white\/80, .theme-dark .bg-white\/70, .theme-dark .bg-white\/60, .theme-dark .bg-white\/50, .theme-dark .bg-white\/40, .theme-dark .bg-white\/30, .theme-dark .bg-white\/20,
 .theme-dark .bg-gray-50\/50, .theme-dark .bg-gray-100\/50, .theme-dark .bg-gray-200\/80, .theme-dark .bg-gray-200\/50 {
     background-color: #000000 !important;
     color: #ffffff !important;
 }
-.theme-dark .stat-value, .theme-dark .stat-label {
+
+/* Đảo mọi text màu đen/xám đậm sang màu trắng (fix lỗi nền đen chữ đen) */
+.theme-dark .text-black, .theme-dark .text-gray-900, .theme-dark .text-gray-800, .theme-dark .stat-value, .theme-dark h1, .theme-dark h2, .theme-dark h3, .theme-dark h4 {
     color: #ffffff !important;
+}
+
+/* Giữ nguyên text xám hoặc làm sáng lên */
+.theme-dark .text-gray-700, .theme-dark .text-gray-600, .theme-dark .text-gray-500, .theme-dark .text-gray-400, .theme-dark .stat-label {
+    color: #a1a1aa !important;
 }
 
 /* 4. Bo góc duy nhất nhẹ nhàng */
@@ -56,10 +64,11 @@ html.theme-dark body, .theme-dark {
     border-color: #ffffff !important;
 }
 
-/* FIX DROPDOWN VÀ POPUP (Bỏ overflow: hidden để tránh lỗi cuộn) */
+/* FIX DROPDOWN VÀ POPUP */
 .theme-dark .suggestion-box, .theme-dark .filter-menu, .theme-dark #user-dropdown {
     border: 1px solid #ffffff !important;
     background-color: #000000 !important;
+    color: #ffffff !important;
     border-radius: 8px !important;
     box-shadow: none !important;
 }
@@ -77,7 +86,7 @@ html.theme-dark body, .theme-dark {
 .theme-dark .info-table tr:last-child td:first-child, .theme-dark .info-table tr:last-child th:first-child, .theme-dark .history-table tr:last-child td:first-child { border-bottom-left-radius: 7px !important; }
 .theme-dark .info-table tr:last-child td:last-child, .theme-dark .info-table tr:last-child th:last-child, .theme-dark .history-table tr:last-child td:last-child { border-bottom-right-radius: 7px !important; }
 
-/* Ẩn viền của thẻ div bọc ngoài bảng NHƯNG BỎ QUA các thẻ div có padding (p-) để giữ viền cho khối Thông số kỹ thuật */
+/* Ẩn viền của thẻ div bọc ngoài bảng */
 .theme-dark .border.border-gray-200:has(> .info-table):not([class*=" p-"]):not([class^="p-"]),
 .theme-dark .border.border-gray-200:has(> .history-table-wrapper):not([class*=" p-"]):not([class^="p-"]),
 .theme-dark .border.border-gray-200:has(> .data-table):not([class*=" p-"]):not([class^="p-"]) {
@@ -87,9 +96,10 @@ html.theme-dark body, .theme-dark {
 
 .theme-dark .info-table td, .theme-dark .info-table th, .theme-dark .data-table td, .theme-dark .data-table th, .theme-dark .history-table td, .theme-dark .history-table th {
     border-color: #ffffff !important; 
+    color: #ffffff !important;
 }
 .theme-dark .info-table tr:last-child td, .theme-dark .data-table tr:last-child td, .theme-dark .history-table tr:last-child td {
-    border-bottom: none !important;
+    border-bottom: none !important; 
 }
 
 /* 6. Fix text hover không gạch chân */
@@ -100,23 +110,20 @@ html.theme-dark body, .theme-dark {
     text-decoration: none !important;
 }
 
-/* Nút bấm */
+/* Đảo màu nút bấm đen thành trắng */
 .theme-dark .bg-black {
     background-color: #ffffff !important;
     color: #000000 !important;
 }
 .theme-dark .bg-black:hover {
-    background-color: #d4d4d8 !important; 
+    background-color: #e4e4e7 !important; 
 }
 
-/* Text màu xám đổi thành xám sáng */
-.theme-dark .text-gray-700, .theme-dark .text-gray-600, .theme-dark .text-gray-500, .theme-dark .text-gray-400 {
-    color: #a1a1aa !important;
-}
-
+/* Input form: Fix outline */
 .theme-dark input, .theme-dark textarea, .theme-dark select {
     background-color: #000000 !important;
     color: #ffffff !important;
+    border: 1px solid #ffffff !important;
     outline: none !important;
 }
 .theme-dark input:focus, .theme-dark textarea:focus, .theme-dark select:focus {
