@@ -25,7 +25,7 @@ html.theme-dark body, .theme-dark {
 }
 
 /* KHÔI PHỤC NỀN ĐEN ĐẶC CHO MỌI POPUP (TẮT XUYÊN THẤU) */
-.theme-dark #crop-content, .theme-dark #custom-alert-content, .theme-dark #settings-content, .theme-dark #newsboard-content, .theme-dark #docs-content,
+.theme-dark #onboarding-content, #subrole-prompt-content, #crop-content, .theme-dark #custom-alert-content, .theme-dark #settings-content, .theme-dark #newsboard-content, .theme-dark #docs-content,
 .theme-dark #upload-info-content, .theme-dark #custom-prompt-content, .theme-dark #custom-role-content, .theme-dark #deny-prompt-content, .theme-dark #ban-prompt-content,
 .theme-dark #up-progress-content, .theme-dark #captcha-content, .theme-dark #webrtc-qr-content, .theme-dark #qr-login-host-content, .theme-dark #qr-login-confirm-content,
 .theme-dark #advanced-filter-content, .theme-dark #achievement-content, .theme-dark #operator-edit-content, .theme-dark #model-edit-content,
