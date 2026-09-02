@@ -173,3 +173,65 @@ input:focus, textarea:focus, select:focus {
 #auth .border.border-gray-300\/80 {
     border-color: #18181b !important;
 }
+
+/* ===== FIX: VEHICLE TYPE ICON (selected state bg-white/20 bị trong suốt) ===== */
+#btn-type-bus.bg-black .icon-bg,
+#btn-type-coach.bg-black .icon-bg {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* ===== FIX: WATERMARK PREVIEW (preview-footer-bar bị transparent) ===== */
+#preview-container {
+    border: 1px solid #18181b !important;
+}
+
+/* ===== FIX: ZOOM TOOLBAR button text color ===== */
+#zoom-toolbar button {
+    color: #18181b !important;
+}
+#zoom-toolbar button:hover {
+    color: #ffffff !important;
+}
+
+/* ===== FIX: INLINE ALERTS - Thêm viền đen cho mọi màu ===== */
+.bg-red-50, .bg-red-100 { border: 1px solid #18181b !important; }
+.bg-yellow-50, .bg-yellow-100 { border: 1px solid #18181b !important; }
+.bg-green-50, .bg-green-100 { border: 1px solid #18181b !important; }
+.bg-blue-50, .bg-blue-100 { border: 1px solid #18181b !important; }
+.bg-orange-50, .bg-orange-100 { border: 1px solid #18181b !important; }
+
+/* Inline alerts with explicit red/yellow/green/blue border already get overridden to black */
+.border-red-200, .border-red-300 { border-color: #18181b !important; }
+.border-yellow-200, .border-yellow-300 { border-color: #18181b !important; }
+.border-green-200, .border-green-300 { border-color: #18181b !important; }
+.border-blue-200, .border-blue-300 { border-color: #18181b !important; }
+.border-orange-200, .border-orange-300 { border-color: #18181b !important; }
+
+/* ===== FIX: FAV PHOTO CONTENT border ===== */
+#fav-photo-content {
+    border: 1px solid #18181b !important;
+}
+
+/* ===== WATERMARK PROTECTION (không override màu) ===== */
+.wm-draggable,
+.wm-draggable * {
+    color: inherit !important;
+}
+.wm-draggable.wm-black,
+.wm-draggable.wm-black * {
+    color: black !important;
+}
+.footer-text-left,
+.footer-text-right,
+#preview-footer-copy {
+    color: white !important;
+}
+
+/* ===== FIX: PREVIEW FOOTER BAR - Restore blur gradient ===== */
+#preview-footer-bar {
+    background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 100%) !important;
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+    padding-bottom: 6px !important;
+    padding-top: 6px !important;
+}

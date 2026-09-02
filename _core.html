@@ -2709,14 +2709,14 @@ div[id$="-modal"] > div > * {
                     <div class="ruler-line-v" style="left: 91.6667%;"><span class="ruler-badge ruler-badge-top">5</span><span class="ruler-badge ruler-badge-bottom">5</span></div>
                 </div>
             </div>
-            <button onclick="app.admin.closeZoom()" title="Đóng (ESC)" class="absolute top-4 right-4 text-white hover:text-red-500 text-3xl z-[4010] p-2 transition-transform active:scale-90"><i class="fa-solid fa-xmark"></i></button>
+            <button onclick="app.admin.closeZoom()" title="Đóng (ESC)" class="absolute top-4 right-4 text-black bg-white border border-black hover:text-red-600 text-3xl z-[4010] p-2 rounded-lg transition-transform active:scale-90"><i class="fa-solid fa-xmark"></i></button>
 
             <div id="zoom-hint" class="absolute bottom-4 left-0 w-full text-center text-white/50 text-xs pointer-events-none transition-opacity">
                 Click / Cuộn chuột để phóng to • Nhấn ESC để đóng
             </div>
 
             <!-- Floating Toolbar Kính Mờ Hình Nút Bo Góc (Animation Trượt) -->
-            <div id="zoom-toolbar" class="w-max max-w-[95vw] rounded-xl p-2 md:p-2.5 flex gap-1.5 md:gap-2 items-center justify-center z-[4020] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] opacity-0 translate-y-8 pointer-events-none" style="z-index: 4020 !important;" onclick="event.stopPropagation()">
+            <div id="zoom-toolbar" class="w-max max-w-[95vw] rounded-xl bg-white border border-black p-2 md:p-2.5 flex gap-1.5 md:gap-2 items-center justify-center z-[4020] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] opacity-0 translate-y-8 pointer-events-none" style="z-index: 4020 !important;" onclick="event.stopPropagation()">
 
                 <!-- Nút Thích -->
                 <button id="zoom-btn-like" onclick="app.utils.handleLike()" class="flex items-center justify-center gap-1.5 text-gray-800 bg-transparent hover:bg-black hover:text-white px-3 py-2 md:px-4 md:py-2.5 rounded-lg font-bold text-[11px] md:text-sm transition-colors whitespace-nowrap">
@@ -4433,7 +4433,7 @@ div[id$="-modal"] > div > * {
                                     </button>
                                     <!-- ================================== -->
 
-                                    <div id="preview-footer-bar" class="absolute bottom-0 left-0 w-full -[8px] z-10 pointer-events-none border-t border-white/10 flex items-center justify-between">
+                                    <div id="preview-footer-bar" class="absolute bottom-0 left-0 w-full z-10 pointer-events-none flex items-center justify-between">
                                         <span class="footer-text-left" style="font-weight: 900; font-style: italic; opacity: 0.9; color: white; white-space: nowrap;">VNBUSARCHIVE<span style="font-size: 80%; font-weight: 700;">.io.vn</span></span>
                                         <span id="preview-footer-copy" class="footer-text-right" style="font-weight: 700; color: white; white-space: nowrap; opacity: 0.9;"></span>
                                     </div>
@@ -6508,13 +6508,13 @@ div[id$="-modal"] > div > * {
     <div id="fav-photo-modal" class="hidden fixed inset-0 z-[3000] flex items-center justify-center p-2 md:p-6 backdrop-blur-md" >
         <div id="fav-photo-content" class="rounded-2xl w-full max-w-md flex flex-col overflow-hidden transform transition-all opacity-0 scale-95 relative" >
 
-            <div class="border-b border-gray-200/50 p-4 md:p-5 flex justify-between items-center shrink-0 rounded-t-2xl bg-white/40">
+            <div class="border-b border-black p-4 md:p-5 flex justify-between items-center shrink-0 rounded-t-2xl bg-white">
                 <h2 class="font-bold text-base md:text-lg text-black uppercase tracking-tight"><i class="fa-solid fa-link mr-2 text-gray-500"></i>Đặt ảnh tâm đắc</h2>
                 <button onclick="app.profileIntro.closePhotoSelector()" class="text-gray-400 hover:text-red-500 transition text-xl px-2"><i class="fa-solid fa-xmark"></i></button>
             </div>
 
             <!-- NỘI DUNG NHẬP LINK -->
-            <div class="p-5 md:p-6 bg-white/20 flex-1 overflow-y-auto custom-scrollbar flex flex-col items-center">
+            <div class="p-5 md:p-6 bg-white flex-1 overflow-y-auto custom-scrollbar flex flex-col items-center">
                 <p class="text-sm text-gray-700 mb-4 font-medium text-center w-full">Nhập đường dẫn (link) ảnh trên hệ thống VNBUSARCHIVE mà bạn muốn đặt làm ảnh tâm đắc.</p>
 
                 <div class="w-full relative mb-2">
@@ -6522,7 +6522,7 @@ div[id$="-modal"] > div > * {
                         <i class="fa-solid fa-link text-gray-400 w-4 h-4 text-center mt-1"></i>
                     </div>
                     <input type="text" id="fav-photo-url-input" placeholder="VD: https://vnbusarchive.io.vn/photo/123"
-                           class="w-full bg-white/80 border border-gray-300/80 rounded-xl pl-10 pr-4 py-3.5 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all shadow-inner text-black"
+                           class="w-full bg-white border border-black rounded-xl pl-10 pr-4 py-3.5 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all text-black"
                            oninput="app.profileIntro.previewFavPhotoFromUrl(this.value)">
                 </div>
 
