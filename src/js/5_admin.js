@@ -407,8 +407,8 @@ Object.assign(window.app, {
                                     </div>
                                     <div class="admin-card-body">
                                         <div class="mb-2">
-                                            <p class="text-[10px] text-gray-500"><b>Ngày:</b> ${p.taken_at ? p.taken_at.split('T')[0] : 'Không rõ'} | <b>Máy:</b> ${p.camera_model || 'Không rõ'}</p>
-                                            ${p.exif_params ? `<p class="text-[10px] text-gray-500 mt-0.5 truncate" title="${p.exif_params}"><b>Thông số:</b> ${p.exif_params}</p>` : ''}
+                                            <p class="text-[10px] text-gray-500 mb-1.5"><b>Ngày:</b> ${p.taken_at ? p.taken_at.split('T')[0] : 'Không rõ'} | <b>Máy:</b> ${p.camera_model || 'Không rõ'}</p>
+                                            ${p.exif_params ? `<div><span class="admin-label">Thông số ảnh (EXIF)</span><input type="text" class="admin-input bg-gray-50 !text-gray-500 truncate" value="${p.exif_params}" disabled title="${p.exif_params}"></div>` : ''}
                                         </div>
                                         <div class="grid grid-cols-2 gap-2 mb-2">
                                             <div><span class="admin-label">Biển số</span><input type="text" id="adm-p-plate-${p.id}" value="${safePlate}" class="admin-input transition-all" oninput="app.utils.formatPlateInput(this)" onchange="app.admin.checkPlateAdmin(this, '${p.id}', 'photo')"></div>
