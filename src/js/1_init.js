@@ -2976,14 +2976,15 @@ Object.assign(window.app, {
                         const res = await fetch(`https://raw.githubusercontent.com/hoyuuna/VNBUSARCHIVE/refs/heads/main/version.json?t=${Date.now()}`);
                         if (res.ok) {
                             const data = await res.json();
-                            if (data.version && data.version !== window.APP_VERSION) {
-                                const popupHtml = `
-                                    <div class="text-center">
-                                        <p class="mb-4 text-base">Web đã có phiên bản <b>${data.version}</b> mới!<br><span class="text-xs text-gray-500">(Bạn đang ở ${window.APP_VERSION}).</span><br>Hãy tải lại trang để trải nghiệm các cập nhật mới nhất!</p>
-                                        <button onclick="window.location.reload(true)" class="w-full bg-black text-white font-bold py-3 rounded-md hover:bg-gray-800 transition uppercase tracking-wider text-sm shadow-sm flex justify-center items-center gap-2"><i class="fa-solid fa-rotate-right"></i> Tải lại trang</button>
-                                    </div>
-                                `;
-                                app.ui.showAlert(popupHtml, null, null, { hideButtons: true, title: "Cập nhật ứng dụng" });
+                            if (data.version && data.version > window.APP_VERSION) {
+                                const msg = `Web đã có phiên bản <b>${data.version}</b> mới!<br><span class="text-xs text-gray-500">(Bạn đang ở ${window.APP_VERSION}).</span><br>Hãy tải lại trang để trải nghiệm các cập nhật mới nhất!`;
+                                app.ui.showAlert(msg, () => {
+                                    window.location.href = window.location.pathname + '?v=' + Date.now();
+                                }, null, { 
+                                    title: "Cập nhật", 
+                                    btnOkText: '<i class="fa-solid fa-rotate-right mr-1"></i> Tải lại trang',
+                                    iconHtml: '<i class="fa-solid fa-cloud-arrow-down text-xl text-blue-600"></i>'
+                                });
                             }
                         }
                     } catch(e) {}
