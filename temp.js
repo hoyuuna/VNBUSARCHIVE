@@ -1,10 +1,10 @@
 const fs = require('fs');
-let js = fs.readFileSync('src/js/4_content.js', 'utf8');
+let light = fs.readFileSync('public/css/light.css', 'utf8');
+light = light.replace(/background-attachment:\s*fixed\s*!important;\n?/g, '');
+fs.writeFileSync('public/css/light.css', light);
 
-js = js.replace(/setTheme:\s*\(\s*theme\s*\)\s*=>\s*\{/, 
-`setTheme: (theme) => {
-                    if (theme === 'dark') theme = 'light'; // TEMPORARILY FORCE LIGHT
-`);
+let dark = fs.readFileSync('public/css/dark.css', 'utf8');
+dark = dark.replace(/background-attachment:\s*fixed\s*!important;\n?/g, '');
+fs.writeFileSync('public/css/dark.css', dark);
 
-fs.writeFileSync('src/js/4_content.js', js);
-console.log('Forced light mode in 4_content.js.');
+console.log('Removed background-attachment: fixed from both CSS files.');

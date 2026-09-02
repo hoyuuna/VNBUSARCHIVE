@@ -9,8 +9,7 @@ html.theme-dark body, .theme-dark {
         linear-gradient(#27272a 1px, transparent 1px),
         linear-gradient(90deg, #27272a 1px, transparent 1px) !important;
     background-size: 20px 20px !important;
-    background-attachment: fixed !important;
-    color: #ffffff !important;
+        color: #ffffff !important;
 }
 
 /* KHỚP MÀN HÌNH LOADING */

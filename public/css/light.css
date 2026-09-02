@@ -9,8 +9,7 @@ body, body.theme-light {
         linear-gradient(#e5e7eb 1px, transparent 1px),
         linear-gradient(90deg, #e5e7eb 1px, transparent 1px) !important;
     background-size: 20px 20px !important;
-    background-attachment: fixed !important;
-    color: #18181b !important;
+        color: #18181b !important;
 }
 
 /* KHỚP MÀN HÌNH LOADING */

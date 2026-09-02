@@ -1,4 +1,4 @@
-window.APP_VERSION = "26.09.02.21.22.18";
+window.APP_VERSION = "26.09.02.21.27.59";
 
 /* --- MODULE: 1_init.js --- */
 window.app = window.app || {};
@@ -10231,7 +10231,7 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                                 const shortRouteName = decodedRoute.length <= 5 ? decodedRoute : decodedRoute.substring(0, 5);
 
                                 if (type === 'circle') {
-                                    iconClass = "w-16 h-16 md:w-20 md:h-20 rounded-full bg-white flex items-center justify-center shrink-0 border-[3px] border-black shadow-sm overflow-hidden";
+                                    iconClass = "w-16 h-16 md:w-20 md:h-20 rounded-full bg-white flex items-center justify-center shrink-0 border-[3px] border-black overflow-hidden";
                                     await document.fonts.load('400 1em Anton');
                                     const _cp = document.createElement('canvas'); const _xp = _cp.getContext('2d');
                                     _xp.font = '400 100px Anton, sans-serif';
