@@ -13312,13 +13312,15 @@ Object.assign(window.app, {
                             const tsOriginal = parseDate(dtOriginal);
                             const tsDigitized = parseDate(dtDigitized);
                             const tsModify = parseDate(dtModify);
-                            if (tsOriginal && tsDigitized && Math.abs(tsOriginal - tsDigitized) > 2000) { reject("EXIF không hợp lệ"); return; }
-                            if (tsOriginal && tsModify && tsModify < tsOriginal - 2000) { reject("EXIF không hợp lệ"); return; }
+                            const helpLinkHTML = `<br><br><a href="javascript:void(0)" onclick="app.ui.closeAlert(true); setTimeout(() => app.utils.navigate('/help/1516371307481272330'), 300)" class="text-black font-bold hover:text-gray-700 hover:underline transition-colors inline-flex items-center gap-1.5"><i class="fa-solid fa-circle-info"></i> Tìm hiểu thêm & hướng dẫn khắc phục</a>`;
+                            const errExifInvalid = "EXIF ảnh không hợp lệ. Bạn vui lòng chọn file ảnh gốc nhé!" + helpLinkHTML;
+                            if (tsOriginal && tsDigitized && Math.abs(tsOriginal - tsDigitized) > 2000) { reject(errExifInvalid); return; }
+                            if (tsOriginal && tsModify && tsModify < tsOriginal - 2000) { reject(errExifInvalid); return; }
                             const fNum = Number(tags.FNumber || tags.fNumber);
                             const apertureVal = tags.ApertureValue !== undefined ? Number(tags.ApertureValue) : undefined;
                             if (fNum && apertureVal !== undefined && !isNaN(apertureVal)) {
                                 const expectedAperture = 2 * Math.log2(fNum);
-                                if (Math.abs(expectedAperture - apertureVal) > 0.5) { reject("EXIF không hợp lệ"); return; }
+                                if (Math.abs(expectedAperture - apertureVal) > 0.5) { reject(errExifInvalid); return; }
                             }
                             const expTime = Number(tags.ExposureTime || tags.exposureTime);
                             const shutterVal = tags.ShutterSpeedValue !== undefined ? Number(tags.ShutterSpeedValue) : undefined;
@@ -13326,18 +13328,18 @@ Object.assign(window.app, {
                                 const expectedShutter = -Math.log2(expTime);
                                 const isApexMatch = Math.abs(expectedShutter - shutterVal) <= 0.5;
                                 const isFirmwareBugMatch = Math.abs(expTime - shutterVal) < 0.001 || (expTime > 0 && Math.abs((expTime - shutterVal) / expTime) < 0.05);
-                                if (!isApexMatch && !isFirmwareBugMatch) { reject("EXIF không hợp lệ"); return; }
+                                if (!isApexMatch && !isFirmwareBugMatch) { reject(errExifInvalid); return; }
                             }
                             const fLen = Number(tags.FocalLength || tags.focalLength);
                             const f35 = Number(tags.FocalLengthIn35mmFormat || tags.FocalLengthIn35mmFilm);
                             if (fLen && f35 && !isNaN(fLen) && !isNaN(f35)) {
-                                if (f35 < fLen - 0.5) { reject("EXIF không hợp lệ"); return; }
+                                if (f35 < fLen - 0.5) { reject(errExifInvalid); return; }
                             }
                             const exifW = Number(tags.ExifImageWidth || tags.PixelXDimension);
                             const exifH = Number(tags.ExifImageHeight || tags.PixelYDimension);
                             if (actualWidth && actualHeight && exifW && exifH && !isNaN(exifW) && !isNaN(exifH)) {
                                 const isMatch = (exifW === actualWidth && exifH === actualHeight) || (exifW === actualHeight && exifH === actualWidth);
-                                if (!isMatch) { reject("EXIF không hợp lệ"); return; }
+                                if (!isMatch) { reject(errExifInvalid); return; }
                             }
                             let model = tags.Model;
                             const make = tags.Make;
@@ -13355,11 +13357,10 @@ Object.assign(window.app, {
                                     model = "Camera (Đã ẩn Model)";
                                 }
                             }
-                            const helpLinkHTML = `<br><br><a href="javascript:void(0)" onclick="app.ui.closeAlert(true); setTimeout(() => app.utils.navigate('/help/1516371307481272330'), 300)" class="text-black font-bold hover:text-gray-700 hover:underline transition-colors inline-flex items-center gap-1.5"><i class="fa-solid fa-circle-info"></i> Tìm hiểu thêm & hướng dẫn khắc phục</a>`;
                             const validateAndResolve = (fraudFlag) => {
-                                if (!model) { reject("Ảnh không chứa thông tin EXIF thiết bị (Model máy ảnh). Vui lòng chọn ảnh gốc chưa qua chỉnh sửa." + helpLinkHTML); return; }
-                                if (!dateTimeOriginal) { reject("Ảnh không chứa thông tin ngày chụp (EXIF Date). Việc có ngày chụp gốc là bắt buộc. Vui lòng chọn file ảnh nguyên bản." + helpLinkHTML); return; }
-                                if (!exposureTime || !iso) { reject("Ảnh bị thiếu thông số kỹ thuật máy ảnh (Tốc độ, ISO). Hệ thống bắt buộc yêu cầu các thông số này để xác thực ảnh gốc." + helpLinkHTML); return; }
+                                if (!model) { reject("EXIF tin ảnh thiếu trường Tên thiết bị chụp (Camera Model). Bạn vui lòng chọn file ảnh gốc nhé!" + helpLinkHTML); return; }
+                                if (!dateTimeOriginal) { reject("EXIF tin ảnh thiếu trường Ngày giờ chụp (DateTimeOriginal). Bạn vui lòng chọn file ảnh gốc nhé!" + helpLinkHTML); return; }
+                                if (!exposureTime || !iso) { reject("EXIF tin ảnh thiếu trường Thông số kỹ thuật (Exposure/ISO). Bạn vui lòng chọn file ảnh gốc nhé!" + helpLinkHTML); return; }
                                 let shutter = exposureTime;
                                 if (exposureTime && exposureTime < 1) shutter = `1/${Math.round(1 / exposureTime)}`;
                                 let dateStr = "";
