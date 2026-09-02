@@ -21,6 +21,17 @@ body.theme-dark {
     border: 1px solid #ffffff !important;
 }
 
+/* KHÔI PHỤC NỀN ĐEN ĐẶC CHO MỌI POPUP (TẮT XUYÊN THẤU) */
+.theme-dark #crop-content, .theme-dark #custom-alert-content, .theme-dark #settings-content, .theme-dark #newsboard-content, .theme-dark #docs-content,
+.theme-dark #upload-info-content, .theme-dark #custom-prompt-content, .theme-dark #custom-role-content, .theme-dark #deny-prompt-content, .theme-dark #ban-prompt-content,
+.theme-dark #up-progress-content, .theme-dark #captcha-content, .theme-dark #webrtc-qr-content, .theme-dark #qr-login-host-content, .theme-dark #qr-login-confirm-content,
+.theme-dark #advanced-filter-content, .theme-dark #achievement-content, .theme-dark #operator-edit-content, .theme-dark #model-edit-content,
+.theme-dark #route-edit-content, .theme-dark #fav-photo-content, .theme-dark #manager-edit-content, .theme-dark #email-verify-content, .theme-dark #bio-edit-content {
+    background-color: #000000 !important;
+    border: 1px solid #ffffff !important;
+    box-shadow: none !important;
+}
+
 /* 3. Màu nền tĩnh đen tuyền cho TOÀN BỘ các class kính mờ */
 .theme-dark .bg-white, .theme-dark .bg-gray-50, .theme-dark .bg-gray-100,
 .theme-dark .bg-white\/95, .theme-dark .bg-white\/90, .theme-dark .bg-white\/80, .theme-dark .bg-white\/70, .theme-dark .bg-white\/60, .theme-dark .bg-white\/50, .theme-dark .bg-white\/40, .theme-dark .bg-white\/30, .theme-dark .bg-white\/20,

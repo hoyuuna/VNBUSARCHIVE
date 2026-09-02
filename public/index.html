@@ -188,7 +188,7 @@ div[id$="-modal"] > div > * {
     
     
     -webkit-
-    border: 1px solid rgba(255, 255, 255, 0.6) !important;
+    
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
 }
 
@@ -1403,7 +1403,7 @@ div[id$="-modal"] > div > * {
         header > div. {
             backdrop-filter: none !important;
             -webkit-backdrop-filter: none !important;
-            background-color: transparent !important;
+            
         }
 
         header > div.::before {
@@ -1423,7 +1423,7 @@ div[id$="-modal"] > div > * {
             
             
             -webkit-
-            border: 1px solid rgba(255, 255, 255, 0.6) !important;
+            
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
             border-radius: 0.5rem !important;
         }
@@ -1440,7 +1440,7 @@ div[id$="-modal"] > div > * {
             
             
             -webkit-
-            border: 1px solid rgba(255, 255, 255, 0.6) !important;
+            
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
             border-radius: 0.5rem !important;
             max-height: 200px !important;
@@ -1481,7 +1481,7 @@ div[id$="-modal"] > div > * {
         /* 3. CUSTOM BLACK CHECKBOX (DÀNH CHO FORM HỖ TRỢ & TUYÊN BỐ) */
         .custom-cb-input:checked ~ .custom-cb-box {
             background-color: #000 !important;
-            border-color: #000 !important;
+            
             color: #fff !important;
         }
         .custom-cb-input:checked ~ .custom-cb-box i {
@@ -1494,7 +1494,7 @@ div[id$="-modal"] > div > * {
             min-width: 20px !important;
             min-height: 20px !important;
             background-color: #fff !important;
-            border: 2px solid #555 !important;
+            
             border-radius: 4px !important;
             display: flex !important;
             align-items: center !important;
@@ -1506,7 +1506,7 @@ div[id$="-modal"] > div > * {
             cursor: pointer !important;
         }
         .custom-cb-box:hover {
-            border-color: #000 !important;
+            
         }
         .custom-cb-box i {
             opacity: 0;
@@ -1518,7 +1518,7 @@ div[id$="-modal"] > div > * {
 
         /* Làm trong suốt các nút bấm bên trong để không che mất kính */
         #user-dropdown a, #user-dropdown button {
-            background-color: transparent !important;
+            
             border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
             transition: background-color 0.2s ease;
         }
@@ -1542,53 +1542,13 @@ div[id$="-modal"] > div > * {
             -webkit-
         }
 
-        /* 4. BẢN THÂN CÁC KHUNG POPUP CŨNG LÀ KÍNH - Cùng mức với dropdown */
-        #crop-content,
-        #custom-alert-content, #settings-content, #newsboard-content, #docs-content,
-        #upload-info-content, #custom-prompt-content, #custom-role-content, #deny-prompt-content, #ban-prompt-content,
-        #up-progress-content,
-        #captcha-content,
-        #webrtc-qr-content,
-        #qr-login-host-content, #qr-login-confirm-content,
-        #advanced-filter-content,
-        #achievement-content {
-            
-            
-            -webkit-
-            border: 1px solid rgba(255, 255, 255, 0.6) !important;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
-        }
-
-        /* Fix nested backdrop-filter bug for dropdowns inside advanced-filter-modal */
-        #advanced-filter-content {
-            backdrop-filter: none !important;
-            -webkit-backdrop-filter: none !important;
-        }
-
-        /* Bóc các lớp nền trắng/xám dư thừa bên trong Modal để thấy kính xuyên thấu */
-        #crop-content > div,
-        #custom-alert-content > div,
-        #custom-prompt-content > div,
-        #deny-prompt-content > div,
-        #ban-prompt-content > div,
-        #upload-info-content > div,
-        #settings-content > div,
-        #newsboard-content > div,
-        #advanced-filter-content > div,
-        #docs-content > div {
-            background-color: transparent !important;
-            border-color: rgba(0, 0, 0, 0.05) !important;
-        }
-
-        .bg-gray-50\/50, .bg-white\/50 {
-            background-color: transparent !important;
-        }
+        
 
         /* Nút select đen hoàn toàn trong bảng tin */
         .news-card {
             transition: all 0.2s;
             background-color: white !important;
-            border: 1px solid #e4e4e7 !important;
+            
             border-radius: 0.5rem;
         }
         .news-card:hover:not(.active) {
@@ -1596,7 +1556,7 @@ div[id$="-modal"] > div > * {
         }
 .news-card.active {
              background-color: #000 !important;
-             border-color: #000 !important;
+             
              border-left: none !important;
              box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
          }
@@ -1671,7 +1631,7 @@ div[id$="-modal"] > div > * {
             
             
             -webkit-
-            border: 1px solid rgba(255, 255, 255, 0.6) !important;
+            
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15) !important;
         }
 
@@ -1865,7 +1825,7 @@ div[id$="-modal"] > div > * {
             width: 18px !important;
             height: 18px !important;
             background-color: #ffffff !important;
-            border: 3px solid #000000 !important;
+            
             border-radius: 50% !important;
             opacity: 1 !important;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
@@ -1959,9 +1919,9 @@ div[id$="-modal"] > div > * {
 
     <!-- MODAL YÊU CẦU XÁC MINH EMAIL (CHUẨN UI KÍNH MỜ CỦA SYSTEM) -->
     <div id="email-verify-modal" class="hidden fixed inset-0 flex items-center justify-center p-4" style="z-index: 99999; background-color: rgba(0, 0, 0, 0) !important;  -webkit-">
-        <div id="email-verify-content" class="rounded-lg shadow-2xl max-w-sm w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col" style="  -webkit- border: 1px solid rgba(255, 255, 255, 0.6) !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;">
+        <div id="email-verify-content" class="rounded-lg shadow-2xl max-w-sm w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col" style="  -webkit-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;">
             
-            <div class="p-5 text-center" style="background-color: transparent !important;">
+            <div class="p-5 text-center" style="">
                 <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full mb-4" style="background-color: rgba(0, 0, 0, 0.05);">
                     <i class="fa-solid fa-envelope-circle-check text-xl text-black"></i>
                 </div>
@@ -1976,7 +1936,7 @@ div[id$="-modal"] > div > * {
                 </div>
             </div>
 
-            <div class="px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse" style="background-color: transparent !important;">
+            <div class="px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse" style="">
                 <button type="button" id="btn-resend-verify" onclick="app.auth.resendVerification()" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-black text-base font-medium text-white hover:bg-gray-800 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition">
                     Gửi lại mail
                 </button>
@@ -1992,7 +1952,7 @@ div[id$="-modal"] > div > * {
 
         <!-- POPUP ONBOARDING (CHÀO MỪNG NGƯỜI MỚI - GLASSMORPHISM ĐỒNG BỘ) -->
         <div id="onboarding-modal" class="hidden fixed inset-0 z-[3000] flex items-center justify-center p-4" style="background-color: rgba(0, 0, 0, 0) !important;  -webkit-">
-            <div id="onboarding-content" class="rounded-2xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col relative" style="max-width: 420px;   -webkit- border: 1px solid rgba(255, 255, 255, 0.6) !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;">
+            <div id="onboarding-content" class="rounded-2xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col relative" style="max-width: 420px;   -webkit-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;">
 
                 <!-- Thanh tiến trình (Progress Bar) -->
                 <div class="px-6 pt-6">
@@ -4553,7 +4513,7 @@ div[id$="-modal"] > div > * {
             
             
             -webkit-
-            border: 1px solid rgba(255, 255, 255, 0.6) !important;
+            
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15) !important;
         }
 
@@ -6343,7 +6303,7 @@ div[id$="-modal"] > div > * {
 
     <!-- MODAL SỬA BIO (Glassmorphism 100% Sync) -->
     <div id="bio-edit-modal" class="hidden fixed inset-0 z-[3000] flex items-center justify-center p-4" style="background-color: rgba(0, 0, 0, 0) !important;  -webkit-">
-        <div id="bio-edit-content" class="rounded-2xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col" style="max-width: 450px;   -webkit- border: 1px solid rgba(255, 255, 255, 0.6) !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;">
+        <div id="bio-edit-content" class="rounded-2xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col" style="max-width: 450px;   -webkit-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;">
 
             <div class="p-5 md:p-6 border-b border-gray-200/50 flex justify-between items-center shrink-0">
                 <h3 class="text-lg font-bold text-black tracking-tight"><i class="fa-solid fa-pen-nib mr-2 text-gray-500"></i>Cập nhật tiểu sử</h3>
@@ -6365,7 +6325,7 @@ div[id$="-modal"] > div > * {
 
     <!-- MODAL CẬP NHẬT ĐƠN VỊ VẬN HÀNH -->
     <div id="operator-edit-modal" class="hidden fixed inset-0 z-[3000] flex items-center justify-center p-4" style="background-color: rgba(0, 0, 0, 0) !important;  -webkit-">
-        <div id="operator-edit-content" class="rounded-2xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col" style="max-width: 450px;   -webkit- border: 1px solid rgba(255, 255, 255, 0.6) !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;">
+        <div id="operator-edit-content" class="rounded-2xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col" style="max-width: 450px;   -webkit-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;">
             <div class="p-5 border-b border-gray-200/50 flex justify-between items-center shrink-0">
                 <h3 class="text-lg font-bold text-black tracking-tight"><i class="fa-solid fa-building mr-2 text-gray-500"></i>Cập nhật Đơn vị vận hành</h3>
                 <button onclick="app.operator.closeEditPrompt()" class="text-gray-400 hover:text-red-500 transition text-xl px-2"><i class="fa-solid fa-xmark"></i></button>
@@ -6408,7 +6368,7 @@ div[id$="-modal"] > div > * {
 
     <!-- MODAL CẬP NHẬT DÒNG XE (MODEL) -->
     <div id="model-edit-modal" class="hidden fixed inset-0 z-[3000] flex items-center justify-center p-4" style="background-color: rgba(0, 0, 0, 0) !important;  -webkit-">
-        <div id="model-edit-content" class="rounded-2xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col" style="max-width: 450px;   -webkit- border: 1px solid rgba(255, 255, 255, 0.6) !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;">
+        <div id="model-edit-content" class="rounded-2xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col" style="max-width: 450px;   -webkit-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;">
             <div class="p-5 border-b border-gray-200/50 flex justify-between items-center shrink-0">
                 <h3 class="text-lg font-bold text-black tracking-tight"><i class="fa-solid fa-layer-group mr-2 text-gray-500"></i>Cập nhật Dòng xe</h3>
                 <button onclick="app.model.closeEditPrompt()" class="text-gray-400 hover:text-red-500 transition text-xl px-2"><i class="fa-solid fa-xmark"></i></button>
@@ -6437,7 +6397,7 @@ div[id$="-modal"] > div > * {
 
     <!-- MODAL CẬP NHẬT TUYẾN (ROUTE) -->
     <div id="route-edit-modal" class="hidden fixed inset-0 z-[3000] flex items-center justify-center p-4" style="background-color: rgba(0, 0, 0, 0) !important;  -webkit-">
-        <div id="route-edit-content" class="rounded-2xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col" style="max-width: 450px;   -webkit- border: 1px solid rgba(255, 255, 255, 0.6) !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;">
+        <div id="route-edit-content" class="rounded-2xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col" style="max-width: 450px;   -webkit-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;">
             <div class="p-5 border-b border-gray-200/50 flex justify-between items-center shrink-0">
                 <h3 class="text-lg font-bold text-black tracking-tight"><i class="fa-solid fa-route mr-2 text-gray-500"></i>Cập nhật Thông tin Tuyến</h3>
                 <button onclick="app.route.closeEditPrompt()" class="text-gray-400 hover:text-red-500 transition text-xl px-2"><i class="fa-solid fa-xmark"></i></button>
@@ -6525,7 +6485,7 @@ div[id$="-modal"] > div > * {
 
     <!-- MODAL CHỌN ẢNH TÂM ĐẮC (Glassmorphism 100% Sync) -->
     <div id="fav-photo-modal" class="hidden fixed inset-0 z-[3000] flex items-center justify-center p-2 md:p-6" style="background-color: rgba(0, 0, 0, 0) !important;  -webkit-">
-        <div id="fav-photo-content" class="rounded-2xl w-full max-w-md flex flex-col overflow-hidden transform transition-all opacity-0 scale-95 relative" style="  -webkit- border: 1px solid rgba(255, 255, 255, 0.6) !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;">
+        <div id="fav-photo-content" class="rounded-2xl w-full max-w-md flex flex-col overflow-hidden transform transition-all opacity-0 scale-95 relative" style="  -webkit-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;">
 
             <div class="border-b border-gray-200/50 p-4 md:p-5 flex justify-between items-center shrink-0 rounded-t-2xl bg-white/40">
                 <h2 class="font-bold text-base md:text-lg text-black uppercase tracking-tight"><i class="fa-solid fa-link mr-2 text-gray-500"></i>Đặt ảnh tâm đắc</h2>
@@ -6573,8 +6533,8 @@ div[id$="-modal"] > div > * {
 
     <!-- MODAL THÔNG SỐ CHI TIẾT -->
     <div id="achievement-modal" class="hidden fixed inset-0 flex items-center justify-center p-4" style="z-index: 999999 !important; background-color: rgba(0, 0, 0, 0) !important;  -webkit-">
-        <div id="achievement-content" class="rounded-2xl shadow-2xl w-full transform transition-all opacity-0 scale-95 overflow-hidden" style="max-width: 380px !important;   -webkit- border: 1px solid rgba(255, 255, 255, 0.6) !important;">
-            <div class="p-6" style="background-color: transparent !important;">
+        <div id="achievement-content" class="rounded-2xl shadow-2xl w-full transform transition-all opacity-0 scale-95 overflow-hidden" style="max-width: 380px !important;   -webkit- ">
+            <div class="p-6" style="">
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="font-bold text-sm uppercase tracking-widest text-gray-800"><i class="fa-solid fa-chart-pie mr-2 text-black"></i>Chỉ số chi tiết</h3>
                     <button onclick="app.achievement.close()" class="text-gray-400 hover:text-red-500 transition text-xl"><i class="fa-solid fa-xmark"></i></button>
@@ -6690,7 +6650,7 @@ div[id$="-modal"] > div > * {
     
     <!-- MANAGER EDIT PHOTO MODAL -->
     <div id="manager-edit-modal" class="hidden fixed inset-0 z-[3000] flex items-center justify-center p-4" style="background-color: rgba(0, 0, 0, 0) !important;  -webkit-">
-        <div id="manager-edit-content" class="rounded-3xl w-full flex flex-col overflow-hidden transform transition-all opacity-0 scale-95 relative" style="max-width: 1152px; max-height: 90vh;   -webkit- border: 1px solid rgba(255, 255, 255, 0.6) !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;">
+        <div id="manager-edit-content" class="rounded-3xl w-full flex flex-col overflow-hidden transform transition-all opacity-0 scale-95 relative" style="max-width: 1152px; max-height: 90vh;   -webkit-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;">
             <div class="p-5 border-b border-gray-200/50 flex justify-between items-center shrink-0">
                 <h3 class="text-lg font-bold text-black tracking-tight"><i class="fa-solid fa-pen-to-square mr-2 text-gray-500"></i>Quản lý: Thêm vùng làm mờ</h3>
                 <button type="button" onclick="app.admin.closeEditPhotoModal()" class="text-gray-400 hover:text-red-500 transition text-xl px-2">
@@ -6744,6 +6704,6 @@ div[id$="-modal"] > div > * {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed top-24 left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.js?v=1788356886644"></script>
+<script src="/app.js?v=1788357237493"></script>
 </body>
 </html>

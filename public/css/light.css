@@ -25,7 +25,18 @@ body, body.theme-light {
     border: 1px solid #18181b !important;
 }
 
-/* 3. Khôi phục màu nền tĩnh cho TOÀN BỘ các class kính mờ */
+/* KHÔI PHỤC NỀN TRẮNG ĐẶC CHO MỌI POPUP (TẮT XUYÊN THẤU) */
+#crop-content, #custom-alert-content, #settings-content, #newsboard-content, #docs-content,
+#upload-info-content, #custom-prompt-content, #custom-role-content, #deny-prompt-content, #ban-prompt-content,
+#up-progress-content, #captcha-content, #webrtc-qr-content, #qr-login-host-content, #qr-login-confirm-content,
+#advanced-filter-content, #achievement-content, #operator-edit-content, #model-edit-content,
+#route-edit-content, #fav-photo-content, #manager-edit-content, #email-verify-content, #bio-edit-content {
+    background-color: #ffffff !important;
+    border: 1px solid #18181b !important;
+    box-shadow: none !important;
+}
+
+/* 3. Khôi phục màu nền tĩnh cho TOÀN BỘ các class kính mờ khác */
 .bg-white\/95, .bg-white\/90, .bg-white\/80, .bg-white\/70, .bg-white\/60, .bg-white\/50, .bg-white\/40, .bg-white\/30, .bg-white\/20,
 .bg-gray-50\/50, .bg-gray-100\/50, .bg-gray-200\/80, .bg-gray-200\/50 {
     background-color: #ffffff !important;
