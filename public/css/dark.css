@@ -9,7 +9,7 @@ body.theme-dark {
     color: #ffffff !important;
 }
 
-/* KHỚP MÀN HÌNH LOADING VỚI GIAO DIỆN TỐI */
+/* KHỚP MÀN HÌNH LOADING: CHỈ CÓ MÀU TRƠN, TỐI TĨNH */
 .theme-dark #loading-screen {
     background-color: #18181b !important;
     background-image: none !important;
@@ -21,7 +21,7 @@ body.theme-dark {
     border: 1px solid #ffffff !important;
 }
 
-/* 3. Màu nền tĩnh đen tuyền cho các class kính mờ và thẻ trắng */
+/* 3. Màu nền tĩnh đen tuyền */
 .theme-dark .bg-white, .theme-dark .bg-white\/90, .theme-dark .bg-white\/80, .theme-dark .bg-white\/70, .theme-dark .bg-white\/60, .theme-dark .bg-gray-50, .theme-dark .bg-gray-100 {
     background-color: #000000 !important;
     color: #ffffff !important;
@@ -40,7 +40,7 @@ body.theme-dark {
     border-color: #ffffff !important;
 }
 
-/* FIX ĐẶC BIỆT CHO DROPDOWN */
+/* FIX DROPDOWN */
 .theme-dark .suggestion-box, .theme-dark .filter-menu {
     border: 1px solid #ffffff !important;
     background-color: #000000 !important;
@@ -48,12 +48,28 @@ body.theme-dark {
     overflow: hidden !important;
 }
 
-/* FIX BẢNG BỊ GÓC VUÔNG, ĐÈ NÉT VÀ MẤT ĐƯỜNG KẺ DỌC */
+/* FIX BẢNG MẤT NÉT GÓC (Tạo viền bo góc hoàn hảo trực tiếp trên table) */
 .theme-dark .info-table, .theme-dark .data-table, .theme-dark .history-table {
     border-collapse: separate !important;
     border-spacing: 0 !important;
-    border: none !important; 
+    border: 1px solid #ffffff !important;
+    border-radius: 8px !important;
+    background-color: #000000 !important;
 }
+/* Bo góc cho các ô bên trong */
+.theme-dark .info-table tr:first-child td:first-child, .theme-dark .info-table tr:first-child th:first-child, .theme-dark .history-table tr:first-child th:first-child { border-top-left-radius: 7px !important; }
+.theme-dark .info-table tr:first-child td:last-child, .theme-dark .info-table tr:first-child th:last-child, .theme-dark .history-table tr:first-child th:last-child { border-top-right-radius: 7px !important; }
+.theme-dark .info-table tr:last-child td:first-child, .theme-dark .info-table tr:last-child th:first-child, .theme-dark .history-table tr:last-child td:first-child { border-bottom-left-radius: 7px !important; }
+.theme-dark .info-table tr:last-child td:last-child, .theme-dark .info-table tr:last-child th:last-child, .theme-dark .history-table tr:last-child td:last-child { border-bottom-right-radius: 7px !important; }
+
+/* Ẩn viền của thẻ div bọc ngoài bảng */
+.theme-dark .border.border-gray-200:has(> .info-table),
+.theme-dark .border.border-gray-200:has(> .history-table-wrapper),
+.theme-dark .border.border-gray-200:has(> .data-table) {
+    border: none !important;
+    box-shadow: none !important;
+}
+
 .theme-dark .info-table td, .theme-dark .info-table th, .theme-dark .data-table td, .theme-dark .data-table th, .theme-dark .history-table td, .theme-dark .history-table th {
     border-color: #ffffff !important; 
 }

@@ -13,13 +13,10 @@ body, body.theme-light {
     color: #18181b !important;
 }
 
-/* KHỚP MÀN HÌNH LOADING VỚI GIAO DIỆN VỞ */
+/* KHỚP MÀN HÌNH LOADING: CHỈ CÓ MÀU TRƠN, KHÔNG KẺ Ô LY */
 #loading-screen {
     background-color: #fdfcf8 !important; 
-    background-image: 
-        linear-gradient(#e5e7eb 1px, transparent 1px),
-        linear-gradient(90deg, #e5e7eb 1px, transparent 1px) !important;
-    background-size: 20px 20px !important;
+    background-image: none !important;
 }
 
 /* Biến các thẻ có shadow thành thẻ phẳng CÓ VIỀN */
@@ -33,7 +30,7 @@ body, body.theme-light {
     background-color: #ffffff !important;
 }
 
-/* 4. Bo góc duy nhất nhẹ nhàng (giữ nguyên tròn cho avatar) */
+/* 4. Bo góc duy nhất nhẹ nhàng */
 .rounded-3xl, .rounded-2xl, .rounded-xl, .rounded-lg {
     border-radius: 8px !important;
 }
@@ -41,7 +38,7 @@ body, body.theme-light {
     border-radius: 9999px !important; 
 }
 
-/* 5. Đổi màu các viền có sẵn thành viền đen (không force độ dày) */
+/* 5. Đổi màu các viền có sẵn thành viền đen */
 .border-white\/20, .border-white\/30, .border-gray-100, .border-gray-200, .border-gray-300, .border-vbs-border, .border-\[\#e4e4e7\] {
     border-color: #18181b !important;
 }
@@ -54,18 +51,33 @@ body, body.theme-light {
     overflow: hidden !important;
 }
 
-/* FIX BẢNG BỊ GÓC VUÔNG, ĐÈ NÉT VÀ MẤT ĐƯỜNG KẺ DỌC */
+/* FIX BẢNG MẤT NÉT GÓC (Tạo viền bo góc hoàn hảo trực tiếp trên table) */
 .info-table, .data-table, .history-table {
     border-collapse: separate !important;
     border-spacing: 0 !important;
-    border: none !important; /* Xoá viền của thẻ table để dùng viền của the div wrapper, tránh đè nét */
+    border: 1px solid #18181b !important; /* Nối lại 4 đường kẻ góc */
+    border-radius: 8px !important;
+    background-color: #ffffff !important;
 }
+/* Bo góc cho các ô bên trong để không bị tràn nền ra ngoài góc viền */
+.info-table tr:first-child td:first-child, .info-table tr:first-child th:first-child, .history-table tr:first-child th:first-child { border-top-left-radius: 7px !important; }
+.info-table tr:first-child td:last-child, .info-table tr:first-child th:last-child, .history-table tr:first-child th:last-child { border-top-right-radius: 7px !important; }
+.info-table tr:last-child td:first-child, .info-table tr:last-child th:first-child, .history-table tr:last-child td:first-child { border-bottom-left-radius: 7px !important; }
+.info-table tr:last-child td:last-child, .info-table tr:last-child th:last-child, .history-table tr:last-child td:last-child { border-bottom-right-radius: 7px !important; }
+
+/* Ẩn viền của thẻ div bọc ngoài bảng để tránh đè nét 2 lớp viền */
+.border.border-gray-200:has(> .info-table),
+.border.border-gray-200:has(> .history-table-wrapper),
+.border.border-gray-200:has(> .data-table) {
+    border: none !important;
+    box-shadow: none !important;
+}
+
 .info-table td, .info-table th, .data-table td, .data-table th, .history-table td, .history-table th {
     border-color: #18181b !important; 
-    /* Trả lại tự do cho đường kẻ dọc và các nét nguyên bản của HTML (không force none nữa) */
 }
 .info-table tr:last-child td, .data-table tr:last-child td, .history-table tr:last-child td {
-    border-bottom: none !important; /* Tránh đè viền dưới cùng của bảng vào viền ngoài wrapper */
+    border-bottom: none !important; 
 }
 
 /* Các ô thống kê */
