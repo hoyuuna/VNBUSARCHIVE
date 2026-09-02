@@ -20,7 +20,16 @@ try {
             '5_admin.js'
         ];
         
-        let combinedJs = '';
+        // Generate version string
+        const pad = (n) => String(n).padStart(2, '0');
+        const now = new Date();
+        const versionStr = `${String(now.getFullYear()).slice(-2)}.${pad(now.getMonth()+1)}.${pad(now.getDate())}.${pad(now.getHours())}.${pad(now.getMinutes())}.${pad(now.getSeconds())}`;
+        
+        const versionJsonPath = path.join(__dirname, 'version.json');
+        fs.writeFileSync(versionJsonPath, JSON.stringify({ version: versionStr }));
+        console.log(`Đã tạo version.json với phiên bản: ${versionStr}`);
+        
+        let combinedJs = `window.APP_VERSION = "${versionStr}";\n`;
         jsFiles.forEach(file => {
             const filePath = path.join(jsDir, file);
             if (fs.existsSync(filePath)) {

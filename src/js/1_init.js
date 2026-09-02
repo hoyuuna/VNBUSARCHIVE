@@ -2969,6 +2969,26 @@ Object.assign(window.app, {
                 app.realtimeChannel = channel;
                 };
                 app.initRealtimeChannel();
+                
+                window.app.checkVersion = async () => {
+                    try {
+                        if (!window.APP_VERSION) return;
+                        const res = await fetch(`https://raw.githubusercontent.com/hoyuuna/VNBUSARCHIVE/refs/heads/main/version.json?t=${Date.now()}`);
+                        if (res.ok) {
+                            const data = await res.json();
+                            if (data.version && data.version !== window.APP_VERSION) {
+                                const popupHtml = `
+                                    <div class="text-center">
+                                        <p class="mb-4 text-base">Web đã có phiên bản <b>${data.version}</b> mới!<br><span class="text-xs text-gray-500">(Bạn đang ở ${window.APP_VERSION}).</span><br>Hãy tải lại trang để trải nghiệm các cập nhật mới nhất!</p>
+                                        <button onclick="window.location.reload(true)" class="w-full bg-black text-white font-bold py-3 rounded-md hover:bg-gray-800 transition uppercase tracking-wider text-sm shadow-sm flex justify-center items-center gap-2"><i class="fa-solid fa-rotate-right"></i> Tải lại trang</button>
+                                    </div>
+                                `;
+                                app.ui.showAlert(popupHtml, null, null, { hideButtons: true, title: "Cập nhật ứng dụng" });
+                            }
+                        }
+                    } catch(e) {}
+                };
+                
                 window.addEventListener('visibilitychange', () => {
                     if (document.visibilityState === 'visible') {
                         if (!app.isReinitializing) {
@@ -2980,8 +3000,11 @@ Object.assign(window.app, {
                             app.setRealtimeStatus(false);
                             if (typeof app.initRealtimeChannel === 'function') app.initRealtimeChannel();
                         }
+                        if (typeof app.checkVersion === 'function') app.checkVersion();
                     }
                 });
+                
+                setTimeout(() => { if (typeof app.checkVersion === 'function') app.checkVersion(); }, 5000);
                 window.addEventListener('offline', () => app.setRealtimeStatus(false));
                 window.addEventListener('online', () => {
                     const state = (app.realtimeChannel?.state || '').toLowerCase();
