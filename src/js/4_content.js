@@ -1583,9 +1583,9 @@ Object.assign(window.app, {
                                 }
                             }
                             const validateAndResolve = (fraudFlag) => {
-                                if (!model) { reject("EXIF tin ảnh thiếu trường Tên thiết bị chụp (Camera Model). Bạn vui lòng chọn file ảnh gốc nhé!" + helpLinkHTML); return; }
-                                if (!dateTimeOriginal) { reject("EXIF tin ảnh thiếu trường Ngày giờ chụp (DateTimeOriginal). Bạn vui lòng chọn file ảnh gốc nhé!" + helpLinkHTML); return; }
-                                if (!exposureTime || !iso) { reject("EXIF tin ảnh thiếu trường Thông số kỹ thuật (Exposure/ISO). Bạn vui lòng chọn file ảnh gốc nhé!" + helpLinkHTML); return; }
+                                if (!model) { reject("EXIF ảnh thiếu trường Tên thiết bị chụp (Camera Model). Bạn vui lòng chọn file ảnh gốc nhé!" + helpLinkHTML); return; }
+                                if (!dateTimeOriginal) { reject("EXIF ảnh thiếu trường Ngày giờ chụp (DateTimeOriginal). Bạn vui lòng chọn file ảnh gốc nhé!" + helpLinkHTML); return; }
+                                if (!exposureTime || !iso) { reject("EXIF ảnh thiếu trường Thông số kỹ thuật (Exposure/ISO). Bạn vui lòng chọn file ảnh gốc nhé!" + helpLinkHTML); return; }
                                 let shutter = exposureTime;
                                 if (exposureTime && exposureTime < 1) shutter = `1/${Math.round(1 / exposureTime)}`;
                                 let dateStr = "";
