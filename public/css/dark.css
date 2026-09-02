@@ -3,7 +3,7 @@
 ========================================== */
 
 /* 1. Nền tối tĩnh */
-body.theme-dark {
+html.theme-dark body, .theme-dark {
     background-color: #18181b !important;
     background-image: none !important;
     color: #ffffff !important;
@@ -32,11 +32,14 @@ body.theme-dark {
     box-shadow: none !important;
 }
 
-/* 3. Màu nền tĩnh đen tuyền cho TOÀN BỘ các class kính mờ */
-.theme-dark .bg-white, .theme-dark .bg-gray-50, .theme-dark .bg-gray-100,
+/* 3. Màu nền tĩnh đen tuyền cho TOÀN BỘ các class kính mờ và thẻ stat-item */
+.theme-dark .bg-white, .theme-dark .bg-gray-50, .theme-dark .bg-gray-100, .theme-dark .stat-item,
 .theme-dark .bg-white\/95, .theme-dark .bg-white\/90, .theme-dark .bg-white\/80, .theme-dark .bg-white\/70, .theme-dark .bg-white\/60, .theme-dark .bg-white\/50, .theme-dark .bg-white\/40, .theme-dark .bg-white\/30, .theme-dark .bg-white\/20,
 .theme-dark .bg-gray-50\/50, .theme-dark .bg-gray-100\/50, .theme-dark .bg-gray-200\/80, .theme-dark .bg-gray-200\/50 {
     background-color: #000000 !important;
+    color: #ffffff !important;
+}
+.theme-dark .stat-value, .theme-dark .stat-label {
     color: #ffffff !important;
 }
 
@@ -49,7 +52,7 @@ body.theme-dark {
 }
 
 /* 5. Đổi màu các viền thành trắng */
-.theme-dark .border-white\/20, .theme-dark .border-white\/30, .theme-dark .border-gray-100, .theme-dark .border-gray-200, .theme-dark .border-gray-300, .theme-dark .border-vbs-border, .theme-dark .border-\[\#e4e4e7\], .theme-dark .border-black {
+.theme-dark .stat-item, .theme-dark .border-white\/20, .theme-dark .border-white\/30, .theme-dark .border-gray-100, .theme-dark .border-gray-200, .theme-dark .border-gray-300, .theme-dark .border-vbs-border, .theme-dark .border-\[\#e4e4e7\], .theme-dark .border-black {
     border-color: #ffffff !important;
 }
 
@@ -87,9 +90,6 @@ body.theme-dark {
 }
 .theme-dark .info-table tr:last-child td, .theme-dark .data-table tr:last-child td, .theme-dark .history-table tr:last-child td {
     border-bottom: none !important;
-}
-.theme-dark .stat-item {
-    border-color: #ffffff !important; 
 }
 
 /* 6. Fix text hover không gạch chân */
