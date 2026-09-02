@@ -13,6 +13,15 @@ body, body.theme-light {
     color: #18181b !important;
 }
 
+/* KHỚP MÀN HÌNH LOADING VỚI GIAO DIỆN VỞ */
+#loading-screen {
+    background-color: #fdfcf8 !important; 
+    background-image: 
+        linear-gradient(#e5e7eb 1px, transparent 1px),
+        linear-gradient(90deg, #e5e7eb 1px, transparent 1px) !important;
+    background-size: 20px 20px !important;
+}
+
 /* Biến các thẻ có shadow thành thẻ phẳng CÓ VIỀN */
 .shadow-2xl, .shadow-xl, .shadow-lg, .shadow-md, .shadow-sm, .shadow-island, .shadow-\[0_1px_2px_0_rgba\(0\,0\,0\,0\.05\)\] {
     box-shadow: none !important;
@@ -45,22 +54,18 @@ body, body.theme-light {
     overflow: hidden !important;
 }
 
-/* FIX BẢNG BỊ GÓC VUÔNG VÀ ĐÈ NÉT (Dùng separate thay vì collapse) */
+/* FIX BẢNG BỊ GÓC VUÔNG, ĐÈ NÉT VÀ MẤT ĐƯỜNG KẺ DỌC */
 .info-table, .data-table, .history-table {
     border-collapse: separate !important;
     border-spacing: 0 !important;
-    border: 1px solid #18181b !important;
-    border-radius: 8px !important;
-    overflow: hidden !important;
+    border: none !important; /* Xoá viền của thẻ table để dùng viền của the div wrapper, tránh đè nét */
 }
 .info-table td, .info-table th, .data-table td, .data-table th, .history-table td, .history-table th {
     border-color: #18181b !important; 
-    border-right: none !important;
-    border-left: none !important;
-    border-top: none !important;
+    /* Trả lại tự do cho đường kẻ dọc và các nét nguyên bản của HTML (không force none nữa) */
 }
 .info-table tr:last-child td, .data-table tr:last-child td, .history-table tr:last-child td {
-    border-bottom: none !important; /* Tránh đè viền dưới cùng của bảng */
+    border-bottom: none !important; /* Tránh đè viền dưới cùng của bảng vào viền ngoài wrapper */
 }
 
 /* Các ô thống kê */

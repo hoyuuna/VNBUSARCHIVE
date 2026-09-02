@@ -9,6 +9,12 @@ body.theme-dark {
     color: #ffffff !important;
 }
 
+/* KHỚP MÀN HÌNH LOADING VỚI GIAO DIỆN TỐI */
+.theme-dark #loading-screen {
+    background-color: #18181b !important;
+    background-image: none !important;
+}
+
 /* Biến các thẻ nổi (shadow) thành thẻ phẳng CÓ VIỀN TRẮNG */
 .theme-dark .shadow-2xl, .theme-dark .shadow-xl, .theme-dark .shadow-lg, .theme-dark .shadow-md, .theme-dark .shadow-sm, .theme-dark .shadow-island, .theme-dark .shadow-\[0_1px_2px_0_rgba\(0\,0\,0\,0\.05\)\] {
     box-shadow: none !important;
@@ -42,19 +48,14 @@ body.theme-dark {
     overflow: hidden !important;
 }
 
-/* FIX BẢNG BỊ GÓC VUÔNG VÀ ĐÈ NÉT */
+/* FIX BẢNG BỊ GÓC VUÔNG, ĐÈ NÉT VÀ MẤT ĐƯỜNG KẺ DỌC */
 .theme-dark .info-table, .theme-dark .data-table, .theme-dark .history-table {
     border-collapse: separate !important;
     border-spacing: 0 !important;
-    border: 1px solid #ffffff !important;
-    border-radius: 8px !important;
-    overflow: hidden !important;
+    border: none !important; 
 }
 .theme-dark .info-table td, .theme-dark .info-table th, .theme-dark .data-table td, .theme-dark .data-table th, .theme-dark .history-table td, .theme-dark .history-table th {
     border-color: #ffffff !important; 
-    border-right: none !important;
-    border-left: none !important;
-    border-top: none !important;
 }
 .theme-dark .info-table tr:last-child td, .theme-dark .data-table tr:last-child td, .theme-dark .history-table tr:last-child td {
     border-bottom: none !important;
