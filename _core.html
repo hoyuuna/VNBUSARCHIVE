@@ -1905,7 +1905,7 @@ div[id$="-modal"] > div > * {
 
 
     <!-- MODAL CAPTCHA POPUP -->
-    <div id="captcha-modal" class="hidden fixed inset-0 bg-black/60  flex items-center justify-center p-4 transition-opacity duration-300 opacity-0 backdrop-blur-sm" style="z-index: 99999;">
+    <div id="captcha-modal" class="hidden fixed inset-0 flex items-center justify-center p-4 transition-opacity duration-300 opacity-0 backdrop-blur-md" style="z-index: 99999;">
         <div class="bg-white rounded-2xl shadow-2xl p-6 flex flex-col items-center max-w-sm w-full transform scale-95 transition-transform duration-300" id="captcha-content">
             <div class="w-12 h-12 bg-gray-100 text-black rounded-full flex items-center justify-center text-xl mb-4 shadow-inner border border-gray-200">
                 <i class="fa-solid fa-shield-halved"></i>
@@ -1925,7 +1925,7 @@ div[id$="-modal"] > div > * {
     </div>
 
     <!-- MODAL YÊU CẦU XÁC MINH EMAIL (CHUẨN UI KÍNH MỜ CỦA SYSTEM) -->
-    <div id="email-verify-modal" class="hidden fixed inset-0 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" >
+    <div id="email-verify-modal" class="hidden fixed inset-0 flex items-center justify-center p-4 backdrop-blur-md" >
         <div id="email-verify-content" class="rounded-lg shadow-2xl max-w-sm w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col" >
             
             <div class="p-5 text-center" style="">
@@ -1958,7 +1958,7 @@ div[id$="-modal"] > div > * {
     <div id="app-container" style="display: none; opacity: 0; transition: opacity 0.5s ease-in-out;">
 
         <!-- POPUP ONBOARDING (CHÀO MỪNG NGƯỜI MỚI - GLASSMORPHISM ĐỒNG BỘ) -->
-        <div id="onboarding-modal" class="hidden fixed inset-0 z-[3000] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" >
+        <div id="onboarding-modal" class="hidden fixed inset-0 z-[3000] flex items-center justify-center p-4 backdrop-blur-md" >
             <div id="onboarding-content" class="rounded-2xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col relative" style="max-width: 420px">
 
                 <!-- Thanh tiến trình (Progress Bar) -->
@@ -2061,7 +2061,7 @@ div[id$="-modal"] > div > * {
 
                 <!-- Footer (Nút Back / Next) - ĐÃ BỎ ĐƯỜNG KẺ TRÊN (border-t) -->
                 <div class="p-6 pt-3 flex justify-between items-center mt-auto">
-                    <button id="onb-btn-prev" onclick="app.onboarding.prev()" class="w-10 h-10 rounded-full bg-black/5 hover:bg-black/10 text-gray-700 transition flex items-center justify-center invisible" title="Quay lại">
+                    <button id="onb-btn-prev" onclick="app.onboarding.prev()" class="w-10 h-10 rounded-full hover: text-gray-700 transition flex items-center justify-center invisible" title="Quay lại">
                         <i class="fa-solid fa-arrow-left"></i>
                     </button>
                     <button id="onb-btn-next" onclick="app.onboarding.next()" class="bg-black text-white px-5 py-2.5 rounded-full text-sm font-bold shadow-md hover:bg-gray-800 transition flex items-center gap-2">
@@ -2116,7 +2116,7 @@ div[id$="-modal"] > div > * {
 </div>
 
         <div id="custom-alert-modal"
-            class="hidden fixed inset-0 z-[5000] bg-black/40  flex items-center justify-center p-4 backdrop-blur-sm">
+            class="hidden fixed inset-0 z-[5000] flex items-center justify-center p-4 backdrop-blur-md">
             <div id="custom-alert-content"
                 class="bg-white rounded-lg shadow-2xl max-w-sm w-full border border-gray-200 overflow-hidden transform transition-all">
                 <div class="p-5 text-center pb-2">
@@ -2147,7 +2147,7 @@ div[id$="-modal"] > div > * {
 
 
         <div id="upload-progress-modal"
-            class="hidden fixed inset-0 z-[5000] bg-black/60  flex items-center justify-center p-4 backdrop-blur-sm">
+            class="hidden fixed inset-0 z-[5000] flex items-center justify-center p-4 backdrop-blur-md">
             <div id="up-progress-content"
                 class="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6 text-center transform border border-gray-200">
 
@@ -2266,7 +2266,7 @@ div[id$="-modal"] > div > * {
 
 
         <div id="custom-prompt-modal"
-            class="hidden fixed inset-0 z-[5000] bg-black/40  flex items-center justify-center p-4 backdrop-blur-sm">
+            class="hidden fixed inset-0 z-[5000] flex items-center justify-center p-4 backdrop-blur-md">
             <div id="custom-prompt-content"
                 class="bg-white rounded-lg shadow-2xl max-w-sm w-full border border-gray-200 overflow-hidden transform transition-all opacity-0 scale-95">
                 <div class="p-5">
@@ -2287,7 +2287,7 @@ div[id$="-modal"] > div > * {
         </div>
 
 
-                <div id="custom-role-modal" class="hidden fixed inset-0 z-[5000] bg-black/40  flex items-center justify-center p-4 backdrop-blur-sm">
+                <div id="custom-role-modal" class="hidden fixed inset-0 z-[5000] flex items-center justify-center p-4 backdrop-blur-md">
             <div id="custom-role-content" class="rounded-xl shadow-2xl max-w-sm w-full border border-white/60 overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col">
                 <div class="p-5 md:p-6 pb-4">
                     <h3 class="text-lg font-bold text-black mb-1">
@@ -2332,7 +2332,7 @@ div[id$="-modal"] > div > * {
             </div>
         </div>
 
-        <div id="subrole-prompt-modal" class="hidden fixed inset-0 z-[5000] bg-black/40  flex items-center justify-center p-4 backdrop-blur-sm">
+        <div id="subrole-prompt-modal" class="hidden fixed inset-0 z-[5000] flex items-center justify-center p-4 backdrop-blur-md">
             <div id="subrole-prompt-content" class="bg-gray-50 rounded-xl shadow-2xl max-w-sm w-full border border-gray-200 overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col">
                 <div class="p-5 border-b border-gray-200 shrink-0 bg-white rounded-t-xl">
                     <h3 class="text-lg font-bold text-black mb-1"><i class="fa-solid fa-tags mr-2 text-blue-600"></i>Quản Lý Subroles</h3>
@@ -2379,7 +2379,7 @@ div[id$="-modal"] > div > * {
             </div>
         </div>
 
-        <div id="ban-prompt-modal" class="hidden fixed inset-0 z-[5000] bg-black/40  flex items-center justify-center p-4 backdrop-blur-sm">
+        <div id="ban-prompt-modal" class="hidden fixed inset-0 z-[5000] flex items-center justify-center p-4 backdrop-blur-md">
             <div id="ban-prompt-content" class="bg-gray-50 rounded-xl shadow-2xl max-w-lg w-full border border-gray-200 overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col max-h-[90vh]">
                 <div class="p-5 border-b border-gray-200 shrink-0 bg-white rounded-t-xl">
                     <h3 id="ban-prompt-title" class="text-lg font-bold text-red-600 mb-1"><i class="fa-solid fa-ban mr-2"></i>Cấm Tài Khoản</h3>
@@ -2492,7 +2492,7 @@ div[id$="-modal"] > div > * {
         </div>
 
         <div id="deny-prompt-modal"
-            class="hidden fixed inset-0 z-[5000] bg-black/40  flex items-center justify-center p-4 backdrop-blur-sm">
+            class="hidden fixed inset-0 z-[5000] flex items-center justify-center p-4 backdrop-blur-md">
 
             <div id="deny-prompt-content"
                 class="bg-gray-50 rounded-xl shadow-2xl max-w-lg w-full border border-gray-200 overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col max-h-[90vh]">
@@ -2639,7 +2639,7 @@ div[id$="-modal"] > div > * {
 
 
         <div id="newsboard-modal"
-            class="hidden fixed inset-0 z-[3000] bg-black/60  flex items-center justify-center p-2 md:p-6 backdrop-blur-sm">
+            class="hidden fixed inset-0 z-[3000] flex items-center justify-center p-2 md:p-6 backdrop-blur-md">
             <!-- Đã đổi rounded-xl thành rounded-2xl để đồng bộ -->
             <div id="newsboard-content"
                 class="rounded-2xl shadow-2xl w-full max-w-4xl h-[85vh] md:h-[75vh] min-h-[400px] flex flex-col overflow-hidden transform transition-all opacity-0 scale-95 relative z-50">
@@ -2686,7 +2686,7 @@ div[id$="-modal"] > div > * {
 
 
 
-        <div id="admin-zoom-modal" class="hidden fixed inset-0 z-[4000] bg-black/95 flex flex-col items-center justify-center px-4 pt-4 pb-20 md:pb-24 backdrop-blur-sm" onclick="app.admin.closeZoom()">
+        <div id="admin-zoom-modal" class="hidden fixed inset-0 z-[4000] flex flex-col items-center justify-center px-4 pt-4 pb-20 md:pb-24 backdrop-blur-md" onclick="app.admin.closeZoom()">
             <div id="admin-zoom-container" class="relative inline-flex items-center justify-center max-w-full max-h-full transition-transform duration-300 zoom-img-cursor" onclick="event.stopPropagation();">
                 <img id="admin-zoom-img" src="" crossorigin="anonymous" class="max-w-full max-h-full object-contain">
                 <div id="admin-zoom-grid-overlay" class="grid-3x3-overlay hidden">
@@ -3032,7 +3032,7 @@ div[id$="-modal"] > div > * {
         </header>
 
 
-        <div id="settings-modal" class="hidden fixed inset-0 z-[3000] bg-black/60  flex items-center justify-center p-2 md:p-6 backdrop-blur-sm">
+        <div id="settings-modal" class="hidden fixed inset-0 z-[3000] flex items-center justify-center p-2 md:p-6 backdrop-blur-md">
             <div id="settings-content" class="rounded-2xl shadow-2xl w-full max-w-4xl h-[85vh] md:h-[70vh] min-h-[450px] flex flex-col overflow-hidden transform transition-all opacity-0 scale-95 relative z-50">
 
                 <!-- Header -->
@@ -4427,13 +4427,13 @@ div[id$="-modal"] > div > * {
                                         
                                     <!-- [MỚI] NÚT ZOOM ẢNH BÊ TỪ ADMIN SANG -->
                                     <button type="button" onclick="app.admin.openZoom(document.getElementById('preview-img').src, false)" 
-                                        class="absolute top-2 right-2 bg-black/50 text-white w-8 h-8 rounded hover:bg-black flex items-center justify-center transition z-30 pointer-events-auto" 
+                                        class="absolute top-2 right-2 text-white w-8 h-8 rounded hover:bg-black flex items-center justify-center transition z-30 pointer-events-auto" 
                                         title="Phóng to ảnh gốc">
                                         <i class="fa-solid fa-expand"></i>
                                     </button>
                                     <!-- ================================== -->
 
-                                    <div id="preview-footer-bar" class="absolute bottom-0 left-0 w-full bg-black/25 -[8px] z-10 pointer-events-none border-t border-white/10 flex items-center justify-between">
+                                    <div id="preview-footer-bar" class="absolute bottom-0 left-0 w-full -[8px] z-10 pointer-events-none border-t border-white/10 flex items-center justify-between">
                                         <span class="footer-text-left" style="font-weight: 900; font-style: italic; opacity: 0.9; color: white; white-space: nowrap;">VNBUSARCHIVE<span style="font-size: 80%; font-weight: 700;">.io.vn</span></span>
                                         <span id="preview-footer-copy" class="footer-text-right" style="font-weight: 700; color: white; white-space: nowrap; opacity: 0.9;"></span>
                                     </div>
@@ -4746,7 +4746,7 @@ div[id$="-modal"] > div > * {
                                         <div class="relative w-full aspect-[16/10] rounded-md overflow-hidden border border-gray-300">
                                             <img id="up-model-preview-img" src="" class="w-full h-full object-cover pointer-events-none">
                                             <button type="button" onclick="app.admin.openZoom(document.getElementById('up-model-preview-img').dataset.fullSrc, false)" 
-                                                class="absolute top-2 right-2 bg-black/50 text-white w-8 h-8 rounded hover:bg-black flex items-center justify-center transition z-30 pointer-events-auto" 
+                                                class="absolute top-2 right-2 text-white w-8 h-8 rounded hover:bg-black flex items-center justify-center transition z-30 pointer-events-auto" 
                                                 title="Phóng to ảnh mẫu">
                                                 <i class="fa-solid fa-expand"></i>
                                             </button>
@@ -5742,7 +5742,7 @@ div[id$="-modal"] > div > * {
 
     <!-- MODALS ĐĂNG NHẬP QR -->
     <!-- 1. Modal Host (Máy B - Hiển thị QR) -->
-    <div id="qr-login-host-modal" class="hidden fixed inset-0 bg-black/40  flex flex-col items-center justify-center p-4 backdrop-blur-sm" style="z-index: 99999;">
+    <div id="qr-login-host-modal" class="hidden fixed inset-0 flex flex-col items-center justify-center p-4 backdrop-blur-md" style="z-index: 99999;">
         <div id="qr-login-host-content" class="bg-white rounded-2xl shadow-2xl p-6 md:p-8 max-w-sm w-full text-center flex flex-col items-center transform transition-all fade-zoom-in">
             <div class="w-12 h-12 bg-black text-white rounded-full flex items-center justify-center text-xl mb-4 shadow-md">
                 <i class="fa-solid fa-qrcode"></i>
@@ -5770,7 +5770,7 @@ div[id$="-modal"] > div > * {
     </div>
 
     <!-- 2. Modal Client (Máy A - Xác nhận đăng nhập) -->
-    <div id="qr-login-confirm-modal" class="hidden fixed inset-0 bg-black/60  flex flex-col items-center justify-center p-4 backdrop-blur-sm" style="z-index: 100000;">
+    <div id="qr-login-confirm-modal" class="hidden fixed inset-0 flex flex-col items-center justify-center p-4 backdrop-blur-md" style="z-index: 100000;">
         <div id="qr-login-confirm-content" class="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full transform transition-all fade-zoom-in">
             <div class="text-center mb-5">
                 <div class="w-16 h-16 bg-gray-100 text-black rounded-full flex items-center justify-center text-2xl mb-3 shadow-md mx-auto border border-gray-200">
@@ -5825,7 +5825,7 @@ div[id$="-modal"] > div > * {
     </div>
 
     <!-- UI MODAL HIỂN THỊ MÃ QR TẠI PC -->
-    <div id="webrtc-qr-modal" class="hidden fixed inset-0 bg-black/40  flex flex-col items-center justify-center p-4 backdrop-blur-sm" style="z-index: 99999;">
+    <div id="webrtc-qr-modal" class="hidden fixed inset-0 flex flex-col items-center justify-center p-4 backdrop-blur-md" style="z-index: 99999;">
         <div id="webrtc-qr-content" class="bg-white rounded-2xl shadow-2xl p-6 md:p-8 max-w-sm w-full text-center flex flex-col items-center transform transition-all fade-zoom-in">
             <div class="w-12 h-12 bg-black text-white rounded-full flex items-center justify-center text-xl mb-4 shadow-md">
                 <i class="fa-solid fa-mobile-screen-button"></i>
@@ -6323,7 +6323,7 @@ div[id$="-modal"] > div > * {
     </script>
 
     <!-- MODAL SỬA BIO (Glassmorphism 100% Sync) -->
-    <div id="bio-edit-modal" class="hidden fixed inset-0 z-[3000] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" >
+    <div id="bio-edit-modal" class="hidden fixed inset-0 z-[3000] flex items-center justify-center p-4 backdrop-blur-md" >
         <div id="bio-edit-content" class="rounded-2xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col" style="max-width: 450px">
 
             <div class="p-5 md:p-6 border-b border-gray-200/50 flex justify-between items-center shrink-0">
@@ -6345,7 +6345,7 @@ div[id$="-modal"] > div > * {
     </div>
 
     <!-- MODAL CẬP NHẬT ĐƠN VỊ VẬN HÀNH -->
-    <div id="operator-edit-modal" class="hidden fixed inset-0 z-[3000] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" >
+    <div id="operator-edit-modal" class="hidden fixed inset-0 z-[3000] flex items-center justify-center p-4 backdrop-blur-md" >
         <div id="operator-edit-content" class="rounded-2xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col" style="max-width: 450px">
             <div class="p-5 border-b border-gray-200/50 flex justify-between items-center shrink-0">
                 <h3 class="text-lg font-bold text-black tracking-tight"><i class="fa-solid fa-building mr-2 text-gray-500"></i>Cập nhật Đơn vị vận hành</h3>
@@ -6388,7 +6388,7 @@ div[id$="-modal"] > div > * {
     </div>
 
     <!-- MODAL CẬP NHẬT DÒNG XE (MODEL) -->
-    <div id="model-edit-modal" class="hidden fixed inset-0 z-[3000] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" >
+    <div id="model-edit-modal" class="hidden fixed inset-0 z-[3000] flex items-center justify-center p-4 backdrop-blur-md" >
         <div id="model-edit-content" class="rounded-2xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col" style="max-width: 450px">
             <div class="p-5 border-b border-gray-200/50 flex justify-between items-center shrink-0">
                 <h3 class="text-lg font-bold text-black tracking-tight"><i class="fa-solid fa-layer-group mr-2 text-gray-500"></i>Cập nhật Dòng xe</h3>
@@ -6417,7 +6417,7 @@ div[id$="-modal"] > div > * {
     </div>
 
     <!-- MODAL CẬP NHẬT TUYẾN (ROUTE) -->
-    <div id="route-edit-modal" class="hidden fixed inset-0 z-[3000] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" >
+    <div id="route-edit-modal" class="hidden fixed inset-0 z-[3000] flex items-center justify-center p-4 backdrop-blur-md" >
         <div id="route-edit-content" class="rounded-2xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col" style="max-width: 450px">
             <div class="p-5 border-b border-gray-200/50 flex justify-between items-center shrink-0">
                 <h3 class="text-lg font-bold text-black tracking-tight"><i class="fa-solid fa-route mr-2 text-gray-500"></i>Cập nhật Thông tin Tuyến</h3>
@@ -6505,7 +6505,7 @@ div[id$="-modal"] > div > * {
     </div>
 
     <!-- MODAL CHỌN ẢNH TÂM ĐẮC (Glassmorphism 100% Sync) -->
-    <div id="fav-photo-modal" class="hidden fixed inset-0 z-[3000] flex items-center justify-center p-2 md:p-6 bg-black/40 backdrop-blur-sm" >
+    <div id="fav-photo-modal" class="hidden fixed inset-0 z-[3000] flex items-center justify-center p-2 md:p-6 backdrop-blur-md" >
         <div id="fav-photo-content" class="rounded-2xl w-full max-w-md flex flex-col overflow-hidden transform transition-all opacity-0 scale-95 relative" >
 
             <div class="border-b border-gray-200/50 p-4 md:p-5 flex justify-between items-center shrink-0 rounded-t-2xl bg-white/40">
@@ -6553,7 +6553,7 @@ div[id$="-modal"] > div > * {
     </div>
 
     <!-- MODAL THÔNG SỐ CHI TIẾT -->
-    <div id="achievement-modal" class="hidden fixed inset-0 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" >
+    <div id="achievement-modal" class="hidden fixed inset-0 flex items-center justify-center p-4 backdrop-blur-md" >
         <div id="achievement-content" class="rounded-2xl shadow-2xl w-full transform transition-all opacity-0 scale-95 overflow-hidden" style="max-width: 380px !important;   -webkit- ">
             <div class="p-6" style="">
                 <div class="flex justify-between items-center mb-6">
@@ -6602,7 +6602,7 @@ div[id$="-modal"] > div > * {
     </div>
 
     <!-- MODAL ADVANCED FILTER -->
-    <div id="advanced-filter-modal" class="hidden fixed inset-0 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" >
+    <div id="advanced-filter-modal" class="hidden fixed inset-0 flex items-center justify-center p-4 backdrop-blur-md" >
         <div id="advanced-filter-content" class="relative w-full max-w-lg rounded-2xl p-6 flex flex-col">
             <div class="flex justify-between items-center mb-5 pb-3 border-b border-gray-200/60">
                 <h4 class="text-base font-bold text-black uppercase tracking-tight flex items-center gap-2">
@@ -6670,7 +6670,7 @@ div[id$="-modal"] > div > * {
     </div>
     
     <!-- MANAGER EDIT PHOTO MODAL -->
-    <div id="manager-edit-modal" class="hidden fixed inset-0 z-[3000] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" >
+    <div id="manager-edit-modal" class="hidden fixed inset-0 z-[3000] flex items-center justify-center p-4 backdrop-blur-md" >
         <div id="manager-edit-content" class="rounded-3xl w-full flex flex-col overflow-hidden transform transition-all opacity-0 scale-95 relative" style="max-width: 1152px; max-height: 90vh">
             <div class="p-5 border-b border-gray-200/50 flex justify-between items-center shrink-0">
                 <h3 class="text-lg font-bold text-black tracking-tight"><i class="fa-solid fa-pen-to-square mr-2 text-gray-500"></i>Quản lý: Thêm vùng làm mờ</h3>
@@ -6686,7 +6686,7 @@ div[id$="-modal"] > div > * {
                             <img id="manager-blur-img" crossorigin="anonymous" class="block pointer-events-none w-full h-full object-contain">
                             <!-- [MỚI] NÚT ZOOM ẢNH BÊ TỪ ADMIN SANG -->
                             <button type="button" onclick="app.admin.openZoom(document.getElementById('manager-blur-img').src, false)" 
-                                class="absolute top-2 right-2 bg-black/50 text-white w-8 h-8 rounded hover:bg-black flex items-center justify-center transition z-30 pointer-events-auto" 
+                                class="absolute top-2 right-2 text-white w-8 h-8 rounded hover:bg-black flex items-center justify-center transition z-30 pointer-events-auto" 
                                 title="Phóng to ảnh gốc">
                                 <i class="fa-solid fa-expand"></i>
                             </button>
