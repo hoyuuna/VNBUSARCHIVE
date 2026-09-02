@@ -1560,12 +1560,7 @@ Object.assign(window.app, {
                             if (fLen && f35 && !isNaN(fLen) && !isNaN(f35)) {
                                 if (f35 < fLen - 0.5) { reject(errExifInvalid); return; }
                             }
-                            const exifW = Number(tags.ExifImageWidth || tags.PixelXDimension);
-                            const exifH = Number(tags.ExifImageHeight || tags.PixelYDimension);
-                            if (actualWidth && actualHeight && exifW && exifH && !isNaN(exifW) && !isNaN(exifH)) {
-                                const isMatch = (exifW === actualWidth && exifH === actualHeight) || (exifW === actualHeight && exifH === actualWidth);
-                                if (!isMatch) { reject(errExifInvalid); return; }
-                            }
+
                             let model = tags.Model;
                             const make = tags.Make;
                             const lens = tags.LensModel || tags.LensInfo;
