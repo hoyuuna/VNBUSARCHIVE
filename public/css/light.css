@@ -9,14 +9,8 @@ body, body.theme-light {
         linear-gradient(#e5e7eb 1px, transparent 1px),
         linear-gradient(90deg, #e5e7eb 1px, transparent 1px) !important;
     background-size: 20px 20px !important;
-    background-attachment: fixed !important; /* Cuộn trang không làm nền chạy theo */
+    background-attachment: fixed !important;
     color: #18181b !important;
-}
-
-/* 2. Ép phẳng tất cả thẻ mờ (Chỉ target các mảng sáng, CHỪA LẠI mảng tối overlay) */
-.backdrop-blur-md, .backdrop-blur-sm, .backdrop-blur, .bg-white\/90, .bg-white\/80, .bg-white\/70, .bg-white\/60, .vna-card, .suggestion-box, .filter-menu {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
 }
 
 /* Biến các thẻ có shadow thành thẻ phẳng CÓ VIỀN */
@@ -28,10 +22,6 @@ body, body.theme-light {
 /* 3. Khôi phục màu nền tĩnh cho các class kính mờ */
 .bg-white\/90, .bg-white\/80, .bg-white\/70, .bg-white\/60 {
     background-color: #ffffff !important;
-}
-/* Overlay modal giữ nguyên blur nhưng làm tối tĩnh đề phòng (bỏ override backdrop-filter nên vẫn sẽ blur) */
-.bg-black\/60, .bg-black\/40 {
-    background-color: rgba(0, 0, 0, 0.75) !important;
 }
 
 /* 4. Bo góc duy nhất nhẹ nhàng (giữ nguyên tròn cho avatar) */
@@ -47,20 +37,35 @@ body, body.theme-light {
     border-color: #18181b !important;
 }
 
-/* FIX ĐẶC BIỆT CHO CÁC BẢNG (TABLE) VÀ DROPDOWN CHƯA CÓ VIỀN */
+/* FIX DROPDOWN */
 .suggestion-box, .filter-menu {
     border: 1px solid #18181b !important;
     background-color: #ffffff !important;
     border-radius: 8px !important;
     overflow: hidden !important;
 }
-/* Các ô trong bảng tùy chỉnh (Lịch sử, Thông tin, Thống kê) */
+
+/* FIX BẢNG BỊ GÓC VUÔNG VÀ ĐÈ NÉT (Dùng separate thay vì collapse) */
 .info-table, .data-table, .history-table {
-    border-collapse: collapse !important;
-    border-color: #18181b !important;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    border: 1px solid #18181b !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
 }
-.info-table td, .info-table th, .data-table td, .data-table th, .history-table td, .history-table th, .stat-item {
-    border-color: #18181b !important; /* Đổi viền xám tĩnh của bảng thành đen, giữ nguyên kiểu dáng */
+.info-table td, .info-table th, .data-table td, .data-table th, .history-table td, .history-table th {
+    border-color: #18181b !important; 
+    border-right: none !important;
+    border-left: none !important;
+    border-top: none !important;
+}
+.info-table tr:last-child td, .data-table tr:last-child td, .history-table tr:last-child td {
+    border-bottom: none !important; /* Tránh đè viền dưới cùng của bảng */
+}
+
+/* Các ô thống kê */
+.stat-item {
+    border-color: #18181b !important; 
 }
 
 /* 6. Fix text hover không gạch chân */

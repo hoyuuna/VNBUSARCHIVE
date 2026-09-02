@@ -9,28 +9,19 @@ body.theme-dark {
     color: #ffffff !important;
 }
 
-/* 2. Ép phẳng tất cả mọi thứ (CHỪA LẠI Overlay) */
-.theme-dark .backdrop-blur-md, .theme-dark .backdrop-blur-sm, .theme-dark .backdrop-blur, .theme-dark .bg-white\/90, .theme-dark .bg-white\/80, .theme-dark .bg-white\/70, .theme-dark .bg-white\/60, .theme-dark .suggestion-box, .theme-dark .filter-menu {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-}
-
+/* Biến các thẻ nổi (shadow) thành thẻ phẳng CÓ VIỀN TRẮNG */
 .theme-dark .shadow-2xl, .theme-dark .shadow-xl, .theme-dark .shadow-lg, .theme-dark .shadow-md, .theme-dark .shadow-sm, .theme-dark .shadow-island, .theme-dark .shadow-\[0_1px_2px_0_rgba\(0\,0\,0\,0\.05\)\] {
     box-shadow: none !important;
     border: 1px solid #ffffff !important;
 }
 
-/* 3. Màu nền tĩnh đen tuyền */
+/* 3. Màu nền tĩnh đen tuyền cho các class kính mờ và thẻ trắng */
 .theme-dark .bg-white, .theme-dark .bg-white\/90, .theme-dark .bg-white\/80, .theme-dark .bg-white\/70, .theme-dark .bg-white\/60, .theme-dark .bg-gray-50, .theme-dark .bg-gray-100 {
     background-color: #000000 !important;
     color: #ffffff !important;
 }
 
-.theme-dark .bg-black\/60, .theme-dark .bg-black\/40 {
-    background-color: rgba(0, 0, 0, 0.85) !important;
-}
-
-/* 4. Bo góc duy nhất nhẹ nhàng (giữ nguyên tròn cho avatar) */
+/* 4. Bo góc duy nhất nhẹ nhàng */
 .theme-dark .rounded-3xl, .theme-dark .rounded-2xl, .theme-dark .rounded-xl, .theme-dark .rounded-lg {
     border-radius: 8px !important;
 }
@@ -43,18 +34,32 @@ body.theme-dark {
     border-color: #ffffff !important;
 }
 
-/* FIX ĐẶC BIỆT CHO BẢNG VÀ DROPDOWN */
+/* FIX ĐẶC BIỆT CHO DROPDOWN */
 .theme-dark .suggestion-box, .theme-dark .filter-menu {
     border: 1px solid #ffffff !important;
     background-color: #000000 !important;
     border-radius: 8px !important;
     overflow: hidden !important;
 }
+
+/* FIX BẢNG BỊ GÓC VUÔNG VÀ ĐÈ NÉT */
 .theme-dark .info-table, .theme-dark .data-table, .theme-dark .history-table {
-    border-collapse: collapse !important;
-    border-color: #ffffff !important;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    border: 1px solid #ffffff !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
 }
-.theme-dark .info-table td, .theme-dark .info-table th, .theme-dark .data-table td, .theme-dark .data-table th, .theme-dark .history-table td, .theme-dark .history-table th, .theme-dark .stat-item {
+.theme-dark .info-table td, .theme-dark .info-table th, .theme-dark .data-table td, .theme-dark .data-table th, .theme-dark .history-table td, .theme-dark .history-table th {
+    border-color: #ffffff !important; 
+    border-right: none !important;
+    border-left: none !important;
+    border-top: none !important;
+}
+.theme-dark .info-table tr:last-child td, .theme-dark .data-table tr:last-child td, .theme-dark .history-table tr:last-child td {
+    border-bottom: none !important;
+}
+.theme-dark .stat-item {
     border-color: #ffffff !important; 
 }
 
