@@ -1009,7 +1009,7 @@ Object.assign(window.app, {
                                     if (pA !== pB) return pA - pB;
                                     return a.id - b.id;
                                 });
-                                rawPhotos.forEach(p => p._isReviewedByMe = reviewedIds.includes(p.id));
+                                rawPhotos.forEach(p => p._isReviewedByMe = reviewedIds.includes(p.id) || (app.admin._localReviewedIds && app.admin._localReviewedIds.has(p.id)));
                             } catch(e) { console.warn('Lỗi fetch pending:', e); }
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
                             if (!rawPhotos || rawPhotos.length === 0) { content.innerHTML = '<p class="p-4 text-gray-600">Không có ảnh nào chờ duyệt.</p>'; return; }
@@ -3229,6 +3229,8 @@ app.admin.fetchManagerData('denied');
                                 isFinal = resJson.isFinal;
                             }
                         } catch(e) {}
+                        app.admin._localReviewedIds = app.admin._localReviewedIds || new Set();
+                        app.admin._localReviewedIds.add(id);
                         if (cardEl) {
                             if (document.activeElement && cardEl.contains(document.activeElement)) {
                                 document.activeElement.blur();
@@ -3336,6 +3338,8 @@ app.admin.fetchManagerData('denied');
                                         isFinal = resJson.isFinal;
                                     }
                                 } catch(e) {}
+                                app.admin._localReviewedIds = app.admin._localReviewedIds || new Set();
+                                app.admin._localReviewedIds.add(id);
                                 const cardEl = document.getElementById(`adm-photo-card-${id}`);
                                 const parentEl = cardEl?.parentElement;
                                 if (cardEl) {
