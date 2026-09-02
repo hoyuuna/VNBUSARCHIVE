@@ -2,10 +2,14 @@
    VNBUSARCHIVE - FLAT DARK THEME (OVERRIDE LAYER)
 ========================================== */
 
-/* 1. Nền tối tĩnh */
+/* 1. Nền tối tĩnh có kẻ ô ly mờ (Dark Notebook) */
 html.theme-dark body, .theme-dark {
     background-color: #18181b !important;
-    background-image: none !important;
+    background-image: 
+        linear-gradient(#27272a 1px, transparent 1px),
+        linear-gradient(90deg, #27272a 1px, transparent 1px) !important;
+    background-size: 20px 20px !important;
+    background-attachment: fixed !important;
     color: #ffffff !important;
 }
 
@@ -46,9 +50,9 @@ html.theme-dark body, .theme-dark {
     color: #ffffff !important;
 }
 
-/* Giữ nguyên text xám hoặc làm sáng lên */
+/* Làm SÁNG RÕ các đoạn text xám phụ - không dùng xám tối của light mode để tránh mờ */
 .theme-dark .text-gray-700, .theme-dark .text-gray-600, .theme-dark .text-gray-500, .theme-dark .text-gray-400, .theme-dark .stat-label {
-    color: #a1a1aa !important;
+    color: #d4d4d8 !important; /* Xám rất sáng (gray-300) */
 }
 
 /* 4. Bo góc duy nhất nhẹ nhàng */
