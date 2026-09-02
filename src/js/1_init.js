@@ -3004,7 +3004,7 @@ Object.assign(window.app, {
                     }
                 });
                 
-                setTimeout(() => { if (typeof app.checkVersion === 'function') app.checkVersion(); }, 5000);
+                setInterval(() => { if (typeof app.checkVersion === 'function') app.checkVersion(); }, 30 * 60 * 1000);
                 window.addEventListener('offline', () => app.setRealtimeStatus(false));
                 window.addEventListener('online', () => {
                     const state = (app.realtimeChannel?.state || '').toLowerCase();

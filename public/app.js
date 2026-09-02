@@ -1,4 +1,4 @@
-window.APP_VERSION = "26.09.02.18.40.04";
+window.APP_VERSION = "26.09.02.18.41.28";
 
 /* --- MODULE: 1_init.js --- */
 window.app = window.app || {};
@@ -3007,7 +3007,7 @@ Object.assign(window.app, {
                     }
                 });
                 
-                setTimeout(() => { if (typeof app.checkVersion === 'function') app.checkVersion(); }, 5000);
+                setInterval(() => { if (typeof app.checkVersion === 'function') app.checkVersion(); }, 30 * 60 * 1000);
                 window.addEventListener('offline', () => app.setRealtimeStatus(false));
                 window.addEventListener('online', () => {
                     const state = (app.realtimeChannel?.state || '').toLowerCase();
