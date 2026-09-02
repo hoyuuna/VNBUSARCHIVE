@@ -13300,6 +13300,16 @@ Object.assign(window.app, {
                                         ExposureTime: EXIF.getTag(this, "ExposureTime"),
                                         ISO: EXIF.getTag(this, "ISOSpeedRatings"),
                                         DateTimeOriginal: EXIF.getTag(this, "DateTimeOriginal"),
+                                        DateTimeDigitized: EXIF.getTag(this, "DateTimeDigitized"),
+                                        DateTime: EXIF.getTag(this, "DateTime"),
+                                        ApertureValue: EXIF.getTag(this, "ApertureValue"),
+                                        ShutterSpeedValue: EXIF.getTag(this, "ShutterSpeedValue"),
+                                        FocalLength: EXIF.getTag(this, "FocalLength"),
+                                        FocalLengthIn35mmFilm: EXIF.getTag(this, "FocalLengthIn35mmFilm"),
+                                        PixelXDimension: EXIF.getTag(this, "PixelXDimension"),
+                                        PixelYDimension: EXIF.getTag(this, "PixelYDimension"),
+                                        ExifImageWidth: EXIF.getTag(this, "ExifImageWidth"),
+                                        ExifImageHeight: EXIF.getTag(this, "ExifImageHeight"),
                                         GPSLatitude: EXIF.getTag(this, "GPSLatitude"),
                                         GPSLatitudeRef: EXIF.getTag(this, "GPSLatitudeRef"),
                                         GPSLongitude: EXIF.getTag(this, "GPSLongitude"),
@@ -13309,6 +13319,56 @@ Object.assign(window.app, {
                                 }));
                             } else {
                                 reject("Không tìm thấy thư viện xử lý EXIF."); return;
+                            }
+                            let actualWidth = 0, actualHeight = 0;
+                            try {
+                                const url = URL.createObjectURL(file);
+                                const img = new Image();
+                                await new Promise((resolveImg) => {
+                                    img.onload = () => { actualWidth = img.naturalWidth; actualHeight = img.naturalHeight; URL.revokeObjectURL(url); resolveImg(); };
+                                    img.onerror = () => { URL.revokeObjectURL(url); resolveImg(); };
+                                    img.src = url;
+                                });
+                            } catch (e) {}
+                            const dtOriginal = tags.DateTimeOriginal || tags.CreateDate;
+                            const dtDigitized = tags.DateTimeDigitized;
+                            const dtModify = tags.DateTime || tags.ModifyDate;
+                            const parseDate = (d) => {
+                                if (!d) return 0;
+                                if (d instanceof Date && !isNaN(d)) return d.getTime();
+                                if (typeof d === 'string') {
+                                    const parts = d.split(/[: T-]/);
+                                    if (parts.length >= 6) return new Date(parts[0], parts[1]-1, parts[2], parts[3], parts[4], parts[5]).getTime();
+                                }
+                                return 0;
+                            };
+                            const tsOriginal = parseDate(dtOriginal);
+                            const tsDigitized = parseDate(dtDigitized);
+                            const tsModify = parseDate(dtModify);
+                            if (tsOriginal && tsDigitized && Math.abs(tsOriginal - tsDigitized) > 2000) { reject("EXIF không hợp lệ"); return; }
+                            if (tsOriginal && tsModify && tsModify < tsOriginal - 2000) { reject("EXIF không hợp lệ"); return; }
+                            const fNum = Number(tags.FNumber || tags.fNumber);
+                            const apertureVal = tags.ApertureValue !== undefined ? Number(tags.ApertureValue) : undefined;
+                            if (fNum && apertureVal !== undefined && !isNaN(apertureVal)) {
+                                const expectedAperture = 2 * Math.log2(fNum);
+                                if (Math.abs(expectedAperture - apertureVal) > 0.5) { reject("EXIF không hợp lệ"); return; }
+                            }
+                            const expTime = Number(tags.ExposureTime || tags.exposureTime);
+                            const shutterVal = tags.ShutterSpeedValue !== undefined ? Number(tags.ShutterSpeedValue) : undefined;
+                            if (expTime && shutterVal !== undefined && !isNaN(shutterVal)) {
+                                const expectedShutter = -Math.log2(expTime);
+                                if (Math.abs(expectedShutter - shutterVal) > 0.5) { reject("EXIF không hợp lệ"); return; }
+                            }
+                            const fLen = Number(tags.FocalLength || tags.focalLength);
+                            const f35 = Number(tags.FocalLengthIn35mmFormat || tags.FocalLengthIn35mmFilm);
+                            if (fLen && f35 && !isNaN(fLen) && !isNaN(f35)) {
+                                if (f35 < fLen - 0.5) { reject("EXIF không hợp lệ"); return; }
+                            }
+                            const exifW = Number(tags.ExifImageWidth || tags.PixelXDimension);
+                            const exifH = Number(tags.ExifImageHeight || tags.PixelYDimension);
+                            if (actualWidth && actualHeight && exifW && exifH && !isNaN(exifW) && !isNaN(exifH)) {
+                                const isMatch = (exifW === actualWidth && exifH === actualHeight) || (exifW === actualHeight && exifH === actualWidth);
+                                if (!isMatch) { reject("EXIF không hợp lệ"); return; }
                             }
                             let model = tags.Model;
                             const make = tags.Make;
