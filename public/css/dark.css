@@ -25,7 +25,7 @@ html.theme-dark body, .theme-dark {
 }
 
 /* KHÔI PHỤC NỀN ĐEN ĐẶC CHO MỌI POPUP (TẮT XUYÊN THẤU) */
-.theme-dark #subrole-prompt-content, #crop-content, .theme-dark #custom-alert-content, .theme-dark #settings-content, .theme-dark #newsboard-content, .theme-dark #docs-content,
+.theme-dark #subrole-prompt-content, #onboarding-content, #crop-content, .theme-dark #custom-alert-content, .theme-dark #settings-content, .theme-dark #newsboard-content, .theme-dark #docs-content,
 .theme-dark #upload-info-content, .theme-dark #custom-prompt-content, .theme-dark #custom-role-content, .theme-dark #deny-prompt-content, .theme-dark #ban-prompt-content,
 .theme-dark #up-progress-content, .theme-dark #captcha-content, .theme-dark #webrtc-qr-content, .theme-dark #qr-login-host-content, .theme-dark #qr-login-confirm-content,
 .theme-dark #advanced-filter-content, .theme-dark #achievement-content, .theme-dark #operator-edit-content, .theme-dark #model-edit-content,
@@ -135,11 +135,3 @@ html.theme-dark body, .theme-dark {
     outline: none !important;
 }
 
-/* GIỮ NGUYÊN GLASSMORPHISM CHO ONBOARDING (DARK) */
-#onboarding-content {
-    background-color: rgba(24, 24, 27, 0.7) !important; /* Zinc-900 /70 */
-    backdrop-filter: blur(20px) !important;
-    -webkit-backdrop-filter: blur(20px) !important;
-    border: 1px solid rgba(63, 63, 70, 0.6) !important; /* Zinc-700 /60 */
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
-}

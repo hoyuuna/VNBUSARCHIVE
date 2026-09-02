@@ -25,7 +25,7 @@ body, body.theme-light {
 }
 
 /* KHÔI PHỤC NỀN TRẮNG ĐẶC CHO MỌI POPUP (TẮT XUYÊN THẤU) */
-#subrole-prompt-content, #crop-content, #custom-alert-content, #settings-content, #newsboard-content, #docs-content,
+#subrole-prompt-content, #onboarding-content, #crop-content, #custom-alert-content, #settings-content, #newsboard-content, #docs-content,
 #upload-info-content, #custom-prompt-content, #custom-role-content, #deny-prompt-content, #ban-prompt-content,
 #up-progress-content, #captcha-content, #webrtc-qr-content, #qr-login-host-content, #qr-login-confirm-content,
 #advanced-filter-content, #achievement-content, #operator-edit-content, #model-edit-content,
@@ -116,11 +116,3 @@ input:focus, textarea:focus, select:focus {
     outline: none !important;
 }
 
-/* GIỮ NGUYÊN GLASSMORPHISM CHO ONBOARDING */
-#onboarding-content {
-    background-color: rgba(255, 255, 255, 0.7) !important;
-    backdrop-filter: blur(20px) !important;
-    -webkit-backdrop-filter: blur(20px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.6) !important;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
-}
