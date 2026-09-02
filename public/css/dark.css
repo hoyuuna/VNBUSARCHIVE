@@ -2,26 +2,25 @@
    VNBUSARCHIVE - FLAT DARK THEME (OVERRIDE LAYER)
 ========================================== */
 
-/* 1. Nền tối (không kẻ vở) */
+/* 1. Nền tối tĩnh */
 body.theme-dark {
     background-color: #18181b !important;
     background-image: none !important;
     color: #ffffff !important;
 }
 
-/* 2. Ép phẳng tất cả mọi thứ */
-.theme-dark .backdrop-blur-md, .theme-dark .backdrop-blur-sm, .theme-dark .backdrop-blur, .theme-dark * {
+/* 2. Ép phẳng tất cả mọi thứ (CHỪA LẠI Overlay) */
+.theme-dark .backdrop-blur-md, .theme-dark .backdrop-blur-sm, .theme-dark .backdrop-blur, .theme-dark .bg-white\/90, .theme-dark .bg-white\/80, .theme-dark .bg-white\/70, .theme-dark .bg-white\/60, .theme-dark .suggestion-box, .theme-dark .filter-menu {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
 }
 
-/* Biến các thẻ nổi (shadow) thành thẻ phẳng CÓ VIỀN TRẮNG */
-.theme-dark .shadow-2xl, .theme-dark .shadow-xl, .theme-dark .shadow-lg, .theme-dark .shadow-md, .theme-dark .shadow-sm, .theme-dark .shadow-island {
+.theme-dark .shadow-2xl, .theme-dark .shadow-xl, .theme-dark .shadow-lg, .theme-dark .shadow-md, .theme-dark .shadow-sm, .theme-dark .shadow-island, .theme-dark .shadow-\[0_1px_2px_0_rgba\(0\,0\,0\,0\.05\)\] {
     box-shadow: none !important;
     border: 1px solid #ffffff !important;
 }
 
-/* 3. Màu nền tĩnh đen tuyền cho các class kính mờ và thẻ trắng */
+/* 3. Màu nền tĩnh đen tuyền */
 .theme-dark .bg-white, .theme-dark .bg-white\/90, .theme-dark .bg-white\/80, .theme-dark .bg-white\/70, .theme-dark .bg-white\/60, .theme-dark .bg-gray-50, .theme-dark .bg-gray-100 {
     background-color: #000000 !important;
     color: #ffffff !important;
@@ -31,7 +30,7 @@ body.theme-dark {
     background-color: rgba(0, 0, 0, 0.85) !important;
 }
 
-/* 4. Bo góc duy nhất nhẹ nhàng */
+/* 4. Bo góc duy nhất nhẹ nhàng (giữ nguyên tròn cho avatar) */
 .theme-dark .rounded-3xl, .theme-dark .rounded-2xl, .theme-dark .rounded-xl, .theme-dark .rounded-lg {
     border-radius: 8px !important;
 }
@@ -39,9 +38,24 @@ body.theme-dark {
     border-radius: 9999px !important; 
 }
 
-/* 5. Đổi màu các viền thành trắng (nhưng không force độ dày) */
-.theme-dark .border-white\/20, .theme-dark .border-white\/30, .theme-dark .border-gray-100, .theme-dark .border-gray-200, .theme-dark .border-gray-300, .theme-dark .border, .theme-dark .border-black {
+/* 5. Đổi màu các viền thành trắng */
+.theme-dark .border-white\/20, .theme-dark .border-white\/30, .theme-dark .border-gray-100, .theme-dark .border-gray-200, .theme-dark .border-gray-300, .theme-dark .border-vbs-border, .theme-dark .border-\[\#e4e4e7\], .theme-dark .border-black {
     border-color: #ffffff !important;
+}
+
+/* FIX ĐẶC BIỆT CHO BẢNG VÀ DROPDOWN */
+.theme-dark .suggestion-box, .theme-dark .filter-menu {
+    border: 1px solid #ffffff !important;
+    background-color: #000000 !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+}
+.theme-dark .info-table, .theme-dark .data-table, .theme-dark .history-table {
+    border-collapse: collapse !important;
+    border-color: #ffffff !important;
+}
+.theme-dark .info-table td, .theme-dark .info-table th, .theme-dark .data-table td, .theme-dark .data-table th, .theme-dark .history-table td, .theme-dark .history-table th, .theme-dark .stat-item {
+    border-color: #ffffff !important; 
 }
 
 /* 6. Fix text hover không gạch chân */
@@ -52,7 +66,7 @@ body.theme-dark {
     text-decoration: none !important;
 }
 
-/* Nút bấm cũ là đen, nay trong dark mode đổi thành trắng chữ đen */
+/* Nút bấm */
 .theme-dark .bg-black {
     background-color: #ffffff !important;
     color: #000000 !important;
@@ -61,9 +75,7 @@ body.theme-dark {
     background-color: #d4d4d8 !important; 
 }
 
-/* Header border - Removed */
-
-/* Text màu xám đổi thành xám sáng hơn để dễ đọc */
+/* Text màu xám đổi thành xám sáng */
 .theme-dark .text-gray-700, .theme-dark .text-gray-600, .theme-dark .text-gray-500, .theme-dark .text-gray-400 {
     color: #a1a1aa !important;
 }

@@ -2,24 +2,25 @@
    VNBUSARCHIVE - FLAT LIGHT THEME (OVERRIDE LAYER)
 ========================================== */
 
-/* 1. Nền như quyển vở (không tint đen) */
+/* 1. Nền cố định như quyển vở */
 body, body.theme-light {
-    background-color: #fdfcf8 !important; /* Màu giấy ấm nhạt */
+    background-color: #fdfcf8 !important; 
     background-image: 
         linear-gradient(#e5e7eb 1px, transparent 1px),
         linear-gradient(90deg, #e5e7eb 1px, transparent 1px) !important;
     background-size: 20px 20px !important;
+    background-attachment: fixed !important; /* Cuộn trang không làm nền chạy theo */
     color: #18181b !important;
 }
 
-/* 2. Ép phẳng tất cả mọi thứ (Không blur, không bóng mờ) */
-.backdrop-blur-md, .backdrop-blur-sm, .backdrop-blur, * {
+/* 2. Ép phẳng tất cả thẻ mờ (Chỉ target các mảng sáng, CHỪA LẠI mảng tối overlay) */
+.backdrop-blur-md, .backdrop-blur-sm, .backdrop-blur, .bg-white\/90, .bg-white\/80, .bg-white\/70, .bg-white\/60, .vna-card, .suggestion-box, .filter-menu {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
 }
 
-/* Biến các thẻ có shadow (vốn là thẻ nổi) thành thẻ phẳng CÓ VIỀN */
-.shadow-2xl, .shadow-xl, .shadow-lg, .shadow-md, .shadow-sm, .shadow-island {
+/* Biến các thẻ có shadow thành thẻ phẳng CÓ VIỀN */
+.shadow-2xl, .shadow-xl, .shadow-lg, .shadow-md, .shadow-sm, .shadow-island, .shadow-\[0_1px_2px_0_rgba\(0\,0\,0\,0\.05\)\] {
     box-shadow: none !important;
     border: 1px solid #18181b !important;
 }
@@ -28,6 +29,7 @@ body, body.theme-light {
 .bg-white\/90, .bg-white\/80, .bg-white\/70, .bg-white\/60 {
     background-color: #ffffff !important;
 }
+/* Overlay modal giữ nguyên blur nhưng làm tối tĩnh đề phòng (bỏ override backdrop-filter nên vẫn sẽ blur) */
 .bg-black\/60, .bg-black\/40 {
     background-color: rgba(0, 0, 0, 0.75) !important;
 }
@@ -40,10 +42,25 @@ body, body.theme-light {
     border-radius: 9999px !important; 
 }
 
-/* 5. Đổi màu các viền có sẵn thành viền đen (nhưng giữ nguyên độ dày/kiểu viền cũ) */
-.border-white\/20, .border-white\/30, .border-gray-100, .border-gray-200, .border-gray-300 {
+/* 5. Đổi màu các viền có sẵn thành viền đen (không force độ dày) */
+.border-white\/20, .border-white\/30, .border-gray-100, .border-gray-200, .border-gray-300, .border-vbs-border, .border-\[\#e4e4e7\] {
     border-color: #18181b !important;
-    /* KHÔNG force border-width ở đây để tránh lỗi viền 4 cạnh đè nhau */
+}
+
+/* FIX ĐẶC BIỆT CHO CÁC BẢNG (TABLE) VÀ DROPDOWN CHƯA CÓ VIỀN */
+.suggestion-box, .filter-menu {
+    border: 1px solid #18181b !important;
+    background-color: #ffffff !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+}
+/* Các ô trong bảng tùy chỉnh (Lịch sử, Thông tin, Thống kê) */
+.info-table, .data-table, .history-table {
+    border-collapse: collapse !important;
+    border-color: #18181b !important;
+}
+.info-table td, .info-table th, .data-table td, .data-table th, .history-table td, .history-table th, .stat-item {
+    border-color: #18181b !important; /* Đổi viền xám tĩnh của bảng thành đen, giữ nguyên kiểu dáng */
 }
 
 /* 6. Fix text hover không gạch chân */
@@ -58,9 +75,6 @@ a:hover, button:hover, [role="button"]:hover {
 .bg-black:hover {
     background-color: #27272a !important; 
 }
-
-/* Header border - Bỏ thanh kẻ ngang vô tội vạ, để header tự dựa vào viền của component bên trong */
-/* header, .sticky.top-0 { border-bottom: none !important; } */
 
 /* Input form: Fix outline */
 input, textarea, select {
