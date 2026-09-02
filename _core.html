@@ -1874,10 +1874,10 @@ div[id$="-modal"] > div > * {
     <meta property="fb:app_id" content="1523055899365050" />
     <script>
         (function() {
-            var theme = localStorage.getItem('vnbus_theme') || 'light';
+            var theme = 'light'; localStorage.setItem('vnbus_theme', 'light');
             document.write('<link rel="stylesheet" href="/css/' + theme + '.css" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
-            document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
+            document.documentElement.style.backgroundColor = '#fdfcf8';
         })();
     </script>
 </head>
@@ -3251,7 +3251,7 @@ div[id$="-modal"] > div > * {
                                             <i class="fa-solid fa-sun text-2xl"></i>
                                             <span class="font-bold text-sm uppercase mt-1">Nền Sáng</span>
                                         </div>
-                                        <div id="set-theme-btn-dark" onclick="app.preference.setTheme('dark')" class="theme-option cursor-pointer border border-gray-300 bg-white text-gray-800 rounded-xl p-5 shadow-sm hover:shadow-md hover:border-gray-400 transition-all duration-200 flex flex-col items-center justify-center gap-2">
+                                        <div id="set-theme-btn-dark" onclick="app.ui.showAlert('Chế độ Tối đang được bảo trì và hoàn thiện. Vui lòng quay lại vào ngày mai nhé!')" class="theme-option cursor-pointer border border-gray-300 bg-white text-gray-800 rounded-xl p-5 shadow-sm hover:shadow-md hover:border-gray-400 transition-all duration-200 flex flex-col items-center justify-center gap-2">
                                             <i class="fa-solid fa-moon text-2xl"></i>
                                             <span class="font-bold text-sm uppercase mt-1">Nền Tối</span>
                                         </div>

@@ -4461,6 +4461,8 @@ Object.assign(window.app, {
                 
                 theme: localStorage.getItem('vnbus_theme') || 'light',
                 setTheme: (theme) => {
+                    if (theme === 'dark') theme = 'light'; // TEMPORARILY FORCE LIGHT
+
                     app.preference.theme = theme;
                     localStorage.setItem('vnbus_theme', theme);
                     document.getElementById('theme-css').href = '/css/' + theme + '.css';
