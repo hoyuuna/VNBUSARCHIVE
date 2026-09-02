@@ -47,8 +47,14 @@ try {
         fs.writeFileSync(appJsPath, combinedJs);
         console.log('Tạo thành công public/app.js');
 
+        // Cache-buster dùng chung
+        const cacheBust = Date.now();
+
         // Chèn script app.js với cache-buster vào _core.html
-        const finalHtml = content.replace('</body>', `<script src="/app.js?v=${Date.now()}"></script>\n</body>`);
+        let finalHtml = content.replace('</body>', `<script src="/app.js?v=${cacheBust}"></script>\n</body>`);
+
+        // Thay thế BUILD_VERSION_PLACEHOLDER trong link CSS theme
+        finalHtml = finalHtml.replace(/BUILD_VERSION_PLACEHOLDER/g, String(cacheBust));
 
         // Lưu trực tiếp nội dung sang public/index.html
         const indexHtmlPath = path.join(__dirname, 'public', 'index.html');
@@ -73,9 +79,42 @@ try {
             return `${key} ${values.join(' ')}`;
         }).join('; ') + ';';
         
-        const headersContent = `/*\n  Content-Security-Policy: ${cspString}\n  Referrer-Policy: strict-origin-when-cross-origin\n\n/index.html\n  Cache-Control: no-cache, no-store, must-revalidate\n\n/\n  Cache-Control: no-cache, no-store, must-revalidate\n\n/tailwind.css\n  Cache-Control: no-store, no-cache, must-revalidate, max-age=0\n  Pragma: no-cache\n  Expires: 0\n`;
+        const noStore = 'no-store, no-cache, must-revalidate, max-age=0';
+        const headersContent = [
+            `/*`,
+            `  Content-Security-Policy: ${cspString}`,
+            `  Referrer-Policy: strict-origin-when-cross-origin`,
+            ``,
+            `/index.html`,
+            `  Cache-Control: no-cache, no-store, must-revalidate`,
+            ``,
+            `/`,
+            `  Cache-Control: no-cache, no-store, must-revalidate`,
+            ``,
+            `/app.js`,
+            `  Cache-Control: ${noStore}`,
+            `  Pragma: no-cache`,
+            `  Expires: 0`,
+            ``,
+            `/tailwind.css`,
+            `  Cache-Control: ${noStore}`,
+            `  Pragma: no-cache`,
+            `  Expires: 0`,
+            ``,
+            `/css/light.css`,
+            `  Cache-Control: ${noStore}`,
+            `  Pragma: no-cache`,
+            `  Expires: 0`,
+            ``,
+            `/css/dark.css`,
+            `  Cache-Control: ${noStore}`,
+            `  Pragma: no-cache`,
+            `  Expires: 0`,
+            ``
+        ].join('\n');
+
         fs.writeFileSync(path.join(__dirname, 'public', '_headers'), headersContent);
-        console.log('Đã tạo public/_headers từ csp.json (kèm Cache-Control no-store cho tailwind.css)');
+        console.log('Đã tạo public/_headers từ csp.json (kèm Cache-Control no-store cho mọi asset)');
     }
 
     // Build Tailwind CSS
