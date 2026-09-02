@@ -235,3 +235,13 @@ input:focus, textarea:focus, select:focus {
     padding-bottom: 6px !important;
     padding-top: 6px !important;
 }
+
+/* Additional Tailwind colors for inline alerts */
+.bg-amber-50, .bg-amber-100 { border: 1px solid #18181b !important; }
+.border-amber-200, .border-amber-300 { border-color: #18181b !important; }
+
+.bg-indigo-50, .bg-indigo-100 { border: 1px solid #18181b !important; }
+.border-indigo-200, .border-indigo-300 { border-color: #18181b !important; }
+
+.bg-emerald-50, .bg-emerald-100 { border: 1px solid #18181b !important; }
+.border-emerald-200, .border-emerald-300 { border-color: #18181b !important; }

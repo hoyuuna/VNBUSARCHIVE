@@ -1,37 +1,28 @@
 const fs = require('fs');
 
-// Run the previous watermark protection fix first
-const wmProtection = `
-/* ===== WATERMARK PROTECTION (không override màu) ===== */
-.wm-draggable,
-.wm-draggable * {
-    color: inherit !important;
-}
-.wm-draggable.wm-black,
-.wm-draggable.wm-black * {
-    color: black !important;
-}
-.footer-text-left,
-.footer-text-right,
-#preview-footer-copy {
-    color: white !important;
-}
+// 1. Fix X button in _core.html
+let html = fs.readFileSync('_core.html', 'utf8');
+html = html.replace(
+    'class="absolute top-4 right-4 text-black bg-white border border-black hover:text-red-600 text-3xl z-[4010] p-2 rounded-lg transition-transform active:scale-90"',
+    'class="absolute top-4 right-4 text-black hover:text-red-600 text-3xl z-[4010] p-2 transition-transform active:scale-90"'
+);
+fs.writeFileSync('_core.html', html);
 
-/* ===== FIX: PREVIEW FOOTER BAR - Restore blur gradient ===== */
-#preview-footer-bar {
-    background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 100%) !important;
-    backdrop-filter: blur(4px) !important;
-    -webkit-backdrop-filter: blur(4px) !important;
-    padding-bottom: 6px !important;
-    padding-top: 6px !important;
-}
+// 2. Add amber alerts (and others) to light.css
+let css = fs.readFileSync('public/css/light.css', 'utf8');
+const extraAlerts = `
+/* Additional Tailwind colors for inline alerts */
+.bg-amber-50, .bg-amber-100 { border: 1px solid #18181b !important; }
+.border-amber-200, .border-amber-300 { border-color: #18181b !important; }
+
+.bg-indigo-50, .bg-indigo-100 { border: 1px solid #18181b !important; }
+.border-indigo-200, .border-indigo-300 { border-color: #18181b !important; }
+
+.bg-emerald-50, .bg-emerald-100 { border: 1px solid #18181b !important; }
+.border-emerald-200, .border-emerald-300 { border-color: #18181b !important; }
 `;
 
-let css = fs.readFileSync('public/css/light.css', 'utf8');
-
-// Remove the broken #preview-footer-bar rule we added earlier (just gradient, no blur)
-css = css.replace(/#preview-footer-bar \{\n    background: linear-gradient.*?\n\}\n/s, '');
-
-css += wmProtection;
+css += extraAlerts;
 fs.writeFileSync('public/css/light.css', css);
-console.log('Added watermark protection and preview footer blur fix');
+
+console.log('Fixed X button and added amber alert styles.');
