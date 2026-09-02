@@ -44,12 +44,11 @@ body, body.theme-light {
     border-color: #18181b !important;
 }
 
-/* FIX DROPDOWN VÀ POPUP */
+/* FIX DROPDOWN VÀ POPUP (Bỏ overflow: hidden để tránh lỗi cuộn) */
 .suggestion-box, .filter-menu, #user-dropdown {
     border: 1px solid #18181b !important;
     background-color: #ffffff !important;
     border-radius: 8px !important;
-    overflow: hidden !important;
     box-shadow: none !important;
 }
 
@@ -66,9 +65,10 @@ body, body.theme-light {
 .info-table tr:last-child td:first-child, .info-table tr:last-child th:first-child, .history-table tr:last-child td:first-child { border-bottom-left-radius: 7px !important; }
 .info-table tr:last-child td:last-child, .info-table tr:last-child th:last-child, .history-table tr:last-child td:last-child { border-bottom-right-radius: 7px !important; }
 
-.border.border-gray-200:has(> .info-table),
-.border.border-gray-200:has(> .history-table-wrapper),
-.border.border-gray-200:has(> .data-table) {
+/* Ẩn viền của thẻ div bọc ngoài bảng NHƯNG BỎ QUA các thẻ div có padding (p-) để giữ viền cho khối Thông số kỹ thuật */
+.border.border-gray-200:has(> .info-table):not([class*=" p-"]):not([class^="p-"]),
+.border.border-gray-200:has(> .history-table-wrapper):not([class*=" p-"]):not([class^="p-"]),
+.border.border-gray-200:has(> .data-table):not([class*=" p-"]):not([class^="p-"]) {
     border: none !important;
     box-shadow: none !important;
 }
