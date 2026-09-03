@@ -135,3 +135,41 @@ html.theme-dark body, .theme-dark {
     outline: none !important;
 }
 
+
+/* FIX: All gray text should be very bright */
+.theme-dark .text-gray-300, 
+.theme-dark .text-gray-400, 
+.theme-dark .text-gray-500, 
+.theme-dark .text-gray-600, 
+.theme-dark .text-gray-700, 
+.theme-dark .text-gray-800, 
+.theme-dark .text-gray-900, 
+.theme-dark .text-black, 
+.theme-dark .text-vbs-dark { 
+    color: #f4f4f5 !important; 
+}
+
+/* FIX: Force all tables to have black backgrounds to prevent "trắng móc" */
+.theme-dark table, 
+.theme-dark thead, 
+.theme-dark tbody, 
+.theme-dark tr, 
+.theme-dark th, 
+.theme-dark td, 
+.theme-dark .overflow-x-auto { 
+    background-color: #000000 !important; 
+}
+
+/* FIX: Table border colors */
+.theme-dark table,
+.theme-dark th,
+.theme-dark td {
+    border-color: #3f3f46 !important;
+}
+
+/* FIX: Table row hover effect in dark mode */
+.theme-dark tr:hover, 
+.theme-dark tr:hover td,
+.theme-dark tr:hover th {
+    background-color: #27272a !important;
+}

@@ -1,4 +1,4 @@
-window.APP_VERSION = "26.09.03.09.07.21";
+window.APP_VERSION = "26.09.03.09.13.38";
 
 /* --- MODULE: 1_init.js --- */
 window.app = window.app || {};
@@ -16271,7 +16271,7 @@ Object.assign(window.app, {
                 setTheme: (theme) => {
                     if (theme === 'dark' && app.role !== 'manager') {
                         if (app.ui && app.ui.showAlert) {
-                            app.ui.showAlert('Chế độ Tối hiện tại chỉ dành riêng cho Manager truy cập để test!');
+                            app.ui.showAlert('Chế độ Tối đang được bảo trì và hoàn thiện. Vui lòng quay lại vào ngày mai nhé!');
                         }
                         theme = 'light';
                     }
