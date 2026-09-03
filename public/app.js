@@ -1,4 +1,4 @@
-window.APP_VERSION = "26.09.03.21.12.19";
+window.APP_VERSION = "26.09.03.21.21.26";
 
 /* --- MODULE: 1_init.js --- */
 window.app = window.app || {};
@@ -20631,6 +20631,17 @@ app.map = {
                 this.currentLocationMarker.setLatLng(e.latlng);
             } else {
                 this.currentLocationMarker = L.marker(e.latlng, { icon: userIcon, zIndexOffset: 1000 }).addTo(this.instance);
+                this.currentLocationMarker.on('click', () => {
+                    const ll = this.currentLocationMarker.getLatLng();
+                    this.showLocationInfo('Vị trí của tôi', `${ll.lat.toFixed(5)}, ${ll.lng.toFixed(5)}`, ll.lat, ll.lng);
+                    // Đặt searchMarker về vị trí người dùng để sun direction hoạt động đúng
+                    if (!this.searchMarker) {
+                        this.searchMarker = L.marker(ll, { opacity: 0 }).addTo(this.instance);
+                    } else {
+                        this.searchMarker.setLatLng(ll);
+                    }
+                    this.currentLocationForSun = { lat: ll.lat, lon: ll.lng };
+                });
             }
             
             const radius = Math.round(e.accuracy / 2);
