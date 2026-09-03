@@ -1,4 +1,4 @@
-window.APP_VERSION = "26.09.03.17.39.20";
+window.APP_VERSION = "26.09.03.17.39.56";
 
 /* --- MODULE: 1_init.js --- */
 window.app = window.app || {};
@@ -20334,17 +20334,17 @@ app.map = {
             this.promptCreateZone(layer);
         });
         
-        const svgPattern = '<svg width=\"10\" height=\"10\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M-1,1 l2,-2 M0,10 l10,-10 M9,11 l2,-2\" stroke=\"rgba(239, 68, 68, 0.4)\" stroke-width=\"2\"/></svg>';
+        const svgPattern = '<svg width="10" height="10" xmlns="http://www.w3.org/2000/svg"><path d="M-1,1 l2,-2 M0,10 l10,-10 M9,11 l2,-2" stroke="rgba(239, 68, 68, 0.4)" stroke-width="2"/></svg>';
         const encodedPattern = btoa(svgPattern);
         const style = document.createElement('style');
-        style.innerHTML = '.leaflet-interactive.no-photo-zone { fill: url(\"data:image/svg+xml;base64,' + encodedPattern + '\") !important; fill-opacity: 1 !important; }';
+        style.innerHTML = '.leaflet-interactive.no-photo-zone { fill: url("data:image/svg+xml;base64,' + encodedPattern + '") !important; fill-opacity: 1 !important; }';
         document.head.appendChild(style);
 
         const requestBtn = document.getElementById('map-add-request-btn');
         if (requestBtn) {
             requestBtn.addEventListener('click', () => {
                 if (!app.user) {
-                    app.ui.showAlert('Vui lòng đăng nhập để gửi yêu cầu.', () => {
+                    app.ui.showAlert('Vui lòng đăng nhập để bổ sung vùng cấm.', () => {
                         app.utils.navigate('/auth');
                     });
                     return;
@@ -20359,7 +20359,7 @@ app.map = {
                     });
                 }
                 
-                app.ui.toast('Hãy kéo thả trên bản đồ để khoanh vùng', 'info');
+                app.ui.toast('Hãy kéo thả trên bản đồ để khoanh vùng chữ nhật', 'info');
                 this.userDrawing = true;
                 this.userDrawHandler.enable();
             });
@@ -20469,7 +20469,7 @@ app.map = {
         
         if (this.isAdmin) {
             const btn = document.createElement('button');
-            btn.className = 'bg-red-500 text-white text-[10px] font-bold py-1 px-2 rounded-md hover:bg-red-600 w-full mt-2';
+            btn.className = 'bg-red-500 text-white text-[10px] font-bold py-1 px-2 rounded-md hover:bg-red-600 w-full mt-2 border border-[#18181b]';
             btn.innerText = 'Xóa vùng này';
             btn.onclick = () => this.deleteZone(zone.id);
             container.appendChild(btn);
@@ -20499,19 +20499,19 @@ app.map = {
             modal = document.createElement('div');
             modal.id = modalId;
             modal.className = 'fixed inset-0 z-[9999] flex items-center justify-center hidden';
-            modal.innerHTML = 
-                <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="app.ui.hideModal('\')"></div>
+            modal.innerHTML = `
+                <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="app.ui.hideModal('${modalId}')"></div>
                 <div class="relative bg-white dark:bg-[#18181b] border border-[#18181b] rounded-2xl p-6 max-w-sm w-full mx-4 shadow-xl">
                     <h3 class="text-lg font-bold mb-4 dark:text-white" id="map-modal-title">Tạo Vùng Cấm</h3>
                     <input type="text" id="map-zone-name" class="w-full bg-gray-50 dark:bg-[#27272a] border border-[#18181b] rounded-md px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-black dark:focus:ring-white mb-3" placeholder="Tên khu vực...">
                     <textarea id="map-zone-desc" class="w-full bg-gray-50 dark:bg-[#27272a] border border-[#18181b] rounded-md px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-black dark:focus:ring-white h-20 resize-none mb-4" placeholder="Mô tả chi tiết..."></textarea>
                     
                     <div class="flex justify-end gap-2">
-                        <button class="px-4 py-2 text-sm font-medium border border-[#18181b] rounded-md hover:bg-gray-50 dark:hover:bg-[#27272a] dark:text-white" onclick="app.ui.hideModal('\')">Hủy</button>
+                        <button class="px-4 py-2 text-sm font-medium border border-[#18181b] rounded-md hover:bg-gray-50 dark:hover:bg-[#27272a] dark:text-white" onclick="app.ui.hideModal('${modalId}')">Hủy</button>
                         <button id="map-zone-save" class="px-4 py-2 bg-black dark:bg-white text-white dark:text-black text-sm font-bold rounded-md hover:opacity-80 border border-[#18181b]">Lưu</button>
                     </div>
                 </div>
-            ;
+            `;
             document.body.appendChild(modal);
         }
         
@@ -20565,7 +20565,9 @@ app.map = {
                     app.ui.showAlert('Lỗi khi gửi yêu cầu.');
                 } else {
                     app.ui.showAlert('Đã gửi yêu cầu thêm vùng cấm. Quản trị viên sẽ xem xét và phê duyệt.');
-                    this.instance.removeLayer(layer);
+                    if (this.instance && this.instance.hasLayer(layer)) {
+                        this.instance.removeLayer(layer);
+                    }
                 }
             }
         };
