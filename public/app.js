@@ -1,4 +1,4 @@
-window.APP_VERSION = "26.09.03.07.37.32";
+window.APP_VERSION = "26.09.03.07.43.46";
 
 /* --- MODULE: 1_init.js --- */
 window.app = window.app || {};
@@ -3436,12 +3436,16 @@ Object.assign(window.app, {
                         app.settings.loadIdentities();
                         const avatarImg = document.getElementById('set-avatar-img');
                         try {
-                            const { data: profile } = await window.sb.from('profiles').select('avatar_url').eq('id', app.user.id).single();
+                            const { data: profile } = await window.sb.from('profiles').select('avatar_url, preferences').eq('id', app.user.id).single();
                             if (profile && profile.avatar_url) {
                                 const safeUrl = profile.avatar_url.replace(/"/g, '');
                                 avatarImg.src = app.utils.getProxiedUrl(safeUrl, 'avatar.jpg', 'avatar');
                             } else {
                                 avatarImg.src = DEFAULT_AVATAR;
+                            }
+                            const contactInput = document.getElementById('set-contact-email');
+                            if (contactInput) {
+                                contactInput.value = (profile && profile.preferences && profile.preferences.contact_email) ? profile.preferences.contact_email : '';
                             }
                         } catch (e) {
                             avatarImg.src = app.user.user_metadata?.avatar_url ? app.utils.getProxiedUrl(app.user.user_metadata.avatar_url, 'avatar.jpg', 'avatar') : DEFAULT_AVATAR;
