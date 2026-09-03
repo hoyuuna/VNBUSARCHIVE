@@ -43,7 +43,13 @@ app.map = {
             maxZoom: 20
         }).addTo(this.instance);
         
-        setTimeout(() => this.instance.invalidateSize(), 150);
+        // Use ResizeObserver for bulletproof resizing
+        const resizeObserver = new ResizeObserver(() => {
+            if (this.instance) {
+                this.instance.invalidateSize();
+            }
+        });
+        resizeObserver.observe(mapContainer);
 
         this.drawnItems = new L.FeatureGroup();
         this.instance.addLayer(this.drawnItems);
