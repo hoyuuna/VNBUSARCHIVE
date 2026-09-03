@@ -36,8 +36,12 @@ body, body.theme-dark, body.theme-light {
 .rounded-3xl, .rounded-2xl, .rounded-xl, .rounded-lg { border-radius: 8px !important; }
 .rounded-full { border-radius: 9999px !important; }
 
-.border-white, .border-white\/20, .border-white\/30, .border-gray-100, .border-gray-200, .border-gray-300, .border-gray-400, .border-gray-500, .border-gray-600, .border-gray-700, .border-gray-800, .border-vbs-border, .border-\[\#e4e4e7\] {
+.border-white, .border-white\/20, .border-white\/30, .border-gray-100, .border-gray-200, .border-gray-300, .border-gray-400, .border-gray-500, .border-gray-600, .border-gray-700, .border-gray-800, .border-vbs-border, .border-\[\#e4e4e7\], .border-black {
     border-color: #ffffff !important;
+}
+
+polygon[stroke="black"] {
+    stroke: #ffffff !important;
 }
 
 
@@ -65,7 +69,7 @@ a:hover, button:hover, [role="button"]:hover { text-decoration: none !important;
 
 /* NÚT PHỤ & HOVER MỌI THỨ KHÁC -> XÁM ĐẬM #27272a */
 button:not(.bg-black):hover, 
-a:not(.bg-black):not(.navbar-brand):hover, 
+a:not(.bg-black):not(.navbar-brand):not(.nav-link):hover, 
 [role="button"]:not(.bg-black):hover,
 .suggestion-box .suggestion-item:hover, 
 .filter-menu button:hover, 
@@ -76,32 +80,33 @@ a:not(.bg-black):not(.navbar-brand):hover,
     color: #ffffff !important;
 }
 
+/* Các nút Header (nav-link) */
+.nav-link {
+    color: #ffffff !important;
+}
+.nav-link:hover {
+    background-color: transparent !important;
+    color: #a1a1aa !important; /* light gray hover */
+}
+
 
 /* 4. FIX BẢNG & LỊCH SỬ HOẠT ĐỘNG (TABLES) */
 .info-table, .data-table, .history-table {
-    border-collapse: separate !important; border-spacing: 0 !important;
-    border: 1px solid #ffffff !important; border-radius: 8px !important;
+    border-collapse: collapse !important;
+    border: 1px solid #ffffff !important; border-radius: 0 !important;
     background-color: #000000 !important; color: #ffffff !important;
 }
 /* Ép màu nền đen và chữ trắng tới từng ô dữ liệu */
 .info-table td, .info-table th, .history-table td, .history-table th, .data-table td, .data-table th {
     background-color: #000000 !important;
-    border-color: #ffffff !important;
+    border: 1px solid #ffffff !important;
     color: #ffffff !important;
 }
 /* Hover dòng trong bảng -> Xám đậm */
 .history-table tr:hover, .data-table tr:hover, .info-table tr:hover {
     background-color: #27272a !important; 
 }
-.info-table tr:first-child td:first-child, .info-table tr:first-child th:first-child, .history-table tr:first-child th:first-child { border-top-left-radius: 7px !important; }
-.info-table tr:first-child td:last-child, .info-table tr:first-child th:last-child, .history-table tr:first-child th:last-child { border-top-right-radius: 7px !important; }
-.info-table tr:last-child td:first-child, .info-table tr:last-child th:first-child, .history-table tr:last-child td:first-child { border-bottom-left-radius: 7px !important; }
-.info-table tr:last-child td:last-child, .info-table tr:last-child th:last-child, .history-table tr:last-child td:last-child { border-bottom-right-radius: 7px !important; }
-.border:has(> .info-table):not([class*=" p-"]):not([class^="p-"]), .border:has(> .history-table-wrapper):not([class*=" p-"]):not([class^="p-"]), .border:has(> .data-table):not([class*=" p-"]):not([class^="p-"]) {
-    border: none !important; box-shadow: none !important;
-}
-.info-table tr:last-child td, .data-table tr:last-child td, .history-table tr:last-child td { border-bottom: none !important; }
-.stat-item { border-color: #ffffff !important; color: #ffffff !important; }
+.stat-item { border-color: #ffffff !important; color: #ffffff !important; background-color: #000000 !important; }
 
 
 /* 5. POPUP, DROPDOWN & KÍNH MỜ */
