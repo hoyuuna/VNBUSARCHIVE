@@ -1,165 +1,517 @@
 /* ==========================================
    VNBUSARCHIVE - FLAT DARK THEME (OVERRIDE LAYER)
+   HIGH CONTRAST: DARK GRAY BG, PURE BLACK COMPONENTS, PURE WHITE BORDERS
 ========================================== */
 
-/* 1. Nền tối tĩnh có kẻ ô ly mờ (Dark Notebook) */
-html.theme-dark body, .theme-dark {
-    background-color: #18181b !important;
+/* 1. Nền cố định như quyển vở (Xám đậm, lưới xám sáng hơn) */
+body, body.theme-dark, body.theme-light {
+    background-color: #121212 !important; 
     background-image: 
-        linear-gradient(#27272a 1px, transparent 1px),
-        linear-gradient(90deg, #27272a 1px, transparent 1px) !important;
+        linear-gradient(#333333 1px, transparent 1px),
+        linear-gradient(90deg, #333333 1px, transparent 1px) !important;
     background-size: 20px 20px !important;
-        color: #ffffff !important;
+    color: #ffffff !important;
 }
 
 /* KHỚP MÀN HÌNH LOADING */
-.theme-dark #loading-screen {
-    background-color: #18181b !important; 
+#loading-screen {
+    background-color: #121212 !important; 
     background-image: none !important;
 }
 
-/* Biến các thẻ có shadow thành thẻ phẳng CÓ VIỀN */
-.theme-dark .shadow-2xl, .theme-dark .shadow-xl, .theme-dark .shadow-lg, .theme-dark .shadow-md, .theme-dark .shadow-sm, .theme-dark .shadow-island, .theme-dark .shadow-\[0_1px_2px_0_rgba\(0\,0\,0\,0\.05\)\] {
+/* Biến các thẻ có shadow thành thẻ phẳng CÓ VIỀN TRẮNG */
+.shadow-2xl, .shadow-xl, .shadow-lg, .shadow-md, .shadow-sm, .shadow-island, .shadow-\[0_1px_2px_0_rgba\(0\,0\,0\,0\.05\)\] {
     box-shadow: none !important;
     border: 1px solid #ffffff !important;
 }
 
-/* KHÔI PHỤC NỀN ĐEN ĐẶC CHO MỌI POPUP (TẮT XUYÊN THẤU) */
-.theme-dark #subrole-prompt-content, #onboarding-content, #crop-content, .theme-dark #custom-alert-content, .theme-dark #settings-content, .theme-dark #newsboard-content, .theme-dark #docs-content,
-.theme-dark #upload-info-content, .theme-dark #custom-prompt-content, .theme-dark #custom-role-content, .theme-dark #deny-prompt-content, .theme-dark #ban-prompt-content,
-.theme-dark #up-progress-content, .theme-dark #captcha-content, .theme-dark #webrtc-qr-content, .theme-dark #qr-login-host-content, .theme-dark #qr-login-confirm-content,
-.theme-dark #advanced-filter-content, .theme-dark #achievement-content, .theme-dark #operator-edit-content, .theme-dark #model-edit-content,
-.theme-dark #route-edit-content, .theme-dark #fav-photo-content, .theme-dark #manager-edit-content, .theme-dark #email-verify-content, .theme-dark #bio-edit-content {
+/* KHÔI PHỤC NỀN ĐEN THUẦN CHO MỌI POPUP (TẮT XUYÊN THẤU) */
+#subrole-prompt-content, #onboarding-content, #crop-content, #custom-alert-content, #settings-content, #newsboard-content, #docs-content,
+#upload-info-content, #custom-prompt-content, #custom-role-content, #deny-prompt-content, #ban-prompt-content,
+#up-progress-content, #captcha-content, #webrtc-qr-content, #qr-login-host-content, #qr-login-confirm-content,
+#advanced-filter-content, #achievement-content, #operator-edit-content, #model-edit-content,
+#route-edit-content, #fav-photo-content, #manager-edit-content, #email-verify-content, #bio-edit-content {
     background-color: #000000 !important;
     border: 1px solid #ffffff !important;
     box-shadow: none !important;
-    color: #ffffff !important;
 }
 
-/* Đảo màu mọi background từ trắng/xám sáng sang đen và màu chữ sang trắng */
-.theme-dark .bg-white, .theme-dark .bg-gray-50, .theme-dark .bg-gray-100, .theme-dark .stat-item,
-.theme-dark .bg-white\/95, .theme-dark .bg-white\/90, .theme-dark .bg-white\/80, .theme-dark .bg-white\/70, .theme-dark .bg-white\/60, .theme-dark .bg-white\/50, .theme-dark .bg-white\/40, .theme-dark .bg-white\/30, .theme-dark .bg-white\/20,
-.theme-dark .bg-gray-50\/50, .theme-dark .bg-gray-100\/50, .theme-dark .bg-gray-200\/80, .theme-dark .bg-gray-200\/50 {
+/* 3. Khôi phục màu nền đen tĩnh cho TOÀN BỘ các class kính mờ khác */
+.bg-white\/95, .bg-white\/90, .bg-white\/80, .bg-white\/70, .bg-white\/60, .bg-white\/50, .bg-white\/40, .bg-white\/30, .bg-white\/20,
+.bg-gray-50\/50, .bg-gray-100\/50, .bg-gray-200\/80, .bg-gray-200\/50 {
     background-color: #000000 !important;
-    color: #ffffff !important;
-}
-
-/* Đảo mọi text màu đen/xám đậm sang màu trắng (fix lỗi nền đen chữ đen) */
-.theme-dark .text-black, .theme-dark .text-gray-900, .theme-dark .text-gray-800, .theme-dark .stat-value, .theme-dark h1, .theme-dark h2, .theme-dark h3, .theme-dark h4 {
-    color: #ffffff !important;
-}
-
-/* Làm SÁNG RÕ các đoạn text xám phụ - không dùng xám tối của light mode để tránh mờ */
-.theme-dark .text-gray-700, .theme-dark .text-gray-600, .theme-dark .text-gray-500, .theme-dark .text-gray-400, .theme-dark .stat-label {
-    color: #d4d4d8 !important; /* Xám rất sáng (gray-300) */
 }
 
 /* 4. Bo góc duy nhất nhẹ nhàng */
-.theme-dark .rounded-3xl, .theme-dark .rounded-2xl, .theme-dark .rounded-xl, .theme-dark .rounded-lg {
+.rounded-3xl, .rounded-2xl, .rounded-xl, .rounded-lg {
     border-radius: 8px !important;
 }
-.theme-dark .rounded-full {
+.rounded-full {
     border-radius: 9999px !important; 
 }
 
-/* 5. Đổi màu các viền thành trắng */
-.theme-dark .stat-item, .theme-dark .border-white\/20, .theme-dark .border-white\/30, .theme-dark .border-gray-100, .theme-dark .border-gray-200, .theme-dark .border-gray-300, .theme-dark .border-vbs-border, .theme-dark .border-\[\#e4e4e7\], .theme-dark .border-black {
+/* 5. Đổi màu các viền có sẵn thành viền trắng */
+.border-white\/20, .border-white\/30, .border-gray-100, .border-gray-200, .border-gray-300, .border-vbs-border, .border-\[\#e4e4e7\] {
     border-color: #ffffff !important;
 }
 
-/* FIX DROPDOWN VÀ POPUP */
-.theme-dark .suggestion-box, .theme-dark .filter-menu, .theme-dark #user-dropdown {
+/* FIX DROPDOWN VÀ POPUP (Bỏ overflow: hidden để tránh lỗi cuộn) */
+.suggestion-box, .filter-menu, #user-dropdown {
     border: 1px solid #ffffff !important;
     background-color: #000000 !important;
-    color: #ffffff !important;
     border-radius: 8px !important;
     box-shadow: none !important;
 }
 
 /* FIX BẢNG MẤT NÉT GÓC */
-.theme-dark .info-table, .theme-dark .data-table, .theme-dark .history-table {
+.info-table, .data-table, .history-table {
     border-collapse: separate !important;
     border-spacing: 0 !important;
     border: 1px solid #ffffff !important;
     border-radius: 8px !important;
     background-color: #000000 !important;
 }
-.theme-dark .info-table tr:first-child td:first-child, .theme-dark .info-table tr:first-child th:first-child, .theme-dark .history-table tr:first-child th:first-child { border-top-left-radius: 7px !important; }
-.theme-dark .info-table tr:first-child td:last-child, .theme-dark .info-table tr:first-child th:last-child, .theme-dark .history-table tr:first-child th:last-child { border-top-right-radius: 7px !important; }
-.theme-dark .info-table tr:last-child td:first-child, .theme-dark .info-table tr:last-child th:first-child, .theme-dark .history-table tr:last-child td:first-child { border-bottom-left-radius: 7px !important; }
-.theme-dark .info-table tr:last-child td:last-child, .theme-dark .info-table tr:last-child th:last-child, .theme-dark .history-table tr:last-child td:last-child { border-bottom-right-radius: 7px !important; }
+.info-table tr:first-child td:first-child, .info-table tr:first-child th:first-child, .history-table tr:first-child th:first-child { border-top-left-radius: 7px !important; }
+.info-table tr:first-child td:last-child, .info-table tr:first-child th:last-child, .history-table tr:first-child th:last-child { border-top-right-radius: 7px !important; }
+.info-table tr:last-child td:first-child, .info-table tr:last-child th:first-child, .history-table tr:last-child td:first-child { border-bottom-left-radius: 7px !important; }
+.info-table tr:last-child td:last-child, .info-table tr:last-child th:last-child, .history-table tr:last-child td:last-child { border-bottom-right-radius: 7px !important; }
 
-/* Ẩn viền của thẻ div bọc ngoài bảng */
-.theme-dark .border.border-gray-200:has(> .info-table):not([class*=" p-"]):not([class^="p-"]),
-.theme-dark .border.border-gray-200:has(> .history-table-wrapper):not([class*=" p-"]):not([class^="p-"]),
-.theme-dark .border.border-gray-200:has(> .data-table):not([class*=" p-"]):not([class^="p-"]) {
+/* Ẩn viền của thẻ div bọc ngoài bảng NHƯNG BỎ QUA các thẻ div có padding (p-) để giữ viền cho khối Thông số kỹ thuật */
+.border.border-gray-200:has(> .info-table):not([class*=" p-"]):not([class^="p-"]),
+.border.border-gray-200:has(> .history-table-wrapper):not([class*=" p-"]):not([class^="p-"]),
+.border.border-gray-200:has(> .data-table):not([class*=" p-"]):not([class^="p-"]) {
     border: none !important;
     box-shadow: none !important;
 }
 
-.theme-dark .info-table td, .theme-dark .info-table th, .theme-dark .data-table td, .theme-dark .data-table th, .theme-dark .history-table td, .theme-dark .history-table th {
+.info-table td, .info-table th, .data-table td, .data-table th, .history-table td, .history-table th {
     border-color: #ffffff !important; 
-    color: #ffffff !important;
 }
-.theme-dark .info-table tr:last-child td, .theme-dark .data-table tr:last-child td, .theme-dark .history-table tr:last-child td {
+.info-table tr:last-child td, .data-table tr:last-child td, .history-table tr:last-child td {
     border-bottom: none !important; 
+}
+.stat-item {
+    border-color: #ffffff !important; 
 }
 
 /* 6. Fix text hover không gạch chân */
-.theme-dark a, .theme-dark button, .theme-dark [role="button"] {
+a, button, [role="button"] {
     text-decoration: none !important;
+    color: #ffffff; /* Tránh text bị đen trùng nền */
 }
-.theme-dark a:hover, .theme-dark button:hover, .theme-dark [role="button"]:hover {
+a:hover, button:hover, [role="button"]:hover {
     text-decoration: none !important;
 }
 
-/* Đảo màu nút bấm đen thành trắng */
-.theme-dark .bg-black {
-    background-color: #ffffff !important;
-    color: #000000 !important;
-}
-.theme-dark .bg-black:hover {
-    background-color: #e4e4e7 !important; 
+/* Nút: Do nền đã là đen thuần, nút đen sẽ chìm nghỉm. Cần hover xám sáng để nhận diện */
+.bg-black:hover {
+    background-color: #333333 !important; 
 }
 
 /* Input form: Fix outline */
-.theme-dark input, .theme-dark textarea, .theme-dark select {
+input, textarea, select {
+    outline: none !important;
     background-color: #000000 !important;
     color: #ffffff !important;
-    border: 1px solid #ffffff !important;
-    outline: none !important;
 }
-.theme-dark input:focus, .theme-dark textarea:focus, .theme-dark select:focus {
+input:focus, textarea:focus, select:focus {
     border-color: #ffffff !important;
     box-shadow: none !important;
     outline: none !important;
 }
 
 
-/* FIX: Header links in dark mode */
-.theme-dark .nav-link {
-    color: #d4d4d8 !important; /* Xám sáng */
+/* ===== AUTH PAGE FLAT OVERRIDE ===== */
+
+/* Khung modal chính */
+#auth .bg-white\/70,
+#auth .bg-white\/80 {
+    background-color: #000000 !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
 }
-.theme-dark .nav-link:hover {
+
+/* Viền trong suốt của các input và khung chính -> viền trắng */
+#auth .border.border-white\/80,
+#auth .border.border-white\/60,
+#auth .border.border-white\/70 {
+    border-color: #ffffff !important;
+}
+
+/* Input fields (Cho xám cực tối để phân biệt với nền đen thuần của card) */
+#auth input {
+    background-color: #111111 !important;
+    border: 1px solid #ffffff !important;
+    backdrop-filter: none !important;
     color: #ffffff !important;
 }
 
-/* FIX: Table row hover effect in dark mode (prevent trắng móc on hover) */
-.theme-dark tr:hover, 
-.theme-dark tr:hover td,
-.theme-dark tr:hover th {
-    background-color: #27272a !important;
+/* Auth message box (Thông báo lỗi) */
+#auth #auth-msg {
+    background-color: #000000 !important;
+    border: 1px solid #ffffff !important;
+    color: #ffffff !important;
 }
 
-/* FIX: Ensure divide lines are dark gray instead of white to prevent glaring borders */
-.theme-dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
-.theme-dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
-    border-color: #3f3f46 !important;
+/* Khung card modal auth */
+#auth .rounded-3xl.bg-white\/70 {
+    background-color: #000000 !important;
+    border: 1px solid #ffffff !important;
+    box-shadow: none !important;
 }
 
-/* FIX: Force light mode gray borders to be dark gray instead of stark white */
-.theme-dark .border-gray-100,
-.theme-dark .border-gray-200,
-.theme-dark .border-gray-300 {
-    border-color: #3f3f46 !important;
+/* Shadow override */
+#auth .shadow-\[0_8px_32px_0_rgba\(0\,0\,0\,0\.2\)\] {
+    box-shadow: none !important;
+}
+
+/* Credit pill dưới card */
+#auth .bg-white\/60 {
+    background-color: #000000 !important;
+}
+
+/* Tab switcher login/register */
+#auth .bg-white\/60.border.border-white\/70 {
+    background-color: #1a1a1a !important; /* Xám để nhìn thấy nút gạt */
+    border: 1px solid #ffffff !important;
+}
+
+/* Nút social login Google */
+#auth .border.border-gray-300\/80 {
+    border-color: #ffffff !important;
+}
+
+/* ===== FIX: VEHICLE TYPE ICON (Làm sáng hơn để nổi trên nền tối) ===== */
+#btn-type-bus.bg-black .icon-bg,
+#btn-type-coach.bg-black .icon-bg {
+    background-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* ===== FIX: WATERMARK PREVIEW ===== */
+#preview-container {
+    border: 1px solid #ffffff !important;
+}
+
+/* ===== FIX: ZOOM TOOLBAR button text color ===== */
+#zoom-toolbar button {
+    color: #ffffff !important;
+}
+#zoom-toolbar button:hover {
+    color: #a1a1aa !important; /* Đổi màu xám nhạt khi hover */
+}
+
+/* ===== FIX: INLINE ALERTS - Nền đen thuần, viền trắng, chữ trắng ===== */
+.bg-red-50, .bg-red-100 { background-color: #000000 !important; border: 1px solid #ffffff !important; color: #ffffff !important; }
+.bg-yellow-50, .bg-yellow-100 { background-color: #000000 !important; border: 1px solid #ffffff !important; color: #ffffff !important; }
+.bg-green-50, .bg-green-100 { background-color: #000000 !important; border: 1px solid #ffffff !important; color: #ffffff !important; }
+.bg-blue-50, .bg-blue-100 { background-color: #000000 !important; border: 1px solid #ffffff !important; color: #ffffff !important; }
+.bg-orange-50, .bg-orange-100 { background-color: #000000 !important; border: 1px solid #ffffff !important; color: #ffffff !important; }
+
+/* Inline alerts with explicit red/yellow/green/blue border already get overridden to white */
+.border-red-200, .border-red-300 { border-color: #ffffff !important; }
+.border-yellow-200, .border-yellow-300 { border-color: #ffffff !important; }
+.border-green-200, .border-green-300 { border-color: #ffffff !important; }
+.border-blue-200, .border-blue-300 { border-color: #ffffff !important; }
+.border-orange-200, .border-orange-300 { border-color: #ffffff !important; }
+
+/* ===== FIX: FAV PHOTO CONTENT border ===== */
+#fav-photo-content {
+    border: 1px solid #ffffff !important;
+}
+
+/* ===== WATERMARK PROTECTION (không override màu) ===== */
+.wm-draggable,
+.wm-draggable * {
+    color: inherit !important;
+}
+.wm-draggable.wm-black,
+.wm-draggable.wm-black * {
+    color: black !important;
+}
+.footer-text-left,
+.footer-text-right,
+#preview-footer-copy {
+    color: white !important;
+}
+
+/* ===== FIX: PREVIEW FOOTER BAR - Restore blur gradient ===== */
+#preview-footer-bar {
+    background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%) !important;
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+    padding-bottom: 6px !important;
+    padding-top: 6px !important;
+}
+
+/* Additional Tailwind colors for inline alerts */
+.bg-amber-50, .bg-amber-100 { background-color: #000000 !important; border: 1px solid #ffffff !important; color: #ffffff !important; }
+.border-amber-200, .border-amber-300 { border-color: #ffffff !important; }
+
+.bg-indigo-50, .bg-indigo-100 { background-color: #000000 !important; border: 1px solid #ffffff !important; color: #ffffff !important; }
+.border-indigo-200, .border-indigo-300 { border-color: #ffffff !important; }
+
+.bg-emerald-50, .bg-emerald-100 { background-color: #000000 !important; border: 1px solid #ffffff !important; color: #ffffff !important; }
+.border-emerald-200, .border-emerald-300 { border-color: #ffffff !important; }
+
+
+/* ===== FIX: UI BORDERS & SEPARATORS (Bảng tin, Cài đặt, Chi tiết ảnh, Dropdown) ===== */
+
+/* 1. BẢNG TIN HỆ THỐNG & CÀI ĐẶT */
+#newsboard-content .border-gray-200\/50,
+#settings-content .border-gray-200\/50,
+#newsboard-content .border-gray-200,
+#settings-content .border-gray-200,
+#newsboard-content .border-gray-300,
+#settings-content .border-gray-300,
+#newsboard-toc, #set-menu-main {
+    border-color: #ffffff !important;
+}
+
+#newsboard-content .border-b,
+#newsboard-content .border-r,
+#settings-content .border-b,
+#settings-content .border-r {
+    border-color: #ffffff !important;
+}
+
+/* Các nút trong sidebar cài đặt (trạng thái bình thường) */
+#set-menu-main button.border-gray-200,
+#set-menu-account button.border-gray-200,
+#set-menu-docs button.border-gray-200 {
+    border-color: #ffffff !important;
+}
+
+/* Tab cài đặt đang active (Vì nền đang đen, tab active sẽ biến thành TRẮNG TINH để tạo độ tương phản) */
+#set-menu-main button.bg-black,
+#set-menu-account button.bg-black,
+#set-menu-docs button.bg-black {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border-color: #ffffff !important;
+}
+#set-menu-main button.bg-black i,
+#set-menu-account button.bg-black i,
+#set-menu-docs button.bg-black i {
+    color: #000000 !important;
+}
+
+/* Nút News card (Bảng tin) */
+.news-card {
+    border: 1px solid #ffffff !important;
+    margin-bottom: 8px;
+}
+/* News card active: Nền trắng, chữ đen */
+.news-card.active {
+    border-left: 1px solid #ffffff !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+}
+.news-card.active h4, .news-card.active p, .news-card.active span, .news-card.active i {
+    color: #000000 !important;
+}
+
+/* Nền modal Bảng tin & Cài đặt */
+#newsboard-content .bg-white\/30,
+#newsboard-content .bg-gray-50\/30,
+#settings-content .bg-white\/30,
+#settings-content .bg-gray-50\/30 {
+    background-color: #000000 !important;
+}
+
+/* 2. CHI TIẾT ẢNH & ẢNH TÂM ĐẮC */
+/* Khung bọc ngoài ảnh chi tiết (detail-image) */
+#detail .img-wrapper {
+    border: 1px solid #ffffff !important;
+    box-sizing: border-box;
+}
+
+/* Ảnh tâm đắc trên Profile */
+.border-gray-200\/60 {
+    border-color: #ffffff !important;
+}
+
+/* Modal chọn ảnh tâm đắc */
+#fav-photo-preview-img {
+    border: 1px solid #ffffff !important;
+}
+
+/* Khung ảnh model preview trong upload */
+#up-model-preview .border-gray-300 {
+    border-color: #ffffff !important;
+}
+
+/* 3. DROPDOWN (Search, Filter, v.v) */
+/* Khung ngoài dropdown */
+.suggestion-box,
+.filter-menu,
+#user-dropdown,
+.dropdown-menu {
+    border: 1px solid #ffffff !important;
+    box-shadow: none !important;
+    background-color: #000000 !important;
+}
+
+/* Phân cách giữa các item trong dropdown */
+.suggestion-box .suggestion-item,
+.filter-menu button,
+.filter-menu a,
+#user-dropdown a,
+#user-dropdown button {
+    border-bottom: 1px solid #ffffff !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+}
+/* Xoá viền dưới cùng của item cuối */
+.suggestion-box .suggestion-item:last-child,
+.filter-menu button:last-child,
+.filter-menu a:last-child,
+#user-dropdown a:last-child,
+#user-dropdown button:last-child {
+    border-bottom: none !important;
+}
+
+/* Hover trong dropdown (Dùng xám đủ sáng để thấy rõ trên nền đen) */
+.suggestion-box .suggestion-item:hover,
+.filter-menu button:hover,
+.filter-menu a:hover,
+#user-dropdown a:hover,
+#user-dropdown button:hover {
+    background-color: #333333 !important;
+}
+
+
+/* ===== FIX: ADMIN & MANAGER VIEWS ===== */
+/* Nút bấm trên thanh Tabs Admin */
+#admin .border-gray-300,
+#admin button.border-gray-300,
+#admin .border-gray-200,
+#admin button.border-gray-200 {
+    border-color: #ffffff !important;
+}
+#admin button:hover,
+#admin button.bg-white:hover {
+    background-color: #333333 !important; /* Hover xám nổi bật */
+}
+/* Các nút đang chọn (Tab active) mà JS set bg-black -> Đảo thành Trắng */
+#admin button.bg-black {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border-color: #ffffff !important;
+}
+
+/* Toolbars trong admin (Đường tham chiếu, Thước ngang, v.v) */
+#adm-photo-grid-toggle-bar button,
+#adm-tab-requests, #adm-tab-delete, #adm-tab-comments, #adm-tab-manager {
+    border: 1px solid #ffffff !important;
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+/* Hover toolbar -> Đảo màu Trắng chữ Đen */
+#adm-photo-grid-toggle-bar button:hover,
+#adm-tab-requests:hover, #adm-tab-delete:hover, #adm-tab-comments:hover, #adm-tab-manager:hover {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+}
+#adm-photo-grid-toggle-bar button:hover i {
+    color: #000000 !important;
+}
+
+/* Các form nhập liệu, select, card trong Admin */
+#admin input, #admin select, #admin textarea,
+.admin-card-header, #admin-content .border-gray-200,
+#admin .bg-gray-100.border-gray-200 {
+    border-color: #ffffff !important;
+    background-color: #000000 !important;
+}
+
+/* ===== MANAGER EDIT MODAL ===== */
+#manager-edit-content .border-gray-200\/50,
+#manager-edit-content .border-gray-200,
+#manager-edit-content .border-gray-300,
+#manager-edit-content .border-gray-300\/80 {
+    border-color: #ffffff !important;
+}
+
+/* Các form, nút bên trong modal manager */
+#manager-edit-content button.border-gray-200,
+#manager-edit-content .bg-gray-50.border-gray-200 {
+    border-color: #ffffff !important;
+    background-color: #000000 !important;
+}
+
+/* Bảng làm mờ bên phải */
+#manager-edit-content .bg-white\/60 {
+    background-color: #000000 !important;
+}
+
+/* Khung ảnh Manager Blur */
+#manager-blur-container {
+    border: 1px solid #ffffff !important;
+}
+
+/* Nút thêm vùng làm mờ */
+#btn-manager-add-blur {
+    border: 1px solid #ffffff !important;
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+#btn-manager-add-blur:hover {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+}
+
+/* Override thêm cho Admin Card */
+.admin-card {
+    border: 1px solid #ffffff !important;
+    box-shadow: none !important;
+    background-color: #000000 !important;
+}
+.admin-card-header {
+    border-bottom: 1px solid #ffffff !important;
+}
+.admin-input {
+    border: 1px solid #ffffff !important;
+}
+
+/* Fix viền admin-content .border-gray-200 */
+#admin-content .border-gray-200,
+#admin-content .border-y {
+    border-color: #ffffff !important;
+}
+
+/* Nút Quay Lại trong Cài đặt */
+#set-menu-account button.border-transparent,
+#set-menu-docs button.border-transparent {
+    border: 1px solid #ffffff !important;
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+#set-menu-account button.border-transparent:hover,
+#set-menu-docs button.border-transparent:hover {
+    background-color: #333333 !important;
+}
+
+/* Fix đè nét đôi ở thẻ duyệt ảnh Admin */
+#admin-content .border-y {
+    border-top: none !important;
+}
+
+/* ===== FIX: PAGINATION (Phân trang) ===== */
+.page-btn {
+    border: 1px solid #ffffff !important;
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+.page-btn:hover:not(:disabled):not(.active) {
+    background-color: #333333 !important; /* Xám nổi bật */
+}
+/* Nút phân trang Active -> Đảo thành Trắng chữ Đen */
+.page-btn.active, .page-btn.active:hover {
+    background: #ffffff !important;
+    color: #000000 !important;
+    border-color: #ffffff !important;
+}
+.page-btn.dots {
+    border: none !important;
+    background: transparent !important;
 }
