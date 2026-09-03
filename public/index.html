@@ -1899,7 +1899,7 @@ div[id$="-modal"] > div > * {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1788431323711" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1788431868043" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -5441,26 +5441,23 @@ div[id$="-modal"] > div > * {
             
             <!-- VIEW BẢN ĐỒ VÙNG CẤM -->
             <div id="map" class="view-section">
-                <!-- Wrapper cho Leaflet để nó lấy hết chiều cao khả dụng -->
+                <!-- Wrapper cho Leaflet toàn màn hình -->
                 <div class="w-full relative bg-gray-50 dark:bg-[#18181b]" style="height: calc(100vh - 112px);">
                     <!-- Vùng chứa ID map -->
                     <div id="leaflet-map" class="absolute inset-0 z-0"></div>
                     
-                    <!-- Bảng điều khiển / Các nút trôi nổi trên map -->
+                    <!-- Nút định vị góc trên phải -->
                     <div class="absolute top-4 right-4 z-[400] flex flex-col gap-2">
                         <button id="map-locate-btn" class="bg-white border border-[#18181b] text-black w-10 h-10 rounded-md flex items-center justify-center hover:bg-gray-100 shadow-sm" title="Vị trí của tôi">
                             <i class="fa-solid fa-location-crosshairs"></i>
                         </button>
                     </div>
 
-                    <div class="absolute top-4 left-4 z-[400] flex flex-col gap-2">
-                         <div class="bg-white border border-[#18181b] p-3 rounded-md shadow-sm pointer-events-auto">
-                            <h3 class="text-sm font-bold mb-1">Bản đồ Vùng Cấm Chụp Ảnh</h3>
-                            <p class="text-xs text-gray-600 mb-3 max-w-[200px]">Các khu vực quân sự, an ninh không được phép ghi hình phương tiện.</p>
-                            <button id="map-add-request-btn" class="w-full bg-black text-white text-xs font-bold py-2 rounded-md hover:bg-gray-800 transition-colors">
-                                Gửi yêu cầu thêm
-                            </button>
-                         </div>
+                    <!-- Nút bổ sung vùng cấm ở góc dưới trái -->
+                    <div class="absolute bottom-4 left-4 z-[400] flex flex-col gap-2">
+                         <button id="map-add-request-btn" class="bg-black border border-[#18181b] text-white text-sm font-bold py-2 px-4 rounded-md shadow-sm pointer-events-auto hover:bg-gray-800 transition-colors">
+                            <i class="fa-solid fa-plus mr-1"></i> Bổ sung vùng cấm
+                         </button>
                     </div>
                 </div>
             </div>
@@ -6781,7 +6778,7 @@ div[id$="-modal"] > div > * {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed top-24 left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.js?v=1788431323711"></script>
+<script src="/app.js?v=1788431868043"></script>
 </body>
 </html>
 
