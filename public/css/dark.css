@@ -1,4 +1,4 @@
-/* ==========================================
+﻿/* ==========================================
    VNBUSARCHIVE - FLAT DARK THEME (OVERRIDE LAYER)
    HIGH CONTRAST: DARK GRAY BG, PURE BLACK COMPONENTS, PURE BLACK BORDERS
 ========================================== */
@@ -73,27 +73,22 @@ a:hover, button:hover, [role="button"]:hover { text-decoration: none !important;
 
 
 /* 4. FIX BẢNG & LỊCH SỬ HOẠT ĐỘNG (TABLES) */
-.info-table, .data-table, .history-table {
-    border-collapse: separate !important;
-    border-spacing: 0 !important;
-    border: 1px solid #ffffff !important; border-radius: 8px !important;
-    background-color: #000000 !important; color: #ffffff !important;
-}
+.info-table, .data-table, .history-table { border-collapse: separate !important; border-spacing: 0 !important; background-color: transparent !important; color: #ffffff !important; }
 /* Ép màu nền đen và chữ trắng tới từng ô dữ liệu */
 .info-table td, .info-table th, .history-table td, .history-table th, .data-table td, .data-table th {
     background-color: #000000 !important;
     border-color: #ffffff !important;
     color: #ffffff !important;
 }
-/* Bo góc các ô đầu/cuối để khớp với wrapper */
-.info-table tr:first-child td:first-child, .info-table tr:first-child th:first-child, .history-table tr:first-child th:first-child { border-top-left-radius: 7px !important; }
-.info-table tr:first-child td:last-child, .info-table tr:first-child th:last-child, .history-table tr:first-child th:last-child { border-top-right-radius: 7px !important; }
-.info-table tr:last-child td:first-child, .info-table tr:last-child th:first-child, .history-table tr:last-child td:first-child { border-bottom-left-radius: 7px !important; }
-.info-table tr:last-child td:last-child, .info-table tr:last-child th:last-child, .history-table tr:last-child td:last-child { border-bottom-right-radius: 7px !important; }
+/* Bo góc các ô đầu/cuối để không đè lên viền bo tròn của wrapper */
+.info-table tr:first-child td:first-child, .info-table tr:first-child th:first-child, .history-table tr:first-child th:first-child, .data-table tr:first-child td:first-child, .data-table tr:first-child th:first-child { border-top-left-radius: 8px !important; }
+.info-table tr:first-child td:last-child, .info-table tr:first-child th:last-child, .history-table tr:first-child th:last-child, .data-table tr:first-child td:last-child, .data-table tr:first-child th:last-child { border-top-right-radius: 8px !important; }
+.info-table tr:last-child td:first-child, .info-table tr:last-child th:first-child, .history-table tr:last-child td:first-child, .data-table tr:last-child td:first-child, .data-table tr:last-child th:first-child { border-bottom-left-radius: 8px !important; }
+.info-table tr:last-child td:last-child, .info-table tr:last-child th:last-child, .history-table tr:last-child td:last-child, .data-table tr:last-child td:last-child, .data-table tr:last-child th:last-child { border-bottom-right-radius: 8px !important; }
 /* Bỏ viền dưới của hàng cuối */
 .info-table tr:last-child td, .data-table tr:last-child td, .history-table tr:last-child td { border-bottom: none !important; }
 /* Wrapper bọc bảng: đổi màu viền trắng, giữ border-radius */
-.border.border-gray-200:has(> .info-table):not([class*=" p-"]):not([class^="p-"]), .border.border-gray-200:has(> .history-table-wrapper):not([class*=" p-"]):not([class^="p-"]), .border.border-gray-200:has(> .data-table):not([class*=" p-"]):not([class^="p-"]) { border: none !important; box-shadow: none !important; }
+
 /* Hover dòng trong bảng -> Xám đậm */
 .history-table tr:hover, .data-table tr:hover, .info-table tr:hover {
     background-color: #27272a !important; 
@@ -357,7 +352,11 @@ button.bg-black:hover, a.bg-black:hover {
 
 
 
-/* Tr? l?i c?u tr�c g?c cho chi ti?t ?nh: Container c� vi?n tr?ng, ?nh c� vi?n tr?ng, footer c� vi?n tr?ng */
+/* Tr? l?i c?u tr�c g?c cho chi ti?t ?nh: Container c� vi?n tr?ng, ?nh c� vi?n tr?ng, footer c� vi?n tr?ng */
 #detail .img-wrapper {
     border: 1px solid #ffffff !important;
 }
+
+
+
+
