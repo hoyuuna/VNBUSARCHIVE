@@ -231,11 +231,6 @@ polygon[fill="white"] { fill: #000000 !important; }
 .pref-option.bg-black .pref-icon { background-color: rgba(0, 0, 0, 0.15) !important; color: #000000 !important; }
 .pref-option.bg-black .pref-icon i { color: #000000 !important; }
 
-/* Hover Manager Comments */
-.hover\:bg-black:hover, .hover\:bg-gray-800:hover, .hover\:bg-gray-900:hover {
-    background-color: #27272a !important; color: #ffffff !important;
-}
-
 /* Route details info-input */
 .info-input { color: #ffffff !important; background-color: transparent !important; }
 
@@ -260,11 +255,6 @@ polygon[fill="white"] { fill: #000000 !important; }
 .pref-option.bg-black *, .news-card.active *, #set-menu-main button.bg-black *, #set-menu-docs button.bg-black *, #set-menu-account button.bg-black * {
     color: #000000 !important;
 }
-
-.bg-red-50, .bg-red-100 { background-color: #450a0a !important; border-color: #ffffff !important; color: #ffffff !important; }
-.bg-yellow-50, .bg-yellow-100, .bg-orange-50, .bg-orange-100, .bg-amber-50, .bg-amber-100 { background-color: #422006 !important; border-color: #ffffff !important; color: #ffffff !important; }
-.bg-green-50, .bg-green-100, .bg-emerald-50, .bg-emerald-100 { background-color: #052e16 !important; border-color: #ffffff !important; color: #ffffff !important; }
-.bg-blue-50, .bg-blue-100, .bg-indigo-50, .bg-indigo-100 { background-color: #172554 !important; border-color: #ffffff !important; color: #ffffff !important; }
 /* Dark Mode Inline Alerts (Soft Backgrounds, Tinted Borders, Pastel Text/Icons) */
 .bg-red-50, .bg-red-100 { background-color: #450a0a !important; border-color: rgba(248, 113, 113, 0.3) !important; color: #fca5a5 !important; }
 .bg-red-50 *, .bg-red-100 * { color: #fca5a5 !important; }
