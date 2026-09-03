@@ -475,3 +475,21 @@ input:focus, textarea:focus, select:focus {
 #admin-content .border-y {
     border-top: none !important; /* Header đã có border-bottom nên bỏ viền trên của khung ảnh */
 }
+
+/* ===== FIX: PAGINATION (Phân trang) ===== */
+.page-btn {
+    border: 1px solid #18181b !important;
+    color: #18181b !important;
+}
+.page-btn:hover:not(:disabled):not(.active) {
+    background-color: #f4f4f5 !important;
+}
+.page-btn.active, .page-btn.active:hover {
+    background: #18181b !important;
+    color: #ffffff !important;
+    border-color: #18181b !important;
+}
+.page-btn.dots {
+    border: none !important;
+    background: transparent !important;
+}
