@@ -31,7 +31,6 @@ body, body.theme-dark, body.theme-light {
 .shadow-2xl, .shadow-xl, .shadow-lg, .shadow-md, .shadow-sm, .shadow-island, .shadow-\[0_1px_2px_0_rgba\(0\,0\,0\,0\.05\)\] {
     box-shadow: none !important;
     border-color: #ffffff !important;
-    background-color: #000000 !important;
 }
 .rounded-3xl, .rounded-2xl, .rounded-xl, .rounded-lg { border-radius: 8px !important; }
 .rounded-full { border-radius: 9999px !important; }
