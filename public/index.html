@@ -1948,7 +1948,7 @@ div[id$="-modal"] > div > * {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1788443379406" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1788444027004" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -5589,6 +5589,9 @@ div[id$="-modal"] > div > * {
                             <button id="map-panel-save-btn" class="w-full bg-black dark:bg-white text-white dark:text-black text-sm font-bold py-2.5 rounded-md hover:opacity-80 transition-opacity border border-black dark:border-white mt-2">
                                 Gửi yêu cầu
                             </button>
+                            <button id="map-panel-delete-btn" class="hidden w-full text-red-600 dark:text-red-400 text-sm font-bold py-2 rounded-md hover:opacity-80 transition-opacity mt-1">
+                                <i class="fa-solid fa-trash mr-1"></i> Xóa vùng cấm này
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -6910,7 +6913,7 @@ div[id$="-modal"] > div > * {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed top-24 left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.js?v=1788443379406"></script>
+<script src="/app.js?v=1788444027004"></script>
 </body>
 </html>
 

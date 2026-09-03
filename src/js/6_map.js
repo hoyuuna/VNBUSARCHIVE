@@ -169,6 +169,10 @@ app.map = {
                 document.getElementById('map-panel-title').innerText = 'Thêm vùng cấm (Admin)';
                 saveBtn.innerText = 'Lưu Trực Tiếp';
                 
+                // Ẩn nút xóa khi đang thêm mới
+                const deleteBtn = document.getElementById('map-panel-delete-btn');
+                if (deleteBtn) deleteBtn.classList.add('hidden');
+                
                 menuBtn.classList.add('hidden');
                 panel.classList.remove('hidden');
                 setTimeout(() => {
@@ -514,13 +518,30 @@ app.map = {
     
     editZone(zone) {
         const panel = document.getElementById('map-zone-panel');
+        const menuBtn = document.getElementById('map-menu-btn');
         if (panel.classList.contains('hidden')) {
-            document.getElementById('map-open-panel-btn').click();
+            if (menuBtn) menuBtn.classList.add('hidden');
+            panel.classList.remove('hidden');
+            setTimeout(() => {
+                panel.classList.remove('scale-95', 'opacity-0');
+                panel.classList.add('scale-100', 'opacity-100');
+            }, 10);
         }
         
         // Cập nhật tiêu đề sau khi open btn đã set (có độ trễ xíu do bất đồng bộ hoặc không, set luôn ghi đè lại)
         document.getElementById('map-panel-title').innerText = this.isAdmin ? 'Chỉnh sửa vùng cấm' : 'Gửi Yêu Cầu Sửa';
         document.getElementById('map-panel-save-btn').innerText = this.isAdmin ? 'Lưu Thay Đổi' : 'Gửi Yêu Cầu';
+        
+        // Hiện nút Xóa nếu là admin và đang chỉnh sửa
+        const deleteBtn = document.getElementById('map-panel-delete-btn');
+        if (deleteBtn) {
+            if (this.isAdmin) {
+                deleteBtn.classList.remove('hidden');
+                deleteBtn.onclick = () => this.deleteZone(zone.id);
+            } else {
+                deleteBtn.classList.add('hidden');
+            }
+        }
         
         this.clearDrafts();
         this.editingZoneId = zone.id;
@@ -585,27 +606,26 @@ app.map = {
     },
     
     showZoneInfo(zone) {
+        const noteText = 'Vui lòng tuân thủ quy định an ninh và nội quy tại địa điểm chụp. Để tác nghiệp an toàn, bạn nên di chuyển ra các điểm ngắm/vị trí công cộng lân cận ngoài ranh giới này.';
         let msg = `
             <div class="text-left w-full">
                 <h3 class="font-bold text-lg text-black dark:text-white mb-2">${app.utils.escapeHtml(zone.name)}</h3>
                 <p class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">${app.utils.escapeHtml(zone.description || 'Không có mô tả.')}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-3 leading-relaxed">${noteText}</p>
             </div>
         `;
         
         if (this.isAdmin) {
             app.ui.showAlert(msg, () => {
                 this.editZone(zone);
-            }, () => {
-                this.deleteZone(zone.id);
-            }, {
-                title: "Thông tin vùng cấm",
-                btnOkText: "Chỉnh sửa vùng cấm",
-                btnCancelText: "Xóa vùng cấm",
-                isCancelDestructive: true
+            }, () => {}, {
+                title: "Vùng cấm chụp ảnh",
+                btnOkText: "Chỉnh sửa",
+                btnCancelText: "Đóng"
             });
         } else {
             app.ui.showAlert(msg, () => {}, null, {
-                title: "Thông tin vùng cấm",
+                title: "Vùng cấm chụp ảnh",
                 btnOkText: "Đóng"
             });
         }
