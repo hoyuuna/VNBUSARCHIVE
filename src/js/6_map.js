@@ -380,6 +380,19 @@ app.map = {
                 }).addTo(this.instance);
             }
             
+            // Kiểm tra nếu người dùng đang ở trong vùng cấm
+            const inZone = this.isPointInZones(e.latlng.lat, e.latlng.lng);
+            if (inZone && inZone.id !== this._lastWarnedZoneId) {
+                this._lastWarnedZoneId = inZone.id;
+                app.ui.showAlert(
+                    `Bạn đang ở trong khu vực <b>${app.utils.escapeHtml(inZone.name)}</b>.<br><br>Vui lòng tuân thủ quy định an ninh và nội quy tại địa điểm chụp. Để tác nghiệp an toàn, bạn nên di chuyển ra các điểm ngắm/vị trí công cộng lân cận ngoài ranh giới.`,
+                    () => {}, null,
+                    { title: 'Cảnh báo vùng cấm/hạn chế', isError: true, btnOkText: 'Đã hiểu' }
+                );
+            } else if (!inZone) {
+                this._lastWarnedZoneId = null;
+            }
+            
             // Nếu người dùng đang chờ load từ nút locate
             if (this.isLocatingUser) {
                 this.isLocatingUser = false;
@@ -459,6 +472,30 @@ app.map = {
             div.appendChild(btn);
             listEl.appendChild(div);
         });
+    },
+
+    // Kiểm tra xem một điểm có nằm trong bất kỳ vùng cấm nào không
+    isPointInZones(lat, lng) {
+        if (!this.zones || this.zones.length === 0) return null;
+        const pt = [lat, lng];
+        for (const zone of this.zones) {
+            const polygons = this.parseZoneBounds(zone.bounds);
+            for (const polyPoints of polygons) {
+                if (L.polygon(polyPoints).getBounds().contains(pt)) {
+                    // Kiểm tra chính xác hơn bằng ray casting
+                    let inside = false;
+                    for (let i = 0, j = polyPoints.length - 1; i < polyPoints.length; j = i++) {
+                        const xi = polyPoints[i][0], yi = polyPoints[i][1];
+                        const xj = polyPoints[j][0], yj = polyPoints[j][1];
+                        const intersect = ((yi > lng) !== (yj > lng)) &&
+                            (lat < (xj - xi) * (lng - yi) / (yj - yi) + xi);
+                        if (intersect) inside = !inside;
+                    }
+                    if (inside) return zone;
+                }
+            }
+        }
+        return null;
     },
 
     updateTheme() {
@@ -726,6 +763,17 @@ app.map = {
         this.animateShow(document.getElementById('map-location-info'));
         document.getElementById('map-loc-name').innerText = name;
         document.getElementById('map-loc-address').innerText = address;
+        
+        // Kiểm tra vùng cấm
+        const zoneWarning = document.getElementById('map-loc-zone-warning');
+        const matchedZone = this.isPointInZones(lat, lon);
+        if (zoneWarning) {
+            if (matchedZone) {
+                zoneWarning.classList.remove('hidden');
+            } else {
+                zoneWarning.classList.add('hidden');
+            }
+        }
         
         this.sunEnabled = false;
         if (this.sunMarker) {
