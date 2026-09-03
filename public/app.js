@@ -1,4 +1,4 @@
-window.APP_VERSION = "26.09.03.18.44.34";
+window.APP_VERSION = "26.09.03.19.08.38";
 
 /* --- MODULE: 1_init.js --- */
 window.app = window.app || {};
@@ -20364,6 +20364,7 @@ app.map = {
         document.head.appendChild(style);
 
         this.setupPanelEvents();
+        this.setupSearchEvents();
     },
     
     setupPanelEvents() {
@@ -20472,6 +20473,117 @@ app.map = {
         }
     },
     
+    setupSearchEvents() {
+        const form = document.getElementById('map-search-form');
+        const input = document.getElementById('map-search-input');
+        const resultsContainer = document.getElementById('map-search-results');
+        const locateBtn = document.getElementById('map-locate-btn');
+
+        if (!form || !input || !resultsContainer || !locateBtn) return;
+
+        const performSearch = async (query) => {
+            if (!query) {
+                resultsContainer.classList.add('hidden');
+                return;
+            }
+            
+            try {
+                resultsContainer.innerHTML = '<div class="p-3 text-sm text-gray-500 text-center">Đang tìm kiếm...</div>';
+                resultsContainer.classList.remove('hidden');
+                
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=vn`);
+                const data = await response.json();
+                
+                if (data && data.length > 0) {
+                    resultsContainer.innerHTML = '';
+                    data.forEach(item => {
+                        const div = document.createElement('div');
+                        div.className = 'p-3 hover:bg-gray-100 dark:hover:bg-[#27272a] cursor-pointer text-sm border-b border-black dark:border-white last:border-0 dark:text-white transition-colors';
+                        div.innerText = item.display_name;
+                        div.onclick = () => {
+                            const lat = parseFloat(item.lat);
+                            const lon = parseFloat(item.lon);
+                            this.instance.setView([lat, lon], 16);
+                            resultsContainer.classList.add('hidden');
+                            input.value = item.display_name;
+                            
+                            // Thêm marker tạm thời
+                            if (this.searchMarker) this.instance.removeLayer(this.searchMarker);
+                            this.searchMarker = L.marker([lat, lon]).addTo(this.instance).bindPopup(item.display_name).openPopup();
+                        };
+                        resultsContainer.appendChild(div);
+                    });
+                } else {
+                    resultsContainer.innerHTML = '<div class="p-3 text-sm text-gray-500 text-center">Không tìm thấy kết quả</div>';
+                }
+            } catch (error) {
+                resultsContainer.innerHTML = '<div class="p-3 text-sm text-red-500 text-center">Lỗi tìm kiếm</div>';
+            }
+        };
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            performSearch(input.value.trim());
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!form.contains(e.target) && !resultsContainer.contains(e.target)) {
+                resultsContainer.classList.add('hidden');
+            }
+        });
+
+        locateBtn.addEventListener('click', () => {
+            if (!navigator.geolocation) {
+                app.ui.showAlert('Trình duyệt không hỗ trợ định vị.');
+                return;
+            }
+            
+            const originalIcon = locateBtn.innerHTML;
+            locateBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-lg"></i>';
+            locateBtn.disabled = true;
+
+            this.instance.locate({setView: true, maxZoom: 16});
+
+            const onLocationFound = (e) => {
+                locateBtn.innerHTML = originalIcon;
+                locateBtn.disabled = false;
+                
+                if (this.currentLocationMarker) {
+                    this.instance.removeLayer(this.currentLocationMarker);
+                }
+                if (this.currentLocationCircle) {
+                    this.instance.removeLayer(this.currentLocationCircle);
+                }
+                
+                const radius = Math.round(e.accuracy / 2);
+                this.currentLocationMarker = L.marker(e.latlng).addTo(this.instance)
+                    .bindPopup(`Bạn đang ở trong phạm vi ${radius} mét`).openPopup();
+                
+                this.currentLocationCircle = L.circle(e.latlng, radius, {
+                    color: '#ef4444',
+                    fillColor: '#ef4444',
+                    fillOpacity: 0.15,
+                    weight: 1
+                }).addTo(this.instance);
+                
+                this.instance.off('locationfound', onLocationFound);
+                this.instance.off('locationerror', onLocationError);
+            };
+
+            const onLocationError = (e) => {
+                locateBtn.innerHTML = originalIcon;
+                locateBtn.disabled = false;
+                app.ui.showAlert('Không thể lấy vị trí hiện tại. Hãy kiểm tra quyền truy cập vị trí.');
+                
+                this.instance.off('locationfound', onLocationFound);
+                this.instance.off('locationerror', onLocationError);
+            };
+
+            this.instance.on('locationfound', onLocationFound);
+            this.instance.on('locationerror', onLocationError);
+        });
+    },
+
     clearDrafts() {
         if (this.editHandler) {
             this.editHandler.disable();

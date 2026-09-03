@@ -1903,7 +1903,7 @@ div[id$="-modal"] > div > * {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1788435874408" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1788437318242" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -5450,6 +5450,26 @@ div[id$="-modal"] > div > * {
                     <!-- Vùng chứa ID map -->
                     <div id="leaflet-map" class="absolute inset-0 z-0"></div>
 
+                    <!-- Vùng tìm kiếm bản đồ -->
+                    <div class="absolute top-20 sm:top-24 left-4 sm:left-6 right-4 sm:right-auto sm:w-96 z-[400] flex flex-col gap-2 pointer-events-none">
+                        <div class="flex items-center gap-2 pointer-events-auto">
+                            <form id="map-search-form" class="flex-1 flex items-center bg-white dark:bg-[#18181b] border border-black dark:border-white rounded-md overflow-hidden relative">
+                                <input type="text" id="map-search-input" class="w-full bg-transparent px-3 py-2.5 text-sm outline-none dark:text-white" placeholder="Tìm kiếm địa điểm trên bản đồ..." autocomplete="off">
+                                <button type="submit" class="px-3 text-black dark:text-white hover:opacity-70 h-full flex items-center justify-center absolute right-0 bg-white dark:bg-[#18181b] border-l border-black dark:border-white">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                </button>
+                            </form>
+                            <!-- Nút vị trí hiện tại -->
+                            <button id="map-locate-btn" class="bg-white dark:bg-[#18181b] border border-black dark:border-white text-black dark:text-white w-[42px] h-[42px] flex-shrink-0 flex items-center justify-center rounded-md hover:opacity-80 transition-all shadow-none pointer-events-auto" title="Vị trí của tôi">
+                                <i class="fa-solid fa-location-crosshairs text-lg"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Dropdown kết quả -->
+                        <div id="map-search-results" class="hidden bg-white dark:bg-[#18181b] border border-black dark:border-white rounded-md flex-col max-h-60 overflow-y-auto pointer-events-auto">
+                        </div>
+                    </div>
+
                     <!-- Vùng chức năng (Góc dưới trái) -->
                     <div class="absolute bottom-6 left-6 z-[400] flex flex-col items-start justify-end" id="map-panel-wrapper">
                          <!-- Nút Mở -->
@@ -6801,7 +6821,7 @@ div[id$="-modal"] > div > * {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed top-24 left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.js?v=1788435874408"></script>
+<script src="/app.js?v=1788437318242"></script>
 </body>
 </html>
 
