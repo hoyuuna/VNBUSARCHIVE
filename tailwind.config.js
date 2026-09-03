@@ -10,6 +10,7 @@ module.exports = {
     "./src/**/*.js",              // Các file js trong thư mục src
     "./src/**/*.html"             // Các file html trong thư mục src
   ],
+  darkMode: ['class', '.theme-dark'],
   theme: {
     extend: {
       fontFamily: {
