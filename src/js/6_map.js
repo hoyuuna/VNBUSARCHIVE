@@ -38,8 +38,8 @@ app.map = {
 
         L.control.zoom({ position: 'bottomright' }).addTo(this.instance);
 
-        this.tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors',
+        this.tileLayer = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+            attribution: '&copy; Google Maps',
             maxZoom: 20
         }).addTo(this.instance);
         

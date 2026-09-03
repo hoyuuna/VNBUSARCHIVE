@@ -47,7 +47,11 @@
     "https://media2.giphy.com",
     "https://i.postimg.cc",
     "https://postimg.cc",
-    "https://*.postimg.cc"
+    "https://*.postimg.cc",
+    "https://mt1.google.com",
+    "https://mt0.google.com",
+    "https://mt2.google.com",
+    "https://mt3.google.com"
   ],
   "font-src": [
     "'self'",
