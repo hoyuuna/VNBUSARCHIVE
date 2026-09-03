@@ -68,16 +68,14 @@ a:hover, button:hover, [role="button"]:hover { text-decoration: none !important;
 }
 
 /* NÚT PHỤ & HOVER MỌI THỨ KHÁC -> XÁM ĐẬM #27272a */
-button:not(.bg-black):hover, 
-a:not(.bg-black):not(.navbar-brand):not(.nav-link):hover, 
+button:not(.bg-black):not(.nav-link):not(.navbar-brand):hover, 
 [role="button"]:not(.bg-black):hover,
 .suggestion-box .suggestion-item:hover, 
 .filter-menu button:hover, 
 .filter-menu a:hover, 
 #user-dropdown a:hover, 
 #user-dropdown button:hover {
-    background-color: #27272a !important; /* XÁM ĐẬM THEO YÊU CẦU */
-    color: #ffffff !important;
+    background-color: #27272a !important; color: #ffffff !important; border-color: #ffffff !important;
 }
 
 /* Các nút Header (nav-link) */
@@ -236,4 +234,31 @@ input:focus, textarea:focus, select:focus {
 /* 11. PHÂN TRANG (PAGINATION) */
 .page-btn { border: 1px solid #ffffff !important; background-color: #000000 !important; color: #ffffff !important; }
 .page-btn.active { background-color: #ffffff !important; color: #000000 !important; }
-.page-btn.dots { border: none !important; background: transparent !important; color: #ffffff !important; }
+.page-btn.dots { border: none !important; background: transparent !important; color: #ffffff !important; }/* ====== NEW FIXES APPENDED ====== */
+/* Fix double borders */
+#header-search-box input { border: none !important; }
+
+/* Stat items and DB Stats values */
+.stat-item { background-color: #000000 !important; border: 1px solid #ffffff !important; color: #ffffff !important; }
+.stat-value, .stat-value i { color: #ffffff !important; }
+
+/* Route Trapezoid Icon Fill */
+polygon[fill="white"] { fill: #000000 !important; }
+
+/* Cá nhân hóa Icon */
+.pref-option.bg-black .pref-icon { background-color: rgba(0, 0, 0, 0.15) !important; color: #000000 !important; }
+.pref-option.bg-black .pref-icon i { color: #000000 !important; }
+
+/* Hover Manager Comments */
+.hover\:bg-black:hover, .hover\:bg-gray-800:hover, .hover\:bg-gray-900:hover {
+    background-color: #27272a !important; color: #ffffff !important;
+}
+
+/* Route details info-input */
+.info-input { color: #ffffff !important; background-color: transparent !important; }
+
+/* Admin photo cards gray background fix */
+.bg-gray-50, .bg-gray-200 { background-color: #000000 !important; }
+
+/* Admin Card Fix */
+.admin-card-header { background-color: #000000 !important; }
