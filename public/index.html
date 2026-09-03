@@ -1329,10 +1329,8 @@ div[id$="-modal"] > div > * {
         }
 
         @keyframes uploadArrowMove {
-    0% { transform: translateY(100%); opacity: 0; }
-    20% { opacity: 1; }
-    80% { opacity: 1; }
-    100% { transform: translateY(-100%); opacity: 0; }
+    0% { transform: translateY(100%); }
+    100% { transform: translateY(-100%); }
 }
 
 .upload-arrow-anim {
@@ -1891,7 +1889,7 @@ div[id$="-modal"] > div > * {
     <script>
         (function() {
             var theme = 'light'; localStorage.setItem('vnbus_theme', 'light');
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1788399294268" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1788399383951" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = '#fdfcf8';
         })();
@@ -6741,6 +6739,6 @@ div[id$="-modal"] > div > * {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed top-24 left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.js?v=1788399294268"></script>
+<script src="/app.js?v=1788399383951"></script>
 </body>
 </html>
