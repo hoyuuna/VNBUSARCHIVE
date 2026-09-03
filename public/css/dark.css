@@ -101,14 +101,14 @@ body, body.theme-dark, body.theme-light {
 .suggestion-box .suggestion-item:last-child, .filter-menu button:last-child, .filter-menu a:last-child, #user-dropdown a:last-child, #user-dropdown button:last-child {
     border-bottom: none !important;
 }
-/* Hover trong dropdown (Dùng xám đậm để thấy rõ trên nền đen) */
+/* Hover trong dropdown */
 .suggestion-box .suggestion-item:hover, .filter-menu button:hover, .filter-menu a:hover, #user-dropdown a:hover, #user-dropdown button:hover {
     background-color: #333333 !important;
 }
 
 
 /* ==========================================
-   [ BẢNG (TABLES) & NÚT BẤM (BUTTONS) ]
+   [ BẢNG (TABLES) VÀ LỊCH SỬ HOẠT ĐỘNG ]
 ========================================== */
 /* Bảng dữ liệu */
 .info-table, .data-table, .history-table {
@@ -124,6 +124,21 @@ body, body.theme-dark, body.theme-light {
 .info-table tr:last-child td:first-child, .info-table tr:last-child th:first-child, .history-table tr:last-child td:first-child { border-bottom-left-radius: 7px !important; }
 .info-table tr:last-child td:last-child, .info-table tr:last-child th:last-child, .history-table tr:last-child td:last-child { border-bottom-right-radius: 7px !important; }
 
+/* FIX LỖI BẢNG LỊCH SỬ BỊ TRẮNG BÓC TẬN GỐC */
+.history-table, .history-table-wrapper, .history-table tbody, .history-table thead,
+.history-table tr, .history-table th, .history-table td,
+.data-table tr, .data-table th, .data-table td,
+.info-table tr, .info-table th, .info-table td {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border-color: #ffffff !important;
+}
+
+/* Hover dòng trong bảng */
+.history-table tr:hover, .data-table tr:hover {
+    background-color: #1a1a1a !important;
+}
+
 /* Ẩn viền div bọc ngoài bảng */
 .border:has(> .info-table):not([class*=" p-"]):not([class^="p-"]),
 .border:has(> .history-table-wrapper):not([class*=" p-"]):not([class^="p-"]),
@@ -132,10 +147,6 @@ body, body.theme-dark, body.theme-light {
     box-shadow: none !important;
 }
 
-.info-table td, .info-table th, .data-table td, .data-table th, .history-table td, .history-table th {
-    border-color: #ffffff !important; 
-    color: #ffffff !important; /* Đảm bảo chữ trong bảng màu trắng */
-}
 .info-table tr:last-child td, .data-table tr:last-child td, .history-table tr:last-child td {
     border-bottom: none !important; 
 }
@@ -144,24 +155,45 @@ body, body.theme-dark, body.theme-light {
     color: #ffffff !important;
 }
 
-/* Text hover không gạch chân */
+
+/* ==========================================
+   [ NÚT BẤM (BUTTONS) - ĐẢO NGƯỢC MÀU ĐỂ NỔI BẬT ]
+========================================== */
 a, button, [role="button"] {
     text-decoration: none !important;
-    color: #ffffff; 
 }
 a:hover, button:hover, [role="button"]:hover {
     text-decoration: none !important;
 }
 
-/* NÚT BẤM (Vì nền card đã đen, nút đen cần có viền trắng để nhìn thấy) */
-button.bg-black, .bg-black[role="button"] {
-    background-color: #000000 !important;
-    border: 1px solid #ffffff !important; 
-    color: #ffffff !important;
+/* ĐẢO NGƯỢC: Nút chính (trước là đen) giờ thành TRẮNG TINH CHỮ ĐEN để tương phản */
+button.bg-black, .bg-black[role="button"], 
+#btn-type-bus.bg-black, #btn-type-coach.bg-black {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border: 1px solid #ffffff !important;
+    font-weight: 600 !important;
 }
-button.bg-black:hover, .bg-black[role="button"]:hover {
-    background-color: #ffffff !important; 
-    color: #000000 !important; /* Khi hover, nút sáng lên chữ đen */
+button.bg-black:hover, .bg-black[role="button"]:hover,
+#btn-type-bus.bg-black:hover, #btn-type-coach.bg-black:hover {
+    background-color: #d4d4d8 !important; /* Xám nhạt khi hover */
+    color: #000000 !important;
+}
+/* Đảo màu icon trong nút chính thành đen */
+button.bg-black i, .bg-black[role="button"] i,
+button.bg-black svg, .bg-black[role="button"] svg {
+    color: #000000 !important;
+}
+
+/* Các nút phụ (trước là trắng) giờ thành ĐEN THUẦN VIỀN TRẮNG */
+button.bg-white, .bg-white[role="button"] {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border: 1px solid #ffffff !important;
+}
+button.bg-white:hover, .bg-white[role="button"]:hover {
+    background-color: #333333 !important;
+    color: #ffffff !important;
 }
 
 /* Input form: Fix outline */
@@ -195,7 +227,7 @@ input:focus, textarea:focus, select:focus {
 /* ==========================================
    [ FIX CÁC THÀNH PHẦN CHI TIẾT (Ảnh, Zoom, Thước...) ]
 ========================================== */
-#btn-type-bus.bg-black .icon-bg, #btn-type-coach.bg-black .icon-bg { background-color: rgba(255, 255, 255, 0.3) !important; }
+#btn-type-bus.bg-black .icon-bg, #btn-type-coach.bg-black .icon-bg { background-color: rgba(0, 0, 0, 0.15) !important; } /* Đảo lại vì nền nút đã trắng */
 #preview-container { border: 1px solid #ffffff !important; }
 #zoom-toolbar button { color: #ffffff !important; }
 #zoom-toolbar button:hover { color: #a1a1aa !important; }
