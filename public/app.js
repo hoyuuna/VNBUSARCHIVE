@@ -1,4 +1,4 @@
-window.APP_VERSION = "26.09.03.17.39.56";
+window.APP_VERSION = "26.09.03.17.48.55";
 
 /* --- MODULE: 1_init.js --- */
 window.app = window.app || {};
@@ -20264,11 +20264,14 @@ Object.assign(window.app, {
 app.map = {
     instance: null,
     drawnItems: null,
-    drawControl: null,
     zones: [],
     isAdmin: false,
     userDrawing: false,
     userDrawHandler: null,
+    
+    // Draft cho việc thêm mới
+    currentDraftShapes: [],
+    draftLayerGroup: null,
 
     async init() {
         if (!this.instance) {
@@ -20280,7 +20283,6 @@ app.map = {
         await this.loadZones();
         this.updateTheme();
         
-        // Theo dõi thay đổi theme
         const observer = new MutationObserver(() => this.updateTheme());
         observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     },
@@ -20297,41 +20299,29 @@ app.map = {
 
         L.control.zoom({ position: 'bottomright' }).addTo(this.instance);
 
-        this.tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
-            subdomains: 'abcd',
+        this.tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors',
             maxZoom: 20
         }).addTo(this.instance);
 
         this.drawnItems = new L.FeatureGroup();
         this.instance.addLayer(this.drawnItems);
-
-        const locateBtn = document.getElementById('map-locate-btn');
-        if (locateBtn) {
-            locateBtn.addEventListener('click', () => {
-                this.instance.locate({ setView: true, maxZoom: 16 });
-            });
-        }
-
-        this.instance.on('locationfound', (e) => {
-            const radius = e.accuracy / 2;
-            if (this.currentLocationMarker) {
-                this.instance.removeLayer(this.currentLocationMarker);
-            }
-            this.currentLocationMarker = L.circle(e.latlng, radius, {
-                color: '#3b82f6',
-                fillColor: '#3b82f6',
-                fillOpacity: 0.2
-            }).addTo(this.instance);
-        });
-
-        this.instance.on('locationerror', (e) => {
-            app.ui.showAlert('Không thể lấy vị trí của bạn.');
-        });
+        
+        this.draftLayerGroup = new L.FeatureGroup();
+        this.instance.addLayer(this.draftLayerGroup);
 
         this.instance.on(L.Draw.Event.CREATED, (event) => {
             const layer = event.layer;
-            this.promptCreateZone(layer);
+            if (this.userDrawing) {
+                // Thêm vào draft
+                this.addDraftShape(layer);
+                
+                // Tắt chế độ vẽ
+                this.userDrawing = false;
+                if (this.userDrawHandler) {
+                    this.userDrawHandler.disable();
+                }
+            }
         });
         
         const svgPattern = '<svg width="10" height="10" xmlns="http://www.w3.org/2000/svg"><path d="M-1,1 l2,-2 M0,10 l10,-10 M9,11 l2,-2" stroke="rgba(239, 68, 68, 0.4)" stroke-width="2"/></svg>';
@@ -20340,9 +20330,19 @@ app.map = {
         style.innerHTML = '.leaflet-interactive.no-photo-zone { fill: url("data:image/svg+xml;base64,' + encodedPattern + '") !important; fill-opacity: 1 !important; }';
         document.head.appendChild(style);
 
-        const requestBtn = document.getElementById('map-add-request-btn');
-        if (requestBtn) {
-            requestBtn.addEventListener('click', () => {
+        this.setupPanelEvents();
+    },
+    
+    setupPanelEvents() {
+        const openBtn = document.getElementById('map-open-panel-btn');
+        const openContainer = document.getElementById('map-open-panel-container');
+        const closeBtn = document.getElementById('map-close-panel-btn');
+        const panel = document.getElementById('map-zone-panel');
+        const addShapeBtn = document.getElementById('map-panel-add-shape');
+        const saveBtn = document.getElementById('map-panel-save-btn');
+        
+        if (openBtn) {
+            openBtn.addEventListener('click', () => {
                 if (!app.user) {
                     app.ui.showAlert('Vui lòng đăng nhập để bổ sung vùng cấm.', () => {
                         app.utils.navigate('/auth');
@@ -20350,20 +20350,120 @@ app.map = {
                     return;
                 }
                 
+                document.getElementById('map-panel-title').innerText = this.isAdmin ? 'Thêm Vùng Cấm (Admin)' : 'Gửi Yêu Cầu Bổ Sung';
+                saveBtn.innerText = this.isAdmin ? 'Lưu Trực Tiếp' : 'Gửi Yêu Cầu';
+                
+                openContainer.classList.add('hidden');
+                panel.classList.remove('hidden');
+            });
+        }
+        
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                panel.classList.add('hidden');
+                openContainer.classList.remove('hidden');
+                this.clearDrafts();
+            });
+        }
+        
+        if (addShapeBtn) {
+            addShapeBtn.addEventListener('click', () => {
                 if (!this.userDrawHandler) {
-                    this.userDrawHandler = new L.Draw.Rectangle(this.instance, {
+                    this.userDrawHandler = new L.Draw.Polygon(this.instance, {
                         shapeOptions: {
                             color: '#ef4444',
-                            weight: 2
-                        }
+                            weight: 2,
+                            className: 'no-photo-zone'
+                        },
+                        allowIntersection: false,
+                        drawError: {
+                            color: '#e1e100',
+                            message: '<strong>Lỗi:</strong> các cạnh không được cắt nhau!'
+                        },
+                        showArea: false
                     });
                 }
-                
-                app.ui.toast('Hãy kéo thả trên bản đồ để khoanh vùng chữ nhật', 'info');
+                app.ui.toast('Nhấn vào bản đồ để vẽ các điểm. Nhấn lại điểm đầu để hoàn thành.', 'info');
                 this.userDrawing = true;
                 this.userDrawHandler.enable();
             });
         }
+        
+        if (saveBtn) {
+            saveBtn.addEventListener('click', () => this.saveDrafts());
+        }
+    },
+    
+    addDraftShape(layer) {
+        const id = 'shape_' + Date.now();
+        layer.draftId = id;
+        this.draftLayerGroup.addLayer(layer);
+        
+        // Trích xuất latlngs
+        let latlngs = [];
+        if (layer instanceof L.Polygon) {
+            const raw = layer.getLatLngs()[0]; // Outer ring
+            latlngs = raw.map(ll => [ll.lat, ll.lng]);
+        }
+        
+        this.currentDraftShapes.push({
+            id,
+            layer,
+            latlngs
+        });
+        
+        this.renderDraftList();
+    },
+    
+    removeDraftShape(id) {
+        const idx = this.currentDraftShapes.findIndex(s => s.id === id);
+        if (idx !== -1) {
+            const shape = this.currentDraftShapes[idx];
+            this.draftLayerGroup.removeLayer(shape.layer);
+            this.currentDraftShapes.splice(idx, 1);
+            this.renderDraftList();
+        }
+    },
+    
+    clearDrafts() {
+        this.draftLayerGroup.clearLayers();
+        this.currentDraftShapes = [];
+        this.renderDraftList();
+        document.getElementById('map-panel-name').value = '';
+        document.getElementById('map-panel-desc').value = '';
+        if (this.userDrawing && this.userDrawHandler) {
+            this.userDrawHandler.disable();
+            this.userDrawing = false;
+        }
+    },
+    
+    renderDraftList() {
+        const listEl = document.getElementById('map-panel-shapes-list');
+        if (!listEl) return;
+        
+        listEl.innerHTML = '';
+        if (this.currentDraftShapes.length === 0) {
+            listEl.innerHTML = '<p class="text-[10px] text-gray-400 italic">Chưa có vùng nào được vẽ.</p>';
+            return;
+        }
+        
+        this.currentDraftShapes.forEach((shape, index) => {
+            const div = document.createElement('div');
+            div.className = 'flex items-center justify-between bg-gray-50 dark:bg-[#27272a] border border-gray-200 dark:border-gray-700 p-2 rounded-md';
+            
+            const span = document.createElement('span');
+            span.className = 'text-xs font-bold dark:text-white';
+            span.innerText = 'Vùng ' + (index + 1) + ' (' + shape.latlngs.length + ' điểm)';
+            
+            const btn = document.createElement('button');
+            btn.className = 'text-red-500 hover:text-red-700';
+            btn.innerHTML = '<i class="fa-solid fa-trash text-xs"></i>';
+            btn.onclick = () => this.removeDraftShape(shape.id);
+            
+            div.appendChild(span);
+            div.appendChild(btn);
+            listEl.appendChild(div);
+        });
     },
 
     updateTheme() {
@@ -20380,7 +20480,7 @@ app.map = {
         
         const url = isDark 
             ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-            : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+            : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
             
         this.tileLayer.setUrl(url);
     },
@@ -20391,36 +20491,6 @@ app.map = {
             const { data } = await window.sb.from('profiles').select('role').eq('id', app.user.id).single();
             if (data && (data.role === 'admin' || data.role === 'manager')) {
                 this.isAdmin = true;
-            }
-        }
-
-        if (this.isAdmin) {
-            if (!this.drawControl) {
-                this.drawControl = new L.Control.Draw({
-                    edit: {
-                        featureGroup: this.drawnItems,
-                        remove: false
-                    },
-                    draw: {
-                        polygon: false,
-                        polyline: false,
-                        circle: false,
-                        marker: false,
-                        circlemarker: false,
-                        rectangle: {
-                            shapeOptions: {
-                                color: '#ef4444',
-                                weight: 2
-                            }
-                        }
-                    }
-                });
-                this.instance.addControl(this.drawControl);
-            }
-        } else {
-            if (this.drawControl) {
-                this.instance.removeControl(this.drawControl);
-                this.drawControl = null;
             }
         }
     },
@@ -20437,26 +20507,48 @@ app.map = {
 
         this.zones.forEach(zone => {
             const bounds = zone.bounds;
-            if (bounds && bounds.length === 2) {
-                const rect = L.rectangle(bounds, {
-                    color: '#ef4444',
-                    weight: 2,
-                    className: 'no-photo-zone'
-                });
+            if (Array.isArray(bounds) && bounds.length > 0) {
+                // Kiểm tra xem bounds là MultiPolygon (mảng của các polygon) hay chỉ là 1 polygon/rectangle cũ
+                let polygons = [];
+                // Nếu điểm đầu tiên là mảng và chứa số, đó là 1 polygon cũ
+                if (Array.isArray(bounds[0]) && typeof bounds[0][0] === 'number') {
+                    // Legacy rectangle: convert to polygon
+                    if (bounds.length === 2) { // Southwest, Northeast
+                        polygons = [[
+                            [bounds[0][0], bounds[0][1]],
+                            [bounds[1][0], bounds[0][1]],
+                            [bounds[1][0], bounds[1][1]],
+                            [bounds[0][0], bounds[1][1]]
+                        ]];
+                    } else {
+                        polygons = [bounds];
+                    }
+                } else if (Array.isArray(bounds[0]) && Array.isArray(bounds[0][0])) {
+                    // Đã là mảng các polygon (mới)
+                    polygons = bounds;
+                }
                 
-                rect.zoneData = zone;
-                rect.bindPopup(this.createPopupContent(zone));
-                this.drawnItems.addLayer(rect);
+                polygons.forEach(polyPoints => {
+                    const poly = L.polygon(polyPoints, {
+                        color: '#ef4444',
+                        weight: 2,
+                        className: 'no-photo-zone'
+                    });
+                    
+                    poly.zoneData = zone;
+                    poly.bindPopup(this.createPopupContent(zone));
+                    this.drawnItems.addLayer(poly);
+                });
             }
         });
     },
     
     createPopupContent(zone) {
         const container = document.createElement('div');
-        container.className = 'p-1';
+        container.className = 'p-1 min-w-[150px]';
         
         const title = document.createElement('h3');
-        title.className = 'font-bold text-sm mb-1';
+        title.className = 'font-bold text-sm mb-1 text-black';
         title.innerText = zone.name;
         container.appendChild(title);
         
@@ -20469,112 +20561,77 @@ app.map = {
         
         if (this.isAdmin) {
             const btn = document.createElement('button');
-            btn.className = 'bg-red-500 text-white text-[10px] font-bold py-1 px-2 rounded-md hover:bg-red-600 w-full mt-2 border border-[#18181b]';
-            btn.innerText = 'Xóa vùng này';
+            btn.className = 'bg-red-500 text-white text-[10px] font-bold py-1.5 px-2 rounded-md hover:bg-red-600 w-full mt-2 border border-black';
+            btn.innerText = 'Xóa toàn bộ vùng này';
             btn.onclick = () => this.deleteZone(zone.id);
             container.appendChild(btn);
         }
         
         return container;
     },
-
-    promptCreateZone(layer) {
-        const bounds = layer.getBounds();
-        const latlngs = [[bounds.getSouthWest().lat, bounds.getSouthWest().lng], [bounds.getNorthEast().lat, bounds.getNorthEast().lng]];
-
-        if (this.userDrawing) {
-            this.userDrawing = false;
-            if (this.userDrawHandler) {
-                this.userDrawHandler.disable();
-            }
-        }
-
-        this.showCreateModal(latlngs, layer);
-    },
     
-    showCreateModal(latlngs, layer) {
-        const modalId = 'map-create-zone-modal';
-        let modal = document.getElementById(modalId);
-        if (!modal) {
-            modal = document.createElement('div');
-            modal.id = modalId;
-            modal.className = 'fixed inset-0 z-[9999] flex items-center justify-center hidden';
-            modal.innerHTML = `
-                <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="app.ui.hideModal('${modalId}')"></div>
-                <div class="relative bg-white dark:bg-[#18181b] border border-[#18181b] rounded-2xl p-6 max-w-sm w-full mx-4 shadow-xl">
-                    <h3 class="text-lg font-bold mb-4 dark:text-white" id="map-modal-title">Tạo Vùng Cấm</h3>
-                    <input type="text" id="map-zone-name" class="w-full bg-gray-50 dark:bg-[#27272a] border border-[#18181b] rounded-md px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-black dark:focus:ring-white mb-3" placeholder="Tên khu vực...">
-                    <textarea id="map-zone-desc" class="w-full bg-gray-50 dark:bg-[#27272a] border border-[#18181b] rounded-md px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-black dark:focus:ring-white h-20 resize-none mb-4" placeholder="Mô tả chi tiết..."></textarea>
-                    
-                    <div class="flex justify-end gap-2">
-                        <button class="px-4 py-2 text-sm font-medium border border-[#18181b] rounded-md hover:bg-gray-50 dark:hover:bg-[#27272a] dark:text-white" onclick="app.ui.hideModal('${modalId}')">Hủy</button>
-                        <button id="map-zone-save" class="px-4 py-2 bg-black dark:bg-white text-white dark:text-black text-sm font-bold rounded-md hover:opacity-80 border border-[#18181b]">Lưu</button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(modal);
+    async saveDrafts() {
+        if (!app.user) return;
+        
+        const name = document.getElementById('map-panel-name').value.trim();
+        const desc = document.getElementById('map-panel-desc').value.trim();
+        
+        if (!name) {
+            app.ui.toast('Vui lòng nhập tên khu vực', 'error');
+            return;
         }
         
-        document.getElementById('map-modal-title').innerText = this.isAdmin ? 'Tạo Vùng Cấm' : 'Gửi Yêu Cầu Thêm Vùng';
-        document.getElementById('map-zone-name').value = '';
-        document.getElementById('map-zone-desc').value = '';
+        if (this.currentDraftShapes.length === 0) {
+            app.ui.toast('Vui lòng vẽ ít nhất một vùng chọn trên bản đồ', 'error');
+            return;
+        }
         
-        app.ui.showModal(modalId);
+        // Gộp tất cả các vùng chọn thành mảng polygons
+        const allPolygons = this.currentDraftShapes.map(s => s.latlngs);
         
-        const saveBtn = document.getElementById('map-zone-save');
-        saveBtn.onclick = async () => {
-            const name = document.getElementById('map-zone-name').value.trim();
-            const desc = document.getElementById('map-zone-desc').value.trim();
+        app.loadingBar.start();
+        
+        if (this.isAdmin) {
+            const { error } = await window.sb.from('no_photo_zones').insert({
+                name: name,
+                description: desc,
+                bounds: allPolygons, // Lưu dạng mảng các polygon
+                created_by: app.user.id
+            });
             
-            if (!name) {
-                app.ui.toast('Vui lòng nhập tên khu vực', 'error');
-                return;
-            }
+            app.loadingBar.finish();
             
-            app.ui.hideModal(modalId);
-            app.loadingBar.start();
-            
-            if (this.isAdmin) {
-                const { error } = await window.sb.from('no_photo_zones').insert({
-                    name: name,
-                    description: desc,
-                    bounds: latlngs,
-                    created_by: app.user.id
-                });
-                
-                app.loadingBar.finish();
-                
-                if (error) {
-                    console.error(error);
-                    app.ui.showAlert('Lỗi khi lưu vùng cấm.');
-                } else {
-                    app.ui.toast('Đã thêm vùng cấm thành công', 'success');
-                    this.loadZones();
-                }
+            if (error) {
+                console.error(error);
+                app.ui.showAlert('Lỗi khi lưu vùng cấm.');
             } else {
-                const { error } = await window.sb.from('zone_edit_requests').insert({
-                    requester_id: app.user.id,
-                    type: 'add',
-                    new_data: { name, description: desc, bounds: latlngs }
-                });
-                
-                app.loadingBar.finish();
-                
-                if (error) {
-                    console.error(error);
-                    app.ui.showAlert('Lỗi khi gửi yêu cầu.');
-                } else {
-                    app.ui.showAlert('Đã gửi yêu cầu thêm vùng cấm. Quản trị viên sẽ xem xét và phê duyệt.');
-                    if (this.instance && this.instance.hasLayer(layer)) {
-                        this.instance.removeLayer(layer);
-                    }
-                }
+                app.ui.toast('Đã thêm vùng cấm thành công', 'success');
+                this.clearDrafts();
+                document.getElementById('map-close-panel-btn').click();
+                this.loadZones();
             }
-        };
+        } else {
+            const { error } = await window.sb.from('zone_edit_requests').insert({
+                requester_id: app.user.id,
+                type: 'add',
+                new_data: { name, description: desc, bounds: allPolygons }
+            });
+            
+            app.loadingBar.finish();
+            
+            if (error) {
+                console.error(error);
+                app.ui.showAlert('Lỗi khi gửi yêu cầu.');
+            } else {
+                app.ui.showAlert('Đã gửi yêu cầu thêm vùng cấm. Quản trị viên sẽ xem xét và phê duyệt.');
+                this.clearDrafts();
+                document.getElementById('map-close-panel-btn').click();
+            }
+        }
     },
     
     async deleteZone(id) {
-        app.ui.showAlert('Bạn có chắc chắn muốn xóa vùng cấm này?', async () => {
+        app.ui.showAlert('Bạn có chắc chắn muốn xóa toàn bộ các khu vực thuộc vùng cấm này?', async () => {
             app.loadingBar.start();
             const { error } = await window.sb.from('no_photo_zones').delete().eq('id', id);
             app.loadingBar.finish();
