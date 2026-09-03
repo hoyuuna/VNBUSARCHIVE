@@ -112,6 +112,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stackblur-canvas/2.7.0/stackblur.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
 
+    <!-- Leaflet & Leaflet Draw -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+    
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.data('authForm', () => ({
@@ -5430,6 +5436,32 @@ div[id$="-modal"] > div > * {
                     <p class="text-[10px] text-gray-400 mt-6 max-w-xs leading-relaxed mx-auto">
                         Trình duyệt trên thiết bị này phải luôn được mở trong quá trình truyền tải.
                     </p>
+                </div>
+            </div>
+            
+            <!-- VIEW BẢN ĐỒ VÙNG CẤM -->
+            <div id="map" class="view-section">
+                <!-- Wrapper cho Leaflet để nó lấy hết chiều cao khả dụng -->
+                <div class="w-full relative bg-gray-50 dark:bg-[#18181b]" style="height: calc(100vh - 112px);">
+                    <!-- Vùng chứa ID map -->
+                    <div id="leaflet-map" class="absolute inset-0 z-0"></div>
+                    
+                    <!-- Bảng điều khiển / Các nút trôi nổi trên map -->
+                    <div class="absolute top-4 right-4 z-[400] flex flex-col gap-2">
+                        <button id="map-locate-btn" class="bg-white border border-[#18181b] text-black w-10 h-10 rounded-md flex items-center justify-center hover:bg-gray-100 shadow-sm" title="Vị trí của tôi">
+                            <i class="fa-solid fa-location-crosshairs"></i>
+                        </button>
+                    </div>
+
+                    <div class="absolute top-4 left-4 z-[400] flex flex-col gap-2">
+                         <div class="bg-white border border-[#18181b] p-3 rounded-md shadow-sm pointer-events-auto">
+                            <h3 class="text-sm font-bold mb-1">Bản đồ Vùng Cấm Chụp Ảnh</h3>
+                            <p class="text-xs text-gray-600 mb-3 max-w-[200px]">Các khu vực quân sự, an ninh không được phép ghi hình phương tiện.</p>
+                            <button id="map-add-request-btn" class="w-full bg-black text-white text-xs font-bold py-2 rounded-md hover:bg-gray-800 transition-colors">
+                                Gửi yêu cầu thêm
+                            </button>
+                         </div>
+                    </div>
                 </div>
             </div>
 

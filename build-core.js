@@ -17,7 +17,8 @@ try {
             '2_auth.js',
             '3_views.js',
             '4_content.js',
-            '5_admin.js'
+            '5_admin.js',
+            '6_map.js'
         ];
         
         // Generate version string (Force UTC+7)

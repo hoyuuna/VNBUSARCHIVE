@@ -92,7 +92,13 @@ Object.assign(window.app, {
                         if (mainHeader) mainHeader.style.display = '';
                         if (headerSpacer) headerSpacer.style.display = '';
                         
-                        if (['upload', 'search', 'mobile-upload'].includes(id)) {
+                        const footer = document.querySelector('footer');
+                        if (footer) {
+                            if (id === 'map') footer.parentElement.style.display = 'none';
+                            else footer.parentElement.style.display = '';
+                        }
+                        
+                        if (['upload', 'search', 'mobile-upload', 'map'].includes(id)) {
                             if (searchBox) searchBox.classList.add('hidden');
                             if (headerSpacer) {
                                 headerSpacer.classList.remove('h-28');
