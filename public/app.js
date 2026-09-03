@@ -1,4 +1,4 @@
-window.APP_VERSION = "26.09.03.19.15.56";
+window.APP_VERSION = "26.09.03.19.21.33";
 
 /* --- MODULE: 1_init.js --- */
 window.app = window.app || {};
@@ -20497,6 +20497,15 @@ app.map = {
                 
                 if (data && data.features && data.features.length > 0) {
                     resultsContainer.innerHTML = '';
+                    
+                    const searchIcon = L.divIcon({
+                        className: 'custom-search-location',
+                        html: '<div style="width: 14px; height: 14px; background-color: #ef4444; border: 2.5px solid white; border-radius: 50%; box-shadow: 0 0 4px rgba(0,0,0,0.4);"></div>',
+                        iconSize: [14, 14],
+                        iconAnchor: [7, 7],
+                        popupAnchor: [0, -10]
+                    });
+
                     data.features.forEach(item => {
                         const props = item.properties;
                         // Tạo tên hiển thị đẹp hơn
@@ -20515,7 +20524,12 @@ app.map = {
                             input.value = props.name || displayName;
                             
                             if (this.searchMarker) this.instance.removeLayer(this.searchMarker);
-                            this.searchMarker = L.marker([lat, lon]).addTo(this.instance).bindPopup(displayName).openPopup();
+                            
+                            const popupContent = `<div class="text-sm font-bold p-1 dark:text-white">${app.utils.escapeHtml(displayName)}</div>`;
+                            this.searchMarker = L.marker([lat, lon], { icon: searchIcon })
+                                .addTo(this.instance)
+                                .bindPopup(popupContent, { closeButton: false })
+                                .openPopup();
                         };
                         resultsContainer.appendChild(div);
                     });
