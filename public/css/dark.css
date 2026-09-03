@@ -339,3 +339,14 @@ button.bg-black:hover, a.bg-black:hover {
     background-color: #e4e4e7 !important;
     color: #000000 !important;
 }
+/* Fix auth page text colors */
+#auth .text-vbs-dark { color: #ffffff !important; }
+#auth .text-vbs-dark\/70 { color: rgba(255, 255, 255, 0.7) !important; }
+#auth .text-vbs-dark\/60 { color: rgba(255, 255, 255, 0.6) !important; }
+#auth .hover\:text-vbs-dark:hover { color: #ffffff !important; }
+
+/* The button at the bottom (Quay l?i trang ch?) might be outside #auth if it's the footer, wait no it's inside #auth */
+.text-vbs-dark { color: #ffffff !important; }
+.text-vbs-dark\/70 { color: rgba(255, 255, 255, 0.7) !important; }
+.text-vbs-dark\/60 { color: rgba(255, 255, 255, 0.6) !important; }
+.hover\:text-vbs-dark:hover { color: #ffffff !important; }
