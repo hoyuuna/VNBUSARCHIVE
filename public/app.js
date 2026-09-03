@@ -1,4 +1,4 @@
-window.APP_VERSION = "26.09.03.18.02.26";
+window.APP_VERSION = "26.09.03.18.02.54";
 
 /* --- MODULE: 1_init.js --- */
 window.app = window.app || {};
@@ -20460,7 +20460,7 @@ app.map = {
         
         this.currentDraftShapes.forEach((shape, index) => {
             const div = document.createElement('div');
-            div.className = 'flex items-center justify-between bg-gray-50 dark:bg-[#27272a] border border-gray-200 dark:border-gray-700 p-2 rounded-md';
+            div.className = 'flex items-center justify-between bg-gray-50 dark:bg-[#27272a] border border-black dark:border-white p-2 rounded-md';
             
             const span = document.createElement('span');
             span.className = 'text-xs font-bold dark:text-white';
