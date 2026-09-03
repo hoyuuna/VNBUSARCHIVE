@@ -1894,6 +1894,11 @@ div[id$="-modal"] > div > * {
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
     </script>
+    <style>
+        html.theme-dark #loading-screen { background-color: #18181b !important; }
+        html.theme-dark #loading-screen .border-black { border-color: #ffffff !important; }
+        html.theme-dark #loading-screen p { color: #ffffff !important; }
+    </style>
 </head>
 
 <body class="antialiased">

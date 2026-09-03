@@ -169,10 +169,7 @@ input:focus, textarea:focus, select:focus {
 /* Fix hover texts */
 .group-hover\:text-black:hover, .group:hover .group-hover\:text-black, .hover\:text-black:hover { color: #ffffff !important; }
 
-.bg-red-50, .bg-red-100 { background-color: #450a0a !important; border-color: #ffffff !important; color: #ffffff !important; }
-.bg-yellow-50, .bg-yellow-100, .bg-orange-50, .bg-orange-100, .bg-amber-50, .bg-amber-100 { background-color: #422006 !important; border-color: #ffffff !important; color: #ffffff !important; }
-.bg-green-50, .bg-green-100, .bg-emerald-50, .bg-emerald-100 { background-color: #052e16 !important; border-color: #ffffff !important; color: #ffffff !important; }
-.bg-blue-50, .bg-blue-100, .bg-indigo-50, .bg-indigo-100 { background-color: #172554 !important; border-color: #ffffff !important; color: #ffffff !important; }
+
 #fav-photo-content { border-color: #ffffff !important; }
 .wm-draggable, .wm-draggable * { color: inherit !important; }
 .wm-draggable.wm-black, .wm-draggable.wm-black * { color: #ffffff !important; }
@@ -265,4 +262,16 @@ polygon[fill="white"] { fill: #000000 !important; }
 /* Force border on shadows like light.css */
 .shadow-2xl, .shadow-xl, .shadow-lg, .shadow-md, .shadow-sm, .shadow-island, .shadow-\[0_1px_2px_0_rgba\(0\,0\,0\,0\.05\)\] {
     border: 1px solid #ffffff !important;
+}
+/* Fix Dropdown borders and text colors */
+.suggestion-box, .filter-menu, #user-dropdown, .dropdown-menu {
+    border: 1px solid #ffffff !important;
+}
+.suggestion-box *, .filter-menu *, #user-dropdown *, .dropdown-menu * {
+    color: #ffffff !important;
+}
+
+/* Fix active preferences option notes text color */
+.pref-option.bg-black *, .news-card.active * {
+    color: #000000 !important;
 }
