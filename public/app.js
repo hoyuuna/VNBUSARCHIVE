@@ -1,4 +1,4 @@
-window.APP_VERSION = "26.09.03.08.36.23";
+window.APP_VERSION = "26.09.03.09.07.21";
 
 /* --- MODULE: 1_init.js --- */
 window.app = window.app || {};
@@ -16269,7 +16269,12 @@ Object.assign(window.app, {
                 
                 theme: localStorage.getItem('vnbus_theme') || 'light',
                 setTheme: (theme) => {
-                    if (theme === 'dark') theme = 'light'; // TEMPORARILY FORCE LIGHT
+                    if (theme === 'dark' && app.role !== 'manager') {
+                        if (app.ui && app.ui.showAlert) {
+                            app.ui.showAlert('Chế độ Tối hiện tại chỉ dành riêng cho Manager truy cập để test!');
+                        }
+                        theme = 'light';
+                    }
 
                     app.preference.theme = theme;
                     localStorage.setItem('vnbus_theme', theme);

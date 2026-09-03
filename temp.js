@@ -1,34 +1,28 @@
 const fs = require('fs');
+let js = fs.readFileSync('src/js/1_init.js', 'utf8');
 
-const overrides = `
-/* ===== FIX: PAGINATION (Phân trang) ===== */
-.page-btn {
-    border: 1px solid #18181b !important;
-    color: #18181b !important;
-}
-.page-btn:hover:not(:disabled):not(.active) {
-    background-color: #f4f4f5 !important;
-}
-.page-btn.active, .page-btn.active:hover {
-    background: #18181b !important;
-    color: #ffffff !important;
-    border-color: #18181b !important;
-}
-.page-btn.dots {
-    border: none !important;
-    background: transparent !important;
-}
-`;
+const targetStr = `                    if (app.role === 'admin' || app.role === 'manager') {
+                        document.getElementById('nav-admin').classList.remove('hidden');
+                        app.admin.checkNotification();
+                        if (app.role === 'manager') {
+                            document.getElementById('adm-tab-manager').classList.remove('hidden');
+                        }
+                    }`;
 
-let css = fs.readFileSync('public/css/light.css', 'utf8');
+const newStr = `                    if (app.role === 'admin' || app.role === 'manager') {
+                        document.getElementById('nav-admin').classList.remove('hidden');
+                        app.admin.checkNotification();
+                        if (app.role === 'manager') {
+                            document.getElementById('adm-tab-manager').classList.remove('hidden');
+                        }
+                    }
+                    
+                    if (app.role !== 'manager' && localStorage.getItem('vnbus_theme') === 'dark') {
+                        if (app.preference && app.preference.setTheme) {
+                            app.preference.setTheme('light');
+                        }
+                    }`;
 
-if (!css.includes('/* ===== FIX: PAGINATION (Phân trang) ===== */')) {
-    css += overrides;
-    fs.writeFileSync('public/css/light.css', css);
-    console.log('Added Pagination flat UI overrides.');
-} else {
-    const start = css.indexOf('/* ===== FIX: PAGINATION (Phân trang) ===== */');
-    css = css.substring(0, start) + overrides;
-    fs.writeFileSync('public/css/light.css', css);
-    console.log('Replaced Pagination flat UI overrides.');
-}
+js = js.replace(targetStr, newStr);
+fs.writeFileSync('src/js/1_init.js', js);
+console.log('Updated 1_init.js with theme check.');
