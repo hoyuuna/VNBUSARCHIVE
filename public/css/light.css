@@ -459,3 +459,19 @@ input:focus, textarea:focus, select:focus {
 #admin-content .border-y {
     border-color: #18181b !important;
 }
+
+/* Nút Quay Lại trong Cài đặt (đang có border-transparent) */
+#set-menu-account button.border-transparent,
+#set-menu-docs button.border-transparent {
+    border: 1px solid #18181b !important;
+    background-color: #ffffff !important;
+}
+#set-menu-account button.border-transparent:hover,
+#set-menu-docs button.border-transparent:hover {
+    background-color: #f4f4f5 !important;
+}
+
+/* Fix đè nét đôi (double border) ở thẻ duyệt ảnh Admin */
+#admin-content .border-y {
+    border-top: none !important; /* Header đã có border-bottom nên bỏ viền trên của khung ảnh */
+}
