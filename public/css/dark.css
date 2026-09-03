@@ -77,8 +77,8 @@ a:hover, button:hover, [role="button"]:hover { text-decoration: none !important;
 .info-table, .data-table, .history-table {
     border-collapse: separate !important;
     border-spacing: 0 !important;
-    border: 1px solid #ffffff !important;
-    border-radius: 8px !important;
+    border: none !important;
+    border-radius: 0 !important;
     background-color: #000000 !important; color: #ffffff !important;
 }
 /* Ép màu nền đen và chữ trắng tới từng ô dữ liệu */
@@ -87,17 +87,17 @@ a:hover, button:hover, [role="button"]:hover { text-decoration: none !important;
     border-color: #ffffff !important;
     color: #ffffff !important;
 }
-/* Bo góc các ô đầu/cuối */
+/* Bo góc các ô đầu/cuối để khớp với wrapper */
 .info-table tr:first-child td:first-child, .info-table tr:first-child th:first-child, .history-table tr:first-child th:first-child { border-top-left-radius: 7px !important; }
 .info-table tr:first-child td:last-child, .info-table tr:first-child th:last-child, .history-table tr:first-child th:last-child { border-top-right-radius: 7px !important; }
 .info-table tr:last-child td:first-child, .info-table tr:last-child th:first-child, .history-table tr:last-child td:first-child { border-bottom-left-radius: 7px !important; }
 .info-table tr:last-child td:last-child, .info-table tr:last-child th:last-child, .history-table tr:last-child td:last-child { border-bottom-right-radius: 7px !important; }
 /* Bỏ viền dưới của hàng cuối */
 .info-table tr:last-child td, .data-table tr:last-child td, .history-table tr:last-child td { border-bottom: none !important; }
-/* Ẩn viền wrapper bên ngoài bảng */
-.border.border-gray-200:has(> .info-table):not([class*=" p-"]):not([class^="p-"]),
-.border.border-gray-200:has(> .history-table-wrapper):not([class*=" p-"]):not([class^="p-"]),
-.border.border-gray-200:has(> .data-table):not([class*=" p-"]):not([class^="p-"]) { border: none !important; box-shadow: none !important; }
+/* Wrapper bọc bảng: đổi màu viền trắng, giữ border-radius */
+.border.border-gray-200:has(> .info-table),
+.border.border-gray-200:has(> .history-table-wrapper),
+.border.border-gray-200:has(> .data-table) { border-color: #ffffff !important; }
 /* Hover dòng trong bảng -> Xám đậm */
 .history-table tr:hover, .data-table tr:hover, .info-table tr:hover {
     background-color: #27272a !important; 
