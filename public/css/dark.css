@@ -189,7 +189,7 @@ input:focus, textarea:focus, select:focus {
 
 
 /* 10. CHI TIẾT ẢNH & ADMIN / MANAGER VIEWS */
-#detail .img-wrapper { border-color: #ffffff !important; box-sizing: border-box; }
+
 .border-gray-200\/60 { border-color: #ffffff !important; }
 #fav-photo-preview-img { border-color: #ffffff !important; }
 #up-model-preview .border-gray-300 { border-color: #ffffff !important; }
@@ -350,17 +350,14 @@ button.bg-black:hover, a.bg-black:hover {
 .text-vbs-dark\/70 { color: rgba(255, 255, 255, 0.7) !important; }
 .text-vbs-dark\/60 { color: rgba(255, 255, 255, 0.6) !important; }
 .hover\:text-vbs-dark:hover { color: #ffffff !important; }
-/* Fix border missing on detail image wrapper */
-#detail .img-wrapper { border: 1px solid #ffffff !important; }
 
 
 
-/* Fix double borders and padding gaps on detail image */
-#detail .bg-white.p-1\.5.border-vbs-border {
-    border: none !important;
-    padding: 0 !important;
-}
-#detail .img-wrapper {
-    border: 1px solid #ffffff !important;
-    border-radius: 0.5rem !important; /* rounded-lg to match parent */
+
+
+
+
+/* Kh�i ph?c n?n tr?ng (polaroid frame) cho ?nh chi ti?t nhu Light Mode */
+#detail .bg-white.p-1\.5 {
+    background-color: #ffffff !important;
 }
