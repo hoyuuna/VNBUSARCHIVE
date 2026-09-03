@@ -201,8 +201,10 @@ Object.assign(window.app, {
                                 <circle cx="60" cy="60" r="54" fill="none" stroke="#e4e4e7" stroke-width="12" />
                                 <circle id="${toastId}-circle" class="transition-all duration-300 ease-out" cx="60" cy="60" r="54" fill="none" stroke="#000" stroke-width="12" stroke-dasharray="339.29" stroke-dashoffset="339.29" stroke-linecap="round" />
                             </svg>
-                            <div class="relative z-10 w-[14px] h-[14px] overflow-hidden">
-                                <i class="fa-solid fa-up-long text-[12px] text-gray-800 upload-arrow-anim flex items-center justify-center w-[14px] h-[14px]"></i>
+                            <div class="absolute inset-0 z-10 flex justify-center items-center pointer-events-none">
+                                <div class="w-[14px] h-[14px] overflow-hidden flex justify-center items-center">
+                                    <i class="fa-solid fa-up-long text-[13px] text-gray-800 upload-arrow-anim text-center"></i>
+                                </div>
                             </div>
                         </div>
                         <div class="flex-1 overflow-hidden pointer-events-none select-none">
