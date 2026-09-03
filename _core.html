@@ -1328,7 +1328,16 @@ div[id$="-modal"] > div > * {
             }
         }
 
-        .bg-gradient-animated {
+        @keyframes uploadArrowMove {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-14px); }
+}
+
+.upload-arrow-anim {
+    animation: uploadArrowMove 0.8s linear infinite;
+}
+
+.bg-gradient-animated {
             background: linear-gradient(135deg, #a1c4fd, #c2e9fb, #ffdde1, #fbc2eb);
             background-size: 300% 300%;
             animation: gradientMove 10s ease-in-out infinite;
