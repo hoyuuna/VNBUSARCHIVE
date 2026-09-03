@@ -4463,18 +4463,7 @@ Object.assign(window.app, {
                 setTheme: (theme) => {
                     app.preference.theme = theme;
                     localStorage.setItem('vnbus_theme', theme);
-
-                    // Resolve actual CSS theme (system = follow OS preference)
-                    let resolved = theme;
-                    if (theme === 'system') {
-                        resolved = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-                    }
-
-                    document.getElementById('theme-css').href = '/css/' + resolved + '.css';
-                    document.documentElement.classList.remove('theme-light', 'theme-dark');
-                    document.documentElement.classList.add('theme-' + resolved);
-                    document.documentElement.style.backgroundColor = resolved === 'dark' ? '#18181b' : '#fdfcf8';
-                    app.preference.updateThemeUI();
+                    window.location.reload();
                 },
                 updateThemeUI: () => {
                     const btnLight = document.getElementById('set-theme-btn-light');
