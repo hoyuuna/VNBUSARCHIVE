@@ -117,6 +117,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/suncalc/1.9.0/suncalc.min.js"></script>
     
     <script>
         document.addEventListener('alpine:init', () => {
@@ -5451,8 +5452,8 @@ div[id$="-modal"] > div > * {
                     <div id="leaflet-map" class="absolute inset-0 z-0"></div>
 
                     <!-- Vùng tìm kiếm bản đồ -->
-                    <div class="absolute top-20 sm:top-24 left-4 sm:left-6 right-4 sm:right-auto sm:w-96 z-[400] flex flex-col gap-2 pointer-events-none">
-                        <div class="flex items-center gap-2 pointer-events-auto">
+                    <div class="absolute top-20 sm:top-24 left-4 sm:left-6 right-4 sm:right-auto sm:w-96 z-[400] flex flex-col pointer-events-none relative">
+                        <div class="flex items-center gap-2 pointer-events-auto relative z-[500]">
                             <form id="map-search-form" class="flex-1 flex items-center bg-white dark:bg-[#18181b] border border-black dark:border-white rounded-md overflow-hidden relative">
                                 <input type="text" id="map-search-input" class="w-full bg-transparent px-3 py-2.5 text-sm outline-none dark:text-white" placeholder="Tìm kiếm địa điểm trên bản đồ..." autocomplete="off">
                                 <button type="submit" class="px-3 text-black dark:text-white hover:opacity-70 h-full flex items-center justify-center absolute right-0 bg-white dark:bg-[#18181b] border-l border-black dark:border-white">
@@ -5463,10 +5464,44 @@ div[id$="-modal"] > div > * {
                             <button id="map-locate-btn" class="bg-white dark:bg-[#18181b] border border-black dark:border-white text-black dark:text-white w-[42px] h-[42px] flex-shrink-0 flex items-center justify-center rounded-md hover:opacity-80 transition-all shadow-none pointer-events-auto" title="Vị trí của tôi">
                                 <i class="fa-solid fa-location-crosshairs text-lg"></i>
                             </button>
+                            
+                            <!-- Dropdown kết quả (Đè lên Info Island) -->
+                            <div id="map-search-results" class="hidden absolute top-[110%] left-0 right-[50px] bg-white dark:bg-[#18181b] border border-black dark:border-white rounded-md flex-col max-h-60 overflow-y-auto pointer-events-auto">
+                            </div>
                         </div>
                         
-                        <!-- Dropdown kết quả -->
-                        <div id="map-search-results" class="hidden bg-white dark:bg-[#18181b] border border-black dark:border-white rounded-md flex-col max-h-60 overflow-y-auto pointer-events-auto">
+                        <!-- Info Island -->
+                        <div id="map-location-info" class="hidden flex-col pointer-events-auto bg-white dark:bg-[#18181b] border border-black dark:border-white p-4 rounded-md mt-2 z-[400] relative w-full sm:w-[calc(100%-50px)]">
+                            <button id="map-location-info-close" class="absolute top-2 right-2 text-gray-500 hover:text-black dark:hover:text-white transition-colors w-6 h-6 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+
+                            <div class="pr-6">
+                                <h3 id="map-loc-name" class="font-bold text-base dark:text-white leading-tight"></h3>
+                                <p id="map-loc-address" class="text-[11px] text-gray-500 dark:text-gray-400 mt-1 leading-relaxed"></p>
+                            </div>
+
+                            <div id="map-loc-weather" class="text-xs dark:text-white mt-4">
+                                <div class="text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-wider">Thời tiết</div>
+                                <div class="flex flex-wrap gap-x-4 gap-y-2" id="map-loc-weather-data">
+                                    <span class="text-gray-500 italic">Đang tải dữ liệu...</span>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 flex flex-col">
+                                <button id="map-loc-sun-btn" class="w-full bg-white dark:bg-[#18181b] text-black dark:text-white border border-black dark:border-white text-xs font-bold py-2 rounded-md hover:bg-gray-100 dark:hover:bg-[#27272a] transition-colors flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-sun"></i> Hướng mặt trời
+                                </button>
+                                
+                                <div id="map-loc-sun-controls" class="hidden flex-col gap-2 mt-3">
+                                    <div class="flex justify-between items-center text-[10px] dark:text-white font-bold">
+                                        <span>THỜI GIAN</span>
+                                        <span id="map-loc-sun-time-display" class="bg-gray-100 dark:bg-[#27272a] px-2 py-0.5 rounded border border-black dark:border-white">12:00</span>
+                                    </div>
+                                    <div class="relative w-full h-4 flex items-center">
+                                        <input type="range" id="map-loc-sun-slider" min="0" max="1439" value="720" class="vnbus-slider w-full">
+                                    </div>
+                                    <p class="text-[10px] text-gray-500 italic mt-1">Mũi tên chỉ hướng ánh sáng mặt trời chiếu tới.</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
 

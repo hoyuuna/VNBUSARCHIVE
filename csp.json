@@ -83,6 +83,7 @@
     "https://api.ipify.org",
     "https://nominatim.openstreetmap.org",
     "https://photon.komoot.io",
+    "https://api.open-meteo.com",
     "https://raw.githubusercontent.com",
     "https://*.peerjs.com",
     "wss://*.peerjs.com",

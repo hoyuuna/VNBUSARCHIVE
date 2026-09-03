@@ -98,6 +98,7 @@ app.map = {
 
         this.setupPanelEvents();
         this.setupSearchEvents();
+        this.setupSunEvents();
     },
     
     setupPanelEvents() {
@@ -259,10 +260,9 @@ app.map = {
                             if (this.searchMarker) this.instance.removeLayer(this.searchMarker);
                             
                             const popupContent = `<div class="text-sm font-bold p-1 dark:text-white">${app.utils.escapeHtml(displayName)}</div>`;
-                            this.searchMarker = L.marker([lat, lon], { icon: searchIcon })
-                                .addTo(this.instance)
-                                .bindPopup(popupContent, { closeButton: false })
-                                .openPopup();
+                            this.searchMarker = L.marker([lat, lon], { icon: searchIcon }).addTo(this.instance);
+                            
+                            this.showLocationInfo(props.name || 'Không có tên', displayName, lat, lon);
                         };
                         resultsContainer.appendChild(div);
                     });
@@ -640,5 +640,150 @@ app.map = {
                 this.loadZones();
             }
         }, () => {}, { isDestructive: true, btnOkText: "Xóa", btnCancelText: "Hủy" });
+    },
+    
+    async showLocationInfo(name, address, lat, lon) {
+        document.getElementById('map-location-info').classList.remove('hidden');
+        document.getElementById('map-loc-name').innerText = name;
+        document.getElementById('map-loc-address').innerText = address;
+        
+        this.sunEnabled = false;
+        if (this.sunMarker) {
+            this.instance.removeLayer(this.sunMarker);
+            this.sunMarker = null;
+        }
+        document.getElementById('map-loc-sun-controls').classList.add('hidden');
+        document.getElementById('map-loc-sun-btn').classList.remove('bg-gray-100', 'dark:bg-[#27272a]');
+        
+        const weatherContainer = document.getElementById('map-loc-weather-data');
+        weatherContainer.innerHTML = '<span class="text-gray-500 italic">Đang tải dữ liệu thời tiết...</span>';
+        
+        try {
+            const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,weather_code,cloud_cover,visibility`);
+            const wData = await res.json();
+            
+            if (wData.current) {
+                const cur = wData.current;
+                const weatherMap = {
+                    0: 'Quang đãng', 1: 'Ít mây', 2: 'Có mây', 3: 'Nhiều mây',
+                    45: 'Sương mù', 48: 'Sương mù sương',
+                    51: 'Mưa phùn nhẹ', 53: 'Mưa phùn', 55: 'Mưa phùn dày',
+                    61: 'Mưa rào nhẹ', 63: 'Mưa rào', 65: 'Mưa rào to',
+                    71: 'Tuyết nhẹ', 80: 'Mưa rào rải rác', 95: 'Sấm sét',
+                    96: 'Sấm sét có mưa đá', 99: 'Sấm sét có mưa đá lớn'
+                };
+                const condition = weatherMap[cur.weather_code] || 'Không rõ';
+                const vis = cur.visibility ? (cur.visibility / 1000).toFixed(1) + 'km' : 'N/A';
+                
+                weatherContainer.innerHTML = `
+                    <div class="flex flex-col"><span class="text-[10px] text-gray-500 uppercase">Trạng thái</span><span class="font-bold">${condition}</span></div>
+                    <div class="flex flex-col"><span class="text-[10px] text-gray-500 uppercase">Nhiệt độ</span><span class="font-bold">${cur.temperature_2m}°C <span class="text-xs font-normal text-gray-400">(Cảm giác ${cur.apparent_temperature}°C)</span></span></div>
+                    <div class="flex flex-col"><span class="text-[10px] text-gray-500 uppercase">Tầm nhìn</span><span class="font-bold">${vis}</span></div>
+                    <div class="flex flex-col"><span class="text-[10px] text-gray-500 uppercase">Độ phủ mây</span><span class="font-bold">${cur.cloud_cover}%</span></div>
+                `;
+            } else {
+                weatherContainer.innerHTML = '<span class="text-red-500 italic">Không có dữ liệu</span>';
+            }
+        } catch (err) {
+            weatherContainer.innerHTML = '<span class="text-red-500 italic">Lỗi nạp thời tiết</span>';
+        }
+        
+        this.currentLocationForSun = { lat, lon };
+    },
+    
+    setupSunEvents() {
+        const btn = document.getElementById('map-loc-sun-btn');
+        const controls = document.getElementById('map-loc-sun-controls');
+        const slider = document.getElementById('map-loc-sun-slider');
+        const closeBtn = document.getElementById('map-location-info-close');
+        
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                document.getElementById('map-location-info').classList.add('hidden');
+                if (this.sunMarker) this.instance.removeLayer(this.sunMarker);
+            });
+        }
+        
+        if (btn) {
+            btn.addEventListener('click', () => {
+                this.sunEnabled = !this.sunEnabled;
+                if (this.sunEnabled) {
+                    controls.classList.remove('hidden');
+                    btn.classList.add('bg-gray-100', 'dark:bg-[#27272a]');
+                    const now = new Date();
+                    const minutes = now.getHours() * 60 + now.getMinutes();
+                    slider.value = minutes;
+                    this.updateSunDirection(minutes);
+                } else {
+                    controls.classList.add('hidden');
+                    btn.classList.remove('bg-gray-100', 'dark:bg-[#27272a]');
+                    if (this.sunMarker) {
+                        this.instance.removeLayer(this.sunMarker);
+                        this.sunMarker = null;
+                    }
+                }
+            });
+        }
+        
+        if (slider) {
+            slider.addEventListener('input', (e) => {
+                this.updateSunDirection(e.target.value);
+            });
+        }
+    },
+    
+    updateSunDirection(minutesStr) {
+        if (!this.currentLocationForSun || typeof SunCalc === 'undefined') return;
+        const minutes = parseInt(minutesStr);
+        const h = Math.floor(minutes / 60);
+        const m = minutes % 60;
+        
+        document.getElementById('map-loc-sun-time-display').innerText = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+        
+        const date = new Date();
+        date.setHours(h, m, 0, 0);
+        
+        const pos = SunCalc.getPosition(date, this.currentLocationForSun.lat, this.currentLocationForSun.lon);
+        
+        let svgHtml = '';
+        if (pos.altitude > 0) {
+            const sunAngleDeg = (pos.azimuth * 180 / Math.PI) + 180;
+            const length = Math.max(20, 80 * (pos.altitude / (Math.PI/2))); 
+            const y1 = 90 - length;
+            svgHtml = `
+            <div style="width: 250px; height: 250px; transform: rotate(${sunAngleDeg}deg); pointer-events: none;">
+                <svg width="250" height="250" viewBox="0 0 250 250">
+                    <circle cx="125" cy="125" r="110" stroke="#facc15" stroke-width="2" stroke-dasharray="6 6" fill="none" opacity="0.6"/>
+                    <line x1="125" y1="${y1 + 15}" x2="125" y2="110" stroke="#facc15" stroke-width="3" />
+                    <polygon points="125,115 118,103 132,103" fill="#facc15" />
+                    <circle cx="125" cy="${y1 + 15}" r="8" fill="#facc15" />
+                </svg>
+            </div>`;
+        } else {
+            svgHtml = `
+            <div style="width: 250px; height: 250px; pointer-events: none;">
+                <svg width="250" height="250" viewBox="0 0 250 250">
+                    <circle cx="125" cy="125" r="110" stroke="#64748b" stroke-width="1" stroke-dasharray="2 4" fill="none" opacity="0.4"/>
+                </svg>
+            </div>`;
+        }
+        
+        const sunIcon = L.divIcon({
+            className: 'custom-sun-overlay',
+            html: svgHtml,
+            iconSize: [250, 250],
+            iconAnchor: [125, 125]
+        });
+        
+        if (this.sunMarker) {
+            this.sunMarker.setLatLng([this.currentLocationForSun.lat, this.currentLocationForSun.lon]);
+            this.sunMarker.setIcon(sunIcon);
+        } else {
+            this.sunMarker = L.marker([this.currentLocationForSun.lat, this.currentLocationForSun.lon], { 
+                icon: sunIcon,
+                interactive: false,
+                zIndexOffset: -100
+            }).addTo(this.instance);
+        }
     }
 };
