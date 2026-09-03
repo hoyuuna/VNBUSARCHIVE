@@ -4328,6 +4328,116 @@ Object.assign(window.app, {
                                         return;
                                     }
                                 }
+                            }
+                        }
+                        const beforeSnapshot = {
+                            photo_id: app.currentPhoto.id,
+                            taken_at: app.currentPhoto.taken_at,
+                            license_plate: app.currentPhoto.license_plate,
+                            location: app.currentPhoto.location,
+                            note: app.currentPhoto.note,
+                            operator: app.currentPhoto.operator || app.currentVehicle?.operator,
+                            type: app.currentPhoto.type || app.currentVehicle?.type,
+                            route_no: app.currentPhoto.route_no || app.currentVehicle?.route_no,
+                            model: app.currentPhoto.model || app.currentVehicle?.model
+                        };
+                        if (app.user.id === app.currentPhoto.uploader_id || app.role === 'admin' || app.role === 'manager') {
+                            if (takenAtChanged) {
+                                await window.sb.from('photos').update({ taken_at: payload.taken_at }).eq('id', app.currentPhoto.id);
+                                app.currentPhoto.taken_at = payload.taken_at;
+                            }
+                        }
+                        if (app.role === 'admin' || app.role === 'manager') {
+                            const { error: vError } = await window.sb.from('vehicles').upsert({
+                                license_plate: payload.license_plate,
+                                model: payload.model
+                            }, { onConflict: 'license_plate' });
+                            if (vError) throw vError;
+                            const { error: pError } = await window.sb.from('photos').update({
+                                license_plate: payload.license_plate,
+                                location: payload.location,
+                                note: payload.note,
+                                operator: payload.operator,
+                                type: payload.type,
+                                route_no: payload.route
+                            }).eq('id', app.currentPhoto.id);
+                            if (pError) throw pError;
+                            const afterSnapshot = {
+                                photo_id: app.currentPhoto.id,
+                                taken_at: takenAtChanged ? payload.taken_at : beforeSnapshot.taken_at,
+                                license_plate: payload.license_plate,
+                                location: payload.location,
+                                note: payload.note,
+                                operator: payload.operator,
+                                type: payload.type,
+                                route_no: payload.route,
+                                model: payload.model
+                            };
+                            app.admin.logAction(
+                                'update_photo_info_direct',
+                                app.currentPhoto.id,
+                                { taken_at_changed: takenAtChanged, before: beforeSnapshot, after: afterSnapshot }
+                            );
+                            const isPlateChanged = beforeSnapshot.license_plate !== payload.license_plate;
+                            if (isPlateChanged || takenAtChanged || beforeSnapshot.operator !== payload.operator || beforeSnapshot.route_no !== payload.route) {
+                                await app.vehicle.syncHistoryOnPhotoEdit(
+                                    payload.license_plate,
+                                    takenAtChanged ? payload.taken_at : beforeSnapshot.taken_at,
+                                    { operator: beforeSnapshot.operator, route_no: beforeSnapshot.route_no },
+                                    { operator: payload.operator, route_no: payload.route },
+                                    isPlateChanged
+                                );
+                            }
+                            app.toast.show('success', 'Lưu thành công', 'Dữ liệu của ảnh này đã được cập nhật.');
+                            if (isPlateChanged) {
+                                await app.vehicle.cleanupVehicle(beforeSnapshot.license_plate);
+                            }
+                            await app.vehicle.cleanupVehicle(payload.license_plate);
+                            app.currentPhoto.license_plate = payload.license_plate;
+                            app.currentPhoto.location = payload.location;
+                            app.currentPhoto.note = payload.note;
+                            app.currentPhoto.operator = payload.operator;
+                            app.currentPhoto.type = payload.type;
+                            app.currentPhoto.route_no = payload.route;
+                            if (app.currentVehicle) {
+                                app.currentVehicle.model = payload.model;
+                            }
+                            document.getElementById('detail-title').innerText = `${payload.license_plate} - ${payload.operator}`;
+                            document.getElementById('crumb-model').innerText = payload.license_plate;
+                            document.getElementById('info-plate').value = payload.license_plate;
+                            app.edit.cancel();
+                        } else {
+                            const { count, error: checkErr } = await window.sb.from('edit_requests')
+                                .select('*', { count: 'estimated', head: true })
+                                .eq('status', 'pending')
+                                .contains('new_data', { photo_id: app.currentPhoto.id });
+                            if (checkErr) throw checkErr;
+                            if (count > 0) {
+                                btn.innerText = originalText; btn.disabled = false;
+                                return app.ui.showAlert("Ảnh này đang có một yêu cầu chỉnh sửa hoặc xóa khác chờ duyệt. Vui lòng đợi Admin xử lý xong trước khi gửi yêu cầu mới.");
+                            }
+                            const reqData = {
+                                requester_id: app.user.id,
+                                license_plate: payload.license_plate,
+                                new_data: {
+                                    ...payload,
+                                    request_type: 'update_vehicle_info',
+                                    photo_id: app.currentPhoto.id
+                                },
+                                status: 'pending'
+                            };
+                            const { data, error } = await window.sb.from('edit_requests').insert(reqData).select().single();
+                            if (error) throw error;
+                            app.ui.showAlert("Yêu cầu chỉnh sửa đã được gửi và đang chờ Admin duyệt. Bạn có thể kiểm tra trạng thái trong trang Hồ sơ của tôi.");
+                            app.edit.cancel();
+                        }
+                    } catch (err) {
+                        app.ui.showAlert("Lỗi: " + err.message);
+                        console.error(err);
+                    } finally {
+                        btn.innerText = originalText; btn.disabled = false;
+                    }
+                }
             }
 });
 Object.assign(window.app, {
