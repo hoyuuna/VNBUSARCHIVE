@@ -30,14 +30,14 @@ body, body.theme-dark, body.theme-light {
 /* 2. ÉP BORDER TOÀN HỆ THỐNG THÀNH TRẮNG TINH */
 .shadow-2xl, .shadow-xl, .shadow-lg, .shadow-md, .shadow-sm, .shadow-island, .shadow-\[0_1px_2px_0_rgba\(0\,0\,0\,0\.05\)\] {
     box-shadow: none !important;
-    border: 1px solid #18181b !important;
+    border-color: #ffffff !important;
     background-color: #000000 !important;
 }
 .rounded-3xl, .rounded-2xl, .rounded-xl, .rounded-lg { border-radius: 8px !important; }
 .rounded-full { border-radius: 9999px !important; }
 
 .border-white, .border-white\/20, .border-white\/30, .border-gray-100, .border-gray-200, .border-gray-300, .border-gray-400, .border-gray-500, .border-gray-600, .border-gray-700, .border-gray-800, .border-vbs-border, .border-\[\#e4e4e7\], .border-black {
-    border-color: #18181b !important;
+    border-color: #ffffff !important;
 }
 
 polygon[stroke="black"] {
@@ -53,7 +53,7 @@ a:hover, button:hover, [role="button"]:hover { text-decoration: none !important;
 .bg-black {
     background-color: #ffffff !important;
     color: #000000 !important;
-    border: 1px solid #18181b !important;
+    border-color: #ffffff !important;
     font-weight: 600 !important;
 }
 /* Ép icon bên trong nút chính thành đen */
@@ -75,7 +75,7 @@ button:not(.bg-black):not(.nav-link):not(.navbar-brand):hover,
 .filter-menu a:hover, 
 #user-dropdown a:hover, 
 #user-dropdown button:hover {
-    background-color: #27272a !important; color: #ffffff !important; border-color: #18181b !important;
+    background-color: #27272a !important; color: #ffffff !important;
 }
 
 /* Các nút Header (nav-link) */
@@ -91,20 +91,20 @@ button:not(.bg-black):not(.nav-link):not(.navbar-brand):hover,
 /* 4. FIX BẢNG & LỊCH SỬ HOẠT ĐỘNG (TABLES) */
 .info-table, .data-table, .history-table {
     border-collapse: collapse !important;
-    border: 1px solid #18181b !important; border-radius: 0 !important;
+    border-color: #ffffff !important; border-radius: 0 !important;
     background-color: #000000 !important; color: #ffffff !important;
 }
 /* Ép màu nền đen và chữ trắng tới từng ô dữ liệu */
 .info-table td, .info-table th, .history-table td, .history-table th, .data-table td, .data-table th {
     background-color: #000000 !important;
-    border: 1px solid #18181b !important;
+    border-color: #ffffff !important;
     color: #ffffff !important;
 }
 /* Hover dòng trong bảng -> Xám đậm */
 .history-table tr:hover, .data-table tr:hover, .info-table tr:hover {
     background-color: #27272a !important; 
 }
-.stat-item { border-color: #18181b !important; color: #ffffff !important; background-color: #000000 !important; }
+.stat-item { border-color: #ffffff !important; color: #ffffff !important; background-color: #000000 !important; }
 
 
 /* 5. POPUP, DROPDOWN & KÍNH MỜ */
@@ -113,7 +113,7 @@ button:not(.bg-black):not(.nav-link):not(.navbar-brand):hover,
 #up-progress-content, #captcha-content, #webrtc-qr-content, #qr-login-host-content, #qr-login-confirm-content,
 #advanced-filter-content, #achievement-content, #operator-edit-content, #model-edit-content,
 #route-edit-content, #fav-photo-content, #manager-edit-content, #email-verify-content, #bio-edit-content {
-    background-color: #000000 !important; border: 1px solid #18181b !important; box-shadow: none !important; color: #ffffff !important;
+    background-color: #000000 !important; border-color: #ffffff !important; box-shadow: none !important; color: #ffffff !important;
 }
 
 .bg-white\/95, .bg-white\/90, .bg-white\/80, .bg-white\/70, .bg-white\/60, .bg-white\/50, .bg-white\/40, .bg-white\/30, .bg-white\/20,
@@ -122,10 +122,10 @@ button:not(.bg-black):not(.nav-link):not(.navbar-brand):hover,
 }
 
 .suggestion-box, .filter-menu, #user-dropdown, .dropdown-menu {
-    border: 1px solid #18181b !important; background-color: #000000 !important; border-radius: 8px !important; box-shadow: none !important; color: #ffffff !important;
+    border-color: #ffffff !important; background-color: #000000 !important; border-radius: 8px !important; box-shadow: none !important; color: #ffffff !important;
 }
 .suggestion-box .suggestion-item, .filter-menu button, .filter-menu a, #user-dropdown a, #user-dropdown button {
-    border-bottom: 1px solid #18181b !important; border-radius: 0 !important; margin: 0 !important; color: #ffffff !important;
+    border-bottom-color: #ffffff !important; border-radius: 0 !important; margin: 0 !important; color: #ffffff !important;
 }
 .suggestion-box .suggestion-item:last-child, .filter-menu button:last-child, .filter-menu a:last-child, #user-dropdown a:last-child, #user-dropdown button:last-child {
     border-bottom: none !important;
@@ -134,34 +134,34 @@ button:not(.bg-black):not(.nav-link):not(.navbar-brand):hover,
 
 /* 6. Ô NHẬP (INPUTS) */
 input, textarea, select {
-    outline: none !important; background-color: #000000 !important; color: #ffffff !important; border: 1px solid #18181b !important;
+    outline: none !important; background-color: #000000 !important; color: #ffffff !important; border-color: #ffffff !important;
 }
 input:focus, textarea:focus, select:focus {
-    border-color: #18181b !important; box-shadow: none !important; outline: none !important;
+    border-color: #ffffff !important; box-shadow: none !important; outline: none !important;
 }
 
 
 /* 7. AUTH PAGE ĐĂNG NHẬP */
 #auth .bg-white\/70, #auth .bg-white\/80 { background-color: #000000 !important; backdrop-filter: none !important; }
-#auth .border.border-white\/80, #auth .border.border-white\/60, #auth .border.border-white\/70 { border-color: #18181b !important; }
-#auth input { background-color: #000000 !important; border: 1px solid #18181b !important; color: #ffffff !important; }
-#auth #auth-msg { background-color: #000000 !important; border: 1px solid #18181b !important; color: #ffffff !important; }
-#auth .rounded-3xl.bg-white\/70 { background-color: #000000 !important; border: 1px solid #18181b !important; box-shadow: none !important; }
+#auth .border.border-white\/80, #auth .border.border-white\/60, #auth .border.border-white\/70 { border-color: #ffffff !important; }
+#auth input { background-color: #000000 !important; border-color: #ffffff !important; color: #ffffff !important; }
+#auth #auth-msg { background-color: #000000 !important; border-color: #ffffff !important; color: #ffffff !important; }
+#auth .rounded-3xl.bg-white\/70 { background-color: #000000 !important; border-color: #ffffff !important; box-shadow: none !important; }
 #auth .shadow-\[0_8px_32px_0_rgba\(0\,0\,0\,0\.2\)\] { box-shadow: none !important; }
 #auth .bg-white\/60 { background-color: #000000 !important; }
-#auth .bg-white\/60.border.border-white\/70 { background-color: #1a1a1a !important; border: 1px solid #18181b !important; }
-#auth .border.border-gray-300\/80 { border-color: #18181b !important; }
+#auth .bg-white\/60.border.border-white\/70 { background-color: #1a1a1a !important; border-color: #ffffff !important; }
+#auth .border.border-gray-300\/80 { border-color: #ffffff !important; }
 
 
 /* 8. CÁC THÀNH PHẦN CHI TIẾT KHÁC */
 #btn-type-bus.bg-black .icon-bg, #btn-type-coach.bg-black .icon-bg { background-color: rgba(0, 0, 0, 0.15) !important; } 
-#preview-container { border: 1px solid #18181b !important; }
+#preview-container { border-color: #ffffff !important; }
 #zoom-toolbar button:not(.bg-black) { color: #ffffff !important; }
 #zoom-toolbar button:not(.bg-black):hover { color: #a1a1aa !important; }
 #zoom-toolbar button.bg-black i, #zoom-toolbar button.bg-black span { color: #000000 !important; }
 
 /* Fix location history border */
-#up-location-history button { border: 1px solid #18181b !important; }
+#up-location-history button { border-color: #ffffff !important; }
 
 /* Fix docs markdown text */
 .markdown-body, .markdown-body * { color: #ffffff !important; }
@@ -169,11 +169,11 @@ input:focus, textarea:focus, select:focus {
 /* Fix hover texts */
 .group-hover\:text-black:hover, .group:hover .group-hover\:text-black, .hover\:text-black:hover { color: #ffffff !important; }
 
-.bg-red-50, .bg-red-100 { background-color: #450a0a !important; border: 1px solid #18181b !important; color: #ffffff !important; }
-.bg-yellow-50, .bg-yellow-100, .bg-orange-50, .bg-orange-100, .bg-amber-50, .bg-amber-100 { background-color: #422006 !important; border: 1px solid #18181b !important; color: #ffffff !important; }
-.bg-green-50, .bg-green-100, .bg-emerald-50, .bg-emerald-100 { background-color: #052e16 !important; border: 1px solid #18181b !important; color: #ffffff !important; }
-.bg-blue-50, .bg-blue-100, .bg-indigo-50, .bg-indigo-100 { background-color: #172554 !important; border: 1px solid #18181b !important; color: #ffffff !important; }
-#fav-photo-content { border: 1px solid #18181b !important; }
+.bg-red-50, .bg-red-100 { background-color: #450a0a !important; border-color: #ffffff !important; color: #ffffff !important; }
+.bg-yellow-50, .bg-yellow-100, .bg-orange-50, .bg-orange-100, .bg-amber-50, .bg-amber-100 { background-color: #422006 !important; border-color: #ffffff !important; color: #ffffff !important; }
+.bg-green-50, .bg-green-100, .bg-emerald-50, .bg-emerald-100 { background-color: #052e16 !important; border-color: #ffffff !important; color: #ffffff !important; }
+.bg-blue-50, .bg-blue-100, .bg-indigo-50, .bg-indigo-100 { background-color: #172554 !important; border-color: #ffffff !important; color: #ffffff !important; }
+#fav-photo-content { border-color: #ffffff !important; }
 .wm-draggable, .wm-draggable * { color: inherit !important; }
 .wm-draggable.wm-black, .wm-draggable.wm-black * { color: #ffffff !important; }
 .footer-text-left, .footer-text-right, #preview-footer-copy { color: white !important; }
@@ -185,61 +185,61 @@ input:focus, textarea:focus, select:focus {
 
 
 /* 9. BẢNG TIN HỆ THỐNG & CÀI ĐẶT */
-#newsboard-content .border-gray-200\/50, #settings-content .border-gray-200\/50, #newsboard-content .border-gray-200, #settings-content .border-gray-200, #newsboard-content .border-gray-300, #settings-content .border-gray-300, #newsboard-toc, #set-menu-main { border-color: #18181b !important; }
-#newsboard-content .border-b, #newsboard-content .border-r, #settings-content .border-b, #settings-content .border-r { border-color: #18181b !important; }
-#set-menu-main button, #set-menu-account button, #set-menu-docs button { border-color: #18181b !important; color: #ffffff !important; }
-.news-card { border: 1px solid #18181b !important; margin-bottom: 8px; background-color: #000000 !important; color: #ffffff !important; }
+#newsboard-content .border-gray-200\/50, #settings-content .border-gray-200\/50, #newsboard-content .border-gray-200, #settings-content .border-gray-200, #newsboard-content .border-gray-300, #settings-content .border-gray-300, #newsboard-toc, #set-menu-main { border-color: #ffffff !important; }
+#newsboard-content .border-b, #newsboard-content .border-r, #settings-content .border-b, #settings-content .border-r { border-color: #ffffff !important; }
+#set-menu-main button, #set-menu-account button, #set-menu-docs button { color: #ffffff !important; }
+.news-card { margin-bottom: 8px; background-color: #000000 !important; color: #ffffff !important; }
 #newsboard-content .bg-white\/30, #newsboard-content .bg-gray-50\/30, #settings-content .bg-white\/30, #settings-content .bg-gray-50\/30 { background-color: #000000 !important; }
 
 /* Trạng thái Active trong bảng tin / Cài đặt -> Trắng chữ đen */
 .news-card.active, #set-menu-main button.bg-black {
-    background-color: #ffffff !important; color: #000000 !important; border-color: #18181b !important;
+    background-color: #ffffff !important; color: #000000 !important; border-color: #ffffff !important;
 }
 
 
 /* 10. CHI TIẾT ẢNH & ADMIN / MANAGER VIEWS */
-#detail .img-wrapper { border: 1px solid #18181b !important; box-sizing: border-box; }
-.border-gray-200\/60 { border-color: #18181b !important; }
-#fav-photo-preview-img { border: 1px solid #18181b !important; }
-#up-model-preview .border-gray-300 { border-color: #18181b !important; }
+#detail .img-wrapper { border-color: #ffffff !important; box-sizing: border-box; }
+.border-gray-200\/60 { border-color: #ffffff !important; }
+#fav-photo-preview-img { border-color: #ffffff !important; }
+#up-model-preview .border-gray-300 { border-color: #ffffff !important; }
 
-#admin .border-gray-300, #admin button.border-gray-300, #admin .border-gray-200, #admin button.border-gray-200 { border-color: #18181b !important; }
+#admin .border-gray-300, #admin button.border-gray-300, #admin .border-gray-200, #admin button.border-gray-200 { border-color: #ffffff !important; }
 #admin button.bg-black { background-color: #ffffff !important; color: #000000 !important; }
 
 #adm-photo-grid-toggle-bar button, #adm-tab-requests, #adm-tab-delete, #adm-tab-comments, #adm-tab-manager {
-    border: 1px solid #18181b !important; background-color: #000000 !important; color: #ffffff !important;
+    border-color: #ffffff !important; background-color: #000000 !important; color: #ffffff !important;
 }
 #adm-photo-grid-toggle-bar button:hover i { color: #ffffff !important; }
 
 #admin input, #admin select, #admin textarea, .admin-card-header, #admin-content .border-gray-200, #admin .bg-gray-100.border-gray-200 {
-    border-color: #18181b !important; background-color: #000000 !important; color: #ffffff !important;
+    border-color: #ffffff !important; background-color: #000000 !important; color: #ffffff !important;
 }
 
-#manager-edit-content .border-gray-200\/50, #manager-edit-content .border-gray-200, #manager-edit-content .border-gray-300, #manager-edit-content .border-gray-300\/80 { border-color: #18181b !important; }
-#manager-edit-content button.border-gray-200, #manager-edit-content .bg-gray-50.border-gray-200 { border-color: #18181b !important; background-color: #000000 !important; }
+#manager-edit-content .border-gray-200\/50, #manager-edit-content .border-gray-200, #manager-edit-content .border-gray-300, #manager-edit-content .border-gray-300\/80 { border-color: #ffffff !important; }
+#manager-edit-content button.border-gray-200, #manager-edit-content .bg-gray-50.border-gray-200 { border-color: #ffffff !important; background-color: #000000 !important; }
 #manager-edit-content .bg-white\/60 { background-color: #000000 !important; }
-#manager-blur-container { border: 1px solid #18181b !important; }
-#btn-manager-add-blur { border: 1px solid #18181b !important; background-color: #000000 !important; color: #ffffff !important; }
+#manager-blur-container { border-color: #ffffff !important; }
+#btn-manager-add-blur { border-color: #ffffff !important; background-color: #000000 !important; color: #ffffff !important; }
 
-.admin-card { border: 1px solid #18181b !important; box-shadow: none !important; background-color: #000000 !important; }
-.admin-card-header { border-bottom: 1px solid #18181b !important; }
-.admin-input { border: 1px solid #18181b !important; }
-#admin-content .border-gray-200, #admin-content .border-y { border-color: #18181b !important; }
+.admin-card { border-color: #ffffff !important; box-shadow: none !important; background-color: #000000 !important; }
+.admin-card-header { border-bottom-color: #ffffff !important; }
+.admin-input { border-color: #ffffff !important; }
+#admin-content .border-gray-200, #admin-content .border-y { border-color: #ffffff !important; }
 #admin-content .border-y { border-top: none !important; }
 
 #set-menu-account button.border-transparent, #set-menu-docs button.border-transparent {
-    border: 1px solid #18181b !important; background-color: #000000 !important; color: #ffffff !important;
+    border-color: #ffffff !important; background-color: #000000 !important; color: #ffffff !important;
 }
 
 /* 11. PHÂN TRANG (PAGINATION) */
-.page-btn { border: 1px solid #18181b !important; background-color: #000000 !important; color: #ffffff !important; }
+.page-btn { border-color: #ffffff !important; background-color: #000000 !important; color: #ffffff !important; }
 .page-btn.active { background-color: #ffffff !important; color: #000000 !important; }
 .page-btn.dots { border: none !important; background: transparent !important; color: #ffffff !important; }/* ====== NEW FIXES APPENDED ====== */
 /* Fix double borders */
 #header-search-box input { border: none !important; }
 
 /* Stat items and DB Stats values */
-.stat-item { background-color: #000000 !important; border: 1px solid #18181b !important; color: #ffffff !important; }
+.stat-item { background-color: #000000 !important; border-color: #ffffff !important; color: #ffffff !important; }
 .stat-value, .stat-value i { color: #ffffff !important; }
 
 /* Route Trapezoid Icon Fill */
@@ -262,3 +262,7 @@ polygon[fill="white"] { fill: #000000 !important; }
 
 /* Admin Card Fix */
 .admin-card-header { background-color: #000000 !important; }
+/* Force border on shadows like light.css */
+.shadow-2xl, .shadow-xl, .shadow-lg, .shadow-md, .shadow-sm, .shadow-island, .shadow-\[0_1px_2px_0_rgba\(0\,0\,0\,0\.05\)\] {
+    border: 1px solid #ffffff !important;
+}
