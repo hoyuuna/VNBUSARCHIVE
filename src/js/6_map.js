@@ -1,4 +1,4 @@
-window.app = window.app || {};
+﻿window.app = window.app || {};
 
 app.map = {
     instance: null,
@@ -6,6 +6,8 @@ app.map = {
     drawControl: null,
     zones: [],
     isAdmin: false,
+    userDrawing: false,
+    userDrawHandler: null,
 
     async init() {
         if (!this.instance) {
@@ -17,6 +19,7 @@ app.map = {
         await this.loadZones();
         this.updateTheme();
         
+        // Theo dõi thay đổi theme
         const observer = new MutationObserver(() => this.updateTheme());
         observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     },
@@ -34,7 +37,7 @@ app.map = {
         L.control.zoom({ position: 'bottomright' }).addTo(this.instance);
 
         this.tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
             subdomains: 'abcd',
             maxZoom: 20
         }).addTo(this.instance);
@@ -62,7 +65,7 @@ app.map = {
         });
 
         this.instance.on('locationerror', (e) => {
-            app.ui.showAlert("Kh�ng th? l?y v? tr� c?a b?n.");
+            app.ui.showAlert('Không thể lấy vị trí của bạn.');
         });
 
         this.instance.on(L.Draw.Event.CREATED, (event) => {
@@ -70,41 +73,54 @@ app.map = {
             this.promptCreateZone(layer);
         });
         
-        const svgPattern = `
-            <svg width="10" height="10" xmlns="http://www.w3.org/2000/svg">
-                <path d="M-1,1 l2,-2 M0,10 l10,-10 M9,11 l2,-2" stroke="rgba(239, 68, 68, 0.4)" stroke-width="2"/>
-            </svg>
-        `;
+        const svgPattern = '<svg width=\"10\" height=\"10\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M-1,1 l2,-2 M0,10 l10,-10 M9,11 l2,-2\" stroke=\"rgba(239, 68, 68, 0.4)\" stroke-width=\"2\"/></svg>';
         const encodedPattern = btoa(svgPattern);
         const style = document.createElement('style');
-        style.innerHTML = `
-            .leaflet-interactive.no-photo-zone {
-                fill: url("data:image/svg+xml;base64,${encodedPattern}") !important;
-                fill-opacity: 1 !important;
-            }
-        `;
+        style.innerHTML = '.leaflet-interactive.no-photo-zone { fill: url(\"data:image/svg+xml;base64,' + encodedPattern + '\") !important; fill-opacity: 1 !important; }';
         document.head.appendChild(style);
 
         const requestBtn = document.getElementById('map-add-request-btn');
         if (requestBtn) {
             requestBtn.addEventListener('click', () => {
                 if (!app.user) {
-                    app.ui.showAlert("Vui l�ng dang nh?p d? g?i y�u c?u.", () => {
+                    app.ui.showAlert('Vui lòng đăng nhập để gửi yêu cầu.', () => {
                         app.utils.navigate('/auth');
                     });
                     return;
                 }
-                app.ui.showAlert("T�nh nang g?i y�u c?u dang du?c ph�t tri?n.");
+                
+                if (!this.userDrawHandler) {
+                    this.userDrawHandler = new L.Draw.Rectangle(this.instance, {
+                        shapeOptions: {
+                            color: '#ef4444',
+                            weight: 2
+                        }
+                    });
+                }
+                
+                app.ui.toast('Hãy kéo thả trên bản đồ để khoanh vùng', 'info');
+                this.userDrawing = true;
+                this.userDrawHandler.enable();
             });
         }
     },
 
     updateTheme() {
         if (!this.instance || !this.tileLayer) return;
-        const isDark = document.documentElement.classList.contains('dark');
+        
+        let isDark = false;
+        const cur = (app.preference && app.preference.theme) ? app.preference.theme : (localStorage.getItem('vnbus_theme') || 'system');
+        
+        if (cur === 'dark') {
+            isDark = true;
+        } else if (cur === 'system') {
+            isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        }
+        
         const url = isDark 
             ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
             : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+            
         this.tileLayer.setUrl(url);
     },
 
@@ -151,7 +167,7 @@ app.map = {
     async loadZones() {
         const { data, error } = await window.sb.from('no_photo_zones').select('*');
         if (error) {
-            console.error('L?i t?i v�ng c?m:', error);
+            console.error('Lỗi tải vùng cấm:', error);
             return;
         }
 
@@ -193,7 +209,7 @@ app.map = {
         if (this.isAdmin) {
             const btn = document.createElement('button');
             btn.className = 'bg-red-500 text-white text-[10px] font-bold py-1 px-2 rounded-md hover:bg-red-600 w-full mt-2';
-            btn.innerText = 'X�a v�ng n�y';
+            btn.innerText = 'Xóa vùng này';
             btn.onclick = () => this.deleteZone(zone.id);
             container.appendChild(btn);
         }
@@ -205,6 +221,13 @@ app.map = {
         const bounds = layer.getBounds();
         const latlngs = [[bounds.getSouthWest().lat, bounds.getSouthWest().lng], [bounds.getNorthEast().lat, bounds.getNorthEast().lng]];
 
+        if (this.userDrawing) {
+            this.userDrawing = false;
+            if (this.userDrawHandler) {
+                this.userDrawHandler.disable();
+            }
+        }
+
         this.showCreateModal(latlngs, layer);
     },
     
@@ -215,22 +238,23 @@ app.map = {
             modal = document.createElement('div');
             modal.id = modalId;
             modal.className = 'fixed inset-0 z-[9999] flex items-center justify-center hidden';
-            modal.innerHTML = `
-                <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="app.ui.hideModal('${modalId}')"></div>
+            modal.innerHTML = 
+                <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="app.ui.hideModal('\')"></div>
                 <div class="relative bg-white dark:bg-[#18181b] border border-[#18181b] rounded-2xl p-6 max-w-sm w-full mx-4 shadow-xl">
-                    <h3 class="text-lg font-bold mb-4 dark:text-white">T?o V�ng C?m</h3>
-                    <input type="text" id="map-zone-name" class="w-full bg-gray-50 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-md px-3 py-2 text-sm outline-none focus:border-black dark:focus:border-white mb-3" placeholder="T�n khu v?c...">
-                    <textarea id="map-zone-desc" class="w-full bg-gray-50 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-md px-3 py-2 text-sm outline-none focus:border-black dark:focus:border-white h-20 resize-none mb-4" placeholder="M� t?..."></textarea>
+                    <h3 class="text-lg font-bold mb-4 dark:text-white" id="map-modal-title">Tạo Vùng Cấm</h3>
+                    <input type="text" id="map-zone-name" class="w-full bg-gray-50 dark:bg-[#27272a] border border-[#18181b] rounded-md px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-black dark:focus:ring-white mb-3" placeholder="Tên khu vực...">
+                    <textarea id="map-zone-desc" class="w-full bg-gray-50 dark:bg-[#27272a] border border-[#18181b] rounded-md px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-black dark:focus:ring-white h-20 resize-none mb-4" placeholder="Mô tả chi tiết..."></textarea>
                     
                     <div class="flex justify-end gap-2">
-                        <button class="px-4 py-2 text-sm font-medium border border-[#18181b] dark:border-zinc-700 rounded-md hover:bg-gray-50 dark:hover:bg-zinc-800 dark:text-white" onclick="app.ui.hideModal('${modalId}')">H?y</button>
-                        <button id="map-zone-save" class="px-4 py-2 bg-black dark:bg-white text-white dark:text-black text-sm font-bold rounded-md hover:opacity-80 border border-[#18181b]">Luu v�ng</button>
+                        <button class="px-4 py-2 text-sm font-medium border border-[#18181b] rounded-md hover:bg-gray-50 dark:hover:bg-[#27272a] dark:text-white" onclick="app.ui.hideModal('\')">Hủy</button>
+                        <button id="map-zone-save" class="px-4 py-2 bg-black dark:bg-white text-white dark:text-black text-sm font-bold rounded-md hover:opacity-80 border border-[#18181b]">Lưu</button>
                     </div>
                 </div>
-            `;
+            ;
             document.body.appendChild(modal);
         }
         
+        document.getElementById('map-modal-title').innerText = this.isAdmin ? 'Tạo Vùng Cấm' : 'Gửi Yêu Cầu Thêm Vùng';
         document.getElementById('map-zone-name').value = '';
         document.getElementById('map-zone-desc').value = '';
         
@@ -242,42 +266,60 @@ app.map = {
             const desc = document.getElementById('map-zone-desc').value.trim();
             
             if (!name) {
-                app.ui.toast("Vui l�ng nh?p t�n khu v?c", "error");
+                app.ui.toast('Vui lòng nhập tên khu vực', 'error');
                 return;
             }
             
             app.ui.hideModal(modalId);
             app.loadingBar.start();
             
-            const { error } = await window.sb.from('no_photo_zones').insert({
-                name: name,
-                description: desc,
-                bounds: latlngs,
-                created_by: app.user.id
-            });
-            
-            app.loadingBar.finish();
-            
-            if (error) {
-                console.error(error);
-                app.ui.showAlert("L?i khi luu v�ng c?m.");
+            if (this.isAdmin) {
+                const { error } = await window.sb.from('no_photo_zones').insert({
+                    name: name,
+                    description: desc,
+                    bounds: latlngs,
+                    created_by: app.user.id
+                });
+                
+                app.loadingBar.finish();
+                
+                if (error) {
+                    console.error(error);
+                    app.ui.showAlert('Lỗi khi lưu vùng cấm.');
+                } else {
+                    app.ui.toast('Đã thêm vùng cấm thành công', 'success');
+                    this.loadZones();
+                }
             } else {
-                app.ui.toast("�� th�m v�ng c?m th�nh c�ng", "success");
-                this.loadZones();
+                const { error } = await window.sb.from('zone_edit_requests').insert({
+                    requester_id: app.user.id,
+                    type: 'add',
+                    new_data: { name, description: desc, bounds: latlngs }
+                });
+                
+                app.loadingBar.finish();
+                
+                if (error) {
+                    console.error(error);
+                    app.ui.showAlert('Lỗi khi gửi yêu cầu.');
+                } else {
+                    app.ui.showAlert('Đã gửi yêu cầu thêm vùng cấm. Quản trị viên sẽ xem xét và phê duyệt.');
+                    this.instance.removeLayer(layer);
+                }
             }
         };
     },
     
     async deleteZone(id) {
-        app.ui.showAlert("B?n c� ch?c ch?n mu?n x�a v�ng c?m n�y?", async () => {
+        app.ui.showAlert('Bạn có chắc chắn muốn xóa vùng cấm này?', async () => {
             app.loadingBar.start();
             const { error } = await window.sb.from('no_photo_zones').delete().eq('id', id);
             app.loadingBar.finish();
             
             if (error) {
-                app.ui.showAlert("L?i khi x�a v�ng c?m.");
+                app.ui.showAlert('Lỗi khi xóa vùng cấm.');
             } else {
-                app.ui.toast("�� x�a v�ng c?m", "success");
+                app.ui.toast('Đã xóa vùng cấm', 'success');
                 this.loadZones();
             }
         }, () => {});
