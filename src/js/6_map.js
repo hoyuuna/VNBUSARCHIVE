@@ -86,11 +86,10 @@ app.map = {
         const style = document.createElement('style');
         style.innerHTML = `
             .leaflet-interactive.no-photo-zone { fill: url(#no-photo-pattern) !important; fill-opacity: 1 !important; }
-            .leaflet-popup-content-wrapper { background: #ffffff !important; color: #000000 !important; border-radius: 6px !important; border: 1px solid #18181b !important; box-shadow: none !important; }
-            .leaflet-popup-tip { background: #ffffff !important; border: 1px solid #18181b !important; box-shadow: none !important; border-top: none !important; border-left: none !important; }
+            .leaflet-popup-content-wrapper { background: #ffffff !important; color: #000000 !important; border-radius: 6px !important; border: 1px solid #18181b !important; box-shadow: none !important; padding: 0 !important; }
+            .leaflet-popup-tip-container { display: none !important; }
             
-            .dark .leaflet-popup-content-wrapper { background: #18181b !important; color: #ffffff !important; border-color: #ffffff !important; }
-            .dark .leaflet-popup-tip { background: #18181b !important; border-color: #ffffff !important; }
+            html.theme-dark .leaflet-popup-content-wrapper { background: #18181b !important; color: #ffffff !important; border-color: #ffffff !important; }
             
             /* Hide close button from Leaflet as it might be ugly, or style it */
             .leaflet-popup-close-button { color: inherit !important; font-weight: bold !important; }
