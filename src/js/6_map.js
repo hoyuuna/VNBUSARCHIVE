@@ -38,7 +38,10 @@ app.map = {
 
         L.control.zoom({ position: 'bottomright' }).addTo(this.instance);
 
-        this.tileLayer = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+        const isDark = document.documentElement.classList.contains('theme-dark');
+        const lyrs = isDark ? 'y' : 'm';
+        
+        this.tileLayer = L.tileLayer(`https://mt1.google.com/vt/lyrs=${lyrs}&x={x}&y={y}&z={z}`, {
             attribution: '&copy; Google Maps',
             maxZoom: 20
         }).addTo(this.instance);
@@ -412,21 +415,16 @@ app.map = {
     updateTheme() {
         if (!this.instance || !this.tileLayer) return;
         
-        let isDark = false;
-        const cur = (app.preference && app.preference.theme) ? app.preference.theme : (localStorage.getItem('vnbus_theme') || 'system');
-        
-        if (cur === 'dark') {
-            isDark = true;
-        } else if (cur === 'system') {
-            isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        }
+        const isDark = document.documentElement.classList.contains('theme-dark');
         
         const mapContainer = document.getElementById('leaflet-map');
         if (mapContainer) {
             if (isDark) {
                 mapContainer.classList.add('dark-tiles');
+                this.tileLayer.setUrl('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}');
             } else {
                 mapContainer.classList.remove('dark-tiles');
+                this.tileLayer.setUrl('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}');
             }
         }
     },
