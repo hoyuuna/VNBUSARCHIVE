@@ -5552,12 +5552,12 @@ div[id$="-modal"] > div > * {
                     <!-- Vùng chức năng (Góc dưới trái) -->
                     <div class="absolute bottom-6 left-6 z-[400] flex flex-col items-start justify-end" id="map-panel-wrapper">
                         <!-- Menu Dropdown -->
-                        <div id="map-menu-dropdown" class="dropdown-menu absolute bottom-[120%] left-0 flex-col w-48 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] transform origin-bottom-left scale-95 opacity-0 pointer-events-none" style="margin-bottom: 0.5rem; z-index: 1000 !important; display: flex;">
-                            <button id="map-toggle-type-btn" class="w-full text-left px-3 py-2.5 text-sm font-bold flex items-center gap-2">
-                                <i class="fa-solid fa-layer-group w-5"></i> <span id="map-toggle-type-text">Bản đồ vệ tinh</span>
+                        <div id="map-menu-dropdown" class="dropdown-menu absolute bottom-[110%] left-0 w-48 border border-white/50 rounded-lg shadow-xl z-[9000] overflow-hidden transform opacity-0 scale-95 pointer-events-none transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] origin-bottom-left" style="margin-bottom: 0.5rem; z-index: 1000 !important; display: block;">
+                            <button id="map-toggle-type-btn" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold">
+                                <i class="fa-solid fa-layer-group w-5 text-center mr-1"></i> <span id="map-toggle-type-text">Bản đồ vệ tinh</span>
                             </button>
-                            <button id="map-add-zone-btn" class="w-full text-left px-3 py-2.5 text-sm font-bold text-red-600 dark:text-red-400 flex items-center gap-2">
-                                <i class="fa-solid fa-ban w-5"></i> Bổ sung vùng cấm
+                            <button id="map-add-zone-btn" class="w-full text-left block px-4 py-3 text-sm text-red-600 hover:bg-red-50 font-bold">
+                                <i class="fa-solid fa-ban w-5 text-center mr-1"></i> Bổ sung vùng cấm
                             </button>
                         </div>
                         
