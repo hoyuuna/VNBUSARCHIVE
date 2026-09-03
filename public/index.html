@@ -1948,7 +1948,7 @@ div[id$="-modal"] > div > * {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1788440651488" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1788441221789" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -5510,20 +5510,20 @@ div[id$="-modal"] > div > * {
                             </button>
                             
                             <!-- Dropdown kết quả (Đè lên Info Island) -->
-                            <div id="map-search-results" class="hidden absolute top-[110%] left-0 right-[50px] bg-white dark:bg-[#18181b] border border-black dark:border-white rounded-md flex-col max-h-60 overflow-y-auto pointer-events-auto">
+                            <div id="map-search-results" class="hidden opacity-0 scale-95 -translate-y-2 transition-all duration-200 transform origin-top absolute top-[110%] left-0 right-[50px] bg-white dark:bg-[#18181b] border border-black dark:border-white rounded-md flex-col max-h-60 overflow-y-auto pointer-events-auto">
                             </div>
                         </div>
                         
                         <!-- Info Island -->
-                        <div id="map-location-info" class="hidden flex-col pointer-events-auto bg-white dark:bg-[#18181b] border border-black dark:border-white p-4 rounded-md mt-2 z-[400] relative w-full sm:w-[calc(100%-50px)]">
+                        <div id="map-location-info" class="hidden opacity-0 scale-95 -translate-y-2 transition-all duration-300 transform origin-top flex-col pointer-events-auto bg-white dark:bg-[#18181b] border border-black dark:border-white p-4 rounded-md mt-2 z-[400] relative w-full sm:w-[calc(100%-50px)] text-black dark:text-white">
                             <button id="map-location-info-close" class="absolute top-2 right-2 text-gray-500 hover:text-black dark:hover:text-white transition-colors w-6 h-6 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
 
                             <div class="pr-6">
-                                <h3 id="map-loc-name" class="font-bold text-base dark:text-white leading-tight"></h3>
+                                <h3 id="map-loc-name" class="font-bold text-base text-black dark:text-white leading-tight"></h3>
                                 <p id="map-loc-address" class="text-[11px] text-gray-500 dark:text-gray-400 mt-1 leading-relaxed"></p>
                             </div>
 
-                            <div id="map-loc-weather" class="text-xs dark:text-white mt-4">
+                            <div id="map-loc-weather" class="text-xs text-black dark:text-white mt-4">
                                 <div class="text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-wider">Thời tiết</div>
                                 <div class="flex flex-wrap gap-x-4 gap-y-2" id="map-loc-weather-data">
                                     <span class="text-gray-500 italic">Đang tải dữ liệu...</span>
@@ -5536,9 +5536,9 @@ div[id$="-modal"] > div > * {
                                 </button>
                                 
                                 <div id="map-loc-sun-controls" class="hidden flex-col gap-2 mt-3">
-                                    <div class="flex justify-between items-center text-[10px] dark:text-white font-bold">
+                                    <div class="flex justify-between items-center text-[10px] text-black dark:text-white font-bold">
                                         <span>THỜI GIAN</span>
-                                        <span id="map-loc-sun-time-display" class="bg-gray-100 dark:bg-[#27272a] px-2 py-0.5 rounded border border-black dark:border-white">12:00</span>
+                                        <span id="map-loc-sun-time-display" class="bg-gray-100 dark:bg-[#27272a] text-black dark:text-white px-2 py-0.5 rounded border border-black dark:border-white">12:00</span>
                                     </div>
                                     <div class="relative w-full h-4 flex items-center">
                                         <input type="range" id="map-loc-sun-slider" min="0" max="1439" value="720" class="vnbus-slider w-full">
@@ -6900,7 +6900,7 @@ div[id$="-modal"] > div > * {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed top-24 left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.js?v=1788440651488"></script>
+<script src="/app.js?v=1788441221789"></script>
 </body>
 </html>
 

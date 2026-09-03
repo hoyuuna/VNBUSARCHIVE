@@ -217,13 +217,13 @@ app.map = {
 
         const performSearch = async (query) => {
             if (!query) {
-                resultsContainer.classList.add('hidden');
+                this.animateHide(resultsContainer);
                 return;
             }
             
             try {
                 resultsContainer.innerHTML = '<div class="p-3 text-sm text-gray-500 text-center">Đang tìm kiếm...</div>';
-                resultsContainer.classList.remove('hidden');
+                this.animateShow(resultsContainer);
                 
                 // Sử dụng API của Photon (Komoot) thay vì Nominatim để tránh lỗi block IP
                 const response = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query + ' vietnam')}&limit=5`);
@@ -242,19 +242,25 @@ app.map = {
 
                     data.features.forEach(item => {
                         const props = item.properties;
-                        // Tạo tên hiển thị đẹp hơn
-                        const nameParts = [props.name, props.street, props.city, props.state, props.country].filter(Boolean);
-                        const displayName = [...new Set(nameParts)].join(', '); // Lọc trùng lặp
+                        const displayName = props.name ? `${props.name}, ${props.city || props.state || ''}`.replace(/,\s*$/, '') : props.label || 'Không rõ tên';
                         
                         const div = document.createElement('div');
-                        div.className = 'p-3 hover:bg-gray-100 dark:hover:bg-[#27272a] cursor-pointer text-sm border-b border-black dark:border-white last:border-0 dark:text-white transition-colors';
-                        div.innerText = displayName;
+                        div.className = 'p-3 hover:bg-gray-100 dark:hover:bg-[#27272a] cursor-pointer border-b border-gray-100 dark:border-gray-800 last:border-0 transition-colors flex items-center gap-3';
+                        div.innerHTML = `
+                            <div class="w-8 h-8 rounded-full bg-gray-100 dark:bg-black border border-gray-200 dark:border-gray-700 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-location-dot text-gray-400"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="font-bold text-sm text-black dark:text-white truncate">${app.utils.escapeHtml(props.name || 'Không rõ tên')}</div>
+                                <div class="text-[11px] text-gray-500 truncate">${app.utils.escapeHtml(displayName)}</div>
+                            </div>
+                        `;
                         div.onclick = () => {
                             // GeoJSON trả về [lon, lat]
                             const lon = parseFloat(item.geometry.coordinates[0]);
                             const lat = parseFloat(item.geometry.coordinates[1]);
                             this.instance.setView([lat, lon], 16);
-                            resultsContainer.classList.add('hidden');
+                            this.animateHide(resultsContainer);
                             input.value = props.name || displayName;
                             
                             if (this.searchMarker) this.instance.removeLayer(this.searchMarker);
@@ -263,7 +269,7 @@ app.map = {
                             this.searchMarker = L.marker([lat, lon], { icon: searchIcon }).addTo(this.instance);
                             
                             this.searchMarker.on('click', () => {
-                                document.getElementById('map-location-info').classList.remove('hidden');
+                                this.animateShow(document.getElementById('map-location-info'));
                             });
                             
                             this.showLocationInfo(props.name || 'Không có tên', displayName, lat, lon);
@@ -285,7 +291,7 @@ app.map = {
 
         document.addEventListener('click', (e) => {
             if (!form.contains(e.target) && !resultsContainer.contains(e.target)) {
-                resultsContainer.classList.add('hidden');
+                this.animateHide(resultsContainer);
             }
         });
 
@@ -647,7 +653,7 @@ app.map = {
     },
     
     async showLocationInfo(name, address, lat, lon) {
-        document.getElementById('map-location-info').classList.remove('hidden');
+        this.animateShow(document.getElementById('map-location-info'));
         document.getElementById('map-loc-name').innerText = name;
         document.getElementById('map-loc-address').innerText = address;
         
@@ -710,7 +716,7 @@ app.map = {
         
         if (closeBtn) {
             closeBtn.addEventListener('click', () => {
-                document.getElementById('map-location-info').classList.add('hidden');
+                this.animateHide(document.getElementById('map-location-info'));
             });
         }
         
@@ -795,5 +801,21 @@ app.map = {
                 zIndexOffset: -100
             }).addTo(this.instance);
         }
+    },
+    
+    animateShow(el) {
+        if (!el) return;
+        el.classList.remove('hidden');
+        // Kích hoạt reflow để CSS transition chạy mượt
+        void el.offsetWidth;
+        el.classList.remove('opacity-0', 'scale-95', '-translate-y-2');
+    },
+    
+    animateHide(el) {
+        if (!el) return;
+        el.classList.add('opacity-0', 'scale-95', '-translate-y-2');
+        setTimeout(() => {
+            if (el.classList.contains('opacity-0')) el.classList.add('hidden');
+        }, 300);
     }
 };
