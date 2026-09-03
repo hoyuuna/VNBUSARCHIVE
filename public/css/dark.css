@@ -286,8 +286,8 @@ polygon[fill="white"] { fill: #000000 !important; }
 #denial-improvement-box summary .absolute.inset-0 { background: linear-gradient(to right, #3d0020, #0d1b4b) !important; opacity: 1 !important; }
 #denial-improvement-box.group[open] summary .absolute.inset-0,
 #denial-improvement-box details[open] summary .absolute.inset-0 { opacity: 0 !important; }
-#denial-improvement-box summary span { background-image: linear-gradient(to right, #f9a8d4, #93c5fd) !important; }
-#denial-improvement-box summary span, #denial-improvement-box summary i { color: transparent !important; }
+details#denial-improvement-box:not([open]) summary span { background-image: linear-gradient(to right, #fda4af, #a5b4fc) !important; -webkit-background-clip: text !important; background-clip: text !important; color: transparent !important; }
+
 #denial-improvement-box.group[open] summary span,
 details#denial-improvement-box[open] summary span { background-image: linear-gradient(to right, #fda4af, #a5b4fc) !important; }
 details#denial-improvement-box[open] summary i.fa-lightbulb { color: #fda4af !important; }
