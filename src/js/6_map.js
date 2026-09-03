@@ -225,7 +225,8 @@ app.map = {
                 resultsContainer.innerHTML = '<div class="p-3 text-sm text-gray-500 text-center">Đang tìm kiếm...</div>';
                 resultsContainer.classList.remove('hidden');
                 
-                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=vn`);
+                // Thêm email param để tránh bị Nominatim block do chính sách
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=vn&email=nghoanganhtuann@gmail.com`);
                 const data = await response.json();
                 
                 if (data && data.length > 0) {
@@ -241,7 +242,6 @@ app.map = {
                             resultsContainer.classList.add('hidden');
                             input.value = item.display_name;
                             
-                            // Thêm marker tạm thời
                             if (this.searchMarker) this.instance.removeLayer(this.searchMarker);
                             this.searchMarker = L.marker([lat, lon]).addTo(this.instance).bindPopup(item.display_name).openPopup();
                         };
@@ -251,7 +251,7 @@ app.map = {
                     resultsContainer.innerHTML = '<div class="p-3 text-sm text-gray-500 text-center">Không tìm thấy kết quả</div>';
                 }
             } catch (error) {
-                resultsContainer.innerHTML = '<div class="p-3 text-sm text-red-500 text-center">Lỗi tìm kiếm</div>';
+                resultsContainer.innerHTML = '<div class="p-3 text-sm text-red-500 text-center">Lỗi tìm kiếm (Thử lại sau ít phút)</div>';
             }
         };
 
@@ -266,55 +266,72 @@ app.map = {
             }
         });
 
+        // Vòng tròn xanh viền trắng
+        const userIcon = L.divIcon({
+            className: 'custom-user-location',
+            html: '<div style="width: 14px; height: 14px; background-color: #2563eb; border: 2.5px solid white; border-radius: 50%; box-shadow: 0 0 4px rgba(0,0,0,0.4);"></div>',
+            iconSize: [14, 14],
+            iconAnchor: [7, 7]
+        });
+
+        // Bật theo dõi vị trí liên tục
+        this.instance.locate({ watch: true, setView: false, enableHighAccuracy: true, timeout: 60000, maximumAge: 10000 });
+
+        this.instance.on('locationfound', (e) => {
+            this.userLocation = e.latlng;
+            
+            if (this.currentLocationMarker) {
+                this.currentLocationMarker.setLatLng(e.latlng);
+            } else {
+                this.currentLocationMarker = L.marker(e.latlng, { icon: userIcon, zIndexOffset: 1000 }).addTo(this.instance);
+            }
+            
+            const radius = Math.round(e.accuracy / 2);
+            if (this.currentLocationCircle) {
+                this.currentLocationCircle.setLatLng(e.latlng);
+                this.currentLocationCircle.setRadius(radius);
+            } else {
+                this.currentLocationCircle = L.circle(e.latlng, radius, {
+                    color: '#2563eb',
+                    fillColor: '#3b82f6',
+                    fillOpacity: 0.15,
+                    weight: 0
+                }).addTo(this.instance);
+            }
+            
+            // Nếu người dùng đang chờ load từ nút locate
+            if (this.isLocatingUser) {
+                this.isLocatingUser = false;
+                locateBtn.innerHTML = '<i class="fa-solid fa-location-crosshairs text-lg"></i>';
+                locateBtn.disabled = false;
+                this.instance.setView(e.latlng, 16);
+            }
+        });
+
+        this.instance.on('locationerror', (e) => {
+            console.warn("Lỗi vị trí:", e.message);
+            if (this.isLocatingUser) {
+                this.isLocatingUser = false;
+                locateBtn.innerHTML = '<i class="fa-solid fa-location-crosshairs text-lg"></i>';
+                locateBtn.disabled = false;
+                app.ui.showAlert('Không thể lấy vị trí hiện tại. Hãy kiểm tra quyền truy cập vị trí trên thiết bị.');
+            }
+        });
+
         locateBtn.addEventListener('click', () => {
+            if (this.userLocation) {
+                this.instance.setView(this.userLocation, 16);
+                return;
+            }
+            
             if (!navigator.geolocation) {
                 app.ui.showAlert('Trình duyệt không hỗ trợ định vị.');
                 return;
             }
             
-            const originalIcon = locateBtn.innerHTML;
+            this.isLocatingUser = true;
             locateBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-lg"></i>';
             locateBtn.disabled = true;
-
-            this.instance.locate({setView: true, maxZoom: 16});
-
-            const onLocationFound = (e) => {
-                locateBtn.innerHTML = originalIcon;
-                locateBtn.disabled = false;
-                
-                if (this.currentLocationMarker) {
-                    this.instance.removeLayer(this.currentLocationMarker);
-                }
-                if (this.currentLocationCircle) {
-                    this.instance.removeLayer(this.currentLocationCircle);
-                }
-                
-                const radius = Math.round(e.accuracy / 2);
-                this.currentLocationMarker = L.marker(e.latlng).addTo(this.instance)
-                    .bindPopup(`Bạn đang ở trong phạm vi ${radius} mét`).openPopup();
-                
-                this.currentLocationCircle = L.circle(e.latlng, radius, {
-                    color: '#ef4444',
-                    fillColor: '#ef4444',
-                    fillOpacity: 0.15,
-                    weight: 1
-                }).addTo(this.instance);
-                
-                this.instance.off('locationfound', onLocationFound);
-                this.instance.off('locationerror', onLocationError);
-            };
-
-            const onLocationError = (e) => {
-                locateBtn.innerHTML = originalIcon;
-                locateBtn.disabled = false;
-                app.ui.showAlert('Không thể lấy vị trí hiện tại. Hãy kiểm tra quyền truy cập vị trí.');
-                
-                this.instance.off('locationfound', onLocationFound);
-                this.instance.off('locationerror', onLocationError);
-            };
-
-            this.instance.on('locationfound', onLocationFound);
-            this.instance.on('locationerror', onLocationError);
         });
     },
 
