@@ -205,6 +205,10 @@ div[id$="-modal"] > div > * {
         #hero-sub img {
             z-index: 10;
         }
+        
+        .dark-tiles .leaflet-tile-pane {
+            filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+        }
 
         #hero-main .z-20,
         #hero-sub .z-20 {
@@ -5449,7 +5453,7 @@ div[id$="-modal"] > div > * {
                     <!-- Vùng chức năng (Góc dưới trái) -->
                     <div class="absolute bottom-6 left-6 z-[400] flex flex-col items-start justify-end" id="map-panel-wrapper">
                          <!-- Nút Mở -->
-                         <button id="map-open-panel-btn" class="bg-white dark:bg-[#18181b] border border-black dark:border-white text-black dark:text-white text-sm font-bold py-2.5 px-5 rounded-md shadow-sm hover:opacity-80 transition-all duration-300 transform origin-bottom-left flex items-center gap-2">
+                         <button id="map-open-panel-btn" class="bg-black dark:bg-white border border-black dark:border-white text-white dark:text-black text-sm font-bold py-2.5 px-5 rounded-md shadow-sm hover:opacity-80 transition-all duration-300 transform origin-bottom-left flex items-center gap-2">
                             <i class="fa-solid fa-plus"></i> Bổ sung vùng cấm
                          </button>
 

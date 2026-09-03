@@ -1,4 +1,4 @@
-window.APP_VERSION = "26.09.03.18.02.54";
+window.APP_VERSION = "26.09.03.18.09.08";
 
 /* --- MODULE: 1_init.js --- */
 window.app = window.app || {};
@@ -20282,7 +20282,7 @@ app.map = {
         if (!this.instance) {
             this.initMap();
         } else {
-            this.instance.invalidateSize();
+            setTimeout(() => this.instance.invalidateSize(), 150);
         }
         await this.checkPermission();
         await this.loadZones();
@@ -20308,6 +20308,8 @@ app.map = {
             attribution: '&copy; OpenStreetMap contributors',
             maxZoom: 20
         }).addTo(this.instance);
+        
+        setTimeout(() => this.instance.invalidateSize(), 150);
 
         this.drawnItems = new L.FeatureGroup();
         this.instance.addLayer(this.drawnItems);
@@ -20400,11 +20402,14 @@ app.map = {
                 
                 this.addDraftShape(rect);
                 
-                if (rect.editing) {
-                    rect.editing.enable();
+                if (!this.editHandler) {
+                    this.editHandler = new L.EditToolbar.Edit(this.instance, {
+                        featureGroup: this.draftLayerGroup
+                    });
                 }
+                this.editHandler.enable();
                 
-                app.ui.toast('Đã thêm vùng chọn. Kéo và thay đổi kích thước theo ý muốn.', 'info');
+                app.ui.toast('Đã thêm vùng chọn. Kéo chấm vuông để thay đổi kích thước, hoặc kéo vùng mờ để di chuyển.', 'info');
             });
         }
         
@@ -20430,17 +20435,21 @@ app.map = {
         const idx = this.currentDraftShapes.findIndex(s => s.id === id);
         if (idx !== -1) {
             const shape = this.currentDraftShapes[idx];
-            if (shape.layer.editing) shape.layer.editing.disable();
             this.draftLayerGroup.removeLayer(shape.layer);
             this.currentDraftShapes.splice(idx, 1);
             this.renderDraftList();
+            
+            // If empty, disable edit mode
+            if (this.currentDraftShapes.length === 0 && this.editHandler) {
+                this.editHandler.disable();
+            }
         }
     },
     
     clearDrafts() {
-        this.currentDraftShapes.forEach(shape => {
-            if (shape.layer.editing) shape.layer.editing.disable();
-        });
+        if (this.editHandler) {
+            this.editHandler.disable();
+        }
         this.draftLayerGroup.clearLayers();
         this.currentDraftShapes = [];
         this.renderDraftList();
@@ -20489,11 +20498,14 @@ app.map = {
             isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
         }
         
-        const url = isDark 
-            ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-            : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-            
-        this.tileLayer.setUrl(url);
+        const mapContainer = document.getElementById('leaflet-map');
+        if (mapContainer) {
+            if (isDark) {
+                mapContainer.classList.add('dark-tiles');
+            } else {
+                mapContainer.classList.remove('dark-tiles');
+            }
+        }
     },
 
     async checkPermission() {
