@@ -260,17 +260,17 @@ polygon[fill="white"] { fill: #000000 !important; }
     color: #000000 !important;
 }
 /* Dark Mode Inline Alerts (Soft Backgrounds, Tinted Borders, Pastel Text/Icons) */
-.bg-red-50, .bg-red-100 { background-color: #450a0a !important; border-color: rgba(248, 113, 113, 0.3) !important; color: #fca5a5 !important; }
-#map-loc-zone-warning { border-color: #ffffff !important; }
+.bg-red-50, .bg-red-100 { background-color: #450a0a !important; border: 1px solid #ffffff !important; color: #fca5a5 !important; }
+
 .bg-red-50 *, .bg-red-100 * { color: #fca5a5 !important; }
 
-.bg-yellow-50, .bg-yellow-100, .bg-orange-50, .bg-orange-100, .bg-amber-50, .bg-amber-100 { background-color: #422006 !important; border-color: rgba(250, 204, 21, 0.3) !important; color: #fde047 !important; }
+.bg-yellow-50, .bg-yellow-100, .bg-orange-50, .bg-orange-100, .bg-amber-50, .bg-amber-100 { background-color: #422006 !important; border: 1px solid #ffffff !important; color: #fde047 !important; }
 .bg-yellow-50 *, .bg-yellow-100 *, .bg-orange-50 *, .bg-orange-100 *, .bg-amber-50 *, .bg-amber-100 * { color: #fde047 !important; }
 
-.bg-green-50, .bg-green-100, .bg-emerald-50, .bg-emerald-100 { background-color: #052e16 !important; border-color: rgba(74, 222, 128, 0.3) !important; color: #86efac !important; }
+.bg-green-50, .bg-green-100, .bg-emerald-50, .bg-emerald-100 { background-color: #052e16 !important; border: 1px solid #ffffff !important; color: #86efac !important; }
 .bg-green-50 *, .bg-green-100 *, .bg-emerald-50 *, .bg-emerald-100 * { color: #86efac !important; }
 
-.bg-blue-50, .bg-blue-100, .bg-indigo-50, .bg-indigo-100 { background-color: #172554 !important; border-color: rgba(96, 165, 250, 0.3) !important; color: #93c5fd !important; }
+.bg-blue-50, .bg-blue-100, .bg-indigo-50, .bg-indigo-100 { background-color: #172554 !important; border: 1px solid #ffffff !important; color: #93c5fd !important; }
 .bg-blue-50 *, .bg-blue-100 *, .bg-indigo-50 *, .bg-indigo-100 * { color: #93c5fd !important; }
 
 /* Fix Góp ý cải thiện ảnh - Dark Mode */

@@ -1,4 +1,4 @@
-window.APP_VERSION = "26.09.03.21.24.24";
+window.APP_VERSION = "26.09.03.22.10.10";
 
 /* --- MODULE: 1_init.js --- */
 window.app = window.app || {};
@@ -21058,7 +21058,7 @@ app.map = {
             this.sunMarker = null;
         }
         document.getElementById('map-loc-sun-controls').classList.add('hidden');
-        document.getElementById('map-loc-sun-btn').classList.remove('bg-gray-100', 'dark:bg-[#27272a]');
+        document.getElementById('map-loc-sun-btn').classList.remove('!bg-white', '!text-black');
         
         const weatherContainer = document.getElementById('map-loc-weather-data');
         weatherContainer.innerHTML = '<span class="text-gray-500 italic">Đang tải dữ liệu thời tiết...</span>';
@@ -21120,14 +21120,14 @@ app.map = {
                 this.sunEnabled = !this.sunEnabled;
                 if (this.sunEnabled) {
                     controls.classList.remove('hidden');
-                    btn.classList.add('bg-gray-100', 'dark:bg-[#27272a]');
+                    btn.classList.add('!bg-white', '!text-black');
                     const now = new Date();
                     const minutes = now.getHours() * 60 + now.getMinutes();
                     slider.value = minutes;
                     this.updateSunDirection(minutes);
                 } else {
                     controls.classList.add('hidden');
-                    btn.classList.remove('bg-gray-100', 'dark:bg-[#27272a]');
+                    btn.classList.remove('!bg-white', '!text-black');
                     if (this.sunMarker) {
                         this.instance.removeLayer(this.sunMarker);
                         this.sunMarker = null;
