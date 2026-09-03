@@ -71,11 +71,21 @@ app.map = {
             }
         });
         
-        const svgPattern = '<svg width="10" height="10" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="rgba(239, 68, 68, 0.2)"/><path d="M-1,1 l2,-2 M0,10 l10,-10 M9,11 l2,-2" stroke="rgba(239, 68, 68, 0.6)" stroke-width="1.5"/></svg>';
-        const encodedPattern = btoa(svgPattern);
+        const svgDefs = `
+        <svg style="width:0;height:0;position:absolute;" aria-hidden="true" focusable="false">
+          <defs>
+            <pattern id="no-photo-pattern" patternUnits="userSpaceOnUse" width="10" height="10">
+              <rect width="10" height="10" fill="rgba(239, 68, 68, 0.2)"/>
+              <path d="M-1,1 l2,-2 M0,10 l10,-10 M9,11 l2,-2" stroke="rgba(239, 68, 68, 0.6)" stroke-width="1.5"/>
+            </pattern>
+          </defs>
+        </svg>
+        `;
+        document.body.insertAdjacentHTML('beforeend', svgDefs);
+        
         const style = document.createElement('style');
         style.innerHTML = `
-            .leaflet-interactive.no-photo-zone { fill: url("data:image/svg+xml;base64,${encodedPattern}") !important; fill-opacity: 1 !important; }
+            .leaflet-interactive.no-photo-zone { fill: url(#no-photo-pattern) !important; fill-opacity: 1 !important; }
             .leaflet-popup-content-wrapper { background: #ffffff !important; color: #000000 !important; border-radius: 6px !important; border: 1px solid #18181b !important; box-shadow: none !important; }
             .leaflet-popup-tip { background: #ffffff !important; border: 1px solid #18181b !important; box-shadow: none !important; border-top: none !important; border-left: none !important; }
             
