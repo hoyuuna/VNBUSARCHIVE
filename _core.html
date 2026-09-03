@@ -5453,24 +5453,24 @@ div[id$="-modal"] > div > * {
                     <!-- Vùng chức năng (Góc dưới trái) -->
                     <div class="absolute bottom-6 left-6 z-[400] flex flex-col items-start justify-end" id="map-panel-wrapper">
                          <!-- Nút Mở -->
-                         <button id="map-open-panel-btn" class="bg-black dark:bg-white border border-black dark:border-white text-white dark:text-black text-sm font-bold py-2.5 px-5 rounded-md shadow-sm hover:opacity-80 transition-all duration-300 transform origin-bottom-left flex items-center gap-2">
+                         <button id="map-open-panel-btn" class="bg-black dark:bg-white border border-black dark:border-white text-white dark:text-black text-sm font-bold py-2.5 px-5 rounded-md hover:opacity-80 transition-all duration-300 transform origin-bottom-left flex items-center gap-2">
                             <i class="fa-solid fa-plus"></i> Bổ sung vùng cấm
                          </button>
 
                          <!-- Floating Island (Panel) -->
-                         <div id="map-zone-panel" class="bg-white dark:bg-[#18181b] border border-black dark:border-white p-4 rounded-md shadow-sm hidden flex-col gap-3 w-80 max-w-[calc(100vw-2rem)] transition-all duration-300 transform origin-bottom-left scale-95 opacity-0">
+                         <div id="map-zone-panel" class="bg-white dark:bg-[#18181b] border border-black dark:border-white p-4 rounded-md hidden flex-col gap-3 w-80 max-w-[calc(100vw-2rem)] transition-all duration-300 transform origin-bottom-left scale-95 opacity-0">
                             <div class="flex justify-between items-center mb-1">
                                 <h3 class="font-bold text-base dark:text-white" id="map-panel-title">Bổ sung vùng cấm</h3>
                                 <button id="map-close-panel-btn" class="text-gray-500 hover:text-black dark:hover:text-white transition-colors"><i class="fa-solid fa-xmark text-lg"></i></button>
                             </div>
 
-                            <input type="text" id="map-panel-name" class="w-full bg-gray-50 dark:bg-[#27272a] border border-black dark:border-white rounded-md px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-black dark:focus:ring-white dark:text-white" placeholder="Tên khu vực...">
+                            <input type="text" id="map-panel-name" class="w-full bg-white dark:bg-[#18181b] border border-black dark:border-white rounded-md px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-black dark:focus:ring-white dark:text-white" placeholder="Tên khu vực...">
                             
-                            <textarea id="map-panel-desc" class="w-full bg-gray-50 dark:bg-[#27272a] border border-black dark:border-white rounded-md px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-black dark:focus:ring-white h-16 resize-none dark:text-white" placeholder="Mô tả chi tiết..."></textarea>
+                            <textarea id="map-panel-desc" class="w-full bg-white dark:bg-[#18181b] border border-black dark:border-white rounded-md px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-black dark:focus:ring-white h-16 resize-none dark:text-white" placeholder="Mô tả chi tiết..."></textarea>
                             
                             <div class="flex items-center justify-between mt-1">
                                 <span class="text-xs font-bold dark:text-gray-300">Danh sách vùng chọn:</span>
-                                <button id="map-panel-add-shape" class="text-[10px] bg-black dark:bg-white text-white dark:text-black font-bold px-2 py-1.5 rounded border border-black dark:border-white hover:opacity-80 transition-opacity"><i class="fa-solid fa-plus mr-1"></i>Thêm vùng cấm</button>
+                                <button id="map-panel-add-shape" class="text-[10px] bg-black dark:bg-white text-white dark:text-black font-bold px-2 py-1.5 rounded border border-black dark:border-white hover:opacity-80 transition-opacity"><i class="fa-solid fa-plus mr-1"></i> Thêm vùng</button>
                             </div>
                             
                             <div id="map-panel-shapes-list" class="flex flex-col gap-2 max-h-32 overflow-y-auto pr-1">

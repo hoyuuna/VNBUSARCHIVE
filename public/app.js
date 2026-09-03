@@ -1,4 +1,4 @@
-window.APP_VERSION = "26.09.03.18.22.16";
+window.APP_VERSION = "26.09.03.18.31.31";
 
 /* --- MODULE: 1_init.js --- */
 window.app = window.app || {};
@@ -20337,10 +20337,20 @@ app.map = {
             }
         });
         
-        const svgPattern = '<svg width="10" height="10" xmlns="http://www.w3.org/2000/svg"><path d="M-1,1 l2,-2 M0,10 l10,-10 M9,11 l2,-2" stroke="rgba(239, 68, 68, 0.4)" stroke-width="2"/></svg>';
+        const svgPattern = '<svg width="10" height="10" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="rgba(239, 68, 68, 0.2)"/><path d="M-1,1 l2,-2 M0,10 l10,-10 M9,11 l2,-2" stroke="rgba(239, 68, 68, 0.6)" stroke-width="1.5"/></svg>';
         const encodedPattern = btoa(svgPattern);
         const style = document.createElement('style');
-        style.innerHTML = '.leaflet-interactive.no-photo-zone { fill: url("data:image/svg+xml;base64,' + encodedPattern + '") !important; fill-opacity: 1 !important; }';
+        style.innerHTML = `
+            .leaflet-interactive.no-photo-zone { fill: url("data:image/svg+xml;base64,${encodedPattern}") !important; fill-opacity: 1 !important; }
+            .leaflet-popup-content-wrapper { background: #ffffff !important; color: #000000 !important; border-radius: 6px !important; border: 1px solid #18181b !important; box-shadow: none !important; }
+            .leaflet-popup-tip { background: #ffffff !important; border: 1px solid #18181b !important; box-shadow: none !important; border-top: none !important; border-left: none !important; }
+            
+            .dark .leaflet-popup-content-wrapper { background: #18181b !important; color: #ffffff !important; border-color: #ffffff !important; }
+            .dark .leaflet-popup-tip { background: #18181b !important; border-color: #ffffff !important; }
+            
+            /* Hide close button from Leaflet as it might be ugly, or style it */
+            .leaflet-popup-close-button { color: inherit !important; font-weight: bold !important; }
+        `;
         document.head.appendChild(style);
 
         this.setupPanelEvents();
@@ -20480,7 +20490,7 @@ app.map = {
         
         this.currentDraftShapes.forEach((shape, index) => {
             const div = document.createElement('div');
-            div.className = 'flex items-center justify-between bg-gray-50 dark:bg-[#27272a] border border-black dark:border-white p-2 rounded-md';
+            div.className = 'flex items-center justify-between bg-white dark:bg-[#18181b] border border-black dark:border-white p-2 rounded-md';
             
             const span = document.createElement('span');
             span.className = 'text-xs font-bold dark:text-white';
@@ -20556,6 +20566,10 @@ app.map = {
             document.getElementById('map-open-panel-btn').click();
         }
         
+        // Cập nhật tiêu đề sau khi open btn đã set (có độ trễ xíu do bất đồng bộ hoặc không, set luôn ghi đè lại)
+        document.getElementById('map-panel-title').innerText = this.isAdmin ? 'Chỉnh sửa Vùng Cấm' : 'Gửi Yêu Cầu Sửa';
+        document.getElementById('map-panel-save-btn').innerText = this.isAdmin ? 'Lưu Thay Đổi' : 'Gửi Yêu Cầu';
+        
         this.clearDrafts();
         this.editingZoneId = zone.id;
         document.getElementById('map-panel-name').value = zone.name || '';
@@ -20621,20 +20635,20 @@ app.map = {
         container.className = 'p-1 min-w-[150px]';
         
         const title = document.createElement('h3');
-        title.className = 'font-bold text-sm mb-1 text-black';
+        title.className = 'font-bold text-sm mb-1 dark:text-white';
         title.innerText = zone.name;
         container.appendChild(title);
         
         if (zone.description) {
             const desc = document.createElement('p');
-            desc.className = 'text-xs text-gray-600 mb-2';
+            desc.className = 'text-xs text-gray-600 dark:text-gray-300 mb-2';
             desc.innerText = zone.description;
             container.appendChild(desc);
         }
         
         if (this.isAdmin) {
             const editBtn = document.createElement('button');
-            editBtn.className = 'bg-black text-white text-[10px] font-bold py-1.5 px-2 rounded-md hover:bg-gray-800 w-full mt-2 border border-black';
+            editBtn.className = 'bg-black dark:bg-white text-white dark:text-black text-[10px] font-bold py-1.5 px-2 rounded-md hover:opacity-80 w-full mt-2 border border-black dark:border-white';
             editBtn.innerText = 'Chỉnh sửa vùng này';
             editBtn.onclick = () => {
                 this.instance.closePopup();
@@ -20643,7 +20657,7 @@ app.map = {
             container.appendChild(editBtn);
 
             const btn = document.createElement('button');
-            btn.className = 'bg-white text-red-600 text-[10px] font-bold py-1.5 px-2 rounded-md hover:bg-gray-100 w-full mt-2 border border-black';
+            btn.className = 'bg-white dark:bg-[#18181b] text-red-600 dark:text-red-400 text-[10px] font-bold py-1.5 px-2 rounded-md hover:opacity-80 w-full mt-2 border border-black dark:border-white';
             btn.innerText = 'Xóa toàn bộ vùng này';
             btn.onclick = () => this.deleteZone(zone.id);
             container.appendChild(btn);
