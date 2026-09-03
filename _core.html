@@ -5552,11 +5552,11 @@ div[id$="-modal"] > div > * {
                     <!-- Vùng chức năng (Góc dưới trái) -->
                     <div class="absolute bottom-6 left-6 z-[400] flex flex-col items-start justify-end" id="map-panel-wrapper">
                         <!-- Menu Dropdown -->
-                        <div id="map-menu-dropdown" class="hidden flex-col gap-2 mb-3 w-48 bg-white dark:bg-[#18181b] border border-black dark:border-white rounded-md p-2 transition-all duration-300 transform origin-bottom-left scale-95 opacity-0">
-                            <button id="map-toggle-type-btn" class="text-left w-full px-3 py-2 text-sm font-bold text-black dark:text-white hover:bg-gray-100 dark:hover:bg-[#27272a] rounded-md transition-colors flex items-center gap-2">
+                        <div id="map-menu-dropdown" class="dropdown-menu absolute bottom-[120%] left-0 flex-col w-48 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] transform origin-bottom-left scale-95 opacity-0 pointer-events-none" style="margin-bottom: 0.5rem; z-index: 1000 !important; display: flex;">
+                            <button id="map-toggle-type-btn" class="w-full text-left px-3 py-2.5 text-sm font-bold flex items-center gap-2">
                                 <i class="fa-solid fa-layer-group w-5"></i> <span id="map-toggle-type-text">Bản đồ vệ tinh</span>
                             </button>
-                            <button id="map-add-zone-btn" class="text-left w-full px-3 py-2 text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors flex items-center gap-2">
+                            <button id="map-add-zone-btn" class="w-full text-left px-3 py-2.5 text-sm font-bold text-red-600 dark:text-red-400 flex items-center gap-2">
                                 <i class="fa-solid fa-ban w-5"></i> Bổ sung vùng cấm
                             </button>
                         </div>

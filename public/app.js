@@ -1,4 +1,4 @@
-window.APP_VERSION = "26.09.03.20.38.59";
+window.APP_VERSION = "26.09.03.20.43.13";
 
 /* --- MODULE: 1_init.js --- */
 window.app = window.app || {};
@@ -20305,10 +20305,8 @@ app.map = {
         L.control.zoom({ position: 'bottomright' }).addTo(this.instance);
 
         const isDark = document.documentElement.classList.contains('theme-dark');
-        const savedType = localStorage.getItem('vnbus_map_type');
-        let lyrs = isDark ? 'y' : 'm';
-        if (savedType === 'satellite') lyrs = 'y';
-        if (savedType === 'roadmap') lyrs = 'm';
+        const savedType = localStorage.getItem('vnbus_map_type') || 'roadmap';
+        let lyrs = (savedType === 'satellite') ? 'y' : 'm';
         
         this.tileLayer = L.tileLayer(`https://mt1.google.com/vt/lyrs=${lyrs}&x={x}&y={y}&z={z}`, {
             attribution: '&copy; Google Maps',
@@ -20387,32 +20385,31 @@ app.map = {
         if (menuBtn) {
             menuBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                if (menuDropdown.classList.contains('hidden')) {
-                    this.animateShow(menuDropdown);
+                const isOpen = menuDropdown.classList.contains('opacity-100');
+                if (isOpen) {
+                    menuDropdown.classList.remove('opacity-100', 'scale-100', 'pointer-events-auto');
+                    menuDropdown.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
                 } else {
-                    this.animateHide(menuDropdown);
+                    menuDropdown.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
+                    menuDropdown.classList.add('opacity-100', 'scale-100', 'pointer-events-auto');
                 }
             });
             
             document.addEventListener('click', (e) => {
                 if (menuDropdown && !menuDropdown.contains(e.target) && !menuBtn.contains(e.target)) {
-                    this.animateHide(menuDropdown);
+                    menuDropdown.classList.remove('opacity-100', 'scale-100', 'pointer-events-auto');
+                    menuDropdown.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
                 }
             });
         }
         
         if (toggleTypeBtn) {
             toggleTypeBtn.addEventListener('click', () => {
-                this.animateHide(menuDropdown);
+                menuDropdown.classList.remove('opacity-100', 'scale-100', 'pointer-events-auto');
+                menuDropdown.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
                 
-                const isDark = document.documentElement.classList.contains('theme-dark');
-                let lyrs = isDark ? 'y' : 'm';
-                const savedType = localStorage.getItem('vnbus_map_type');
-                if (savedType === 'satellite') lyrs = 'y';
-                if (savedType === 'roadmap') lyrs = 'm';
-                
-                // Đảo ngược
-                const newType = (lyrs === 'y') ? 'roadmap' : 'satellite';
+                const savedType = localStorage.getItem('vnbus_map_type') || 'roadmap';
+                const newType = (savedType === 'satellite') ? 'roadmap' : 'satellite';
                 localStorage.setItem('vnbus_map_type', newType);
                 this.updateTheme();
             });
@@ -20420,7 +20417,8 @@ app.map = {
         
         if (addZoneBtn) {
             addZoneBtn.addEventListener('click', () => {
-                this.animateHide(menuDropdown);
+                menuDropdown.classList.remove('opacity-100', 'scale-100', 'pointer-events-auto');
+                menuDropdown.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
                 
                 if (!app.user) {
                     app.ui.showAlert('Vui lòng đăng nhập để bổ sung vùng cấm.', () => {
@@ -20729,10 +20727,8 @@ app.map = {
         if (!this.instance || !this.tileLayer) return;
         
         const isDark = document.documentElement.classList.contains('theme-dark');
-        const savedType = localStorage.getItem('vnbus_map_type');
-        let lyrs = isDark ? 'y' : 'm';
-        if (savedType === 'satellite') lyrs = 'y';
-        if (savedType === 'roadmap') lyrs = 'm';
+        const savedType = localStorage.getItem('vnbus_map_type') || 'roadmap';
+        let lyrs = (savedType === 'satellite') ? 'y' : 'm';
         
         const mapContainer = document.getElementById('leaflet-map');
         if (mapContainer) {
