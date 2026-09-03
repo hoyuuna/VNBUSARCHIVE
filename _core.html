@@ -1329,12 +1329,14 @@ div[id$="-modal"] > div > * {
         }
 
         @keyframes uploadArrowMove {
-    0% { transform: translateY(0); }
-    100% { transform: translateY(-14px); }
+    0% { transform: translateY(100%); opacity: 0; }
+    20% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { transform: translateY(-100%); opacity: 0; }
 }
 
 .upload-arrow-anim {
-    animation: uploadArrowMove 0.8s linear infinite;
+    animation: uploadArrowMove 1s ease-in-out infinite;
 }
 
 .bg-gradient-animated {

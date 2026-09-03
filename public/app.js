@@ -1,4 +1,4 @@
-window.APP_VERSION = "26.09.03.08.16.53";
+window.APP_VERSION = "26.09.03.08.23.44";
 
 /* --- MODULE: 1_init.js --- */
 window.app = window.app || {};
@@ -205,10 +205,7 @@ Object.assign(window.app, {
                                 <circle id="${toastId}-circle" class="transition-all duration-300 ease-out" cx="60" cy="60" r="54" fill="none" stroke="#000" stroke-width="12" stroke-dasharray="339.29" stroke-dashoffset="339.29" stroke-linecap="round" />
                             </svg>
                             <div class="relative z-10 w-[14px] h-[14px] overflow-hidden">
-                                <div class="upload-arrow-anim flex flex-col items-center justify-start h-[28px]">
-                                    <i class="fa-solid fa-arrow-up text-[12px] text-gray-800 flex items-center justify-center h-[14px]"></i>
-                                    <i class="fa-solid fa-arrow-up text-[12px] text-gray-800 flex items-center justify-center h-[14px]"></i>
-                                </div>
+                                <i class="fa-solid fa-up-long text-[12px] text-gray-800 upload-arrow-anim flex items-center justify-center w-[14px] h-[14px]"></i>
                             </div>
                         </div>
                         <div class="flex-1 overflow-hidden pointer-events-none select-none">
