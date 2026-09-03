@@ -619,13 +619,13 @@ app.map = {
             app.ui.showAlert(msg, () => {
                 this.editZone(zone);
             }, () => {}, {
-                title: "Vùng cấm chụp ảnh",
+                title: "Vùng cấm/hạn chế chụp ảnh",
                 btnOkText: "Chỉnh sửa",
                 btnCancelText: "Đóng"
             });
         } else {
             app.ui.showAlert(msg, () => {}, null, {
-                title: "Vùng cấm chụp ảnh",
+                title: "Vùng cấm/hạn chế chụp ảnh",
                 btnOkText: "Đóng"
             });
         }

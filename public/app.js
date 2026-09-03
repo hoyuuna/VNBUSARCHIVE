@@ -1,4 +1,4 @@
-window.APP_VERSION = "26.09.03.21.00.26";
+window.APP_VERSION = "26.09.03.21.02.55";
 
 /* --- MODULE: 1_init.js --- */
 window.app = window.app || {};
@@ -20885,13 +20885,13 @@ app.map = {
             app.ui.showAlert(msg, () => {
                 this.editZone(zone);
             }, () => {}, {
-                title: "Vùng cấm chụp ảnh",
+                title: "Vùng cấm/hạn chế chụp ảnh",
                 btnOkText: "Chỉnh sửa",
                 btnCancelText: "Đóng"
             });
         } else {
             app.ui.showAlert(msg, () => {}, null, {
-                title: "Vùng cấm chụp ảnh",
+                title: "Vùng cấm/hạn chế chụp ảnh",
                 btnOkText: "Đóng"
             });
         }
