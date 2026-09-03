@@ -318,20 +318,21 @@ details#denial-improvement-box[open] summary i.fa-chevron-right { color: #ffffff
 .hover\:bg-gray-50:hover, 
 .hover\:bg-gray-100:hover, 
 .hover\:bg-gray-200:hover, 
-.hover\:bg-white:hover {
-    background-color: #27272a !important; /* Xám d?m cho nút den */
+.hover\:bg-white:hover,
+.hover\:bg-black:hover {
+    background-color: #27272a !important;
+    color: #ffffff !important;
 }
 
 .hover\:bg-gray-800:hover, 
-.hover\:bg-gray-900:hover, 
-.hover\:bg-black:hover {
-    background-color: #e4e4e7 !important; /* Xám tr?ng cho nút tr?ng */
+.hover\:bg-gray-900:hover {
+    background-color: #e4e4e7 !important;
     color: #000000 !important;
 }
 
-/* Fallback for buttons without specific hover utility classes */
 button.bg-white:hover, a.bg-white:hover, .admin-card-header button:hover {
     background-color: #27272a !important;
+    color: #ffffff !important;
 }
 
 button.bg-black:hover, a.bg-black:hover {
