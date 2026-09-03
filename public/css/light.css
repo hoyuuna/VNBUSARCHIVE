@@ -312,27 +312,21 @@ input:focus, textarea:focus, select:focus {
 }
 
 /* 2. CHI TIẾT ẢNH & ẢNH TÂM ĐẮC */
-/* Khung ảnh chi tiết (detail-image) */
-#detail-img,
-#detail-img-container,
-#detail .aspect-\[16\/10\],
-#detail .aspect-\[4\/3\],
-#detail .aspect-\[3\/2\],
-#detail .aspect-\[1\/1\] {
+/* Khung bọc ngoài ảnh chi tiết (detail-image) */
+#detail .img-wrapper {
     border: 1px solid #18181b !important;
     box-sizing: border-box;
 }
 
-/* Ảnh tâm đắc trên Profile */
-#profile-fav-photo-container,
-#profile-fav-photo-container img,
-#fav-photo-preview-img {
-    border: 1px solid #18181b !important;
-}
-
-/* Khung chứa ảnh tâm đắc Profile (đang có border-gray-200/60) */
+/* Ảnh tâm đắc trên Profile: 
+   Chỉ cần đổi viền của wrapper có sẵn, bỏ viền đúp ở img con */
 .border-gray-200\/60 {
     border-color: #18181b !important;
+}
+
+/* Modal chọn ảnh tâm đắc (preview lúc nhập link) */
+#fav-photo-preview-img {
+    border: 1px solid #18181b !important;
 }
 
 /* Khung ảnh model preview trong upload */
