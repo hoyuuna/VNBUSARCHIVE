@@ -855,6 +855,18 @@ div[id$="-modal"] > div > * {
             background: #a1a1aa;
         }
 
+        html.theme-dark ::-webkit-scrollbar-track {
+            background: #71717a; /* Xám nhạt hơn cho nền */
+        }
+        
+        html.theme-dark ::-webkit-scrollbar-thumb {
+            background: #18181b; /* Màu tối (ngược lại sáng) */
+        }
+        
+        html.theme-dark ::-webkit-scrollbar-thumb:hover {
+            background: #000000;
+        }
+
         body.no-scroll {
             overflow: hidden;
         }

@@ -855,6 +855,18 @@ div[id$="-modal"] > div > * {
             background: #a1a1aa;
         }
 
+        html.theme-dark ::-webkit-scrollbar-track {
+            background: #71717a; /* Xám nhạt hơn cho nền */
+        }
+        
+        html.theme-dark ::-webkit-scrollbar-thumb {
+            background: #18181b; /* Màu tối (ngược lại sáng) */
+        }
+        
+        html.theme-dark ::-webkit-scrollbar-thumb:hover {
+            background: #000000;
+        }
+
         body.no-scroll {
             overflow: hidden;
         }
@@ -1904,7 +1916,7 @@ div[id$="-modal"] > div > * {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1788439631405" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1788440216701" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -6856,7 +6868,7 @@ div[id$="-modal"] > div > * {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed top-24 left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.js?v=1788439631405"></script>
+<script src="/app.js?v=1788440216701"></script>
 </body>
 </html>
 

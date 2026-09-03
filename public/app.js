@@ -1,4 +1,4 @@
-window.APP_VERSION = "26.09.03.19.47.11";
+window.APP_VERSION = "26.09.03.19.56.56";
 
 /* --- MODULE: 1_init.js --- */
 window.app = window.app || {};
@@ -20942,10 +20942,17 @@ app.map = {
                 const vis = cur.visibility ? (cur.visibility / 1000).toFixed(1) + 'km' : 'N/A';
                 
                 weatherContainer.innerHTML = `
-                    <div class="flex flex-col"><span class="text-[10px] text-gray-500 uppercase">Trạng thái</span><span class="font-bold">${condition}</span></div>
-                    <div class="flex flex-col"><span class="text-[10px] text-gray-500 uppercase">Nhiệt độ</span><span class="font-bold">${cur.temperature_2m}°C <span class="text-xs font-normal text-gray-400">(Cảm giác ${cur.apparent_temperature}°C)</span></span></div>
-                    <div class="flex flex-col"><span class="text-[10px] text-gray-500 uppercase">Tầm nhìn</span><span class="font-bold">${vis}</span></div>
-                    <div class="flex flex-col"><span class="text-[10px] text-gray-500 uppercase">Độ phủ mây</span><span class="font-bold">${cur.cloud_cover}%</span></div>
+                    <div class="w-full border border-black dark:border-white rounded-md p-3">
+                        <div class="flex items-baseline gap-2 mb-3">
+                            <span class="text-2xl font-bold dark:text-white leading-none">${cur.temperature_2m}°C</span>
+                            <span class="text-base font-bold text-gray-700 dark:text-gray-300 leading-none">${condition}</span>
+                        </div>
+                        <div class="flex flex-wrap gap-4">
+                            <div class="flex flex-col"><span class="text-[10px] text-gray-500 uppercase">Tầm nhìn</span><span class="font-bold text-sm">${vis}</span></div>
+                            <div class="flex flex-col"><span class="text-[10px] text-gray-500 uppercase">Độ phủ mây</span><span class="font-bold text-sm">${cur.cloud_cover}%</span></div>
+                            <div class="flex flex-col"><span class="text-[10px] text-gray-500 uppercase">Cảm giác</span><span class="font-bold text-sm">${cur.apparent_temperature}°C</span></div>
+                        </div>
+                    </div>
                 `;
             } else {
                 weatherContainer.innerHTML = '<span class="text-red-500 italic">Không có dữ liệu</span>';
