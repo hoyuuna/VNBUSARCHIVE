@@ -1899,7 +1899,7 @@ div[id$="-modal"] > div > * {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1788432535622" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1788433346387" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -5442,20 +5442,19 @@ div[id$="-modal"] > div > * {
             <!-- VIEW BẢN ĐỒ VÙNG CẤM -->
             <div id="map" class="view-section">
                 <!-- Wrapper cho Leaflet toàn màn hình -->
-                <div class="w-full relative bg-gray-50 dark:bg-[#18181b]" style="height: calc(100vh - 112px);">
+                <div class="fixed inset-0 z-[10] bg-gray-50 dark:bg-[#18181b]">
                     <!-- Vùng chứa ID map -->
                     <div id="leaflet-map" class="absolute inset-0 z-0"></div>
 
-                    <!-- Nút mở Panel (góc dưới trái) -->
-                    <div class="absolute bottom-4 left-4 z-[400]" id="map-open-panel-container">
-                         <button id="map-open-panel-btn" class="bg-white dark:bg-[#18181b] border border-black dark:border-white text-black dark:text-white text-sm font-bold py-2 px-4 rounded-md shadow-sm hover:opacity-80 transition-opacity flex items-center gap-2">
+                    <!-- Vùng chức năng (Góc dưới trái) -->
+                    <div class="absolute bottom-6 left-6 z-[400] flex flex-col items-start justify-end" id="map-panel-wrapper">
+                         <!-- Nút Mở -->
+                         <button id="map-open-panel-btn" class="bg-white dark:bg-[#18181b] border border-black dark:border-white text-black dark:text-white text-sm font-bold py-2.5 px-5 rounded-md shadow-sm hover:opacity-80 transition-all duration-300 transform origin-bottom-left flex items-center gap-2">
                             <i class="fa-solid fa-plus"></i> Bổ sung vùng cấm
                          </button>
-                    </div>
 
-                    <!-- Floating Island (Panel) -->
-                    <div class="absolute top-4 right-4 z-[400] hidden w-80 max-w-[calc(100vw-2rem)]" id="map-zone-panel">
-                        <div class="bg-white dark:bg-[#18181b] border border-black dark:border-white p-4 rounded-xl shadow-island flex flex-col gap-3">
+                         <!-- Floating Island (Panel) -->
+                         <div id="map-zone-panel" class="bg-white dark:bg-[#18181b] border border-black dark:border-white p-4 rounded-md shadow-sm hidden flex-col gap-3 w-80 max-w-[calc(100vw-2rem)] transition-all duration-300 transform origin-bottom-left scale-95 opacity-0">
                             <div class="flex justify-between items-center mb-1">
                                 <h3 class="font-bold text-base dark:text-white" id="map-panel-title">Bổ sung vùng cấm</h3>
                                 <button id="map-close-panel-btn" class="text-gray-500 hover:text-black dark:hover:text-white transition-colors"><i class="fa-solid fa-xmark text-lg"></i></button>
@@ -5467,10 +5466,10 @@ div[id$="-modal"] > div > * {
                             
                             <div class="flex items-center justify-between mt-1">
                                 <span class="text-xs font-bold dark:text-gray-300">Danh sách vùng chọn:</span>
-                                <button id="map-panel-add-shape" class="text-xs bg-black dark:bg-white text-white dark:text-black font-bold px-2 py-1 rounded border border-black dark:border-white hover:opacity-80 transition-opacity"><i class="fa-solid fa-draw-polygon mr-1"></i> Vẽ thêm</button>
+                                <button id="map-panel-add-shape" class="text-[10px] bg-black dark:bg-white text-white dark:text-black font-bold px-2 py-1.5 rounded border border-black dark:border-white hover:opacity-80 transition-opacity"><i class="fa-solid fa-plus mr-1"></i>Thêm vùng cấm</button>
                             </div>
                             
-                            <div id="map-panel-shapes-list" class="flex flex-col gap-2 max-h-40 overflow-y-auto pr-1">
+                            <div id="map-panel-shapes-list" class="flex flex-col gap-2 max-h-32 overflow-y-auto pr-1">
                                 <!-- Chứa các shape item -->
                             </div>
 
@@ -6798,7 +6797,7 @@ div[id$="-modal"] > div > * {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed top-24 left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.js?v=1788432535622"></script>
+<script src="/app.js?v=1788433346387"></script>
 </body>
 </html>
 

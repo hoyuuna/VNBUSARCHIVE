@@ -1,4 +1,4 @@
-﻿window.app = window.app || {};
+window.app = window.app || {};
 
 app.map = {
     instance: null,
@@ -74,7 +74,7 @@ app.map = {
     
     setupPanelEvents() {
         const openBtn = document.getElementById('map-open-panel-btn');
-        const openContainer = document.getElementById('map-open-panel-container');
+        const openContainer = document.getElementById('map-open-panel-btn');
         const closeBtn = document.getElementById('map-close-panel-btn');
         const panel = document.getElementById('map-zone-panel');
         const addShapeBtn = document.getElementById('map-panel-add-shape');
@@ -92,39 +92,53 @@ app.map = {
                 document.getElementById('map-panel-title').innerText = this.isAdmin ? 'Thêm Vùng Cấm (Admin)' : 'Gửi Yêu Cầu Bổ Sung';
                 saveBtn.innerText = this.isAdmin ? 'Lưu Trực Tiếp' : 'Gửi Yêu Cầu';
                 
-                openContainer.classList.add('hidden');
+                openBtn.classList.add('hidden');
                 panel.classList.remove('hidden');
+                setTimeout(() => {
+                    panel.classList.remove('scale-95', 'opacity-0');
+                    panel.classList.add('scale-100', 'opacity-100');
+                }, 10);
             });
         }
         
         if (closeBtn) {
             closeBtn.addEventListener('click', () => {
-                panel.classList.add('hidden');
-                openContainer.classList.remove('hidden');
+                panel.classList.remove('scale-100', 'opacity-100');
+                panel.classList.add('scale-95', 'opacity-0');
+                setTimeout(() => {
+                    panel.classList.add('hidden');
+                    openBtn.classList.remove('hidden');
+                }, 300);
                 this.clearDrafts();
             });
         }
         
         if (addShapeBtn) {
             addShapeBtn.addEventListener('click', () => {
-                if (!this.userDrawHandler) {
-                    this.userDrawHandler = new L.Draw.Polygon(this.instance, {
-                        shapeOptions: {
-                            color: '#ef4444',
-                            weight: 2,
-                            className: 'no-photo-zone'
-                        },
-                        allowIntersection: false,
-                        drawError: {
-                            color: '#e1e100',
-                            message: '<strong>Lỗi:</strong> các cạnh không được cắt nhau!'
-                        },
-                        showArea: false
-                    });
+                const bounds = this.instance.getBounds();
+                const center = bounds.getCenter();
+                // create a small rectangle in the center (about 20% of map width/height)
+                const latDiff = (bounds.getNorth() - bounds.getSouth()) * 0.2;
+                const lngDiff = (bounds.getEast() - bounds.getWest()) * 0.2;
+                
+                const rectBounds = [
+                    [center.lat - latDiff/2, center.lng - lngDiff/2],
+                    [center.lat + latDiff/2, center.lng + lngDiff/2]
+                ];
+                
+                const rect = L.rectangle(rectBounds, {
+                    color: '#ef4444',
+                    weight: 2,
+                    className: 'no-photo-zone'
+                });
+                
+                this.addDraftShape(rect);
+                
+                if (rect.editing) {
+                    rect.editing.enable();
                 }
-                app.ui.toast('Nhấn vào bản đồ để vẽ các điểm. Nhấn lại điểm đầu để hoàn thành.', 'info');
-                this.userDrawing = true;
-                this.userDrawHandler.enable();
+                
+                app.ui.toast('Đã thêm vùng chọn. Kéo và thay đổi kích thước theo ý muốn.', 'info');
             });
         }
         
@@ -138,17 +152,9 @@ app.map = {
         layer.draftId = id;
         this.draftLayerGroup.addLayer(layer);
         
-        // Trích xuất latlngs
-        let latlngs = [];
-        if (layer instanceof L.Polygon) {
-            const raw = layer.getLatLngs()[0]; // Outer ring
-            latlngs = raw.map(ll => [ll.lat, ll.lng]);
-        }
-        
         this.currentDraftShapes.push({
             id,
-            layer,
-            latlngs
+            layer
         });
         
         this.renderDraftList();
@@ -158,6 +164,7 @@ app.map = {
         const idx = this.currentDraftShapes.findIndex(s => s.id === id);
         if (idx !== -1) {
             const shape = this.currentDraftShapes[idx];
+            if (shape.layer.editing) shape.layer.editing.disable();
             this.draftLayerGroup.removeLayer(shape.layer);
             this.currentDraftShapes.splice(idx, 1);
             this.renderDraftList();
@@ -165,15 +172,14 @@ app.map = {
     },
     
     clearDrafts() {
+        this.currentDraftShapes.forEach(shape => {
+            if (shape.layer.editing) shape.layer.editing.disable();
+        });
         this.draftLayerGroup.clearLayers();
         this.currentDraftShapes = [];
         this.renderDraftList();
         document.getElementById('map-panel-name').value = '';
         document.getElementById('map-panel-desc').value = '';
-        if (this.userDrawing && this.userDrawHandler) {
-            this.userDrawHandler.disable();
-            this.userDrawing = false;
-        }
     },
     
     renderDraftList() {
@@ -182,7 +188,7 @@ app.map = {
         
         listEl.innerHTML = '';
         if (this.currentDraftShapes.length === 0) {
-            listEl.innerHTML = '<p class="text-[10px] text-gray-400 italic">Chưa có vùng nào được vẽ.</p>';
+            listEl.innerHTML = '<p class="text-[10px] text-gray-400 italic">Chưa có vùng nào được thêm.</p>';
             return;
         }
         
@@ -192,7 +198,7 @@ app.map = {
             
             const span = document.createElement('span');
             span.className = 'text-xs font-bold dark:text-white';
-            span.innerText = 'Vùng ' + (index + 1) + ' (' + shape.latlngs.length + ' điểm)';
+            span.innerText = 'Vùng ' + (index + 1);
             
             const btn = document.createElement('button');
             btn.className = 'text-red-500 hover:text-red-700';
@@ -321,12 +327,15 @@ app.map = {
         }
         
         if (this.currentDraftShapes.length === 0) {
-            app.ui.toast('Vui lòng vẽ ít nhất một vùng chọn trên bản đồ', 'error');
+            app.ui.toast('Vui lòng thêm ít nhất một vùng chọn trên bản đồ', 'error');
             return;
         }
         
         // Gộp tất cả các vùng chọn thành mảng polygons
-        const allPolygons = this.currentDraftShapes.map(s => s.latlngs);
+        const allPolygons = this.currentDraftShapes.map(s => {
+            const raw = s.layer.getLatLngs()[0];
+            return raw.map(ll => [ll.lat, ll.lng]);
+        });
         
         app.loadingBar.start();
         

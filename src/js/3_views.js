@@ -94,8 +94,13 @@ Object.assign(window.app, {
                         
                         const footer = document.querySelector('footer');
                         if (footer) {
-                            if (id === 'map') footer.parentElement.style.display = 'none';
-                            else footer.parentElement.style.display = '';
+                            if (id === 'map') {
+                                footer.parentElement.style.display = 'none';
+                                document.body.style.overflow = 'hidden';
+                            } else {
+                                footer.parentElement.style.display = '';
+                                document.body.style.overflow = '';
+                            }
                         }
                         
                         if (['upload', 'search', 'mobile-upload', 'map'].includes(id)) {
