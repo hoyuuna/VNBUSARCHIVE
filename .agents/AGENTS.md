@@ -7,6 +7,7 @@
 - **Button Border Radius & Consistency:** All general action buttons must use square-rounded corners (`rounded-md` or `rounded-lg`) rather than pill-shaped (`rounded-full`) to maintain visual consistency across the HoyuUI interface, unless explicitly instructed otherwise for circular icon buttons or avatars.
 - **Deep-linking in Modals/Settings:** When UI elements or buttons trigger multi-tab modals (such as Settings or Admin panels), always navigate directly to the target tab and submenu (e.g., `app.settings.open('profile', 'account')`) rather than opening the default or blank landing screen.
 - **No Component Separator Lines (`border-t`, `<hr>`):** NEVER use horizontal separator or divider lines (`border-t`, `border-top`, `<hr>`) to divide sections, card bodies, modal content, or action footers/buttons. All components and buttons inside cards or modals must flow cleanly using margin/spacing (`mt-3`, `mt-4`, `mb-4`, etc.) without visual dividing lines.
+- **Dark Mode Synchronization & Consistency:** ANY new feature or modification that involves the UI MUST be implemented and styled for BOTH Light Mode and Dark Mode. You are strictly required to maintain visual consistency and ensure that all custom styling integrates flawlessly with the Dark Mode definitions in public/css/dark.css.
 
 ## Project Stack & Deployment
 - **Hosting/Platform:** Cloudflare Pages (Framework preset: `None`).
