@@ -1,4 +1,4 @@
-window.APP_VERSION = "26.09.03.18.15.59";
+window.APP_VERSION = "26.09.03.18.22.16";
 
 /* --- MODULE: 1_init.js --- */
 window.app = window.app || {};
@@ -20392,21 +20392,21 @@ app.map = {
                 const bounds = this.instance.getBounds();
                 const center = bounds.getCenter();
                 // create a small rectangle in the center (about 20% of map width/height)
-                const latDiff = (bounds.getNorth() - bounds.getSouth()) * 0.2;
-                const lngDiff = (bounds.getEast() - bounds.getWest()) * 0.2;
-                
-                const rectBounds = [
-                    [center.lat - latDiff/2, center.lng - lngDiff/2],
-                    [center.lat + latDiff/2, center.lng + lngDiff/2]
+                const rectBounds = this.instance.getBounds().pad(-0.25);
+                const polyPoints = [
+                    [rectBounds.getSouthWest().lat, rectBounds.getSouthWest().lng],
+                    [rectBounds.getNorthWest().lat, rectBounds.getNorthWest().lng],
+                    [rectBounds.getNorthEast().lat, rectBounds.getNorthEast().lng],
+                    [rectBounds.getSouthEast().lat, rectBounds.getSouthEast().lng]
                 ];
                 
-                const rect = L.rectangle(rectBounds, {
+                const poly = L.polygon(polyPoints, {
                     color: '#ef4444',
                     weight: 2,
                     className: 'no-photo-zone'
                 });
                 
-                this.addDraftShape(rect);
+                this.addDraftShape(poly);
                 
                 if (!this.editHandler) {
                     this.editHandler = new L.EditToolbar.Edit(this.instance, {
@@ -20461,6 +20461,11 @@ app.map = {
         this.renderDraftList();
         document.getElementById('map-panel-name').value = '';
         document.getElementById('map-panel-desc').value = '';
+        
+        if (this.editingZoneId) {
+            this.editingZoneId = null;
+            this.loadZones(); // Phục hồi lại zone cũ bị ẩn
+        }
     },
     
     renderDraftList() {
@@ -20524,6 +20529,63 @@ app.map = {
         }
     },
 
+    parseZoneBounds(bounds) {
+        let polygons = [];
+        if (!Array.isArray(bounds) || bounds.length === 0) return polygons;
+        
+        if (Array.isArray(bounds[0]) && typeof bounds[0][0] === 'number') {
+            if (bounds.length === 2) {
+                polygons = [[
+                    [bounds[0][0], bounds[0][1]],
+                    [bounds[1][0], bounds[0][1]],
+                    [bounds[1][0], bounds[1][1]],
+                    [bounds[0][0], bounds[1][1]]
+                ]];
+            } else {
+                polygons = [bounds];
+            }
+        } else if (Array.isArray(bounds[0]) && Array.isArray(bounds[0][0])) {
+            polygons = bounds;
+        }
+        return polygons;
+    },
+    
+    editZone(zone) {
+        const panel = document.getElementById('map-zone-panel');
+        if (panel.classList.contains('hidden')) {
+            document.getElementById('map-open-panel-btn').click();
+        }
+        
+        this.clearDrafts();
+        this.editingZoneId = zone.id;
+        document.getElementById('map-panel-name').value = zone.name || '';
+        document.getElementById('map-panel-desc').value = zone.description || '';
+        
+        const polygons = this.parseZoneBounds(zone.bounds);
+        polygons.forEach(polyPoints => {
+            const poly = L.polygon(polyPoints, {
+                color: '#ef4444',
+                weight: 2,
+                className: 'no-photo-zone'
+            });
+            this.addDraftShape(poly);
+        });
+        
+        if (!this.editHandler) {
+            this.editHandler = new L.EditToolbar.Edit(this.instance, {
+                featureGroup: this.draftLayerGroup
+            });
+        }
+        this.editHandler.enable();
+        
+        // Hide from drawnItems temporarily
+        this.drawnItems.eachLayer(layer => {
+            if (layer.zoneData && layer.zoneData.id === zone.id) {
+                this.drawnItems.removeLayer(layer);
+            }
+        });
+    },
+
     async loadZones() {
         const { data, error } = await window.sb.from('no_photo_zones').select('*');
         if (error) {
@@ -20537,25 +20599,7 @@ app.map = {
         this.zones.forEach(zone => {
             const bounds = zone.bounds;
             if (Array.isArray(bounds) && bounds.length > 0) {
-                // Kiểm tra xem bounds là MultiPolygon (mảng của các polygon) hay chỉ là 1 polygon/rectangle cũ
-                let polygons = [];
-                // Nếu điểm đầu tiên là mảng và chứa số, đó là 1 polygon cũ
-                if (Array.isArray(bounds[0]) && typeof bounds[0][0] === 'number') {
-                    // Legacy rectangle: convert to polygon
-                    if (bounds.length === 2) { // Southwest, Northeast
-                        polygons = [[
-                            [bounds[0][0], bounds[0][1]],
-                            [bounds[1][0], bounds[0][1]],
-                            [bounds[1][0], bounds[1][1]],
-                            [bounds[0][0], bounds[1][1]]
-                        ]];
-                    } else {
-                        polygons = [bounds];
-                    }
-                } else if (Array.isArray(bounds[0]) && Array.isArray(bounds[0][0])) {
-                    // Đã là mảng các polygon (mới)
-                    polygons = bounds;
-                }
+                const polygons = this.parseZoneBounds(bounds);
                 
                 polygons.forEach(polyPoints => {
                     const poly = L.polygon(polyPoints, {
@@ -20589,8 +20633,17 @@ app.map = {
         }
         
         if (this.isAdmin) {
+            const editBtn = document.createElement('button');
+            editBtn.className = 'bg-black text-white text-[10px] font-bold py-1.5 px-2 rounded-md hover:bg-gray-800 w-full mt-2 border border-black';
+            editBtn.innerText = 'Chỉnh sửa vùng này';
+            editBtn.onclick = () => {
+                this.instance.closePopup();
+                this.editZone(zone);
+            };
+            container.appendChild(editBtn);
+
             const btn = document.createElement('button');
-            btn.className = 'bg-red-500 text-white text-[10px] font-bold py-1.5 px-2 rounded-md hover:bg-red-600 w-full mt-2 border border-black';
+            btn.className = 'bg-white text-red-600 text-[10px] font-bold py-1.5 px-2 rounded-md hover:bg-gray-100 w-full mt-2 border border-black';
             btn.innerText = 'Xóa toàn bộ vùng này';
             btn.onclick = () => this.deleteZone(zone.id);
             container.appendChild(btn);
@@ -20624,12 +20677,23 @@ app.map = {
         app.loadingBar.start();
         
         if (this.isAdmin) {
-            const { error } = await window.sb.from('no_photo_zones').insert({
-                name: name,
-                description: desc,
-                bounds: allPolygons, // Lưu dạng mảng các polygon
-                created_by: app.user.id
-            });
+            let error;
+            if (this.editingZoneId) {
+                const res = await window.sb.from('no_photo_zones').update({
+                    name: name,
+                    description: desc,
+                    bounds: allPolygons
+                }).eq('id', this.editingZoneId);
+                error = res.error;
+            } else {
+                const res = await window.sb.from('no_photo_zones').insert({
+                    name: name,
+                    description: desc,
+                    bounds: allPolygons,
+                    created_by: app.user.id
+                });
+                error = res.error;
+            }
             
             app.loadingBar.finish();
             
@@ -20637,7 +20701,8 @@ app.map = {
                 console.error(error);
                 app.ui.showAlert('Lỗi khi lưu vùng cấm.');
             } else {
-                app.ui.toast('Đã thêm vùng cấm thành công', 'success');
+                app.ui.toast(this.editingZoneId ? 'Đã cập nhật vùng cấm thành công' : 'Đã thêm vùng cấm thành công', 'success');
+                this.editingZoneId = null; // Reset before clearing drafts
                 this.clearDrafts();
                 document.getElementById('map-close-panel-btn').click();
                 this.loadZones();
@@ -20645,7 +20710,8 @@ app.map = {
         } else {
             const { error } = await window.sb.from('zone_edit_requests').insert({
                 requester_id: app.user.id,
-                type: 'add',
+                type: this.editingZoneId ? 'update' : 'add',
+                target_zone_id: this.editingZoneId || null,
                 new_data: { name, description: desc, bounds: allPolygons }
             });
             
