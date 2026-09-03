@@ -302,3 +302,15 @@ details#denial-improvement-box[open] summary i.fa-chevron-right { color: #ffffff
 #denial-reason-box { background-color: #450a0a !important; border-color: #dc2626 !important; }
 #denial-reason-box, #denial-reason-box * { color: #ef4444 !important; }
 
+/* Fix Dropdown hover items background turning white */
+.suggestion-box .suggestion-item:hover, 
+.filter-menu .filter-item:hover, 
+.filter-menu button:hover,
+.filter-menu a:hover,
+#user-dropdown a:hover, 
+#user-dropdown button:hover, 
+.dropdown-menu a:hover, 
+.dropdown-menu button:hover {
+    background-color: #27272a !important;
+    color: #ffffff !important;
+}
