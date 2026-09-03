@@ -1,4 +1,4 @@
-window.APP_VERSION = "26.09.03.20.47.32";
+window.APP_VERSION = "26.09.03.20.49.39";
 
 /* --- MODULE: 1_init.js --- */
 window.app = window.app || {};
