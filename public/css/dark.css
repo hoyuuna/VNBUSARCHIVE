@@ -3,33 +3,7 @@
    HIGH CONTRAST: DARK GRAY BG, PURE BLACK COMPONENTS, PURE WHITE BORDERS
 ========================================== */
 
-/* ==========================================
-   [ BỘ LỌC ĐẶC TRỊ KHẮC PHỤC LỖI NỀN TRẮNG/CHỮ ĐEN BỊ SÓT ]
-========================================== */
-/* 1. Ép tất cả các màu nền sáng/xám của Tailwind thành Đen Thuần */
-.bg-white, 
-.bg-gray-50, .bg-gray-100, .bg-gray-200, .bg-gray-300, .bg-gray-400, .bg-gray-500, .bg-gray-600, .bg-gray-700, .bg-gray-800, .bg-gray-900,
-.bg-zinc-50, .bg-zinc-100, .bg-zinc-200, .bg-zinc-300, .bg-zinc-400, .bg-zinc-500, .bg-zinc-600, .bg-zinc-700, .bg-zinc-800, .bg-zinc-900,
-.bg-slate-50, .bg-slate-100, .bg-slate-200, .bg-slate-300, .bg-slate-800, .bg-slate-900 {
-    background-color: #000000 !important;
-}
-
-/* 2. Ép tất cả các chữ màu tối thành Trắng Tinh */
-.text-black, .text-gray-900, .text-gray-800, .text-gray-700, .text-gray-600, 
-.text-zinc-900, .text-zinc-800, .text-zinc-700, .text-zinc-600 {
-    color: #ffffff !important;
-}
-
-/* 3. Các chữ màu xám (như ngày tháng, thông số phụ) làm sáng hẳn lên để dễ đọc */
-.text-gray-500, .text-gray-400, .text-zinc-500, .text-zinc-400 {
-    color: #e4e4e7 !important; 
-}
-
-
-/* ==========================================
-   [ PHẦN CỐT LÕI (BODY, LƯỚI, BO GÓC) ]
-========================================== */
-/* Nền cố định như quyển vở (Xám đậm, lưới xám sáng hơn) */
+/* 1. XỬ LÝ NỀN VÀ MÀU CHỮ CƠ BẢN (KHÔNG DÙNG LỆNH CÀN QUÉT GÂY LỖI) */
 body, body.theme-dark, body.theme-light {
     background-color: #121212 !important; 
     background-image: 
@@ -39,194 +13,132 @@ body, body.theme-dark, body.theme-light {
     color: #ffffff !important;
 }
 
-#loading-screen {
-    background-color: #121212 !important; 
-    background-image: none !important;
-}
+#loading-screen { background-color: #121212 !important; background-image: none !important; }
 
-/* Biến các thẻ có shadow thành thẻ phẳng CÓ VIỀN TRẮNG */
+/* Ép dứt điểm các khối layout đang bị trắng thành Đen Thuần */
+.bg-white, .bg-gray-50, .bg-gray-100 {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+/* Ép các chữ màu tối thành Trắng Tinh */
+.text-black, .text-gray-900, .text-gray-800 {
+    color: #ffffff !important;
+}
+.text-gray-500, .text-gray-400 { color: #d4d4d8 !important; } /* Chữ phụ sáng lên để dễ đọc */
+
+
+/* 2. ÉP BORDER TOÀN HỆ THỐNG THÀNH TRẮNG TINH */
 .shadow-2xl, .shadow-xl, .shadow-lg, .shadow-md, .shadow-sm, .shadow-island, .shadow-\[0_1px_2px_0_rgba\(0\,0\,0\,0\.05\)\] {
     box-shadow: none !important;
     border: 1px solid #ffffff !important;
+    background-color: #000000 !important;
 }
-
 .rounded-3xl, .rounded-2xl, .rounded-xl, .rounded-lg { border-radius: 8px !important; }
 .rounded-full { border-radius: 9999px !important; }
 
-/* Đổi màu toàn bộ viền có sẵn thành viền trắng */
 .border-white, .border-white\/20, .border-white\/30, .border-gray-100, .border-gray-200, .border-gray-300, .border-gray-400, .border-gray-500, .border-gray-600, .border-gray-700, .border-gray-800, .border-vbs-border, .border-\[\#e4e4e7\] {
     border-color: #ffffff !important;
 }
 
 
-/* ==========================================
-   [ NÚT BẤM (BUTTONS) - ĐẢO NGƯỢC MÀU ĐỂ NỔI BẬT ]
-========================================== */
+/* 3. NÚT BẤM (BUTTONS) VÀ HOVER */
 a, button, [role="button"] { text-decoration: none !important; }
 a:hover, button:hover, [role="button"]:hover { text-decoration: none !important; }
 
-/* 1. NÚT CHÍNH (Đăng ảnh, Theo dõi, Lưu...): Trắng Tinh - Chữ Đen */
-a.bg-black, button.bg-black, .bg-black[role="button"], 
-#btn-type-bus.bg-black, #btn-type-coach.bg-black {
+/* NÚT CHÍNH (Đăng ảnh, Thích ảnh này...): ĐẢO THÀNH NỀN TRẮNG CHỮ ĐEN */
+.bg-black {
     background-color: #ffffff !important;
     color: #000000 !important;
     border: 1px solid #ffffff !important;
     font-weight: 600 !important;
 }
-/* Bắt mọi icon/chữ bên trong nút chính phải đen */
-a.bg-black *, button.bg-black *, .bg-black[role="button"] *, 
-#btn-type-bus.bg-black *, #btn-type-coach.bg-black * {
+/* Ép icon bên trong nút chính thành đen */
+.bg-black i, .bg-black svg {
     color: #000000 !important;
     fill: #000000 !important;
-    stroke: #000000 !important;
 }
-/* Hover nút chính -> Xám đậm, chữ/icon trắng */
-a.bg-black:hover, button.bg-black:hover, .bg-black[role="button"]:hover,
-#btn-type-bus.bg-black:hover, #btn-type-coach.bg-black:hover {
-    background-color: #27272a !important; /* XÁM ĐẬM */
-    border-color: #ffffff !important;
-    color: #ffffff !important;
-}
-a.bg-black:hover *, button.bg-black:hover *, .bg-black[role="button"]:hover * {
-    color: #ffffff !important;
-    fill: #ffffff !important;
-    stroke: #ffffff !important;
-}
-
-/* 2. NÚT PHỤ (Trước là trắng): Đen Thuần - Viền Trắng */
-button.bg-white, a.bg-white, .bg-white[role="button"] {
-    background-color: #000000 !important;
-    color: #ffffff !important;
-    border: 1px solid #ffffff !important;
-}
-button.bg-white:hover, a.bg-white:hover, .bg-white[role="button"]:hover {
-    background-color: #27272a !important; /* XÁM ĐẬM */
-    color: #ffffff !important;
-}
-
-/* ==========================================
-   [ FIX LỖI "NỀN TRẮNG CHỮ TRẮNG" KHI ACTIVE/SELECTED ]
-========================================== */
-/* Các trạng thái đang chọn (tab, tick box, trang hiện tại) */
-.active, .selected, [aria-selected="true"], .page-btn.active, .news-card.active,
-#set-menu-main button.bg-black, #set-menu-account button.bg-black, #set-menu-docs button.bg-black {
-    background-color: #ffffff !important;
+/* Hover nút chính -> Đổi thành xám nhạt để dễ nhận biết */
+.bg-black:hover {
+    background-color: #e4e4e7 !important; 
     color: #000000 !important;
-    border-color: #ffffff !important;
-}
-/* ÉP CHẾT các thẻ con (chữ, SVG, icon) bên trong nó phải ĐEN */
-.active *, .selected *, [aria-selected="true"] *, .page-btn.active *, .news-card.active *,
-#set-menu-main button.bg-black *, #set-menu-account button.bg-black *, #set-menu-docs button.bg-black * {
-    color: #000000 !important;
-    fill: #000000 !important;
-    stroke: #000000 !important;
 }
 
-
-/* ==========================================
-   [ POPUP, DROPDOWN & KÍNH MỜ ]
-========================================== */
-#subrole-prompt-content, #onboarding-content, #crop-content, #custom-alert-content, #settings-content, #newsboard-content, #docs-content,
-#upload-info-content, #custom-prompt-content, #custom-role-content, #deny-prompt-content, #ban-prompt-content,
-#up-progress-content, #captcha-content, #webrtc-qr-content, #qr-login-host-content, #qr-login-confirm-content,
-#advanced-filter-content, #achievement-content, #operator-edit-content, #model-edit-content,
-#route-edit-content, #fav-photo-content, #manager-edit-content, #email-verify-content, #bio-edit-content {
-    background-color: #000000 !important;
-    border: 1px solid #ffffff !important;
-    box-shadow: none !important;
-    color: #ffffff !important;
-}
-
-/* Ép nền kính mờ thành đen tĩnh */
-.bg-white\/95, .bg-white\/90, .bg-white\/80, .bg-white\/70, .bg-white\/60, .bg-white\/50, .bg-white\/40, .bg-white\/30, .bg-white\/20,
-.bg-gray-50\/50, .bg-gray-100\/50, .bg-gray-200\/80, .bg-gray-200\/50 {
-    background-color: #000000 !important;
-    backdrop-filter: none !important;
-}
-
-/* FIX DROPDOWN VÀ MENU */
-.suggestion-box, .filter-menu, #user-dropdown, .dropdown-menu {
-    border: 1px solid #ffffff !important;
-    background-color: #000000 !important;
-    border-radius: 8px !important;
-    box-shadow: none !important;
-}
-.suggestion-box .suggestion-item, .filter-menu button, .filter-menu a, #user-dropdown a, #user-dropdown button {
-    border-bottom: 1px solid #ffffff !important;
-    border-radius: 0 !important;
-    margin: 0 !important;
-    color: #ffffff !important;
-}
-.suggestion-box .suggestion-item:last-child, .filter-menu button:last-child, .filter-menu a:last-child, #user-dropdown a:last-child, #user-dropdown button:last-child {
-    border-bottom: none !important;
-}
-/* Hover dropdown -> XÁM ĐẬM */
-.suggestion-box .suggestion-item:hover, .filter-menu button:hover, .filter-menu a:hover, #user-dropdown a:hover, #user-dropdown button:hover {
-    background-color: #27272a !important; 
+/* NÚT PHỤ & HOVER MỌI THỨ KHÁC -> XÁM ĐẬM #27272a */
+button:not(.bg-black):hover, 
+a:not(.bg-black):not(.navbar-brand):hover, 
+[role="button"]:not(.bg-black):hover,
+.suggestion-box .suggestion-item:hover, 
+.filter-menu button:hover, 
+.filter-menu a:hover, 
+#user-dropdown a:hover, 
+#user-dropdown button:hover {
+    background-color: #27272a !important; /* XÁM ĐẬM THEO YÊU CẦU */
     color: #ffffff !important;
 }
 
 
-/* ==========================================
-   [ BẢNG (TABLES) VÀ LỊCH SỬ HOẠT ĐỘNG ]
-========================================== */
+/* 4. FIX BẢNG & LỊCH SỬ HOẠT ĐỘNG (TABLES) */
 .info-table, .data-table, .history-table {
-    border-collapse: separate !important;
-    border-spacing: 0 !important;
-    border: 1px solid #ffffff !important;
-    border-radius: 8px !important;
+    border-collapse: separate !important; border-spacing: 0 !important;
+    border: 1px solid #ffffff !important; border-radius: 8px !important;
+    background-color: #000000 !important; color: #ffffff !important;
+}
+/* Ép màu nền đen và chữ trắng tới từng ô dữ liệu */
+.info-table td, .info-table th, .history-table td, .history-table th, .data-table td, .data-table th {
     background-color: #000000 !important;
+    border-color: #ffffff !important;
     color: #ffffff !important;
+}
+/* Hover dòng trong bảng -> Xám đậm */
+.history-table tr:hover, .data-table tr:hover, .info-table tr:hover {
+    background-color: #27272a !important; 
 }
 .info-table tr:first-child td:first-child, .info-table tr:first-child th:first-child, .history-table tr:first-child th:first-child { border-top-left-radius: 7px !important; }
 .info-table tr:first-child td:last-child, .info-table tr:first-child th:last-child, .history-table tr:first-child th:last-child { border-top-right-radius: 7px !important; }
 .info-table tr:last-child td:first-child, .info-table tr:last-child th:first-child, .history-table tr:last-child td:first-child { border-bottom-left-radius: 7px !important; }
 .info-table tr:last-child td:last-child, .info-table tr:last-child th:last-child, .history-table tr:last-child td:last-child { border-bottom-right-radius: 7px !important; }
-
-/* ÉP ĐEN TẬN GỐC CÁC THÀNH PHẦN BẢNG */
-.history-table, .history-table-wrapper, .history-table tbody, .history-table thead,
-.history-table tr, .history-table th, .history-table td,
-.data-table tr, .data-table th, .data-table td,
-.info-table tr, .info-table th, .info-table td {
-    background-color: #000000 !important;
-    color: #ffffff !important;
-    border-color: #ffffff !important;
-}
-
-/* Hover dòng trong bảng -> XÁM ĐẬM */
-.history-table tr:hover, .data-table tr:hover {
-    background-color: #27272a !important;
-}
-
-.border:has(> .info-table):not([class*=" p-"]):not([class^="p-"]),
-.border:has(> .history-table-wrapper):not([class*=" p-"]):not([class^="p-"]),
-.border:has(> .data-table):not([class*=" p-"]):not([class^="p-"]) {
-    border: none !important;
-    box-shadow: none !important;
+.border:has(> .info-table):not([class*=" p-"]):not([class^="p-"]), .border:has(> .history-table-wrapper):not([class*=" p-"]):not([class^="p-"]), .border:has(> .data-table):not([class*=" p-"]):not([class^="p-"]) {
+    border: none !important; box-shadow: none !important;
 }
 .info-table tr:last-child td, .data-table tr:last-child td, .history-table tr:last-child td { border-bottom: none !important; }
 .stat-item { border-color: #ffffff !important; color: #ffffff !important; }
 
 
-/* ==========================================
-   [ CÁC Ô NHẬP (INPUTS) ]
-========================================== */
+/* 5. POPUP, DROPDOWN & KÍNH MỜ */
+#subrole-prompt-content, #onboarding-content, #crop-content, #custom-alert-content, #settings-content, #newsboard-content, #docs-content,
+#upload-info-content, #custom-prompt-content, #custom-role-content, #deny-prompt-content, #ban-prompt-content,
+#up-progress-content, #captcha-content, #webrtc-qr-content, #qr-login-host-content, #qr-login-confirm-content,
+#advanced-filter-content, #achievement-content, #operator-edit-content, #model-edit-content,
+#route-edit-content, #fav-photo-content, #manager-edit-content, #email-verify-content, #bio-edit-content {
+    background-color: #000000 !important; border: 1px solid #ffffff !important; box-shadow: none !important; color: #ffffff !important;
+}
+
+.bg-white\/95, .bg-white\/90, .bg-white\/80, .bg-white\/70, .bg-white\/60, .bg-white\/50, .bg-white\/40, .bg-white\/30, .bg-white\/20,
+.bg-gray-50\/50, .bg-gray-100\/50, .bg-gray-200\/80, .bg-gray-200\/50 {
+    background-color: #000000 !important; backdrop-filter: none !important;
+}
+
+.suggestion-box, .filter-menu, #user-dropdown, .dropdown-menu {
+    border: 1px solid #ffffff !important; background-color: #000000 !important; border-radius: 8px !important; box-shadow: none !important; color: #ffffff !important;
+}
+.suggestion-box .suggestion-item, .filter-menu button, .filter-menu a, #user-dropdown a, #user-dropdown button {
+    border-bottom: 1px solid #ffffff !important; border-radius: 0 !important; margin: 0 !important; color: #ffffff !important;
+}
+.suggestion-box .suggestion-item:last-child, .filter-menu button:last-child, .filter-menu a:last-child, #user-dropdown a:last-child, #user-dropdown button:last-child {
+    border-bottom: none !important;
+}
+
+
+/* 6. Ô NHẬP (INPUTS) */
 input, textarea, select {
-    outline: none !important;
-    background-color: #000000 !important;
-    color: #ffffff !important;
-    border: 1px solid #ffffff !important;
+    outline: none !important; background-color: #000000 !important; color: #ffffff !important; border: 1px solid #ffffff !important;
 }
 input:focus, textarea:focus, select:focus {
-    border-color: #ffffff !important;
-    box-shadow: none !important;
-    outline: none !important;
+    border-color: #ffffff !important; box-shadow: none !important; outline: none !important;
 }
 
 
-/* ==========================================
-   [ AUTH PAGE ĐĂNG NHẬP ]
-========================================== */
+/* 7. AUTH PAGE ĐĂNG NHẬP */
 #auth .bg-white\/70, #auth .bg-white\/80 { background-color: #000000 !important; backdrop-filter: none !important; }
 #auth .border.border-white\/80, #auth .border.border-white\/60, #auth .border.border-white\/70 { border-color: #ffffff !important; }
 #auth input { background-color: #000000 !important; border: 1px solid #ffffff !important; color: #ffffff !important; }
@@ -238,65 +150,50 @@ input:focus, textarea:focus, select:focus {
 #auth .border.border-gray-300\/80 { border-color: #ffffff !important; }
 
 
-/* ==========================================
-   [ FIX CÁC THÀNH PHẦN CHI TIẾT (Ảnh, Zoom, Thước...) ]
-========================================== */
+/* 8. CÁC THÀNH PHẦN CHI TIẾT KHÁC */
 #btn-type-bus.bg-black .icon-bg, #btn-type-coach.bg-black .icon-bg { background-color: rgba(0, 0, 0, 0.15) !important; } 
 #preview-container { border: 1px solid #ffffff !important; }
 #zoom-toolbar button { color: #ffffff !important; }
 #zoom-toolbar button:hover { color: #a1a1aa !important; }
 
-/* INLINE ALERTS */
 .bg-red-50, .bg-red-100, .bg-yellow-50, .bg-yellow-100, .bg-green-50, .bg-green-100, .bg-blue-50, .bg-blue-100, .bg-orange-50, .bg-orange-100, .bg-amber-50, .bg-amber-100, .bg-indigo-50, .bg-indigo-100, .bg-emerald-50, .bg-emerald-100 { 
     background-color: #000000 !important; border: 1px solid #ffffff !important; color: #ffffff !important; 
 }
-.border-red-200, .border-red-300, .border-yellow-200, .border-yellow-300, .border-green-200, .border-green-300, .border-blue-200, .border-blue-300, .border-orange-200, .border-orange-300, .border-amber-200, .border-amber-300, .border-indigo-200, .border-indigo-300, .border-emerald-200, .border-emerald-300 { 
-    border-color: #ffffff !important; 
-}
-
 #fav-photo-content { border: 1px solid #ffffff !important; }
-
-/* WATERMARK PROTECTION */
 .wm-draggable, .wm-draggable * { color: inherit !important; }
 .wm-draggable.wm-black, .wm-draggable.wm-black * { color: #ffffff !important; }
 .footer-text-left, .footer-text-right, #preview-footer-copy { color: white !important; }
 #preview-footer-bar {
     background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%) !important;
-    backdrop-filter: blur(4px) !important;
-    -webkit-backdrop-filter: blur(4px) !important;
+    backdrop-filter: blur(4px) !important; -webkit-backdrop-filter: blur(4px) !important;
     padding-bottom: 6px !important; padding-top: 6px !important;
 }
 
 
-/* ==========================================
-   [ BẢNG TIN HỆ THỐNG & CÀI ĐẶT ]
-========================================== */
+/* 9. BẢNG TIN HỆ THỐNG & CÀI ĐẶT */
 #newsboard-content .border-gray-200\/50, #settings-content .border-gray-200\/50, #newsboard-content .border-gray-200, #settings-content .border-gray-200, #newsboard-content .border-gray-300, #settings-content .border-gray-300, #newsboard-toc, #set-menu-main { border-color: #ffffff !important; }
 #newsboard-content .border-b, #newsboard-content .border-r, #settings-content .border-b, #settings-content .border-r { border-color: #ffffff !important; }
 #set-menu-main button, #set-menu-account button, #set-menu-docs button { border-color: #ffffff !important; color: #ffffff !important; }
-
 .news-card { border: 1px solid #ffffff !important; margin-bottom: 8px; background-color: #000000 !important; color: #ffffff !important; }
-/* News Card Active -> Đã xử lý ở phần "LỖI NỀN TRẮNG CHỮ TRẮNG" */
-
 #newsboard-content .bg-white\/30, #newsboard-content .bg-gray-50\/30, #settings-content .bg-white\/30, #settings-content .bg-gray-50\/30 { background-color: #000000 !important; }
 
+/* Trạng thái Active trong bảng tin / Cài đặt -> Trắng chữ đen */
+.news-card.active, #set-menu-main button.bg-black {
+    background-color: #ffffff !important; color: #000000 !important; border-color: #ffffff !important;
+}
 
-/* ==========================================
-   [ CHI TIẾT ẢNH & ADMIN / MANAGER VIEWS ]
-========================================== */
+
+/* 10. CHI TIẾT ẢNH & ADMIN / MANAGER VIEWS */
 #detail .img-wrapper { border: 1px solid #ffffff !important; box-sizing: border-box; }
 .border-gray-200\/60 { border-color: #ffffff !important; }
 #fav-photo-preview-img { border: 1px solid #ffffff !important; }
 #up-model-preview .border-gray-300 { border-color: #ffffff !important; }
 
 #admin .border-gray-300, #admin button.border-gray-300, #admin .border-gray-200, #admin button.border-gray-200 { border-color: #ffffff !important; }
-#admin button:hover, #admin button.bg-white:hover { background-color: #27272a !important; }
+#admin button.bg-black { background-color: #ffffff !important; color: #000000 !important; }
 
 #adm-photo-grid-toggle-bar button, #adm-tab-requests, #adm-tab-delete, #adm-tab-comments, #adm-tab-manager {
     border: 1px solid #ffffff !important; background-color: #000000 !important; color: #ffffff !important;
-}
-#adm-photo-grid-toggle-bar button:hover, #adm-tab-requests:hover, #adm-tab-delete:hover, #adm-tab-comments:hover, #adm-tab-manager:hover {
-    background-color: #27272a !important; color: #ffffff !important;
 }
 #adm-photo-grid-toggle-bar button:hover i { color: #ffffff !important; }
 
@@ -309,7 +206,6 @@ input:focus, textarea:focus, select:focus {
 #manager-edit-content .bg-white\/60 { background-color: #000000 !important; }
 #manager-blur-container { border: 1px solid #ffffff !important; }
 #btn-manager-add-blur { border: 1px solid #ffffff !important; background-color: #000000 !important; color: #ffffff !important; }
-#btn-manager-add-blur:hover { background-color: #27272a !important; color: #ffffff !important; }
 
 .admin-card { border: 1px solid #ffffff !important; box-shadow: none !important; background-color: #000000 !important; }
 .admin-card-header { border-bottom: 1px solid #ffffff !important; }
@@ -320,15 +216,8 @@ input:focus, textarea:focus, select:focus {
 #set-menu-account button.border-transparent, #set-menu-docs button.border-transparent {
     border: 1px solid #ffffff !important; background-color: #000000 !important; color: #ffffff !important;
 }
-#set-menu-account button.border-transparent:hover, #set-menu-docs button.border-transparent:hover { background-color: #27272a !important; }
 
-
-/* ==========================================
-   [ PHÂN TRANG (PAGINATION) ]
-========================================== */
-.page-btn {
-    border: 1px solid #ffffff !important; background-color: #000000 !important; color: #ffffff !important;
-}
-.page-btn:hover:not(:disabled):not(.active) { background-color: #27272a !important; }
-/* Trạng thái page-btn.active đã xử lý ở LỖI NỀN TRẮNG CHỮ TRẮNG */
+/* 11. PHÂN TRANG (PAGINATION) */
+.page-btn { border: 1px solid #ffffff !important; background-color: #000000 !important; color: #ffffff !important; }
+.page-btn.active { background-color: #ffffff !important; color: #000000 !important; }
 .page-btn.dots { border: none !important; background: transparent !important; color: #ffffff !important; }
