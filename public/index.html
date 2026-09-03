@@ -1339,6 +1339,11 @@ div[id$="-modal"] > div > * {
     animation: uploadArrowMove 1s ease-in-out infinite;
 }
 
+.mask-y-fade {
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 35%, black 65%, transparent 100%);
+    mask-image: linear-gradient(to bottom, transparent 0%, black 35%, black 65%, transparent 100%);
+}
+
 .bg-gradient-animated {
             background: linear-gradient(135deg, #a1c4fd, #c2e9fb, #ffdde1, #fbc2eb);
             background-size: 300% 300%;
@@ -1886,7 +1891,7 @@ div[id$="-modal"] > div > * {
     <script>
         (function() {
             var theme = 'light'; localStorage.setItem('vnbus_theme', 'light');
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1788398881286" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1788399294268" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = '#fdfcf8';
         })();
@@ -6736,6 +6741,6 @@ div[id$="-modal"] > div > * {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed top-24 left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.js?v=1788398881286"></script>
+<script src="/app.js?v=1788399294268"></script>
 </body>
 </html>
