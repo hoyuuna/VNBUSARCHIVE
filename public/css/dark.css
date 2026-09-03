@@ -289,6 +289,6 @@ polygon[fill="white"] { fill: #000000 !important; }
 #denial-improvement-box summary span { background-image: linear-gradient(to right, #f9a8d4, #93c5fd) !important; }
 #denial-improvement-box summary span, #denial-improvement-box summary i { color: transparent !important; }
 #denial-improvement-box.group[open] summary span,
-details#denial-improvement-box[open] summary span { background-image: linear-gradient(to right, #ffffff, #ffffff) !important; }
-details#denial-improvement-box[open] summary i.fa-lightbulb { color: #ffffff !important; }
-details#denial-improvement-box[open] summary i.fa-chevron-right { color: #ffffff !important; }
+details#denial-improvement-box[open] summary span { background-image: linear-gradient(to right, #fda4af, #a5b4fc) !important; }
+details#denial-improvement-box[open] summary i.fa-lightbulb { color: #fda4af !important; }
+details#denial-improvement-box[open] summary i.fa-chevron-right { color: #a5b4fc !important; }
