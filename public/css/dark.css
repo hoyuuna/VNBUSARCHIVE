@@ -6,9 +6,11 @@
 /* ==========================================
    [ BỘ LỌC ĐẶC TRỊ KHẮC PHỤC LỖI NỀN TRẮNG/CHỮ ĐEN BỊ SÓT ]
 ========================================== */
-/* 1. Ép tất cả các màu nền sáng của Tailwind thành Đen Thuần */
-.bg-white, .bg-gray-50, .bg-gray-100, .bg-gray-200, .bg-gray-300, 
-.bg-zinc-50, .bg-zinc-100, .bg-zinc-200, .bg-slate-50, .bg-slate-100 {
+/* 1. Ép tất cả các màu nền sáng/xám của Tailwind thành Đen Thuần */
+.bg-white, 
+.bg-gray-50, .bg-gray-100, .bg-gray-200, .bg-gray-300, .bg-gray-400, .bg-gray-500, .bg-gray-600, .bg-gray-700, .bg-gray-800, .bg-gray-900,
+.bg-zinc-50, .bg-zinc-100, .bg-zinc-200, .bg-zinc-300, .bg-zinc-400, .bg-zinc-500, .bg-zinc-600, .bg-zinc-700, .bg-zinc-800, .bg-zinc-900,
+.bg-slate-50, .bg-slate-100, .bg-slate-200, .bg-slate-300, .bg-slate-800, .bg-slate-900 {
     background-color: #000000 !important;
 }
 
@@ -37,7 +39,6 @@ body, body.theme-dark, body.theme-light {
     color: #ffffff !important;
 }
 
-/* KHỚP MÀN HÌNH LOADING */
 #loading-screen {
     background-color: #121212 !important; 
     background-image: none !important;
@@ -49,24 +50,82 @@ body, body.theme-dark, body.theme-light {
     border: 1px solid #ffffff !important;
 }
 
-/* 4. Bo góc duy nhất nhẹ nhàng */
-.rounded-3xl, .rounded-2xl, .rounded-xl, .rounded-lg {
-    border-radius: 8px !important;
-}
-.rounded-full {
-    border-radius: 9999px !important; 
+.rounded-3xl, .rounded-2xl, .rounded-xl, .rounded-lg { border-radius: 8px !important; }
+.rounded-full { border-radius: 9999px !important; }
+
+/* Đổi màu toàn bộ viền có sẵn thành viền trắng */
+.border-white, .border-white\/20, .border-white\/30, .border-gray-100, .border-gray-200, .border-gray-300, .border-gray-400, .border-gray-500, .border-gray-600, .border-gray-700, .border-gray-800, .border-vbs-border, .border-\[\#e4e4e7\] {
+    border-color: #ffffff !important;
 }
 
-/* 5. Đổi màu toàn bộ viền có sẵn thành viền trắng */
-.border-white, .border-white\/20, .border-white\/30, .border-gray-100, .border-gray-200, .border-gray-300, .border-gray-400, .border-vbs-border, .border-\[\#e4e4e7\] {
+
+/* ==========================================
+   [ NÚT BẤM (BUTTONS) - ĐẢO NGƯỢC MÀU ĐỂ NỔI BẬT ]
+========================================== */
+a, button, [role="button"] { text-decoration: none !important; }
+a:hover, button:hover, [role="button"]:hover { text-decoration: none !important; }
+
+/* 1. NÚT CHÍNH (Đăng ảnh, Theo dõi, Lưu...): Trắng Tinh - Chữ Đen */
+a.bg-black, button.bg-black, .bg-black[role="button"], 
+#btn-type-bus.bg-black, #btn-type-coach.bg-black {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border: 1px solid #ffffff !important;
+    font-weight: 600 !important;
+}
+/* Bắt mọi icon/chữ bên trong nút chính phải đen */
+a.bg-black *, button.bg-black *, .bg-black[role="button"] *, 
+#btn-type-bus.bg-black *, #btn-type-coach.bg-black * {
+    color: #000000 !important;
+    fill: #000000 !important;
+    stroke: #000000 !important;
+}
+/* Hover nút chính -> Xám đậm, chữ/icon trắng */
+a.bg-black:hover, button.bg-black:hover, .bg-black[role="button"]:hover,
+#btn-type-bus.bg-black:hover, #btn-type-coach.bg-black:hover {
+    background-color: #27272a !important; /* XÁM ĐẬM */
     border-color: #ffffff !important;
+    color: #ffffff !important;
+}
+a.bg-black:hover *, button.bg-black:hover *, .bg-black[role="button"]:hover * {
+    color: #ffffff !important;
+    fill: #ffffff !important;
+    stroke: #ffffff !important;
+}
+
+/* 2. NÚT PHỤ (Trước là trắng): Đen Thuần - Viền Trắng */
+button.bg-white, a.bg-white, .bg-white[role="button"] {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border: 1px solid #ffffff !important;
+}
+button.bg-white:hover, a.bg-white:hover, .bg-white[role="button"]:hover {
+    background-color: #27272a !important; /* XÁM ĐẬM */
+    color: #ffffff !important;
+}
+
+/* ==========================================
+   [ FIX LỖI "NỀN TRẮNG CHỮ TRẮNG" KHI ACTIVE/SELECTED ]
+========================================== */
+/* Các trạng thái đang chọn (tab, tick box, trang hiện tại) */
+.active, .selected, [aria-selected="true"], .page-btn.active, .news-card.active,
+#set-menu-main button.bg-black, #set-menu-account button.bg-black, #set-menu-docs button.bg-black {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border-color: #ffffff !important;
+}
+/* ÉP CHẾT các thẻ con (chữ, SVG, icon) bên trong nó phải ĐEN */
+.active *, .selected *, [aria-selected="true"] *, .page-btn.active *, .news-card.active *,
+#set-menu-main button.bg-black *, #set-menu-account button.bg-black *, #set-menu-docs button.bg-black * {
+    color: #000000 !important;
+    fill: #000000 !important;
+    stroke: #000000 !important;
 }
 
 
 /* ==========================================
    [ POPUP, DROPDOWN & KÍNH MỜ ]
 ========================================== */
-/* KHÔI PHỤC NỀN ĐEN THUẦN CHO MỌI POPUP */
 #subrole-prompt-content, #onboarding-content, #crop-content, #custom-alert-content, #settings-content, #newsboard-content, #docs-content,
 #upload-info-content, #custom-prompt-content, #custom-role-content, #deny-prompt-content, #ban-prompt-content,
 #up-progress-content, #captcha-content, #webrtc-qr-content, #qr-login-host-content, #qr-login-confirm-content,
@@ -101,16 +160,16 @@ body, body.theme-dark, body.theme-light {
 .suggestion-box .suggestion-item:last-child, .filter-menu button:last-child, .filter-menu a:last-child, #user-dropdown a:last-child, #user-dropdown button:last-child {
     border-bottom: none !important;
 }
-/* Hover trong dropdown */
+/* Hover dropdown -> XÁM ĐẬM */
 .suggestion-box .suggestion-item:hover, .filter-menu button:hover, .filter-menu a:hover, #user-dropdown a:hover, #user-dropdown button:hover {
-    background-color: #333333 !important;
+    background-color: #27272a !important; 
+    color: #ffffff !important;
 }
 
 
 /* ==========================================
    [ BẢNG (TABLES) VÀ LỊCH SỬ HOẠT ĐỘNG ]
 ========================================== */
-/* Bảng dữ liệu */
 .info-table, .data-table, .history-table {
     border-collapse: separate !important;
     border-spacing: 0 !important;
@@ -124,7 +183,7 @@ body, body.theme-dark, body.theme-light {
 .info-table tr:last-child td:first-child, .info-table tr:last-child th:first-child, .history-table tr:last-child td:first-child { border-bottom-left-radius: 7px !important; }
 .info-table tr:last-child td:last-child, .info-table tr:last-child th:last-child, .history-table tr:last-child td:last-child { border-bottom-right-radius: 7px !important; }
 
-/* FIX LỖI BẢNG LỊCH SỬ BỊ TRẮNG BÓC TẬN GỐC */
+/* ÉP ĐEN TẬN GỐC CÁC THÀNH PHẦN BẢNG */
 .history-table, .history-table-wrapper, .history-table tbody, .history-table thead,
 .history-table tr, .history-table th, .history-table td,
 .data-table tr, .data-table th, .data-table td,
@@ -134,69 +193,24 @@ body, body.theme-dark, body.theme-light {
     border-color: #ffffff !important;
 }
 
-/* Hover dòng trong bảng */
+/* Hover dòng trong bảng -> XÁM ĐẬM */
 .history-table tr:hover, .data-table tr:hover {
-    background-color: #1a1a1a !important;
+    background-color: #27272a !important;
 }
 
-/* Ẩn viền div bọc ngoài bảng */
 .border:has(> .info-table):not([class*=" p-"]):not([class^="p-"]),
 .border:has(> .history-table-wrapper):not([class*=" p-"]):not([class^="p-"]),
 .border:has(> .data-table):not([class*=" p-"]):not([class^="p-"]) {
     border: none !important;
     box-shadow: none !important;
 }
-
-.info-table tr:last-child td, .data-table tr:last-child td, .history-table tr:last-child td {
-    border-bottom: none !important; 
-}
-.stat-item {
-    border-color: #ffffff !important; 
-    color: #ffffff !important;
-}
+.info-table tr:last-child td, .data-table tr:last-child td, .history-table tr:last-child td { border-bottom: none !important; }
+.stat-item { border-color: #ffffff !important; color: #ffffff !important; }
 
 
 /* ==========================================
-   [ NÚT BẤM (BUTTONS) - ĐẢO NGƯỢC MÀU ĐỂ NỔI BẬT ]
+   [ CÁC Ô NHẬP (INPUTS) ]
 ========================================== */
-a, button, [role="button"] {
-    text-decoration: none !important;
-}
-a:hover, button:hover, [role="button"]:hover {
-    text-decoration: none !important;
-}
-
-/* ĐẢO NGƯỢC: Nút chính (trước là đen) giờ thành TRẮNG TINH CHỮ ĐEN để tương phản */
-button.bg-black, .bg-black[role="button"], 
-#btn-type-bus.bg-black, #btn-type-coach.bg-black {
-    background-color: #ffffff !important;
-    color: #000000 !important;
-    border: 1px solid #ffffff !important;
-    font-weight: 600 !important;
-}
-button.bg-black:hover, .bg-black[role="button"]:hover,
-#btn-type-bus.bg-black:hover, #btn-type-coach.bg-black:hover {
-    background-color: #d4d4d8 !important; /* Xám nhạt khi hover */
-    color: #000000 !important;
-}
-/* Đảo màu icon trong nút chính thành đen */
-button.bg-black i, .bg-black[role="button"] i,
-button.bg-black svg, .bg-black[role="button"] svg {
-    color: #000000 !important;
-}
-
-/* Các nút phụ (trước là trắng) giờ thành ĐEN THUẦN VIỀN TRẮNG */
-button.bg-white, .bg-white[role="button"] {
-    background-color: #000000 !important;
-    color: #ffffff !important;
-    border: 1px solid #ffffff !important;
-}
-button.bg-white:hover, .bg-white[role="button"]:hover {
-    background-color: #333333 !important;
-    color: #ffffff !important;
-}
-
-/* Input form: Fix outline */
 input, textarea, select {
     outline: none !important;
     background-color: #000000 !important;
@@ -215,7 +229,7 @@ input:focus, textarea:focus, select:focus {
 ========================================== */
 #auth .bg-white\/70, #auth .bg-white\/80 { background-color: #000000 !important; backdrop-filter: none !important; }
 #auth .border.border-white\/80, #auth .border.border-white\/60, #auth .border.border-white\/70 { border-color: #ffffff !important; }
-#auth input { background-color: #111111 !important; border: 1px solid #ffffff !important; color: #ffffff !important; }
+#auth input { background-color: #000000 !important; border: 1px solid #ffffff !important; color: #ffffff !important; }
 #auth #auth-msg { background-color: #000000 !important; border: 1px solid #ffffff !important; color: #ffffff !important; }
 #auth .rounded-3xl.bg-white\/70 { background-color: #000000 !important; border: 1px solid #ffffff !important; box-shadow: none !important; }
 #auth .shadow-\[0_8px_32px_0_rgba\(0\,0\,0\,0\.2\)\] { box-shadow: none !important; }
@@ -227,12 +241,12 @@ input:focus, textarea:focus, select:focus {
 /* ==========================================
    [ FIX CÁC THÀNH PHẦN CHI TIẾT (Ảnh, Zoom, Thước...) ]
 ========================================== */
-#btn-type-bus.bg-black .icon-bg, #btn-type-coach.bg-black .icon-bg { background-color: rgba(0, 0, 0, 0.15) !important; } /* Đảo lại vì nền nút đã trắng */
+#btn-type-bus.bg-black .icon-bg, #btn-type-coach.bg-black .icon-bg { background-color: rgba(0, 0, 0, 0.15) !important; } 
 #preview-container { border: 1px solid #ffffff !important; }
 #zoom-toolbar button { color: #ffffff !important; }
 #zoom-toolbar button:hover { color: #a1a1aa !important; }
 
-/* INLINE ALERTS - Nền đen thuần, viền trắng, chữ trắng */
+/* INLINE ALERTS */
 .bg-red-50, .bg-red-100, .bg-yellow-50, .bg-yellow-100, .bg-green-50, .bg-green-100, .bg-blue-50, .bg-blue-100, .bg-orange-50, .bg-orange-100, .bg-amber-50, .bg-amber-100, .bg-indigo-50, .bg-indigo-100, .bg-emerald-50, .bg-emerald-100 { 
     background-color: #000000 !important; border: 1px solid #ffffff !important; color: #ffffff !important; 
 }
@@ -261,18 +275,9 @@ input:focus, textarea:focus, select:focus {
 #newsboard-content .border-b, #newsboard-content .border-r, #settings-content .border-b, #settings-content .border-r { border-color: #ffffff !important; }
 #set-menu-main button, #set-menu-account button, #set-menu-docs button { border-color: #ffffff !important; color: #ffffff !important; }
 
-/* Tab cài đặt active */
-#set-menu-main button.bg-black, #set-menu-account button.bg-black, #set-menu-docs button.bg-black {
-    background-color: #ffffff !important; color: #000000 !important; border-color: #ffffff !important;
-}
-#set-menu-main button.bg-black i, #set-menu-account button.bg-black i, #set-menu-docs button.bg-black i { color: #000000 !important; }
-
-/* News card */
 .news-card { border: 1px solid #ffffff !important; margin-bottom: 8px; background-color: #000000 !important; color: #ffffff !important; }
-.news-card.active { border-left: 1px solid #ffffff !important; background-color: #ffffff !important; color: #000000 !important; }
-.news-card.active h4, .news-card.active p, .news-card.active span, .news-card.active i { color: #000000 !important; }
+/* News Card Active -> Đã xử lý ở phần "LỖI NỀN TRẮNG CHỮ TRẮNG" */
 
-/* Nền modal Bảng tin & Cài đặt */
 #newsboard-content .bg-white\/30, #newsboard-content .bg-gray-50\/30, #settings-content .bg-white\/30, #settings-content .bg-gray-50\/30 { background-color: #000000 !important; }
 
 
@@ -284,45 +289,38 @@ input:focus, textarea:focus, select:focus {
 #fav-photo-preview-img { border: 1px solid #ffffff !important; }
 #up-model-preview .border-gray-300 { border-color: #ffffff !important; }
 
-/* Admin Tabs */
 #admin .border-gray-300, #admin button.border-gray-300, #admin .border-gray-200, #admin button.border-gray-200 { border-color: #ffffff !important; }
-#admin button:hover, #admin button.bg-white:hover { background-color: #333333 !important; }
-#admin button.bg-black { background-color: #ffffff !important; color: #000000 !important; border-color: #ffffff !important; }
+#admin button:hover, #admin button.bg-white:hover { background-color: #27272a !important; }
 
-/* Admin Toolbars */
 #adm-photo-grid-toggle-bar button, #adm-tab-requests, #adm-tab-delete, #adm-tab-comments, #adm-tab-manager {
     border: 1px solid #ffffff !important; background-color: #000000 !important; color: #ffffff !important;
 }
 #adm-photo-grid-toggle-bar button:hover, #adm-tab-requests:hover, #adm-tab-delete:hover, #adm-tab-comments:hover, #adm-tab-manager:hover {
-    background-color: #ffffff !important; color: #000000 !important;
+    background-color: #27272a !important; color: #ffffff !important;
 }
-#adm-photo-grid-toggle-bar button:hover i { color: #000000 !important; }
+#adm-photo-grid-toggle-bar button:hover i { color: #ffffff !important; }
 
-/* Admin Inputs & Cards */
 #admin input, #admin select, #admin textarea, .admin-card-header, #admin-content .border-gray-200, #admin .bg-gray-100.border-gray-200 {
     border-color: #ffffff !important; background-color: #000000 !important; color: #ffffff !important;
 }
 
-/* Manager Edit Modal */
 #manager-edit-content .border-gray-200\/50, #manager-edit-content .border-gray-200, #manager-edit-content .border-gray-300, #manager-edit-content .border-gray-300\/80 { border-color: #ffffff !important; }
 #manager-edit-content button.border-gray-200, #manager-edit-content .bg-gray-50.border-gray-200 { border-color: #ffffff !important; background-color: #000000 !important; }
 #manager-edit-content .bg-white\/60 { background-color: #000000 !important; }
 #manager-blur-container { border: 1px solid #ffffff !important; }
 #btn-manager-add-blur { border: 1px solid #ffffff !important; background-color: #000000 !important; color: #ffffff !important; }
-#btn-manager-add-blur:hover { background-color: #ffffff !important; color: #000000 !important; }
+#btn-manager-add-blur:hover { background-color: #27272a !important; color: #ffffff !important; }
 
-/* Admin Card Fix */
 .admin-card { border: 1px solid #ffffff !important; box-shadow: none !important; background-color: #000000 !important; }
 .admin-card-header { border-bottom: 1px solid #ffffff !important; }
 .admin-input { border: 1px solid #ffffff !important; }
 #admin-content .border-gray-200, #admin-content .border-y { border-color: #ffffff !important; }
 #admin-content .border-y { border-top: none !important; }
 
-/* Nút Quay Lại trong Cài đặt */
 #set-menu-account button.border-transparent, #set-menu-docs button.border-transparent {
     border: 1px solid #ffffff !important; background-color: #000000 !important; color: #ffffff !important;
 }
-#set-menu-account button.border-transparent:hover, #set-menu-docs button.border-transparent:hover { background-color: #333333 !important; }
+#set-menu-account button.border-transparent:hover, #set-menu-docs button.border-transparent:hover { background-color: #27272a !important; }
 
 
 /* ==========================================
@@ -331,6 +329,6 @@ input:focus, textarea:focus, select:focus {
 .page-btn {
     border: 1px solid #ffffff !important; background-color: #000000 !important; color: #ffffff !important;
 }
-.page-btn:hover:not(:disabled):not(.active) { background-color: #333333 !important; }
-.page-btn.active, .page-btn.active:hover { background: #ffffff !important; color: #000000 !important; border-color: #ffffff !important; }
-.page-btn.dots { border: none !important; background: transparent !important; }
+.page-btn:hover:not(:disabled):not(.active) { background-color: #27272a !important; }
+/* Trạng thái page-btn.active đã xử lý ở LỖI NỀN TRẮNG CHỮ TRẮNG */
+.page-btn.dots { border: none !important; background: transparent !important; color: #ffffff !important; }
