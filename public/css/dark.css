@@ -1,4 +1,4 @@
-﻿/* ==========================================
+/* ==========================================
    VNBUSARCHIVE - FLAT DARK THEME (OVERRIDE LAYER)
    HIGH CONTRAST: DARK GRAY BG, PURE BLACK COMPONENTS, PURE BLACK BORDERS
 ========================================== */
@@ -261,6 +261,7 @@ polygon[fill="white"] { fill: #000000 !important; }
 }
 /* Dark Mode Inline Alerts (Soft Backgrounds, Tinted Borders, Pastel Text/Icons) */
 .bg-red-50, .bg-red-100 { background-color: #450a0a !important; border-color: rgba(248, 113, 113, 0.3) !important; color: #fca5a5 !important; }
+#map-loc-zone-warning { border-color: #ffffff !important; }
 .bg-red-50 *, .bg-red-100 * { color: #fca5a5 !important; }
 
 .bg-yellow-50, .bg-yellow-100, .bg-orange-50, .bg-orange-100, .bg-amber-50, .bg-amber-100 { background-color: #422006 !important; border-color: rgba(250, 204, 21, 0.3) !important; color: #fde047 !important; }
