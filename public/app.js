@@ -1,4 +1,4 @@
-window.APP_VERSION = "26.09.03.19.56.56";
+window.APP_VERSION = "26.09.03.20.04.11";
 
 /* --- MODULE: 1_init.js --- */
 window.app = window.app || {};
@@ -20528,6 +20528,10 @@ app.map = {
                             const popupContent = `<div class="text-sm font-bold p-1 dark:text-white">${app.utils.escapeHtml(displayName)}</div>`;
                             this.searchMarker = L.marker([lat, lon], { icon: searchIcon }).addTo(this.instance);
                             
+                            this.searchMarker.on('click', () => {
+                                document.getElementById('map-location-info').classList.remove('hidden');
+                            });
+                            
                             this.showLocationInfo(props.name || 'Không có tên', displayName, lat, lon);
                         };
                         resultsContainer.appendChild(div);
@@ -20973,7 +20977,6 @@ app.map = {
         if (closeBtn) {
             closeBtn.addEventListener('click', () => {
                 document.getElementById('map-location-info').classList.add('hidden');
-                if (this.sunMarker) this.instance.removeLayer(this.sunMarker);
             });
         }
         
