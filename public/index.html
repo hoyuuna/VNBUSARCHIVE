@@ -1948,7 +1948,7 @@ div[id$="-modal"] > div > * {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1788441989565" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1788442739776" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -5551,15 +5551,25 @@ div[id$="-modal"] > div > * {
 
                     <!-- Vùng chức năng (Góc dưới trái) -->
                     <div class="absolute bottom-6 left-6 z-[400] flex flex-col items-start justify-end" id="map-panel-wrapper">
-                         <!-- Nút Mở -->
-                         <button id="map-open-panel-btn" class="bg-black dark:bg-white border border-black dark:border-white text-white dark:text-black text-sm font-bold py-2.5 px-5 rounded-md hover:opacity-80 transition-all duration-300 transform origin-bottom-left flex items-center gap-2">
-                            <i class="fa-solid fa-plus"></i> Bổ sung Bản đồ
-                         </button>
+                        <!-- Menu Dropdown -->
+                        <div id="map-menu-dropdown" class="hidden flex-col gap-2 mb-3 w-48 bg-white dark:bg-[#18181b] border border-black dark:border-white rounded-md p-2 transition-all duration-300 transform origin-bottom-left scale-95 opacity-0">
+                            <button id="map-toggle-type-btn" class="text-left w-full px-3 py-2 text-sm font-bold text-black dark:text-white hover:bg-gray-100 dark:hover:bg-[#27272a] rounded-md transition-colors flex items-center gap-2">
+                                <i class="fa-solid fa-layer-group w-5"></i> <span id="map-toggle-type-text">Bản đồ vệ tinh</span>
+                            </button>
+                            <button id="map-add-zone-btn" class="text-left w-full px-3 py-2 text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors flex items-center gap-2">
+                                <i class="fa-solid fa-ban w-5"></i> Bổ sung vùng cấm
+                            </button>
+                        </div>
+                        
+                        <!-- Nút MỞ MENU -->
+                        <button id="map-menu-btn" class="bg-white dark:bg-[#18181b] border border-black dark:border-white text-black dark:text-white w-10 h-10 rounded-md hover:opacity-80 transition-all duration-300 transform origin-bottom-left flex items-center justify-center shadow-none relative">
+                            <i class="fa-solid fa-bars text-lg"></i>
+                        </button>
 
                          <!-- Floating Island (Panel) -->
                          <div id="map-zone-panel" class="bg-white dark:bg-[#18181b] border border-black dark:border-white p-4 rounded-md hidden flex-col gap-3 w-80 max-w-[calc(100vw-2rem)] transition-all duration-300 transform origin-bottom-left scale-95 opacity-0">
                             <div class="flex justify-between items-center mb-1">
-                                <h3 class="font-bold text-base dark:text-white" id="map-panel-title">Bổ sung Bản đồ</h3>
+                                <h3 class="font-bold text-base dark:text-white" id="map-panel-title">Bổ sung vùng cấm</h3>
                                 <button id="map-close-panel-btn" class="text-gray-500 hover:text-black dark:hover:text-white transition-colors"><i class="fa-solid fa-xmark text-lg"></i></button>
                             </div>
 
@@ -6900,7 +6910,7 @@ div[id$="-modal"] > div > * {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed top-24 left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.js?v=1788441989565"></script>
+<script src="/app.js?v=1788442739776"></script>
 </body>
 </html>
 

@@ -3088,7 +3088,7 @@ Object.assign(window.app, {
                     document.title = 'Tải ảnh từ thiết bị | VNBUSARCHIVE';
                     app.views.switch('mobile-upload', false);
                 } else if (path === '/map') {
-                    document.title = 'Bản đồ Vùng Cấm | VNBUSARCHIVE';
+                    document.title = 'Bản đồ | VNBUSARCHIVE';
                     app.views.switch('map', false);
                     if (app.map && typeof app.map.init === 'function') {
                         app.map.init();
