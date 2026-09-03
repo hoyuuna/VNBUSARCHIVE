@@ -363,3 +363,99 @@ input:focus, textarea:focus, select:focus {
 #user-dropdown button:last-child {
     border-bottom: none !important;
 }
+
+
+/* ===== FIX: ADMIN & MANAGER VIEWS ===== */
+/* Nút bấm trên thanh Tabs Admin */
+#admin .border-gray-300,
+#admin button.border-gray-300,
+#admin .border-gray-200,
+#admin button.border-gray-200 {
+    border-color: #18181b !important;
+}
+#admin button:hover,
+#admin button.bg-white:hover {
+    background-color: #f4f4f5 !important;
+}
+/* Các nút đang chọn (Tab active) mà JS set bg-black */
+#admin button.bg-black {
+    background-color: #18181b !important;
+    color: #ffffff !important;
+    border-color: #18181b !important;
+}
+
+/* Toolbars trong admin (Đường tham chiếu, Thước ngang, v.v) */
+#adm-photo-grid-toggle-bar button,
+#adm-tab-requests, #adm-tab-delete, #adm-tab-comments, #adm-tab-manager {
+    border: 1px solid #18181b !important;
+    background-color: #ffffff !important;
+    color: #18181b !important;
+}
+#adm-photo-grid-toggle-bar button:hover,
+#adm-tab-requests:hover, #adm-tab-delete:hover, #adm-tab-comments:hover, #adm-tab-manager:hover {
+    background-color: #18181b !important;
+    color: #ffffff !important;
+}
+#adm-photo-grid-toggle-bar button:hover i {
+    color: #ffffff !important;
+}
+
+/* Các form nhập liệu, select, card trong Admin nếu có viền xám */
+#admin input, #admin select, #admin textarea,
+.admin-card-header, #admin-content .border-gray-200,
+#admin .bg-gray-100.border-gray-200 /* Các action buttons disabled */ {
+    border-color: #18181b !important;
+}
+
+/* ===== MANAGER EDIT MODAL ===== */
+#manager-edit-content .border-gray-200\/50,
+#manager-edit-content .border-gray-200,
+#manager-edit-content .border-gray-300,
+#manager-edit-content .border-gray-300\/80 {
+    border-color: #18181b !important;
+}
+
+/* Các form, nút bên trong modal manager */
+#manager-edit-content button.border-gray-200,
+#manager-edit-content .bg-gray-50.border-gray-200 {
+    border-color: #18181b !important;
+}
+
+/* Bảng làm mờ bên phải */
+#manager-edit-content .bg-white\/60 {
+    background-color: #ffffff !important;
+}
+
+/* Khung ảnh Manager Blur */
+#manager-blur-container {
+    border: 1px solid #18181b !important;
+}
+
+/* Nút thêm vùng làm mờ */
+#btn-manager-add-blur {
+    border: 1px solid #18181b !important;
+    background-color: #ffffff !important;
+    color: #18181b !important;
+}
+#btn-manager-add-blur:hover {
+    background-color: #18181b !important;
+    color: #ffffff !important;
+}
+
+/* Override thêm cho Admin Card */
+.admin-card {
+    border: 1px solid #18181b !important;
+    box-shadow: none !important;
+}
+.admin-card-header {
+    border-bottom: 1px solid #18181b !important;
+}
+.admin-input {
+    border: 1px solid #18181b !important;
+}
+
+/* Fix viền admin-content .border-gray-200 */
+#admin-content .border-gray-200,
+#admin-content .border-y {
+    border-color: #18181b !important;
+}
