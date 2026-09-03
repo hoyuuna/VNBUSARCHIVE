@@ -76,8 +76,7 @@ a:hover, button:hover, [role="button"]:hover { text-decoration: none !important;
 .info-table, .data-table, .history-table {
     border-collapse: separate !important;
     border-spacing: 0 !important;
-    border: none !important;
-    border-radius: 0 !important;
+    border: 1px solid #ffffff !important; border-radius: 8px !important;
     background-color: #000000 !important; color: #ffffff !important;
 }
 /* Ép màu nền đen và chữ trắng tới từng ô dữ liệu */
@@ -94,9 +93,7 @@ a:hover, button:hover, [role="button"]:hover { text-decoration: none !important;
 /* Bỏ viền dưới của hàng cuối */
 .info-table tr:last-child td, .data-table tr:last-child td, .history-table tr:last-child td { border-bottom: none !important; }
 /* Wrapper bọc bảng: đổi màu viền trắng, giữ border-radius */
-.border.border-gray-200:has(> .info-table),
-.border.border-gray-200:has(> .history-table-wrapper),
-.border.border-gray-200:has(> .data-table) { border-color: #ffffff !important; }
+.border.border-gray-200:has(> .info-table):not([class*=" p-"]):not([class^="p-"]), .border.border-gray-200:has(> .history-table-wrapper):not([class*=" p-"]):not([class^="p-"]), .border.border-gray-200:has(> .data-table):not([class*=" p-"]):not([class^="p-"]) { border: none !important; box-shadow: none !important; }
 /* Hover dòng trong bảng -> Xám đậm */
 .history-table tr:hover, .data-table tr:hover, .info-table tr:hover {
     background-color: #27272a !important; 
@@ -292,14 +289,16 @@ details#denial-improvement-box[open] summary span { background-image: linear-gra
 details#denial-improvement-box[open] summary i.fa-lightbulb { color: #ffffff !important; }
 details#denial-improvement-box[open] summary i.fa-chevron-right { color: #ffffff !important; }
 /* Revert Rejection / Status Report Colors */
-#denial-reason-box, #denial-reason-box * {
-    background-color: transparent !important;
-    border-color: #ef4444 !important;
-    color: #ef4444 !important;
-}
-#denial-reason-box { background-color: rgba(220, 38, 38, 0.15) !important; }
+
+
 
 /* Fix unreadable deny checkboxes in Admin */
 #deny-prompt-content span.text-gray-700 { color: #ffffff !important; }
 #deny-prompt-content label.group:hover span.group-hover\:text-black { color: #ffffff !important; }
+
+
+
+/* Revert Rejection / Status Report Colors Fix */
+#denial-reason-box { background-color: #450a0a !important; border-color: #dc2626 !important; }
+#denial-reason-box, #denial-reason-box * { color: #ef4444 !important; }
 
