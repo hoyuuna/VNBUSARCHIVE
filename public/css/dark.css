@@ -21,7 +21,7 @@ body, body.theme-dark, body.theme-light {
     color: #ffffff !important;
 }
 /* Ép các chữ màu tối thành Trắng Tinh */
-.text-black, .text-gray-900, .text-gray-800 {
+.text-black, .text-gray-900, .text-gray-800, .text-gray-700, .text-gray-600 {
     color: #ffffff !important;
 }
 .text-gray-500, .text-gray-400 { color: #d4d4d8 !important; } /* Chữ phụ sáng lên để dễ đọc */
@@ -153,12 +153,23 @@ input:focus, textarea:focus, select:focus {
 /* 8. CÁC THÀNH PHẦN CHI TIẾT KHÁC */
 #btn-type-bus.bg-black .icon-bg, #btn-type-coach.bg-black .icon-bg { background-color: rgba(0, 0, 0, 0.15) !important; } 
 #preview-container { border: 1px solid #ffffff !important; }
-#zoom-toolbar button { color: #ffffff !important; }
-#zoom-toolbar button:hover { color: #a1a1aa !important; }
+#zoom-toolbar button:not(.bg-black) { color: #ffffff !important; }
+#zoom-toolbar button:not(.bg-black):hover { color: #a1a1aa !important; }
+#zoom-toolbar button.bg-black i, #zoom-toolbar button.bg-black span { color: #000000 !important; }
 
-.bg-red-50, .bg-red-100, .bg-yellow-50, .bg-yellow-100, .bg-green-50, .bg-green-100, .bg-blue-50, .bg-blue-100, .bg-orange-50, .bg-orange-100, .bg-amber-50, .bg-amber-100, .bg-indigo-50, .bg-indigo-100, .bg-emerald-50, .bg-emerald-100 { 
-    background-color: #000000 !important; border: 1px solid #ffffff !important; color: #ffffff !important; 
-}
+/* Fix location history border */
+#up-location-history button { border: 1px solid #ffffff !important; }
+
+/* Fix docs markdown text */
+.markdown-body, .markdown-body * { color: #ffffff !important; }
+
+/* Fix hover texts */
+.group-hover\:text-black:hover, .group:hover .group-hover\:text-black, .hover\:text-black:hover { color: #ffffff !important; }
+
+.bg-red-50, .bg-red-100 { background-color: #450a0a !important; border: 1px solid #ffffff !important; color: #ffffff !important; }
+.bg-yellow-50, .bg-yellow-100, .bg-orange-50, .bg-orange-100, .bg-amber-50, .bg-amber-100 { background-color: #422006 !important; border: 1px solid #ffffff !important; color: #ffffff !important; }
+.bg-green-50, .bg-green-100, .bg-emerald-50, .bg-emerald-100 { background-color: #052e16 !important; border: 1px solid #ffffff !important; color: #ffffff !important; }
+.bg-blue-50, .bg-blue-100, .bg-indigo-50, .bg-indigo-100 { background-color: #172554 !important; border: 1px solid #ffffff !important; color: #ffffff !important; }
 #fav-photo-content { border: 1px solid #ffffff !important; }
 .wm-draggable, .wm-draggable * { color: inherit !important; }
 .wm-draggable.wm-black, .wm-draggable.wm-black * { color: #ffffff !important; }
