@@ -1,4 +1,4 @@
-window.APP_VERSION = "26.09.03.18.39.50";
+window.APP_VERSION = "26.09.03.18.44.34";
 
 /* --- MODULE: 1_init.js --- */
 window.app = window.app || {};
@@ -20377,13 +20377,13 @@ app.map = {
         if (openBtn) {
             openBtn.addEventListener('click', () => {
                 if (!app.user) {
-                    app.ui.showAlert('Vui lòng đăng nhập để bổ sung vùng cấm.', () => {
+                    app.ui.showAlert('Vui lòng đăng nhập để bổ sung Bản đồ.', () => {
                         app.utils.navigate('/auth');
                     });
                     return;
                 }
                 
-                document.getElementById('map-panel-title').innerText = this.isAdmin ? 'Thêm Vùng Cấm (Admin)' : 'Gửi Yêu Cầu Bổ Sung';
+                document.getElementById('map-panel-title').innerText = this.isAdmin ? 'Thêm Bản đồ (Admin)' : 'Gửi Yêu Cầu Bổ Sung';
                 saveBtn.innerText = this.isAdmin ? 'Lưu Trực Tiếp' : 'Gửi Yêu Cầu';
                 
                 openBtn.classList.add('hidden');
@@ -20577,7 +20577,7 @@ app.map = {
         }
         
         // Cập nhật tiêu đề sau khi open btn đã set (có độ trễ xíu do bất đồng bộ hoặc không, set luôn ghi đè lại)
-        document.getElementById('map-panel-title').innerText = this.isAdmin ? 'Chỉnh sửa Vùng Cấm' : 'Gửi Yêu Cầu Sửa';
+        document.getElementById('map-panel-title').innerText = this.isAdmin ? 'Chỉnh sửa Bản đồ' : 'Gửi Yêu Cầu Sửa';
         document.getElementById('map-panel-save-btn').innerText = this.isAdmin ? 'Lưu Thay Đổi' : 'Gửi Yêu Cầu';
         
         this.clearDrafts();
@@ -20613,7 +20613,7 @@ app.map = {
     async loadZones() {
         const { data, error } = await window.sb.from('no_photo_zones').select('*');
         if (error) {
-            console.error('Lỗi tải vùng cấm:', error);
+            console.error('Lỗi tải Bản đồ:', error);
             return;
         }
 
@@ -20633,47 +20633,40 @@ app.map = {
                     });
                     
                     poly.zoneData = zone;
-                    poly.bindPopup(this.createPopupContent(zone));
+                    poly.on('click', () => {
+                        this.showZoneInfo(zone);
+                    });
                     this.drawnItems.addLayer(poly);
                 });
             }
         });
     },
     
-    createPopupContent(zone) {
-        const container = document.createElement('div');
-        container.className = 'p-1 min-w-[150px]';
-        
-        const title = document.createElement('h3');
-        title.className = 'font-bold text-sm mb-1 dark:text-white';
-        title.innerText = zone.name;
-        container.appendChild(title);
-        
-        if (zone.description) {
-            const desc = document.createElement('p');
-            desc.className = 'text-xs text-gray-600 dark:text-gray-300 mb-2';
-            desc.innerText = zone.description;
-            container.appendChild(desc);
-        }
+    showZoneInfo(zone) {
+        let msg = `
+            <div class="text-left w-full">
+                <h3 class="font-bold text-lg text-black dark:text-white mb-2">${app.utils.escapeHtml(zone.name)}</h3>
+                <p class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">${app.utils.escapeHtml(zone.description || 'Không có mô tả.')}</p>
+            </div>
+        `;
         
         if (this.isAdmin) {
-            const editBtn = document.createElement('button');
-            editBtn.className = 'bg-black dark:bg-white text-white dark:text-black text-[10px] font-bold py-1.5 px-2 rounded-md hover:opacity-80 w-full mt-2 border border-black dark:border-white';
-            editBtn.innerText = 'Chỉnh sửa vùng này';
-            editBtn.onclick = () => {
-                this.instance.closePopup();
+            app.ui.showAlert(msg, () => {
                 this.editZone(zone);
-            };
-            container.appendChild(editBtn);
-
-            const btn = document.createElement('button');
-            btn.className = 'bg-white dark:bg-[#18181b] text-red-600 dark:text-red-400 text-[10px] font-bold py-1.5 px-2 rounded-md hover:opacity-80 w-full mt-2 border border-black dark:border-white';
-            btn.innerText = 'Xóa toàn bộ vùng này';
-            btn.onclick = () => this.deleteZone(zone.id);
-            container.appendChild(btn);
+            }, () => {
+                this.deleteZone(zone.id);
+            }, {
+                title: "Thông tin Bản đồ",
+                btnOkText: "Chỉnh sửa Bản đồ",
+                btnCancelText: "Xóa Bản đồ",
+                isCancelDestructive: true
+            });
+        } else {
+            app.ui.showAlert(msg, () => {}, null, {
+                title: "Thông tin Bản đồ",
+                btnOkText: "Đóng"
+            });
         }
-        
-        return container;
     },
     
     async saveDrafts() {
@@ -20683,12 +20676,12 @@ app.map = {
         const desc = document.getElementById('map-panel-desc').value.trim();
         
         if (!name) {
-            app.ui.toast('Vui lòng nhập tên khu vực', 'error');
+            app.ui.showAlert('Vui lòng nhập tên khu vực');
             return;
         }
         
         if (this.currentDraftShapes.length === 0) {
-            app.ui.toast('Vui lòng thêm ít nhất một vùng chọn trên bản đồ', 'error');
+            app.ui.showAlert('Vui lòng thêm ít nhất một vùng chọn trên bản đồ');
             return;
         }
         
@@ -20723,9 +20716,9 @@ app.map = {
             
             if (error) {
                 console.error(error);
-                app.ui.showAlert('Lỗi khi lưu vùng cấm.');
+                app.ui.showAlert('Lỗi khi lưu Bản đồ.');
             } else {
-                app.ui.toast(this.editingZoneId ? 'Đã cập nhật vùng cấm thành công' : 'Đã thêm vùng cấm thành công', 'success');
+                app.toast.show('success', 'Thành công', this.editingZoneId ? 'Đã cập nhật Bản đồ thành công' : 'Đã thêm Bản đồ thành công', 3000);
                 this.editingZoneId = null; // Reset before clearing drafts
                 this.clearDrafts();
                 document.getElementById('map-close-panel-btn').click();
@@ -20745,7 +20738,7 @@ app.map = {
                 console.error(error);
                 app.ui.showAlert('Lỗi khi gửi yêu cầu.');
             } else {
-                app.ui.showAlert('Đã gửi yêu cầu thêm vùng cấm. Quản trị viên sẽ xem xét và phê duyệt.');
+                app.ui.showAlert('Đã gửi yêu cầu thêm Bản đồ. Quản trị viên sẽ xem xét và phê duyệt.');
                 this.clearDrafts();
                 document.getElementById('map-close-panel-btn').click();
             }
@@ -20753,17 +20746,17 @@ app.map = {
     },
     
     async deleteZone(id) {
-        app.ui.showAlert('Bạn có chắc chắn muốn xóa toàn bộ các khu vực thuộc vùng cấm này?', async () => {
+        app.ui.showAlert('Bạn có chắc chắn muốn xóa toàn bộ các khu vực thuộc Bản đồ này?', async () => {
             app.loadingBar.start();
             const { error } = await window.sb.from('no_photo_zones').delete().eq('id', id);
             app.loadingBar.finish();
             
             if (error) {
-                app.ui.showAlert('Lỗi khi xóa vùng cấm.');
+                app.ui.showAlert('Lỗi khi xóa Bản đồ.');
             } else {
-                app.ui.toast('Đã xóa vùng cấm', 'success');
+                app.toast.show('success', 'Thành công', 'Đã xóa Bản đồ', 3000);
                 this.loadZones();
             }
-        }, () => {});
+        }, () => {}, { isDestructive: true, btnOkText: "Xóa", btnCancelText: "Hủy" });
     }
 };
