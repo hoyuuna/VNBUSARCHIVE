@@ -225,25 +225,31 @@ app.map = {
                 resultsContainer.innerHTML = '<div class="p-3 text-sm text-gray-500 text-center">Đang tìm kiếm...</div>';
                 resultsContainer.classList.remove('hidden');
                 
-                // Thêm email param để tránh bị Nominatim block do chính sách
-                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=vn&email=nghoanganhtuann@gmail.com`);
+                // Sử dụng API của Photon (Komoot) thay vì Nominatim để tránh lỗi block IP
+                const response = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query + ' vietnam')}&limit=5`);
                 const data = await response.json();
                 
-                if (data && data.length > 0) {
+                if (data && data.features && data.features.length > 0) {
                     resultsContainer.innerHTML = '';
-                    data.forEach(item => {
+                    data.features.forEach(item => {
+                        const props = item.properties;
+                        // Tạo tên hiển thị đẹp hơn
+                        const nameParts = [props.name, props.street, props.city, props.state, props.country].filter(Boolean);
+                        const displayName = [...new Set(nameParts)].join(', '); // Lọc trùng lặp
+                        
                         const div = document.createElement('div');
                         div.className = 'p-3 hover:bg-gray-100 dark:hover:bg-[#27272a] cursor-pointer text-sm border-b border-black dark:border-white last:border-0 dark:text-white transition-colors';
-                        div.innerText = item.display_name;
+                        div.innerText = displayName;
                         div.onclick = () => {
-                            const lat = parseFloat(item.lat);
-                            const lon = parseFloat(item.lon);
+                            // GeoJSON trả về [lon, lat]
+                            const lon = parseFloat(item.geometry.coordinates[0]);
+                            const lat = parseFloat(item.geometry.coordinates[1]);
                             this.instance.setView([lat, lon], 16);
                             resultsContainer.classList.add('hidden');
-                            input.value = item.display_name;
+                            input.value = props.name || displayName;
                             
                             if (this.searchMarker) this.instance.removeLayer(this.searchMarker);
-                            this.searchMarker = L.marker([lat, lon]).addTo(this.instance).bindPopup(item.display_name).openPopup();
+                            this.searchMarker = L.marker([lat, lon]).addTo(this.instance).bindPopup(displayName).openPopup();
                         };
                         resultsContainer.appendChild(div);
                     });
