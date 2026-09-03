@@ -357,7 +357,20 @@ button.bg-black:hover, a.bg-black:hover {
 
 
 
-/* Khôi ph?c n?n tr?ng (polaroid frame) cho ?nh chi ti?t nhu Light Mode */
+/* Container ?nh chi ti?t ? Dark Mode: n?n den, bo sát vi?n tr?ng, không có padding */
 #detail .bg-white.p-1\.5 {
-    background-color: #ffffff !important;
+    background-color: #000000 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
 }
+/* Xóa vi?n footer bên trong d? tránh dè nét v?i vi?n container */
+#detail .bg-gray-50.mt-1\.5 { border: none !important; margin: 0 !important; border-radius: 0 !important; }
+
+
+
+/* Ð?m b?o ?nh không b? vênh góc so v?i container */
+#detail .img-wrapper {
+    border-radius: 0 !important;
+}
+
+
