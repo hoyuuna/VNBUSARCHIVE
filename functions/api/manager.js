@@ -127,9 +127,12 @@ export async function onRequest(context) {
                 ? { banned: true, reason: reason || 'Không có lý do' } 
                 : { banned: false, reason: '' };
                 
-            const { error: banError } = await supabaseAdmin.from('profiles').update({
-                ban_status: banStatus
-            }).eq('id', targetUserId);
+            const updateData = { ban_status: banStatus };
+            if (action === 'ban') {
+                updateData.subroles = [];
+            }
+                
+            const { error: banError } = await supabaseAdmin.from('profiles').update(updateData).eq('id', targetUserId);
             
             if (banError) throw banError;
 
