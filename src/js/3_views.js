@@ -1298,6 +1298,7 @@ Object.assign(window.app, {
                         imgEl.onload = null;
                         imgEl.onerror = null;
                         imgEl.style.opacity = '0';
+                        imgEl.style.pointerEvents = 'none';
                         imgEl.removeAttribute('src'); 
                         const wrapper = imgEl.closest('.img-wrapper');
                         if (wrapper) {

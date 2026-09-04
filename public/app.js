@@ -1102,6 +1102,7 @@ Object.assign(window.app, {
                 },
                 handleImgLoad: (img) => {
                     img.style.opacity = '1';
+                    img.style.pointerEvents = 'auto';
                     const wrapper = img.closest('.img-wrapper');
                     if (wrapper) {
                         const spinner = wrapper.querySelector('.img-spinner');
@@ -1109,6 +1110,7 @@ Object.assign(window.app, {
                     }
                 },
                 handleImgError: (img) => {
+                    img.style.pointerEvents = 'none';
                     const wrapper = img.closest('.img-wrapper');
                     if (wrapper) {
                         const spinner = wrapper.querySelector('.img-spinner');
@@ -7344,6 +7346,7 @@ Object.assign(window.app, {
                         imgEl.onload = null;
                         imgEl.onerror = null;
                         imgEl.style.opacity = '0';
+                        imgEl.style.pointerEvents = 'none';
                         imgEl.removeAttribute('src'); 
                         const wrapper = imgEl.closest('.img-wrapper');
                         if (wrapper) {
