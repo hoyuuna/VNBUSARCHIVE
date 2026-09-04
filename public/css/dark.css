@@ -351,21 +351,16 @@ button.bg-black:hover, a.bg-black:hover {
 
 
 
-/* Tr? l?i c?u tr�c g?c cho chi ti?t ?nh: Container c� vi?n tr?ng, ?nh c� vi?n tr?ng, footer c� vi?n tr?ng */
+/* Trở lại cấu trúc gốc cho chi tiết ảnh: Container có viền trắng, ảnh có viền trắng, footer có viền trắng */
 #detail .img-wrapper {
     border: 1px solid #ffffff !important;
 }
 
-
-
-
- 
- / *   S e l e c t e d   s t a t e   f o r   d r o p d o w n s   i n   D a r k   M o d e   * /  
- . f i l t e r - m e n u   . f i l t e r - i t e m . s e l e c t e d ,   . d r o p d o w n - m e n u   . s e l e c t e d   {  
-         b a c k g r o u n d - c o l o r :   # f f f f f f   ! i m p o r t a n t ;  
-         c o l o r :   # 0 0 0 0 0 0   ! i m p o r t a n t ;  
- }  
- . f i l t e r - m e n u   . f i l t e r - i t e m . s e l e c t e d   * ,   . d r o p d o w n - m e n u   . s e l e c t e d   *   {  
-         c o l o r :   # 0 0 0 0 0 0   ! i m p o r t a n t ;  
- }  
- 
+/* Selected state for dropdowns in Dark Mode */
+.filter-menu .filter-item.selected, .dropdown-menu .selected {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+}
+.filter-menu .filter-item.selected *, .dropdown-menu .selected * {
+    color: #000000 !important;
+}
