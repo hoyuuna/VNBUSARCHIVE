@@ -1894,7 +1894,8 @@ Object.assign(window.app, {
                             }
                             displayNote = displayNote.replace(/^[-,]\s*/, '').trim();
                             const safePlate = app.utils.cleanText(displayPlate);
-                            const safeOp = app.utils.cleanText(h.operator);
+                            let safeOp = app.utils.cleanText(h.operator);
+                            if ((h.route || '').trim() === 'Dừng hoạt động') safeOp = '';
                             const safeRoute = app.utils.cleanText(h.route || '-');
                             const safeNote = app.utils.cleanText(displayNote);
                             const isLatest = idx === parsedHistory.length - 1;
