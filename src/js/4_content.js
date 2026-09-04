@@ -3222,86 +3222,74 @@ Object.assign(window.app, {
                     const prefs = profile.preferences || {};
                     const hasContact = !!prefs.contact_email;
                     
-                    const isBanned = profile.role === 'banned';
+                    let banInfo = null;
+                    if (profile.ban_status) {
+                        try { banInfo = typeof profile.ban_status === 'string' ? JSON.parse(profile.ban_status) : profile.ban_status; } catch(e){}
+                    }
+                    const isBanned = banInfo && (banInfo.banned === true || banInfo.banned === 'true');
                     
-                    let termsHtml = '';
+                    const downloadLogic = async () => {
+                        const origHtml = btn.innerHTML;
+                        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang tải...';
+                        try {
+                            const plateName = app.utils.displayPlate(app.currentPhoto.license_plate) || 'VNBUSARCHIVE';
+                            let proxyUrl = app.utils.getProxiedUrl(app.currentPhoto.url, `${plateName}.jpg`);
+                            const response = await fetch(proxyUrl);
+                            const blob = await response.blob();
+                            const img = new Image();
+                            const objectUrl = window.URL.createObjectURL(blob);
+                            await new Promise((resolve, reject) => {
+                                img.onload = resolve;
+                                img.onerror = reject;
+                                img.src = objectUrl;
+                            });
+                            const canvas = document.createElement('canvas');
+                            canvas.width = img.width;
+                            canvas.height = img.height;
+                            const ctx = canvas.getContext('2d');
+                            ctx.fillStyle = '#FFFFFF';
+                            ctx.fillRect(0, 0, canvas.width, canvas.height);
+                            ctx.drawImage(img, 0, 0);
+                            canvas.toBlob((jpgBlob) => {
+                                const blobUrl = window.URL.createObjectURL(jpgBlob);
+                                const a = document.createElement('a');
+                                a.href = blobUrl;
+                                a.download = plateName + '.jpg';
+                                document.body.appendChild(a);
+                                a.click();
+                                document.body.removeChild(a);
+                                window.URL.revokeObjectURL(blobUrl);
+                                window.URL.revokeObjectURL(objectUrl);
+                            }, 'image/jpeg', 0.95);
+                        } catch (err) {
+                            app.ui.showAlert('Lỗi: Không thể tải hình ảnh từ máy chủ!');
+                        } finally {
+                            btn.innerHTML = origHtml;
+                        }
+                    };
+
                     if (isBanned) {
-                        termsHtml = `
+                        const termsHtml = `
                             <div class="text-left text-sm text-gray-600 space-y-2">
-                                <p>Do tác giả đã bị cấm khỏi nền tảng, bạn tuyệt đối không được phép tải về để chia sẻ công khai, đăng tải lại (re-up) lên mạng xã hội hoặc sử dụng cho bất kỳ mục đích nào khác. Mọi hành vi sử dụng trái phép đều có thể bị khiếu nại bản quyền hoặc xử lý theo quy định.</p>
+                                <p>Do tác giả đã bị cấm khỏi hệ thống, bạn tuyệt đối không được phép tải về để chia sẻ công khai, đăng tải lại (re-up) lên mạng xã hội hoặc sử dụng cho bất kỳ mục đích nào khác. Mọi hành vi sử dụng trái phép đều có thể bị khiếu nại bản quyền hoặc xử lý theo quy định.</p>
                                 <p>Hình ảnh và dữ liệu này chỉ được phép sử dụng cho mục đích tra cứu, học tập và nghiên cứu cá nhân. Nghiêm cấm cào dữ liệu tự động, thương mại hóa, hoặc cắt ghép chỉnh sửa phục vụ mục đích bôi nhọ, xuyên tạc.</p>
                                 <p>Toàn bộ tư liệu chỉ mang tính chất tham khảo, không có giá trị làm bằng chứng pháp lý để xử lý vi phạm.</p>
                             </div>
                         `;
-                    } else if (hasContact) {
-                        termsHtml = `
-                            <div class="text-left text-sm text-gray-600 space-y-2">
-                                <p>Bạn bắt buộc phải chủ động <a href="/user/${profile.id}" onclick="event.preventDefault(); app.ui.closeAlert(false); app.utils.navigate('/user/${profile.id}')" class="font-bold underline hover:text-black">liên hệ</a> và nhận được sự đồng ý bằng văn bản từ tác giả gốc trước khi tái sử dụng ảnh cho bất kỳ mục đích nào. Nếu sử dụng trái phép khi chưa có sự cho phép, tác giả có toàn quyền gửi yêu cầu gỡ bỏ vi phạm bản quyền hoặc thực hiện các biện pháp khiếu nại pháp lý liên quan.</p>
-                                <p>Khi sử dụng lại ảnh từ hệ thống, bạn phải trích dẫn nguồn đầy đủ và rõ ràng. Tuyệt đối không được xóa, che mờ hoặc chỉnh sửa dấu bản quyền gắn trên ảnh.</p>
-                                <p>Dữ liệu và hình ảnh được cung cấp cho mục đích tra cứu, học tập, nghiên cứu cá nhân. Nghiêm cấm mọi hành vi cào dữ liệu tự động quy mô lớn để kinh doanh hoặc thương mại hóa trái phép.</p>
-                                <p>Nghiêm cấm cắt ghép, chỉnh sửa ảnh để lồng ghép vào các nội dung sai sự thật, tin đồn thất thiệt, bôi nhọ hoặc gây ảnh hưởng đến danh dự của nhân viên vận tải.</p>
-                                <p>Bạn chỉ được cấp quyền sử dụng lại theo quy định cộng đồng. Tác giả gốc hoặc VNBUSARCHIVE có toàn quyền khiếu nại bản quyền và yêu cầu gỡ bỏ nếu bạn sử dụng ảnh sai mục đích hoặc vi phạm các điều khoản.</p>
-                                <p>Toàn bộ hình ảnh tải về chỉ mang tính chất tham khảo, không được sử dụng làm bằng chứng pháp lý để xử lý vi phạm.</p>
-                            </div>
-                        `;
+                        app.ui.showAlert(
+                            termsHtml,
+                            downloadLogic,
+                            () => {},
+                            {
+                                title: "Lưu ý bản quyền",
+                                btnOkText: "Đồng ý",
+                                btnCancelText: "Đóng"
+                            }
+                        );
                     } else {
-                        termsHtml = `
-                            <div class="text-left text-sm text-gray-600 space-y-2">
-                                <p>Do tác giả không cung cấp thông tin liên hệ công khai, bạn tuyệt đối <strong>không được phép</strong> tải về để chia sẻ công khai, đăng tải lại (re-up) lên mạng xã hội hoặc sử dụng cho bất kỳ mục đích nào khác khi chưa có văn bản đồng ý từ tác giả gốc. Mọi hành vi sử dụng trái phép đều có thể bị khiếu nại bản quyền hoặc xử lý theo quy định.</p>
-                                <p>Hình ảnh và dữ liệu này chỉ được phép sử dụng cho mục đích tra cứu, học tập và nghiên cứu cá nhân. Nghiêm cấm cào dữ liệu tự động, thương mại hóa, hoặc cắt ghép chỉnh sửa phục vụ mục đích bôi nhọ, xuyên tạc.</p>
-                                <p>Toàn bộ tư liệu chỉ mang tính chất tham khảo, không có giá trị làm bằng chứng pháp lý để xử lý vi phạm.</p>
-                            </div>
-                        `;
+                        downloadLogic();
                     }
 
-                    app.ui.showAlert(
-                        termsHtml,
-                        async () => {
-                            const origHtml = btn.innerHTML;
-                            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang tải...';
-                            try {
-                                const plateName = app.utils.displayPlate(app.currentPhoto.license_plate) || 'VNBUSARCHIVE';
-                                let proxyUrl = app.utils.getProxiedUrl(app.currentPhoto.url, `${plateName}.jpg`);
-                                const response = await fetch(proxyUrl);
-                                const blob = await response.blob();
-                                const img = new Image();
-                                const objectUrl = window.URL.createObjectURL(blob);
-                                await new Promise((resolve, reject) => {
-                                    img.onload = resolve;
-                                    img.onerror = reject;
-                                    img.src = objectUrl;
-                                });
-                                const canvas = document.createElement('canvas');
-                                canvas.width = img.width;
-                                canvas.height = img.height;
-                                const ctx = canvas.getContext('2d');
-                                ctx.fillStyle = '#FFFFFF';
-                                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                                ctx.drawImage(img, 0, 0);
-                                canvas.toBlob((jpgBlob) => {
-                                    const blobUrl = window.URL.createObjectURL(jpgBlob);
-                                    const a = document.createElement('a');
-                                    a.href = blobUrl;
-                                    a.download = plateName + '.jpg';
-                                    document.body.appendChild(a);
-                                    a.click();
-                                    document.body.removeChild(a);
-                                    window.URL.revokeObjectURL(blobUrl);
-                                    window.URL.revokeObjectURL(objectUrl);
-                                }, 'image/jpeg', 0.95);
-                            } catch (err) {
-                                app.ui.showAlert('Lỗi: Không thể tải hình ảnh từ máy chủ!');
-                            } finally {
-                                btn.innerHTML = origHtml;
-                            }
-                        },
-                        () => {},
-                        {
-                            title: "Lưu ý bản quyền",
-                            btnOkText: "Đồng ý",
-                            btnCancelText: "Đóng"
-                        }
-                    );
                 },
                 requestDelete: async () => {
                     if (!app.user || !app.currentPhoto) return;
