@@ -23,16 +23,7 @@ try {
         
         // Generate version string (Force UTC+7)
         const pad = (n) => String(n).padStart(2, '0');
-        const now = new Date();
-        const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-        const gmt7 = new Date(utc + (3600000 * 7));
-        const versionStr = `${String(gmt7.getFullYear()).slice(-2)}.${pad(gmt7.getMonth()+1)}.${pad(gmt7.getDate())}.${pad(gmt7.getHours())}.${pad(gmt7.getMinutes())}.${pad(gmt7.getSeconds())}`;
-        
-        const versionJsonPath = path.join(__dirname, 'version.json');
-        fs.writeFileSync(versionJsonPath, JSON.stringify({ version: versionStr }));
-        console.log(`Đã tạo version.json với phiên bản: ${versionStr}`);
-        
-        let combinedJs = `window.APP_VERSION = "${versionStr}";\n`;
+        let combinedJs = ``;
         jsFiles.forEach(file => {
             const filePath = path.join(jsDir, file);
             if (fs.existsSync(filePath)) {
