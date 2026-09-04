@@ -1123,7 +1123,7 @@ Object.assign(window.app, {
                         const btn = document.getElementById(`btn-wm-mode-${m}`);
                         if (btn) {
                             if (m === mode) {
-                                btn.className = 'relative z-20 px-2 py-2 rounded-lg text-xs font-bold transition-colors duration-200 text-white';
+                                btn.className = 'relative z-20 px-2 py-2 rounded-lg text-xs font-bold transition-colors duration-200 text-white dark:text-black';
                             } else {
                                 btn.className = 'relative z-20 px-2 py-2 rounded-lg text-xs font-bold transition-colors duration-200 text-gray-600 hover:text-black';
                             }

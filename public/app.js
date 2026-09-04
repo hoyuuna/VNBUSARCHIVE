@@ -1,4 +1,4 @@
-window.APP_VERSION = "26.09.03.22.48.12";
+window.APP_VERSION = "26.09.04.11.11.03";
 
 /* --- MODULE: 1_init.js --- */
 window.app = window.app || {};
@@ -201,12 +201,12 @@ Object.assign(window.app, {
                     toast.innerHTML = `
                         <div class="relative w-8 h-8 flex justify-center items-center shrink-0">
                             <svg class="w-full h-full transform -rotate-90 absolute inset-0" viewBox="0 0 120 120">
-                                <circle cx="60" cy="60" r="54" fill="none" stroke="#e4e4e7" stroke-width="12" />
-                                <circle id="${toastId}-circle" class="transition-all duration-300 ease-out" cx="60" cy="60" r="54" fill="none" stroke="#000" stroke-width="12" stroke-dasharray="339.29" stroke-dashoffset="339.29" stroke-linecap="round" />
+                                <circle class="stroke-gray-200 dark:stroke-gray-700" cx="60" cy="60" r="54" fill="none" stroke-width="12" />
+                                <circle id="${toastId}-circle" class="transition-all duration-300 ease-out stroke-black dark:stroke-white" cx="60" cy="60" r="54" fill="none" stroke-width="12" stroke-dasharray="339.29" stroke-dashoffset="339.29" stroke-linecap="round" />
                             </svg>
                             <div class="absolute inset-0 z-10 flex justify-center items-center pointer-events-none">
                                 <div class="w-[14px] h-[14px] overflow-hidden flex justify-center items-center mask-y-fade">
-                                    <i class="fa-solid fa-up-long text-[13px] text-gray-800 upload-arrow-anim text-center"></i>
+                                    <i class="fa-solid fa-up-long text-[13px] text-gray-800 dark:text-white upload-arrow-anim text-center"></i>
                                 </div>
                             </div>
                         </div>
@@ -12952,7 +12952,7 @@ Object.assign(window.app, {
                         const btn = document.getElementById(`btn-wm-mode-${m}`);
                         if (btn) {
                             if (m === mode) {
-                                btn.className = 'relative z-20 px-2 py-2 rounded-lg text-xs font-bold transition-colors duration-200 text-white';
+                                btn.className = 'relative z-20 px-2 py-2 rounded-lg text-xs font-bold transition-colors duration-200 text-white dark:text-black';
                             } else {
                                 btn.className = 'relative z-20 px-2 py-2 rounded-lg text-xs font-bold transition-colors duration-200 text-gray-600 hover:text-black';
                             }
