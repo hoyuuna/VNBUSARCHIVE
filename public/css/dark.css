@@ -364,3 +364,9 @@ button.bg-black:hover, a.bg-black:hover {
 .filter-menu .filter-item.selected *, .dropdown-menu .selected * {
     color: #000000 !important;
 }
+
+/* Badges in Dark Mode */
+.badge-vvcc, .badge-dev {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+}

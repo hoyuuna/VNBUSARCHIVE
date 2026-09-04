@@ -2395,18 +2395,18 @@ cleanupState: () => {
                             const innerHtml = `<i class="fa-solid fa-check text-[9px]" style="line-height: 15px; display: block;"></i>`;
                             const styleStr = `background-color: black; color: white; padding: 0; width: 15px; height: 15px; border-radius: 50%; justify-content: center; align-items: center;${enableClick ? ' cursor: pointer;' : ''}`;
                             if (enableClick) {
-                                html += `<span class="badge-shiny" style="${styleStr}" onclick="app.ui.showVerifiedPopup('vvcc', '${link ? app.utils.escapeHtml(link) : ''}')" title="Verified Content Creator">${innerHtml}</span>`;
+                                html += `<span class="badge-shiny badge-vvcc" style="${styleStr}" onclick="app.ui.showVerifiedPopup('vvcc', '${link ? app.utils.escapeHtml(link) : ''}')" title="Verified Content Creator">${innerHtml}</span>`;
                             } else {
-                                html += `<span class="badge-shiny" style="${styleStr}" title="Verified Content Creator">${innerHtml}</span>`;
+                                html += `<span class="badge-shiny badge-vvcc" style="${styleStr}" title="Verified Content Creator">${innerHtml}</span>`;
                             }
                         }
                         if (subroles.includes('dev')) {
                             const innerHtml = `<i class="fa-solid fa-code text-[9px]" style="line-height: 15px; display: block;"></i>`;
                             const styleStr = `background-color: black; color: white; padding: 0; width: 15px; height: 15px; border-radius: 50%; justify-content: center; align-items: center;${enableClick ? ' cursor: pointer;' : ''}`;
                             if (enableClick) {
-                                html += `<span class="badge-shiny" style="${styleStr}" onclick="app.ui.showVerifiedPopup('dev', '')" title="VNBUSARCHIVE Code Contributor">${innerHtml}</span>`;
+                                html += `<span class="badge-shiny badge-dev" style="${styleStr}" onclick="app.ui.showVerifiedPopup('dev', '')" title="VNBUSARCHIVE Code Contributor">${innerHtml}</span>`;
                             } else {
-                                html += `<span class="badge-shiny" style="${styleStr}" title="VNBUSARCHIVE Code Contributor">${innerHtml}</span>`;
+                                html += `<span class="badge-shiny badge-dev" style="${styleStr}" title="VNBUSARCHIVE Code Contributor">${innerHtml}</span>`;
                             }
                         }
                         const vvbsRole = subroles.find(s => s === 'vvbs');
