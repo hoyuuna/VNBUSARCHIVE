@@ -176,7 +176,7 @@ input:focus, textarea:focus, select:focus {
 #newsboard-content .bg-white\/30, #newsboard-content .bg-gray-50\/30, #settings-content .bg-white\/30, #settings-content .bg-gray-50\/30 { background-color: #000000 !important; }
 
 /* Trạng thái Active trong bảng tin / Cài đặt -> Trắng chữ đen */
-#set-menu-main button.bg-black, #set-menu-docs button.bg-black, #set-menu-account button.bg-black {
+#newsboard-toc .bg-black, #set-menu-main button.bg-black, #set-menu-docs button.bg-black, #set-menu-account button.bg-black {
     background-color: #ffffff !important; color: #000000 !important; border-color: #ffffff !important;
 }
 
@@ -254,7 +254,7 @@ polygon[fill="white"] { fill: #000000 !important; }
 }
 
 /* Fix active preferences option notes text color */
-.pref-option.bg-black *, #set-menu-main button.bg-black *, #set-menu-docs button.bg-black *, #set-menu-account button.bg-black * {
+.pref-option.bg-black *, #newsboard-toc .bg-black *, #set-menu-main button.bg-black *, #set-menu-docs button.bg-black *, #set-menu-account button.bg-black * {
     color: #000000 !important;
 }
 /* Dark Mode Inline Alerts (Soft Backgrounds, Tinted Borders, Pastel Text/Icons) */
