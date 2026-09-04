@@ -11,14 +11,21 @@ try {
     if (fs.existsSync(corePath)) {
         let content = fs.readFileSync(corePath, 'utf8');
         
-        // Đọc tất cả các file JS theo thứ tự (rất quan trọng)
         const jsFiles = [
-            '1_init.js',
-            '2_auth.js',
-            '3_views.js',
-            '4_content.js',
-            '5_admin.js',
-            '6_map.js'
+            '00_core.js',
+            '01_router.js',
+            '02_settings.js',
+            '03_auth.js',
+            'page_feed.js',
+            'page_search.js',
+            'page_leaderboard.js',
+            'page_help.js',
+            'page_reference.js',
+            'page_upload.js',
+            'page_photo.js',
+            'page_vehicle.js',
+            'page_admin.js',
+            'page_map.js'
         ];
         
         // Generate version string (Force UTC+7)

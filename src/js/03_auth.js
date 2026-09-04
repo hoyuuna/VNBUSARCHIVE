@@ -1,6 +1,6 @@
-window.app = window.app || {};
+// Extracted to 03_auth.js
 Object.assign(window.app, {
-  auth: {
+    auth: {
                 mode: 'login',
                 uuidTimeout: null,
                 unverifiedEmail: null,
@@ -594,19 +594,15 @@ changePassword: async () => {
                         uuidInput.select();
                     });
                 }
-            }
-});
-Object.assign(window.app, {
-  user: null
-});
-Object.assign(window.app, {
-  username: 'Guest'
-});
-Object.assign(window.app, {
-  role: 'user'
-});
-Object.assign(window.app, {
-  captcha: {
+            },
+
+    user: null,
+
+    username: 'Guest',
+
+    role: 'user',
+
+    captcha: {
                 widgetId: null,
                 resolvePromise: null,
                 rejectPromise: null,
@@ -716,10 +712,9 @@ Object.assign(window.app, {
                         app.captcha.rejectPromise = null;
                     }
                 }
-            }
-});
-Object.assign(window.app, {
-  qrLogin: {
+            },
+
+    qrLogin: {
             peer: null,
             conn: null,
             timer: null,
@@ -926,10 +921,9 @@ Object.assign(window.app, {
                 document.getElementById('qr-login-confirm-modal').classList.add('hidden');
                 app.ui.unlockScroll();
             }
-        }
-});
-Object.assign(window.app, {
-  profileIntro: {
+        },
+
+    profileIntro: {
                 previewedPhoto: null,
                 openPhotoSelector: async () => {
                     const modal = document.getElementById('fav-photo-modal');
@@ -1072,10 +1066,9 @@ Object.assign(window.app, {
                         }
                     }, null, { title: "Xác nhận gỡ ảnh", btnOkText: "Gỡ ảnh", btnCancelText: "Hủy bỏ" });
                 }
-            }
-});
-Object.assign(window.app, {
-  onboarding: {
+            },
+
+    onboarding: {
                 currentStep: 1,
                 isOpen: false,
                 check: () => {

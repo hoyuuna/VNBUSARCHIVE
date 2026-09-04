@@ -1,6 +1,6 @@
-window.app = window.app || {};
+// Extracted to page_admin.js
 Object.assign(window.app, {
-  admin: {
+    admin: {
                 adminInterval: null,
                 commentsData: { data: [], page: 1 },
                 is3x3Enabled: localStorage.getItem('vbs_admin_grid_3x3') === 'true',
@@ -3801,10 +3801,9 @@ app.admin.fetchManagerData('denied');
                         }
                     });
                 }
-            }
-});
-Object.assign(window.app, {
-  achievement: {
+            },
+
+    achievement: {
                 open: async () => {
                     const modal = document.getElementById('achievement-modal');
                     const content = document.getElementById('achievement-content');

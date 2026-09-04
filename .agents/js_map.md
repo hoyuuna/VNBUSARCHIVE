@@ -3,27 +3,22 @@
 Currently, all Javascript code for the project has been modularized and restructured for easier maintenance. Below is a detailed map of the location and function of each file:
 
 ## 1. Directory `src/js/` (Core Frontend Source)
-This directory stores the 5 core JS files of the Frontend. When running the Build command, these 5 files will be bundled in the correct order.
+This directory stores the modular JS files of the Frontend. When running the Build command, these files will be bundled in the correct order.
 
-*   **`1_init.js`**
-    *   **Role:** Initializes the global `window.app` variable, contains utility functions (`app.utils`), notifications (`app.toast`, `app.loadingBar`), maintenance mode (`app.maintenance`), and routing logic.
-    *   **Purpose:** The basic skeleton and foundation of the system.
-
-*   **`2_auth.js`**
-    *   **Role:** Handles user authentication (`app.auth`), login, logout, profile fetching (`app.user`), Avatar updates, and Captcha/QR Code verification.
-    *   **Purpose:** The security gateway for users.
-
-*   **`3_views.js`**
-    *   **Role:** Manages the UI display (`app.views`), loads images onto the main feed, handles the advanced search system (`app.search`), and displays lists of operators and models.
-    *   **Purpose:** Renders content to the Frontend (Calls the `/api/recommendations` API to fetch suggestions).
-
-*   **`4_content.js`**
-    *   **Role:** The main area for the upload feature (`app.upload`), handles cropping/compressing original images using Cropper.js, editing photo information, comments (`app.comments`), and tracking vehicle detail changes (`app.vehicle`).
-    *   **Purpose:** Processes user input data.
-
-*   **`5_admin.js`**
-    *   **Role:** A dedicated dashboard for Admins/Managers (`app.admin`). Handles approving/denying/reporting photos, managing edit requests, and calculating Leaderboard statistics.
-    *   **Purpose:** The sensitive operations area (Calls the `/api/admin/action` API to safely modify the Database).
+*   **`00_core.js`**: Initializes the global `window.app` variable, contains utility functions, ui logic, database init, global variables, event listeners, etc.
+*   **`01_router.js`**: Contains the router init logic (`app.init`).
+*   **`02_settings.js`**: Settings, docs, notifications.
+*   **`03_auth.js`**: Handles user authentication (`app.auth`), login, logout, profile fetching, and QR Login.
+*   **`page_feed.js`**: Manages the UI display of the feed (`app.views`).
+*   **`page_search.js`**: Handles the advanced search system (`app.search`).
+*   **`page_leaderboard.js`**: Leaderboard and top uploaders.
+*   **`page_help.js`**: Newsboard, help, contact, active announcements.
+*   **`page_reference.js`**: Operator, model, route view components.
+*   **`page_upload.js`**: The upload feature, cropping/compressing images, preference.
+*   **`page_photo.js`**: Photo details, comments, and edit features.
+*   **`page_vehicle.js`**: Vehicle details logic.
+*   **`page_admin.js`**: Dashboard for Admins/Managers (`app.admin`) and achievements.
+*   **`page_map.js`**: Contains logic for rendering and interacting with maps (`app.map`).
 
 ---
 
@@ -43,5 +38,5 @@ Contains APIs running on Cloudflare Pages' Serverless environment. Responsible f
 ---
 
 ## 3. Build files in the Root Directory
-*   **`build-core.js`**: A NodeJS script. Run `node build-core.js` to read the 5 files in `src/js/`, bundle them into the `<!-- INJECT_JS -->` tag of `_core.html`, then Base64 encode it and overwrite `functions/api/_core.js`.
-*   **`_core.html`**: The original webpage template before Base64 encoding. Contains CSS and HTML structure. Does NOT contain JS logic (JS has been split out into `src/js/`).
+*   **`build-core.js`**: A NodeJS script. Run `node build-core.js` to read the files in `src/js/`, bundle them, and generate `public/app.js` and `public/index.html`.
+*   **`_core.html`**: The original webpage template. Contains CSS and HTML structure. Does NOT contain JS logic (JS has been split out into `src/js/`).

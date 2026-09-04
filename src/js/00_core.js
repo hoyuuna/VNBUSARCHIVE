@@ -17,8 +17,173 @@ window.addEventListener('error', function(event) {
         }
     }
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    const header = document.querySelector('header');
+    if (!header) return;
+    if (!header.classList.contains('transition-transform')) {
+        header.classList.add('transition-transform', 'duration-300');
+    }
+    let lastScrollY = window.scrollY;
+    let lastScrollDirection = 'up';
+    let isHoveringHeaderArea = false;
+    const threshold = 200; 
+    const checkHeaderState = () => {
+        const currentScrollY = window.scrollY;
+        const isSearchFocused = document.activeElement && document.activeElement.id === 'search-input';
+        const userMenu = document.getElementById('user-dropdown');
+        const isUserMenuOpen = userMenu && userMenu.classList.contains('opacity-100');
+        const filterMenu = document.getElementById('search-filter-menu');
+        const isFilterMenuOpen = filterMenu && filterMenu.classList.contains('active');
+        const searchSuggestions = document.getElementById('main-search-suggestions');
+        const isSuggestionsOpen = searchSuggestions && searchSuggestions.classList.contains('active');
+        if (isSearchFocused || isUserMenuOpen || isFilterMenuOpen || isSuggestionsOpen || isHoveringHeaderArea) {
+            header.style.transform = 'translateY(0)';
+            return;
+        }
+        if (currentScrollY > threshold) {
+            if (lastScrollDirection === 'down') {
+                header.style.transform = 'translateY(-100%)';
+            } else {
+                header.style.transform = 'translateY(0)';
+            }
+        } else {
+            header.style.transform = 'translateY(0)';
+        }
+    };
+    let scrollTicking = false;
+    window.addEventListener('scroll', () => {
+        const currentScrollY = window.scrollY;
+        if (currentScrollY > lastScrollY) {
+            lastScrollDirection = 'down';
+        } else if (currentScrollY < lastScrollY) {
+            lastScrollDirection = 'up';
+        }
+        lastScrollY = currentScrollY;
+        if (!scrollTicking) {
+            window.requestAnimationFrame(() => {
+                checkHeaderState();
+                scrollTicking = false;
+            });
+            scrollTicking = true;
+        }
+    }, { passive: true });
+    document.addEventListener('click', () => {
+        setTimeout(checkHeaderState, 50);
+    });
+    document.addEventListener('focusout', () => {
+        setTimeout(checkHeaderState, 50);
+    });
+    document.addEventListener('mousemove', (e) => {
+        const wasHovering = isHoveringHeaderArea;
+        if (e.clientY <= 90) {
+            isHoveringHeaderArea = true;
+        } else {
+            isHoveringHeaderArea = false;
+        }
+        if (wasHovering !== isHoveringHeaderArea) {
+            checkHeaderState();
+        }
+    });
+    document.addEventListener('mouseleave', () => {
+        if (isHoveringHeaderArea) {
+            isHoveringHeaderArea = false;
+            checkHeaderState();
+        }
+    });
+});
+
 Object.assign(window.app, {
-  db: {
+    db: {
       init: () => {
           return new Promise((resolve, reject) => {
               const request = indexedDB.open('vnbus_draft_db', 1);
@@ -69,7 +234,8 @@ Object.assign(window.app, {
           } catch (e) { console.warn("Lỗi xóa ảnh draft", e); }
       }
   },
-  toast: {
+
+    toast: {
                 currentOfflineToast: null,
                 show: (type, title, message, duration = 10000, onClickAction = null) => {
                     const container = document.getElementById('toast-container');
@@ -253,10 +419,9 @@ Object.assign(window.app, {
                         }
                     };
                 }
-            }
-});
-Object.assign(window.app, {
-  loadingBar: {
+            },
+
+    loadingBar: {
                 interval: null,
                 timeout1: null,
                 timeout2: null,
@@ -295,10 +460,9 @@ Object.assign(window.app, {
                         }, 250);
                     }, 250);
                 }
-            }
-});
-Object.assign(window.app, {
-  ui: {
+            },
+
+    ui: {
                 alertInterval: null,
                 showAlert: (msg, okCallback = null, cancelCallback = null, options = {}) => {
                     const cleanMsg = (msg || '').toLowerCase();
@@ -812,10 +976,9 @@ closeCustomRolePrompt: () => {
                     }
                 },
                 closeUserDropdown: () => app.ui.toggleUserMenu(false)
-            }
-});
-Object.assign(window.app, {
-  maintenance: {
+            },
+
+    maintenance: {
                 settings: {},
                 timer: null,
                 isBypassed: false,
@@ -886,10 +1049,9 @@ Object.assign(window.app, {
                     app.maintenance.hideScreen();
                     app.handleRoute(); 
                 }
-            }
-});
-Object.assign(window.app, {
-  utils: {
+            },
+
+    utils: {
                 isValidUsername: (name) => {
                     return /^[\p{L}0-9 ]+$/u.test(name) && name.length >= 3 && name.length <= 20;
                 },
@@ -2449,606 +2611,11 @@ cleanupState: () => {
                      const targetUTC = new Date(target.getTime() - (3600000 * 7));
                      return targetUTC.toISOString();
                  }
-             }
-});
-Object.assign(window.app, {
-  init: async () => {
-        window.onpopstate = () => app.handleRoute();
-        if (!window._spaClickListenerRegistered) {
-            window._spaClickListenerRegistered = true;
-            document.body.addEventListener('click', e => {
-                const a = e.target.closest('a');
-                if (a && a.getAttribute('href') && a.getAttribute('href').startsWith('/') && !a.getAttribute('target')) {
-                    e.preventDefault();
-                    app.utils.navigate(a.getAttribute('href'));
-                }
-            });
-        }
-            let session = null;
-            try {
-                const { data } = await window.sb.auth.getSession();
-                session = data.session;
-                if (session && session.access_token) {
-                    fetch('/api/system', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
-                        body: JSON.stringify({ action: 'log_ip' })
-                    }).catch(()=>{});
-                }
-                if (session && session.user && !session.user.email_confirmed_at) {
-                    document.getElementById('loading-screen').style.display = 'none';
-                    if(document.getElementById('app-container')) document.getElementById('app-container').style.display = 'none';
-                    app.auth.showVerificationModal(session.user.email);
-                    return;
-                }
-                setTimeout(() => {
-                    document.getElementById('loading-screen').style.display = 'none';
-                    const appContainer = document.getElementById('app-container');
-                    appContainer.style.display = 'block';
-                    setTimeout(() => {
-                        appContainer.style.opacity = '1';
-                        if (!localStorage.getItem('vnbus_donate_toast_shown')) {
-                            localStorage.setItem('vnbus_donate_toast_shown', 'true');
-                            setTimeout(() => {
-                                app.toast.show('heart', 'Website phi lợi nhuận', 'Không quảng cáo, không nguồn thu - VNBA duy trì bằng sự ủng hộ của các bạn. Nhấn vào đây để chia sẻ website nhé!', 0, async () => {
-                                    const shareText = 'Web lưu trữ hình ảnh xe buýt/khách Việt Nam phi lợi nhuận https://www.vnbusarchive.io.vn';
-                                    if (navigator.share) {
-                                        try { await navigator.share({ text: shareText }); } catch (err) {}
-                                    } else {
-                                        try {
-                                            await navigator.clipboard.writeText(shareText);
-                                            app.toast.show('success', 'Đã copy', 'Thiết bị không hỗ trợ chia sẻ, đã copy nội dung!');
-                                        } catch (e) {}
-                                    }
-                                });
-                            }, 1000);
-                        }
-                    }, 50);
-                }, 400);
-                // Check if there is an error from OAuth linking
-                if (window.location.hash.includes('error_description=')) {
-                    const params = new URLSearchParams(window.location.hash.substring(1));
-                    const errorDesc = params.get('error_description');
-                    if (errorDesc && errorDesc.includes('already linked')) {
-                        setTimeout(() => {
-                            app.ui.showAlert("Tài khoản này đã được liên kết với một người dùng khác. Vui lòng sử dụng tài khoản khác.");
-                            window.history.replaceState(null, null, window.location.pathname);
-                        }, 500);
-                    }
-                }
+             },
 
-                await app.setUser(session ? session.user : null);
-                window.sb.auth.onAuthStateChange(async (event, session) => {
-                        if (event === 'PASSWORD_RECOVERY') {
-    if (window.location.hash.includes('type=recovery')) {
-        app.auth.mode = 'recovery';
-        if (window.location.pathname !== '/auth') {
-            app.utils.navigate('/auth');
-        } else {
-            app.views.switch('auth', false);
-        }
-        setTimeout(() => {
-            window.dispatchEvent(new CustomEvent('set-auth-mode', { detail: 'recovery' }));
-        }, 100);
-    }
-    return;
-}
-                        else if (event === 'USER_UPDATED') {
-                            const hash = window.location.hash;
-                            if (hash && hash.includes('type=email_change')) {
-                                setTimeout(() => {
-                                    app.ui.showAlert("Xác nhận đổi địa chỉ Email thành công!");
-                                    window.history.replaceState(null, null, window.location.pathname);
-                                }, 500);
-                            }
-                        }
-                        else if (event === 'SIGNED_IN') {
-                            const hash = window.location.hash;
-                            if (hash && hash.includes('type=signup')) {
-                                setTimeout(() => {
-                                    app.ui.showAlert("Xác thực Email thành công! Chào mừng bạn đến với hệ thống.");
-                                    window.history.replaceState(null, null, window.location.pathname);
-                                }, 500);
-                            }
-                        }
-                    });
-                } catch (e) {
-                    document.getElementById('loading-screen').style.display = 'none';
-                    const appContainer = document.getElementById('app-container');
-                    if(appContainer) {
-                        appContainer.style.display = 'block';
-                        appContainer.style.opacity = '1';
-                    }
-                    await app.setUser(null);
-                }
-                let offlineTimer = null;
-                window.addEventListener('offline', () => {
-                    offlineTimer = setTimeout(() => {
-                        document.body.classList.add('is-offline');
-                        if (app.toast.currentOfflineToast) app.toast.currentOfflineToast(); 
-                        app.toast.currentOfflineToast = app.toast.show('offline', 'Mất kết nối Internet', 'Bạn đang ngoại tuyến. Dữ liệu sẽ không thể đồng bộ.', 0);
-                    }, 3000);
-                });
-                window.addEventListener('online', () => {
-                    if (offlineTimer) clearTimeout(offlineTimer);
-                    document.body.classList.remove('is-offline');
-                    if (app.toast.currentOfflineToast) {
-                        app.toast.currentOfflineToast(); 
-                        app.toast.currentOfflineToast = null;
-                        app.toast.show('success', 'Đã khôi phục kết nối', 'Mạng Internet đã hoạt động trở lại.', 5000);
-                    }
-                });
-                window.addEventListener('beforeunload', (e) => {
-                    if (app.currentViewMode === 'upload') {
-                        app.upload.saveDraft();
-                    }
-                    if (app.upload && app.upload.isQueueProcessing) {
-                        e.preventDefault();
-                        e.returnValue = ''; 
-                    }
-                });
-                app.scrollPositions = {};
-                app.currentPathForScroll = window.location.pathname + window.location.search;
-                app._isUserScrolling = false;
-                let _scrollTimer = null;
-                window.addEventListener('scroll', () => {
-                    app.scrollPositions[app.currentPathForScroll] = window.scrollY;
-                    app._isUserScrolling = true;
-                    if (_scrollTimer) clearTimeout(_scrollTimer);
-                    _scrollTimer = setTimeout(() => { app._isUserScrolling = false; }, 400);
-                }, { passive: true });
-                app.lastSearchQuery = '';
-                app.lastSearchFilter = '';
-                app.lastLoadedUsername = '';
-                app.utils.updateBreadcrumbs();
-                await app.utils.loadProvinceData();
-                app.search.initExactRouteMenu();
-                await app.maintenance.fetch();
-                app.preference.load();
-                app.onboarding.check();
-                app.handleRoute();
-                const upFileEl = document.getElementById('up-file');
-                if (upFileEl) upFileEl.addEventListener('change', app.upload.handleFileSelect);
-                const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-                const webrtcFileEl = document.getElementById('webrtc-mobile-file');
-                const formatHintEl = document.getElementById('upload-format-hint');
-                if (!isMobileDevice) {
-                    const pcAccept = "image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif,.nef,.cr2,.cr3,.arw,.dng,.orf,.rw2,.pef,.raf,.srw,.raw";
-                    if (upFileEl) upFileEl.accept = pcAccept;
-                    if (webrtcFileEl) webrtcFileEl.accept = pcAccept;
-                    if (formatHintEl) formatHintEl.innerText = "ĐỊNH DẠNG JPG, PNG, HEIC, RAW (TỐI ĐA 30MB)";
-                } else {
-                    const mobileAccept = "image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif";
-                    if (upFileEl) upFileEl.accept = mobileAccept;
-                    if (webrtcFileEl) webrtcFileEl.accept = mobileAccept;
-                    if (formatHintEl) formatHintEl.innerText = "ĐỊNH DẠNG JPG, PNG, HEIC (RAW CHỈ TRÊN PC)";
-                }
-                const dropZone = document.getElementById('drop-zone');
-                if (dropZone) {
-                    let dragCounter = 0;
-                    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                        window.addEventListener(eventName, e => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                        }, false);
-                    });
-                    window.addEventListener('dragenter', (e) => {
-                        const uploadView = document.getElementById('upload');
-                        if (!uploadView || !uploadView.classList.contains('active')) return;
-                        const fileInput = document.getElementById('up-file');
-                        if (fileInput && fileInput.disabled) return;
-                        dragCounter++;
-                        if (dragCounter === 1) {
-                            dropZone.style.backgroundColor = '#eff6ff';
-                            dropZone.style.borderColor = '#3b82f6';
-                            dropZone.style.color = '#1e40af';
-                            dropZone.style.transform = 'scale(1.03)';
-                            dropZone.style.boxShadow = '0 25px 50px -12px rgba(59, 130, 246, 0.3)';
-                            dropZone.style.transition = 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-                            const icon = dropZone.querySelector('i');
-                            const iconContainer = dropZone.querySelector('.w-16');
-                            if (icon) {
-                                icon.classList.add('animate-bounce');
-                                icon.style.color = '#000000'; 
-                            }
-                            if (iconContainer) {
-                                iconContainer.style.backgroundColor = '#ffffff'; 
-                                iconContainer.style.border = 'none';            
-                                iconContainer.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)'; 
-                            }
-                        }
-                    });
-                    const resetDropZoneUI = () => {
-                        dropZone.style.backgroundColor = '';
-                        dropZone.style.borderColor = '';
-                        dropZone.style.color = '';
-                        dropZone.style.transform = '';
-                        dropZone.style.boxShadow = '';
-                        const icon = dropZone.querySelector('i');
-                        const iconContainer = dropZone.querySelector('.w-16');
-                        if (icon) {
-                            icon.classList.remove('animate-bounce');
-                            icon.style.color = '';
-                        }
-                        if (iconContainer) {
-                            iconContainer.style.backgroundColor = '';
-                            iconContainer.style.border = '';
-                            iconContainer.style.boxShadow = '';
-                        }
-                    };
-                    window.addEventListener('dragleave', (e) => {
-                        dragCounter--;
-                        if (dragCounter <= 0) {
-                            dragCounter = 0;
-                            resetDropZoneUI();
-                        }
-                    });
-                    window.addEventListener('drop', (e) => {
-                        dragCounter = 0;
-                        resetDropZoneUI();
-                        const uploadView = document.getElementById('upload');
-                        if (uploadView && uploadView.classList.contains('active')) {
-                            const fileInput = document.getElementById('up-file');
-                            if (fileInput && fileInput.disabled) return;
-                            const dt = e.dataTransfer;
-                            if (dt.files && dt.files.length > 0) {
-                                fileInput.files = dt.files;
-                                app.upload.handleFileSelect({ target: fileInput });
-                            }
-                        }
-                    });
-                }
-                app.upload.initDraggable();
-                document.getElementById('upload-form').addEventListener('submit', app.upload.submit);
-                document.getElementById('inline-edit-form').addEventListener('submit', app.edit.submitInline);
-                document.getElementById('up-plate').addEventListener('blur', app.upload.checkDuplicateRealtime);
-                document.getElementById('up-date').addEventListener('change', app.upload.checkDuplicateRealtime);
-                app.upload.initValidation();
-                const fieldMap = {
-                    'info-plate': 'plate',
-                    'info-operator': 'operator',
-                    'info-route': 'route',
-                    'info-camera': 'camera'
-                };
-                Object.keys(fieldMap).forEach(id => {
-                    const el = document.getElementById(id);
-                    if(!el) return;
-                    el.addEventListener('click', function () {
-                        if (this.readOnly && this.value && this.value !== '---' && this.value !== 'N/A') {
-                            if (id === 'info-plate') {
-                                app.utils.navigate(`/vehicle/${encodeURIComponent(this.value)}`);
-                            }
-                            else if (id === 'info-operator') {
-                                app.utils.navigate(`/operator/${encodeURIComponent(this.value)}`);
-                            }
-                            else if (id === 'info-route') {
-                                const typeVal = document.getElementById('info-type')?.value;
-                                const specialRoutes = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động'];
-                                // Gộp chung điều kiện Xe khách (coach) và Các tuyến đặc biệt
-                                if (typeVal === 'coach' || specialRoutes.includes(this.value.trim())) {
-                                    app.searchRedirect(this.value, fieldMap[id]);
-                                } else {
-                                    let provName = '';
-                                    if (el.dataset.borrowed) {
-                                        provName = el.dataset.borrowed.split(' - ')[1];
-                                    } else {
-                                        const plateValue = document.getElementById('info-plate')?.value;
-                                        if (plateValue) provName = app.utils.getProvinceFromPlate(plateValue);
-                                    }
-                                    if (provName && provName !== 'Không xác định' && provName !== 'Biển tạm') {
-                                        app.utils.navigate(`/route/${encodeURIComponent(provName)}/${encodeURIComponent(this.value)}`);
-                                    } else {
-                                        app.utils.navigate(`/route/${encodeURIComponent(this.value)}`);
-                                    }
-                                }
-                            }
-                            else {
-                                app.searchRedirect(this.value, fieldMap[id]);
-                            }
-                        }
-                    });
-                });
-                const elInfoModel = document.getElementById('info-model');
-                if (elInfoModel) {
-                    elInfoModel.addEventListener('click', function() {
-                        if (this.readOnly && this.value && this.value !== '---' && this.value !== 'N/A') {
-                            app.utils.navigate(`/model/${encodeURIComponent(this.value)}`);
-                        }
-                    });
-                }
-                const clearSearchInput = (inputEl, sugId) => {
-                    inputEl.value = '';
-                    document.getElementById(sugId).classList.remove('active');
-                    app.search.triggerMainSuggestion('', inputEl.id, sugId);
-                };
-                document.getElementById('search-input').addEventListener('keydown', function (e) {
-                    if (e.key === 'Enter') { document.getElementById('main-search-suggestions').classList.remove('active'); app.handleSearch(true, 'search-input'); }
-                    if (e.key === 'Escape') clearSearchInput(e.target, 'main-search-suggestions');
-                });
-                document.getElementById('search-input').addEventListener('input', app.utils.debounce(function (e) {
-                    const val = e.target.value;
-                    const pageInp = document.getElementById('page-search-input');
-                    if (pageInp && document.activeElement === e.target) pageInp.value = val;
-                    app.search.triggerMainSuggestion(val.trim(), 'search-input', 'main-search-suggestions');
-                }, 300));
-                document.getElementById('search-input').addEventListener('focus', function (e) {
-                    app.search.triggerMainSuggestion(e.target.value.trim(), 'search-input', 'main-search-suggestions');
-                });
-                const pageSearchInput = document.getElementById('page-search-input');
-                if (pageSearchInput) {
-                    pageSearchInput.addEventListener('keydown', function (e) {
-                        if (e.key === 'Enter') { document.getElementById('page-search-suggestions').classList.remove('active'); app.handleSearch(true, 'page-search-input'); }
-                        if (e.key === 'Escape') clearSearchInput(e.target, 'page-search-suggestions');
-                    });
-                    pageSearchInput.addEventListener('input', app.utils.debounce(function (e) {
-                        const val = e.target.value;
-                        const headerInp = document.getElementById('search-input');
-                        if (headerInp && document.activeElement === e.target) headerInp.value = val;
-                        app.search.triggerMainSuggestion(val.trim(), 'page-search-input', 'page-search-suggestions');
-                    }, 300));
-                    pageSearchInput.addEventListener('focus', function (e) {
-                        app.search.triggerMainSuggestion(e.target.value.trim(), 'page-search-input', 'page-search-suggestions');
-                    });
-                }
-                document.getElementById('up-location').addEventListener('input', function () {
-                    clearTimeout(app.searchTimeout);
-                    app.searchTimeout = setTimeout(() => {
-                        app.utils.geocodeAddress(this.value);
-                    }, 1000);
-                });
-                document.addEventListener('click', function (e) {
-                    document.querySelectorAll('.filter-menu').forEach(menu => {
-                        const btn = menu.previousElementSibling;
-                        if (!menu.contains(e.target) && btn && !btn.contains(e.target)) {
-                            menu.classList.remove('active');
-                        }
-                    });
-                    document.querySelectorAll('.suggestion-box').forEach(box => {
-                        if (!box.contains(e.target) && !box.previousElementSibling.contains(e.target)) {
-                            box.classList.remove('active');
-                        }
-                    });
-                    const advSugBox = document.getElementById('adv-filter-suggestions');
-                    const advInputContainer = document.getElementById('adv-filter-value-container');
-                    if (advSugBox && advInputContainer && !advSugBox.contains(e.target) && !advInputContainer.contains(e.target)) {
-                        advSugBox.classList.remove('active');
-                    }
-                    const userMenuDropdown = document.getElementById('user-dropdown');
-                    const userMenuContainer = document.getElementById('user-menu-container');
-                    if (userMenuDropdown && userMenuContainer && !userMenuDropdown.contains(e.target) && !userMenuContainer.contains(e.target)) {
-                        app.ui.toggleUserMenu(false);
-                    }
-                });
+    isRealtimeConnected: true,
 
-                app.utils.loadAnnouncements();
-                app.utils.fetchTopUploaders();
-                app.initRealtimeChannel = () => {
-                    if (app.realtimeChannel) {
-                    window.sb.removeChannel(app.realtimeChannel);
-                }
-                let channel = window.sb.channel('global-changes')
-                    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'photos', filter: 'status=eq.approved' }, payload => {
-                        if (app.currentViewMode === 'home') {
-                            const now = Date.now();
-                            if (app._lastHomeRealtimeReload && now - app._lastHomeRealtimeReload < 30000) return;
-                            if (app._isUserScrolling) return;
-                            app._lastHomeRealtimeReload = now;
-                            app.views.loadHome(true);
-                        }
-                    });
-                if (app.role === 'admin' || app.role === 'manager') {
-                    channel = channel.on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'admin_notes' }, payload => {
-                        if (payload.new && payload.new.id === 1) {
-                            const noteEl = document.getElementById('adm-board-note');
-                            if (noteEl && document.activeElement !== noteEl) {
-                                noteEl.value = payload.new.content || '';
-                            }
-                        }
-                    })
-                    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'admin_notes' }, payload => {
-                        if (payload.new && payload.new.id === 1) {
-                            const noteEl = document.getElementById('adm-board-note');
-                            if (noteEl && document.activeElement !== noteEl) {
-                                noteEl.value = payload.new.content || '';
-                            }
-                        }
-                    });
-                }
-                channel = channel.on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'photos' }, payload => {
-                        if (app.currentPhoto && app.currentPhoto.id === payload.new.id) {
-                            const viewEl = document.getElementById('stat-views');
-                            if (viewEl) viewEl.innerText = payload.new.views || 0;
-                        }
-                        if (payload.new && payload.new.status !== 'pending') {
-                            const cardEl = document.getElementById(`adm-photo-card-${payload.new.id}`);
-                            if (cardEl) {
-                                if (document.activeElement && cardEl.contains(document.activeElement)) {
-                                    document.activeElement.blur();
-                                }
-                                cardEl.style.transition = 'all 0.35s ease';
-                                cardEl.style.opacity = '0';
-                                cardEl.style.transform = 'scale(0.92)';
-                                cardEl.style.maxHeight = '0px';
-                                cardEl.style.margin = '0px';
-                                cardEl.style.padding = '0px';
-                                cardEl.style.overflow = 'hidden';
-                                setTimeout(() => {
-                                    cardEl.remove();
-                                    const content = document.getElementById('admin-content');
-                                    if (content && content.querySelectorAll('.admin-card').length === 0 && app.adminTab === 'photos') {
-                                        content.innerHTML = '<p class="p-4">Không có ảnh nào chờ duyệt.</p>';
-                                    }
-                                }, 350);
-                                if (app.admin && app.admin.refreshCounts) app.admin.refreshCounts();
-                            }
-                        }
-                    })
-                    .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'photos' }, payload => {
-                        const cardEl = document.getElementById(`adm-photo-card-${payload.old?.id}`);
-                        if (cardEl) {
-                            if (document.activeElement && cardEl.contains(document.activeElement)) {
-                                document.activeElement.blur();
-                            }
-                            cardEl.style.transition = 'all 0.35s ease';
-                            cardEl.style.opacity = '0';
-                            cardEl.style.transform = 'scale(0.92)';
-                            cardEl.style.maxHeight = '0px';
-                            cardEl.style.margin = '0px';
-                            cardEl.style.padding = '0px';
-                            cardEl.style.overflow = 'hidden';
-                            setTimeout(() => {
-                                cardEl.remove();
-                                const content = document.getElementById('admin-content');
-                                if (content && content.querySelectorAll('.admin-card').length === 0 && app.adminTab === 'photos') {
-                                    content.innerHTML = '<p class="p-4">Không có ảnh nào chờ duyệt.</p>';
-                                }
-                            }, 350);
-                            if (app.admin && app.admin.refreshCounts) app.admin.refreshCounts();
-                        }
-                    });
-                if (app.role === 'admin' || app.role === 'manager') {
-                    channel = channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'photos', filter: 'status=eq.pending' }, async payload => {
-                        if (app.adminTab === 'photos' && (app.role === 'admin' || app.role === 'manager') && payload.new && payload.new.id) {
-                            try {
-                                const { data: newPhoto } = await window.sb.from('photos').select('*, profiles(username, role), vehicles(model)').eq('id', payload.new.id).maybeSingle();
-                                if (newPhoto && !document.getElementById(`adm-photo-card-${newPhoto.id}`)) {
-                                    await app.utils.resolveSandboxUrls([newPhoto]);
-                                    const content = document.getElementById('admin-content');
-                                    if (content && app.admin && app.admin.renderSinglePhotoCardHTML) {
-                                        const noDataMsg = content.querySelector('p');
-                                        if (noDataMsg && noDataMsg.innerText.includes('Không có ảnh nào')) {
-                                            content.innerHTML = '';
-                                        }
-                                        let plateSet = app.admin?.approvedPlateSet || new Set();
-                                        let opSet = app.admin?.approvedOpSet || new Set();
-                                        let routeSet = app.admin?.approvedRouteSet || new Set();
-                                        let modelSet = app.admin?.approvedModelSet || new Set();
-                                        const plateKey = (newPhoto.license_plate || '').trim().toUpperCase();
-                                        if (plateKey && !plateSet.has(plateKey)) {
-                                            const { data: vData } = await window.sb.from('vehicles').select('license_plate').eq('license_plate', plateKey).limit(1);
-                                            const { data: pData } = await window.sb.from('photos').select('license_plate').eq('status', 'approved').eq('license_plate', plateKey).limit(1);
-                                            if ((vData && vData.length > 0) || (pData && pData.length > 0)) plateSet.add(plateKey);
-                                        }
-                                        const opKey = app.utils.cleanText(newPhoto.operator || '').trim().toLowerCase();
-                                        if (opKey && opKey !== '---' && !opSet.has(opKey)) {
-                                            const { data: oData } = await window.sb.from('operator_info').select('operator_name').ilike('operator_name', opKey).limit(1);
-                                            const { data: pData } = await window.sb.from('photos').select('operator').eq('status', 'approved').ilike('operator', opKey).limit(1);
-                                            if ((oData && oData.length > 0) || (pData && pData.length > 0)) opSet.add(opKey);
-                                        }
-                                        const routeKey = app.utils.cleanText(newPhoto.route_no || '').trim().toLowerCase();
-                                        if (routeKey && routeKey !== '---' && !routeSet.has(routeKey)) {
-                                            const stripped = routeKey.replace(/^tuyến\s+/i, '').trim();
-                                            const variants = [...new Set([routeKey, stripped, 'tuyến ' + stripped])];
-                                            if (/^\d+$/.test(stripped)) {
-                                                const num = String(parseInt(stripped, 10));
-                                                const pad = stripped.padStart(2, '0');
-                                                variants.push(num, pad, 'tuyến ' + num, 'tuyến ' + pad);
-                                            }
-                                            const { data: pData } = await window.sb.from('photos').select('route_no').eq('status', 'approved').in('route_no', variants).limit(1);
-                                            if (pData && pData.length > 0) {
-                                                variants.forEach(v => routeSet.add(v.toLowerCase()));
-                                            }
-                                        }
-                                        const modelKey = app.utils.cleanText(newPhoto.vehicles?.model || '').trim().toLowerCase();
-                                        if (modelKey && modelKey !== '---' && !modelSet.has(modelKey)) {
-                                            const { data: vData } = await window.sb.from('vehicles').select('model').ilike('model', modelKey).limit(1);
-                                            const { data: pData } = await window.sb.from('photos').select('vehicles!inner(model)').eq('status', 'approved').ilike('vehicles.model', modelKey).limit(1);
-                                            if ((vData && vData.length > 0) || (pData && pData.length > 0)) modelSet.add(modelKey);
-                                        }
-                                        const tempDiv = document.createElement('div');
-                                        tempDiv.innerHTML = app.admin.renderSinglePhotoCardHTML(newPhoto, plateSet, opSet, routeSet, modelSet);
-                                        const newCard = tempDiv.firstElementChild;
-                                        if (newCard) {
-                                            newCard.style.opacity = '0';
-                                            newCard.style.transform = 'translateY(-15px)';
-                                            newCard.style.transition = 'all 0.4s ease';
-                                            const isNewPrivileged = (newPhoto.profiles?.role === 'admin' || newPhoto.profiles?.role === 'manager');
-                                            const newId = Number(newPhoto.id) || 0;
-                                            const existingCards = Array.from(content.querySelectorAll('.admin-card'));
-                                            let insertBeforeTarget = null;
-                                            for (const card of existingCards) {
-                                                const isCardPrivileged = card.getAttribute('data-privileged') === 'true';
-                                                const cardId = Number(card.getAttribute('data-photo-id')) || 0;
-                                                if (isNewPrivileged) {
-                                                    if (!isCardPrivileged || cardId > newId) {
-                                                        insertBeforeTarget = card;
-                                                        break;
-                                                    }
-                                                } else {
-                                                    if (!isCardPrivileged && cardId > newId) {
-                                                        insertBeforeTarget = card;
-                                                        break;
-                                                    }
-                                                }
-                                            }
-                                            if (insertBeforeTarget) {
-                                                content.insertBefore(newCard, insertBeforeTarget);
-                                            } else {
-                                                content.appendChild(newCard);
-                                            }
-                                            requestAnimationFrame(() => {
-                                                newCard.style.opacity = '1';
-                                                newCard.style.transform = 'translateY(0)';
-                                            });
-                                        }
-                                    }
-                                    if (app.admin && app.admin.refreshCounts) app.admin.refreshCounts();
-                                }
-                            } catch (err) {
-                                console.error('Realtime insert photo error:', err);
-                            }
-                        }
-                    });
-                }
-                channel = channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'vehicles' }, payload => {
-                        const upPlate = document.getElementById('up-plate');
-                        if (document.getElementById('upload').classList.contains('active') && upPlate && upPlate.value) {
-                            if (upPlate.value.replace(/[^A-Z0-9]/gi, '').toUpperCase() === payload.new.license_plate) {
-                                app.upload.checkPlate(upPlate.value);
-                            }
-                        }
-                    })
-                    .subscribe((status, err) => {
-                        if (status === 'SUBSCRIBED') {
-                            console.log('🔌 Connected to Realtime');
-                            app.setRealtimeStatus(true);
-                        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
-                            console.error('🔌 Realtime Error:', err);
-                            app.setRealtimeStatus(false);
-                        }
-                    });
-                app.realtimeChannel = channel;
-                };
-                app.initRealtimeChannel();
-                
-                window.addEventListener('visibilitychange', () => {
-                    if (document.visibilityState === 'visible') {
-                        if (!app.isReinitializing) {
-                            app.reinitializeComponents();
-                        }
-                        const state = (app.realtimeChannel?.state || '').toLowerCase();
-                        if (state !== 'joined' && state !== 'joining') {
-                            console.log('🔄 Tab visible: Reconnecting Realtime...');
-                            app.setRealtimeStatus(false);
-                            if (typeof app.initRealtimeChannel === 'function') app.initRealtimeChannel();
-                        }
-                    }
-                });
-                window.addEventListener('offline', () => app.setRealtimeStatus(false));
-                window.addEventListener('online', () => {
-                    const state = (app.realtimeChannel?.state || '').toLowerCase();
-                    if (app.realtimeChannel && state !== 'joined' && state !== 'joining') {
-                        app.setRealtimeStatus(false);
-                        if (typeof app.initRealtimeChannel === 'function') app.initRealtimeChannel();
-                    } else {
-                        app.setRealtimeStatus(true);
-                    }
-                });
-            }
-});
-Object.assign(window.app, {
-  isRealtimeConnected: true,
-  setRealtimeStatus: (isConnected) => {
+    setRealtimeStatus: (isConnected) => {
       app.isRealtimeConnected = isConnected;
       const banner = document.getElementById('admin-realtime-warning');
       const adminContent = document.getElementById('admin-content');
@@ -3072,7 +2639,8 @@ Object.assign(window.app, {
           }
       }
   },
-  handleRoute: () => {
+
+    handleRoute: () => {
                 app.loadingBar.start(); 
                 app.utils.cleanupState();
                 if (app.utils && app.utils.updateCanonical) app.utils.updateCanonical();
@@ -3222,100 +2790,69 @@ Object.assign(window.app, {
                 setTimeout(() => {
                     app.loadingBar.finish();
                 }, 150);
-            }
-});
-Object.assign(window.app, {
-  previousPath: '/'
-});
-Object.assign(window.app, {
-  rawFile: null
-});
-Object.assign(window.app, {
-  wmState: { x: 0.5, y: 0.5, color: 'white', scale: 1.0, mode: (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_mode')) || 'basic' }
-});
-Object.assign(window.app, {
-  vehicleLocked: false
-});
-Object.assign(window.app, {
-  currentPlate: null
-});
-Object.assign(window.app, {
-  currentPhoto: null
-});
-Object.assign(window.app, {
-  currentVehicle: null
-});
-Object.assign(window.app, {
-  adminTab: 'photos'
-});
-Object.assign(window.app, {
-  loadedCount: 0
-});
-Object.assign(window.app, {
-  uploadMap: null
-});
-Object.assign(window.app, {
-  uploadMarker: null
-});
-Object.assign(window.app, {
-  detailMap: null
-});
-Object.assign(window.app, {
-  detailMarker: null
-});
-Object.assign(window.app, {
-  currentExif: { camera: 'N/A', params: 'N/A' }
-});
-Object.assign(window.app, {
-  searchTimeout: null
-});
-Object.assign(window.app, {
-  currentFilter: 'all'
-});
-Object.assign(window.app, {
-  alertCallback: null
-});
-Object.assign(window.app, {
-  alertCancelCallback: null
-});
-Object.assign(window.app, {
-  isReinitializing: false
-});
-Object.assign(window.app, {
-  draggableInitialized: false
-});
-Object.assign(window.app, {
-  suggestionTimeouts: {}
-});
-Object.assign(window.app, {
-  suggestionControllers: {}
-});
-Object.assign(window.app, {
-  currentSearchResults: []
-});
-Object.assign(window.app, {
-  currentSearchCards: []
-});
-Object.assign(window.app, {
-  loadedSearchCardsCount: 0
-});
-Object.assign(window.app, {
-  PROFILE_PAGE_SIZE: 12
-});
-Object.assign(window.app, {
-  profilePage: 1
-});
-Object.assign(window.app, {
-  likedPage: 1
-});
-Object.assign(window.app, {
-  currentProfileId: null
-});
-Object.assign(window.app, {
-  _isOwnProfile: false
-});
-Object.assign(window.app, {
-  reinitializeComponents: async () => {
+            },
+
+    previousPath: '/',
+
+    rawFile: null,
+
+    wmState: { x: 0.5, y: 0.5, color: 'white', scale: 1.0, mode: (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_mode')) || 'basic' },
+
+    vehicleLocked: false,
+
+    currentPlate: null,
+
+    currentPhoto: null,
+
+    currentVehicle: null,
+
+    adminTab: 'photos',
+
+    loadedCount: 0,
+
+    uploadMap: null,
+
+    uploadMarker: null,
+
+    detailMap: null,
+
+    detailMarker: null,
+
+    currentExif: { camera: 'N/A', params: 'N/A' },
+
+    searchTimeout: null,
+
+    currentFilter: 'all',
+
+    alertCallback: null,
+
+    alertCancelCallback: null,
+
+    isReinitializing: false,
+
+    draggableInitialized: false,
+
+    suggestionTimeouts: {},
+
+    suggestionControllers: {},
+
+    currentSearchResults: [],
+
+    currentSearchCards: [],
+
+    loadedSearchCardsCount: 0,
+
+    PROFILE_PAGE_SIZE: 12,
+
+    profilePage: 1,
+
+    likedPage: 1,
+
+    currentProfileId: null,
+
+    _isOwnProfile: false,
+
+    reinitializeComponents: async () => {
                 if (app.isReinitializing) return;
                 app.isReinitializing = true;
                 try {
@@ -3348,599 +2885,15 @@ Object.assign(window.app, {
                 } finally {
                     app.isReinitializing = false;
                 }
-            }
-});
-Object.assign(window.app, {
-  searchRedirect: (query, filterType = 'all', prefix = '') => {
+            },
+
+    searchRedirect: (query, filterType = 'all', prefix = '') => {
                 let url = `/search?q=${encodeURIComponent(query)}&filter=${filterType}`;
                 if (prefix) url += `&prefix=${encodeURIComponent(prefix)}`;
                 app.utils.navigate(url);
-            }
-});
-Object.assign(window.app, {
-  notifications: { init: ()=>{}, add: async ()=>{} }
-});
-Object.assign(window.app, {
-  settings: {
-                search: (query, inputId = 'set-search-input-main', sugId = 'set-search-sug-main') => {
-                    const box = document.getElementById(sugId);
-                    if (!query.trim()) {
-                        box.classList.remove('active');
-                        return;
-                    }
-                    const keywords = [
-                        { text: "Tùy chỉnh hồ sơ", tab: "profile", parent: "account", icon: "fa-user-pen" },
-                        { text: "Avatar", tab: "profile", parent: "account", icon: "fa-user-pen" },
-                        { text: "Đổi tên", tab: "profile", parent: "account", icon: "fa-user-pen" },
-                        { text: "Bảo mật", tab: "security", parent: "account", icon: "fa-shield-halved" },
-                        { text: "Mật khẩu", tab: "security", parent: "account", icon: "fa-shield-halved" },
-                        { text: "Email", tab: "security", parent: "account", icon: "fa-shield-halved" },
-                        { text: "Mã định danh (UUID)", tab: "security", parent: "account", icon: "fa-shield-halved" },
-                        { text: "Liên kết tài khoản", tab: "links", parent: "account", icon: "fa-link" },
-                        { text: "Google", tab: "links", parent: "account", icon: "fa-link" },
-                        { text: "Discord", tab: "links", parent: "account", icon: "fa-link" },
-                        { text: "Danh hiệu", tab: "badges", parent: "main", icon: "fa-medal" },
-                        { text: "Role", tab: "badges", parent: "main", icon: "fa-discord" },
-                        { text: "Cá nhân hóa", tab: "preference", parent: "main", icon: "fa-layer-group" },
-                        { text: "Xe buýt", tab: "preference", parent: "main", icon: "fa-layer-group" },
-                        { text: "Xe khách", tab: "preference", parent: "main", icon: "fa-layer-group" },
-                        { text: "Gợi ý thông minh", tab: "preference", parent: "main", icon: "fa-layer-group" },
-                        { text: "Cài đặt thông báo", tab: "notifications", parent: "account", icon: "fa-bell" },
-                        { text: "Bật tắt thông báo", tab: "notifications", parent: "account", icon: "fa-bell" },
-                        { text: "Tài liệu", tab: "docs-intro", parent: "docs", icon: "fa-markdown" },
-                        { text: "Giới thiệu hệ thống", tab: "docs-intro", parent: "docs", icon: "fa-markdown" },
-                        { text: "Quy định", tab: "docs-requirements", parent: "docs", icon: "fa-list-check" },
-                        { text: "Kiểm duyệt", tab: "docs-requirements", parent: "docs", icon: "fa-list-check" },
-                        { text: "Chính sách bảo mật", tab: "docs-policy", parent: "docs", icon: "fa-shield" },
-                        { text: "Tiêu chuẩn bình luận", tab: "docs-chatrule", parent: "docs", icon: "fa-comments" },
-                        { text: "Quy tắc bình luận", tab: "docs-chatrule", parent: "docs", icon: "fa-comments" },
-                        { text: "Chat rule", tab: "docs-chatrule", parent: "docs", icon: "fa-comments" }
-                    ];
-                    const lowerQ = app.utils.cleanText(query.toLowerCase());
-                    const words = lowerQ.split(/\s+/);
-                    const results = keywords.filter(k => {
-                        const target = k.text.toLowerCase();
-                        return words.every(w => target.includes(w));
-                    });
-                    if (results.length > 0) {
-                        box.innerHTML = results.map(r => `
-                            <div class="suggestion-item border-b border-gray-100 last:border-0 flex items-center gap-3 py-3"
-                                 onmousedown="event.preventDefault(); app.settings.jumpTo('${r.tab}', '${r.parent}'); document.getElementById('${inputId}').value=''; document.getElementById('${sugId}').classList.remove('active');">
-                                <div class="w-8 h-8 rounded bg-gray-100 flex items-center justify-center text-gray-500 shrink-0"><i class="${r.icon.includes('discord') ? 'fa-brands' : 'fa-solid'} ${r.icon}"></i></div>
-                                <div class="text-[13px] text-black font-medium leading-snug">${r.text}</div>
-                            </div>
-                        `).join('');
-                        box.classList.add('active');
-                    } else {
-                        box.innerHTML = `<div class="p-4 text-xs text-gray-500 text-center"><i class="fa-solid fa-magnifying-glass mr-1"></i> Không tìm thấy cài đặt nào phù hợp.</div>`;
-                        box.classList.add('active');
-                    }
-                },
-                jumpTo: (tab, parent) => {
-                    app.settings.closeDocsMenu(true);
-                    app.settings.closeAccountMenu(true);
-                    app.settings.closeAccountMenu(true);
-                    if (parent === 'account') app.settings.openAccountMenu();
-                    if (parent === 'docs') app.settings.openDocsMenu();
-                    app.settings.switchTab(tab);
-                },
-                openAccountMenu: () => {
-                    const main = document.getElementById('set-menu-main');
-                    const acc = document.getElementById('set-menu-account');
-                    main.classList.add('hidden');
-                    main.classList.remove('flex');
-                    acc.classList.remove('hidden');
-                    acc.classList.add('flex', 'slide-left-enter');
-                    acc.classList.remove('slide-right-enter');
-                },
-                closeAccountMenu: (instant = false) => {
-                    const main = document.getElementById('set-menu-main');
-                    const acc = document.getElementById('set-menu-account');
-                    if (instant) {
-                        acc.classList.add('hidden');
-                        acc.classList.remove('flex', 'slide-left-enter', 'slide-right-enter');
-                        main.classList.remove('hidden', 'slide-left-enter', 'slide-right-enter');
-                        main.classList.add('flex');
-                    } else {
-                        acc.classList.add('hidden');
-                        acc.classList.remove('flex');
-                        main.classList.remove('hidden');
-                        main.classList.add('flex', 'slide-right-enter');
-                        main.classList.remove('slide-left-enter');
-                    }
-                },
-                open: async (targetTab = null, targetParent = null) => {
-                    const modal = document.getElementById('settings-modal');
-                    const content = document.getElementById('settings-content');
-                    app.ui.toggleUserMenu(false);
-                    app.settings.closeDocsMenu(true);
-                    app.settings.closeAccountMenu(true);
-                    if (targetParent === 'account') app.settings.openAccountMenu();
-                    else if (targetParent === 'docs') app.settings.openDocsMenu();
-                    if (app.user) {
-                        document.querySelectorAll('.account-only-btn').forEach(el => el.style.display = '');
-                        if (app.user.email) {
-                            const currentEmailEl = document.getElementById('set-current-email');
-                            if (currentEmailEl) currentEmailEl.innerText = app.user.email;
-                        }
-                        app.settings.switchTab(targetTab || 'blank');
-                        app.settings.loadIdentities();
-                        const avatarImg = document.getElementById('set-avatar-img');
-                        try {
-                            const { data: profile } = await window.sb.from('profiles').select('avatar_url, preferences').eq('id', app.user.id).single();
-                            if (profile && profile.avatar_url) {
-                                const safeUrl = profile.avatar_url.replace(/"/g, '');
-                                avatarImg.src = app.utils.getProxiedUrl(safeUrl, 'avatar.jpg', 'avatar');
-                            } else {
-                                avatarImg.src = DEFAULT_AVATAR;
-                            }
-                            const contactInput = document.getElementById('set-contact-email');
-                            if (contactInput) {
-                                contactInput.value = (profile && profile.preferences && profile.preferences.contact_email) ? profile.preferences.contact_email : '';
-                            }
-                        } catch (e) {
-                            avatarImg.src = app.user.user_metadata?.avatar_url ? app.utils.getProxiedUrl(app.user.user_metadata.avatar_url, 'avatar.jpg', 'avatar') : DEFAULT_AVATAR;
-                        }
-                        avatarImg.onerror = () => { avatarImg.src = DEFAULT_AVATAR; };
-                    } else {
-                        document.querySelectorAll('.account-only-btn').forEach(el => el.style.display = 'none');
-                        app.settings.switchTab(targetTab || 'blank');
-                        app.preference.updateUI();
-                    }
-                    modal.classList.remove('hidden');
-                    app.ui.lockScroll();
-                    setTimeout(() => {
-                        content.classList.remove('opacity-0', 'scale-95');
-                        content.classList.add('opacity-100', 'scale-100');
-                    }, 10);
-                },
-                close: () => {
-                    const modal = document.getElementById('settings-modal');
-                    const content = document.getElementById('settings-content');
-                    content.classList.remove('opacity-100', 'scale-100');
-                    content.classList.add('opacity-0', 'scale-95');
-                    setTimeout(() => {
-                        modal.classList.add('hidden');
-                        app.ui.unlockScroll();
-                    }, 200);
-                },
-                openDocsMenu: () => {
-                    const main = document.getElementById('set-menu-main');
-                    const docs = document.getElementById('set-menu-docs');
-                    main.classList.add('hidden');
-                    main.classList.remove('flex');
-                    docs.classList.remove('hidden');
-                    docs.classList.add('flex', 'slide-left-enter');
-                    docs.classList.remove('slide-right-enter');
-                },
-                closeDocsMenu: (instant = false) => {
-                    const main = document.getElementById('set-menu-main');
-                    const docs = document.getElementById('set-menu-docs');
-                    if (instant) {
-                        docs.classList.add('hidden');
-                        docs.classList.remove('flex', 'slide-left-enter', 'slide-right-enter');
-                        main.classList.remove('hidden', 'slide-left-enter', 'slide-right-enter');
-                        main.classList.add('flex');
-                    } else {
-                        docs.classList.add('hidden');
-                        docs.classList.remove('flex');
-                        main.classList.remove('hidden');
-                        main.classList.add('flex', 'slide-right-enter');
-                        main.classList.remove('slide-left-enter');
-                    }
-                },
-                switchTab: (tab) => {
-                    const tabs = ['blank', 'profile', 'security', 'links', 'badges', 'preference', 'docs-intro', 'docs-requirements', 'docs-policy', 'docs-chatrule'];
-                    const activeClasses = ['bg-black', 'text-white', 'border-black', 'shadow-sm'];
-                    const inactiveClasses = ['bg-white', 'text-gray-600', 'hover:bg-gray-50', 'border-gray-200'];
-                    tabs.forEach(t => {
-                        const btn = document.getElementById('set-tab-' + t);
-                        const content = document.getElementById('set-content-' + t);
-                        if(!btn || !content) return;
-                        if(t === tab) {
-                            btn.classList.remove(...inactiveClasses);
-                            btn.classList.add(...activeClasses);
-                            content.classList.remove('hidden');
-                            content.classList.add('block');
-                            if (t.startsWith('docs-')) {
-                                app.docs.fetchContent(t);
-                            } else if (t === 'X') {
-                            } else if (t === 'preference') {
-                                app.preference.tempSelection = app.preference.current || 'both';
-                                app.preference.updateUI();
-                            }
-                        } else {
-                            btn.classList.remove(...activeClasses);
-                            btn.classList.add(...inactiveClasses);
-                            content.classList.add('hidden');
-                            content.classList.remove('block');
-                        }
-                    });
-                    if (tab === 'links') {
-                        app.settings.loadIdentities();
-                        if (app.settings.loadDiscordVerifyStatus) app.settings.loadDiscordVerifyStatus();
-                    }
-                    if (tab === 'badges') {
-                        app.settings.loadBadges();
-                        app.settings.loadWebBadges();
-                    }
-                },
-                loadDiscordVerifyStatus: async () => {
-                    const actionBtn = document.getElementById('discord-verify-action');
-                    if (!actionBtn) return;
-                    actionBtn.innerHTML = `<button disabled class="px-4 py-2 bg-gray-200 text-gray-400 text-xs font-bold rounded cursor-not-allowed border border-gray-300 whitespace-nowrap"><i class="fa-solid fa-spinner fa-spin"></i></button>`;
-                    try {
-                        const { data: { session } } = await window.sb.auth.getSession();
-                        if (!session) return;
-                        const { count } = await window.sb.from('photos').select('*', { count: 'estimated', head: true }).eq('uploader_id', app.user.id).eq('status', 'approved');
-                        const res = await fetch('/api/discord', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
-                            body: JSON.stringify({ action: 'status' })
-                        });
-                        const data = await res.json();
-                        if (!data.linked) {
-                            actionBtn.innerHTML = `<button onclick="app.settings.jumpTo('badges', 'main')" class="px-4 py-2 bg-black text-white text-xs font-bold rounded hover:bg-gray-800 transition shadow-sm border border-black whitespace-nowrap">Liên kết Discord</button>`;
-                            return;
-                        }
-                        if (!data.inServer) {
-                            actionBtn.innerHTML = `<a href="https://discord.com/invite/BNWyqbuvwq" target="_blank" class="px-4 py-2 bg-[#5865F2] text-white text-xs font-bold rounded hover:bg-[#4752C4] transition shadow-sm border border-[#5865F2] whitespace-nowrap inline-block text-center">Tham gia Server</a>`;
-                            return;
-                        }
-                        const isClaimed = data.claimedRoles && data.claimedRoles.includes('1519296926477058203');
-                        const isEligible = (count || 0) >= 1;
-                        if (isClaimed) {
-                            actionBtn.innerHTML = `<button disabled class="px-4 py-2 bg-gray-100 text-gray-400 text-xs font-bold rounded cursor-not-allowed border border-gray-200 whitespace-nowrap"><i class="fa-solid fa-check mr-1"></i> Đã xác minh</button>`;
-                        } else if (isEligible) {
-                            actionBtn.innerHTML = `<button id="btn-claim-discord-1" onclick="app.settings.claimDiscordVerify()" class="px-4 py-2 bg-black text-white text-xs font-bold rounded hover:bg-gray-800 transition shadow-sm border border-black whitespace-nowrap">Xác minh ngay</button>`;
-                        } else {
-                            actionBtn.innerHTML = `<button disabled class="px-4 py-2 bg-gray-50 text-gray-400 text-xs font-bold rounded cursor-not-allowed border border-gray-200 whitespace-nowrap"><i class="fa-solid fa-lock mr-1"></i> Chưa đủ đ/k</button>`;
-                        }
-                    } catch (err) {
-                        actionBtn.innerHTML = `<p class="text-xs text-red-500">Lỗi: ${err.message}</p>`;
-                    }
-                },
-                claimDiscordVerify: async () => {
-                    const btn = document.getElementById('btn-claim-discord-1');
-                    if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
-                    try {
-                        const { data: { session } } = await window.sb.auth.getSession();
-                        const res = await fetch('/api/discord', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
-                            body: JSON.stringify({ action: 'claim', tier: 1 })
-                        });
-                        const data = await res.json();
-                        if (res.ok) {
-                            app.ui.showAlert(data.message || 'Xác minh Discord thành công!');
-                            app.settings.loadDiscordVerifyStatus();
-                        } else {
-                            app.ui.showAlert(data.error || 'Lỗi xác minh.');
-                            app.settings.loadDiscordVerifyStatus();
-                        }
-                    } catch (err) {
-                        app.ui.showAlert('Lỗi: ' + err.message);
-                        app.settings.loadDiscordVerifyStatus();
-                    }
-                },
-                loadIdentities: async () => {
-                    const container = document.getElementById('linked-accounts-container');
-                    if(!app.user) return;
-                    try {
-                        const { data: { user }, error } = await window.sb.auth.getUser();
-                        if (error || !user) throw error;
-                        const identities = user.identities || [];
-                        const providers = identities.map(id => id.provider);
-                        const renderProvider = (name, iconClass, colorClass, providerKey) => {
-                            const isLinked = providers.includes(providerKey);
-                            const identity = identities.find(id => id.provider === providerKey);
-                            const identityId = identity ? identity.identity_id : null;
-                            return `
-                            <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 border border-gray-200 rounded-md bg-gray-50 gap-3">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-8 h-8 rounded-full ${colorClass} text-white flex items-center justify-center text-lg shadow-sm shrink-0">
-                                        <i class="${iconClass}"></i>
-                                    </div>
-                                    <div>
-                                        <p class="font-bold text-sm text-gray-800">${name}</p>
-                                        <p class="text-[10px] ${isLinked ? 'text-green-600 font-bold' : 'text-gray-500'}">${isLinked ? '<i class="fa-solid fa-check mr-1"></i> Đã liên kết' : 'Chưa liên kết'}</p>
-                                    </div>
-                                </div>
-                                <div>
-                                    ${isLinked
-                                        ? `<button onclick="app.settings.unlinkIdentity('${identityId}', '${name}')" class="w-full sm:w-auto text-xs font-bold text-red-600 bg-red-50 border border-red-200 px-4 py-2 rounded-md hover:bg-red-100 transition shadow-sm">Hủy liên kết</button>`
-                                        : `<button onclick="app.settings.linkIdentity('${providerKey}')" class="w-full sm:w-auto text-xs font-bold text-black bg-white border border-black px-4 py-2 rounded-md hover:bg-gray-100 transition shadow-sm">Thêm liên kết</button>`
-                                    }
-                                </div>
-                            </div>
-                            `;
-                        };
-                        container.innerHTML =
-                            renderProvider('Google', 'fa-brands fa-google', 'bg-red-500', 'google') +
-                            renderProvider('Discord', 'fa-brands fa-discord', 'bg-[#5865F2]', 'discord') +
-                            renderProvider('GitHub', 'fa-brands fa-github', 'bg-[#24292e]', 'github');
-                    } catch (err) {
-                        container.innerHTML = `<p class="text-xs text-red-500">Lỗi lấy thông tin liên kết: ${err.message}</p>`;
-                    }
-                },
-                linkIdentity: async (provider) => {
-                    try {
-                        const { error } = await window.sb.auth.linkIdentity({
-                            provider: provider,
-                            options: { redirectTo: window.location.origin }
-                        });
-                        if (error) throw error;
-                    } catch (err) {
-                        app.ui.showAlert("Lỗi liên kết: " + err.message);
-                    }
-                },
-                unlinkIdentity: async (identityId, providerName) => {
-                    app.ui.showAlert(
-                        `Bạn có chắc chắn muốn hủy liên kết tài khoản ${providerName}? Bạn sẽ không thể đăng nhập bằng nền tảng này nữa. Nếu đã được cấp danh hiệu thông qua nền tảng này, chúng cũng sẽ bị thu hồi.`,
-                        async () => {
-                            try {
-                                const { data: { session } } = await window.sb.auth.getSession();
-                                if (!session) throw new Error("Chưa đăng nhập");
+            },
 
-                                // Call backend API to revoke roles/badges before unlinking
-                                const apiRes = await fetch('/api/unlink', {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'Authorization': `Bearer ${session.access_token}`
-                                    },
-                                    body: JSON.stringify({ provider: providerName.toLowerCase() })
-                                });
-                                
-                                if (!apiRes.ok) {
-                                    const apiData = await apiRes.json();
-                                    console.error("Lỗi thu hồi quyền backend:", apiData.error);
-                                    // Vẫn tiếp tục thực hiện unlink Identity dù backend có lỗi
-                                }
-
-                                const { error } = await window.sb.auth.unlinkIdentity({ identity_id: identityId });
-                                if (error) throw error;
-
-                                app.ui.showAlert(`Đã hủy liên kết với ${providerName} thành công!`);
-                                app.settings.loadIdentities();
-                            } catch (err) {
-                                app.ui.showAlert("Lỗi hủy liên kết: " + err.message);
-                            }
-                        },
-                        () => {},
-                        { btnOkText: "Hủy liên kết", btnCancelText: "Đóng", title: "Xác nhận" }
-                    );
-                },
-                claimWebBadge: async () => {
-                    const btn = document.getElementById('web-req-claim-action');
-                    if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
-                    try {
-                        const { data: { session } } = await window.sb.auth.getSession();
-                        const res = await fetch('/api/github', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
-                            body: JSON.stringify({ action: 'claim' })
-                        });
-                        const data = await res.json();
-                        if (res.ok) {
-                            app.ui.showAlert(data.message || 'Nhận danh hiệu thành công!');
-                            app.settings.loadWebBadges();
-                        } else {
-                            app.ui.showAlert(data.error || 'Lỗi nhận danh hiệu.');
-                            app.settings.loadWebBadges();
-                        }
-                    } catch (err) {
-                        app.ui.showAlert('Lỗi: ' + err.message);
-                        app.settings.loadWebBadges();
-                    }
-                },
-                loadWebBadges: async () => {
-                    const loading = document.getElementById('web-badge-loading');
-                    const claimBox = document.getElementById('web-badge-claim-list');
-                    
-                    if (loading) loading.classList.remove('hidden');
-                    if (claimBox) claimBox.classList.add('hidden');
-                    
-                    try {
-                        const { data: { session } } = await window.sb.auth.getSession();
-                        if (!session) return;
-                        
-                        const res = await fetch('/api/github', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
-                            body: JSON.stringify({ action: 'status' })
-                        });
-                        const data = await res.json();
-                        
-                        if (loading) loading.classList.add('hidden');
-                        if (claimBox) claimBox.classList.remove('hidden');
-                        
-                        const claimActionContainer = document.getElementById('web-req-claim-action-container');
-                        
-                        if (data.isDev) {
-                            if (claimActionContainer) {
-                                claimActionContainer.innerHTML = `<button disabled class="px-4 py-2 bg-gray-100 text-gray-400 text-xs font-bold rounded cursor-not-allowed border border-gray-200 whitespace-nowrap"><i class="fa-solid fa-check mr-1"></i> Đã nhận</button>`;
-                            }
-                            return;
-                        }
-                        
-                        if (data.linked) {
-                            if (claimActionContainer) {
-                                claimActionContainer.innerHTML = `<button id="web-req-claim-action" onclick="app.settings.claimWebBadge()" class="px-4 py-2 bg-black text-white text-xs font-bold rounded hover:bg-gray-800 transition shadow-sm whitespace-nowrap w-full sm:w-auto">Xác minh ngay</button>`;
-                            }
-                        } else {
-                            if (claimActionContainer) {
-                                claimActionContainer.innerHTML = `<button onclick="app.settings.switchTab('links')" class="px-4 py-2 bg-black text-white text-xs font-bold rounded hover:bg-gray-800 transition shadow-sm whitespace-nowrap w-full sm:w-auto">Liên kết GitHub</button>`;
-                            }
-                        }
-                    } catch (err) {
-                        if (loading) {
-                            loading.innerHTML = `<p class="text-xs text-red-500">Lỗi: ${err.message}</p>`;
-                            loading.classList.remove('hidden');
-                        }
-                    }
-                },
-                loadBadges: async () => {
-                    const loading = document.getElementById('badge-loading');
-                    const reqBox = document.getElementById('badge-requirements');
-                    const claimBox = document.getElementById('badge-claim-list');
-                    loading.classList.remove('hidden');
-                    reqBox.classList.add('hidden');
-                    claimBox.classList.add('hidden');
-                    try {
-                        const { data: { session } } = await window.sb.auth.getSession();
-                        const token = session?.access_token;
-                        if (!token) throw new Error("Chưa đăng nhập");
-                        const res = await fetch('/api/discord', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${token}`
-                            },
-                            body: JSON.stringify({ action: 'status' })
-                        });
-                        const data = await res.json();
-                        app.customRoleDetails = data.customRoleDetails || null;
-                        if (!data.linked || !data.inServer) {
-                            loading.classList.add('hidden');
-                            reqBox.classList.remove('hidden');
-                            const reqLinkContainer = document.getElementById('req-link-container');
-                            const reqLinkStatus = document.getElementById('req-link-status');
-                            const reqLinkAction = document.getElementById('req-link-action');
-                            const reqServerContainer = document.getElementById('req-server-container');
-                            const reqServerStatus = document.getElementById('req-server-status');
-                            const reqServerAction = document.getElementById('req-server-action');
-                            const incompleteClasses = ['bg-red-50', 'border', 'border-red-200'];
-                            const completeClasses = ['bg-green-50', 'border', 'border-green-200'];
-                            if (data.linked) {
-                                reqLinkContainer.classList.add(...completeClasses);
-                                reqLinkContainer.classList.remove(...incompleteClasses);
-                                reqLinkStatus.className = 'flex items-center gap-3 text-sm font-medium text-green-800';
-                                reqLinkStatus.innerHTML = `<i class="fa-solid fa-check-circle w-5 text-center text-green-600"></i> <span>Đã liên kết tài khoản Discord</span>`;
-                                reqLinkAction.classList.add('hidden');
-                            } else {
-                                reqLinkContainer.classList.add(...incompleteClasses);
-                                reqLinkContainer.classList.remove(...completeClasses);
-                                reqLinkStatus.className = 'flex items-center gap-3 text-sm font-medium text-red-800';
-                                reqLinkStatus.innerHTML = `<i class="fa-solid fa-times-circle w-5 text-center text-red-600"></i> <span>Chưa liên kết tài khoản Discord</span>`;
-                                reqLinkAction.classList.remove('hidden');
-                            }
-                            if (data.inServer) {
-                                reqServerContainer.classList.add(...completeClasses);
-                                reqServerContainer.classList.remove(...incompleteClasses);
-                                reqServerStatus.className = 'flex items-center gap-3 text-sm font-medium text-green-800';
-                                reqServerStatus.innerHTML = `<i class="fa-solid fa-check-circle w-5 text-center text-green-600"></i> <span>Đã tham gia Server</span>`;
-                                reqServerAction.classList.add('hidden');
-                            } else {
-                                reqServerContainer.classList.add(...incompleteClasses);
-                                reqServerContainer.classList.remove(...completeClasses);
-                                reqServerStatus.className = 'flex items-center gap-3 text-sm font-medium text-red-800';
-                                reqServerStatus.innerHTML = `<i class="fa-solid fa-times-circle w-5 text-center text-red-600"></i> <span>Chưa tham gia Server VNBUSARCHIVE</span>`;
-                                reqServerAction.classList.remove('hidden');
-                            }
-                            return;
-                        }
-                        const { count } = await window.sb.from('photos')
-                            .select('*', { count: 'estimated', head: true })
-                            .eq('uploader_id', app.user.id)
-                            .eq('status', 'approved');
-                        document.getElementById('badge-photo-count').innerText = count || 0;
-const ROLE_MAP_FRONTEND = {
-    50: '1506239795175620728',
-    100: '1505158627747561482',
-    200: '1505158752372920320',
-    500: '1505158986725462078',
-    1000: '1505159111686488164'
-};
-const tiers = [50, 100, 200, 500, 1000, 2000];
-const grid = document.getElementById('badges-grid');
-grid.innerHTML = tiers.map(tier => {
-    if (tier === 2000) {
-        const hasCustomRole = !!data.customRoleId;
-        const isEligible = (count || 0) >= 2000;
-        let btnHtml = '';
-        if (hasCustomRole) {
-            btnHtml = `<button onclick="app.openCustomRolePrompt(true)" class="px-4 py-2 bg-gray-100 text-gray-800 text-xs font-bold rounded-md border border-gray-300 hover:bg-gray-200 transition whitespace-nowrap"><i class="fa-solid fa-pen mr-1"></i> Sửa Role</button>`;
-        } else if (isEligible) {
-            btnHtml = `<button onclick="app.openCustomRolePrompt(false)" class="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold rounded-md hover:opacity-90 transition shadow-sm whitespace-nowrap">Tạo Role Riêng</button>`;
-        } else {
-            btnHtml = `<button disabled class="px-4 py-2 bg-gray-50 text-gray-400 text-xs font-bold rounded cursor-not-allowed border border-gray-200 whitespace-nowrap"><i class="fa-solid fa-lock mr-1"></i> Chưa đủ đ/k</button>`;
-        }
-        return `
-        <div class="flex items-center justify-between p-3 border border-purple-200 rounded-md bg-purple-50">
-            <div class="flex items-center gap-3 overflow-hidden">
-                <div class="w-10 h-10 rounded-full bg-purple-100 border border-purple-200 flex items-center justify-center text-lg text-purple-600 shrink-0">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i>
-                </div>
-                <div class="overflow-hidden">
-                    <p class="font-bold text-sm text-purple-900 truncate">Cột mốc 2000 ảnh</p>
-                    <p class="text-[10px] text-purple-700">Đặc quyền tạo Role Custom riêng biệt.</p>
-                </div>
-            </div>
-            <div>${btnHtml}</div>
-        </div>`;
-    }
-    const roleId = ROLE_MAP_FRONTEND[tier];
-    const isClaimed = data.claimedRoles.includes(roleId);
-    const isEligible = (count || 0) >= tier;
-    let btnHtml = '';
-    if (isClaimed) {
-        btnHtml = `<button disabled class="px-4 py-2 bg-gray-100 text-gray-400 text-xs font-bold rounded cursor-not-allowed border border-gray-200 whitespace-nowrap"><i class="fa-solid fa-check mr-1"></i> Đã nhận</button>`;
-    } else if (isEligible) {
-        btnHtml = `<button id="btn-claim-${tier}" onclick="app.settings.claimBadge(${tier})" class="px-4 py-2 bg-black text-white text-xs font-bold rounded hover:bg-gray-800 transition shadow-sm border border-black whitespace-nowrap">Nhận Role</button>`;
-    } else {
-        btnHtml = `<button disabled class="px-4 py-2 bg-gray-50 text-gray-400 text-xs font-bold rounded cursor-not-allowed border border-gray-200 whitespace-nowrap"><i class="fa-solid fa-lock mr-1"></i> Chưa đủ đ/k</button>`;
-    }
-    return `
-    <div class="flex items-center justify-between p-3 border border-gray-200 rounded-md bg-white">
-        <div class="flex items-center gap-3 overflow-hidden">
-            <div class="w-10 h-10 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-lg text-black shrink-0">
-                <i class="fa-solid fa-medal"></i>
-            </div>
-            <div class="overflow-hidden">
-                <p class="font-bold text-sm text-gray-800 truncate">Cột mốc ${tier} ảnh</p>
-                <p class="text-[10px] text-gray-500">Yêu cầu: Đóng góp ${tier}+ ảnh được duyệt.</p>
-            </div>
-        </div>
-        <div>${btnHtml}</div>
-    </div>`;
-}).join('');
-                        loading.classList.add('hidden');
-                        claimBox.classList.remove('hidden');
-                    } catch (err) {
-                        loading.innerHTML = `<span class="text-red-500"><i class="fa-solid fa-triangle-exclamation"></i> Lỗi: ${err.message}</span>`;
-                    }
-                },
-                claimBadge: async (tier) => {
-                    const btn = document.getElementById(`btn-claim-${tier}`);
-                    const originalText = btn.innerHTML;
-                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-                    btn.disabled = true;
-                    try {
-                        const { data: { session } } = await window.sb.auth.getSession();
-                        const token = session?.access_token;
-                        const res = await fetch('/api/discord', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${token}`
-                            },
-                            body: JSON.stringify({ action: 'claim', tier: tier })
-                        });
-                        const data = await res.json();
-                        if (!res.ok) throw new Error(data.error || 'Lỗi không xác định');
-                        app.toast.show('success', 'Thành công', data.message || "Đã nhận Role thành công!");
-                        app.settings.loadBadges();
-                    } catch (err) {
-                        app.ui.showAlert("Lỗi: " + err.message);
-                        btn.innerHTML = originalText;
-                        btn.disabled = false;
-                    }
-}
-                }
-});
-Object.assign(window.app, {
-  openCustomRolePrompt: (hasCustomRole = false) => {
+    openCustomRolePrompt: (hasCustomRole = false) => {
                     const modal = document.getElementById('custom-role-modal');
                     const content = document.getElementById('custom-role-content');
                     const okBtn = document.getElementById('cr-ok-btn');
@@ -4021,42 +2974,9 @@ Object.assign(window.app, {
                     modal.classList.remove('hidden');
                     content.classList.remove('modal-content-leave');
                     content.classList.add('modal-content-enter');
-                }
-});
-Object.assign(window.app, {
-  docs: {
-                open: () => {
-                    app.settings.open();
-                    app.settings.openDocsMenu();
                 },
-                close: () => {
-                },
-                fetchContent: async (tab) => {
-                    const container = document.getElementById('set-content-' + tab);
-                    if (!container || container.dataset.loaded === 'true') return;
-                    const url = container.dataset.url;
-                    try {
-                        const res = await fetch(url);
-                        if (!res.ok) throw new Error('Lỗi mạng');
-                        const text = await res.text();
-                        const html = DOMPurify.sanitize(marked.parse(text));
-                        container.innerHTML = html;
-                        container.dataset.loaded = 'true';
-                    } catch (e) {
-                        container.innerHTML = `
-                            <p class="text-red-500 font-bold py-4 text-center"><i class="fa-solid fa-triangle-exclamation"></i> Không thể tải nội dung tự động.</p>
-                            <div class="text-center mt-2">
-                                <a href="${url.replace('raw.githubusercontent.com/hoyuuna', 'github.com/hoyuuna').replace('/refs/heads/', '/blob/')}" target="_blank" class="inline-flex items-center gap-1.5 bg-black text-white px-4 py-2 rounded-md font-bold hover:bg-gray-800 transition text-[11px] uppercase">
-                                    <i class="fa-solid fa-arrow-up-right-from-square text-sm"></i> Xem chi tiết
-                                </a>
-                            </div>
-                        `;
-                    }
-                }
-            }
-});
-Object.assign(window.app, {
-  handleSearch: async (forceRefresh = false, sourceInputId = null) => {
+
+    handleSearch: async (forceRefresh = false, sourceInputId = null) => {
                 const headerInput = document.getElementById('search-input');
                 const pageInput = document.getElementById('page-search-input');
                 const activeId = sourceInputId || document.activeElement?.id;
@@ -4583,10 +3503,9 @@ Object.assign(window.app, {
                     grid.innerHTML = `<div class="col-span-full text-center py-10 text-red-500">Lỗi hệ thống: ${err.message}</div>`;
                 }
                 app.loadingBar.finish();
-            }
-});
-Object.assign(window.app, {
-  setUser: async (user) => {
+            },
+
+    setUser: async (user) => {
                 app.user = user;
                 const dropdown = document.getElementById('user-dropdown');
                 if (user) {
@@ -4753,78 +3672,4 @@ dropdown.innerHTML = `
                 }
                 if (app.auth && app.auth.updateUUIDBox) app.auth.updateUUIDBox();
             }
-});
-document.addEventListener('DOMContentLoaded', () => {
-    const header = document.querySelector('header');
-    if (!header) return;
-    if (!header.classList.contains('transition-transform')) {
-        header.classList.add('transition-transform', 'duration-300');
-    }
-    let lastScrollY = window.scrollY;
-    let lastScrollDirection = 'up';
-    let isHoveringHeaderArea = false;
-    const threshold = 200; 
-    const checkHeaderState = () => {
-        const currentScrollY = window.scrollY;
-        const isSearchFocused = document.activeElement && document.activeElement.id === 'search-input';
-        const userMenu = document.getElementById('user-dropdown');
-        const isUserMenuOpen = userMenu && userMenu.classList.contains('opacity-100');
-        const filterMenu = document.getElementById('search-filter-menu');
-        const isFilterMenuOpen = filterMenu && filterMenu.classList.contains('active');
-        const searchSuggestions = document.getElementById('main-search-suggestions');
-        const isSuggestionsOpen = searchSuggestions && searchSuggestions.classList.contains('active');
-        if (isSearchFocused || isUserMenuOpen || isFilterMenuOpen || isSuggestionsOpen || isHoveringHeaderArea) {
-            header.style.transform = 'translateY(0)';
-            return;
-        }
-        if (currentScrollY > threshold) {
-            if (lastScrollDirection === 'down') {
-                header.style.transform = 'translateY(-100%)';
-            } else {
-                header.style.transform = 'translateY(0)';
-            }
-        } else {
-            header.style.transform = 'translateY(0)';
-        }
-    };
-    let scrollTicking = false;
-    window.addEventListener('scroll', () => {
-        const currentScrollY = window.scrollY;
-        if (currentScrollY > lastScrollY) {
-            lastScrollDirection = 'down';
-        } else if (currentScrollY < lastScrollY) {
-            lastScrollDirection = 'up';
-        }
-        lastScrollY = currentScrollY;
-        if (!scrollTicking) {
-            window.requestAnimationFrame(() => {
-                checkHeaderState();
-                scrollTicking = false;
-            });
-            scrollTicking = true;
-        }
-    }, { passive: true });
-    document.addEventListener('click', () => {
-        setTimeout(checkHeaderState, 50);
-    });
-    document.addEventListener('focusout', () => {
-        setTimeout(checkHeaderState, 50);
-    });
-    document.addEventListener('mousemove', (e) => {
-        const wasHovering = isHoveringHeaderArea;
-        if (e.clientY <= 90) {
-            isHoveringHeaderArea = true;
-        } else {
-            isHoveringHeaderArea = false;
-        }
-        if (wasHovering !== isHoveringHeaderArea) {
-            checkHeaderState();
-        }
-    });
-    document.addEventListener('mouseleave', () => {
-        if (isHoveringHeaderArea) {
-            isHoveringHeaderArea = false;
-            checkHeaderState();
-        }
-    });
 });
