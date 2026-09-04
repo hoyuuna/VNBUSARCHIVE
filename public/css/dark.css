@@ -149,8 +149,6 @@ input:focus, textarea:focus, select:focus {
 #zoom-toolbar button:not(.bg-black):hover { color: #a1a1aa !important; }
 #zoom-toolbar button.bg-black i, #zoom-toolbar button.bg-black span { color: #000000 !important; }
 
-/* Fix location history border */
-#up-location-history button { border-color: #ffffff !important; }
 
 /* Fix docs markdown text */
 .markdown-body, .markdown-body * { color: #ffffff !important; }

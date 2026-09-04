@@ -1,4 +1,4 @@
-window.APP_VERSION = "26.09.04.11.11.03";
+window.APP_VERSION = "26.09.04.11.19.23";
 
 /* --- MODULE: 1_init.js --- */
 window.app = window.app || {};
@@ -12039,7 +12039,7 @@ Object.assign(window.app, {
                          btn.type = 'button';
                          btn.dataset.loc = loc;
                          
-                         let classes = 'flex items-center gap-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-[11px] font-medium px-2.5 py-1.5 rounded-md transition-all duration-200 ease-out active:scale-95 select-none truncate max-w-[140px] origin-center';
+                         let classes = 'flex items-center gap-1 bg-white border border-black dark:border-white hover:bg-gray-100 dark:bg-[#18181b] dark:hover:bg-[#27272a] text-black dark:text-white text-[11px] font-bold px-2.5 py-1.5 rounded-md transition-all duration-200 ease-out active:scale-95 select-none truncate max-w-[140px] origin-center';
                          if (app.upload.pendingPopLoc === loc) {
                              classes += ' scale-0 opacity-0';
                          } else {
