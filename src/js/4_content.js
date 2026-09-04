@@ -3314,12 +3314,12 @@ Object.assign(window.app, {
                     if (!app.user || !app.currentPhoto) return;
                     const p = app.currentPhoto;
                     
-                    if (p.status === 'approved') {
+                    if (p.status === 'approved' || p.status === 'denied') {
                         const uploadedTime = new Date(p.created_at).getTime();
                         const hoursSinceUpload = (Date.now() - uploadedTime) / (1000 * 60 * 60);
                         if (hoursSinceUpload < 24) {
                             const remainingHours = Math.ceil(24 - hoursSinceUpload);
-                            return app.ui.showAlert(`Ảnh này mới được đăng tải. Bạn chỉ có thể yêu cầu xóa ảnh sau khi đã trôi qua 24 giờ kể từ lúc đăng (Vui lòng quay lại sau khoảng ${remainingHours} tiếng nữa).`);
+                            return app.ui.showAlert(`Ảnh này mới được đăng tải. Bạn chỉ có thể xóa hoặc yêu cầu xóa ảnh sau khi đã trôi qua 24 giờ kể từ lúc đăng (Vui lòng quay lại sau khoảng ${remainingHours} tiếng nữa).`);
                         }
                     }
 
