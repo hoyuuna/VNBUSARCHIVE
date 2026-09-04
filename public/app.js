@@ -11877,6 +11877,39 @@ app.views.fetchRoutePhotosPage(1);
   }
 });
 
+document.addEventListener('DOMContentLoaded', () => {
+    const checkRouter = setInterval(() => {
+        if (window.app && window.app.views && window.app.views.loadContact) {
+            clearInterval(checkRouter); 
+            const origLoadContact = window.app.views.loadContact;
+            window.app.views.loadContact = () => {
+                origLoadContact(); 
+                if (window.app.contact && window.app.contact.init) {
+                    window.app.contact.init(); 
+                }
+            };
+        }
+    }, 100);
+});
+
+window.app = window.app || {};
+window.app.views = window.app.views || {};
+window.app.views.selectRouteIcon = function(val, label) {
+    document.getElementById('route-edit-icon').value = val;
+    document.getElementById('route-icon-label').innerText = label;
+    document.querySelectorAll('.route-icon-item').forEach(el => {
+        el.classList.remove('selected');
+        const icon = el.querySelector('.check-icon');
+        if(icon) icon.classList.add('opacity-0');
+    });
+    const selectedEl = document.querySelector(`.route-icon-item[data-val="${val}"]`);
+    if(selectedEl) {
+        selectedEl.classList.add('selected');
+        const icon = selectedEl.querySelector('.check-icon');
+        if(icon) icon.classList.remove('opacity-0');
+    }
+};
+
 /* --- MODULE: page_upload.js --- */
 // Extracted to page_upload.js
 Object.assign(window.app, {
@@ -15177,6 +15210,52 @@ select: (val) => {
                     return query;
                 }
             }
+});
+
+
+window.addEventListener('keydown', (e) => {
+    const cropModal = document.getElementById('crop-modal');
+    if (!cropModal || cropModal.classList.contains('hidden') || !app.crop) return;
+    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target && e.target.tagName)) return;
+    if (e.key === '=' || e.key === '+' || e.key === '-') {
+        e.preventDefault();
+        const isZoomIn = (e.key === '=' || e.key === '+');
+        const zoomFactor = e.ctrlKey ? (isZoomIn ? 1.15 : 1/1.15) : (isZoomIn ? 1.02 : 1/1.02);
+        app.crop.state.scale *= zoomFactor;
+        if (app.crop.state.scale < app.crop.state.minScale) {
+            app.crop.state.scale = app.crop.state.minScale;
+        }
+        if (app.crop.state.scale > 5) {
+            app.crop.state.scale = 5;
+        }
+        app.crop.applyTransform();
+        return;
+    }
+    let dx = 0, dy = 0;
+    const step = e.ctrlKey ? 20 : 1;
+    if (e.key === 'ArrowLeft') dx = -step;
+    else if (e.key === 'ArrowRight') dx = step;
+    else if (e.key === 'ArrowUp') dy = -step;
+    else if (e.key === 'ArrowDown') dy = step;
+    else return;
+    e.preventDefault();
+    app.crop.state.x -= dx;
+    app.crop.state.y -= dy;
+    app.crop.applyTransform();
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('resize', () => {
+        if (window.app && window.app.upload && window.app.upload.updateWmModeSlider) {
+            window.app.upload.updateWmModeSlider();
+        }
+    });
+    setTimeout(() => {
+        const savedMode = (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_mode')) || 'basic';
+        if (window.app && window.app.upload && window.app.upload.setWmMode) {
+            window.app.upload.setWmMode(savedMode);
+        }
+    }, 500);
 });
 
 /* --- MODULE: page_photo.js --- */
