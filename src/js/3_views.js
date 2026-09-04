@@ -1630,6 +1630,7 @@ Object.assign(window.app, {
                     }
                     const lblDetailRoute = document.getElementById('lbl-detail-route');
                     if (lblDetailRoute) lblDetailRoute.innerText = snapshot.type === 'coach' ? 'Lộ trình' : 'Mã số tuyến';
+                    if (elInfoRoute) app.utils.checkRouteStatus(elInfoRoute.value, 'info-operator', 'info-operator-row');
                     if (elInfoModel) elInfoModel.value = snapshot.model || 'Đã bị xóa';
                     if (elInfoLocation) {
                         elInfoLocation.value = photo.location || '---';
@@ -2118,13 +2119,13 @@ let currentRouteProvName = null;
                                             <span class="sm:hidden font-bold text-gray-500 mb-1">Ngày áp dụng</span>
                                             <input type="text" id="veh-hist-new-date" placeholder="DD/MM/YYYY" maxlength="10" oninput="app.utils.formatDateInput(this)" class="hist-input text-center font-mono w-full sm:w-28" title="Ngày áp dụng">
                                         </div>
-                                        <div class="flex flex-col sm:flex-1 min-w-0">
+                                        <div class="flex flex-col sm:flex-1 min-w-0" id="veh-hist-new-op-wrapper">
                                             <span class="sm:hidden font-bold text-gray-500 mb-1">Đơn vị</span>
                                             <input type="text" id="veh-hist-new-op" placeholder="Đơn vị" class="hist-input" oninput="app.utils.formatNoPunctuation(this)">
                                         </div>
                                         <div class="flex flex-col sm:flex-1 min-w-0">
                                             <span class="sm:hidden font-bold text-gray-500 mb-1">Tuyến</span>
-                                            <input type="text" id="veh-hist-new-route" placeholder="Tuyến" class="hist-input">
+                                            <input type="text" id="veh-hist-new-route" placeholder="Tuyến" class="hist-input" oninput="app.utils.checkRouteStatus(this.value, 'veh-hist-new-op', 'veh-hist-new-op-wrapper')">
                                         </div>
                                     </div>
                                     <div class="flex flex-col sm:flex-row gap-2 items-start mt-1">
@@ -2175,17 +2176,17 @@ let currentRouteProvName = null;
                                     <h3 class="font-bold text-xs uppercase text-black tracking-wider mb-2.5 px-1">Thông tin chi tiết</h3>
                                     <div class="border border-gray-200 rounded-lg overflow-hidden bg-white mb-3 shadow-sm">
                                         <table class="info-table border-gray-200 w-full" style="margin-bottom: 0 !important;">
-                                            <tr>
+                                            <tr id="vehicle-edit-operator-row" ${currentRouteClientSide === 'Dừng hoạt động' ? 'class="hidden"' : ''}>
                                                 <td class="label bg-gray-50 border-r border-b border-gray-200" style="width: 35%">Đơn vị vận hành</td>
                                                 <td class="value-cell border-b border-gray-200">
-                                                    <input type="text" id="vehicle-edit-operator" value="${currentOpClientSide}" class="info-input text-gray-700 w-full ${currentOpClientSide ? 'clickable-search' : 'cursor-not-allowed'}" readonly ${currentOpClientSide ? `onclick="if(this.readOnly && this.value && this.value!=='---') app.utils.navigate('/operator/' + encodeURIComponent(this.value))"` : ''}>
+                                                    <input type="text" id="vehicle-edit-operator" value="${currentRouteClientSide === 'Dừng hoạt động' ? 'N/A' : currentOpClientSide}" class="info-input text-gray-700 w-full ${currentOpClientSide ? 'clickable-search' : 'cursor-not-allowed'}" readonly ${currentOpClientSide ? `onclick="if(this.readOnly && this.value && this.value!=='---' && this.value!=='N/A') app.utils.navigate('/operator/' + encodeURIComponent(this.value))"` : ''}>
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td class="label bg-gray-50 border-r border-b border-gray-200">${isCoach ? 'Lộ trình' : 'Mã số tuyến'} hiện tại</td>
                                                 <td class="value-cell border-b border-gray-200">
                                                     <div class="relative w-full h-full">
-                                                        <input type="text" id="vehicle-edit-route" value="${currentRouteClientSide}" autocomplete="off" class="info-input text-gray-700 w-full ${currentRouteClientSide ? 'clickable-search' : 'cursor-not-allowed'}" readonly ${currentRouteClientSide ? `onclick="if(this.readOnly && this.value && this.value!=='---') { const special = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động']; if (${isCoach} || special.includes(this.value.trim())) { app.searchRedirect(this.value, 'route'); } else { app.utils.navigate('${vehProvName}' ? '/route/' + encodeURIComponent('${vehProvName}') + '/' + encodeURIComponent(this.value) : '/route/' + encodeURIComponent(this.value)); } }"` : ''} onfocus="if(!this.readOnly) app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', '')" oninput="app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', this.value)">
+                                                        <input type="text" id="vehicle-edit-route" value="${currentRouteClientSide}" autocomplete="off" class="info-input text-gray-700 w-full ${currentRouteClientSide ? 'clickable-search' : 'cursor-not-allowed'}" readonly ${currentRouteClientSide ? `onclick="if(this.readOnly && this.value && this.value!=='---') { const special = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động']; if (${isCoach} || special.includes(this.value.trim())) { app.searchRedirect(this.value, 'route'); } else { app.utils.navigate('${vehProvName}' ? '/route/' + encodeURIComponent('${vehProvName}') + '/' + encodeURIComponent(this.value) : '/route/' + encodeURIComponent(this.value)); } }"` : ''} onfocus="if(!this.readOnly) app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', '')" oninput="app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', this.value); app.utils.checkRouteStatus(this.value, 'vehicle-edit-operator', 'vehicle-edit-operator-row')">
                                                         <div id="veh-sug-route" class="suggestion-box"></div>
                                                     </div>
                                                 </td>

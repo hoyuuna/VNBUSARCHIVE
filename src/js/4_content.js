@@ -3870,6 +3870,8 @@ Object.assign(window.app, {
                     const container = document.getElementById(prefix + 'sortable-history');
                     container.innerHTML = '';
                     app.vehicle.tempHistory.forEach((h, index) => {
+                        const isStopped = (h.route || '').trim() === 'Dừng hoạt động';
+                        if (isStopped) h.operator = 'N/A';
                         const div = document.createElement('div');
                         div.className = "flex flex-col gap-2 bg-white p-3 border border-gray-200 rounded-md text-xs mb-2";
                         div.innerHTML = `
@@ -3882,9 +3884,9 @@ Object.assign(window.app, {
                                     <span class="sm:hidden font-bold text-gray-500 mb-1">Ngày áp dụng</span>
                                     <input type="text" placeholder="DD/MM/YYYY" maxlength="10" oninput="app.utils.formatDateInput(this)" value="${app.utils.escapeAttr(app.utils.formatDateToDDMMYYYY(h.effective_date) || '')}" onchange="app.vehicle.updateHistoryItem(${index}, 'effective_date', this.value, '${prefix}')" class="hist-input text-center font-mono w-28">
                                 </div>
-                                <div class="flex flex-col sm:flex-1 min-w-0">
+                                <div class="flex flex-col sm:flex-1 min-w-0" style="${isStopped ? 'display: none;' : ''}">
                                     <span class="sm:hidden font-bold text-gray-500 mb-1">Đơn vị</span>
-                                    <input type="text" value="${app.utils.escapeAttr(h.operator)}" placeholder="Đơn vị" oninput="app.utils.formatNoPunctuation(this)" onchange="app.vehicle.updateHistoryItem(${index}, 'operator', this.value, '${prefix}')" class="hist-input">
+                                    <input type="text" value="${app.utils.escapeAttr(h.operator)}" placeholder="Đơn vị" oninput="app.utils.formatNoPunctuation(this)" onchange="app.vehicle.updateHistoryItem(${index}, 'operator', this.value, '${prefix}')" class="hist-input" ${isStopped ? 'disabled' : ''}>
                                 </div>
                                 <div class="flex flex-col sm:flex-1 min-w-0">
                                     <span class="sm:hidden font-bold text-gray-500 mb-1">Tuyến</span>
@@ -3918,6 +3920,7 @@ Object.assign(window.app, {
                         if (opInput && !opInput.value) opInput.value = latest.operator || '';
                         if (routeInput && !routeInput.value) routeInput.value = latest.route || '';
                         if (plateInput && !plateInput.value) plateInput.value = latest.plate || app.currentPlate || '';
+                        if (routeInput) app.utils.checkRouteStatus(routeInput.value, prefix + 'hist-new-op', prefix + 'hist-new-op-wrapper');
                     }
                 },
                 updateHistoryItem: (index, field, value, prefix) => {
@@ -4236,6 +4239,7 @@ Object.assign(window.app, {
                         } else {
                             btnSave.innerText = "Lưu thông tin";
                         }
+                        app.utils.checkRouteStatus(document.getElementById('info-route').value, 'info-operator', 'info-operator-row');
                     } else {
                         app.edit.cancel();
                     }

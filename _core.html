@@ -3703,7 +3703,7 @@ div[id$="-modal"] > div > * {
                                             <td class="label bg-gray-50 border-r border-b border-gray-200">Ngày chụp</td>
                                             <td class="value-cell border-b border-gray-200"><input type="date" id="info-date" class="info-input text-gray-500 bg-gray-100 cursor-not-allowed" readonly disabled title="Ngày chụp đã bị khóa cố định, không thể chỉnh sửa"></td>
                                         </tr>
-                                        <tr>
+                                        <tr id="info-operator-row">
                                             <td class="label bg-gray-50 border-r border-b border-gray-200">Đơn vị vận hành</td>
                                             <td class="value-cell border-b border-gray-200" x-data>
                                                 <div class="relative w-full h-full">
@@ -3725,7 +3725,7 @@ div[id$="-modal"] > div > * {
                                             <td class="label bg-gray-50 border-r border-b border-gray-200" id="lbl-detail-route">Tuyến</td>
                                             <td class="value-cell border-b border-gray-200" x-data>
                                                 <div class="relative w-full h-full">
-                                                    <input type="text" id="info-route" autocomplete="off" class="info-input clickable-search text-gray-700" readonly onfocus="if(!this.readOnly) app.utils.triggerRouteSuggestion('info-route', 'info-route-suggestions', '')" oninput="app.utils.triggerRouteSuggestion('info-route', 'info-route-suggestions', this.value)">
+                                                    <input type="text" id="info-route" autocomplete="off" class="info-input clickable-search text-gray-700" readonly onfocus="if(!this.readOnly) app.utils.triggerRouteSuggestion('info-route', 'info-route-suggestions', '')" oninput="app.utils.triggerRouteSuggestion('info-route', 'info-route-suggestions', this.value); app.utils.checkRouteStatus(this.value, 'info-operator', 'info-operator-row')">
                                                     <div id="info-route-suggestions" class="suggestion-box"></div>
                                                 </div>
                                             </td>
@@ -3820,13 +3820,13 @@ div[id$="-modal"] > div > * {
                                         <span class="sm:hidden font-bold text-gray-500 mb-1">Ngày áp dụng</span>
                                         <input type="text" id="hist-new-date" placeholder="DD/MM/YYYY" maxlength="10" oninput="app.utils.formatDateInput(this)" class="hist-input text-center font-mono w-full sm:w-28" title="Ngày áp dụng">
                                     </div>
-                                    <div class="flex flex-col sm:flex-1 min-w-0">
+                                    <div class="flex flex-col sm:flex-1 min-w-0" id="hist-new-op-wrapper">
                                         <span class="sm:hidden font-bold text-gray-500 mb-1">Đơn vị</span>
                                         <input type="text" id="hist-new-op" placeholder="Đơn vị" class="hist-input" oninput="app.utils.formatNoPunctuation(this)">
                                     </div>
                                     <div class="flex flex-col sm:flex-1 min-w-0">
                                         <span class="sm:hidden font-bold text-gray-500 mb-1">Tuyến</span>
-                                        <input type="text" id="hist-new-route" placeholder="Tuyến" class="hist-input">
+                                        <input type="text" id="hist-new-route" placeholder="Tuyến" class="hist-input" oninput="app.utils.checkRouteStatus(this.value, 'hist-new-op', 'hist-new-op-wrapper')">
                                     </div>
                                 </div>
                                 <div class="flex flex-col sm:flex-row gap-2 items-start mt-1">
@@ -4743,7 +4743,7 @@ div[id$="-modal"] > div > * {
                                     <div class="relative w-full">
                                         <input type="text" id="up-route" autocomplete="off" tabindex="3"
                                             onfocus="app.utils.triggerRouteSuggestion('up-route', 'up-route-suggestions', '')"
-                                            oninput="app.utils.triggerRouteSuggestion('up-route', 'up-route-suggestions', this.value); clearTimeout(app.upload.routeOpTimeout); app.upload.routeOpTimeout = setTimeout(app.upload.autoFillOperatorByRoute, 500);"
+                                            oninput="app.utils.triggerRouteSuggestion('up-route', 'up-route-suggestions', this.value); app.utils.checkRouteStatus(this.value, 'up-operator', 'up-operator-wrapper'); clearTimeout(app.upload.routeOpTimeout); app.upload.routeOpTimeout = setTimeout(app.upload.autoFillOperatorByRoute, 500);"
                                             class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition">
                                         <div id="up-route-suggestions" class="suggestion-box"></div>
                                     </div>
@@ -4784,7 +4784,7 @@ div[id$="-modal"] > div > * {
                                     </div>
                                     <p id="type-msg" class="hidden text-xs text-red-500 mt-2 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Vui lòng chọn loại xe!</p>
                                 </div>
-                                <div x-data>
+                                <div x-data id="up-operator-wrapper">
                                     <label class="text-xs text-gray-500 font-bold block mb-1.5 uppercase">Đơn vị vận
                                         hành <span class="text-red-500">*</span></label>
                                     <div class="relative w-full">

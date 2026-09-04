@@ -1373,6 +1373,51 @@ cleanupState: () => {
                         el.onclick = () => { app.utils.navigate(parent.url); };
                     });
                 },
+                checkRouteStatus: (routeVal, opInputId, containerId) => {
+                    const isStopped = (routeVal || '').trim() === 'Dừng hoạt động';
+                    const opEl = document.getElementById(opInputId);
+                    if (!opEl) return;
+                    if (isStopped) {
+                        if (!opEl.disabled) opEl.dataset.oldValue = opEl.value;
+                        opEl.value = 'N/A';
+                        opEl.disabled = true;
+                        opEl.removeAttribute('required');
+                        opEl.classList.add('bg-gray-100', 'cursor-not-allowed', 'opacity-60');
+                    } else {
+                        if (opEl.disabled) {
+                            if (opEl.dataset.oldValue && opEl.dataset.oldValue !== 'N/A') {
+                                opEl.value = opEl.dataset.oldValue;
+                            } else if (opEl.value === 'N/A') {
+                                opEl.value = '';
+                            }
+                        }
+                        opEl.disabled = false;
+                        opEl.setAttribute('required', 'true');
+                        opEl.classList.remove('cursor-not-allowed', 'opacity-60');
+                        if (opEl.tagName !== 'INPUT' || !opEl.classList.contains('info-input')) {
+                            opEl.classList.remove('bg-gray-100');
+                        }
+                    }
+                    if (containerId) {
+                        const container = document.getElementById(containerId);
+                        if (container) {
+                            if (isStopped) container.classList.add('hidden');
+                            else container.classList.remove('hidden');
+                        }
+                    } else {
+                        const tr = opEl.closest('tr');
+                        if (tr) {
+                            if (isStopped) tr.classList.add('hidden');
+                            else tr.classList.remove('hidden');
+                        } else {
+                            const wrapper = opEl.closest('div.grid-cols-1') || opEl.closest('div');
+                            if (wrapper && wrapper.id !== opInputId) {
+                                if (isStopped) wrapper.classList.add('hidden');
+                                else wrapper.classList.remove('hidden');
+                            }
+                        }
+                    }
+                },
                 formatPlateInput: (el) => {
                     let val = el.value;
                     const upperVal = val.toUpperCase();
