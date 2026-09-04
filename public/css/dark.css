@@ -359,3 +359,13 @@ button.bg-black:hover, a.bg-black:hover {
 
 
 
+ 
+ / *   S e l e c t e d   s t a t e   f o r   d r o p d o w n s   i n   D a r k   M o d e   * /  
+ . f i l t e r - m e n u   . f i l t e r - i t e m . s e l e c t e d ,   . d r o p d o w n - m e n u   . s e l e c t e d   {  
+         b a c k g r o u n d - c o l o r :   # f f f f f f   ! i m p o r t a n t ;  
+         c o l o r :   # 0 0 0 0 0 0   ! i m p o r t a n t ;  
+ }  
+ . f i l t e r - m e n u   . f i l t e r - i t e m . s e l e c t e d   * ,   . d r o p d o w n - m e n u   . s e l e c t e d   *   {  
+         c o l o r :   # 0 0 0 0 0 0   ! i m p o r t a n t ;  
+ }  
+ 
