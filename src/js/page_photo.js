@@ -282,12 +282,12 @@ Object.assign(window.app, {
                     }
                     const toolbar = app.user ? `
                         <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;">
-                            <button style="display: flex; align-items: center; gap: 6px; background: white; border: 1px solid #d1d5db; color: #374151; padding: 6px 12px; border-radius: 8px; font-weight: bold; font-size: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onclick="app.comments.startReply('${c.id}', '${authorDisplay.username}')" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='white'"><i class="fa-solid fa-reply"></i> Phản hồi</button>
-                            <button style="display: flex; align-items: center; gap: 6px; background: white; border: 1px solid #d1d5db; color: #374151; padding: 6px 12px; border-radius: 8px; font-weight: bold; font-size: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onclick="app.utils.navigate('/contact')" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='white'"><i class="fa-solid fa-flag"></i> Báo cáo</button>
-                            ${canDelete ? `<button style="display: flex; align-items: center; gap: 6px; background: white; border: 1px solid #fca5a5; color: #dc2626; padding: 6px 12px; border-radius: 8px; font-weight: bold; font-size: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onclick="app.comments.delete('${c.id}')" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='white'"><i class="fa-solid fa-trash-can"></i> Xóa</button>` : ''}
+                            <button class="flex items-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg font-bold text-xs shadow-sm transition-colors hover:bg-gray-50 dark:bg-black dark:border-gray-800 dark:text-gray-300 dark:hover:bg-gray-900" onclick="app.comments.startReply('${c.id}', '${authorDisplay.username}')" ><i class="fa-solid fa-reply"></i> Phản hồi</button>
+                            <button class="flex items-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg font-bold text-xs shadow-sm transition-colors hover:bg-gray-50 dark:bg-black dark:border-gray-800 dark:text-gray-300 dark:hover:bg-gray-900" onclick="app.utils.navigate('/contact')" ><i class="fa-solid fa-flag"></i> Báo cáo</button>
+                            ${canDelete ? `<button class="flex items-center gap-1.5 bg-white border border-red-300 text-red-600 px-3 py-1.5 rounded-lg font-bold text-xs shadow-sm transition-colors hover:bg-red-50 dark:bg-black dark:border-red-900 dark:text-red-500 dark:hover:bg-red-950" onclick="app.comments.delete('${c.id}')" ><i class="fa-solid fa-trash-can"></i> Xóa</button>` : ''}
                         </div>` : `
                         <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;">
-                            ${canDelete ? `<button style="display: flex; align-items: center; gap: 6px; background: white; border: 1px solid #fca5a5; color: #dc2626; padding: 6px 12px; border-radius: 8px; font-weight: bold; font-size: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onclick="app.comments.delete('${c.id}')" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='white'"><i class="fa-solid fa-trash-can"></i> Xóa</button>` : ''}
+                            ${canDelete ? `<button class="flex items-center gap-1.5 bg-white border border-red-300 text-red-600 px-3 py-1.5 rounded-lg font-bold text-xs shadow-sm transition-colors hover:bg-red-50 dark:bg-black dark:border-red-900 dark:text-red-500 dark:hover:bg-red-950" onclick="app.comments.delete('${c.id}')" ><i class="fa-solid fa-trash-can"></i> Xóa</button>` : ''}
                         </div>`;
                     let repliesHTML = '';
                     if (replies.length > 0) {
@@ -301,7 +301,7 @@ Object.assign(window.app, {
                             repliesHTML += app.comments.renderReplyItem(r);
                         });
                         if (hidden > 0) {
-                            repliesHTML += `<div style="display: flex; justify-content: center; margin-top: 4px; margin-bottom: 8px;"><button style="font-family: inherit; font-size: 11px; font-weight: bold; color: #4b5563; background: white; border: 1px solid #e5e7eb; padding: 6px 16px; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onclick="app.comments.toggleReplies('${c.id}', ${replies.length})" id="btn-toggle-replies-${c.id}" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'"><i class="fa-solid fa-chevron-down" style="margin-right: 4px;"></i>Xem thêm ${hidden} phản hồi</button></div>`;
+                            repliesHTML += `<div style="display: flex; justify-content: center; margin-top: 4px; margin-bottom: 8px;"><button class="font-inherit text-[11px] font-bold text-gray-600 bg-white border border-gray-200 px-4 py-1.5 rounded-lg shadow-sm transition-colors hover:bg-gray-50 dark:bg-black dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-900" onclick="app.comments.toggleReplies('${c.id}', ${replies.length})" id="btn-toggle-replies-${c.id}" ><i class="fa-solid fa-chevron-down" style="margin-right: 4px;"></i>Xem thêm ${hidden} phản hồi</button></div>`;
                             repliesHTML += `<div id="reply-hidden-${c.id}" class="hidden">`;
                             replies.slice(2).forEach(r => {
                                 repliesHTML += app.comments.renderReplyItem(r);
@@ -312,17 +312,17 @@ Object.assign(window.app, {
                     }
                     return `
                     <div style="margin-bottom: 20px;">
-                        <div id="comment-${c.id}" class="bg-white border border-gray-200 shadow-sm z-10 relative" style="padding: 16px; border-radius: 16px; display: flex; gap: 12px; align-items: flex-start;">
+                        <div id="comment-${c.id}" class="bg-white border border-gray-200 shadow-sm z-10 relative p-4 rounded-2xl flex gap-3 items-start dark:bg-black dark:border-gray-800">
                             <img src="${avatar}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid #f3f4f6; margin-top: 2px;">
                             <div style="flex: 1; min-width: 0;">
                                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; overflow-x: auto; white-space: nowrap; scrollbar-width: none;">
-                                    <span onclick="app.views.loadUserProfile('${authorDisplay.linkId}')" style="font-size: 14px; font-weight: bold; color: black; cursor: pointer; flex-shrink: 0;">${authorDisplay.username}</span>
+                                    <span onclick="app.views.loadUserProfile('${authorDisplay.linkId}')" class="text-sm font-bold text-black cursor-pointer shrink-0 dark:text-white">${authorDisplay.username}</span>
                                     <div style="display: flex; gap: 4px; flex-shrink: 0; align-items: center;">
                                         ${badges}
                                     </div>
                                 </div>
-                                <span style="font-size: 11px; font-weight: bold; color: #9ca3af; display: block; margin-bottom: 8px;"><i class="fa-regular fa-clock" style="margin-right: 4px;"></i>${new Date(c.created_at).toLocaleString('vi-VN')}</span>
-                                <p style="font-size: 14px; color: #1f2937; line-height: 1.6; word-break: break-word; white-space: pre-wrap; margin: 0;">${app.utils.cleanText(c.content)}</p>
+                                <span class="text-[11px] font-bold text-gray-400 block mb-2 dark:text-gray-500"><i class="fa-regular fa-clock" style="margin-right: 4px;"></i>${new Date(c.created_at).toLocaleString('vi-VN')}</span>
+                                <p class="text-sm text-gray-800 leading-relaxed break-words whitespace-pre-wrap m-0 dark:text-gray-300">${app.utils.cleanText(c.content)}</p>
                                 ${toolbar}
                             </div>
                         </div>
@@ -340,24 +340,24 @@ Object.assign(window.app, {
                     }
                     const toolbar = app.user ? `
                         <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;">
-                            <button style="display: flex; align-items: center; gap: 4px; background: white; border: 1px solid #d1d5db; color: #4b5563; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onclick="app.utils.navigate('/contact')" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='white'"><i class="fa-solid fa-flag" style="font-size: 10px;"></i> Báo cáo</button>
-                            ${canDelete ? `<button style="display: flex; align-items: center; gap: 4px; background: white; border: 1px solid #fca5a5; color: #dc2626; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onclick="app.comments.delete('${r.id}')" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='white'"><i class="fa-solid fa-trash-can" style="font-size: 10px;"></i> Xóa</button>` : ''}
+                            <button class="flex items-center gap-1 bg-white border border-gray-300 text-gray-600 px-2 py-1 rounded-md font-bold text-[10px] shadow-sm transition-colors hover:bg-gray-50 dark:bg-black dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-900" onclick="app.utils.navigate('/contact')" ><i class="fa-solid fa-flag" style="font-size: 10px;"></i> Báo cáo</button>
+                            ${canDelete ? `<button class="flex items-center gap-1 bg-white border border-red-300 text-red-600 px-2 py-1 rounded-md font-bold text-[10px] shadow-sm transition-colors hover:bg-red-50 dark:bg-black dark:border-red-900 dark:text-red-500 dark:hover:bg-red-950" onclick="app.comments.delete('${r.id}')" ><i class="fa-solid fa-trash-can" style="font-size: 10px;"></i> Xóa</button>` : ''}
                         </div>` : `
                         <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;">
-                            ${canDelete ? `<button style="display: flex; align-items: center; gap: 4px; background: white; border: 1px solid #fca5a5; color: #dc2626; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onclick="app.comments.delete('${r.id}')" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='white'"><i class="fa-solid fa-trash-can" style="font-size: 10px;"></i> Xóa</button>` : ''}
+                            ${canDelete ? `<button class="flex items-center gap-1 bg-white border border-red-300 text-red-600 px-2 py-1 rounded-md font-bold text-[10px] shadow-sm transition-colors hover:bg-red-50 dark:bg-black dark:border-red-900 dark:text-red-500 dark:hover:bg-red-950" onclick="app.comments.delete('${r.id}')" ><i class="fa-solid fa-trash-can" style="font-size: 10px;"></i> Xóa</button>` : ''}
                         </div>`;
                     return `
-                    <div id="comment-${r.id}" class="bg-gray-50 border border-gray-200 shadow-sm z-10 relative" style="padding: 12px; border-radius: 12px; display: flex; gap: 10px; align-items: flex-start; margin-bottom: 12px;">
+                    <div id="comment-${r.id}" class="bg-gray-50 border border-gray-200 shadow-sm z-10 relative p-3 rounded-xl flex gap-2.5 items-start mb-3 dark:bg-zinc-950 dark:border-gray-800">
                         <img src="${avatar}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid #e5e7eb; margin-top: 2px;">
                         <div style="flex: 1; min-width: 0;">
                             <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px; overflow-x: auto; white-space: nowrap; scrollbar-width: none;">
-                                <span onclick="app.views.loadUserProfile('${authorDisplay.linkId}')" style="font-size: 12px; font-weight: bold; color: black; cursor: pointer; flex-shrink: 0;">${authorDisplay.username}</span>
+                                <span onclick="app.views.loadUserProfile('${authorDisplay.linkId}')" class="text-xs font-bold text-black cursor-pointer shrink-0 dark:text-white">${authorDisplay.username}</span>
                                 <div style="display: flex; gap: 4px; flex-shrink: 0; align-items: center; transform: scale(0.8); transform-origin: left;">
                                     ${badges}
                                 </div>
                             </div>
-                            <span style="font-size: 10px; font-weight: bold; color: #9ca3af; display: block; margin-bottom: 4px;"><i class="fa-regular fa-clock" style="margin-right: 4px;"></i>${new Date(r.created_at).toLocaleString('vi-VN')}</span>
-                            <p style="font-size: 12px; color: #374151; line-height: 1.5; word-break: break-word; white-space: pre-wrap; margin: 0;">${app.utils.cleanText(r.content)}</p>
+                            <span class="text-[10px] font-bold text-gray-400 block mb-1 dark:text-gray-500"><i class="fa-regular fa-clock" style="margin-right: 4px;"></i>${new Date(r.created_at).toLocaleString('vi-VN')}</span>
+                            <p class="text-xs text-gray-700 leading-relaxed break-words whitespace-pre-wrap m-0 dark:text-gray-300">${app.utils.cleanText(r.content)}</p>
                             ${toolbar}
                         </div>
                     </div>`;
