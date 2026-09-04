@@ -272,7 +272,7 @@ polygon[fill="white"] { fill: #000000 !important; }
 .bg-blue-50 *, .bg-blue-100 *, .bg-indigo-50 *, .bg-indigo-100 * { color: #93c5fd !important; }
 
 /* Fix Góp ý cải thiện ảnh - Dark Mode */
-#denial-improvement-box { background-color: #000000 !important; }
+#denial-improvement-box { background-color: #000000 !important; border-color: #ffffff !important; }
 #denial-improvement-box summary .absolute.inset-0 { background: linear-gradient(to right, #3d0020, #0d1b4b) !important; opacity: 1 !important; }
 #denial-improvement-box.group[open] summary .absolute.inset-0,
 #denial-improvement-box details[open] summary .absolute.inset-0 { opacity: 0 !important; }
@@ -293,7 +293,7 @@ details#denial-improvement-box[open] summary i.fa-chevron-right { color: #ffffff
 
 
 /* Revert Rejection / Status Report Colors Fix */
-#denial-reason-box { background-color: #450a0a !important; border-color: #dc2626 !important; }
+#denial-reason-box { background-color: #450a0a !important; border-color: #ffffff !important; }
 #denial-reason-box, #denial-reason-box * { color: #ef4444 !important; }
 
 /* Fix Dropdown hover items background turning white */
