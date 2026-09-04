@@ -547,7 +547,8 @@ Object.assign(window.app, {
                 },
                 renderPhotoCard: (p) => {
                     const safePlate = app.utils.displayPlate(app.utils.cleanText(p.license_plate));
-                    const safeOp = app.utils.cleanText(p.operator || 'Đã bị xóa');
+                    let safeOp = app.utils.cleanText(p.operator || 'Đã bị xóa');
+                    if (p.route_no && p.route_no.trim() === 'Dừng hoạt động') safeOp = 'Dừng hoạt động';
                     const uDisplay = app.utils.formatProfileDisplay(p.profiles);
                     const safeUser = app.utils.cleanText(uDisplay.username);
                     const proxyUrl = app.utils.getProxiedUrl(p.url, `${safePlate}.jpg`, 'thumb');
@@ -1537,9 +1538,10 @@ Object.assign(window.app, {
                             viewer_id: app.user ? app.user.id : null
                         }).then();
                     }
-                    document.getElementById('detail-title').innerText = `${app.utils.displayPlate(photo.license_plate)} - ${snapshot.operator || 'Đã bị xóa'}`;
-                    const pageTitle = `${app.utils.displayPlate(photo.license_plate)} - ${snapshot.operator || 'Đã bị xóa'} | VNBUSARCHIVE`;
-                    const pageDesc = `Ảnh chụp chi tiết xe buýt/xe khách ${app.utils.formatPlateVariations(photo.license_plate)} thuộc đơn vị ${snapshot.operator}, dòng xe ${snapshot.model}.`;
+                    const pageDisplayOp = (snapshot.route_no || '').trim() === 'Dừng hoạt động' ? 'Dừng hoạt động' : (snapshot.operator || 'Đã bị xóa');
+                    document.getElementById('detail-title').innerText = `${app.utils.displayPlate(photo.license_plate)} - ${pageDisplayOp}`;
+                    const pageTitle = `${app.utils.displayPlate(photo.license_plate)} - ${pageDisplayOp} | VNBUSARCHIVE`;
+                    const pageDesc = `Ảnh chụp chi tiết xe buýt/xe khách ${app.utils.formatPlateVariations(photo.license_plate)} thuộc đơn vị ${pageDisplayOp}, dòng xe ${snapshot.model}.`;
                     const pageImg = app.utils.getProxiedUrl(photo.url);
                     if (window.location.pathname === `/photo/${photoId}`) {
                         app.utils.updateMetaTags(pageTitle, pageDesc, pageImg);
@@ -2082,7 +2084,8 @@ let currentRouteProvName = null;
                                                 }
                                                 displayNote = displayNote.replace(/^[-,]\s*/, '').trim();
                                                 const safePlate = app.utils.cleanText(displayPlate);
-                                                const safeOp = app.utils.cleanText(h.operator);
+                                                let safeOp = app.utils.cleanText(h.operator);
+                                                if ((h.route || '').trim() === 'Dừng hoạt động') safeOp = '';
                                                 const safeRoute = app.utils.cleanText(h.route || '-');
                                                 const safeNote = app.utils.cleanText(displayNote);
                                                 const isLatest = idx === historyData.length - 1;
