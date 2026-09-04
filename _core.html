@@ -2572,8 +2572,8 @@ div[id$="-modal"] > div > * {
                                 <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B1.1] Sai phạm vi địa lý: Phương tiện không đăng ký hoặc không hoạt động tại Việt Nam.</span>
                             </label>
                             <label class="flex items-start gap-2 cursor-pointer group">
-                                <input type="checkbox" value="[B1.2] Chủ thể không hợp lệ: Không tiếp nhận phương tiện cá nhân, hộ gia đình, nhà xe nhỏ lẻ hoặc cơ quan Nhà nước / Quân đội." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
-                                <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B1.2] Chủ thể không hợp lệ: Không tiếp nhận phương tiện cá nhân, hộ gia đình, nhà xe nhỏ lẻ hoặc cơ quan Nhà nước / Quân đội.</span>
+                                <input type="checkbox" value="[B1.2] Chủ thể không hợp lệ: Không tiếp nhận phương tiện cá nhân, nhỏ lẻ, xe công vụ, hoặc xe đang gặp tai nạn/va chạm." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
+                                <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B1.2] Chủ thể không hợp lệ: Không tiếp nhận phương tiện cá nhân, nhỏ lẻ, xe công vụ, hoặc xe đang gặp tai nạn/va chạm.</span>
                             </label>
                             <label class="flex items-start gap-2 cursor-pointer group">
                                 <input type="checkbox" value="[B1.3] Bối cảnh không đạt yêu cầu: Khung hình chứa chi tiết phản cảm hoặc dấu hiệu chụp ảnh thiếu chủ đích." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
@@ -2632,8 +2632,8 @@ div[id$="-modal"] > div > * {
                                 <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B4.3] Xử lý vùng mờ sai quy chuẩn: Lạm dụng vùng che mờ có kích thước quá lớn, thiếu chính xác hoặc làm đè lấn lên các chi tiết của phương tiện.</span>
                             </label>
                             <label class="flex items-start gap-2 cursor-pointer group">
-                                <input type="checkbox" value="[B4.4] Bỏ sót vùng làm mờ: Không tuân thủ quy tắc làm mờ đối tượng liên quan trong các trường hợp đặc biệt." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
-                                <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B4.4] Bỏ sót vùng làm mờ: Không tuân thủ quy tắc làm mờ đối tượng liên quan trong các trường hợp đặc biệt.</span>
+                                <input type="checkbox" value="[B4.4] Bỏ sót vùng làm mờ: Bắt buộc che/làm mờ BKS nếu phương tiện khác xuất hiện trong ảnh đang có hành vi vi phạm giao thông." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
+                                <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B4.4] Bỏ sót vùng làm mờ: Bắt buộc che/làm mờ BKS nếu phương tiện khác xuất hiện trong ảnh đang có hành vi vi phạm giao thông.</span>
                             </label>
                             <label class="flex items-start gap-2 cursor-pointer group">
                                 <input type="checkbox" value="[B5.1] Vi phạm bản quyền: Dữ liệu hình ảnh không thuộc quyền sở hữu trực tiếp của tài khoản tải lên." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
@@ -2971,9 +2971,9 @@ div[id$="-modal"] > div > * {
 
                     <nav
                         class="flex gap-4 text-sm font-semibold text-gray-600 items-center order-2 lg:order-3 ml-2 lg:ml-6 shrink-0">
-                        <a href="https://discord.com/invite/BNWyqbuvwq" target="_blank" class="nav-link flex items-center gap-1">
-                            <i class="fa-brands fa-discord lg:mr-0.5"></i> <span class="hidden lg:inline">Discord</span>
-                        </a>
+                        <button onclick="app.utils.navigate('/map')" class="nav-link flex items-center gap-1">
+                            <i class="fa-solid fa-map-location-dot lg:mr-0.5"></i> <span class="hidden lg:inline">Bản đồ</span>
+                        </button>
 
                         <button onclick="app.newsboard.open()" class="nav-link relative cursor-pointer flex items-center gap-1">
                             <i class="fa-solid fa-bell lg:mr-0.5"></i>

@@ -1,6 +1,6 @@
 # QUY CHUẨN VÀ HƯỚNG DẪN ĐĂNG TẢI DỮ LIỆU HÌNH ẢNH
 
-**👉 LƯU Ý: Cập nhật lần cuối 26/08/2026**
+**👉 LƯU Ý: Cập nhật lần cuối 04/09/2026**
 
 Tài liệu này quy định các tiêu chuẩn kỹ thuật về hình ảnh và siêu dữ liệu nhằm xây dựng cơ sở dữ liệu phương tiện chất lượng cao. Yêu cầu toàn bộ thành viên đọc kỹ và tuân thủ nghiêm ngặt trước khi đóng góp.
 
@@ -20,6 +20,7 @@ VNBUSARCHIVE là thư viện tư liệu, không phải nền tảng chia sẻ �
 * **B1.1. Phạm vi địa lý:** Chỉ chấp nhận phương tiện đang hoạt động và đăng ký tại **Việt Nam**.
 * **B1.2. Hạn chế chủ thể:** 
   * Từ chối phương tiện thuộc cơ quan Nhà nước/Quân đội (Biển xanh/đỏ).
+  * Từ chối phương tiện đang gặp tai nạn, va chạm giao thông hoặc có dấu hiệu hư hỏng nặng do va chạm tại hiện trường.
   * **Đối với xe khách:** Chỉ chấp nhận phương tiện thuộc các hãng, doanh nghiệp vận tải quy mô lớn hoặc có tuyến cố định. Từ chối phương tiện cá nhân, hộ gia đình, nhà xe nhỏ lẻ.
 * **B1.3. Bối cảnh chụp:** Khung hình sạch sẽ, không xuất hiện rác thải, vết bẩn lớn hoặc các chi tiết gây phản cảm. Không chấp nhận ảnh chụp vội, thiếu chủ đích.
 
@@ -54,10 +55,9 @@ VNBUSARCHIVE là thư viện tư liệu, không phải nền tảng chia sẻ �
   * **Kích thước và vị trí:** Vùng làm mờ phải được tinh chỉnh kích thước vừa vặn và đặt trúng đích lên đối tượng cần che.
   * **Cấm lạm dụng thao tác:** Nghiêm cấm việc một vùng làm mờ có kích thước quá lớn để che phủ cả một khoảng rộng chỉ vì mục đích thao tác nhanh. 
   * **Bảo toàn chi tiết xe:** Vùng làm mờ tuyệt đối không được chờm/đè lên các chi tiết của xe đang là chủ thể.
-* **B4.4. Xử lý ảnh tai nạn/va chạm:** 
-  * Che BKS của phương tiện khác (xe tải, ô tô con, xe máy...).
-  * **Không che** BKS nếu là va chạm giữa hai xe buýt/xe khách với nhau.
-  * **Không che** BKS nếu không có va chạm xảy ra (tùy chọn).
+* **B4.4. Xử lý Biển kiểm soát (BKS) phương tiện xung quanh:** 
+  * **Phương tiện vi phạm giao thông:** Bắt buộc che/làm mờ BKS nếu phương tiện khác xuất hiện trong ảnh đang có hành vi vi phạm trật tự an toàn giao thông.
+  * **Phương tiện lưu thông bình thường:** Không yêu cầu che BKS.
 
 ### B5. An toàn, Đạo đức & Pháp luật
 * **B5.1. Quyền sở hữu:** Chỉ đăng tải ảnh do chính người dùng chụp.
