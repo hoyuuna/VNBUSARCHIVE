@@ -130,6 +130,38 @@ export async function onRequest(context) {
             const updateData = { ban_status: banStatus };
             if (action === 'ban') {
                 updateData.subroles = [];
+                // --- DISCORD REMOVE ROLES ON BAN ---
+                try {
+                    const { data: userData } = await supabaseAdmin.auth.admin.getUserById(targetUserId);
+                    if (userData && userData.user && userData.user.identities) {
+                        const discordIdentity = userData.user.identities.find(id => id.provider === 'discord');
+                        if (discordIdentity) {
+                            const discordUserId = discordIdentity.identity_data?.provider_id || discordIdentity.id;
+                            const guildId = env.DISCORD_GUILD_ID;
+                            const botToken = env.DISCORD_BOT_TOKEN;
+                            if (guildId && botToken) {
+                                const { data: profileForDiscord } = await supabaseAdmin.from('profiles').select('discord_custom_role_id').eq('id', targetUserId).single();
+                                if (profileForDiscord?.discord_custom_role_id) {
+                                    await fetch(`https://discord.com/api/v10/guilds/${guildId}/roles/${profileForDiscord.discord_custom_role_id}`, {
+                                        method: 'DELETE',
+                                        headers: { 'Authorization': `Bot ${botToken}` }
+                                    });
+                                    updateData.discord_custom_role_id = null;
+                                }
+                                const tierRoles = [env.DISCORD_ROLE_50, env.DISCORD_ROLE_200, env.DISCORD_ROLE_500, env.DISCORD_ROLE_1000, env.DISCORD_ROLE_2000].filter(Boolean);
+                                for (const roleId of tierRoles) {
+                                    await fetch(`https://discord.com/api/v10/guilds/${guildId}/members/${discordUserId}/roles/${roleId}`, {
+                                        method: 'DELETE',
+                                        headers: { 'Authorization': `Bot ${botToken}` }
+                                    });
+                                }
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error("Lỗi khi xóa Discord roles khi ban:", e);
+                }
+                // -----------------------------------
             }
                 
             const { error: banError } = await supabaseAdmin.from('profiles').update(updateData).eq('id', targetUserId);

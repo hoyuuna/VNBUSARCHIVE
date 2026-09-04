@@ -1241,21 +1241,7 @@ div[id$="-modal"] > div > * {
             color: #ef4444;
         }
 
-        .news-card {
-            transition: all 0.2s;
-            border: 1px solid transparent;
-        }
-
-        .news-card:hover {
-            background-color: #f4f4f5;
-        }
-
-        .news-card.active {
-            background-color: #fff;
-            border-color: #000;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-            border-left: 3px solid #000;
-        }
+        
 
         @media (max-width: 768px) {
             .notification-dropdown {
@@ -1611,21 +1597,7 @@ div[id$="-modal"] > div > * {
         
 
         /* Nút select đen hoàn toàn trong bảng tin */
-        .news-card {
-            transition: all 0.2s;
-            background-color: white !important;
-            
-            border-radius: 0.5rem;
-        }
-        .news-card:hover:not(.active) {
-            background-color: #f4f4f5 !important;
-        }
-.news-card.active {
-             background-color: #000 !important;
-             
-             border-left: none !important;
-             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-         }
+        
 
 
         /* FIX LỖI GIAO DIỆN MOBILE: CHỐNG TRÀN BẢNG KHIẾN TRÌNH DUYỆT TỰ ZOOM-OUT */
@@ -1945,7 +1917,7 @@ div[id$="-modal"] > div > * {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1788518407239" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1788519457357" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -6560,7 +6532,7 @@ div[id$="-modal"] > div > * {
                         <span class="text-sm font-bold text-gray-700">Đánh dấu đơn vị này đã dừng hoạt động</span>
                         <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-4 self-center">
                             <input type="checkbox" id="op-edit-inactive" class="sr-only peer">
-                            <div class="w-11 h-6 bg-black rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all shadow-inner"></div>
+                            <div class="w-11 h-6 bg-black rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white dark:after:bg-black after:border-gray-300 dark:after:border-black after:border after:rounded-full after:h-5 after:w-5 after:transition-all shadow-inner"></div>
                         </label>
                     </div>
                 </div>
@@ -6620,7 +6592,7 @@ div[id$="-modal"] > div > * {
                         <span class="text-sm font-bold text-gray-700">Đánh dấu tuyến này đã dừng hoạt động</span>
                         <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-4 self-center">
                             <input type="checkbox" id="route-edit-inactive" class="sr-only peer">
-                            <div class="w-11 h-6 bg-black rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all shadow-inner"></div>
+                            <div class="w-11 h-6 bg-black rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white dark:after:bg-black after:border-gray-300 dark:after:border-black after:border after:rounded-full after:h-5 after:w-5 after:transition-all shadow-inner"></div>
                         </label>
                     </div>
                 </div>
@@ -6653,7 +6625,7 @@ div[id$="-modal"] > div > * {
                         <span class="text-sm font-bold text-gray-700">Có hỗ trợ xe lăn</span>
                         <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-4 self-center">
                             <input type="checkbox" id="route-edit-wheelchair" class="sr-only peer">
-                            <div class="w-11 h-6 bg-black rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all shadow-inner"></div>
+                            <div class="w-11 h-6 bg-black rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white dark:after:bg-black after:border-gray-300 dark:after:border-black after:border after:rounded-full after:h-5 after:w-5 after:transition-all shadow-inner"></div>
                         </label>
                     </div>
                 </div>
@@ -6914,7 +6886,7 @@ div[id$="-modal"] > div > * {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed top-24 left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.js?v=1788518407239"></script>
+<script src="/app.js?v=1788519457357"></script>
 </body>
 </html>
 

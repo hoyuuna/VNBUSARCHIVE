@@ -106,7 +106,7 @@ a:hover, button:hover, [role="button"]:hover { text-decoration: none !important;
 }
 
 .bg-white\/95, .bg-white\/90, .bg-white\/80, .bg-white\/70, .bg-white\/60, .bg-white\/50, .bg-white\/40, .bg-white\/30, .bg-white\/20,
-.bg-gray-50\/50, .bg-gray-100\/50, .bg-gray-200\/80, .bg-gray-200\/50 {
+.bg-gray-50\/50, .bg-gray-50\/30, .bg-gray-50\/20, .bg-gray-100\/50, .bg-gray-100\/30, .bg-gray-200\/80, .bg-gray-200\/50 {
     background-color: #000000 !important; backdrop-filter: none !important;
 }
 
@@ -172,11 +172,11 @@ input:focus, textarea:focus, select:focus {
 #newsboard-content .border-gray-200\/50, #settings-content .border-gray-200\/50, #newsboard-content .border-gray-200, #settings-content .border-gray-200, #newsboard-content .border-gray-300, #settings-content .border-gray-300, #newsboard-toc, #set-menu-main { border-color: #ffffff !important; }
 #newsboard-content .border-b, #newsboard-content .border-r, #settings-content .border-b, #settings-content .border-r { border-color: #ffffff !important; }
 #set-menu-main button, #set-menu-account button, #set-menu-docs button { color: #ffffff !important; }
-.news-card { margin-bottom: 8px; background-color: #000000 !important; color: #ffffff !important; }
+
 #newsboard-content .bg-white\/30, #newsboard-content .bg-gray-50\/30, #settings-content .bg-white\/30, #settings-content .bg-gray-50\/30 { background-color: #000000 !important; }
 
 /* Trạng thái Active trong bảng tin / Cài đặt -> Trắng chữ đen */
-.news-card.active, #set-menu-main button.bg-black, #set-menu-docs button.bg-black, #set-menu-account button.bg-black {
+#set-menu-main button.bg-black, #set-menu-docs button.bg-black, #set-menu-account button.bg-black {
     background-color: #ffffff !important; color: #000000 !important; border-color: #ffffff !important;
 }
 
@@ -254,7 +254,7 @@ polygon[fill="white"] { fill: #000000 !important; }
 }
 
 /* Fix active preferences option notes text color */
-.pref-option.bg-black *, .news-card.active *, #set-menu-main button.bg-black *, #set-menu-docs button.bg-black *, #set-menu-account button.bg-black * {
+.pref-option.bg-black *, #set-menu-main button.bg-black *, #set-menu-docs button.bg-black *, #set-menu-account button.bg-black * {
     color: #000000 !important;
 }
 /* Dark Mode Inline Alerts (Soft Backgrounds, Tinted Borders, Pastel Text/Icons) */

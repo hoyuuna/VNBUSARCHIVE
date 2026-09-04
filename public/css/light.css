@@ -289,19 +289,8 @@ input:focus, textarea:focus, select:focus {
     color: #ffffff !important;
 }
 
-/* Nút News card (Bảng tin) */
-.news-card {
-    border: 1px solid #18181b !important;
-    margin-bottom: 8px;
-}
-.news-card.active {
-    border-left: 1px solid #18181b !important;
-    background-color: #18181b !important;
-    color: #ffffff !important;
-}
-.news-card.active h4, .news-card.active p, .news-card.active span, .news-card.active i {
-    color: #ffffff !important;
-}
+
+
 
 /* Nền modal Bảng tin & Cài đặt */
 #newsboard-content .bg-white\/30,
