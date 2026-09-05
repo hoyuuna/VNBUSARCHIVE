@@ -17519,7 +17519,7 @@ Object.assign(window.app, {
                                     if (pA !== pB) return pA - pB;
                                     return a.id - b.id;
                                 });
-                                rawPhotos.forEach(p => p._isReviewedByMe = reviewedIds.includes(p.id) || (app.admin._localReviewedIds && app.admin._localReviewedIds.has(p.id)));
+                                rawPhotos.forEach(p => p._isReviewedByMe = reviewedIds.includes(p.id) || (app.admin._localReviewedIds && app.admin._localReviewedIds.has(p.id)) || (p.photo_reviews && p.photo_reviews.some(r => r.admin_id === app.user.id)));
                             } catch(e) { console.warn('Lỗi fetch pending:', e); }
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
                             if (!rawPhotos || rawPhotos.length === 0) { content.innerHTML = '<p class="p-4 text-gray-600">Không có ảnh nào chờ duyệt.</p>'; return; }
