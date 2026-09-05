@@ -17482,7 +17482,7 @@ Object.assign(window.app, {
                                             const sessionRes = await window.sb.auth.getSession();
                                             const token = sessionRes.data.session?.access_token;
                                             if (token) {
-                                                const res = await fetch(`/api/photo?status=pending&page=${app.adminPendingPage}&limit=${pageSize}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                                                const res = await fetch(`/api/photo?status=pending&page=${app.adminPendingPage}&limit=${pageSize}&_t=${new Date().getTime()}`, { headers: { 'Authorization': `Bearer ${token}` }, cache: 'no-store' });
                                                 if (res.ok) {
                                                     const json = await res.json();
                                                     if (json && json.data && Array.isArray(json.data)) return { data: json.data, count: json.count || 0 };
@@ -17498,7 +17498,7 @@ Object.assign(window.app, {
                                 (apiRes.data || []).forEach(p => {
                                     const existing = idMap.get(p.id);
                                     if (existing) {
-                                        idMap.set(p.id, { ...existing, ...p, vehicles: p.vehicles || existing.vehicles, profiles: p.profiles || existing.profiles });
+                                        idMap.set(p.id, { ...existing, ...p, vehicles: p.vehicles || existing.vehicles, profiles: p.profiles || existing.profiles, photo_reviews: (p.photo_reviews && p.photo_reviews.length > 0) ? p.photo_reviews : (existing.photo_reviews || p.photo_reviews) });
                                     } else {
                                         idMap.set(p.id, p);
                                     }
