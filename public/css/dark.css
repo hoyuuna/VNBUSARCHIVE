@@ -152,6 +152,7 @@ input:focus, textarea:focus, select:focus {
 
 /* Fix docs markdown text */
 .markdown-body, .markdown-body * { color: #ffffff !important; }
+.markdown-body pre, .markdown-body pre *, .markdown-body code, .markdown-body code * { color: #000000 !important; background-color: #ffffff !important; }
 
 /* Fix hover texts */
 .group-hover\:text-black:hover, .group:hover .group-hover\:text-black, .hover\:text-black:hover { color: #ffffff !important; }
