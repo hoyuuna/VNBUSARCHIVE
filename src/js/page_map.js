@@ -900,18 +900,14 @@ app.map = {
             const distFromCenter = maxDist * (1 - altitudeFraction);
             const sunCy = 125 - distFromCenter;
             
-            const lineStartY = sunCy + 12;
+            const lineStartY = sunCy + 26;
             const lineEndY = 115;
             
             let arrowSvg = '';
-            if (distFromCenter > 30) {
+            if (distFromCenter > 50) {
                 arrowSvg = `
-                    <line x1="125" y1="${lineStartY}" x2="125" y2="${lineEndY}" stroke="#facc15" stroke-width="3" />
-                    <polygon points="125,${lineEndY+5} 118,${lineEndY-7} 132,${lineEndY-7}" fill="#facc15" />
-                `;
-            } else if (distFromCenter > 15) {
-                arrowSvg = `
-                    <polygon points="125,${lineStartY+5} 118,${lineStartY-7} 132,${lineStartY-7}" fill="#facc15" />
+                    <line x1="125" y1="${lineStartY}" x2="125" y2="${lineEndY}" stroke="#facc15" stroke-width="3" stroke-linecap="round" />
+                    <polygon points="125,${lineEndY+6} 118,${lineEndY-6} 132,${lineEndY-6}" fill="#facc15" stroke="#facc15" stroke-width="1" stroke-linejoin="round" />
                 `;
             }
 
