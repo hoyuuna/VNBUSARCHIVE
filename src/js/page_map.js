@@ -893,15 +893,50 @@ app.map = {
         let svgHtml = '';
         if (pos.altitude > 0) {
             const sunAngleDeg = (pos.azimuth * 180 / Math.PI) + 180;
-            const length = Math.max(20, 80 * (pos.altitude / (Math.PI/2))); 
-            const y1 = 90 - length;
+            let altitudeFraction = pos.altitude / (Math.PI / 2);
+            if (altitudeFraction > 1) altitudeFraction = 1;
+            
+            const maxDist = 110;
+            const distFromCenter = maxDist * (1 - altitudeFraction);
+            const sunCy = 125 - distFromCenter;
+            
+            const lineStartY = sunCy + 12;
+            const lineEndY = 115;
+            
+            let arrowSvg = '';
+            if (distFromCenter > 30) {
+                arrowSvg = `
+                    <line x1="125" y1="${lineStartY}" x2="125" y2="${lineEndY}" stroke="#facc15" stroke-width="3" />
+                    <polygon points="125,${lineEndY+5} 118,${lineEndY-7} 132,${lineEndY-7}" fill="#facc15" />
+                `;
+            } else if (distFromCenter > 15) {
+                arrowSvg = `
+                    <polygon points="125,${lineStartY+5} 118,${lineStartY-7} 132,${lineStartY-7}" fill="#facc15" />
+                `;
+            }
+
+            const sunRadius = 8;
+            const rayCount = 8;
+            let raysSvg = '';
+            if (altitudeFraction > 0.05) {
+                const currentRayLen = 11 + (altitudeFraction - 0.05) * (7 / 0.95);
+                for(let i = 0; i < rayCount; i++) {
+                    const angle = (i * 360 / rayCount) * Math.PI / 180;
+                    const x1 = 125 + Math.cos(angle) * (sunRadius + 2);
+                    const y1_pos = sunCy + Math.sin(angle) * (sunRadius + 2);
+                    const x2 = 125 + Math.cos(angle) * currentRayLen;
+                    const y2_pos = sunCy + Math.sin(angle) * currentRayLen;
+                    raysSvg += `<line x1="${x1}" y1="${y1_pos}" x2="${x2}" y2="${y2_pos}" stroke="#facc15" stroke-width="2" stroke-linecap="round"/>`;
+                }
+            }
+
             svgHtml = `
             <div style="width: 250px; height: 250px; transform: rotate(${sunAngleDeg}deg); pointer-events: none;">
                 <svg width="250" height="250" viewBox="0 0 250 250">
                     <circle cx="125" cy="125" r="110" stroke="#facc15" stroke-width="2" stroke-dasharray="6 6" fill="none" opacity="0.6"/>
-                    <line x1="125" y1="${y1 + 15}" x2="125" y2="110" stroke="#facc15" stroke-width="3" />
-                    <polygon points="125,115 118,103 132,103" fill="#facc15" />
-                    <circle cx="125" cy="${y1 + 15}" r="8" fill="#facc15" />
+                    ${arrowSvg}
+                    ${raysSvg}
+                    <circle cx="125" cy="${sunCy}" r="${sunRadius}" fill="#facc15" />
                 </svg>
             </div>`;
         } else {
