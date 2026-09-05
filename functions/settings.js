@@ -1,14 +1,12 @@
 export async function onRequest(context) {
-    const { request, env, params } = context;
-    let routeId = params.id;
-    try { routeId = decodeURIComponent(params.id); } catch(e) {}
+    const { request, env } = context;
     
     const url = new URL(request.url);
     const indexReq = new Request(url.origin + '/', request);
     const response = await env.ASSETS.fetch(indexReq);
     
-    let title = `Tuyến ${routeId} | VNBUSARCHIVE`;
-    let desc = `Xem các hình ảnh phương tiện hoạt động trên tuyến ${routeId} trên VNBUSARCHIVE - Dự án lưu trữ ảnh xe buýt phi lợi nhuận.`;
+    let title = `Cài đặt | VNBUSARCHIVE`;
+    let desc = `Tùy chỉnh tài khoản và giao diện cá nhân trên VNBUSARCHIVE.`;
     
     return new HTMLRewriter()
         .on('title', { element(e) { e.setInnerContent(title); } })
