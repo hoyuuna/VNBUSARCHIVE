@@ -130,14 +130,14 @@ Object.assign(window.app, {
                                     <span class="sm:hidden font-bold text-gray-500 mb-1">Ngày áp dụng</span>
                                     <input type="text" placeholder="DD/MM/YYYY" maxlength="10" oninput="app.utils.formatDateInput(this)" value="${app.utils.escapeAttr(app.utils.formatDateToDDMMYYYY(h.effective_date) || '')}" onchange="app.vehicle.updateHistoryItem(${index}, 'effective_date', this.value, '${prefix}')" class="hist-input text-center font-mono w-28">
                                 </div>
-                                <div class="flex flex-col sm:flex-1 min-w-0" style="${isStopped ? 'display: none;' : ''}">
-                                    <span class="sm:hidden font-bold text-gray-500 mb-1">Đơn vị</span>
-                                    <input type="text" value="${app.utils.escapeAttr(h.operator)}" placeholder="Đơn vị" oninput="app.utils.formatNoPunctuation(this)" onchange="app.vehicle.updateHistoryItem(${index}, 'operator', this.value, '${prefix}')" class="hist-input" ${isStopped ? 'disabled' : ''}>
-                                </div>
-                                <div class="flex flex-col sm:flex-1 min-w-0">
-                                    <span class="sm:hidden font-bold text-gray-500 mb-1">Tuyến</span>
-                                    <input type="text" value="${app.utils.escapeAttr(h.route || '')}" placeholder="Tuyến" onchange="app.vehicle.updateHistoryItem(${index}, 'route', this.value, '${prefix}')" class="hist-input">
-                                </div>
+                                <div id="${prefix}hist-op-wrapper-${index}" class="flex flex-col sm:flex-1 min-w-0 ${isStopped ? 'hidden' : ''}">
+                                      <span class="sm:hidden font-bold text-gray-500 mb-1">Đơn vị</span>
+                                      <input id="${prefix}hist-op-input-${index}" type="text" value="${app.utils.escapeAttr(h.operator)}" placeholder="Đơn vị" oninput="app.utils.formatNoPunctuation(this)" onchange="app.vehicle.updateHistoryItem(${index}, 'operator', this.value, '${prefix}')" class="hist-input ${isStopped ? 'bg-gray-100 cursor-not-allowed opacity-60' : ''}" ${isStopped ? 'disabled' : ''}>
+                                  </div>
+                                  <div class="flex flex-col sm:flex-1 min-w-0">
+                                      <span class="sm:hidden font-bold text-gray-500 mb-1">Tuyến</span>
+                                      <input type="text" value="${app.utils.escapeAttr(h.route || '')}" placeholder="Tuyến" oninput="app.utils.checkRouteStatus(this.value, '${prefix}hist-op-input-${index}', '${prefix}hist-op-wrapper-${index}')" onchange="app.vehicle.updateHistoryItem(${index}, 'route', this.value, '${prefix}'); app.vehicle.updateHistoryItem(${index}, 'operator', document.getElementById('${prefix}hist-op-input-${index}').value, '${prefix}')" class="hist-input">
+                                  </div>
                             </div>
                             <div class="flex flex-col sm:flex-row gap-2 items-start mt-1">
                                 <div class="flex flex-col flex-1 min-w-0 w-full">
