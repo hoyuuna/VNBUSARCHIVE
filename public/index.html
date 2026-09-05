@@ -1911,7 +1911,7 @@ div[id$="-modal"] > div > * {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1788606967971" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1788612712170" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -5668,21 +5668,9 @@ div[id$="-modal"] > div > * {
             const cssLaw = "color: #ffcc00; font-size: 13px; font-style: italic;";
             const cssInvite = "color: #4ade80; font-size: 16px; font-weight: bold; line-height: 1.5;";
 
-            originalConsoleLog("%c⚠️ CẢNH BÁO BẢO MẬT & PHÁP LÝ / SECURITY WARNING ⚠️", cssWarning);
+            originalConsoleLog("%cA HIU HIU ĐỪNG ĐÁNH IEM NHÉ", cssWarning);
             originalConsoleLog(
-                "%c\n• Dừng lại ngay! Mọi hành vi dò quét lỗ hổng, xâm nhập trái phép, hoặc tự động cào dữ liệu tại hệ thống này đều bị NGHIÊM CẤM.\n",
-                cssText
-            );
-            originalConsoleLog(
-                "%c[HÀNH VI VI PHẠM SẼ BỊ XỬ LÝ THEO PHÁP LUẬT VIỆT NAM]:\n" +
-                "- Điều 287 BLHS: Tội cản trở hoặc gây rối loạn hoạt động của mạng máy tính (Tấn công DoS/DDoS) - Phạt tù lên đến 12 năm.\n" +
-                "- Điều 288 BLHS: Tội đưa hoặc sử dụng trái phép thông tin mạng máy tính (Scrape/Crawl) - Phạt tiền đến 1 tỷ hoặc phạt tù đến 7 năm.\n" +
-                "- Điều 289 BLHS: Tội xâm nhập trái phép vào mạng máy tính của người khác (Hack/Bẻ khóa) - Phạt tù lên đến 12 năm.\n" +
-                "- Nghị định 13/2023/NĐ-CP: Vi phạm bảo vệ dữ liệu cá nhân.\n",
-                cssLaw
-            );
-            originalConsoleLog(
-                "%cBạn muốn học hỏi mã nguồn hoặc muốn đóng góp cho web? Tham khảo tại đây nhé: https://github.com/hoyuuna/VNBUSARCHIVE 😁\n",
+                "%cTham khảo mã nguồn và đóng góp cho web tại đây nè: https://github.com/hoyuuna/VNBUSARCHIVE 😁\n",
                 cssInvite
             );
         };
@@ -5733,23 +5721,7 @@ div[id$="-modal"] > div > * {
                     e.preventDefault();
                 }
             });
-            document.addEventListener('keydown', e => {
-                if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) || (e.ctrlKey && e.key === 'U')) {
-                    e.preventDefault(); return false;
-                }
-            });
-            
-            const ua = (navigator.userAgent || '').toLowerCase();
-            const isBot = /bot|crawler|spider|lighthouse|inspection|google|bing|yandex|baidu|slurp|facebook|twitter|discord|telegram|applebot|page-speed|gtmetrix|headless|chrome-lighthouse/i.test(ua) || navigator.webdriver;
-            if (isBot || sessionStorage.getItem('VNBA_SESS_AUTH') === 'active') return;
-
-            _pInt = setInterval(function() {
-                const before = new Date().getTime();
-                debugger; 
-                if (new Date().getTime() - before > 100) {
-                    document.body.innerHTML = "<h1 style='text-align:center; margin-top:20vh; font-family:sans-serif;'>Hành vi bị cấm!</h1>";
-                }
-            }, 100);
+            // DevTools block removed as requested
         })();
 
     </script>
@@ -6880,7 +6852,7 @@ div[id$="-modal"] > div > * {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed top-24 left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.js?v=1788606967971"></script>
+<script src="/app.js?v=1788612712170"></script>
 </body>
 </html>
 
