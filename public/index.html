@@ -835,33 +835,27 @@ div[id$="-modal"] > div > * {
         }
 
         ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
+            width: 8px;
+            height: 8px;
         }
 
         ::-webkit-scrollbar-track {
-            background: transparent;
+            background: #3f3f46; /* ray xám đậm */
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #d4d4d8;
-            border-radius: 3px;
+            background: #d4d4d8; /* thanh xám nhạt */
+            border-radius: 4px;
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: #a1a1aa;
-        }
-
-        html.theme-dark ::-webkit-scrollbar-track {
-            background: #71717a; /* Xám nhạt hơn cho nền */
+            background: #f4f4f5; /* sáng hơn khi hover */
         }
         
-        html.theme-dark ::-webkit-scrollbar-thumb {
-            background: #18181b; /* Màu tối (ngược lại sáng) */
-        }
-        
-        html.theme-dark ::-webkit-scrollbar-thumb:hover {
-            background: #000000;
+        /* Hỗ trợ Firefox */
+        html {
+            scrollbar-width: thin;
+            scrollbar-color: #d4d4d8 #3f3f46;
         }
 
         body.no-scroll {
@@ -1917,7 +1911,7 @@ div[id$="-modal"] > div > * {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1788578959206" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1788582047929" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -6886,7 +6880,7 @@ div[id$="-modal"] > div > * {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed top-24 left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.js?v=1788578959206"></script>
+<script src="/app.js?v=1788582047929"></script>
 </body>
 </html>
 

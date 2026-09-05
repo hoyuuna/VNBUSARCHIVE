@@ -835,33 +835,27 @@ div[id$="-modal"] > div > * {
         }
 
         ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
+            width: 8px;
+            height: 8px;
         }
 
         ::-webkit-scrollbar-track {
-            background: transparent;
+            background: #3f3f46; /* ray xám đậm */
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #d4d4d8;
-            border-radius: 3px;
+            background: #d4d4d8; /* thanh xám nhạt */
+            border-radius: 4px;
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: #a1a1aa;
-        }
-
-        html.theme-dark ::-webkit-scrollbar-track {
-            background: #71717a; /* Xám nhạt hơn cho nền */
+            background: #f4f4f5; /* sáng hơn khi hover */
         }
         
-        html.theme-dark ::-webkit-scrollbar-thumb {
-            background: #18181b; /* Màu tối (ngược lại sáng) */
-        }
-        
-        html.theme-dark ::-webkit-scrollbar-thumb:hover {
-            background: #000000;
+        /* Hỗ trợ Firefox */
+        html {
+            scrollbar-width: thin;
+            scrollbar-color: #d4d4d8 #3f3f46;
         }
 
         body.no-scroll {
