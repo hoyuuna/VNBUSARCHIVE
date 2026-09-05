@@ -169,7 +169,7 @@ input:focus, textarea:focus, select:focus {
 
 
 /* 9. BẢNG TIN HỆ THỐNG & CÀI ĐẶT */
-#newsboard-content .border-gray-200\/50, #settings-content .border-gray-200\/50, #newsboard-content .border-gray-200, #settings-content .border-gray-200, #newsboard-content .border-gray-300, #settings-content .border-gray-300, #newsboard-toc, #set-menu-main { border-color: #ffffff !important; }
+#newsboard-content .border-gray-200\/50, #settings-content .border-gray-200\/50, #achievement-content .border-gray-200\/50, #newsboard-content .border-gray-200, #settings-content .border-gray-200, #achievement-content .border-gray-200, #newsboard-content .border-gray-300, #settings-content .border-gray-300, #achievement-content .border-gray-300, #newsboard-toc, #set-menu-main { border-color: #ffffff !important; }
 #newsboard-content .border-b, #newsboard-content .border-r, #settings-content .border-b, #settings-content .border-r { border-color: #ffffff !important; }
 #set-menu-main button, #set-menu-account button, #set-menu-docs button { color: #ffffff !important; }
 
@@ -369,4 +369,15 @@ button.bg-black:hover, a.bg-black:hover {
 .badge-vvcc, .badge-dev {
     background-color: #ffffff !important;
     color: #000000 !important;
+}
+
+/* Achievement Modal overrides */
+#achievement-content .group:hover .group-hover\:bg-black {
+    background-color: #ffffff !important;
+}
+#achievement-content .group:hover .group-hover\:text-white {
+    color: #000000 !important;
+}
+#achievement-content .group:hover .group-hover\:border-black {
+    border-color: #ffffff !important;
 }
