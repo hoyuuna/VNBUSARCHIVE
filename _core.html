@@ -5667,10 +5667,12 @@ div[id$="-modal"] > div > * {
             const cssText = "color: #fff; font-size: 14px; font-weight: 500; line-height: 1.5;";
             const cssLaw = "color: #ffcc00; font-size: 13px; font-style: italic;";
             const cssInvite = "color: #4ade80; font-size: 16px; font-weight: bold; line-height: 1.5;";
+            
+            const uniqueStr = "\u200B".repeat(Math.floor(Math.random() * 20));
 
-            originalConsoleLog("%cA HIU HIU ĐỪNG ĐÁNH IEM NHÉ", cssWarning);
+            originalConsoleLog("%cA HIU HIU ĐỪNG ĐÁNH IEM NHÉ" + uniqueStr, cssWarning);
             originalConsoleLog(
-                "%cTham khảo mã nguồn và đóng góp cho web tại đây nè: https://github.com/hoyuuna/VNBUSARCHIVE 😁\n",
+                "%cTham khảo mã nguồn và đóng góp cho web tại đây nè: https://github.com/hoyuuna/VNBUSARCHIVE 😁" + uniqueStr + "\n",
                 cssInvite
             );
         };
