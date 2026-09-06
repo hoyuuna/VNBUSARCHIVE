@@ -13452,27 +13452,8 @@ Object.assign(window.app, {
                             const tsModify = parseDate(dtModify);
                             const helpLinkHTML = `<br><br><a href="javascript:void(0)" onclick="app.ui.closeAlert(true); setTimeout(() => app.utils.navigate('/help/1516371307481272330'), 300)" class="text-black font-bold hover:text-gray-700 hover:underline transition-colors inline-flex items-center gap-1.5"><i class="fa-solid fa-circle-info"></i> Tìm hiểu thêm & hướng dẫn khắc phục</a>`;
                             const errExifInvalid = "EXIF ảnh không hợp lệ. Bạn vui lòng chọn file ảnh gốc nhé!" + helpLinkHTML;
-                            if (tsOriginal && tsDigitized && Math.abs(tsOriginal - tsDigitized) > 2000) { reject(errExifInvalid); return; }
-                            if (tsOriginal && tsModify && tsModify < tsOriginal - 2000) { reject(errExifInvalid); return; }
-                            const fNum = Number(tags.FNumber || tags.fNumber);
-                            const apertureVal = tags.ApertureValue !== undefined ? Number(tags.ApertureValue) : undefined;
-                            if (fNum && apertureVal !== undefined && !isNaN(apertureVal)) {
-                                const expectedAperture = 2 * Math.log2(fNum);
-                                if (Math.abs(expectedAperture - apertureVal) > 0.5) { reject(errExifInvalid); return; }
-                            }
-                            const expTime = Number(tags.ExposureTime || tags.exposureTime);
-                            const shutterVal = tags.ShutterSpeedValue !== undefined ? Number(tags.ShutterSpeedValue) : undefined;
-                            if (expTime && shutterVal !== undefined && !isNaN(shutterVal)) {
-                                const expectedShutter = -Math.log2(expTime);
-                                const isApexMatch = Math.abs(expectedShutter - shutterVal) <= 0.5;
-                                const isFirmwareBugMatch = Math.abs(expTime - shutterVal) < 0.001 || (expTime > 0 && Math.abs((expTime - shutterVal) / expTime) < 0.05);
-                                if (!isApexMatch && !isFirmwareBugMatch) { reject(errExifInvalid); return; }
-                            }
-                            const fLen = Number(tags.FocalLength || tags.focalLength);
-                            const f35 = Number(tags.FocalLengthIn35mmFormat || tags.FocalLengthIn35mmFilm);
-                            if (fLen && f35 && !isNaN(fLen) && !isNaN(f35)) {
-                                if (f35 < fLen - 0.5) { reject(errExifInvalid); return; }
-                            }
+                            
+                            // EXIF Consistency check disabled by user request
 
                             let model = tags.Model;
                             const make = tags.Make;
