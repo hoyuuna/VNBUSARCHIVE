@@ -14298,7 +14298,7 @@ Object.assign(window.app, {
                         } catch (e) {}
                         let result = null;
                         let uploadAttempts = 0;
-                        const maxUploadAttempts = 3;
+                        const maxUploadAttempts = 1;
                         let lastUploadErr = null;
                         while (uploadAttempts < maxUploadAttempts) {
                             uploadAttempts++;
