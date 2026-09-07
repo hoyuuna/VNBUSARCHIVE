@@ -43,30 +43,53 @@ export async function onRequest(context) {
             const botToken = env.DISCORD_BOT_TOKEN;
 
             if (guildId && botToken) {
-                // Remove custom role if exists
-                const { data: profile } = await supabase.from('profiles').select('discord_custom_role_id').eq('id', user.id).single();
-                if (profile?.discord_custom_role_id) {
-                    await fetch(`https://discord.com/api/v10/guilds/${guildId}/roles/${profile.discord_custom_role_id}`, {
-                        method: 'DELETE',
+                // 1) Lấy toàn bộ role hiện tại của member trên guild (nếu user đã thoát server -> bỏ qua phần này)
+                let memberRoles = [];
+                let memberStillInGuild = false;
+                try {
+                    const memberRes = await fetch(`https://discord.com/api/v10/guilds/${guildId}/members/${discordUserId}`, {
                         headers: { 'Authorization': `Bot ${botToken}` }
                     });
-                    await supabase.from('profiles').update({ discord_custom_role_id: null }).eq('id', user.id);
+                    if (memberRes.ok) {
+                        memberStillInGuild = true;
+                        const memberData = await memberRes.json();
+                        memberRoles = Array.isArray(memberData.roles) ? memberData.roles : [];
+                    } else if (memberRes.status === 404) {
+                        // User đã thoát khỏi server -> kệ theo yêu cầu
+                        console.log(`[unlink] Discord user ${discordUserId} không còn trong guild, bỏ qua gỡ role trực tiếp.`);
+                    } else {
+                        console.error(`[unlink] Discord API trả ${memberRes.status} khi lấy member.`);
+                    }
+                } catch (e) {
+                    console.error('[unlink] Lỗi khi gọi Discord GET member:', e);
                 }
 
-                // Remove all tier roles
-                const tierRoles = [
-                    env.DISCORD_ROLE_50,
-                    env.DISCORD_ROLE_200,
-                    env.DISCORD_ROLE_500,
-                    env.DISCORD_ROLE_1000,
-                    env.DISCORD_ROLE_2000
-                ].filter(Boolean);
+                // 2) Gỡ TẤT CẢ role (kể cả role verified / badge ảnh do admin gán thủ công) khỏi member
+                if (memberStillInGuild && memberRoles.length > 0) {
+                    for (const roleId of memberRoles) {
+                        try {
+                            await fetch(`https://discord.com/api/v10/guilds/${guildId}/members/${discordUserId}/roles/${roleId}`, {
+                                method: 'DELETE',
+                                headers: { 'Authorization': `Bot ${botToken}` }
+                            });
+                        } catch (e) {
+                            console.error(`[unlink] Lỗi khi gỡ role ${roleId}:`, e);
+                        }
+                    }
+                }
 
-                for (const roleId of tierRoles) {
-                    await fetch(`https://discord.com/api/v10/guilds/${guildId}/members/${discordUserId}/roles/${roleId}`, {
-                        method: 'DELETE',
-                        headers: { 'Authorization': `Bot ${botToken}` }
-                    });
+                // 3) Xóa Custom Role (nếu có) và cập nhật DB
+                const { data: profile } = await supabase.from('profiles').select('discord_custom_role_id').eq('id', user.id).single();
+                if (profile?.discord_custom_role_id) {
+                    try {
+                        await fetch(`https://discord.com/api/v10/guilds/${guildId}/roles/${profile.discord_custom_role_id}`, {
+                            method: 'DELETE',
+                            headers: { 'Authorization': `Bot ${botToken}` }
+                        });
+                    } catch (e) {
+                        console.error('[unlink] Lỗi khi xóa custom role Discord:', e);
+                    }
+                    await supabase.from('profiles').update({ discord_custom_role_id: null }).eq('id', user.id);
                 }
             }
         }
