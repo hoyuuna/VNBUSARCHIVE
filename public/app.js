@@ -20754,6 +20754,13 @@ app.map = {
                 this._lastWarnedZoneId = null;
             }
             
+            // Cập nhật currentLocationForSun nếu sun feature đang bật để sun marker đi theo vị trí người dùng
+            if (this.sunEnabled) {
+                this.currentLocationForSun = { lat: e.latlng.lat, lon: e.latlng.lng };
+                const slider = document.getElementById('map-loc-sun-slider');
+                this.updateSunDirection(slider ? slider.value : (new Date().getHours() * 60 + new Date().getMinutes()));
+            }
+
             // Nếu người dùng đang chờ load từ nút locate
             if (this.isLocatingUser) {
                 this.isLocatingUser = false;
