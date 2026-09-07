@@ -15112,6 +15112,15 @@ Object.assign(window.app, {
                     btnLight.className = cur === 'light' ? active : inactive;
                     btnDark.className = cur === 'dark' ? active : inactive;
                     if (btnSystem) btnSystem.className = cur === 'system' ? active : inactive;
+
+                    // Dynamically swap the "Thiết Bị" theme icon based on user's actual device
+                    // (laptop icon for PC users, mobile phone icon for mobile users)
+                    const systemIcon = document.getElementById('set-theme-system-icon');
+                    if (systemIcon) {
+                        const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+                        systemIcon.classList.remove('fa-laptop', 'fa-mobile-screen');
+                        systemIcon.classList.add(isMobileDevice ? 'fa-mobile-screen' : 'fa-laptop');
+                    }
                 },
 select: (val) => {
                     app.preference.tempSelection = val;

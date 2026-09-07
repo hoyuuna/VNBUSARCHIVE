@@ -1911,7 +1911,7 @@ div[id$="-modal"] > div > * {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1788776708023" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1788793196058" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -3302,7 +3302,7 @@ div[id$="-modal"] > div > * {
                                         <span class="font-bold text-sm uppercase mt-1 text-center">Nền Tối</span>
                                     </div>
                                     <div id="set-theme-btn-system" onclick="app.preference.setTheme('system')" class="theme-option cursor-pointer border border-gray-300 bg-white text-gray-800 rounded-xl p-5 shadow-sm transition-all duration-200 flex flex-col items-center justify-center gap-2">
-                                        <i class="fa-solid fa-laptop text-2xl"></i>
+                                        <i id="set-theme-system-icon" class="fa-solid fa-laptop text-2xl"></i>
                                         <span class="font-bold text-sm uppercase mt-1 text-center">Thiết Bị</span>
                                     </div>
                                 </div>
@@ -6836,7 +6836,7 @@ div[id$="-modal"] > div > * {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed top-24 left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.js?v=1788776708023"></script>
+<script src="/app.js?v=1788793196058"></script>
 </body>
 </html>
 
