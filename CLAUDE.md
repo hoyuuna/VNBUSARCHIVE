@@ -24,6 +24,7 @@
 
 ## Git Workflow
 - **Rule:** Always automatically commit and push git changes (`git add -A; git commit -m "..."; git push`) after successfully completing user requests or modifying code. **All git commit messages MUST always be written in English.**
+- **Rule:** Always use Claude Code `commit` command instead of manual `git commit` when committing changes - this ensures proper commit message formatting and conventional commit standards.
 - **Rule:** Ensure all temporary or junk files are deleted before pushing. If they must be kept, they MUST be placed in the `/temp` directory.
 
 ## Frontend Build & Payload Invariant

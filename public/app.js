@@ -10955,7 +10955,8 @@ Object.assign(window.app, {
                                     const { error } = await window.sb.from('operator_info').upsert({
                                         operator_name: app.currentOperator,
                                                                                 description: desc || null,
-                                        parent_operator: parentOp || null
+                                        parent_operator: parentOp || null,
+                                        logo_url: logo || null
                                     });
                                     if (error) throw error;
                                 }
@@ -10981,7 +10982,8 @@ Object.assign(window.app, {
                                         request_type: 'update_operator_info',
                                         operator_name: app.currentOperator,
                                         description: desc,
-                                                                                parent_operator: parentOp
+                                        parent_operator: parentOp,
+                                        logo_url: logo
                                     },
                                     status: 'pending'
                                 };
