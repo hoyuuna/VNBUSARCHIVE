@@ -1,0 +1,35 @@
+# === Binary & Executable ===
+*.exe
+*.dll
+*.bin
+tailwind.exe
+
+# === Dependencies ===
+node_modules/
+.kilo/
+.kilo/**
+
+# === Build & Cache ===
+dist/
+build/
+.cache/
+*.map
+
+# === Media lớn (giữ lại nếu cần phân tích ảnh) ===
+public/media/*.png
+public/media/*.jpg
+public/media/*.jpeg
+public/media/*.webp
+public/media/*.gif
+
+# === Hệ thống & tạm ===
+.git/
+.DS_Store
+Thumbs.db
+*.log
+temp/
+.agents/
+
+# === Khác ===
+package-lock.json
+*.sql
