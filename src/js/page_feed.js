@@ -236,7 +236,9 @@ Object.assign(window.app, {
                         app.topPhotosCache = topPhotos;
                         const main = topPhotos[0];
                         const safeMainPlate = app.utils.displayPlate(app.utils.cleanText(main.license_plate));
-                        const safeMainOperator = app.utils.cleanText(main.operator || 'Đang cập nhật');
+                        // If route is "Dừng hoạt động", always show "Dừng hoạt động" for operator name
+                        let safeMainOperator = app.utils.cleanText(main.operator || 'Đang cập nhật');
+                        if (main.route_no && main.route_no.trim() === 'Dừng hoạt động') safeMainOperator = 'Dừng hoạt động';
                         heroMain.className = "img-wrapper w-full md:w-3/5 relative group cursor-pointer bg-gray-100 rounded-md overflow-hidden border border-gray-200 hover:-translate-y-1 hover:shadow-lg transition-all duration-300";
                         heroMain.innerHTML = `
                             <div class="img-spinner absolute inset-0 flex items-center justify-center text-gray-400 z-0">
@@ -256,7 +258,9 @@ Object.assign(window.app, {
                         for (let i = 1; i < topPhotos.length; i++) {
                             const p = topPhotos[i];
                             const safeSubPlate = app.utils.displayPlate(app.utils.cleanText(p.license_plate));
-                            const safeSubOperator = app.utils.cleanText(p.operator || 'Đang cập nhật');
+                            // If route is "Dừng hoạt động", always show "Dừng hoạt động" for operator name
+                            let safeSubOperator = app.utils.cleanText(p.operator || 'Đang cập nhật');
+                            if (p.route_no && p.route_no.trim() === 'Dừng hoạt động') safeSubOperator = 'Dừng hoạt động';
                             heroSub.innerHTML += `
                                 <div class="img-wrapper relative group cursor-pointer h-[196px] bg-gray-100 rounded-md overflow-hidden border border-gray-200 hover:-translate-y-1 hover:shadow-lg transition-all duration-300" onclick="app.views.loadDetail(${p.id})">
                                     <div class="img-spinner absolute inset-0 flex items-center justify-center text-gray-400 z-0">
