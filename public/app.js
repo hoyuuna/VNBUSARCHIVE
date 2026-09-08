@@ -6647,6 +6647,7 @@ Object.assign(window.app, {
                 renderPhotoCard: (p) => {
                     const safePlate = app.utils.displayPlate(app.utils.cleanText(p.license_plate));
                     let safeOp = app.utils.cleanText(p.operator || 'Đã bị xóa');
+                    // If route is "Dừng hoạt động", always show "Dừng hoạt động" for operator name
                     if (p.route_no && p.route_no.trim() === 'Dừng hoạt động') safeOp = 'Dừng hoạt động';
                     const uDisplay = app.utils.formatProfileDisplay(p.profiles);
                     const safeUser = app.utils.cleanText(uDisplay.username);
