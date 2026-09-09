@@ -7968,11 +7968,38 @@ Object.assign(window.app, {
                     const editUi = document.getElementById('history-edit-ui');
                     if(editUi) editUi.classList.add('hidden');
                     const tbody = document.getElementById('history-list');
+                    const lockedMsg = document.getElementById('history-locked-message');
+                    const tableContainer = document.getElementById('history-table-container');
+                    const btnContainer = document.getElementById('btn-edit-history-container');
                     if(tbody) tbody.innerHTML = '<tr><td colspan="4" class="text-center py-2"><i class="fa-solid fa-spinner fa-spin text-gray-400"></i> Đang tải...</td></tr>';
-                        const { data: history } = await window.sb
-                            .from('vehicle_history')
-                            .select('id, license_plate, plate, operator, route, note, effective_date, display_order')
-                            .eq('license_plate', plate);
+                    let isLocked = false;
+                    if (tbody && app.currentPhoto && app.currentPhoto.status === 'pending') {
+                        const { count } = await window.sb
+                            .from('photos')
+                            .select('id', { count: 'exact', head: true })
+                            .eq('license_plate', plate)
+                            .eq('status', 'approved');
+                        isLocked = (count || 0) === 0;
+                    }
+                    if (app.currentPlate !== plate) return;
+                    if (isLocked) {
+                        if (tableContainer) tableContainer.classList.add('hidden');
+                        if (btnContainer) btnContainer.classList.add('hidden');
+                        if (editUi) editUi.classList.add('hidden');
+                        if (tbody) tbody.innerHTML = '';
+                        if (lockedMsg) {
+                            lockedMsg.innerText = "Á đù nhưng bạn chỉ có thể xem và chỉnh sửa lịch sử sau khi ảnh bạn được duyệt hoặc xe có ít nhất một ảnh được duyệt, quay lại sau nhé ;)";
+                            lockedMsg.classList.remove('hidden');
+                        }
+                        return;
+                    }
+                    if (lockedMsg) { lockedMsg.classList.add('hidden'); lockedMsg.innerText = ''; }
+                    if (tableContainer) tableContainer.classList.remove('hidden');
+                    if (btnContainer) btnContainer.classList.remove('hidden');
+                    const { data: history } = await window.sb
+                        .from('vehicle_history')
+                        .select('id, license_plate, plate, operator, route, note, effective_date, display_order')
+                        .eq('license_plate', plate);
                     if (app.currentPlate !== plate) return;
                     let parsedHistory = (history || []).map(h => {
                         if (!h.effective_date && h.note) {
