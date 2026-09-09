@@ -87,6 +87,11 @@ a:hover, button:hover, [role="button"]:hover { text-decoration: none !important;
 .info-table tr:last-child td:last-child, .info-table tr:last-child th:last-child, .history-table tr:last-child td:last-child, .data-table tr:last-child td:last-child, .data-table tr:last-child th:last-child { border-bottom-right-radius: 8px !important; }
 /* Bỏ viền dưới của hàng cuối */
 .info-table tr:last-child td, .data-table tr:last-child td, .history-table tr:last-child td { border-bottom: none !important; }
+/* Thêm border-top cho tfoot trong history-table để có đường kẻ phân cách */
+.history-table tfoot td {
+    border-top: 2px solid #ffffff !important;
+    border-bottom: none !important;
+}
 /* Wrapper bọc bảng: đổi màu viền trắng, giữ border-radius */
 
 /* Hover dòng trong bảng -> Xám đậm */
