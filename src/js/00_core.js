@@ -1549,11 +1549,14 @@ cleanupState: () => {
                         opEl.classList.add('bg-gray-100', 'cursor-not-allowed', 'opacity-60');
                     } else {
                         if (opEl.disabled) {
-                            if (opEl.dataset.oldValue && opEl.dataset.oldValue !== 'N/A') {
-                                opEl.value = opEl.dataset.oldValue;
-                            } else if (opEl.value === 'N/A') {
-                                opEl.value = '';
+                            if (opEl.value === 'N/A' || opEl.value === '') {
+                                if (opEl.dataset.oldValue && opEl.dataset.oldValue !== 'N/A') {
+                                    opEl.value = opEl.dataset.oldValue;
+                                } else {
+                                    opEl.value = '';
+                                }
                             }
+                            delete opEl.dataset.oldValue;
                         }
                         opEl.disabled = false;
                         opEl.setAttribute('required', 'true');

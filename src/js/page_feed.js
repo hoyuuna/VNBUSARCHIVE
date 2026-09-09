@@ -1325,8 +1325,14 @@ Object.assign(window.app, {
                     if (detailCopyright) detailCopyright.innerHTML = '...';
                     ['info-plate', 'info-operator', 'info-route', 'info-model', 'info-location', 'info-note', 'info-camera', 'info-exif-params'].forEach(id => {
                         const el = document.getElementById(id);
-                        if (el) el.value = '';
+                        if (el) {
+                            el.value = '';
+                            el.disabled = false;
+                            delete el.dataset.oldValue;
+                        }
                     });
+                    const opRow = document.getElementById('info-operator-row');
+                    if (opRow) opRow.classList.remove('hidden');
                     const historyList = document.getElementById('history-list');
                     if (historyList) historyList.innerHTML = '<tr><td colspan="4" class="text-center py-2"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải...</td></tr>';
                     const commentList = document.getElementById('comment-list');
@@ -1616,6 +1622,10 @@ Object.assign(window.app, {
                     app.edit.cancel();
                     const elInfoPlate = document.getElementById('info-plate');
                     const elInfoOperator = document.getElementById('info-operator');
+                    if (elInfoOperator) {
+                        elInfoOperator.disabled = false;
+                        delete elInfoOperator.dataset.oldValue;
+                    }
                     const elInfoRoute = document.getElementById('info-route');
                     const elInfoModel = document.getElementById('info-model');
                     const elInfoType = document.getElementById('info-type');

@@ -217,6 +217,7 @@ export async function onRequestPost(context) {
 
             const specialRoutes = ['Ngoài giờ hoạt động', 'Chưa hoạt động'];
             const isSpecialRoute = specialRoutes.includes(route);
+            const isSameRoute = (r1, r2) => (r1 || '').trim().toLowerCase() === (r2 || '').trim().toLowerCase();
 
             if (!isSpecialRoute) {
                 // Lấy lịch sử theo thứ tự TĂNG DẦN (cũ nhất -> mới nhất)
@@ -255,20 +256,37 @@ export async function onRequestPost(context) {
                 let needInsert = false;
 
                 if (H_cov) {
-                    // Trùng khớp với thông tin đang có trong khoảng thời gian này
-                    if (H_cov.route === route && H_cov.operator === op) {
-                        needInsert = false;
+                    const hCovDateStr = H_cov.effective_date ? new Date(H_cov.effective_date).toISOString().split('T')[0] : '';
+                    if (hCovDateStr === takenDateString) {
+                        if (isSameRoute(H_cov.route, route)) {
+                            if (op && H_cov.operator !== op) {
+                                await sbAdmin.from('vehicle_history').update({ operator: op }).eq('id', H_cov.id);
+                            }
+                            needInsert = false;
+                        } else {
+                            await sbAdmin.from('vehicle_history').update({ route: route, operator: op }).eq('id', H_cov.id);
+                            needInsert = false;
+                        }
                     } else {
-                        needInsert = true;
+                        // hCovDateStr < takenDateString
+                        // Trùng khớp với số tuyến của mốc cũ hơn gần nhất
+                        if (isSameRoute(H_cov.route, route)) {
+                            // Gộp vào số tuyến giống y hệt đó cũ hơn -> KHÔNG tạo mới
+                            needInsert = false;
+                        } else {
+                            // Tuyến khác số tuyến bên cạnh trong lịch sử -> Tạo mới
+                            needInsert = true;
+                        }
                     }
                 } else {
                     // takenDateObj cũ hơn TẤT CẢ các mốc lịch sử đang có
                     if (currentHistory.length > 0) {
                         const H_oldest = currentHistory[0];
-                        if (H_oldest.route === route && H_oldest.operator === op) {
-                            // Mở rộng mốc cũ nhất về quá khứ (vì cùng tuyến/nhà xe)
+                        if (isSameRoute(H_oldest.route, route)) {
+                            // Mở rộng mốc cũ nhất về quá khứ (vì cùng tuyến)
                             await sbAdmin.from('vehicle_history').update({
-                                effective_date: takenDateString
+                                effective_date: takenDateString,
+                                operator: op || H_oldest.operator
                             }).eq('id', H_oldest.id);
                             needInsert = false;
                         } else {
@@ -289,8 +307,7 @@ export async function onRequestPost(context) {
                     });
                 }
 
-                // 2. Chống Race-Condition & Tự động gộp dữ liệu trùng lặp
-                // Fetch lại để bao gồm cả các lịch sử do các request concurrent vừa insert
+                // 2. Chống Race-Condition & Tự động gộp dữ liệu trùng lặp liền kề
                 let { data: freshHistory } = await sbAdmin.from('vehicle_history')
                     .select('*').eq('license_plate', plate).order('effective_date', { ascending: true });
                 
@@ -298,13 +315,39 @@ export async function onRequestPost(context) {
                 for (let i = 1; i < freshHistory.length; i++) {
                     const prev = freshHistory[i - 1];
                     const curr = freshHistory[i];
-                    // Nếu 2 mốc lịch sử liên tiếp giống hệt nhau về tuyến và nhà xe
-                    if (curr.route === prev.route && curr.operator === prev.operator) {
+                    // Nếu 2 mốc lịch sử liên tiếp giống hệt nhau về số tuyến
+                    if (isSameRoute(curr.route, prev.route)) {
                         // Giữ lại mốc cũ hơn (prev), xóa mốc mới hơn (curr)
                         await sbAdmin.from('vehicle_history').delete().eq('id', curr.id);
                         freshHistory.splice(i, 1);
                         i--; // Lùi index vì mảng đã bị rút ngắn
                     }
+                }
+            }
+
+            // Dọn dẹp biển số cũ nếu đây là thao tác đổi biển số khi duyệt ảnh
+            if (photo.license_plate && photo.license_plate !== plate) {
+                try {
+                    const oldPlate = photo.license_plate;
+                    const { data: oldApprovedPhotos } = await sbAdmin.from('photos').select('route_no, operator').eq('license_plate', oldPlate).eq('status', 'approved');
+                    if (!oldApprovedPhotos || oldApprovedPhotos.length === 0) {
+                        await sbAdmin.from('vehicle_history').delete().eq('license_plate', oldPlate);
+                    } else {
+                        const { data: oldHist } = await sbAdmin.from('vehicle_history').select('*').eq('license_plate', oldPlate);
+                        if (oldHist && oldHist.length > 0) {
+                            const activePhotos = oldApprovedPhotos.filter(p => !specialRoutes.includes(p.route_no));
+                            for (const h of oldHist) {
+                                if (!specialRoutes.includes(h.route)) {
+                                    const hasPhoto = activePhotos.some(p => isSameRoute(p.route_no, h.route));
+                                    if (!hasPhoto) {
+                                        await sbAdmin.from('vehicle_history').delete().eq('id', h.id);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } catch (cleanOldErr) {
+                    console.warn('[WARN] Lỗi dọn dẹp lịch sử biển số cũ khi duyệt:', cleanOldErr);
                 }
             }
 

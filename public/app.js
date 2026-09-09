@@ -1551,11 +1551,14 @@ cleanupState: () => {
                         opEl.classList.add('bg-gray-100', 'cursor-not-allowed', 'opacity-60');
                     } else {
                         if (opEl.disabled) {
-                            if (opEl.dataset.oldValue && opEl.dataset.oldValue !== 'N/A') {
-                                opEl.value = opEl.dataset.oldValue;
-                            } else if (opEl.value === 'N/A') {
-                                opEl.value = '';
+                            if (opEl.value === 'N/A' || opEl.value === '') {
+                                if (opEl.dataset.oldValue && opEl.dataset.oldValue !== 'N/A') {
+                                    opEl.value = opEl.dataset.oldValue;
+                                } else {
+                                    opEl.value = '';
+                                }
                             }
+                            delete opEl.dataset.oldValue;
                         }
                         opEl.disabled = false;
                         opEl.setAttribute('required', 'true');
@@ -7424,8 +7427,14 @@ Object.assign(window.app, {
                     if (detailCopyright) detailCopyright.innerHTML = '...';
                     ['info-plate', 'info-operator', 'info-route', 'info-model', 'info-location', 'info-note', 'info-camera', 'info-exif-params'].forEach(id => {
                         const el = document.getElementById(id);
-                        if (el) el.value = '';
+                        if (el) {
+                            el.value = '';
+                            el.disabled = false;
+                            delete el.dataset.oldValue;
+                        }
                     });
+                    const opRow = document.getElementById('info-operator-row');
+                    if (opRow) opRow.classList.remove('hidden');
                     const historyList = document.getElementById('history-list');
                     if (historyList) historyList.innerHTML = '<tr><td colspan="4" class="text-center py-2"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải...</td></tr>';
                     const commentList = document.getElementById('comment-list');
@@ -7715,6 +7724,10 @@ Object.assign(window.app, {
                     app.edit.cancel();
                     const elInfoPlate = document.getElementById('info-plate');
                     const elInfoOperator = document.getElementById('info-operator');
+                    if (elInfoOperator) {
+                        elInfoOperator.disabled = false;
+                        delete elInfoOperator.dataset.oldValue;
+                    }
                     const elInfoRoute = document.getElementById('info-route');
                     const elInfoModel = document.getElementById('info-model');
                     const elInfoType = document.getElementById('info-type');
@@ -16141,11 +16154,27 @@ Object.assign(window.app, {
                         if (!history || history.length === 0) return;
                         const specialRoutes = ['Ngoài giờ hoạt động', 'Chưa hoạt động'];
                         const activePhotos = approvedPhotos.filter(p => !specialRoutes.includes(p.route_no));
+                        const isSameRoute = (r1, r2) => (r1 || '').trim().toLowerCase() === (r2 || '').trim().toLowerCase();
                         for (const h of history) {
                             if (!specialRoutes.includes(h.route)) {
-                                const hasMatchingPhoto = activePhotos.some(p => p.route_no === h.route && p.operator === h.operator);
+                                const hasMatchingPhoto = activePhotos.some(p => isSameRoute(p.route_no, h.route));
                                 if (!hasMatchingPhoto) {
                                     await window.sb.from('vehicle_history').delete().eq('id', h.id);
+                                }
+                            }
+                        }
+
+                        // Gộp các mốc lịch sử liền kề có cùng số tuyến
+                        let { data: freshHistory } = await window.sb.from('vehicle_history')
+                            .select('*').eq('license_plate', plate).order('effective_date', { ascending: true });
+                        if (freshHistory && freshHistory.length > 1) {
+                            for (let i = 1; i < freshHistory.length; i++) {
+                                const prev = freshHistory[i - 1];
+                                const curr = freshHistory[i];
+                                if (isSameRoute(curr.route, prev.route)) {
+                                    await window.sb.from('vehicle_history').delete().eq('id', curr.id);
+                                    freshHistory.splice(i, 1);
+                                    i--;
                                 }
                             }
                         }
@@ -16381,11 +16410,12 @@ Object.assign(window.app, {
                     }
                 },
                 syncHistoryOnPhotoEdit: async (plate, takenAtIso, oldData, newData, isPlateChanged = false) => {
-                    if (!takenAtIso) return;
+                    if (!takenAtIso || !plate) return;
                     if (!isPlateChanged && oldData.operator === newData.operator && oldData.route_no === newData.route_no) return;
                     const targetDate = takenAtIso.split('T')[0];
                     const specialRoutes = ['Ngoài giờ hoạt động', 'Chưa hoạt động'];
                     const isSpecial = specialRoutes.includes(newData.route_no);
+                    const isSameRoute = (r1, r2) => (r1 || '').trim().toLowerCase() === (r2 || '').trim().toLowerCase();
                     try {
                         const { data: photos } = await window.sb.from('photos').select('id, operator, route_no')
                             .eq('license_plate', plate)
@@ -16404,24 +16434,97 @@ Object.assign(window.app, {
                                     .eq('license_plate', plate).eq('effective_date', targetDate);
                             }
                         } else {
-                            const { data: history } = await window.sb.from('vehicle_history')
-                                .select('*').eq('license_plate', plate).eq('effective_date', targetDate);
-                            if (history && history.length > 0) {
-                                if (!isPlateChanged || history[0].operator !== newData.operator || history[0].route !== newData.route_no) {
-                                    await window.sb.from('vehicle_history').update({
-                                        operator: newData.operator,
-                                        route: newData.route_no
-                                    }).eq('id', history[0].id);
+                            let { data: allHistory } = await window.sb.from('vehicle_history')
+                                .select('*')
+                                .eq('license_plate', plate)
+                                .order('effective_date', { ascending: true });
+                            allHistory = allHistory || [];
+
+                            const route = newData.route_no;
+                            const op = newData.operator;
+
+                            // 1. Tìm mốc quá khứ gần nhất (H_cov) so với targetDate
+                            let H_cov = null;
+                            for (let i = allHistory.length - 1; i >= 0; i--) {
+                                const hDate = allHistory[i].effective_date;
+                                if (hDate && hDate <= targetDate) {
+                                    H_cov = allHistory[i];
+                                    break;
+                                }
+                            }
+
+                            let needInsert = false;
+
+                            if (H_cov) {
+                                if (H_cov.effective_date === targetDate) {
+                                    if (isSameRoute(H_cov.route, route)) {
+                                        if (op && H_cov.operator !== op) {
+                                            await window.sb.from('vehicle_history').update({ operator: op }).eq('id', H_cov.id);
+                                        }
+                                        needInsert = false;
+                                    } else {
+                                        await window.sb.from('vehicle_history').update({
+                                            route: route,
+                                            operator: op
+                                        }).eq('id', H_cov.id);
+                                        needInsert = false;
+                                    }
+                                } else {
+                                    // H_cov.effective_date < targetDate
+                                    if (isSameRoute(H_cov.route, route)) {
+                                        // Cùng số tuyến với mốc cũ hơn -> Gộp vào mốc cũ hơn, không tạo mới
+                                        needInsert = false;
+                                    } else {
+                                        // Khác tuyến mốc bên cạnh trong lịch sử -> Tạo mới
+                                        needInsert = true;
+                                    }
                                 }
                             } else {
+                                // targetDate cũ hơn tất cả các mốc đang có
+                                if (allHistory.length > 0) {
+                                    const H_oldest = allHistory[0];
+                                    if (isSameRoute(H_oldest.route, route)) {
+                                        // Cùng tuyến với mốc cổ nhất -> Mở rộng mốc cũ hơn về quá khứ
+                                        await window.sb.from('vehicle_history').update({
+                                            effective_date: targetDate,
+                                            operator: op || H_oldest.operator
+                                        }).eq('id', H_oldest.id);
+                                        needInsert = false;
+                                    } else {
+                                        // Khác tuyến mốc bên cạnh -> Tạo mới
+                                        needInsert = true;
+                                    }
+                                } else {
+                                    // Lịch sử trống -> Tạo mới
+                                    needInsert = true;
+                                }
+                            }
+
+                            if (needInsert) {
                                 const { count } = await window.sb.from('vehicle_history').select('*', { count: 'estimated', head: true }).eq('license_plate', plate);
                                 await window.sb.from('vehicle_history').insert({
                                     license_plate: plate,
                                     effective_date: targetDate,
-                                    operator: newData.operator,
-                                    route: newData.route_no,
+                                    operator: op,
+                                    route: route,
                                     display_order: count || 0
                                 });
+                            }
+
+                            // 2. Chống phân mảnh: Tự động gộp các mốc liền kề có cùng số tuyến
+                            let { data: freshHistory } = await window.sb.from('vehicle_history')
+                                .select('*')
+                                .eq('license_plate', plate)
+                                .order('effective_date', { ascending: true });
+                            freshHistory = freshHistory || [];
+                            for (let i = 1; i < freshHistory.length; i++) {
+                                const prev = freshHistory[i - 1];
+                                const curr = freshHistory[i];
+                                if (isSameRoute(prev.route, curr.route)) {
+                                    await window.sb.from('vehicle_history').delete().eq('id', curr.id);
+                                    freshHistory.splice(i, 1);
+                                    i--;
+                                }
                             }
                         }
                         await app.vehicle.cleanupVehicle(plate);
