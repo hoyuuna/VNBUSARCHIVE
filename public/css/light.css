@@ -90,7 +90,12 @@ body, body.theme-light {
     border-bottom: none !important; 
 }
 .stat-item {
-    border-color: #18181b !important; 
+    border-color: #18181b !important;
+}
+
+.history-table tfoot td {
+    border-top: 1px solid #18181b !important;
+    border-bottom: 1px solid #18181b !important;
 }
 
 /* 6. Fix text hover không gạch chân */
