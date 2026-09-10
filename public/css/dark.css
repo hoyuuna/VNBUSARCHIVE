@@ -387,3 +387,11 @@ button.bg-black:hover, a.bg-black:hover {
 #achievement-content .group:hover .group-hover\:border-black {
     border-color: #ffffff !important;
 }
+
+/* Footer redesign — Dark Mode */
+footer .text-gray-700 { color: #d4d4d8 !important; }
+footer a.text-gray-600,
+footer button.text-gray-600 { color: #a1a1aa !important; }
+footer a.text-gray-600:hover,
+footer button.text-gray-600:hover { color: #ffffff !important; }
+footer .text-gray-400.cursor-not-allowed { color: #52525b !important; }
