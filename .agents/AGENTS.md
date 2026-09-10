@@ -1,48 +1,60 @@
-# ?? CRITICAL INITIALIZATION PROTOCOL: AGENT READ THIS BEFORE PROCEEDING ??
-**MANDATORY FIRST STEP:** Before responding to the user, answering any questions, or writing any code, you MUST read ALL markdown documents located in the .agents/ directory (e.g., security.md, js_map.md). 
-**Rule:** Use your list_dir tool to view .agents/ and view_file on EVERY .md file inside it immediately upon starting a new conversation. Failure to do so will result in severe system architectural violations.
+# AGENTS — VNBUSARCHIVE Project Rules
+
+**MANDATORY FIRST STEP:** Before responding to the user, answering any questions, or writing any code, read ALL markdown documents located in the `.agents/` directory (`AGENTS.md`, `js_map.md`, `security.md`).
+
 ## UI and Color Palette Rules
 - Use only black, white, and gray for standard UI components. Red, yellow, and blue are reserved strictly for notification modals.
 - Always reuse existing designs (popups, modals) unless explicitly asked to create a new design.
 - **Button Border Radius & Consistency:** All general action buttons must use square-rounded corners (`rounded-md` or `rounded-lg`) rather than pill-shaped (`rounded-full`) to maintain visual consistency across the HoyuUI interface, unless explicitly instructed otherwise for circular icon buttons or avatars.
 - **Deep-linking in Modals/Settings:** When UI elements or buttons trigger multi-tab modals (such as Settings or Admin panels), always navigate directly to the target tab and submenu (e.g., `app.settings.open('profile', 'account')`) rather than opening the default or blank landing screen.
 - **No Component Separator Lines (`border-t`, `<hr>`):** NEVER use horizontal separator or divider lines (`border-t`, `border-top`, `<hr>`) to divide sections, card bodies, modal content, or action footers/buttons. All components and buttons inside cards or modals must flow cleanly using margin/spacing (`mt-3`, `mt-4`, `mb-4`, etc.) without visual dividing lines.
-- **CRITICAL INVARIANT - DARK/LIGHT MODE SYNCHRONIZATION:** You are STRICTLY FORBIDDEN from making one-sided UI updates. ANY new feature, bug fix, or modification that involves the UI (HTML layout, CSS, Tailwind classes, or JS DOM manipulation) **MUST** be implemented and styled for BOTH Light Mode (Tailwind in `_core.html`/js) AND Dark Mode (`public/css/dark.css`). 
-  * If you add a hover state, active state, or selected state in Light Mode, YOU MUST explicitly define its counterpart in `dark.css`. 
+- **CRITICAL INVARIANT - DARK/LIGHT MODE SYNCHRONIZATION:** You are STRICTLY FORBIDDEN from making one-sided UI updates. ANY new feature, bug fix, or modification that involves the UI (HTML layout, CSS, Tailwind classes, or JS DOM manipulation) **MUST** be implemented and styled for BOTH Light Mode (Tailwind classes in `_core.html` / `src/js/`, or `public/css/light.css`) AND Dark Mode (`public/css/dark.css`).
+  * If you add a hover state, active state, or selected state in Light Mode, YOU MUST explicitly define its counterpart in `dark.css`.
   * If you change border colors, background colors, or text colors, YOU MUST verify and update how it looks in `dark.css`.
   * Failure to synchronize both themes is considered a severe violation of the system architecture. Always ask yourself: "How does this look in Dark Mode? Did I add the CSS for it?"
 
 ## Project Stack & Deployment
 - **Hosting/Platform:** Cloudflare Pages (Framework preset: `None`).
-- **Frontend:** Pure vanilla HTML, CSS, and JavaScript.
-- **Backend/API:** Cloudflare Pages Functions (Serverless architecture).
+- **Frontend:** Pure vanilla HTML, CSS, and JavaScript (no frontend framework).
+- **Backend/API:** Cloudflare Pages Functions (`functions/` and `functions/api/`, serverless architecture).
+- **Database/Auth:** Supabase (client SDK loaded from CDN).
 - **Rule:** All web assets must be standard web-compliant, and any backend logic must leverage Cloudflare's serverless environment.
 
 ## Design System & UI Reference
-- The design system, HoyuUI, is fully documented at `/public/design.md`. 
-- **Rule:** Before creating new UI components or layouts, ALWAYS read `/public/design.md` and use the exact design tokens, CSS values, and HTML structures specified there.
+- The design system is HoyuUI. Reuse its existing components and tokens; do not invent new component styles.
+- **Rule:** BEFORE creating any new UI component, REUSE an existing one. If a new component is genuinely necessary, ask the user for permission first.
 
 ## Git Workflow
 - **Rule:** Always automatically commit and push git changes (`git add -A; git commit -m "..."; git push`) after successfully completing user requests or modifying code. **All git commit messages MUST always be written in English.**
 - **Rule:** Ensure all temporary or junk files are deleted before pushing. If they must be kept, they MUST be placed in the `/temp` directory.
 
 ## Frontend Build & Payload Invariant
-- **Rule:** All core frontend logic resides in `src/js/` (`1_init.js` through `5_admin.js`) and `_core.html`. Whenever any file inside `src/js/` or `_core.html` is modified, you **MUST run `node build-core.js`** immediately to bundle and Base64-encode the payload into `functions/api/_core.js`. Never edit `functions/api/_core.js` directly or inject static script logic into `public/index.html`.
+- All core frontend logic resides in `src/js/` (14 files, `00_core.js` through `page_map.js`) and the HTML template `_core.html` at the project root.
+- Whenever ANY file inside `src/js/` or `_core.html` is modified, you **MUST run `node build-core.js`** immediately.
+- `node build-core.js` performs the following (see `build-core.js`):
+  * Concatenates `src/js/*.js` in the fixed order defined in the script into `public/app.js` (plain text, not Base64).
+  * Writes the rendered page to `public/index.html`, injecting `<script src="/app.js?v=<cacheBuster>">` before `</body>` and replacing the `BUILD_VERSION_PLACEHOLDER` token in theme CSS links.
+  * Deletes any stale `functions/api/_core.js` if present (the old Base64 payload mechanism is retired).
+  * Generates `public/_headers` from `csp.json` (CSP + `Cache-Control: no-store` for `app.js`, `tailwind.css`, `light.css`, `dark.css`, `index.html`).
+  * Compiles Tailwind via `tailwind.exe` (falls back to `npx tailwindcss`) from `src/input.css` into `public/tailwind.css`.
+- **Rule:** Do NOT edit `public/app.js` or `public/index.html` directly — they are generated. Never inject static script logic into `public/index.html`. Edit `src/js/` and `_core.html`, then rebuild.
+- **Rule:** The JS modules are bundled by concatenation, so they must not use ES `import`/`export`; they attach to the global `window.app` object.
 
 ## Photo Approval Guardrails (Sandbox retired)
-- **No Client-Side Approval Bypasses:** All actions that approve or re-approve photos (e.g., `reapproveBtn` in `3_views.js` or `approvePhoto` in `5_admin.js`) **MUST call the backend API `/api/admin/action`** (`action: 'approve'`). Never directly update `photos.status = 'approved'` from the frontend via `window.sb.from('photos').update(...)`, as this bypasses validation.
+- **No Client-Side Approval Bypasses:** All actions that approve or re-approve photos (e.g., `reapproveBtn` handler in `src/js/page_feed.js`, `approvePhoto` in `src/js/page_admin.js`) **MUST call the backend API `/api/admin/action`** (`action: 'approve'`). Never directly update `photos.status = 'approved'` from the frontend via `window.sb.from('photos').update(...)`, as this bypasses validation.
 - **Sandbox retired:** The old `image_sandbox` / `sandbox:` / `data:` base64 system has been removed. All photos now reside on the real CDN as https URLs stored directly in `photos.url`. Approval (`action: 'approve'`) uses `photo.url` directly; if it is not a valid https URL (e.g. legacy `sandbox:`/`data:`/`SANDBOX_DELETED`), the backend returns a `400` error. Denial (`action: 'deny'`) only flips `status` to `denied` and keeps the CDN image.
 - **Legacy data handling:** Remaining legacy `sandbox:`/`data:` URLs are treated as missing/invalid (`_isSandboxMissing`) and render as placeholders; they are never approved.
 
 ## Admin Dashboard & Vehicle Status Filtering (`XE MỚI` Badge Invariant)
-- **Approved Photo Filtering:** When fetching vehicle data (`vehicles` table) to build reference sets in Admin/Manager views (`approvedPlateSet`, `approvedOpSet`, `approvedRouteSet`, `approvedModelSet` in `5_admin.js`), you **MUST strictly filter by `photos!inner(status) = 'approved'`**. 
-- **Why:** Because `upload.js` inserts new vehicle records with `pending` status upon initial photo upload. If queries do not filter by approved photo status, `pending` or `denied` license plates will prematurely exist in `approvedPlateSet`, causing the `XE MỚI` (New Car) badge logic (`!approvedPlateSet.has(plateKey)`) to fail.
-  
+- **Approved Photo Filtering:** When fetching vehicle data (`vehicles` table) to build reference sets in Admin/Manager views (`approvedPlateSet`, `approvedOpSet`, `approvedRouteSet`, `approvedModelSet` in `src/js/page_admin.js`), you **MUST strictly filter by `photos!inner(status) = 'approved'`**.
+- **Why:** Because `functions/api/upload.js` inserts new vehicle records with `pending` status upon initial photo upload. If queries do not filter by approved photo status, `pending` or `denied` license plates will prematurely exist in `approvedPlateSet`, causing the `XE MỚI` (New Car) badge logic (`!approvedPlateSet.has(plateKey)`) to fail.
+
 ## Strict UI & Component Rules
 - **Rule:** ONLY design a new component or custom style for the web WHEN EXPLICITLY REQUESTED by the user.
-- **Rule:** If not explicitly requested, you MUST reuse the existing custom components already available in the web app. If a new component is truly necessary to function, you MUST ask the user for permission before creating it. 
+- **Rule:** If not explicitly requested, you MUST reuse the existing custom components already available in the web app. If a new component is truly necessary to function, you MUST ask the user for permission before creating it.
 - **Rule:** UNDER NO CIRCUMSTANCES are you allowed to design a custom style/component without notifying or asking the user first.
 - **Rule:** NEVER use native browser modals like `alert()` or `confirm()`. ALWAYS use the custom UI modal `app.ui.showAlert(msg, okCallback, cancelCallback, options)` for showing alerts and confirmations.
+
 ## Flat UI & Border Rules (NEW INVARIANT)
 - **100% Flat UI:** The system now strictly uses a Flat UI design. There should be NO transparent glassmorphism, NO gray borders (`border-gray-200/300`), NO soft backgrounds for modals, and NO shadow depth. Everything must use solid `1px solid #18181b` (black) borders and pure white (`#ffffff`) backgrounds for popup/modal bodies.
 - **Double Border Prevention (Đè Nét):** When applying borders to components, BE EXTREMELY CAREFUL to avoid "double borders" (2px thick borders caused by two adjacent elements both having 1px borders, e.g., a header with `border-b` sitting on top of an image wrapper with `border-t`, or a wrapper with a border enclosing a child image that also has a border). You MUST carefully inspect the DOM structure and apply `border-top: none` or similar CSS overrides to eliminate overlapping borders (chống đè nét).
