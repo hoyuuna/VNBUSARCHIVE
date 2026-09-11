@@ -487,3 +487,8 @@ input:focus, textarea:focus, select:focus {
     border: none !important;
     background: transparent !important;
 }
+
+/* Help page — icon circles (light): giữ nền xám nhạt + viền đen */
+.help-icon-circle {
+    border: 1px solid #18181b !important;
+}

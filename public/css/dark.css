@@ -395,3 +395,9 @@ footer button.text-gray-600 { color: #a1a1aa !important; }
 footer a.text-gray-600:hover,
 footer button.text-gray-600:hover { color: #ffffff !important; }
 footer .text-gray-400.cursor-not-allowed { color: #52525b !important; }
+
+/* Help page — icon circles (dark): nền xám đậm + viền trắng */
+.help-icon-circle {
+    background-color: #3f3f46 !important;
+    border: 1px solid #ffffff !important;
+}

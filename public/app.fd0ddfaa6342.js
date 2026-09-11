@@ -10064,7 +10064,7 @@ Object.assign(window.app, {
                     if (!grid) return;
                     grid.innerHTML = app.help.policies.map(p => `
                         <div onclick="app.utils.navigate('/${p.slug}')" class="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md hover:border-black transition-all cursor-pointer flex flex-col h-full group">
-                            <div class="w-10 h-10 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center text-base mb-4 shrink-0 group-hover:bg-black group-hover:text-white transition-colors">
+                            <div class="help-icon-circle w-10 h-10 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center text-base mb-4 shrink-0 group-hover:bg-black group-hover:text-white transition-colors">
                                 <i class="fa-solid ${p.icon}"></i>
                             </div>
                             <h3 class="font-bold text-base text-black mb-2 line-clamp-2 transition-colors">${p.title}</h3>
@@ -10099,7 +10099,7 @@ Object.assign(window.app, {
                                 <h3 class="font-bold text-base text-black mb-2 line-clamp-2 transition-colors">${item.title}</h3>
                                 <p class="text-xs text-gray-600 line-clamp-3 mb-5 flex-1 leading-relaxed">${app.utils.stripMarkdown(item.summary)}</p>
                                 <div class="flex items-center gap-2 mt-auto pt-2">
-                                    <div class="w-7 h-7 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center text-[10px] shrink-0 group-hover:bg-black group-hover:text-white transition-colors">
+                                    <div class="help-icon-circle w-7 h-7 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center text-[10px] shrink-0 group-hover:bg-black group-hover:text-white transition-colors">
                                         <i class="fa-solid fa-file-lines"></i>
                                     </div>
                                     <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">${item.date}</span>
