@@ -52,7 +52,7 @@ VNBUSARCHIVE là thư viện tư liệu, không phải nền tảng chia sẻ �
   * Độ sắc nét, độ sáng và độ tương phản phải đạt tiêu chuẩn lưu trữ. Từ chối ảnh mờ nhòe, nhiễu hạt nghiêm trọng (noise/grain) do điều kiện thiếu sáng hoặc giới hạn phần cứng của thiết bị chụp.
   * **Quyền từ chối của BQT:** BQT có quyền từ chối xuất bản nếu chất lượng hình ảnh đầu ra không đạt yêu cầu. Người đóng góp tuyệt đối không sử dụng lý do thiết bị chụp chất lượng kém/đời cũ để yêu cầu châm chước. Quy chuẩn được áp dụng đồng bộ, nghiêm túc và không có ngoại lệ.
 
-* **B3.2. Tính nguyên bản & Hậu kỳ (Documentary Integrity):** 
+* **B3.2. Tính nguyên bản & Hậu kỳ:** 
   * **Cấm can thiệp AI/Hậu kỳ quá đà:** Từ chối ảnh lạm dụng các công cụ xử lý (Sharpness, Clarity, HDR giả lập, Saturation v..v..) gây ra hiện tượng viền giả xung quanh thân xe hoặc làm sai lệch màu sơn thực tế của doanh nghiệp vận tải.
   * **Cấm thay đổi chi tiết/Xóa vật thể:** Cấm tuyệt đối việc sử dụng phần mềm đồ họa hoặc AI để xóa bỏ các chi tiết bối cảnh hoặc vẽ/phục hồi lại Biển kiểm soát, logo, chi tiết phương tiện bị mất. Tính chân thực của dữ liệu tư liệu phải được đảm bảo tuyệt đối.
   * **Cấm nâng cấp giả tạo:** Cấm sử dụng AI/Phần mềm để làm nét, tăng độ phân giải hoặc cấy ghép chi tiết ảo vào phương tiện.
