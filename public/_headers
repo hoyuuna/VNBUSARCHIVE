@@ -8,6 +8,9 @@
 /
   Cache-Control: no-cache, no-store, must-revalidate
 
+/app.*.js
+  Cache-Control: public, max-age=31536000, immutable
+
 /app.js
   Cache-Control: no-store, no-cache, must-revalidate, max-age=0
   Pragma: no-cache

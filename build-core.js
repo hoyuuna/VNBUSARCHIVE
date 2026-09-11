@@ -41,16 +41,31 @@ try {
             }
         });
 
-        // Lưu file public/app.js
-        const appJsPath = path.join(__dirname, 'public', 'app.js');
-        fs.writeFileSync(appJsPath, combinedJs);
-        console.log('Tạo thành công public/app.js');
+        // Hash nội dung bundle -> tên file bất biến. CDN bỏ qua query string (?v=) khi cache
+        // nên phải đổi hẳn path để không bao giờ phục vụ JS cũ.
+        const bundleHash = require('crypto').createHash('sha256').update(combinedJs).digest('hex').slice(0, 12);
+        const bundleName = `app.${bundleHash}.js`;
+        const publicDir = path.join(__dirname, 'public');
 
-        // Cache-buster dùng chung
+        // Dọn các bundle hash cũ để tránh tồn đọng
+        if (fs.existsSync(publicDir)) {
+            fs.readdirSync(publicDir)
+                .filter(f => /^app\.[0-9a-f]{12}\.js$/.test(f) && f !== bundleName)
+                .forEach(f => { try { fs.unlinkSync(path.join(publicDir, f)); } catch (e) {} });
+        }
+
+        // Lưu bundle với tên có hash nội dung
+        fs.writeFileSync(path.join(publicDir, bundleName), combinedJs);
+        console.log(`Tạo thành công public/${bundleName}`);
+
+        // Vẫn ghi public/app.js để tương thích ngược
+        fs.writeFileSync(path.join(publicDir, 'app.js'), combinedJs);
+
+        // Cache-buster dùng chung cho theme CSS
         const cacheBust = Date.now();
 
-        // Chèn script app.js với cache-buster vào _core.html
-        let finalHtml = content.replace('</body>', `<script src="/app.js?v=${cacheBust}"></script>\n</body>`);
+        // Chèn bundle có hash vào _core.html (index.html phục vụ no-store nên luôn trỏ đúng bundle mới)
+        let finalHtml = content.replace('</body>', `<script src="/${bundleName}"></script>\n</body>`);
 
         // Thay thế BUILD_VERSION_PLACEHOLDER trong link CSS theme
         finalHtml = finalHtml.replace(/BUILD_VERSION_PLACEHOLDER/g, String(cacheBust));
@@ -89,6 +104,9 @@ try {
             ``,
             `/`,
             `  Cache-Control: no-cache, no-store, must-revalidate`,
+            ``,
+            `/app.*.js`,
+            `  Cache-Control: public, max-age=31536000, immutable`,
             ``,
             `/app.js`,
             `  Cache-Control: ${noStore}`,
