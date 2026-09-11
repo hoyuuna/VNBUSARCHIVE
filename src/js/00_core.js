@@ -1288,7 +1288,7 @@ closeCustomRolePrompt: () => {
                     const prevPath = window.location.pathname;
                     const prevFull = prevPath + window.location.search;
                     let parentInfo = window.history.state?.parentInfo;
-                    const rootPages = ['/', '/profile', '/profile/comments', '/search', '/upload', '/admin', '/contact', '/user/', '/help', '/leaderboard'];
+                    const rootPages = ['/', '/profile', '/profile/comments', '/search', '/upload', '/admin', '/contact', '/user/', '/help', '/leaderboard', '/tos', '/ar', '/cr', '/intro'];
                     const isDestLeaf = url.startsWith('/vehicle/') || url.startsWith('/photo/') || url.startsWith('/operator/') || url.startsWith('/model/') || url.startsWith('/user/');
                     const isCurrentRoot = rootPages.some(r => prevPath === r || (r !== '/' && prevPath.startsWith(r)));
                     if (isCurrentRoot) {
@@ -1302,6 +1302,7 @@ closeCustomRolePrompt: () => {
                         else if (prevPath === '/contact') bName = "Liên hệ";
                         else if (prevPath === '/leaderboard') bName = "Bảng xếp hạng đóng góp";
                         else if (prevPath === '/help' || prevPath.startsWith('/help/')) bName = "Trung tâm hỗ trợ";
+                        else if (prevPath === '/tos' || prevPath === '/ar' || prevPath === '/cr' || prevPath === '/intro') bName = "Trung tâm hỗ trợ";
                         parentInfo = { name: bName, url: prevFull };
                     }
                     app.previousPath = prevFull;
@@ -1341,7 +1342,6 @@ cleanupState: () => {
                     app.ui.closeAlert(false);
                     app.ui.closePrompt(false);
                     if(app.crop && app.crop.close) app.crop.close();
-                    if(app.docs && app.docs.close) app.docs.close();
                     if(app.settings && app.settings.close) app.settings.close();
                     const zoomModal = document.getElementById('image-zoom-modal');
                     if (zoomModal && !zoomModal.classList.contains('hidden')) {
@@ -2699,6 +2699,8 @@ cleanupState: () => {
                     document.title = 'Bảng xếp hạng đóng góp | VNBUSARCHIVE';
                     app.views.switch('leaderboard', false);
                     app.leaderboard.load();
+                } else if (path === '/tos' || path === '/ar' || path === '/cr' || path === '/intro') {
+                    app.help.loadPolicy(path.substring(1));
                 } else if (path === '/help' || path === '/help/') {
                     app.help.loadList();
                 } else if (path.startsWith('/help/')) {

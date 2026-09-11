@@ -1290,7 +1290,7 @@ closeCustomRolePrompt: () => {
                     const prevPath = window.location.pathname;
                     const prevFull = prevPath + window.location.search;
                     let parentInfo = window.history.state?.parentInfo;
-                    const rootPages = ['/', '/profile', '/profile/comments', '/search', '/upload', '/admin', '/contact', '/user/', '/help', '/leaderboard'];
+                    const rootPages = ['/', '/profile', '/profile/comments', '/search', '/upload', '/admin', '/contact', '/user/', '/help', '/leaderboard', '/tos', '/ar', '/cr', '/intro'];
                     const isDestLeaf = url.startsWith('/vehicle/') || url.startsWith('/photo/') || url.startsWith('/operator/') || url.startsWith('/model/') || url.startsWith('/user/');
                     const isCurrentRoot = rootPages.some(r => prevPath === r || (r !== '/' && prevPath.startsWith(r)));
                     if (isCurrentRoot) {
@@ -1304,6 +1304,7 @@ closeCustomRolePrompt: () => {
                         else if (prevPath === '/contact') bName = "Liên hệ";
                         else if (prevPath === '/leaderboard') bName = "Bảng xếp hạng đóng góp";
                         else if (prevPath === '/help' || prevPath.startsWith('/help/')) bName = "Trung tâm hỗ trợ";
+                        else if (prevPath === '/tos' || prevPath === '/ar' || prevPath === '/cr' || prevPath === '/intro') bName = "Trung tâm hỗ trợ";
                         parentInfo = { name: bName, url: prevFull };
                     }
                     app.previousPath = prevFull;
@@ -1343,7 +1344,6 @@ cleanupState: () => {
                     app.ui.closeAlert(false);
                     app.ui.closePrompt(false);
                     if(app.crop && app.crop.close) app.crop.close();
-                    if(app.docs && app.docs.close) app.docs.close();
                     if(app.settings && app.settings.close) app.settings.close();
                     const zoomModal = document.getElementById('image-zoom-modal');
                     if (zoomModal && !zoomModal.classList.contains('hidden')) {
@@ -2701,6 +2701,8 @@ cleanupState: () => {
                     document.title = 'Bảng xếp hạng đóng góp | VNBUSARCHIVE';
                     app.views.switch('leaderboard', false);
                     app.leaderboard.load();
+                } else if (path === '/tos' || path === '/ar' || path === '/cr' || path === '/intro') {
+                    app.help.loadPolicy(path.substring(1));
                 } else if (path === '/help' || path === '/help/') {
                     app.help.loadList();
                 } else if (path.startsWith('/help/')) {
@@ -4308,14 +4310,6 @@ Object.assign(window.app, {
                         { text: "Gợi ý thông minh", tab: "preference", parent: "main", icon: "fa-layer-group" },
                         { text: "Cài đặt thông báo", tab: "notifications", parent: "account", icon: "fa-bell" },
                         { text: "Bật tắt thông báo", tab: "notifications", parent: "account", icon: "fa-bell" },
-                        { text: "Tài liệu", tab: "docs-intro", parent: "docs", icon: "fa-markdown" },
-                        { text: "Giới thiệu hệ thống", tab: "docs-intro", parent: "docs", icon: "fa-markdown" },
-                        { text: "Quy định", tab: "docs-requirements", parent: "docs", icon: "fa-list-check" },
-                        { text: "Kiểm duyệt", tab: "docs-requirements", parent: "docs", icon: "fa-list-check" },
-                        { text: "Chính sách bảo mật", tab: "docs-policy", parent: "docs", icon: "fa-shield" },
-                        { text: "Tiêu chuẩn bình luận", tab: "docs-chatrule", parent: "docs", icon: "fa-comments" },
-                        { text: "Quy tắc bình luận", tab: "docs-chatrule", parent: "docs", icon: "fa-comments" },
-                        { text: "Chat rule", tab: "docs-chatrule", parent: "docs", icon: "fa-comments" }
                     ];
                     const lowerQ = app.utils.cleanText(query.toLowerCase());
                     const words = lowerQ.split(/\s+/);
@@ -4338,11 +4332,9 @@ Object.assign(window.app, {
                     }
                 },
                 jumpTo: (tab, parent) => {
-                    app.settings.closeDocsMenu(true);
                     app.settings.closeAccountMenu(true);
                     app.settings.closeAccountMenu(true);
                     if (parent === 'account') app.settings.openAccountMenu();
-                    if (parent === 'docs') app.settings.openDocsMenu();
                     app.settings.switchTab(tab);
                 },
                 openAccountMenu: () => {
@@ -4374,10 +4366,8 @@ Object.assign(window.app, {
                     const modal = document.getElementById('settings-modal');
                     const content = document.getElementById('settings-content');
                     app.ui.toggleUserMenu(false);
-                    app.settings.closeDocsMenu(true);
                     app.settings.closeAccountMenu(true);
                     if (targetParent === 'account') app.settings.openAccountMenu();
-                    else if (targetParent === 'docs') app.settings.openDocsMenu();
                     if (app.user) {
                         document.querySelectorAll('.account-only-btn').forEach(el => el.style.display = '');
                         if (app.user.email) {
@@ -4425,33 +4415,8 @@ Object.assign(window.app, {
                         app.ui.unlockScroll();
                     }, 200);
                 },
-                openDocsMenu: () => {
-                    const main = document.getElementById('set-menu-main');
-                    const docs = document.getElementById('set-menu-docs');
-                    main.classList.add('hidden');
-                    main.classList.remove('flex');
-                    docs.classList.remove('hidden');
-                    docs.classList.add('flex', 'slide-left-enter');
-                    docs.classList.remove('slide-right-enter');
-                },
-                closeDocsMenu: (instant = false) => {
-                    const main = document.getElementById('set-menu-main');
-                    const docs = document.getElementById('set-menu-docs');
-                    if (instant) {
-                        docs.classList.add('hidden');
-                        docs.classList.remove('flex', 'slide-left-enter', 'slide-right-enter');
-                        main.classList.remove('hidden', 'slide-left-enter', 'slide-right-enter');
-                        main.classList.add('flex');
-                    } else {
-                        docs.classList.add('hidden');
-                        docs.classList.remove('flex');
-                        main.classList.remove('hidden');
-                        main.classList.add('flex', 'slide-right-enter');
-                        main.classList.remove('slide-left-enter');
-                    }
-                },
                 switchTab: (tab) => {
-                    const tabs = ['blank', 'profile', 'security', 'links', 'badges', 'preference', 'docs-intro', 'docs-requirements', 'docs-policy', 'docs-chatrule'];
+                    const tabs = ['blank', 'profile', 'security', 'links', 'badges', 'preference'];
                     const activeClasses = ['bg-black', 'text-white', 'border-black', 'shadow-sm'];
                     const inactiveClasses = ['bg-white', 'text-gray-600', 'hover:bg-gray-50', 'border-gray-200'];
                     tabs.forEach(t => {
@@ -4463,10 +4428,7 @@ Object.assign(window.app, {
                             btn.classList.add(...activeClasses);
                             content.classList.remove('hidden');
                             content.classList.add('block');
-                            if (t.startsWith('docs-')) {
-                                app.docs.fetchContent(t);
-                            } else if (t === 'X') {
-                            } else if (t === 'preference') {
+                            if (t === 'preference') {
                                 app.preference.tempSelection = app.preference.current || 'both';
                                 app.preference.updateUI();
                             }
@@ -4860,36 +4822,6 @@ grid.innerHTML = tiers.map(tier => {
 }
                 },
 
-    docs: {
-                open: () => {
-                    app.settings.open();
-                    app.settings.openDocsMenu();
-                },
-                close: () => {
-                },
-                fetchContent: async (tab) => {
-                    const container = document.getElementById('set-content-' + tab);
-                    if (!container || container.dataset.loaded === 'true') return;
-                    const url = container.dataset.url;
-                    try {
-                        const res = await fetch(url);
-                        if (!res.ok) throw new Error('Lỗi mạng');
-                        const text = await res.text();
-                        const html = DOMPurify.sanitize(marked.parse(text));
-                        container.innerHTML = html;
-                        container.dataset.loaded = 'true';
-                    } catch (e) {
-                        container.innerHTML = `
-                            <p class="text-red-500 font-bold py-4 text-center"><i class="fa-solid fa-triangle-exclamation"></i> Không thể tải nội dung tự động.</p>
-                            <div class="text-center mt-2">
-                                <a href="${url.replace('raw.githubusercontent.com/hoyuuna', 'github.com/hoyuuna').replace('/refs/heads/', '/blob/')}" target="_blank" class="inline-flex items-center gap-1.5 bg-black text-white px-4 py-2 rounded-md font-bold hover:bg-gray-800 transition text-[11px] uppercase">
-                                    <i class="fa-solid fa-arrow-up-right-from-square text-sm"></i> Xem chi tiết
-                                </a>
-                            </div>
-                        `;
-                    }
-                }
-            }
 });
 
 /* --- MODULE: 03_auth.js --- */
@@ -6233,7 +6165,7 @@ Object.assign(window.app, {
                     const depths = {
                         'home': 0,
                         'search': 1, 'account': 1, 'upload': 1, 'mobile-upload': 1, 'admin': 1, 'contact': 1, 'help-list': 1, 'comment-dashboard': 1, 'leaderboard': 1,
-                        'detail': 2, 'vehicle': 2, 'operator-view': 2, 'model-view': 2, 'route-view': 2, 'help-detail': 2
+                        'detail': 2, 'vehicle': 2, 'operator-view': 2, 'model-view': 2, 'route-view': 2, 'help-detail': 2, 'policy-detail': 2
                     };
                     const currentId = document.querySelector('.view-section.active')?.id || 'home';
                     const currentDepth = depths[currentId] || 0;
@@ -10121,9 +10053,30 @@ Object.assign(window.app, {
 
     help: {
                 data: [],
+                policies: [
+                    { slug: 'intro', title: 'Giới thiệu hệ thống', desc: 'Tổng quan về mục tiêu, phạm vi và cách VNBUSARCHIVE hoạt động.', icon: 'fa-circle-info', url: 'https://raw.githubusercontent.com/hoyuuna/VNBUSARCHIVE/refs/heads/main/README.md' },
+                    { slug: 'ar', title: 'Quy định kiểm duyệt', desc: 'Điều kiện và tiêu chuẩn để ảnh được duyệt đăng tải lên hệ thống.', icon: 'fa-list-check', url: 'https://raw.githubusercontent.com/hoyuuna/VNBUSARCHIVE/refs/heads/main/doc/Requirements.md' },
+                    { slug: 'tos', title: 'Chính sách & Điều khoản', desc: 'Chính sách bảo mật, bản quyền và các điều khoản khi sử dụng website.', icon: 'fa-shield-halved', url: 'https://raw.githubusercontent.com/hoyuuna/VNBUSARCHIVE/refs/heads/main/doc/Policy.md' },
+                    { slug: 'cr', title: 'Tiêu chuẩn bình luận', desc: 'Quy tắc ứng xử và tiêu chuẩn khi bình luận trên hệ thống.', icon: 'fa-comments', url: 'https://raw.githubusercontent.com/hoyuuna/VNBUSARCHIVE/refs/heads/main/doc/Chat-rule.md' }
+                ],
+                renderPolicyGrid: () => {
+                    const grid = document.getElementById('policy-grid');
+                    if (!grid) return;
+                    grid.innerHTML = app.help.policies.map(p => `
+                        <div onclick="app.help.loadPolicy('${p.slug}')" class="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md hover:border-black transition-all cursor-pointer flex flex-col h-full group">
+                            <div class="w-10 h-10 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center text-base mb-4 shrink-0 group-hover:bg-black group-hover:text-white transition-colors">
+                                <i class="fa-solid ${p.icon}"></i>
+                            </div>
+                            <h3 class="font-bold text-base text-black mb-2 line-clamp-2 transition-colors">${p.title}</h3>
+                            <p class="text-xs text-gray-600 line-clamp-3 mb-2 flex-1 leading-relaxed">${p.desc}</p>
+                            <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-auto pt-2">Xem chi tiết <i class="fa-solid fa-arrow-right ml-1"></i></span>
+                        </div>
+                    `).join('');
+                },
                 loadList: async () => {
                     app.views.switch('help-list', false);
                     document.title = 'Trung tâm hỗ trợ | VNBUSARCHIVE';
+                    app.help.renderPolicyGrid();
                     const container = document.getElementById('help-grid');
                     if (app.help.data.length === 0) {
                         container.innerHTML = '<div class="col-span-full text-center py-20 text-gray-500"><i class="fa-solid fa-circle-notch fa-spin text-2xl mb-2 text-black"></i><p>Đang tải dữ liệu...</p></div>';
@@ -10221,6 +10174,40 @@ Object.assign(window.app, {
                         container.classList.remove('hidden');
                     } catch (e) {
                         loading.innerHTML = `<div class="text-red-500 font-bold"><i class="fa-solid fa-triangle-exclamation text-3xl mb-3"></i><p>${e.message}</p></div>`;
+                    }
+                    app.loadingBar.finish();
+                },
+                loadPolicy: async (slug) => {
+                    const policy = app.help.policies.find(p => p.slug === slug);
+                    if (!policy) { app.utils.navigate('/help'); return; }
+                    app.views.switch('policy-detail', false);
+                    const container = document.getElementById('policy-detail-container');
+                    const loading = document.getElementById('policy-detail-loading');
+                    container.classList.add('hidden');
+                    loading.classList.remove('hidden');
+                    loading.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-3xl mb-3 text-black"></i><p class="font-medium">Đang tải tài liệu...</p>';
+                    document.title = `${policy.title} | VNBUSARCHIVE`;
+                    document.getElementById('policy-breadcrumb-title').innerText = policy.title;
+                    document.getElementById('policy-detail-title').innerText = policy.title;
+                    try {
+                        const res = await fetch(policy.url);
+                        if (!res.ok) throw new Error('Không thể tải nội dung tài liệu.');
+                        const text = await res.text();
+                        const body = document.getElementById('policy-detail-body');
+                        body.innerHTML = DOMPurify.sanitize(marked.parse(text));
+                        const firstH1 = body.querySelector('h1');
+                        if (firstH1) firstH1.remove();
+                        loading.classList.add('hidden');
+                        container.classList.remove('hidden');
+                    } catch (e) {
+                        loading.innerHTML = `
+                            <div class="text-red-500 font-bold"><i class="fa-solid fa-triangle-exclamation text-3xl mb-3"></i><p>Không thể tải nội dung tự động.</p></div>
+                            <div class="text-center mt-3">
+                                <a href="${policy.url.replace('raw.githubusercontent.com/hoyuuna', 'github.com/hoyuuna').replace('/refs/heads/', '/blob/')}" target="_blank" class="inline-flex items-center gap-1.5 bg-black text-white px-4 py-2 rounded-md font-bold hover:bg-gray-800 transition text-[11px] uppercase">
+                                    <i class="fa-solid fa-arrow-up-right-from-square text-sm"></i> Xem chi tiết
+                                </a>
+                            </div>
+                        `;
                     }
                     app.loadingBar.finish();
                 }

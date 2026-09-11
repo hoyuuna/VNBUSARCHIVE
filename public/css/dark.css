@@ -102,7 +102,7 @@ a:hover, button:hover, [role="button"]:hover { text-decoration: none !important;
 
 
 /* 5. POPUP, DROPDOWN & KÍNH MỜ */
-#subrole-prompt-content, #onboarding-content, #crop-content, #custom-alert-content, #settings-content, #newsboard-content, #docs-content,
+#subrole-prompt-content, #onboarding-content, #crop-content, #custom-alert-content, #settings-content, #newsboard-content,
 #upload-info-content, #custom-prompt-content, #custom-role-content, #deny-prompt-content, #ban-prompt-content,
 #up-progress-content, #captcha-content, #webrtc-qr-content, #qr-login-host-content, #qr-login-confirm-content,
 #advanced-filter-content, #achievement-content, #operator-edit-content, #model-edit-content,

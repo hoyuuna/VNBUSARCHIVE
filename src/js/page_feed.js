@@ -131,7 +131,7 @@ Object.assign(window.app, {
                     const depths = {
                         'home': 0,
                         'search': 1, 'account': 1, 'upload': 1, 'mobile-upload': 1, 'admin': 1, 'contact': 1, 'help-list': 1, 'comment-dashboard': 1, 'leaderboard': 1,
-                        'detail': 2, 'vehicle': 2, 'operator-view': 2, 'model-view': 2, 'route-view': 2, 'help-detail': 2
+                        'detail': 2, 'vehicle': 2, 'operator-view': 2, 'model-view': 2, 'route-view': 2, 'help-detail': 2, 'policy-detail': 2
                     };
                     const currentId = document.querySelector('.view-section.active')?.id || 'home';
                     const currentDepth = depths[currentId] || 0;

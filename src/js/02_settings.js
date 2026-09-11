@@ -28,14 +28,6 @@ Object.assign(window.app, {
                         { text: "Gợi ý thông minh", tab: "preference", parent: "main", icon: "fa-layer-group" },
                         { text: "Cài đặt thông báo", tab: "notifications", parent: "account", icon: "fa-bell" },
                         { text: "Bật tắt thông báo", tab: "notifications", parent: "account", icon: "fa-bell" },
-                        { text: "Tài liệu", tab: "docs-intro", parent: "docs", icon: "fa-markdown" },
-                        { text: "Giới thiệu hệ thống", tab: "docs-intro", parent: "docs", icon: "fa-markdown" },
-                        { text: "Quy định", tab: "docs-requirements", parent: "docs", icon: "fa-list-check" },
-                        { text: "Kiểm duyệt", tab: "docs-requirements", parent: "docs", icon: "fa-list-check" },
-                        { text: "Chính sách bảo mật", tab: "docs-policy", parent: "docs", icon: "fa-shield" },
-                        { text: "Tiêu chuẩn bình luận", tab: "docs-chatrule", parent: "docs", icon: "fa-comments" },
-                        { text: "Quy tắc bình luận", tab: "docs-chatrule", parent: "docs", icon: "fa-comments" },
-                        { text: "Chat rule", tab: "docs-chatrule", parent: "docs", icon: "fa-comments" }
                     ];
                     const lowerQ = app.utils.cleanText(query.toLowerCase());
                     const words = lowerQ.split(/\s+/);
@@ -58,11 +50,9 @@ Object.assign(window.app, {
                     }
                 },
                 jumpTo: (tab, parent) => {
-                    app.settings.closeDocsMenu(true);
                     app.settings.closeAccountMenu(true);
                     app.settings.closeAccountMenu(true);
                     if (parent === 'account') app.settings.openAccountMenu();
-                    if (parent === 'docs') app.settings.openDocsMenu();
                     app.settings.switchTab(tab);
                 },
                 openAccountMenu: () => {
@@ -94,10 +84,8 @@ Object.assign(window.app, {
                     const modal = document.getElementById('settings-modal');
                     const content = document.getElementById('settings-content');
                     app.ui.toggleUserMenu(false);
-                    app.settings.closeDocsMenu(true);
                     app.settings.closeAccountMenu(true);
                     if (targetParent === 'account') app.settings.openAccountMenu();
-                    else if (targetParent === 'docs') app.settings.openDocsMenu();
                     if (app.user) {
                         document.querySelectorAll('.account-only-btn').forEach(el => el.style.display = '');
                         if (app.user.email) {
@@ -145,33 +133,8 @@ Object.assign(window.app, {
                         app.ui.unlockScroll();
                     }, 200);
                 },
-                openDocsMenu: () => {
-                    const main = document.getElementById('set-menu-main');
-                    const docs = document.getElementById('set-menu-docs');
-                    main.classList.add('hidden');
-                    main.classList.remove('flex');
-                    docs.classList.remove('hidden');
-                    docs.classList.add('flex', 'slide-left-enter');
-                    docs.classList.remove('slide-right-enter');
-                },
-                closeDocsMenu: (instant = false) => {
-                    const main = document.getElementById('set-menu-main');
-                    const docs = document.getElementById('set-menu-docs');
-                    if (instant) {
-                        docs.classList.add('hidden');
-                        docs.classList.remove('flex', 'slide-left-enter', 'slide-right-enter');
-                        main.classList.remove('hidden', 'slide-left-enter', 'slide-right-enter');
-                        main.classList.add('flex');
-                    } else {
-                        docs.classList.add('hidden');
-                        docs.classList.remove('flex');
-                        main.classList.remove('hidden');
-                        main.classList.add('flex', 'slide-right-enter');
-                        main.classList.remove('slide-left-enter');
-                    }
-                },
                 switchTab: (tab) => {
-                    const tabs = ['blank', 'profile', 'security', 'links', 'badges', 'preference', 'docs-intro', 'docs-requirements', 'docs-policy', 'docs-chatrule'];
+                    const tabs = ['blank', 'profile', 'security', 'links', 'badges', 'preference'];
                     const activeClasses = ['bg-black', 'text-white', 'border-black', 'shadow-sm'];
                     const inactiveClasses = ['bg-white', 'text-gray-600', 'hover:bg-gray-50', 'border-gray-200'];
                     tabs.forEach(t => {
@@ -183,10 +146,7 @@ Object.assign(window.app, {
                             btn.classList.add(...activeClasses);
                             content.classList.remove('hidden');
                             content.classList.add('block');
-                            if (t.startsWith('docs-')) {
-                                app.docs.fetchContent(t);
-                            } else if (t === 'X') {
-                            } else if (t === 'preference') {
+                            if (t === 'preference') {
                                 app.preference.tempSelection = app.preference.current || 'both';
                                 app.preference.updateUI();
                             }
@@ -580,34 +540,4 @@ grid.innerHTML = tiers.map(tier => {
 }
                 },
 
-    docs: {
-                open: () => {
-                    app.settings.open();
-                    app.settings.openDocsMenu();
-                },
-                close: () => {
-                },
-                fetchContent: async (tab) => {
-                    const container = document.getElementById('set-content-' + tab);
-                    if (!container || container.dataset.loaded === 'true') return;
-                    const url = container.dataset.url;
-                    try {
-                        const res = await fetch(url);
-                        if (!res.ok) throw new Error('Lỗi mạng');
-                        const text = await res.text();
-                        const html = DOMPurify.sanitize(marked.parse(text));
-                        container.innerHTML = html;
-                        container.dataset.loaded = 'true';
-                    } catch (e) {
-                        container.innerHTML = `
-                            <p class="text-red-500 font-bold py-4 text-center"><i class="fa-solid fa-triangle-exclamation"></i> Không thể tải nội dung tự động.</p>
-                            <div class="text-center mt-2">
-                                <a href="${url.replace('raw.githubusercontent.com/hoyuuna', 'github.com/hoyuuna').replace('/refs/heads/', '/blob/')}" target="_blank" class="inline-flex items-center gap-1.5 bg-black text-white px-4 py-2 rounded-md font-bold hover:bg-gray-800 transition text-[11px] uppercase">
-                                    <i class="fa-solid fa-arrow-up-right-from-square text-sm"></i> Xem chi tiết
-                                </a>
-                            </div>
-                        `;
-                    }
-                }
-            }
 });

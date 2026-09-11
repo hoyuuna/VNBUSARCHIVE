@@ -110,9 +110,30 @@ Object.assign(window.app, {
 
     help: {
                 data: [],
+                policies: [
+                    { slug: 'intro', title: 'Giới thiệu hệ thống', desc: 'Tổng quan về mục tiêu, phạm vi và cách VNBUSARCHIVE hoạt động.', icon: 'fa-circle-info', url: 'https://raw.githubusercontent.com/hoyuuna/VNBUSARCHIVE/refs/heads/main/README.md' },
+                    { slug: 'ar', title: 'Quy định kiểm duyệt', desc: 'Điều kiện và tiêu chuẩn để ảnh được duyệt đăng tải lên hệ thống.', icon: 'fa-list-check', url: 'https://raw.githubusercontent.com/hoyuuna/VNBUSARCHIVE/refs/heads/main/doc/Requirements.md' },
+                    { slug: 'tos', title: 'Chính sách & Điều khoản', desc: 'Chính sách bảo mật, bản quyền và các điều khoản khi sử dụng website.', icon: 'fa-shield-halved', url: 'https://raw.githubusercontent.com/hoyuuna/VNBUSARCHIVE/refs/heads/main/doc/Policy.md' },
+                    { slug: 'cr', title: 'Tiêu chuẩn bình luận', desc: 'Quy tắc ứng xử và tiêu chuẩn khi bình luận trên hệ thống.', icon: 'fa-comments', url: 'https://raw.githubusercontent.com/hoyuuna/VNBUSARCHIVE/refs/heads/main/doc/Chat-rule.md' }
+                ],
+                renderPolicyGrid: () => {
+                    const grid = document.getElementById('policy-grid');
+                    if (!grid) return;
+                    grid.innerHTML = app.help.policies.map(p => `
+                        <div onclick="app.help.loadPolicy('${p.slug}')" class="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md hover:border-black transition-all cursor-pointer flex flex-col h-full group">
+                            <div class="w-10 h-10 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center text-base mb-4 shrink-0 group-hover:bg-black group-hover:text-white transition-colors">
+                                <i class="fa-solid ${p.icon}"></i>
+                            </div>
+                            <h3 class="font-bold text-base text-black mb-2 line-clamp-2 transition-colors">${p.title}</h3>
+                            <p class="text-xs text-gray-600 line-clamp-3 mb-2 flex-1 leading-relaxed">${p.desc}</p>
+                            <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-auto pt-2">Xem chi tiết <i class="fa-solid fa-arrow-right ml-1"></i></span>
+                        </div>
+                    `).join('');
+                },
                 loadList: async () => {
                     app.views.switch('help-list', false);
                     document.title = 'Trung tâm hỗ trợ | VNBUSARCHIVE';
+                    app.help.renderPolicyGrid();
                     const container = document.getElementById('help-grid');
                     if (app.help.data.length === 0) {
                         container.innerHTML = '<div class="col-span-full text-center py-20 text-gray-500"><i class="fa-solid fa-circle-notch fa-spin text-2xl mb-2 text-black"></i><p>Đang tải dữ liệu...</p></div>';
@@ -210,6 +231,40 @@ Object.assign(window.app, {
                         container.classList.remove('hidden');
                     } catch (e) {
                         loading.innerHTML = `<div class="text-red-500 font-bold"><i class="fa-solid fa-triangle-exclamation text-3xl mb-3"></i><p>${e.message}</p></div>`;
+                    }
+                    app.loadingBar.finish();
+                },
+                loadPolicy: async (slug) => {
+                    const policy = app.help.policies.find(p => p.slug === slug);
+                    if (!policy) { app.utils.navigate('/help'); return; }
+                    app.views.switch('policy-detail', false);
+                    const container = document.getElementById('policy-detail-container');
+                    const loading = document.getElementById('policy-detail-loading');
+                    container.classList.add('hidden');
+                    loading.classList.remove('hidden');
+                    loading.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-3xl mb-3 text-black"></i><p class="font-medium">Đang tải tài liệu...</p>';
+                    document.title = `${policy.title} | VNBUSARCHIVE`;
+                    document.getElementById('policy-breadcrumb-title').innerText = policy.title;
+                    document.getElementById('policy-detail-title').innerText = policy.title;
+                    try {
+                        const res = await fetch(policy.url);
+                        if (!res.ok) throw new Error('Không thể tải nội dung tài liệu.');
+                        const text = await res.text();
+                        const body = document.getElementById('policy-detail-body');
+                        body.innerHTML = DOMPurify.sanitize(marked.parse(text));
+                        const firstH1 = body.querySelector('h1');
+                        if (firstH1) firstH1.remove();
+                        loading.classList.add('hidden');
+                        container.classList.remove('hidden');
+                    } catch (e) {
+                        loading.innerHTML = `
+                            <div class="text-red-500 font-bold"><i class="fa-solid fa-triangle-exclamation text-3xl mb-3"></i><p>Không thể tải nội dung tự động.</p></div>
+                            <div class="text-center mt-3">
+                                <a href="${policy.url.replace('raw.githubusercontent.com/hoyuuna', 'github.com/hoyuuna').replace('/refs/heads/', '/blob/')}" target="_blank" class="inline-flex items-center gap-1.5 bg-black text-white px-4 py-2 rounded-md font-bold hover:bg-gray-800 transition text-[11px] uppercase">
+                                    <i class="fa-solid fa-arrow-up-right-from-square text-sm"></i> Xem chi tiết
+                                </a>
+                            </div>
+                        `;
                     }
                     app.loadingBar.finish();
                 }

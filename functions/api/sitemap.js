@@ -82,6 +82,15 @@ export async function onRequest(context) {
         <changefreq>daily</changefreq>
       </url>`);
 
+    ['tos', 'ar', 'cr', 'intro'].forEach(slug => {
+      xmlChunks.push(`
+      <url>
+        <loc>${escapeXML(baseUrl)}/${slug}</loc>
+        <priority>0.5</priority>
+        <changefreq>monthly</changefreq>
+      </url>`);
+    });
+
     vehicles.forEach(v => {
       if (v && v.license_plate) {
         xmlChunks.push(`
