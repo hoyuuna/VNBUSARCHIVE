@@ -273,7 +273,8 @@ Object.assign(window.app, {
                 },
                 renderItem: (c, replies = []) => {
                     const isMe = app.user && c.user_id === app.user.id;
-                    const canDelete = isMe || app.role === 'admin' || app.role === 'manager';
+                    const isPhotoOwner = app.user && app.currentPhoto && app.currentPhoto.uploader_id === app.user.id;
+                    const canDelete = isMe || isPhotoOwner || app.role === 'admin' || app.role === 'manager';
                     const authorDisplay = app.utils.formatProfileDisplay(c.profiles);
                     const avatar = authorDisplay.avatar;
                     let badges = authorDisplay.isBanned ? '' : app.utils.getBadgesHTML(c.user_id, c.profiles?.role, c.profiles?.subroles);
@@ -331,7 +332,8 @@ Object.assign(window.app, {
                 },
                 renderReplyItem: (r) => {
                     const isMe = app.user && r.user_id === app.user.id;
-                    const canDelete = isMe || app.role === 'admin' || app.role === 'manager';
+                    const isPhotoOwner = app.user && app.currentPhoto && app.currentPhoto.uploader_id === app.user.id;
+                    const canDelete = isMe || isPhotoOwner || app.role === 'admin' || app.role === 'manager';
                     const authorDisplay = app.utils.formatProfileDisplay(r.profiles);
                     const avatar = authorDisplay.avatar;
                     let badges = authorDisplay.isBanned ? '' : app.utils.getBadgesHTML(r.user_id, r.profiles?.role, r.profiles?.subroles);
@@ -406,6 +408,7 @@ Object.assign(window.app, {
                                 <div class="p-3 space-y-2 bg-white/50">
                                     ${g.comments.map(c => {
                                         const isReplyToMe = myCommentIds.includes(c.parent_id);
+                                        const canDelete = c.user_id === app.user.id || c.photos.uploader_id === app.user.id;
                                         const replyBadge = isReplyToMe ? `<span class="bg-blue-100 text-blue-700 text-[9px] px-1.5 py-0.5 rounded ml-2 font-bold border border-blue-200 whitespace-nowrap"><i class="fa-solid fa-reply"></i> Trả lời bạn</span>` : '';
                                         return `
                                         <div class="flex justify-between items-start gap-3 bg-white border border-gray-200 p-3 rounded-xl shadow-sm hover:shadow-md transition cursor-pointer" onclick="app.utils.navigate('/photo/${g.info.id}'); setTimeout(()=> { const el = document.getElementById('comment-${c.id}'); if(el) el.scrollIntoView({behavior: 'smooth', block: 'center'}); }, 1000);">
@@ -417,7 +420,7 @@ Object.assign(window.app, {
                                                 <p class="text-xs text-gray-700 mt-1 mb-1.5 line-clamp-2 leading-relaxed">${c.content}</p>
                                                 <span class="text-[9px] text-gray-400 font-bold uppercase"><i class="fa-regular fa-clock mr-1"></i>${new Date(c.created_at).toLocaleString('vi-VN')}</span>
                                             </div>
-                                            <button onclick="event.stopPropagation(); app.comments.delete('${c.id}')" class="text-red-400 hover:text-red-600 bg-red-50 p-2 rounded-lg transition shrink-0"><i class="fa-solid fa-trash-can text-sm"></i></button>
+                                            ${canDelete ? `<button onclick="event.stopPropagation(); app.comments.delete('${c.id}')" class="text-red-400 hover:text-red-600 bg-red-50 p-2 rounded-lg transition shrink-0"><i class="fa-solid fa-trash-can text-sm"></i></button>` : ''}
                                         </div>
                                     `}).join('')}
                                 </div>
@@ -503,7 +506,8 @@ Object.assign(window.app, {
                 },
                 delete: async (id) => {
                     app.ui.showAlert("Bạn có chắc chắn muốn xóa bình luận này? (Các phản hồi bên trong cũng sẽ bị xóa theo)", async () => {
-                        await window.sb.from('photo_comments').delete().or(`id.eq.${id},parent_id.eq.${id}`);
+                        const { error } = await window.sb.from('photo_comments').delete().or(`id.eq.${id},parent_id.eq.${id}`);
+                        if (error) return app.ui.showAlert("Lỗi: " + error.message);
                         if (app.currentViewMode === 'comment-dashboard') app.comments.openDashboard();
                         else if (app.adminTab === 'comments') app.admin.loadTab('comments');
                         else app.comments.load(app.currentPhoto.id);
