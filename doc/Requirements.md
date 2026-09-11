@@ -1,6 +1,6 @@
 # QUY CHUẨN VÀ HƯỚNG DẪN ĐĂNG TẢI DỮ LIỆU HÌNH ẢNH
 
-**👉 LƯU Ý: Cập nhật lần cuối 05/09/2026**
+**👉 LƯU Ý: Cập nhật lần cuối 11/09/2026**
 
 Tài liệu này quy định các tiêu chuẩn kỹ thuật về hình ảnh và siêu dữ liệu nhằm xây dựng cơ sở dữ liệu phương tiện chất lượng cao. Yêu cầu toàn bộ thành viên đọc kỹ và tuân thủ nghiêm ngặt trước khi đóng góp.
 
@@ -9,19 +9,25 @@ VNBUSARCHIVE là thư viện tư liệu, không phải nền tảng chia sẻ �
 ## PHẦN A: QUY ĐỊNH CHUNG
 **A1.1. Phạm vi tiếp nhận:** Hệ thống hiện tại chấp nhận dữ liệu của cả **Xe buýt** và **Xe khách**.
 
-**A1.2. Xét duyệt ngoại lệ:** Các hình ảnh mang tính đặc thù/hiếm có nhưng không đạt chuẩn quy định, vui lòng [liên hệ](https://www.vnbusarchive.io.vn/contact) để được xem xét.
-
+**A1.2. Xét duyệt ngoại lệ:** 
+* Hệ thống tự động kiểm duyệt và ưu tiên xuất bản các hình ảnh mang giá trị tư liệu/lịch sử cao dù không hoàn toàn đạt chuẩn kỹ thuật (ảnh chụp thời điểm quá khứ hoặc xe hiện đã ngừng hoạt động). Thành viên chỉ cần tải lên hệ thống, BQT sẽ tự động đánh giá và xem xét mà không cần liên hệ trước.
+* **Các trường hợp áp dụng ưu tiên (Chỉ áp dụng đối với XE BUÝT, KHÔNG áp dụng cho XE KHÁCH):**
+  * Dòng xe đã không còn hoạt động/khai thác trên thị trường.
+  * Tuyến xe buýt đã ngừng hoạt động hoàn toàn.
+  * Tuyến xe buýt đã chuyển giao đơn vị vận hành (ảnh ghi lại thời điểm xe còn thuộc đơn vị vận hành cũ).
+  * Tuyến xe buýt đã thay đổi dòng xe (ảnh ghi lại thời điểm tuyến còn sử dụng dòng xe cũ).
+* **Quyền hạn BQT:** BQT giữ quyền chủ động điều chỉnh và áp dụng linh hoạt chính sách ưu tiên xét duyệt đối với các trường hợp đặc biệt khác tùy thuộc vào giá trị tư liệu thực tế của bức ảnh.
 ---
 
 ## PHẦN B: TIÊU CHUẨN HÌNH ẢNH (UPLOAD)
 *Hệ thống áp dụng bộ lọc kiểm duyệt khắt khe. Tệp tin hình ảnh tải lên bắt buộc đáp ứng các tiêu chí sau:*
 
 ### B1. Đối tượng và Bối cảnh
-* **B1.1. Phạm vi địa lý:** Chỉ chấp nhận phương tiện đang hoạt động và đăng ký tại **Việt Nam**.
+* **B1.1. Phạm vi địa lý:** Chỉ chấp nhận phương tiện hoạt động và đăng ký tại **Việt Nam**.
 * **B1.2. Hạn chế chủ thể:** 
   * Từ chối phương tiện thuộc cơ quan Nhà nước/Quân đội (Biển xanh/đỏ).
   * Từ chối phương tiện đang gặp tai nạn, va chạm giao thông hoặc có dấu hiệu hư hỏng nặng do va chạm tại hiện trường.
-  * **Đối với xe khách:** Chỉ chấp nhận phương tiện thuộc các hãng, doanh nghiệp vận tải quy mô lớn hoặc có tuyến cố định. Từ chối phương tiện cá nhân, hộ gia đình, nhà xe nhỏ lẻ.
+  * **Quy mô hãng:** Chỉ chấp nhận phương tiện thuộc các hãng, doanh nghiệp vận tải quy mô lớn hoặc có tuyến cố định. Từ chối phương tiện cá nhân, hộ gia đình, nhà xe nhỏ lẻ.
 * **B1.3. Bối cảnh chụp:** Khung hình sạch sẽ, không xuất hiện rác thải, vết bẩn lớn hoặc các chi tiết gây phản cảm. Không chấp nhận ảnh chụp vội, thiếu chủ đích.
 
 ### B1.4. Giá trị Lưu trữ và Thẩm mỹ:
@@ -42,8 +48,15 @@ VNBUSARCHIVE là thư viện tư liệu, không phải nền tảng chia sẻ �
 * **B2.5. Vật cản:** Chủ thể không bị che khuất bởi phương tiện khác, con người, hoặc cảnh quan (cây cối, cột điện...).
 
 ### B3. Thông số kỹ thuật & Siêu dữ liệu
-* **B3.1. Chất lượng ảnh:** Độ sắc nét, độ sáng và độ tương phản phải đạt mức tiêu chuẩn. Từ chối ảnh mờ nhòe do rung tay hoặc do chuyển động.
-* **B3.2. Tính nguyên bản:** Cấm sử dụng AI (Upscale) để can thiệp, làm nét hoặc thay đổi chi tiết phương tiện.
+* **B3.1. Chất lượng ảnh & Thiết bị:** 
+  * Độ sắc nét, độ sáng và độ tương phản phải đạt tiêu chuẩn lưu trữ. Từ chối ảnh mờ nhòe, nhiễu hạt nghiêm trọng (noise/grain) do điều kiện thiếu sáng hoặc giới hạn phần cứng của thiết bị chụp.
+  * **Quyền từ chối của BQT:** BQT có quyền từ chối xuất bản nếu chất lượng hình ảnh đầu ra không đạt yêu cầu. Người đóng góp tuyệt đối không sử dụng lý do thiết bị chụp chất lượng kém/đời cũ để yêu cầu châm chước. Quy chuẩn được áp dụng đồng bộ, nghiêm túc và không có ngoại lệ.
+
+* **B3.2. Tính nguyên bản & Hậu kỳ (Documentary Integrity):** 
+  * **Cấm can thiệp AI/Hậu kỳ quá đà:** Từ chối ảnh lạm dụng các công cụ xử lý (Sharpness, Clarity, HDR giả lập, Saturation v..v..) gây ra hiện tượng viền giả xung quanh thân xe hoặc làm sai lệch màu sơn thực tế của doanh nghiệp vận tải.
+  * **Cấm thay đổi chi tiết/Xóa vật thể:** Cấm tuyệt đối việc sử dụng phần mềm đồ họa hoặc AI để xóa bỏ các chi tiết bối cảnh hoặc vẽ/phục hồi lại Biển kiểm soát, logo, chi tiết phương tiện bị mất. Tính chân thực của dữ liệu tư liệu phải được đảm bảo tuyệt đối.
+  * **Cấm nâng cấp giả tạo:** Cấm sử dụng AI/Phần mềm để làm nét, tăng độ phân giải hoặc cấy ghép chi tiết ảo vào phương tiện.
+
 * **B3.3. Dữ liệu (EXIF):** Tệp tin gốc bắt buộc chứa dữ liệu máy ảnh và thời gian chụp.
 * **B3.4. Đóng dấu (Watermark):** Cấm chèn chữ ký/logo cá nhân. Hệ thống sẽ tự động đóng dấu bản quyền khi xuất bản.
 * **B3.5. Sai lệch tiêu cự:** Từ chối ảnh sử dụng camera góc siêu rộng (tiêu cự quá nhỏ) gây tình trạng móp méo, biến dạng tỷ lệ thực tế của phương tiện.
