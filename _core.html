@@ -1222,6 +1222,19 @@ div[id$="-modal"] > div > * {
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
+        .markdown-body {
+            overflow-wrap: break-word;
+        }
+
+        /* Bảng markdown rộng (VD: doc Requirements.md) cuộn ngang trong khung,
+           không kéo giãn viewport làm vỡ/ cắt header ở chế độ mobile */
+        .markdown-body table {
+            display: block;
+            width: 100%;
+            max-width: 100%;
+            overflow-x: auto;
+        }
+
         .markdown-body hr {
             display: none;
         }
@@ -1586,8 +1599,6 @@ div[id$="-modal"] > div > * {
         #qr-login-host-modal, #qr-login-confirm-modal,
         #achievement-modal {
             background-color: rgba(0, 0, 0, 0) !important;
-            
-            -webkit-
         }
 
         

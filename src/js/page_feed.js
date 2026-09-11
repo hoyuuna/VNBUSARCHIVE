@@ -89,7 +89,7 @@ Object.assign(window.app, {
                         if (mainHeader) mainHeader.style.display = 'none';
                         if (headerSpacer) headerSpacer.style.display = 'none';
                     } else {
-                        if (mainHeader) mainHeader.style.display = '';
+                        if (mainHeader) { mainHeader.style.display = ''; mainHeader.style.transform = 'translateY(0)'; }
                         if (headerSpacer) headerSpacer.style.display = '';
                         
                         const footer = document.querySelector('footer');

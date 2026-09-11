@@ -6123,7 +6123,7 @@ Object.assign(window.app, {
                         if (mainHeader) mainHeader.style.display = 'none';
                         if (headerSpacer) headerSpacer.style.display = 'none';
                     } else {
-                        if (mainHeader) mainHeader.style.display = '';
+                        if (mainHeader) { mainHeader.style.display = ''; mainHeader.style.transform = 'translateY(0)'; }
                         if (headerSpacer) headerSpacer.style.display = '';
                         
                         const footer = document.querySelector('footer');
@@ -10063,7 +10063,7 @@ Object.assign(window.app, {
                     const grid = document.getElementById('policy-grid');
                     if (!grid) return;
                     grid.innerHTML = app.help.policies.map(p => `
-                        <div onclick="app.help.loadPolicy('${p.slug}')" class="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md hover:border-black transition-all cursor-pointer flex flex-col h-full group">
+                        <div onclick="app.utils.navigate('/${p.slug}')" class="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md hover:border-black transition-all cursor-pointer flex flex-col h-full group">
                             <div class="w-10 h-10 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center text-base mb-4 shrink-0 group-hover:bg-black group-hover:text-white transition-colors">
                                 <i class="fa-solid ${p.icon}"></i>
                             </div>
