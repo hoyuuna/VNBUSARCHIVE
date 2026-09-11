@@ -111,7 +111,7 @@ Object.assign(window.app, {
     help: {
                 data: [],
                 policies: [
-                    { slug: 'intro', title: 'Giới thiệu hệ thống', desc: 'Tổng quan về mục tiêu, phạm vi và cách VNBUSARCHIVE hoạt động.', icon: 'fa-circle-info', url: 'https://raw.githubusercontent.com/hoyuuna/VNBUSARCHIVE/refs/heads/main/README.md' },
+                    { slug: 'intro', title: 'Giới thiệu dự án', desc: 'Tổng quan về mục tiêu, phạm vi và cách VNBUSARCHIVE hoạt động.', icon: 'fa-circle-info', url: 'https://raw.githubusercontent.com/hoyuuna/VNBUSARCHIVE/refs/heads/main/README.md' },
                     { slug: 'ar', title: 'Quy định kiểm duyệt', desc: 'Điều kiện và tiêu chuẩn để ảnh được duyệt đăng tải lên hệ thống.', icon: 'fa-list-check', url: 'https://raw.githubusercontent.com/hoyuuna/VNBUSARCHIVE/refs/heads/main/doc/Requirements.md' },
                     { slug: 'tos', title: 'Chính sách & Điều khoản', desc: 'Chính sách bảo mật, bản quyền và các điều khoản khi sử dụng website.', icon: 'fa-shield-halved', url: 'https://raw.githubusercontent.com/hoyuuna/VNBUSARCHIVE/refs/heads/main/doc/Policy.md' },
                     { slug: 'cr', title: 'Tiêu chuẩn bình luận', desc: 'Quy tắc ứng xử và tiêu chuẩn khi bình luận trên hệ thống.', icon: 'fa-comments', url: 'https://raw.githubusercontent.com/hoyuuna/VNBUSARCHIVE/refs/heads/main/doc/Chat-rule.md' }

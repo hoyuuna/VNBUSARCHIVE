@@ -5,7 +5,7 @@ export async function onRequest(context) {
     const indexReq = new Request(url.origin + '/', request);
     const response = await env.ASSETS.fetch(indexReq);
     
-    let title = `Giới thiệu hệ thống | VNBUSARCHIVE`;
+    let title = `Giới thiệu dự án | VNBUSARCHIVE`;
     let desc = `Tổng quan về mục tiêu, phạm vi và cách VNBUSARCHIVE hoạt động.`;
     
     return new HTMLRewriter()
