@@ -606,7 +606,7 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                                 const shortRouteName = decodedRoute.length <= 5 ? decodedRoute : decodedRoute.substring(0, 5);
 
                                 if (type === 'circle') {
-                                    iconClass = "w-16 h-16 md:w-20 md:h-20 rounded-full bg-white flex items-center justify-center shrink-0 border-[3px] border-black overflow-hidden";
+                                    iconClass = "w-16 h-16 md:w-20 md:h-20 flex flex-col items-center justify-center shrink-0 relative";
                                     await document.fonts.load('400 1em Anton');
                                     const _cp = document.createElement('canvas'); const _xp = _cp.getContext('2d');
                                     _xp.font = '400 100px Anton, sans-serif';
@@ -614,7 +614,11 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                                     const _sqP = 39; // 95% of inscribed square for w-16 circle
                                     const _scP = Math.min(_sqP / _mp.width, _sqP / (_mp.actualBoundingBoxAscent || 72));
                                     const fSizeP = (_scP * 100).toFixed(1) + 'px';
-                                    iconHtml = `<span style="font-weight: 400; font-family: 'Anton', sans-serif; color: #dc2626; font-size: ${fSizeP}; white-space: nowrap; line-height: 1;">${shortRouteName}</span>`;
+                                    iconHtml = `
+                                    <svg viewBox="0 0 100 100" class="absolute inset-0 w-full h-full overflow-visible drop-shadow-sm" preserveAspectRatio="none">
+                                        <circle cx="50" cy="50" r="48" fill="white" stroke="black" stroke-width="4"/>
+                                    </svg>
+                                    <span class="relative z-10" style="font-weight: 400; font-family: 'Anton', sans-serif; color: #dc2626; font-size: ${fSizeP}; white-space: nowrap; line-height: 1;">${shortRouteName}</span>`;
                                 } else if (type === 'trapezoid') {
                                     iconClass = "w-16 h-16 md:w-20 md:h-20 flex flex-col items-center justify-center shrink-0 relative";
                                     await document.fonts.load('400 1em Anton');

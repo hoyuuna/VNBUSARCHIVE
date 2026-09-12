@@ -43,6 +43,14 @@ polygon[stroke="black"] {
     stroke: #ffffff !important;
 }
 
+circle[fill="white"] {
+    fill: #000000 !important;
+}
+
+circle[stroke="black"] {
+    stroke: #ffffff !important;
+}
+
 
 /* 3. NÚT BẤM (BUTTONS) VÀ HOVER */
 a, button, [role="button"] { text-decoration: none !important; }

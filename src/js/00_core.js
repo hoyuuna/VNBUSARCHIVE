@@ -1882,6 +1882,37 @@ cleanupState: () => {
                         });
                     });
                 },
+                blurCanvasRegion: (ctx, x, y, w, h, radius, srcW, srcH) => {
+                    const dx = Math.max(0, Math.floor(x));
+                    const dy = Math.max(0, Math.floor(y));
+                    const dw = Math.min(srcW, Math.ceil(x + w)) - dx;
+                    const dh = Math.min(srcH, Math.ceil(y + h)) - dy;
+                    if (dw <= 0 || dh <= 0) return;
+                    const pad = Math.ceil(radius * 2) + 2;
+                    const sx = Math.max(0, dx - pad);
+                    const sy = Math.max(0, dy - pad);
+                    const sw = Math.min(srcW, dx + dw + pad) - sx;
+                    const sh = Math.min(srcH, dy + dh + pad) - sy;
+                    if (sw <= 0 || sh <= 0) return;
+                    const tmp = document.createElement('canvas');
+                    tmp.width = sw;
+                    tmp.height = sh;
+                    const tctx = tmp.getContext('2d');
+                    tctx.drawImage(ctx.canvas, sx, sy, sw, sh, 0, 0, sw, sh);
+                    if (typeof StackBlur !== 'undefined') {
+                        StackBlur.canvasRGBA(tmp, 0, 0, sw, sh, radius);
+                    } else {
+                        const alt = document.createElement('canvas');
+                        alt.width = sw;
+                        alt.height = sh;
+                        const actx = alt.getContext('2d');
+                        actx.filter = 'blur(' + radius + 'px)';
+                        actx.drawImage(tmp, 0, 0);
+                        tctx.clearRect(0, 0, sw, sh);
+                        tctx.drawImage(alt, 0, 0);
+                    }
+                    ctx.drawImage(tmp, dx - sx, dy - sy, dw, dh, dx, dy, dw, dh);
+                },
                 watermark: (file, username, pos = { x: 0.5, y: 0.5, color: 'white' }, filters = 'none', options = { embedBlind: false }) => {
                     return new Promise((resolve, reject) => {
                         const img = new Image();
@@ -1919,14 +1950,8 @@ cleanupState: () => {
                                         const blurW = Math.ceil(width * relW);
                                         const blurH = Math.ceil(height * relH);
                                         if (blurW > 0 && blurH > 0) {
-                                            const tempPanelCanvas = document.createElement('canvas');
-                                            tempPanelCanvas.width = blurW;
-                                            tempPanelCanvas.height = blurH;
-                                            const tempPanelCtx = tempPanelCanvas.getContext('2d');
-                                            tempPanelCtx.drawImage(ctx.canvas, blurX, blurY, blurW, blurH, 0, 0, blurW, blurH);
                                             const panelBlurRadius = Math.max(15, Math.floor(width * 0.015));
-                                            StackBlur.canvasRGBA(tempPanelCanvas, 0, 0, blurW, blurH, panelBlurRadius);
-                                            ctx.drawImage(tempPanelCanvas, blurX, blurY);
+                                            app.utils.blurCanvasRegion(ctx, blurX, blurY, blurW, blurH, panelBlurRadius, width, height);
                                         }
                                     });
                                 }
@@ -3324,7 +3349,7 @@ cleanupState: () => {
                                             const shortRouteName = info.r.length <= 5 ? info.r : info.r.substring(0, 5);
 
                                             if (type === 'circle') {
-                                                iconClass = "w-12 h-12 rounded-full bg-white flex items-center justify-center shrink-0 border-[2px] border-black shadow-sm overflow-hidden";
+                                                iconClass = "w-12 h-12 flex flex-col items-center justify-center shrink-0 relative";
                                                 await document.fonts.load('400 1em Anton');
                                                 const _cpc = document.createElement('canvas'); const _xpc = _cpc.getContext('2d');
                                                 _xpc.font = '400 100px Anton, sans-serif';
@@ -3332,7 +3357,11 @@ cleanupState: () => {
                                                 const _sqPC = 29.5; // 95% of inscribed square for w-12 circle
                                                 const _scPC = Math.min(_sqPC / _mpc.width, _sqPC / (_mpc.actualBoundingBoxAscent || 72));
                                                 const fSizePC = (_scPC * 100).toFixed(1) + 'px';
-                                                iconHtml = `<span style="font-weight: 400; font-family: 'Anton', sans-serif; color: #dc2626; font-size: ${fSizePC}; white-space: nowrap; line-height: 1;">${shortRouteName}</span>`;
+                                                iconHtml = `
+                                                <svg viewBox="0 0 100 100" class="absolute inset-0 w-full h-full overflow-visible drop-shadow-sm" preserveAspectRatio="none">
+                                                    <circle cx="50" cy="50" r="48" fill="white" stroke="black" stroke-width="4"/>
+                                                </svg>
+                                                <span class="relative z-10" style="font-weight: 400; font-family: 'Anton', sans-serif; color: #dc2626; font-size: ${fSizePC}; white-space: nowrap; line-height: 1;">${shortRouteName}</span>`;
                                             } else if (type === 'trapezoid') {
                                                 iconClass = "w-12 h-12 flex flex-col items-center justify-center shrink-0 relative";
                                                 await document.fonts.load('400 1em Anton');

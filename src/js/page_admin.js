@@ -280,19 +280,8 @@ Object.assign(window.app, {
                                 const blurW = Math.ceil(width * relW);
                                 const blurH = Math.ceil(height * relH);
                                 if (blurW > 0 && blurH > 0) {
-                                    const tempPanelCanvas = document.createElement('canvas');
-                                    tempPanelCanvas.width = blurW;
-                                    tempPanelCanvas.height = blurH;
-                                    const tempPanelCtx = tempPanelCanvas.getContext('2d');
-                                    tempPanelCtx.drawImage(ctx.canvas, blurX, blurY, blurW, blurH, 0, 0, blurW, blurH);
                                     const panelBlurRadius = Math.max(15, Math.floor(width * 0.015));
-                                    if (typeof StackBlur !== 'undefined') {
-                                        StackBlur.canvasRGBA(tempPanelCanvas, 0, 0, blurW, blurH, panelBlurRadius);
-                                    } else {
-                                        tempPanelCtx.filter = 'blur(' + panelBlurRadius + 'px)';
-                                        tempPanelCtx.drawImage(tempPanelCanvas, 0, 0);
-                                    }
-                                    ctx.drawImage(tempPanelCanvas, blurX, blurY);
+                                    app.utils.blurCanvasRegion(ctx, blurX, blurY, blurW, blurH, panelBlurRadius, width, height);
                                 }
                             });
                         }
