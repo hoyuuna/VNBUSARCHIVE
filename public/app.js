@@ -18574,7 +18574,7 @@ Object.assign(window.app, {
                                           <div><label class="text-xs font-bold text-gray-600 block mb-1">Tiêu đề *</label><input type="text" id="ct-new-title" class="admin-input" placeholder="Ví dụ: Bảo trì hệ thống"></div>
                                           <div><label class="text-xs font-bold text-gray-600 block mb-1">Nội dung</label><input type="text" id="ct-new-message" class="admin-input" placeholder="Mô tả ngắn gọn"></div>
                                           <div><label class="text-xs font-bold text-gray-600 block mb-1">Icon (FontAwesome)</label><input type="text" id="ct-new-icon" class="admin-input font-mono" value="fa-bell" placeholder="fa-bell"></div>
-                                          <div><label class="text-xs font-bold text-gray-600 block mb-1">Màu</label><div class="flex items-center gap-2"><input type="color" id="ct-new-color" value="#18181b" class="w-10 h-10 rounded border border-gray-300 cursor-pointer bg-white"><input type="text" id="ct-new-color-text" value="#18181b" class="admin-input font-mono"></div></div>
+                                          <div><label class="text-xs font-bold text-gray-600 block mb-1">Màu</label><div class="flex items-center gap-2"><input type="color" id="ct-new-color" value="#18181b" oninput="app.admin.syncToastColor(this.value)" class="w-10 h-10 rounded border border-gray-300 cursor-pointer bg-white"><input type="text" id="ct-new-color-text" value="#18181b" oninput="app.admin.syncToastColorText(this.value)" class="admin-input font-mono"></div></div>
                                           <div><label class="text-xs font-bold text-gray-600 block mb-1">Thời điểm hiển thị</label><select id="ct-new-mode" class="admin-input"><option value="always">Mỗi lần vào trang</option><option value="once">Chỉ 1 lần duy nhất</option></select></div>
                                           <div><label class="text-xs font-bold text-gray-600 block mb-1">Thời gian tự tắt (giây)</label><input type="number" min="0" id="ct-new-duration" class="admin-input" value="12" placeholder="0 = không tự tắt"></div>
                                           <div><label class="text-xs font-bold text-gray-600 block mb-1">Liên kết (tùy chọn)</label><input type="text" id="ct-new-link" class="admin-input" placeholder="https://... hoặc /duong-dan"></div>
@@ -19872,7 +19872,16 @@ app.admin.fetchManagerData('denied');
                             </div>
                         </div>`;
                     }).join('');
-                },                addCustomToast: async (btn) => {
+                },                syncToastColor: (val) => {
+                    const t = document.getElementById('ct-new-color-text');
+                    if (t) t.value = val;
+                },
+                syncToastColorText: (val) => {
+                    const v = (val || '').trim();
+                    const p = document.getElementById('ct-new-color');
+                    if (p && /^#[0-9a-fA-F]{6}$/.test(v)) p.value = v;
+                },
+                addCustomToast: async (btn) => {
                     if (app.role !== 'manager' && app.role !== 'admin') return;
                     const title = document.getElementById('ct-new-title').value.trim();
                     if (!title) return app.ui.showAlert('Vui lòng nhập tiêu đề toast!');
