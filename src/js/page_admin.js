@@ -1668,6 +1668,7 @@ Object.assign(window.app, {
                                         <button onclick="app.admin.switchManagerTab('email')" id="mgr-tab-email" class="font-bold text-sm px-4 py-2 bg-white text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition whitespace-nowrap"><i class="fa-solid fa-envelope mr-1"></i> Gửi Email</button>
                                         <button onclick="app.admin.switchManagerTab('settings')" id="mgr-tab-settings" class="font-bold text-sm px-4 py-2 bg-white text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition whitespace-nowrap"><i class="fa-solid fa-sliders mr-1"></i> Cài đặt</button>
                                         <button onclick="app.admin.switchManagerTab('blindwm')" id="mgr-tab-blindwm" class="font-bold text-sm px-4 py-2 bg-white text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition whitespace-nowrap"><i class="fa-solid fa-fingerprint mr-1"></i> Giải mã Dấu chìm</button>
+                                        <button onclick="app.admin.switchManagerTab('toasts')" id="mgr-tab-toasts" class="font-bold text-sm px-4 py-2 bg-white text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition whitespace-nowrap"><i class="fa-solid fa-bullhorn mr-1"></i> Toast tùy biến</button>
                                     </div>
                                     <!-- TAB: ẢNH BỊ TỪ CHỐI -->
                                     <div id="mgr-sec-denied" class="block">
@@ -1893,6 +1894,26 @@ Object.assign(window.app, {
                                          </div>
                                      </div>
                                  </div>
+                                    <!-- TAB: TOAST TUY BIEN (MANAGER) -->
+                                    <div id="mgr-sec-toasts" class="hidden">
+                                      <div class="bg-gray-50 border border-gray-200 rounded-md p-4 mb-6">
+                                        <h4 class="font-bold text-sm uppercase tracking-wider text-gray-800 mb-1"><i class="fa-solid fa-bullhorn text-black mr-2"></i>Toast tùy biến</h4>
+                                        <p class="text-xs text-gray-600">Tạo thông báo dạng toast hiển thị cho người dùng khi vào trang. Bật/tắt từng cái, chọn icon, màu và liên kết tùy ý. Có thể bật nhiều toast cùng lúc.</p>
+                                      </div>
+                                      <div class="border border-gray-200 rounded-md p-4 bg-white mb-6">
+                                        <h5 class="font-bold text-xs uppercase tracking-wider text-gray-600 mb-3">Thêm toast mới</h5>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                          <div><label class="text-xs font-bold text-gray-600 block mb-1">Tiêu đề *</label><input type="text" id="ct-new-title" class="admin-input" placeholder="Ví dụ: Bảo trì hệ thống"></div>
+                                          <div><label class="text-xs font-bold text-gray-600 block mb-1">Nội dung</label><input type="text" id="ct-new-message" class="admin-input" placeholder="Mô tả ngắn gọn"></div>
+                                          <div><label class="text-xs font-bold text-gray-600 block mb-1">Icon (FontAwesome)</label><input type="text" id="ct-new-icon" class="admin-input font-mono" value="fa-bell" placeholder="fa-bell"></div>
+                                          <div><label class="text-xs font-bold text-gray-600 block mb-1">Màu</label><div class="flex items-center gap-2"><input type="color" id="ct-new-color" value="#18181b" class="w-10 h-10 rounded border border-gray-300 cursor-pointer bg-white"><input type="text" id="ct-new-color-text" value="#18181b" class="admin-input font-mono"></div></div>
+                                          <div><label class="text-xs font-bold text-gray-600 block mb-1">Liên kết (tùy chọn)</label><input type="text" id="ct-new-link" class="admin-input" placeholder="https://... hoặc /duong-dan"></div>
+                                          <div><label class="text-xs font-bold text-gray-600 block mb-1">Nhãn liên kết (tùy chọn)</label><input type="text" id="ct-new-link-label" class="admin-input" placeholder="Xem thêm"></div>
+                                        </div>
+                                        <div class="mt-4 text-right"><button onclick="app.admin.addCustomToast(this)" class="bg-black text-white px-5 py-2 text-xs font-bold rounded shadow-sm"><i class="fa-solid fa-plus mr-1"></i> Thêm toast</button></div>
+                                      </div>
+                                      <div id="mgr-toasts-list" class="space-y-3"><p class="text-gray-500 italic"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Đang tải danh sách toast...</p></div>
+                                    </div>
                              `;
 app.admin.fetchManagerData('denied');
                              app.admin.fetchManagerData('logs');
@@ -1922,7 +1943,7 @@ app.admin.fetchManagerData('denied');
                 switchManagerTab: (subTab) => {
                     app.admin.manager.activeTab = subTab;
                     try { sessionStorage.setItem('vbs_mgr_active_tab', subTab); } catch(e){}
-                    ['denied', 'logs', 'email', 'settings', 'bans', 'blindwm'].forEach(t => {
+                    ['denied', 'logs', 'email', 'settings', 'bans', 'blindwm', 'toasts'].forEach(t => {
                         const btn = document.getElementById('mgr-tab-' + t);
                         const sec = document.getElementById('mgr-sec-' + t);
                         if (btn && sec) {
@@ -1939,6 +1960,8 @@ app.admin.fetchManagerData('denied');
                         app.admin.renderManagerSettings();
                     } else if (subTab === 'email') {
                         app.admin.restoreEmailDraft();
+                    } else if (subTab === 'toasts') {
+                        app.admin.renderCustomToasts();
                     }
                 },
                 processBlindWmFile: (file) => {
@@ -3143,7 +3166,91 @@ app.admin.fetchManagerData('denied');
                         btn.disabled = false;
                     }
                 },
-                approvePhoto: async (id, uploaderId, btn) => {
+                renderCustomToasts: async () => {
+                    const list = document.getElementById('mgr-toasts-list');
+                    if (!list) return;
+                    list.innerHTML = `<p class="text-gray-500 italic"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Đang tải danh sách toast...</p>`;
+                    const { data, error } = await window.sb.from('custom_toasts').select('*').order('sort_order', { ascending: true }).order('created_at', { ascending: true });
+                    if (error) { list.innerHTML = `<p class="text-red-500">Lỗi tải danh sách: ${app.utils.escapeHtml(error.message)}</p>`; return; }
+                    if (!data || data.length === 0) { list.innerHTML = `<p class="text-gray-400 italic text-sm text-center py-4">Chưa có toast tùy biến nào.</p>`; return; }
+                    list.innerHTML = data.map(t => {
+                        const color = /^#[0-9a-fA-F]{3,8}$/.test(t.color || '') ? t.color : '#18181b';
+                        return `
+                        <div class="border border-gray-200 rounded-lg p-4 bg-white flex flex-col md:flex-row md:items-center gap-4">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 border" style="background:${color}1a; border-color:${color}33;">
+                                <i class="fa-solid ${app.utils.escapeAttr(t.icon || 'fa-bell')}" style="color:${color};"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="font-bold text-sm text-black truncate">${app.utils.escapeHtml(t.title)}</div>
+                                <div class="text-xs text-gray-500 truncate">${app.utils.escapeHtml(t.message || '')}</div>
+                                ${t.link_url ? `<div class="text-[11px] text-gray-400 truncate mt-0.5"><i class="fa-solid fa-link mr-1"></i>${app.utils.escapeHtml(t.link_url)}</div>` : ''}
+                            </div>
+                            <div class="flex items-center gap-2 shrink-0">
+                                <span class="text-[10px] font-bold uppercase ${t.is_active ? 'text-green-600' : 'text-gray-400'}">${t.is_active ? 'Đang bật' : 'Đang tắt'}</span>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" class="sr-only peer" ${t.is_active ? 'checked' : ''} onchange="app.admin.toggleCustomToast('${t.id}', this.checked)">
+                                    <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-black after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                                </label>
+                                <button onclick="app.admin.previewCustomToast('${t.id}')" class="w-8 h-8 rounded-md bg-white border border-gray-200 text-gray-700 hover:bg-black hover:text-white transition" title="Xem thử"><i class="fa-solid fa-eye text-xs"></i></button>
+                                <button onclick="app.admin.deleteCustomToast('${t.id}')" class="w-8 h-8 rounded-md bg-white border border-gray-200 text-red-600 hover:bg-red-600 hover:text-white hover:border-red-600 transition" title="Xóa"><i class="fa-solid fa-trash text-xs"></i></button>
+                            </div>
+                        </div>`;
+                    }).join('');
+                },
+                addCustomToast: async (btn) => {
+                    if (app.role !== 'manager' && app.role !== 'admin') return;
+                    const title = document.getElementById('ct-new-title').value.trim();
+                    if (!title) return app.ui.showAlert('Vui lòng nhập tiêu đề toast!');
+                    const colorText = document.getElementById('ct-new-color-text').value.trim();
+                    const colorPick = document.getElementById('ct-new-color').value.trim();
+                    const color = /^#[0-9a-fA-F]{3,8}$/.test(colorText) ? colorText : colorPick;
+                    const payload = {
+                        title,
+                        message: document.getElementById('ct-new-message').value.trim(),
+                        icon: document.getElementById('ct-new-icon').value.trim() || 'fa-bell',
+                        color,
+                        link_url: document.getElementById('ct-new-link').value.trim() || null,
+                        link_label: document.getElementById('ct-new-link-label').value.trim() || null,
+                        is_active: true,
+                        created_by: app.user ? app.user.id : null
+                    };
+                    const orig = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+                    try {
+                        const { error } = await window.sb.from('custom_toasts').insert(payload);
+                        if (error) throw error;
+                        ['ct-new-title','ct-new-message','ct-new-link','ct-new-link-label'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+                        document.getElementById('ct-new-icon').value = 'fa-bell';
+                        document.getElementById('ct-new-color').value = '#18181b';
+                        document.getElementById('ct-new-color-text').value = '#18181b';
+                        await app.admin.renderCustomToasts();
+                        app.ui.showAlert('Đã thêm toast tùy biến!');
+                    } catch (e) { app.ui.showAlert('Lỗi: ' + e.message); }
+                    finally { btn.innerHTML = orig; btn.disabled = false; }
+                },
+                toggleCustomToast: async (id, isActive) => {
+                    if (app.role !== 'manager' && app.role !== 'admin') return;
+                    const { error } = await window.sb.from('custom_toasts').update({ is_active: isActive }).eq('id', id);
+                    if (error) return app.ui.showAlert('Lỗi: ' + error.message);
+                    await app.admin.renderCustomToasts();
+                },
+                deleteCustomToast: async (id) => {
+                    if (app.role !== 'manager' && app.role !== 'admin') return;
+                    app.ui.showAlert('Bạn có chắc muốn xóa toast này?', async () => {
+                        const { error } = await window.sb.from('custom_toasts').delete().eq('id', id);
+                        if (error) return app.ui.showAlert('Lỗi: ' + error.message);
+                        await app.admin.renderCustomToasts();
+                    });
+                },
+                previewCustomToast: async (id) => {
+                    const { data } = await window.sb.from('custom_toasts').select('*').eq('id', id).maybeSingle();
+                    if (!data) return;
+                    const opts = { icon: data.icon, color: data.color };
+                    let onClick = null;
+                    if (data.link_url) {
+                        onClick = () => { if (data.link_url.startsWith('/')) app.utils.navigate(data.link_url); else window.open(data.link_url, '_blank', 'noopener'); };
+                    }
+                    app.toast.show('info', app.utils.escapeHtml(data.title), app.utils.escapeHtml(data.message || ''), 12000, onClick, opts);
+                },                approvePhoto: async (id, uploaderId, btn) => {
                     if (app.isRealtimeConnected === false) {
                         return app.ui.showAlert("Mất kết nối Realtime với máy chủ! Đã tạm khóa chức năng duyệt và can thiệp ảnh để tránh lệch dữ liệu.");
                     }

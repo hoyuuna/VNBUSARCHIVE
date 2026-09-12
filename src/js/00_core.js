@@ -237,13 +237,16 @@ Object.assign(window.app, {
 
     toast: {
                 currentOfflineToast: null,
-                show: (type, title, message, duration = 10000, onClickAction = null) => {
+                show: (type, title, message, duration = 10000, onClickAction = null, opts = {}) => {
                     const container = document.getElementById('toast-container');
                     if (!container) return null;
                     const toast = document.createElement('div');
-                    toast.className = 'toast-card toast-enter bg-white/90 backdrop-blur-xl border border-gray-200 shadow-2xl rounded-2xl p-4 flex items-start gap-3 w-11/12 max-w-sm cursor-pointer mx-auto';
+                    toast.className = 'toast-card toast-enter bg-white/90 backdrop-blur-xl border border-gray-200 shadow-2xl rounded-2xl p-4 flex items-start gap-3 w-11/12 max-w-sm cursor-pointer mx-auto pointer-events-auto';
                     let iconHtml = '';
-                    if (type === 'success') {
+                    if (opts && opts.icon) {
+                        const c = /^#[0-9a-fA-F]{3,8}$/.test(opts.color || '') ? opts.color : '#18181b';
+                        iconHtml = `<div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 border" style="background:${c}1a; border-color:${c}33;"><i class="fa-solid ${app.utils.escapeAttr(opts.icon)} text-sm" style="color:${c};"></i></div>`;
+                    } else if (type === 'success') {
                         iconHtml = '<div class="w-8 h-8 rounded-full bg-green-50 text-green-600 flex items-center justify-center shrink-0 border border-green-100 shadow-sm"><i class="fa-solid fa-check text-sm"></i></div>';
                     } else if (type === 'error' || type === 'offline') {
                         iconHtml = `<div class="w-8 h-8 rounded-full bg-red-50 text-red-600 flex items-center justify-center shrink-0 border border-red-100 shadow-sm"><i class="fa-solid ${type === 'offline' ? 'fa-wifi-slash' : 'fa-triangle-exclamation'} text-sm"></i></div>`;
@@ -418,6 +421,35 @@ Object.assign(window.app, {
                             setTimeout(() => toast.remove(), 300);
                         }
                     };
+                }
+            },
+
+    customToasts: {
+                loaded: false,
+                show: async () => {
+                    if (app.customToasts.loaded) return;
+                    app.customToasts.loaded = true;
+                    try {
+                        const { data, error } = await window.sb.from('custom_toasts')
+                            .select('id, title, message, icon, color, link_url, link_label, sort_order')
+                            .eq('is_active', true)
+                            .order('sort_order', { ascending: true })
+                            .order('created_at', { ascending: true });
+                        if (error || !data || data.length === 0) return;
+                        data.forEach((t, i) => {
+                            setTimeout(() => {
+                                const opts = { icon: t.icon, color: t.color };
+                                let onClick = null;
+                                if (t.link_url) {
+                                    onClick = () => {
+                                        if (t.link_url.startsWith('/')) app.utils.navigate(t.link_url);
+                                        else window.open(t.link_url, '_blank', 'noopener');
+                                    };
+                                }
+                                app.toast.show('info', app.utils.escapeHtml(t.title), app.utils.escapeHtml(t.message || ''), 12000, onClick, opts);
+                            }, 400 * i);
+                        });
+                    } catch (e) {}
                 }
             },
 

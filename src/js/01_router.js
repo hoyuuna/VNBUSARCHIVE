@@ -35,22 +35,6 @@ Object.assign(window.app, {
                     appContainer.style.display = 'block';
                     setTimeout(() => {
                         appContainer.style.opacity = '1';
-                        if (!localStorage.getItem('vnbus_donate_toast_shown')) {
-                            localStorage.setItem('vnbus_donate_toast_shown', 'true');
-                            setTimeout(() => {
-                                app.toast.show('heart', 'Website phi lợi nhuận', 'Không quảng cáo, không nguồn thu - VNBA duy trì bằng sự ủng hộ của các bạn. Nhấn vào đây để chia sẻ website nhé!', 0, async () => {
-                                    const shareText = 'Web lưu trữ hình ảnh xe buýt/khách Việt Nam phi lợi nhuận https://www.vnbusarchive.io.vn';
-                                    if (navigator.share) {
-                                        try { await navigator.share({ text: shareText }); } catch (err) {}
-                                    } else {
-                                        try {
-                                            await navigator.clipboard.writeText(shareText);
-                                            app.toast.show('success', 'Đã copy', 'Thiết bị không hỗ trợ chia sẻ, đã copy nội dung!');
-                                        } catch (e) {}
-                                    }
-                                });
-                            }, 1000);
-                        }
                     }, 50);
                 }, 400);
                 // Check if there is an error from OAuth linking
@@ -66,6 +50,7 @@ Object.assign(window.app, {
                 }
 
                 await app.setUser(session ? session.user : null);
+                if (app.customToasts && app.customToasts.show) app.customToasts.show();
                 window.sb.auth.onAuthStateChange(async (event, session) => {
                         if (event === 'PASSWORD_RECOVERY') {
     if (window.location.hash.includes('type=recovery')) {
