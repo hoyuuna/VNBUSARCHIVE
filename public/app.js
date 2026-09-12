@@ -247,7 +247,7 @@ Object.assign(window.app, {
                     let iconHtml = '';
                     if (opts && opts.icon) {
                         const c = /^#[0-9a-fA-F]{3,8}$/.test(opts.color || '') ? opts.color : '#18181b';
-                        iconHtml = `<div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 border" style="background:${c}1a; border-color:${c}33;"><i class="fa-solid ${app.utils.escapeAttr(opts.icon)} text-sm" style="color:${c};"></i></div>`;
+                        iconHtml = `<div class="ct-icon w-8 h-8 rounded-full flex items-center justify-center shrink-0" style="--ct-color:${c};"><i class="fa-solid ${app.utils.escapeAttr(opts.icon)} text-sm"></i></div>`;
                     } else if (type === 'success') {
                         iconHtml = '<div class="w-8 h-8 rounded-full bg-green-50 text-green-600 flex items-center justify-center shrink-0 border border-green-100 shadow-sm"><i class="fa-solid fa-check text-sm"></i></div>';
                     } else if (type === 'error' || type === 'offline') {
@@ -433,12 +433,19 @@ Object.assign(window.app, {
                     app.customToasts.loaded = true;
                     try {
                         const { data, error } = await window.sb.from('custom_toasts')
-                            .select('id, title, message, icon, color, link_url, link_label, sort_order')
+                            .select('id, title, message, icon, color, link_url, link_label, sort_order, show_mode, duration')
                             .eq('is_active', true)
                             .order('sort_order', { ascending: true })
                             .order('created_at', { ascending: true });
                         if (error || !data || data.length === 0) return;
-                        data.forEach((t, i) => {
+                        let delay = 0;
+                        data.forEach((t) => {
+                            const onceKey = 'vnbus_ct_seen_' + t.id;
+                            if (t.show_mode === 'once') {
+                                try { if (localStorage.getItem(onceKey)) return; } catch (e) {}
+                            }
+                            const dur = parseInt(t.duration, 10);
+                            const durationMs = (isNaN(dur) ? 12 : dur) * 1000;
                             setTimeout(() => {
                                 const opts = { icon: t.icon, color: t.color };
                                 let onClick = null;
@@ -448,14 +455,14 @@ Object.assign(window.app, {
                                         else window.open(t.link_url, '_blank', 'noopener');
                                     };
                                 }
-                                app.toast.show('info', app.utils.escapeHtml(t.title), app.utils.escapeHtml(t.message || ''), 12000, onClick, opts);
-                            }, 400 * i);
+                                app.toast.show('info', app.utils.escapeHtml(t.title), app.utils.escapeHtml(t.message || ''), durationMs, onClick, opts);
+                                if (t.show_mode === 'once') { try { localStorage.setItem(onceKey, '1'); } catch (e) {} }
+                            }, delay);
+                            delay += 400;
                         });
                     } catch (e) {}
                 }
-            },
-
-    loadingBar: {
+            },    loadingBar: {
                 interval: null,
                 timeout1: null,
                 timeout2: null,
@@ -18568,6 +18575,8 @@ Object.assign(window.app, {
                                           <div><label class="text-xs font-bold text-gray-600 block mb-1">Nội dung</label><input type="text" id="ct-new-message" class="admin-input" placeholder="Mô tả ngắn gọn"></div>
                                           <div><label class="text-xs font-bold text-gray-600 block mb-1">Icon (FontAwesome)</label><input type="text" id="ct-new-icon" class="admin-input font-mono" value="fa-bell" placeholder="fa-bell"></div>
                                           <div><label class="text-xs font-bold text-gray-600 block mb-1">Màu</label><div class="flex items-center gap-2"><input type="color" id="ct-new-color" value="#18181b" class="w-10 h-10 rounded border border-gray-300 cursor-pointer bg-white"><input type="text" id="ct-new-color-text" value="#18181b" class="admin-input font-mono"></div></div>
+                                          <div><label class="text-xs font-bold text-gray-600 block mb-1">Thời điểm hiển thị</label><select id="ct-new-mode" class="admin-input"><option value="always">Mỗi lần vào trang</option><option value="once">Chỉ 1 lần duy nhất</option></select></div>
+                                          <div><label class="text-xs font-bold text-gray-600 block mb-1">Thời gian tự tắt (giây)</label><input type="number" min="0" id="ct-new-duration" class="admin-input" value="12" placeholder="0 = không tự tắt"></div>
                                           <div><label class="text-xs font-bold text-gray-600 block mb-1">Liên kết (tùy chọn)</label><input type="text" id="ct-new-link" class="admin-input" placeholder="https://... hoặc /duong-dan"></div>
                                           <div><label class="text-xs font-bold text-gray-600 block mb-1">Nhãn liên kết (tùy chọn)</label><input type="text" id="ct-new-link-label" class="admin-input" placeholder="Xem thêm"></div>
                                         </div>
@@ -19836,15 +19845,20 @@ app.admin.fetchManagerData('denied');
                     if (!data || data.length === 0) { list.innerHTML = `<p class="text-gray-400 italic text-sm text-center py-4">Chưa có toast tùy biến nào.</p>`; return; }
                     list.innerHTML = data.map(t => {
                         const color = /^#[0-9a-fA-F]{3,8}$/.test(t.color || '') ? t.color : '#18181b';
+                        const modeLabel = t.show_mode === 'once' ? 'Chỉ 1 lần' : 'Mỗi lần vào';
+                        const dur = parseInt(t.duration, 10);
+                        const durLabel = (!isNaN(dur) && dur > 0) ? (dur + 's') : 'Không tự tắt';
                         return `
                         <div class="border border-gray-200 rounded-lg p-4 bg-white flex flex-col md:flex-row md:items-center gap-4">
-                            <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 border" style="background:${color}1a; border-color:${color}33;">
-                                <i class="fa-solid ${app.utils.escapeAttr(t.icon || 'fa-bell')}" style="color:${color};"></i>
+                            <div class="ct-icon w-10 h-10 rounded-full flex items-center justify-center shrink-0" style="--ct-color:${color};">
+                                <i class="fa-solid ${app.utils.escapeAttr(t.icon || 'fa-bell')}"></i>
                             </div>
                             <div class="flex-1 min-w-0">
                                 <div class="font-bold text-sm text-black truncate">${app.utils.escapeHtml(t.title)}</div>
                                 <div class="text-xs text-gray-500 truncate">${app.utils.escapeHtml(t.message || '')}</div>
-                                ${t.link_url ? `<div class="text-[11px] text-gray-400 truncate mt-0.5"><i class="fa-solid fa-link mr-1"></i>${app.utils.escapeHtml(t.link_url)}</div>` : ''}
+                                <div class="text-[11px] text-gray-400 mt-0.5">
+                                    <span class="font-bold uppercase">${modeLabel}</span> · ${durLabel}${t.link_url ? ` · <i class="fa-solid fa-link"></i> ${app.utils.escapeHtml(t.link_url)}` : ''}
+                                </div>
                             </div>
                             <div class="flex items-center gap-2 shrink-0">
                                 <span class="text-[10px] font-bold uppercase ${t.is_active ? 'text-green-600' : 'text-gray-400'}">${t.is_active ? 'Đang bật' : 'Đang tắt'}</span>
@@ -19857,19 +19871,22 @@ app.admin.fetchManagerData('denied');
                             </div>
                         </div>`;
                     }).join('');
-                },
-                addCustomToast: async (btn) => {
+                },                addCustomToast: async (btn) => {
                     if (app.role !== 'manager' && app.role !== 'admin') return;
                     const title = document.getElementById('ct-new-title').value.trim();
                     if (!title) return app.ui.showAlert('Vui lòng nhập tiêu đề toast!');
                     const colorText = document.getElementById('ct-new-color-text').value.trim();
                     const colorPick = document.getElementById('ct-new-color').value.trim();
                     const color = /^#[0-9a-fA-F]{3,8}$/.test(colorText) ? colorText : colorPick;
+                    const rawDur = document.getElementById('ct-new-duration').value.trim();
+                    const durNum = rawDur === '' ? 12 : parseInt(rawDur, 10);
                     const payload = {
                         title,
                         message: document.getElementById('ct-new-message').value.trim(),
                         icon: document.getElementById('ct-new-icon').value.trim() || 'fa-bell',
                         color,
+                        show_mode: document.getElementById('ct-new-mode').value === 'once' ? 'once' : 'always',
+                        duration: (isNaN(durNum) || durNum < 0) ? 0 : durNum,
                         link_url: document.getElementById('ct-new-link').value.trim() || null,
                         link_label: document.getElementById('ct-new-link-label').value.trim() || null,
                         is_active: true,
@@ -19883,12 +19900,13 @@ app.admin.fetchManagerData('denied');
                         document.getElementById('ct-new-icon').value = 'fa-bell';
                         document.getElementById('ct-new-color').value = '#18181b';
                         document.getElementById('ct-new-color-text').value = '#18181b';
+                        document.getElementById('ct-new-mode').value = 'always';
+                        document.getElementById('ct-new-duration').value = '12';
                         await app.admin.renderCustomToasts();
                         app.ui.showAlert('Đã thêm toast tùy biến!');
                     } catch (e) { app.ui.showAlert('Lỗi: ' + e.message); }
                     finally { btn.innerHTML = orig; btn.disabled = false; }
-                },
-                toggleCustomToast: async (id, isActive) => {
+                },                toggleCustomToast: async (id, isActive) => {
                     if (app.role !== 'manager' && app.role !== 'admin') return;
                     const { error } = await window.sb.from('custom_toasts').update({ is_active: isActive }).eq('id', id);
                     if (error) return app.ui.showAlert('Lỗi: ' + error.message);
@@ -19910,7 +19928,9 @@ app.admin.fetchManagerData('denied');
                     if (data.link_url) {
                         onClick = () => { if (data.link_url.startsWith('/')) app.utils.navigate(data.link_url); else window.open(data.link_url, '_blank', 'noopener'); };
                     }
-                    app.toast.show('info', app.utils.escapeHtml(data.title), app.utils.escapeHtml(data.message || ''), 12000, onClick, opts);
+                    const dur = parseInt(data.duration, 10);
+                    const durationMs = (isNaN(dur) ? 12 : dur) * 1000;
+                    app.toast.show('info', app.utils.escapeHtml(data.title), app.utils.escapeHtml(data.message || ''), durationMs, onClick, opts);
                 },                approvePhoto: async (id, uploaderId, btn) => {
                     if (app.isRealtimeConnected === false) {
                         return app.ui.showAlert("Mất kết nối Realtime với máy chủ! Đã tạm khóa chức năng duyệt và can thiệp ảnh để tránh lệch dữ liệu.");

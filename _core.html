@@ -195,6 +195,22 @@ div[id$="-modal"] > div > * {
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
 }
 
+/* Icon tròn cho toast tùy biến: nền nhạt ở sáng, tối đi ở dark (đồng bộ toast mặc định) */
+.ct-icon {
+    background-color: #f4f4f5;
+    background-color: color-mix(in srgb, var(--ct-color, #18181b) 12%, #ffffff);
+    border: 1px solid #18181b;
+    color: #18181b;
+    color: color-mix(in srgb, var(--ct-color, #18181b) 55%, #000000);
+}
+html.theme-dark .ct-icon {
+    background-color: #18181b;
+    background-color: color-mix(in srgb, var(--ct-color, #18181b) 25%, #000000);
+    border-color: #ffffff;
+    color: #ffffff;
+    color: color-mix(in srgb, var(--ct-color, #18181b) 55%, #ffffff);
+}
+
         /* Đảm bảo thông tin BKS & Đơn vị vận hành trên ảnh xem nhiều nhất 24h luôn hiển thị trên ảnh */
         #hero-main .img-wrapper img,
         #hero-sub .img-wrapper img,

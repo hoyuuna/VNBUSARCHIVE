@@ -245,7 +245,7 @@ Object.assign(window.app, {
                     let iconHtml = '';
                     if (opts && opts.icon) {
                         const c = /^#[0-9a-fA-F]{3,8}$/.test(opts.color || '') ? opts.color : '#18181b';
-                        iconHtml = `<div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 border" style="background:${c}1a; border-color:${c}33;"><i class="fa-solid ${app.utils.escapeAttr(opts.icon)} text-sm" style="color:${c};"></i></div>`;
+                        iconHtml = `<div class="ct-icon w-8 h-8 rounded-full flex items-center justify-center shrink-0" style="--ct-color:${c};"><i class="fa-solid ${app.utils.escapeAttr(opts.icon)} text-sm"></i></div>`;
                     } else if (type === 'success') {
                         iconHtml = '<div class="w-8 h-8 rounded-full bg-green-50 text-green-600 flex items-center justify-center shrink-0 border border-green-100 shadow-sm"><i class="fa-solid fa-check text-sm"></i></div>';
                     } else if (type === 'error' || type === 'offline') {
@@ -431,12 +431,19 @@ Object.assign(window.app, {
                     app.customToasts.loaded = true;
                     try {
                         const { data, error } = await window.sb.from('custom_toasts')
-                            .select('id, title, message, icon, color, link_url, link_label, sort_order')
+                            .select('id, title, message, icon, color, link_url, link_label, sort_order, show_mode, duration')
                             .eq('is_active', true)
                             .order('sort_order', { ascending: true })
                             .order('created_at', { ascending: true });
                         if (error || !data || data.length === 0) return;
-                        data.forEach((t, i) => {
+                        let delay = 0;
+                        data.forEach((t) => {
+                            const onceKey = 'vnbus_ct_seen_' + t.id;
+                            if (t.show_mode === 'once') {
+                                try { if (localStorage.getItem(onceKey)) return; } catch (e) {}
+                            }
+                            const dur = parseInt(t.duration, 10);
+                            const durationMs = (isNaN(dur) ? 12 : dur) * 1000;
                             setTimeout(() => {
                                 const opts = { icon: t.icon, color: t.color };
                                 let onClick = null;
@@ -446,14 +453,14 @@ Object.assign(window.app, {
                                         else window.open(t.link_url, '_blank', 'noopener');
                                     };
                                 }
-                                app.toast.show('info', app.utils.escapeHtml(t.title), app.utils.escapeHtml(t.message || ''), 12000, onClick, opts);
-                            }, 400 * i);
+                                app.toast.show('info', app.utils.escapeHtml(t.title), app.utils.escapeHtml(t.message || ''), durationMs, onClick, opts);
+                                if (t.show_mode === 'once') { try { localStorage.setItem(onceKey, '1'); } catch (e) {} }
+                            }, delay);
+                            delay += 400;
                         });
                     } catch (e) {}
                 }
-            },
-
-    loadingBar: {
+            },    loadingBar: {
                 interval: null,
                 timeout1: null,
                 timeout2: null,
