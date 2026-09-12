@@ -1727,6 +1727,55 @@ cleanupState: () => {
                     if (!str) return '';
                     return DOMPurify.sanitize(str, { ALLOWED_TAGS: [] });
                 },
+                // Dựng icon số tuyến (tròn / thang cân). Cỡ chữ tính theo đơn vị viewBox 0-100
+                // nên SVG tự scale đúng ở mọi kích thước container, không phụ thuộc px cứng.
+                buildRouteIcon: async (name, type, sizeClass) => {
+                    if (!type || type === 'default') return null;
+                    const label = String(name == null ? '' : name).trim();
+                    if (!label) return null;
+                    const text = label.length <= 5 ? label : label.substring(0, 5);
+                    try { await document.fonts.load('400 1em Anton'); } catch (e) {}
+                    const cv = document.createElement('canvas');
+                    const cx = cv.getContext('2d');
+                    cx.font = '400 100px Anton, sans-serif';
+                    const mt = cx.measureText(text);
+                    const w100 = mt.width || 1;
+                    const h100 = mt.actualBoundingBoxAscent || 72;
+                    const safeText = app.utils.escapeHtml(text);
+                    const iconClass = `${sizeClass} flex flex-col items-center justify-center shrink-0 relative`;
+
+                    if (type === 'circle') {
+                        // Lòng trong r = 44 (r 48 trừ nửa stroke 4). Chữ nằm gọn trong đường tròn
+                        // nội tiếp khi w^2 + h^2 <= (2*44)^2 -> f = 8800 / sqrt(w^2 + h^2).
+                        const fSize = 8800 / Math.sqrt(w100 * w100 + h100 * h100);
+                        const y = 50 + (h100 * fSize) / 200;
+                        return {
+                            iconClass,
+                            iconHtml: `
+                            <svg viewBox="0 0 100 100" class="absolute inset-0 w-full h-full overflow-visible drop-shadow-sm" preserveAspectRatio="none">
+                                <circle cx="50" cy="50" r="48" fill="white" stroke="black" stroke-width="4"/>
+                                <text x="50" y="${y.toFixed(2)}" text-anchor="middle" font-family="Anton, sans-serif" font-weight="400" fill="#dc2626" font-size="${fSize.toFixed(2)}">${safeText}</text>
+                            </svg>`
+                        };
+                    }
+
+                    if (type === 'trapezoid') {
+                        // Đa giác 15,15 85,15 100,85 0,85 (chừa ~3 đơn vị lề): chiều cao tối đa 64,
+                        // bề rộng khả dụng hẹp dần về đỉnh nên ràng buộc w + 0.2143h <= 42.5*2.
+                        const fSize = Math.min(6400 / h100, 8300 / (w100 + 0.2143 * h100));
+                        const y = 50 + (h100 * fSize) / 200;
+                        return {
+                            iconClass,
+                            iconHtml: `
+                            <svg viewBox="0 0 100 100" class="absolute inset-0 w-full h-full overflow-visible drop-shadow-sm" preserveAspectRatio="none">
+                                <polygon points="15,15 85,15 100,85 0,85" fill="white" stroke="black" stroke-width="4" stroke-linejoin="round"/>
+                                <text x="50" y="${y.toFixed(2)}" text-anchor="middle" font-family="Anton, sans-serif" font-weight="400" fill="#dc2626" font-size="${fSize.toFixed(2)}">${safeText}</text>
+                            </svg>`
+                        };
+                    }
+
+                    return null;
+                },
                 checkModelDuplicatePolicy: async (plate, model) => {
                     if (!plate || !model || !String(plate).includes('-')) return false;
                     const parts = String(plate).split('-');
@@ -3385,40 +3434,8 @@ cleanupState: () => {
                                         let iconHtml = '<i class="fa-solid fa-route"></i>';
                                         let iconClass = "w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0";
                                         
-                                        if (metadata && metadata.icon_type && metadata.icon_type !== 'default') {
-                                            const type = metadata.icon_type;
-                                            const shortRouteName = info.r.length <= 5 ? info.r : info.r.substring(0, 5);
-
-                                            if (type === 'circle') {
-                                                iconClass = "w-12 h-12 flex flex-col items-center justify-center shrink-0 relative";
-                                                await document.fonts.load('400 1em Anton');
-                                                const _cpc = document.createElement('canvas'); const _xpc = _cpc.getContext('2d');
-                                                _xpc.font = '400 100px Anton, sans-serif';
-                                                const _mpc = _xpc.measureText(shortRouteName);
-                                                const _sqPC = 29.5; // 95% of inscribed square for w-12 circle
-                                                const _scPC = Math.min(_sqPC / _mpc.width, _sqPC / (_mpc.actualBoundingBoxAscent || 72));
-                                                const fSizePC = (_scPC * 100).toFixed(1) + 'px';
-                                                iconHtml = `
-                                                <svg viewBox="0 0 100 100" class="absolute inset-0 w-full h-full overflow-visible drop-shadow-sm" preserveAspectRatio="none">
-                                                    <circle cx="50" cy="50" r="48" fill="white" stroke="black" stroke-width="4"/>
-                                                </svg>
-                                                <span class="relative z-10" style="font-weight: 400; font-family: 'Anton', sans-serif; color: #dc2626; font-size: ${fSizePC}; white-space: nowrap; line-height: 1;">${shortRouteName}</span>`;
-                                            } else if (type === 'trapezoid') {
-                                                iconClass = "w-12 h-12 flex flex-col items-center justify-center shrink-0 relative";
-                                                await document.fonts.load('400 1em Anton');
-                                                const _ctc = document.createElement('canvas'); const _xtc = _ctc.getContext('2d');
-                                                _xtc.font = '400 100px Anton, sans-serif';
-                                                const _mtc = _xtc.measureText(shortRouteName);
-                                                const _sqTC = 26; // usable space in trapezoid center for card
-                                                const _scTC = Math.min(_sqTC / _mtc.width, _sqTC / (_mtc.actualBoundingBoxAscent || 72));
-                                                const fSizeTC = (_scTC * 100).toFixed(1) + 'px';
-                                                iconHtml = `
-                                                <svg viewBox="0 0 100 100" class="absolute inset-0 w-full h-full text-white overflow-visible drop-shadow-sm" preserveAspectRatio="none">
-                                                    <polygon points="15,15 85,15 100,85 0,85" fill="white" stroke="black" stroke-width="4" stroke-linejoin="round"/>
-                                                </svg>
-                                                <span class="relative z-10" style="font-weight: 400; font-family: 'Anton', sans-serif; color: #dc2626; font-size: ${fSizeTC}; white-space: nowrap; line-height: 1;">${shortRouteName}</span>`;
-                                            }
-                                        }
+                                        const builtIcon = await app.utils.buildRouteIcon(info.r, metadata && metadata.icon_type, 'w-12 h-12');
+                                        if (builtIcon) { iconClass = builtIcon.iconClass; iconHtml = builtIcon.iconHtml; }
                                         
                                         const routeUrl = info.p ? `/route/${encodeURIComponent(info.p)}/${encodeURIComponent(info.r)}` : `/route/${encodeURIComponent(info.r)}`;
                                         routeCards.push(`
@@ -11425,40 +11442,8 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                             }
                             
                             
-                            if (exactInfo.metadata && exactInfo.metadata.icon_type && exactInfo.metadata.icon_type !== 'default') {
-                                const type = exactInfo.metadata.icon_type;
-                                const shortRouteName = decodedRoute.length <= 5 ? decodedRoute : decodedRoute.substring(0, 5);
-
-                                if (type === 'circle') {
-                                    iconClass = "w-16 h-16 md:w-20 md:h-20 flex flex-col items-center justify-center shrink-0 relative";
-                                    await document.fonts.load('400 1em Anton');
-                                    const _cp = document.createElement('canvas'); const _xp = _cp.getContext('2d');
-                                    _xp.font = '400 100px Anton, sans-serif';
-                                    const _mp = _xp.measureText(shortRouteName);
-                                    const _sqP = 39; // 95% of inscribed square for w-16 circle
-                                    const _scP = Math.min(_sqP / _mp.width, _sqP / (_mp.actualBoundingBoxAscent || 72));
-                                    const fSizeP = (_scP * 100).toFixed(1) + 'px';
-                                    iconHtml = `
-                                    <svg viewBox="0 0 100 100" class="absolute inset-0 w-full h-full overflow-visible drop-shadow-sm" preserveAspectRatio="none">
-                                        <circle cx="50" cy="50" r="48" fill="white" stroke="black" stroke-width="4"/>
-                                    </svg>
-                                    <span class="relative z-10" style="font-weight: 400; font-family: 'Anton', sans-serif; color: #dc2626; font-size: ${fSizeP}; white-space: nowrap; line-height: 1;">${shortRouteName}</span>`;
-                                } else if (type === 'trapezoid') {
-                                    iconClass = "w-16 h-16 md:w-20 md:h-20 flex flex-col items-center justify-center shrink-0 relative";
-                                    await document.fonts.load('400 1em Anton');
-                                    const _ct = document.createElement('canvas'); const _xt = _ct.getContext('2d');
-                                    _xt.font = '400 100px Anton, sans-serif';
-                                    const _mt = _xt.measureText(shortRouteName);
-                                    const _sqT = 35; // usable space in trapezoid center
-                                    const _scT = Math.min(_sqT / _mt.width, _sqT / (_mt.actualBoundingBoxAscent || 72));
-                                    const fSizeT = (_scT * 100).toFixed(1) + 'px';
-                                    iconHtml = `
-                                    <svg viewBox="0 0 100 100" class="absolute inset-0 w-full h-full overflow-visible drop-shadow-sm" preserveAspectRatio="none">
-                                        <polygon points="15,15 85,15 100,85 0,85" fill="white" stroke="black" stroke-width="4" stroke-linejoin="round"/>
-                                    </svg>
-                                    <span class="relative z-10" style="font-weight: 400; font-family: 'Anton', sans-serif; color: #dc2626; font-size: ${fSizeT}; white-space: nowrap; line-height: 1;">${shortRouteName}</span>`;
-                                }
-                            }
+                            const builtIcon = await app.utils.buildRouteIcon(decodedRoute, exactInfo.metadata && exactInfo.metadata.icon_type, 'w-16 h-16 md:w-20 md:h-20');
+                            if (builtIcon) { iconClass = builtIcon.iconClass; iconHtml = builtIcon.iconHtml; }
                             
                             const extraInfoContainer = document.getElementById('route-extra-info');
                             if (extraInfoContainer) {
