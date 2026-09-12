@@ -1,6 +1,6 @@
 # QUY CHUẨN VÀ HƯỚNG DẪN ĐĂNG TẢI DỮ LIỆU HÌNH ẢNH
 
-**👉 LƯU Ý: Cập nhật lần cuối 11/09/2026**
+**👉 LƯU Ý: Cập nhật lần cuối 12/09/2026**
 
 Tài liệu này quy định các tiêu chuẩn kỹ thuật về hình ảnh và siêu dữ liệu nhằm xây dựng cơ sở dữ liệu phương tiện chất lượng cao. Yêu cầu toàn bộ thành viên đọc kỹ và tuân thủ nghiêm ngặt trước khi đóng góp.
 
@@ -10,12 +10,15 @@ VNBUSARCHIVE là thư viện tư liệu, không phải nền tảng chia sẻ �
 **A1.1. Phạm vi tiếp nhận:** Hệ thống hiện tại chấp nhận dữ liệu của cả **Xe buýt** và **Xe khách**.
 
 **A1.2. Xét duyệt ngoại lệ:** 
-* Hệ thống tự động kiểm duyệt và ưu tiên xuất bản các hình ảnh mang giá trị tư liệu/lịch sử cao dù không hoàn toàn đạt chuẩn kỹ thuật (ảnh chụp thời điểm quá khứ hoặc xe hiện đã ngừng hoạt động). Thành viên chỉ cần tải lên hệ thống, BQT sẽ tự động đánh giá và xem xét mà không cần liên hệ trước.
+* Hệ thống tự động kiểm duyệt và ưu tiên xuất bản các hình ảnh mang giá trị tư liệu/lịch sử cao (ảnh chụp thời điểm quá khứ hoặc xe hiện đã ngừng hoạt động). Thành viên chỉ cần tải lên hệ thống, BQT sẽ tự động đánh giá và xem xét mà không cần liên hệ trước.
 * **Các trường hợp áp dụng ưu tiên (Chỉ áp dụng đối với XE BUÝT, KHÔNG áp dụng cho XE KHÁCH):**
   * Dòng xe đã không còn hoạt động/khai thác trên thị trường.
   * Tuyến xe buýt đã ngừng hoạt động hoàn toàn.
   * Tuyến xe buýt đã chuyển giao đơn vị vận hành (ảnh ghi lại thời điểm xe còn thuộc đơn vị vận hành cũ).
   * Tuyến xe buýt đã thay đổi dòng xe (ảnh ghi lại thời điểm tuyến còn sử dụng dòng xe cũ).
+* **Phạm vi châm chước:** 
+  * **CHỈ CHẤP NHẬN** châm chước các hạn chế về **kỹ thuật bối cảnh/quang học** (độ nét, ánh sáng, thời tiết, v..v..).
+  * **TUYỆT ĐỐI KHÔNG** áp dụng ưu tiên đối với các lỗi xuất phát từ **thao tác chủ quan của người dùng** (vi phạm quy tắc làm mờ ở B4.2, B4.3, v..v..).
 * **Quyền hạn BQT:** BQT giữ quyền chủ động điều chỉnh và áp dụng linh hoạt chính sách ưu tiên xét duyệt đối với các trường hợp đặc biệt khác tùy thuộc vào giá trị tư liệu thực tế của bức ảnh.
 ---
 
