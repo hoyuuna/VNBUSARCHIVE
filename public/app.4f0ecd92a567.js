@@ -18568,8 +18568,8 @@ Object.assign(window.app, {
                                         <h4 class="font-bold text-sm uppercase tracking-wider text-gray-800 mb-1"><i class="fa-solid fa-bullhorn text-black mr-2"></i>Toast tùy biến</h4>
                                         <p class="text-xs text-gray-600">Tạo thông báo dạng toast hiển thị cho người dùng khi vào trang. Bật/tắt từng cái, chọn icon, màu và liên kết tùy ý. Có thể bật nhiều toast cùng lúc.</p>
                                       </div>
-                                      <div class="border border-gray-200 rounded-md p-4 bg-white mb-6">
-                                        <h5 class="font-bold text-xs uppercase tracking-wider text-gray-600 mb-3">Thêm toast mới</h5>
+                                      <div id="ct-form-box" class="border border-gray-200 rounded-md p-4 bg-white mb-6">
+                                        <h5 id="ct-form-title" class="font-bold text-xs uppercase tracking-wider text-gray-600 mb-3">Thêm toast mới</h5>
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                           <div><label class="text-xs font-bold text-gray-600 block mb-1">Tiêu đề *</label><input type="text" id="ct-new-title" class="admin-input" placeholder="Ví dụ: Bảo trì hệ thống"></div>
                                           <div><label class="text-xs font-bold text-gray-600 block mb-1">Nội dung</label><input type="text" id="ct-new-message" class="admin-input" placeholder="Mô tả ngắn gọn"></div>
@@ -18580,7 +18580,7 @@ Object.assign(window.app, {
                                           <div><label class="text-xs font-bold text-gray-600 block mb-1">Liên kết (tùy chọn)</label><input type="text" id="ct-new-link" class="admin-input" placeholder="https://... hoặc /duong-dan"></div>
                                           <div><label class="text-xs font-bold text-gray-600 block mb-1">Nhãn liên kết (tùy chọn)</label><input type="text" id="ct-new-link-label" class="admin-input" placeholder="Xem thêm"></div>
                                         </div>
-                                        <div class="mt-4 text-right"><button onclick="app.admin.addCustomToast(this)" class="bg-black text-white px-5 py-2 text-xs font-bold rounded shadow-sm"><i class="fa-solid fa-plus mr-1"></i> Thêm toast</button></div>
+                                        <div class="mt-4 flex justify-end gap-2"><button type="button" id="ct-cancel-btn" onclick="app.admin.cancelEditCustomToast()" class="hidden px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded transition">Huỷ</button><button type="button" id="ct-submit-btn" onclick="app.admin.addCustomToast(this)" class="bg-black text-white px-5 py-2 text-xs font-bold rounded shadow-sm"><i class="fa-solid fa-plus mr-1"></i> Thêm toast</button></div>
                                       </div>
                                       <div id="mgr-toasts-list" class="space-y-3"><p class="text-gray-500 italic"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Đang tải danh sách toast...</p></div>
                                     </div>
@@ -19866,6 +19866,7 @@ app.admin.fetchManagerData('denied');
                                     <input type="checkbox" class="sr-only peer" ${t.is_active ? 'checked' : ''} onchange="app.admin.toggleCustomToast('${t.id}', this.checked)">
                                     <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-black after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
                                 </label>
+                                <button onclick="app.admin.editCustomToast('${t.id}')" class="w-8 h-8 rounded-md bg-white border border-gray-200 text-gray-700 hover:bg-black hover:text-white transition" title="Sửa"><i class="fa-solid fa-pen text-xs"></i></button>
                                 <button onclick="app.admin.previewCustomToast('${t.id}')" class="w-8 h-8 rounded-md bg-white border border-gray-200 text-gray-700 hover:bg-black hover:text-white transition" title="Xem thử"><i class="fa-solid fa-eye text-xs"></i></button>
                                 <button onclick="app.admin.deleteCustomToast('${t.id}')" class="w-8 h-8 rounded-md bg-white border border-gray-200 text-red-600 hover:bg-red-600 hover:text-white hover:border-red-600 transition" title="Xóa"><i class="fa-solid fa-trash text-xs"></i></button>
                             </div>
@@ -19888,24 +19889,65 @@ app.admin.fetchManagerData('denied');
                         show_mode: document.getElementById('ct-new-mode').value === 'once' ? 'once' : 'always',
                         duration: (isNaN(durNum) || durNum < 0) ? 0 : durNum,
                         link_url: document.getElementById('ct-new-link').value.trim() || null,
-                        link_label: document.getElementById('ct-new-link-label').value.trim() || null,
-                        is_active: true,
-                        created_by: app.user ? app.user.id : null
+                        link_label: document.getElementById('ct-new-link-label').value.trim() || null
                     };
+                    const editingId = app.admin._editingToastId;
                     const orig = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
                     try {
-                        const { error } = await window.sb.from('custom_toasts').insert(payload);
-                        if (error) throw error;
-                        ['ct-new-title','ct-new-message','ct-new-link','ct-new-link-label'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
-                        document.getElementById('ct-new-icon').value = 'fa-bell';
-                        document.getElementById('ct-new-color').value = '#18181b';
-                        document.getElementById('ct-new-color-text').value = '#18181b';
-                        document.getElementById('ct-new-mode').value = 'always';
-                        document.getElementById('ct-new-duration').value = '12';
-                        await app.admin.renderCustomToasts();
-                        app.ui.showAlert('Đã thêm toast tùy biến!');
+                        if (editingId) {
+                            const { error } = await window.sb.from('custom_toasts').update(payload).eq('id', editingId);
+                            if (error) throw error;
+                            app.admin.cancelEditCustomToast();
+                            await app.admin.renderCustomToasts();
+                            app.ui.showAlert('Đã cập nhật toast tùy biến!');
+                        } else {
+                            payload.is_active = true;
+                            payload.created_by = app.user ? app.user.id : null;
+                            const { error } = await window.sb.from('custom_toasts').insert(payload);
+                            if (error) throw error;
+                            app.admin.resetCustomToastForm();
+                            await app.admin.renderCustomToasts();
+                            app.ui.showAlert('Đã thêm toast tùy biến!');
+                        }
                     } catch (e) { app.ui.showAlert('Lỗi: ' + e.message); }
                     finally { btn.innerHTML = orig; btn.disabled = false; }
+                },
+                resetCustomToastForm: () => {
+                    ['ct-new-title','ct-new-message','ct-new-link','ct-new-link-label'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+                    const icon = document.getElementById('ct-new-icon'); if (icon) icon.value = 'fa-bell';
+                    const c = document.getElementById('ct-new-color'); if (c) c.value = '#18181b';
+                    const ct = document.getElementById('ct-new-color-text'); if (ct) ct.value = '#18181b';
+                    const m = document.getElementById('ct-new-mode'); if (m) m.value = 'always';
+                    const d = document.getElementById('ct-new-duration'); if (d) d.value = '12';
+                },
+                editCustomToast: async (id) => {
+                    if (app.role !== 'manager' && app.role !== 'admin') return;
+                    const { data } = await window.sb.from('custom_toasts').select('*').eq('id', id).maybeSingle();
+                    if (!data) return app.ui.showAlert('Không tìm thấy toast để sửa.');
+                    app.admin._editingToastId = id;
+                    document.getElementById('ct-new-title').value = data.title || '';
+                    document.getElementById('ct-new-message').value = data.message || '';
+                    document.getElementById('ct-new-icon').value = data.icon || 'fa-bell';
+                    const color = /^#[0-9a-fA-F]{3,8}$/.test(data.color || '') ? data.color : '#18181b';
+                    document.getElementById('ct-new-color').value = color;
+                    document.getElementById('ct-new-color-text').value = color;
+                    document.getElementById('ct-new-mode').value = data.show_mode === 'once' ? 'once' : 'always';
+                    const dur = parseInt(data.duration, 10);
+                    document.getElementById('ct-new-duration').value = isNaN(dur) ? '12' : String(dur);
+                    document.getElementById('ct-new-link').value = data.link_url || '';
+                    document.getElementById('ct-new-link-label').value = data.link_label || '';
+                    const ft = document.getElementById('ct-form-title'); if (ft) ft.textContent = 'Sửa toast';
+                    const sb = document.getElementById('ct-submit-btn'); if (sb) sb.innerHTML = '<i class="fa-solid fa-floppy-disk mr-1"></i> Cập nhật toast';
+                    const cb = document.getElementById('ct-cancel-btn'); if (cb) cb.classList.remove('hidden');
+                    const formBox = document.getElementById('ct-form-box');
+                    if (formBox && formBox.scrollIntoView) formBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                },
+                cancelEditCustomToast: () => {
+                    app.admin._editingToastId = null;
+                    app.admin.resetCustomToastForm();
+                    const ft = document.getElementById('ct-form-title'); if (ft) ft.textContent = 'Thêm toast mới';
+                    const sb = document.getElementById('ct-submit-btn'); if (sb) sb.innerHTML = '<i class="fa-solid fa-plus mr-1"></i> Thêm toast';
+                    const cb = document.getElementById('ct-cancel-btn'); if (cb) cb.classList.add('hidden');
                 },                toggleCustomToast: async (id, isActive) => {
                     if (app.role !== 'manager' && app.role !== 'admin') return;
                     const { error } = await window.sb.from('custom_toasts').update({ is_active: isActive }).eq('id', id);
