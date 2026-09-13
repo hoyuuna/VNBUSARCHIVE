@@ -241,6 +241,15 @@ Object.assign(window.app, {
                          }, 10);
                      }
                  },
+                 applySpecialRoute: (route) => {
+                     const routeInput = document.getElementById('up-route');
+                     if (!routeInput || routeInput.disabled || routeInput.readOnly) return;
+                     routeInput.value = route;
+                     const box = document.getElementById('up-route-suggestions');
+                     if (box) box.classList.remove('active');
+                     if (app.utils.checkRouteStatus) app.utils.checkRouteStatus(route, 'up-operator', 'up-operator-wrapper');
+                     if (app.upload.autoFillOperatorByRoute) app.upload.autoFillOperatorByRoute();
+                 },
                  autoFillOperatorByRoute: async () => {
                     if (app.vehicleLocked) return;
                     const plateInput = document.getElementById('up-plate');
