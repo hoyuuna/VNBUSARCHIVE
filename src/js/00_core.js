@@ -1131,15 +1131,15 @@ closeCustomRolePrompt: () => {
                     if (!isHeic) return file;
                     let heicBlob = null;
                     if (window.heic2any) {
-                        const result = await window.heic2any({ blob: file, toType: 'image/jpeg', quality: 0.95 });
+                        const result = await window.heic2any({ blob: file, toType: 'image/png' });
                         heicBlob = Array.isArray(result) ? result[0] : result;
                     } else {
                         const { default: heic2any } = await import("https://esm.sh/heic2any@0.0.4");
-                        const result = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.95 });
+                        const result = await heic2any({ blob: file, toType: 'image/png' });
                         heicBlob = Array.isArray(result) ? result[0] : result;
                     }
-                    if (!heicBlob) throw new Error("Không thể chuyển đổi ảnh HEIC/HEIF sang JPEG.");
-                    return new File([heicBlob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", { type: "image/jpeg" });
+                    if (!heicBlob) throw new Error("Không thể chuyển đổi ảnh HEIC/HEIF sang PNG.");
+                    return new File([heicBlob], file.name.replace(/\.[^/.]+$/, "") + ".png", { type: "image/png" });
                 },
                 convertToWebpCpu: async (imageSource, initialQuality = 0.8) => {
                     try {
@@ -1263,6 +1263,12 @@ closeCustomRolePrompt: () => {
                         } catch (e) {
                             console.warn("WASM WebP fallback error:", e);
                         }
+                    }
+
+                    // Trình duyệt có WebP native nhưng chất lượng sàn 70% vẫn vượt ngưỡng:
+                    // báo lỗi thật thay vì xuất JPEG lặng lẽ (sẽ bị chặn ở bước upload kèm thông báo sai)
+                    if (hasWebpNative) {
+                        throw new Error(`BLIND_WM_ERROR:Ảnh quá chi tiết, không thể nén xuống dưới ${targetKB}KB (chất lượng tối thiểu 70%). Vui lòng cắt nhỏ hoặc chọn ảnh khác.`);
                     }
 
                     // Fallback sang JPEG
@@ -2113,7 +2119,9 @@ cleanupState: () => {
                                      }
                                  }
                                  try {
-                                     const blob = await app.utils.canvasToBlobUniversal(canvas, app.utils.getTargetMimeType(), 0.95);
+                                     // Xuất PNG lossless: bản trung gian này sẽ được decode lại
+                                     // và chỉ encode WebP duy nhất 1 lần trong compressToSizeLoop
+                                     const blob = await app.utils.canvasToBlobUniversal(canvas, 'image/png');
                                      if (blob) resolve(blob);
                                      else reject(new Error("Canvas failed to blob"));
                                  } catch (errBlob) {

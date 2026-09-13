@@ -1259,8 +1259,10 @@ Object.assign(window.app, {
                             } catch (e) {}
                         }
                         if (!username) username = app.username || "Guest";
-                        const isBlind = (app.wmState && app.wmState.mode === 'advanced');
-                        const previewBlob = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none', { embedBlind: isBlind });
+                        // Preview đúng hệ pipeline với nút upload: watermark PNG lossless
+                        // rồi nén WebP <=500KB, để người dùng thấy đúng bản cuối cùng
+                        const wmBlob = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none', { embedBlind: true });
+                        const previewBlob = await app.utils.compressToSizeLoop(wmBlob, app.utils.getTargetMimeType(), 500);
                         const url = URL.createObjectURL(previewBlob);
                         app.ui.showAlert(`<img src="${url}" class="w-full rounded-lg shadow-sm" style="max-height: 70vh; object-fit: contain;">`, null, null, { title: "Xem trước ảnh xuất ra", btnOkText: "Đóng" });
                     } catch (err) {
@@ -1278,42 +1280,6 @@ Object.assign(window.app, {
                     }
                 },
                 currentFilters: 'none',
-                readyBlob: null,
-                isPreparingBlob: false,
-                prepareTimeout: null,
-                schedulePrepareBlob: () => {
-                    if (app.upload.prepareTimeout) clearTimeout(app.upload.prepareTimeout);
-                    app.upload.prepareTimeout = setTimeout(app.upload.prepareFinalBlob, 500);
-                },
-                prepareFinalBlob: async () => {
-                    if (!app.rawFile || !app.user) return;
-                    try {
-                        app.upload.isPreparingBlob = true;
-                        const username = app.username || "Guest";
-                        const finalBlob = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none', { embedBlind: false });
-                        const targetMime = app.utils.getTargetMimeType();
-                        let compressedFile = null;
-                        try {
-                            compressedFile = await app.utils.compressToSizeLoop(finalBlob, targetMime, 500);
-                        } catch (e) {
-                            console.warn("compressToSizeLoop lỗi:", e);
-                            app.ui.showAlert(e.message.replace("BLIND_WM_ERROR:", ""));
-                            btn.innerHTML = originalText;
-                            btn.disabled = false;
-                            return;
-                        }
-                        if (!compressedFile) compressedFile = finalBlob;
-                        app.upload.readyBlob = compressedFile;
-                    } catch (err) {
-                        console.error("Lỗi prepareFinalBlob:", err);
-                        app.upload.readyBlob = null;
-                        if (err && err.message && err.message.includes("BLIND_WM_ERROR:")) {
-                            app.ui.showAlert(err.message.replace("BLIND_WM_ERROR:", ""));
-                        }
-                    } finally {
-                        app.upload.isPreparingBlob = false;
-                    }
-                },
                 closeAllUploadPanels: () => {
                     ['color-adjust-panel', 'blur-adjust-panel', 'wm-adjust-panel'].forEach(id => {
                         const el = document.getElementById(id);
@@ -1640,8 +1606,8 @@ Object.assign(window.app, {
                             const imgData = ctx.createImageData(canvas.width, canvas.height);
                             imgData.data.set(new Uint8ClampedArray(rgba));
                             ctx.putImageData(imgData, 0, 0);
-                            const fullResBlob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.95));
-                            return new File([fullResBlob], rawFile.name.replace(/\.[^/.]+$/, "") + ".jpg", { type: "image/jpeg" });
+                            const fullResBlob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+                            return new File([fullResBlob], rawFile.name.replace(/\.[^/.]+$/, "") + ".png", { type: "image/png" });
                         };
                         let fileToLoad = file;
                         const isRawFile = /\.(cr2|cr3|nef|arw|dng|rw2|orf|pef|raf|raw)$/i.test(file.name);
@@ -1705,25 +1671,11 @@ Object.assign(window.app, {
                             const is4by3 = Math.abs(ratio - (4/3)) < 0.05;
                             const is3by2 = Math.abs(ratio - (3/2)) < 0.05;
                             const is16by9 = Math.abs(ratio - (16/9)) < 0.05;
+                            // Giữ nguyên file gốc (format + bytes) tới bước encode cuối cùng.
+                            // Không re-encode SDR ở đây: mỗi lần decode→canvas→encode là một
+                            // generation loss; việc dịch HDR→SDR đã được canvas tự xử lý khi
+                            // drawImage ở bước watermark/crop.
                             let normalizedFile = fileToLoad;
-                            if (!isRawExtracted && w > 0 && h > 0) {
-                                try {
-                                    const tempCanvas = document.createElement('canvas');
-                                    tempCanvas.width = w;
-                                    tempCanvas.height = h;
-                                    const tempCtx = tempCanvas.getContext('2d');
-                                    tempCtx.imageSmoothingEnabled = true;
-                                    tempCtx.imageSmoothingQuality = 'high';
-                                    tempCtx.drawImage(img, 0, 0, w, h);
-                                    const sdrBlob = await new Promise(res => tempCanvas.toBlob(res, file.type || 'image/jpeg', 0.95));
-                                    if (sdrBlob && sdrBlob.size > 0) {
-                                        normalizedFile = new File([sdrBlob], file.name || 'photo.jpg', { type: sdrBlob.type || 'image/jpeg' });
-                                        isRawExtracted = true;
-                                    }
-                                } catch (ex) {
-                                    console.warn("Chuẩn hóa SDR fallback:", ex);
-                                }
-                            }
                             if (!app.crop.sourceImage) {
                                 app.crop.sourceImage = normalizedFile;
                             }
@@ -2082,7 +2034,7 @@ Object.assign(window.app, {
                                     return;
                                 }
                                 console.warn("Lỗi tiến trình nền xử lý ảnh:", err);
-                                resolve(app.upload.readyBlob || app.rawFile);
+                                reject(err);
                             }
                         }, 50);
                     });
@@ -3093,11 +3045,11 @@ Object.assign(window.app, {
                         reenableUI();
                         return;
                     }
-                    app.utils.canvasToBlobUniversal(canvas, app.utils.getTargetMimeType(), 0.95).then((blob) => {
+                    app.utils.canvasToBlobUniversal(canvas, 'image/png').then((blob) => {
                         if (app.crop.originalFile && app.crop.originalFile.name) {
                             blob.name = app.crop.originalFile.name;
                         } else {
-                            blob.name = 'cropped_image.webp';
+                            blob.name = 'cropped_image.png';
                         }
                         const wasMandatory = app.crop.isMandatory;
                         app.crop.isMandatory = false;

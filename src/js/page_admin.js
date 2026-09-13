@@ -316,7 +316,7 @@ Object.assign(window.app, {
 
                         app.views.loadHome();
                     } catch (e) {
-                        app.ui.showAlert('Lỗi: ' + e.message);
+                        app.ui.showAlert('Lỗi: ' + (e.message || '').replace('BLIND_WM_ERROR:', ''));
                     } finally {
                         btn.innerHTML = origHtml;
                         btn.disabled = false;
