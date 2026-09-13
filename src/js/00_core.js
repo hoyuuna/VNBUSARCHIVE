@@ -2349,29 +2349,32 @@ cleanupState: () => {
                 },
                 reverseGeocode: async (lat, lng) => {
                     try {
-                        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
+                        // Dùng Photon (Komoot) — cùng nguồn search với bản đồ, thay Nominatim để tránh bị block IP
+                        const res = await fetch(`https://photon.komoot.io/reverse?lat=${lat}&lon=${lng}`);
                         const data = await res.json();
-                        const addr = data.address;
-                        const city = addr.city || addr.town || addr.village || addr.state || '';
-                        const road = addr.road || '';
-                        const suburb = addr.suburb || addr.quarter || '';
-                        const rawProv = addr.state || addr.city || '';
+                        const p = data && data.features && data.features[0] && data.features[0].properties;
+                        if (!p) return "Vị trí không xác định";
+                        const road = p.street || (p.type === 'street' ? p.name : '');
+                        const suburb = p.district || p.suburb || p.quarter || p.locality || '';
+                        const city = p.city || p.town || p.village || p.county || p.state || '';
+                        const rawProv = p.state || p.city || p.county || '';
                         const matchedProv = app.utils.matchProvinceName(rawProv);
                         if (matchedProv && app.upload && app.upload.selectProvince) {
                             app.upload.selectProvince(matchedProv);
                         }
-                        let result = [road, suburb, city].filter(Boolean).join(', ');
-                        return result.replace(', Việt Nam', '');
+                        return [...new Set([road, suburb, city].filter(Boolean))].join(', ');
                     } catch (e) { return "Vị trí không xác định"; }
                 },
                 geocodeAddress: async (locationText) => {
                     if (!locationText || locationText.length < 3) return;
                     try {
-                        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationText + ', Việt Nam')}&limit=1`);
+                        const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(locationText + ' vietnam')}&limit=1`);
                         const data = await res.json();
-                        if (data && data.length > 0) {
-                            const { lat, lon } = data[0];
-                            const coords = [parseFloat(lat), parseFloat(lon)];
+                        const hit = data && data.features && data.features[0];
+                        if (hit && hit.geometry && hit.geometry.coordinates) {
+                            const lon = parseFloat(hit.geometry.coordinates[0]);
+                            const lat = parseFloat(hit.geometry.coordinates[1]);
+                            const coords = [lat, lon];
                             app.uploadMap.setView(coords, 15);
                             if (app.uploadMarker) app.uploadMap.removeLayer(app.uploadMarker);
                             app.uploadMarker = L.marker(coords, {
