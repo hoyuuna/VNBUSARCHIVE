@@ -1145,7 +1145,7 @@ closeCustomRolePrompt: () => {
                 },
                 convertToWebpCpu: async (imageSource, initialQuality = 0.8) => {
                     try {
-                        const { encode } = await import("https://esm.sh/@jsquash/webp@1.2.0");
+                        const { encode } = await import("https://esm.sh/@jsquash/webp@1.5.0");
                         let img;
                         if (imageSource instanceof HTMLCanvasElement) {
                             const ctx = imageSource.getContext('2d');
@@ -1186,6 +1186,8 @@ closeCustomRolePrompt: () => {
                 },
                 compressToSizeLoop: async (imageSource, targetMime = 'image/webp', targetKB = 500) => {
                     const targetBytes = targetKB * 1024;
+                    // Sàn phân giải khớp rule của app (crop yêu cầu cạnh >= 1080px)
+                    const MIN_SHORT_SIDE = 1080;
                     const url = imageSource instanceof Blob || imageSource instanceof File ? URL.createObjectURL(imageSource) : imageSource;
                     const img = new Image();
                     img.src = url;
@@ -1194,6 +1196,98 @@ closeCustomRolePrompt: () => {
                         img.onerror = () => reject(new Error("Lỗi tải ảnh để nén vòng lặp"));
                     });
                     if (imageSource instanceof Blob || imageSource instanceof File) URL.revokeObjectURL(url);
+
+                    const drawAt = (w, h) => {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = w;
+                        canvas.height = h;
+                        const ctx = canvas.getContext('2d');
+                        ctx.imageSmoothingEnabled = true;
+                        ctx.imageSmoothingQuality = 'high';
+                        ctx.drawImage(img, 0, 0, w, h);
+                        return canvas;
+                    };
+
+                    // Nhị phân quality 0.70-0.95 trên một canvas: trả về blob đạt target,
+                    // hoặc null nếu cả sàn 0.70 vẫn vượt. Ghi nhận trình duyệt có WebP native hay không.
+                    const searchNativeWebp = async (canvas, state) => {
+                        let minQ = 0.70;
+                        let maxQ = 0.95;
+                        let best = null;
+                        while (maxQ - minQ >= 0.02) {
+                            const midQ = (minQ + maxQ) / 2;
+                            const q = parseFloat(midQ.toFixed(3));
+                            const compressedBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', q));
+                            if (compressedBlob && compressedBlob.type === 'image/webp') {
+                                state.hasWebpNative = true;
+                                if (compressedBlob.size <= targetBytes) {
+                                    best = compressedBlob;
+                                    minQ = midQ;
+                                } else {
+                                    maxQ = midQ;
+                                }
+                            } else {
+                                break;
+                            }
+                        }
+                        if (!best && state.hasWebpNative) {
+                            const finalBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', 0.70));
+                            if (finalBlob && finalBlob.size <= targetBytes) best = finalBlob;
+                        }
+                        return best;
+                    };
+
+                    const searchWasmWebp = async (canvas, w, h) => {
+                        const { encode } = await import("https://esm.sh/@jsquash/webp@1.5.0");
+                        const imageData = canvas.getContext('2d').getImageData(0, 0, w, h);
+                        // use_sharp_yuv: lọc chroma sắc nét hơn cho chi tiết nhỏ (libwebp)
+                        let minQ = 70;
+                        let maxQ = 95;
+                        let best = null;
+                        while (maxQ - minQ >= 2) {
+                            const midQ = Math.round((minQ + maxQ) / 2);
+                            const webpBuffer = await encode(imageData, { quality: midQ, use_sharp_yuv: 1 });
+                            const wasmBlob = new Blob([webpBuffer], { type: 'image/webp' });
+                            if (wasmBlob.size <= targetBytes) {
+                                best = wasmBlob;
+                                minQ = midQ;
+                            } else {
+                                maxQ = midQ;
+                            }
+                        }
+                        if (!best) {
+                            const webpBuffer = await encode(imageData, { quality: 70, use_sharp_yuv: 1 });
+                            const wasmBlob = new Blob([webpBuffer], { type: 'image/webp' });
+                            if (wasmBlob.size <= targetBytes) best = wasmBlob;
+                        }
+                        return best;
+                    };
+
+                    const searchJpeg = async (canvas) => {
+                        let minQ = 0.70;
+                        let maxQ = 0.95;
+                        let best = null;
+                        while (maxQ - minQ >= 0.02) {
+                            const midQ = (minQ + maxQ) / 2;
+                            const q = parseFloat(midQ.toFixed(3));
+                            const compressedBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', q));
+                            if (compressedBlob && compressedBlob.size <= targetBytes) {
+                                best = compressedBlob;
+                                minQ = midQ;
+                            } else {
+                                maxQ = midQ;
+                            }
+                        }
+                        if (!best) {
+                            const finalBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.70));
+                            if (finalBlob && finalBlob.size <= targetBytes) best = finalBlob;
+                        }
+                        return best;
+                    };
+
+                    // Thang kích thước: khít 1920px trước; nếu cả quality sàn 0.70 vẫn vượt
+                    // target thì thu nhỏ ~12%/bước (cạnh ngắn không dưới 1080px) rồi nén lại
+                    // ở quality cao hơn — cùng số byte nhưng sắc hơn so với ép quality xuống sàn.
                     let w = img.naturalWidth || img.width;
                     let h = img.naturalHeight || img.height;
                     if (w > 1920 || h > 1920) {
@@ -1201,98 +1295,35 @@ closeCustomRolePrompt: () => {
                         w = Math.round(w * ratio);
                         h = Math.round(h * ratio);
                     }
-                    const canvas = document.createElement('canvas');
-                    canvas.width = w;
-                    canvas.height = h;
-                    const ctx = canvas.getContext('2d');
-                    ctx.imageSmoothingEnabled = true;
-                    ctx.imageSmoothingQuality = 'high';
-                    ctx.drawImage(img, 0, 0, w, h);
-                    
-                    let bestBlob = null;
-                    let hasWebpNative = false;
-                    
-                    // Thử với WebP Native
-                    let minQ = 0.70;
-                    let maxQ = 0.95;
-                    while (maxQ - minQ >= 0.02) {
-                        let midQ = (minQ + maxQ) / 2;
-                        let q = parseFloat(midQ.toFixed(3));
-                        let compressedBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', q));
-                        if (compressedBlob && compressedBlob.type === 'image/webp') {
-                            hasWebpNative = true;
-                            if (compressedBlob.size <= targetBytes) {
-                                bestBlob = compressedBlob;
-                                minQ = midQ;
-                            } else {
-                                maxQ = midQ;
-                            }
-                        } else {
-                            break;
-                        }
-                    }
-                    if (!bestBlob && hasWebpNative) {
-                        let finalBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', 0.70));
-                        if (finalBlob && finalBlob.size <= targetBytes) bestBlob = finalBlob;
-                    }
-                    if (bestBlob) return bestBlob;
-
-                    // Nếu không có webp native hoặc không đạt dung lượng
-                    if (!hasWebpNative) {
-                        try {
-                            const { encode } = await import("https://esm.sh/@jsquash/webp@1.2.0");
-                            const imageData = ctx.getImageData(0, 0, w, h);
-                            minQ = 0.70;
-                            maxQ = 0.95;
-                            while (maxQ - minQ >= 0.02) {
-                                let midQ = (minQ + maxQ) / 2;
-                                let q = Math.round(midQ * 100);
-                                let webpBuffer = await encode(imageData, { quality: q });
-                                let wasmBlob = new Blob([webpBuffer], { type: 'image/webp' });
-                                if (wasmBlob.size <= targetBytes) {
-                                    bestBlob = wasmBlob;
-                                    minQ = midQ;
-                                } else {
-                                    maxQ = midQ;
-                                }
-                            }
-                            if (!bestBlob) {
-                                let webpBuffer = await encode(imageData, { quality: 70 });
-                                let wasmBlob = new Blob([webpBuffer], { type: 'image/webp' });
-                                if (wasmBlob.size <= targetBytes) bestBlob = wasmBlob;
-                            }
-                            if (bestBlob) return bestBlob;
-                        } catch (e) {
-                            console.warn("WASM WebP fallback error:", e);
-                        }
+                    const scaleList = [{ w, h }];
+                    while (Math.min(w, h) * 0.88 >= MIN_SHORT_SIDE && scaleList.length < 6) {
+                        w = Math.round(w * 0.88);
+                        h = Math.round(h * 0.88);
+                        scaleList.push({ w, h });
                     }
 
-                    // Trình duyệt có WebP native nhưng chất lượng sàn 70% vẫn vượt ngưỡng:
-                    // báo lỗi thật thay vì xuất JPEG lặng lẽ (sẽ bị chặn ở bước upload kèm thông báo sai)
-                    if (hasWebpNative) {
-                        throw new Error(`BLIND_WM_ERROR:Ảnh quá chi tiết, không thể nén xuống dưới ${targetKB}KB (chất lượng tối thiểu 70%). Vui lòng cắt nhỏ hoặc chọn ảnh khác.`);
+                    const state = { hasWebpNative: false };
+                    let lastCanvas = null;
+                    for (const dims of scaleList) {
+                        const canvas = drawAt(dims.w, dims.h);
+                        let bestBlob = await searchNativeWebp(canvas, state);
+                        if (!bestBlob && !state.hasWebpNative) {
+                            try {
+                                bestBlob = await searchWasmWebp(canvas, dims.w, dims.h);
+                            } catch (e) {
+                                console.warn("WASM WebP fallback error:", e);
+                            }
+                        }
+                        if (bestBlob) return bestBlob;
+                        lastCanvas = canvas;
                     }
 
-                    // Fallback sang JPEG
-                    minQ = 0.70;
-                    maxQ = 0.95;
-                    while (maxQ - minQ >= 0.02) {
-                        let midQ = (minQ + maxQ) / 2;
-                        let q = parseFloat(midQ.toFixed(3));
-                        let compressedBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', q));
-                        if (compressedBlob && compressedBlob.size <= targetBytes) {
-                            bestBlob = compressedBlob;
-                            minQ = midQ;
-                        } else {
-                            maxQ = midQ;
-                        }
+                    // Trình duyệt không có WebP native và WASM cũng lỗi: JPEG best-effort
+                    if (!state.hasWebpNative && lastCanvas) {
+                        const jpegBlob = await searchJpeg(lastCanvas);
+                        if (jpegBlob) return jpegBlob;
                     }
-                    if (!bestBlob) {
-                        let finalBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.70));
-                        if (finalBlob && finalBlob.size <= targetBytes) bestBlob = finalBlob;
-                    }
-                    if (bestBlob) return bestBlob;
-                    
+
                     throw new Error(`BLIND_WM_ERROR:Ảnh quá chi tiết, không thể nén xuống dưới ${targetKB}KB (chất lượng tối thiểu 70%). Vui lòng cắt nhỏ hoặc chọn ảnh khác.`);
                 },
                 canvasToBlobUniversal: async (canvas, targetMime = 'image/webp', quality = 0.95) => {
