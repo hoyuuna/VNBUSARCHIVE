@@ -123,6 +123,8 @@ Object.assign(window.app, {
                                 headerSpacer.classList.add('h-28');
                             }
                         }
+                        // Header vừa đổi chiều cao (ẩn/hiện ô tìm kiếm): toast đang hiển thị trượt theo để giữ đúng khoảng đệm
+                        if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
                     }
                     if (id === 'upload' && !app.user) { app.utils.navigate('/auth'); return; }
                     if (app.currentViewMode === 'upload' && id !== 'upload') {

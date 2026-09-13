@@ -142,6 +142,10 @@ document.addEventListener('DOMContentLoaded', () => {
             header.style.transform = 'translateY(0)';
         }
     };
+    const syncHeader = () => {
+        checkHeaderState();
+        if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
+    };
     let scrollTicking = false;
     window.addEventListener('scroll', () => {
         const currentScrollY = window.scrollY;
@@ -153,17 +157,17 @@ document.addEventListener('DOMContentLoaded', () => {
         lastScrollY = currentScrollY;
         if (!scrollTicking) {
             window.requestAnimationFrame(() => {
-                checkHeaderState();
+                syncHeader();
                 scrollTicking = false;
             });
             scrollTicking = true;
         }
     }, { passive: true });
     document.addEventListener('click', () => {
-        setTimeout(checkHeaderState, 50);
+        setTimeout(syncHeader, 50);
     });
     document.addEventListener('focusout', () => {
-        setTimeout(checkHeaderState, 50);
+        setTimeout(syncHeader, 50);
     });
     document.addEventListener('mousemove', (e) => {
         const wasHovering = isHoveringHeaderArea;
@@ -173,15 +177,26 @@ document.addEventListener('DOMContentLoaded', () => {
             isHoveringHeaderArea = false;
         }
         if (wasHovering !== isHoveringHeaderArea) {
-            checkHeaderState();
+            syncHeader();
         }
     });
     document.addEventListener('mouseleave', () => {
         if (isHoveringHeaderArea) {
             isHoveringHeaderArea = false;
-            checkHeaderState();
+            syncHeader();
         }
     });
+    let resizeTicking = false;
+    window.addEventListener('resize', () => {
+        if (!resizeTicking) {
+            window.requestAnimationFrame(() => {
+                if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
+                resizeTicking = false;
+            });
+            resizeTicking = true;
+        }
+    }, { passive: true });
+    if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
 });
 
 Object.assign(window.app, {
@@ -239,6 +254,20 @@ Object.assign(window.app, {
 
     toast: {
                 currentOfflineToast: null,
+                // Neo khay toast ngay dưới header: header cao bao nhiêu (có/không ô tìm kiếm) thì toast cách đúng khoảng đệm ấy.
+                // Header đang trượt lên (cuộn xuống) hoặc bị ẩn (trang auth) thì toast neo sát mép trên màn hình.
+                updatePosition: () => {
+                    const container = document.getElementById('toast-container');
+                    if (!container) return;
+                    const GAP = 16;
+                    const header = document.querySelector('header');
+                    if (!header || header.style.display === 'none' || (header.style.transform || '').includes('-100%')) {
+                        container.style.top = `calc(env(safe-area-inset-top, 0px) + ${GAP}px)`;
+                        return;
+                    }
+                    // offsetHeight đã gồm padding-top (safe-area) nên đúng bằng đáy card header
+                    container.style.top = `${header.offsetHeight + GAP}px`;
+                },
                 show: (type, title, message, duration = 10000, onClickAction = null, opts = {}) => {
                     const container = document.getElementById('toast-container');
                     if (!container) return null;
@@ -264,7 +293,10 @@ Object.assign(window.app, {
                             ${message ? `<p class="text-[12px] text-gray-500 mt-1 leading-relaxed">${message}</p>` : ''}
                         </div>
                     `;
+                    // Cập nhật vị trí khay toast ngay trước khi chèn (đỉnh header + khoảng đệm)
+                    app.toast.updatePosition();
                     container.prepend(toast);
+
                     const removeToast = () => {
                         toast.style.animation = 'none';
                         toast.style.transition = 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease-out';
@@ -273,6 +305,7 @@ Object.assign(window.app, {
                         toast.style.opacity = '0';
                         setTimeout(() => toast.remove(), 300);
                     };
+
                     let timeout;
                     if (duration > 0) timeout = setTimeout(removeToast, duration);
                     let startX = 0, startY = 0, currentX = 0, currentY = 0;
@@ -383,6 +416,7 @@ Object.assign(window.app, {
                             <p id="${toastId}-desc" class="text-[12px] text-gray-500 mt-0.5 leading-relaxed truncate">Vui lòng đợi trong giây lát...</p>
                         </div>
                     `;
+                    app.toast.updatePosition();
                     container.prepend(toast);
                     let startY = 0, currentY = 0, isDragging = false;
                     toast.addEventListener('touchstart', (e) => { 
@@ -6238,6 +6272,8 @@ Object.assign(window.app, {
                                 headerSpacer.classList.add('h-28');
                             }
                         }
+                        // Header vừa đổi chiều cao (ẩn/hiện ô tìm kiếm): toast đang hiển thị trượt theo để giữ đúng khoảng đệm
+                        if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
                     }
                     if (id === 'upload' && !app.user) { app.utils.navigate('/auth'); return; }
                     if (app.currentViewMode === 'upload' && id !== 'upload') {
