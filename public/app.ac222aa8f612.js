@@ -894,7 +894,7 @@ closeCustomRolePrompt: () => {
                     text.className = 'absolute inset-0 flex items-center justify-center text-2xl font-bold text-black';
                     title.innerText = 'Đang chuẩn bị...';
                     title.className = 'text-lg font-bold text-gray-900 mb-1';
-                    desc.innerText = 'Vui lòng không rời khỏi trang';
+                    desc.innerText = 'Bạn có thể chuyển sang trang khác, tải lên vẫn tiếp diễn';
                     errorBox.classList.add('hidden');
                     if (infoBox) infoBox.classList.add('hidden');
                     actions.classList.add('hidden');
@@ -14033,12 +14033,24 @@ Object.assign(window.app, {
                     btn.disabled = true;
                     btn.dataset.submitting = "true";
                     btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...`;
+                    // Chốt dữ liệu NGAY TRƯỚC khi xử lý nền: người dùng được phép rời trang upload khi đang tải
+                    // (mỗi lần điều hướng handleRoute -> cleanupState đặt app.rawFile = null và reset form),
+                    // nên toàn bộ pipeline bất đồng bộ phải dùng bản snapshot cục bộ này thay vì state toàn cục.
+                    const rawFile = app.rawFile;
+                    const username = app.username || "Guest";
+                    const targetMime = app.utils.getTargetMimeType();
+                    const currentFilters = app.upload.currentFilters || 'none';
+                    const exifSnapshot = {
+                        camera: app.currentExif?.camera || 'N/A',
+                        params: app.currentExif?.params || 'N/A',
+                        suspectedFraud: !!(app.currentExif && app.currentExif.suspectedFraud)
+                    };
+                    const provinceValue = document.getElementById('up-province')?.value || '';
+                    const noteValue = document.getElementById('up-note')?.value || '';
                     const bgWebpPromise = new Promise((resolve, reject) => {
                         setTimeout(async () => {
                             try {
-                                const username = app.username || "Guest";
-                                const targetMime = app.utils.getTargetMimeType();
-                                const finalBlob = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none', { embedBlind: true });
+                                const finalBlob = await app.utils.watermark(rawFile, username, app.wmState, currentFilters, { embedBlind: true });
                                 let blobToProcess = null;
                                 try {
                                     blobToProcess = await app.utils.compressToSizeLoop(finalBlob, targetMime, 500);
@@ -14049,7 +14061,7 @@ Object.assign(window.app, {
                                 }
                                 if (blobToProcess && blobToProcess instanceof Blob && !(blobToProcess instanceof File)) {
                                     const ext = blobToProcess.type === 'image/webp' ? 'webp' : 'jpg';
-                                    resolve(new File([blobToProcess], app.rawFile.name.replace(/\.[^/.]+$/, "") + "." + ext, { type: blobToProcess.type || targetMime }));
+                                    resolve(new File([blobToProcess], rawFile.name.replace(/\.[^/.]+$/, "") + "." + ext, { type: blobToProcess.type || targetMime }));
                                     return;
                                 }
                                 resolve(blobToProcess);
@@ -14081,18 +14093,16 @@ Object.assign(window.app, {
                             else if (app.upload.fakeProgress < 96) app.upload.fakeProgress += 0.2;
                             
                             if (app.upload.activeProgressToast) {
-                                app.upload.activeProgressToast.update(app.upload.fakeProgress, updateToastText(), 'Vui lòng không rời khỏi trang');
+                                app.upload.activeProgressToast.update(app.upload.fakeProgress, updateToastText(), 'Bạn có thể chuyển sang trang khác, tải lên vẫn tiếp diễn');
                             }
                         }, 200);
                     } else {
-                        app.upload.activeProgressToast.update(app.upload.fakeProgress, updateToastText(), 'Vui lòng không rời khỏi trang');
+                        app.upload.activeProgressToast.update(app.upload.fakeProgress, updateToastText(), 'Bạn có thể chuyển sang trang khác, tải lên vẫn tiếp diễn');
                     }
                     // ---------------------------------------------
 
                     try {
-                        let originalSizeKB = (app.rawFile.size / 1024).toFixed(2);
-                        const username = app.username || "Guest";
-                        const targetMime = app.utils.getTargetMimeType();
+                        let originalSizeKB = (rawFile.size / 1024).toFixed(2);
                         let compressedFile;
                         try {
                             compressedFile = await bgWebpPromise;
@@ -14104,7 +14114,7 @@ Object.assign(window.app, {
                             return app.ui.showAlert(msg);
                         }
                         if (compressedFile && compressedFile instanceof Blob && !(compressedFile instanceof File)) {
-                            compressedFile = new File([compressedFile], app.rawFile.name.replace(/\.[^/.]+$/, "") + ".webp", { type: compressedFile.type });
+                            compressedFile = new File([compressedFile], rawFile.name.replace(/\.[^/.]+$/, "") + ".webp", { type: compressedFile.type });
                         }
                         if (!compressedFile) {
                             throw new Error("Không thể xử lý và nén ảnh. Vui lòng thử lại!");
@@ -14123,27 +14133,29 @@ Object.assign(window.app, {
                         uploadData.append('meta_route', app.utils.fixUnicode(valRoute));
                         uploadData.append('meta_model', app.utils.fixUnicode(valModel));
                         uploadData.append('meta_location', app.utils.fixUnicode(valLoc));
-                        uploadData.append('meta_province', app.utils.fixUnicode(document.getElementById('up-province')?.value || ''));
-                        uploadData.append('meta_note', app.utils.fixUnicode(document.getElementById('up-note').value));
+                        uploadData.append('meta_province', app.utils.fixUnicode(provinceValue));
+                        uploadData.append('meta_note', app.utils.fixUnicode(noteValue));
                         uploadData.append('meta_taken_at', valDate);
                         uploadData.append('meta_username', username);
-                        uploadData.append('meta_camera_model', app.currentExif.camera);
-                        uploadData.append('meta_exif_params', app.currentExif.params);
-                        uploadData.append('meta_suspected_exif_fraud', app.currentExif.suspectedFraud ? 'true' : 'false');
+                        uploadData.append('meta_camera_model', exifSnapshot.camera);
+                        uploadData.append('meta_exif_params', exifSnapshot.params);
+                        uploadData.append('meta_suspected_exif_fraud', exifSnapshot.suspectedFraud ? 'true' : 'false');
                         app.upload.uploadQueue.push({
                             formData: uploadData,
                             plate: valPlate.replace(/[^A-Z0-9-]/gi, '').toUpperCase(),
                             originalSizeKB: originalSizeKB,
                             compressedSizeKB: compressedSizeKB,
-                            fileName: app.rawFile ? app.rawFile.name : 'N/A',
-                            fileType: app.rawFile ? app.rawFile.type : 'N/A'
+                            fileName: rawFile.name,
+                            fileType: rawFile.type
                         });
                         if (app.upload.currentQuota.limit !== null) app.upload.currentQuota.count++;
                         // (Removed location history save on submit)
                         if(app.upload && app.upload.clearDraft) app.upload.clearDraft();
                         if(app.db && app.db.clearPhoto) app.db.clearPhoto();
-                        app.utils.cleanupState(); 
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        app.utils.cleanupState();
+                        // Chỉ cuộn lên đầu khi người dùng còn ở trang upload (họ có thể đã chuyển trang khi đang tải)
+                        const uploadView = document.getElementById('upload');
+                        if (uploadView && uploadView.classList.contains('active')) window.scrollTo({ top: 0, behavior: 'smooth' });
                         app.upload.processQueue();
                     } catch (err) {
                         app.upload.activeUploadsCount = Math.max(0, (app.upload.activeUploadsCount || 1) - 1);
@@ -14155,7 +14167,7 @@ Object.assign(window.app, {
                             }
                         } else if (app.upload.activeProgressToast) {
                             const title = app.upload.activeUploadsCount > 1 ? `Đang tải ${app.upload.activeUploadsCount} ảnh lên máy chủ...` : 'Đang tải ảnh lên máy chủ...';
-                            app.upload.activeProgressToast.update(app.upload.fakeProgress, title, 'Vui lòng không rời khỏi trang');
+                            app.upload.activeProgressToast.update(app.upload.fakeProgress, title, 'Bạn có thể chuyển sang trang khác, tải lên vẫn tiếp diễn');
                         }
 
                         app.ui.showUploadProgress(); 
@@ -14489,7 +14501,7 @@ Object.assign(window.app, {
                             }
                         } else if (app.upload.activeProgressToast) {
                             const title = app.upload.activeUploadsCount > 1 ? `Đang tải ${app.upload.activeUploadsCount} ảnh lên máy chủ...` : 'Đang tải ảnh lên máy chủ...';
-                            app.upload.activeProgressToast.update(app.upload.fakeProgress, title, 'Vui lòng không rời khỏi trang');
+                            app.upload.activeProgressToast.update(app.upload.fakeProgress, title, 'Bạn có thể chuyển sang trang khác, tải lên vẫn tiếp diễn');
                         }
 
                         app.upload.uploadQueue.shift(); 

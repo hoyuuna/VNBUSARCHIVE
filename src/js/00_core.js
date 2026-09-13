@@ -892,7 +892,7 @@ closeCustomRolePrompt: () => {
                     text.className = 'absolute inset-0 flex items-center justify-center text-2xl font-bold text-black';
                     title.innerText = 'Đang chuẩn bị...';
                     title.className = 'text-lg font-bold text-gray-900 mb-1';
-                    desc.innerText = 'Vui lòng không rời khỏi trang';
+                    desc.innerText = 'Bạn có thể chuyển sang trang khác, tải lên vẫn tiếp diễn';
                     errorBox.classList.add('hidden');
                     if (infoBox) infoBox.classList.add('hidden');
                     actions.classList.add('hidden');
