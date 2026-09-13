@@ -3959,7 +3959,7 @@ app.admin.fetchManagerData('denied');
                             app.ui.showAlert("Lỗi: " + err.message);
                             btn.innerText = "TỪ CHỐI"; btn.disabled = false; btn.classList.remove('btn-loading');
                         }
-                    });
+                    }, { allowEmpty: true });
                 }
             },
 

@@ -700,7 +700,7 @@ Object.assign(window.app, {
                         null, null, { title: "Chính sách giới hạn đăng tải", btnOkText: "Đã hiểu" }
                     );
                 },
-                showPrompt: (msg, defaultValue = '', callback) => {
+                showPrompt: (msg, defaultValue = '', callback, options = {}) => {
                     const modal = document.getElementById('custom-prompt-modal');
                     const content = document.getElementById('custom-prompt-content');
                     const titleEl = document.getElementById('custom-prompt-title');
@@ -720,17 +720,19 @@ Object.assign(window.app, {
                         inputEl.focus();
                         inputEl.select();
                     }, 200);
-                    inputEl.onkeydown = (e) => {
-                        if (e.key === 'Enter') {
-                            app.ui.closePrompt(true);
-                        }
-                    };
-                    okBtn.onclick = () => {
-                        if (!inputEl.value.trim()) {
+                    const allowEmpty = options.allowEmpty === true;
+                    const submitPrompt = () => {
+                        if (!allowEmpty && !inputEl.value.trim()) {
                             app.ui.showAlert("Vui lòng nhập nội dung, không được để trống!");
                             return;
                         }
                         app.ui.closePrompt(true);
+                    };
+                    inputEl.onkeydown = (e) => {
+                        if (e.key === 'Enter') submitPrompt();
+                    };
+                    okBtn.onclick = () => {
+                        submitPrompt();
                     };
                 },
                 closePrompt: (isOk) => {
