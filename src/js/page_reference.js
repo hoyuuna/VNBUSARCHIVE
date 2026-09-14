@@ -662,7 +662,8 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                             logoFallbackEl.innerHTML = iconHtml;
                         }
                         
-                        document.getElementById('route-profile-title').innerHTML = `<span class="flex flex-col items-start gap-1.5"><span>${app.utils.escapeHtml(titleText)}</span>${inactiveBadge}</span>`;
+                        document.getElementById('route-profile-title').innerText = app.utils.escapeHtml(titleText);
+                            document.getElementById('route-badge').innerHTML = inactiveBadge;
                     } catch (e) {
                         console.warn("Lỗi tải thông tin Tuyến:", e);
                     }

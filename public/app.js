@@ -8545,7 +8545,8 @@ let currentRouteProvName = null;
                                 desc = desc.replace(/^\[STOPPED\]\s*/, '');
                             }
                             if (inactiveBadge) {
-                                document.getElementById('operator-title').innerHTML = `<span class="flex flex-col items-start gap-1.5"><span>${app.utils.escapeHtml(resolvedOperator)}</span>${inactiveBadge}</span>`;
+                                document.getElementById('operator-title').innerText = app.utils.escapeHtml(resolvedOperator);
+                                document.getElementById('operator-badge').innerHTML = inactiveBadge;
                             }
                             if (desc) {
                                 descEl.innerHTML = app.utils.cleanText(desc).replace(/\n/g, '<br>');
@@ -11553,7 +11554,8 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                             logoFallbackEl.innerHTML = iconHtml;
                         }
                         
-                        document.getElementById('route-profile-title').innerHTML = `<span class="flex flex-col items-start gap-1.5"><span>${app.utils.escapeHtml(titleText)}</span>${inactiveBadge}</span>`;
+                        document.getElementById('route-profile-title').innerText = app.utils.escapeHtml(titleText);
+                            document.getElementById('route-badge').innerHTML = inactiveBadge;
                     } catch (e) {
                         console.warn("Lỗi tải thông tin Tuyến:", e);
                     }

@@ -1942,7 +1942,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1789375241168" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1789377662322" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -5168,7 +5168,8 @@ html.theme-dark .ct-icon {
                         
                         <div class="overflow-hidden min-w-0 flex-1">
                             <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-widest font-bold mb-1">Đơn vị vận hành</p>
-                            <h2 id="operator-title" class="text-xl md:text-3xl font-black uppercase text-black tracking-tight leading-tight overflow-x-auto whitespace-nowrap no-scrollbar flex items-center gap-5 w-full">...</h2>
+                            <h2 id="operator-title" class="text-xl md:text-3xl font-black uppercase text-black tracking-tight leading-tight overflow-x-auto whitespace-nowrap no-scrollbar w-full">...</h2>
+                            <div id="operator-badge" class="mt-1.5 flex items-center"></div>
                         </div>
                     </div>
                     
@@ -5383,8 +5384,9 @@ html.theme-dark .ct-icon {
                         </div>
                         <div class="overflow-hidden min-w-0 flex-1">
                             <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-widest font-bold mb-1" id="route-province-label">Tuyến xe</p>
-                            <h2 id="route-profile-title" class="text-xl md:text-2xl font-black uppercase text-black tracking-tight leading-tight overflow-x-auto whitespace-nowrap no-scrollbar block w-full flex items-center gap-2">...</h2>
-                                                </div>
+                            <h2 id="route-profile-title" class="text-xl md:text-2xl font-black uppercase text-black tracking-tight leading-tight overflow-x-auto whitespace-nowrap no-scrollbar w-full">...</h2>
+                            <div id="route-badge" class="mt-1.5 flex items-center"></div>
+                        </div>
                     </div>
                     <div class="mb-8">
                         <h3 class="font-bold text-xs uppercase text-black tracking-wider mb-2.5 px-1">Thông tin chi tiết</h3>
@@ -6891,7 +6893,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.9f1a09d487bd.js"></script>
+<script src="/app.d74c4a9beb20.js"></script>
 </body>
 </html>
 
