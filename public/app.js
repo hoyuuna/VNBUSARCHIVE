@@ -8794,6 +8794,7 @@ let currentRouteProvName = null;
                         let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`, { count: 'estimated' })
                             .eq('status', 'approved')
                             .ilike('operator', resolvedOperator)
+                            .or('route_no.neq."Dừng hoạt động",route_no.is.null')
                             .order('taken_at', { ascending: false, nullsFirst: false })
                             .order('created_at', { ascending: false });
                         pQuery = app.preference.applyFilter(pQuery);
@@ -8847,6 +8848,7 @@ let currentRouteProvName = null;
                             let cQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                                 .eq('status', 'approved')
                                 .ilike('operator', child.operator_name)
+                                .or('route_no.neq."Dừng hoạt động",route_no.is.null')
                                 .order('taken_at', { ascending: false, nullsFirst: false })
                                 .order('created_at', { ascending: false })
                                 .limit(4);
@@ -8920,6 +8922,7 @@ let currentRouteProvName = null;
                         let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                             .eq('status', 'approved')
                             .ilike('operator', app.currentOperatorResolved)
+                            .or('route_no.neq."Dừng hoạt động",route_no.is.null')
                             .order('taken_at', { ascending: false, nullsFirst: false })
                             .order('created_at', { ascending: false });
                         pQuery = app.preference.applyFilter(pQuery);
