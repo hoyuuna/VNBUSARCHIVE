@@ -7017,6 +7017,36 @@ Object.assign(window.app, {
                         if (alertBox) alertBox.classList.add('hidden');
                     }
 
+                    // Check for top viewed 24h photos (only for own profile)
+                    if (isOwnProfile && app.topPhotosCache && app.topPhotosCache.length > 0) {
+                        const topPhotoIds = app.topPhotosCache.map(p => p.id);
+                        try {
+                            const { data: userTopPhotos } = await window.sb
+                                .from('photos')
+                                .select('id, license_plate')
+                                .eq('uploader_id', app.currentProfileId)
+                                .in('id', topPhotoIds);
+                            
+                            if (userTopPhotos && userTopPhotos.length > 0) {
+                                let html = 'Bạn có ảnh ';
+                                const links = userTopPhotos.map(p => `<a href="javascript:void(0)" onclick="app.views.loadDetail('${p.id}')" class="font-bold underline hover:text-blue-900">${app.utils.displayPlate(p.license_plate)}</a>`);
+                                if (links.length === 1) html += links[0];
+                                else if (links.length === 2) html += links.join(' và ');
+                                else { const last = links.pop(); html += links.join(', ') + ' và ' + last; }
+                                html += ' đạt top Ảnh được xem nhiều nhất 24h qua. Hãy tiếp tục cố gắng nhé!';
+                                document.getElementById('profile-top-photos-alert-text').innerHTML = html;
+                                document.getElementById('profile-top-photos-alert').classList.remove('hidden');
+                            } else {
+                                document.getElementById('profile-top-photos-alert').classList.add('hidden');
+                            }
+                        } catch (e) {
+                            console.warn('Lỗi kiểm tra top ảnh 24h:', e);
+                            document.getElementById('profile-top-photos-alert').classList.add('hidden');
+                        }
+                    } else {
+                        document.getElementById('profile-top-photos-alert').classList.add('hidden');
+                    }
+
                     if (!isReturningToSameProfile) {
                         app.views.currentProfileSort = 'newest';
                         app.views.currentProfileFilter = 'all';
