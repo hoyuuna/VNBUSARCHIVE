@@ -2396,7 +2396,7 @@ let currentRouteProvName = null;
                                 desc = desc.replace(/^\[STOPPED\]\s*/, '');
                             }
                             if (inactiveBadge) {
-                                document.getElementById('operator-title').innerHTML = app.utils.escapeHtml(resolvedOperator) + inactiveBadge;
+                                document.getElementById('operator-title').innerHTML = `<span class="flex flex-col items-start gap-1.5"><span>${app.utils.escapeHtml(resolvedOperator)}</span>${inactiveBadge}</span>`;
                             }
                             if (desc) {
                                 descEl.innerHTML = app.utils.cleanText(desc).replace(/\n/g, '<br>');

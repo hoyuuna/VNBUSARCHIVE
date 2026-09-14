@@ -8545,7 +8545,7 @@ let currentRouteProvName = null;
                                 desc = desc.replace(/^\[STOPPED\]\s*/, '');
                             }
                             if (inactiveBadge) {
-                                document.getElementById('operator-title').innerHTML = app.utils.escapeHtml(resolvedOperator) + inactiveBadge;
+                                document.getElementById('operator-title').innerHTML = `<span class="flex flex-col items-start gap-1.5"><span>${app.utils.escapeHtml(resolvedOperator)}</span>${inactiveBadge}</span>`;
                             }
                             if (desc) {
                                 descEl.innerHTML = app.utils.cleanText(desc).replace(/\n/g, '<br>');
@@ -11478,7 +11478,7 @@ if (!decodedProvince || decodedProvince.trim() === '') {
 
                         if (exactInfo) {
                             if (exactInfo.is_inactive) {
-                                inactiveBadge = '<span class="bg-black text-white text-[10px] px-2 py-0.5 rounded font-bold border border-black shrink-0 uppercase tracking-widest ml-2">Dừng hoạt động</span>';
+                                inactiveBadge = '<span class="bg-black text-white text-[10px] px-2 py-0.5 rounded font-bold border border-black shrink-0 uppercase tracking-widest">Dừng hoạt động</span>';
                             }
                             if (exactInfo.short_path) {
                                 titleText = `${decodedRoute} (${exactInfo.short_path})`;
@@ -11553,7 +11553,7 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                             logoFallbackEl.innerHTML = iconHtml;
                         }
                         
-                        document.getElementById('route-profile-title').innerHTML = app.utils.escapeHtml(titleText) + inactiveBadge;
+                        document.getElementById('route-profile-title').innerHTML = `<span class="flex flex-col items-start gap-1.5"><span>${app.utils.escapeHtml(titleText)}</span>${inactiveBadge}</span>`;
                     } catch (e) {
                         console.warn("Lỗi tải thông tin Tuyến:", e);
                     }
