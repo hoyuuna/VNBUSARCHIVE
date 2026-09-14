@@ -18,7 +18,7 @@ VNBUSARCHIVE là thư viện tư liệu, không phải nền tảng chia sẻ �
   * Tuyến xe buýt đã thay đổi dòng xe (ảnh ghi lại thời điểm tuyến còn sử dụng dòng xe cũ).
 * **Phạm vi châm chước:** 
   * **CHỈ CHẤP NHẬN** châm chước các hạn chế về **kỹ thuật bối cảnh/quang học** (độ nét, ánh sáng, thời tiết, v..v..).
-  * **TUYỆT ĐỐI KHÔNG** áp dụng ưu tiên đối với các lỗi xuất phát từ **thao tác chủ quan của người dùng** (vi phạm quy tắc làm mờ ở B4.2, B4.3, v..v..).
+  * **TUYỆT ĐỐI KHÔNG** áp dụng ưu tiên đối với các lỗi nghiêm trọng xuất phát từ **thao tác chủ quan của người dùng** (vi phạm quy tắc làm mờ ở B4.2, B4.3, v..v..).
 * **Quyền hạn BQT:** BQT giữ quyền chủ động điều chỉnh và áp dụng linh hoạt chính sách ưu tiên xét duyệt đối với các trường hợp đặc biệt khác tùy thuộc vào giá trị tư liệu thực tế của bức ảnh.
 ---
 

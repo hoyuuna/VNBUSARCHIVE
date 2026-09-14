@@ -16301,6 +16301,30 @@ Object.assign(window.app, {
                         return dateA - dateB;
                     });
                 },
+                autoRemoveStoppedAfterNewer: (items) => {
+                    const sorted = [...items].sort((a, b) => {
+                        const dateA = a.effective_date ? new Date(a.effective_date).getTime() : 0;
+                        const dateB = b.effective_date ? new Date(b.effective_date).getTime() : 0;
+                        return dateA - dateB;
+                    });
+                    const toRemove = new Set();
+                    for (let i = 0; i < sorted.length; i++) {
+                        const h = sorted[i];
+                        if ((h.route || '').trim() === 'Dừng hoạt động') {
+                            const stopDate = h.effective_date ? new Date(h.effective_date).getTime() : 0;
+                            if (!stopDate) continue;
+                            for (let j = i + 1; j < sorted.length; j++) {
+                                const later = sorted[j];
+                                const laterDate = later.effective_date ? new Date(later.effective_date).getTime() : 0;
+                                if ((later.route || '').trim() !== 'Dừng hoạt động' && laterDate > stopDate) {
+                                    toRemove.add(h);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    return items.filter(h => !toRemove.has(h));
+                },
                 renderEditList: (prefix = app.vehicle.currentHistoryPrefix) => {
                     const container = document.getElementById(prefix + 'sortable-history');
                     container.innerHTML = '';
@@ -16404,6 +16428,8 @@ Object.assign(window.app, {
                 saveHistory: async () => {
                     const proceedSave = async () => {
                         app.vehicle.sortTempHistory();
+                        // Tự động xóa mốc "Dừng hoạt động" nếu có mốc lịch sử khác sau ngày dừng hoạt động
+                        app.vehicle.tempHistory = app.vehicle.autoRemoveStoppedAfterNewer(app.vehicle.tempHistory);
                         for (let i = 1; i < app.vehicle.tempHistory.length; i++) {
                             const prev = app.vehicle.tempHistory[i - 1];
                             const curr = app.vehicle.tempHistory[i];
@@ -20525,6 +20551,8 @@ app.admin.fetchManagerData('denied');
                                 }
                             }
                             const currentPlate = req.license_plate;
+                            // Tự động xóa mốc "Dừng hoạt động" nếu có mốc lịch sử khác sau ngày dừng hoạt động
+                            newItems = app.vehicle.autoRemoveStoppedAfterNewer(newItems);
                             const newHistoryPlates = [...new Set(newItems.map(p => p.plate).filter(p => p && p !== currentPlate))];
                             if (hasError) {
                                 return app.ui.showAlert("Có lỗi ở mốc thời gian lịch sử! Vui lòng kiểm tra và nhập đúng định dạng DD/MM/YYYY.");

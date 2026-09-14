@@ -3817,6 +3817,8 @@ app.admin.fetchManagerData('denied');
                                 }
                             }
                             const currentPlate = req.license_plate;
+                            // Tự động xóa mốc "Dừng hoạt động" nếu có mốc lịch sử khác sau ngày dừng hoạt động
+                            newItems = app.vehicle.autoRemoveStoppedAfterNewer(newItems);
                             const newHistoryPlates = [...new Set(newItems.map(p => p.plate).filter(p => p && p !== currentPlate))];
                             if (hasError) {
                                 return app.ui.showAlert("Có lỗi ở mốc thời gian lịch sử! Vui lòng kiểm tra và nhập đúng định dạng DD/MM/YYYY.");
