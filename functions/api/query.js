@@ -182,9 +182,6 @@ export async function onRequestPost(context) {
             if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
             await col.deleteMany(mongoQuery);
             return new Response(JSON.stringify({ data: null, error: null }));
-        }
-
-        
         } else if (action === "rpc") {
             const rpcName = body.rpcName;
             const args = body.rpcArgs || {};
