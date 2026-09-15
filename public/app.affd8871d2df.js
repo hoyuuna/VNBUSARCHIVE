@@ -114,13 +114,6 @@ class QueryBuilder {
         this.table = table;
         this.query = { action: 'select', select: '*', filters: [], order: null, limit: null, skip: 0, single: false };
     }
-
-    rpc(name, args) {
-        this.query.action = "rpc";
-        this.query.rpcName = name;
-        this.query.rpcArgs = args;
-        return this;
-    }
     select(fields, options) { this.query.select = fields; this.query.options = options; return this; }
     insert(data) { this.query.action = 'insert'; this.query.data = data; return this; }
     update(data) { this.query.action = 'update'; this.query.data = data; return this; }
@@ -2772,7 +2765,14 @@ cleanupState: () => {
                         } else {
                             let selectStr = selectField;
                             if (table === 'vehicles') {
-                                selectStr = `${selectField}, photos!inner(status${(app.preference.current !== 'both' || currentType) ? ', type' : ''})`;
+                          
+      rpc(name, args) {
+          this.query.action = "rpc";
+          this.query.rpcName = name;
+          this.query.rpcArgs = args;
+          return this;
+      }
+      selectStr = `${selectField}, photos!inner(status${(app.preference.current !== 'both' || currentType) ? ', type' : ''})`;
                             }
                             let sbQuery = app.api.from(table).select(selectStr);
                             if (table === 'photos') {
