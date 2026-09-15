@@ -213,6 +213,7 @@ export async function onRequestPost(context) {
                 return new Response(JSON.stringify({ data: filtered.map(r => ({ route_no: r })), error: null }));
             }
             return new Response(JSON.stringify({ error: "Unknown RPC" }), { status: 400 });
+        }
 
         return new Response(JSON.stringify({ error: "Unknown action" }), { status: 400 });
 
