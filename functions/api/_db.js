@@ -1,5 +1,4 @@
-
-import { MongoClient } from "mongodb";
+﻿import { MongoClient } from "mongodb";
 
 let cachedClient = null;
 
@@ -8,11 +7,17 @@ export async function getDb(env) {
         return cachedClient.db("vnbusarchive_db");
     }
     
-    // Fallback to the provided URI if env var is missing, though env var is preferred
     const uri = env.MONGO_URI || "mongodb+srv://nghoanganhtuann_db_user:YOUR_PASSWORD@cluster0.cr6xzmm.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
     
-    const client = new MongoClient(uri);
-    await client.connect();
+    // Tăng timeout lên 20 giây để bù đắp độ trễ cáp quang / định tuyến TLS
+    const client = new MongoClient(uri, { serverSelectionTimeoutMS: 20000, connectTimeoutMS: 20000 });
+    
+    try {
+        await client.connect();
+    } catch (err) {
+        throw new Error("MongoDB Connect Error: " + err.message + " | URI Prefix: " + uri.substring(0, 20) + "...");
+    }
+    
     cachedClient = client;
     return client.db("vnbusarchive_db");
 }
@@ -25,3 +30,4 @@ export async function getNextSequenceValue(db, sequenceName) {
     );
     return sequenceDocument.sequence_value;
 }
+
