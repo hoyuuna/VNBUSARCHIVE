@@ -543,7 +543,7 @@ app.map = {
     async checkPermission() {
         this.isAdmin = false;
         if (app.user) {
-            const { data } = await window.sb.from('profiles').select('role').eq('id', app.user.id).single();
+            const { data } = await app.api.from('profiles').select('role').eq('id', app.user.id).single();
             if (data && (data.role === 'admin' || data.role === 'manager')) {
                 this.isAdmin = true;
             }
@@ -629,7 +629,7 @@ app.map = {
     },
 
     async loadZones() {
-        const { data, error } = await window.sb.from('no_photo_zones').select('*');
+        const { data, error } = await app.api.from('no_photo_zones').select('*');
         if (error) {
             console.error('Lỗi tải vùng cấm:', error);
             return;
@@ -713,14 +713,14 @@ app.map = {
         if (this.isAdmin) {
             let error;
             if (this.editingZoneId) {
-                const res = await window.sb.from('no_photo_zones').update({
+                const res = await app.api.from('no_photo_zones').update({
                     name: name,
                     description: desc,
                     bounds: allPolygons
                 }).eq('id', this.editingZoneId);
                 error = res.error;
             } else {
-                const res = await window.sb.from('no_photo_zones').insert({
+                const res = await app.api.from('no_photo_zones').insert({
                     name: name,
                     description: desc,
                     bounds: allPolygons,
@@ -742,7 +742,7 @@ app.map = {
                 this.loadZones();
             }
         } else {
-            const { error } = await window.sb.from('zone_edit_requests').insert({
+            const { error } = await app.api.from('zone_edit_requests').insert({
                 requester_id: app.user.id,
                 type: this.editingZoneId ? 'update' : 'add',
                 target_zone_id: this.editingZoneId || null,
@@ -765,7 +765,7 @@ app.map = {
     async deleteZone(id) {
         app.ui.showAlert('Bạn có chắc chắn muốn xóa toàn bộ các khu vực thuộc vùng cấm này?', async () => {
             app.loadingBar.start();
-            const { error } = await window.sb.from('no_photo_zones').delete().eq('id', id);
+            const { error } = await app.api.from('no_photo_zones').delete().eq('id', id);
             app.loadingBar.finish();
             
             if (error) {

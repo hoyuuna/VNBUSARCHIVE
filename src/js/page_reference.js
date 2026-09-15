@@ -119,7 +119,7 @@ Object.assign(window.app, {
                         warningText.innerText = "Thông tin này sẽ được kiểm duyệt bởi Admin. Việc để trống cả 2 ô sẽ gửi yêu cầu xóa thông tin hiện tại.";
                     }
                     try {
-                        const { data: opInfo } = await window.sb.from('operator_info').select('operator_name, logo_url, description, parent_operator').eq('operator_name', app.currentOperator).maybeSingle();
+                        const { data: opInfo } = await app.api.from('operator_info').select('operator_name, logo_url, description, parent_operator').eq('operator_name', app.currentOperator).maybeSingle();
                         if (opInfo) {
                             document.getElementById('op-edit-logo').value = opInfo.logo_url || '';
                             let desc = opInfo.description || '';
@@ -205,10 +205,10 @@ Object.assign(window.app, {
                         try {
                             if (app.role === 'admin' || app.role === 'manager') {
                                 if (!logo && !desc && !parentOp) {
-                                    const { error } = await window.sb.from('operator_info').delete().eq('operator_name', app.currentOperator);
+                                    const { error } = await app.api.from('operator_info').delete().eq('operator_name', app.currentOperator);
                                     if (error) throw error;
                                 } else {
-                                    const { error } = await window.sb.from('operator_info').upsert({
+                                    const { error } = await app.api.from('operator_info').upsert({
                                         operator_name: app.currentOperator,
                                                                                 description: desc || null,
                                         parent_operator: parentOp || null,
@@ -223,7 +223,7 @@ Object.assign(window.app, {
                                     app.admin.logAction('update_operator_direct', app.currentOperator, { logo_url: null, description: desc, parent_operator: parentOp });
                                 }
                             } else {
-                                const { count, error: checkErr } = await window.sb.from('edit_requests')
+                                const { count, error: checkErr } = await app.api.from('edit_requests')
                                     .select('*', { count: 'estimated', head: true })
                                     .eq('status', 'pending')
                                     .contains('new_data', { request_type: 'update_operator_info', operator_name: app.currentOperator });
@@ -243,7 +243,7 @@ Object.assign(window.app, {
                                     },
                                     status: 'pending'
                                 };
-                                const { error } = await window.sb.from('edit_requests').insert(reqData);
+                                const { error } = await app.api.from('edit_requests').insert(reqData);
                                 if (error) throw error;
                                 app.ui.showAlert("Đã gửi yêu cầu cập nhật thông tin đơn vị vận hành và đang chờ Admin duyệt. Bạn có thể kiểm tra trạng thái trong trang Hồ sơ của tôi.");
                                 app.operator.closeEditPrompt();
@@ -296,8 +296,8 @@ Object.assign(window.app, {
                     document.getElementById('model-load-more-container').classList.add('hidden');
                     try {
                         const brandName = modelName.split(' ')[0];
-                        const { data: exactInfo } = await window.sb.from('model_info').select('model_name, logo_url, description').eq('model_name', modelName).maybeSingle();
-                        const { data: brandLogoData } = await window.sb.from('model_info')
+                        const { data: exactInfo } = await app.api.from('model_info').select('model_name, logo_url, description').eq('model_name', modelName).maybeSingle();
+                        const { data: brandLogoData } = await app.api.from('model_info')
                             .select('logo_url')
                             .ilike('model_name', `${brandName}%`)
                             .not('logo_url', 'is', null)
@@ -323,7 +323,7 @@ Object.assign(window.app, {
                         const stats = await app.utils.getCachedStats('mdl_stats_' + modelName, 10 * 60 * 1000, async () => {
                             const rpc = await app.utils.getModelStats(modelName);
                             if (rpc) return rpc;
-                            const { data, error: statsErr } = await window.sb.from('photos')
+                            const { data, error: statsErr } = await app.api.from('photos')
                                 .select('views, license_plate, operator, vehicles!inner(model)')
                                 .eq('status', 'approved')
                                 .eq('vehicles.model', modelName)
@@ -361,7 +361,7 @@ Object.assign(window.app, {
                         document.getElementById('mdl-stat-views').innerText = app.utils.formatCompact(totalViews);
                         app.views.modelCurrentPage = 1;
                         const mdlSize = app.views.MODEL_PAGE_SIZE || 12;
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles!inner(model)`, { count: 'estimated' })
+                        let pQuery = app.api.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles!inner(model)`, { count: 'estimated' })
                             .eq('status', 'approved')
                             .eq('vehicles.model', modelName)
                             .order('taken_at', { ascending: false, nullsFirst: false })
@@ -400,9 +400,9 @@ Object.assign(window.app, {
                     }
                     try {
                         const brandName = app.model.currentModel.split(' ')[0];
-                        const { data: exactInfo } = await window.sb.from('model_info').select('description').eq('model_name', app.model.currentModel).maybeSingle();
+                        const { data: exactInfo } = await app.api.from('model_info').select('description').eq('model_name', app.model.currentModel).maybeSingle();
                         if (exactInfo) document.getElementById('mdl-edit-desc').value = exactInfo.description || '';
-                        const { data: brandLogoData } = await window.sb.from('model_info').select('logo_url').ilike('model_name', `${brandName}%`).not('logo_url', 'is', null).limit(1).maybeSingle();
+                        const { data: brandLogoData } = await app.api.from('model_info').select('logo_url').ilike('model_name', `${brandName}%`).not('logo_url', 'is', null).limit(1).maybeSingle();
                         if (brandLogoData) document.getElementById('mdl-edit-logo').value = brandLogoData.logo_url || '';
                     } catch(e) {}
                     modal.classList.remove('hidden');
@@ -459,16 +459,16 @@ Object.assign(window.app, {
                             const brandName = app.model.currentModel.split(' ')[0];
                             if (app.role === 'admin' || app.role === 'manager') {
                                 if (!desc) {
-                                    const { error: delErr } = await window.sb.from('model_info').delete().eq('model_name', app.model.currentModel);
+                                    const { error: delErr } = await app.api.from('model_info').delete().eq('model_name', app.model.currentModel);
                                     if (delErr) throw delErr;
                                 } else {
-                                    const { error: upsertErr } = await window.sb.from('model_info').upsert({
+                                    const { error: upsertErr } = await app.api.from('model_info').upsert({
                                         model_name: app.model.currentModel,
                                                                                 description: desc || null
                                     });
                                     if (upsertErr) throw upsertErr;
                                 }
-                                await window.sb.from('model_info')
+                                await app.api.from('model_info')
                                     .update({ logo_url: null || null })
                                     .ilike('model_name', `${brandName}%`);
                                 app.toast.show('success', 'Thành công', 'Đã lưu và đồng bộ thông tin Dòng xe!');
@@ -478,7 +478,7 @@ Object.assign(window.app, {
                                     app.admin.logAction('update_model_direct', app.model.currentModel, { logo_url: null, description: desc, brand_sync: brandName });
                                 }
                             } else {
-                                const { count, error: checkErr } = await window.sb.from('edit_requests')
+                                const { count, error: checkErr } = await app.api.from('edit_requests')
                                     .select('*', { count: 'estimated', head: true })
                                     .eq('status', 'pending')
                                     .contains('new_data', { request_type: 'update_model_info', model_name: app.model.currentModel });
@@ -495,7 +495,7 @@ Object.assign(window.app, {
                                     },
                                     status: 'pending'
                                 };
-                                const { error } = await window.sb.from('edit_requests').insert(reqData);
+                                const { error } = await app.api.from('edit_requests').insert(reqData);
                                 if (error) throw error;
                                 app.ui.showAlert("Đã gửi yêu cầu cập nhật thông tin Dòng xe và đang chờ Admin duyệt. Bạn có thể kiểm tra trạng thái trong trang Hồ sơ của tôi.");
                                 app.model.closeEditPrompt();
@@ -578,7 +578,7 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     let exactInfo = null;
                     try {
                         const routeName = decodedProvince ? `${decodedRoute} - ${decodedProvince}` : decodedRoute;
-                        const { data } = await window.sb.from('route_info').select('description, short_path, is_inactive, metadata').eq('route_name', routeName).maybeSingle();
+                        const { data } = await app.api.from('route_info').select('description, short_path, is_inactive, metadata').eq('route_name', routeName).maybeSingle();
                         exactInfo = data;
                         let titleText = decodedRoute;
                         let inactiveBadge = '';
@@ -669,7 +669,7 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     }
                     
                     try {
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                        let pQuery = app.api.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                             .eq('status', 'approved')
                             .eq('route_no', decodedRoute);
                             
@@ -784,8 +784,8 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                                 for (let i = 0; i < platesArr.length; i += chunkSize) {
                                     const chunk = platesArr.slice(i, i + chunkSize);
                                     const [pRes, hRes] = await Promise.all([
-                                        window.sb.from('photos').select('license_plate, route_no, borrowed_route, taken_at').eq('status', 'approved').in('license_plate', chunk),
-                                        window.sb.from('vehicle_history').select('plate, route, effective_date').in('plate', chunk)
+                                        app.api.from('photos').select('license_plate, route_no, borrowed_route, taken_at').eq('status', 'approved').in('license_plate', chunk),
+                                        app.api.from('vehicle_history').select('plate, route, effective_date').in('plate', chunk)
                                     ]);
                                     if (pRes.data) allVehPhotos = allVehPhotos.concat(pRes.data);
                                     if (hRes.data) allVehHist = allVehHist.concat(hRes.data);
@@ -880,7 +880,7 @@ app.views.fetchRoutePhotosPage(1);
                     }
                     try {
                         const routeName = app.route.currentProvince ? `${app.route.currentRoute} - ${app.route.currentProvince}` : app.route.currentRoute;
-                        const { data: exactInfo } = await window.sb.from('route_info').select('description, short_path, is_inactive, metadata').eq('route_name', routeName).maybeSingle();
+                        const { data: exactInfo } = await app.api.from('route_info').select('description, short_path, is_inactive, metadata').eq('route_name', routeName).maybeSingle();
                         if (exactInfo) {
                             document.getElementById('route-edit-inactive').checked = exactInfo.is_inactive || false;
                             document.getElementById('route-edit-short-path').value = exactInfo.short_path || '';
@@ -910,7 +910,7 @@ app.views.fetchRoutePhotosPage(1);
                         }
                         
                         // Fetch borrowed photos
-                          const { data: bPhotos } = await window.sb.from('photos').select('id, license_plate').eq('borrowed_route', routeName);
+                          const { data: bPhotos } = await app.api.from('photos').select('id, license_plate').eq('borrowed_route', routeName);
                           let bList = [];
                           let plates = [];
                           if (exactInfo && exactInfo.metadata && exactInfo.metadata.borrowed_plates) {
@@ -997,10 +997,10 @@ app.views.fetchRoutePhotosPage(1);
                             if (app.role === 'admin' || app.role === 'manager') {
                                 const routeName = app.route.currentProvince ? `${app.route.currentRoute} - ${app.route.currentProvince}` : app.route.currentRoute;
                                 if (!desc && !shortPath && !isInactive && !metadataObj) {
-                                    const { error: delErr } = await window.sb.from('route_info').delete().eq('route_name', routeName);
+                                    const { error: delErr } = await app.api.from('route_info').delete().eq('route_name', routeName);
                                     if (delErr) throw delErr;
                                 } else {
-                                    const { error: upsertErr } = await window.sb.from('route_info').upsert({
+                                    const { error: upsertErr } = await app.api.from('route_info').upsert({
                                         route_name: routeName,
                                         short_path: shortPath || null,
                                         description: desc || null,
@@ -1011,14 +1011,14 @@ app.views.fetchRoutePhotosPage(1);
                                 }
                                 
                                 // Xử lý cập nhật ID ảnh và biển số xe vá tuyến
-                                  const { data: curBorrowed } = await window.sb.from('photos').select('id, license_plate').eq('borrowed_route', routeName);
+                                  const { data: curBorrowed } = await app.api.from('photos').select('id, license_plate').eq('borrowed_route', routeName);
                                   const curIds = curBorrowed ? curBorrowed.map(p => p.id) : [];
                                   const addedIdsRaw = newBorrowedIds.filter(id => !curIds.includes(id));
                                   const removedIds = curIds.filter(id => !newBorrowedIds.includes(id));
                                   
                                   const expectedRouteNo = routeName.split(' - ')[0];
                                   if (enteredPlates.length > 0) {
-                                      const { data: retroPhotos } = await window.sb.from('photos').select('id, route_no').in('license_plate', enteredPlates).eq('route_no', expectedRouteNo);
+                                      const { data: retroPhotos } = await app.api.from('photos').select('id, route_no').in('license_plate', enteredPlates).eq('route_no', expectedRouteNo);
                                       if (retroPhotos && retroPhotos.length > 0) {
                                           retroPhotos.forEach(p => {
                                               if (!curIds.includes(p.id) && !addedIdsRaw.includes(p.id)) {
@@ -1029,11 +1029,11 @@ app.views.fetchRoutePhotosPage(1);
                                   }
                                   
                                   if (addedIdsRaw.length > 0) {
-                                      const { data: validPhotos } = await window.sb.from('photos').select('id, route_no').in('id', addedIdsRaw);
+                                      const { data: validPhotos } = await app.api.from('photos').select('id, route_no').in('id', addedIdsRaw);
                                       const trulyAddedIds = (validPhotos || []).filter(p => p.route_no === expectedRouteNo).map(p => p.id);
                                       
                                       if (trulyAddedIds.length > 0) {
-                                          await window.sb.from('photos').update({ borrowed_route: routeName }).in('id', trulyAddedIds);
+                                          await app.api.from('photos').update({ borrowed_route: routeName }).in('id', trulyAddedIds);
                                       }
                                   }
                                   
@@ -1057,7 +1057,7 @@ app.views.fetchRoutePhotosPage(1);
                                             });
                                             if (pData) defProv = pData.ten;
                                         }
-                                        await window.sb.from('photos').update({ borrowed_route: null }).eq('id', p.id);
+                                        await app.api.from('photos').update({ borrowed_route: null }).eq('id', p.id);
                                     }
                                 }
                                 app.toast.show('success', 'Thành công', 'Đã lưu thông tin Tuyến!');
@@ -1065,7 +1065,7 @@ app.views.fetchRoutePhotosPage(1);
                                 app.route.loadRoutePage(app.route.currentProvince, app.route.currentRoute, true);
                             } else {
                                 const routeName = app.route.currentProvince ? `${app.route.currentRoute} - ${app.route.currentProvince}` : app.route.currentRoute;
-                                let checkQuery = window.sb.from('edit_requests').select('*', { count: 'estimated', head: true }).eq('status', 'pending');
+                                let checkQuery = app.api.from('edit_requests').select('*', { count: 'estimated', head: true }).eq('status', 'pending');
                                 const { count, error: checkErr } = await checkQuery.contains('new_data', { request_type: 'update_route_info', route_name: routeName });
                                 if (checkErr) throw checkErr;
                                 if (count > 0) throw new Error("Đã có một yêu cầu cập nhật thông tin cho tuyến này đang chờ duyệt.");
@@ -1084,7 +1084,7 @@ app.views.fetchRoutePhotosPage(1);
                                     },
                                     status: 'pending'
                                 };
-                                const { error } = await window.sb.from('edit_requests').insert(reqData);
+                                const { error } = await app.api.from('edit_requests').insert(reqData);
                                 if (error) throw error;
                                 app.ui.showAlert("Đã gửi yêu cầu cập nhật thông tin Tuyến và đang chờ Admin duyệt.");
                                 app.route.closeEditPrompt();

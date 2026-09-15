@@ -1,4 +1,150 @@
 window.app = window.app || {};
+// Custom MongoDB API Wrapper replacing Supabase SDK
+    setInterval(() => {
+        if (app.currentViewMode === 'home' && !app._isUserScrolling) {
+            const now = Date.now();
+            if (app._lastHomeRealtimeReload && now - app._lastHomeRealtimeReload < 30000) return;
+            app._lastHomeRealtimeReload = now;
+            app.views.loadHome(true);
+        }
+    }, 60000); // 60s polling
+app.api = {
+    auth: {
+                        async updateUser(updates) {
+            try {
+                const token = localStorage.getItem('vnbus_token');
+                const res = await fetch('/api/auth/update', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updates)
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error);
+                return { data: { user: data.data.user }, error: null };
+            } catch (err) {
+                return { error: err };
+            }
+        },
+        async getSession() {
+            const { data, error } = await this.getUser();
+            if (data && data.user) {
+                return { data: { session: { user: data.user, access_token: localStorage.getItem('vnbus_token') } }, error: null };
+            }
+            return { data: { session: null }, error: null };
+        },
+        onAuthStateChange(callback) {
+            // Stub it since we don't have websocket for auth state changes
+            // Initial call
+            this.getSession().then(({ data }) => callback('INITIAL', data.session));
+            // You can trigger this manually in signin/signout if you want
+        },
+        async getUser() {
+            const token = localStorage.getItem('vnbus_token');
+            if (!token) return { data: { user: null }, error: null };
+            try {
+                const res = await fetch('/api/auth/me', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                if (!res.ok) throw new Error('Invalid token');
+                const user = await res.json();
+                return { data: { user }, error: null };
+            } catch (err) {
+                return { data: { user: null }, error: err };
+            }
+        },
+        async signInWithPassword({ email, password }) {
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+                if (!res.ok) return { error: { message: data.error } };
+                localStorage.setItem('vnbus_token', data.token);
+                return { data: { user: data.user }, error: null };
+            } catch (err) {
+                return { error: err };
+            }
+        },
+        async signUp({ email, password, options }) {
+            try {
+                const res = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        email, 
+                        password, 
+                        username: options?.data?.username || email.split('@')[0] 
+                    })
+                });
+                const data = await res.json();
+                if (!res.ok) return { error: { message: data.error } };
+                localStorage.setItem('vnbus_token', data.token);
+                return { data: { user: data.user }, error: null };
+            } catch (err) {
+                return { error: err };
+            }
+        },
+        async signOut() {
+            localStorage.removeItem('vnbus_token');
+            return { error: null };
+        }
+    },
+        channel(name) {
+        return {
+            on() { return this; },
+            subscribe() { return this; }
+        };
+    },
+    removeChannel() {},
+    from(table) {
+        return new QueryBuilder(table);
+    }
+};
+
+class QueryBuilder {
+    constructor(table) {
+        this.table = table;
+        this.query = { action: 'select', select: '*', filters: [], order: null, limit: null, skip: 0, single: false };
+    }
+    select(fields, options) { this.query.select = fields; this.query.options = options; return this; }
+    insert(data) { this.query.action = 'insert'; this.query.data = data; return this; }
+    update(data) { this.query.action = 'update'; this.query.data = data; return this; }
+    delete() { this.query.action = 'delete'; return this; }
+    upsert(data) { this.query.action = 'upsert'; this.query.data = data; return this; }
+    
+    eq(column, value) { this.query.filters.push({ type: 'eq', column, value }); return this; }
+    neq(column, value) { this.query.filters.push({ type: 'neq', column, value }); return this; }
+    in(column, values) { this.query.filters.push({ type: 'in', column, values }); return this; }
+    ilike(column, value) { this.query.filters.push({ type: 'ilike', column, value }); return this; }
+    is(column, value) { this.query.filters.push({ type: 'is', column, value }); return this; }
+    or(condition) { this.query.filters.push({ type: 'or', condition }); return this; }
+    
+    order(column, options = { ascending: true }) { this.query.order = { column, ascending: options.ascending }; return this; }
+    range(from, to) { this.query.skip = from; this.query.limit = (to - from + 1); return this; }
+    limit(limit) { this.query.limit = limit; return this; }
+    single() { this.query.single = true; return this; }
+    
+    async then(resolve, reject) {
+        try {
+            const token = localStorage.getItem('vnbus_token');
+            const headers = { 'Content-Type': 'application/json' };
+            if (token) headers['Authorization'] = 'Bearer ' + token;
+            
+            const res = await fetch('/api/query', {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({ table: this.table, ...this.query })
+            });
+            const result = await res.json();
+            if (!res.ok) throw new Error(result.error || 'Query failed');
+            resolve(result);
+        } catch (error) {
+            resolve({ data: null, error: { message: error.message } });
+        }
+    }
+}
 window.addEventListener('unhandledrejection', function(event) {
     if (event.reason && event.reason.message && event.reason.message.includes("Unexpected token '<'")) {
         if (window.app && window.app.toast) {
@@ -464,7 +610,7 @@ Object.assign(window.app, {
                     if (app.customToasts.loaded) return;
                     app.customToasts.loaded = true;
                     try {
-                        const { data, error } = await window.sb.from('custom_toasts')
+                        const { data, error } = await app.api.from('custom_toasts')
                             .select('id, title, message, icon, color, link_url, link_label, sort_order, show_mode, duration')
                             .eq('is_active', true)
                             .order('sort_order', { ascending: true })
@@ -935,7 +1081,7 @@ closeCustomRolePrompt: () => {
                     if (infoBox && queueCountSpan) {
                         infoBox.classList.remove('hidden');
                         queueCountSpan.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-                        window.sb.from('photos').select('id, created_at, uploader_id, profiles(role)').eq('status', 'pending')
+                        app.api.from('photos').select('id, created_at, uploader_id, profiles(role)').eq('status', 'pending')
                             .then(({ data, error }) => {
                                 if (!error && data) {
                                     let ahead = 0;
@@ -1057,7 +1203,7 @@ closeCustomRolePrompt: () => {
                 isBypassed: false,
                 fetch: async () => {
                     try {
-                        const { data, error } = await window.sb.from('system_settings').select('id, is_active, auto_reactivate_at, reason');
+                        const { data, error } = await app.api.from('system_settings').select('id, is_active, auto_reactivate_at, reason');
                         if (data) {
                             data.forEach(item => { app.maintenance.settings[item.id] = item; });
                         }
@@ -1820,7 +1966,7 @@ cleanupState: () => {
                     if (parts.length < 2 || isNaN(parts[1])) return false;
                     const basePlate = parts[0];
                     try {
-                        const { data: relatedVehicles } = await window.sb.from('vehicles').select('license_plate, model').ilike('license_plate', `${basePlate}%`);
+                        const { data: relatedVehicles } = await app.api.from('vehicles').select('license_plate, model').ilike('license_plate', `${basePlate}%`);
                         if (relatedVehicles && relatedVehicles.length > 0) {
                             const currentModelLower = String(model).trim().toLowerCase();
                             const duplicateVehicle = relatedVehicles.find(v => {
@@ -1941,7 +2087,7 @@ cleanupState: () => {
                 },
                 getHomeStats: async (prefFilter) => {
                     try {
-                        const { data, error } = await window.sb.rpc('get_home_stats', { pref_filter: prefFilter || 'both' });
+                        const { data, error } = await app.api.rpc('get_home_stats', { pref_filter: prefFilter || 'both' });
                         if (error) throw error;
                         if (data && data.length > 0) return data[0];
                     } catch (e) {
@@ -1951,7 +2097,7 @@ cleanupState: () => {
                 },
                 getOperatorStats: async (operatorName) => {
                     try {
-                        const { data, error } = await window.sb.rpc('get_operator_stats', { op_name: operatorName });
+                        const { data, error } = await app.api.rpc('get_operator_stats', { op_name: operatorName });
                         if (error) throw error;
                         if (data && data.length > 0) return data[0];
                     } catch (e) {
@@ -1961,7 +2107,7 @@ cleanupState: () => {
                 },
                 getModelStats: async (modelName) => {
                     try {
-                        const { data, error } = await window.sb.rpc('get_model_stats', { mdl_name: modelName });
+                        const { data, error } = await app.api.rpc('get_model_stats', { mdl_name: modelName });
                         if (error) throw error;
                         if (data && data.length > 0) return data[0];
                     } catch (e) {
@@ -2354,7 +2500,7 @@ cleanupState: () => {
                             zBtn.className = "flex items-center justify-center gap-1.5 text-gray-800 bg-transparent hover:bg-black hover:text-white px-3 py-2 md:px-4 md:py-2.5 rounded-lg font-bold text-[11px] md:text-sm transition-colors whitespace-nowrap";
                             zBtn.innerHTML = '<i class="fa-regular fa-thumbs-up text-sm md:text-base"></i> <span class="hidden md:inline">Thích</span>';
                         }
-                        const { error } = await window.sb.from('photo_likes').delete().eq('photo_id', photoId).eq('user_id', app.user.id);
+                        const { error } = await app.api.from('photo_likes').delete().eq('photo_id', photoId).eq('user_id', app.user.id);
                         if (error) {
                             likeBtn.classList.replace('bg-black', 'bg-gray-400');
                             likeBtn.innerHTML = '<i class="fa-solid fa-check"></i> Đã thích';
@@ -2374,7 +2520,7 @@ cleanupState: () => {
                             zBtn.className = "flex items-center justify-center gap-1.5 bg-black text-white px-3 py-2 md:px-4 md:py-2.5 rounded-lg font-bold text-[11px] md:text-sm transition-colors whitespace-nowrap";
                             zBtn.innerHTML = '<i class="fa-solid fa-check text-sm md:text-base"></i> <span class="hidden md:inline">Đã thích</span>';
                         }
-                        const { error } = await window.sb.from('photo_likes').insert({ photo_id: photoId, user_id: app.user.id });
+                        const { error } = await app.api.from('photo_likes').insert({ photo_id: photoId, user_id: app.user.id });
                         if (error) {
                             if (error.code !== '23505') {
                                 likeBtn.classList.replace('bg-gray-400', 'bg-black');
@@ -2501,7 +2647,7 @@ cleanupState: () => {
                     }
                     let dbRoutes = [];
                     try {
-                        let rQuery = window.sb.rpc('get_unique_routes');
+                        let rQuery = app.api.rpc('get_unique_routes');
                         if (query.trim().length > 0) {
                             const routeWords = query.trim().split(/\s+/).filter(w => w.length > 0);
                             const { data } = await rQuery;
@@ -2585,7 +2731,7 @@ cleanupState: () => {
                     try {
                         let data, error;
                         if (query.length < 1 && field === 'model' && routeVal.length > 0 && !isSpecialRoute) {
-                            let sbQuery = window.sb.from('photos')
+                            let sbQuery = app.api.from('photos')
                                 .select('vehicles!inner(model)')
                                 .eq('route_no', routeVal)
                                 .eq('status', 'approved'); 
@@ -2615,7 +2761,14 @@ cleanupState: () => {
                             if (table === 'vehicles') {
                                 selectStr = `${selectField}, photos!inner(status${(app.preference.current !== 'both' || currentType) ? ', type' : ''})`;
                             }
-                            let sbQuery = window.sb.from(table).select(selectStr);
+                            let sbQuery = app.api.    channel(name) {
+        return {
+            on() { return this; },
+            subscribe() { return this; }
+        };
+    },
+    removeChannel() {},
+    from(table).select(selectStr);
                             if (table === 'photos') {
                                 sbQuery = sbQuery.eq('status', 'approved');
                             } else if (table === 'vehicles') {
@@ -2678,7 +2831,7 @@ cleanupState: () => {
                         let step = 999;
                         let fetchMore = true;
                         while (fetchMore) {
-                            const { data, error } = await window.sb
+                            const { data, error } = await app.api
                                 .from('photos')
                                 .select('uploader_id')
                                 .eq('status', 'approved')
@@ -3082,7 +3235,7 @@ cleanupState: () => {
                                 deleteBtn.disabled = true;
                                 okBtn.disabled = true;
                                 try {
-                                    const { data: { session } } = await window.sb.auth.getSession();
+                                    const { data: { session } } = await app.api.auth.getSession();
                                     const token = session?.access_token;
                                     const res = await fetch('/api/discord', {
                                         method: 'POST',
@@ -3114,7 +3267,7 @@ cleanupState: () => {
                         okBtn.disabled = true;
                         if (deleteBtn) deleteBtn.disabled = true;
                         try {
-                            const { data: { session } } = await window.sb.auth.getSession();
+                            const { data: { session } } = await app.api.auth.getSession();
                             const token = session?.access_token;
                             const res = await fetch('/api/discord', {
                                 method: 'POST',
@@ -3252,14 +3405,14 @@ cleanupState: () => {
                     if (filterType === 'uploader' || filterType === 'all') {
                         cardPromises.push((async () => {
                             try {
-                                let uQuery = window.sb.from('profiles').select('id, username, avatar_url, role, subroles, ban_status');
+                                let uQuery = app.api.from('profiles').select('id, username, avatar_url, role, subroles, ban_status');
                                 searchWords.forEach(w => { uQuery = uQuery.ilike('username', `%${w}%`); });
                                 const { data: usersData } = await uQuery.limit(5);
                                 if (usersData && usersData.length > 0) {
                                     for (const user of usersData) {
                                         const uDisplay = app.utils.formatProfileDisplay(user);
                                         if (uDisplay.isBanned) continue; 
-                                        const { count } = await window.sb.from('photos').select('*', { count: 'estimated', head: true }).eq('uploader_id', user.id).eq('status', 'approved');
+                                        const { count } = await app.api.from('photos').select('*', { count: 'estimated', head: true }).eq('uploader_id', user.id).eq('status', 'approved');
                                         const avatarSrc = uDisplay.avatar;
                                         const userBadges = app.utils.getBadgesHTML(user.id, user.role, user.subroles);
                                         uploaderCards.push(`
@@ -3279,8 +3432,8 @@ cleanupState: () => {
                     if (filterType === 'operator' || filterType === 'all') {
                         cardPromises.push((async () => {
                             try {
-                                let opInfoQuery = window.sb.from('operator_info').select('operator_name, logo_url, description');
-                                let opPhotoQuery = window.sb.from('photos').select('operator').eq('status', 'approved');
+                                let opInfoQuery = app.api.from('operator_info').select('operator_name, logo_url, description');
+                                let opPhotoQuery = app.api.from('photos').select('operator').eq('status', 'approved');
                                 searchWords.forEach(w => { 
                                     opInfoQuery = opInfoQuery.ilike('operator_name', `%${w}%`); 
                                     opPhotoQuery = opPhotoQuery.ilike('operator', `%${w}%`); 
@@ -3301,7 +3454,7 @@ cleanupState: () => {
                                         }
                                     });
                                 }
-                                const { data: allOpsForSearch } = await window.sb.from('operator_info').select('parent_operator');
+                                const { data: allOpsForSearch } = await app.api.from('operator_info').select('parent_operator');
                                 const parentMapForSearch = new Map();
                                 if (allOpsForSearch) {
                                     allOpsForSearch.forEach(op => {
@@ -3325,7 +3478,7 @@ cleanupState: () => {
                                 const finalOps = Array.from(uniqueOpsMap.values()).slice(0, 15);
                                 const missingInfos = finalOps.filter(op => !opInfoMap[op.toLowerCase()]);
                                 if (missingInfos.length > 0) {
-                                    const { data: extraInfos } = await window.sb.from('operator_info').select('operator_name, logo_url, description').in('operator_name', missingInfos);
+                                    const { data: extraInfos } = await app.api.from('operator_info').select('operator_name, logo_url, description').in('operator_name', missingInfos);
                                     if (extraInfos) {
                                         extraInfos.forEach(info => { opInfoMap[info.operator_name.toLowerCase()] = info; });
                                     }
@@ -3352,8 +3505,8 @@ cleanupState: () => {
                     if (filterType === 'model' || filterType === 'all') {
                         cardPromises.push((async () => {
                             try {
-                                let mdlInfoQuery = window.sb.from('model_info').select('model_name, logo_url, description');
-                                let mdlVehicleQuery = window.sb.from('vehicles').select('model, photos!inner(status)').eq('photos.status', 'approved');
+                                let mdlInfoQuery = app.api.from('model_info').select('model_name, logo_url, description');
+                                let mdlVehicleQuery = app.api.from('vehicles').select('model, photos!inner(status)').eq('photos.status', 'approved');
                                 searchWords.forEach(w => { 
                                     mdlInfoQuery = mdlInfoQuery.ilike('model_name', `%${w}%`); 
                                     mdlVehicleQuery = mdlVehicleQuery.ilike('model', `%${w}%`); 
@@ -3386,7 +3539,7 @@ cleanupState: () => {
                                 const finalModels = Array.from(uniqueModelsMap.values()).slice(0, 15);
                                 const missingInfos = finalModels.filter(m => !mdlInfoMap[m.toLowerCase()]);
                                 if (missingInfos.length > 0) {
-                                    const { data: extraInfos } = await window.sb.from('model_info').select('model_name, logo_url, description').in('model_name', missingInfos);
+                                    const { data: extraInfos } = await app.api.from('model_info').select('model_name, logo_url, description').in('model_name', missingInfos);
                                     if (extraInfos) {
                                         extraInfos.forEach(info => { mdlInfoMap[info.model_name.toLowerCase()] = info; });
                                     }
@@ -3396,7 +3549,7 @@ cleanupState: () => {
                                     let logo = info.logo_url ? app.utils.escapeAttr(info.logo_url.includes('wsrv.nl') ? info.logo_url : 'https://wsrv.nl/?url=' + encodeURIComponent(info.logo_url)) : '';
                                     if (!logo) {
                                         const brandName = m.split(' ')[0];
-                                        const { data: brandLogoData } = await window.sb.from('model_info')
+                                        const { data: brandLogoData } = await app.api.from('model_info')
                                             .select('logo_url')
                                             .ilike('model_name', `${brandName}%`)
                                             .not('logo_url', 'is', null)
@@ -3425,7 +3578,7 @@ cleanupState: () => {
                                                                                                                         if (filterType === 'route' || filterType === 'all') {
                         cardPromises.push((async () => {
                             try {
-                                let rQuery = window.sb.from('photos').select('route_no, type, license_plate, borrowed_route').eq('status', 'approved');
+                                let rQuery = app.api.from('photos').select('route_no, type, license_plate, borrowed_route').eq('status', 'approved');
                                 searchWords.forEach(w => { rQuery = rQuery.ilike('route_no', `%${w}%`); });
                                 const { data: rData } = await rQuery.limit(50);
                                 if (rData) {
@@ -3464,7 +3617,7 @@ cleanupState: () => {
                                     let shortPaths = {};
                                     if (finalRoutes.length > 0) {
                                         const dbNames = finalRoutes.map(i => i.dbName);
-                                        const { data: rtInfo } = await window.sb.from('route_info').select('route_name, short_path, metadata').in('route_name', dbNames);
+                                        const { data: rtInfo } = await app.api.from('route_info').select('route_name, short_path, metadata').in('route_name', dbNames);
                                         if (rtInfo) rtInfo.forEach(rt => { shortPaths[rt.route_name.toLowerCase()] = { short: rt.short_path, meta: rt.metadata }; });
                                     }
                                     for (const info of finalRoutes) {
@@ -3499,7 +3652,7 @@ cleanupState: () => {
                         cardPromises.push((async () => {
                             try {
                                 let selectStr = app.preference.current !== 'both' ? '*, photos!inner(type, status)' : '*, photos!inner(status)';
-                                let vQuery = window.sb.from('vehicles').select(selectStr).eq('photos.status', 'approved').limit(10);
+                                let vQuery = app.api.from('vehicles').select(selectStr).eq('photos.status', 'approved').limit(10);
                                 if (filterType === 'plate') {
                                     searchWords.forEach(w => { vQuery = vQuery.ilike('license_plate', `%${app.utils.normalizePlateQuery(w)}%`); });
                                 } else if (filterType === 'model') {
@@ -3539,7 +3692,7 @@ cleanupState: () => {
                     let profileSelect = (filterType === 'uploader' || (filterType === 'advanced' && (app.search.advancedFilters || []).some(f => f.field === 'uploader'))) 
                         ? 'profiles!inner(id, username, role, subroles, ban_status)' 
                         : 'profiles(id, username, role, subroles, ban_status)';
-                    let photoQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, ${profileSelect}, vehicles${needsModelJoin ? '!inner' : ''}(model)`, { count: 'estimated' }).eq('status', 'approved');
+                    let photoQuery = app.api.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, ${profileSelect}, vehicles${needsModelJoin ? '!inner' : ''}(model)`, { count: 'estimated' }).eq('status', 'approved');
                     photoQuery = app.preference.applyFilter(photoQuery);
                     if (filterType === 'route') {
                         const prefix = prefixToUrl;
@@ -3575,8 +3728,8 @@ cleanupState: () => {
                     } else if (filterType === 'model') {
                         searchWords.forEach(w => { photoQuery = photoQuery.ilike('vehicles.model', `%${w}%`); });
                     } else {
-                        let mQ = window.sb.from('vehicles').select('license_plate, photos!inner(status)').eq('photos.status', 'approved');
-                        let uQ = window.sb.from('profiles').select('id, ban_status');
+                        let mQ = app.api.from('vehicles').select('license_plate, photos!inner(status)').eq('photos.status', 'approved');
+                        let uQ = app.api.from('profiles').select('id, ban_status');
                         searchWords.forEach(w => {
                             const safeW = w.replace(/"/g, '');
                             mQ = mQ.or(`model.ilike."%${safeW}%",note.ilike."%${safeW}%"`);
@@ -3653,13 +3806,13 @@ cleanupState: () => {
                     let finalAvatar = user.user_metadata?.avatar_url || user.user_metadata?.picture || null;
                     let currentAvatar = finalAvatar;
                     try {
-                        const { data: profile } = await window.sb.from('profiles').select('username, avatar_url, role, preferences, ban_status').eq('id', user.id).maybeSingle();
+                        const { data: profile } = await app.api.from('profiles').select('username, avatar_url, role, preferences, ban_status').eq('id', user.id).maybeSingle();
                         if (profile) currentAvatar = profile.avatar_url || finalAvatar;
                         if (profile && profile.ban_status) {
                             let banInfo = null;
                             try { banInfo = typeof profile.ban_status === 'string' ? JSON.parse(profile.ban_status) : profile.ban_status; } catch(e){}
                             if (banInfo && (banInfo.banned === true || banInfo.banned === 'true')) {
-                                try { await window.sb.auth.signOut(); } catch(err){}
+                                try { await app.api.auth.signOut(); } catch(err){}
                                 for (let i = 0; i < localStorage.length; i++) {
                                     const key = localStorage.key(i);
                                     if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
@@ -3706,7 +3859,7 @@ cleanupState: () => {
 
                         let localWmMode = localStorage.getItem('vnbus_wm_mode') || 'basic';
                         if (!profile || !profile.username) {
-                            await window.sb.from('profiles').upsert({
+                            await app.api.from('profiles').upsert({
                                 id: user.id,
                                 username: finalName,
                                 avatar_url: finalAvatar,
@@ -3737,7 +3890,7 @@ cleanupState: () => {
                                     }
                                 }
                             } else {
-                                window.sb.from('profiles').update({
+                                app.api.from('profiles').update({
                                     preferences: { type: localPref, wmMode: localWmMode, pinnedLocations: [] }
                                 }).eq('id', user.id).then(()=>{});
                                 app.preference.current = localPref;
@@ -3808,3 +3961,8 @@ dropdown.innerHTML = `
                 if (app.auth && app.auth.updateUUIDBox) app.auth.updateUUIDBox();
             }
 });
+
+
+
+
+

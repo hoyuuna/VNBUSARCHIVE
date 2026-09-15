@@ -591,7 +591,7 @@ Object.assign(window.app, {
                 if (!targetUsername) return;
                 try {
                     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(targetUsername);
-                    let query = window.sb.from('profiles').select('id, username, avatar_url, role, subroles');
+                    let query = app.api.from('profiles').select('id, username, avatar_url, role, subroles');
                     if (isUuid) {
                         query = query.eq('id', targetUsername);
                     } else {
@@ -599,7 +599,7 @@ Object.assign(window.app, {
                     }
                     const { data: uData, error: uErr } = await query.single();
                     if (uErr || !uData) throw new Error("Hồ sơ người dùng không tồn tại.");
-                    const { count } = await window.sb.from('photos').select('*', { count: 'estimated', head: true }).eq('uploader_id', uData.id).eq('status', 'approved');
+                    const { count } = await app.api.from('photos').select('*', { count: 'estimated', head: true }).eq('uploader_id', uData.id).eq('status', 'approved');
                     const avatarSrc = uData.avatar_url ? app.utils.getProxiedUrl(uData.avatar_url.replace(/"/g, ''), 'avatar.jpg', 'avatar') : 'https://files.catbox.moe/zzh1q1.png';
                     const badges = app.utils.getBadgesHTML(uData.id, uData.role, uData.subroles, true);
                     document.getElementById('contact-preview-user-avatar').src = avatarSrc;
@@ -621,7 +621,7 @@ Object.assign(window.app, {
             previewBox.classList.remove('hidden');
             imgEl.src = 'https://placehold.co/400x300/f3f4f6/a1a1aa?text=Dang+tai...';
             try {
-                const { data, error } = await window.sb.from('photos').select('id, url, status, uploader_id, license_plate, operator').eq('id', photoId).single();
+                const { data, error } = await app.api.from('photos').select('id, url, status, uploader_id, license_plate, operator').eq('id', photoId).single();
                 if (error || !data) throw new Error("Ảnh không tồn tại trên hệ thống.");
                 if (topic === 'appeal') {
                     if (data.status !== 'denied') throw new Error("Kháng cáo thất bại: Ảnh này KHÔNG ở trạng thái Bị từ chối.");
@@ -665,7 +665,7 @@ Object.assign(window.app, {
             if (previewBox) previewBox.classList.remove('hidden');
             if (imgEl) imgEl.src = 'https://placehold.co/400x300/f3f4f6/a1a1aa?text=Dang+tai...';
             try {
-                const { data, error } = await window.sb.from('photos').select('id, url, status, uploader_id, license_plate, operator').eq('id', photoId).single();
+                const { data, error } = await app.api.from('photos').select('id, url, status, uploader_id, license_plate, operator').eq('id', photoId).single();
                 if (error || !data) throw new Error("Ảnh không tồn tại trên hệ thống.");
                 if (!app.user || data.uploader_id !== app.user.id) {
                     throw new Error("Đây không phải là ảnh do bạn đăng tải! Vui lòng chỉ chọn link ảnh của chính bạn trên hệ thống.");
@@ -804,7 +804,7 @@ Object.assign(window.app, {
                     body: JSON.stringify(payload)
                 };
                 if (app.user) {
-                    const { data: { session } } = await window.sb.auth.getSession();
+                    const { data: { session } } = await app.api.auth.getSession();
                     if (session) reqOpts.headers['Authorization'] = `Bearer ${session.access_token}`;
                 }
                 const res = await fetch('/api/discord', reqOpts);

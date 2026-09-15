@@ -1,6 +1,152 @@
 
 /* --- MODULE: 00_core.js --- */
 window.app = window.app || {};
+// Custom MongoDB API Wrapper replacing Supabase SDK
+    setInterval(() => {
+        if (app.currentViewMode === 'home' && !app._isUserScrolling) {
+            const now = Date.now();
+            if (app._lastHomeRealtimeReload && now - app._lastHomeRealtimeReload < 30000) return;
+            app._lastHomeRealtimeReload = now;
+            app.views.loadHome(true);
+        }
+    }, 60000); // 60s polling
+app.api = {
+    auth: {
+                        async updateUser(updates) {
+            try {
+                const token = localStorage.getItem('vnbus_token');
+                const res = await fetch('/api/auth/update', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updates)
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error);
+                return { data: { user: data.data.user }, error: null };
+            } catch (err) {
+                return { error: err };
+            }
+        },
+        async getSession() {
+            const { data, error } = await this.getUser();
+            if (data && data.user) {
+                return { data: { session: { user: data.user, access_token: localStorage.getItem('vnbus_token') } }, error: null };
+            }
+            return { data: { session: null }, error: null };
+        },
+        onAuthStateChange(callback) {
+            // Stub it since we don't have websocket for auth state changes
+            // Initial call
+            this.getSession().then(({ data }) => callback('INITIAL', data.session));
+            // You can trigger this manually in signin/signout if you want
+        },
+        async getUser() {
+            const token = localStorage.getItem('vnbus_token');
+            if (!token) return { data: { user: null }, error: null };
+            try {
+                const res = await fetch('/api/auth/me', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                if (!res.ok) throw new Error('Invalid token');
+                const user = await res.json();
+                return { data: { user }, error: null };
+            } catch (err) {
+                return { data: { user: null }, error: err };
+            }
+        },
+        async signInWithPassword({ email, password }) {
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+                if (!res.ok) return { error: { message: data.error } };
+                localStorage.setItem('vnbus_token', data.token);
+                return { data: { user: data.user }, error: null };
+            } catch (err) {
+                return { error: err };
+            }
+        },
+        async signUp({ email, password, options }) {
+            try {
+                const res = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        email, 
+                        password, 
+                        username: options?.data?.username || email.split('@')[0] 
+                    })
+                });
+                const data = await res.json();
+                if (!res.ok) return { error: { message: data.error } };
+                localStorage.setItem('vnbus_token', data.token);
+                return { data: { user: data.user }, error: null };
+            } catch (err) {
+                return { error: err };
+            }
+        },
+        async signOut() {
+            localStorage.removeItem('vnbus_token');
+            return { error: null };
+        }
+    },
+        channel(name) {
+        return {
+            on() { return this; },
+            subscribe() { return this; }
+        };
+    },
+    removeChannel() {},
+    from(table) {
+        return new QueryBuilder(table);
+    }
+};
+
+class QueryBuilder {
+    constructor(table) {
+        this.table = table;
+        this.query = { action: 'select', select: '*', filters: [], order: null, limit: null, skip: 0, single: false };
+    }
+    select(fields, options) { this.query.select = fields; this.query.options = options; return this; }
+    insert(data) { this.query.action = 'insert'; this.query.data = data; return this; }
+    update(data) { this.query.action = 'update'; this.query.data = data; return this; }
+    delete() { this.query.action = 'delete'; return this; }
+    upsert(data) { this.query.action = 'upsert'; this.query.data = data; return this; }
+    
+    eq(column, value) { this.query.filters.push({ type: 'eq', column, value }); return this; }
+    neq(column, value) { this.query.filters.push({ type: 'neq', column, value }); return this; }
+    in(column, values) { this.query.filters.push({ type: 'in', column, values }); return this; }
+    ilike(column, value) { this.query.filters.push({ type: 'ilike', column, value }); return this; }
+    is(column, value) { this.query.filters.push({ type: 'is', column, value }); return this; }
+    or(condition) { this.query.filters.push({ type: 'or', condition }); return this; }
+    
+    order(column, options = { ascending: true }) { this.query.order = { column, ascending: options.ascending }; return this; }
+    range(from, to) { this.query.skip = from; this.query.limit = (to - from + 1); return this; }
+    limit(limit) { this.query.limit = limit; return this; }
+    single() { this.query.single = true; return this; }
+    
+    async then(resolve, reject) {
+        try {
+            const token = localStorage.getItem('vnbus_token');
+            const headers = { 'Content-Type': 'application/json' };
+            if (token) headers['Authorization'] = 'Bearer ' + token;
+            
+            const res = await fetch('/api/query', {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({ table: this.table, ...this.query })
+            });
+            const result = await res.json();
+            if (!res.ok) throw new Error(result.error || 'Query failed');
+            resolve(result);
+        } catch (error) {
+            resolve({ data: null, error: { message: error.message } });
+        }
+    }
+}
 window.addEventListener('unhandledrejection', function(event) {
     if (event.reason && event.reason.message && event.reason.message.includes("Unexpected token '<'")) {
         if (window.app && window.app.toast) {
@@ -466,7 +612,7 @@ Object.assign(window.app, {
                     if (app.customToasts.loaded) return;
                     app.customToasts.loaded = true;
                     try {
-                        const { data, error } = await window.sb.from('custom_toasts')
+                        const { data, error } = await app.api.from('custom_toasts')
                             .select('id, title, message, icon, color, link_url, link_label, sort_order, show_mode, duration')
                             .eq('is_active', true)
                             .order('sort_order', { ascending: true })
@@ -937,7 +1083,7 @@ closeCustomRolePrompt: () => {
                     if (infoBox && queueCountSpan) {
                         infoBox.classList.remove('hidden');
                         queueCountSpan.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-                        window.sb.from('photos').select('id, created_at, uploader_id, profiles(role)').eq('status', 'pending')
+                        app.api.from('photos').select('id, created_at, uploader_id, profiles(role)').eq('status', 'pending')
                             .then(({ data, error }) => {
                                 if (!error && data) {
                                     let ahead = 0;
@@ -1059,7 +1205,7 @@ closeCustomRolePrompt: () => {
                 isBypassed: false,
                 fetch: async () => {
                     try {
-                        const { data, error } = await window.sb.from('system_settings').select('id, is_active, auto_reactivate_at, reason');
+                        const { data, error } = await app.api.from('system_settings').select('id, is_active, auto_reactivate_at, reason');
                         if (data) {
                             data.forEach(item => { app.maintenance.settings[item.id] = item; });
                         }
@@ -1822,7 +1968,7 @@ cleanupState: () => {
                     if (parts.length < 2 || isNaN(parts[1])) return false;
                     const basePlate = parts[0];
                     try {
-                        const { data: relatedVehicles } = await window.sb.from('vehicles').select('license_plate, model').ilike('license_plate', `${basePlate}%`);
+                        const { data: relatedVehicles } = await app.api.from('vehicles').select('license_plate, model').ilike('license_plate', `${basePlate}%`);
                         if (relatedVehicles && relatedVehicles.length > 0) {
                             const currentModelLower = String(model).trim().toLowerCase();
                             const duplicateVehicle = relatedVehicles.find(v => {
@@ -1943,7 +2089,7 @@ cleanupState: () => {
                 },
                 getHomeStats: async (prefFilter) => {
                     try {
-                        const { data, error } = await window.sb.rpc('get_home_stats', { pref_filter: prefFilter || 'both' });
+                        const { data, error } = await app.api.rpc('get_home_stats', { pref_filter: prefFilter || 'both' });
                         if (error) throw error;
                         if (data && data.length > 0) return data[0];
                     } catch (e) {
@@ -1953,7 +2099,7 @@ cleanupState: () => {
                 },
                 getOperatorStats: async (operatorName) => {
                     try {
-                        const { data, error } = await window.sb.rpc('get_operator_stats', { op_name: operatorName });
+                        const { data, error } = await app.api.rpc('get_operator_stats', { op_name: operatorName });
                         if (error) throw error;
                         if (data && data.length > 0) return data[0];
                     } catch (e) {
@@ -1963,7 +2109,7 @@ cleanupState: () => {
                 },
                 getModelStats: async (modelName) => {
                     try {
-                        const { data, error } = await window.sb.rpc('get_model_stats', { mdl_name: modelName });
+                        const { data, error } = await app.api.rpc('get_model_stats', { mdl_name: modelName });
                         if (error) throw error;
                         if (data && data.length > 0) return data[0];
                     } catch (e) {
@@ -2356,7 +2502,7 @@ cleanupState: () => {
                             zBtn.className = "flex items-center justify-center gap-1.5 text-gray-800 bg-transparent hover:bg-black hover:text-white px-3 py-2 md:px-4 md:py-2.5 rounded-lg font-bold text-[11px] md:text-sm transition-colors whitespace-nowrap";
                             zBtn.innerHTML = '<i class="fa-regular fa-thumbs-up text-sm md:text-base"></i> <span class="hidden md:inline">Thích</span>';
                         }
-                        const { error } = await window.sb.from('photo_likes').delete().eq('photo_id', photoId).eq('user_id', app.user.id);
+                        const { error } = await app.api.from('photo_likes').delete().eq('photo_id', photoId).eq('user_id', app.user.id);
                         if (error) {
                             likeBtn.classList.replace('bg-black', 'bg-gray-400');
                             likeBtn.innerHTML = '<i class="fa-solid fa-check"></i> Đã thích';
@@ -2376,7 +2522,7 @@ cleanupState: () => {
                             zBtn.className = "flex items-center justify-center gap-1.5 bg-black text-white px-3 py-2 md:px-4 md:py-2.5 rounded-lg font-bold text-[11px] md:text-sm transition-colors whitespace-nowrap";
                             zBtn.innerHTML = '<i class="fa-solid fa-check text-sm md:text-base"></i> <span class="hidden md:inline">Đã thích</span>';
                         }
-                        const { error } = await window.sb.from('photo_likes').insert({ photo_id: photoId, user_id: app.user.id });
+                        const { error } = await app.api.from('photo_likes').insert({ photo_id: photoId, user_id: app.user.id });
                         if (error) {
                             if (error.code !== '23505') {
                                 likeBtn.classList.replace('bg-gray-400', 'bg-black');
@@ -2503,7 +2649,7 @@ cleanupState: () => {
                     }
                     let dbRoutes = [];
                     try {
-                        let rQuery = window.sb.rpc('get_unique_routes');
+                        let rQuery = app.api.rpc('get_unique_routes');
                         if (query.trim().length > 0) {
                             const routeWords = query.trim().split(/\s+/).filter(w => w.length > 0);
                             const { data } = await rQuery;
@@ -2587,7 +2733,7 @@ cleanupState: () => {
                     try {
                         let data, error;
                         if (query.length < 1 && field === 'model' && routeVal.length > 0 && !isSpecialRoute) {
-                            let sbQuery = window.sb.from('photos')
+                            let sbQuery = app.api.from('photos')
                                 .select('vehicles!inner(model)')
                                 .eq('route_no', routeVal)
                                 .eq('status', 'approved'); 
@@ -2617,7 +2763,14 @@ cleanupState: () => {
                             if (table === 'vehicles') {
                                 selectStr = `${selectField}, photos!inner(status${(app.preference.current !== 'both' || currentType) ? ', type' : ''})`;
                             }
-                            let sbQuery = window.sb.from(table).select(selectStr);
+                            let sbQuery = app.api.    channel(name) {
+        return {
+            on() { return this; },
+            subscribe() { return this; }
+        };
+    },
+    removeChannel() {},
+    from(table).select(selectStr);
                             if (table === 'photos') {
                                 sbQuery = sbQuery.eq('status', 'approved');
                             } else if (table === 'vehicles') {
@@ -2680,7 +2833,7 @@ cleanupState: () => {
                         let step = 999;
                         let fetchMore = true;
                         while (fetchMore) {
-                            const { data, error } = await window.sb
+                            const { data, error } = await app.api
                                 .from('photos')
                                 .select('uploader_id')
                                 .eq('status', 'approved')
@@ -3084,7 +3237,7 @@ cleanupState: () => {
                                 deleteBtn.disabled = true;
                                 okBtn.disabled = true;
                                 try {
-                                    const { data: { session } } = await window.sb.auth.getSession();
+                                    const { data: { session } } = await app.api.auth.getSession();
                                     const token = session?.access_token;
                                     const res = await fetch('/api/discord', {
                                         method: 'POST',
@@ -3116,7 +3269,7 @@ cleanupState: () => {
                         okBtn.disabled = true;
                         if (deleteBtn) deleteBtn.disabled = true;
                         try {
-                            const { data: { session } } = await window.sb.auth.getSession();
+                            const { data: { session } } = await app.api.auth.getSession();
                             const token = session?.access_token;
                             const res = await fetch('/api/discord', {
                                 method: 'POST',
@@ -3254,14 +3407,14 @@ cleanupState: () => {
                     if (filterType === 'uploader' || filterType === 'all') {
                         cardPromises.push((async () => {
                             try {
-                                let uQuery = window.sb.from('profiles').select('id, username, avatar_url, role, subroles, ban_status');
+                                let uQuery = app.api.from('profiles').select('id, username, avatar_url, role, subroles, ban_status');
                                 searchWords.forEach(w => { uQuery = uQuery.ilike('username', `%${w}%`); });
                                 const { data: usersData } = await uQuery.limit(5);
                                 if (usersData && usersData.length > 0) {
                                     for (const user of usersData) {
                                         const uDisplay = app.utils.formatProfileDisplay(user);
                                         if (uDisplay.isBanned) continue; 
-                                        const { count } = await window.sb.from('photos').select('*', { count: 'estimated', head: true }).eq('uploader_id', user.id).eq('status', 'approved');
+                                        const { count } = await app.api.from('photos').select('*', { count: 'estimated', head: true }).eq('uploader_id', user.id).eq('status', 'approved');
                                         const avatarSrc = uDisplay.avatar;
                                         const userBadges = app.utils.getBadgesHTML(user.id, user.role, user.subroles);
                                         uploaderCards.push(`
@@ -3281,8 +3434,8 @@ cleanupState: () => {
                     if (filterType === 'operator' || filterType === 'all') {
                         cardPromises.push((async () => {
                             try {
-                                let opInfoQuery = window.sb.from('operator_info').select('operator_name, logo_url, description');
-                                let opPhotoQuery = window.sb.from('photos').select('operator').eq('status', 'approved');
+                                let opInfoQuery = app.api.from('operator_info').select('operator_name, logo_url, description');
+                                let opPhotoQuery = app.api.from('photos').select('operator').eq('status', 'approved');
                                 searchWords.forEach(w => { 
                                     opInfoQuery = opInfoQuery.ilike('operator_name', `%${w}%`); 
                                     opPhotoQuery = opPhotoQuery.ilike('operator', `%${w}%`); 
@@ -3303,7 +3456,7 @@ cleanupState: () => {
                                         }
                                     });
                                 }
-                                const { data: allOpsForSearch } = await window.sb.from('operator_info').select('parent_operator');
+                                const { data: allOpsForSearch } = await app.api.from('operator_info').select('parent_operator');
                                 const parentMapForSearch = new Map();
                                 if (allOpsForSearch) {
                                     allOpsForSearch.forEach(op => {
@@ -3327,7 +3480,7 @@ cleanupState: () => {
                                 const finalOps = Array.from(uniqueOpsMap.values()).slice(0, 15);
                                 const missingInfos = finalOps.filter(op => !opInfoMap[op.toLowerCase()]);
                                 if (missingInfos.length > 0) {
-                                    const { data: extraInfos } = await window.sb.from('operator_info').select('operator_name, logo_url, description').in('operator_name', missingInfos);
+                                    const { data: extraInfos } = await app.api.from('operator_info').select('operator_name, logo_url, description').in('operator_name', missingInfos);
                                     if (extraInfos) {
                                         extraInfos.forEach(info => { opInfoMap[info.operator_name.toLowerCase()] = info; });
                                     }
@@ -3354,8 +3507,8 @@ cleanupState: () => {
                     if (filterType === 'model' || filterType === 'all') {
                         cardPromises.push((async () => {
                             try {
-                                let mdlInfoQuery = window.sb.from('model_info').select('model_name, logo_url, description');
-                                let mdlVehicleQuery = window.sb.from('vehicles').select('model, photos!inner(status)').eq('photos.status', 'approved');
+                                let mdlInfoQuery = app.api.from('model_info').select('model_name, logo_url, description');
+                                let mdlVehicleQuery = app.api.from('vehicles').select('model, photos!inner(status)').eq('photos.status', 'approved');
                                 searchWords.forEach(w => { 
                                     mdlInfoQuery = mdlInfoQuery.ilike('model_name', `%${w}%`); 
                                     mdlVehicleQuery = mdlVehicleQuery.ilike('model', `%${w}%`); 
@@ -3388,7 +3541,7 @@ cleanupState: () => {
                                 const finalModels = Array.from(uniqueModelsMap.values()).slice(0, 15);
                                 const missingInfos = finalModels.filter(m => !mdlInfoMap[m.toLowerCase()]);
                                 if (missingInfos.length > 0) {
-                                    const { data: extraInfos } = await window.sb.from('model_info').select('model_name, logo_url, description').in('model_name', missingInfos);
+                                    const { data: extraInfos } = await app.api.from('model_info').select('model_name, logo_url, description').in('model_name', missingInfos);
                                     if (extraInfos) {
                                         extraInfos.forEach(info => { mdlInfoMap[info.model_name.toLowerCase()] = info; });
                                     }
@@ -3398,7 +3551,7 @@ cleanupState: () => {
                                     let logo = info.logo_url ? app.utils.escapeAttr(info.logo_url.includes('wsrv.nl') ? info.logo_url : 'https://wsrv.nl/?url=' + encodeURIComponent(info.logo_url)) : '';
                                     if (!logo) {
                                         const brandName = m.split(' ')[0];
-                                        const { data: brandLogoData } = await window.sb.from('model_info')
+                                        const { data: brandLogoData } = await app.api.from('model_info')
                                             .select('logo_url')
                                             .ilike('model_name', `${brandName}%`)
                                             .not('logo_url', 'is', null)
@@ -3427,7 +3580,7 @@ cleanupState: () => {
                                                                                                                         if (filterType === 'route' || filterType === 'all') {
                         cardPromises.push((async () => {
                             try {
-                                let rQuery = window.sb.from('photos').select('route_no, type, license_plate, borrowed_route').eq('status', 'approved');
+                                let rQuery = app.api.from('photos').select('route_no, type, license_plate, borrowed_route').eq('status', 'approved');
                                 searchWords.forEach(w => { rQuery = rQuery.ilike('route_no', `%${w}%`); });
                                 const { data: rData } = await rQuery.limit(50);
                                 if (rData) {
@@ -3466,7 +3619,7 @@ cleanupState: () => {
                                     let shortPaths = {};
                                     if (finalRoutes.length > 0) {
                                         const dbNames = finalRoutes.map(i => i.dbName);
-                                        const { data: rtInfo } = await window.sb.from('route_info').select('route_name, short_path, metadata').in('route_name', dbNames);
+                                        const { data: rtInfo } = await app.api.from('route_info').select('route_name, short_path, metadata').in('route_name', dbNames);
                                         if (rtInfo) rtInfo.forEach(rt => { shortPaths[rt.route_name.toLowerCase()] = { short: rt.short_path, meta: rt.metadata }; });
                                     }
                                     for (const info of finalRoutes) {
@@ -3501,7 +3654,7 @@ cleanupState: () => {
                         cardPromises.push((async () => {
                             try {
                                 let selectStr = app.preference.current !== 'both' ? '*, photos!inner(type, status)' : '*, photos!inner(status)';
-                                let vQuery = window.sb.from('vehicles').select(selectStr).eq('photos.status', 'approved').limit(10);
+                                let vQuery = app.api.from('vehicles').select(selectStr).eq('photos.status', 'approved').limit(10);
                                 if (filterType === 'plate') {
                                     searchWords.forEach(w => { vQuery = vQuery.ilike('license_plate', `%${app.utils.normalizePlateQuery(w)}%`); });
                                 } else if (filterType === 'model') {
@@ -3541,7 +3694,7 @@ cleanupState: () => {
                     let profileSelect = (filterType === 'uploader' || (filterType === 'advanced' && (app.search.advancedFilters || []).some(f => f.field === 'uploader'))) 
                         ? 'profiles!inner(id, username, role, subroles, ban_status)' 
                         : 'profiles(id, username, role, subroles, ban_status)';
-                    let photoQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, ${profileSelect}, vehicles${needsModelJoin ? '!inner' : ''}(model)`, { count: 'estimated' }).eq('status', 'approved');
+                    let photoQuery = app.api.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, ${profileSelect}, vehicles${needsModelJoin ? '!inner' : ''}(model)`, { count: 'estimated' }).eq('status', 'approved');
                     photoQuery = app.preference.applyFilter(photoQuery);
                     if (filterType === 'route') {
                         const prefix = prefixToUrl;
@@ -3577,8 +3730,8 @@ cleanupState: () => {
                     } else if (filterType === 'model') {
                         searchWords.forEach(w => { photoQuery = photoQuery.ilike('vehicles.model', `%${w}%`); });
                     } else {
-                        let mQ = window.sb.from('vehicles').select('license_plate, photos!inner(status)').eq('photos.status', 'approved');
-                        let uQ = window.sb.from('profiles').select('id, ban_status');
+                        let mQ = app.api.from('vehicles').select('license_plate, photos!inner(status)').eq('photos.status', 'approved');
+                        let uQ = app.api.from('profiles').select('id, ban_status');
                         searchWords.forEach(w => {
                             const safeW = w.replace(/"/g, '');
                             mQ = mQ.or(`model.ilike."%${safeW}%",note.ilike."%${safeW}%"`);
@@ -3655,13 +3808,13 @@ cleanupState: () => {
                     let finalAvatar = user.user_metadata?.avatar_url || user.user_metadata?.picture || null;
                     let currentAvatar = finalAvatar;
                     try {
-                        const { data: profile } = await window.sb.from('profiles').select('username, avatar_url, role, preferences, ban_status').eq('id', user.id).maybeSingle();
+                        const { data: profile } = await app.api.from('profiles').select('username, avatar_url, role, preferences, ban_status').eq('id', user.id).maybeSingle();
                         if (profile) currentAvatar = profile.avatar_url || finalAvatar;
                         if (profile && profile.ban_status) {
                             let banInfo = null;
                             try { banInfo = typeof profile.ban_status === 'string' ? JSON.parse(profile.ban_status) : profile.ban_status; } catch(e){}
                             if (banInfo && (banInfo.banned === true || banInfo.banned === 'true')) {
-                                try { await window.sb.auth.signOut(); } catch(err){}
+                                try { await app.api.auth.signOut(); } catch(err){}
                                 for (let i = 0; i < localStorage.length; i++) {
                                     const key = localStorage.key(i);
                                     if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
@@ -3708,7 +3861,7 @@ cleanupState: () => {
 
                         let localWmMode = localStorage.getItem('vnbus_wm_mode') || 'basic';
                         if (!profile || !profile.username) {
-                            await window.sb.from('profiles').upsert({
+                            await app.api.from('profiles').upsert({
                                 id: user.id,
                                 username: finalName,
                                 avatar_url: finalAvatar,
@@ -3739,7 +3892,7 @@ cleanupState: () => {
                                     }
                                 }
                             } else {
-                                window.sb.from('profiles').update({
+                                app.api.from('profiles').update({
                                     preferences: { type: localPref, wmMode: localWmMode, pinnedLocations: [] }
                                 }).eq('id', user.id).then(()=>{});
                                 app.preference.current = localPref;
@@ -3811,6 +3964,11 @@ dropdown.innerHTML = `
             }
 });
 
+
+
+
+
+
 /* --- MODULE: 01_router.js --- */
 // Extracted to 01_router.js
 Object.assign(window.app, {
@@ -3828,7 +3986,7 @@ Object.assign(window.app, {
         }
             let session = null;
             try {
-                const { data } = await window.sb.auth.getSession();
+                const { data } = await app.api.auth.getSession();
                 session = data.session;
                 if (session && session.access_token) {
                     fetch('/api/system', {
@@ -3865,7 +4023,7 @@ Object.assign(window.app, {
 
                 await app.setUser(session ? session.user : null);
                 if (app.customToasts && app.customToasts.show) app.customToasts.show();
-                window.sb.auth.onAuthStateChange(async (event, session) => {
+                app.api.auth.onAuthStateChange(async (event, session) => {
                         if (event === 'PASSWORD_RECOVERY') {
     if (window.location.hash.includes('type=recovery')) {
         app.auth.mode = 'recovery';
@@ -4171,9 +4329,9 @@ Object.assign(window.app, {
                 app.utils.fetchTopUploaders();
                 app.initRealtimeChannel = () => {
                     if (app.realtimeChannel) {
-                    window.sb.removeChannel(app.realtimeChannel);
+                    app.api.removeChannel(app.realtimeChannel);
                 }
-                let channel = window.sb.channel('global-changes')
+                let channel = app.api.channel('global-changes')
                     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'photos', filter: 'status=eq.approved' }, payload => {
                         if (app.currentViewMode === 'home') {
                             const now = Date.now();
@@ -4257,7 +4415,7 @@ Object.assign(window.app, {
                     channel = channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'photos', filter: 'status=eq.pending' }, async payload => {
                         if (app.adminTab === 'photos' && (app.role === 'admin' || app.role === 'manager') && payload.new && payload.new.id) {
                             try {
-                                const { data: newPhoto } = await window.sb.from('photos').select('*, profiles(username, role), vehicles(model)').eq('id', payload.new.id).maybeSingle();
+                                const { data: newPhoto } = await app.api.from('photos').select('*, profiles(username, role), vehicles(model)').eq('id', payload.new.id).maybeSingle();
                                 if (newPhoto && !document.getElementById(`adm-photo-card-${newPhoto.id}`)) {
                                     await app.utils.resolveSandboxUrls([newPhoto]);
                                     const content = document.getElementById('admin-content');
@@ -4272,14 +4430,14 @@ Object.assign(window.app, {
                                         let modelSet = app.admin?.approvedModelSet || new Set();
                                         const plateKey = (newPhoto.license_plate || '').trim().toUpperCase();
                                         if (plateKey && !plateSet.has(plateKey)) {
-                                            const { data: vData } = await window.sb.from('vehicles').select('license_plate').eq('license_plate', plateKey).limit(1);
-                                            const { data: pData } = await window.sb.from('photos').select('license_plate').eq('status', 'approved').eq('license_plate', plateKey).limit(1);
+                                            const { data: vData } = await app.api.from('vehicles').select('license_plate').eq('license_plate', plateKey).limit(1);
+                                            const { data: pData } = await app.api.from('photos').select('license_plate').eq('status', 'approved').eq('license_plate', plateKey).limit(1);
                                             if ((vData && vData.length > 0) || (pData && pData.length > 0)) plateSet.add(plateKey);
                                         }
                                         const opKey = app.utils.cleanText(newPhoto.operator || '').trim().toLowerCase();
                                         if (opKey && opKey !== '---' && !opSet.has(opKey)) {
-                                            const { data: oData } = await window.sb.from('operator_info').select('operator_name').ilike('operator_name', opKey).limit(1);
-                                            const { data: pData } = await window.sb.from('photos').select('operator').eq('status', 'approved').ilike('operator', opKey).limit(1);
+                                            const { data: oData } = await app.api.from('operator_info').select('operator_name').ilike('operator_name', opKey).limit(1);
+                                            const { data: pData } = await app.api.from('photos').select('operator').eq('status', 'approved').ilike('operator', opKey).limit(1);
                                             if ((oData && oData.length > 0) || (pData && pData.length > 0)) opSet.add(opKey);
                                         }
                                         const routeKey = app.utils.cleanText(newPhoto.route_no || '').trim().toLowerCase();
@@ -4291,15 +4449,15 @@ Object.assign(window.app, {
                                                 const pad = stripped.padStart(2, '0');
                                                 variants.push(num, pad, 'tuyến ' + num, 'tuyến ' + pad);
                                             }
-                                            const { data: pData } = await window.sb.from('photos').select('route_no').eq('status', 'approved').in('route_no', variants).limit(1);
+                                            const { data: pData } = await app.api.from('photos').select('route_no').eq('status', 'approved').in('route_no', variants).limit(1);
                                             if (pData && pData.length > 0) {
                                                 variants.forEach(v => routeSet.add(v.toLowerCase()));
                                             }
                                         }
                                         const modelKey = app.utils.cleanText(newPhoto.vehicles?.model || '').trim().toLowerCase();
                                         if (modelKey && modelKey !== '---' && !modelSet.has(modelKey)) {
-                                            const { data: vData } = await window.sb.from('vehicles').select('model').ilike('model', modelKey).limit(1);
-                                            const { data: pData } = await window.sb.from('photos').select('vehicles!inner(model)').eq('status', 'approved').ilike('vehicles.model', modelKey).limit(1);
+                                            const { data: vData } = await app.api.from('vehicles').select('model').ilike('model', modelKey).limit(1);
+                                            const { data: pData } = await app.api.from('photos').select('vehicles!inner(model)').eq('status', 'approved').ilike('vehicles.model', modelKey).limit(1);
                                             if ((vData && vData.length > 0) || (pData && pData.length > 0)) modelSet.add(modelKey);
                                         }
                                         const tempDiv = document.createElement('div');
@@ -4493,7 +4651,7 @@ Object.assign(window.app, {
                         app.settings.loadIdentities();
                         const avatarImg = document.getElementById('set-avatar-img');
                         try {
-                            const { data: profile } = await window.sb.from('profiles').select('avatar_url, preferences').eq('id', app.user.id).single();
+                            const { data: profile } = await app.api.from('profiles').select('avatar_url, preferences').eq('id', app.user.id).single();
                             if (profile && profile.avatar_url) {
                                 const safeUrl = profile.avatar_url.replace(/"/g, '');
                                 avatarImg.src = app.utils.getProxiedUrl(safeUrl, 'avatar.jpg', 'avatar');
@@ -4568,9 +4726,9 @@ Object.assign(window.app, {
                     if (!actionBtn) return;
                     actionBtn.innerHTML = `<button disabled class="px-4 py-2 bg-gray-200 text-gray-400 text-xs font-bold rounded cursor-not-allowed border border-gray-300 whitespace-nowrap"><i class="fa-solid fa-spinner fa-spin"></i></button>`;
                     try {
-                        const { data: { session } } = await window.sb.auth.getSession();
+                        const { data: { session } } = await app.api.auth.getSession();
                         if (!session) return;
-                        const { count } = await window.sb.from('photos').select('*', { count: 'estimated', head: true }).eq('uploader_id', app.user.id).eq('status', 'approved');
+                        const { count } = await app.api.from('photos').select('*', { count: 'estimated', head: true }).eq('uploader_id', app.user.id).eq('status', 'approved');
                         const res = await fetch('/api/discord', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
@@ -4602,7 +4760,7 @@ Object.assign(window.app, {
                     const btn = document.getElementById('btn-claim-discord-1');
                     if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
                     try {
-                        const { data: { session } } = await window.sb.auth.getSession();
+                        const { data: { session } } = await app.api.auth.getSession();
                         const res = await fetch('/api/discord', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
@@ -4625,7 +4783,7 @@ Object.assign(window.app, {
                     const container = document.getElementById('linked-accounts-container');
                     if(!app.user) return;
                     try {
-                        const { data: { user }, error } = await window.sb.auth.getUser();
+                        const { data: { user }, error } = await app.api.auth.getUser();
                         if (error || !user) throw error;
                         const identities = user.identities || [];
                         const providers = identities.map(id => id.provider);
@@ -4663,7 +4821,7 @@ Object.assign(window.app, {
                 },
                 linkIdentity: async (provider) => {
                     try {
-                        const { error } = await window.sb.auth.linkIdentity({
+                        const { error } = await app.api.auth.linkIdentity({
                             provider: provider,
                             options: { redirectTo: window.location.origin }
                         });
@@ -4677,7 +4835,7 @@ Object.assign(window.app, {
                         `Bạn có chắc chắn muốn hủy liên kết tài khoản ${providerName}? Bạn sẽ không thể đăng nhập bằng nền tảng này nữa. Nếu đã được cấp danh hiệu thông qua nền tảng này, chúng cũng sẽ bị thu hồi.`,
                         async () => {
                             try {
-                                const { data: { session } } = await window.sb.auth.getSession();
+                                const { data: { session } } = await app.api.auth.getSession();
                                 if (!session) throw new Error("Chưa đăng nhập");
 
                                 // Call backend API to revoke roles/badges before unlinking
@@ -4696,7 +4854,7 @@ Object.assign(window.app, {
                                     // Vẫn tiếp tục thực hiện unlink Identity dù backend có lỗi
                                 }
 
-                                const { error } = await window.sb.auth.unlinkIdentity({ identity_id: identityId });
+                                const { error } = await app.api.auth.unlinkIdentity({ identity_id: identityId });
                                 if (error) throw error;
 
                                 app.ui.showAlert(`Đã hủy liên kết với ${providerName} thành công!`);
@@ -4713,7 +4871,7 @@ Object.assign(window.app, {
                     const btn = document.getElementById('web-req-claim-action');
                     if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
                     try {
-                        const { data: { session } } = await window.sb.auth.getSession();
+                        const { data: { session } } = await app.api.auth.getSession();
                         const res = await fetch('/api/github', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
@@ -4740,7 +4898,7 @@ Object.assign(window.app, {
                     if (claimBox) claimBox.classList.add('hidden');
                     
                     try {
-                        const { data: { session } } = await window.sb.auth.getSession();
+                        const { data: { session } } = await app.api.auth.getSession();
                         if (!session) return;
                         
                         const res = await fetch('/api/github', {
@@ -4786,7 +4944,7 @@ Object.assign(window.app, {
                     reqBox.classList.add('hidden');
                     claimBox.classList.add('hidden');
                     try {
-                        const { data: { session } } = await window.sb.auth.getSession();
+                        const { data: { session } } = await app.api.auth.getSession();
                         const token = session?.access_token;
                         if (!token) throw new Error("Chưa đăng nhập");
                         const res = await fetch('/api/discord', {
@@ -4838,7 +4996,7 @@ Object.assign(window.app, {
                             }
                             return;
                         }
-                        const { count } = await window.sb.from('photos')
+                        const { count } = await app.api.from('photos')
                             .select('*', { count: 'estimated', head: true })
                             .eq('uploader_id', app.user.id)
                             .eq('status', 'approved');
@@ -4915,7 +5073,7 @@ grid.innerHTML = tiers.map(tier => {
                     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
                     btn.disabled = true;
                     try {
-                        const { data: { session } } = await window.sb.auth.getSession();
+                        const { data: { session } } = await app.api.auth.getSession();
                         const token = session?.access_token;
                         const res = await fetch('/api/discord', {
                             method: 'POST',
@@ -4963,7 +5121,7 @@ Object.assign(window.app, {
                     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi...';
                     btn.disabled = true;
                     try {
-                        const { error } = await window.sb.auth.resend({
+                        const { error } = await app.api.auth.resend({
                             type: 'signup',
                             email: app.auth.unverifiedEmail,
                             options: { emailRedirectTo: window.location.origin + '/auth' }
@@ -4981,7 +5139,7 @@ Object.assign(window.app, {
                     }
                 },
                 logoutUnverified: async () => {
-                    await window.sb.auth.signOut();
+                    await app.api.auth.signOut();
                     sessionStorage.removeItem('VNBA_SESS_AUTH');
                     window.location.href = '/auth'; 
                 },
@@ -4994,7 +5152,7 @@ Object.assign(window.app, {
                         return app.ui.showAlert("Lỗi xác thực Captcha.");
                     }
                     try {
-                        const { error } = await window.sb.auth.signInWithOAuth({
+                        const { error } = await app.api.auth.signInWithOAuth({
                             provider: provider,
                             options: {
                                 captchaToken: captchaResponse,
@@ -5027,7 +5185,7 @@ Object.assign(window.app, {
                     btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...`;
                     try {
                         if (app.auth.mode === 'login') {
-                            const { data, error } = await window.sb.auth.signInWithPassword({ email, password, options: { captchaToken: captchaResponse } });
+                            const { data, error } = await app.api.auth.signInWithPassword({ email, password, options: { captchaToken: captchaResponse } });
                             if (error) {
                                 if (error.message.includes('Email not confirmed') || error.message.includes('not confirmed')) {
                                     app.auth.showVerificationModal(email);
@@ -5044,11 +5202,11 @@ Object.assign(window.app, {
                                 return;
                             }
                             if (data.user) {
-                                const { data: profile } = await window.sb.from('profiles').select('ban_status').eq('id', data.user.id).single();
+                                const { data: profile } = await app.api.from('profiles').select('ban_status').eq('id', data.user.id).single();
                                 if (profile && profile.ban_status) {
                                     let banInfo = typeof profile.ban_status === 'string' ? JSON.parse(profile.ban_status) : profile.ban_status;
                                     if (banInfo.banned) {
-                                        await window.sb.auth.signOut();
+                                        await app.api.auth.signOut();
                                         app.ui.showAlert(`<b>ĐĂNG NHẬP THẤT BẠI</b><br>Tài khoản của bạn đã bị cấm với lý do: <b>${banInfo.reason || 'Không rõ'}</b>`);
                                         btn.disabled = false;
                                         btn.innerHTML = originalHTML;
@@ -5066,14 +5224,14 @@ Object.assign(window.app, {
                             if (lowerName === 'người dùng bị cấm' || lowerName === 'nguoi dung bi cam' || lowerName.includes('bị cấm') || lowerName.includes('bi cam')) {
                                 throw new Error("Tên hiển thị này thuộc danh sách hạn chế. Vui lòng chọn tên khác!");
                             }
-                            const { data: existingUser } = await window.sb.from('profiles')
+                            const { data: existingUser } = await app.api.from('profiles')
                                 .select('username')
                                 .ilike('username', username)
                                 .maybeSingle();
                             if (existingUser) {
                                 throw new Error("Tên hiển thị này đã tồn tại (không phân biệt viết hoa/thường). Vui lòng chọn tên khác!");
                             }
-                            const { data, error } = await window.sb.auth.signUp({
+                            const { data, error } = await app.api.auth.signUp({
                                 email,
                                 password,
                                 options: { captchaToken: captchaResponse, data: { username: username } }
@@ -5095,7 +5253,7 @@ Object.assign(window.app, {
                             );
                             if (data.session) await app.setUser(data.user);
                         } else if (app.auth.mode === 'forgot') {
-    const { error } = await window.sb.auth.resetPasswordForEmail(email, {
+    const { error } = await app.api.auth.resetPasswordForEmail(email, {
         captchaToken: captchaResponse,
         redirectTo: window.location.origin + '/auth'
     });
@@ -5117,7 +5275,7 @@ Object.assign(window.app, {
 } else if (app.auth.mode === 'recovery') {
     const newPass = document.getElementById('auth-new-password').value;
     if (!newPass || newPass.length < 6) throw new Error("Mật khẩu phải từ 6 ký tự trở lên.");
-    const { error } = await window.sb.auth.updateUser({ password: newPass });
+    const { error } = await app.api.auth.updateUser({ password: newPass });
     if (error) throw error;
     app.ui.showAlert("Đổi mật khẩu thành công! Bạn đã tự động đăng nhập vào hệ thống.", () => {
         window.location.hash = '';
@@ -5149,7 +5307,7 @@ Object.assign(window.app, {
                         "Bạn có chắc chắn muốn đăng xuất khỏi tài khoản?",
                         async () => {
                             try {
-                                await window.sb.auth.signOut({ scope: 'local' }); sessionStorage.removeItem('VNBA_SESS_AUTH');
+                                await app.api.auth.signOut({ scope: 'local' }); sessionStorage.removeItem('VNBA_SESS_AUTH');
                                 await app.setUser(null);
                                 app.ui.toggleUserMenu(false);
                                 app.ui.showAlert("Đã đăng xuất thành công!", () => {
@@ -5171,7 +5329,7 @@ Object.assign(window.app, {
                             try {
                                 const okBtn = document.getElementById('custom-alert-ok-btn');
                                 if(okBtn) { okBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>'; okBtn.disabled = true; }
-                                const { error } = await window.sb.auth.signOut({ scope: 'global' });
+                                const { error } = await app.api.auth.signOut({ scope: 'global' });
                                 if (error) throw error;
                                 localStorage.clear();
                                 await app.setUser(null);
@@ -5198,7 +5356,7 @@ changePassword: async () => {
                     if (!oldPass) return app.ui.showAlert("Vui lòng nhập mật khẩu hiện tại.");
                     if (!newPass || newPass.length < 6) return app.ui.showAlert("Mật khẩu mới phải ít nhất 6 ký tự.");
                     try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
-                    const { error } = await window.sb.auth.updateUser({
+                    const { error } = await app.api.auth.updateUser({
                         password: newPass,
                         current_password: oldPass
                     });
@@ -5229,11 +5387,11 @@ changePassword: async () => {
                     btn.disabled = true;
                     try {
                         const currentEmail = app.user.email;
-                        const { error: signInError } = await window.sb.auth.signInWithPassword({ email: currentEmail, password: password, options: { captchaToken: captchaResponse } });
+                        const { error: signInError } = await app.api.auth.signInWithPassword({ email: currentEmail, password: password, options: { captchaToken: captchaResponse } });
                         if (signInError) {
                             throw new Error("Mật khẩu hiện tại không đúng.");
                         }
-                        const { error: updateError } = await window.sb.auth.updateUser({ email: newEmail });
+                        const { error: updateError } = await app.api.auth.updateUser({ email: newEmail });
                         if (updateError) {
                             throw updateError;
                         }
@@ -5308,7 +5466,7 @@ changePassword: async () => {
                         avatarData.append('isAvatar', 'true');
                         avatarData.append('captchaToken', captchaResponse);
                         avatarData.append('fileExtension', app.utils.getTargetExtension());
-                        const { data: { session } } = await window.sb.auth.getSession();
+                        const { data: { session } } = await app.api.auth.getSession();
                         const token = session?.access_token;
                         const res = await fetch('/api/upload', {
                             method: 'POST',
@@ -5328,7 +5486,7 @@ changePassword: async () => {
                             }
                             app.user.user_metadata = app.user.user_metadata || {};
                             app.user.user_metadata.avatar_url = data.url;
-                            window.sb.auth.updateUser({ data: { avatar_url: data.url } }).catch(() => {});
+                            app.api.auth.updateUser({ data: { avatar_url: data.url } }).catch(() => {});
                             const proxiedUrl = app.utils.getProxiedUrl(data.url, 'avatar.jpg', 'avatar');
                             const avatarImg = document.getElementById('acc-avatar-img');
                             const avatarIcon = document.getElementById('acc-avatar-icon');
@@ -5364,11 +5522,11 @@ changePassword: async () => {
                 resetAvatar: async () => {
                     if (!app.user) return;
                     try {
-                        const { data: profile } = await window.sb.from('profiles').select('avatar_url').eq('id', app.user.id).single();
+                        const { data: profile } = await app.api.from('profiles').select('avatar_url').eq('id', app.user.id).single();
                         const oldAvatar = profile?.avatar_url || app.user?.user_metadata?.avatar_url;
                         if (oldAvatar && oldAvatar.includes('vnbusarchive')) {
                             try {
-                                const { data: { session } } = await window.sb.auth.getSession();
+                                const { data: { session } } = await app.api.auth.getSession();
                                 if (session) {
                                     await fetch('/api/delete-image', {
                                         method: 'POST',
@@ -5383,9 +5541,9 @@ changePassword: async () => {
                                 console.warn('Lỗi khi xóa ảnh avatar cũ khỏi CDN:', delErr);
                             }
                         }
-                        const { error } = await window.sb.from('profiles').update({ avatar_url: null }).eq('id', app.user.id);
+                        const { error } = await app.api.from('profiles').update({ avatar_url: null }).eq('id', app.user.id);
                         if (error) throw error;
-                        window.sb.auth.updateUser({ data: { avatar_url: null } }).catch(() => {});
+                        app.api.auth.updateUser({ data: { avatar_url: null } }).catch(() => {});
                         if (app.user.user_metadata) app.user.user_metadata.avatar_url = null;
                         app.ui.showAlert("Đã reset Avatar về mặc định!");
                         const hImg = document.getElementById('nav-user-avatar');
@@ -5406,7 +5564,7 @@ changePassword: async () => {
                     if (lowerNewName === 'người dùng bị cấm' || lowerNewName === 'nguoi dung bi cam' || lowerNewName.includes('bị cấm') || lowerNewName.includes('bi cam')) {
                         return app.ui.showAlert("Tên hiển thị này thuộc danh sách hạn chế. Vui lòng chọn tên khác!");
                     }
-                    const { data: existingUser } = await window.sb.from('profiles')
+                    const { data: existingUser } = await app.api.from('profiles')
                         .select('username')
                         .ilike('username', newName)
                         .neq('id', app.user.id)
@@ -5419,7 +5577,7 @@ changePassword: async () => {
                         async () => {
                             try {
                                 try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
-                                const { error: dbError } = await window.sb.from('profiles').update({ username: newName }).eq('id', app.user.id);
+                                const { error: dbError } = await app.api.from('profiles').update({ username: newName }).eq('id', app.user.id);
                                 if (dbError) {
                                     if (dbError.code === '23505') throw new Error("Tên này đã có người sử dụng!");
                                     throw dbError;
@@ -5461,13 +5619,13 @@ changePassword: async () => {
                             try {
                                 try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
                                 
-                                const { data: currentProfile, error: fetchError } = await window.sb.from('profiles').select('preferences').eq('id', app.user.id).single();
+                                const { data: currentProfile, error: fetchError } = await app.api.from('profiles').select('preferences').eq('id', app.user.id).single();
                                 if (fetchError) throw fetchError;
 
                                 const currentPreferences = currentProfile.preferences || {};
                                 currentPreferences.contact_email = contactEmail;
                                 
-                                const { error: dbError } = await window.sb.from('profiles').update({ preferences: currentPreferences }).eq('id', app.user.id);
+                                const { error: dbError } = await app.api.from('profiles').update({ preferences: currentPreferences }).eq('id', app.user.id);
                                 if (dbError) throw dbError;
                                 
                                 app.toast.show('success', 'Thành công', contactEmail ? 'Cập nhật thông tin liên hệ thành công!' : 'Đã xóa thông tin liên hệ!');
@@ -5748,7 +5906,7 @@ changePassword: async () => {
                 btnConfirm.innerText = `Đăng nhập (${timeLeft})`;
                 document.getElementById('qr-confirm-name').innerText = app.username;
                 try {
-                    const { data: profile } = await window.sb.from('profiles').select('avatar_url').eq('id', app.user.id).single();
+                    const { data: profile } = await app.api.from('profiles').select('avatar_url').eq('id', app.user.id).single();
                     if (profile && profile.avatar_url) {
                         avatarImg.src = app.utils.getProxiedUrl(profile.avatar_url.replace(/"/g, ''), 'avatar.jpg', 'avatar');
                     } else if (app.user.user_metadata?.avatar_url) {
@@ -5823,7 +5981,7 @@ changePassword: async () => {
                 btn.disabled = true;
                 btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
                 try {
-                    const { data, error } = await window.sb.auth.getSession();
+                    const { data, error } = await app.api.auth.getSession();
                     if (error || !data.session) throw new Error("Lấy Token thất bại. Vui lòng tải lại trang.");
                     if (!app.qrLogin.conn || !app.qrLogin.conn.open) {
                         throw new Error("Không thể kết nối với máy chủ chờ. Vui lòng quét lại mã QR.");
@@ -5922,7 +6080,7 @@ changePassword: async () => {
                     plateEl.innerText = 'Đang kiểm tra dữ liệu...';
                     opEl.innerText = '';
                     try {
-                        const { data, error } = await window.sb.from('photos')
+                        const { data, error } = await app.api.from('photos')
                             .select('id, url, license_plate, operator, uploader_id, status')
                             .eq('id', photoId)
                             .single();
@@ -5962,7 +6120,7 @@ changePassword: async () => {
                 },
                 saveFavPhoto: async (photoId, url) => {
                     try {
-                        const { error } = await window.sb.from('profiles').update({ favorite_photo_id: photoId }).eq('id', app.user.id);
+                        const { error } = await app.api.from('profiles').update({ favorite_photo_id: photoId }).eq('id', app.user.id);
                         if (error) throw error;
                         app.profileIntro.closePhotoSelector();
                         const favContainer = document.getElementById('profile-fav-photo-container');
@@ -5988,7 +6146,7 @@ changePassword: async () => {
                 deleteFavPhoto: async () => {
                     app.ui.showAlert("Bạn có chắc chắn muốn gỡ Ảnh tâm đắc?", async () => {
                         try {
-                            const { error } = await window.sb.from('profiles').update({ favorite_photo_id: null }).eq('id', app.user.id);
+                            const { error } = await app.api.from('profiles').update({ favorite_photo_id: null }).eq('id', app.user.id);
                             if (error) throw error;
                             const favContainer = document.getElementById('profile-fav-photo-container');
                             const favControls = document.getElementById('profile-fav-photo-controls');
@@ -6032,7 +6190,7 @@ changePassword: async () => {
                         document.getElementById('onb-user-name').innerText = app.username || 'Bạn';
                         const avatarEl = document.getElementById('onb-user-avatar');
                         try {
-                            window.sb.from('profiles').select('avatar_url').eq('id', app.user.id).single().then(({data}) => {
+                            app.api.from('profiles').select('avatar_url').eq('id', app.user.id).single().then(({data}) => {
                                 if (data && data.avatar_url) avatarEl.src = app.utils.getProxiedUrl(data.avatar_url.replace(/"/g, ''), 'avatar.jpg', 'avatar');
                                 else avatarEl.src = 'https://files.catbox.moe/zzh1q1.png';
                             });
@@ -6119,12 +6277,12 @@ changePassword: async () => {
                         localStorage.setItem('vnbus_preference', app.preference.current);
                         if (app.user) {
                             const curWmMode = localStorage.getItem('vnbus_wm_mode') || (app.wmState && app.wmState.mode) || 'basic';
-                            window.sb.from('profiles').select('preferences').eq('id', app.user.id).single().then(({data}) => {
+                            app.api.from('profiles').select('preferences').eq('id', app.user.id).single().then(({data}) => {
                                 const existingPrefs = (data && data.preferences) ? data.preferences : {};
                                 existingPrefs.type = app.preference.current;
                                 existingPrefs.wmMode = curWmMode;
                                 existingPrefs.pinnedLocations = app.preference.pinnedLocations || [];
-                                window.sb.from('profiles').update({ preferences: existingPrefs }).eq('id', app.user.id).then(()=>{});
+                                app.api.from('profiles').update({ preferences: existingPrefs }).eq('id', app.user.id).then(()=>{});
                             });
                         }
                     }
@@ -6208,7 +6366,7 @@ Object.assign(window.app, {
                     }
                     if (id === 'admin') {
                         if (!app.user) { app.utils.navigate('/auth'); return; }
-                        const { data: securityCheck } = await window.sb.from('profiles').select('role').eq('id', app.user.id).single();
+                        const { data: securityCheck } = await app.api.from('profiles').select('role').eq('id', app.user.id).single();
                         if (!securityCheck || (securityCheck.role !== 'admin' && securityCheck.role !== 'manager')) {
                             app.ui.showAlert("Truy cập bị từ chối: Bạn không có quyền truy cập.");
                             if (window.location.pathname === '/admin') window.history.pushState({}, '', '/');
@@ -6359,7 +6517,7 @@ Object.assign(window.app, {
                     }
                     let topPhotos = null;
                     try {
-                        const { data: trendingData, error: trendingErr } = await window.sb.rpc('get_trending_photos_24h', {
+                        const { data: trendingData, error: trendingErr } = await app.api.rpc('get_trending_photos_24h', {
                             filter_type: app.preference.current || 'both',
                             limit_num: 5
                         });
@@ -6370,7 +6528,7 @@ Object.assign(window.app, {
                         console.warn("Chưa chạy RPC get_trending_photos_24h hoặc lỗi:", e);
                     }
                     if (!topPhotos || topPhotos.length === 0) {
-                        let topQuery = window.sb
+                        let topQuery = app.api
                             .from('photos')
                             .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                             .eq('status', 'approved')
@@ -6435,7 +6593,7 @@ Object.assign(window.app, {
                     const grid = document.getElementById('photo-grid');
                     app.homeCurrentPage = 1;
                     const homeSize = 20;
-                    let gridQuery = window.sb
+                    let gridQuery = app.api
                         .from('photos')
                         .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`, { count: 'estimated' })
                         .eq('status', 'approved')
@@ -6464,7 +6622,7 @@ Object.assign(window.app, {
                         const stats = await app.utils.getCachedStats('home_stats_' + prefFilter, 10 * 60 * 1000, async () => {
                             const rpc = await app.utils.getHomeStats(prefFilter);
                             if (rpc) return rpc;
-                            let countQuery = window.sb.from('photos').select('id', { count: 'estimated', head: true }).eq('status', 'approved');
+                            let countQuery = app.api.from('photos').select('id', { count: 'estimated', head: true }).eq('status', 'approved');
                             countQuery = app.preference.applyFilter(countQuery);
                             const { count: photoCount } = await countQuery;
                             return { total_photos: photoCount || 0, total_vehicles: null, total_routes: null };
@@ -6477,7 +6635,7 @@ Object.assign(window.app, {
                             const routeSet = new Set();
                             let from = 0; const step = 999; let fetchMore = true;
                             while (fetchMore) {
-                                let statsQuery = window.sb.from('photos')
+                                let statsQuery = app.api.from('photos')
                                     .select('license_plate, route_no')
                                     .eq('status', 'approved')
                                     .range(from, from + step);
@@ -6509,7 +6667,7 @@ Object.assign(window.app, {
                     let totalPhotos = photoCount;
                     if (totalPhotos === null || typeof totalPhotos !== 'number') {
                         try {
-                            let countQuery = window.sb.from('photos').select('id', { count: 'estimated', head: true }).eq('status', 'approved');
+                            let countQuery = app.api.from('photos').select('id', { count: 'estimated', head: true }).eq('status', 'approved');
                             countQuery = app.preference.applyFilter(countQuery);
                             const { count } = await countQuery;
                             totalPhotos = count || 0;
@@ -6586,7 +6744,7 @@ Object.assign(window.app, {
                     try {
                         const filterType = app.currentFilter;
                         const profileSelect = (filterType === 'uploader') ? 'profiles!inner(id, username, role, subroles, ban_status)' : 'profiles(id, username, role, subroles, ban_status)';
-                        let sQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, ${profileSelect}, vehicles${filterType === 'model' ? '!inner' : ''}(model)`).eq('status', 'approved');
+                        let sQuery = app.api.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, ${profileSelect}, vehicles${filterType === 'model' ? '!inner' : ''}(model)`).eq('status', 'approved');
                         sQuery = app.preference.applyFilter(sQuery);
                         const query = (document.getElementById('page-search-input') || document.getElementById('search-input'))?.value.trim() || '';
                         const searchWords = query.toLowerCase().split(/\s+/).filter(w => w.length > 0);
@@ -6675,7 +6833,7 @@ Object.assign(window.app, {
                     const fromRow = (app.homeCurrentPage - 1) * homeSize;
                     const toRow = fromRow + homeSize - 1;
                     try {
-                        let moreQuery = window.sb
+                        let moreQuery = app.api
                             .from('photos')
                             .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                             .eq('status', 'approved')
@@ -6773,7 +6931,7 @@ Object.assign(window.app, {
 
                     const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(targetUsername);
                     const queryCol = isUUID ? 'id' : 'username';
-                    const { data: profile } = await window.sb.from('profiles').select('id, username, avatar_url, role, subroles, favorite_photo_id, created_at, ban_status, preferences').eq(queryCol, targetUsername).single();
+                    const { data: profile } = await app.api.from('profiles').select('id, username, avatar_url, role, subroles, favorite_photo_id, created_at, ban_status, preferences').eq(queryCol, targetUsername).single();
                     if (!profile) {
                         app.ui.showAlert("Không tìm thấy người dùng này.");
                         return app.views.loadHome();
@@ -6837,7 +6995,7 @@ Object.assign(window.app, {
                     const btnAddFav = document.getElementById('btn-add-fav-photo');
                     const placeholderWrap = document.getElementById('fav-photo-placeholder'); 
                     if (profile.favorite_photo_id) {
-                        window.sb.from('photos').select('id, url').eq('id', profile.favorite_photo_id).single()
+                        app.api.from('photos').select('id, url').eq('id', profile.favorite_photo_id).single()
                         .then(({data: favPhoto}) => {
                             if (favPhoto) {
                                 placeholderWrap.classList.add('hidden');
@@ -6962,7 +7120,7 @@ Object.assign(window.app, {
                     document.getElementById('my-stat-likes').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-gray-400"></i>';
                     
                     // 1. CHẠY NGẦM THỐNG KÊ (BỎ AWAIT)
-                    window.sb.rpc('get_user_profile_stats', { target_user_id: targetUserId, is_own_profile: isOwnProfile })
+                    app.api.rpc('get_user_profile_stats', { target_user_id: targetUserId, is_own_profile: isOwnProfile })
                         .then(({ data: stats, error: statsError }) => {
                             if (!statsError && stats && stats.length > 0) {
                                 document.getElementById('my-stat-photos').innerText = app.utils.formatCompact(stats[0].total_photos);
@@ -6977,7 +7135,7 @@ Object.assign(window.app, {
 
                     if (isOwnProfile) {
                         // Cảnh báo xóa ảnh
-                        window.sb.from('photos')
+                        app.api.from('photos')
                             .select('id, license_plate, audit_date')
                             .eq('uploader_id', app.currentProfileId)
                             .eq('status', 'denied')
@@ -7021,7 +7179,7 @@ Object.assign(window.app, {
                     if (isOwnProfile && app.topPhotosCache && app.topPhotosCache.length > 0) {
                         const topPhotoIds = app.topPhotosCache.map(p => p.id);
                         try {
-                            const { data: userTopPhotos } = await window.sb
+                            const { data: userTopPhotos } = await app.api
                                 .from('photos')
                                 .select('id, license_plate')
                                 .eq('uploader_id', app.currentProfileId)
@@ -7096,7 +7254,7 @@ Object.assign(window.app, {
                     }
                     let photos, count, error;
                     if (app.views.currentProfileSort === 'most_liked') {
-                        let allQuery = window.sb.from('photos').select('id, url, status, views, license_plate, review_progress').eq('uploader_id', app.currentProfileId);
+                        let allQuery = app.api.from('photos').select('id, url, status, views, license_plate, review_progress').eq('uploader_id', app.currentProfileId);
                         if (!app._isOwnProfile) allQuery = allQuery.eq('status', 'approved');
                         else if (app.views.currentProfileFilter !== 'all') allQuery = allQuery.eq('status', app.views.currentProfileFilter);
                         allQuery = app.preference.applyFilter(allQuery);
@@ -7107,7 +7265,7 @@ Object.assign(window.app, {
                             const likeCountMap = {};
                             for (let i = 0; i < photoIds.length; i += 300) {
                                 const chunk = photoIds.slice(i, i + 300);
-                                const { data: likeRows } = await window.sb.from('photo_likes').select('photo_id').in('photo_id', chunk);
+                                const { data: likeRows } = await app.api.from('photo_likes').select('photo_id').in('photo_id', chunk);
                                 (likeRows || []).forEach(r => {
                                     likeCountMap[r.photo_id] = (likeCountMap[r.photo_id] || 0) + 1;
                                 });
@@ -7122,7 +7280,7 @@ Object.assign(window.app, {
                             photos = allPhotos.slice(fromRow, toRow + 1);
                         }
                     } else {
-                        let query = window.sb.from('photos').select('id, url, status, views, license_plate, review_progress', { count: 'estimated' }).eq('uploader_id', app.currentProfileId);
+                        let query = app.api.from('photos').select('id, url, status, views, license_plate, review_progress', { count: 'estimated' }).eq('uploader_id', app.currentProfileId);
                         if (!app._isOwnProfile) query = query.eq('status', 'approved');
                         else if (app.views.currentProfileFilter !== 'all') query = query.eq('status', app.views.currentProfileFilter);
                         query = app.preference.applyFilter(query);
@@ -7232,7 +7390,7 @@ Object.assign(window.app, {
                     const fromRow = (page - 1) * pageSize;
                     const toRow = fromRow + pageSize - 1;
                     try {
-                        const { data: reqs, error, count } = await window.sb.from('edit_requests')
+                        const { data: reqs, error, count } = await app.api.from('edit_requests')
                             .select('*', { count: 'estimated' })
                             .eq('requester_id', app.user.id)
                             .order('created_at', { ascending: false })
@@ -7397,7 +7555,7 @@ Object.assign(window.app, {
                     if (!req || req.status !== 'pending') return;
                     app.ui.showAlert("Bạn có chắc chắn muốn hủy yêu cầu này không? Hành động này không thể hoàn tác.", async () => {
                         try {
-                            const { error } = await window.sb.from('edit_requests').delete().eq('id', id).eq('requester_id', app.user.id);
+                            const { error } = await app.api.from('edit_requests').delete().eq('id', id).eq('requester_id', app.user.id);
                             if (error) throw error;
                             app.views.fetchProfileRequests(1);
                             app.ui.showAlert("Đã hủy yêu cầu thành công!", null, null, { title: 'Thành công' });
@@ -7425,7 +7583,7 @@ Object.assign(window.app, {
                         grid.style.opacity = '0.5';
                         grid.style.pointerEvents = 'none';
                     }
-                    let query = window.sb.from('photo_likes').select('photo_id, photos!inner(id, url, license_plate, operator, type)', { count: 'estimated' }).eq('user_id', app.user.id).order('created_at', { ascending: false });
+                    let query = app.api.from('photo_likes').select('photo_id, photos!inner(id, url, license_plate, operator, type)', { count: 'estimated' }).eq('user_id', app.user.id).order('created_at', { ascending: false });
                     if (app.preference.current !== 'both') query = query.eq('photos.type', app.preference.current);
                     const { data: likedData, count, error } = await query.range(fromRow, toRow);
                     if (error || !likedData || likedData.length === 0) {
@@ -7522,14 +7680,14 @@ Object.assign(window.app, {
                     if (detailRecGrid) detailRecGrid.innerHTML = '';
                     const fbCommentsWrapper = document.getElementById('fb-comments-wrapper');
                     if (fbCommentsWrapper) fbCommentsWrapper.innerHTML = '';
-                    let { data: photo } = await window.sb
+                    let { data: photo } = await app.api
                         .from('photos')
                         .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, audit_date, views, review_progress, reviewer_count, profiles(id, username, avatar_url, role, subroles, ban_status, preferences), vehicles(model)`)
                         .eq('id', photoId)
                         .single();
                     if (!photo && app.user) {
                         try {
-                            const sessionRes = await window.sb.auth.getSession();
+                            const sessionRes = await app.api.auth.getSession();
                             const token = sessionRes.data.session?.access_token;
                             if (token) {
                                 const apiRes = await fetch(`/api/photo?id=${photoId}`, {
@@ -7691,7 +7849,7 @@ Object.assign(window.app, {
                             if (progEl) {
                                 progEl.innerText = `Ảnh của bạn đã được ${photo.review_progress || '0/2'} người duyệt.`;
                             }
-                            window.sb.from('photos').select('id, created_at, profiles(role)').eq('status', 'pending')
+                            app.api.from('photos').select('id, created_at, profiles(role)').eq('status', 'pending')
                                 .then(({ data, error }) => {
                                     if (!error && data) {
                                         let ahead = 0;
@@ -7725,8 +7883,8 @@ Object.assign(window.app, {
                     const isValidViewer = !isMyOwnPhoto && !isDenied;
                     const views = isDenied ? 0 : (isValidViewer ? ((photo.views || 0) + 1) : (photo.views || 0));
                     if (isValidViewer) {
-                        window.sb.from('photos').update({ views: views }).eq('id', photoId).then();
-                        window.sb.from('photo_views_log').insert({
+                        app.api.from('photos').update({ views: views }).eq('id', photoId).then();
+                        app.api.from('photo_views_log').insert({
                             photo_id: photoId,
                             viewer_id: app.user ? app.user.id : null
                         }).then();
@@ -7875,12 +8033,12 @@ Object.assign(window.app, {
                     document.getElementById('stat-date').innerText = new Date(photo.created_at).toLocaleDateString('vi-VN');
                     document.getElementById('stat-views').innerText = views;
                     let realLikeCount = 0;
-                    const { count } = await window.sb.from('photo_likes').select('*', { count: 'estimated', head: true }).eq('photo_id', photoId);
+                    const { count } = await app.api.from('photo_likes').select('*', { count: 'estimated', head: true }).eq('photo_id', photoId);
                     realLikeCount = isDenied ? 0 : (count || 0);
                     document.getElementById('stat-likes').innerText = realLikeCount;
                     let isLikedByMe = false;
                     if (app.user) {
-                        const { data: likeData } = await window.sb.from('photo_likes').select('user_id').eq('photo_id', photoId).eq('user_id', app.user.id).maybeSingle();
+                        const { data: likeData } = await app.api.from('photo_likes').select('user_id').eq('photo_id', photoId).eq('user_id', app.user.id).maybeSingle();
                         if (likeData) isLikedByMe = true;
                     }
                     const likeBtn = document.getElementById('btn-like');
@@ -7935,7 +8093,7 @@ Object.assign(window.app, {
                                         const originalBtnText = deleteBtn.innerHTML;
                                         deleteBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang xử lý...';
                                         deleteBtn.disabled = true;
-                                        const sessionRes = await window.sb.auth.getSession();
+                                        const sessionRes = await app.api.auth.getSession();
                                         const token = sessionRes.data.session?.access_token;
                                         const res = await fetch('/api/admin/action', {
                                             method: 'POST',
@@ -7985,7 +8143,7 @@ Object.assign(window.app, {
                                         const originalText = reapproveBtn.innerHTML;
                                         reapproveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang tải lên CDN...';
                                         reapproveBtn.disabled = true;
-                                        const sessionRes = await window.sb.auth.getSession();
+                                        const sessionRes = await app.api.auth.getSession();
                                         const token = sessionRes.data.session?.access_token;
                                         const res = await fetch('/api/admin/action', {
                                             method: 'POST',
@@ -8066,7 +8224,7 @@ Object.assign(window.app, {
                     if(tbody) tbody.innerHTML = '<tr><td colspan="4" class="text-center py-2"><i class="fa-solid fa-spinner fa-spin text-gray-400"></i> Đang tải...</td></tr>';
                     let isLocked = false;
                     if (tbody && app.currentPhoto && app.currentPhoto.status === 'pending') {
-                        const { count } = await window.sb
+                        const { count } = await app.api
                             .from('photos')
                             .select('id', { count: 'exact', head: true })
                             .eq('license_plate', plate)
@@ -8088,7 +8246,7 @@ Object.assign(window.app, {
                     if (lockedMsg) { lockedMsg.classList.add('hidden'); lockedMsg.innerText = ''; }
                     if (tableContainer) tableContainer.classList.remove('hidden');
                     if (btnContainer) btnContainer.classList.remove('hidden');
-                    const { data: history } = await window.sb
+                    const { data: history } = await app.api
                         .from('vehicle_history')
                         .select('id, license_plate, plate, operator, route, note, effective_date, display_order')
                         .eq('license_plate', plate);
@@ -8168,8 +8326,8 @@ Object.assign(window.app, {
                         app.vehicle.currentPage = 1;
                         const vehSize = app.vehicle.VEHICLE_PAGE_SIZE || 12;
                         const [vehicleRes, historyRes] = await Promise.all([
-                            window.sb.from('vehicles').select('license_plate, model, note').eq('license_plate', plate).maybeSingle(),
-                            window.sb.from('vehicle_history').select('id, license_plate, plate, operator, route, note, effective_date, display_order').eq('license_plate', plate).order('display_order', { ascending: true })
+                            app.api.from('vehicles').select('license_plate, model, note').eq('license_plate', plate).maybeSingle(),
+                            app.api.from('vehicle_history').select('id, license_plate, plate, operator, route, note, effective_date, display_order').eq('license_plate', plate).order('display_order', { ascending: true })
                         ]);
                         if (vehicleRes.data && vehicleRes.data.note) {
                             const match = vehicleRes.data.note.match(/\[MERGED_INTO:([^\]]+)\]/);
@@ -8180,7 +8338,7 @@ Object.assign(window.app, {
                         }
                         const historyPlates = historyRes.data ? historyRes.data.map(h => h.plate).filter(Boolean) : [];
                         const allPlatesToFetch = [...new Set([plate, ...historyPlates])];
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                        let pQuery = app.api.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                                 .in('license_plate', allPlatesToFetch)
                                 .eq('status', 'approved');
                         pQuery = app.preference.applyFilter(pQuery);
@@ -8533,7 +8691,7 @@ let currentRouteProvName = null;
                     const targetNorm = app.utils.normOperator(operatorName).toLowerCase();
                     let resolvedOperator = operatorName;
                     try {
-                        const { data: opCandidates } = await window.sb
+                        const { data: opCandidates } = await app.api
                             .from('photos')
                             .select('operator')
                             .eq('status', 'approved')
@@ -8545,7 +8703,7 @@ let currentRouteProvName = null;
                         }
                     } catch (e) {  }
                     try {
-                        const { data: allOps } = await window.sb.from('operator_info').select('operator_name, logo_url, description, parent_operator');
+                        const { data: allOps } = await app.api.from('operator_info').select('operator_name, logo_url, description, parent_operator');
                         let opInfo = null;
                         let rawChildOps = [];
                         if (allOps) {
@@ -8623,14 +8781,14 @@ let currentRouteProvName = null;
                         const stats = await app.utils.getCachedStats('op_stats_' + resolvedOperator, 10 * 60 * 1000, async () => {
                             const rpc = await app.utils.getOperatorStats(resolvedOperator);
                             if (rpc) return rpc;
-                            let cq = window.sb.from('photos').select('id', { count: 'estimated', head: true }).eq('status', 'approved').ilike('operator', resolvedOperator);
+                            let cq = app.api.from('photos').select('id', { count: 'estimated', head: true }).eq('status', 'approved').ilike('operator', resolvedOperator);
                             const { count } = await cq;
                             return { total_photos: count || 0, total_views: 0, total_vehicles: null, total_routes: null };
                         });
                         let allStatsData = [];
                         const platesRpc = await app.utils.getCachedStats('op_plates_' + resolvedOperator, 10 * 60 * 1000, async () => {
                             try {
-                                const { data } = await window.sb.rpc('get_operator_plates', { op_name: resolvedOperator });
+                                const { data } = await app.api.rpc('get_operator_plates', { op_name: resolvedOperator });
                                 return data || [];
                             } catch (e) { return null; }
                         });
@@ -8642,7 +8800,7 @@ let currentRouteProvName = null;
                                 vehicles: p.model ? { model: p.model } : null
                             }));
                         } else {
-                            const { data } = await window.sb.from('photos')
+                            const { data } = await app.api.from('photos')
                                 .select('views, license_plate, route_no, vehicles(model)')
                                 .eq('status', 'approved')
                                 .ilike('operator', resolvedOperator)
@@ -8686,7 +8844,7 @@ let currentRouteProvName = null;
                         let plateToType = new Map();
                         for (let i = 0; i < uniquePlatesArr.length; i += 150) {
                             const chunk = uniquePlatesArr.slice(i, i + 150);
-                            const { data: bData } = await window.sb.from('photos')
+                            const { data: bData } = await app.api.from('photos')
                                 .select('license_plate, borrowed_route, type')
                                 .in('license_plate', chunk)
                                 .eq('status', 'approved');
@@ -8700,7 +8858,7 @@ let currentRouteProvName = null;
                         }
                         for (let i = 0; i < uniquePlatesArr.length; i += 150) {
                             const chunk = uniquePlatesArr.slice(i, i + 150);
-                            const { data } = await window.sb.from('vehicle_history')
+                            const { data } = await app.api.from('vehicle_history')
                                 .select('license_plate, operator, route, vehicles(model)')
                                 .in('license_plate', chunk)
                                 .order('effective_date', { ascending: false, nullsFirst: false })
@@ -8822,7 +8980,7 @@ let currentRouteProvName = null;
                         app.currentOperatorResolved = resolvedOperator;
                         app.views.operatorCurrentPage = 1;
                         const opSize = app.views.OPERATOR_PAGE_SIZE || 12;
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`, { count: 'estimated' })
+                        let pQuery = app.api.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`, { count: 'estimated' })
                             .eq('status', 'approved')
                             .ilike('operator', resolvedOperator)
                             .or('route_no.neq."Dừng hoạt động",route_no.is.null')
@@ -8876,7 +9034,7 @@ let currentRouteProvName = null;
                     try {
                         const childPhotosHtml = [];
                         for (const child of pageChildOps) {
-                            let cQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                            let cQuery = app.api.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                                 .eq('status', 'approved')
                                 .ilike('operator', child.operator_name)
                                 .or('route_no.neq."Dừng hoạt động",route_no.is.null')
@@ -8950,7 +9108,7 @@ let currentRouteProvName = null;
                     grid.style.opacity = '0.5';
                     grid.style.pointerEvents = 'none';
                     try {
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                        let pQuery = app.api.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                             .eq('status', 'approved')
                             .ilike('operator', app.currentOperatorResolved)
                             .or('route_no.neq."Dừng hoạt động",route_no.is.null')
@@ -9002,7 +9160,7 @@ let currentRouteProvName = null;
                     grid.style.opacity = '0.5';
                     grid.style.pointerEvents = 'none';
                     try {
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles!inner(model)`)
+                        let pQuery = app.api.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles!inner(model)`)
                             .eq('status', 'approved')
                             .eq('vehicles.model', app.model.currentModel)
                             .order('taken_at', { ascending: false, nullsFirst: false })
@@ -9053,7 +9211,7 @@ let currentRouteProvName = null;
                     grid.style.opacity = '0.5';
                     grid.style.pointerEvents = 'none';
                     try {
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                        let pQuery = app.api.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                             .eq('status', 'approved')
                             .eq('route_no', app.route.currentRoute)
                             .order('taken_at', { ascending: false, nullsFirst: false })
@@ -9601,7 +9759,7 @@ Object.assign(window.app, {
                                 col = 'username';
                                 selectStr = 'username';
                             }
-                            let sbQuery = window.sb.from(table).select(selectStr);
+                            let sbQuery = app.api.from(table).select(selectStr);
                             if (table === 'photos') {
                                 sbQuery = sbQuery.eq('status', 'approved').not(col, 'is', null).neq(col, '').neq(col, '---');
                             } else if (table === 'vehicles') {
@@ -9685,7 +9843,7 @@ Object.assign(window.app, {
                                     selectStr = `${col}, photos!inner(status${app.preference.current !== 'both' ? ', type' : ''})`;
                                 }
                                 if (table === 'photos' && col === 'route_no') selectStr = 'route_no, borrowed_route, license_plate';
-                                let sbQuery = window.sb.from(table).select(selectStr);
+                                let sbQuery = app.api.from(table).select(selectStr);
                                 if (table === 'photos') {
                                     sbQuery = sbQuery.eq('status', 'approved').not(col, 'is', null).neq(col, '').neq(col, '---');
                                 } else if (table === 'vehicles') {
@@ -9698,14 +9856,14 @@ Object.assign(window.app, {
                                 sbQuery = app.preference.applyFilter(sbQuery, table);
                                 let data = [];
                                 if (table === 'photos' && col === 'operator') {
-                                    let infoQuery = window.sb.from('operator_info').select('operator_name');
+                                    let infoQuery = app.api.from('operator_info').select('operator_name');
                                     searchWords.forEach(word => { infoQuery = infoQuery.ilike('operator_name', `%${word}%`); });
                                     const [infoRes, photoRes] = await Promise.all([
                                         infoQuery.limit(30).abortSignal(controller.signal),
                                         sbQuery.limit(30).abortSignal(controller.signal)
                                     ]);
                                     if (photoRes.data) data = data.concat(photoRes.data);
-                                    const { data: allOpsForSug } = await window.sb.from('operator_info').select('parent_operator');
+                                    const { data: allOpsForSug } = await app.api.from('operator_info').select('parent_operator');
                                     const parentMapForSug = new Map();
                                     if (allOpsForSug) {
                                         allOpsForSug.forEach(op => {
@@ -9804,7 +9962,7 @@ Object.assign(window.app, {
                             else if (filter === 'location') results = await fetchSugs('photos', 'location', 'Vị trí');
                             else if (filter === 'camera') results = await fetchSugs('photos', 'camera_model', 'Thiết bị');
                             else if (filter === 'uploader') {
-                                let sbQuery = window.sb.from('profiles').select('username');
+                                let sbQuery = app.api.from('profiles').select('username');
                                 searchWords.forEach(word => { sbQuery = sbQuery.ilike('username', `%${word}%`); });
                                 const { data } = await sbQuery.limit(5).abortSignal(controller.signal);
                                 if (data) results = [...new Set(data.map(item => item.username).filter(Boolean))].map(val => ({ text: val, label: 'Người đăng' }));
@@ -9879,7 +10037,7 @@ Object.assign(window.app, {
                 let batchSize = 999;
                 let hasMore = true;
                 while (hasMore) {
-                    const { data, error: phErr } = await window.sb
+                    const { data, error: phErr } = await app.api
                         .from('photos')
                         .select('uploader_id, views')
                         .eq('status', 'approved')
@@ -9894,7 +10052,7 @@ Object.assign(window.app, {
                     if (!p.uploader_id) return;
                     viewCounts[p.uploader_id] = (viewCounts[p.uploader_id] || 0) + (Number(p.views) || 0);
                 });
-                const { data: allProfiles, error: prErr } = await window.sb.from('profiles').select('id, username, avatar_url, role, subroles, ban_status');
+                const { data: allProfiles, error: prErr } = await app.api.from('profiles').select('id, username, avatar_url, role, subroles, ban_status');
                 if (prErr) throw prErr;
                 const activeProfiles = (allProfiles || []).filter(p => p.ban_status !== 'banned' && p.username);
                 const totalAccounts = activeProfiles.length;
@@ -10685,7 +10843,7 @@ Object.assign(window.app, {
                 if (!targetUsername) return;
                 try {
                     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(targetUsername);
-                    let query = window.sb.from('profiles').select('id, username, avatar_url, role, subroles');
+                    let query = app.api.from('profiles').select('id, username, avatar_url, role, subroles');
                     if (isUuid) {
                         query = query.eq('id', targetUsername);
                     } else {
@@ -10693,7 +10851,7 @@ Object.assign(window.app, {
                     }
                     const { data: uData, error: uErr } = await query.single();
                     if (uErr || !uData) throw new Error("Hồ sơ người dùng không tồn tại.");
-                    const { count } = await window.sb.from('photos').select('*', { count: 'estimated', head: true }).eq('uploader_id', uData.id).eq('status', 'approved');
+                    const { count } = await app.api.from('photos').select('*', { count: 'estimated', head: true }).eq('uploader_id', uData.id).eq('status', 'approved');
                     const avatarSrc = uData.avatar_url ? app.utils.getProxiedUrl(uData.avatar_url.replace(/"/g, ''), 'avatar.jpg', 'avatar') : 'https://files.catbox.moe/zzh1q1.png';
                     const badges = app.utils.getBadgesHTML(uData.id, uData.role, uData.subroles, true);
                     document.getElementById('contact-preview-user-avatar').src = avatarSrc;
@@ -10715,7 +10873,7 @@ Object.assign(window.app, {
             previewBox.classList.remove('hidden');
             imgEl.src = 'https://placehold.co/400x300/f3f4f6/a1a1aa?text=Dang+tai...';
             try {
-                const { data, error } = await window.sb.from('photos').select('id, url, status, uploader_id, license_plate, operator').eq('id', photoId).single();
+                const { data, error } = await app.api.from('photos').select('id, url, status, uploader_id, license_plate, operator').eq('id', photoId).single();
                 if (error || !data) throw new Error("Ảnh không tồn tại trên hệ thống.");
                 if (topic === 'appeal') {
                     if (data.status !== 'denied') throw new Error("Kháng cáo thất bại: Ảnh này KHÔNG ở trạng thái Bị từ chối.");
@@ -10759,7 +10917,7 @@ Object.assign(window.app, {
             if (previewBox) previewBox.classList.remove('hidden');
             if (imgEl) imgEl.src = 'https://placehold.co/400x300/f3f4f6/a1a1aa?text=Dang+tai...';
             try {
-                const { data, error } = await window.sb.from('photos').select('id, url, status, uploader_id, license_plate, operator').eq('id', photoId).single();
+                const { data, error } = await app.api.from('photos').select('id, url, status, uploader_id, license_plate, operator').eq('id', photoId).single();
                 if (error || !data) throw new Error("Ảnh không tồn tại trên hệ thống.");
                 if (!app.user || data.uploader_id !== app.user.id) {
                     throw new Error("Đây không phải là ảnh do bạn đăng tải! Vui lòng chỉ chọn link ảnh của chính bạn trên hệ thống.");
@@ -10898,7 +11056,7 @@ Object.assign(window.app, {
                     body: JSON.stringify(payload)
                 };
                 if (app.user) {
-                    const { data: { session } } = await window.sb.auth.getSession();
+                    const { data: { session } } = await app.api.auth.getSession();
                     if (session) reqOpts.headers['Authorization'] = `Bearer ${session.access_token}`;
                 }
                 const res = await fetch('/api/discord', reqOpts);
@@ -11041,7 +11199,7 @@ Object.assign(window.app, {
                         warningText.innerText = "Thông tin này sẽ được kiểm duyệt bởi Admin. Việc để trống cả 2 ô sẽ gửi yêu cầu xóa thông tin hiện tại.";
                     }
                     try {
-                        const { data: opInfo } = await window.sb.from('operator_info').select('operator_name, logo_url, description, parent_operator').eq('operator_name', app.currentOperator).maybeSingle();
+                        const { data: opInfo } = await app.api.from('operator_info').select('operator_name, logo_url, description, parent_operator').eq('operator_name', app.currentOperator).maybeSingle();
                         if (opInfo) {
                             document.getElementById('op-edit-logo').value = opInfo.logo_url || '';
                             let desc = opInfo.description || '';
@@ -11127,10 +11285,10 @@ Object.assign(window.app, {
                         try {
                             if (app.role === 'admin' || app.role === 'manager') {
                                 if (!logo && !desc && !parentOp) {
-                                    const { error } = await window.sb.from('operator_info').delete().eq('operator_name', app.currentOperator);
+                                    const { error } = await app.api.from('operator_info').delete().eq('operator_name', app.currentOperator);
                                     if (error) throw error;
                                 } else {
-                                    const { error } = await window.sb.from('operator_info').upsert({
+                                    const { error } = await app.api.from('operator_info').upsert({
                                         operator_name: app.currentOperator,
                                                                                 description: desc || null,
                                         parent_operator: parentOp || null,
@@ -11145,7 +11303,7 @@ Object.assign(window.app, {
                                     app.admin.logAction('update_operator_direct', app.currentOperator, { logo_url: null, description: desc, parent_operator: parentOp });
                                 }
                             } else {
-                                const { count, error: checkErr } = await window.sb.from('edit_requests')
+                                const { count, error: checkErr } = await app.api.from('edit_requests')
                                     .select('*', { count: 'estimated', head: true })
                                     .eq('status', 'pending')
                                     .contains('new_data', { request_type: 'update_operator_info', operator_name: app.currentOperator });
@@ -11165,7 +11323,7 @@ Object.assign(window.app, {
                                     },
                                     status: 'pending'
                                 };
-                                const { error } = await window.sb.from('edit_requests').insert(reqData);
+                                const { error } = await app.api.from('edit_requests').insert(reqData);
                                 if (error) throw error;
                                 app.ui.showAlert("Đã gửi yêu cầu cập nhật thông tin đơn vị vận hành và đang chờ Admin duyệt. Bạn có thể kiểm tra trạng thái trong trang Hồ sơ của tôi.");
                                 app.operator.closeEditPrompt();
@@ -11218,8 +11376,8 @@ Object.assign(window.app, {
                     document.getElementById('model-load-more-container').classList.add('hidden');
                     try {
                         const brandName = modelName.split(' ')[0];
-                        const { data: exactInfo } = await window.sb.from('model_info').select('model_name, logo_url, description').eq('model_name', modelName).maybeSingle();
-                        const { data: brandLogoData } = await window.sb.from('model_info')
+                        const { data: exactInfo } = await app.api.from('model_info').select('model_name, logo_url, description').eq('model_name', modelName).maybeSingle();
+                        const { data: brandLogoData } = await app.api.from('model_info')
                             .select('logo_url')
                             .ilike('model_name', `${brandName}%`)
                             .not('logo_url', 'is', null)
@@ -11245,7 +11403,7 @@ Object.assign(window.app, {
                         const stats = await app.utils.getCachedStats('mdl_stats_' + modelName, 10 * 60 * 1000, async () => {
                             const rpc = await app.utils.getModelStats(modelName);
                             if (rpc) return rpc;
-                            const { data, error: statsErr } = await window.sb.from('photos')
+                            const { data, error: statsErr } = await app.api.from('photos')
                                 .select('views, license_plate, operator, vehicles!inner(model)')
                                 .eq('status', 'approved')
                                 .eq('vehicles.model', modelName)
@@ -11283,7 +11441,7 @@ Object.assign(window.app, {
                         document.getElementById('mdl-stat-views').innerText = app.utils.formatCompact(totalViews);
                         app.views.modelCurrentPage = 1;
                         const mdlSize = app.views.MODEL_PAGE_SIZE || 12;
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles!inner(model)`, { count: 'estimated' })
+                        let pQuery = app.api.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles!inner(model)`, { count: 'estimated' })
                             .eq('status', 'approved')
                             .eq('vehicles.model', modelName)
                             .order('taken_at', { ascending: false, nullsFirst: false })
@@ -11322,9 +11480,9 @@ Object.assign(window.app, {
                     }
                     try {
                         const brandName = app.model.currentModel.split(' ')[0];
-                        const { data: exactInfo } = await window.sb.from('model_info').select('description').eq('model_name', app.model.currentModel).maybeSingle();
+                        const { data: exactInfo } = await app.api.from('model_info').select('description').eq('model_name', app.model.currentModel).maybeSingle();
                         if (exactInfo) document.getElementById('mdl-edit-desc').value = exactInfo.description || '';
-                        const { data: brandLogoData } = await window.sb.from('model_info').select('logo_url').ilike('model_name', `${brandName}%`).not('logo_url', 'is', null).limit(1).maybeSingle();
+                        const { data: brandLogoData } = await app.api.from('model_info').select('logo_url').ilike('model_name', `${brandName}%`).not('logo_url', 'is', null).limit(1).maybeSingle();
                         if (brandLogoData) document.getElementById('mdl-edit-logo').value = brandLogoData.logo_url || '';
                     } catch(e) {}
                     modal.classList.remove('hidden');
@@ -11381,16 +11539,16 @@ Object.assign(window.app, {
                             const brandName = app.model.currentModel.split(' ')[0];
                             if (app.role === 'admin' || app.role === 'manager') {
                                 if (!desc) {
-                                    const { error: delErr } = await window.sb.from('model_info').delete().eq('model_name', app.model.currentModel);
+                                    const { error: delErr } = await app.api.from('model_info').delete().eq('model_name', app.model.currentModel);
                                     if (delErr) throw delErr;
                                 } else {
-                                    const { error: upsertErr } = await window.sb.from('model_info').upsert({
+                                    const { error: upsertErr } = await app.api.from('model_info').upsert({
                                         model_name: app.model.currentModel,
                                                                                 description: desc || null
                                     });
                                     if (upsertErr) throw upsertErr;
                                 }
-                                await window.sb.from('model_info')
+                                await app.api.from('model_info')
                                     .update({ logo_url: null || null })
                                     .ilike('model_name', `${brandName}%`);
                                 app.toast.show('success', 'Thành công', 'Đã lưu và đồng bộ thông tin Dòng xe!');
@@ -11400,7 +11558,7 @@ Object.assign(window.app, {
                                     app.admin.logAction('update_model_direct', app.model.currentModel, { logo_url: null, description: desc, brand_sync: brandName });
                                 }
                             } else {
-                                const { count, error: checkErr } = await window.sb.from('edit_requests')
+                                const { count, error: checkErr } = await app.api.from('edit_requests')
                                     .select('*', { count: 'estimated', head: true })
                                     .eq('status', 'pending')
                                     .contains('new_data', { request_type: 'update_model_info', model_name: app.model.currentModel });
@@ -11417,7 +11575,7 @@ Object.assign(window.app, {
                                     },
                                     status: 'pending'
                                 };
-                                const { error } = await window.sb.from('edit_requests').insert(reqData);
+                                const { error } = await app.api.from('edit_requests').insert(reqData);
                                 if (error) throw error;
                                 app.ui.showAlert("Đã gửi yêu cầu cập nhật thông tin Dòng xe và đang chờ Admin duyệt. Bạn có thể kiểm tra trạng thái trong trang Hồ sơ của tôi.");
                                 app.model.closeEditPrompt();
@@ -11500,7 +11658,7 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     let exactInfo = null;
                     try {
                         const routeName = decodedProvince ? `${decodedRoute} - ${decodedProvince}` : decodedRoute;
-                        const { data } = await window.sb.from('route_info').select('description, short_path, is_inactive, metadata').eq('route_name', routeName).maybeSingle();
+                        const { data } = await app.api.from('route_info').select('description, short_path, is_inactive, metadata').eq('route_name', routeName).maybeSingle();
                         exactInfo = data;
                         let titleText = decodedRoute;
                         let inactiveBadge = '';
@@ -11591,7 +11749,7 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     }
                     
                     try {
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                        let pQuery = app.api.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                             .eq('status', 'approved')
                             .eq('route_no', decodedRoute);
                             
@@ -11706,8 +11864,8 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                                 for (let i = 0; i < platesArr.length; i += chunkSize) {
                                     const chunk = platesArr.slice(i, i + chunkSize);
                                     const [pRes, hRes] = await Promise.all([
-                                        window.sb.from('photos').select('license_plate, route_no, borrowed_route, taken_at').eq('status', 'approved').in('license_plate', chunk),
-                                        window.sb.from('vehicle_history').select('plate, route, effective_date').in('plate', chunk)
+                                        app.api.from('photos').select('license_plate, route_no, borrowed_route, taken_at').eq('status', 'approved').in('license_plate', chunk),
+                                        app.api.from('vehicle_history').select('plate, route, effective_date').in('plate', chunk)
                                     ]);
                                     if (pRes.data) allVehPhotos = allVehPhotos.concat(pRes.data);
                                     if (hRes.data) allVehHist = allVehHist.concat(hRes.data);
@@ -11802,7 +11960,7 @@ app.views.fetchRoutePhotosPage(1);
                     }
                     try {
                         const routeName = app.route.currentProvince ? `${app.route.currentRoute} - ${app.route.currentProvince}` : app.route.currentRoute;
-                        const { data: exactInfo } = await window.sb.from('route_info').select('description, short_path, is_inactive, metadata').eq('route_name', routeName).maybeSingle();
+                        const { data: exactInfo } = await app.api.from('route_info').select('description, short_path, is_inactive, metadata').eq('route_name', routeName).maybeSingle();
                         if (exactInfo) {
                             document.getElementById('route-edit-inactive').checked = exactInfo.is_inactive || false;
                             document.getElementById('route-edit-short-path').value = exactInfo.short_path || '';
@@ -11832,7 +11990,7 @@ app.views.fetchRoutePhotosPage(1);
                         }
                         
                         // Fetch borrowed photos
-                          const { data: bPhotos } = await window.sb.from('photos').select('id, license_plate').eq('borrowed_route', routeName);
+                          const { data: bPhotos } = await app.api.from('photos').select('id, license_plate').eq('borrowed_route', routeName);
                           let bList = [];
                           let plates = [];
                           if (exactInfo && exactInfo.metadata && exactInfo.metadata.borrowed_plates) {
@@ -11919,10 +12077,10 @@ app.views.fetchRoutePhotosPage(1);
                             if (app.role === 'admin' || app.role === 'manager') {
                                 const routeName = app.route.currentProvince ? `${app.route.currentRoute} - ${app.route.currentProvince}` : app.route.currentRoute;
                                 if (!desc && !shortPath && !isInactive && !metadataObj) {
-                                    const { error: delErr } = await window.sb.from('route_info').delete().eq('route_name', routeName);
+                                    const { error: delErr } = await app.api.from('route_info').delete().eq('route_name', routeName);
                                     if (delErr) throw delErr;
                                 } else {
-                                    const { error: upsertErr } = await window.sb.from('route_info').upsert({
+                                    const { error: upsertErr } = await app.api.from('route_info').upsert({
                                         route_name: routeName,
                                         short_path: shortPath || null,
                                         description: desc || null,
@@ -11933,14 +12091,14 @@ app.views.fetchRoutePhotosPage(1);
                                 }
                                 
                                 // Xử lý cập nhật ID ảnh và biển số xe vá tuyến
-                                  const { data: curBorrowed } = await window.sb.from('photos').select('id, license_plate').eq('borrowed_route', routeName);
+                                  const { data: curBorrowed } = await app.api.from('photos').select('id, license_plate').eq('borrowed_route', routeName);
                                   const curIds = curBorrowed ? curBorrowed.map(p => p.id) : [];
                                   const addedIdsRaw = newBorrowedIds.filter(id => !curIds.includes(id));
                                   const removedIds = curIds.filter(id => !newBorrowedIds.includes(id));
                                   
                                   const expectedRouteNo = routeName.split(' - ')[0];
                                   if (enteredPlates.length > 0) {
-                                      const { data: retroPhotos } = await window.sb.from('photos').select('id, route_no').in('license_plate', enteredPlates).eq('route_no', expectedRouteNo);
+                                      const { data: retroPhotos } = await app.api.from('photos').select('id, route_no').in('license_plate', enteredPlates).eq('route_no', expectedRouteNo);
                                       if (retroPhotos && retroPhotos.length > 0) {
                                           retroPhotos.forEach(p => {
                                               if (!curIds.includes(p.id) && !addedIdsRaw.includes(p.id)) {
@@ -11951,11 +12109,11 @@ app.views.fetchRoutePhotosPage(1);
                                   }
                                   
                                   if (addedIdsRaw.length > 0) {
-                                      const { data: validPhotos } = await window.sb.from('photos').select('id, route_no').in('id', addedIdsRaw);
+                                      const { data: validPhotos } = await app.api.from('photos').select('id, route_no').in('id', addedIdsRaw);
                                       const trulyAddedIds = (validPhotos || []).filter(p => p.route_no === expectedRouteNo).map(p => p.id);
                                       
                                       if (trulyAddedIds.length > 0) {
-                                          await window.sb.from('photos').update({ borrowed_route: routeName }).in('id', trulyAddedIds);
+                                          await app.api.from('photos').update({ borrowed_route: routeName }).in('id', trulyAddedIds);
                                       }
                                   }
                                   
@@ -11979,7 +12137,7 @@ app.views.fetchRoutePhotosPage(1);
                                             });
                                             if (pData) defProv = pData.ten;
                                         }
-                                        await window.sb.from('photos').update({ borrowed_route: null }).eq('id', p.id);
+                                        await app.api.from('photos').update({ borrowed_route: null }).eq('id', p.id);
                                     }
                                 }
                                 app.toast.show('success', 'Thành công', 'Đã lưu thông tin Tuyến!');
@@ -11987,7 +12145,7 @@ app.views.fetchRoutePhotosPage(1);
                                 app.route.loadRoutePage(app.route.currentProvince, app.route.currentRoute, true);
                             } else {
                                 const routeName = app.route.currentProvince ? `${app.route.currentRoute} - ${app.route.currentProvince}` : app.route.currentRoute;
-                                let checkQuery = window.sb.from('edit_requests').select('*', { count: 'estimated', head: true }).eq('status', 'pending');
+                                let checkQuery = app.api.from('edit_requests').select('*', { count: 'estimated', head: true }).eq('status', 'pending');
                                 const { count, error: checkErr } = await checkQuery.contains('new_data', { request_type: 'update_route_info', route_name: routeName });
                                 if (checkErr) throw checkErr;
                                 if (count > 0) throw new Error("Đã có một yêu cầu cập nhật thông tin cho tuyến này đang chờ duyệt.");
@@ -12006,7 +12164,7 @@ app.views.fetchRoutePhotosPage(1);
                                     },
                                     status: 'pending'
                                 };
-                                const { error } = await window.sb.from('edit_requests').insert(reqData);
+                                const { error } = await app.api.from('edit_requests').insert(reqData);
                                 if (error) throw error;
                                 app.ui.showAlert("Đã gửi yêu cầu cập nhật thông tin Tuyến và đang chờ Admin duyệt.");
                                 app.route.closeEditPrompt();
@@ -12197,13 +12355,13 @@ Object.assign(window.app, {
                  savePreferencesToServer: async () => {
                      if (!app.user) return;
                      try {
-                         const { data } = await window.sb.from('profiles').select('preferences').eq('id', app.user.id).single();
+                         const { data } = await app.api.from('profiles').select('preferences').eq('id', app.user.id).single();
                          const existingPrefs = (data && data.preferences) ? data.preferences : {};
                          existingPrefs.type = app.preference.current;
                          existingPrefs.wmMode = app.wmState ? app.wmState.mode : 'basic';
                          existingPrefs.pinnedLocations = app.preference.pinnedLocations || [];
                          
-                         await window.sb.from('profiles').update({
+                         await app.api.from('profiles').update({
                              preferences: existingPrefs
                          }).eq('id', app.user.id);
                      } catch(e) { console.warn("Failed to sync preferences", e); }
@@ -12339,7 +12497,7 @@ Object.assign(window.app, {
                     const uploadDate = dateInput && dateInput.value ? new Date(dateInput.value).getTime() : Date.now();
                     try {
                         const prefixOrCond = relatedPrefixes.map(p => `license_plate.ilike.${p}%`).join(',');
-                        const { data } = await window.sb.from('photos')
+                        const { data } = await app.api.from('photos')
                             .select('operator, type, taken_at, created_at, vehicles(model)')
                             .eq('route_no', route)
                             .eq('status', 'approved')
@@ -12455,7 +12613,7 @@ Object.assign(window.app, {
                             return;
                         }
                         try {
-                            const { data: topPhoto } = await window.sb.from('photos')
+                            const { data: topPhoto } = await app.api.from('photos')
                                 .select('url, vehicles!inner(model)')
                                 .eq('status', 'approved')
                                 .eq('vehicles.model', modelName)
@@ -12548,7 +12706,7 @@ Object.assign(window.app, {
                     app.upload._dupToken = (app.upload._dupToken || 0) + 1;
                     const myToken = app.upload._dupToken;
                     try {
-                        const { data: existingPhotos, error: checkErr } = await window.sb
+                        const { data: existingPhotos, error: checkErr } = await app.api
                             .from('photos')
                             .select('taken_at, location')
                             .eq('uploader_id', app.user.id)
@@ -12978,7 +13136,7 @@ Object.assign(window.app, {
                     const currentSuffix = parts[1] ? parseInt(parts[1]) : 0;
                     try {
                         const { data: existingVehicles } = await app.utils.promiseWithTimeout(
-                            window.sb.from('vehicles').select('license_plate, model').ilike('license_plate', `${basePlate}%`),
+                            app.api.from('vehicles').select('license_plate, model').ilike('license_plate', `${basePlate}%`),
                             5000
                         );
                         app.upload.existingVehiclesList = existingVehicles || [];
@@ -13013,7 +13171,7 @@ Object.assign(window.app, {
                         let hasApproved = false;
                         let recentPhotos = [];
                         if (exactVehicle) {
-                            const { data } = await window.sb
+                            const { data } = await app.api
                                 .from('photos')
                                 .select('operator, route_no, type, taken_at, created_at')
                                 .eq('license_plate', rawPlate)
@@ -13076,7 +13234,7 @@ Object.assign(window.app, {
                             });
                             document.getElementById('locked-msg').classList.remove('hidden');
                             if(app.upload.checkModelPreview) app.upload.checkModelPreview();
-                            const { data: shootersData } = await window.sb
+                            const { data: shootersData } = await app.api
                                 .from('photos')
                                 .select('profiles(username, ban_status)')
                                 .eq('license_plate', rawPlate)
@@ -13177,14 +13335,14 @@ Object.assign(window.app, {
                     app.upload.isBlindWatermarkEnabled = (mode === 'advanced');
                     try {
                         if (typeof localStorage !== 'undefined') localStorage.setItem('vnbus_wm_mode', mode);
-                        if (animate && app.user && window.sb) {
+                        if (animate && app.user && app.api) {
                             const curPref = localStorage.getItem('vnbus_preference') || 'both';
-                            window.sb.from('profiles').select('preferences').eq('id', app.user.id).single().then(({data}) => {
+                            app.api.from('profiles').select('preferences').eq('id', app.user.id).single().then(({data}) => {
                                 const existingPrefs = (data && data.preferences) ? data.preferences : {};
                                 existingPrefs.type = curPref;
                                 existingPrefs.wmMode = mode;
                                 existingPrefs.pinnedLocations = (app.preference && app.preference.pinnedLocations) || [];
-                                window.sb.from('profiles').update({ preferences: existingPrefs }).eq('id', app.user.id).then(()=>{});
+                                app.api.from('profiles').update({ preferences: existingPrefs }).eq('id', app.user.id).then(()=>{});
                             });
                         }
                     } catch (e) {}
@@ -13323,7 +13481,7 @@ Object.assign(window.app, {
                         let username = document.getElementById('username')?.value?.trim();
                         if (!username && app.user && app.user.id) {
                             try {
-                                const { data } = await window.sb.from('profiles').select('username').eq('id', app.user.id).single();
+                                const { data } = await app.api.from('profiles').select('username').eq('id', app.user.id).single();
                                 if (data) username = data.username;
                             } catch (e) {}
                         }
@@ -14342,7 +14500,7 @@ Object.assign(window.app, {
                         const hasLimit = limitSetting && limitSetting.trim() !== '';
                         const limitNum = hasLimit ? parseInt(limitSetting) : null;
                         const last7AM = app.utils.getLast7AM_UTC7();
-                        const { count } = await window.sb.from('photos')
+                        const { count } = await app.api.from('photos')
                             .select('*', { count: 'estimated', head: true })
                             .eq('uploader_id', app.user.id)
                             .gte('created_at', last7AM);
@@ -14394,7 +14552,7 @@ Object.assign(window.app, {
                         const item = app.upload.uploadQueue[0];
                         let token;
                         try {
-                            const { data: { session } } = await window.sb.auth.getSession();
+                            const { data: { session } } = await app.api.auth.getSession();
                             token = session?.access_token;
                         } catch (e) {}
                         let result = null;
@@ -14416,7 +14574,7 @@ Object.assign(window.app, {
                                 console.log(`[EXHAUSTIVE UPLOAD LOG - Response Attempt ${uploadAttempts}]:`, { status: response.status, result });
                                 if (response.status === 401 || (result && result.error && result.error.message && result.error.message.includes('JWT'))) {
                                     app.upload.activeProgressToast.update(60, 'Phiên hết hạn, đang kết nối lại...', `Thử lại lần ${uploadAttempts}`);
-                                    const { data: { session: newSession } } = await window.sb.auth.refreshSession();
+                                    const { data: { session: newSession } } = await app.api.auth.refreshSession();
                                     if (newSession && newSession.access_token) {
                                         token = newSession.access_token;
                                         uploadAttempts--;
@@ -14552,7 +14710,7 @@ Object.assign(window.app, {
                         let queueCount = '?';
                         let newPhotoId = null;
                         try {
-                            const { data: pendingData } = await window.sb.from('photos').select('id, uploader_id, created_at, profiles(role)').eq('status', 'pending');
+                            const { data: pendingData } = await app.api.from('photos').select('id, uploader_id, created_at, profiles(role)').eq('status', 'pending');
                             if (pendingData) {
                                 let ahead = 0;
                                 const isMePrivileged = (app.role === 'admin' || app.role === 'manager');
@@ -15277,12 +15435,12 @@ select: (val) => {
                     localStorage.setItem('vnbus_preference', app.preference.current);
                     if (app.user) {
                         const curWmMode = localStorage.getItem('vnbus_wm_mode') || (app.wmState && app.wmState.mode) || 'basic';
-                        window.sb.from('profiles').select('preferences').eq('id', app.user.id).single().then(({data}) => {
+                        app.api.from('profiles').select('preferences').eq('id', app.user.id).single().then(({data}) => {
                             const existingPrefs = (data && data.preferences) ? data.preferences : {};
                             existingPrefs.type = app.preference.current;
                             existingPrefs.wmMode = curWmMode;
                             existingPrefs.pinnedLocations = app.preference.pinnedLocations || [];
-                            window.sb.from('profiles').update({ preferences: existingPrefs }).eq('id', app.user.id).then(()=>{});
+                            app.api.from('profiles').update({ preferences: existingPrefs }).eq('id', app.user.id).then(()=>{});
                         });
                     }
                     app.ui.showAlert("Đã lưu thông tin Cá nhân hóa thành công!");
@@ -15488,7 +15646,7 @@ Object.assign(window.app, {
                             async () => {
                                 try {
                                     try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
-                                    const { data: { session } } = await window.sb.auth.getSession();
+                                    const { data: { session } } = await app.api.auth.getSession();
                                     if (session && p.url) {
                                         await fetch('/api/delete-image', {
                                             method: 'POST',
@@ -15499,7 +15657,7 @@ Object.assign(window.app, {
                                             body: JSON.stringify({ imageUrl: p.url, photoId: p.id })
                                         });
                                     }
-                                    await window.sb.from('photos').delete().eq('id', p.id);
+                                    await app.api.from('photos').delete().eq('id', p.id);
                                     await app.vehicle.cleanupVehicle(p.license_plate);
                                     app.toast.show('success', 'Thành công', 'Ảnh đã được xóa vĩnh viễn khỏi hệ thống.');
                                     app.views.loadHome();
@@ -15510,7 +15668,7 @@ Object.assign(window.app, {
                         );
                     } else {
                         try {
-                            const { count, error: checkErr } = await window.sb.from('edit_requests')
+                            const { count, error: checkErr } = await app.api.from('edit_requests')
                                 .select('*', { count: 'estimated', head: true })
                                 .eq('status', 'pending')
                                 .contains('new_data', { photo_id: p.id });
@@ -15524,7 +15682,7 @@ Object.assign(window.app, {
                         app.ui.showPrompt("Vui lòng nhập lý do xóa ảnh này (Bắt buộc):", "", async (reason) => {
                             try {
                                 try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
-                                const { error } = await window.sb.from('edit_requests').insert({
+                                const { error } = await app.api.from('edit_requests').insert({
                                     requester_id: app.user.id,
                                     license_plate: p.license_plate,
                                     new_data: { request_type: 'delete_photo', photo_id: p.id, reason: reason },
@@ -15576,6 +15734,14 @@ Object.assign(window.app, {
                     }
                     app.comments.page = 1;
                     app.comments.load(photoId);
+                if (app.comments.interval) clearInterval(app.comments.interval);
+                app.comments.interval = setInterval(() => {
+                    if (document.getElementById('comments-container')) {
+                        app.comments.load(photoId, true);
+                    } else {
+                        clearInterval(app.comments.interval);
+                    }
+                }, 15000); // 15 seconds
                 },
                 load: async (photoId, append = false) => {
                     const listEl = document.getElementById('comment-list');
@@ -15588,13 +15754,13 @@ Object.assign(window.app, {
                         let parents, count, error;
                         let useThreads = true;
                         if (countEl) {
-                            const { count: totalCount } = await window.sb
+                            const { count: totalCount } = await app.api
                                 .from('photo_comments')
                                 .select('*', { count: 'estimated', head: true })
                                 .eq('photo_id', photoId);
                             countEl.innerText = totalCount || 0;
                         }
-                        const result = await window.sb
+                        const result = await app.api
                             .from('photo_comments')
                             .select('*, profiles(id, username, avatar_url, role, subroles, ban_status)', { count: 'estimated' })
                             .eq('photo_id', photoId)
@@ -15606,7 +15772,7 @@ Object.assign(window.app, {
                         error = result.error;
                         if (error) {
                             useThreads = false;
-                            const fallback = await window.sb
+                            const fallback = await app.api
                                 .from('photo_comments')
                                 .select('*, profiles(id, username, avatar_url, role, subroles, ban_status)', { count: 'estimated' })
                                 .eq('photo_id', photoId)
@@ -15625,7 +15791,7 @@ Object.assign(window.app, {
                         let repliesMap = {};
                         if (useThreads && parents && parents.length > 0) {
                             const parentIds = parents.map(p => p.id);
-                            const { data: replies } = await window.sb
+                            const { data: replies } = await app.api
                                 .from('photo_comments')
                                 .select('*, profiles(id, username, avatar_url, role, subroles, ban_status)')
                                 .in('parent_id', parentIds)
@@ -15740,15 +15906,15 @@ Object.assign(window.app, {
                     const container = document.getElementById('dashboard-content');
                     container.innerHTML = '<p class="text-center py-20 text-gray-400"><i class="fa-solid fa-spinner fa-spin"></i> Đang tổng hợp bình luận...</p>';
                     try {
-                        const { data: myComments } = await window.sb.from('photo_comments').select('id').eq('user_id', app.user.id);
+                        const { data: myComments } = await app.api.from('photo_comments').select('id').eq('user_id', app.user.id);
                         const myCommentIds = myComments ? myComments.map(c => c.id).slice(0, 500) : []; 
-                        const p1 = window.sb
+                        const p1 = app.api
                             .from('photo_comments')
                             .select('*, photos!inner(license_plate, url, uploader_id, id), profiles(username, avatar_url, role, subroles)')
                             .eq('photos.uploader_id', app.user.id);
                         let p2 = null;
                         if (myCommentIds.length > 0) {
-                            p2 = window.sb
+                            p2 = app.api
                                 .from('photo_comments')
                                 .select('*, photos!inner(license_plate, url, uploader_id, id), profiles(username, avatar_url, role, subroles)')
                                 .in('parent_id', myCommentIds);
@@ -15845,11 +16011,11 @@ Object.assign(window.app, {
                         listEl.insertAdjacentHTML('afterbegin', modifiedFakeHtml);
                         input.value = '';
                     }
-                    let { error } = await window.sb.from('photo_comments').insert(insertData);
+                    let { error } = await app.api.from('photo_comments').insert(insertData);
                     if (error && error.message && error.message.includes('JWT')) {
-                        const { data: { session: newSession } } = await window.sb.auth.refreshSession();
+                        const { data: { session: newSession } } = await app.api.auth.refreshSession();
                         if (newSession) {
-                            const retry = await window.sb.from('photo_comments').insert(insertData);
+                            const retry = await app.api.from('photo_comments').insert(insertData);
                             error = retry.error;
                         } else {
                             app.ui.showAlert('Phiên đã hết hạn. Vui lòng tải lại trang và đăng nhập lại.');
@@ -15857,7 +16023,7 @@ Object.assign(window.app, {
                     }
                     if (error && app.comments.replyingTo) {
                         delete insertData.parent_id;
-                        const retry = await window.sb.from('photo_comments').insert(insertData);
+                        const retry = await app.api.from('photo_comments').insert(insertData);
                         error = retry.error;
                         if (!error) app.comments.cancelReply();
                     }
@@ -15877,7 +16043,7 @@ Object.assign(window.app, {
                 },
                 delete: async (id) => {
                     app.ui.showAlert("Bạn có chắc chắn muốn xóa bình luận này? (Các phản hồi bên trong cũng sẽ bị xóa theo)", async () => {
-                        const { error } = await window.sb.from('photo_comments').delete().or(`id.eq.${id},parent_id.eq.${id}`);
+                        const { error } = await app.api.from('photo_comments').delete().or(`id.eq.${id},parent_id.eq.${id}`);
                         if (error) return app.ui.showAlert("Lỗi: " + error.message);
                         if (app.currentViewMode === 'comment-dashboard') app.comments.openDashboard();
                         else if (app.adminTab === 'comments') app.admin.loadTab('comments');
@@ -16041,7 +16207,7 @@ Object.assign(window.app, {
                             const targetDate = payload.taken_at || app.currentPhoto.taken_at;
                             if (targetDate) {
                                 const datePart = targetDate.split('T')[0];
-                                const { data: existingPhotos, error: checkErr } = await window.sb
+                                const { data: existingPhotos, error: checkErr } = await app.api
                                     .from('photos')
                                     .select('id, taken_at')
                                     .eq('uploader_id', app.currentPhoto.uploader_id)
@@ -16072,17 +16238,17 @@ Object.assign(window.app, {
                         };
                         if (app.user.id === app.currentPhoto.uploader_id || app.role === 'admin' || app.role === 'manager') {
                             if (takenAtChanged) {
-                                await window.sb.from('photos').update({ taken_at: payload.taken_at }).eq('id', app.currentPhoto.id);
+                                await app.api.from('photos').update({ taken_at: payload.taken_at }).eq('id', app.currentPhoto.id);
                                 app.currentPhoto.taken_at = payload.taken_at;
                             }
                         }
                         if (app.role === 'admin' || app.role === 'manager') {
-                            const { error: vError } = await window.sb.from('vehicles').upsert({
+                            const { error: vError } = await app.api.from('vehicles').upsert({
                                 license_plate: payload.license_plate,
                                 model: payload.model
                             }, { onConflict: 'license_plate' });
                             if (vError) throw vError;
-                            const { error: pError } = await window.sb.from('photos').update({
+                            const { error: pError } = await app.api.from('photos').update({
                                 license_plate: payload.license_plate,
                                 location: payload.location,
                                 note: payload.note,
@@ -16136,7 +16302,7 @@ Object.assign(window.app, {
                             document.getElementById('info-plate').value = payload.license_plate;
                             app.edit.cancel();
                         } else {
-                            const { count, error: checkErr } = await window.sb.from('edit_requests')
+                            const { count, error: checkErr } = await app.api.from('edit_requests')
                                 .select('*', { count: 'estimated', head: true })
                                 .eq('status', 'pending')
                                 .contains('new_data', { photo_id: app.currentPhoto.id });
@@ -16155,7 +16321,7 @@ Object.assign(window.app, {
                                 },
                                 status: 'pending'
                             };
-                            const { data, error } = await window.sb.from('edit_requests').insert(reqData).select().single();
+                            const { data, error } = await app.api.from('edit_requests').insert(reqData).select().single();
                             if (error) throw error;
                             app.ui.showAlert("Yêu cầu chỉnh sửa đã được gửi và đang chờ Admin duyệt. Bạn có thể kiểm tra trạng thái trong trang Hồ sơ của tôi.");
                             app.edit.cancel();
@@ -16169,6 +16335,7 @@ Object.assign(window.app, {
                 }
             }
 });
+
 
 /* --- MODULE: page_vehicle.js --- */
 // Extracted to page_vehicle.js
@@ -16232,13 +16399,13 @@ Object.assign(window.app, {
                 cleanupVehicle: async (plate) => {
                     if (!plate) return;
                     try {
-                        const { data: approvedPhotos, error } = await window.sb.from('photos').select('route_no, operator, taken_at').eq('license_plate', plate).eq('status', 'approved');
+                        const { data: approvedPhotos, error } = await app.api.from('photos').select('route_no, operator, taken_at').eq('license_plate', plate).eq('status', 'approved');
                         if (error || !approvedPhotos) return;
                         if (approvedPhotos.length === 0) {
-                            await window.sb.from('vehicle_history').delete().eq('license_plate', plate);
+                            await app.api.from('vehicle_history').delete().eq('license_plate', plate);
                             return;
                         }
-                        const { data: history } = await window.sb.from('vehicle_history').select('*').eq('license_plate', plate);
+                        const { data: history } = await app.api.from('vehicle_history').select('*').eq('license_plate', plate);
                         if (!history || history.length === 0) return;
                         const specialRoutes = ['Ngoài giờ hoạt động', 'Chưa hoạt động'];
                         const activePhotos = approvedPhotos.filter(p => !specialRoutes.includes(p.route_no));
@@ -16247,20 +16414,20 @@ Object.assign(window.app, {
                             if (!specialRoutes.includes(h.route)) {
                                 const hasMatchingPhoto = activePhotos.some(p => isSameRoute(p.route_no, h.route));
                                 if (!hasMatchingPhoto) {
-                                    await window.sb.from('vehicle_history').delete().eq('id', h.id);
+                                    await app.api.from('vehicle_history').delete().eq('id', h.id);
                                 }
                             }
                         }
 
                         // Gộp các mốc lịch sử liền kề có cùng số tuyến
-                        let { data: freshHistory } = await window.sb.from('vehicle_history')
+                        let { data: freshHistory } = await app.api.from('vehicle_history')
                             .select('*').eq('license_plate', plate).order('effective_date', { ascending: true });
                         if (freshHistory && freshHistory.length > 1) {
                             for (let i = 1; i < freshHistory.length; i++) {
                                 const prev = freshHistory[i - 1];
                                 const curr = freshHistory[i];
                                 if (isSameRoute(curr.route, prev.route)) {
-                                    await window.sb.from('vehicle_history').delete().eq('id', curr.id);
+                                    await app.api.from('vehicle_history').delete().eq('id', curr.id);
                                     freshHistory.splice(i, 1);
                                     i--;
                                 }
@@ -16458,31 +16625,31 @@ Object.assign(window.app, {
                             try {
                                 const currentPlate = app.currentPlate;
                                 const newHistoryPlates = [...new Set(payload.map(p => p.plate).filter(p => p && p !== currentPlate))];
-                                const { data: unmergeCandidates } = await window.sb.from('vehicles').select('license_plate, note').like('note', `%[MERGED_INTO:${currentPlate}]%`);
+                                const { data: unmergeCandidates } = await app.api.from('vehicles').select('license_plate, note').like('note', `%[MERGED_INTO:${currentPlate}]%`);
                                 if (unmergeCandidates) {
                                     for (const v of unmergeCandidates) {
                                         if (!newHistoryPlates.includes(v.license_plate)) {
                                             const newNote = (v.note || '').replace(`[MERGED_INTO:${currentPlate}]`, '').trim();
-                                            await window.sb.from('vehicles').update({ note: newNote }).eq('license_plate', v.license_plate);
+                                            await app.api.from('vehicles').update({ note: newNote }).eq('license_plate', v.license_plate);
                                             app.toast.show('info', 'Đã tách xe', `Hồ sơ xe ${v.license_plate} đã được khôi phục thành hồ sơ độc lập.`);
                                         }
                                     }
                                 }
                                 if (newHistoryPlates.length > 0) {
-                                    const { data: existingOldVehicles } = await window.sb.from('vehicles').select('license_plate, note').in('license_plate', newHistoryPlates);
+                                    const { data: existingOldVehicles } = await app.api.from('vehicles').select('license_plate, note').in('license_plate', newHistoryPlates);
                                     if (existingOldVehicles && existingOldVehicles.length > 0) {
                                         for (const v of existingOldVehicles) {
                                             const noteStr = v.note || '';
                                             if (!noteStr.includes(`[MERGED_INTO:${currentPlate}]`)) {
                                                 const newNote = (noteStr + ` [MERGED_INTO:${currentPlate}]`).trim();
-                                                await window.sb.from('vehicles').update({ note: newNote }).eq('license_plate', v.license_plate);
+                                                await app.api.from('vehicles').update({ note: newNote }).eq('license_plate', v.license_plate);
                                                 app.toast.show('info', 'Đã gộp xe', `Dữ liệu từ xe ${v.license_plate} đã được tự động gộp sang xe này.`);
                                             }
                                         }
                                     }
                                 }
-                                await window.sb.from('vehicle_history').delete().eq('license_plate', app.currentPlate);
-                                if (payload.length > 0) await window.sb.from('vehicle_history').insert(payload);
+                                await app.api.from('vehicle_history').delete().eq('license_plate', app.currentPlate);
+                                if (payload.length > 0) await app.api.from('vehicle_history').insert(payload);
                                 app.toast.show('success', 'Đã cập nhật', 'Lịch sử hoạt động của xe đã được lưu thành công.');
                                 app.vehicle.toggleEditHistory(app.vehicle.currentHistoryPrefix);
                                 if (window.location.pathname.startsWith('/vehicle/')) {
@@ -16495,7 +16662,7 @@ Object.assign(window.app, {
                             }
                         } else {
                             try {
-                                const { count, error: checkErr } = await window.sb.from('edit_requests').select('*', { count: 'estimated', head: true }).eq('license_plate', app.currentPlate).eq('status', 'pending').contains('new_data', { request_type: 'update_history' });
+                                const { count, error: checkErr } = await app.api.from('edit_requests').select('*', { count: 'estimated', head: true }).eq('license_plate', app.currentPlate).eq('status', 'pending').contains('new_data', { request_type: 'update_history' });
                                 if (count > 0) return app.ui.showAlert("Có yêu cầu chỉnh sửa lịch sử khác đang chờ duyệt cho xe này. Vui lòng thử lại sau.");
                                 const reqData = {
                                     requester_id: app.user.id,
@@ -16503,7 +16670,7 @@ Object.assign(window.app, {
                                     new_data: { request_type: 'update_history', history_items: payload },
                                     status: 'pending'
                                 };
-                                const { error } = await window.sb.from('edit_requests').insert(reqData);
+                                const { error } = await app.api.from('edit_requests').insert(reqData);
                                 if (error) throw error;
                                 app.ui.showAlert("Yêu cầu cập nhật lịch sử đã được gửi và chờ Admin duyệt. Bạn có thể kiểm tra trạng thái trong trang Hồ sơ của tôi.");
                                 app.vehicle.toggleEditHistory(app.vehicle.currentHistoryPrefix);
@@ -16531,7 +16698,7 @@ Object.assign(window.app, {
                     const isSpecial = specialRoutes.includes(newData.route_no);
                     const isSameRoute = (r1, r2) => (r1 || '').trim().toLowerCase() === (r2 || '').trim().toLowerCase();
                     try {
-                        const { data: photos } = await window.sb.from('photos').select('id, operator, route_no')
+                        const { data: photos } = await app.api.from('photos').select('id, operator, route_no')
                             .eq('license_plate', plate)
                             .like('taken_at', `${targetDate}%`)
                             .eq('status', 'approved');
@@ -16539,16 +16706,16 @@ Object.assign(window.app, {
                         if (isSpecial) {
                             if (otherNormalPhotos.length > 0) {
                                 const fallback = otherNormalPhotos[0];
-                                await window.sb.from('vehicle_history').update({
+                                await app.api.from('vehicle_history').update({
                                     operator: fallback.operator,
                                     route: fallback.route_no
                                 }).eq('license_plate', plate).eq('effective_date', targetDate);
                             } else {
-                                await window.sb.from('vehicle_history').delete()
+                                await app.api.from('vehicle_history').delete()
                                     .eq('license_plate', plate).eq('effective_date', targetDate);
                             }
                         } else {
-                            let { data: allHistory } = await window.sb.from('vehicle_history')
+                            let { data: allHistory } = await app.api.from('vehicle_history')
                                 .select('*')
                                 .eq('license_plate', plate)
                                 .order('effective_date', { ascending: true });
@@ -16573,11 +16740,11 @@ Object.assign(window.app, {
                                 if (H_cov.effective_date === targetDate) {
                                     if (isSameRoute(H_cov.route, route)) {
                                         if (op && H_cov.operator !== op) {
-                                            await window.sb.from('vehicle_history').update({ operator: op }).eq('id', H_cov.id);
+                                            await app.api.from('vehicle_history').update({ operator: op }).eq('id', H_cov.id);
                                         }
                                         needInsert = false;
                                     } else {
-                                        await window.sb.from('vehicle_history').update({
+                                        await app.api.from('vehicle_history').update({
                                             route: route,
                                             operator: op
                                         }).eq('id', H_cov.id);
@@ -16599,7 +16766,7 @@ Object.assign(window.app, {
                                     const H_oldest = allHistory[0];
                                     if (isSameRoute(H_oldest.route, route)) {
                                         // Cùng tuyến với mốc cổ nhất -> Mở rộng mốc cũ hơn về quá khứ
-                                        await window.sb.from('vehicle_history').update({
+                                        await app.api.from('vehicle_history').update({
                                             effective_date: targetDate,
                                             operator: op || H_oldest.operator
                                         }).eq('id', H_oldest.id);
@@ -16615,8 +16782,8 @@ Object.assign(window.app, {
                             }
 
                             if (needInsert) {
-                                const { count } = await window.sb.from('vehicle_history').select('*', { count: 'estimated', head: true }).eq('license_plate', plate);
-                                await window.sb.from('vehicle_history').insert({
+                                const { count } = await app.api.from('vehicle_history').select('*', { count: 'estimated', head: true }).eq('license_plate', plate);
+                                await app.api.from('vehicle_history').insert({
                                     license_plate: plate,
                                     effective_date: targetDate,
                                     operator: op,
@@ -16626,7 +16793,7 @@ Object.assign(window.app, {
                             }
 
                             // 2. Chống phân mảnh: Tự động gộp các mốc liền kề có cùng số tuyến
-                            let { data: freshHistory } = await window.sb.from('vehicle_history')
+                            let { data: freshHistory } = await app.api.from('vehicle_history')
                                 .select('*')
                                 .eq('license_plate', plate)
                                 .order('effective_date', { ascending: true });
@@ -16635,7 +16802,7 @@ Object.assign(window.app, {
                                 const prev = freshHistory[i - 1];
                                 const curr = freshHistory[i];
                                 if (isSameRoute(prev.route, curr.route)) {
-                                    await window.sb.from('vehicle_history').delete().eq('id', curr.id);
+                                    await app.api.from('vehicle_history').delete().eq('id', curr.id);
                                     freshHistory.splice(i, 1);
                                     i--;
                                 }
@@ -16709,17 +16876,17 @@ Object.assign(window.app, {
                             return;
                         }
                         if (app.role === 'admin' || app.role === 'manager') {
-                            const { error } = await window.sb.from('vehicles').upsert({ license_plate: plate, ...newData }, { onConflict: 'license_plate' });
+                            const { error } = await app.api.from('vehicles').upsert({ license_plate: plate, ...newData }, { onConflict: 'license_plate' });
                             if (error) throw error;
                             app.toast.show('success', 'Đã lưu thay đổi', 'Thông tin xe đã được cập nhật thành công.');
                             app.views.loadVehiclePage(plate, true);
                         } else {
-                            const { count } = await window.sb.from('edit_requests').select('*', { count: 'estimated', head: true }).eq('license_plate', plate).eq('status', 'pending').contains('new_data', { request_type: 'update_vehicle_details' });
+                            const { count } = await app.api.from('edit_requests').select('*', { count: 'estimated', head: true }).eq('license_plate', plate).eq('status', 'pending').contains('new_data', { request_type: 'update_vehicle_details' });
                             if (count > 0) {
                                 btnSave.disabled = false; btnSave.innerHTML = 'Lưu thông tin';
                                 return app.ui.showAlert("Có yêu cầu chỉnh sửa hồ sơ khác đang chờ duyệt cho xe này. Vui lòng thử lại sau.");
                             }
-                            const { error } = await window.sb.from('edit_requests').insert({
+                            const { error } = await app.api.from('edit_requests').insert({
                                 requester_id: app.user.id, license_plate: plate, new_data: { ...newData, request_type: 'update_vehicle_details' }, status: 'pending'
                             });
                             if (error) throw error;
@@ -17023,7 +17190,7 @@ Object.assign(window.app, {
                         // Ép sang định dạng WebP với chất lượng cao nhất (1.0)
                         const initialBlob = await new Promise((resolve) => { canvas.toBlob(b => resolve(b), 'image/webp', 1.0); }); const blob = await app.utils.compressToSizeLoop(initialBlob, 'image/webp', 500);
 
-                        const sessionRes = await window.sb.auth.getSession();
+                        const sessionRes = await app.api.auth.getSession();
                         const token = sessionRes.data.session?.access_token;
                         
                         const formData = new FormData();
@@ -17304,10 +17471,10 @@ Object.assign(window.app, {
                         return;
                     }
                     try {
-                        const { data: vData } = await window.sb.from('vehicles').select('*').eq('license_plate', val).maybeSingle();
+                        const { data: vData } = await app.api.from('vehicles').select('*').eq('license_plate', val).maybeSingle();
                         if (vData) {
                             if (elModel) elModel.value = vData.model || '';
-                            const { data: pDataArray } = await window.sb.from('photos')
+                            const { data: pDataArray } = await app.api.from('photos')
                                 .select('operator, route_no, type')
                                 .eq('license_plate', val)
                                 .eq('status', 'approved')
@@ -17348,7 +17515,7 @@ Object.assign(window.app, {
                                 const plateSpan = cardHeader.querySelector('span.font-bold');
                                 if (plateSpan) plateSpan.innerText = val;
                                 const existingBadge = cardHeader.querySelector('.badge-xe-moi');
-                                const isApprovedPlate = app.admin?.approvedPlateSet?.has(val) || (await window.sb.from('photos').select('id').eq('license_plate', val).eq('status', 'approved').limit(1)).data?.length > 0;
+                                const isApprovedPlate = app.admin?.approvedPlateSet?.has(val) || (await app.api.from('photos').select('id').eq('license_plate', val).eq('status', 'approved').limit(1)).data?.length > 0;
                                 if (!isApprovedPlate && val && val !== '---') {
                                     if (!existingBadge && plateSpan) {
                                         plateSpan.insertAdjacentHTML('afterend', ' <span class="badge-xe-moi"><i class="fa-solid fa-sparkles"></i> XE MỚI</span>');
@@ -17370,7 +17537,7 @@ Object.assign(window.app, {
                     const isInterior = locInput.value.trim() === 'Chụp trong xe';
                     const cleanPlate = plateInput.value.replace(/[^A-Z0-9-]/gi, '').toUpperCase();
                     try {
-                        const { data: existingPhotos, error } = await window.sb
+                        const { data: existingPhotos, error } = await app.api
                             .from('photos')
                             .select('id, taken_at, location')
                             .eq('uploader_id', uploaderId)
@@ -17440,7 +17607,7 @@ Object.assign(window.app, {
                 logAction: async (actionType, targetId, details) => {
                     if (!app.user) return;
                     try {
-                        await window.sb.from('admin_audit_logs').insert({
+                        await app.api.from('admin_audit_logs').insert({
                             admin_id: app.user.id,
                             action_type: actionType,
                             target_id: targetId,
@@ -17469,9 +17636,9 @@ Object.assign(window.app, {
                 },
                 refreshCounts: async () => {
                     try {
-                        const { data: pendingPhotos, error: pErr } = await window.sb.from('photos').select('id, uploader_id').eq('status', 'pending');
+                        const { data: pendingPhotos, error: pErr } = await app.api.from('photos').select('id, uploader_id').eq('status', 'pending');
                         if (pErr) console.error("Lỗi đếm photos:", pErr);
-                        const { data: reqs, error: rErr } = await window.sb.from('edit_requests').select('requester_id, new_data').eq('status', 'pending');
+                        const { data: reqs, error: rErr } = await app.api.from('edit_requests').select('requester_id, new_data').eq('status', 'pending');
                         if (rErr) console.error("Lỗi đếm edit_requests:", rErr);
                         let pCount = 0;
                         if (pendingPhotos) {
@@ -17582,7 +17749,7 @@ Object.assign(window.app, {
                 },
                 fetchAdminNote: async function() {
                     try {
-                        const { data, error } = await window.sb.from('admin_notes').select('content').eq('id', 1).single();
+                        const { data, error } = await app.api.from('admin_notes').select('content').eq('id', 1).single();
                         if (error && error.code !== 'PGRST116') throw error;
                         const note = data ? data.content : '';
                         const noteInput = document.getElementById('adm-board-note');
@@ -17602,7 +17769,7 @@ Object.assign(window.app, {
                     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
                     btn.disabled = true;
                     try {
-                        const { error } = await window.sb.from('admin_notes').upsert({
+                        const { error } = await app.api.from('admin_notes').upsert({
                             id: 1,
                             content: content,
                             updated_at: new Date().toISOString(),
@@ -17689,16 +17856,16 @@ Object.assign(window.app, {
                             let reviewedIds = [];
                             try {
                                 if (app.user && app.user.id) {
-                                    const { data: myReviews } = await window.sb.from('photo_reviews').select('photo_id').eq('admin_id', app.user.id);
+                                    const { data: myReviews } = await app.api.from('photo_reviews').select('photo_id').eq('admin_id', app.user.id);
                                     if (myReviews) reviewedIds = myReviews.map(r => r.photo_id);
                                 }
                             } catch(e) {}
                             try {
                                 const [sbRes, apiRes] = await Promise.all([
-                                    window.sb.from('photos').select('*, profiles(username, role), vehicles(model), photo_reviews(action, reason, admin_id)', { count: 'estimated' }).eq('status', 'pending').order('id', { ascending: true }).range(fromRow, toRow).then(r => r).catch(() => ({ data: [], count: 0 })),
+                                    app.api.from('photos').select('*, profiles(username, role), vehicles(model), photo_reviews(action, reason, admin_id)', { count: 'estimated' }).eq('status', 'pending').order('id', { ascending: true }).range(fromRow, toRow).then(r => r).catch(() => ({ data: [], count: 0 })),
                                     (async () => {
                                         try {
-                                            const sessionRes = await window.sb.auth.getSession();
+                                            const sessionRes = await app.api.auth.getSession();
                                             const token = sessionRes.data.session?.access_token;
                                             if (token) {
                                                 const res = await fetch(`/api/photo?status=pending&page=${app.adminPendingPage}&limit=${pageSize}&_t=${new Date().getTime()}`, { headers: { 'Authorization': `Bearer ${token}` }, cache: 'no-store' });
@@ -17787,25 +17954,25 @@ Object.assign(window.app, {
                             const routesVariants = pendingRoutes.length > 0 ? getVariants(pendingRoutes) : [];
                             const modelsVariants = pendingModels.length > 0 ? getVariants(pendingModels) : [];
                             await Promise.all([
-                                window.sb.from('operator_info').select('operator_name').then(r => {
+                                app.api.from('operator_info').select('operator_name').then(r => {
                                     (r.data || []).forEach(o => { if (o.operator_name) approvedOpSet.add(app.utils.cleanText(o.operator_name).trim().toLowerCase()); });
                                 }).catch(() => {}),
-                                platesVariants.length > 0 ? window.sb.from('photos').select('license_plate').eq('status', 'approved').in('license_plate', platesVariants).then(r => {
+                                platesVariants.length > 0 ? app.api.from('photos').select('license_plate').eq('status', 'approved').in('license_plate', platesVariants).then(r => {
                                     (r.data || []).forEach(p => { if (p.license_plate) approvedPlateSet.add(p.license_plate.trim().toUpperCase()); });
                                 }).catch(() => {}) : Promise.resolve(),
-                                platesVariants.length > 0 ? window.sb.from('vehicles').select('license_plate, photos!inner(status)').eq('photos.status', 'approved').in('license_plate', platesVariants).then(r => {
+                                platesVariants.length > 0 ? app.api.from('vehicles').select('license_plate, photos!inner(status)').eq('photos.status', 'approved').in('license_plate', platesVariants).then(r => {
                                     (r.data || []).forEach(v => { if (v.photos && v.photos.length > 0 && v.license_plate) approvedPlateSet.add(v.license_plate.trim().toUpperCase()); });
                                 }).catch(() => {}) : Promise.resolve(),
-                                opsVariants.length > 0 ? window.sb.from('photos').select('operator').eq('status', 'approved').in('operator', opsVariants).then(r => {
+                                opsVariants.length > 0 ? app.api.from('photos').select('operator').eq('status', 'approved').in('operator', opsVariants).then(r => {
                                     (r.data || []).forEach(p => { if (p.operator && p.operator !== '---' && p.operator !== 'Đang cập nhật') approvedOpSet.add(app.utils.cleanText(p.operator).trim().toLowerCase()); });
                                 }).catch(() => {}) : Promise.resolve(),
-                                opsVariants.length > 0 ? window.sb.from('operator_info').select('operator_name').in('operator_name', opsVariants).then(r => {
+                                opsVariants.length > 0 ? app.api.from('operator_info').select('operator_name').in('operator_name', opsVariants).then(r => {
                                     (r.data || []).forEach(o => { if (o.operator_name) approvedOpSet.add(app.utils.cleanText(o.operator_name).trim().toLowerCase()); });
                                 }).catch(() => {}) : Promise.resolve(),
-                                routesVariants.length > 0 ? window.sb.from('photos').select('route_no').eq('status', 'approved').in('route_no', routesVariants).then(r => {
+                                routesVariants.length > 0 ? app.api.from('photos').select('route_no').eq('status', 'approved').in('route_no', routesVariants).then(r => {
                                     (r.data || []).forEach(p => { if (p.route_no && p.route_no !== '---') addRouteVariants(approvedRouteSet, p.route_no); });
                                 }).catch(() => {}) : Promise.resolve(),
-                                modelsVariants.length > 0 ? window.sb.from('vehicles').select('model, photos!inner(status)').eq('photos.status', 'approved').in('model', modelsVariants).then(r => {
+                                modelsVariants.length > 0 ? app.api.from('vehicles').select('model, photos!inner(status)').eq('photos.status', 'approved').in('model', modelsVariants).then(r => {
                                     (r.data || []).forEach(v => { if (v.photos && v.photos.length > 0 && v.model && v.model !== '---') approvedModelSet.add(app.utils.cleanText(v.model).trim().toLowerCase()); });
                                 }).catch(() => {}) : Promise.resolve()
                             ]);
@@ -17899,7 +18066,7 @@ Object.assign(window.app, {
                             const pageSize = 20;
                             const fromRow = (app.adminDeletePage - 1) * pageSize;
                             const toRow = fromRow + pageSize - 1;
-                            let { data: reqs, count, error } = await window.sb.from('edit_requests').select('*', { count: 'estimated' }).eq('status', 'pending').eq('new_data->>request_type', 'delete_photo').range(fromRow, toRow);
+                            let { data: reqs, count, error } = await app.api.from('edit_requests').select('*', { count: 'estimated' }).eq('status', 'pending').eq('new_data->>request_type', 'delete_photo').range(fromRow, toRow);
                             if (error) throw error;
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
                             const deleteReqs = reqs || [];
@@ -17908,12 +18075,12 @@ Object.assign(window.app, {
                                 return;
                             }
                             const photoIds = deleteReqs.map(r => r.new_data.photo_id);
-                            const { data: photos } = await window.sb.from('photos').select('id, url, license_plate').in('id', photoIds);
+                            const { data: photos } = await app.api.from('photos').select('id, url, license_plate').in('id', photoIds);
                             if (photos && photos.length > 0) await app.utils.resolveSandboxUrls(photos);
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
                             const photoMap = {}; if (photos) photos.forEach(p => photoMap[p.id] = p);
                             const userIds = [...new Set(deleteReqs.map(r => r.requester_id))];
-                            const { data: users } = await window.sb.from('profiles').select('id, username, role').in('id', userIds);
+                            const { data: users } = await app.api.from('profiles').select('id, username, role').in('id', userIds);
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
                             const userMap = {}; const roleMap = {};
                             if (users) users.forEach(u => { userMap[u.id] = u.username; roleMap[u.id] = u.role; });
@@ -17978,12 +18145,12 @@ Object.assign(window.app, {
                             const pageSize = 20;
                             const fromRow = (app.adminReqPage - 1) * pageSize;
                             const toRow = fromRow + pageSize - 1;
-                            let { data: reqs, count, error } = await window.sb.from('edit_requests').select('*', { count: 'estimated' }).eq('status', 'pending').neq('new_data->>request_type', 'delete_photo').range(fromRow, toRow);
+                            let { data: reqs, count, error } = await app.api.from('edit_requests').select('*', { count: 'estimated' }).eq('status', 'pending').neq('new_data->>request_type', 'delete_photo').range(fromRow, toRow);
                             if (error) throw error;
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
                             if (!reqs || reqs.length === 0) { content.innerHTML = '<p class="p-4">Không có yêu cầu nào.</p>'; return; }
                             const userIds = [...new Set(reqs.map(r => r.requester_id))];
-                            const { data: users } = await window.sb.from('profiles').select('id, username, role').in('id', userIds);
+                            const { data: users } = await app.api.from('profiles').select('id, username, role').in('id', userIds);
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
                             const userMap = {}; const roleMap = {};
                             if (users) users.forEach(u => { userMap[u.id] = u.username; roleMap[u.id] = u.role; });
@@ -17996,10 +18163,10 @@ Object.assign(window.app, {
                                 return a.id - b.id;
                             });
                             const plates = reqs.map(r => r.license_plate);
-                            const { data: curVehicles } = await window.sb.from('vehicles').select('*').in('license_plate', plates);
+                            const { data: curVehicles } = await app.api.from('vehicles').select('*').in('license_plate', plates);
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
                             const vMap = {}; if (curVehicles) curVehicles.forEach(v => vMap[v.license_plate] = v);
-                            const { data: curHistories } = await window.sb.from('vehicle_history').select('*').in('license_plate', plates);
+                            const { data: curHistories } = await app.api.from('vehicle_history').select('*').in('license_plate', plates);
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
                             const hMap = {}; 
                             if (curHistories) {
@@ -18009,25 +18176,25 @@ Object.assign(window.app, {
                                 });
                             }
                             const photoIdsReq = reqs.map(r => r.new_data.photo_id).filter(Boolean);
-                            const { data: curPhotos } = await window.sb.from('photos').select('id, operator, route_no, type, borrowed_route, location, note').in('id', photoIdsReq);
+                            const { data: curPhotos } = await app.api.from('photos').select('id, operator, route_no, type, borrowed_route, location, note').in('id', photoIdsReq);
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
                             const pMap = {}; if (curPhotos) curPhotos.forEach(p => pMap[p.id] = p);
                             const opNamesReq = reqs.map(r => r.new_data.operator_name).filter(Boolean);
                             let opMap = {};
                             if (opNamesReq.length > 0) {
-                                const { data: curOps } = await window.sb.from('operator_info').select('*').in('operator_name', opNamesReq);
+                                const { data: curOps } = await app.api.from('operator_info').select('*').in('operator_name', opNamesReq);
                                 if (curOps) curOps.forEach(o => opMap[o.operator_name] = o);
                             }
                             const mdlNamesReq = reqs.map(r => r.new_data.model_name).filter(Boolean);
                             let mdlMap = {};
                             if (mdlNamesReq.length > 0) {
-                                const { data: curMdls } = await window.sb.from('model_info').select('*').in('model_name', mdlNamesReq);
+                                const { data: curMdls } = await app.api.from('model_info').select('*').in('model_name', mdlNamesReq);
                                 if (curMdls) curMdls.forEach(m => mdlMap[m.model_name] = m);
                             }
                             const routeReqs = reqs.filter(r => r.new_data.request_type === 'update_route_info').map(r => r.new_data.route_name).filter(Boolean);
                             let routeMap = {};
                             if (routeReqs.length > 0) {
-                                const { data: curRoutes } = await window.sb.from('route_info').select('*').in('route_name', routeReqs);
+                                const { data: curRoutes } = await app.api.from('route_info').select('*').in('route_name', routeReqs);
                                 if (curRoutes) curRoutes.forEach(rt => routeMap[rt.route_name] = rt);
                             }
                             content.innerHTML = reqs.map(r => {
@@ -18359,7 +18526,7 @@ Object.assign(window.app, {
                             if (app.admin.updateRulerUI) app.admin.updateRulerUI();
                         }
                         else if (tab === 'comments') {
-                            const { data } = await window.sb.from('photo_comments')
+                            const { data } = await app.api.from('photo_comments')
                                 .select('*, profiles(username), photos(license_plate)')
                                 .order('created_at', {ascending: false}).limit(500);
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
@@ -19221,7 +19388,7 @@ app.admin.fetchManagerData('denied');
                             let photos = [];
                             let total = 0;
                             try {
-                                let query = window.sb.from('photos').select('*, profiles(username)', {count: 'estimated'}).eq('status', 'denied').order('created_at', {ascending: false});
+                                let query = app.api.from('photos').select('*, profiles(username)', {count: 'estimated'}).eq('status', 'denied').order('created_at', {ascending: false});
                                 if (q) {
                                     query = query.or(`license_plate.ilike.%${q}%,denial_reason.ilike.%${q}%`);
                                 }
@@ -19229,7 +19396,7 @@ app.admin.fetchManagerData('denied');
                                 if (pData && pData.length > 0) photos = pData;
                                 total = count || 0;
                             } catch(e){}
-                            const { data: logs } = await window.sb.from('admin_audit_logs').select('target_id, profiles(username)').eq('action_type', 'deny_photo');
+                            const { data: logs } = await app.api.from('admin_audit_logs').select('target_id, profiles(username)').eq('action_type', 'deny_photo');
                             const denierMap = {};
                             if(logs) logs.forEach(l => { denierMap[l.target_id] = l.profiles?.username || 'Admin'; });
                             if (photos && photos.length > 0) await app.utils.resolveSandboxUrls(photos);
@@ -19241,7 +19408,7 @@ app.admin.fetchManagerData('denied');
                             const perPage = 50;
                             const fromRow = (state.page - 1) * perPage;
                             const toRow = fromRow + perPage - 1;
-                            let query = window.sb.from('admin_audit_logs').select('*, profiles(username)', {count: 'estimated'}).order('created_at', {ascending: false});
+                            let query = app.api.from('admin_audit_logs').select('*, profiles(username)', {count: 'estimated'}).order('created_at', {ascending: false});
                             if (q) {
                                 query = query.or(`action_type.ilike.%${q}%,target_id.ilike.%${q}%`);
                             }
@@ -19251,7 +19418,7 @@ app.admin.fetchManagerData('denied');
                         }
                         else if (type === 'bans') {
                             const perPage = 15;
-                            const { data: { session } } = await window.sb.auth.getSession();
+                            const { data: { session } } = await app.api.auth.getSession();
                             const payload = { 
                                 action: 'get_users', 
                                 page: state.page, 
@@ -19465,7 +19632,7 @@ app.admin.fetchManagerData('denied');
                     document.getElementById('btn-submit-ban').innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang xử lý...';
                     document.getElementById('btn-submit-ban').disabled = true;
                     try {
-                        const { data: { session } } = await window.sb.auth.getSession();
+                        const { data: { session } } = await app.api.auth.getSession();
                         const response = await fetch('/api/manager', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
@@ -19487,7 +19654,7 @@ app.admin.fetchManagerData('denied');
                     if (app.role !== 'manager') return app.ui.showAlert("Chỉ Quản lý mới có quyền này.");
                     app.ui.showAlert("Bạn có chắc muốn gỡ cấm tài khoản này không?", async () => {
                         try {
-                            const { data: { session } } = await window.sb.auth.getSession();
+                            const { data: { session } } = await app.api.auth.getSession();
                             const response = await fetch('/api/manager', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
@@ -19509,7 +19676,7 @@ app.admin.fetchManagerData('denied');
                     if (app.role !== 'manager') return app.ui.showAlert("Chỉ Quản lý mới có quyền này.");
                     app.ui.showAlert("LƯU Ý: Hành động này sẽ XÓA VĨNH VIỄN tài khoản người dùng và không thể khôi phục. Bạn có chắc chắn muốn xóa không?", async () => {
                         try {
-                            const { data: { session } } = await window.sb.auth.getSession();
+                            const { data: { session } } = await app.api.auth.getSession();
                             const response = await fetch('/api/manager', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
@@ -19588,7 +19755,7 @@ app.admin.fetchManagerData('denied');
                             else newSubroles.push('vvcc');
                         }
                         try {
-                            const { data: { session } } = await window.sb.auth.getSession();
+                            const { data: { session } } = await app.api.auth.getSession();
                             const response = await fetch('/api/manager', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
@@ -19614,7 +19781,7 @@ app.admin.fetchManagerData('denied');
                 _emailUsersRaw: [],
                 fetchUsersForEmail: async () => {
                     try {
-                        const { data: users } = await window.sb.from('profiles').select('id, username, role').order('created_at', { ascending: false });
+                        const { data: users } = await app.api.from('profiles').select('id, username, role').order('created_at', { ascending: false });
                         if (users) {
                             app.admin._emailUsersRaw = users;
                             app.admin.renderEmailUserList(users);
@@ -19752,7 +19919,7 @@ app.admin.fetchManagerData('denied');
                     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi...';
                     btn.disabled = true;
                     try {
-                        const { data: { session } } = await window.sb.auth.getSession();
+                        const { data: { session } } = await app.api.auth.getSession();
                         let successCount = 0;
                         let errCount = 0;
                         if (isCustomSelected && customEmail) {
@@ -19870,7 +20037,7 @@ app.admin.fetchManagerData('denied');
                     const timeVal = document.getElementById(`mt-time-${sysId}`).value;
                     let autoReactivate = (isActive || !hasTime) ? null : new Date(timeVal).toISOString();
                     try {
-                        const { error } = await window.sb.from('system_settings').update({
+                        const { error } = await app.api.from('system_settings').update({
                             is_active: isActive, reason: reason, auto_reactivate_at: autoReactivate, updated_by: app.user.id
                         }).eq('id', sysId);
                         if (error) throw error;
@@ -19886,7 +20053,7 @@ app.admin.fetchManagerData('denied');
                     btn.disabled = true;
                     const val = document.getElementById('mt-quota-value').value.trim();
                     try {
-                        const { error } = await window.sb.from('system_settings').update({
+                        const { error } = await app.api.from('system_settings').update({
                             reason: val,
                             updated_by: app.user.id,
                             updated_at: new Date().toISOString()
@@ -19906,7 +20073,7 @@ app.admin.fetchManagerData('denied');
                     const list = document.getElementById('mgr-toasts-list');
                     if (!list) return;
                     list.innerHTML = `<p class="text-gray-500 italic"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Đang tải danh sách toast...</p>`;
-                    const { data, error } = await window.sb.from('custom_toasts').select('*').order('sort_order', { ascending: true }).order('created_at', { ascending: true });
+                    const { data, error } = await app.api.from('custom_toasts').select('*').order('sort_order', { ascending: true }).order('created_at', { ascending: true });
                     if (error) { list.innerHTML = `<p class="text-red-500">Lỗi tải danh sách: ${app.utils.escapeHtml(error.message)}</p>`; return; }
                     if (!data || data.length === 0) { list.innerHTML = `<p class="text-gray-400 italic text-sm text-center py-4">Chưa có toast tùy biến nào.</p>`; return; }
                     list.innerHTML = data.map(t => {
@@ -19970,7 +20137,7 @@ app.admin.fetchManagerData('denied');
                     const orig = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
                     try {
                         if (editingId) {
-                            const { error } = await window.sb.from('custom_toasts').update(payload).eq('id', editingId);
+                            const { error } = await app.api.from('custom_toasts').update(payload).eq('id', editingId);
                             if (error) throw error;
                             app.admin.cancelEditCustomToast();
                             await app.admin.renderCustomToasts();
@@ -19978,7 +20145,7 @@ app.admin.fetchManagerData('denied');
                         } else {
                             payload.is_active = true;
                             payload.created_by = app.user ? app.user.id : null;
-                            const { error } = await window.sb.from('custom_toasts').insert(payload);
+                            const { error } = await app.api.from('custom_toasts').insert(payload);
                             if (error) throw error;
                             app.admin.resetCustomToastForm();
                             await app.admin.renderCustomToasts();
@@ -19997,7 +20164,7 @@ app.admin.fetchManagerData('denied');
                 },
                 editCustomToast: async (id) => {
                     if (app.role !== 'manager' && app.role !== 'admin') return;
-                    const { data } = await window.sb.from('custom_toasts').select('*').eq('id', id).maybeSingle();
+                    const { data } = await app.api.from('custom_toasts').select('*').eq('id', id).maybeSingle();
                     if (!data) return app.ui.showAlert('Không tìm thấy toast để sửa.');
                     app.admin._editingToastId = id;
                     document.getElementById('ct-new-title').value = data.title || '';
@@ -20025,20 +20192,20 @@ app.admin.fetchManagerData('denied');
                     const cb = document.getElementById('ct-cancel-btn'); if (cb) cb.classList.add('hidden');
                 },                toggleCustomToast: async (id, isActive) => {
                     if (app.role !== 'manager' && app.role !== 'admin') return;
-                    const { error } = await window.sb.from('custom_toasts').update({ is_active: isActive }).eq('id', id);
+                    const { error } = await app.api.from('custom_toasts').update({ is_active: isActive }).eq('id', id);
                     if (error) return app.ui.showAlert('Lỗi: ' + error.message);
                     await app.admin.renderCustomToasts();
                 },
                 deleteCustomToast: async (id) => {
                     if (app.role !== 'manager' && app.role !== 'admin') return;
                     app.ui.showAlert('Bạn có chắc muốn xóa toast này?', async () => {
-                        const { error } = await window.sb.from('custom_toasts').delete().eq('id', id);
+                        const { error } = await app.api.from('custom_toasts').delete().eq('id', id);
                         if (error) return app.ui.showAlert('Lỗi: ' + error.message);
                         await app.admin.renderCustomToasts();
                     });
                 },
                 previewCustomToast: async (id) => {
-                    const { data } = await window.sb.from('custom_toasts').select('*').eq('id', id).maybeSingle();
+                    const { data } = await app.api.from('custom_toasts').select('*').eq('id', id).maybeSingle();
                     if (!data) return;
                     const opts = { icon: data.icon, color: data.color };
                     let onClick = null;
@@ -20095,7 +20262,7 @@ app.admin.fetchManagerData('denied');
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${(await window.sb.auth.getSession()).data.session?.access_token}`
+                                'Authorization': `Bearer ${(await app.api.auth.getSession()).data.session?.access_token}`
                             },
                             body: JSON.stringify({
                                 action: 'approve', photoId: id,
@@ -20205,7 +20372,7 @@ app.admin.fetchManagerData('denied');
                                     method: 'POST',
                                     headers: {
                                         'Content-Type': 'application/json',
-                                        'Authorization': `Bearer ${(await window.sb.auth.getSession()).data.session?.access_token}`
+                                        'Authorization': `Bearer ${(await app.api.auth.getSession()).data.session?.access_token}`
                                     },
                                     body: JSON.stringify({
                                         action: 'deny', photoId: id, reason, plate
@@ -20287,7 +20454,7 @@ app.admin.fetchManagerData('denied');
                     }
                     btn.innerText = "Đang xử lý..."; btn.disabled = true; btn.classList.add('btn-loading');
                     try {
-                        const { data: req } = await window.sb.from('edit_requests').select('*').eq('id', id).single();
+                        const { data: req } = await app.api.from('edit_requests').select('*').eq('id', id).single();
                         if (reqType === 'info') {
                             const plate = document.getElementById(`req-plate-${id}`).value;
                             const op = document.getElementById(`req-op-${id}`).value;
@@ -20304,12 +20471,12 @@ app.admin.fetchManagerData('denied');
                                 btn.innerText = "DUYỆT"; btn.disabled = false; btn.classList.remove('btn-loading');
                                 return;
                             }
-                            const { error: vError } = await window.sb.from('vehicles').upsert({
+                            const { error: vError } = await app.api.from('vehicles').upsert({
                                 license_plate: plate, model: model
                             }, { onConflict: 'license_plate' });
                             if (vError) throw vError;
                             if (req.new_data.photo_id) {
-                                const { data: oldP } = await window.sb.from('photos').select('license_plate, operator, route_no, taken_at').eq('id', req.new_data.photo_id).single();
+                                const { data: oldP } = await app.api.from('photos').select('license_plate, operator, route_no, taken_at').eq('id', req.new_data.photo_id).single();
                                 let updateObj = {
                                     license_plate: plate,
                                     note: note,
@@ -20321,7 +20488,7 @@ app.admin.fetchManagerData('denied');
                                 if (oldP && oldP.route_no !== route) {
                                     updateObj.borrowed_route = null;
                                 }
-                                const { error: pError } = await window.sb.from('photos').update(updateObj).eq('id', req.new_data.photo_id);
+                                const { error: pError } = await app.api.from('photos').update(updateObj).eq('id', req.new_data.photo_id);
                                 if (pError) throw pError;
                                 if (oldP && oldP.taken_at) {
                                     const isPlateChanged = req.license_plate !== plate || (oldP.license_plate && oldP.license_plate !== plate);
@@ -20348,7 +20515,7 @@ app.admin.fetchManagerData('denied');
                                 btn.innerText = "DUYỆT"; btn.disabled = false; btn.classList.remove('btn-loading');
                                 return;
                             }
-                            const { error } = await window.sb.from('vehicles')
+                            const { error } = await app.api.from('vehicles')
                                 .upsert({ license_plate: req.license_plate, model: finalModel, note: finalNote }, { onConflict: 'license_plate' });
                             if (error) throw error;
                         }
@@ -20366,10 +20533,10 @@ app.admin.fetchManagerData('denied');
                                 return app.ui.showAlert("Sai cấu trúc: Các ĐVVH phải được ngăn cách bằng dấu chấm phẩy và một khoảng trắng (Ví dụ: 'Công ty A; Công ty B').");
                             }
                             if (!logo && !desc && !parentOp) {
-                                const { error } = await window.sb.from('operator_info').delete().eq('operator_name', req.new_data.operator_name);
+                                const { error } = await app.api.from('operator_info').delete().eq('operator_name', req.new_data.operator_name);
                                 if (error) throw error;
                             } else {
-                                const { error } = await window.sb.from('operator_info').upsert({
+                                const { error } = await app.api.from('operator_info').upsert({
                                     operator_name: req.new_data.operator_name,
                                     logo_url: logo || null,
                                     description: desc || null,
@@ -20406,7 +20573,7 @@ app.admin.fetchManagerData('denied');
                             const rawInputListAdmin = borrowedPhotosStr ? borrowedPhotosStr.split(',').map(s => s.trim()).filter(Boolean) : [];
                             const enteredPlatesAdmin = rawInputListAdmin.filter(s => !/^\d+$/.test(s));
                             if (enteredPlatesAdmin.length > 0) {
-                                const { data: existVeh, error: existErr } = await window.sb.from('vehicles').select('license_plate').in('license_plate', enteredPlatesAdmin);
+                                const { data: existVeh, error: existErr } = await app.api.from('vehicles').select('license_plate').in('license_plate', enteredPlatesAdmin);
                                 if (existErr) throw existErr;
                                 const existingP = existVeh.map(v => v.license_plate.toUpperCase());
                                 const invalidP = enteredPlatesAdmin.filter(p => !existingP.includes(p.toUpperCase()));
@@ -20425,10 +20592,10 @@ app.admin.fetchManagerData('denied');
                             }
                             
                             if (!desc && !shortPath && !isInactive && !metadataObj) {
-                                const { error: delErr } = await window.sb.from('route_info').delete().eq('route_name', req.new_data.route_name);
+                                const { error: delErr } = await app.api.from('route_info').delete().eq('route_name', req.new_data.route_name);
                                 if (delErr) throw delErr;
                             } else {
-                                const { error: upsertErr } = await window.sb.from('route_info').upsert({
+                                const { error: upsertErr } = await app.api.from('route_info').upsert({
                                     route_name: req.new_data.route_name,
                                     short_path: shortPath || null,
                                     description: desc || null,
@@ -20444,7 +20611,7 @@ app.admin.fetchManagerData('denied');
                             const enteredPlates = rawInputList.filter(s => !/^\d+$/.test(s));
                             const newBorrowedIds = enteredIdsStr.map(Number);
                             
-                            const { data: curBorrowed } = await window.sb.from('photos').select('id, license_plate').eq('borrowed_route', req.new_data.route_name);
+                            const { data: curBorrowed } = await app.api.from('photos').select('id, license_plate').eq('borrowed_route', req.new_data.route_name);
                             const curIds = curBorrowed ? curBorrowed.map(p => p.id) : [];
                             
                             const addedIdsRaw = newBorrowedIds.filter(id => !curIds.includes(id));
@@ -20454,7 +20621,7 @@ app.admin.fetchManagerData('denied');
                             const targetProvince = req.new_data.route_name.split(' - ')[1] || '';
                             
                             if (enteredPlates.length > 0) {
-                                const { data: retroPhotos } = await window.sb.from('photos').select('id, route_no').in('license_plate', enteredPlates).eq('route_no', expectedRouteNo);
+                                const { data: retroPhotos } = await app.api.from('photos').select('id, route_no').in('license_plate', enteredPlates).eq('route_no', expectedRouteNo);
                                 if (retroPhotos && retroPhotos.length > 0) {
                                     retroPhotos.forEach(p => {
                                         if (!curIds.includes(p.id) && !addedIdsRaw.includes(p.id)) {
@@ -20465,11 +20632,11 @@ app.admin.fetchManagerData('denied');
                             }
                             
                             if (addedIdsRaw.length > 0) {
-                                const { data: validPhotos } = await window.sb.from('photos').select('id, route_no').in('id', addedIdsRaw);
+                                const { data: validPhotos } = await app.api.from('photos').select('id, route_no').in('id', addedIdsRaw);
                                 const trulyAddedIds = (validPhotos || []).filter(p => p.route_no === expectedRouteNo).map(p => p.id);
                                 
                                 if (trulyAddedIds.length > 0) {
-                                    await window.sb.from('photos').update({ borrowed_route: req.new_data.route_name }).in('id', trulyAddedIds);
+                                    await app.api.from('photos').update({ borrowed_route: req.new_data.route_name }).in('id', trulyAddedIds);
                                 }
                             }
                             
@@ -20494,7 +20661,7 @@ app.admin.fetchManagerData('denied');
                                         });
                                         if (pData) defProv = pData.ten;
                                     }
-                                    await window.sb.from('photos').update({ borrowed_route: null }).eq('id', p.id);
+                                    await app.api.from('photos').update({ borrowed_route: null }).eq('id', p.id);
                                 }
                             }
                         }
@@ -20503,17 +20670,17 @@ app.admin.fetchManagerData('denied');
                             const desc = document.getElementById(`req-mdl-desc-${id}`).value.trim();
                             const brandName = req.new_data.model_name.split(' ')[0];
                             if (!logo && !desc) {
-                                const { error: delErr } = await window.sb.from('model_info').delete().eq('model_name', req.new_data.model_name);
+                                const { error: delErr } = await app.api.from('model_info').delete().eq('model_name', req.new_data.model_name);
                                 if (delErr) throw delErr;
                             } else {
-                                const { error: upsertErr } = await window.sb.from('model_info').upsert({
+                                const { error: upsertErr } = await app.api.from('model_info').upsert({
                                     model_name: req.new_data.model_name,
                                     logo_url: logo || null,
                                     description: desc || null
                                 });
                                 if (upsertErr) throw upsertErr;
                             }
-                            await window.sb.from('model_info')
+                            await app.api.from('model_info')
                                 .update({ logo_url: logo || null })
                                 .ilike('model_name', `${brandName}%`);
                         }
@@ -20557,33 +20724,33 @@ app.admin.fetchManagerData('denied');
                             if (hasError) {
                                 return app.ui.showAlert("Có lỗi ở mốc thời gian lịch sử! Vui lòng kiểm tra và nhập đúng định dạng DD/MM/YYYY.");
                             }
-                            const { data: unmergeCandidates } = await window.sb.from('vehicles').select('license_plate, note').like('note', `%[MERGED_INTO:${currentPlate}]%`);
+                            const { data: unmergeCandidates } = await app.api.from('vehicles').select('license_plate, note').like('note', `%[MERGED_INTO:${currentPlate}]%`);
                             if (unmergeCandidates) {
                                 for (const v of unmergeCandidates) {
                                     if (!newHistoryPlates.includes(v.license_plate)) {
                                         const newNote = (v.note || '').replace(`[MERGED_INTO:${currentPlate}]`, '').trim();
-                                        await window.sb.from('vehicles').update({ note: newNote }).eq('license_plate', v.license_plate);
+                                        await app.api.from('vehicles').update({ note: newNote }).eq('license_plate', v.license_plate);
                                     }
                                 }
                             }
                             if (newHistoryPlates.length > 0) {
-                                const { data: existingOldVehicles } = await window.sb.from('vehicles').select('license_plate, note').in('license_plate', newHistoryPlates);
+                                const { data: existingOldVehicles } = await app.api.from('vehicles').select('license_plate, note').in('license_plate', newHistoryPlates);
                                 if (existingOldVehicles && existingOldVehicles.length > 0) {
                                     for (const v of existingOldVehicles) {
                                         const noteStr = v.note || '';
                                         if (!noteStr.includes(`[MERGED_INTO:${currentPlate}]`)) {
                                             const newNote = (noteStr + ` [MERGED_INTO:${currentPlate}]`).trim();
-                                            await window.sb.from('vehicles').update({ note: newNote }).eq('license_plate', v.license_plate);
+                                            await app.api.from('vehicles').update({ note: newNote }).eq('license_plate', v.license_plate);
                                         }
                                     }
                                 }
                             }
-                            await window.sb.from('vehicle_history').delete().eq('license_plate', currentPlate);
+                            await app.api.from('vehicle_history').delete().eq('license_plate', currentPlate);
                             if (newItems.length > 0) {
-                                await window.sb.from('vehicle_history').insert(newItems);
+                                await app.api.from('vehicle_history').insert(newItems);
                             }
                         }
-                        await window.sb.from('edit_requests').update({ status: 'approved' }).eq('id', id);
+                        await app.api.from('edit_requests').update({ status: 'approved' }).eq('id', id);
                         app.admin.logAction('approve_edit_req', id, { req_type: reqType, plate: req.license_plate });
                         if (document.activeElement) document.activeElement.blur();
                         app.admin.loadTab('requests', false, true);
@@ -20605,7 +20772,7 @@ app.admin.fetchManagerData('denied');
                     const originalText = btn.innerText;
                     btn.innerText = "Đang xóa..."; btn.disabled = true;
                     try {
-                        const sessionRes = await window.sb.auth.getSession();
+                        const sessionRes = await app.api.auth.getSession();
                         const token = sessionRes.data.session?.access_token;
                         const res = await fetch('/api/admin/action', {
                             method: 'POST',
@@ -20648,11 +20815,11 @@ app.admin.fetchManagerData('denied');
                     btn.disabled = true;
                     btn.classList.add('btn-loading');
                     try {
-                        const { data: photo } = await window.sb.from('photos').select('license_plate, url').eq('id', photoId).single();
+                        const { data: photo } = await app.api.from('photos').select('license_plate, url').eq('id', photoId).single();
                         const plate = photo ? photo.license_plate : 'đã chọn';
                         const imgUrl = photo ? photo.url : null;
                         if (imgUrl || photoId) {
-                            const { data: { session } } = await window.sb.auth.getSession();
+                            const { data: { session } } = await app.api.auth.getSession();
                             await fetch('/api/delete-image', {
                                 method: 'POST',
                                 headers: {
@@ -20662,10 +20829,10 @@ app.admin.fetchManagerData('denied');
                                 body: JSON.stringify({ imageUrl: imgUrl, photoId: photoId })
                             });
                         }
-                        const { error: delError } = await window.sb.from('photos').delete().eq('id', photoId);
+                        const { error: delError } = await app.api.from('photos').delete().eq('id', photoId);
                         if (delError) throw delError;
                         await app.vehicle.cleanupVehicle(plate);
-                        await window.sb.from('edit_requests').update({ status: 'approved' }).eq('id', reqId);
+                        await app.api.from('edit_requests').update({ status: 'approved' }).eq('id', reqId);
                         app.toast.show('success', 'Thành công', 'Đã duyệt yêu cầu và xóa ảnh vĩnh viễn thành công!');
                         app.admin.logAction('approve_delete_req', photoId, { plate: plate });
                         if (document.activeElement) document.activeElement.blur();
@@ -20684,8 +20851,8 @@ app.admin.fetchManagerData('denied');
                     app.ui.showPrompt("Nhập lý do từ chối yêu cầu này (Tùy chọn):", "", async (reason) => {
                         btn.innerText = "Đang xử lý..."; btn.disabled = true; btn.classList.add('btn-loading');
                         try {
-                            const { data: req } = await window.sb.from('edit_requests').select('requester_id, license_plate, new_data').eq('id', reqId).single();
-                            await window.sb.from('edit_requests').update({ status: 'denied' }).eq('id', reqId);
+                            const { data: req } = await app.api.from('edit_requests').select('requester_id, license_plate, new_data').eq('id', reqId).single();
+                            await app.api.from('edit_requests').update({ status: 'denied' }).eq('id', reqId);
                             let actionName = req.new_data.request_type === 'delete_photo' ? 'xóa ảnh' : 'chỉnh sửa';
                             let reasonMsg = reason ? ` Lý do: ${reason}` : '';
                             if (document.activeElement) document.activeElement.blur();
@@ -20713,7 +20880,7 @@ app.admin.fetchManagerData('denied');
                         content.classList.add('opacity-100', 'scale-100');
                     }, 10);
                     try {
-                        const { data: photos, error } = await window.sb.from('photos')
+                        const { data: photos, error } = await app.api.from('photos')
                             .select('route_no, license_plate, vehicles(model)')
                             .eq('uploader_id', app.currentProfileId || app.user.id)
                             .eq('status', 'approved');
@@ -21304,7 +21471,7 @@ app.map = {
     async checkPermission() {
         this.isAdmin = false;
         if (app.user) {
-            const { data } = await window.sb.from('profiles').select('role').eq('id', app.user.id).single();
+            const { data } = await app.api.from('profiles').select('role').eq('id', app.user.id).single();
             if (data && (data.role === 'admin' || data.role === 'manager')) {
                 this.isAdmin = true;
             }
@@ -21390,7 +21557,7 @@ app.map = {
     },
 
     async loadZones() {
-        const { data, error } = await window.sb.from('no_photo_zones').select('*');
+        const { data, error } = await app.api.from('no_photo_zones').select('*');
         if (error) {
             console.error('Lỗi tải vùng cấm:', error);
             return;
@@ -21474,14 +21641,14 @@ app.map = {
         if (this.isAdmin) {
             let error;
             if (this.editingZoneId) {
-                const res = await window.sb.from('no_photo_zones').update({
+                const res = await app.api.from('no_photo_zones').update({
                     name: name,
                     description: desc,
                     bounds: allPolygons
                 }).eq('id', this.editingZoneId);
                 error = res.error;
             } else {
-                const res = await window.sb.from('no_photo_zones').insert({
+                const res = await app.api.from('no_photo_zones').insert({
                     name: name,
                     description: desc,
                     bounds: allPolygons,
@@ -21503,7 +21670,7 @@ app.map = {
                 this.loadZones();
             }
         } else {
-            const { error } = await window.sb.from('zone_edit_requests').insert({
+            const { error } = await app.api.from('zone_edit_requests').insert({
                 requester_id: app.user.id,
                 type: this.editingZoneId ? 'update' : 'add',
                 target_zone_id: this.editingZoneId || null,
@@ -21526,7 +21693,7 @@ app.map = {
     async deleteZone(id) {
         app.ui.showAlert('Bạn có chắc chắn muốn xóa toàn bộ các khu vực thuộc vùng cấm này?', async () => {
             app.loadingBar.start();
-            const { error } = await window.sb.from('no_photo_zones').delete().eq('id', id);
+            const { error } = await app.api.from('no_photo_zones').delete().eq('id', id);
             app.loadingBar.finish();
             
             if (error) {

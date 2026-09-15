@@ -96,7 +96,7 @@ Object.assign(window.app, {
                         app.settings.loadIdentities();
                         const avatarImg = document.getElementById('set-avatar-img');
                         try {
-                            const { data: profile } = await window.sb.from('profiles').select('avatar_url, preferences').eq('id', app.user.id).single();
+                            const { data: profile } = await app.api.from('profiles').select('avatar_url, preferences').eq('id', app.user.id).single();
                             if (profile && profile.avatar_url) {
                                 const safeUrl = profile.avatar_url.replace(/"/g, '');
                                 avatarImg.src = app.utils.getProxiedUrl(safeUrl, 'avatar.jpg', 'avatar');
@@ -171,9 +171,9 @@ Object.assign(window.app, {
                     if (!actionBtn) return;
                     actionBtn.innerHTML = `<button disabled class="px-4 py-2 bg-gray-200 text-gray-400 text-xs font-bold rounded cursor-not-allowed border border-gray-300 whitespace-nowrap"><i class="fa-solid fa-spinner fa-spin"></i></button>`;
                     try {
-                        const { data: { session } } = await window.sb.auth.getSession();
+                        const { data: { session } } = await app.api.auth.getSession();
                         if (!session) return;
-                        const { count } = await window.sb.from('photos').select('*', { count: 'estimated', head: true }).eq('uploader_id', app.user.id).eq('status', 'approved');
+                        const { count } = await app.api.from('photos').select('*', { count: 'estimated', head: true }).eq('uploader_id', app.user.id).eq('status', 'approved');
                         const res = await fetch('/api/discord', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
@@ -205,7 +205,7 @@ Object.assign(window.app, {
                     const btn = document.getElementById('btn-claim-discord-1');
                     if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
                     try {
-                        const { data: { session } } = await window.sb.auth.getSession();
+                        const { data: { session } } = await app.api.auth.getSession();
                         const res = await fetch('/api/discord', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
@@ -228,7 +228,7 @@ Object.assign(window.app, {
                     const container = document.getElementById('linked-accounts-container');
                     if(!app.user) return;
                     try {
-                        const { data: { user }, error } = await window.sb.auth.getUser();
+                        const { data: { user }, error } = await app.api.auth.getUser();
                         if (error || !user) throw error;
                         const identities = user.identities || [];
                         const providers = identities.map(id => id.provider);
@@ -266,7 +266,7 @@ Object.assign(window.app, {
                 },
                 linkIdentity: async (provider) => {
                     try {
-                        const { error } = await window.sb.auth.linkIdentity({
+                        const { error } = await app.api.auth.linkIdentity({
                             provider: provider,
                             options: { redirectTo: window.location.origin }
                         });
@@ -280,7 +280,7 @@ Object.assign(window.app, {
                         `Bạn có chắc chắn muốn hủy liên kết tài khoản ${providerName}? Bạn sẽ không thể đăng nhập bằng nền tảng này nữa. Nếu đã được cấp danh hiệu thông qua nền tảng này, chúng cũng sẽ bị thu hồi.`,
                         async () => {
                             try {
-                                const { data: { session } } = await window.sb.auth.getSession();
+                                const { data: { session } } = await app.api.auth.getSession();
                                 if (!session) throw new Error("Chưa đăng nhập");
 
                                 // Call backend API to revoke roles/badges before unlinking
@@ -299,7 +299,7 @@ Object.assign(window.app, {
                                     // Vẫn tiếp tục thực hiện unlink Identity dù backend có lỗi
                                 }
 
-                                const { error } = await window.sb.auth.unlinkIdentity({ identity_id: identityId });
+                                const { error } = await app.api.auth.unlinkIdentity({ identity_id: identityId });
                                 if (error) throw error;
 
                                 app.ui.showAlert(`Đã hủy liên kết với ${providerName} thành công!`);
@@ -316,7 +316,7 @@ Object.assign(window.app, {
                     const btn = document.getElementById('web-req-claim-action');
                     if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
                     try {
-                        const { data: { session } } = await window.sb.auth.getSession();
+                        const { data: { session } } = await app.api.auth.getSession();
                         const res = await fetch('/api/github', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
@@ -343,7 +343,7 @@ Object.assign(window.app, {
                     if (claimBox) claimBox.classList.add('hidden');
                     
                     try {
-                        const { data: { session } } = await window.sb.auth.getSession();
+                        const { data: { session } } = await app.api.auth.getSession();
                         if (!session) return;
                         
                         const res = await fetch('/api/github', {
@@ -389,7 +389,7 @@ Object.assign(window.app, {
                     reqBox.classList.add('hidden');
                     claimBox.classList.add('hidden');
                     try {
-                        const { data: { session } } = await window.sb.auth.getSession();
+                        const { data: { session } } = await app.api.auth.getSession();
                         const token = session?.access_token;
                         if (!token) throw new Error("Chưa đăng nhập");
                         const res = await fetch('/api/discord', {
@@ -441,7 +441,7 @@ Object.assign(window.app, {
                             }
                             return;
                         }
-                        const { count } = await window.sb.from('photos')
+                        const { count } = await app.api.from('photos')
                             .select('*', { count: 'estimated', head: true })
                             .eq('uploader_id', app.user.id)
                             .eq('status', 'approved');
@@ -518,7 +518,7 @@ grid.innerHTML = tiers.map(tier => {
                     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
                     btn.disabled = true;
                     try {
-                        const { data: { session } } = await window.sb.auth.getSession();
+                        const { data: { session } } = await app.api.auth.getSession();
                         const token = session?.access_token;
                         const res = await fetch('/api/discord', {
                             method: 'POST',

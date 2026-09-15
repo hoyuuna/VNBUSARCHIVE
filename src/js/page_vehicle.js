@@ -59,13 +59,13 @@ Object.assign(window.app, {
                 cleanupVehicle: async (plate) => {
                     if (!plate) return;
                     try {
-                        const { data: approvedPhotos, error } = await window.sb.from('photos').select('route_no, operator, taken_at').eq('license_plate', plate).eq('status', 'approved');
+                        const { data: approvedPhotos, error } = await app.api.from('photos').select('route_no, operator, taken_at').eq('license_plate', plate).eq('status', 'approved');
                         if (error || !approvedPhotos) return;
                         if (approvedPhotos.length === 0) {
-                            await window.sb.from('vehicle_history').delete().eq('license_plate', plate);
+                            await app.api.from('vehicle_history').delete().eq('license_plate', plate);
                             return;
                         }
-                        const { data: history } = await window.sb.from('vehicle_history').select('*').eq('license_plate', plate);
+                        const { data: history } = await app.api.from('vehicle_history').select('*').eq('license_plate', plate);
                         if (!history || history.length === 0) return;
                         const specialRoutes = ['Ngoài giờ hoạt động', 'Chưa hoạt động'];
                         const activePhotos = approvedPhotos.filter(p => !specialRoutes.includes(p.route_no));
@@ -74,20 +74,20 @@ Object.assign(window.app, {
                             if (!specialRoutes.includes(h.route)) {
                                 const hasMatchingPhoto = activePhotos.some(p => isSameRoute(p.route_no, h.route));
                                 if (!hasMatchingPhoto) {
-                                    await window.sb.from('vehicle_history').delete().eq('id', h.id);
+                                    await app.api.from('vehicle_history').delete().eq('id', h.id);
                                 }
                             }
                         }
 
                         // Gộp các mốc lịch sử liền kề có cùng số tuyến
-                        let { data: freshHistory } = await window.sb.from('vehicle_history')
+                        let { data: freshHistory } = await app.api.from('vehicle_history')
                             .select('*').eq('license_plate', plate).order('effective_date', { ascending: true });
                         if (freshHistory && freshHistory.length > 1) {
                             for (let i = 1; i < freshHistory.length; i++) {
                                 const prev = freshHistory[i - 1];
                                 const curr = freshHistory[i];
                                 if (isSameRoute(curr.route, prev.route)) {
-                                    await window.sb.from('vehicle_history').delete().eq('id', curr.id);
+                                    await app.api.from('vehicle_history').delete().eq('id', curr.id);
                                     freshHistory.splice(i, 1);
                                     i--;
                                 }
@@ -285,31 +285,31 @@ Object.assign(window.app, {
                             try {
                                 const currentPlate = app.currentPlate;
                                 const newHistoryPlates = [...new Set(payload.map(p => p.plate).filter(p => p && p !== currentPlate))];
-                                const { data: unmergeCandidates } = await window.sb.from('vehicles').select('license_plate, note').like('note', `%[MERGED_INTO:${currentPlate}]%`);
+                                const { data: unmergeCandidates } = await app.api.from('vehicles').select('license_plate, note').like('note', `%[MERGED_INTO:${currentPlate}]%`);
                                 if (unmergeCandidates) {
                                     for (const v of unmergeCandidates) {
                                         if (!newHistoryPlates.includes(v.license_plate)) {
                                             const newNote = (v.note || '').replace(`[MERGED_INTO:${currentPlate}]`, '').trim();
-                                            await window.sb.from('vehicles').update({ note: newNote }).eq('license_plate', v.license_plate);
+                                            await app.api.from('vehicles').update({ note: newNote }).eq('license_plate', v.license_plate);
                                             app.toast.show('info', 'Đã tách xe', `Hồ sơ xe ${v.license_plate} đã được khôi phục thành hồ sơ độc lập.`);
                                         }
                                     }
                                 }
                                 if (newHistoryPlates.length > 0) {
-                                    const { data: existingOldVehicles } = await window.sb.from('vehicles').select('license_plate, note').in('license_plate', newHistoryPlates);
+                                    const { data: existingOldVehicles } = await app.api.from('vehicles').select('license_plate, note').in('license_plate', newHistoryPlates);
                                     if (existingOldVehicles && existingOldVehicles.length > 0) {
                                         for (const v of existingOldVehicles) {
                                             const noteStr = v.note || '';
                                             if (!noteStr.includes(`[MERGED_INTO:${currentPlate}]`)) {
                                                 const newNote = (noteStr + ` [MERGED_INTO:${currentPlate}]`).trim();
-                                                await window.sb.from('vehicles').update({ note: newNote }).eq('license_plate', v.license_plate);
+                                                await app.api.from('vehicles').update({ note: newNote }).eq('license_plate', v.license_plate);
                                                 app.toast.show('info', 'Đã gộp xe', `Dữ liệu từ xe ${v.license_plate} đã được tự động gộp sang xe này.`);
                                             }
                                         }
                                     }
                                 }
-                                await window.sb.from('vehicle_history').delete().eq('license_plate', app.currentPlate);
-                                if (payload.length > 0) await window.sb.from('vehicle_history').insert(payload);
+                                await app.api.from('vehicle_history').delete().eq('license_plate', app.currentPlate);
+                                if (payload.length > 0) await app.api.from('vehicle_history').insert(payload);
                                 app.toast.show('success', 'Đã cập nhật', 'Lịch sử hoạt động của xe đã được lưu thành công.');
                                 app.vehicle.toggleEditHistory(app.vehicle.currentHistoryPrefix);
                                 if (window.location.pathname.startsWith('/vehicle/')) {
@@ -322,7 +322,7 @@ Object.assign(window.app, {
                             }
                         } else {
                             try {
-                                const { count, error: checkErr } = await window.sb.from('edit_requests').select('*', { count: 'estimated', head: true }).eq('license_plate', app.currentPlate).eq('status', 'pending').contains('new_data', { request_type: 'update_history' });
+                                const { count, error: checkErr } = await app.api.from('edit_requests').select('*', { count: 'estimated', head: true }).eq('license_plate', app.currentPlate).eq('status', 'pending').contains('new_data', { request_type: 'update_history' });
                                 if (count > 0) return app.ui.showAlert("Có yêu cầu chỉnh sửa lịch sử khác đang chờ duyệt cho xe này. Vui lòng thử lại sau.");
                                 const reqData = {
                                     requester_id: app.user.id,
@@ -330,7 +330,7 @@ Object.assign(window.app, {
                                     new_data: { request_type: 'update_history', history_items: payload },
                                     status: 'pending'
                                 };
-                                const { error } = await window.sb.from('edit_requests').insert(reqData);
+                                const { error } = await app.api.from('edit_requests').insert(reqData);
                                 if (error) throw error;
                                 app.ui.showAlert("Yêu cầu cập nhật lịch sử đã được gửi và chờ Admin duyệt. Bạn có thể kiểm tra trạng thái trong trang Hồ sơ của tôi.");
                                 app.vehicle.toggleEditHistory(app.vehicle.currentHistoryPrefix);
@@ -358,7 +358,7 @@ Object.assign(window.app, {
                     const isSpecial = specialRoutes.includes(newData.route_no);
                     const isSameRoute = (r1, r2) => (r1 || '').trim().toLowerCase() === (r2 || '').trim().toLowerCase();
                     try {
-                        const { data: photos } = await window.sb.from('photos').select('id, operator, route_no')
+                        const { data: photos } = await app.api.from('photos').select('id, operator, route_no')
                             .eq('license_plate', plate)
                             .like('taken_at', `${targetDate}%`)
                             .eq('status', 'approved');
@@ -366,16 +366,16 @@ Object.assign(window.app, {
                         if (isSpecial) {
                             if (otherNormalPhotos.length > 0) {
                                 const fallback = otherNormalPhotos[0];
-                                await window.sb.from('vehicle_history').update({
+                                await app.api.from('vehicle_history').update({
                                     operator: fallback.operator,
                                     route: fallback.route_no
                                 }).eq('license_plate', plate).eq('effective_date', targetDate);
                             } else {
-                                await window.sb.from('vehicle_history').delete()
+                                await app.api.from('vehicle_history').delete()
                                     .eq('license_plate', plate).eq('effective_date', targetDate);
                             }
                         } else {
-                            let { data: allHistory } = await window.sb.from('vehicle_history')
+                            let { data: allHistory } = await app.api.from('vehicle_history')
                                 .select('*')
                                 .eq('license_plate', plate)
                                 .order('effective_date', { ascending: true });
@@ -400,11 +400,11 @@ Object.assign(window.app, {
                                 if (H_cov.effective_date === targetDate) {
                                     if (isSameRoute(H_cov.route, route)) {
                                         if (op && H_cov.operator !== op) {
-                                            await window.sb.from('vehicle_history').update({ operator: op }).eq('id', H_cov.id);
+                                            await app.api.from('vehicle_history').update({ operator: op }).eq('id', H_cov.id);
                                         }
                                         needInsert = false;
                                     } else {
-                                        await window.sb.from('vehicle_history').update({
+                                        await app.api.from('vehicle_history').update({
                                             route: route,
                                             operator: op
                                         }).eq('id', H_cov.id);
@@ -426,7 +426,7 @@ Object.assign(window.app, {
                                     const H_oldest = allHistory[0];
                                     if (isSameRoute(H_oldest.route, route)) {
                                         // Cùng tuyến với mốc cổ nhất -> Mở rộng mốc cũ hơn về quá khứ
-                                        await window.sb.from('vehicle_history').update({
+                                        await app.api.from('vehicle_history').update({
                                             effective_date: targetDate,
                                             operator: op || H_oldest.operator
                                         }).eq('id', H_oldest.id);
@@ -442,8 +442,8 @@ Object.assign(window.app, {
                             }
 
                             if (needInsert) {
-                                const { count } = await window.sb.from('vehicle_history').select('*', { count: 'estimated', head: true }).eq('license_plate', plate);
-                                await window.sb.from('vehicle_history').insert({
+                                const { count } = await app.api.from('vehicle_history').select('*', { count: 'estimated', head: true }).eq('license_plate', plate);
+                                await app.api.from('vehicle_history').insert({
                                     license_plate: plate,
                                     effective_date: targetDate,
                                     operator: op,
@@ -453,7 +453,7 @@ Object.assign(window.app, {
                             }
 
                             // 2. Chống phân mảnh: Tự động gộp các mốc liền kề có cùng số tuyến
-                            let { data: freshHistory } = await window.sb.from('vehicle_history')
+                            let { data: freshHistory } = await app.api.from('vehicle_history')
                                 .select('*')
                                 .eq('license_plate', plate)
                                 .order('effective_date', { ascending: true });
@@ -462,7 +462,7 @@ Object.assign(window.app, {
                                 const prev = freshHistory[i - 1];
                                 const curr = freshHistory[i];
                                 if (isSameRoute(prev.route, curr.route)) {
-                                    await window.sb.from('vehicle_history').delete().eq('id', curr.id);
+                                    await app.api.from('vehicle_history').delete().eq('id', curr.id);
                                     freshHistory.splice(i, 1);
                                     i--;
                                 }
@@ -536,17 +536,17 @@ Object.assign(window.app, {
                             return;
                         }
                         if (app.role === 'admin' || app.role === 'manager') {
-                            const { error } = await window.sb.from('vehicles').upsert({ license_plate: plate, ...newData }, { onConflict: 'license_plate' });
+                            const { error } = await app.api.from('vehicles').upsert({ license_plate: plate, ...newData }, { onConflict: 'license_plate' });
                             if (error) throw error;
                             app.toast.show('success', 'Đã lưu thay đổi', 'Thông tin xe đã được cập nhật thành công.');
                             app.views.loadVehiclePage(plate, true);
                         } else {
-                            const { count } = await window.sb.from('edit_requests').select('*', { count: 'estimated', head: true }).eq('license_plate', plate).eq('status', 'pending').contains('new_data', { request_type: 'update_vehicle_details' });
+                            const { count } = await app.api.from('edit_requests').select('*', { count: 'estimated', head: true }).eq('license_plate', plate).eq('status', 'pending').contains('new_data', { request_type: 'update_vehicle_details' });
                             if (count > 0) {
                                 btnSave.disabled = false; btnSave.innerHTML = 'Lưu thông tin';
                                 return app.ui.showAlert("Có yêu cầu chỉnh sửa hồ sơ khác đang chờ duyệt cho xe này. Vui lòng thử lại sau.");
                             }
-                            const { error } = await window.sb.from('edit_requests').insert({
+                            const { error } = await app.api.from('edit_requests').insert({
                                 requester_id: app.user.id, license_plate: plate, new_data: { ...newData, request_type: 'update_vehicle_details' }, status: 'pending'
                             });
                             if (error) throw error;

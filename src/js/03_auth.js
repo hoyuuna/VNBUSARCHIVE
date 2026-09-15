@@ -21,7 +21,7 @@ Object.assign(window.app, {
                     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi...';
                     btn.disabled = true;
                     try {
-                        const { error } = await window.sb.auth.resend({
+                        const { error } = await app.api.auth.resend({
                             type: 'signup',
                             email: app.auth.unverifiedEmail,
                             options: { emailRedirectTo: window.location.origin + '/auth' }
@@ -39,7 +39,7 @@ Object.assign(window.app, {
                     }
                 },
                 logoutUnverified: async () => {
-                    await window.sb.auth.signOut();
+                    await app.api.auth.signOut();
                     sessionStorage.removeItem('VNBA_SESS_AUTH');
                     window.location.href = '/auth'; 
                 },
@@ -52,7 +52,7 @@ Object.assign(window.app, {
                         return app.ui.showAlert("Lỗi xác thực Captcha.");
                     }
                     try {
-                        const { error } = await window.sb.auth.signInWithOAuth({
+                        const { error } = await app.api.auth.signInWithOAuth({
                             provider: provider,
                             options: {
                                 captchaToken: captchaResponse,
@@ -85,7 +85,7 @@ Object.assign(window.app, {
                     btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...`;
                     try {
                         if (app.auth.mode === 'login') {
-                            const { data, error } = await window.sb.auth.signInWithPassword({ email, password, options: { captchaToken: captchaResponse } });
+                            const { data, error } = await app.api.auth.signInWithPassword({ email, password, options: { captchaToken: captchaResponse } });
                             if (error) {
                                 if (error.message.includes('Email not confirmed') || error.message.includes('not confirmed')) {
                                     app.auth.showVerificationModal(email);
@@ -102,11 +102,11 @@ Object.assign(window.app, {
                                 return;
                             }
                             if (data.user) {
-                                const { data: profile } = await window.sb.from('profiles').select('ban_status').eq('id', data.user.id).single();
+                                const { data: profile } = await app.api.from('profiles').select('ban_status').eq('id', data.user.id).single();
                                 if (profile && profile.ban_status) {
                                     let banInfo = typeof profile.ban_status === 'string' ? JSON.parse(profile.ban_status) : profile.ban_status;
                                     if (banInfo.banned) {
-                                        await window.sb.auth.signOut();
+                                        await app.api.auth.signOut();
                                         app.ui.showAlert(`<b>ĐĂNG NHẬP THẤT BẠI</b><br>Tài khoản của bạn đã bị cấm với lý do: <b>${banInfo.reason || 'Không rõ'}</b>`);
                                         btn.disabled = false;
                                         btn.innerHTML = originalHTML;
@@ -124,14 +124,14 @@ Object.assign(window.app, {
                             if (lowerName === 'người dùng bị cấm' || lowerName === 'nguoi dung bi cam' || lowerName.includes('bị cấm') || lowerName.includes('bi cam')) {
                                 throw new Error("Tên hiển thị này thuộc danh sách hạn chế. Vui lòng chọn tên khác!");
                             }
-                            const { data: existingUser } = await window.sb.from('profiles')
+                            const { data: existingUser } = await app.api.from('profiles')
                                 .select('username')
                                 .ilike('username', username)
                                 .maybeSingle();
                             if (existingUser) {
                                 throw new Error("Tên hiển thị này đã tồn tại (không phân biệt viết hoa/thường). Vui lòng chọn tên khác!");
                             }
-                            const { data, error } = await window.sb.auth.signUp({
+                            const { data, error } = await app.api.auth.signUp({
                                 email,
                                 password,
                                 options: { captchaToken: captchaResponse, data: { username: username } }
@@ -153,7 +153,7 @@ Object.assign(window.app, {
                             );
                             if (data.session) await app.setUser(data.user);
                         } else if (app.auth.mode === 'forgot') {
-    const { error } = await window.sb.auth.resetPasswordForEmail(email, {
+    const { error } = await app.api.auth.resetPasswordForEmail(email, {
         captchaToken: captchaResponse,
         redirectTo: window.location.origin + '/auth'
     });
@@ -175,7 +175,7 @@ Object.assign(window.app, {
 } else if (app.auth.mode === 'recovery') {
     const newPass = document.getElementById('auth-new-password').value;
     if (!newPass || newPass.length < 6) throw new Error("Mật khẩu phải từ 6 ký tự trở lên.");
-    const { error } = await window.sb.auth.updateUser({ password: newPass });
+    const { error } = await app.api.auth.updateUser({ password: newPass });
     if (error) throw error;
     app.ui.showAlert("Đổi mật khẩu thành công! Bạn đã tự động đăng nhập vào hệ thống.", () => {
         window.location.hash = '';
@@ -207,7 +207,7 @@ Object.assign(window.app, {
                         "Bạn có chắc chắn muốn đăng xuất khỏi tài khoản?",
                         async () => {
                             try {
-                                await window.sb.auth.signOut({ scope: 'local' }); sessionStorage.removeItem('VNBA_SESS_AUTH');
+                                await app.api.auth.signOut({ scope: 'local' }); sessionStorage.removeItem('VNBA_SESS_AUTH');
                                 await app.setUser(null);
                                 app.ui.toggleUserMenu(false);
                                 app.ui.showAlert("Đã đăng xuất thành công!", () => {
@@ -229,7 +229,7 @@ Object.assign(window.app, {
                             try {
                                 const okBtn = document.getElementById('custom-alert-ok-btn');
                                 if(okBtn) { okBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>'; okBtn.disabled = true; }
-                                const { error } = await window.sb.auth.signOut({ scope: 'global' });
+                                const { error } = await app.api.auth.signOut({ scope: 'global' });
                                 if (error) throw error;
                                 localStorage.clear();
                                 await app.setUser(null);
@@ -256,7 +256,7 @@ changePassword: async () => {
                     if (!oldPass) return app.ui.showAlert("Vui lòng nhập mật khẩu hiện tại.");
                     if (!newPass || newPass.length < 6) return app.ui.showAlert("Mật khẩu mới phải ít nhất 6 ký tự.");
                     try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
-                    const { error } = await window.sb.auth.updateUser({
+                    const { error } = await app.api.auth.updateUser({
                         password: newPass,
                         current_password: oldPass
                     });
@@ -287,11 +287,11 @@ changePassword: async () => {
                     btn.disabled = true;
                     try {
                         const currentEmail = app.user.email;
-                        const { error: signInError } = await window.sb.auth.signInWithPassword({ email: currentEmail, password: password, options: { captchaToken: captchaResponse } });
+                        const { error: signInError } = await app.api.auth.signInWithPassword({ email: currentEmail, password: password, options: { captchaToken: captchaResponse } });
                         if (signInError) {
                             throw new Error("Mật khẩu hiện tại không đúng.");
                         }
-                        const { error: updateError } = await window.sb.auth.updateUser({ email: newEmail });
+                        const { error: updateError } = await app.api.auth.updateUser({ email: newEmail });
                         if (updateError) {
                             throw updateError;
                         }
@@ -366,7 +366,7 @@ changePassword: async () => {
                         avatarData.append('isAvatar', 'true');
                         avatarData.append('captchaToken', captchaResponse);
                         avatarData.append('fileExtension', app.utils.getTargetExtension());
-                        const { data: { session } } = await window.sb.auth.getSession();
+                        const { data: { session } } = await app.api.auth.getSession();
                         const token = session?.access_token;
                         const res = await fetch('/api/upload', {
                             method: 'POST',
@@ -386,7 +386,7 @@ changePassword: async () => {
                             }
                             app.user.user_metadata = app.user.user_metadata || {};
                             app.user.user_metadata.avatar_url = data.url;
-                            window.sb.auth.updateUser({ data: { avatar_url: data.url } }).catch(() => {});
+                            app.api.auth.updateUser({ data: { avatar_url: data.url } }).catch(() => {});
                             const proxiedUrl = app.utils.getProxiedUrl(data.url, 'avatar.jpg', 'avatar');
                             const avatarImg = document.getElementById('acc-avatar-img');
                             const avatarIcon = document.getElementById('acc-avatar-icon');
@@ -422,11 +422,11 @@ changePassword: async () => {
                 resetAvatar: async () => {
                     if (!app.user) return;
                     try {
-                        const { data: profile } = await window.sb.from('profiles').select('avatar_url').eq('id', app.user.id).single();
+                        const { data: profile } = await app.api.from('profiles').select('avatar_url').eq('id', app.user.id).single();
                         const oldAvatar = profile?.avatar_url || app.user?.user_metadata?.avatar_url;
                         if (oldAvatar && oldAvatar.includes('vnbusarchive')) {
                             try {
-                                const { data: { session } } = await window.sb.auth.getSession();
+                                const { data: { session } } = await app.api.auth.getSession();
                                 if (session) {
                                     await fetch('/api/delete-image', {
                                         method: 'POST',
@@ -441,9 +441,9 @@ changePassword: async () => {
                                 console.warn('Lỗi khi xóa ảnh avatar cũ khỏi CDN:', delErr);
                             }
                         }
-                        const { error } = await window.sb.from('profiles').update({ avatar_url: null }).eq('id', app.user.id);
+                        const { error } = await app.api.from('profiles').update({ avatar_url: null }).eq('id', app.user.id);
                         if (error) throw error;
-                        window.sb.auth.updateUser({ data: { avatar_url: null } }).catch(() => {});
+                        app.api.auth.updateUser({ data: { avatar_url: null } }).catch(() => {});
                         if (app.user.user_metadata) app.user.user_metadata.avatar_url = null;
                         app.ui.showAlert("Đã reset Avatar về mặc định!");
                         const hImg = document.getElementById('nav-user-avatar');
@@ -464,7 +464,7 @@ changePassword: async () => {
                     if (lowerNewName === 'người dùng bị cấm' || lowerNewName === 'nguoi dung bi cam' || lowerNewName.includes('bị cấm') || lowerNewName.includes('bi cam')) {
                         return app.ui.showAlert("Tên hiển thị này thuộc danh sách hạn chế. Vui lòng chọn tên khác!");
                     }
-                    const { data: existingUser } = await window.sb.from('profiles')
+                    const { data: existingUser } = await app.api.from('profiles')
                         .select('username')
                         .ilike('username', newName)
                         .neq('id', app.user.id)
@@ -477,7 +477,7 @@ changePassword: async () => {
                         async () => {
                             try {
                                 try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
-                                const { error: dbError } = await window.sb.from('profiles').update({ username: newName }).eq('id', app.user.id);
+                                const { error: dbError } = await app.api.from('profiles').update({ username: newName }).eq('id', app.user.id);
                                 if (dbError) {
                                     if (dbError.code === '23505') throw new Error("Tên này đã có người sử dụng!");
                                     throw dbError;
@@ -519,13 +519,13 @@ changePassword: async () => {
                             try {
                                 try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
                                 
-                                const { data: currentProfile, error: fetchError } = await window.sb.from('profiles').select('preferences').eq('id', app.user.id).single();
+                                const { data: currentProfile, error: fetchError } = await app.api.from('profiles').select('preferences').eq('id', app.user.id).single();
                                 if (fetchError) throw fetchError;
 
                                 const currentPreferences = currentProfile.preferences || {};
                                 currentPreferences.contact_email = contactEmail;
                                 
-                                const { error: dbError } = await window.sb.from('profiles').update({ preferences: currentPreferences }).eq('id', app.user.id);
+                                const { error: dbError } = await app.api.from('profiles').update({ preferences: currentPreferences }).eq('id', app.user.id);
                                 if (dbError) throw dbError;
                                 
                                 app.toast.show('success', 'Thành công', contactEmail ? 'Cập nhật thông tin liên hệ thành công!' : 'Đã xóa thông tin liên hệ!');
@@ -806,7 +806,7 @@ changePassword: async () => {
                 btnConfirm.innerText = `Đăng nhập (${timeLeft})`;
                 document.getElementById('qr-confirm-name').innerText = app.username;
                 try {
-                    const { data: profile } = await window.sb.from('profiles').select('avatar_url').eq('id', app.user.id).single();
+                    const { data: profile } = await app.api.from('profiles').select('avatar_url').eq('id', app.user.id).single();
                     if (profile && profile.avatar_url) {
                         avatarImg.src = app.utils.getProxiedUrl(profile.avatar_url.replace(/"/g, ''), 'avatar.jpg', 'avatar');
                     } else if (app.user.user_metadata?.avatar_url) {
@@ -881,7 +881,7 @@ changePassword: async () => {
                 btn.disabled = true;
                 btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
                 try {
-                    const { data, error } = await window.sb.auth.getSession();
+                    const { data, error } = await app.api.auth.getSession();
                     if (error || !data.session) throw new Error("Lấy Token thất bại. Vui lòng tải lại trang.");
                     if (!app.qrLogin.conn || !app.qrLogin.conn.open) {
                         throw new Error("Không thể kết nối với máy chủ chờ. Vui lòng quét lại mã QR.");
@@ -980,7 +980,7 @@ changePassword: async () => {
                     plateEl.innerText = 'Đang kiểm tra dữ liệu...';
                     opEl.innerText = '';
                     try {
-                        const { data, error } = await window.sb.from('photos')
+                        const { data, error } = await app.api.from('photos')
                             .select('id, url, license_plate, operator, uploader_id, status')
                             .eq('id', photoId)
                             .single();
@@ -1020,7 +1020,7 @@ changePassword: async () => {
                 },
                 saveFavPhoto: async (photoId, url) => {
                     try {
-                        const { error } = await window.sb.from('profiles').update({ favorite_photo_id: photoId }).eq('id', app.user.id);
+                        const { error } = await app.api.from('profiles').update({ favorite_photo_id: photoId }).eq('id', app.user.id);
                         if (error) throw error;
                         app.profileIntro.closePhotoSelector();
                         const favContainer = document.getElementById('profile-fav-photo-container');
@@ -1046,7 +1046,7 @@ changePassword: async () => {
                 deleteFavPhoto: async () => {
                     app.ui.showAlert("Bạn có chắc chắn muốn gỡ Ảnh tâm đắc?", async () => {
                         try {
-                            const { error } = await window.sb.from('profiles').update({ favorite_photo_id: null }).eq('id', app.user.id);
+                            const { error } = await app.api.from('profiles').update({ favorite_photo_id: null }).eq('id', app.user.id);
                             if (error) throw error;
                             const favContainer = document.getElementById('profile-fav-photo-container');
                             const favControls = document.getElementById('profile-fav-photo-controls');
@@ -1090,7 +1090,7 @@ changePassword: async () => {
                         document.getElementById('onb-user-name').innerText = app.username || 'Bạn';
                         const avatarEl = document.getElementById('onb-user-avatar');
                         try {
-                            window.sb.from('profiles').select('avatar_url').eq('id', app.user.id).single().then(({data}) => {
+                            app.api.from('profiles').select('avatar_url').eq('id', app.user.id).single().then(({data}) => {
                                 if (data && data.avatar_url) avatarEl.src = app.utils.getProxiedUrl(data.avatar_url.replace(/"/g, ''), 'avatar.jpg', 'avatar');
                                 else avatarEl.src = 'https://files.catbox.moe/zzh1q1.png';
                             });
@@ -1177,12 +1177,12 @@ changePassword: async () => {
                         localStorage.setItem('vnbus_preference', app.preference.current);
                         if (app.user) {
                             const curWmMode = localStorage.getItem('vnbus_wm_mode') || (app.wmState && app.wmState.mode) || 'basic';
-                            window.sb.from('profiles').select('preferences').eq('id', app.user.id).single().then(({data}) => {
+                            app.api.from('profiles').select('preferences').eq('id', app.user.id).single().then(({data}) => {
                                 const existingPrefs = (data && data.preferences) ? data.preferences : {};
                                 existingPrefs.type = app.preference.current;
                                 existingPrefs.wmMode = curWmMode;
                                 existingPrefs.pinnedLocations = app.preference.pinnedLocations || [];
-                                window.sb.from('profiles').update({ preferences: existingPrefs }).eq('id', app.user.id).then(()=>{});
+                                app.api.from('profiles').update({ preferences: existingPrefs }).eq('id', app.user.id).then(()=>{});
                             });
                         }
                     }

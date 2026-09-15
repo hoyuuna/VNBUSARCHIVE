@@ -137,13 +137,13 @@ Object.assign(window.app, {
                  savePreferencesToServer: async () => {
                      if (!app.user) return;
                      try {
-                         const { data } = await window.sb.from('profiles').select('preferences').eq('id', app.user.id).single();
+                         const { data } = await app.api.from('profiles').select('preferences').eq('id', app.user.id).single();
                          const existingPrefs = (data && data.preferences) ? data.preferences : {};
                          existingPrefs.type = app.preference.current;
                          existingPrefs.wmMode = app.wmState ? app.wmState.mode : 'basic';
                          existingPrefs.pinnedLocations = app.preference.pinnedLocations || [];
                          
-                         await window.sb.from('profiles').update({
+                         await app.api.from('profiles').update({
                              preferences: existingPrefs
                          }).eq('id', app.user.id);
                      } catch(e) { console.warn("Failed to sync preferences", e); }
@@ -279,7 +279,7 @@ Object.assign(window.app, {
                     const uploadDate = dateInput && dateInput.value ? new Date(dateInput.value).getTime() : Date.now();
                     try {
                         const prefixOrCond = relatedPrefixes.map(p => `license_plate.ilike.${p}%`).join(',');
-                        const { data } = await window.sb.from('photos')
+                        const { data } = await app.api.from('photos')
                             .select('operator, type, taken_at, created_at, vehicles(model)')
                             .eq('route_no', route)
                             .eq('status', 'approved')
@@ -395,7 +395,7 @@ Object.assign(window.app, {
                             return;
                         }
                         try {
-                            const { data: topPhoto } = await window.sb.from('photos')
+                            const { data: topPhoto } = await app.api.from('photos')
                                 .select('url, vehicles!inner(model)')
                                 .eq('status', 'approved')
                                 .eq('vehicles.model', modelName)
@@ -488,7 +488,7 @@ Object.assign(window.app, {
                     app.upload._dupToken = (app.upload._dupToken || 0) + 1;
                     const myToken = app.upload._dupToken;
                     try {
-                        const { data: existingPhotos, error: checkErr } = await window.sb
+                        const { data: existingPhotos, error: checkErr } = await app.api
                             .from('photos')
                             .select('taken_at, location')
                             .eq('uploader_id', app.user.id)
@@ -918,7 +918,7 @@ Object.assign(window.app, {
                     const currentSuffix = parts[1] ? parseInt(parts[1]) : 0;
                     try {
                         const { data: existingVehicles } = await app.utils.promiseWithTimeout(
-                            window.sb.from('vehicles').select('license_plate, model').ilike('license_plate', `${basePlate}%`),
+                            app.api.from('vehicles').select('license_plate, model').ilike('license_plate', `${basePlate}%`),
                             5000
                         );
                         app.upload.existingVehiclesList = existingVehicles || [];
@@ -953,7 +953,7 @@ Object.assign(window.app, {
                         let hasApproved = false;
                         let recentPhotos = [];
                         if (exactVehicle) {
-                            const { data } = await window.sb
+                            const { data } = await app.api
                                 .from('photos')
                                 .select('operator, route_no, type, taken_at, created_at')
                                 .eq('license_plate', rawPlate)
@@ -1016,7 +1016,7 @@ Object.assign(window.app, {
                             });
                             document.getElementById('locked-msg').classList.remove('hidden');
                             if(app.upload.checkModelPreview) app.upload.checkModelPreview();
-                            const { data: shootersData } = await window.sb
+                            const { data: shootersData } = await app.api
                                 .from('photos')
                                 .select('profiles(username, ban_status)')
                                 .eq('license_plate', rawPlate)
@@ -1117,14 +1117,14 @@ Object.assign(window.app, {
                     app.upload.isBlindWatermarkEnabled = (mode === 'advanced');
                     try {
                         if (typeof localStorage !== 'undefined') localStorage.setItem('vnbus_wm_mode', mode);
-                        if (animate && app.user && window.sb) {
+                        if (animate && app.user && app.api) {
                             const curPref = localStorage.getItem('vnbus_preference') || 'both';
-                            window.sb.from('profiles').select('preferences').eq('id', app.user.id).single().then(({data}) => {
+                            app.api.from('profiles').select('preferences').eq('id', app.user.id).single().then(({data}) => {
                                 const existingPrefs = (data && data.preferences) ? data.preferences : {};
                                 existingPrefs.type = curPref;
                                 existingPrefs.wmMode = mode;
                                 existingPrefs.pinnedLocations = (app.preference && app.preference.pinnedLocations) || [];
-                                window.sb.from('profiles').update({ preferences: existingPrefs }).eq('id', app.user.id).then(()=>{});
+                                app.api.from('profiles').update({ preferences: existingPrefs }).eq('id', app.user.id).then(()=>{});
                             });
                         }
                     } catch (e) {}
@@ -1263,7 +1263,7 @@ Object.assign(window.app, {
                         let username = document.getElementById('username')?.value?.trim();
                         if (!username && app.user && app.user.id) {
                             try {
-                                const { data } = await window.sb.from('profiles').select('username').eq('id', app.user.id).single();
+                                const { data } = await app.api.from('profiles').select('username').eq('id', app.user.id).single();
                                 if (data) username = data.username;
                             } catch (e) {}
                         }
@@ -2282,7 +2282,7 @@ Object.assign(window.app, {
                         const hasLimit = limitSetting && limitSetting.trim() !== '';
                         const limitNum = hasLimit ? parseInt(limitSetting) : null;
                         const last7AM = app.utils.getLast7AM_UTC7();
-                        const { count } = await window.sb.from('photos')
+                        const { count } = await app.api.from('photos')
                             .select('*', { count: 'estimated', head: true })
                             .eq('uploader_id', app.user.id)
                             .gte('created_at', last7AM);
@@ -2334,7 +2334,7 @@ Object.assign(window.app, {
                         const item = app.upload.uploadQueue[0];
                         let token;
                         try {
-                            const { data: { session } } = await window.sb.auth.getSession();
+                            const { data: { session } } = await app.api.auth.getSession();
                             token = session?.access_token;
                         } catch (e) {}
                         let result = null;
@@ -2356,7 +2356,7 @@ Object.assign(window.app, {
                                 console.log(`[EXHAUSTIVE UPLOAD LOG - Response Attempt ${uploadAttempts}]:`, { status: response.status, result });
                                 if (response.status === 401 || (result && result.error && result.error.message && result.error.message.includes('JWT'))) {
                                     app.upload.activeProgressToast.update(60, 'Phiên hết hạn, đang kết nối lại...', `Thử lại lần ${uploadAttempts}`);
-                                    const { data: { session: newSession } } = await window.sb.auth.refreshSession();
+                                    const { data: { session: newSession } } = await app.api.auth.refreshSession();
                                     if (newSession && newSession.access_token) {
                                         token = newSession.access_token;
                                         uploadAttempts--;
@@ -2492,7 +2492,7 @@ Object.assign(window.app, {
                         let queueCount = '?';
                         let newPhotoId = null;
                         try {
-                            const { data: pendingData } = await window.sb.from('photos').select('id, uploader_id, created_at, profiles(role)').eq('status', 'pending');
+                            const { data: pendingData } = await app.api.from('photos').select('id, uploader_id, created_at, profiles(role)').eq('status', 'pending');
                             if (pendingData) {
                                 let ahead = 0;
                                 const isMePrivileged = (app.role === 'admin' || app.role === 'manager');
@@ -3217,12 +3217,12 @@ select: (val) => {
                     localStorage.setItem('vnbus_preference', app.preference.current);
                     if (app.user) {
                         const curWmMode = localStorage.getItem('vnbus_wm_mode') || (app.wmState && app.wmState.mode) || 'basic';
-                        window.sb.from('profiles').select('preferences').eq('id', app.user.id).single().then(({data}) => {
+                        app.api.from('profiles').select('preferences').eq('id', app.user.id).single().then(({data}) => {
                             const existingPrefs = (data && data.preferences) ? data.preferences : {};
                             existingPrefs.type = app.preference.current;
                             existingPrefs.wmMode = curWmMode;
                             existingPrefs.pinnedLocations = app.preference.pinnedLocations || [];
-                            window.sb.from('profiles').update({ preferences: existingPrefs }).eq('id', app.user.id).then(()=>{});
+                            app.api.from('profiles').update({ preferences: existingPrefs }).eq('id', app.user.id).then(()=>{});
                         });
                     }
                     app.ui.showAlert("Đã lưu thông tin Cá nhân hóa thành công!");

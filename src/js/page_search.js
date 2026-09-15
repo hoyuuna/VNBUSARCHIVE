@@ -445,7 +445,7 @@ Object.assign(window.app, {
                                 col = 'username';
                                 selectStr = 'username';
                             }
-                            let sbQuery = window.sb.from(table).select(selectStr);
+                            let sbQuery = app.api.from(table).select(selectStr);
                             if (table === 'photos') {
                                 sbQuery = sbQuery.eq('status', 'approved').not(col, 'is', null).neq(col, '').neq(col, '---');
                             } else if (table === 'vehicles') {
@@ -529,7 +529,7 @@ Object.assign(window.app, {
                                     selectStr = `${col}, photos!inner(status${app.preference.current !== 'both' ? ', type' : ''})`;
                                 }
                                 if (table === 'photos' && col === 'route_no') selectStr = 'route_no, borrowed_route, license_plate';
-                                let sbQuery = window.sb.from(table).select(selectStr);
+                                let sbQuery = app.api.from(table).select(selectStr);
                                 if (table === 'photos') {
                                     sbQuery = sbQuery.eq('status', 'approved').not(col, 'is', null).neq(col, '').neq(col, '---');
                                 } else if (table === 'vehicles') {
@@ -542,14 +542,14 @@ Object.assign(window.app, {
                                 sbQuery = app.preference.applyFilter(sbQuery, table);
                                 let data = [];
                                 if (table === 'photos' && col === 'operator') {
-                                    let infoQuery = window.sb.from('operator_info').select('operator_name');
+                                    let infoQuery = app.api.from('operator_info').select('operator_name');
                                     searchWords.forEach(word => { infoQuery = infoQuery.ilike('operator_name', `%${word}%`); });
                                     const [infoRes, photoRes] = await Promise.all([
                                         infoQuery.limit(30).abortSignal(controller.signal),
                                         sbQuery.limit(30).abortSignal(controller.signal)
                                     ]);
                                     if (photoRes.data) data = data.concat(photoRes.data);
-                                    const { data: allOpsForSug } = await window.sb.from('operator_info').select('parent_operator');
+                                    const { data: allOpsForSug } = await app.api.from('operator_info').select('parent_operator');
                                     const parentMapForSug = new Map();
                                     if (allOpsForSug) {
                                         allOpsForSug.forEach(op => {
@@ -648,7 +648,7 @@ Object.assign(window.app, {
                             else if (filter === 'location') results = await fetchSugs('photos', 'location', 'Vị trí');
                             else if (filter === 'camera') results = await fetchSugs('photos', 'camera_model', 'Thiết bị');
                             else if (filter === 'uploader') {
-                                let sbQuery = window.sb.from('profiles').select('username');
+                                let sbQuery = app.api.from('profiles').select('username');
                                 searchWords.forEach(word => { sbQuery = sbQuery.ilike('username', `%${word}%`); });
                                 const { data } = await sbQuery.limit(5).abortSignal(controller.signal);
                                 if (data) results = [...new Set(data.map(item => item.username).filter(Boolean))].map(val => ({ text: val, label: 'Người đăng' }));

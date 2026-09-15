@@ -289,7 +289,7 @@ Object.assign(window.app, {
                         // Ép sang định dạng WebP với chất lượng cao nhất (1.0)
                         const initialBlob = await new Promise((resolve) => { canvas.toBlob(b => resolve(b), 'image/webp', 1.0); }); const blob = await app.utils.compressToSizeLoop(initialBlob, 'image/webp', 500);
 
-                        const sessionRes = await window.sb.auth.getSession();
+                        const sessionRes = await app.api.auth.getSession();
                         const token = sessionRes.data.session?.access_token;
                         
                         const formData = new FormData();
@@ -570,10 +570,10 @@ Object.assign(window.app, {
                         return;
                     }
                     try {
-                        const { data: vData } = await window.sb.from('vehicles').select('*').eq('license_plate', val).maybeSingle();
+                        const { data: vData } = await app.api.from('vehicles').select('*').eq('license_plate', val).maybeSingle();
                         if (vData) {
                             if (elModel) elModel.value = vData.model || '';
-                            const { data: pDataArray } = await window.sb.from('photos')
+                            const { data: pDataArray } = await app.api.from('photos')
                                 .select('operator, route_no, type')
                                 .eq('license_plate', val)
                                 .eq('status', 'approved')
@@ -614,7 +614,7 @@ Object.assign(window.app, {
                                 const plateSpan = cardHeader.querySelector('span.font-bold');
                                 if (plateSpan) plateSpan.innerText = val;
                                 const existingBadge = cardHeader.querySelector('.badge-xe-moi');
-                                const isApprovedPlate = app.admin?.approvedPlateSet?.has(val) || (await window.sb.from('photos').select('id').eq('license_plate', val).eq('status', 'approved').limit(1)).data?.length > 0;
+                                const isApprovedPlate = app.admin?.approvedPlateSet?.has(val) || (await app.api.from('photos').select('id').eq('license_plate', val).eq('status', 'approved').limit(1)).data?.length > 0;
                                 if (!isApprovedPlate && val && val !== '---') {
                                     if (!existingBadge && plateSpan) {
                                         plateSpan.insertAdjacentHTML('afterend', ' <span class="badge-xe-moi"><i class="fa-solid fa-sparkles"></i> XE MỚI</span>');
@@ -636,7 +636,7 @@ Object.assign(window.app, {
                     const isInterior = locInput.value.trim() === 'Chụp trong xe';
                     const cleanPlate = plateInput.value.replace(/[^A-Z0-9-]/gi, '').toUpperCase();
                     try {
-                        const { data: existingPhotos, error } = await window.sb
+                        const { data: existingPhotos, error } = await app.api
                             .from('photos')
                             .select('id, taken_at, location')
                             .eq('uploader_id', uploaderId)
@@ -706,7 +706,7 @@ Object.assign(window.app, {
                 logAction: async (actionType, targetId, details) => {
                     if (!app.user) return;
                     try {
-                        await window.sb.from('admin_audit_logs').insert({
+                        await app.api.from('admin_audit_logs').insert({
                             admin_id: app.user.id,
                             action_type: actionType,
                             target_id: targetId,
@@ -735,9 +735,9 @@ Object.assign(window.app, {
                 },
                 refreshCounts: async () => {
                     try {
-                        const { data: pendingPhotos, error: pErr } = await window.sb.from('photos').select('id, uploader_id').eq('status', 'pending');
+                        const { data: pendingPhotos, error: pErr } = await app.api.from('photos').select('id, uploader_id').eq('status', 'pending');
                         if (pErr) console.error("Lỗi đếm photos:", pErr);
-                        const { data: reqs, error: rErr } = await window.sb.from('edit_requests').select('requester_id, new_data').eq('status', 'pending');
+                        const { data: reqs, error: rErr } = await app.api.from('edit_requests').select('requester_id, new_data').eq('status', 'pending');
                         if (rErr) console.error("Lỗi đếm edit_requests:", rErr);
                         let pCount = 0;
                         if (pendingPhotos) {
@@ -848,7 +848,7 @@ Object.assign(window.app, {
                 },
                 fetchAdminNote: async function() {
                     try {
-                        const { data, error } = await window.sb.from('admin_notes').select('content').eq('id', 1).single();
+                        const { data, error } = await app.api.from('admin_notes').select('content').eq('id', 1).single();
                         if (error && error.code !== 'PGRST116') throw error;
                         const note = data ? data.content : '';
                         const noteInput = document.getElementById('adm-board-note');
@@ -868,7 +868,7 @@ Object.assign(window.app, {
                     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
                     btn.disabled = true;
                     try {
-                        const { error } = await window.sb.from('admin_notes').upsert({
+                        const { error } = await app.api.from('admin_notes').upsert({
                             id: 1,
                             content: content,
                             updated_at: new Date().toISOString(),
@@ -955,16 +955,16 @@ Object.assign(window.app, {
                             let reviewedIds = [];
                             try {
                                 if (app.user && app.user.id) {
-                                    const { data: myReviews } = await window.sb.from('photo_reviews').select('photo_id').eq('admin_id', app.user.id);
+                                    const { data: myReviews } = await app.api.from('photo_reviews').select('photo_id').eq('admin_id', app.user.id);
                                     if (myReviews) reviewedIds = myReviews.map(r => r.photo_id);
                                 }
                             } catch(e) {}
                             try {
                                 const [sbRes, apiRes] = await Promise.all([
-                                    window.sb.from('photos').select('*, profiles(username, role), vehicles(model), photo_reviews(action, reason, admin_id)', { count: 'estimated' }).eq('status', 'pending').order('id', { ascending: true }).range(fromRow, toRow).then(r => r).catch(() => ({ data: [], count: 0 })),
+                                    app.api.from('photos').select('*, profiles(username, role), vehicles(model), photo_reviews(action, reason, admin_id)', { count: 'estimated' }).eq('status', 'pending').order('id', { ascending: true }).range(fromRow, toRow).then(r => r).catch(() => ({ data: [], count: 0 })),
                                     (async () => {
                                         try {
-                                            const sessionRes = await window.sb.auth.getSession();
+                                            const sessionRes = await app.api.auth.getSession();
                                             const token = sessionRes.data.session?.access_token;
                                             if (token) {
                                                 const res = await fetch(`/api/photo?status=pending&page=${app.adminPendingPage}&limit=${pageSize}&_t=${new Date().getTime()}`, { headers: { 'Authorization': `Bearer ${token}` }, cache: 'no-store' });
@@ -1053,25 +1053,25 @@ Object.assign(window.app, {
                             const routesVariants = pendingRoutes.length > 0 ? getVariants(pendingRoutes) : [];
                             const modelsVariants = pendingModels.length > 0 ? getVariants(pendingModels) : [];
                             await Promise.all([
-                                window.sb.from('operator_info').select('operator_name').then(r => {
+                                app.api.from('operator_info').select('operator_name').then(r => {
                                     (r.data || []).forEach(o => { if (o.operator_name) approvedOpSet.add(app.utils.cleanText(o.operator_name).trim().toLowerCase()); });
                                 }).catch(() => {}),
-                                platesVariants.length > 0 ? window.sb.from('photos').select('license_plate').eq('status', 'approved').in('license_plate', platesVariants).then(r => {
+                                platesVariants.length > 0 ? app.api.from('photos').select('license_plate').eq('status', 'approved').in('license_plate', platesVariants).then(r => {
                                     (r.data || []).forEach(p => { if (p.license_plate) approvedPlateSet.add(p.license_plate.trim().toUpperCase()); });
                                 }).catch(() => {}) : Promise.resolve(),
-                                platesVariants.length > 0 ? window.sb.from('vehicles').select('license_plate, photos!inner(status)').eq('photos.status', 'approved').in('license_plate', platesVariants).then(r => {
+                                platesVariants.length > 0 ? app.api.from('vehicles').select('license_plate, photos!inner(status)').eq('photos.status', 'approved').in('license_plate', platesVariants).then(r => {
                                     (r.data || []).forEach(v => { if (v.photos && v.photos.length > 0 && v.license_plate) approvedPlateSet.add(v.license_plate.trim().toUpperCase()); });
                                 }).catch(() => {}) : Promise.resolve(),
-                                opsVariants.length > 0 ? window.sb.from('photos').select('operator').eq('status', 'approved').in('operator', opsVariants).then(r => {
+                                opsVariants.length > 0 ? app.api.from('photos').select('operator').eq('status', 'approved').in('operator', opsVariants).then(r => {
                                     (r.data || []).forEach(p => { if (p.operator && p.operator !== '---' && p.operator !== 'Đang cập nhật') approvedOpSet.add(app.utils.cleanText(p.operator).trim().toLowerCase()); });
                                 }).catch(() => {}) : Promise.resolve(),
-                                opsVariants.length > 0 ? window.sb.from('operator_info').select('operator_name').in('operator_name', opsVariants).then(r => {
+                                opsVariants.length > 0 ? app.api.from('operator_info').select('operator_name').in('operator_name', opsVariants).then(r => {
                                     (r.data || []).forEach(o => { if (o.operator_name) approvedOpSet.add(app.utils.cleanText(o.operator_name).trim().toLowerCase()); });
                                 }).catch(() => {}) : Promise.resolve(),
-                                routesVariants.length > 0 ? window.sb.from('photos').select('route_no').eq('status', 'approved').in('route_no', routesVariants).then(r => {
+                                routesVariants.length > 0 ? app.api.from('photos').select('route_no').eq('status', 'approved').in('route_no', routesVariants).then(r => {
                                     (r.data || []).forEach(p => { if (p.route_no && p.route_no !== '---') addRouteVariants(approvedRouteSet, p.route_no); });
                                 }).catch(() => {}) : Promise.resolve(),
-                                modelsVariants.length > 0 ? window.sb.from('vehicles').select('model, photos!inner(status)').eq('photos.status', 'approved').in('model', modelsVariants).then(r => {
+                                modelsVariants.length > 0 ? app.api.from('vehicles').select('model, photos!inner(status)').eq('photos.status', 'approved').in('model', modelsVariants).then(r => {
                                     (r.data || []).forEach(v => { if (v.photos && v.photos.length > 0 && v.model && v.model !== '---') approvedModelSet.add(app.utils.cleanText(v.model).trim().toLowerCase()); });
                                 }).catch(() => {}) : Promise.resolve()
                             ]);
@@ -1165,7 +1165,7 @@ Object.assign(window.app, {
                             const pageSize = 20;
                             const fromRow = (app.adminDeletePage - 1) * pageSize;
                             const toRow = fromRow + pageSize - 1;
-                            let { data: reqs, count, error } = await window.sb.from('edit_requests').select('*', { count: 'estimated' }).eq('status', 'pending').eq('new_data->>request_type', 'delete_photo').range(fromRow, toRow);
+                            let { data: reqs, count, error } = await app.api.from('edit_requests').select('*', { count: 'estimated' }).eq('status', 'pending').eq('new_data->>request_type', 'delete_photo').range(fromRow, toRow);
                             if (error) throw error;
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
                             const deleteReqs = reqs || [];
@@ -1174,12 +1174,12 @@ Object.assign(window.app, {
                                 return;
                             }
                             const photoIds = deleteReqs.map(r => r.new_data.photo_id);
-                            const { data: photos } = await window.sb.from('photos').select('id, url, license_plate').in('id', photoIds);
+                            const { data: photos } = await app.api.from('photos').select('id, url, license_plate').in('id', photoIds);
                             if (photos && photos.length > 0) await app.utils.resolveSandboxUrls(photos);
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
                             const photoMap = {}; if (photos) photos.forEach(p => photoMap[p.id] = p);
                             const userIds = [...new Set(deleteReqs.map(r => r.requester_id))];
-                            const { data: users } = await window.sb.from('profiles').select('id, username, role').in('id', userIds);
+                            const { data: users } = await app.api.from('profiles').select('id, username, role').in('id', userIds);
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
                             const userMap = {}; const roleMap = {};
                             if (users) users.forEach(u => { userMap[u.id] = u.username; roleMap[u.id] = u.role; });
@@ -1244,12 +1244,12 @@ Object.assign(window.app, {
                             const pageSize = 20;
                             const fromRow = (app.adminReqPage - 1) * pageSize;
                             const toRow = fromRow + pageSize - 1;
-                            let { data: reqs, count, error } = await window.sb.from('edit_requests').select('*', { count: 'estimated' }).eq('status', 'pending').neq('new_data->>request_type', 'delete_photo').range(fromRow, toRow);
+                            let { data: reqs, count, error } = await app.api.from('edit_requests').select('*', { count: 'estimated' }).eq('status', 'pending').neq('new_data->>request_type', 'delete_photo').range(fromRow, toRow);
                             if (error) throw error;
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
                             if (!reqs || reqs.length === 0) { content.innerHTML = '<p class="p-4">Không có yêu cầu nào.</p>'; return; }
                             const userIds = [...new Set(reqs.map(r => r.requester_id))];
-                            const { data: users } = await window.sb.from('profiles').select('id, username, role').in('id', userIds);
+                            const { data: users } = await app.api.from('profiles').select('id, username, role').in('id', userIds);
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
                             const userMap = {}; const roleMap = {};
                             if (users) users.forEach(u => { userMap[u.id] = u.username; roleMap[u.id] = u.role; });
@@ -1262,10 +1262,10 @@ Object.assign(window.app, {
                                 return a.id - b.id;
                             });
                             const plates = reqs.map(r => r.license_plate);
-                            const { data: curVehicles } = await window.sb.from('vehicles').select('*').in('license_plate', plates);
+                            const { data: curVehicles } = await app.api.from('vehicles').select('*').in('license_plate', plates);
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
                             const vMap = {}; if (curVehicles) curVehicles.forEach(v => vMap[v.license_plate] = v);
-                            const { data: curHistories } = await window.sb.from('vehicle_history').select('*').in('license_plate', plates);
+                            const { data: curHistories } = await app.api.from('vehicle_history').select('*').in('license_plate', plates);
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
                             const hMap = {}; 
                             if (curHistories) {
@@ -1275,25 +1275,25 @@ Object.assign(window.app, {
                                 });
                             }
                             const photoIdsReq = reqs.map(r => r.new_data.photo_id).filter(Boolean);
-                            const { data: curPhotos } = await window.sb.from('photos').select('id, operator, route_no, type, borrowed_route, location, note').in('id', photoIdsReq);
+                            const { data: curPhotos } = await app.api.from('photos').select('id, operator, route_no, type, borrowed_route, location, note').in('id', photoIdsReq);
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
                             const pMap = {}; if (curPhotos) curPhotos.forEach(p => pMap[p.id] = p);
                             const opNamesReq = reqs.map(r => r.new_data.operator_name).filter(Boolean);
                             let opMap = {};
                             if (opNamesReq.length > 0) {
-                                const { data: curOps } = await window.sb.from('operator_info').select('*').in('operator_name', opNamesReq);
+                                const { data: curOps } = await app.api.from('operator_info').select('*').in('operator_name', opNamesReq);
                                 if (curOps) curOps.forEach(o => opMap[o.operator_name] = o);
                             }
                             const mdlNamesReq = reqs.map(r => r.new_data.model_name).filter(Boolean);
                             let mdlMap = {};
                             if (mdlNamesReq.length > 0) {
-                                const { data: curMdls } = await window.sb.from('model_info').select('*').in('model_name', mdlNamesReq);
+                                const { data: curMdls } = await app.api.from('model_info').select('*').in('model_name', mdlNamesReq);
                                 if (curMdls) curMdls.forEach(m => mdlMap[m.model_name] = m);
                             }
                             const routeReqs = reqs.filter(r => r.new_data.request_type === 'update_route_info').map(r => r.new_data.route_name).filter(Boolean);
                             let routeMap = {};
                             if (routeReqs.length > 0) {
-                                const { data: curRoutes } = await window.sb.from('route_info').select('*').in('route_name', routeReqs);
+                                const { data: curRoutes } = await app.api.from('route_info').select('*').in('route_name', routeReqs);
                                 if (curRoutes) curRoutes.forEach(rt => routeMap[rt.route_name] = rt);
                             }
                             content.innerHTML = reqs.map(r => {
@@ -1625,7 +1625,7 @@ Object.assign(window.app, {
                             if (app.admin.updateRulerUI) app.admin.updateRulerUI();
                         }
                         else if (tab === 'comments') {
-                            const { data } = await window.sb.from('photo_comments')
+                            const { data } = await app.api.from('photo_comments')
                                 .select('*, profiles(username), photos(license_plate)')
                                 .order('created_at', {ascending: false}).limit(500);
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
@@ -2487,7 +2487,7 @@ app.admin.fetchManagerData('denied');
                             let photos = [];
                             let total = 0;
                             try {
-                                let query = window.sb.from('photos').select('*, profiles(username)', {count: 'estimated'}).eq('status', 'denied').order('created_at', {ascending: false});
+                                let query = app.api.from('photos').select('*, profiles(username)', {count: 'estimated'}).eq('status', 'denied').order('created_at', {ascending: false});
                                 if (q) {
                                     query = query.or(`license_plate.ilike.%${q}%,denial_reason.ilike.%${q}%`);
                                 }
@@ -2495,7 +2495,7 @@ app.admin.fetchManagerData('denied');
                                 if (pData && pData.length > 0) photos = pData;
                                 total = count || 0;
                             } catch(e){}
-                            const { data: logs } = await window.sb.from('admin_audit_logs').select('target_id, profiles(username)').eq('action_type', 'deny_photo');
+                            const { data: logs } = await app.api.from('admin_audit_logs').select('target_id, profiles(username)').eq('action_type', 'deny_photo');
                             const denierMap = {};
                             if(logs) logs.forEach(l => { denierMap[l.target_id] = l.profiles?.username || 'Admin'; });
                             if (photos && photos.length > 0) await app.utils.resolveSandboxUrls(photos);
@@ -2507,7 +2507,7 @@ app.admin.fetchManagerData('denied');
                             const perPage = 50;
                             const fromRow = (state.page - 1) * perPage;
                             const toRow = fromRow + perPage - 1;
-                            let query = window.sb.from('admin_audit_logs').select('*, profiles(username)', {count: 'estimated'}).order('created_at', {ascending: false});
+                            let query = app.api.from('admin_audit_logs').select('*, profiles(username)', {count: 'estimated'}).order('created_at', {ascending: false});
                             if (q) {
                                 query = query.or(`action_type.ilike.%${q}%,target_id.ilike.%${q}%`);
                             }
@@ -2517,7 +2517,7 @@ app.admin.fetchManagerData('denied');
                         }
                         else if (type === 'bans') {
                             const perPage = 15;
-                            const { data: { session } } = await window.sb.auth.getSession();
+                            const { data: { session } } = await app.api.auth.getSession();
                             const payload = { 
                                 action: 'get_users', 
                                 page: state.page, 
@@ -2731,7 +2731,7 @@ app.admin.fetchManagerData('denied');
                     document.getElementById('btn-submit-ban').innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang xử lý...';
                     document.getElementById('btn-submit-ban').disabled = true;
                     try {
-                        const { data: { session } } = await window.sb.auth.getSession();
+                        const { data: { session } } = await app.api.auth.getSession();
                         const response = await fetch('/api/manager', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
@@ -2753,7 +2753,7 @@ app.admin.fetchManagerData('denied');
                     if (app.role !== 'manager') return app.ui.showAlert("Chỉ Quản lý mới có quyền này.");
                     app.ui.showAlert("Bạn có chắc muốn gỡ cấm tài khoản này không?", async () => {
                         try {
-                            const { data: { session } } = await window.sb.auth.getSession();
+                            const { data: { session } } = await app.api.auth.getSession();
                             const response = await fetch('/api/manager', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
@@ -2775,7 +2775,7 @@ app.admin.fetchManagerData('denied');
                     if (app.role !== 'manager') return app.ui.showAlert("Chỉ Quản lý mới có quyền này.");
                     app.ui.showAlert("LƯU Ý: Hành động này sẽ XÓA VĨNH VIỄN tài khoản người dùng và không thể khôi phục. Bạn có chắc chắn muốn xóa không?", async () => {
                         try {
-                            const { data: { session } } = await window.sb.auth.getSession();
+                            const { data: { session } } = await app.api.auth.getSession();
                             const response = await fetch('/api/manager', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
@@ -2854,7 +2854,7 @@ app.admin.fetchManagerData('denied');
                             else newSubroles.push('vvcc');
                         }
                         try {
-                            const { data: { session } } = await window.sb.auth.getSession();
+                            const { data: { session } } = await app.api.auth.getSession();
                             const response = await fetch('/api/manager', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
@@ -2880,7 +2880,7 @@ app.admin.fetchManagerData('denied');
                 _emailUsersRaw: [],
                 fetchUsersForEmail: async () => {
                     try {
-                        const { data: users } = await window.sb.from('profiles').select('id, username, role').order('created_at', { ascending: false });
+                        const { data: users } = await app.api.from('profiles').select('id, username, role').order('created_at', { ascending: false });
                         if (users) {
                             app.admin._emailUsersRaw = users;
                             app.admin.renderEmailUserList(users);
@@ -3018,7 +3018,7 @@ app.admin.fetchManagerData('denied');
                     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi...';
                     btn.disabled = true;
                     try {
-                        const { data: { session } } = await window.sb.auth.getSession();
+                        const { data: { session } } = await app.api.auth.getSession();
                         let successCount = 0;
                         let errCount = 0;
                         if (isCustomSelected && customEmail) {
@@ -3136,7 +3136,7 @@ app.admin.fetchManagerData('denied');
                     const timeVal = document.getElementById(`mt-time-${sysId}`).value;
                     let autoReactivate = (isActive || !hasTime) ? null : new Date(timeVal).toISOString();
                     try {
-                        const { error } = await window.sb.from('system_settings').update({
+                        const { error } = await app.api.from('system_settings').update({
                             is_active: isActive, reason: reason, auto_reactivate_at: autoReactivate, updated_by: app.user.id
                         }).eq('id', sysId);
                         if (error) throw error;
@@ -3152,7 +3152,7 @@ app.admin.fetchManagerData('denied');
                     btn.disabled = true;
                     const val = document.getElementById('mt-quota-value').value.trim();
                     try {
-                        const { error } = await window.sb.from('system_settings').update({
+                        const { error } = await app.api.from('system_settings').update({
                             reason: val,
                             updated_by: app.user.id,
                             updated_at: new Date().toISOString()
@@ -3172,7 +3172,7 @@ app.admin.fetchManagerData('denied');
                     const list = document.getElementById('mgr-toasts-list');
                     if (!list) return;
                     list.innerHTML = `<p class="text-gray-500 italic"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Đang tải danh sách toast...</p>`;
-                    const { data, error } = await window.sb.from('custom_toasts').select('*').order('sort_order', { ascending: true }).order('created_at', { ascending: true });
+                    const { data, error } = await app.api.from('custom_toasts').select('*').order('sort_order', { ascending: true }).order('created_at', { ascending: true });
                     if (error) { list.innerHTML = `<p class="text-red-500">Lỗi tải danh sách: ${app.utils.escapeHtml(error.message)}</p>`; return; }
                     if (!data || data.length === 0) { list.innerHTML = `<p class="text-gray-400 italic text-sm text-center py-4">Chưa có toast tùy biến nào.</p>`; return; }
                     list.innerHTML = data.map(t => {
@@ -3236,7 +3236,7 @@ app.admin.fetchManagerData('denied');
                     const orig = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
                     try {
                         if (editingId) {
-                            const { error } = await window.sb.from('custom_toasts').update(payload).eq('id', editingId);
+                            const { error } = await app.api.from('custom_toasts').update(payload).eq('id', editingId);
                             if (error) throw error;
                             app.admin.cancelEditCustomToast();
                             await app.admin.renderCustomToasts();
@@ -3244,7 +3244,7 @@ app.admin.fetchManagerData('denied');
                         } else {
                             payload.is_active = true;
                             payload.created_by = app.user ? app.user.id : null;
-                            const { error } = await window.sb.from('custom_toasts').insert(payload);
+                            const { error } = await app.api.from('custom_toasts').insert(payload);
                             if (error) throw error;
                             app.admin.resetCustomToastForm();
                             await app.admin.renderCustomToasts();
@@ -3263,7 +3263,7 @@ app.admin.fetchManagerData('denied');
                 },
                 editCustomToast: async (id) => {
                     if (app.role !== 'manager' && app.role !== 'admin') return;
-                    const { data } = await window.sb.from('custom_toasts').select('*').eq('id', id).maybeSingle();
+                    const { data } = await app.api.from('custom_toasts').select('*').eq('id', id).maybeSingle();
                     if (!data) return app.ui.showAlert('Không tìm thấy toast để sửa.');
                     app.admin._editingToastId = id;
                     document.getElementById('ct-new-title').value = data.title || '';
@@ -3291,20 +3291,20 @@ app.admin.fetchManagerData('denied');
                     const cb = document.getElementById('ct-cancel-btn'); if (cb) cb.classList.add('hidden');
                 },                toggleCustomToast: async (id, isActive) => {
                     if (app.role !== 'manager' && app.role !== 'admin') return;
-                    const { error } = await window.sb.from('custom_toasts').update({ is_active: isActive }).eq('id', id);
+                    const { error } = await app.api.from('custom_toasts').update({ is_active: isActive }).eq('id', id);
                     if (error) return app.ui.showAlert('Lỗi: ' + error.message);
                     await app.admin.renderCustomToasts();
                 },
                 deleteCustomToast: async (id) => {
                     if (app.role !== 'manager' && app.role !== 'admin') return;
                     app.ui.showAlert('Bạn có chắc muốn xóa toast này?', async () => {
-                        const { error } = await window.sb.from('custom_toasts').delete().eq('id', id);
+                        const { error } = await app.api.from('custom_toasts').delete().eq('id', id);
                         if (error) return app.ui.showAlert('Lỗi: ' + error.message);
                         await app.admin.renderCustomToasts();
                     });
                 },
                 previewCustomToast: async (id) => {
-                    const { data } = await window.sb.from('custom_toasts').select('*').eq('id', id).maybeSingle();
+                    const { data } = await app.api.from('custom_toasts').select('*').eq('id', id).maybeSingle();
                     if (!data) return;
                     const opts = { icon: data.icon, color: data.color };
                     let onClick = null;
@@ -3361,7 +3361,7 @@ app.admin.fetchManagerData('denied');
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${(await window.sb.auth.getSession()).data.session?.access_token}`
+                                'Authorization': `Bearer ${(await app.api.auth.getSession()).data.session?.access_token}`
                             },
                             body: JSON.stringify({
                                 action: 'approve', photoId: id,
@@ -3471,7 +3471,7 @@ app.admin.fetchManagerData('denied');
                                     method: 'POST',
                                     headers: {
                                         'Content-Type': 'application/json',
-                                        'Authorization': `Bearer ${(await window.sb.auth.getSession()).data.session?.access_token}`
+                                        'Authorization': `Bearer ${(await app.api.auth.getSession()).data.session?.access_token}`
                                     },
                                     body: JSON.stringify({
                                         action: 'deny', photoId: id, reason, plate
@@ -3553,7 +3553,7 @@ app.admin.fetchManagerData('denied');
                     }
                     btn.innerText = "Đang xử lý..."; btn.disabled = true; btn.classList.add('btn-loading');
                     try {
-                        const { data: req } = await window.sb.from('edit_requests').select('*').eq('id', id).single();
+                        const { data: req } = await app.api.from('edit_requests').select('*').eq('id', id).single();
                         if (reqType === 'info') {
                             const plate = document.getElementById(`req-plate-${id}`).value;
                             const op = document.getElementById(`req-op-${id}`).value;
@@ -3570,12 +3570,12 @@ app.admin.fetchManagerData('denied');
                                 btn.innerText = "DUYỆT"; btn.disabled = false; btn.classList.remove('btn-loading');
                                 return;
                             }
-                            const { error: vError } = await window.sb.from('vehicles').upsert({
+                            const { error: vError } = await app.api.from('vehicles').upsert({
                                 license_plate: plate, model: model
                             }, { onConflict: 'license_plate' });
                             if (vError) throw vError;
                             if (req.new_data.photo_id) {
-                                const { data: oldP } = await window.sb.from('photos').select('license_plate, operator, route_no, taken_at').eq('id', req.new_data.photo_id).single();
+                                const { data: oldP } = await app.api.from('photos').select('license_plate, operator, route_no, taken_at').eq('id', req.new_data.photo_id).single();
                                 let updateObj = {
                                     license_plate: plate,
                                     note: note,
@@ -3587,7 +3587,7 @@ app.admin.fetchManagerData('denied');
                                 if (oldP && oldP.route_no !== route) {
                                     updateObj.borrowed_route = null;
                                 }
-                                const { error: pError } = await window.sb.from('photos').update(updateObj).eq('id', req.new_data.photo_id);
+                                const { error: pError } = await app.api.from('photos').update(updateObj).eq('id', req.new_data.photo_id);
                                 if (pError) throw pError;
                                 if (oldP && oldP.taken_at) {
                                     const isPlateChanged = req.license_plate !== plate || (oldP.license_plate && oldP.license_plate !== plate);
@@ -3614,7 +3614,7 @@ app.admin.fetchManagerData('denied');
                                 btn.innerText = "DUYỆT"; btn.disabled = false; btn.classList.remove('btn-loading');
                                 return;
                             }
-                            const { error } = await window.sb.from('vehicles')
+                            const { error } = await app.api.from('vehicles')
                                 .upsert({ license_plate: req.license_plate, model: finalModel, note: finalNote }, { onConflict: 'license_plate' });
                             if (error) throw error;
                         }
@@ -3632,10 +3632,10 @@ app.admin.fetchManagerData('denied');
                                 return app.ui.showAlert("Sai cấu trúc: Các ĐVVH phải được ngăn cách bằng dấu chấm phẩy và một khoảng trắng (Ví dụ: 'Công ty A; Công ty B').");
                             }
                             if (!logo && !desc && !parentOp) {
-                                const { error } = await window.sb.from('operator_info').delete().eq('operator_name', req.new_data.operator_name);
+                                const { error } = await app.api.from('operator_info').delete().eq('operator_name', req.new_data.operator_name);
                                 if (error) throw error;
                             } else {
-                                const { error } = await window.sb.from('operator_info').upsert({
+                                const { error } = await app.api.from('operator_info').upsert({
                                     operator_name: req.new_data.operator_name,
                                     logo_url: logo || null,
                                     description: desc || null,
@@ -3672,7 +3672,7 @@ app.admin.fetchManagerData('denied');
                             const rawInputListAdmin = borrowedPhotosStr ? borrowedPhotosStr.split(',').map(s => s.trim()).filter(Boolean) : [];
                             const enteredPlatesAdmin = rawInputListAdmin.filter(s => !/^\d+$/.test(s));
                             if (enteredPlatesAdmin.length > 0) {
-                                const { data: existVeh, error: existErr } = await window.sb.from('vehicles').select('license_plate').in('license_plate', enteredPlatesAdmin);
+                                const { data: existVeh, error: existErr } = await app.api.from('vehicles').select('license_plate').in('license_plate', enteredPlatesAdmin);
                                 if (existErr) throw existErr;
                                 const existingP = existVeh.map(v => v.license_plate.toUpperCase());
                                 const invalidP = enteredPlatesAdmin.filter(p => !existingP.includes(p.toUpperCase()));
@@ -3691,10 +3691,10 @@ app.admin.fetchManagerData('denied');
                             }
                             
                             if (!desc && !shortPath && !isInactive && !metadataObj) {
-                                const { error: delErr } = await window.sb.from('route_info').delete().eq('route_name', req.new_data.route_name);
+                                const { error: delErr } = await app.api.from('route_info').delete().eq('route_name', req.new_data.route_name);
                                 if (delErr) throw delErr;
                             } else {
-                                const { error: upsertErr } = await window.sb.from('route_info').upsert({
+                                const { error: upsertErr } = await app.api.from('route_info').upsert({
                                     route_name: req.new_data.route_name,
                                     short_path: shortPath || null,
                                     description: desc || null,
@@ -3710,7 +3710,7 @@ app.admin.fetchManagerData('denied');
                             const enteredPlates = rawInputList.filter(s => !/^\d+$/.test(s));
                             const newBorrowedIds = enteredIdsStr.map(Number);
                             
-                            const { data: curBorrowed } = await window.sb.from('photos').select('id, license_plate').eq('borrowed_route', req.new_data.route_name);
+                            const { data: curBorrowed } = await app.api.from('photos').select('id, license_plate').eq('borrowed_route', req.new_data.route_name);
                             const curIds = curBorrowed ? curBorrowed.map(p => p.id) : [];
                             
                             const addedIdsRaw = newBorrowedIds.filter(id => !curIds.includes(id));
@@ -3720,7 +3720,7 @@ app.admin.fetchManagerData('denied');
                             const targetProvince = req.new_data.route_name.split(' - ')[1] || '';
                             
                             if (enteredPlates.length > 0) {
-                                const { data: retroPhotos } = await window.sb.from('photos').select('id, route_no').in('license_plate', enteredPlates).eq('route_no', expectedRouteNo);
+                                const { data: retroPhotos } = await app.api.from('photos').select('id, route_no').in('license_plate', enteredPlates).eq('route_no', expectedRouteNo);
                                 if (retroPhotos && retroPhotos.length > 0) {
                                     retroPhotos.forEach(p => {
                                         if (!curIds.includes(p.id) && !addedIdsRaw.includes(p.id)) {
@@ -3731,11 +3731,11 @@ app.admin.fetchManagerData('denied');
                             }
                             
                             if (addedIdsRaw.length > 0) {
-                                const { data: validPhotos } = await window.sb.from('photos').select('id, route_no').in('id', addedIdsRaw);
+                                const { data: validPhotos } = await app.api.from('photos').select('id, route_no').in('id', addedIdsRaw);
                                 const trulyAddedIds = (validPhotos || []).filter(p => p.route_no === expectedRouteNo).map(p => p.id);
                                 
                                 if (trulyAddedIds.length > 0) {
-                                    await window.sb.from('photos').update({ borrowed_route: req.new_data.route_name }).in('id', trulyAddedIds);
+                                    await app.api.from('photos').update({ borrowed_route: req.new_data.route_name }).in('id', trulyAddedIds);
                                 }
                             }
                             
@@ -3760,7 +3760,7 @@ app.admin.fetchManagerData('denied');
                                         });
                                         if (pData) defProv = pData.ten;
                                     }
-                                    await window.sb.from('photos').update({ borrowed_route: null }).eq('id', p.id);
+                                    await app.api.from('photos').update({ borrowed_route: null }).eq('id', p.id);
                                 }
                             }
                         }
@@ -3769,17 +3769,17 @@ app.admin.fetchManagerData('denied');
                             const desc = document.getElementById(`req-mdl-desc-${id}`).value.trim();
                             const brandName = req.new_data.model_name.split(' ')[0];
                             if (!logo && !desc) {
-                                const { error: delErr } = await window.sb.from('model_info').delete().eq('model_name', req.new_data.model_name);
+                                const { error: delErr } = await app.api.from('model_info').delete().eq('model_name', req.new_data.model_name);
                                 if (delErr) throw delErr;
                             } else {
-                                const { error: upsertErr } = await window.sb.from('model_info').upsert({
+                                const { error: upsertErr } = await app.api.from('model_info').upsert({
                                     model_name: req.new_data.model_name,
                                     logo_url: logo || null,
                                     description: desc || null
                                 });
                                 if (upsertErr) throw upsertErr;
                             }
-                            await window.sb.from('model_info')
+                            await app.api.from('model_info')
                                 .update({ logo_url: logo || null })
                                 .ilike('model_name', `${brandName}%`);
                         }
@@ -3823,33 +3823,33 @@ app.admin.fetchManagerData('denied');
                             if (hasError) {
                                 return app.ui.showAlert("Có lỗi ở mốc thời gian lịch sử! Vui lòng kiểm tra và nhập đúng định dạng DD/MM/YYYY.");
                             }
-                            const { data: unmergeCandidates } = await window.sb.from('vehicles').select('license_plate, note').like('note', `%[MERGED_INTO:${currentPlate}]%`);
+                            const { data: unmergeCandidates } = await app.api.from('vehicles').select('license_plate, note').like('note', `%[MERGED_INTO:${currentPlate}]%`);
                             if (unmergeCandidates) {
                                 for (const v of unmergeCandidates) {
                                     if (!newHistoryPlates.includes(v.license_plate)) {
                                         const newNote = (v.note || '').replace(`[MERGED_INTO:${currentPlate}]`, '').trim();
-                                        await window.sb.from('vehicles').update({ note: newNote }).eq('license_plate', v.license_plate);
+                                        await app.api.from('vehicles').update({ note: newNote }).eq('license_plate', v.license_plate);
                                     }
                                 }
                             }
                             if (newHistoryPlates.length > 0) {
-                                const { data: existingOldVehicles } = await window.sb.from('vehicles').select('license_plate, note').in('license_plate', newHistoryPlates);
+                                const { data: existingOldVehicles } = await app.api.from('vehicles').select('license_plate, note').in('license_plate', newHistoryPlates);
                                 if (existingOldVehicles && existingOldVehicles.length > 0) {
                                     for (const v of existingOldVehicles) {
                                         const noteStr = v.note || '';
                                         if (!noteStr.includes(`[MERGED_INTO:${currentPlate}]`)) {
                                             const newNote = (noteStr + ` [MERGED_INTO:${currentPlate}]`).trim();
-                                            await window.sb.from('vehicles').update({ note: newNote }).eq('license_plate', v.license_plate);
+                                            await app.api.from('vehicles').update({ note: newNote }).eq('license_plate', v.license_plate);
                                         }
                                     }
                                 }
                             }
-                            await window.sb.from('vehicle_history').delete().eq('license_plate', currentPlate);
+                            await app.api.from('vehicle_history').delete().eq('license_plate', currentPlate);
                             if (newItems.length > 0) {
-                                await window.sb.from('vehicle_history').insert(newItems);
+                                await app.api.from('vehicle_history').insert(newItems);
                             }
                         }
-                        await window.sb.from('edit_requests').update({ status: 'approved' }).eq('id', id);
+                        await app.api.from('edit_requests').update({ status: 'approved' }).eq('id', id);
                         app.admin.logAction('approve_edit_req', id, { req_type: reqType, plate: req.license_plate });
                         if (document.activeElement) document.activeElement.blur();
                         app.admin.loadTab('requests', false, true);
@@ -3871,7 +3871,7 @@ app.admin.fetchManagerData('denied');
                     const originalText = btn.innerText;
                     btn.innerText = "Đang xóa..."; btn.disabled = true;
                     try {
-                        const sessionRes = await window.sb.auth.getSession();
+                        const sessionRes = await app.api.auth.getSession();
                         const token = sessionRes.data.session?.access_token;
                         const res = await fetch('/api/admin/action', {
                             method: 'POST',
@@ -3914,11 +3914,11 @@ app.admin.fetchManagerData('denied');
                     btn.disabled = true;
                     btn.classList.add('btn-loading');
                     try {
-                        const { data: photo } = await window.sb.from('photos').select('license_plate, url').eq('id', photoId).single();
+                        const { data: photo } = await app.api.from('photos').select('license_plate, url').eq('id', photoId).single();
                         const plate = photo ? photo.license_plate : 'đã chọn';
                         const imgUrl = photo ? photo.url : null;
                         if (imgUrl || photoId) {
-                            const { data: { session } } = await window.sb.auth.getSession();
+                            const { data: { session } } = await app.api.auth.getSession();
                             await fetch('/api/delete-image', {
                                 method: 'POST',
                                 headers: {
@@ -3928,10 +3928,10 @@ app.admin.fetchManagerData('denied');
                                 body: JSON.stringify({ imageUrl: imgUrl, photoId: photoId })
                             });
                         }
-                        const { error: delError } = await window.sb.from('photos').delete().eq('id', photoId);
+                        const { error: delError } = await app.api.from('photos').delete().eq('id', photoId);
                         if (delError) throw delError;
                         await app.vehicle.cleanupVehicle(plate);
-                        await window.sb.from('edit_requests').update({ status: 'approved' }).eq('id', reqId);
+                        await app.api.from('edit_requests').update({ status: 'approved' }).eq('id', reqId);
                         app.toast.show('success', 'Thành công', 'Đã duyệt yêu cầu và xóa ảnh vĩnh viễn thành công!');
                         app.admin.logAction('approve_delete_req', photoId, { plate: plate });
                         if (document.activeElement) document.activeElement.blur();
@@ -3950,8 +3950,8 @@ app.admin.fetchManagerData('denied');
                     app.ui.showPrompt("Nhập lý do từ chối yêu cầu này (Tùy chọn):", "", async (reason) => {
                         btn.innerText = "Đang xử lý..."; btn.disabled = true; btn.classList.add('btn-loading');
                         try {
-                            const { data: req } = await window.sb.from('edit_requests').select('requester_id, license_plate, new_data').eq('id', reqId).single();
-                            await window.sb.from('edit_requests').update({ status: 'denied' }).eq('id', reqId);
+                            const { data: req } = await app.api.from('edit_requests').select('requester_id, license_plate, new_data').eq('id', reqId).single();
+                            await app.api.from('edit_requests').update({ status: 'denied' }).eq('id', reqId);
                             let actionName = req.new_data.request_type === 'delete_photo' ? 'xóa ảnh' : 'chỉnh sửa';
                             let reasonMsg = reason ? ` Lý do: ${reason}` : '';
                             if (document.activeElement) document.activeElement.blur();
@@ -3979,7 +3979,7 @@ app.admin.fetchManagerData('denied');
                         content.classList.add('opacity-100', 'scale-100');
                     }, 10);
                     try {
-                        const { data: photos, error } = await window.sb.from('photos')
+                        const { data: photos, error } = await app.api.from('photos')
                             .select('route_no, license_plate, vehicles(model)')
                             .eq('uploader_id', app.currentProfileId || app.user.id)
                             .eq('status', 'approved');

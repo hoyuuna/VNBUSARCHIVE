@@ -14,7 +14,7 @@ Object.assign(window.app, {
         }
             let session = null;
             try {
-                const { data } = await window.sb.auth.getSession();
+                const { data } = await app.api.auth.getSession();
                 session = data.session;
                 if (session && session.access_token) {
                     fetch('/api/system', {
@@ -51,7 +51,7 @@ Object.assign(window.app, {
 
                 await app.setUser(session ? session.user : null);
                 if (app.customToasts && app.customToasts.show) app.customToasts.show();
-                window.sb.auth.onAuthStateChange(async (event, session) => {
+                app.api.auth.onAuthStateChange(async (event, session) => {
                         if (event === 'PASSWORD_RECOVERY') {
     if (window.location.hash.includes('type=recovery')) {
         app.auth.mode = 'recovery';
@@ -357,9 +357,9 @@ Object.assign(window.app, {
                 app.utils.fetchTopUploaders();
                 app.initRealtimeChannel = () => {
                     if (app.realtimeChannel) {
-                    window.sb.removeChannel(app.realtimeChannel);
+                    app.api.removeChannel(app.realtimeChannel);
                 }
-                let channel = window.sb.channel('global-changes')
+                let channel = app.api.channel('global-changes')
                     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'photos', filter: 'status=eq.approved' }, payload => {
                         if (app.currentViewMode === 'home') {
                             const now = Date.now();
@@ -443,7 +443,7 @@ Object.assign(window.app, {
                     channel = channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'photos', filter: 'status=eq.pending' }, async payload => {
                         if (app.adminTab === 'photos' && (app.role === 'admin' || app.role === 'manager') && payload.new && payload.new.id) {
                             try {
-                                const { data: newPhoto } = await window.sb.from('photos').select('*, profiles(username, role), vehicles(model)').eq('id', payload.new.id).maybeSingle();
+                                const { data: newPhoto } = await app.api.from('photos').select('*, profiles(username, role), vehicles(model)').eq('id', payload.new.id).maybeSingle();
                                 if (newPhoto && !document.getElementById(`adm-photo-card-${newPhoto.id}`)) {
                                     await app.utils.resolveSandboxUrls([newPhoto]);
                                     const content = document.getElementById('admin-content');
@@ -458,14 +458,14 @@ Object.assign(window.app, {
                                         let modelSet = app.admin?.approvedModelSet || new Set();
                                         const plateKey = (newPhoto.license_plate || '').trim().toUpperCase();
                                         if (plateKey && !plateSet.has(plateKey)) {
-                                            const { data: vData } = await window.sb.from('vehicles').select('license_plate').eq('license_plate', plateKey).limit(1);
-                                            const { data: pData } = await window.sb.from('photos').select('license_plate').eq('status', 'approved').eq('license_plate', plateKey).limit(1);
+                                            const { data: vData } = await app.api.from('vehicles').select('license_plate').eq('license_plate', plateKey).limit(1);
+                                            const { data: pData } = await app.api.from('photos').select('license_plate').eq('status', 'approved').eq('license_plate', plateKey).limit(1);
                                             if ((vData && vData.length > 0) || (pData && pData.length > 0)) plateSet.add(plateKey);
                                         }
                                         const opKey = app.utils.cleanText(newPhoto.operator || '').trim().toLowerCase();
                                         if (opKey && opKey !== '---' && !opSet.has(opKey)) {
-                                            const { data: oData } = await window.sb.from('operator_info').select('operator_name').ilike('operator_name', opKey).limit(1);
-                                            const { data: pData } = await window.sb.from('photos').select('operator').eq('status', 'approved').ilike('operator', opKey).limit(1);
+                                            const { data: oData } = await app.api.from('operator_info').select('operator_name').ilike('operator_name', opKey).limit(1);
+                                            const { data: pData } = await app.api.from('photos').select('operator').eq('status', 'approved').ilike('operator', opKey).limit(1);
                                             if ((oData && oData.length > 0) || (pData && pData.length > 0)) opSet.add(opKey);
                                         }
                                         const routeKey = app.utils.cleanText(newPhoto.route_no || '').trim().toLowerCase();
@@ -477,15 +477,15 @@ Object.assign(window.app, {
                                                 const pad = stripped.padStart(2, '0');
                                                 variants.push(num, pad, 'tuyến ' + num, 'tuyến ' + pad);
                                             }
-                                            const { data: pData } = await window.sb.from('photos').select('route_no').eq('status', 'approved').in('route_no', variants).limit(1);
+                                            const { data: pData } = await app.api.from('photos').select('route_no').eq('status', 'approved').in('route_no', variants).limit(1);
                                             if (pData && pData.length > 0) {
                                                 variants.forEach(v => routeSet.add(v.toLowerCase()));
                                             }
                                         }
                                         const modelKey = app.utils.cleanText(newPhoto.vehicles?.model || '').trim().toLowerCase();
                                         if (modelKey && modelKey !== '---' && !modelSet.has(modelKey)) {
-                                            const { data: vData } = await window.sb.from('vehicles').select('model').ilike('model', modelKey).limit(1);
-                                            const { data: pData } = await window.sb.from('photos').select('vehicles!inner(model)').eq('status', 'approved').ilike('vehicles.model', modelKey).limit(1);
+                                            const { data: vData } = await app.api.from('vehicles').select('model').ilike('model', modelKey).limit(1);
+                                            const { data: pData } = await app.api.from('photos').select('vehicles!inner(model)').eq('status', 'approved').ilike('vehicles.model', modelKey).limit(1);
                                             if ((vData && vData.length > 0) || (pData && pData.length > 0)) modelSet.add(modelKey);
                                         }
                                         const tempDiv = document.createElement('div');

@@ -26,7 +26,7 @@ Object.assign(window.app, {
                 let batchSize = 999;
                 let hasMore = true;
                 while (hasMore) {
-                    const { data, error: phErr } = await window.sb
+                    const { data, error: phErr } = await app.api
                         .from('photos')
                         .select('uploader_id, views')
                         .eq('status', 'approved')
@@ -41,7 +41,7 @@ Object.assign(window.app, {
                     if (!p.uploader_id) return;
                     viewCounts[p.uploader_id] = (viewCounts[p.uploader_id] || 0) + (Number(p.views) || 0);
                 });
-                const { data: allProfiles, error: prErr } = await window.sb.from('profiles').select('id, username, avatar_url, role, subroles, ban_status');
+                const { data: allProfiles, error: prErr } = await app.api.from('profiles').select('id, username, avatar_url, role, subroles, ban_status');
                 if (prErr) throw prErr;
                 const activeProfiles = (allProfiles || []).filter(p => p.ban_status !== 'banned' && p.username);
                 const totalAccounts = activeProfiles.length;

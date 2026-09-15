@@ -117,7 +117,7 @@ Object.assign(window.app, {
                             async () => {
                                 try {
                                     try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
-                                    const { data: { session } } = await window.sb.auth.getSession();
+                                    const { data: { session } } = await app.api.auth.getSession();
                                     if (session && p.url) {
                                         await fetch('/api/delete-image', {
                                             method: 'POST',
@@ -128,7 +128,7 @@ Object.assign(window.app, {
                                             body: JSON.stringify({ imageUrl: p.url, photoId: p.id })
                                         });
                                     }
-                                    await window.sb.from('photos').delete().eq('id', p.id);
+                                    await app.api.from('photos').delete().eq('id', p.id);
                                     await app.vehicle.cleanupVehicle(p.license_plate);
                                     app.toast.show('success', 'Thành công', 'Ảnh đã được xóa vĩnh viễn khỏi hệ thống.');
                                     app.views.loadHome();
@@ -139,7 +139,7 @@ Object.assign(window.app, {
                         );
                     } else {
                         try {
-                            const { count, error: checkErr } = await window.sb.from('edit_requests')
+                            const { count, error: checkErr } = await app.api.from('edit_requests')
                                 .select('*', { count: 'estimated', head: true })
                                 .eq('status', 'pending')
                                 .contains('new_data', { photo_id: p.id });
@@ -153,7 +153,7 @@ Object.assign(window.app, {
                         app.ui.showPrompt("Vui lòng nhập lý do xóa ảnh này (Bắt buộc):", "", async (reason) => {
                             try {
                                 try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
-                                const { error } = await window.sb.from('edit_requests').insert({
+                                const { error } = await app.api.from('edit_requests').insert({
                                     requester_id: app.user.id,
                                     license_plate: p.license_plate,
                                     new_data: { request_type: 'delete_photo', photo_id: p.id, reason: reason },
@@ -205,6 +205,14 @@ Object.assign(window.app, {
                     }
                     app.comments.page = 1;
                     app.comments.load(photoId);
+                if (app.comments.interval) clearInterval(app.comments.interval);
+                app.comments.interval = setInterval(() => {
+                    if (document.getElementById('comments-container')) {
+                        app.comments.load(photoId, true);
+                    } else {
+                        clearInterval(app.comments.interval);
+                    }
+                }, 15000); // 15 seconds
                 },
                 load: async (photoId, append = false) => {
                     const listEl = document.getElementById('comment-list');
@@ -217,13 +225,13 @@ Object.assign(window.app, {
                         let parents, count, error;
                         let useThreads = true;
                         if (countEl) {
-                            const { count: totalCount } = await window.sb
+                            const { count: totalCount } = await app.api
                                 .from('photo_comments')
                                 .select('*', { count: 'estimated', head: true })
                                 .eq('photo_id', photoId);
                             countEl.innerText = totalCount || 0;
                         }
-                        const result = await window.sb
+                        const result = await app.api
                             .from('photo_comments')
                             .select('*, profiles(id, username, avatar_url, role, subroles, ban_status)', { count: 'estimated' })
                             .eq('photo_id', photoId)
@@ -235,7 +243,7 @@ Object.assign(window.app, {
                         error = result.error;
                         if (error) {
                             useThreads = false;
-                            const fallback = await window.sb
+                            const fallback = await app.api
                                 .from('photo_comments')
                                 .select('*, profiles(id, username, avatar_url, role, subroles, ban_status)', { count: 'estimated' })
                                 .eq('photo_id', photoId)
@@ -254,7 +262,7 @@ Object.assign(window.app, {
                         let repliesMap = {};
                         if (useThreads && parents && parents.length > 0) {
                             const parentIds = parents.map(p => p.id);
-                            const { data: replies } = await window.sb
+                            const { data: replies } = await app.api
                                 .from('photo_comments')
                                 .select('*, profiles(id, username, avatar_url, role, subroles, ban_status)')
                                 .in('parent_id', parentIds)
@@ -369,15 +377,15 @@ Object.assign(window.app, {
                     const container = document.getElementById('dashboard-content');
                     container.innerHTML = '<p class="text-center py-20 text-gray-400"><i class="fa-solid fa-spinner fa-spin"></i> Đang tổng hợp bình luận...</p>';
                     try {
-                        const { data: myComments } = await window.sb.from('photo_comments').select('id').eq('user_id', app.user.id);
+                        const { data: myComments } = await app.api.from('photo_comments').select('id').eq('user_id', app.user.id);
                         const myCommentIds = myComments ? myComments.map(c => c.id).slice(0, 500) : []; 
-                        const p1 = window.sb
+                        const p1 = app.api
                             .from('photo_comments')
                             .select('*, photos!inner(license_plate, url, uploader_id, id), profiles(username, avatar_url, role, subroles)')
                             .eq('photos.uploader_id', app.user.id);
                         let p2 = null;
                         if (myCommentIds.length > 0) {
-                            p2 = window.sb
+                            p2 = app.api
                                 .from('photo_comments')
                                 .select('*, photos!inner(license_plate, url, uploader_id, id), profiles(username, avatar_url, role, subroles)')
                                 .in('parent_id', myCommentIds);
@@ -474,11 +482,11 @@ Object.assign(window.app, {
                         listEl.insertAdjacentHTML('afterbegin', modifiedFakeHtml);
                         input.value = '';
                     }
-                    let { error } = await window.sb.from('photo_comments').insert(insertData);
+                    let { error } = await app.api.from('photo_comments').insert(insertData);
                     if (error && error.message && error.message.includes('JWT')) {
-                        const { data: { session: newSession } } = await window.sb.auth.refreshSession();
+                        const { data: { session: newSession } } = await app.api.auth.refreshSession();
                         if (newSession) {
-                            const retry = await window.sb.from('photo_comments').insert(insertData);
+                            const retry = await app.api.from('photo_comments').insert(insertData);
                             error = retry.error;
                         } else {
                             app.ui.showAlert('Phiên đã hết hạn. Vui lòng tải lại trang và đăng nhập lại.');
@@ -486,7 +494,7 @@ Object.assign(window.app, {
                     }
                     if (error && app.comments.replyingTo) {
                         delete insertData.parent_id;
-                        const retry = await window.sb.from('photo_comments').insert(insertData);
+                        const retry = await app.api.from('photo_comments').insert(insertData);
                         error = retry.error;
                         if (!error) app.comments.cancelReply();
                     }
@@ -506,7 +514,7 @@ Object.assign(window.app, {
                 },
                 delete: async (id) => {
                     app.ui.showAlert("Bạn có chắc chắn muốn xóa bình luận này? (Các phản hồi bên trong cũng sẽ bị xóa theo)", async () => {
-                        const { error } = await window.sb.from('photo_comments').delete().or(`id.eq.${id},parent_id.eq.${id}`);
+                        const { error } = await app.api.from('photo_comments').delete().or(`id.eq.${id},parent_id.eq.${id}`);
                         if (error) return app.ui.showAlert("Lỗi: " + error.message);
                         if (app.currentViewMode === 'comment-dashboard') app.comments.openDashboard();
                         else if (app.adminTab === 'comments') app.admin.loadTab('comments');
@@ -670,7 +678,7 @@ Object.assign(window.app, {
                             const targetDate = payload.taken_at || app.currentPhoto.taken_at;
                             if (targetDate) {
                                 const datePart = targetDate.split('T')[0];
-                                const { data: existingPhotos, error: checkErr } = await window.sb
+                                const { data: existingPhotos, error: checkErr } = await app.api
                                     .from('photos')
                                     .select('id, taken_at')
                                     .eq('uploader_id', app.currentPhoto.uploader_id)
@@ -701,17 +709,17 @@ Object.assign(window.app, {
                         };
                         if (app.user.id === app.currentPhoto.uploader_id || app.role === 'admin' || app.role === 'manager') {
                             if (takenAtChanged) {
-                                await window.sb.from('photos').update({ taken_at: payload.taken_at }).eq('id', app.currentPhoto.id);
+                                await app.api.from('photos').update({ taken_at: payload.taken_at }).eq('id', app.currentPhoto.id);
                                 app.currentPhoto.taken_at = payload.taken_at;
                             }
                         }
                         if (app.role === 'admin' || app.role === 'manager') {
-                            const { error: vError } = await window.sb.from('vehicles').upsert({
+                            const { error: vError } = await app.api.from('vehicles').upsert({
                                 license_plate: payload.license_plate,
                                 model: payload.model
                             }, { onConflict: 'license_plate' });
                             if (vError) throw vError;
-                            const { error: pError } = await window.sb.from('photos').update({
+                            const { error: pError } = await app.api.from('photos').update({
                                 license_plate: payload.license_plate,
                                 location: payload.location,
                                 note: payload.note,
@@ -765,7 +773,7 @@ Object.assign(window.app, {
                             document.getElementById('info-plate').value = payload.license_plate;
                             app.edit.cancel();
                         } else {
-                            const { count, error: checkErr } = await window.sb.from('edit_requests')
+                            const { count, error: checkErr } = await app.api.from('edit_requests')
                                 .select('*', { count: 'estimated', head: true })
                                 .eq('status', 'pending')
                                 .contains('new_data', { photo_id: app.currentPhoto.id });
@@ -784,7 +792,7 @@ Object.assign(window.app, {
                                 },
                                 status: 'pending'
                             };
-                            const { data, error } = await window.sb.from('edit_requests').insert(reqData).select().single();
+                            const { data, error } = await app.api.from('edit_requests').insert(reqData).select().single();
                             if (error) throw error;
                             app.ui.showAlert("Yêu cầu chỉnh sửa đã được gửi và đang chờ Admin duyệt. Bạn có thể kiểm tra trạng thái trong trang Hồ sơ của tôi.");
                             app.edit.cancel();
@@ -798,3 +806,4 @@ Object.assign(window.app, {
                 }
             }
 });
+
