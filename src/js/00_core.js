@@ -98,6 +98,10 @@ app.api = {
         };
     },
     removeChannel() {},
+
+    rpc(name, args) {
+        return new QueryBuilder(null).rpc(name, args);
+    },
     from(table) {
         return new QueryBuilder(table);
     }
@@ -2759,7 +2763,14 @@ cleanupState: () => {
                         } else {
                             let selectStr = selectField;
                             if (table === 'vehicles') {
-                                selectStr = `${selectField}, photos!inner(status${(app.preference.current !== 'both' || currentType) ? ', type' : ''})`;
+                          
+      rpc(name, args) {
+          this.query.action = "rpc";
+          this.query.rpcName = name;
+          this.query.rpcArgs = args;
+          return this;
+      }
+      selectStr = `${selectField}, photos!inner(status${(app.preference.current !== 'both' || currentType) ? ', type' : ''})`;
                             }
                             let sbQuery = app.api.from(table).select(selectStr);
                             if (table === 'photos') {
