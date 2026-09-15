@@ -137,7 +137,7 @@
                         this.currentBg.link = `/user/${encodeURIComponent(this.currentBg.author)}`;
                     } else {
                         try {
-                            const { data, error } = await window.sb.from('profiles').select('username').eq('id', selectedBg.authorId).single();
+                            const { data, error } = await app.api.from('profiles').select('username').eq('id', selectedBg.authorId).single();
                             if (!error && data && data.username) {
                                 this.authorCache[selectedBg.authorId] = data.username;
                                 this.currentBg.author = data.username;
@@ -5887,7 +5887,7 @@ html.theme-dark .ct-icon {
                 }
                 if (!configRes.ok) throw new Error('Không thể tải cấu hình máy chủ');
                 const config = await configRes.json();
-                window.sb = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_KEY);
+                
 
                 if (sessionStorage.getItem('VNBA_SESS_AUTH') === 'active' && typeof _pInt !== 'undefined') clearInterval(_pInt);
 

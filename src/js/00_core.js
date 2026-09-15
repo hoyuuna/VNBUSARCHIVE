@@ -2761,14 +2761,7 @@ cleanupState: () => {
                             if (table === 'vehicles') {
                                 selectStr = `${selectField}, photos!inner(status${(app.preference.current !== 'both' || currentType) ? ', type' : ''})`;
                             }
-                            let sbQuery = app.api.    channel(name) {
-        return {
-            on() { return this; },
-            subscribe() { return this; }
-        };
-    },
-    removeChannel() {},
-    from(table).select(selectStr);
+                            let sbQuery = app.api.from(table).select(selectStr);
                             if (table === 'photos') {
                                 sbQuery = sbQuery.eq('status', 'approved');
                             } else if (table === 'vehicles') {
