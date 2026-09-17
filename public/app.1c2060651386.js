@@ -7,11 +7,7 @@ Object.assign(window, {
             return new VnbusQueryBuilder(table);
         },
         rpc: async (fn, params) => {
-            if (fn === "get_home_stats") return app.api.get("/api/stats/home", params);
-            if (fn === "get_operator_stats") return app.api.get("/api/stats/operator", params);
-            if (fn === "get_model_stats") return app.api.get("/api/stats/model", params);
-            if (fn === "get_unique_routes") return app.api.get("/api/reference/routes", params);
-            return { error: new Error("RPC not implemented: " + fn) };
+            return app.api.post("/api/stats/rpc/" + fn, params);
         },
         auth: {
             getSession: async () => {
@@ -166,7 +162,10 @@ class VnbusQueryBuilder {
             else if (this.table === "route_info") res = await app.api.get("/api/reference/routes", this.params);
             else if (this.table === "edit_requests") res = await app.api.get("/api/edits", this.params);
             else if (this.table === "admin_audit_logs") res = await app.api.get("/api/admin/audit-logs", this.params);
-            else if (this.table === "vehicle_history") res = await app.api.get("/api/vehicles/history", this.params);
+            else if (this.table === "vehicle_history") {
+                const plate = this.params.filter_license_plate_eq || this.params.filter__id_eq || "";
+                res = await app.api.get("/api/vehicles/" + encodeURIComponent(plate) + "/history", this.params);
+            }
             else if (this.table === "photo_comments") res = { data: [] };
             else if (this.table === "custom_toasts") res = await app.api.get("/api/reference/custom-toasts", this.params); // Mock empty
             else if (this.table === "system_settings") res = await app.api.get("/api/reference/system-settings", this.params); // Mock empty
