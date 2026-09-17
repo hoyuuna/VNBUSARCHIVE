@@ -251,13 +251,10 @@ Object.assign(window.app, {
 window._originalFetch = window.fetch;
 window.fetch = async function(resource, config) {
     let url = typeof resource === "string" ? resource : resource.url;
-    
     if (url && typeof url === "string" && url.startsWith("/api/") && !url.startsWith("/api/discord")) {
         url = app.api.baseUrl + url;
-        
         config = config || {};
         config.headers = config.headers || {};
-        
         const token = app.api.getToken();
         if (token) {
             let hasAuth = false;
@@ -274,7 +271,6 @@ window.fetch = async function(resource, config) {
                 }
             }
         }
-        
         if (typeof resource === "string") {
             resource = url;
         } else {
@@ -282,39 +278,8 @@ window.fetch = async function(resource, config) {
         }
         return window._originalFetch.call(this, resource, config);
     }
-    
     return window._originalFetch.apply(this, arguments);
 };
-        config.headers = config.headers || {};
-        
-        // Add auth token if not present
-        const token = app.api.getToken();
-        if (token) {
-            let hasAuth = false;
-            if (config.headers instanceof Headers) {
-                hasAuth = config.headers.has("Authorization");
-            } else {
-                hasAuth = Object.keys(config.headers).some(k => k.toLowerCase() === "authorization");
-            }
-            if (!hasAuth) {
-                if (config.headers instanceof Headers) {
-                    config.headers.set("Authorization", "Bearer " + token);
-                } else {
-                    config.headers["Authorization"] = "Bearer " + token;
-                }
-            }
-        }
-        
-        if (typeof resource === "string") {
-            resource = url;
-        } else {
-            resource = new Request(url, resource);
-        }
-    }
-    
-    return window._originalFetch.call(this, resource, config);
-};
-
 
 window.app = window.app || {};
 window.addEventListener('unhandledrejection', function(event) {
