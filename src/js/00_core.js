@@ -91,7 +91,10 @@ class VnbusQueryBuilder {
         this._count = null;
     }
     select(str, opts = {}) {
-        if (opts.count) this._count = opts.count;
+        if (opts.count) {
+            this._count = opts.count;
+            this.params.count = "1";
+        }
         return this;
     }
     eq(col, val) {
@@ -104,11 +107,11 @@ class VnbusQueryBuilder {
         return this;
     }
     ilike(col, val) {
-        this.params[col] = val.replace(/%/g, "");
+        this.params[col] = val;
         return this;
     }
     in(col, vals) {
-        this.params[col] = vals.join(",");
+        this.params[col] = "in.(" + vals.join(",") + ")";
         return this;
     }
     is(col, val) {
