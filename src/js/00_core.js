@@ -81,15 +81,7 @@ Object.assign(window, {
             }
         },
         removeChannel: () => {},
-        channel: (name) => {
-            return {
-                on: () => {
-                    return {
-                        subscribe: () => {}
-                    }
-                }
-            }
-        }
+        channel: (name) => { const ch = { on: () => ch, subscribe: () => { return { unsubscribe: () => {} }; } }; return ch; }
     }
 });
 window.supabase = window.sb;
@@ -195,46 +187,15 @@ class VnbusQueryBuilder {
         }
     }
 
-    async insert(data) {
-        try {
-            let path = "/api/" + this.table;
-            if (this.table === "photo_likes") path = "/api/photos/like";
-            const res = await app.api.post(path, data);
-            return { data: res, error: null };
-        } catch(error) {
-            return { data: null, error };
-        }
-    }
+    insert(data) { this.method = "insert"; this.actionData = data; return this; }
 
-    async update(data) {
-        try {
-            let path = "/api/" + this.table;
-            if (this.table === "profiles") path = "/api/auth/users/" + this.params.id; // Or /api/auth/me?
-            const res = await app.api.put(path, data);
-            return { data: res, error: null };
-        } catch(error) {
-            return { data: null, error };
-        }
-    }
+    update(data) { this.method = "update"; this.actionData = data; return this; }
 
-    async upsert(data) {
+    upsert(data) {
         return this.update(data);
     }
     
-    async delete() {
-        try {
-            let path = "/api/" + this.table;
-            if (this.table === "photo_likes") {
-                await app.api.del("/api/photos/like", { photo_id: this.params.photo_id });
-                return { error: null };
-            }
-            if (this.params.id) path += "/" + this.params.id;
-            const res = await app.api.del(path);
-            return { data: res, error: null };
-        } catch(error) {
-            return { data: null, error };
-        }
-    }
+    delete() { this.method = "delete"; return this; }
 }
 
 
@@ -291,11 +252,39 @@ window._originalFetch = window.fetch;
 window.fetch = async function(resource, config) {
     let url = typeof resource === "string" ? resource : resource.url;
     
-    // If it is an API request to our own backend
-    if (url.startsWith("/api/")) {
+    if (url && typeof url === "string" && url.startsWith("/api/") && !url.startsWith("/api/discord")) {
         url = app.api.baseUrl + url;
         
         config = config || {};
+        config.headers = config.headers || {};
+        
+        const token = app.api.getToken();
+        if (token) {
+            let hasAuth = false;
+            if (config.headers instanceof Headers) {
+                hasAuth = config.headers.has("Authorization");
+            } else {
+                hasAuth = Object.keys(config.headers).some(k => k.toLowerCase() === "authorization");
+            }
+            if (!hasAuth) {
+                if (config.headers instanceof Headers) {
+                    config.headers.set("Authorization", "Bearer " + token);
+                } else {
+                    config.headers["Authorization"] = "Bearer " + token;
+                }
+            }
+        }
+        
+        if (typeof resource === "string") {
+            resource = url;
+        } else {
+            resource = new Request(url, resource);
+        }
+        return window._originalFetch.call(this, resource, config);
+    }
+    
+    return window._originalFetch.apply(this, arguments);
+};
         config.headers = config.headers || {};
         
         // Add auth token if not present
