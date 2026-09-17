@@ -1,3 +1,332 @@
+
+Object.assign(window, {
+    sb: {
+        from: (table) => {
+            return new VnbusQueryBuilder(table);
+        },
+        rpc: async (fn, params) => {
+            if (fn === "get_home_stats") return app.api.get("/api/stats/home", params);
+            if (fn === "get_operator_stats") return app.api.get("/api/stats/operator", params);
+            if (fn === "get_model_stats") return app.api.get("/api/stats/model", params);
+            if (fn === "get_unique_routes") return app.api.get("/api/reference/routes", params);
+            return { error: new Error("RPC not implemented: " + fn) };
+        },
+        auth: {
+            getSession: async () => {
+                const token = app.api.getToken();
+                if (!token) return { data: { session: null } };
+                // Fetch current user from token
+                try {
+                    const data = await app.api.get("/api/auth/me");
+                    return { data: { session: { access_token: token, user: data.user } } };
+                } catch(e) {
+                    return { data: { session: null } };
+                }
+            },
+            signInWithPassword: async ({ email, password, options }) => {
+                try {
+                    const data = await app.api.post("/api/auth/login", { email, password, captchaToken: options?.captchaToken });
+                    const sess = { token: data.token, user: data.user };
+                    sessionStorage.setItem("VNBA_SESS_AUTH", JSON.stringify(sess));
+                    return { data: sess, error: null };
+                } catch (error) {
+                    return { data: null, error };
+                }
+            },
+            signUp: async ({ email, password, options }) => {
+                try {
+                    const data = await app.api.post("/api/auth/register", { email, password, username: options?.data?.username, captchaToken: options?.captchaToken });
+                    return { data, error: null };
+                } catch (error) {
+                    return { data: null, error };
+                }
+            },
+            signOut: async () => {
+                sessionStorage.removeItem("VNBA_SESS_AUTH");
+                return { error: null };
+            },
+            resetPasswordForEmail: async (email, options) => {
+                try {
+                    const data = await app.api.post("/api/auth/recover", { email, captchaToken: options?.captchaToken });
+                    return { data, error: null };
+                } catch (error) {
+                    return { data: null, error };
+                }
+            },
+            updateUser: async (attrs) => {
+                try {
+                    if (attrs.password && attrs.current_password) {
+                        await app.api.post("/api/auth/change-password", { current_password: attrs.current_password, new_password: attrs.password });
+                    } else if (attrs.password) {
+                        await app.api.post("/api/auth/reset-password", { password: attrs.password }); // Requires token in URL normally, wait, recovery flow?
+                    } else if (attrs.email) {
+                        await app.api.post("/api/auth/change-email", { new_email: attrs.email });
+                    }
+                    return { data: {}, error: null };
+                } catch(error) {
+                    return { data: null, error };
+                }
+            },
+            signInWithOAuth: async ({ provider, options }) => {
+                window.location.href = app.api.baseUrl + "/api/auth/" + provider;
+                return { error: null };
+            },
+            resend: async ({ email }) => {
+                try {
+                    await app.api.post("/api/auth/resend", { email });
+                    return { error: null };
+                } catch(error) {
+                    return { error };
+                }
+            }
+        },
+        removeChannel: () => {},
+        channel: (name) => {
+            return {
+                on: () => {
+                    return {
+                        subscribe: () => {}
+                    }
+                }
+            }
+        }
+    }
+});
+window.supabase = window.sb;
+
+class VnbusQueryBuilder {
+    constructor(table) {
+        this.table = table;
+        this.params = {};
+        this._isSingle = false;
+        this._isMaybeSingle = false;
+        this._count = null;
+    }
+    select(str, opts = {}) {
+        if (opts.count) this._count = opts.count;
+        return this;
+    }
+    eq(col, val) {
+        // map photos.status to status
+        if (col === "photos.status") col = "status";
+        this.params[col] = val;
+        return this;
+    }
+    neq(col, val) {
+        this.params["neq_" + col] = val;
+        return this;
+    }
+    ilike(col, val) {
+        // remove % signs
+        this.params[col] = val.replace(/%/g, "");
+        return this;
+    }
+    in(col, vals) {
+        this.params[col] = vals.join(",");
+        return this;
+    }
+    not(col, op, val) {
+        if (op === "is" && val === null) {
+            this.params["not_null_" + col] = "true";
+        }
+        return this;
+    }
+    or(str) {
+        this.params.or = str;
+        return this;
+    }
+    order(col, opts = {}) {
+        this.params.sort = col;
+        this.params.order = opts.ascending ? "asc" : "desc";
+        return this;
+    }
+    range(from, to) {
+        this.params.offset = from;
+        this.params.limit = (to - from) + 1;
+        return this;
+    }
+    limit(n) {
+        this.params.limit = n;
+        return this;
+    }
+    single() {
+        this._isSingle = true;
+        this.params.limit = 1;
+        return this;
+    }
+    maybeSingle() {
+        this._isMaybeSingle = true;
+        this.params.limit = 1;
+        return this;
+    }
+    
+    // Actions
+    async then(resolve, reject) {
+        try {
+            let res;
+            if (this.table === "photos") res = await app.api.get("/api/photos", this.params);
+            else if (this.table === "vehicles") res = await app.api.get("/api/vehicles", this.params);
+            else if (this.table === "profiles") res = await app.api.get("/api/auth/users", this.params);
+            else if (this.table === "operator_info") res = await app.api.get("/api/reference/operators", this.params);
+            else if (this.table === "model_info") res = await app.api.get("/api/reference/models", this.params);
+            else if (this.table === "route_info") res = await app.api.get("/api/reference/routes", this.params);
+            else if (this.table === "edit_requests") res = await app.api.get("/api/edits", this.params);
+            else if (this.table === "admin_audit_logs") res = await app.api.get("/api/admin/audit-logs", this.params);
+            else if (this.table === "vehicle_history") res = await app.api.get("/api/vehicles/history", this.params);
+            else if (this.table === "photo_comments") res = { data: [] };
+            else if (this.table === "custom_toasts") res = await app.api.get("/api/reference/custom-toasts", this.params); // Mock empty
+            else if (this.table === "system_settings") res = await app.api.get("/api/reference/system-settings", this.params); // Mock empty
+            else throw new Error("Table not supported: " + this.table);
+
+            let data = res.data;
+            if (this._isSingle) {
+                if (!data || data.length === 0) throw new Error("No rows found");
+                data = data[0];
+            } else if (this._isMaybeSingle) {
+                data = data && data.length > 0 ? data[0] : null;
+            }
+
+            const out = { data, error: null };
+            if (this._count) out.count = res.count || (res.data ? res.data.length : 0);
+            
+            resolve(out);
+        } catch (error) {
+            resolve({ data: null, error });
+        }
+    }
+
+    async insert(data) {
+        try {
+            let path = "/api/" + this.table;
+            if (this.table === "photo_likes") path = "/api/photos/like";
+            const res = await app.api.post(path, data);
+            return { data: res, error: null };
+        } catch(error) {
+            return { data: null, error };
+        }
+    }
+
+    async update(data) {
+        try {
+            let path = "/api/" + this.table;
+            if (this.table === "profiles") path = "/api/auth/users/" + this.params.id; // Or /api/auth/me?
+            const res = await app.api.put(path, data);
+            return { data: res, error: null };
+        } catch(error) {
+            return { data: null, error };
+        }
+    }
+
+    async upsert(data) {
+        return this.update(data);
+    }
+    
+    async delete() {
+        try {
+            let path = "/api/" + this.table;
+            if (this.table === "photo_likes") {
+                await app.api.del("/api/photos/like", { photo_id: this.params.photo_id });
+                return { error: null };
+            }
+            if (this.params.id) path += "/" + this.params.id;
+            const res = await app.api.del(path);
+            return { data: res, error: null };
+        } catch(error) {
+            return { data: null, error };
+        }
+    }
+}
+
+
+
+Object.assign(window.app, {
+    api: {
+        baseUrl: "https://api.vnbusarchive.io.vn",
+        getToken: () => {
+            try {
+                const sess = sessionStorage.getItem("VNBA_SESS_AUTH") || localStorage.getItem("VNBA_SESS_AUTH");
+                if (sess) return JSON.parse(sess).token;
+            } catch(e){}
+            return null;
+        },
+        request: async (method, path, body = null, params = null) => {
+            let url = app.api.baseUrl + path;
+            if (params) {
+                const searchParams = new URLSearchParams();
+                Object.keys(params).forEach(k => {
+                    if (params[k] !== undefined && params[k] !== null && params[k] !== "") {
+                        searchParams.append(k, params[k]);
+                    }
+                });
+                const qs = searchParams.toString();
+                if (qs) url += "?" + qs;
+            }
+            const headers = { "Content-Type": "application/json" };
+            const token = app.api.getToken();
+            if (token) headers["Authorization"] = `Bearer ${token}`;
+
+            const options = { method, headers };
+            if (body) options.body = JSON.stringify(body);
+
+            const res = await fetch(url, options);
+            let data = null;
+            try { data = await res.json(); } catch(e){}
+            
+            if (!res.ok) {
+                const err = new Error(data && data.error ? data.error : `HTTP ${res.status}`);
+                err.status = res.status;
+                err.data = data;
+                throw err;
+            }
+            return data;
+        },
+        get: (path, params) => app.api.request("GET", path, null, params),
+        post: (path, body) => app.api.request("POST", path, body),
+        put: (path, body) => app.api.request("PUT", path, body),
+        del: (path, body) => app.api.request("DELETE", path, body),
+    }
+});
+
+window._originalFetch = window.fetch;
+window.fetch = async function(resource, config) {
+    let url = typeof resource === "string" ? resource : resource.url;
+    
+    // If it is an API request to our own backend
+    if (url.startsWith("/api/")) {
+        url = app.api.baseUrl + url;
+        
+        config = config || {};
+        config.headers = config.headers || {};
+        
+        // Add auth token if not present
+        const token = app.api.getToken();
+        if (token) {
+            let hasAuth = false;
+            if (config.headers instanceof Headers) {
+                hasAuth = config.headers.has("Authorization");
+            } else {
+                hasAuth = Object.keys(config.headers).some(k => k.toLowerCase() === "authorization");
+            }
+            if (!hasAuth) {
+                if (config.headers instanceof Headers) {
+                    config.headers.set("Authorization", "Bearer " + token);
+                } else {
+                    config.headers["Authorization"] = "Bearer " + token;
+                }
+            }
+        }
+        
+        if (typeof resource === "string") {
+            resource = url;
+        } else {
+            resource = new Request(url, resource);
+        }
+    }
+    
+    return window._originalFetch.call(this, resource, config);
+};
+
+
 window.app = window.app || {};
 window.addEventListener('unhandledrejection', function(event) {
     if (event.reason && event.reason.message && event.reason.message.includes("Unexpected token '<'")) {
