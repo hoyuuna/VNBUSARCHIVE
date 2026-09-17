@@ -233,7 +233,18 @@ Object.assign(window.app, {
 
             const res = await fetch(url, options);
             let data = null;
-            try { data = await res.json(); } catch(e){}
+            try { 
+                data = await res.json(); 
+                const mapId = (obj) => {
+                    if (Array.isArray(obj)) {
+                        obj.forEach(mapId);
+                    } else if (obj && typeof obj === "object") {
+                        if (obj._id && !obj.id) obj.id = obj._id;
+                        Object.values(obj).forEach(mapId);
+                    }
+                };
+                mapId(data);
+            } catch(e){}
             
             if (!res.ok) {
                 const err = new Error(data && data.error ? data.error : `HTTP ${res.status}`);
