@@ -5,7 +5,7 @@ Object.assign(window, {
             return new VnbusQueryBuilder(table);
         },
         rpc: async (fn, params) => {
-            return app.api.post("/api/stats/rpc/" + fn, params);
+            return app.api.post("/api/rpc/" + fn, params);
         },
         auth: {
             getSession: async () => {
@@ -95,7 +95,6 @@ class VnbusQueryBuilder {
         return this;
     }
     eq(col, val) {
-        // map photos.status to status
         if (col === "photos.status") col = "status";
         this.params[col] = val;
         return this;
@@ -105,12 +104,19 @@ class VnbusQueryBuilder {
         return this;
     }
     ilike(col, val) {
-        // remove % signs
         this.params[col] = val.replace(/%/g, "");
         return this;
     }
     in(col, vals) {
         this.params[col] = vals.join(",");
+        return this;
+    }
+    is(col, val) {
+        if (val === null) {
+            this.params["is_null_" + col] = "true";
+        } else {
+            this.params[col] = val;
+        }
         return this;
     }
     not(col, op, val) {
@@ -148,26 +154,52 @@ class VnbusQueryBuilder {
         return this;
     }
     
-    // Actions
     async then(resolve, reject) {
+        if (typeof resolve !== 'function') return;
         try {
             let res;
-            if (this.table === "photos") res = await app.api.get("/api/photos", this.params);
-            else if (this.table === "vehicles") res = await app.api.get("/api/vehicles", this.params);
-            else if (this.table === "profiles") res = await app.api.get("/api/auth/users", this.params);
-            else if (this.table === "operator_info") res = await app.api.get("/api/reference/operators", this.params);
-            else if (this.table === "model_info") res = await app.api.get("/api/reference/models", this.params);
-            else if (this.table === "route_info") res = await app.api.get("/api/reference/routes", this.params);
-            else if (this.table === "edit_requests") res = await app.api.get("/api/edits", this.params);
-            else if (this.table === "admin_audit_logs") res = await app.api.get("/api/admin/audit-logs", this.params);
-            else if (this.table === "vehicle_history") {
-                const plate = this.params.license_plate || this.params.plate || this.params._id || "";
-                res = await app.api.get("/api/vehicles/" + encodeURIComponent(plate) + "/history", this.params);
+            if (this.method === "insert") {
+                if (this.table === "photo_comments") {
+                    res = await app.api.post("/api/comments", this.actionData);
+                } else {
+                    res = await app.api.post("/api/" + this.table, this.actionData);
+                }
+                // Wrap in data array for consistency with supabase insert
+                if (res && res.id) res = { data: [res] };
+                else if (res && res.message) res = { data: [this.actionData] };
+            } else if (this.method === "delete") {
+                if (this.table === "photo_comments") {
+                    let id = this.params.id || this.params.eq_id || this.params._id;
+                    res = await app.api.del("/api/comments/" + id);
+                } else {
+                    res = await app.api.del("/api/" + this.table, this.params);
+                }
+                res = { data: [] };
+            } else if (this.method === "update") {
+                res = await app.api.put("/api/" + this.table, { ...this.params, ...this.actionData });
+                res = { data: [] };
+            } else {
+                if (this.table === "photos") res = await app.api.get("/api/photos", this.params);
+                else if (this.table === "vehicles") res = await app.api.get("/api/vehicles", this.params);
+                else if (this.table === "profiles") res = await app.api.get("/api/auth/users", this.params);
+                else if (this.table === "operator_info") res = await app.api.get("/api/reference/operators", this.params);
+                else if (this.table === "model_info") res = await app.api.get("/api/reference/models", this.params);
+                else if (this.table === "route_info") res = await app.api.get("/api/reference/routes", this.params);
+                else if (this.table === "edit_requests") res = await app.api.get("/api/edits", this.params);
+                else if (this.table === "admin_audit_logs") res = await app.api.get("/api/admin/audit-logs", this.params);
+                else if (this.table === "vehicle_history") {
+                    const plate = this.params.license_plate || this.params.plate || this.params._id || "";
+                    res = await app.api.get("/api/vehicles/" + encodeURIComponent(plate) + "/history", this.params);
+                }
+                else if (this.table === "photo_comments") {
+                    let pid = this.params.photo_id;
+                    if (pid) res = await app.api.get("/api/comments/" + encodeURIComponent(pid), this.params);
+                    else res = { data: [] };
+                }
+                else if (this.table === "custom_toasts") res = await app.api.get("/api/reference/custom-toasts", this.params);
+                else if (this.table === "system_settings") res = await app.api.get("/api/reference/system-settings", this.params);
+                else throw new Error("Table not supported: " + this.table);
             }
-            else if (this.table === "photo_comments") res = { data: [] };
-            else if (this.table === "custom_toasts") res = await app.api.get("/api/reference/custom-toasts", this.params); // Mock empty
-            else if (this.table === "system_settings") res = await app.api.get("/api/reference/system-settings", this.params); // Mock empty
-            else throw new Error("Table not supported: " + this.table);
 
             let data = res.data;
             if (this._isSingle) {
@@ -178,7 +210,7 @@ class VnbusQueryBuilder {
             }
 
             const out = { data, error: null };
-            if (this._count) out.count = res.count || (res.data ? res.data.length : 0);
+            if (this._count && !this.method) out.count = res.count || (res.data ? res.data.length : 0);
             
             resolve(out);
         } catch (error) {
@@ -187,13 +219,8 @@ class VnbusQueryBuilder {
     }
 
     insert(data) { this.method = "insert"; this.actionData = data; return this; }
-
     update(data) { this.method = "update"; this.actionData = data; return this; }
-
-    upsert(data) {
-        return this.update(data);
-    }
-    
+    upsert(data) { return this.update(data); }
     delete() { this.method = "delete"; return this; }
 }
 
@@ -3100,6 +3127,16 @@ cleanupState: () => {
                 if (app.utils && app.utils.updateCanonical) app.utils.updateCanonical();
                 const path = window.location.pathname;
                 const searchParams = new URLSearchParams(window.location.search);
+                const queryToken = searchParams.get('token');
+                if (queryToken) {
+                    sessionStorage.setItem('VNBA_SESS_AUTH', JSON.stringify({ token: queryToken }));
+                    searchParams.delete('token');
+                    let newUrl = window.location.pathname;
+                    if (searchParams.toString()) newUrl += '?' + searchParams.toString();
+                    window.history.replaceState(null, '', newUrl);
+                    window.location.reload();
+                    return;
+                }
                 app.currentPathForScroll = path + window.location.search;
                 if (path === '/login' && searchParams.get('qr')) {
                     app.views.switch('home', false);
