@@ -1942,7 +1942,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1789641526714" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1789641683793" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -5860,10 +5860,7 @@ html.theme-dark .ct-icon {
                 const headers = { 'Content-Type': 'application/json' };
                 if (token) headers['Authorization'] = `Bearer ${token}`;
 
-                const [configRes, banRes] = await Promise.all([
-                    fetch('/api/system'),
-                    fetch('/api/system', { method: 'POST', headers: headers, body: JSON.stringify({ action: 'core', token: token || null }) })
-                ]);
+                const banRes = await fetch("/api/system", { method: "POST", headers: headers, body: JSON.stringify({ action: "core", token: token || null }) });
 
                 if (banRes.status === 403) {
                     const data = await banRes.json().catch(() => ({}));
@@ -5886,9 +5883,7 @@ html.theme-dark .ct-icon {
                         return; // Ngăn khởi tạo ứng dụng
                     }
                 }
-                if (!configRes.ok) throw new Error('Không thể tải cấu hình máy chủ');
-                const config = await configRes.json();
-                window.sb = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_KEY);
+                // Suppressed Supabase config
 
                 if (sessionStorage.getItem('VNBA_SESS_AUTH') === 'active' && typeof _pInt !== 'undefined') clearInterval(_pInt);
 
