@@ -2951,10 +2951,7 @@ cleanupState: () => {
                                     sbQuery = sbQuery.eq('photos.type', currentType);
                                 }
                             }
-                            const lookaheadRegex = searchWords.map(w => `(?=.*${w})`).join('');
-                            if (lookaheadRegex) {
-                                sbQuery = sbQuery.ilike(selectField, `%${lookaheadRegex}%`);
-                            }
+                            searchWords.forEach(w => { sbQuery = sbQuery.ilike(selectField, `%${w}%`); });
                             sbQuery = app.preference.applyFilter(sbQuery, table);
                             const res = await sbQuery.limit(15).abortSignal(controller.signal);
                             data = res.data;
@@ -3624,8 +3621,7 @@ cleanupState: () => {
                         cardPromises.push((async () => {
                             try {
                                 let uQuery = window.sb.from('profiles').select('id, username, avatar_url, role, subroles, ban_status');
-                                const lookaheadRegex = searchWords.map(w => `(?=.*${w})`).join('');
-                                uQuery = uQuery.ilike('username', `%${lookaheadRegex}%`);
+                                searchWords.forEach(w => { uQuery = uQuery.ilike('username', `%${w}%`); });
                                 const { data: usersData } = await uQuery.limit(5);
                                 if (usersData && usersData.length > 0) {
                                     for (const user of usersData) {
@@ -3653,9 +3649,7 @@ cleanupState: () => {
                             try {
                                 let opInfoQuery = window.sb.from('operator_info').select('operator_name, logo_url, description');
                                 let opPhotoQuery = window.sb.from('photos').select('operator').eq('status', 'approved');
-                                const lookaheadRegex = searchWords.map(w => `(?=.*${w})`).join('');
-                                opInfoQuery = opInfoQuery.ilike('operator_name', `%${lookaheadRegex}%`); 
-                                opPhotoQuery = opPhotoQuery.ilike('operator', `%${lookaheadRegex}%`);
+                                searchWords.forEach(w => { opInfoQuery = opInfoQuery.ilike('operator_name', `%${w}%`); opPhotoQuery = opPhotoQuery.ilike('operator', `%${w}%`); });
                                 const [infoRes, photoRes] = await Promise.all([
                                     opInfoQuery.limit(10),
                                     opPhotoQuery.limit(50)
@@ -3725,9 +3719,7 @@ cleanupState: () => {
                             try {
                                 let mdlInfoQuery = window.sb.from('model_info').select('model_name, logo_url, description');
                                 let mdlVehicleQuery = window.sb.from('vehicles').select('model, photos!inner(status)').eq('photos.status', 'approved');
-                                const lookaheadRegex = searchWords.map(w => `(?=.*${w})`).join('');
-                                mdlInfoQuery = mdlInfoQuery.ilike('model_name', `%${lookaheadRegex}%`); 
-                                mdlVehicleQuery = mdlVehicleQuery.ilike('model', `%${lookaheadRegex}%`);
+                                searchWords.forEach(w => { mdlInfoQuery = mdlInfoQuery.ilike('model_name', `%${w}%`); mdlVehicleQuery = mdlVehicleQuery.ilike('model', `%${w}%`); });
                                 const [infoRes, vehicleRes] = await Promise.all([
                                     mdlInfoQuery.limit(10),
                                     mdlVehicleQuery.limit(50)
@@ -3796,8 +3788,7 @@ cleanupState: () => {
                         cardPromises.push((async () => {
                             try {
                                 let rQuery = window.sb.from('photos').select('route_no, type, license_plate, borrowed_route').eq('status', 'approved');
-                                const lookaheadRegex = searchWords.map(w => `(?=.*${w})`).join('');
-                                rQuery = rQuery.ilike('route_no', `%${lookaheadRegex}%`);
+                                searchWords.forEach(w => { rQuery = rQuery.ilike('route_no', `%${w}%`); });
                                 const { data: rData } = await rQuery.limit(50);
                                 if (rData) {
                                     let uniqueRoutesMap = new Map();
@@ -3876,9 +3867,10 @@ cleanupState: () => {
                                 } else if (filterType === 'model') {
                                     searchWords.forEach(w => { vQuery = vQuery.ilike('model', `%${w}%`); });
                                 } else {
-                                    const lookaheadRegex = searchWords.map(w => `(?=.*${w})`).join('');
-                                    const plateRegex = searchWords.map(w => `(?=.*${app.utils.normalizePlateQuery(w)})`).join('');
-                                    vQuery = vQuery.or(`license_plate.ilike."%${plateRegex}%",model.ilike."%${lookaheadRegex}%",note.ilike."%${lookaheadRegex}%"`);
+                                    const plateAnd = searchWords.map(w => `license_plate.ilike."%${app.utils.normalizePlateQuery(w)}%"`).join(',');
+const modelAnd = searchWords.map(w => `model.ilike."%${w}%"`).join(',');
+const noteAnd = searchWords.map(w => `note.ilike."%${w}%"`).join(',');
+vQuery = vQuery.or(`and(${plateAnd}),and(${modelAnd}),and(${noteAnd})`);
                                 }
                                 vQuery = app.preference.applyFilter(vQuery, 'vehicles');
                                 const { data: vData } = await vQuery;
@@ -3945,10 +3937,10 @@ cleanupState: () => {
                     } else {
                         let mQ = window.sb.from('vehicles').select('license_plate, photos!inner(status)').eq('photos.status', 'approved');
                         let uQ = window.sb.from('profiles').select('id, ban_status');
-                        const lookaheadRegex = searchWords.map(w => `(?=.*${w})`).join('');
-                        const plateRegex = searchWords.map(w => `(?=.*${app.utils.normalizePlateQuery(w)})`).join('');
-                        mQ = mQ.or(`model.ilike."%${lookaheadRegex}%",note.ilike."%${lookaheadRegex}%"`);
-                        uQ = uQ.ilike('username', `%${lookaheadRegex}%`);
+                        const modelAnd = searchWords.map(w => `model.ilike."%${w}%"`).join(',');
+const noteAnd = searchWords.map(w => `note.ilike."%${w}%"`).join(',');
+mQ = mQ.or(`and(${modelAnd}),and(${noteAnd})`);
+searchWords.forEach(w => { uQ = uQ.ilike('username', `%${w}%`); });
                         
                         const [mRes, uRes] = await Promise.all([mQ.limit(150), uQ.limit(10)]);
                         if (app.searchToken !== currentSearchToken) return;
@@ -3957,12 +3949,14 @@ cleanupState: () => {
                         const uploaderIds = validUploaders.map(u => u.id);
                         
                         let orConditions = [];
-                        if (plateRegex) orConditions.push(`license_plate.ilike."%${plateRegex}%"`);
-                        orConditions.push(`operator.ilike."%${lookaheadRegex}%"`);
-                        orConditions.push(`route_no.ilike."%${lookaheadRegex}%"`);
-                        orConditions.push(`camera_model.ilike."%${lookaheadRegex}%"`);
-                        orConditions.push(`location.ilike."%${lookaheadRegex}%"`);
-                        orConditions.push(`note.ilike."%${lookaheadRegex}%"`);
+if (searchWords.length > 0) {
+  orConditions.push(`and(${searchWords.map(w => `license_plate.ilike."%${app.utils.normalizePlateQuery(w)}%"`).join(',')})`);
+  orConditions.push(`and(${searchWords.map(w => `operator.ilike."%${w}%"`).join(',')})`);
+  orConditions.push(`and(${searchWords.map(w => `route_no.ilike."%${w}%"`).join(',')})`);
+  orConditions.push(`and(${searchWords.map(w => `camera_model.ilike."%${w}%"`).join(',')})`);
+  orConditions.push(`and(${searchWords.map(w => `location.ilike."%${w}%"`).join(',')})`);
+  orConditions.push(`and(${searchWords.map(w => `note.ilike."%${w}%"`).join(',')})`);
+}
                         if (plates.length > 0) orConditions.push(`license_plate.in.(${plates.join(',')})`);
                         if (uploaderIds.length > 0) orConditions.push(`uploader_id.in.(${uploaderIds.join(',')})`);
                         photoQuery = photoQuery.or(orConditions.join(','));
