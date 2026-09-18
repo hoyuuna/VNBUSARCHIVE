@@ -11773,10 +11773,28 @@ Object.assign(window.app, {
                 routePhotos: [],
                 ROUTE_PAGE_SIZE: 12,
                 loadRoutePage: async (provinceName, routeNo, forceRefresh = false) => {
-                    const decodedProvince = decodeURIComponent(provinceName || '');
+                    let decodedProvince = decodeURIComponent(provinceName || '');
                     const decodedRoute = decodeURIComponent(routeNo);
                     
-if (!decodedProvince || decodedProvince.trim() === '') {
+                    if (!decodedProvince || decodedProvince.trim() === '') {
+                        try {
+                            const { data: rtData } = await window.sb.from('photos').select('borrowed_route, license_plate').eq('route_no', decodedRoute).eq('status', 'approved').limit(1).maybeSingle();
+                            if (rtData) {
+                                let prov = '';
+                                if (rtData.borrowed_route) {
+                                    const parts = rtData.borrowed_route.split(' - ');
+                                    if (parts.length > 1) prov = parts.slice(1).join(' - ').trim();
+                                }
+                                if (!prov && rtData.license_plate) {
+                                    prov = app.utils.getProvinceFromPlate ? app.utils.getProvinceFromPlate(rtData.license_plate) : '';
+                                    if (prov === 'Không xác định' || prov === 'Biển tạm' || prov.includes('quân đội') || prov === 'Buýt sân bay') prov = '';
+                                }
+                                if (prov) {
+                                    app.utils.navigate(`/route/${encodeURIComponent(prov)}/${encodeURIComponent(decodedRoute)}`);
+                                    return;
+                                }
+                            }
+                        } catch (e) { }
                         app.toast.show('error', 'Lỗi truy cập', 'Tuyến này không tồn tại thông tin tỉnh thành. Nó có thể là xe khách hoặc dữ liệu không hợp lệ nên không được hỗ trợ hồ sơ.');
                         app.utils.navigate('/');
                         return;
