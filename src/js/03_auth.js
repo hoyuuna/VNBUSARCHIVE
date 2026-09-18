@@ -175,11 +175,12 @@ Object.assign(window.app, {
 } else if (app.auth.mode === 'recovery') {
     const newPass = document.getElementById('auth-new-password').value;
     if (!newPass || newPass.length < 6) throw new Error("Mật khẩu phải từ 6 ký tự trở lên.");
-    const { error } = await window.sb.auth.updateUser({ password: newPass });
+    const { error } = await window.sb.auth.updateUser({ password: newPass, token: app.auth.recoveryToken });
     if (error) throw error;
-    app.ui.showAlert("Đổi mật khẩu thành công! Bạn đã tự động đăng nhập vào hệ thống.", () => {
+    app.ui.showAlert("Đổi mật khẩu thành công! Bạn có thể đăng nhập bằng mật khẩu mới.", () => {
         window.location.hash = '';
-        app.utils.navigate('/');
+        app.auth.mode = 'login';
+        app.utils.navigate('/auth');
     });
 }
                     } catch (err) {

@@ -53,8 +53,8 @@ Object.assign(window, {
                 try {
                     if (attrs.password && attrs.current_password) {
                         await app.api.post("/api/auth/change-password", { current_password: attrs.current_password, new_password: attrs.password });
-                    } else if (attrs.password) {
-                        await app.api.post("/api/auth/reset-password", { password: attrs.password }); // Requires token in URL normally, wait, recovery flow?
+                    } else if (attrs.password && attrs.token) {
+                        await app.api.post("/api/auth/reset-password", { new_password: attrs.password, token: attrs.token });
                     } else if (attrs.email) {
                         await app.api.post("/api/auth/change-email", { new_email: attrs.email });
                     }
@@ -3179,6 +3179,14 @@ cleanupState: () => {
                     const isRecovery = window.location.hash.includes('type=recovery') || app.auth.mode === 'recovery';
                     if (app.user && !isRecovery) app.utils.navigate('/');
                     else app.views.switch('auth', false);
+                } else if (path === '/reset-password') {
+                    document.title = 'Khôi phục Mật khẩu | VNBUSARCHIVE';
+                    const token = searchParams.get('token');
+                    if (token) {
+                        app.auth.mode = 'recovery';
+                        app.auth.recoveryToken = token;
+                    }
+                    app.views.switch('auth', false);
                 } else if (path === '/setting' || path === '/settings') {
                     app.views.loadAccount();
                     setTimeout(() => {
@@ -3868,12 +3876,9 @@ cleanupState: () => {
                                 } else if (filterType === 'model') {
                                     searchWords.forEach(w => { vQuery = vQuery.ilike('model', `%${w}%`); });
                                 } else {
-                                    searchWords.forEach(w => {
-                                        const safeW = w.replace(/"/g, '');
-                                        const safeWPlate = app.utils.normalizePlateQuery(safeW);
-                                        if (safeWPlate) vQuery = vQuery.or(`license_plate.ilike."%${safeWPlate}%",model.ilike."%${safeW}%",note.ilike."%${safeW}%"`);
-                                        else vQuery = vQuery.or(`model.ilike."%${safeW}%",note.ilike."%${safeW}%"`);
-                                    });
+                                    const lookaheadRegex = searchWords.map(w => `(?=.*${w})`).join('');
+                                    const plateRegex = searchWords.map(w => `(?=.*${app.utils.normalizePlateQuery(w)})`).join('');
+                                    vQuery = vQuery.or(`license_plate.ilike."%${plateRegex}%",model.ilike."%${lookaheadRegex}%",note.ilike."%${lookaheadRegex}%"`);
                                 }
                                 vQuery = app.preference.applyFilter(vQuery, 'vehicles');
                                 const { data: vData } = await vQuery;
@@ -3940,30 +3945,27 @@ cleanupState: () => {
                     } else {
                         let mQ = window.sb.from('vehicles').select('license_plate, photos!inner(status)').eq('photos.status', 'approved');
                         let uQ = window.sb.from('profiles').select('id, ban_status');
-                        searchWords.forEach(w => {
-                            const safeW = w.replace(/"/g, '');
-                            mQ = mQ.or(`model.ilike."%${safeW}%",note.ilike."%${safeW}%"`);
-                            uQ = uQ.ilike('username', `%${w}%`);
-                        });
+                        const lookaheadRegex = searchWords.map(w => `(?=.*${w})`).join('');
+                        const plateRegex = searchWords.map(w => `(?=.*${app.utils.normalizePlateQuery(w)})`).join('');
+                        mQ = mQ.or(`model.ilike."%${lookaheadRegex}%",note.ilike."%${lookaheadRegex}%"`);
+                        uQ = uQ.ilike('username', `%${lookaheadRegex}%`);
+                        
                         const [mRes, uRes] = await Promise.all([mQ.limit(150), uQ.limit(10)]);
                         if (app.searchToken !== currentSearchToken) return;
                         const plates = mRes.data ? mRes.data.map(v => v.license_plate) : [];
                         const validUploaders = (uRes.data || []).filter(u => !app.utils.formatProfileDisplay(u).isBanned);
                         const uploaderIds = validUploaders.map(u => u.id);
-                        searchWords.forEach(w => {
-                            const safeW = w.replace(/"/g, '');
-                            const safeWPlate = app.utils.normalizePlateQuery(safeW);
-                            let orConditions = [];
-                            if (safeWPlate) orConditions.push(`license_plate.ilike."%${safeWPlate}%"`);
-                            orConditions.push(`operator.ilike."%${safeW}%"`);
-                            orConditions.push(`route_no.ilike."%${safeW}%"`);
-                            orConditions.push(`camera_model.ilike."%${safeW}%"`);
-                            orConditions.push(`location.ilike."%${safeW}%"`);
-                            orConditions.push(`note.ilike."%${safeW}%"`);
-                            if (plates.length > 0) orConditions.push(`license_plate.in.(${plates.join(',')})`);
-                            if (uploaderIds.length > 0) orConditions.push(`uploader_id.in.(${uploaderIds.join(',')})`);
-                            photoQuery = photoQuery.or(orConditions.join(','));
-                        });
+                        
+                        let orConditions = [];
+                        if (plateRegex) orConditions.push(`license_plate.ilike."%${plateRegex}%"`);
+                        orConditions.push(`operator.ilike."%${lookaheadRegex}%"`);
+                        orConditions.push(`route_no.ilike."%${lookaheadRegex}%"`);
+                        orConditions.push(`camera_model.ilike."%${lookaheadRegex}%"`);
+                        orConditions.push(`location.ilike."%${lookaheadRegex}%"`);
+                        orConditions.push(`note.ilike."%${lookaheadRegex}%"`);
+                        if (plates.length > 0) orConditions.push(`license_plate.in.(${plates.join(',')})`);
+                        if (uploaderIds.length > 0) orConditions.push(`uploader_id.in.(${uploaderIds.join(',')})`);
+                        photoQuery = photoQuery.or(orConditions.join(','));
                     }
                     if (filterType === 'advanced' && app.search.advancedFilters && app.search.advancedFilters.length > 0) {
                         photoQuery = app.search.applyAdvancedFiltersToQuery(photoQuery);
