@@ -4087,11 +4087,7 @@ if (searchWords.length > 0) {
                         } else {
                             app.username = profile.username;
                             app.role = profile.role || 'user';
-                            if (app.role === 'manager') {
-                                sessionStorage.setItem('VNBA_SESS_AUTH', 'active');
-                            } else {
-                                sessionStorage.removeItem('VNBA_SESS_AUTH');
-                            }
+                            // Removed legacy VNBA_SESS_AUTH flag handling that destroyed the JWT token
                             let dbPrefs = profile.preferences;
                             if (dbPrefs && Object.keys(dbPrefs).length > 0) {
                                 app.preference.current = dbPrefs.type || 'both';
