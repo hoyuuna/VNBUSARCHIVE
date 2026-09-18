@@ -2951,9 +2951,10 @@ cleanupState: () => {
                                     sbQuery = sbQuery.eq('photos.type', currentType);
                                 }
                             }
-                            searchWords.forEach(word => {
-                                sbQuery = sbQuery.ilike(selectField, `%${word}%`);
-                            });
+                            const lookaheadRegex = searchWords.map(w => `(?=.*${w})`).join('');
+                            if (lookaheadRegex) {
+                                sbQuery = sbQuery.ilike(selectField, `%${lookaheadRegex}%`);
+                            }
                             sbQuery = app.preference.applyFilter(sbQuery, table);
                             const res = await sbQuery.limit(15).abortSignal(controller.signal);
                             data = res.data;
@@ -3139,6 +3140,35 @@ cleanupState: () => {
                     window.history.replaceState(null, '', newUrl);
                     window.location.reload();
                     return;
+                }
+                const oauthError = searchParams.get('oauth_error');
+                if (oauthError === 'not_registered' || oauthError === 'flow_failed' || oauthError === 'no_email_provided') {
+                    const newEmail = searchParams.get('email') || '';
+                    const newName = searchParams.get('name') || '';
+                    searchParams.delete('oauth_error');
+                    searchParams.delete('email');
+                    searchParams.delete('name');
+                    let newUrl = window.location.pathname;
+                    if (searchParams.toString()) newUrl += '?' + searchParams.toString();
+                    window.history.replaceState(null, '', newUrl);
+                    
+                    if (oauthError === 'not_registered') {
+                        app.auth.mode = 'register';
+                        setTimeout(() => {
+                            if (window.location.pathname !== '/auth') app.utils.navigate('/auth');
+                            setTimeout(() => {
+                                const emailInput = document.getElementById('auth-email');
+                                const nameInput = document.getElementById('auth-username');
+                                if (emailInput) emailInput.value = newEmail;
+                                if (nameInput) nameInput.value = newName;
+                                app.ui.showAlert(`<b>TÀI KHOẢN CHƯA ĐĂNG KÝ</b><br>Tài khoản mạng xã hội của bạn chưa được liên kết với bất kỳ người dùng nào trên hệ thống.<br><br>Vui lòng <b>Tạo tài khoản mới</b> sử dụng email này.`);
+                            }, 500);
+                        }, 100);
+                    } else if (oauthError === 'flow_failed') {
+                        setTimeout(() => app.ui.showAlert("Đăng nhập bằng mạng xã hội thất bại."), 300);
+                    } else if (oauthError === 'no_email_provided') {
+                        setTimeout(() => app.ui.showAlert("Không thể lấy địa chỉ email từ tài khoản mạng xã hội của bạn. Vui lòng thử cách khác."), 300);
+                    }
                 }
                 app.currentPathForScroll = path + window.location.search;
                 if (path === '/login' && searchParams.get('qr')) {
@@ -3586,7 +3616,8 @@ cleanupState: () => {
                         cardPromises.push((async () => {
                             try {
                                 let uQuery = window.sb.from('profiles').select('id, username, avatar_url, role, subroles, ban_status');
-                                searchWords.forEach(w => { uQuery = uQuery.ilike('username', `%${w}%`); });
+                                const lookaheadRegex = searchWords.map(w => `(?=.*${w})`).join('');
+                                uQuery = uQuery.ilike('username', `%${lookaheadRegex}%`);
                                 const { data: usersData } = await uQuery.limit(5);
                                 if (usersData && usersData.length > 0) {
                                     for (const user of usersData) {
@@ -3614,10 +3645,9 @@ cleanupState: () => {
                             try {
                                 let opInfoQuery = window.sb.from('operator_info').select('operator_name, logo_url, description');
                                 let opPhotoQuery = window.sb.from('photos').select('operator').eq('status', 'approved');
-                                searchWords.forEach(w => { 
-                                    opInfoQuery = opInfoQuery.ilike('operator_name', `%${w}%`); 
-                                    opPhotoQuery = opPhotoQuery.ilike('operator', `%${w}%`); 
-                                });
+                                const lookaheadRegex = searchWords.map(w => `(?=.*${w})`).join('');
+                                opInfoQuery = opInfoQuery.ilike('operator_name', `%${lookaheadRegex}%`); 
+                                opPhotoQuery = opPhotoQuery.ilike('operator', `%${lookaheadRegex}%`);
                                 const [infoRes, photoRes] = await Promise.all([
                                     opInfoQuery.limit(10),
                                     opPhotoQuery.limit(50)
@@ -3687,10 +3717,9 @@ cleanupState: () => {
                             try {
                                 let mdlInfoQuery = window.sb.from('model_info').select('model_name, logo_url, description');
                                 let mdlVehicleQuery = window.sb.from('vehicles').select('model, photos!inner(status)').eq('photos.status', 'approved');
-                                searchWords.forEach(w => { 
-                                    mdlInfoQuery = mdlInfoQuery.ilike('model_name', `%${w}%`); 
-                                    mdlVehicleQuery = mdlVehicleQuery.ilike('model', `%${w}%`); 
-                                });
+                                const lookaheadRegex = searchWords.map(w => `(?=.*${w})`).join('');
+                                mdlInfoQuery = mdlInfoQuery.ilike('model_name', `%${lookaheadRegex}%`); 
+                                mdlVehicleQuery = mdlVehicleQuery.ilike('model', `%${lookaheadRegex}%`);
                                 const [infoRes, vehicleRes] = await Promise.all([
                                     mdlInfoQuery.limit(10),
                                     mdlVehicleQuery.limit(50)
@@ -3759,7 +3788,8 @@ cleanupState: () => {
                         cardPromises.push((async () => {
                             try {
                                 let rQuery = window.sb.from('photos').select('route_no, type, license_plate, borrowed_route').eq('status', 'approved');
-                                searchWords.forEach(w => { rQuery = rQuery.ilike('route_no', `%${w}%`); });
+                                const lookaheadRegex = searchWords.map(w => `(?=.*${w})`).join('');
+                                rQuery = rQuery.ilike('route_no', `%${lookaheadRegex}%`);
                                 const { data: rData } = await rQuery.limit(50);
                                 if (rData) {
                                     let uniqueRoutesMap = new Map();

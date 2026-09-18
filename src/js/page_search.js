@@ -535,15 +535,17 @@ Object.assign(window.app, {
                                 } else if (table === 'vehicles') {
                                     sbQuery = sbQuery.eq('photos.status', 'approved');
                                 }
-                                searchWords.forEach(word => {
-                                    if (col === 'license_plate') sbQuery = sbQuery.ilike(col, `%${app.utils.normalizePlateQuery(word)}%`);
-                                    else sbQuery = sbQuery.ilike(col, `%${word}%`);
-                                });
+                                let lookaheadRegex = searchWords.map(w => {
+                                    if (col === 'license_plate') return `(?=.*${app.utils.normalizePlateQuery(w)})`;
+                                    return `(?=.*${w})`;
+                                }).join('');
+                                sbQuery = sbQuery.ilike(col, `%${lookaheadRegex}%`);
                                 sbQuery = app.preference.applyFilter(sbQuery, table);
                                 let data = [];
                                 if (table === 'photos' && col === 'operator') {
                                     let infoQuery = window.sb.from('operator_info').select('operator_name');
-                                    searchWords.forEach(word => { infoQuery = infoQuery.ilike('operator_name', `%${word}%`); });
+                                    let opLookaheadRegex = searchWords.map(w => `(?=.*${w})`).join('');
+                                    infoQuery = infoQuery.ilike('operator_name', `%${opLookaheadRegex}%`);
                                     const [infoRes, photoRes] = await Promise.all([
                                         infoQuery.limit(30).abortSignal(controller.signal),
                                         sbQuery.limit(30).abortSignal(controller.signal)
