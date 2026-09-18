@@ -4759,6 +4759,7 @@ Object.assign(window.app, {
             }
 });
 
+
 /* --- MODULE: 02_settings.js --- */
 // Extracted to 02_settings.js
 Object.assign(window.app, {
@@ -10217,6 +10218,7 @@ Object.assign(window.app, {
                 }
             }
 });
+
 
 /* --- MODULE: page_leaderboard.js --- */
 // Extracted to page_leaderboard.js
