@@ -535,17 +535,17 @@ Object.assign(window.app, {
                                 } else if (table === 'vehicles') {
                                     sbQuery = sbQuery.eq('photos.status', 'approved');
                                 }
-                                let lookaheadRegex = searchWords.map(w => {
-                                    if (col === 'license_plate') return `(?=.*${app.utils.normalizePlateQuery(w)})`;
-                                    return `(?=.*${w})`;
-                                }).join('');
-                                sbQuery = sbQuery.ilike(col, `%${lookaheadRegex}%`);
+                                let conditions = searchWords.map(w => {
+                                    let q = (col === 'license_plate') ? app.utils.normalizePlateQuery(w) : w;
+                                    return `${col}.ilike.%${q}%`;
+                                });
+                                sbQuery = sbQuery.or(`and(${conditions.join(',')})`);
                                 sbQuery = app.preference.applyFilter(sbQuery, table);
                                 let data = [];
                                 if (table === 'photos' && col === 'operator') {
                                     let infoQuery = window.sb.from('operator_info').select('operator_name');
-                                    let opLookaheadRegex = searchWords.map(w => `(?=.*${w})`).join('');
-                                    infoQuery = infoQuery.ilike('operator_name', `%${opLookaheadRegex}%`);
+                                    let opConds = searchWords.map(w => `operator_name.ilike.%${w}%`);
+                                    infoQuery = infoQuery.or(`and(${opConds.join(',')})`);
                                     const [infoRes, photoRes] = await Promise.all([
                                         infoQuery.limit(30).abortSignal(controller.signal),
                                         sbQuery.limit(30).abortSignal(controller.signal)

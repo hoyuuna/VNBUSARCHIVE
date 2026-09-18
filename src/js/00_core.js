@@ -146,6 +146,10 @@ class VnbusQueryBuilder {
         this.params.limit = n;
         return this;
     }
+    abortSignal(signal) {
+        this.signal = signal;
+        return this;
+    }
     single() {
         this._isSingle = true;
         this.params.limit = 1;
