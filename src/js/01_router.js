@@ -18,7 +18,9 @@ Object.assign(window.app, {
             if (oauthToken) {
                 // Parse JWT payload for user info
                 try {
-                    const payload = JSON.parse(atob(oauthToken.split('.')[1]));
+                    let b64 = oauthToken.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+                    while (b64.length % 4) b64 += '=';
+                    const payload = JSON.parse(atob(b64));
                     const sess = { token: oauthToken, user: { id: payload.id, email: payload.email, role: payload.role } };
                     sessionStorage.setItem("VNBA_SESS_AUTH", JSON.stringify(sess));
                     // Clean URL
