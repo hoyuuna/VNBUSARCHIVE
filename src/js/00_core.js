@@ -128,6 +128,10 @@ class VnbusQueryBuilder {
         }
         return this;
     }
+    and(str) {
+        this.params.and = str;
+        return this;
+    }
     or(str) {
         this.params.or = str;
         return this;

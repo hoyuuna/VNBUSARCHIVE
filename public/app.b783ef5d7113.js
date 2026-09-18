@@ -130,6 +130,10 @@ class VnbusQueryBuilder {
         }
         return this;
     }
+    and(str) {
+        this.params.and = str;
+        return this;
+    }
     or(str) {
         this.params.or = str;
         return this;
@@ -10088,13 +10092,13 @@ Object.assign(window.app, {
                                     let q = (col === 'license_plate') ? app.utils.normalizePlateQuery(w) : w;
                                     return `${col}.ilike.%${q}%`;
                                 });
-                                sbQuery = sbQuery.or(`and(${conditions.join(',')})`);
+                                sbQuery = sbQuery.and(`${conditions.join(',')}`);
                                 sbQuery = app.preference.applyFilter(sbQuery, table);
                                 let data = [];
                                 if (table === 'photos' && col === 'operator') {
                                     let infoQuery = window.sb.from('operator_info').select('operator_name');
                                     let opConds = searchWords.map(w => `operator_name.ilike.%${w}%`);
-                                    infoQuery = infoQuery.or(`and(${opConds.join(',')})`);
+                                    infoQuery = infoQuery.and(`${opConds.join(',')}`);
                                     const [infoRes, photoRes] = await Promise.all([
                                         infoQuery.limit(30).abortSignal(controller.signal),
                                         sbQuery.limit(30).abortSignal(controller.signal)
