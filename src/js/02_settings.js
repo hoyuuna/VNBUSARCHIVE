@@ -179,7 +179,9 @@ Object.assign(window.app, {
                             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
                             body: JSON.stringify({ action: 'status' })
                         });
-                        const data = await res.json();
+                        const resText = await res.text();
+let data = {};
+try { data = JSON.parse(resText); } catch(e) { data = { error: 'Lỗi server (Không phải JSON)' }; }
                         if (!data.linked) {
                             actionBtn.innerHTML = `<button onclick="app.settings.jumpTo('badges', 'main')" class="px-4 py-2 bg-black text-white text-xs font-bold rounded hover:bg-gray-800 transition shadow-sm border border-black whitespace-nowrap">Liên kết Discord</button>`;
                             return;
@@ -211,7 +213,9 @@ Object.assign(window.app, {
                             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
                             body: JSON.stringify({ action: 'claim', tier: 1 })
                         });
-                        const data = await res.json();
+                        const resText = await res.text();
+let data = {};
+try { data = JSON.parse(resText); } catch(e) { data = { error: 'Lỗi server (Không phải JSON)' }; }
                         if (res.ok) {
                             app.ui.showAlert(data.message || 'Xác minh Discord thành công!');
                             app.settings.loadDiscordVerifyStatus();
@@ -322,7 +326,9 @@ Object.assign(window.app, {
                             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
                             body: JSON.stringify({ action: 'claim' })
                         });
-                        const data = await res.json();
+                        const resText = await res.text();
+let data = {};
+try { data = JSON.parse(resText); } catch(e) { data = { error: 'Lỗi server (Không phải JSON)' }; }
                         if (res.ok) {
                             app.ui.showAlert(data.message || 'Nhận danh hiệu thành công!');
                             app.settings.loadWebBadges();
@@ -351,7 +357,9 @@ Object.assign(window.app, {
                             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
                             body: JSON.stringify({ action: 'status' })
                         });
-                        const data = await res.json();
+                        const resText = await res.text();
+let data = {};
+try { data = JSON.parse(resText); } catch(e) { data = { error: 'Lỗi server (Không phải JSON)' }; }
                         
                         if (loading) loading.classList.add('hidden');
                         if (claimBox) claimBox.classList.remove('hidden');

@@ -9,6 +9,16 @@ Object.assign(window, {
         },
         auth: {
             onAuthStateChange: (cb) => { return { data: { subscription: { unsubscribe: () => {} } } }; },
+            getUser: async () => {
+                const token = app.api.getToken();
+                if (!token) return { data: { user: null }, error: new Error("Not logged in") };
+                try {
+                    const data = await app.api.get("/api/auth/me");
+                    return { data: { user: data.user }, error: null };
+                } catch(e) {
+                    return { data: { user: null }, error: e };
+                }
+            },
             getSession: async () => {
                 const token = app.api.getToken();
                 console.log('VNBUS DEBUG token:', token);
@@ -208,9 +218,9 @@ class VnbusQueryBuilder {
                     res = await app.api.get("/api/vehicles/" + encodeURIComponent(plate) + "/history", this.params);
                 }
                 else if (this.table === "photo_comments") {
-                    let pid = this.params.photo_id;
+                    let pid = this.params.photo_id || this.params.eq_photo_id;
                     if (pid) res = await app.api.get("/api/comments/" + encodeURIComponent(pid), this.params);
-                    else res = { data: [] };
+                    else res = await app.api.get("/api/comments", this.params);
                 }
                 else if (this.table === "custom_toasts") res = await app.api.get("/api/reference/custom-toasts", this.params);
                 else if (this.table === "system_settings") res = await app.api.get("/api/reference/system-settings", this.params);

@@ -11,6 +11,16 @@ Object.assign(window, {
         },
         auth: {
             onAuthStateChange: (cb) => { return { data: { subscription: { unsubscribe: () => {} } } }; },
+            getUser: async () => {
+                const token = app.api.getToken();
+                if (!token) return { data: { user: null }, error: new Error("Not logged in") };
+                try {
+                    const data = await app.api.get("/api/auth/me");
+                    return { data: { user: data.user }, error: null };
+                } catch(e) {
+                    return { data: { user: null }, error: e };
+                }
+            },
             getSession: async () => {
                 const token = app.api.getToken();
                 console.log('VNBUS DEBUG token:', token);
@@ -210,9 +220,9 @@ class VnbusQueryBuilder {
                     res = await app.api.get("/api/vehicles/" + encodeURIComponent(plate) + "/history", this.params);
                 }
                 else if (this.table === "photo_comments") {
-                    let pid = this.params.photo_id;
+                    let pid = this.params.photo_id || this.params.eq_photo_id;
                     if (pid) res = await app.api.get("/api/comments/" + encodeURIComponent(pid), this.params);
-                    else res = { data: [] };
+                    else res = await app.api.get("/api/comments", this.params);
                 }
                 else if (this.table === "custom_toasts") res = await app.api.get("/api/reference/custom-toasts", this.params);
                 else if (this.table === "system_settings") res = await app.api.get("/api/reference/system-settings", this.params);
@@ -4977,7 +4987,9 @@ Object.assign(window.app, {
                             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
                             body: JSON.stringify({ action: 'status' })
                         });
-                        const data = await res.json();
+                        const resText = await res.text();
+let data = {};
+try { data = JSON.parse(resText); } catch(e) { data = { error: 'Lỗi server (Không phải JSON)' }; }
                         if (!data.linked) {
                             actionBtn.innerHTML = `<button onclick="app.settings.jumpTo('badges', 'main')" class="px-4 py-2 bg-black text-white text-xs font-bold rounded hover:bg-gray-800 transition shadow-sm border border-black whitespace-nowrap">Liên kết Discord</button>`;
                             return;
@@ -5009,7 +5021,9 @@ Object.assign(window.app, {
                             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
                             body: JSON.stringify({ action: 'claim', tier: 1 })
                         });
-                        const data = await res.json();
+                        const resText = await res.text();
+let data = {};
+try { data = JSON.parse(resText); } catch(e) { data = { error: 'Lỗi server (Không phải JSON)' }; }
                         if (res.ok) {
                             app.ui.showAlert(data.message || 'Xác minh Discord thành công!');
                             app.settings.loadDiscordVerifyStatus();
@@ -5120,7 +5134,9 @@ Object.assign(window.app, {
                             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
                             body: JSON.stringify({ action: 'claim' })
                         });
-                        const data = await res.json();
+                        const resText = await res.text();
+let data = {};
+try { data = JSON.parse(resText); } catch(e) { data = { error: 'Lỗi server (Không phải JSON)' }; }
                         if (res.ok) {
                             app.ui.showAlert(data.message || 'Nhận danh hiệu thành công!');
                             app.settings.loadWebBadges();
@@ -5149,7 +5165,9 @@ Object.assign(window.app, {
                             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
                             body: JSON.stringify({ action: 'status' })
                         });
-                        const data = await res.json();
+                        const resText = await res.text();
+let data = {};
+try { data = JSON.parse(resText); } catch(e) { data = { error: 'Lỗi server (Không phải JSON)' }; }
                         
                         if (loading) loading.classList.add('hidden');
                         if (claimBox) claimBox.classList.remove('hidden');
