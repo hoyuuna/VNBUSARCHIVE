@@ -202,6 +202,7 @@ class VnbusQueryBuilder {
                 else if (this.table === "route_info") res = await app.api.get("/api/reference/routes", this.params);
                 else if (this.table === "edit_requests") res = await app.api.get("/api/edits", this.params);
                 else if (this.table === "admin_audit_logs") res = await app.api.get("/api/admin/audit-logs", this.params);
+                else if (this.table === "photo_likes") res = await app.api.get("/api/photo_likes", this.params);
                 else if (this.table === "vehicle_history") {
                     const plate = this.params.license_plate || this.params.plate || this.params._id || "";
                     res = await app.api.get("/api/vehicles/" + encodeURIComponent(plate) + "/history", this.params);
