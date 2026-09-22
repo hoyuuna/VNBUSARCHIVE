@@ -12,12 +12,15 @@ Object.assign(window, {
         auth: {
             getSession: async () => {
                 const token = app.api.getToken();
+                console.log('VNBUS DEBUG token:', token);
                 if (!token) return { data: { session: null } };
                 // Fetch current user from token
                 try {
                     const data = await app.api.get("/api/auth/me");
+                    console.log('VNBUS DEBUG auth me data:', data);
                     return { data: { session: { access_token: token, user: data.user } } };
                 } catch(e) {
+                    console.error('VNBUS DEBUG auth me error:', e);
                     return { data: { session: null } };
                 }
             },
