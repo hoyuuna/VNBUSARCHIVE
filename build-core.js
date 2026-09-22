@@ -5,7 +5,7 @@ const { execSync, execFileSync } = require('child_process');
 try {
     const corePath = path.join(__dirname, '_core.html');
     
-    // Đường dẫn tới thư mục chứa các file JS đã chia nhỏ
+    // ÄÆ°á»ng dáº«n tá»›i thÆ° má»¥c chá»©a cÃ¡c file JS Ä‘Ã£ chia nhá»
     const jsDir = path.join(__dirname, 'src', 'js'); 
     
     if (fs.existsSync(corePath)) {
@@ -35,54 +35,55 @@ try {
             const filePath = path.join(jsDir, file);
             if (fs.existsSync(filePath)) {
                 combinedJs += `\n/* --- MODULE: ${file} --- */\n`;
-                combinedJs += fs.readFileSync(filePath, 'utf8');
+                // Đảm bảo dùng LF thay vì CRLF để Cloudflare Pages (Linux) và Local (Windows) sinh ra hash giống nhau
+                combinedJs += fs.readFileSync(filePath, 'utf8').replace(/\r\n/g, '\n');
             } else {
                 console.warn(`File ${file} không tồn tại.`);
             }
         });
 
-        // Hash nội dung bundle -> tên file bất biến. CDN bỏ qua query string (?v=) khi cache
-        // nên phải đổi hẳn path để không bao giờ phục vụ JS cũ.
+        // Hash ná»™i dung bundle -> tÃªn file báº¥t biáº¿n. CDN bá»  qua query string (?v=) khi cache
+        // nÃªn pháº£i Ä‘á»•i háº³n path Ä‘á»ƒ khÃ´ng bao giá»  phá»¥c vá»¥ JS cÅ©.
         const bundleHash = require('crypto').createHash('sha256').update(combinedJs).digest('hex').slice(0, 12);
         const bundleName = `app.${bundleHash}.js`;
         const publicDir = path.join(__dirname, 'public');
 
-        // Dọn các bundle hash cũ để tránh tồn đọng
+        // Dá»n cÃ¡c bundle hash cÅ© Ä‘á»ƒ trÃ¡nh tá»“n Ä‘á»ng
         if (fs.existsSync(publicDir)) {
             fs.readdirSync(publicDir)
                 .filter(f => /^app\.[0-9a-f]{12}\.js$/.test(f) && f !== bundleName)
                 .forEach(f => { try { fs.unlinkSync(path.join(publicDir, f)); } catch (e) {} });
         }
 
-        // Lưu bundle với tên có hash nội dung
+        // LÆ°u bundle vá»›i tÃªn cÃ³ hash ná»™i dung
         fs.writeFileSync(path.join(publicDir, bundleName), combinedJs);
-        console.log(`Tạo thành công public/${bundleName}`);
+        console.log(`Táº¡o thÃ nh cÃ´ng public/${bundleName}`);
 
-        // Vẫn ghi public/app.js để tương thích ngược
+        // Váº«n ghi public/app.js Ä‘á»ƒ tÆ°Æ¡ng thÃ­ch ngÆ°á»£c
         fs.writeFileSync(path.join(publicDir, 'app.js'), combinedJs);
 
-        // Cache-buster dùng chung cho theme CSS
+        // Cache-buster dÃ¹ng chung cho theme CSS
         const cacheBust = Date.now();
 
-        // Chèn bundle có hash vào _core.html (index.html phục vụ no-store nên luôn trỏ đúng bundle mới)
+        // ChÃ¨n bundle cÃ³ hash vÃ o _core.html (index.html phá»¥c vá»¥ no-store nÃªn luÃ´n trá» Ä‘Ãºng bundle má»›i)
         let finalHtml = content.replace('</body>', `<script src="/${bundleName}"></script>\n</body>`);
 
-        // Thay thế BUILD_VERSION_PLACEHOLDER trong link CSS theme
+        // Thay tháº¿ BUILD_VERSION_PLACEHOLDER trong link CSS theme
         finalHtml = finalHtml.replace(/BUILD_VERSION_PLACEHOLDER/g, String(cacheBust));
 
-        // Lưu trực tiếp nội dung sang public/index.html
+        // LÆ°u trá»±c tiáº¿p ná»™i dung sang public/index.html
         const indexHtmlPath = path.join(__dirname, 'public', 'index.html');
         fs.writeFileSync(indexHtmlPath, finalHtml);
         
-        console.log('Tạo thành công public/index.html (Dạng trang web tiêu chuẩn)');
+        console.log('Táº¡o thÃ nh cÃ´ng public/index.html (Dáº¡ng trang web tiÃªu chuáº©n)');
 
-        // (Tuỳ chọn) Cố gắng xóa file _core.js cũ nếu tồn tại
+        // (Tuá»³ chá»n) Cá»‘ gáº¯ng xÃ³a file _core.js cÅ© náº¿u tá»“n táº¡i
         const oldCorePath = path.join(__dirname, 'functions', 'api', '_core.js');
         if (fs.existsSync(oldCorePath)) {
             try { fs.unlinkSync(oldCorePath); } catch(e){}
         }
     } else {
-        console.warn('_core.html không tồn tại.');
+        console.warn('_core.html khÃ´ng tá»“n táº¡i.');
     }
 
     // Build CSP headers
@@ -131,27 +132,28 @@ try {
         ].join('\n');
 
         fs.writeFileSync(path.join(__dirname, 'public', '_headers'), headersContent);
-        console.log('Đã tạo public/_headers từ csp.json (kèm Cache-Control no-store cho mọi asset)');
+        console.log('ÄÃ£ táº¡o public/_headers tá»« csp.json (kÃ¨m Cache-Control no-store cho má»i asset)');
     }
 
     // Build Tailwind CSS
     try {
-        console.log('Đang biên dịch Tailwind CSS...');
+        console.log('Äang biÃªn dá»‹ch Tailwind CSS...');
         const tailwindExe = path.join(__dirname, 'tailwind.exe');
         const inputCssPath = path.join(__dirname, 'src', 'input.css');
         const outputCssPath = path.join(__dirname, 'public', 'tailwind.css');
 
         if (fs.existsSync(tailwindExe)) {
             execFileSync(tailwindExe, ['-i', inputCssPath, '-o', outputCssPath, '--minify'], { stdio: 'inherit' });
-            console.log('Biên dịch Tailwind CSS thành công (qua tailwind.exe)!');
+            console.log('BiÃªn dá»‹ch Tailwind CSS thÃ nh cÃ´ng (qua tailwind.exe)!');
         } else {
             execSync(`npx -y tailwindcss -i "${inputCssPath}" -o "${outputCssPath}" --minify`, { stdio: 'inherit' });
-            console.log('Biên dịch Tailwind CSS thành công (qua npx tailwindcss)!');
+            console.log('BiÃªn dá»‹ch Tailwind CSS thÃ nh cÃ´ng (qua npx tailwindcss)!');
         }
     } catch (twErr) {
-        console.warn('Cảnh báo: Lỗi khi biên dịch Tailwind CSS:', twErr.message);
+        console.warn('Cáº£nh bÃ¡o: Lá»—i khi biÃªn dá»‹ch Tailwind CSS:', twErr.message);
     }
 } catch (error) {
-    console.error('Lỗi khi build:', error);
+    console.error('Lá»—i khi build:', error);
     process.exit(1);
 }
+
