@@ -10,6 +10,7 @@ Object.assign(window, {
             return app.api.post("/api/rpc/" + fn, params);
         },
         auth: {
+            onAuthStateChange: (cb) => { return { data: { subscription: { unsubscribe: () => {} } } }; },
             getSession: async () => {
                 const token = app.api.getToken();
                 console.log('VNBUS DEBUG token:', token);
