@@ -4171,3 +4171,5 @@ dropdown.innerHTML = `
                 if (app.auth && app.auth.updateUUIDBox) app.auth.updateUUIDBox();
             }
 });
+
+// Cache buster: 20260922173758
