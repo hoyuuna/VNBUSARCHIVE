@@ -537,15 +537,15 @@ Object.assign(window.app, {
                                 }
                                 let conditions = searchWords.map(w => {
                                     let q = (col === 'license_plate') ? app.utils.normalizePlateQuery(w) : w;
-                                    return `${col}.ilike.%${q}%`;
+                                    return `${col}.ilike."%${q}%"`;
                                 });
-                                sbQuery = sbQuery.and(`${conditions.join(',')}`);
+                                sbQuery = sbQuery.and(`(${conditions.join(',')})`);
                                 sbQuery = app.preference.applyFilter(sbQuery, table);
                                 let data = [];
                                 if (table === 'photos' && col === 'operator') {
                                     let infoQuery = window.sb.from('operator_info').select('operator_name');
-                                    let opConds = searchWords.map(w => `operator_name.ilike.%${w}%`);
-                                    infoQuery = infoQuery.and(`${opConds.join(',')}`);
+                                    let opConds = searchWords.map(w => `operator_name.ilike."%${w}%"`);
+                                    infoQuery = infoQuery.and(`(${opConds.join(',')})`);
                                     const [infoRes, photoRes] = await Promise.all([
                                         infoQuery.limit(30).abortSignal(controller.signal),
                                         sbQuery.limit(30).abortSignal(controller.signal)

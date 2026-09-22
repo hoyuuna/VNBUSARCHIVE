@@ -7374,6 +7374,25 @@ Object.assign(window.app, {
                                 document.getElementById('my-stat-views').innerText = '0';
                                 document.getElementById('my-stat-likes').innerText = '0';
                             }
+                        })
+                        .catch(err => {
+                            console.warn('RPC get_user_profile_stats lỗi, dùng fallback:', err);
+                            let pQuery = window.sb.from('photos').select('views', { count: 'exact' }).eq('uploader_id', targetUserId).eq('status', 'approved');
+                            pQuery.then(({ data, count, error }) => {
+                                let totalViews = 0;
+                                let totalPhotos = count || 0;
+                                if (data && !error) {
+                                    totalViews = data.reduce((sum, p) => sum + (p.views || 0), 0);
+                                    totalPhotos = data.length > count ? data.length : count || data.length;
+                                }
+                                document.getElementById('my-stat-photos').innerText = app.utils.formatCompact(totalPhotos);
+                                document.getElementById('my-stat-views').innerText = app.utils.formatCompact(totalViews);
+                                document.getElementById('my-stat-likes').innerText = '---';
+                            }).catch(() => {
+                                document.getElementById('my-stat-photos').innerText = '0';
+                                document.getElementById('my-stat-views').innerText = '0';
+                                document.getElementById('my-stat-likes').innerText = '0';
+                            });
                         });
 
                     if (isOwnProfile) {
@@ -10094,15 +10113,15 @@ Object.assign(window.app, {
                                 }
                                 let conditions = searchWords.map(w => {
                                     let q = (col === 'license_plate') ? app.utils.normalizePlateQuery(w) : w;
-                                    return `${col}.ilike.%${q}%`;
+                                    return `${col}.ilike."%${q}%"`;
                                 });
-                                sbQuery = sbQuery.and(`${conditions.join(',')}`);
+                                sbQuery = sbQuery.and(`(${conditions.join(',')})`);
                                 sbQuery = app.preference.applyFilter(sbQuery, table);
                                 let data = [];
                                 if (table === 'photos' && col === 'operator') {
                                     let infoQuery = window.sb.from('operator_info').select('operator_name');
-                                    let opConds = searchWords.map(w => `operator_name.ilike.%${w}%`);
-                                    infoQuery = infoQuery.and(`${opConds.join(',')}`);
+                                    let opConds = searchWords.map(w => `operator_name.ilike."%${w}%"`);
+                                    infoQuery = infoQuery.and(`(${opConds.join(',')})`);
                                     const [infoRes, photoRes] = await Promise.all([
                                         infoQuery.limit(30).abortSignal(controller.signal),
                                         sbQuery.limit(30).abortSignal(controller.signal)
