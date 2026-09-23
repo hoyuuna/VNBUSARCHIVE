@@ -208,6 +208,8 @@ class VnbusQueryBuilder {
             if (this.method === "insert") {
                 if (this.table === "photo_comments") {
                     res = await app.api.post("/api/comments", this.actionData);
+                } else if (this.table === "admin_notes") {
+                    res = await app.api.post("/api/admin/board-note", this.actionData);
                 } else {
                     res = await app.api.post("/api/" + this.table, this.actionData);
                 }
@@ -223,7 +225,11 @@ class VnbusQueryBuilder {
                 }
                 res = { data: [] };
             } else if (this.method === "update") {
-                res = await app.api.put("/api/" + this.table, { ...this.params, ...this.actionData });
+                if (this.table === "admin_notes") {
+                    res = await app.api.post("/api/admin/board-note", { ...this.params, ...this.actionData });
+                } else {
+                    res = await app.api.put("/api/" + this.table, { ...this.params, ...this.actionData });
+                }
                 res = { data: [] };
             } else {
                 if (this.table === "photos") res = await app.api.get("/api/photos", this.params);
@@ -235,6 +241,7 @@ class VnbusQueryBuilder {
                 else if (this.table === "edit_requests") res = await app.api.get("/api/edits", this.params);
                 else if (this.table === "admin_audit_logs") res = await app.api.get("/api/admin/audit-logs", this.params);
                 else if (this.table === "photo_likes") res = await app.api.get("/api/photo_likes", this.params);
+                else if (this.table === "admin_notes") res = await app.api.get("/api/admin/board-note", this.params);
                 else if (this.table === "vehicle_history") {
                     const plate = this.params.license_plate || this.params.plate || this.params._id || "";
                     res = await app.api.get("/api/vehicles/" + encodeURIComponent(plate) + "/history", this.params);
@@ -260,9 +267,9 @@ class VnbusQueryBuilder {
             const out = { data, error: null };
             if (this._count && !this.method) out.count = res.count || (res.data ? res.data.length : 0);
             
-            resolve(out);
+            return resolve(out);
         } catch (error) {
-            resolve({ data: null, error });
+            return resolve({ data: null, error });
         }
     }
 
@@ -21133,7 +21140,7 @@ app.admin.fetchManagerData('denied');
                         const imgUrl = photo ? photo.url : null;
                         if (imgUrl || photoId) {
                             const { data: { session } } = await window.sb.auth.getSession();
-                            await fetch('/api/delete-image', {
+                            const delRes = await fetch('/api/upload/delete-image', {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
@@ -21141,6 +21148,7 @@ app.admin.fetchManagerData('denied');
                                 },
                                 body: JSON.stringify({ imageUrl: imgUrl, photoId: photoId })
                             });
+                            if (!delRes.ok) throw new Error("HTTP " + delRes.status);
                         }
                         const { error: delError } = await window.sb.from('photos').delete().eq('id', photoId);
                         if (delError) throw delError;

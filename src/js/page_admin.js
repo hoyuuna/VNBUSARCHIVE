@@ -3919,7 +3919,7 @@ app.admin.fetchManagerData('denied');
                         const imgUrl = photo ? photo.url : null;
                         if (imgUrl || photoId) {
                             const { data: { session } } = await window.sb.auth.getSession();
-                            await fetch('/api/delete-image', {
+                            const delRes = await fetch('/api/upload/delete-image', {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
@@ -3927,6 +3927,7 @@ app.admin.fetchManagerData('denied');
                                 },
                                 body: JSON.stringify({ imageUrl: imgUrl, photoId: photoId })
                             });
+                            if (!delRes.ok) throw new Error("HTTP " + delRes.status);
                         }
                         const { error: delError } = await window.sb.from('photos').delete().eq('id', photoId);
                         if (delError) throw delError;
