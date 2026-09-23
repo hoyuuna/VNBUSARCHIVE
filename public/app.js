@@ -220,6 +220,8 @@ class VnbusQueryBuilder {
                     res = await app.api.post("/api/admin/board-note", this.actionData);
                 } else if (this.table === "edit_requests") {
                     res = await app.api.post("/api/edits", this.actionData);
+                } else if (this.table === "custom_toasts") {
+                    res = await app.api.post("/api/admin/custom-toasts", this.actionData);
                 } else {
                     res = await app.api.post("/api/" + this.table, this.actionData);
                 }
@@ -243,6 +245,9 @@ class VnbusQueryBuilder {
                 } else if (this.table === "admin_notes") {
                     let id = this.params.id || this.params.eq_id || this.params._id;
                     res = await app.api.del("/api/admin/board-note/" + id);
+                } else if (this.table === "custom_toasts") {
+                    let id = this.params.id || this.params.eq_id || this.params._id;
+                    res = await app.api.del("/api/admin/custom-toasts/" + id);
                 } else {
                     res = await app.api.del("/api/" + this.table, this.params);
                 }
@@ -262,6 +267,9 @@ class VnbusQueryBuilder {
                 } else if (this.table === "vehicles") {
                     let plate = this.params.license_plate || this.params.plate || this.params.eq_license_plate || this.params._id;
                     res = await app.api.put("/api/vehicles/" + plate, this.actionData);
+                } else if (this.table === "custom_toasts") {
+                    let id = this.params.id || this.params.eq_id || this.params._id;
+                    res = await app.api.put("/api/admin/custom-toasts/" + id, this.actionData);
                 } else {
                     res = await app.api.put("/api/" + this.table, { ...this.params, ...this.actionData });
                 }
