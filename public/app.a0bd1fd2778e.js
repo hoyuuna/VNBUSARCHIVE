@@ -150,6 +150,14 @@ class VnbusQueryBuilder {
         this.params[col] = "in.(" + vals.join(",") + ")";
         return this;
     }
+    contains(col, val) {
+        if (typeof val === 'object' && val !== null) {
+            this.params[col] = "cs." + JSON.stringify(val);
+        } else {
+            this.params[col] = "cs.{" + val + "}";
+        }
+        return this;
+    }
     is(col, val) {
         if (val === null) {
             this.params["is_null_" + col] = "true";
