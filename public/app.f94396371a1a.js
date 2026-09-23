@@ -342,7 +342,7 @@ Object.assign(window.app, {
             const token = app.api.getToken();
             if (token) headers["Authorization"] = `Bearer ${token}`;
 
-            const options = { method, headers };
+            const options = { method, headers, cache: "no-store" };
             if (body) options.body = JSON.stringify(body);
 
             const res = await fetch(url, options);
@@ -20680,6 +20680,11 @@ app.admin.fetchManagerData('denied');
                         } catch(e) {}
                         app.admin._localReviewedIds = app.admin._localReviewedIds || new Set();
                         app.admin._localReviewedIds.add(id);
+                        if (app.adminTab === 'photos_quality') {
+                            app.toast.show('success', 'Thành công', 'Đã duyệt chất lượng! Ảnh được chuyển sang bước Duyệt thông tin.');
+                        } else {
+                            app.toast.show('success', 'Thành công', 'Đã duyệt ảnh xuất bản thành công!');
+                        }
                         if (cardEl) {
                             if (document.activeElement && cardEl.contains(document.activeElement)) {
                                 document.activeElement.blur();

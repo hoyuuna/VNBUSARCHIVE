@@ -3421,6 +3421,11 @@ app.admin.fetchManagerData('denied');
                         } catch(e) {}
                         app.admin._localReviewedIds = app.admin._localReviewedIds || new Set();
                         app.admin._localReviewedIds.add(id);
+                        if (app.adminTab === 'photos_quality') {
+                            app.toast.show('success', 'Thành công', 'Đã duyệt chất lượng! Ảnh được chuyển sang bước Duyệt thông tin.');
+                        } else {
+                            app.toast.show('success', 'Thành công', 'Đã duyệt ảnh xuất bản thành công!');
+                        }
                         if (cardEl) {
                             if (document.activeElement && cardEl.contains(document.activeElement)) {
                                 document.activeElement.blur();

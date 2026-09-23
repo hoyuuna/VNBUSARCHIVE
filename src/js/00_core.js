@@ -340,7 +340,7 @@ Object.assign(window.app, {
             const token = app.api.getToken();
             if (token) headers["Authorization"] = `Bearer ${token}`;
 
-            const options = { method, headers };
+            const options = { method, headers, cache: "no-store" };
             if (body) options.body = JSON.stringify(body);
 
             const res = await fetch(url, options);
