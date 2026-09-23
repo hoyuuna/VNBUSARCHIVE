@@ -3174,7 +3174,8 @@ cleanupState: () => {
               adminContent.style.pointerEvents = 'auto';
               adminContent.style.opacity = '1';
               if (app.currentViewMode === 'admin' && app.admin && typeof app.admin.loadTab === 'function') {
-                  app.admin.loadTab(app.adminTab || 'photos');
+                  const defaultTab = (app.user?.subroles?.includes('quality_auditor') || app.role === 'manager') ? 'photos_quality' : 'photos_info';
+                  app.admin.loadTab(app.adminTab || defaultTab);
               }
           }
       }

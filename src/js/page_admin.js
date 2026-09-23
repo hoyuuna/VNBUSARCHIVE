@@ -434,13 +434,10 @@ Object.assign(window.app, {
                                         ${p.exif_params ? `<div class="mt-2"><span class="admin-label">Thông số quang học (EXIF)</span><input type="text" class="admin-input bg-gray-50 !text-gray-500 truncate" value="${p.exif_params}" disabled title="${p.exif_params}"></div>` : ''}
                                         ${(() => {
                                         const isOwnPhoto = p.uploader_id === app.user.id;
-                                        const canApprove = (!isOwnPhoto || app.role === 'manager') && !p._isReviewedByMe;
-                                        const canDeny = (!isOwnPhoto || app.role === 'manager') && !p._isReviewedByMe;
+                                        const canApprove = (!isOwnPhoto || app.role === 'manager');
+                                        const canDeny = (!isOwnPhoto || app.role === 'manager') && app.adminTab === 'photos_quality';
                                         let actionButtons = '<div class="flex gap-2 mt-2">';
-                                        if (p._isReviewedByMe) {
-                                            actionButtons += `<div class="flex-1 bg-gray-100 text-gray-400 py-1.5 text-xs font-bold rounded text-center border border-gray-200 cursor-not-allowed">
-                                                <i class="fa-solid fa-check mr-1"></i> Bạn đã duyệt
-                                            </div>`;
+                                        if (false) {
                                         } else {
                                             if (canApprove) {
                                                 actionButtons += `<button onclick="app.admin.approvePhoto('${p.id}', '${p.uploader_id}', this)" class="flex-1 bg-transparent border-0 p-0 hover:opacity-80 active:scale-90 transition-all duration-200 flex justify-center items-center"><img src="/media/umazing.png" alt="DUYỆT" class="h-[52px] w-auto object-contain"></button>`;
@@ -735,17 +732,19 @@ Object.assign(window.app, {
                 },
                 refreshCounts: async () => {
                     try {
-                        const { data: pendingPhotos, error: pErr } = await window.sb.from('photos').select('id, uploader_id').eq('status', 'pending');
+                        const { data: pendingPhotos, error: pErr } = await window.sb.from('photos').select('id, uploader_id, review_progress').eq('status', 'pending');
                         if (pErr) console.error("Lỗi đếm photos:", pErr);
                         const { data: reqs, error: rErr } = await window.sb.from('edit_requests').select('requester_id, new_data').eq('status', 'pending');
                         if (rErr) console.error("Lỗi đếm edit_requests:", rErr);
-                        let pCount = 0;
+                        let pQualityCount = 0;
+                        let pInfoCount = 0;
                         if (pendingPhotos) {
+                            let filtered = pendingPhotos;
                             if (app.admin.isHideMineEnabled && app.user && app.user.id) {
-                                pCount = pendingPhotos.filter(p => p.uploader_id !== app.user.id).length;
-                            } else {
-                                pCount = pendingPhotos.length;
+                                filtered = pendingPhotos.filter(p => p.uploader_id !== app.user.id);
                             }
+                            pQualityCount = filtered.filter(p => p.review_progress !== 'quality_approved').length;
+                            pInfoCount = filtered.filter(p => p.review_progress === 'quality_approved').length;
                         }
                         let editCount = 0;
                         let delCount = 0;
@@ -758,8 +757,10 @@ Object.assign(window.app, {
                                 else editCount++;
                             });
                         }
-                        const countPhotosEl = document.getElementById('count-photos');
-                        if (countPhotosEl) countPhotosEl.innerText = pCount || 0;
+                        const countQualityEl = document.getElementById('count-photos-quality');
+                        if (countQualityEl) countQualityEl.innerText = pQualityCount || 0;
+                        const countInfoEl = document.getElementById('count-photos-info');
+                        if (countInfoEl) countInfoEl.innerText = pInfoCount || 0;
                         const countReqsEl = document.getElementById('count-requests');
                         if (countReqsEl) countReqsEl.innerText = editCount;
                         const countDelEl = document.getElementById('count-delete');
@@ -767,7 +768,7 @@ Object.assign(window.app, {
                         if (window.app && window.app.views && window.app.views.updateMilestoneBanner && document.getElementById('milestone-banner')) {
                             window.app.views.updateMilestoneBanner();
                         }
-                        return (pCount || 0) + editCount + delCount;
+                        return (pQualityCount + pInfoCount) + editCount + delCount;
                     } catch (err) { console.error("Lỗi đếm:", err); return 0; }
                 },
                 openZoom: (url, showToolbar = false, isFromAdminReview = false) => {
@@ -904,9 +905,18 @@ Object.assign(window.app, {
                             app.admin._isTabLoading = false;
                             app.admin._activeLoadingTab = null;
                         }
-                        ['photos', 'requests', 'delete', 'manager', 'comments'].forEach(t => {
+                        ['photos_quality', 'photos_info', 'requests', 'delete', 'manager', 'comments'].forEach(t => {
                             const btn = document.getElementById(`adm-tab-${t}`);
                             if(!btn) return;
+                            if (t === 'photos_quality' && !app.user?.subroles?.includes('quality_auditor') && app.role !== 'manager') {
+                                btn.classList.add('hidden');
+                                return;
+                            }
+                            if (t === 'photos_info' && app.user?.subroles?.includes('quality_auditor') && app.role !== 'manager') {
+                                btn.classList.add('hidden');
+                                return;
+                            }
+                            btn.classList.remove('hidden');
                             if(t === tab) {
                                 btn.className = "px-5 py-2 bg-black text-white font-bold rounded-md text-sm shadow-sm transition whitespace-nowrap";
                             } else {
@@ -926,17 +936,26 @@ Object.assign(window.app, {
                         else if (tab === 'manager') loadingMsg = 'Đang tải khu vực quản lý...';
                         content.innerHTML = `<p class="text-gray-500 italic p-4"><i class="fa-solid fa-spinner fa-spin mr-2"></i>${loadingMsg}</p>`;
                     }
-                    ['photos', 'requests', 'delete', 'manager', 'comments'].forEach(t => {
-                        const btn = document.getElementById(`adm-tab-${t}`);
-                        if(!btn) return;
-                        if(t === tab) {
-                            btn.className = "px-5 py-2 bg-black text-white font-bold rounded-md text-sm shadow-sm transition whitespace-nowrap";
-                        } else {
-                            btn.className = "px-5 py-2 bg-white border border-gray-300 text-gray-600 font-bold rounded-md text-sm hover:bg-gray-50 transition whitespace-nowrap";
-                        }
-                    });
+                        ['photos_quality', 'photos_info', 'requests', 'delete', 'manager', 'comments'].forEach(t => {
+                            const btn = document.getElementById(`adm-tab-${t}`);
+                            if(!btn) return;
+                            if (t === 'photos_quality' && !app.user?.subroles?.includes('quality_auditor') && app.role !== 'manager') {
+                                btn.classList.add('hidden');
+                                return;
+                            }
+                            if (t === 'photos_info' && app.user?.subroles?.includes('quality_auditor') && app.role !== 'manager') {
+                                btn.classList.add('hidden');
+                                return;
+                            }
+                            btn.classList.remove('hidden');
+                            if(t === tab) {
+                                btn.className = "px-5 py-2 bg-black text-white font-bold rounded-md text-sm shadow-sm transition whitespace-nowrap";
+                            } else {
+                                btn.className = "px-5 py-2 bg-white border border-gray-300 text-gray-600 font-bold rounded-md text-sm hover:bg-gray-50 transition whitespace-nowrap";
+                            }
+                        });
                     const toggleBar = document.getElementById('adm-photo-grid-toggle-bar');
-                    if (tab === 'photos') {
+                    if (tab === 'photos_quality' || tab === 'photos_info') {
                         if (toggleBar) toggleBar.classList.remove('hidden');
                     } else {
                         if (toggleBar) toggleBar.classList.add('hidden');
@@ -945,7 +964,7 @@ Object.assign(window.app, {
                     if (app.admin.updateRulerUI) app.admin.updateRulerUI();
                     if (app.admin.updateHideMineUI) app.admin.updateHideMineUI();
                     try {
-                        if (tab === 'photos') {
+                        if (tab === 'photos_quality' || tab === 'photos_info') {
                             app.adminPendingPage = app.adminPendingPage || 1;
                             const pageSize = 50;
                             const fromRow = (app.adminPendingPage - 1) * pageSize;
@@ -960,8 +979,14 @@ Object.assign(window.app, {
                                 }
                             } catch(e) {}
                             try {
+                                let photoQuery = window.sb.from('photos').select('*, profiles(username, role), vehicles(model), photo_reviews(action, reason, admin_id)', { count: 'estimated' }).eq('status', 'pending');
+                                if (tab === 'photos_quality') {
+                                    photoQuery = photoQuery.neq('review_progress', 'quality_approved');
+                                } else {
+                                    photoQuery = photoQuery.eq('review_progress', 'quality_approved');
+                                }
                                 const [sbRes, apiRes] = await Promise.all([
-                                    window.sb.from('photos').select('*, profiles(username, role), vehicles(model), photo_reviews(action, reason, admin_id)', { count: 'estimated' }).eq('status', 'pending').order('id', { ascending: true }).range(fromRow, toRow).then(r => r).catch(() => ({ data: [], count: 0 })),
+                                    photoQuery.order('id', { ascending: true }).range(fromRow, toRow).then(r => r).catch(() => ({ data: [], count: 0 })),
                                     (async () => {
                                         try {
                                             const sessionRes = await window.sb.auth.getSession();
@@ -3364,7 +3389,7 @@ app.admin.fetchManagerData('denied');
                                 'Authorization': `Bearer ${(await window.sb.auth.getSession()).data.session?.access_token}`
                             },
                             body: JSON.stringify({
-                                action: 'approve', photoId: id,
+                                action: app.adminTab === 'photos_quality' ? 'approve_quality' : 'approve', photoId: id,
                                 plate, op, type, route, model, location, note, province
                             })
                         });

@@ -4898,9 +4898,10 @@ html.theme-dark .ct-icon {
                 </div>
 
                 <div class="flex gap-3 mb-6 overflow-x-auto pb-2">
-                    <button onclick="app.admin.loadTab('photos')" id="adm-tab-photos"
-                        class="px-5 py-2 bg-black text-white font-bold rounded-md text-sm shadow-sm transition whitespace-nowrap">Duyệt
-                        ảnh (<span id="count-photos">0</span>)</button>
+                    <button onclick="app.admin.loadTab('photos_quality')" id="adm-tab-photos_quality"
+                        class="px-5 py-2 bg-black text-white font-bold rounded-md text-sm shadow-sm transition whitespace-nowrap hidden">Duyệt chất lượng (<span id="count-photos-quality">0</span>)</button>
+                    <button onclick="app.admin.loadTab('photos_info')" id="adm-tab-photos_info"
+                        class="px-5 py-2 bg-black text-white font-bold rounded-md text-sm shadow-sm transition whitespace-nowrap hidden">Duyệt thông tin (<span id="count-photos-info">0</span>)</button>
                     <button onclick="app.admin.loadTab('requests')" id="adm-tab-requests"
                         class="px-5 py-2 bg-white border border-gray-300 text-gray-600 font-bold rounded-md text-sm hover:bg-gray-50 transition whitespace-nowrap">Duyệt
                         yêu cầu sửa (<span id="count-requests">0</span>)</button>
