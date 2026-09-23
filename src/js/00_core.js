@@ -63,6 +63,18 @@ Object.assign(window, {
                     return { data: null, error };
                 }
             },
+            linkIdentity: async (options) => {
+                return new Promise((resolve) => {
+                    app.ui.showAlert("Hệ thống hiện tại tự động đồng bộ tài khoản nếu bạn đăng nhập bằng cùng một địa chỉ email trên các nền tảng. Không cần liên kết thủ công.");
+                    resolve({ error: null });
+                });
+            },
+            unlinkIdentity: async (options) => {
+                return new Promise((resolve) => {
+                    app.ui.showAlert("Tính năng hủy liên kết tạm thời bị vô hiệu hóa trên hệ thống mới. Vui lòng liên hệ Admin nếu cần hỗ trợ.");
+                    resolve({ error: null });
+                });
+            },
             updateUser: async (attrs) => {
                 try {
                     if (attrs.password && attrs.current_password) {
@@ -114,6 +126,14 @@ class VnbusQueryBuilder {
     eq(col, val) {
         if (col === "photos.status") col = "status";
         this.params[col] = val;
+        return this;
+    }
+    gte(col, val) {
+        this.params[col] = "gte." + val;
+        return this;
+    }
+    lte(col, val) {
+        this.params[col] = "lte." + val;
         return this;
     }
     neq(col, val) {
