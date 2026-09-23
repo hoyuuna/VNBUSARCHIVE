@@ -64,10 +64,10 @@ Object.assign(window, {
                 }
             },
             linkIdentity: async (options) => {
-                return new Promise((resolve) => {
-                    app.ui.showAlert("Hệ thống hiện tại tự động đồng bộ tài khoản nếu bạn đăng nhập bằng cùng một địa chỉ email trên các nền tảng. Không cần liên kết thủ công.");
-                    resolve({ error: null });
-                });
+                const tokenObj = JSON.parse(sessionStorage.getItem("VNBA_SESS_AUTH"));
+                if (!tokenObj || !tokenObj.token) return { error: { message: "Chưa đăng nhập" } };
+                window.location.href = app.api.baseUrl + "/api/auth/" + options.provider + "?action=link&token=" + tokenObj.token;
+                return { error: null };
             },
             unlinkIdentity: async (options) => {
                 try {
@@ -143,7 +143,7 @@ class VnbusQueryBuilder {
         return this;
     }
     ilike(col, val) {
-        this.params[col] = val;
+        this.params["ilike_" + col] = "ilike." + val;
         return this;
     }
     in(col, vals) {
@@ -3564,7 +3564,7 @@ cleanupState: () => {
                                 try {
                                     const { data: { session } } = await window.sb.auth.getSession();
                                     const token = session?.access_token;
-                                    const res = await fetch(app.api.baseUrl + '/api/discord', {
+                                    const res = await fetch('/api/discord', {
                                         method: 'POST',
                                         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                                         body: JSON.stringify({ action: 'delete', tier: 2000 })
@@ -3596,7 +3596,7 @@ cleanupState: () => {
                         try {
                             const { data: { session } } = await window.sb.auth.getSession();
                             const token = session?.access_token;
-                            const res = await fetch(app.api.baseUrl + '/api/discord', {
+                            const res = await fetch('/api/discord', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                                 body: JSON.stringify({ action: 'claim', tier: 2000, customName: name, customColor: color })

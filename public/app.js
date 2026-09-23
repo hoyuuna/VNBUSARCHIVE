@@ -66,10 +66,10 @@ Object.assign(window, {
                 }
             },
             linkIdentity: async (options) => {
-                return new Promise((resolve) => {
-                    app.ui.showAlert("Hệ thống hiện tại tự động đồng bộ tài khoản nếu bạn đăng nhập bằng cùng một địa chỉ email trên các nền tảng. Không cần liên kết thủ công.");
-                    resolve({ error: null });
-                });
+                const tokenObj = JSON.parse(sessionStorage.getItem("VNBA_SESS_AUTH"));
+                if (!tokenObj || !tokenObj.token) return { error: { message: "Chưa đăng nhập" } };
+                window.location.href = app.api.baseUrl + "/api/auth/" + options.provider + "?action=link&token=" + tokenObj.token;
+                return { error: null };
             },
             unlinkIdentity: async (options) => {
                 try {
@@ -145,7 +145,7 @@ class VnbusQueryBuilder {
         return this;
     }
     ilike(col, val) {
-        this.params[col] = val;
+        this.params["ilike_" + col] = "ilike." + val;
         return this;
     }
     in(col, vals) {
@@ -3566,7 +3566,7 @@ cleanupState: () => {
                                 try {
                                     const { data: { session } } = await window.sb.auth.getSession();
                                     const token = session?.access_token;
-                                    const res = await fetch(app.api.baseUrl + '/api/discord', {
+                                    const res = await fetch('/api/discord', {
                                         method: 'POST',
                                         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                                         body: JSON.stringify({ action: 'delete', tier: 2000 })
@@ -3598,7 +3598,7 @@ cleanupState: () => {
                         try {
                             const { data: { session } } = await window.sb.auth.getSession();
                             const token = session?.access_token;
-                            const res = await fetch(app.api.baseUrl + '/api/discord', {
+                            const res = await fetch('/api/discord', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                                 body: JSON.stringify({ action: 'claim', tier: 2000, customName: name, customColor: color })
@@ -5071,7 +5071,7 @@ Object.assign(window.app, {
                         const { data: { session } } = await window.sb.auth.getSession();
                         if (!session) return;
                         const { count } = await window.sb.from('photos').select('*', { count: 'estimated', head: true }).eq('uploader_id', app.user.id).eq('status', 'approved');
-                        const res = await fetch(app.api.baseUrl + '/api/discord', {
+                        const res = await fetch('/api/discord', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
                             body: JSON.stringify({ action: 'status' })
@@ -5105,7 +5105,7 @@ try { data = JSON.parse(resText); } catch(e) { data = { error: 'Lỗi server (Kh
                     if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
                     try {
                         const { data: { session } } = await window.sb.auth.getSession();
-                        const res = await fetch(app.api.baseUrl + '/api/discord', {
+                        const res = await fetch('/api/discord', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
                             body: JSON.stringify({ action: 'claim', tier: 1 })
@@ -5297,7 +5297,7 @@ try { data = JSON.parse(resText); } catch(e) { data = { error: 'Lỗi server (Kh
                         const { data: { session } } = await window.sb.auth.getSession();
                         const token = session?.access_token;
                         if (!token) throw new Error("Chưa đăng nhập");
-                        const res = await fetch(app.api.baseUrl + '/api/discord', {
+                        const res = await fetch('/api/discord', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -5425,7 +5425,7 @@ grid.innerHTML = tiers.map(tier => {
                     try {
                         const { data: { session } } = await window.sb.auth.getSession();
                         const token = session?.access_token;
-                        const res = await fetch(app.api.baseUrl + '/api/discord', {
+                        const res = await fetch('/api/discord', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -10632,7 +10632,7 @@ Object.assign(window.app, {
             activeIndex: 0,
         init: async () => {
                     try {
-                        const res = await fetch(app.api.baseUrl + '/api/discord');
+                        const res = await fetch('/api/discord');
                         if (!res.ok) throw new Error("Không thể tải bảng tin");
                         const data = await res.json();
                         if (Array.isArray(data) && data.length > 0) {
@@ -10765,7 +10765,7 @@ Object.assign(window.app, {
                     if (app.help.data.length === 0) {
                         container.innerHTML = '<div class="col-span-full text-center py-20 text-gray-500"><i class="fa-solid fa-circle-notch fa-spin text-2xl mb-2 text-black"></i><p>Đang tải dữ liệu...</p></div>';
                         try {
-                            const res = await fetch(app.api.baseUrl + '/api/discord?type=help');
+                            const res = await fetch('/api/discord?type=help');
                             if (!res.ok) throw new Error("Lỗi fetch API");
                             const data = await res.json();
                             app.help.data = data;
@@ -10818,7 +10818,7 @@ Object.assign(window.app, {
                     try {
                         let item = app.help.data.find(h => h.id === id);
                         if (!item) {
-                            const res = await fetch(app.api.baseUrl + `/api/discord?type=help&id=${id}`);
+                            const res = await fetch(`/api/discord?type=help&id=${id}`);
                             if (!res.ok) throw new Error("Bài viết không tồn tại hoặc có lỗi xảy ra");
                             item = await res.json();
                         }
@@ -11434,7 +11434,7 @@ Object.assign(window.app, {
                     const { data: { session } } = await window.sb.auth.getSession();
                     if (session) reqOpts.headers['Authorization'] = `Bearer ${session.access_token}`;
                 }
-                const res = await fetch(app.api.baseUrl + '/api/discord', reqOpts);
+                const res = await fetch('/api/discord', reqOpts);
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || "Gửi thất bại.");
                 const msgDetail = data.ticketId
