@@ -185,7 +185,9 @@ Object.assign(window.app, {
 }
                     } catch (err) {
                         let errorMsg = err.message;
-                        if (errorMsg === 'Invalid login credentials') errorMsg = 'Sai email hoặc mật khẩu.';
+                        if (errorMsg === 'Invalid login credentials' || errorMsg === 'User not found' || errorMsg === 'Invalid password') {
+                            errorMsg = 'Sai email hoặc mật khẩu.';
+                        }
                         if (errorMsg === 'User already registered') errorMsg = 'Email này đã được đăng ký.';
                         if (errorMsg.includes('Password should be at least')) errorMsg = 'Mật khẩu phải từ 6 ký tự trở lên.';
                         msgEl.innerText = errorMsg;

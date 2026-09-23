@@ -216,6 +216,8 @@ class VnbusQueryBuilder {
                     res = await app.api.post("/api/comments", this.actionData);
                 } else if (this.table === "admin_notes") {
                     res = await app.api.post("/api/admin/board-note", this.actionData);
+                } else if (this.table === "edit_requests") {
+                    res = await app.api.post("/api/edits", this.actionData);
                 } else {
                     res = await app.api.post("/api/" + this.table, this.actionData);
                 }
@@ -225,7 +227,14 @@ class VnbusQueryBuilder {
             } else if (this.method === "delete") {
                 if (this.table === "photo_comments") {
                     let id = this.params.id || this.params.eq_id || this.params._id;
+                    if (!id && this.params.or) {
+                        let m = this.params.or.match(/id\.eq\.([^,]+)/);
+                        if (m) id = m[1];
+                    }
                     res = await app.api.del("/api/comments/" + id);
+                } else if (this.table === "edit_requests") {
+                    let id = this.params.id || this.params.eq_id || this.params._id;
+                    res = await app.api.del("/api/edits/" + id);
                 } else {
                     res = await app.api.del("/api/" + this.table, this.params);
                 }
@@ -233,6 +242,9 @@ class VnbusQueryBuilder {
             } else if (this.method === "update") {
                 if (this.table === "admin_notes") {
                     res = await app.api.post("/api/admin/board-note", { ...this.params, ...this.actionData });
+                } else if (this.table === "edit_requests") {
+                    let id = this.params.id || this.params.eq_id || this.params._id;
+                    res = await app.api.put("/api/edits/" + id, this.actionData);
                 } else {
                     res = await app.api.put("/api/" + this.table, { ...this.params, ...this.actionData });
                 }
