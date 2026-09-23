@@ -17599,8 +17599,6 @@ Object.assign(window.app, {
                         let mainText = textParts.join(' + ');
                         if (denyReasons) mainText += `: (${denyReasons})`;
                         reviewTabHtml = `<div class="w-full max-w-full ${colorClass} text-[11px] font-bold px-4 pt-2.5 pb-[18px] rounded-t-md border border-b-0 shadow-sm leading-relaxed -mb-3"><i class="fa-solid fa-users mr-1"></i>${mainText}</div>`;
-                    } else if (p.reviewer_count > 0) {
-                        reviewTabHtml = `<div class="w-full max-w-full bg-blue-600 border-blue-700 text-white text-[11px] font-bold px-4 pt-2.5 pb-[18px] rounded-t-md border border-b-0 shadow-sm leading-relaxed -mb-3"><i class="fa-solid fa-users mr-1"></i>Đã có ${p.reviewer_count} người lựa chọn</div>`;
                     }
                     return `
                                 <div id="adm-photo-card-${p.id}" class="admin-card relative overflow-visible mt-8 ${hideClass}" data-photo-id="${p.id}" data-privileged="${(p.profiles?.role === 'admin' || p.profiles?.role === 'manager') ? 'true' : 'false'}" data-is-own="${isOwnPhoto ? 'true' : 'false'}">
@@ -18114,7 +18112,8 @@ Object.assign(window.app, {
                         btn.disabled = false;
                     }
                 },
-                loadTab: async (tab = 'photos', forceReload = true, preserveScroll = false) => {
+                loadTab: async (tab = 'photos_info', forceReload = true, preserveScroll = false) => {
+                    if (tab === 'photos') tab = (app.user?.subroles?.includes('quality_auditor') || app.role === 'manager') ? 'photos_quality' : 'photos_info';
                     if (!app.admin._noteFetched) {
                         app.admin._noteFetched = true;
                         app.admin.fetchAdminNote();
@@ -20657,7 +20656,7 @@ app.admin.fetchManagerData('denied');
                                 document.activeElement.blur();
                             }
                             if (!isFinal) {
-                                app.admin.loadTab('photos', false, true);
+                                app.admin.loadTab(app.adminTab, false, true);
                             } else {
                                 cardEl.style.transition = 'all 0.35s ease';
                                 cardEl.style.opacity = '0';
@@ -20669,12 +20668,12 @@ app.admin.fetchManagerData('denied');
                                 setTimeout(() => {
                                     cardEl.remove();
                                     if (parentEl && !parentEl.querySelector('.admin-card')) {
-                                        app.admin.loadTab('photos', false, true);
+                                        app.admin.loadTab(app.adminTab, false, true);
                                     }
                                 }, 350);
                             }
                         } else if (parentEl && !parentEl.querySelector('.admin-card')) {
-                            app.admin.loadTab('photos', false, true);
+                            app.admin.loadTab(app.adminTab, false, true);
                         }
                     } catch (err) {
                         app.ui.showAlert("Lỗi: " + err.message);
@@ -20768,7 +20767,7 @@ app.admin.fetchManagerData('denied');
                                         document.activeElement.blur();
                                     }
                                     if (!isFinal) {
-                                        app.admin.loadTab('photos', false, true);
+                                        app.admin.loadTab(app.adminTab, false, true);
                                     } else {
                                         cardEl.style.transition = 'all 0.35s ease';
                                         cardEl.style.opacity = '0';
@@ -20780,12 +20779,12 @@ app.admin.fetchManagerData('denied');
                                         setTimeout(() => {
                                             cardEl.remove();
                                             if (parentEl && !parentEl.querySelector('.admin-card')) {
-                                                app.admin.loadTab('photos', false, true);
+                                                app.admin.loadTab(app.adminTab, false, true);
                                             }
                                         }, 350);
                                     }
                                 } else if (parentEl && !parentEl.querySelector('.admin-card')) {
-                                    app.admin.loadTab('photos', false, true);
+                                    app.admin.loadTab(app.adminTab, false, true);
                                 }
                             } catch (err) {
                                 app.ui.showAlert("Lỗi: " + err.message);
