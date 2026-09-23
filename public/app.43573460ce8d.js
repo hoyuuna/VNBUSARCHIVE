@@ -270,6 +270,8 @@ class VnbusQueryBuilder {
                 } else if (this.table === "custom_toasts") {
                     let id = this.params.id || this.params.eq_id || this.params._id;
                     res = await app.api.put("/api/admin/custom-toasts/" + id, this.actionData);
+                } else if (this.table === "system_settings") {
+                    res = await app.api.put("/api/admin/system-settings", this.actionData);
                 } else {
                     res = await app.api.put("/api/" + this.table, { ...this.params, ...this.actionData });
                 }
