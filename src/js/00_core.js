@@ -143,7 +143,7 @@ class VnbusQueryBuilder {
         return this;
     }
     ilike(col, val) {
-        this.params["ilike_" + col] = "ilike." + val;
+        this.params[col] = val;
         return this;
     }
     in(col, vals) {
