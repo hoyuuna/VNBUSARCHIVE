@@ -360,7 +360,7 @@ Object.assign(window.app, {
                 const qs = searchParams.toString();
                 if (qs) url += "?" + qs;
             }
-            const headers = { "Content-Type": "application/json", "x-api-key": "VNBUS-AUTH-KEY-2026" };
+            const headers = { "Content-Type": "application/json" };
             const token = app.api.getToken();
             if (token) headers["Authorization"] = `Bearer ${token}`;
 
