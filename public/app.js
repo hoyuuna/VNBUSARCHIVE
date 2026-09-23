@@ -17261,6 +17261,24 @@ Object.assign(window.app, {
 Object.assign(window.app, {
     admin: {
                 adminInterval: null,
+                realtimeSimInterval: null,
+                startRealtimeSimulation: () => {
+                    if (app.admin.realtimeSimInterval) clearInterval(app.admin.realtimeSimInterval);
+                    app.admin.realtimeSimInterval = setInterval(() => {
+                        if (app.currentView !== 'admin') {
+                            app.admin.stopRealtimeSimulation();
+                            return;
+                        }
+                        if (app.adminTab && (app.adminTab === 'photos' || app.adminTab === 'photos_quality' || app.adminTab === 'requests')) {
+                            const scrollY = window.scrollY;
+                            app.admin.loadTab(app.adminTab, true, true);
+                        }
+                    }, 15000);
+                },
+                stopRealtimeSimulation: () => {
+                    if (app.admin.realtimeSimInterval) clearInterval(app.admin.realtimeSimInterval);
+                    app.admin.realtimeSimInterval = null;
+                },
                 commentsData: { data: [], page: 1 },
                 is3x3Enabled: localStorage.getItem('vbs_admin_grid_3x3') === 'true',
                 isRulerEnabled: localStorage.getItem('vbs_admin_ruler_horiz') === 'true',
@@ -18142,6 +18160,9 @@ Object.assign(window.app, {
                     }
                 },
                 loadTab: async (tab = 'photos_info', forceReload = true, preserveScroll = false) => {
+                    if (app.admin.startRealtimeSimulation && !app.admin.realtimeSimInterval) {
+                        app.admin.startRealtimeSimulation();
+                    }
                     if (tab === 'photos') tab = (app.user?.subroles?.includes('quality_auditor') || app.role === 'manager') ? 'photos_quality' : 'photos_info';
                     if (!app.admin._noteFetched) {
                         app.admin._noteFetched = true;
