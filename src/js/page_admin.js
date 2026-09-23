@@ -1012,7 +1012,7 @@ Object.assign(window.app, {
                                             const sessionRes = await window.sb.auth.getSession();
                                             const token = sessionRes.data.session?.access_token;
                                             if (token) {
-                                                const res = await fetch(app.api.baseUrl + '/api/photo?status=pending&page=${app.adminPendingPage}&limit=${pageSize}&_t=${new Date().getTime()}`, { headers: { 'Authorization': `Bearer ${token}` }, cache: 'no-store' });
+                                                const res = await fetch(app.api.baseUrl + `/api/photo?status=pending&page=${app.adminPendingPage}&limit=${pageSize}&_t=${new Date().getTime()}`, { headers: { 'Authorization': `Bearer ${token}` }, cache: 'no-store' });
                                                 if (res.ok) {
                                                     const json = await res.json();
                                                     if (json && json.data && Array.isArray(json.data)) return { data: json.data, count: json.count || 0 };

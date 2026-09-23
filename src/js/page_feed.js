@@ -1402,7 +1402,7 @@ Object.assign(window.app, {
                             const sessionRes = await window.sb.auth.getSession();
                             const token = sessionRes.data.session?.access_token;
                             if (token) {
-                                const apiRes = await fetch(app.api.baseUrl + '/api/photo?id=${photoId}`, {
+                                const apiRes = await fetch(app.api.baseUrl + `/api/photo?id=${photoId}`, {
                                     headers: { 'Authorization': `Bearer ${token}` }
                                 });
                                 if (apiRes.ok) {

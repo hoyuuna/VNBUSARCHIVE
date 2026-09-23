@@ -191,7 +191,7 @@ Object.assign(window.app, {
                     try {
                         let item = app.help.data.find(h => h.id === id);
                         if (!item) {
-                            const res = await fetch(app.api.baseUrl + '/api/discord?type=help&id=${id}`);
+                            const res = await fetch(app.api.baseUrl + `/api/discord?type=help&id=${id}`);
                             if (!res.ok) throw new Error("Bài viết không tồn tại hoặc có lỗi xảy ra");
                             item = await res.json();
                         }

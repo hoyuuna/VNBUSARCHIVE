@@ -8062,7 +8062,7 @@ Object.assign(window.app, {
                             const sessionRes = await window.sb.auth.getSession();
                             const token = sessionRes.data.session?.access_token;
                             if (token) {
-                                const apiRes = await fetch(app.api.baseUrl + '/api/photo?id=${photoId}`, {
+                                const apiRes = await fetch(app.api.baseUrl + `/api/photo?id=${photoId}`, {
                                     headers: { 'Authorization': `Bearer ${token}` }
                                 });
                                 if (apiRes.ok) {
@@ -10818,7 +10818,7 @@ Object.assign(window.app, {
                     try {
                         let item = app.help.data.find(h => h.id === id);
                         if (!item) {
-                            const res = await fetch(app.api.baseUrl + '/api/discord?type=help&id=${id}`);
+                            const res = await fetch(app.api.baseUrl + `/api/discord?type=help&id=${id}`);
                             if (!res.ok) throw new Error("Bài viết không tồn tại hoặc có lỗi xảy ra");
                             item = await res.json();
                         }
@@ -18297,7 +18297,7 @@ Object.assign(window.app, {
                                             const sessionRes = await window.sb.auth.getSession();
                                             const token = sessionRes.data.session?.access_token;
                                             if (token) {
-                                                const res = await fetch(app.api.baseUrl + '/api/photo?status=pending&page=${app.adminPendingPage}&limit=${pageSize}&_t=${new Date().getTime()}`, { headers: { 'Authorization': `Bearer ${token}` }, cache: 'no-store' });
+                                                const res = await fetch(app.api.baseUrl + `/api/photo?status=pending&page=${app.adminPendingPage}&limit=${pageSize}&_t=${new Date().getTime()}`, { headers: { 'Authorization': `Bearer ${token}` }, cache: 'no-store' });
                                                 if (res.ok) {
                                                     const json = await res.json();
                                                     if (json && json.data && Array.isArray(json.data)) return { data: json.data, count: json.count || 0 };
