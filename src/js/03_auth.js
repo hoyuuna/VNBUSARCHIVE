@@ -371,7 +371,7 @@ changePassword: async () => {
                         avatarData.append('fileExtension', app.utils.getTargetExtension());
                         const { data: { session } } = await window.sb.auth.getSession();
                         const token = session?.access_token;
-                        const res = await fetch('/api/upload', {
+                        const res = await fetch(app.api.baseUrl + '/api/upload', {
                             method: 'POST',
                             headers: {
                                 'Authorization': `Bearer ${token}`
@@ -431,7 +431,7 @@ changePassword: async () => {
                             try {
                                 const { data: { session } } = await window.sb.auth.getSession();
                                 if (session) {
-                                    await fetch('/api/delete-image', {
+                                    await fetch(app.api.baseUrl + '/api/delete-image', {
                                         method: 'POST',
                                         headers: {
                                             'Content-Type': 'application/json',
@@ -889,7 +889,7 @@ changePassword: async () => {
                     if (!app.qrLogin.conn || !app.qrLogin.conn.open) {
                         throw new Error("Không thể kết nối với máy chủ chờ. Vui lòng quét lại mã QR.");
                     }
-                    const res = await fetch('/api/system', {
+                    const res = await fetch(app.api.baseUrl + '/api/system', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',

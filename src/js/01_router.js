@@ -47,7 +47,7 @@ Object.assign(window.app, {
                 const { data } = await window.sb.auth.getSession();
                 session = data.session;
                 if (session && session.access_token) {
-                    fetch('/api/system', {
+                    fetch(app.api.baseUrl + '/api/system', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
                         body: JSON.stringify({ action: 'log_ip' })

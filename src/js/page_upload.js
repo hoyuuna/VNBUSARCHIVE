@@ -2344,7 +2344,7 @@ Object.assign(window.app, {
                         while (uploadAttempts < maxUploadAttempts) {
                             uploadAttempts++;
                             try {
-                                const response = await fetch('/api/upload', {
+                                const response = await fetch(app.api.baseUrl + '/api/upload', {
                                     method: 'POST',
                                     headers: { 'Authorization': `Bearer ${token}` },
                                     body: item.formData
@@ -2396,7 +2396,7 @@ Object.assign(window.app, {
                             });
                             if (result && result.url) {
                                 try {
-                                    await fetch('/api/delete-image', {
+                                    await fetch(app.api.baseUrl + '/api/delete-image', {
                                         method: 'POST',
                                         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                                         body: JSON.stringify({ imageUrl: result.url })
@@ -2430,7 +2430,7 @@ Object.assign(window.app, {
 
                             if (shouldReport) {
                                 try {
-                                    const reportRes = await fetch('/api/notify', {
+                                    const reportRes = await fetch(app.api.baseUrl + '/api/notify', {
                                         method: 'POST',
                                         headers: { 'Content-Type': 'application/json' },
                                         body: JSON.stringify({

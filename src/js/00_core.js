@@ -3564,7 +3564,7 @@ cleanupState: () => {
                                 try {
                                     const { data: { session } } = await window.sb.auth.getSession();
                                     const token = session?.access_token;
-                                    const res = await fetch('/api/discord', {
+                                    const res = await fetch(app.api.baseUrl + '/api/discord', {
                                         method: 'POST',
                                         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                                         body: JSON.stringify({ action: 'delete', tier: 2000 })
@@ -3596,7 +3596,7 @@ cleanupState: () => {
                         try {
                             const { data: { session } } = await window.sb.auth.getSession();
                             const token = session?.access_token;
-                            const res = await fetch('/api/discord', {
+                            const res = await fetch(app.api.baseUrl + '/api/discord', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                                 body: JSON.stringify({ action: 'claim', tier: 2000, customName: name, customColor: color })

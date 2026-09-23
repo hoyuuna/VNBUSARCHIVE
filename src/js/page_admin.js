@@ -314,7 +314,7 @@ Object.assign(window.app, {
                         formData.append('photoId', app.currentPhoto.id);
                         formData.append('file', blob, 'edited.webp');
 
-                        const res = await fetch('/api/admin/replace-image', {
+                        const res = await fetch(app.api.baseUrl + '/api/admin/replace-image', {
                             method: 'POST',
                             headers: { 'Authorization': `Bearer ${token}` },
                             body: formData
@@ -1012,7 +1012,7 @@ Object.assign(window.app, {
                                             const sessionRes = await window.sb.auth.getSession();
                                             const token = sessionRes.data.session?.access_token;
                                             if (token) {
-                                                const res = await fetch(`/api/photo?status=pending&page=${app.adminPendingPage}&limit=${pageSize}&_t=${new Date().getTime()}`, { headers: { 'Authorization': `Bearer ${token}` }, cache: 'no-store' });
+                                                const res = await fetch(app.api.baseUrl + '/api/photo?status=pending&page=${app.adminPendingPage}&limit=${pageSize}&_t=${new Date().getTime()}`, { headers: { 'Authorization': `Bearer ${token}` }, cache: 'no-store' });
                                                 if (res.ok) {
                                                     const json = await res.json();
                                                     if (json && json.data && Array.isArray(json.data)) return { data: json.data, count: json.count || 0 };
@@ -2570,7 +2570,7 @@ app.admin.fetchManagerData('denied');
                                 search: q,
                                 status: state.currentFilter || 'all'
                             };
-                            const response = await fetch('/api/manager', {
+                            const response = await fetch(app.api.baseUrl + '/api/manager', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
                                 body: JSON.stringify(payload)
@@ -2777,7 +2777,7 @@ app.admin.fetchManagerData('denied');
                     document.getElementById('btn-submit-ban').disabled = true;
                     try {
                         const { data: { session } } = await window.sb.auth.getSession();
-                        const response = await fetch('/api/manager', {
+                        const response = await fetch(app.api.baseUrl + '/api/manager', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
                             body: JSON.stringify({ action: 'ban', targetUserId: userId, reason: reason })
@@ -2799,7 +2799,7 @@ app.admin.fetchManagerData('denied');
                     app.ui.showAlert("Bạn có chắc muốn gỡ cấm tài khoản này không?", async () => {
                         try {
                             const { data: { session } } = await window.sb.auth.getSession();
-                            const response = await fetch('/api/manager', {
+                            const response = await fetch(app.api.baseUrl + '/api/manager', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
                                 body: JSON.stringify({ action: 'unban', targetUserId: userId })
@@ -2821,7 +2821,7 @@ app.admin.fetchManagerData('denied');
                     app.ui.showAlert("LƯU Ý: Hành động này sẽ XÓA VĨNH VIỄN tài khoản người dùng và không thể khôi phục. Bạn có chắc chắn muốn xóa không?", async () => {
                         try {
                             const { data: { session } } = await window.sb.auth.getSession();
-                            const response = await fetch('/api/manager', {
+                            const response = await fetch(app.api.baseUrl + '/api/manager', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
                                 body: JSON.stringify({ action: 'delete_user', targetUserId: userId })
@@ -2900,7 +2900,7 @@ app.admin.fetchManagerData('denied');
                         }
                         try {
                             const { data: { session } } = await window.sb.auth.getSession();
-                            const response = await fetch('/api/manager', {
+                            const response = await fetch(app.api.baseUrl + '/api/manager', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
                                 body: JSON.stringify({ action: 'update_subroles', targetUserId: userId, newSubroles })
@@ -3077,7 +3077,7 @@ app.admin.fetchManagerData('denied');
                                     markdownContent: content,
                                     isAnonymous: isAnonymous
                                 };
-                                const res = await fetch('/api/notify', {
+                                const res = await fetch(app.api.baseUrl + '/api/notify', {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token}` },
                                     body: JSON.stringify(payload)
@@ -3094,7 +3094,7 @@ app.admin.fetchManagerData('denied');
                                 markdownContent: content,
                                 isAnonymous: isAnonymous
                             };
-                            const res = await fetch('/api/notify', {
+                            const res = await fetch(app.api.baseUrl + '/api/notify', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token}` },
                                 body: JSON.stringify(payload)
@@ -3402,7 +3402,7 @@ app.admin.fetchManagerData('denied');
                             btn.innerText = "DUYỆT"; btn.disabled = false; btn.classList.remove('btn-loading');
                             return;
                         }
-                        const res = await fetch('/api/admin/action', {
+                        const res = await fetch(app.api.baseUrl + '/api/admin/action', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -3517,7 +3517,7 @@ app.admin.fetchManagerData('denied');
                             try {
                                 const plate = document.getElementById(`adm-p-plate-${id}`).value.trim();
                                 const location = document.getElementById(`adm-p-location-${id}`)?.value?.trim();
-                                const res = await fetch('/api/admin/action', {
+                                const res = await fetch(app.api.baseUrl + '/api/admin/action', {
                                     method: 'POST',
                                     headers: {
                                         'Content-Type': 'application/json',
@@ -3923,7 +3923,7 @@ app.admin.fetchManagerData('denied');
                     try {
                         const sessionRes = await window.sb.auth.getSession();
                         const token = sessionRes.data.session?.access_token;
-                        const res = await fetch('/api/admin/action', {
+                        const res = await fetch(app.api.baseUrl + '/api/admin/action', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -3969,7 +3969,7 @@ app.admin.fetchManagerData('denied');
                         const imgUrl = photo ? photo.url : null;
                         if (imgUrl || photoId) {
                             const { data: { session } } = await window.sb.auth.getSession();
-                            const delRes = await fetch('/api/upload/delete-image', {
+                            const delRes = await fetch(app.api.baseUrl + '/api/upload/delete-image', {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',

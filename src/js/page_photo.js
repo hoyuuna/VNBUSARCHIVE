@@ -119,7 +119,7 @@ Object.assign(window.app, {
                                     try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
                                     const { data: { session } } = await window.sb.auth.getSession();
                                     if (session && p.url) {
-                                        await fetch('/api/delete-image', {
+                                        await fetch(app.api.baseUrl + '/api/delete-image', {
                                             method: 'POST',
                                             headers: {
                                                 'Content-Type': 'application/json',

@@ -1402,7 +1402,7 @@ Object.assign(window.app, {
                             const sessionRes = await window.sb.auth.getSession();
                             const token = sessionRes.data.session?.access_token;
                             if (token) {
-                                const apiRes = await fetch(`/api/photo?id=${photoId}`, {
+                                const apiRes = await fetch(app.api.baseUrl + '/api/photo?id=${photoId}`, {
                                     headers: { 'Authorization': `Bearer ${token}` }
                                 });
                                 if (apiRes.ok) {
@@ -1807,7 +1807,7 @@ Object.assign(window.app, {
                                         deleteBtn.disabled = true;
                                         const sessionRes = await window.sb.auth.getSession();
                                         const token = sessionRes.data.session?.access_token;
-                                        const res = await fetch('/api/admin/action', {
+                                        const res = await fetch(app.api.baseUrl + '/api/admin/action', {
                                             method: 'POST',
                                             headers: {
                                                 'Content-Type': 'application/json',
@@ -1857,7 +1857,7 @@ Object.assign(window.app, {
                                         reapproveBtn.disabled = true;
                                         const sessionRes = await window.sb.auth.getSession();
                                         const token = sessionRes.data.session?.access_token;
-                                        const res = await fetch('/api/admin/action', {
+                                        const res = await fetch(app.api.baseUrl + '/api/admin/action', {
                                             method: 'POST',
                                             headers: {
                                                 'Content-Type': 'application/json',

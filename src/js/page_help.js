@@ -5,7 +5,7 @@ Object.assign(window.app, {
             activeIndex: 0,
         init: async () => {
                     try {
-                        const res = await fetch('/api/discord');
+                        const res = await fetch(app.api.baseUrl + '/api/discord');
                         if (!res.ok) throw new Error("Không thể tải bảng tin");
                         const data = await res.json();
                         if (Array.isArray(data) && data.length > 0) {
@@ -138,7 +138,7 @@ Object.assign(window.app, {
                     if (app.help.data.length === 0) {
                         container.innerHTML = '<div class="col-span-full text-center py-20 text-gray-500"><i class="fa-solid fa-circle-notch fa-spin text-2xl mb-2 text-black"></i><p>Đang tải dữ liệu...</p></div>';
                         try {
-                            const res = await fetch('/api/discord?type=help');
+                            const res = await fetch(app.api.baseUrl + '/api/discord?type=help');
                             if (!res.ok) throw new Error("Lỗi fetch API");
                             const data = await res.json();
                             app.help.data = data;
@@ -191,7 +191,7 @@ Object.assign(window.app, {
                     try {
                         let item = app.help.data.find(h => h.id === id);
                         if (!item) {
-                            const res = await fetch(`/api/discord?type=help&id=${id}`);
+                            const res = await fetch(app.api.baseUrl + '/api/discord?type=help&id=${id}`);
                             if (!res.ok) throw new Error("Bài viết không tồn tại hoặc có lỗi xảy ra");
                             item = await res.json();
                         }
@@ -807,7 +807,7 @@ Object.assign(window.app, {
                     const { data: { session } } = await window.sb.auth.getSession();
                     if (session) reqOpts.headers['Authorization'] = `Bearer ${session.access_token}`;
                 }
-                const res = await fetch('/api/discord', reqOpts);
+                const res = await fetch(app.api.baseUrl + '/api/discord', reqOpts);
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || "Gửi thất bại.");
                 const msgDetail = data.ticketId

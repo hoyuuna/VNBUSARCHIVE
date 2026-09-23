@@ -3566,7 +3566,7 @@ cleanupState: () => {
                                 try {
                                     const { data: { session } } = await window.sb.auth.getSession();
                                     const token = session?.access_token;
-                                    const res = await fetch('/api/discord', {
+                                    const res = await fetch(app.api.baseUrl + '/api/discord', {
                                         method: 'POST',
                                         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                                         body: JSON.stringify({ action: 'delete', tier: 2000 })
@@ -3598,7 +3598,7 @@ cleanupState: () => {
                         try {
                             const { data: { session } } = await window.sb.auth.getSession();
                             const token = session?.access_token;
-                            const res = await fetch('/api/discord', {
+                            const res = await fetch(app.api.baseUrl + '/api/discord', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                                 body: JSON.stringify({ action: 'claim', tier: 2000, customName: name, customColor: color })
@@ -4330,7 +4330,7 @@ Object.assign(window.app, {
                 const { data } = await window.sb.auth.getSession();
                 session = data.session;
                 if (session && session.access_token) {
-                    fetch('/api/system', {
+                    fetch(app.api.baseUrl + '/api/system', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
                         body: JSON.stringify({ action: 'log_ip' })
@@ -5071,7 +5071,7 @@ Object.assign(window.app, {
                         const { data: { session } } = await window.sb.auth.getSession();
                         if (!session) return;
                         const { count } = await window.sb.from('photos').select('*', { count: 'estimated', head: true }).eq('uploader_id', app.user.id).eq('status', 'approved');
-                        const res = await fetch('/api/discord', {
+                        const res = await fetch(app.api.baseUrl + '/api/discord', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
                             body: JSON.stringify({ action: 'status' })
@@ -5105,7 +5105,7 @@ try { data = JSON.parse(resText); } catch(e) { data = { error: 'Lỗi server (Kh
                     if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
                     try {
                         const { data: { session } } = await window.sb.auth.getSession();
-                        const res = await fetch('/api/discord', {
+                        const res = await fetch(app.api.baseUrl + '/api/discord', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
                             body: JSON.stringify({ action: 'claim', tier: 1 })
@@ -5185,7 +5185,7 @@ try { data = JSON.parse(resText); } catch(e) { data = { error: 'Lỗi server (Kh
                                 if (!session) throw new Error("Chưa đăng nhập");
 
                                 // Call backend API to revoke roles/badges before unlinking
-                                const apiRes = await fetch('/api/unlink', {
+                                const apiRes = await fetch(app.api.baseUrl + '/api/unlink', {
                                     method: 'POST',
                                     headers: {
                                         'Content-Type': 'application/json',
@@ -5218,7 +5218,7 @@ try { data = JSON.parse(resText); } catch(e) { data = { error: 'Lỗi server (Kh
                     if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
                     try {
                         const { data: { session } } = await window.sb.auth.getSession();
-                        const res = await fetch('/api/github', {
+                        const res = await fetch(app.api.baseUrl + '/api/github', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
                             body: JSON.stringify({ action: 'claim' })
@@ -5249,7 +5249,7 @@ try { data = JSON.parse(resText); } catch(e) { data = { error: 'Lỗi server (Kh
                         const { data: { session } } = await window.sb.auth.getSession();
                         if (!session) return;
                         
-                        const res = await fetch('/api/github', {
+                        const res = await fetch(app.api.baseUrl + '/api/github', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
                             body: JSON.stringify({ action: 'status' })
@@ -5297,7 +5297,7 @@ try { data = JSON.parse(resText); } catch(e) { data = { error: 'Lỗi server (Kh
                         const { data: { session } } = await window.sb.auth.getSession();
                         const token = session?.access_token;
                         if (!token) throw new Error("Chưa đăng nhập");
-                        const res = await fetch('/api/discord', {
+                        const res = await fetch(app.api.baseUrl + '/api/discord', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -5425,7 +5425,7 @@ grid.innerHTML = tiers.map(tier => {
                     try {
                         const { data: { session } } = await window.sb.auth.getSession();
                         const token = session?.access_token;
-                        const res = await fetch('/api/discord', {
+                        const res = await fetch(app.api.baseUrl + '/api/discord', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -5821,7 +5821,7 @@ changePassword: async () => {
                         avatarData.append('fileExtension', app.utils.getTargetExtension());
                         const { data: { session } } = await window.sb.auth.getSession();
                         const token = session?.access_token;
-                        const res = await fetch('/api/upload', {
+                        const res = await fetch(app.api.baseUrl + '/api/upload', {
                             method: 'POST',
                             headers: {
                                 'Authorization': `Bearer ${token}`
@@ -5881,7 +5881,7 @@ changePassword: async () => {
                             try {
                                 const { data: { session } } = await window.sb.auth.getSession();
                                 if (session) {
-                                    await fetch('/api/delete-image', {
+                                    await fetch(app.api.baseUrl + '/api/delete-image', {
                                         method: 'POST',
                                         headers: {
                                             'Content-Type': 'application/json',
@@ -6339,7 +6339,7 @@ changePassword: async () => {
                     if (!app.qrLogin.conn || !app.qrLogin.conn.open) {
                         throw new Error("Không thể kết nối với máy chủ chờ. Vui lòng quét lại mã QR.");
                     }
-                    const res = await fetch('/api/system', {
+                    const res = await fetch(app.api.baseUrl + '/api/system', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -8062,7 +8062,7 @@ Object.assign(window.app, {
                             const sessionRes = await window.sb.auth.getSession();
                             const token = sessionRes.data.session?.access_token;
                             if (token) {
-                                const apiRes = await fetch(`/api/photo?id=${photoId}`, {
+                                const apiRes = await fetch(app.api.baseUrl + '/api/photo?id=${photoId}`, {
                                     headers: { 'Authorization': `Bearer ${token}` }
                                 });
                                 if (apiRes.ok) {
@@ -8467,7 +8467,7 @@ Object.assign(window.app, {
                                         deleteBtn.disabled = true;
                                         const sessionRes = await window.sb.auth.getSession();
                                         const token = sessionRes.data.session?.access_token;
-                                        const res = await fetch('/api/admin/action', {
+                                        const res = await fetch(app.api.baseUrl + '/api/admin/action', {
                                             method: 'POST',
                                             headers: {
                                                 'Content-Type': 'application/json',
@@ -8517,7 +8517,7 @@ Object.assign(window.app, {
                                         reapproveBtn.disabled = true;
                                         const sessionRes = await window.sb.auth.getSession();
                                         const token = sessionRes.data.session?.access_token;
-                                        const res = await fetch('/api/admin/action', {
+                                        const res = await fetch(app.api.baseUrl + '/api/admin/action', {
                                             method: 'POST',
                                             headers: {
                                                 'Content-Type': 'application/json',
@@ -10632,7 +10632,7 @@ Object.assign(window.app, {
             activeIndex: 0,
         init: async () => {
                     try {
-                        const res = await fetch('/api/discord');
+                        const res = await fetch(app.api.baseUrl + '/api/discord');
                         if (!res.ok) throw new Error("Không thể tải bảng tin");
                         const data = await res.json();
                         if (Array.isArray(data) && data.length > 0) {
@@ -10765,7 +10765,7 @@ Object.assign(window.app, {
                     if (app.help.data.length === 0) {
                         container.innerHTML = '<div class="col-span-full text-center py-20 text-gray-500"><i class="fa-solid fa-circle-notch fa-spin text-2xl mb-2 text-black"></i><p>Đang tải dữ liệu...</p></div>';
                         try {
-                            const res = await fetch('/api/discord?type=help');
+                            const res = await fetch(app.api.baseUrl + '/api/discord?type=help');
                             if (!res.ok) throw new Error("Lỗi fetch API");
                             const data = await res.json();
                             app.help.data = data;
@@ -10818,7 +10818,7 @@ Object.assign(window.app, {
                     try {
                         let item = app.help.data.find(h => h.id === id);
                         if (!item) {
-                            const res = await fetch(`/api/discord?type=help&id=${id}`);
+                            const res = await fetch(app.api.baseUrl + '/api/discord?type=help&id=${id}`);
                             if (!res.ok) throw new Error("Bài viết không tồn tại hoặc có lỗi xảy ra");
                             item = await res.json();
                         }
@@ -11434,7 +11434,7 @@ Object.assign(window.app, {
                     const { data: { session } } = await window.sb.auth.getSession();
                     if (session) reqOpts.headers['Authorization'] = `Bearer ${session.access_token}`;
                 }
-                const res = await fetch('/api/discord', reqOpts);
+                const res = await fetch(app.api.baseUrl + '/api/discord', reqOpts);
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || "Gửi thất bại.");
                 const msgDetail = data.ticketId
@@ -14955,7 +14955,7 @@ Object.assign(window.app, {
                         while (uploadAttempts < maxUploadAttempts) {
                             uploadAttempts++;
                             try {
-                                const response = await fetch('/api/upload', {
+                                const response = await fetch(app.api.baseUrl + '/api/upload', {
                                     method: 'POST',
                                     headers: { 'Authorization': `Bearer ${token}` },
                                     body: item.formData
@@ -15007,7 +15007,7 @@ Object.assign(window.app, {
                             });
                             if (result && result.url) {
                                 try {
-                                    await fetch('/api/delete-image', {
+                                    await fetch(app.api.baseUrl + '/api/delete-image', {
                                         method: 'POST',
                                         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                                         body: JSON.stringify({ imageUrl: result.url })
@@ -15041,7 +15041,7 @@ Object.assign(window.app, {
 
                             if (shouldReport) {
                                 try {
-                                    const reportRes = await fetch('/api/notify', {
+                                    const reportRes = await fetch(app.api.baseUrl + '/api/notify', {
                                         method: 'POST',
                                         headers: { 'Content-Type': 'application/json' },
                                         body: JSON.stringify({
@@ -16041,7 +16041,7 @@ Object.assign(window.app, {
                                     try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
                                     const { data: { session } } = await window.sb.auth.getSession();
                                     if (session && p.url) {
-                                        await fetch('/api/delete-image', {
+                                        await fetch(app.api.baseUrl + '/api/delete-image', {
                                             method: 'POST',
                                             headers: {
                                                 'Content-Type': 'application/json',
@@ -17599,7 +17599,7 @@ Object.assign(window.app, {
                         formData.append('photoId', app.currentPhoto.id);
                         formData.append('file', blob, 'edited.webp');
 
-                        const res = await fetch('/api/admin/replace-image', {
+                        const res = await fetch(app.api.baseUrl + '/api/admin/replace-image', {
                             method: 'POST',
                             headers: { 'Authorization': `Bearer ${token}` },
                             body: formData
@@ -18297,7 +18297,7 @@ Object.assign(window.app, {
                                             const sessionRes = await window.sb.auth.getSession();
                                             const token = sessionRes.data.session?.access_token;
                                             if (token) {
-                                                const res = await fetch(`/api/photo?status=pending&page=${app.adminPendingPage}&limit=${pageSize}&_t=${new Date().getTime()}`, { headers: { 'Authorization': `Bearer ${token}` }, cache: 'no-store' });
+                                                const res = await fetch(app.api.baseUrl + '/api/photo?status=pending&page=${app.adminPendingPage}&limit=${pageSize}&_t=${new Date().getTime()}`, { headers: { 'Authorization': `Bearer ${token}` }, cache: 'no-store' });
                                                 if (res.ok) {
                                                     const json = await res.json();
                                                     if (json && json.data && Array.isArray(json.data)) return { data: json.data, count: json.count || 0 };
@@ -19855,7 +19855,7 @@ app.admin.fetchManagerData('denied');
                                 search: q,
                                 status: state.currentFilter || 'all'
                             };
-                            const response = await fetch('/api/manager', {
+                            const response = await fetch(app.api.baseUrl + '/api/manager', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
                                 body: JSON.stringify(payload)
@@ -20062,7 +20062,7 @@ app.admin.fetchManagerData('denied');
                     document.getElementById('btn-submit-ban').disabled = true;
                     try {
                         const { data: { session } } = await window.sb.auth.getSession();
-                        const response = await fetch('/api/manager', {
+                        const response = await fetch(app.api.baseUrl + '/api/manager', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
                             body: JSON.stringify({ action: 'ban', targetUserId: userId, reason: reason })
@@ -20084,7 +20084,7 @@ app.admin.fetchManagerData('denied');
                     app.ui.showAlert("Bạn có chắc muốn gỡ cấm tài khoản này không?", async () => {
                         try {
                             const { data: { session } } = await window.sb.auth.getSession();
-                            const response = await fetch('/api/manager', {
+                            const response = await fetch(app.api.baseUrl + '/api/manager', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
                                 body: JSON.stringify({ action: 'unban', targetUserId: userId })
@@ -20106,7 +20106,7 @@ app.admin.fetchManagerData('denied');
                     app.ui.showAlert("LƯU Ý: Hành động này sẽ XÓA VĨNH VIỄN tài khoản người dùng và không thể khôi phục. Bạn có chắc chắn muốn xóa không?", async () => {
                         try {
                             const { data: { session } } = await window.sb.auth.getSession();
-                            const response = await fetch('/api/manager', {
+                            const response = await fetch(app.api.baseUrl + '/api/manager', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
                                 body: JSON.stringify({ action: 'delete_user', targetUserId: userId })
@@ -20185,7 +20185,7 @@ app.admin.fetchManagerData('denied');
                         }
                         try {
                             const { data: { session } } = await window.sb.auth.getSession();
-                            const response = await fetch('/api/manager', {
+                            const response = await fetch(app.api.baseUrl + '/api/manager', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
                                 body: JSON.stringify({ action: 'update_subroles', targetUserId: userId, newSubroles })
@@ -20362,7 +20362,7 @@ app.admin.fetchManagerData('denied');
                                     markdownContent: content,
                                     isAnonymous: isAnonymous
                                 };
-                                const res = await fetch('/api/notify', {
+                                const res = await fetch(app.api.baseUrl + '/api/notify', {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token}` },
                                     body: JSON.stringify(payload)
@@ -20379,7 +20379,7 @@ app.admin.fetchManagerData('denied');
                                 markdownContent: content,
                                 isAnonymous: isAnonymous
                             };
-                            const res = await fetch('/api/notify', {
+                            const res = await fetch(app.api.baseUrl + '/api/notify', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token}` },
                                 body: JSON.stringify(payload)
@@ -20687,7 +20687,7 @@ app.admin.fetchManagerData('denied');
                             btn.innerText = "DUYỆT"; btn.disabled = false; btn.classList.remove('btn-loading');
                             return;
                         }
-                        const res = await fetch('/api/admin/action', {
+                        const res = await fetch(app.api.baseUrl + '/api/admin/action', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -20802,7 +20802,7 @@ app.admin.fetchManagerData('denied');
                             try {
                                 const plate = document.getElementById(`adm-p-plate-${id}`).value.trim();
                                 const location = document.getElementById(`adm-p-location-${id}`)?.value?.trim();
-                                const res = await fetch('/api/admin/action', {
+                                const res = await fetch(app.api.baseUrl + '/api/admin/action', {
                                     method: 'POST',
                                     headers: {
                                         'Content-Type': 'application/json',
@@ -21208,7 +21208,7 @@ app.admin.fetchManagerData('denied');
                     try {
                         const sessionRes = await window.sb.auth.getSession();
                         const token = sessionRes.data.session?.access_token;
-                        const res = await fetch('/api/admin/action', {
+                        const res = await fetch(app.api.baseUrl + '/api/admin/action', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -21254,7 +21254,7 @@ app.admin.fetchManagerData('denied');
                         const imgUrl = photo ? photo.url : null;
                         if (imgUrl || photoId) {
                             const { data: { session } } = await window.sb.auth.getSession();
-                            const delRes = await fetch('/api/upload/delete-image', {
+                            const delRes = await fetch(app.api.baseUrl + '/api/upload/delete-image', {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',

@@ -174,7 +174,7 @@ Object.assign(window.app, {
                         const { data: { session } } = await window.sb.auth.getSession();
                         if (!session) return;
                         const { count } = await window.sb.from('photos').select('*', { count: 'estimated', head: true }).eq('uploader_id', app.user.id).eq('status', 'approved');
-                        const res = await fetch('/api/discord', {
+                        const res = await fetch(app.api.baseUrl + '/api/discord', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
                             body: JSON.stringify({ action: 'status' })
@@ -208,7 +208,7 @@ try { data = JSON.parse(resText); } catch(e) { data = { error: 'Lỗi server (Kh
                     if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
                     try {
                         const { data: { session } } = await window.sb.auth.getSession();
-                        const res = await fetch('/api/discord', {
+                        const res = await fetch(app.api.baseUrl + '/api/discord', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
                             body: JSON.stringify({ action: 'claim', tier: 1 })
@@ -288,7 +288,7 @@ try { data = JSON.parse(resText); } catch(e) { data = { error: 'Lỗi server (Kh
                                 if (!session) throw new Error("Chưa đăng nhập");
 
                                 // Call backend API to revoke roles/badges before unlinking
-                                const apiRes = await fetch('/api/unlink', {
+                                const apiRes = await fetch(app.api.baseUrl + '/api/unlink', {
                                     method: 'POST',
                                     headers: {
                                         'Content-Type': 'application/json',
@@ -321,7 +321,7 @@ try { data = JSON.parse(resText); } catch(e) { data = { error: 'Lỗi server (Kh
                     if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
                     try {
                         const { data: { session } } = await window.sb.auth.getSession();
-                        const res = await fetch('/api/github', {
+                        const res = await fetch(app.api.baseUrl + '/api/github', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
                             body: JSON.stringify({ action: 'claim' })
@@ -352,7 +352,7 @@ try { data = JSON.parse(resText); } catch(e) { data = { error: 'Lỗi server (Kh
                         const { data: { session } } = await window.sb.auth.getSession();
                         if (!session) return;
                         
-                        const res = await fetch('/api/github', {
+                        const res = await fetch(app.api.baseUrl + '/api/github', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
                             body: JSON.stringify({ action: 'status' })
@@ -400,7 +400,7 @@ try { data = JSON.parse(resText); } catch(e) { data = { error: 'Lỗi server (Kh
                         const { data: { session } } = await window.sb.auth.getSession();
                         const token = session?.access_token;
                         if (!token) throw new Error("Chưa đăng nhập");
-                        const res = await fetch('/api/discord', {
+                        const res = await fetch(app.api.baseUrl + '/api/discord', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -528,7 +528,7 @@ grid.innerHTML = tiers.map(tier => {
                     try {
                         const { data: { session } } = await window.sb.auth.getSession();
                         const token = session?.access_token;
-                        const res = await fetch('/api/discord', {
+                        const res = await fetch(app.api.baseUrl + '/api/discord', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
