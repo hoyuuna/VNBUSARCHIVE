@@ -277,7 +277,17 @@ class VnbusQueryBuilder {
                 }
                 res = { data: [] };
             } else {
-                if (this.table === "photos") res = await app.api.get("/api/photos", this.params);
+                if (this.table === "photos") {
+                    let pid = this.params.id || this.params.eq_id || this.params._id;
+                    if (pid && !this.params.neq_id && !this.params.or) {
+                        res = await app.api.get("/api/photos/" + encodeURIComponent(pid), this.params);
+                        if (res.data) res = { data: [res.data], count: 1 };
+                        else if (res.id || res._id) res = { data: [res], count: 1 };
+                        else res = { data: [], count: 0 };
+                    } else {
+                        res = await app.api.get("/api/photos", this.params);
+                    }
+                }
                 else if (this.table === "vehicles") res = await app.api.get("/api/vehicles", this.params);
                 else if (this.table === "profiles") res = await app.api.get("/api/auth/users", this.params);
                 else if (this.table === "operator_info") res = await app.api.get("/api/reference/operators", this.params);
