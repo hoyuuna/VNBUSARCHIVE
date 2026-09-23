@@ -72,10 +72,12 @@ Object.assign(window, {
                 });
             },
             unlinkIdentity: async (options) => {
-                return new Promise((resolve) => {
-                    app.ui.showAlert("Tính năng hủy liên kết tạm thời bị vô hiệu hóa trên hệ thống mới. Vui lòng liên hệ Admin nếu cần hỗ trợ.");
-                    resolve({ error: null });
-                });
+                try {
+                    await app.api.post("/api/system/unlink", { provider: options.provider || "discord" }); // Temporary fallback if provider isn't passed perfectly
+                    return { error: null };
+                } catch(error) {
+                    return { error };
+                }
             },
             updateUser: async (attrs) => {
                 try {
@@ -3246,33 +3248,37 @@ cleanupState: () => {
                     window.location.reload();
                     return;
                 }
+                const actionVal = searchParams.get('action');
+                const toastMsg = searchParams.get('toast');
+                if (toastMsg) {
+                    setTimeout(() => app.ui.showToast(toastMsg, 'success'), 500);
+                    if (actionVal === 'open_settings_account') {
+                        setTimeout(() => app.settings.open('profile', 'account'), 1000);
+                    }
+                    searchParams.delete('toast');
+                    searchParams.delete('action');
+                    let newUrl = window.location.pathname;
+                    if (searchParams.toString()) newUrl += '?' + searchParams.toString();
+                    window.history.replaceState(null, '', newUrl);
+                }
+
                 const oauthError = searchParams.get('oauth_error');
-                if (oauthError === 'not_registered' || oauthError === 'flow_failed' || oauthError === 'no_email_provided') {
-                    const newEmail = searchParams.get('email') || '';
-                    const newName = searchParams.get('name') || '';
+                if (oauthError) {
                     searchParams.delete('oauth_error');
-                    searchParams.delete('email');
-                    searchParams.delete('name');
                     let newUrl = window.location.pathname;
                     if (searchParams.toString()) newUrl += '?' + searchParams.toString();
                     window.history.replaceState(null, '', newUrl);
                     
                     if (oauthError === 'not_registered') {
-                        app.auth.mode = 'register';
-                        setTimeout(() => {
-                            if (window.location.pathname !== '/auth') app.utils.navigate('/auth');
-                            setTimeout(() => {
-                                const emailInput = document.getElementById('auth-email');
-                                const nameInput = document.getElementById('auth-username');
-                                if (emailInput) emailInput.value = newEmail;
-                                if (nameInput) nameInput.value = newName;
-                                app.ui.showAlert(`<b>TÀI KHOẢN CHƯA ĐĂNG KÝ</b><br>Tài khoản mạng xã hội của bạn chưa được liên kết với bất kỳ người dùng nào trên hệ thống.<br><br>Vui lòng <b>Tạo tài khoản mới</b> sử dụng email này.`);
-                            }, 500);
-                        }, 100);
+                        setTimeout(() => app.ui.showAlert('Lỗi chưa đăng ký, nhưng hệ thống mới tự tạo tài khoản.'), 300);
+                    } else if (oauthError === 'email_exists') {
+                        setTimeout(() => app.ui.showAlert('<b>EMAIL ĐÃ TỒN TẠI</b><br>Email của tài khoản mạng xã hội này đã được sử dụng bởi một tài khoản khác trên hệ thống.<br><br>Vui lòng đăng nhập bằng Mật khẩu (hoặc Khôi phục mật khẩu), sau đó vào <b>Cài đặt -> Liên kết tài khoản</b>.'), 300);
+                    } else if (oauthError === 'identity_already_linked') {
+                        setTimeout(() => app.ui.showAlert('Tài khoản mạng xã hội này đã được liên kết với một người dùng khác trên hệ thống VNBUSARCHIVE!'), 300);
                     } else if (oauthError === 'flow_failed') {
-                        setTimeout(() => app.ui.showAlert("Đăng nhập bằng mạng xã hội thất bại."), 300);
+                        setTimeout(() => app.ui.showAlert('Đăng nhập thất bại do lỗi kết nối với máy chủ xác thực.'), 300);
                     } else if (oauthError === 'no_email_provided') {
-                        setTimeout(() => app.ui.showAlert("Không thể lấy địa chỉ email từ tài khoản mạng xã hội của bạn. Vui lòng thử cách khác."), 300);
+                        setTimeout(() => app.ui.showAlert('Tài khoản của bạn không cung cấp Email công khai. Vui lòng cấp quyền truy cập Email để tiếp tục.'), 300);
                     }
                 }
                 app.currentPathForScroll = path + window.location.search;
