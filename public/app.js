@@ -8568,6 +8568,11 @@ Object.assign(window.app, {
                     }
                     const historyPlate = v?.license_plate || photo.license_plate;
                     if (window.location.pathname !== `/photo/${photoId}`) return;
+                    
+                    setTimeout(() => {
+                        app.api.post("/api/photos/" + photoId + "/view", {}).catch(e => console.warn("Lỗi ghi nhận view:", e));
+                    }, 500);
+
                     app.views.loadHistory(historyPlate);
 
                     app.comments.init(photoId);

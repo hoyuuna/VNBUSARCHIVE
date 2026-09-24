@@ -1,0 +1,6 @@
+
+$content = Get-Content -Raw "temp/middle/src/routes/vehicles.ts"
+$content = $content -replace "const \{ q = \'', limit = \'20\', license_plate, model, or, and \} = c\.req\.query\(\)", "const { q = '', limit = '20', license_plate, model, or, and, `'photos.status`': photosStatus } = c.req.query()`r`n  const status = photosStatus || c.req.query().status"
+$content = $content -replace "const results = await db\.find\('vehicles', filter, \{ limit: lim \}\);`r`n  const data = results\.map\(\(r: any\) => \(\{ \.\.\.r, license_plate: r\._id \}\)\);`r`n  return c\.json\(\{ data \}\)", "let results;`r`n  if (status) {`r`n    const pipeline = [`r`n      { `$match: filter },`r`n      { `$lookup: { from: 'photos', localField: '_id', foreignField: 'license_plate', as: 'photos' } },`r`n      { `$match: { 'photos.status': status } },`r`n      { `$limit: lim },`r`n      { `$project: { photos: 0 } }`r`n    ];`r`n    results = await db.aggregate('vehicles', pipeline);`r`n  } else {`r`n    results = await db.find('vehicles', filter, { limit: lim });`r`n  }`r`n  const data = results.map((r: any) => ({ ...r, license_plate: r._id }));`r`n  return c.json({ data });"
+Set-Content -Path "temp/middle/src/routes/vehicles.ts" -Value $content -NoNewline
+
