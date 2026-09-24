@@ -1208,3 +1208,41 @@ changePassword: async () => {
                 }
             }
 });
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    const resetForm = document.getElementById('reset-password-form');
+    if (resetForm) {
+        resetForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const newPass = document.getElementById('reset-password-new').value;
+            const confirmPass = document.getElementById('reset-password-confirm').value;
+            
+            if (!newPass || newPass.length < 6) return app.ui.showAlert("Mật khẩu phải từ 6 ký tự trở lên.");
+            if (newPass !== confirmPass) return app.ui.showAlert("Mật khẩu xác nhận không khớp.");
+            
+            const btn = document.getElementById('reset-password-submit');
+            const ogText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang xử lý...';
+            btn.disabled = true;
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token');
+            
+            try {
+                if (!token) throw new Error("Link không hợp lệ hoặc đã hết hạn.");
+                const { error } = await window.sb.auth.updateUser({ password: newPass, token: token });
+                if (error) throw error;
+                
+                app.ui.showAlert("Đổi mật khẩu thành công! Bạn có thể đăng nhập bằng mật khẩu mới.", () => {
+                    app.utils.navigate('/auth');
+                });
+            } catch (err) {
+                app.ui.showAlert(err.message || "Có lỗi xảy ra, vui lòng thử lại.");
+            } finally {
+                btn.innerHTML = ogText;
+                btn.disabled = false;
+            }
+        });
+    }
+});
