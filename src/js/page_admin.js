@@ -865,7 +865,7 @@ Object.assign(window.app, {
                 },
                 fetchAdminNote: async function() {
                     try {
-                        const { data, error } = await window.sb.from('admin_notes').select('content').eq('id', 1).maybeSingle();
+                        const { data, error } = await window.sb.from('admin_notes').select('content').eq('id', 'SYSTEM_MAIN').maybeSingle();
                         if (error) throw error;
                         const note = data ? data.content : '';
                         const noteInput = document.getElementById('adm-board-note');
