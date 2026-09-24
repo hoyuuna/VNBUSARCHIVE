@@ -3105,28 +3105,24 @@ cleanupState: () => {
                 },
                 fetchTopUploaders: async () => {
                     try {
-                        let allUploaders = [];
-                        let from = 0;
-                        let step = 999;
-                        let fetchMore = true;
-                        while (fetchMore) {
-                            const { data, error } = await window.sb
-                                .from('photos')
-                                .select('uploader_id')
-                                .eq('status', 'approved')
-                                .range(from, from + step);
-                            if (error || !data) break;
-                            allUploaders.push(...data);
-                            if (data.length <= step) fetchMore = false;
-                            from += step + 1;
-                        }
+                        const { data } = await window.sb.rpc('get_leaderboard_stats');
+                        if (!data) return;
+                        
                         const counts = {};
-                        allUploaders.forEach(p => {
-                            if (p.uploader_id) counts[p.uploader_id] = (counts[p.uploader_id] || 0) + 1;
+                        const viewCounts = {};
+                        
+                        data.forEach(row => {
+                            if (row._id) {
+                                counts[row._id] = row.photo_count || 0;
+                                viewCounts[row._id] = row.view_count || 0;
+                            }
                         });
+                        
                         const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
                         app.topUploaders = {};
                         app.topUploadersCounts = counts;
+                        app.topUploadersViews = viewCounts;
+                        
                         if (sorted.length > 0) app.topUploaders[sorted[0][0]] = 1;
                         if (sorted.length > 1) app.topUploaders[sorted[1][0]] = 2;
                         if (sorted.length > 2) app.topUploaders[sorted[2][0]] = 3;

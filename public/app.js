@@ -3107,28 +3107,24 @@ cleanupState: () => {
                 },
                 fetchTopUploaders: async () => {
                     try {
-                        let allUploaders = [];
-                        let from = 0;
-                        let step = 999;
-                        let fetchMore = true;
-                        while (fetchMore) {
-                            const { data, error } = await window.sb
-                                .from('photos')
-                                .select('uploader_id')
-                                .eq('status', 'approved')
-                                .range(from, from + step);
-                            if (error || !data) break;
-                            allUploaders.push(...data);
-                            if (data.length <= step) fetchMore = false;
-                            from += step + 1;
-                        }
+                        const { data } = await window.sb.rpc('get_leaderboard_stats');
+                        if (!data) return;
+                        
                         const counts = {};
-                        allUploaders.forEach(p => {
-                            if (p.uploader_id) counts[p.uploader_id] = (counts[p.uploader_id] || 0) + 1;
+                        const viewCounts = {};
+                        
+                        data.forEach(row => {
+                            if (row._id) {
+                                counts[row._id] = row.photo_count || 0;
+                                viewCounts[row._id] = row.view_count || 0;
+                            }
                         });
+                        
                         const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
                         app.topUploaders = {};
                         app.topUploadersCounts = counts;
+                        app.topUploadersViews = viewCounts;
+                        
                         if (sorted.length > 0) app.topUploaders[sorted[0][0]] = 1;
                         if (sorted.length > 1) app.topUploaders[sorted[1][0]] = 2;
                         if (sorted.length > 2) app.topUploaders[sorted[2][0]] = 3;
@@ -10438,26 +10434,7 @@ Object.assign(window.app, {
             try {
                 await app.utils.fetchTopUploaders();
                 const counts = app.topUploadersCounts || {};
-                let allApprovedPhotos = [];
-                let fromIndex = 0;
-                let batchSize = 999;
-                let hasMore = true;
-                while (hasMore) {
-                    const { data, error: phErr } = await window.sb
-                        .from('photos')
-                        .select('uploader_id, views')
-                        .eq('status', 'approved')
-                        .range(fromIndex, fromIndex + batchSize);
-                    if (phErr || !data) break;
-                    allApprovedPhotos.push(...data);
-                    if (data.length <= batchSize) hasMore = false;
-                    fromIndex += batchSize + 1;
-                }
-                const viewCounts = {};
-                allApprovedPhotos.forEach(p => {
-                    if (!p.uploader_id) return;
-                    viewCounts[p.uploader_id] = (viewCounts[p.uploader_id] || 0) + (Number(p.views) || 0);
-                });
+                const viewCounts = app.topUploadersViews || {};
                 const { data: allProfiles, error: prErr } = await window.sb.from('profiles').select('id, username, avatar_url, role, subroles, ban_status');
                 if (prErr) throw prErr;
                 const activeProfiles = (allProfiles || []).filter(p => p.ban_status !== 'banned' && p.username);

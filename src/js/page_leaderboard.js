@@ -21,26 +21,7 @@ Object.assign(window.app, {
             try {
                 await app.utils.fetchTopUploaders();
                 const counts = app.topUploadersCounts || {};
-                let allApprovedPhotos = [];
-                let fromIndex = 0;
-                let batchSize = 999;
-                let hasMore = true;
-                while (hasMore) {
-                    const { data, error: phErr } = await window.sb
-                        .from('photos')
-                        .select('uploader_id, views')
-                        .eq('status', 'approved')
-                        .range(fromIndex, fromIndex + batchSize);
-                    if (phErr || !data) break;
-                    allApprovedPhotos.push(...data);
-                    if (data.length <= batchSize) hasMore = false;
-                    fromIndex += batchSize + 1;
-                }
-                const viewCounts = {};
-                allApprovedPhotos.forEach(p => {
-                    if (!p.uploader_id) return;
-                    viewCounts[p.uploader_id] = (viewCounts[p.uploader_id] || 0) + (Number(p.views) || 0);
-                });
+                const viewCounts = app.topUploadersViews || {};
                 const { data: allProfiles, error: prErr } = await window.sb.from('profiles').select('id, username, avatar_url, role, subroles, ban_status');
                 if (prErr) throw prErr;
                 const activeProfiles = (allProfiles || []).filter(p => p.ban_status !== 'banned' && p.username);
