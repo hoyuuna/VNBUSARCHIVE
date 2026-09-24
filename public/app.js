@@ -20160,6 +20160,7 @@ app.admin.fetchManagerData('denied');
                     const isVvcc = !!vvccRole;
                     const vvccLink = (vvccRole && vvccRole.includes('|')) ? vvccRole.split('|')[1] : '';
                     const isVvbs = subroles.includes('vvbs');
+                    const isQualityAuditor = subroles.includes('quality_auditor');
                     const htmlForm = `
                         <div class="text-left space-y-4 mt-2 max-h-[60vh] overflow-y-auto">
                             <label class="flex items-start cursor-pointer group select-none">
@@ -20195,16 +20196,28 @@ app.admin.fetchManagerData('denied');
                             <div id="subrole-vvcc-link-wrapper" class="${isVvcc ? '' : 'hidden'} pl-6 mt-1">
                                 <input type="text" id="subrole-vvcc-link" placeholder="Nhập Link Kênh (Youtube, Tiktok...)" value="${app.utils.escapeHtml(vvccLink)}" class="w-full bg-white border border-gray-300 rounded-lg p-2 text-xs focus:ring-1 focus:ring-black focus:border-black outline-none transition-all shadow-inner text-black">
                             </div>
+                            <label class="flex items-start cursor-pointer group select-none mt-4">
+                                <input type="checkbox" id="subrole-cb-quality" class="custom-cb-input sr-only" ${isQualityAuditor ? 'checked' : ''}>
+                                <div class="custom-cb-box shrink-0 shadow-sm">
+                                    <i class="fa-solid fa-check"></i>
+                                </div>
+                                <span class="text-xs font-semibold text-gray-800 group-hover:text-black transition leading-relaxed pt-0.5">
+                                    <strong class="text-sm text-gray-900 block leading-none mb-1">Kiểm Duyệt Ảnh</strong>
+                                    <span class="text-[10px] text-gray-500 block leading-tight">Quyền truy cập tab Duyệt Ảnh và duyệt/từ chối ảnh chờ.</span>
+                                </span>
+                            </label>
                         </div>
                     `;
                     app.ui.showAlert(htmlForm, async () => {
                         const cbDev = document.getElementById('subrole-cb-dev').checked;
                         const cbVvbs = document.getElementById('subrole-cb-vvbs').checked;
                         const cbVvcc = document.getElementById('subrole-cb-vvcc').checked;
+                        const cbQuality = document.getElementById('subrole-cb-quality').checked;
                         const linkInput = document.getElementById('subrole-vvcc-link').value.trim();
                         let newSubroles = [];
                         if (cbDev) newSubroles.push('dev');
                         if (cbVvbs) newSubroles.push('vvbs');
+                        if (cbQuality) newSubroles.push('quality_auditor');
                         if (cbVvcc) {
                             if (linkInput) newSubroles.push(`vvcc|${linkInput}`);
                             else newSubroles.push('vvcc');
