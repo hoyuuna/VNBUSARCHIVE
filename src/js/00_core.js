@@ -146,6 +146,10 @@ class VnbusQueryBuilder {
         this.params[col] = val;
         return this;
     }
+    like(col, val) {
+        this.params[col] = val;
+        return this;
+    }
     in(col, vals) {
         this.params[col] = "in.(" + vals.join(",") + ")";
         return this;
