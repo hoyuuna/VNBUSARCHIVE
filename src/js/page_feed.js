@@ -208,7 +208,7 @@ Object.assign(window.app, {
                             </div>
                         `).join('');
                     }
-                    let topPhotos = null;
+                    let topPhotos = [];
                     try {
                         const { data: trendingData, error: trendingErr } = await window.sb.rpc('get_trending_photos_24h', {
                             filter_type: app.preference.current || 'both',
@@ -220,16 +220,30 @@ Object.assign(window.app, {
                     } catch (e) {
                         console.warn("Chưa chạy RPC get_trending_photos_24h hoặc lỗi:", e);
                     }
-                    if (!topPhotos || topPhotos.length === 0) {
+
+                    if (topPhotos.length < 5) {
+                        let fillCount = 5 - topPhotos.length;
+                        let existingIds = topPhotos.map(p => p.id);
+                        
                         let topQuery = window.sb
                             .from('photos')
                             .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                             .eq('status', 'approved')
-                            .order('views', { ascending: false, nullsFirst: false })
+                            .order('created_at', { ascending: false })
                             .limit(5);
                         topQuery = app.preference.applyFilter(topQuery);
                         const { data: fallbackPhotos } = await topQuery;
-                        topPhotos = fallbackPhotos;
+                        
+                        if (fallbackPhotos) {
+                            let added = 0;
+                            for (const fp of fallbackPhotos) {
+                                if (!existingIds.includes(fp.id)) {
+                                    topPhotos.push(fp);
+                                    added++;
+                                    if (added >= fillCount) break;
+                                }
+                            }
+                        }
                     }
                     if (app.currentViewMode !== 'home') return;
                     const heroMain = document.getElementById('hero-main');
