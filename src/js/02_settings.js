@@ -183,7 +183,7 @@ Object.assign(window.app, {
 let data = {};
 try { data = JSON.parse(resText); } catch(e) { data = { error: 'Lỗi server (Không phải JSON)' }; }
                         if (!data.linked) {
-                            actionBtn.innerHTML = `<button onclick="app.settings.jumpTo('badges', 'main')" class="px-4 py-2 bg-black text-white text-xs font-bold rounded hover:bg-gray-800 transition shadow-sm border border-black whitespace-nowrap">Liên kết Discord</button>`;
+                            actionBtn.innerHTML = `<button onclick="app.settings.linkIdentity('discord')" class="px-4 py-2 bg-black text-white text-xs font-bold rounded hover:bg-gray-800 transition shadow-sm border border-black whitespace-nowrap">Liên kết Discord</button>`;
                             return;
                         }
                         if (!data.inServer) {
