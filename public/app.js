@@ -5083,7 +5083,7 @@ try { data = JSON.parse(resText); } catch(e) { data = { error: 'Lỗi server (Kh
                             actionBtn.innerHTML = `<button onclick="app.settings.linkIdentity('discord')" class="px-4 py-2 bg-black text-white text-xs font-bold rounded hover:bg-gray-800 transition shadow-sm border border-black whitespace-nowrap">Liên kết Discord</button>`;
                             return;
                         }
-                        if (!data.inServer) {
+                        if (!data.inServer) { console.error("DISCORD API DEBUG:", data); 
                             actionBtn.innerHTML = `<a href="https://discord.com/invite/BNWyqbuvwq" target="_blank" class="px-4 py-2 bg-[#5865F2] text-white text-xs font-bold rounded hover:bg-[#4752C4] transition shadow-sm border border-[#5865F2] whitespace-nowrap inline-block text-center">Tham gia Server</a>`;
                             return;
                         }
@@ -5311,7 +5311,7 @@ try { data = JSON.parse(resText); } catch(e) { data = { error: 'Lỗi server (Kh
                             },
                             body: JSON.stringify({ action: 'status' })
                         });
-                        const data = await res.json();
+                        const data = await res.json(); console.error("DISCORD API DEBUG:", data);
                         app.customRoleDetails = data.customRoleDetails || null;
                         if (!data.linked || !data.inServer) {
                             loading.classList.add('hidden');
@@ -5439,7 +5439,7 @@ grid.innerHTML = tiers.map(tier => {
                             },
                             body: JSON.stringify({ action: 'claim', tier: tier })
                         });
-                        const data = await res.json();
+                        const data = await res.json(); console.error("DISCORD API DEBUG:", data);
                         if (!res.ok) throw new Error(data.error || 'Lỗi không xác định');
                         app.toast.show('success', 'Thành công', data.message || "Đã nhận Role thành công!");
                         app.settings.loadBadges();
