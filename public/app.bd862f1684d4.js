@@ -3297,7 +3297,7 @@ cleanupState: () => {
                         app.auth.mode = 'recovery';
                         app.auth.recoveryToken = token;
                     }
-                    app.views.switch('auth', false);
+                    app.views.switch('reset-password', false);
                 } else if (path === '/setting' || path === '/settings') {
                     app.views.loadAccount();
                     setTimeout(() => {
@@ -4279,6 +4279,7 @@ dropdown.innerHTML = `
 });
 
 // Cache buster: 20260922173758
+
 
 /* --- MODULE: 01_router.js --- */
 // Extracted to 01_router.js
