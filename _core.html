@@ -2907,9 +2907,14 @@ html.theme-dark .ct-icon {
             <p class="text-sm font-medium text-vbs-dark/70 drop-shadow-sm">Nhập mật khẩu mới cho tài khoản.</p>
         </div>
         <label class="block text-sm font-semibold text-vbs-dark mb-1.5 drop-shadow-sm">Mật khẩu mới</label>
+        <div class="relative mb-4">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-black"><i class="fa-solid fa-lock w-4 h-4 mt-1 text-center"></i></span>
+            <input type="password" id="auth-new-password" placeholder="Tối thiểu 6 kí tự" class="w-full border border-white/80 pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:border-vbs-dark focus:ring-1 focus:ring-vbs-dark transition-colors text-sm bg-white/80  placeholder-gray-500 shadow-inner">
+        </div>
+        <label class="block text-sm font-semibold text-vbs-dark mb-1.5 drop-shadow-sm">Xác nhận mật khẩu mới</label>
         <div class="relative">
             <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-black"><i class="fa-solid fa-lock w-4 h-4 mt-1 text-center"></i></span>
-            <input type="password" id="auth-new-password" placeholder="Tối thiểu 6 ký tự" class="w-full border border-white/80 pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:border-vbs-dark focus:ring-1 focus:ring-vbs-dark transition-colors text-sm bg-white/80  placeholder-gray-500 shadow-inner">
+            <input type="password" id="auth-confirm-password" placeholder="Nhập lại mật khẩu mới" class="w-full border border-white/80 pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:border-vbs-dark focus:ring-1 focus:ring-vbs-dark transition-colors text-sm bg-white/80  placeholder-gray-500 shadow-inner">
         </div>
     </div>
 

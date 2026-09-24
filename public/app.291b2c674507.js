@@ -3243,7 +3243,7 @@ cleanupState: () => {
                 const path = window.location.pathname;
                 const searchParams = new URLSearchParams(window.location.search);
                 const queryToken = searchParams.get('token');
-                if (queryToken) {
+                if (queryToken && path !== '/reset-password') {
                     sessionStorage.setItem('VNBA_SESS_AUTH', JSON.stringify({ token: queryToken }));
                     searchParams.delete('token');
                     let newUrl = window.location.pathname;
@@ -5634,7 +5634,9 @@ Object.assign(window.app, {
     );
 } else if (app.auth.mode === 'recovery') {
     const newPass = document.getElementById('auth-new-password').value;
+    const confirmPass = document.getElementById('auth-confirm-password').value;
     if (!newPass || newPass.length < 6) throw new Error("Mật khẩu phải từ 6 ký tự trở lên.");
+    if (newPass !== confirmPass) throw new Error("Mật khẩu xác nhận không khớp.");
     const { error } = await window.sb.auth.updateUser({ password: newPass, token: app.auth.recoveryToken });
     if (error) throw error;
     app.ui.showAlert("Đổi mật khẩu thành công! Bạn có thể đăng nhập bằng mật khẩu mới.", () => {

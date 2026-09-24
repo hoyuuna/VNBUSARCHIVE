@@ -3241,7 +3241,7 @@ cleanupState: () => {
                 const path = window.location.pathname;
                 const searchParams = new URLSearchParams(window.location.search);
                 const queryToken = searchParams.get('token');
-                if (queryToken) {
+                if (queryToken && path !== '/reset-password') {
                     sessionStorage.setItem('VNBA_SESS_AUTH', JSON.stringify({ token: queryToken }));
                     searchParams.delete('token');
                     let newUrl = window.location.pathname;
