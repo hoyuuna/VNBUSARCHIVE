@@ -3979,9 +3979,9 @@ cleanupState: () => {
                                 } else if (filterType === 'model') {
                                     searchWords.forEach(w => { vQuery = vQuery.ilike('model', `%${w}%`); });
                                 } else {
-                                    const plateAnd = searchWords.map(w => `license_plate.ilike.*${app.utils.normalizePlateQuery(w)}*`).join(',');
-const modelAnd = searchWords.map(w => `model.ilike.*${w}*`).join(',');
-const noteAnd = searchWords.map(w => `note.ilike.*${w}*`).join(',');
+                                    const plateAnd = searchWords.map(w => `license_plate.ilike.%${app.utils.normalizePlateQuery(w)}%`).join(',');
+const modelAnd = searchWords.map(w => `model.ilike.%${w}%`).join(',');
+const noteAnd = searchWords.map(w => `note.ilike.%${w}%`).join(',');
 vQuery = vQuery.or(`and(${plateAnd}),and(${modelAnd}),and(${noteAnd})`);
                                 }
                                 vQuery = app.preference.applyFilter(vQuery, 'vehicles');
@@ -4049,8 +4049,8 @@ vQuery = vQuery.or(`and(${plateAnd}),and(${modelAnd}),and(${noteAnd})`);
                     } else {
                         let mQ = window.sb.from('vehicles').select('license_plate, photos!inner(status)').eq('photos.status', 'approved');
                         let uQ = window.sb.from('profiles').select('id, ban_status');
-                        const modelAnd = searchWords.map(w => `model.ilike.*${w}*`).join(',');
-const noteAnd = searchWords.map(w => `note.ilike.*${w}*`).join(',');
+                        const modelAnd = searchWords.map(w => `model.ilike.%${w}%`).join(',');
+const noteAnd = searchWords.map(w => `note.ilike.%${w}%`).join(',');
 mQ = mQ.or(`and(${modelAnd}),and(${noteAnd})`);
 searchWords.forEach(w => { uQ = uQ.ilike('username', `%${w}%`); });
                         
@@ -4062,12 +4062,12 @@ searchWords.forEach(w => { uQ = uQ.ilike('username', `%${w}%`); });
                         
                         let orConditions = [];
 if (searchWords.length > 0) {
-  orConditions.push(`and(${searchWords.map(w => `license_plate.ilike.*${app.utils.normalizePlateQuery(w)}*`).join(',')})`);
-  orConditions.push(`and(${searchWords.map(w => `operator.ilike.*${w}*`).join(',')})`);
-  orConditions.push(`and(${searchWords.map(w => `route_no.ilike.*${w}*`).join(',')})`);
-  orConditions.push(`and(${searchWords.map(w => `camera_model.ilike.*${w}*`).join(',')})`);
-  orConditions.push(`and(${searchWords.map(w => `location.ilike.*${w}*`).join(',')})`);
-  orConditions.push(`and(${searchWords.map(w => `note.ilike.*${w}*`).join(',')})`);
+  orConditions.push(`and(${searchWords.map(w => `license_plate.ilike.%${app.utils.normalizePlateQuery(w)}%`).join(',')})`);
+  orConditions.push(`and(${searchWords.map(w => `operator.ilike.%${w}%`).join(',')})`);
+  orConditions.push(`and(${searchWords.map(w => `route_no.ilike.%${w}%`).join(',')})`);
+  orConditions.push(`and(${searchWords.map(w => `camera_model.ilike.%${w}%`).join(',')})`);
+  orConditions.push(`and(${searchWords.map(w => `location.ilike.%${w}%`).join(',')})`);
+  orConditions.push(`and(${searchWords.map(w => `note.ilike.%${w}%`).join(',')})`);
 }
                         if (plates.length > 0) orConditions.push(`license_plate.in.(${plates.join(',')})`);
                         if (uploaderIds.length > 0) orConditions.push(`uploader_id.in.(${uploaderIds.join(',')})`);
