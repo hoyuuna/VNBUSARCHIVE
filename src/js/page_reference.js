@@ -338,13 +338,10 @@ Object.assign(window.app, {
                             return { total_photos: data ? data.length : 0, total_views: totalViews, total_vehicles: pSet.size, total_ops: oSet.size };
                         });
                         const statsData = stats; 
-                        const totalViews = stats.total_views || 0;
-                        const uniquePlates = new Set();
-                        if (stats.total_vehicles != null) {
-                        }
-                        const mdlPhotoCount = stats.total_photos || 0;
-                        const mdlVehicleCount = stats.total_vehicles != null ? stats.total_vehicles : 0;
-                        const mdlOpCount = stats.total_ops != null ? stats.total_ops : 0;
+                        const totalViews = stats.total_views || stats.views || 0;
+                        const mdlPhotoCount = stats.total_photos ?? stats.photo_count ?? 0;
+                        const mdlVehicleCount = stats.total_vehicles ?? stats.vehicle_count ?? 0;
+                        const mdlOpCount = stats.total_ops ?? stats.operator_count ?? 0;
                         if (!mdlPhotoCount || mdlPhotoCount === 0) {
                             grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500">Chưa có ảnh xe nào thuộc dòng này được duyệt trên hệ thống.</div>';
                             document.getElementById('mdl-stat-photos').innerText = '0';

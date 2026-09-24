@@ -5132,11 +5132,13 @@ try { data = JSON.parse(resText); } catch(e) { data = { error: 'Lỗi server (Kh
                         const { data: { user }, error } = await window.sb.auth.getUser();
                         if (error || !user) throw error;
                         const identities = user.identities || [];
-                        const providers = identities.map(id => id.provider);
+                        const appProviders = user.app_metadata?.providers || [];
+                        const providers = Array.from(new Set([...identities.map(id => id.provider), ...appProviders]));
+                        // removed
                         const renderProvider = (name, iconClass, colorClass, providerKey) => {
                             const isLinked = providers.includes(providerKey);
                             const identity = identities.find(id => id.provider === providerKey);
-                            const identityId = identity ? identity.identity_id : null;
+                            const identityId = identity ? (identity.id || identity.identity_id) : null;
                             return `
                             <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 border border-gray-200 rounded-md bg-gray-50 gap-3">
                                 <div class="flex items-center gap-3">
@@ -5200,7 +5202,11 @@ try { data = JSON.parse(resText); } catch(e) { data = { error: 'Lỗi server (Kh
                                     // Vẫn tiếp tục thực hiện unlink Identity dù backend có lỗi
                                 }
 
-                                const { error } = await window.sb.auth.unlinkIdentity({ identity_id: identityId });
+                                if (!identityId) throw new Error('Không tìm thấy ID liên kết. Vui lòng thử đăng nhập lại.');
+                                const userIdentities = session.user?.identities || [];
+                                const identityObj = userIdentities.find(id => id.id === identityId || id.identity_id === identityId);
+                                const unlinkPayload = identityObj || { identity_id: identityId };
+                                const { error } = await window.sb.auth.unlinkIdentity(unlinkPayload);
                                 if (error) throw error;
 
                                 app.ui.showAlert(`Đã hủy liên kết với ${providerName} thành công!`);
@@ -11793,13 +11799,10 @@ Object.assign(window.app, {
                             return { total_photos: data ? data.length : 0, total_views: totalViews, total_vehicles: pSet.size, total_ops: oSet.size };
                         });
                         const statsData = stats; 
-                        const totalViews = stats.total_views || 0;
-                        const uniquePlates = new Set();
-                        if (stats.total_vehicles != null) {
-                        }
-                        const mdlPhotoCount = stats.total_photos || 0;
-                        const mdlVehicleCount = stats.total_vehicles != null ? stats.total_vehicles : 0;
-                        const mdlOpCount = stats.total_ops != null ? stats.total_ops : 0;
+                        const totalViews = stats.total_views || stats.views || 0;
+                        const mdlPhotoCount = stats.total_photos ?? stats.photo_count ?? 0;
+                        const mdlVehicleCount = stats.total_vehicles ?? stats.vehicle_count ?? 0;
+                        const mdlOpCount = stats.total_ops ?? stats.operator_count ?? 0;
                         if (!mdlPhotoCount || mdlPhotoCount === 0) {
                             grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500">Chưa có ảnh xe nào thuộc dòng này được duyệt trên hệ thống.</div>';
                             document.getElementById('mdl-stat-photos').innerText = '0';

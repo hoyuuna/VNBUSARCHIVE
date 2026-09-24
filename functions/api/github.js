@@ -41,12 +41,14 @@ export async function onRequest(context) {
 
         if (body.action === 'claim') {
             const githubIdentity = user.identities?.find(id => id.provider === 'github');
-            if (!githubIdentity) {
+            const hasGithubInProviders = user.app_metadata?.providers?.includes('github');
+            
+            if (!githubIdentity && !hasGithubInProviders) {
                 return new Response(JSON.stringify({ error: 'Bạn chưa liên kết tài khoản GitHub' }), { status: 400, headers: { 'Content-Type': 'application/json' }});
             }
-            const githubUsername = githubIdentity.identity_data?.preferred_username || githubIdentity.identity_data?.user_name;
+            const githubUsername = githubIdentity?.identity_data?.preferred_username || githubIdentity?.identity_data?.user_name;
             if (!githubUsername) {
-                return new Response(JSON.stringify({ error: 'Không lấy được username GitHub. Vui lòng liên kết lại.' }), { status: 400, headers: { 'Content-Type': 'application/json' }});
+                return new Response(JSON.stringify({ error: 'Không lấy được username GitHub. Vui lòng thử đăng nhập lại bằng GitHub hoặc liên kết lại.' }), { status: 400, headers: { 'Content-Type': 'application/json' }});
             }
 
             const { data: profile } = await supabase.from('profiles').select('subroles').eq('id', user.id).single();

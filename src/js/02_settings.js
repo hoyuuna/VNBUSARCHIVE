@@ -235,11 +235,13 @@ try { data = JSON.parse(resText); } catch(e) { data = { error: 'Lỗi server (Kh
                         const { data: { user }, error } = await window.sb.auth.getUser();
                         if (error || !user) throw error;
                         const identities = user.identities || [];
-                        const providers = identities.map(id => id.provider);
+                        const appProviders = user.app_metadata?.providers || [];
+                        const providers = Array.from(new Set([...identities.map(id => id.provider), ...appProviders]));
+                        // removed
                         const renderProvider = (name, iconClass, colorClass, providerKey) => {
                             const isLinked = providers.includes(providerKey);
                             const identity = identities.find(id => id.provider === providerKey);
-                            const identityId = identity ? identity.identity_id : null;
+                            const identityId = identity ? (identity.id || identity.identity_id) : null;
                             return `
                             <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 border border-gray-200 rounded-md bg-gray-50 gap-3">
                                 <div class="flex items-center gap-3">
@@ -303,7 +305,11 @@ try { data = JSON.parse(resText); } catch(e) { data = { error: 'Lỗi server (Kh
                                     // Vẫn tiếp tục thực hiện unlink Identity dù backend có lỗi
                                 }
 
-                                const { error } = await window.sb.auth.unlinkIdentity({ identity_id: identityId });
+                                if (!identityId) throw new Error('Không tìm thấy ID liên kết. Vui lòng thử đăng nhập lại.');
+                                const userIdentities = session.user?.identities || [];
+                                const identityObj = userIdentities.find(id => id.id === identityId || id.identity_id === identityId);
+                                const unlinkPayload = identityObj || { identity_id: identityId };
+                                const { error } = await window.sb.auth.unlinkIdentity(unlinkPayload);
                                 if (error) throw error;
 
                                 app.ui.showAlert(`Đã hủy liên kết với ${providerName} thành công!`);
