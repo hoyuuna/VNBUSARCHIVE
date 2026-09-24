@@ -82,7 +82,7 @@ Object.assign(window, {
                     if (attrs.password && attrs.current_password) {
                         await app.api.post("/api/auth/change-password", { current_password: attrs.current_password, new_password: attrs.password });
                     } else if (attrs.password && attrs.token) {
-                        await app.api.post("/api/auth/reset-password", { new_password: attrs.password, token: attrs.token });
+                        await app.api.post("/api/auth/reset-password-verify", { new_password: attrs.password, token: attrs.token });
                     } else if (attrs.email) {
                         await app.api.post("/api/auth/change-email", { new_email: attrs.email });
                     }
