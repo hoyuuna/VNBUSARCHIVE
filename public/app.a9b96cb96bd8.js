@@ -1492,16 +1492,51 @@ closeCustomRolePrompt: () => {
                 timer: null,
                 isBypassed: false,
                 fetch: async () => {
-    try {
-        const data = await app.api.get('/api/system/settings');
-        if (data && data.data && Array.isArray(data.data)) {
-            data.data.forEach(item => { app.maintenance.settings[item.id] = item; });
-        } else if (data && Array.isArray(data)) {
-            data.forEach(item => { app.maintenance.settings[item.id] = item; });
-        }
-    } catch (e) { console.error("Lỗi lấy thông tin bảo trì", e); }
-},
-                check: (sysId) => {
+      try {
+          const statusData = await app.api.get('/api/system/status');
+          if (statusData && statusData.banned) {
+              const reasonText = statusData.reason || 'Vi phạm quy định của VNBUSARCHIVE';
+              const banReason = `IP hoặc tài khoản của bạn đã bị cấm với lý do: <b>${reasonText}</b>`;
+              document.body.innerHTML = `
+                  <div style="background-color: #f4f4f5; color: #09090b; width: 100vw; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; text-align: center; padding: 24px; box-sizing: border-box; user-select: none;">
+                      <div style="margin-bottom: 32px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                          <img src="/media/vnba.png" alt="VNBUSARCHIVE Logo" style="height: 38px; width: auto; object-contain;">
+                          <span style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-style: italic; font-size: 1.35rem; letter-spacing: 0.05em; color: #000000;">VNBUSARCHIVE</span>
+                      </div>
+                      <div style="max-width: 520px; width: 100%; border: 1px solid #e4e4e7; background: #ffffff; border-radius: 16px; padding: 36px 28px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); margin-bottom: 24px;">
+                          <div style="width: 64px; height: 64px; border-radius: 50%; background: #f4f4f5; border: 1px solid #e4e4e7; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px auto;">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#18181b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>
+                          </div>
+                          <h2 style="font-size: 1.15rem; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 16px 0; color: #09090b; text-transform: uppercase;">
+                              TRUY CẬP ĐÃ BỊ HẠN CHẾ
+                          </h2>
+                          <div style="background: #fafafa; border: 1px solid #e4e4e7; border-radius: 10px; padding: 14px 18px; margin-bottom: 24px; text-align: left;">
+                              <div style="font-size: 0.72rem; font-weight: 700; color: #71717a; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;">
+                                  LÝ DO HẠN CHẾ TRUY CẬP / BAN LOG
+                              </div>
+                              <div style="font-size: 0.92rem; font-weight: 500; color: #27272a; line-height: 1.6; word-break: break-word;">
+                                  ${banReason}
+                              </div>
+                          </div>
+                          <p style="font-size: 0.85rem; line-height: 1.65; margin: 0; color: #52525b;">
+                              Vui lòng tải lại trang hoặc liên hệ: <a href="mailto:lienhe@vnbusarchive.io.vn" style="color: #09090b; font-weight: 700; text-decoration: underline; text-underline-offset: 4px;">lienhe@vnbusarchive.io.vn</a> nếu bạn nghĩ đây là một sai lầm! Xin cảm ơn.
+                          </p>
+                      </div>
+                      <p style="font-size: 0.72rem; letter-spacing: 0.22em; color: #a1a1aa; text-transform: uppercase; font-weight: 600; margin: 0;">VNBUSARCHIVE Foundation</p>
+                  </div>
+              `;
+              throw new Error("Banned IP");
+          }
+
+          const data = await app.api.get('/api/system/settings');
+          if (data && data.data && Array.isArray(data.data)) {
+              data.data.forEach(item => { app.maintenance.settings[item.id] = item; });
+          } else if (data && Array.isArray(data)) {
+              data.forEach(item => { app.maintenance.settings[item.id] = item; });
+          }
+      } catch (e) { if(e.message !== "Banned IP") console.error("Lỗi lấy thông tin bảo trì", e); }
+  },
+                  check: (sysId) => {
                     if (app.maintenance.isBypassed) return false; 
                     const target = app.maintenance.settings['global']?.is_active === false
                                  ? app.maintenance.settings['global']
