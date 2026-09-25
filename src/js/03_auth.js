@@ -40,7 +40,7 @@ Object.assign(window.app, {
                 },
                 logoutUnverified: async () => {
                     await window.sb.auth.signOut();
-                    sessionStorage.removeItem('VNBA_SESS_AUTH');
+                    localStorage.removeItem("VNBA_SESS_AUTH");
                     window.location.href = '/auth'; 
                 },
                 signInWithProvider: async (provider) => {
@@ -212,7 +212,7 @@ Object.assign(window.app, {
                         "Bạn có chắc chắn muốn đăng xuất khỏi tài khoản?",
                         async () => {
                             try {
-                                await window.sb.auth.signOut({ scope: 'local' }); sessionStorage.removeItem('VNBA_SESS_AUTH');
+                                await window.sb.auth.signOut({ scope: 'local' }); localStorage.removeItem("VNBA_SESS_AUTH");
                                 await app.setUser(null);
                                 app.ui.toggleUserMenu(false);
                                 app.ui.showAlert("Đã đăng xuất thành công!", () => {
@@ -1250,7 +1250,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const magicToken = urlParams.get('magic_token');
     if (magicToken) {
-        localStorage.setItem('vnbus_token', magicToken);
+        localStorage.setItem('VNBA_SESS_AUTH', JSON.stringify({ token: magicToken }));
         window.history.replaceState({}, document.title, window.location.pathname);
         app.ui.showAlert("Đăng nhập thành công! Đang chuyển hướng...", () => {
             app.utils.navigate('/');

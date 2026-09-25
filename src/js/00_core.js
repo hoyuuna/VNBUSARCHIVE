@@ -37,7 +37,7 @@ Object.assign(window, {
                 try {
                     const data = await app.api.post("/api/auth/login", { email, password, captchaToken: options?.captchaToken });
                     const sess = { token: data.token, user: data.user };
-                    sessionStorage.setItem("VNBA_SESS_AUTH", JSON.stringify(sess));
+                    localStorage.setItem("VNBA_SESS_AUTH", JSON.stringify(sess));
                     return { data: sess, error: null };
                 } catch (error) {
                     return { data: null, error };
@@ -52,7 +52,7 @@ Object.assign(window, {
                 }
             },
             signOut: async () => {
-                sessionStorage.removeItem("VNBA_SESS_AUTH");
+                localStorage.removeItem("VNBA_SESS_AUTH");
                 return { error: null };
             },
             resetPasswordForEmail: async (email, options) => {
@@ -64,7 +64,7 @@ Object.assign(window, {
                 }
             },
             linkIdentity: async (options) => {
-                const tokenObj = JSON.parse(sessionStorage.getItem("VNBA_SESS_AUTH"));
+                const tokenObj = JSON.parse(localStorage.getItem("VNBA_SESS_AUTH"));
                 if (!tokenObj || !tokenObj.token) return { error: { message: "Chưa đăng nhập" } };
                 window.location.href = app.api.baseUrl + "/api/auth/" + options.provider + "?action=link&token=" + tokenObj.token;
                 return { error: null };
@@ -345,7 +345,7 @@ Object.assign(window.app, {
         baseUrl: "https://api.vnbusarchive.io.vn",
         getToken: () => {
             try {
-                const sess = sessionStorage.getItem("VNBA_SESS_AUTH") || localStorage.getItem("VNBA_SESS_AUTH");
+                const sess = localStorage.getItem("VNBA_SESS_AUTH") || localStorage.getItem("VNBA_SESS_AUTH");
                 if (sess) return JSON.parse(sess).token;
             } catch(e){}
             return null;
@@ -3240,7 +3240,7 @@ cleanupState: () => {
                 const searchParams = new URLSearchParams(window.location.search);
                 const queryToken = searchParams.get('token');
                 if (queryToken) {
-                    sessionStorage.setItem('VNBA_SESS_AUTH', JSON.stringify({ token: queryToken }));
+                    localStorage.setItem("VNBA_SESS_AUTH", JSON.stringify({ token: queryToken }));
                     searchParams.delete('token');
                     let newUrl = window.location.pathname;
                     if (searchParams.toString()) newUrl += '?' + searchParams.toString();
@@ -4132,7 +4132,7 @@ if (searchWords.length > 0) {
                                         localStorage.removeItem(key);
                                     }
                                 }
-                                sessionStorage.removeItem('VNBA_SESS_AUTH');
+                                localStorage.removeItem('VNBA_SESS_AUTH');
                                 const accName = profile.username || user.email || 'của bạn';
                                 const reasonText = banInfo.reason || 'Vi phạm quy định của VNBUSARCHIVE';
                                 const uuidStr = user.id ? ` (<code>${user.id}</code>)` : '';
