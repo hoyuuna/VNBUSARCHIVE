@@ -22123,7 +22123,7 @@ app.map = {
     },
 
     async loadZones() {
-        const { data, error } = await app.api.get('/api/map/zones').then(res => ({ data: res.data, error: null })).catch(error => ({ data: null, error }));
+        const { data, error } = await app.api.get('/api/map/zones?_t=' + Date.now()).then(res => ({ data: res.data, error: null })).catch(error => ({ data: null, error }));
         if (error) {
             console.error('Lỗi tải vùng cấm:', error);
             return;
