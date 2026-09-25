@@ -64,13 +64,17 @@ export async function onRequest(context) {
             if (!isManagerOrAdmin) {
                 return new Response(JSON.stringify({ success: false, error: 'Forbidden' }), { status: 403, headers: { 'Content-Type': 'application/json' }});
             }
+            
+            let page = parseInt(url.searchParams.get('page')) || 1;
+            let limit = parseInt(url.searchParams.get('limit')) || 15;
+            let offset = (page - 1) * limit;
 
             const { data: photos, error: dbErr } = await supabaseAdmin
                 .from('photos')
                 .select('*, profiles(username, role), vehicles(model), photo_reviews(action, reason, admin_id)')
                 .eq('status', status)
                 .order('created_at', { ascending: false })
-                .limit(500);
+                .range(offset, offset + limit - 1);
 
             if (dbErr) throw dbErr;
 
