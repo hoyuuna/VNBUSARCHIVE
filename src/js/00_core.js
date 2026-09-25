@@ -1490,13 +1490,15 @@ closeCustomRolePrompt: () => {
                 timer: null,
                 isBypassed: false,
                 fetch: async () => {
-                    try {
-                        const { data, error } = await window.sb.from('system_settings').select('id, is_active, auto_reactivate_at, reason');
-                        if (data) {
-                            data.forEach(item => { app.maintenance.settings[item.id] = item; });
-                        }
-                    } catch (e) { console.error("Lỗi lấy thông tin bảo trì", e); }
-                },
+    try {
+        const data = await app.api.get('/api/system/settings');
+        if (data && data.data && Array.isArray(data.data)) {
+            data.data.forEach(item => { app.maintenance.settings[item.id] = item; });
+        } else if (data && Array.isArray(data)) {
+            data.forEach(item => { app.maintenance.settings[item.id] = item; });
+        }
+    } catch (e) { console.error("Lỗi lấy thông tin bảo trì", e); }
+},
                 check: (sysId) => {
                     if (app.maintenance.isBypassed) return false; 
                     const target = app.maintenance.settings['global']?.is_active === false

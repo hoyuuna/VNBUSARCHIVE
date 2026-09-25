@@ -1492,13 +1492,15 @@ closeCustomRolePrompt: () => {
                 timer: null,
                 isBypassed: false,
                 fetch: async () => {
-                    try {
-                        const { data, error } = await window.sb.from('system_settings').select('id, is_active, auto_reactivate_at, reason');
-                        if (data) {
-                            data.forEach(item => { app.maintenance.settings[item.id] = item; });
-                        }
-                    } catch (e) { console.error("Lỗi lấy thông tin bảo trì", e); }
-                },
+    try {
+        const data = await app.api.get('/api/system/settings');
+        if (data && data.data && Array.isArray(data.data)) {
+            data.data.forEach(item => { app.maintenance.settings[item.id] = item; });
+        } else if (data && Array.isArray(data)) {
+            data.forEach(item => { app.maintenance.settings[item.id] = item; });
+        }
+    } catch (e) { console.error("Lỗi lấy thông tin bảo trì", e); }
+},
                 check: (sysId) => {
                     if (app.maintenance.isBypassed) return false; 
                     const target = app.maintenance.settings['global']?.is_active === false
@@ -20554,46 +20556,44 @@ app.admin.fetchManagerData('denied');
                     container.innerHTML = html;
                 },
                 saveManagerSetting: async (sysId, btn) => {
-                    const originalHTML = btn.innerHTML;
-                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>'; btn.disabled = true;
-                    const isActive = document.getElementById(`mt-active-${sysId}`).checked;
-                    const reason = document.getElementById(`mt-reason-${sysId}`).value.trim();
-                    const hasTime = document.getElementById(`mt-has-time-${sysId}`).checked;
-                    const timeVal = document.getElementById(`mt-time-${sysId}`).value;
-                    let autoReactivate = (isActive || !hasTime) ? null : new Date(timeVal).toISOString();
-                    try {
-                        const { error } = await window.sb.from('system_settings').update({
-                            is_active: isActive, reason: reason, auto_reactivate_at: autoReactivate, updated_by: app.user.id
-                        }).eq('id', sysId);
-                        if (error) throw error;
-                        await app.maintenance.fetch();
-                        app.ui.showAlert(`Đã lưu thông tin cho ${sysId.toUpperCase()}`);
-                    } catch (e) { app.ui.showAlert("Lỗi: " + e.message); }
-                    finally { btn.innerHTML = originalHTML; btn.disabled = false; }
-                },
+    const originalHTML = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>'; btn.disabled = true;
+    const isActive = document.getElementById(`mt-active-${sysId}`).checked;
+    const reason = document.getElementById(`mt-reason-${sysId}`).value.trim();
+    const hasTime = document.getElementById(`mt-has-time-${sysId}`).checked;
+    const timeVal = document.getElementById(`mt-time-${sysId}`).value;
+    let autoReactivate = (isActive || !hasTime) ? null : new Date(timeVal).toISOString();
+    try {
+        await app.api.put('/api/admin/system-settings', {
+            id: sysId,
+            is_active: isActive,
+            reason: reason,
+            auto_reactivate_at: autoReactivate,
+            updated_by: app.user?.id || '',
+            updated_at: new Date().toISOString()
+        });
+        await app.maintenance.fetch();
+        app.ui.showAlert(`Đã lưu thông tin cho ${sysId.toUpperCase()}`);
+    } catch (e) { app.ui.showAlert("Lỗi: " + e.message); }
+    finally { btn.innerHTML = originalHTML; btn.disabled = false; }
+},
                 saveQuotaSetting: async (btn) => {
-                    if (app.role !== 'manager') return;
-                    const originalHTML = btn.innerHTML;
-                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...';
-                    btn.disabled = true;
-                    const val = document.getElementById('mt-quota-value').value.trim();
-                    try {
-                        const { error } = await window.sb.from('system_settings').update({
-                            reason: val,
-                            updated_by: app.user.id,
-                            updated_at: new Date().toISOString()
-                        }).eq('id', 'upload_quota');
-                        if (error) throw error;
-                        await app.maintenance.fetch();
-                        app.admin.logAction('update_upload_quota', 'upload_quota', { new_limit: val || 'Không giới hạn' });
-                        app.ui.showAlert(`Đã cập nhật Giới hạn Upload thành: ${val === '' ? 'Không giới hạn' : val + ' ảnh/ngày'}!`);
-                    } catch (e) {
-                        app.ui.showAlert("Lỗi: " + e.message);
-                    } finally {
-                        btn.innerHTML = originalHTML;
-                        btn.disabled = false;
-                    }
-                },
+    if (app.role !== 'manager') return;
+    const originalHTML = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>'; btn.disabled = true;
+    const val = document.getElementById('mt-quota-value').value;
+    try {
+        await app.api.put('/api/admin/system-settings', {
+            id: 'upload_quota',
+            reason: val,
+            updated_by: app.user?.id || '',
+            updated_at: new Date().toISOString()
+        });
+        await app.maintenance.fetch();
+        app.ui.showAlert("Đã lưu thông tin Quota.");
+    } catch (e) { app.ui.showAlert("Lỗi: " + e.message); }
+    finally { btn.innerHTML = originalHTML; btn.disabled = false; }
+},
                 renderCustomToasts: async () => {
                     const list = document.getElementById('mgr-toasts-list');
                     if (!list) return;
