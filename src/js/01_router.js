@@ -592,7 +592,6 @@ Object.assign(window.app, {
                         const state = (app.realtimeChannel?.state || '').toLowerCase();
                         if (state !== 'joined' && state !== 'joining') {
                             console.log('🔄 Tab visible: Reconnecting Realtime...');
-                            app.setRealtimeStatus(false);
                             if (typeof app.initRealtimeChannel === 'function') app.initRealtimeChannel();
                         }
                     }
@@ -601,7 +600,6 @@ Object.assign(window.app, {
                 window.addEventListener('online', () => {
                     const state = (app.realtimeChannel?.state || '').toLowerCase();
                     if (app.realtimeChannel && state !== 'joined' && state !== 'joining') {
-                        app.setRealtimeStatus(false);
                         if (typeof app.initRealtimeChannel === 'function') app.initRealtimeChannel();
                     } else {
                         app.setRealtimeStatus(true);
