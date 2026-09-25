@@ -2004,7 +2004,7 @@ html.theme-dark .ct-icon {
                 <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full mb-4" style="background-color: rgba(0, 0, 0, 0.05);">
                     <i class="fa-solid fa-envelope-circle-check text-xl text-black"></i>
                 </div>
-                <h3 class="text-lg font-bold text-gray-900 mb-2">Xác minh Email</h3>
+                <h3 class="text-lg font-bold text-black mb-2">Xác minh Email</h3>
                 <p class="text-sm text-gray-500 mb-3">Vui lòng kiểm tra và xác nhận địa chỉ email để tiếp tục sử dụng hệ thống:</p>
                 <b id="verify-modal-email" class="text-black text-sm block mb-2 truncate"></b>
                 
@@ -2190,18 +2190,18 @@ html.theme-dark .ct-icon {
         <div id="custom-alert-modal"
             class="hidden fixed inset-0 z-[5000] flex items-center justify-center p-4 backdrop-blur-md">
             <div id="custom-alert-content"
-                class="bg-white rounded-lg shadow-2xl max-w-sm w-full border border-gray-200 overflow-hidden transform transition-all">
+                class="bg-white rounded-lg max-w-sm w-full border border-black overflow-hidden transform transition-all">
                 <div class="p-5 text-center pb-2">
-                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-gray-100 mb-4"
+                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full border border-black mb-4"
                         id="custom-alert-icon">
                         <i class="fa-solid fa-bell text-xl text-black"></i>
                     </div>
 
-                    <h3 id="custom-alert-title" class="text-lg font-bold text-gray-900 mb-2">Thông báo</h3>
+                    <h3 id="custom-alert-title" class="text-lg font-bold text-black mb-2">Thông báo</h3>
 
                     <img id="custom-alert-img" src=""
                         class="hidden w-full h-auto object-cover rounded-md mb-3 border border-gray-200 shadow-sm max-h-[250px]">
-                    <p id="custom-alert-msg" class="text-sm text-gray-500"></p>
+                    <p id="custom-alert-msg" class="text-sm text-black"></p>
                 </div>
                 <div class="bg-white px-5 pb-5 pt-3 sm:flex sm:flex-row-reverse">
 
@@ -2210,7 +2210,7 @@ html.theme-dark .ct-icon {
                         Đồng ý
                     </button>
                     <button type="button" id="custom-alert-cancel-btn" onclick="app.ui.closeAlert(false)"
-                        class="hidden mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition">
+                        class="hidden mt-3 w-full inline-flex justify-center rounded-md border border-black px-4 py-2 bg-white text-base font-medium text-black hover:bg-gray-100 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition">
                         Hủy bỏ
                     </button>
                 </div>
@@ -2342,7 +2342,7 @@ html.theme-dark .ct-icon {
             <div id="custom-prompt-content"
                 class="bg-white rounded-lg shadow-2xl max-w-sm w-full border border-gray-200 overflow-hidden transform transition-all opacity-0 scale-95">
                 <div class="p-5">
-                    <h3 id="custom-prompt-title" class="text-lg font-bold text-gray-900 mb-2">Nhập thông tin</h3>
+                    <h3 id="custom-prompt-title" class="text-lg font-bold text-black mb-2">Nhập thông tin</h3>
                     <p id="custom-prompt-msg" class="text-sm text-gray-500 mb-3"></p>
                     <textarea id="custom-prompt-input" rows="3"
                         class="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none transition-all"
@@ -3208,8 +3208,8 @@ html.theme-dark .ct-icon {
                         </div>
 
                         <div id="set-content-security" class="space-y-4 md:space-y-6 hidden">
-                            <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm"><h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Đổi Email</h3><p class="text-[11px] md:text-xs text-gray-500 mb-3 leading-relaxed">Yêu cầu xác nhận mật khẩu hiện tại. Email đang sử dụng: <b id="set-current-email" class="text-black">...</b></p><div class="space-y-3"><input type="email" id="set-ce-new" placeholder="Nhập địa chỉ email mới" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none"><input type="password" id="set-ce-password" placeholder="Mật khẩu hiện tại" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none"><button onclick="app.auth.changeEmail(this)" class="w-full bg-black text-white px-4 py-2.5 text-xs font-bold rounded-md hover:bg-gray-800">Cập nhật Email</button></div></div>
-                            <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm"><h3 class="font-bold text-xs md:text-sm text-black mb-3 uppercase tracking-wide">Đổi mật khẩu</h3><div class="space-y-3"><input type="password" id="set-cp-new" placeholder="Mật khẩu mới (Tối thiểu 6 kí tự)" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none"><input type="password" id="set-cp-new2" placeholder="Nhập lại mật khẩu mới" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none"><div id="set-cp-otp-box" class="hidden space-y-3 pt-2"><p class="text-[11px] text-gray-500">Mã OTP 6 số đã được gửi tới email của bạn.</p><input type="text" id="set-cp-otp" placeholder="Nhập mã OTP 6 số" maxlength="6" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none tracking-widest text-center"></div><button id="set-cp-btn" onclick="app.auth.changePassword()"  class="w-full bg-black text-white px-4 py-2.5 text-xs font-bold rounded-md hover:bg-gray-800">Đổi mật khẩu</button></div></div>
+                            <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm"><h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Đổi Email</h3><p class="text-[11px] md:text-xs text-gray-500 mb-3 leading-relaxed">Yêu cầu xác nhận mật khẩu hiện tại. Email đang sử dụng: <b id="set-current-email" class="text-black">...</b></p><div class="space-y-3"><input type="email" id="set-ce-new" placeholder="Nhập địa chỉ email mới" class="w-full border border-black p-2.5 text-sm rounded-md focus:outline-none"><input type="password" id="set-ce-password" placeholder="Mật khẩu hiện tại" class="w-full border border-black p-2.5 text-sm rounded-md focus:outline-none"><button onclick="app.auth.changeEmail(this)" class="w-full bg-black text-white px-4 py-2.5 text-xs font-bold rounded-md hover:bg-gray-800">Cập nhật Email</button></div></div>
+                            <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm"><h3 class="font-bold text-xs md:text-sm text-black mb-3 uppercase tracking-wide">Đổi mật khẩu</h3><div class="space-y-3"><input type="password" id="set-cp-new" placeholder="Mật khẩu mới (Tối thiểu 6 kí tự)" class="w-full border border-black p-2.5 text-sm rounded-md focus:outline-none"><input type="password" id="set-cp-new2" placeholder="Nhập lại mật khẩu mới" class="w-full border border-black p-2.5 text-sm rounded-md focus:outline-none"><div id="set-cp-otp-box" class="hidden space-y-3 pt-2"><p class="text-[11px] text-gray-500">Mã OTP 6 số đã được gửi tới email của bạn.</p><input type="text" id="set-cp-otp" placeholder="Nhập mã OTP 6 số" maxlength="6" class="w-full border border-black p-2.5 text-sm rounded-md focus:outline-none tracking-widest text-center"></div><button id="set-cp-btn" onclick="app.auth.changePassword()"  class="w-full bg-black text-white px-4 py-2.5 text-xs font-bold rounded-md hover:bg-gray-800">Đổi mật khẩu</button></div></div>
                             <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
                                 <div>
                                     <h3 class="font-bold text-xs md:text-sm text-black mb-1.5 uppercase tracking-wide">Đăng xuất từ xa</h3>
