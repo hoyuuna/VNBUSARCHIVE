@@ -2919,7 +2919,7 @@ html.theme-dark .ct-icon {
     </div>
 
     <div class="flex justify-end" x-show="mode === 'login'" x-cloak>
-        <button type="button" @click="mode = 'forgot'" class="text-xs font-semibold text-vbs-dark/70 hover:text-vbs-dark transition-colors drop-shadow-sm">Quên mật khẩu?</button>
+        <button type="button" @click="mode = 'forgot'" class="text-xs font-semibold text-vbs-dark/70 hover:text-vbs-dark transition-colors drop-shadow-sm">Khôi phục / Đăng nhập không mật khẩu</button>
     </div>
 
     <!-- Turnstile moved to popup -->
@@ -3214,7 +3214,7 @@ html.theme-dark .ct-icon {
 
                         <div id="set-content-security" class="space-y-4 md:space-y-6 hidden">
                             <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm"><h3 class="font-bold text-xs md:text-sm text-black mb-2 uppercase tracking-wide">Đổi Email</h3><p class="text-[11px] md:text-xs text-gray-500 mb-3 leading-relaxed">Yêu cầu xác nhận mật khẩu hiện tại. Email đang sử dụng: <b id="set-current-email" class="text-black">...</b></p><div class="space-y-3"><input type="email" id="set-ce-new" placeholder="Nhập địa chỉ email mới" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none"><input type="password" id="set-ce-password" placeholder="Mật khẩu hiện tại" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none"><button onclick="app.auth.changeEmail(this)" class="w-full bg-black text-white px-4 py-2.5 text-xs font-bold rounded-md hover:bg-gray-800">Cập nhật Email</button></div></div>
-                            <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm"><h3 class="font-bold text-xs md:text-sm text-black mb-3 uppercase tracking-wide">Đổi mật khẩu</h3><div class="space-y-3"><input type="password" id="set-cp-old" placeholder="Mật khẩu hiện tại" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none"><input type="password" id="set-cp-new" placeholder="Mật khẩu mới (Tối thiểu 6 ký tự)" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none"><button onclick="app.auth.changePassword()" class="w-full bg-black text-white px-4 py-2.5 text-xs font-bold rounded-md hover:bg-gray-800">Đổi mật khẩu</button></div></div>
+                            <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm"><h3 class="font-bold text-xs md:text-sm text-black mb-3 uppercase tracking-wide">Đổi mật khẩu</h3><div class="space-y-3"><input type="password" id="set-cp-new" placeholder="Mật khẩu mới (Tối thiểu 6 ký tự)" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black outline-none"><button onclick="app.auth.changePassword()" class="w-full bg-black text-white px-4 py-2.5 text-xs font-bold rounded-md hover:bg-gray-800">Đổi mật khẩu</button></div></div>
                             <div class="bg-white p-4 md:p-5 rounded-lg border border-gray-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
                                 <div>
                                     <h3 class="font-bold text-xs md:text-sm text-black mb-1.5 uppercase tracking-wide">Đăng xuất từ xa</h3>
@@ -5920,26 +5920,27 @@ html.theme-dark .ct-icon {
 
 
 
-    <!-- RESET PASSWORD PAGE -->
-    <div id="reset-password" class="page-container hidden">
-        <div class="min-h-[80vh] flex items-center justify-center px-4">
-            <div class="bg-white border border-gray-200 rounded-2xl p-8 max-w-md w-full shadow-sm text-center">
-                <div class="w-12 h-12 bg-gray-50 border border-gray-200 rounded-full flex items-center justify-center text-xl mx-auto mb-4">
-                    <i class="fa-solid fa-key text-black"></i>
+    <!-- OTP MODAL -->
+    <div id="otp-modal" class="hidden fixed inset-0 flex flex-col items-center justify-center p-4 backdrop-blur-md" style="z-index: 99999;">
+        <div class="bg-white border border-[#18181b] rounded-2xl w-full max-w-sm overflow-hidden flex flex-col">
+            <div class="p-5 flex-1">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-lg">
+                        <i class="fa-solid fa-envelope-open-text"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-black text-gray-900 text-lg">Xác minh Email</h3>
+                        <p class="text-xs text-gray-500 font-medium">Nhập mã 6 số được gửi về email của bạn</p>
+                    </div>
                 </div>
-                <h2 class="text-2xl font-black text-black mb-2">Đặt mật khẩu mới</h2>
-                <p class="text-sm text-gray-500 mb-6">Vui lòng nhập mật khẩu mới cho tài khoản của bạn.</p>
-                <form id="reset-password-form" class="space-y-4">
-                    <div class="text-left">
-                        <label class="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">Mật khẩu mới</label>
-                        <input type="password" id="reset-password-new" class="w-full px-4 py-2.5 text-sm font-medium bg-gray-50 border border-gray-200 rounded-xl focus:border-black focus:ring-1 focus:ring-black outline-none transition-all" placeholder="Ít nhất 6 ký tự" required>
-                    </div>
-                    <div class="text-left">
-                        <label class="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">Xác nhận mật khẩu</label>
-                        <input type="password" id="reset-password-confirm" class="w-full px-4 py-2.5 text-sm font-medium bg-gray-50 border border-gray-200 rounded-xl focus:border-black focus:ring-1 focus:ring-black outline-none transition-all" placeholder="Nhập lại mật khẩu" required>
-                    </div>
-                    <button type="submit" id="reset-password-submit" class="w-full bg-black text-white py-3 rounded-xl font-bold hover:bg-gray-800 transition-colors shadow-sm mt-2">Đổi mật khẩu</button>
-                </form>
+                <div class="mb-4">
+                    <input type="text" id="otp-input" class="w-full px-4 py-3 text-center tracking-[0.5em] font-black text-2xl bg-white border border-[#18181b] rounded-xl focus:ring-1 focus:ring-black outline-none transition-all" placeholder="000000" maxlength="6">
+                </div>
+                <div id="otp-modal-error" class="hidden text-xs font-bold text-red-600 text-center mb-2"></div>
+            </div>
+            <div class="p-3 bg-white flex gap-2" style="border-top: none;">
+                <button id="otp-cancel-btn" class="flex-1 py-2.5 rounded-xl text-sm font-bold text-gray-900 bg-white border border-[#18181b] hover:bg-gray-100 transition-colors">Hủy</button>
+                <button id="otp-confirm-btn" class="flex-1 py-2.5 rounded-xl text-sm font-bold text-white bg-black hover:bg-gray-800 transition-colors border border-[#18181b]">Xác nhận</button>
             </div>
         </div>
     </div>

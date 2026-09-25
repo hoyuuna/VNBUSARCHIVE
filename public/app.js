@@ -3239,7 +3239,7 @@ cleanupState: () => {
                 const path = window.location.pathname;
                 const searchParams = new URLSearchParams(window.location.search);
                 const queryToken = searchParams.get('token');
-                if (queryToken && path !== '/reset-password') {
+                if (queryToken) {
                     sessionStorage.setItem('VNBA_SESS_AUTH', JSON.stringify({ token: queryToken }));
                     searchParams.delete('token');
                     let newUrl = window.location.pathname;
@@ -3290,14 +3290,7 @@ cleanupState: () => {
                     const isRecovery = window.location.hash.includes('type=recovery') || app.auth.mode === 'recovery';
                     if (app.user && !isRecovery) app.utils.navigate('/');
                     else app.views.switch('auth', false);
-                } else if (path === '/reset-password') {
-                    document.title = 'Khôi phục Mật khẩu | VNBUSARCHIVE';
-                    const token = searchParams.get('token');
-                    if (token) {
-                        app.auth.mode = 'recovery';
-                        app.auth.recoveryToken = token;
-                    }
-                    app.views.switch('reset-password', false);
+                
                 } else if (path === '/setting' || path === '/settings') {
                     app.views.loadAccount();
                     setTimeout(() => {
@@ -5713,26 +5706,72 @@ Object.assign(window.app, {
                     );
                 },
 changePassword: async () => {
-                    const oldPass = document.getElementById('set-cp-old').value;
-                    const newPass = document.getElementById('set-cp-new').value;
-                    if (!oldPass) return app.ui.showAlert("Vui lòng nhập mật khẩu hiện tại.");
-                    if (!newPass || newPass.length < 6) return app.ui.showAlert("Mật khẩu mới phải ít nhất 6 ký tự.");
-                    try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
-                    const { error } = await window.sb.auth.updateUser({
-                        password: newPass,
-                        current_password: oldPass
-                    });
-                    if (error) {
-                        let msg = error.message;
-                        if (msg.includes('Current password is invalid')) msg = "Mật khẩu hiện tại không đúng.";
-                        if (msg.includes('should be different')) msg = "Mật khẩu mới phải khác mật khẩu hiện tại.";
-                        app.ui.showAlert("Lỗi: " + msg);
-                    } else {
-                        app.toast.show('success', 'Thành công', 'Đã đổi mật khẩu thành công!');
-                        document.getElementById('set-cp-old').value = '';
-                        document.getElementById('set-cp-new').value = '';
-                    }
-                },
+    const newPass = document.getElementById('set-cp-new').value;
+    if (!newPass || newPass.length < 6) return app.ui.showAlert("Mật khẩu mới phải ít nhất 6 ký tự.");
+    
+    // Yêu cầu gửi OTP
+    try {
+        const btn = event.currentTarget;
+        const ogHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang xử lý...';
+        btn.disabled = true;
+
+        await app.api.post("/api/auth/request-password-change-otp");
+        
+        btn.innerHTML = ogHtml;
+        btn.disabled = false;
+
+        // Show OTP Modal
+        const modal = document.getElementById('otp-modal');
+        const input = document.getElementById('otp-input');
+        const error = document.getElementById('otp-modal-error');
+        const confirmBtn = document.getElementById('otp-confirm-btn');
+        const cancelBtn = document.getElementById('otp-cancel-btn');
+
+        input.value = '';
+        error.classList.add('hidden');
+        modal.classList.remove('hidden');
+        input.focus();
+
+        const closeHandler = () => {
+            modal.classList.add('hidden');
+            cancelBtn.removeEventListener('click', closeHandler);
+            confirmBtn.removeEventListener('click', confirmHandler);
+        };
+
+        const confirmHandler = async () => {
+            const otp = input.value.trim();
+            if (otp.length !== 6) {
+                error.innerText = "Vui lòng nhập đủ 6 số OTP.";
+                error.classList.remove('hidden');
+                return;
+            }
+            
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+            error.classList.add('hidden');
+
+            try {
+                await app.api.post("/api/auth/change-password-otp", { otp, new_password: newPass });
+                app.toast.show('success', 'Thành công', 'Đã đổi mật khẩu thành công!');
+                document.getElementById('set-cp-new').value = '';
+                closeHandler();
+            } catch (err) {
+                error.innerText = err.message || "Mã OTP không chính xác hoặc đã hết hạn.";
+                error.classList.remove('hidden');
+            } finally {
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = 'Xác nhận';
+            }
+        };
+
+        cancelBtn.addEventListener('click', closeHandler);
+        confirmBtn.addEventListener('click', confirmHandler);
+
+    } catch (err) {
+        app.ui.showAlert("Lỗi: " + (err.message || "Không thể yêu cầu OTP."));
+    }
+},
                 changeEmail: async (btn) => {
                     if (!app.user) return;
                     const newEmail = document.getElementById('set-ce-new').value.trim();

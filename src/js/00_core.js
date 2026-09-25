@@ -3237,7 +3237,7 @@ cleanupState: () => {
                 const path = window.location.pathname;
                 const searchParams = new URLSearchParams(window.location.search);
                 const queryToken = searchParams.get('token');
-                if (queryToken && path !== '/reset-password') {
+                if (queryToken) {
                     sessionStorage.setItem('VNBA_SESS_AUTH', JSON.stringify({ token: queryToken }));
                     searchParams.delete('token');
                     let newUrl = window.location.pathname;
@@ -3288,14 +3288,7 @@ cleanupState: () => {
                     const isRecovery = window.location.hash.includes('type=recovery') || app.auth.mode === 'recovery';
                     if (app.user && !isRecovery) app.utils.navigate('/');
                     else app.views.switch('auth', false);
-                } else if (path === '/reset-password') {
-                    document.title = 'Khôi phục Mật khẩu | VNBUSARCHIVE';
-                    const token = searchParams.get('token');
-                    if (token) {
-                        app.auth.mode = 'recovery';
-                        app.auth.recoveryToken = token;
-                    }
-                    app.views.switch('reset-password', false);
+                
                 } else if (path === '/setting' || path === '/settings') {
                     app.views.loadAccount();
                     setTimeout(() => {
