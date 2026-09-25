@@ -58,7 +58,7 @@
     "https://fonts.gstatic.com",
     "https://cdnjs.cloudflare.com"
   ],
-  "connect-src": [
+  "connect-src": ["https://*.vnbusarchive.io.vn", 
     "'self'",
     "blob:",
     "data:",
