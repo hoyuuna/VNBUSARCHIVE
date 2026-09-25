@@ -543,8 +543,7 @@ app.map = {
     async checkPermission() {
         this.isAdmin = false;
         if (app.user) {
-            const { data } = await window.sb.from('profiles').select('role').eq('id', app.user.id).single();
-            if (data && (data.role === 'admin' || data.role === 'manager')) {
+            if (app.role === 'admin' || app.role === 'manager') {
                 this.isAdmin = true;
             }
         }
@@ -629,7 +628,7 @@ app.map = {
     },
 
     async loadZones() {
-        const { data, error } = await window.sb.from('no_photo_zones').select('*');
+        const { data, error } = await app.api.get('/api/map/zones').then(res => ({ data: res.data, error: null })).catch(error => ({ data: null, error }));
         if (error) {
             console.error('Lỗi tải vùng cấm:', error);
             return;
@@ -713,19 +712,18 @@ app.map = {
         if (this.isAdmin) {
             let error;
             if (this.editingZoneId) {
-                const res = await window.sb.from('no_photo_zones').update({
-                    name: name,
-                    description: desc,
-                    bounds: allPolygons
-                }).eq('id', this.editingZoneId);
+                const res = await app.api.put('/api/map/zones/' + this.editingZoneId, {
+    name: name,
+    description: desc,
+    bounds: allPolygons
+}).then(data => ({ error: null })).catch(error => ({ error }));
                 error = res.error;
             } else {
-                const res = await window.sb.from('no_photo_zones').insert({
-                    name: name,
-                    description: desc,
-                    bounds: allPolygons,
-                    created_by: app.user.id
-                });
+                const res = await app.api.post('/api/map/zones', {
+    name: name,
+    description: desc,
+    bounds: allPolygons
+}).then(data => ({ error: null })).catch(error => ({ error }));
                 error = res.error;
             }
             
@@ -742,12 +740,11 @@ app.map = {
                 this.loadZones();
             }
         } else {
-            const { error } = await window.sb.from('zone_edit_requests').insert({
-                requester_id: app.user.id,
-                type: this.editingZoneId ? 'update' : 'add',
-                target_zone_id: this.editingZoneId || null,
-                new_data: { name, description: desc, bounds: allPolygons }
-            });
+            const { error } = await app.api.post('/api/map/zone-requests', {
+    type: this.editingZoneId ? 'update' : 'add',
+    zone_id: this.editingZoneId || null,
+    new_data: { name, description: desc, bounds: allPolygons }
+}).then(data => ({ error: null })).catch(error => ({ error }));
             
             app.loadingBar.finish();
             
@@ -765,7 +762,7 @@ app.map = {
     async deleteZone(id) {
         app.ui.showAlert('Bạn có chắc chắn muốn xóa toàn bộ các khu vực thuộc vùng cấm này?', async () => {
             app.loadingBar.start();
-            const { error } = await window.sb.from('no_photo_zones').delete().eq('id', id);
+            const { error } = await app.api.del('/api/map/zones/' + id).then(data => ({ error: null })).catch(error => ({ error }));
             app.loadingBar.finish();
             
             if (error) {
