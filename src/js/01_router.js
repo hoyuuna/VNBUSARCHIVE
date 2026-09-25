@@ -38,6 +38,13 @@ Object.assign(window.app, {
                     }, 50);
                 }, 400);
                 // Check if there is an error from OAuth linking
+                if (window.location.search.includes('error=unlinked_sso')) {
+                    setTimeout(() => {
+                        app.ui.showAlert("Tài khoản chưa được liên kết. Vui lòng đăng nhập/đăng ký bằng Email và Mật khẩu, hoặc chọn 'Đăng nhập không mật khẩu' nếu bạn đã có tài khoản! (Sau khi đăng nhập bạn có thể liên kết tài khoản ở phần Cài đặt).");
+                        window.history.replaceState(null, null, window.location.pathname);
+                    }, 500);
+                }
+
                 if (window.location.hash.includes('error_description=')) {
                     const params = new URLSearchParams(window.location.hash.substring(1));
                     const errorDesc = params.get('error_description');

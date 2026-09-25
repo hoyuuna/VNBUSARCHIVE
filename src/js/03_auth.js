@@ -160,7 +160,7 @@ Object.assign(window.app, {
     if (error) throw error;
     app.ui.showAlert(
         `<div class="text-left mt-1">
-            <p class="text-sm text-gray-700 mb-3">Link khôi phục mật khẩu đã được gửi đến <b>${email}</b>.</p>
+            <p class="text-sm text-gray-700 mb-3">Link đăng nhập không mật khẩu đã được gửi đến <b>${email}</b>.</p>
             <div class="bg-blue-50 border border-blue-200 rounded-md p-3">
                 <p class="text-xs text-blue-800 font-medium leading-relaxed">
                     <i class="fa-solid fa-circle-exclamation mr-1 text-blue-600 text-sm"></i>
@@ -251,26 +251,68 @@ Object.assign(window.app, {
                     );
                 },
 changePassword: async () => {
-                    const oldPass = document.getElementById('set-cp-old').value;
-                    const newPass = document.getElementById('set-cp-new').value;
-                    if (!oldPass) return app.ui.showAlert("Vui lòng nhập mật khẩu hiện tại.");
-                    if (!newPass || newPass.length < 6) return app.ui.showAlert("Mật khẩu mới phải ít nhất 6 ký tự.");
-                    try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
-                    const { error } = await window.sb.auth.updateUser({
-                        password: newPass,
-                        current_password: oldPass
-                    });
-                    if (error) {
-                        let msg = error.message;
-                        if (msg.includes('Current password is invalid')) msg = "Mật khẩu hiện tại không đúng.";
-                        if (msg.includes('should be different')) msg = "Mật khẩu mới phải khác mật khẩu hiện tại.";
-                        app.ui.showAlert("Lỗi: " + msg);
-                    } else {
-                        app.toast.show('success', 'Thành công', 'Đã đổi mật khẩu thành công!');
-                        document.getElementById('set-cp-old').value = '';
-                        document.getElementById('set-cp-new').value = '';
-                    }
-                },
+    const newPass = document.getElementById('set-cp-new').value;
+    const newPass2 = document.getElementById('set-cp-new2').value;
+    const otpBox = document.getElementById('set-cp-otp-box');
+    const otpInput = document.getElementById('set-cp-otp');
+    const btn = document.getElementById('set-cp-btn');
+    
+    if (!newPass || newPass.length < 6) return app.ui.showAlert("Mật khẩu mới phải ít nhất 6 kí tự.");
+    if (newPass !== newPass2) return app.ui.showAlert("Hai mật khẩu không khớp nhau.");
+    
+    const { data: sessionData } = await window.sb.auth.getSession();
+    const token = sessionData?.session?.access_token;
+    if (!token) return app.ui.showAlert("Không tìm thấy phiên đăng nhập.");
+
+    if (otpBox.classList.contains('hidden')) {
+        try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
+        
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi...';
+        try {
+            const res = await fetch('/api/auth/request-password-otp', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Không thể gửi OTP");
+            
+            otpBox.classList.remove('hidden');
+            btn.innerText = 'Xác nhận đổi mật khẩu';
+            app.ui.showAlert("Mã OTP 6 số đã được gửi tới email của bạn. Vui lòng kiểm tra hộp thư (cả mục Spam) và nhập mã để xác nhận.");
+        } catch (e) {
+            app.ui.showAlert("Lỗi: " + e.message);
+        } finally {
+            btn.disabled = false;
+        }
+    } else {
+        const otp = otpInput.value.trim();
+        if (!otp || otp.length !== 6) return app.ui.showAlert("Vui lòng nhập đủ mã OTP 6 số.");
+        
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
+        try {
+            const res = await fetch('/api/auth/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ password: newPass, otp: otp })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Cập nhật thất bại");
+            
+            app.toast.show('success', 'Thành công', 'Đã đổi mật khẩu thành công!');
+            document.getElementById('set-cp-new').value = '';
+            document.getElementById('set-cp-new2').value = '';
+            otpInput.value = '';
+            otpBox.classList.add('hidden');
+            btn.innerText = 'Tiếp tục';
+        } catch (e) {
+            app.ui.showAlert("Lỗi: " + e.message);
+        } finally {
+            btn.disabled = false;
+        }
+    }
+},
                 changeEmail: async (btn) => {
                     if (!app.user) return;
                     const newEmail = document.getElementById('set-ce-new').value.trim();
