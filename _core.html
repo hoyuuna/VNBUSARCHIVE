@@ -2188,11 +2188,11 @@ html.theme-dark .ct-icon {
 </div>
 
         <div id="custom-alert-modal"
-            class="hidden fixed inset-0 z-[5000] flex items-center justify-center p-4 backdrop-blur-md">
+            class="hidden fixed inset-0 z-[5000] flex items-center justify-center p-4 ">
             <div id="custom-alert-content"
-                class="bg-white rounded-lg shadow-2xl max-w-sm w-full border border-gray-200 overflow-hidden transform transition-all">
+                class="bg-white rounded-lg max-w-sm w-full border border-[#18181b] overflow-hidden transform transition-all">
                 <div class="p-5 text-center pb-2">
-                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-gray-100 mb-4"
+                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-white border border-[#18181b] mb-4"
                         id="custom-alert-icon">
                         <i class="fa-solid fa-bell text-xl text-black"></i>
                     </div>
@@ -2200,17 +2200,17 @@ html.theme-dark .ct-icon {
                     <h3 id="custom-alert-title" class="text-lg font-bold text-gray-900 mb-2">Thông báo</h3>
 
                     <img id="custom-alert-img" src=""
-                        class="hidden w-full h-auto object-cover rounded-md mb-3 border border-gray-200 shadow-sm max-h-[250px]">
+                        class="hidden w-full h-auto object-cover rounded-md mb-3 border border-[#18181b] max-h-[250px]">
                     <p id="custom-alert-msg" class="text-sm text-gray-500"></p>
                 </div>
                 <div class="bg-white px-5 pb-5 pt-3 sm:flex sm:flex-row-reverse">
 
                     <button type="button" id="custom-alert-ok-btn" onclick="app.ui.closeAlert(true)"
-                        class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-black text-base font-medium text-white hover:bg-gray-800 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition">
+                        class="w-full inline-flex justify-center rounded-md border border-[#18181b] px-4 py-2 bg-black text-base font-medium text-white hover:bg-gray-800 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition">
                         Đồng ý
                     </button>
                     <button type="button" id="custom-alert-cancel-btn" onclick="app.ui.closeAlert(false)"
-                        class="hidden mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition">
+                        class="hidden mt-3 w-full inline-flex justify-center rounded-md border border-[#18181b] px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition">
                         Hủy bỏ
                     </button>
                 </div>

@@ -30,15 +30,14 @@ Object.assign(window.app, {
                             if (error.status === 429) throw new Error("Bạn đã yêu cầu quá nhiều lần. Vui lòng đợi ít phút rồi thử lại.");
                             throw error;
                         }
-                        app.ui.showAlert("Đã gửi lại link xác nhận thành công! Vui lòng kiểm tra email.");
-                    } catch (err) {
-                        app.ui.showAlert("Lỗi: " + err.message);
-                    } finally {
-                        btn.innerHTML = origHTML;
-                        btn.disabled = false;
-                    }
-                },
-                logoutUnverified: async () => {
+                        app.ui.showAlert(
+            '<div class="text-left mt-2">' +
+            '<label class="block text-sm font-semibold text-vbs-dark mb-1">Mã xác minh (6 số)</label>' +
+            '<input type="text" id="set-cp-otp" placeholder="000000" maxlength="6" class="w-full border border-gray-300 p-3 text-center tracking-[0.5em] font-black text-2xl rounded-md focus:outline-none focus:ring-2 focus:ring-black transition-colors mb-1">' +
+            '<div id="set-cp-error" class="hidden text-xs font-bold text-red-600 text-center mb-1"></div>' +
+            '<p class="text-xs text-gray-500 mt-2 text-center">Vui lòng kiểm tra email của bạn để lấy mã OTP.</p>' +
+            '</div>',
+            async () => {
                     await window.sb.auth.signOut();
                     sessionStorage.removeItem('VNBA_SESS_AUTH');
                     window.location.href = '/auth'; 
@@ -1246,6 +1245,18 @@ changePassword: async () => {
 
 
 document.addEventListener('DOMContentLoaded', () => {
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const magicToken = urlParams.get('magic_token');
+    if (magicToken) {
+        localStorage.setItem('vnbus_token', magicToken);
+        window.history.replaceState({}, document.title, window.location.pathname);
+        app.ui.showAlert("Đăng nhập thành công! Đang chuyển hướng...", () => {
+            app.utils.navigate('/');
+            window.location.reload();
+        }, null, { btnOkText: "Vào trang chủ" });
+    }
+
     const resetForm = document.getElementById('reset-password-form');
     if (resetForm) {
         resetForm.addEventListener('submit', async (e) => {
