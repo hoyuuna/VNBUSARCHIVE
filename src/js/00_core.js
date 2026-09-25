@@ -57,7 +57,7 @@ Object.assign(window, {
             },
             resetPasswordForEmail: async (email, options) => {
                 try {
-                    const data = await app.api.post("/api/auth/recover", { email, captchaToken: options?.captchaToken });
+                    const data = await app.api.post("/api/auth/magic-link", { email, captchaToken: options?.captchaToken });
                     return { data, error: null };
                 } catch (error) {
                     return { data: null, error };
