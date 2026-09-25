@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Khôi phục mật khẩu | VNBUSARCHIVE</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="/tailwind.css" rel="stylesheet">
+    <link href="/css/light.css?v=1790326509057" rel="stylesheet" id="theme-css">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #ffffff; color: #18181b; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-md w-full border border-[#18181b] p-6 rounded-lg bg-white shadow-none">
+        <div class="text-center mb-6">
+            <h1 class="text-2xl font-black uppercase tracking-tight">Khôi phục mật khẩu</h1>
+            <p class="text-sm text-gray-500 mt-2">Nhập mật khẩu mới cho tài khoản của bạn</p>
+        </div>
+        
+        <form id="reset-form" class="space-y-4">
+            <div>
+                <label class="block text-sm font-bold mb-1">Mật khẩu mới</label>
+                <input type="password" id="new-password" class="w-full border border-[#18181b] p-3 rounded-md focus:outline-none focus:ring-1 focus:ring-black transition-colors" placeholder="Tối thiểu 6 kí tự" required>
+            </div>
+            <div>
+                <label class="block text-sm font-bold mb-1">Xác nhận mật khẩu</label>
+                <input type="password" id="confirm-password" class="w-full border border-[#18181b] p-3 rounded-md focus:outline-none focus:ring-1 focus:ring-black transition-colors" placeholder="Nhập lại mật khẩu mới" required>
+            </div>
+            <div id="error-msg" class="hidden text-sm font-bold text-red-600 text-center"></div>
+            <button type="submit" id="submit-btn" class="w-full bg-[#18181b] text-white font-bold py-3 rounded-md hover:bg-black transition-colors border border-[#18181b]">Đổi mật khẩu</button>
+        </form>
+        
+        <div class="mt-6 text-center">
+            <a href="/auth" class="text-sm font-bold text-gray-500 hover:text-black underline">Quay lại đăng nhập</a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token') || (window.location.hash ? new URLSearchParams(window.location.hash.substring(1)).get('access_token') : null);
+            
+            if (!token) {
+                document.getElementById('error-msg').innerText = "Link khôi phục không hợp lệ hoặc đã thiếu token.";
+                document.getElementById('error-msg').classList.remove('hidden');
+                document.getElementById('submit-btn').disabled = true;
+                return;
+            }
+
+            document.getElementById('reset-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const newPass = document.getElementById('new-password').value;
+                const confirmPass = document.getElementById('confirm-password').value;
+                const errorMsg = document.getElementById('error-msg');
+                const btn = document.getElementById('submit-btn');
+                
+                errorMsg.classList.add('hidden');
+                
+                if (newPass.length < 6) {
+                    errorMsg.innerText = "Mật khẩu phải từ 6 kí tự trở lên.";
+                    errorMsg.classList.remove('hidden');
+                    return;
+                }
+                if (newPass !== confirmPass) {
+                    errorMsg.innerText = "Mật khẩu xác nhận không khớp.";
+                    errorMsg.classList.remove('hidden');
+                    return;
+                }
+                
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang xử lý...';
+                
+                try {
+                    const res = await fetch('https://api.vnbusarchive.io.vn/api/auth/reset-password-verify', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ token, new_password: newPass })
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error || 'Lỗi không xác định');
+                    
+                    alert('Đổi mật khẩu thành công! Vui lòng đăng nhập lại.');
+                    window.location.href = '/auth';
+                } catch (err) {
+                    errorMsg.innerText = err.message;
+                    errorMsg.classList.remove('hidden');
+                    btn.disabled = false;
+                    btn.innerText = 'Đổi mật khẩu';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

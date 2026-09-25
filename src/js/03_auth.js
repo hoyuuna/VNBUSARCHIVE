@@ -257,9 +257,8 @@ Object.assign(window.app, {
                 },
 changePassword: async () => {
     const newPass = document.getElementById('set-cp-new').value;
-    if (!newPass || newPass.length < 6) return app.ui.showAlert("Mật khẩu mới phải ít nhất 6 ký tự.");
+    if (!newPass || newPass.length < 6) return app.ui.showAlert("Mật khẩu mới phải ít nhất 6 kí tự.");
     
-    // Yêu cầu gửi OTP
     try {
         const btn = event.currentTarget;
         const ogHtml = btn.innerHTML;
@@ -271,55 +270,45 @@ changePassword: async () => {
         btn.innerHTML = ogHtml;
         btn.disabled = false;
 
-        // Show OTP Modal
-        const modal = document.getElementById('otp-modal');
-        const input = document.getElementById('otp-input');
-        const error = document.getElementById('otp-modal-error');
-        const confirmBtn = document.getElementById('otp-confirm-btn');
-        const cancelBtn = document.getElementById('otp-cancel-btn');
-
-        input.value = '';
-        error.classList.add('hidden');
-        modal.classList.remove('hidden');
-        input.focus();
-
-        const closeHandler = () => {
-            modal.classList.add('hidden');
-            cancelBtn.removeEventListener('click', closeHandler);
-            confirmBtn.removeEventListener('click', confirmHandler);
-        };
-
-        const confirmHandler = async () => {
-            const otp = input.value.trim();
-            if (otp.length !== 6) {
-                error.innerText = "Vui lòng nhập đủ 6 số OTP.";
-                error.classList.remove('hidden');
-                return;
-            }
-            
-            confirmBtn.disabled = true;
-            confirmBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
-            error.classList.add('hidden');
-
-            try {
-                await app.api.post("/api/auth/change-password-otp", { otp, new_password: newPass });
-                app.toast.show('success', 'Thành công', 'Đã đổi mật khẩu thành công!');
-                document.getElementById('set-cp-new').value = '';
-                closeHandler();
-            } catch (err) {
-                error.innerText = err.message || "Mã OTP không chính xác hoặc đã hết hạn.";
-                error.classList.remove('hidden');
-            } finally {
-                confirmBtn.disabled = false;
-                confirmBtn.innerHTML = 'Xác nhận';
-            }
-        };
-
-        cancelBtn.addEventListener('click', closeHandler);
-        confirmBtn.addEventListener('click', confirmHandler);
-
-    } catch (err) {
-        app.ui.showAlert("Lỗi: " + (err.message || "Không thể yêu cầu OTP."));
+        app.ui.showAlert(
+            `<div class="text-left mt-1">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center font-bold text-lg border border-[#18181b]">
+                        <i class="fa-solid fa-envelope-open-text"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-black text-gray-900 text-lg">Xác minh Email</h3>
+                        <p class="text-xs text-gray-500 font-medium">Nhập mã 6 số được gửi về email của bạn</p>
+                    </div>
+                </div>
+                <input type="text" id="set-cp-otp" placeholder="000000" maxlength="6" class="w-full border border-[#18181b] p-3 text-center tracking-[0.5em] font-black text-2xl rounded-md focus:outline-none focus:ring-1 focus:ring-black transition-colors mb-2">
+                <div id="set-cp-error" class="hidden text-xs font-bold text-red-600 text-center mb-1"></div>
+            </div>`,
+            async () => {
+                const otp = document.getElementById('set-cp-otp').value.trim();
+                const error = document.getElementById('set-cp-error');
+                if (otp.length !== 6) {
+                    error.innerText = "Vui lòng nhập đủ 6 số OTP.";
+                    error.classList.remove('hidden');
+                    throw new Error("UI_KEEP_OPEN");
+                }
+                error.classList.add('hidden');
+                
+                try {
+                    await app.api.post("/api/auth/change-password-otp", { otp, new_password: newPass });
+                    app.toast.show('success', 'Thành công', 'Đã đổi mật khẩu thành công!');
+                    document.getElementById('set-cp-new').value = '';
+                } catch (err) {
+                    error.innerText = err.message || "Mã OTP không chính xác hoặc đã hết hạn.";
+                    error.classList.remove('hidden');
+                    throw new Error("UI_KEEP_OPEN");
+                }
+            },
+            null,
+            { btnOkText: "Xác nhận", btnCancelText: "Hủy", title: "Xác minh Email" }
+        );
+    } catch (e) {
+        app.ui.showAlert("Lỗi: " + e.message);
     }
 },
                 changeEmail: async (btn) => {

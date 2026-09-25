@@ -1942,7 +1942,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1790316632612" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1790327096861" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -5920,31 +5920,6 @@ html.theme-dark .ct-icon {
 
 
 
-    <!-- OTP MODAL -->
-    <div id="otp-modal" class="hidden fixed inset-0 flex flex-col items-center justify-center p-4 backdrop-blur-md" style="z-index: 99999;">
-        <div class="bg-white border border-[#18181b] rounded-2xl w-full max-w-sm overflow-hidden flex flex-col">
-            <div class="p-5 flex-1">
-                <div class="flex items-center gap-3 mb-4">
-                    <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-lg">
-                        <i class="fa-solid fa-envelope-open-text"></i>
-                    </div>
-                    <div>
-                        <h3 class="font-black text-gray-900 text-lg">Xác minh Email</h3>
-                        <p class="text-xs text-gray-500 font-medium">Nhập mã 6 số được gửi về email của bạn</p>
-                    </div>
-                </div>
-                <div class="mb-4">
-                    <input type="text" id="otp-input" class="w-full px-4 py-3 text-center tracking-[0.5em] font-black text-2xl bg-white border border-[#18181b] rounded-xl focus:ring-1 focus:ring-black outline-none transition-all" placeholder="000000" maxlength="6">
-                </div>
-                <div id="otp-modal-error" class="hidden text-xs font-bold text-red-600 text-center mb-2"></div>
-            </div>
-            <div class="p-3 bg-white flex gap-2" style="border-top: none;">
-                <button id="otp-cancel-btn" class="flex-1 py-2.5 rounded-xl text-sm font-bold text-gray-900 bg-white border border-[#18181b] hover:bg-gray-100 transition-colors">Hủy</button>
-                <button id="otp-confirm-btn" class="flex-1 py-2.5 rounded-xl text-sm font-bold text-white bg-black hover:bg-gray-800 transition-colors border border-[#18181b]">Xác nhận</button>
-            </div>
-        </div>
-    </div>
-
     <!-- MODALS ĐĂNG NHẬP QR -->
     <!-- 1. Modal Host (Máy B - Hiển thị QR) -->
     <div id="qr-login-host-modal" class="hidden fixed inset-0 flex flex-col items-center justify-center p-4 backdrop-blur-md" style="z-index: 99999;">
@@ -6930,7 +6905,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.89a8d64c9b6f.js"></script>
+<script src="/app.053bd73eb975.js"></script>
 </body>
 </html>
 
