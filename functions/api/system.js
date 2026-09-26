@@ -28,14 +28,14 @@ function handleConfig(request, env) {
 
     return new Response(JSON.stringify({
         FIREBASE_URL: env.FIREBASE_URL,
-        SUPABASE_URL: 'https://api.vnbusarchive.io.vn',
+        SUPABASE_URL: env.SUPABASE_URL,
         SUPABASE_KEY: env.SUPABASE_KEY
     }), { status: 200, headers: { 'Content-Type': 'application/json' }});
 }
 
 async function handleQrLoginGenerate(request, env) {
     try {
-        const supabaseUrl = 'https://api.vnbusarchive.io.vn';
+        const supabaseUrl = env.SUPABASE_URL;
         const supabaseServiceRole = env.SUPABASE_SERVICE_ROLE_KEY;
         const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRole);
         
@@ -52,7 +52,7 @@ async function handleLogIp(request, env) {
     try {
         const clientIp = (request.headers.get('CF-Connecting-IP') || request.headers.get('x-real-ip') || request.headers.get('x-client-ip') || (request.headers.get('x-forwarded-for') || '').split(',')[0] || '127.0.0.1').trim();
         const authHeader = request.headers.get('authorization');
-        const supabaseUrl = 'https://api.vnbusarchive.io.vn';
+        const supabaseUrl = env.SUPABASE_URL;
         const supabaseServiceRole = env.SUPABASE_SERVICE_ROLE_KEY;
 
         if (clientIp && authHeader && authHeader.startsWith('Bearer ') && supabaseUrl && supabaseServiceRole) {
