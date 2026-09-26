@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+﻿import { createClient } from '@supabase/supabase-js';
 
 function validateOriginAndReferer(request) {
     const referer = request.headers.get('referer') || '';
@@ -28,180 +28,23 @@ function handleConfig(request, env) {
 
     return new Response(JSON.stringify({
         FIREBASE_URL: env.FIREBASE_URL,
-        SUPABASE_URL: env.SUPABASE_URL,
+        SUPABASE_URL: 'https://api.vnbusarchive.io.vn',
         SUPABASE_KEY: env.SUPABASE_KEY
     }), { status: 200, headers: { 'Content-Type': 'application/json' }});
 }
 
-async function handleGetCore(request, env) {
-    try {
-        const clientIp = (request.headers.get('CF-Connecting-IP') || request.headers.get('x-real-ip') || request.headers.get('x-client-ip') || (request.headers.get('x-forwarded-for') || '').split(',')[0] || '127.0.0.1').trim();
-        const isLocalOrInvalidIp = clientIp === '127.0.0.1' || clientIp === '::1' || clientIp === 'localhost';
-
-        const supabaseUrl = env.SUPABASE_URL;
-        const supabaseServiceRole = env.SUPABASE_SERVICE_ROLE_KEY;
-        let supabaseAdmin = null;
-
-        if (supabaseUrl && supabaseServiceRole) {
-            supabaseAdmin = createClient(supabaseUrl, supabaseServiceRole);
-        }
-
-        if (supabaseAdmin && !isLocalOrInvalidIp) {
-            try {
-                const { data: ipBan, error: ipBanErr } = await supabaseAdmin.from('banned_ips').select('ip, reason').eq('ip', clientIp).maybeSingle();
-                if (!ipBanErr && ipBan) {
-                    return new Response(JSON.stringify({ ip_banned: true, reason: ipBan.reason || 'Địa chỉ IP này thuộc danh sách hạn chế truy cập.' }), { status: 403, headers: { 'Content-Type': 'application/json' }});
-                }
-            } catch (e) {}
-
-            try {
-                const { data: bannedProfiles, error: bpErr } = await supabaseAdmin.from('profiles').select('ban_status').contains('known_ips', [clientIp]);
-                if (!bpErr && bannedProfiles && bannedProfiles.length > 0) {
-                    let foundReason = 'IP thuộc tài khoản bị hạn chế hoạt động.';
-                    const isIpBanned = bannedProfiles.some(p => {
-                        if (!p.ban_status) return false;
-                        const b = typeof p.ban_status === 'string' ? JSON.parse(p.ban_status) : p.ban_status;
-                        if (b && (b.banned === true || b.banned === 'true')) {
-                            if (b.reason) foundReason = b.reason;
-                            return true;
-                        }
-                        return false;
-                    });
-                    if (isIpBanned) {
-                        try { await supabaseAdmin.from('banned_ips').upsert({ ip: clientIp, reason: foundReason }, { onConflict: 'ip' }); } catch(err){}
-                        return new Response(JSON.stringify({ ip_banned: true, reason: foundReason }), { status: 403, headers: { 'Content-Type': 'application/json' }});
-                    }
-                }
-            } catch (e) {}
-        }
-
-        let token = null;
-        const authHeader = request.headers.get('authorization');
-        if (authHeader && authHeader.startsWith('Bearer ')) {
-            token = authHeader.replace('Bearer ', '').trim();
-        } else {
-            try {
-                const clone = request.clone();
-                const bodyJson = await clone.json();
-                if (bodyJson && bodyJson.token) token = String(bodyJson.token).trim();
-            } catch (e) {}
-        }
-
-        if (token && supabaseAdmin) {
-            const { data: { user }, error: userErr } = await supabaseAdmin.auth.getUser(token);
-            
-            if (!userErr && user) {
-                let profile = null;
-                try {
-                    const res = await supabaseAdmin.from('profiles').select('ban_status, username, known_ips').eq('id', user.id).single();
-                    if (!res.error) profile = res.data;
-                } catch (e) {}
-
-                if (!profile) {
-                    try {
-                        const res = await supabaseAdmin.from('profiles').select('ban_status, username').eq('id', user.id).single();
-                        if (!res.error) profile = res.data;
-                    } catch (e) {}
-                }
-
-                if (profile && profile.ban_status) {
-                    try {
-                        const banInfo = typeof profile.ban_status === 'string' ? JSON.parse(profile.ban_status) : profile.ban_status;
-                        if (banInfo && (banInfo.banned === true || banInfo.banned === 'true')) {
-                            if (clientIp) {
-                                const knownIps = Array.isArray(profile.known_ips) ? profile.known_ips : [];
-                                if (!knownIps.includes(clientIp)) {
-                                    try { await supabaseAdmin.from('profiles').update({ known_ips: [...knownIps, clientIp] }).eq('id', user.id); } catch(err){}
-                                }
-                            }
-                            if (!isLocalOrInvalidIp) {
-                                try { await supabaseAdmin.from('banned_ips').upsert({ ip: clientIp, reason: `Tài khoản ${profile.username || user.email} bị cấm` }, { onConflict: 'ip' }); } catch(err){}
-                            }
-                            return new Response(JSON.stringify({ banned: true, reason: banInfo.reason, name: profile.username || user.email, uuid: user.id }), { status: 403, headers: { 'Content-Type': 'application/json' }});
-                        }
-                    } catch (e) {
-                        console.error("Lỗi parse ban_status", e);
-                    }
-                }
-
-                if (clientIp && profile) {
-                    try {
-                        const knownIps = Array.isArray(profile.known_ips) ? profile.known_ips : [];
-                        if (!knownIps.includes(clientIp)) {
-                            await supabaseAdmin.from('profiles').update({ known_ips: [...knownIps, clientIp] }).eq('id', user.id);
-                        }
-                    } catch (e) {}
-                }
-            }
-        }
-
-        const noCacheHeaders = {
-            'Content-Type': 'application/json',
-            'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
-            'Pragma': 'no-cache'
-        };
-        return new Response(JSON.stringify({ ok: true }), { status: 200, headers: noCacheHeaders });
-    } catch (error) {
-        console.error("Loi doc file core:", error);
-        const noCacheHeaders = {
-            'Content-Type': 'application/json',
-            'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
-            'Pragma': 'no-cache'
-        };
-        return new Response(JSON.stringify({ ok: true }), { status: 200, headers: noCacheHeaders });
-    }
-}
-
 async function handleQrLoginGenerate(request, env) {
     try {
-        const authHeader = request.headers.get('authorization');
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return new Response(JSON.stringify({ error: 'Thiếu hoặc sai định dạng Token xác thực.' }), { status: 401, headers: { 'Content-Type': 'application/json' }});
-        }
-        const token = authHeader.replace('Bearer ', '');
-
-        const supabaseUrl = env.SUPABASE_URL;
+        const supabaseUrl = 'https://api.vnbusarchive.io.vn';
         const supabaseServiceRole = env.SUPABASE_SERVICE_ROLE_KEY;
-
-        if (!supabaseUrl || !supabaseServiceRole) {
-            throw new Error("Thiếu biến môi trường SUPABASE_URL hoặc SUPABASE_SERVICE_ROLE_KEY");
-        }
-
         const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRole);
-
-        const { data: { user }, error: userErr } = await supabaseAdmin.auth.getUser(token);
         
-        if (userErr || !user) {
-            return new Response(JSON.stringify({ error: 'Phiên đăng nhập không hợp lệ hoặc đã hết hạn.' }), { status: 401, headers: { 'Content-Type': 'application/json' }});
-        }
-
-        if (!user.email) {
-            return new Response(JSON.stringify({ error: 'Tài khoản của bạn không có Email, không thể sử dụng chức năng đăng nhập QR.' }), { status: 400, headers: { 'Content-Type': 'application/json' }});
-        }
-
-        const { data: profile } = await supabaseAdmin.from('profiles').select('ban_status').eq('id', user.id).single();
-        if (profile && profile.ban_status) {
-            const banInfo = typeof profile.ban_status === 'string' ? JSON.parse(profile.ban_status) : profile.ban_status;
-            if (banInfo && banInfo.banned) {
-                return new Response(JSON.stringify({ error: `Tài khoản đã bị cấm: ${banInfo.reason || 'Không rõ'}` }), { status: 403, headers: { 'Content-Type': 'application/json' }});
-            }
-        }
-
-        const { data: linkData, error: linkErr } = await supabaseAdmin.auth.admin.generateLink({
-            type: 'magiclink',
-            email: user.email,
-            options: {
-                redirectTo: 'https://vnbusarchive.io.vn/'
-            }
-        });
-
-        if (linkErr) throw linkErr;
-
-        return new Response(JSON.stringify({ url: linkData.properties.action_link }), { status: 200, headers: { 'Content-Type': 'application/json' }});
-
-    } catch (error) {
-        console.error('QR Login Generate Error:', error);
-        return new Response(JSON.stringify({ error: error.message || 'Lỗi hệ thống máy chủ.' }), { status: 500, headers: { 'Content-Type': 'application/json' }});
+        const qid = crypto.randomUUID();
+        const { error } = await supabaseAdmin.from('qr_login_sessions').insert([{ qid, status: 'pending' }]);
+        if (error) throw error;
+        return new Response(JSON.stringify({ qid }), { headers: { 'Content-Type': 'application/json' }});
+    } catch (e) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { 'Content-Type': 'application/json' }});
     }
 }
 
@@ -209,40 +52,34 @@ async function handleLogIp(request, env) {
     try {
         const clientIp = (request.headers.get('CF-Connecting-IP') || request.headers.get('x-real-ip') || request.headers.get('x-client-ip') || (request.headers.get('x-forwarded-for') || '').split(',')[0] || '127.0.0.1').trim();
         const authHeader = request.headers.get('authorization');
-        const supabaseUrl = env.SUPABASE_URL;
+        const supabaseUrl = 'https://api.vnbusarchive.io.vn';
         const supabaseServiceRole = env.SUPABASE_SERVICE_ROLE_KEY;
 
         if (clientIp && authHeader && authHeader.startsWith('Bearer ') && supabaseUrl && supabaseServiceRole) {
-            const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRole);
             const token = authHeader.replace('Bearer ', '');
-            const { data: { user }, error: userErr } = await supabaseAdmin.auth.getUser(token);
-
-            if (!userErr && user) {
-                const { data: profile } = await supabaseAdmin.from('profiles').select('known_ips, ban_status, username').eq('id', user.id).single();
-                if (profile) {
-                    const knownIps = Array.isArray(profile.known_ips) ? profile.known_ips : [];
-                    if (!knownIps.includes(clientIp)) {
-                        await supabaseAdmin.from('profiles').update({ known_ips: [...knownIps, clientIp] }).eq('id', user.id);
-                    }
-                    let banInfo = null;
-                    if (profile.ban_status) {
-                        try { banInfo = typeof profile.ban_status === 'string' ? JSON.parse(profile.ban_status) : profile.ban_status; } catch(e){}
-                    }
-                    if (banInfo && banInfo.banned) {
-                        try { await supabaseAdmin.from('banned_ips').upsert({ ip: clientIp, reason: `Tài khoản ${profile.username || user.email} bị cấm` }, { onConflict: 'ip' }); } catch(err){}
-                    }
-                }
+            const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRole);
+            
+            const { data: userData, error: userError } = await supabaseAdmin.auth.getUser(token);
+            if (!userError && userData?.user?.id) {
+                const userId = userData.user.id;
+                await supabaseAdmin.from('users').update({ ip_address: clientIp }).eq('id', userId);
             }
         }
-    } catch (e) {}
-    return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { 'Content-Type': 'application/json' }});
+    } catch (e) { }
+    
+    return new Response(JSON.stringify({ status: 'ok' }), { headers: { 'Content-Type': 'application/json' } });
 }
 
 export async function onRequest(context) {
     const { request, env } = context;
-
-    if (!validateOriginAndReferer(request)) {
-        return new Response(JSON.stringify({ error: 'Forbidden - Domain không hợp lệ' }), { status: 403, headers: { 'Content-Type': 'application/json' }});
+    if (request.method === 'OPTIONS') {
+        return new Response(null, {
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+            }
+        });
     }
 
     if (request.method === 'GET') {
@@ -257,12 +94,12 @@ export async function onRequest(context) {
             } else if (action === 'log_ip') {
                 return handleLogIp(request, env);
             } else {
-                return handleGetCore(request, env);
+                return new Response(JSON.stringify({ error: 'Invalid action' }), { status: 400 });
             }
-        } catch (err) {
-            return handleGetCore(request, env);
+        } catch (e) {
+            return new Response(JSON.stringify({ error: e.message }), { status: 500 });
         }
     }
     
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers: { 'Content-Type': 'application/json' }});
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 });
 }
