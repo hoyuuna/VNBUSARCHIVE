@@ -49,10 +49,10 @@ export async function onRequestPost(context) {
             }
         });
 
-        const { data: { user }, error: userError } = await sb.auth.getUser();
+        const { data: { user }, error: userError } = await sb.auth.getUser(token);
         
         if (userError || !user) {
-            return new Response(JSON.stringify({ error: 'Invalid token' }), { status: 401 });
+            return new Response(JSON.stringify({ error: 'Invalid token', details: userError ? userError.message : 'User is null' }), { status: 401 });
         }
         
         const sbAdmin = env.SUPABASE_SERVICE_ROLE_KEY ? createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY) : sb;

@@ -45,7 +45,8 @@ export async function onRequest(context) {
             { global: { headers: { Authorization: authHeader } } }
         );
 
-        const { data: { user }, error: authErr } = await supabase.auth.getUser();
+        const token = authHeader.replace('Bearer ', '');
+        const { data: { user }, error: authErr } = await supabase.auth.getUser(token);
         if (authErr || !user) return new Response(JSON.stringify({ success: false, error: 'Phiên đăng nhập không hợp lệ.' }), { status: 401, headers: { 'Content-Type': 'application/json' }});
         const userId = user.id;
 
@@ -122,7 +123,7 @@ export async function onRequest(context) {
             if (oldProfile && oldProfile.avatar_url) {
                 oldAvatarUrl = oldProfile.avatar_url;
             } else {
-                const { data: { user } } = await supabase.auth.getUser();
+                const { data: { user } } = await supabase.auth.getUser(token);
                 if (user && user.user_metadata && user.user_metadata.avatar_url) {
                     oldAvatarUrl = user.user_metadata.avatar_url;
                 }

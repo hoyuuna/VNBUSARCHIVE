@@ -22,7 +22,8 @@ export async function onRequest(context) {
             { global: { headers: { Authorization: authHeader } } }
         );
 
-        const { data: { user }, error: authErr } = await supabase.auth.getUser();
+        const token = authHeader.replace('Bearer ', '');
+        const { data: { user }, error: authErr } = await supabase.auth.getUser(token);
         if (authErr || !user) {
             return new Response(JSON.stringify({ success: false, error: 'Token không hợp lệ.' }), { status: 401, headers: { 'Content-Type': 'application/json' }});
         }
