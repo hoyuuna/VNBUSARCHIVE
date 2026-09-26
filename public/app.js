@@ -14288,9 +14288,7 @@ Object.assign(window.app, {
                                         token = newSession.access_token;
                                         uploadAttempts--;
                                         continue;
-                                    } else {
-                                        throw new Error('Phiên đã hết hạn. Vui lòng tải lại trang và đăng nhập lại.');
-                                    }
+                                    } else { throw new Error('Phiên đã hết hạn. Vui lòng tải lại trang và đăng nhập lại. ' + (result && result.details ? result.details : '')); }
                                 }
                                 if (!result.success) {
                                     console.error('[EXHAUSTIVE UPLOAD LOG - SERVER RETURNED FAILURE]:', JSON.stringify(result, null, 2));
