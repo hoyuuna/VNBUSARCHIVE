@@ -66,7 +66,7 @@ export async function onRequest(context) {
             route: sanitizeString(formData.get('meta_route')),
             model: sanitizeString(formData.get('meta_model')),
             location: sanitizeString(formData.get('meta_location')),
-
+            province: sanitizeString(formData.get('meta_province')),
             note: sanitizeString(formData.get('meta_note')),
             taken_at: formData.get('meta_taken_at'),
             username: sanitizeString(formData.get('meta_username')),
@@ -182,7 +182,7 @@ export async function onRequest(context) {
                     uploader_id: userId,
                     license_plate: metadata.plate,
                     location: metadata.location,
-
+                    province: metadata.province,
                     note: metadata.note,
                     status: 'pending',
                     camera_model: metadata.camera_model,
@@ -203,10 +203,11 @@ export async function onRequest(context) {
         }
 
     } catch (error) {
-        console.error('[UPLOAD BACKEND FATAL ERROR]:', error.message);
+        console.error('[UPLOAD BACKEND FATAL ERROR]:', error);
         return new Response(JSON.stringify({
             success: false,
-            error: 'Đã xảy ra lỗi hệ thống máy chủ, vui lòng thử lại sau.'
+            error: 'Đã xảy ra lỗi hệ thống máy chủ, vui lòng thử lại sau.',
+            details: error.message || error.details || JSON.stringify(error)
         }), { status: 500, headers: { 'Content-Type': 'application/json' }});
     }
 }

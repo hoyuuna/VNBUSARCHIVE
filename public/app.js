@@ -14210,7 +14210,7 @@ Object.assign(window.app, {
                         const limitNum = hasLimit ? parseInt(limitSetting) : null;
                         const last7AM = app.utils.getLast7AM_UTC7();
                         const { count } = await window.sb.from('photos')
-                            .select('*', { count: 'estimated', head: true })
+                            .select('*', { count: 'exact', head: true })
                             .eq('uploader_id', app.user.id)
                             .gte('created_at', last7AM);
                         app.upload.currentQuota = { limit: limitNum, count: count || 0 };
