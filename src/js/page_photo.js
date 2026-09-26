@@ -140,7 +140,7 @@ Object.assign(window.app, {
                     } else {
                         try {
                             const { count, error: checkErr } = await window.sb.from('edit_requests')
-                                .select('*', { count: 'estimated', head: true })
+                                .select('*', { count: 'exact', head: true })
                                 .eq('status', 'pending')
                                 .contains('new_data', { photo_id: p.id });
                             if (checkErr) throw checkErr;
@@ -219,13 +219,13 @@ Object.assign(window.app, {
                         if (countEl) {
                             const { count: totalCount } = await window.sb
                                 .from('photo_comments')
-                                .select('*', { count: 'estimated', head: true })
+                                .select('*', { count: 'exact', head: true })
                                 .eq('photo_id', photoId);
                             countEl.innerText = totalCount || 0;
                         }
                         const result = await window.sb
                             .from('photo_comments')
-                            .select('*, profiles(id, username, avatar_url, role, subroles, ban_status)', { count: 'estimated' })
+                            .select('*, profiles(id, username, avatar_url, role, subroles, ban_status)', { count: 'exact' })
                             .eq('photo_id', photoId)
                             .is('parent_id', null)
                             .order('created_at', { ascending: false })
@@ -237,7 +237,7 @@ Object.assign(window.app, {
                             useThreads = false;
                             const fallback = await window.sb
                                 .from('photo_comments')
-                                .select('*, profiles(id, username, avatar_url, role, subroles, ban_status)', { count: 'estimated' })
+                                .select('*, profiles(id, username, avatar_url, role, subroles, ban_status)', { count: 'exact' })
                                 .eq('photo_id', photoId)
                                 .order('created_at', { ascending: false })
                                 .range(from, to);
@@ -766,7 +766,7 @@ Object.assign(window.app, {
                             app.edit.cancel();
                         } else {
                             const { count, error: checkErr } = await window.sb.from('edit_requests')
-                                .select('*', { count: 'estimated', head: true })
+                                .select('*', { count: 'exact', head: true })
                                 .eq('status', 'pending')
                                 .contains('new_data', { photo_id: app.currentPhoto.id });
                             if (checkErr) throw checkErr;

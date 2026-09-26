@@ -173,7 +173,7 @@ Object.assign(window.app, {
                     try {
                         const { data: { session } } = await window.sb.auth.getSession();
                         if (!session) return;
-                        const { count } = await window.sb.from('photos').select('*', { count: 'estimated', head: true }).eq('uploader_id', app.user.id).eq('status', 'approved');
+                        const { count } = await window.sb.from('photos').select('*', { count: 'exact', head: true }).eq('uploader_id', app.user.id).eq('status', 'approved');
                         const res = await fetch('/api/discord', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
@@ -442,7 +442,7 @@ Object.assign(window.app, {
                             return;
                         }
                         const { count } = await window.sb.from('photos')
-                            .select('*', { count: 'estimated', head: true })
+                            .select('*', { count: 'exact', head: true })
                             .eq('uploader_id', app.user.id)
                             .eq('status', 'approved');
                         document.getElementById('badge-photo-count').innerText = count || 0;

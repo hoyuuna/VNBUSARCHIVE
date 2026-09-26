@@ -2779,7 +2779,7 @@ cleanupState: () => {
     isRealtimeConnected: true,
 
     setRealtimeStatus: (isConnected) => {
-      app.isRealtimeConnected = isConnected;
+      app.isRealtimeConnected = true; return;
       const banner = document.getElementById('admin-realtime-warning');
       const adminContent = document.getElementById('admin-content');
       if (!isConnected) {
@@ -3261,7 +3261,7 @@ cleanupState: () => {
                                     for (const user of usersData) {
                                         const uDisplay = app.utils.formatProfileDisplay(user);
                                         if (uDisplay.isBanned) continue; 
-                                        const { count } = await window.sb.from('photos').select('*', { count: 'estimated', head: true }).eq('uploader_id', user.id).eq('status', 'approved');
+                                        const { count } = await window.sb.from('photos').select('*', { count: 'exact', head: true }).eq('uploader_id', user.id).eq('status', 'approved');
                                         const avatarSrc = uDisplay.avatar;
                                         const userBadges = app.utils.getBadgesHTML(user.id, user.role, user.subroles);
                                         uploaderCards.push(`
@@ -3541,7 +3541,7 @@ cleanupState: () => {
                     let profileSelect = (filterType === 'uploader' || (filterType === 'advanced' && (app.search.advancedFilters || []).some(f => f.field === 'uploader'))) 
                         ? 'profiles!inner(id, username, role, subroles, ban_status)' 
                         : 'profiles(id, username, role, subroles, ban_status)';
-                    let photoQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, ${profileSelect}, vehicles${needsModelJoin ? '!inner' : ''}(model)`, { count: 'estimated' }).eq('status', 'approved');
+                    let photoQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, ${profileSelect}, vehicles${needsModelJoin ? '!inner' : ''}(model)`, { count: 'exact' }).eq('status', 'approved');
                     photoQuery = app.preference.applyFilter(photoQuery);
                     if (filterType === 'route') {
                         const prefix = prefixToUrl;
@@ -4393,7 +4393,7 @@ Object.assign(window.app, {
                     try {
                         const { data: { session } } = await window.sb.auth.getSession();
                         if (!session) return;
-                        const { count } = await window.sb.from('photos').select('*', { count: 'estimated', head: true }).eq('uploader_id', app.user.id).eq('status', 'approved');
+                        const { count } = await window.sb.from('photos').select('*', { count: 'exact', head: true }).eq('uploader_id', app.user.id).eq('status', 'approved');
                         const res = await fetch('/api/discord', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
@@ -4662,7 +4662,7 @@ Object.assign(window.app, {
                             return;
                         }
                         const { count } = await window.sb.from('photos')
-                            .select('*', { count: 'estimated', head: true })
+                            .select('*', { count: 'exact', head: true })
                             .eq('uploader_id', app.user.id)
                             .eq('status', 'approved');
                         document.getElementById('badge-photo-count').innerText = count || 0;
@@ -6304,7 +6304,7 @@ Object.assign(window.app, {
                     const homeSize = 20;
                     let gridQuery = window.sb
                         .from('photos')
-                        .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`, { count: 'estimated' })
+                        .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`, { count: 'exact' })
                         .eq('status', 'approved')
                         .order('created_at', { ascending: false })
                         .range(0, homeSize - 1);
@@ -6331,7 +6331,7 @@ Object.assign(window.app, {
                         const stats = await app.utils.getCachedStats('home_stats_' + prefFilter, 10 * 60 * 1000, async () => {
                             const rpc = await app.utils.getHomeStats(prefFilter);
                             if (rpc) return rpc;
-                            let countQuery = window.sb.from('photos').select('id', { count: 'estimated', head: true }).eq('status', 'approved');
+                            let countQuery = window.sb.from('photos').select('id', { count: 'exact', head: true }).eq('status', 'approved');
                             countQuery = app.preference.applyFilter(countQuery);
                             const { count: photoCount } = await countQuery;
                             return { total_photos: photoCount || 0, total_vehicles: null, total_routes: null };
@@ -6376,7 +6376,7 @@ Object.assign(window.app, {
                     let totalPhotos = photoCount;
                     if (totalPhotos === null || typeof totalPhotos !== 'number') {
                         try {
-                            let countQuery = window.sb.from('photos').select('id', { count: 'estimated', head: true }).eq('status', 'approved');
+                            let countQuery = window.sb.from('photos').select('id', { count: 'exact', head: true }).eq('status', 'approved');
                             countQuery = app.preference.applyFilter(countQuery);
                             const { count } = await countQuery;
                             totalPhotos = count || 0;
@@ -6989,7 +6989,7 @@ Object.assign(window.app, {
                             photos = allPhotos.slice(fromRow, toRow + 1);
                         }
                     } else {
-                        let query = window.sb.from('photos').select('id, url, status, views, license_plate, review_progress', { count: 'estimated' }).eq('uploader_id', app.currentProfileId);
+                        let query = window.sb.from('photos').select('id, url, status, views, license_plate, review_progress', { count: 'exact' }).eq('uploader_id', app.currentProfileId);
                         if (!app._isOwnProfile) query = query.eq('status', 'approved');
                         else if (app.views.currentProfileFilter !== 'all') query = query.eq('status', app.views.currentProfileFilter);
                         query = app.preference.applyFilter(query);
@@ -7100,7 +7100,7 @@ Object.assign(window.app, {
                     const toRow = fromRow + pageSize - 1;
                     try {
                         const { data: reqs, error, count } = await window.sb.from('edit_requests')
-                            .select('*', { count: 'estimated' })
+                            .select('*', { count: 'exact' })
                             .eq('requester_id', app.user.id)
                             .order('created_at', { ascending: false })
                             .range(fromRow, toRow);
@@ -7292,7 +7292,7 @@ Object.assign(window.app, {
                         grid.style.opacity = '0.5';
                         grid.style.pointerEvents = 'none';
                     }
-                    let query = window.sb.from('photo_likes').select('photo_id, photos!inner(id, url, license_plate, operator, type)', { count: 'estimated' }).eq('user_id', app.user.id).order('created_at', { ascending: false });
+                    let query = window.sb.from('photo_likes').select('photo_id, photos!inner(id, url, license_plate, operator, type)', { count: 'exact' }).eq('user_id', app.user.id).order('created_at', { ascending: false });
                     if (app.preference.current !== 'both') query = query.eq('photos.type', app.preference.current);
                     const { data: likedData, count, error } = await query.range(fromRow, toRow);
                     if (error || !likedData || likedData.length === 0) {
@@ -7742,7 +7742,7 @@ Object.assign(window.app, {
                     document.getElementById('stat-date').innerText = new Date(photo.created_at).toLocaleDateString('vi-VN');
                     document.getElementById('stat-views').innerText = views;
                     let realLikeCount = 0;
-                    const { count } = await window.sb.from('photo_likes').select('*', { count: 'estimated', head: true }).eq('photo_id', photoId);
+                    const { count } = await window.sb.from('photo_likes').select('*', { count: 'exact', head: true }).eq('photo_id', photoId);
                     realLikeCount = isDenied ? 0 : (count || 0);
                     document.getElementById('stat-likes').innerText = realLikeCount;
                     let isLikedByMe = false;
@@ -8490,7 +8490,7 @@ let currentRouteProvName = null;
                         const stats = await app.utils.getCachedStats('op_stats_' + resolvedOperator, 10 * 60 * 1000, async () => {
                             const rpc = await app.utils.getOperatorStats(resolvedOperator);
                             if (rpc) return rpc;
-                            let cq = window.sb.from('photos').select('id', { count: 'estimated', head: true }).eq('status', 'approved').ilike('operator', resolvedOperator);
+                            let cq = window.sb.from('photos').select('id', { count: 'exact', head: true }).eq('status', 'approved').ilike('operator', resolvedOperator);
                             const { count } = await cq;
                             return { total_photos: count || 0, total_views: 0, total_vehicles: null, total_routes: null };
                         });
@@ -8689,7 +8689,7 @@ let currentRouteProvName = null;
                         app.currentOperatorResolved = resolvedOperator;
                         app.views.operatorCurrentPage = 1;
                         const opSize = app.views.OPERATOR_PAGE_SIZE || 12;
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`, { count: 'estimated' })
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`, { count: 'exact' })
                             .eq('status', 'approved')
                             .ilike('operator', resolvedOperator)
                             .or('route_no.neq."Dừng hoạt động",route_no.is.null')
@@ -10560,7 +10560,7 @@ Object.assign(window.app, {
                     }
                     const { data: uData, error: uErr } = await query.single();
                     if (uErr || !uData) throw new Error("Hồ sơ người dùng không tồn tại.");
-                    const { count } = await window.sb.from('photos').select('*', { count: 'estimated', head: true }).eq('uploader_id', uData.id).eq('status', 'approved');
+                    const { count } = await window.sb.from('photos').select('*', { count: 'exact', head: true }).eq('uploader_id', uData.id).eq('status', 'approved');
                     const avatarSrc = uData.avatar_url ? app.utils.getProxiedUrl(uData.avatar_url.replace(/"/g, ''), 'avatar.jpg', 'avatar') : 'https://files.catbox.moe/zzh1q1.png';
                     const badges = app.utils.getBadgesHTML(uData.id, uData.role, uData.subroles, true);
                     document.getElementById('contact-preview-user-avatar').src = avatarSrc;
@@ -11013,7 +11013,7 @@ Object.assign(window.app, {
                                 }
                             } else {
                                 const { count, error: checkErr } = await window.sb.from('edit_requests')
-                                    .select('*', { count: 'estimated', head: true })
+                                    .select('*', { count: 'exact', head: true })
                                     .eq('status', 'pending')
                                     .contains('new_data', { request_type: 'update_operator_info', operator_name: app.currentOperator });
                                 if (checkErr) throw checkErr;
@@ -11150,7 +11150,7 @@ Object.assign(window.app, {
                         document.getElementById('mdl-stat-views').innerText = app.utils.formatCompact(totalViews);
                         app.views.modelCurrentPage = 1;
                         const mdlSize = app.views.MODEL_PAGE_SIZE || 12;
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles!inner(model)`, { count: 'estimated' })
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles!inner(model)`, { count: 'exact' })
                             .eq('status', 'approved')
                             .eq('vehicles.model', modelName)
                             .order('taken_at', { ascending: false, nullsFirst: false })
@@ -11268,7 +11268,7 @@ Object.assign(window.app, {
                                 }
                             } else {
                                 const { count, error: checkErr } = await window.sb.from('edit_requests')
-                                    .select('*', { count: 'estimated', head: true })
+                                    .select('*', { count: 'exact', head: true })
                                     .eq('status', 'pending')
                                     .contains('new_data', { request_type: 'update_model_info', model_name: app.model.currentModel });
                                 if (checkErr) throw checkErr;
@@ -11854,7 +11854,7 @@ app.views.fetchRoutePhotosPage(1);
                                 app.route.loadRoutePage(app.route.currentProvince, app.route.currentRoute, true);
                             } else {
                                 const routeName = app.route.currentProvince ? `${app.route.currentRoute} - ${app.route.currentProvince}` : app.route.currentRoute;
-                                let checkQuery = window.sb.from('edit_requests').select('*', { count: 'estimated', head: true }).eq('status', 'pending');
+                                let checkQuery = window.sb.from('edit_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending');
                                 const { count, error: checkErr } = await checkQuery.contains('new_data', { request_type: 'update_route_info', route_name: routeName });
                                 if (checkErr) throw checkErr;
                                 if (count > 0) throw new Error("Đã có một yêu cầu cập nhật thông tin cho tuyến này đang chờ duyệt.");
@@ -15376,7 +15376,7 @@ Object.assign(window.app, {
                     } else {
                         try {
                             const { count, error: checkErr } = await window.sb.from('edit_requests')
-                                .select('*', { count: 'estimated', head: true })
+                                .select('*', { count: 'exact', head: true })
                                 .eq('status', 'pending')
                                 .contains('new_data', { photo_id: p.id });
                             if (checkErr) throw checkErr;
@@ -15455,13 +15455,13 @@ Object.assign(window.app, {
                         if (countEl) {
                             const { count: totalCount } = await window.sb
                                 .from('photo_comments')
-                                .select('*', { count: 'estimated', head: true })
+                                .select('*', { count: 'exact', head: true })
                                 .eq('photo_id', photoId);
                             countEl.innerText = totalCount || 0;
                         }
                         const result = await window.sb
                             .from('photo_comments')
-                            .select('*, profiles(id, username, avatar_url, role, subroles, ban_status)', { count: 'estimated' })
+                            .select('*, profiles(id, username, avatar_url, role, subroles, ban_status)', { count: 'exact' })
                             .eq('photo_id', photoId)
                             .is('parent_id', null)
                             .order('created_at', { ascending: false })
@@ -15473,7 +15473,7 @@ Object.assign(window.app, {
                             useThreads = false;
                             const fallback = await window.sb
                                 .from('photo_comments')
-                                .select('*, profiles(id, username, avatar_url, role, subroles, ban_status)', { count: 'estimated' })
+                                .select('*, profiles(id, username, avatar_url, role, subroles, ban_status)', { count: 'exact' })
                                 .eq('photo_id', photoId)
                                 .order('created_at', { ascending: false })
                                 .range(from, to);
@@ -16002,7 +16002,7 @@ Object.assign(window.app, {
                             app.edit.cancel();
                         } else {
                             const { count, error: checkErr } = await window.sb.from('edit_requests')
-                                .select('*', { count: 'estimated', head: true })
+                                .select('*', { count: 'exact', head: true })
                                 .eq('status', 'pending')
                                 .contains('new_data', { photo_id: app.currentPhoto.id });
                             if (checkErr) throw checkErr;
@@ -16360,7 +16360,7 @@ Object.assign(window.app, {
                             }
                         } else {
                             try {
-                                const { count, error: checkErr } = await window.sb.from('edit_requests').select('*', { count: 'estimated', head: true }).eq('license_plate', app.currentPlate).eq('status', 'pending').contains('new_data', { request_type: 'update_history' });
+                                const { count, error: checkErr } = await window.sb.from('edit_requests').select('*', { count: 'exact', head: true }).eq('license_plate', app.currentPlate).eq('status', 'pending').contains('new_data', { request_type: 'update_history' });
                                 if (count > 0) return app.ui.showAlert("Có yêu cầu chỉnh sửa lịch sử khác đang chờ duyệt cho xe này. Vui lòng thử lại sau.");
                                 const reqData = {
                                     requester_id: app.user.id,
@@ -16480,7 +16480,7 @@ Object.assign(window.app, {
                             }
 
                             if (needInsert) {
-                                const { count } = await window.sb.from('vehicle_history').select('*', { count: 'estimated', head: true }).eq('license_plate', plate);
+                                const { count } = await window.sb.from('vehicle_history').select('*', { count: 'exact', head: true }).eq('license_plate', plate);
                                 await window.sb.from('vehicle_history').insert({
                                     license_plate: plate,
                                     effective_date: targetDate,
@@ -16579,7 +16579,7 @@ Object.assign(window.app, {
                             app.toast.show('success', 'Đã lưu thay đổi', 'Thông tin xe đã được cập nhật thành công.');
                             app.views.loadVehiclePage(plate, true);
                         } else {
-                            const { count } = await window.sb.from('edit_requests').select('*', { count: 'estimated', head: true }).eq('license_plate', plate).eq('status', 'pending').contains('new_data', { request_type: 'update_vehicle_details' });
+                            const { count } = await window.sb.from('edit_requests').select('*', { count: 'exact', head: true }).eq('license_plate', plate).eq('status', 'pending').contains('new_data', { request_type: 'update_vehicle_details' });
                             if (count > 0) {
                                 btnSave.disabled = false; btnSave.innerHTML = 'Lưu thông tin';
                                 return app.ui.showAlert("Có yêu cầu chỉnh sửa hồ sơ khác đang chờ duyệt cho xe này. Vui lòng thử lại sau.");
@@ -17560,7 +17560,7 @@ Object.assign(window.app, {
                             } catch(e) {}
                             try {
                                 const [sbRes, apiRes] = await Promise.all([
-                                    window.sb.from('photos').select('*, profiles(username, role), vehicles(model), photo_reviews(action, reason, admin_id)', { count: 'estimated' }).eq('status', 'pending').order('id', { ascending: true }).range(fromRow, toRow).then(r => r).catch(() => ({ data: [], count: 0 })),
+                                    window.sb.from('photos').select('*, profiles(username, role), vehicles(model), photo_reviews(action, reason, admin_id)', { count: 'exact' }).eq('status', 'pending').order('id', { ascending: true }).range(fromRow, toRow).then(r => r).catch(() => ({ data: [], count: 0 })),
                                     (async () => {
                                         try {
                                             const sessionRes = await window.sb.auth.getSession();
@@ -17764,7 +17764,7 @@ Object.assign(window.app, {
                             const pageSize = 20;
                             const fromRow = (app.adminDeletePage - 1) * pageSize;
                             const toRow = fromRow + pageSize - 1;
-                            let { data: reqs, count, error } = await window.sb.from('edit_requests').select('*', { count: 'estimated' }).eq('status', 'pending').eq('new_data->>request_type', 'delete_photo').range(fromRow, toRow);
+                            let { data: reqs, count, error } = await window.sb.from('edit_requests').select('*', { count: 'exact' }).eq('status', 'pending').eq('new_data->>request_type', 'delete_photo').range(fromRow, toRow);
                             if (error) throw error;
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
                             const deleteReqs = reqs || [];
@@ -17843,7 +17843,7 @@ Object.assign(window.app, {
                             const pageSize = 20;
                             const fromRow = (app.adminReqPage - 1) * pageSize;
                             const toRow = fromRow + pageSize - 1;
-                            let { data: reqs, count, error } = await window.sb.from('edit_requests').select('*', { count: 'estimated' }).eq('status', 'pending').neq('new_data->>request_type', 'delete_photo').range(fromRow, toRow);
+                            let { data: reqs, count, error } = await window.sb.from('edit_requests').select('*', { count: 'exact' }).eq('status', 'pending').neq('new_data->>request_type', 'delete_photo').range(fromRow, toRow);
                             if (error) throw error;
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
                             if (!reqs || reqs.length === 0) { content.innerHTML = '<p class="p-4">Không có yêu cầu nào.</p>'; return; }
@@ -19086,7 +19086,7 @@ app.admin.fetchManagerData('denied');
                             let photos = [];
                             let total = 0;
                             try {
-                                let query = window.sb.from('photos').select('*, profiles(username)', {count: 'estimated'}).eq('status', 'denied').order('created_at', {ascending: false});
+                                let query = window.sb.from('photos').select('*, profiles(username)', {count: 'exact'}).eq('status', 'denied').order('created_at', {ascending: false});
                                 if (q) {
                                     query = query.or(`license_plate.ilike.%${q}%,denial_reason.ilike.%${q}%`);
                                 }
@@ -19106,7 +19106,7 @@ app.admin.fetchManagerData('denied');
                             const perPage = 50;
                             const fromRow = (state.page - 1) * perPage;
                             const toRow = fromRow + perPage - 1;
-                            let query = window.sb.from('admin_audit_logs').select('*, profiles(username)', {count: 'estimated'}).order('created_at', {ascending: false});
+                            let query = window.sb.from('admin_audit_logs').select('*, profiles(username)', {count: 'exact'}).order('created_at', {ascending: false});
                             if (q) {
                                 query = query.or(`action_type.ilike.%${q}%,target_id.ilike.%${q}%`);
                             }

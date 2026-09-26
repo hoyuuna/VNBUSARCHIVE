@@ -224,7 +224,7 @@ Object.assign(window.app, {
                                 }
                             } else {
                                 const { count, error: checkErr } = await window.sb.from('edit_requests')
-                                    .select('*', { count: 'estimated', head: true })
+                                    .select('*', { count: 'exact', head: true })
                                     .eq('status', 'pending')
                                     .contains('new_data', { request_type: 'update_operator_info', operator_name: app.currentOperator });
                                 if (checkErr) throw checkErr;
@@ -361,7 +361,7 @@ Object.assign(window.app, {
                         document.getElementById('mdl-stat-views').innerText = app.utils.formatCompact(totalViews);
                         app.views.modelCurrentPage = 1;
                         const mdlSize = app.views.MODEL_PAGE_SIZE || 12;
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles!inner(model)`, { count: 'estimated' })
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles!inner(model)`, { count: 'exact' })
                             .eq('status', 'approved')
                             .eq('vehicles.model', modelName)
                             .order('taken_at', { ascending: false, nullsFirst: false })
@@ -479,7 +479,7 @@ Object.assign(window.app, {
                                 }
                             } else {
                                 const { count, error: checkErr } = await window.sb.from('edit_requests')
-                                    .select('*', { count: 'estimated', head: true })
+                                    .select('*', { count: 'exact', head: true })
                                     .eq('status', 'pending')
                                     .contains('new_data', { request_type: 'update_model_info', model_name: app.model.currentModel });
                                 if (checkErr) throw checkErr;
@@ -1065,7 +1065,7 @@ app.views.fetchRoutePhotosPage(1);
                                 app.route.loadRoutePage(app.route.currentProvince, app.route.currentRoute, true);
                             } else {
                                 const routeName = app.route.currentProvince ? `${app.route.currentRoute} - ${app.route.currentProvince}` : app.route.currentRoute;
-                                let checkQuery = window.sb.from('edit_requests').select('*', { count: 'estimated', head: true }).eq('status', 'pending');
+                                let checkQuery = window.sb.from('edit_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending');
                                 const { count, error: checkErr } = await checkQuery.contains('new_data', { request_type: 'update_route_info', route_name: routeName });
                                 if (checkErr) throw checkErr;
                                 if (count > 0) throw new Error("Đã có một yêu cầu cập nhật thông tin cho tuyến này đang chờ duyệt.");

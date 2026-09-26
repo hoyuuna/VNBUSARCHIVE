@@ -288,7 +288,7 @@ Object.assign(window.app, {
                     const homeSize = 20;
                     let gridQuery = window.sb
                         .from('photos')
-                        .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`, { count: 'estimated' })
+                        .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`, { count: 'exact' })
                         .eq('status', 'approved')
                         .order('created_at', { ascending: false })
                         .range(0, homeSize - 1);
@@ -315,7 +315,7 @@ Object.assign(window.app, {
                         const stats = await app.utils.getCachedStats('home_stats_' + prefFilter, 10 * 60 * 1000, async () => {
                             const rpc = await app.utils.getHomeStats(prefFilter);
                             if (rpc) return rpc;
-                            let countQuery = window.sb.from('photos').select('id', { count: 'estimated', head: true }).eq('status', 'approved');
+                            let countQuery = window.sb.from('photos').select('id', { count: 'exact', head: true }).eq('status', 'approved');
                             countQuery = app.preference.applyFilter(countQuery);
                             const { count: photoCount } = await countQuery;
                             return { total_photos: photoCount || 0, total_vehicles: null, total_routes: null };
@@ -360,7 +360,7 @@ Object.assign(window.app, {
                     let totalPhotos = photoCount;
                     if (totalPhotos === null || typeof totalPhotos !== 'number') {
                         try {
-                            let countQuery = window.sb.from('photos').select('id', { count: 'estimated', head: true }).eq('status', 'approved');
+                            let countQuery = window.sb.from('photos').select('id', { count: 'exact', head: true }).eq('status', 'approved');
                             countQuery = app.preference.applyFilter(countQuery);
                             const { count } = await countQuery;
                             totalPhotos = count || 0;
@@ -973,7 +973,7 @@ Object.assign(window.app, {
                             photos = allPhotos.slice(fromRow, toRow + 1);
                         }
                     } else {
-                        let query = window.sb.from('photos').select('id, url, status, views, license_plate, review_progress', { count: 'estimated' }).eq('uploader_id', app.currentProfileId);
+                        let query = window.sb.from('photos').select('id, url, status, views, license_plate, review_progress', { count: 'exact' }).eq('uploader_id', app.currentProfileId);
                         if (!app._isOwnProfile) query = query.eq('status', 'approved');
                         else if (app.views.currentProfileFilter !== 'all') query = query.eq('status', app.views.currentProfileFilter);
                         query = app.preference.applyFilter(query);
@@ -1084,7 +1084,7 @@ Object.assign(window.app, {
                     const toRow = fromRow + pageSize - 1;
                     try {
                         const { data: reqs, error, count } = await window.sb.from('edit_requests')
-                            .select('*', { count: 'estimated' })
+                            .select('*', { count: 'exact' })
                             .eq('requester_id', app.user.id)
                             .order('created_at', { ascending: false })
                             .range(fromRow, toRow);
@@ -1276,7 +1276,7 @@ Object.assign(window.app, {
                         grid.style.opacity = '0.5';
                         grid.style.pointerEvents = 'none';
                     }
-                    let query = window.sb.from('photo_likes').select('photo_id, photos!inner(id, url, license_plate, operator, type)', { count: 'estimated' }).eq('user_id', app.user.id).order('created_at', { ascending: false });
+                    let query = window.sb.from('photo_likes').select('photo_id, photos!inner(id, url, license_plate, operator, type)', { count: 'exact' }).eq('user_id', app.user.id).order('created_at', { ascending: false });
                     if (app.preference.current !== 'both') query = query.eq('photos.type', app.preference.current);
                     const { data: likedData, count, error } = await query.range(fromRow, toRow);
                     if (error || !likedData || likedData.length === 0) {
@@ -1726,7 +1726,7 @@ Object.assign(window.app, {
                     document.getElementById('stat-date').innerText = new Date(photo.created_at).toLocaleDateString('vi-VN');
                     document.getElementById('stat-views').innerText = views;
                     let realLikeCount = 0;
-                    const { count } = await window.sb.from('photo_likes').select('*', { count: 'estimated', head: true }).eq('photo_id', photoId);
+                    const { count } = await window.sb.from('photo_likes').select('*', { count: 'exact', head: true }).eq('photo_id', photoId);
                     realLikeCount = isDenied ? 0 : (count || 0);
                     document.getElementById('stat-likes').innerText = realLikeCount;
                     let isLikedByMe = false;
@@ -2474,7 +2474,7 @@ let currentRouteProvName = null;
                         const stats = await app.utils.getCachedStats('op_stats_' + resolvedOperator, 10 * 60 * 1000, async () => {
                             const rpc = await app.utils.getOperatorStats(resolvedOperator);
                             if (rpc) return rpc;
-                            let cq = window.sb.from('photos').select('id', { count: 'estimated', head: true }).eq('status', 'approved').ilike('operator', resolvedOperator);
+                            let cq = window.sb.from('photos').select('id', { count: 'exact', head: true }).eq('status', 'approved').ilike('operator', resolvedOperator);
                             const { count } = await cq;
                             return { total_photos: count || 0, total_views: 0, total_vehicles: null, total_routes: null };
                         });
@@ -2673,7 +2673,7 @@ let currentRouteProvName = null;
                         app.currentOperatorResolved = resolvedOperator;
                         app.views.operatorCurrentPage = 1;
                         const opSize = app.views.OPERATOR_PAGE_SIZE || 12;
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`, { count: 'estimated' })
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`, { count: 'exact' })
                             .eq('status', 'approved')
                             .ilike('operator', resolvedOperator)
                             .or('route_no.neq."Dừng hoạt động",route_no.is.null')

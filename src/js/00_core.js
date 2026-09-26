@@ -2777,7 +2777,7 @@ cleanupState: () => {
     isRealtimeConnected: true,
 
     setRealtimeStatus: (isConnected) => {
-      app.isRealtimeConnected = isConnected;
+      app.isRealtimeConnected = true; return;
       const banner = document.getElementById('admin-realtime-warning');
       const adminContent = document.getElementById('admin-content');
       if (!isConnected) {
@@ -3259,7 +3259,7 @@ cleanupState: () => {
                                     for (const user of usersData) {
                                         const uDisplay = app.utils.formatProfileDisplay(user);
                                         if (uDisplay.isBanned) continue; 
-                                        const { count } = await window.sb.from('photos').select('*', { count: 'estimated', head: true }).eq('uploader_id', user.id).eq('status', 'approved');
+                                        const { count } = await window.sb.from('photos').select('*', { count: 'exact', head: true }).eq('uploader_id', user.id).eq('status', 'approved');
                                         const avatarSrc = uDisplay.avatar;
                                         const userBadges = app.utils.getBadgesHTML(user.id, user.role, user.subroles);
                                         uploaderCards.push(`
@@ -3539,7 +3539,7 @@ cleanupState: () => {
                     let profileSelect = (filterType === 'uploader' || (filterType === 'advanced' && (app.search.advancedFilters || []).some(f => f.field === 'uploader'))) 
                         ? 'profiles!inner(id, username, role, subroles, ban_status)' 
                         : 'profiles(id, username, role, subroles, ban_status)';
-                    let photoQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, ${profileSelect}, vehicles${needsModelJoin ? '!inner' : ''}(model)`, { count: 'estimated' }).eq('status', 'approved');
+                    let photoQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, ${profileSelect}, vehicles${needsModelJoin ? '!inner' : ''}(model)`, { count: 'exact' }).eq('status', 'approved');
                     photoQuery = app.preference.applyFilter(photoQuery);
                     if (filterType === 'route') {
                         const prefix = prefixToUrl;

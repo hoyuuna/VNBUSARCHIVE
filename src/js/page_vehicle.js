@@ -322,7 +322,7 @@ Object.assign(window.app, {
                             }
                         } else {
                             try {
-                                const { count, error: checkErr } = await window.sb.from('edit_requests').select('*', { count: 'estimated', head: true }).eq('license_plate', app.currentPlate).eq('status', 'pending').contains('new_data', { request_type: 'update_history' });
+                                const { count, error: checkErr } = await window.sb.from('edit_requests').select('*', { count: 'exact', head: true }).eq('license_plate', app.currentPlate).eq('status', 'pending').contains('new_data', { request_type: 'update_history' });
                                 if (count > 0) return app.ui.showAlert("Có yêu cầu chỉnh sửa lịch sử khác đang chờ duyệt cho xe này. Vui lòng thử lại sau.");
                                 const reqData = {
                                     requester_id: app.user.id,
@@ -442,7 +442,7 @@ Object.assign(window.app, {
                             }
 
                             if (needInsert) {
-                                const { count } = await window.sb.from('vehicle_history').select('*', { count: 'estimated', head: true }).eq('license_plate', plate);
+                                const { count } = await window.sb.from('vehicle_history').select('*', { count: 'exact', head: true }).eq('license_plate', plate);
                                 await window.sb.from('vehicle_history').insert({
                                     license_plate: plate,
                                     effective_date: targetDate,
@@ -541,7 +541,7 @@ Object.assign(window.app, {
                             app.toast.show('success', 'Đã lưu thay đổi', 'Thông tin xe đã được cập nhật thành công.');
                             app.views.loadVehiclePage(plate, true);
                         } else {
-                            const { count } = await window.sb.from('edit_requests').select('*', { count: 'estimated', head: true }).eq('license_plate', plate).eq('status', 'pending').contains('new_data', { request_type: 'update_vehicle_details' });
+                            const { count } = await window.sb.from('edit_requests').select('*', { count: 'exact', head: true }).eq('license_plate', plate).eq('status', 'pending').contains('new_data', { request_type: 'update_vehicle_details' });
                             if (count > 0) {
                                 btnSave.disabled = false; btnSave.innerHTML = 'Lưu thông tin';
                                 return app.ui.showAlert("Có yêu cầu chỉnh sửa hồ sơ khác đang chờ duyệt cho xe này. Vui lòng thử lại sau.");

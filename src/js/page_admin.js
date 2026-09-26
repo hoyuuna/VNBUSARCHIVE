@@ -961,7 +961,7 @@ Object.assign(window.app, {
                             } catch(e) {}
                             try {
                                 const [sbRes, apiRes] = await Promise.all([
-                                    window.sb.from('photos').select('*, profiles(username, role), vehicles(model), photo_reviews(action, reason, admin_id)', { count: 'estimated' }).eq('status', 'pending').order('id', { ascending: true }).range(fromRow, toRow).then(r => r).catch(() => ({ data: [], count: 0 })),
+                                    window.sb.from('photos').select('*, profiles(username, role), vehicles(model), photo_reviews(action, reason, admin_id)', { count: 'exact' }).eq('status', 'pending').order('id', { ascending: true }).range(fromRow, toRow).then(r => r).catch(() => ({ data: [], count: 0 })),
                                     (async () => {
                                         try {
                                             const sessionRes = await window.sb.auth.getSession();
@@ -1165,7 +1165,7 @@ Object.assign(window.app, {
                             const pageSize = 20;
                             const fromRow = (app.adminDeletePage - 1) * pageSize;
                             const toRow = fromRow + pageSize - 1;
-                            let { data: reqs, count, error } = await window.sb.from('edit_requests').select('*', { count: 'estimated' }).eq('status', 'pending').eq('new_data->>request_type', 'delete_photo').range(fromRow, toRow);
+                            let { data: reqs, count, error } = await window.sb.from('edit_requests').select('*', { count: 'exact' }).eq('status', 'pending').eq('new_data->>request_type', 'delete_photo').range(fromRow, toRow);
                             if (error) throw error;
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
                             const deleteReqs = reqs || [];
@@ -1244,7 +1244,7 @@ Object.assign(window.app, {
                             const pageSize = 20;
                             const fromRow = (app.adminReqPage - 1) * pageSize;
                             const toRow = fromRow + pageSize - 1;
-                            let { data: reqs, count, error } = await window.sb.from('edit_requests').select('*', { count: 'estimated' }).eq('status', 'pending').neq('new_data->>request_type', 'delete_photo').range(fromRow, toRow);
+                            let { data: reqs, count, error } = await window.sb.from('edit_requests').select('*', { count: 'exact' }).eq('status', 'pending').neq('new_data->>request_type', 'delete_photo').range(fromRow, toRow);
                             if (error) throw error;
                             if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
                             if (!reqs || reqs.length === 0) { content.innerHTML = '<p class="p-4">Không có yêu cầu nào.</p>'; return; }
@@ -2487,7 +2487,7 @@ app.admin.fetchManagerData('denied');
                             let photos = [];
                             let total = 0;
                             try {
-                                let query = window.sb.from('photos').select('*, profiles(username)', {count: 'estimated'}).eq('status', 'denied').order('created_at', {ascending: false});
+                                let query = window.sb.from('photos').select('*, profiles(username)', {count: 'exact'}).eq('status', 'denied').order('created_at', {ascending: false});
                                 if (q) {
                                     query = query.or(`license_plate.ilike.%${q}%,denial_reason.ilike.%${q}%`);
                                 }
@@ -2507,7 +2507,7 @@ app.admin.fetchManagerData('denied');
                             const perPage = 50;
                             const fromRow = (state.page - 1) * perPage;
                             const toRow = fromRow + perPage - 1;
-                            let query = window.sb.from('admin_audit_logs').select('*, profiles(username)', {count: 'estimated'}).order('created_at', {ascending: false});
+                            let query = window.sb.from('admin_audit_logs').select('*, profiles(username)', {count: 'exact'}).order('created_at', {ascending: false});
                             if (q) {
                                 query = query.or(`action_type.ilike.%${q}%,target_id.ilike.%${q}%`);
                             }
