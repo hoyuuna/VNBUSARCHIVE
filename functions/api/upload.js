@@ -122,7 +122,7 @@ export async function onRequest(context) {
             finalOptimizedUrl = rawSrc.startsWith('/') ? `https://cdn.vnbusarchive.io.vn${rawSrc}` : rawSrc;
 
             let oldAvatarUrl = null;
-            const { data: oldProfile } = await supabase.from('profiles').select('avatar_url').eq('id', userId).single();
+            const { data: oldProfile } = await sbAdmin.from('profiles').select('avatar_url').eq('id', userId).single();
             if (oldProfile && oldProfile.avatar_url) {
                 oldAvatarUrl = oldProfile.avatar_url;
             } else {
@@ -149,7 +149,7 @@ export async function onRequest(context) {
                 }
             }
 
-            const { error: profileErr } = await supabase.from('profiles').update({ avatar_url: finalOptimizedUrl }).eq('id', userId);
+            const { error: profileErr } = await sbAdmin.from('profiles').update({ avatar_url: finalOptimizedUrl }).eq('id', userId);
             if (profileErr) throw profileErr;
 
             await supabase.auth.updateUser({ data: { avatar_url: finalOptimizedUrl } }).catch(() => {});
