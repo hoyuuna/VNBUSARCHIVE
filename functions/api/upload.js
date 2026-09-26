@@ -47,7 +47,7 @@ export async function onRequest(context) {
 
         const token = authHeader.replace('Bearer ', '');
         const { data: { user }, error: authErr } = await supabase.auth.getUser(token);
-        if (authErr || !user) return new Response(JSON.stringify({ success: false, error: 'Phiên đăng nhập không hợp lệ.' }), { status: 401, headers: { 'Content-Type': 'application/json' }});
+        if (authErr || !user) return new Response(JSON.stringify({ success: false, error: 'Phiên đăng nhập không hợp lệ.', details: authErr ? authErr.message : 'User is null' }), { status: 401, headers: { 'Content-Type': 'application/json' }});
         const userId = user.id;
 
         const formData = await request.formData();
