@@ -34,7 +34,7 @@ export async function onRequestPost(context) {
             return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
         }
         
-        const token = authHeader.replace('Bearer ', '');
+        const token = authHeader.replace(/^Bearer\s+/i, '').trim();
 
         // Khởi tạo Supabase client với quyền của chính User (bằng token JWT của họ)
         // Điều này giúp vượt qua RLS policy mà không cần dùng Service Role Key

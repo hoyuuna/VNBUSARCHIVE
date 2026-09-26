@@ -1,4 +1,4 @@
-﻿import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js';
 
 function validateOriginAndReferer(request) {
     const referer = request.headers.get('referer') || '';
@@ -23,7 +23,7 @@ function validateOriginAndReferer(request) {
 
 function handleConfig(request, env) {
     if (!validateOriginAndReferer(request)) {
-        return new Response(JSON.stringify({ error: 'Forbidden - Domain không hợp lệ' }), { status: 403, headers: { 'Content-Type': 'application/json' }});
+        return new Response(JSON.stringify({ error: 'Forbidden - Domain kh�ng h?p l?' }), { status: 403, headers: { 'Content-Type': 'application/json' }});
     }
 
     return new Response(JSON.stringify({
@@ -56,7 +56,7 @@ async function handleLogIp(request, env) {
         const supabaseServiceRole = env.SUPABASE_SERVICE_ROLE_KEY;
 
         if (clientIp && authHeader && authHeader.startsWith('Bearer ') && supabaseUrl && supabaseServiceRole) {
-            const token = authHeader.replace('Bearer ', '');
+            const token = authHeader.replace(/^Bearer\s+/i, '').trim();
             const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRole);
             
             const { data: userData, error: userError } = await supabaseAdmin.auth.getUser(token);

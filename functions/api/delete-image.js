@@ -36,7 +36,7 @@ export async function onRequest(context) {
             env.SUPABASE_KEY,
             { global: { headers: { Authorization: authHeader } } }
         );
-        const token = authHeader.replace('Bearer ', '');
+        const token = authHeader.replace(/^Bearer\s+/i, '').trim();
         const { data: { user }, error: authError } = await supabase.auth.getUser(token);
         if (authError || !user) throw new Error('Token không hợp lệ.');
 

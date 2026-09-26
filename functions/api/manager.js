@@ -31,7 +31,7 @@ export async function onRequest(context) {
     try {
         const body = await request.json();
         const authHeader = request.headers.get('authorization');
-        const token = authHeader ? authHeader.replace('Bearer ', '') : body.token;
+        const token = authHeader ? authHeader.replace(/^Bearer\s+/i, '').trim() : body.token;
         const { action, targetUserId, newUsername, newRole, newEmail, newPass, reason } = body;
 
         if (!env.SUPABASE_SERVICE_ROLE_KEY) throw new Error("Lỗi cấu hình hệ thống: Thiếu Service Role Key.");
