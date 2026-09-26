@@ -3888,7 +3888,7 @@ Object.assign(window.app, {
     return;
 }
                         else if (event === 'USER_UPDATED') {
-                            const hash = window.location.hash;
+                            const hash = window.INITIAL_HASH || window.location.hash;
                             if (hash && hash.includes('type=email_change')) {
                                 setTimeout(() => {
                                     app.ui.showAlert("Xác nhận đổi địa chỉ Email thành công!");
@@ -3900,7 +3900,7 @@ Object.assign(window.app, {
                             if (session && session.user) {
                                 await app.setUser(session.user);
                             }
-                            const hash = window.location.hash;
+                            const hash = window.INITIAL_HASH || window.location.hash;
                             if (hash && hash.includes('type=signup')) {
                                 setTimeout(() => {
                                     app.ui.showAlert("Xác thực Email thành công! Chào mừng bạn đến với hệ thống.");
