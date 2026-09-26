@@ -85,7 +85,9 @@ Object.assign(window.app, {
                     btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...`;
                     try {
                         if (app.auth.mode === 'login') {
+                            console.log("DEBUG: Calling signInWithPassword...");
                             const { data, error } = await window.sb.auth.signInWithPassword({ email, password, options: { captchaToken: captchaResponse } });
+                            console.log("DEBUG: signInWithPassword result:", { data, error });
                             if (error) {
                                 if (error.message.includes('Email not confirmed') || error.message.includes('not confirmed')) {
                                     app.auth.showVerificationModal(email);

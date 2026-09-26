@@ -3828,7 +3828,9 @@ Object.assign(window.app, {
         }
             let session = null;
             try {
-                const { data } = await window.sb.auth.getSession();
+                console.log("DEBUG: Calling window.sb.auth.getSession()...");
+                const { data, error: sessionError } = await window.sb.auth.getSession();
+                console.log("DEBUG: getSession result:", { data, sessionError });
                 session = data.session;
                 if (session && session.access_token) {
                     fetch('/api/system', {
@@ -3873,6 +3875,7 @@ Object.assign(window.app, {
                 await app.setUser(session ? session.user : null);
                 if (app.customToasts && app.customToasts.show) app.customToasts.show();
                 window.sb.auth.onAuthStateChange(async (event, session) => {
+                        console.log("DEBUG: onAuthStateChange fired! Event:", event, "Session:", session);
                         if (event === 'PASSWORD_RECOVERY') {
     if (window.location.hash.includes('type=recovery')) {
         app.auth.mode = 'recovery';
@@ -4847,7 +4850,9 @@ Object.assign(window.app, {
                     btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...`;
                     try {
                         if (app.auth.mode === 'login') {
+                            console.log("DEBUG: Calling signInWithPassword...");
                             const { data, error } = await window.sb.auth.signInWithPassword({ email, password, options: { captchaToken: captchaResponse } });
+                            console.log("DEBUG: signInWithPassword result:", { data, error });
                             if (error) {
                                 if (error.message.includes('Email not confirmed') || error.message.includes('not confirmed')) {
                                     app.auth.showVerificationModal(email);
