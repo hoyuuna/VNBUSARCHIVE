@@ -45,6 +45,10 @@ export async function onRequest(context) {
             { global: { headers: { Authorization: authHeader } } }
         );
 
+        const sbAdmin = env.SUPABASE_SERVICE_ROLE_KEY 
+            ? createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY) 
+            : supabase;
+
         const token = authHeader.replace(/^Bearer\s+/i, '').trim();
         const { data: { user }, error: authErr } = await supabase.auth.getUser(token);
         if (authErr || !user) return new Response(JSON.stringify({ success: false, error: 'Phiên đăng nhập không hợp lệ.', details: authErr ? authErr.message : 'User is null' }), { status: 401, headers: { 'Content-Type': 'application/json' }});
@@ -166,7 +170,7 @@ export async function onRequest(context) {
             let rawSrc = uploadResult[0].src;
             finalOptimizedUrl = rawSrc.startsWith('/') ? `https://cdn.vnbusarchive.io.vn${rawSrc}` : rawSrc;
 
-            const { error: vErr } = await supabase
+            const { error: vErr } = await sbAdmin
                 .from('vehicles')
                 .insert({ license_plate: metadata.plate, model: metadata.model });
             if (vErr && vErr.code !== '23505') {
@@ -174,7 +178,7 @@ export async function onRequest(context) {
                 throw vErr;
             }
 
-            const { data: photoInsertRes, error: dbError } = await supabase
+            const { data: photoInsertRes, error: dbError } = await sbAdmin
                 .from('photos')
                 .insert({
                     url: finalOptimizedUrl,
