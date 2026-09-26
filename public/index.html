@@ -1942,7 +1942,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1790401214548" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1790401484510" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -5888,6 +5888,28 @@ html.theme-dark .ct-icon {
                 }
                 if (!configRes.ok) throw new Error('Không thể tải cấu hình máy chủ');
                 const config = await configRes.json();
+                
+                // --- DEBUG INTERCEPTOR ---
+                const originalFetch = window.fetch;
+                window.fetch = async function() {
+                    const url = arguments[0];
+                    if (typeof url === 'string' && url.includes('/auth/v1/user')) {
+                        console.log("DEBUG: Fetching /auth/v1/user with arguments:", arguments);
+                        try {
+                            const res = await originalFetch.apply(this, arguments);
+                            const clone = res.clone();
+                            const text = await clone.text();
+                            console.log("DEBUG: /auth/v1/user response status:", res.status, "body:", text);
+                            return res;
+                        } catch (err) {
+                            console.error("DEBUG: /auth/v1/user fetch error:", err);
+                            throw err;
+                        }
+                    }
+                    return originalFetch.apply(this, arguments);
+                };
+                // -------------------------
+
                 window.sb = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_KEY);
 
                 if (sessionStorage.getItem('VNBA_SESS_AUTH') === 'active' && typeof _pInt !== 'undefined') clearInterval(_pInt);
