@@ -72,8 +72,6 @@ export async function onRequestPost(context) {
         
         const { data: currentPhotoRes, error: pGetErr } = await sbAdmin.from('photos').select('*').eq('id', photoId).single();
         if (pGetErr || !currentPhotoRes) { return new Response(JSON.stringify({ error: 'Khong tim thay anh', details: pGetErr }), { status: 404 }); }
-
-        }
         const photo = currentPhotoRes;
 
         let isFinalApprove = false;
