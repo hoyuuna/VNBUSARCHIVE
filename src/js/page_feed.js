@@ -1431,7 +1431,7 @@ Object.assign(window.app, {
                             if (snapshot.operator && snapshot.operator !== '---') prefs.ops[snapshot.operator] = (prefs.ops[snapshot.operator] || 0) + 1;
                             if (snapshot.model && snapshot.model !== '---') prefs.models[snapshot.model] = (prefs.models[snapshot.model] || 0) + 1;
                             const tracker = document.getElementById('photo-progress-tracker'); if (tracker) tracker.classList.add('hidden');
-                            document.getElementById('denial-reason-box').classList.add('hidden');
+                            // removed
                             document.getElementById('denial-delete-warning-box').classList.add('hidden');
                             document.getElementById('denial-improvement-box').classList.add('hidden');
                             localStorage.setItem('vnbus_prefs', JSON.stringify(prefs));
@@ -1539,7 +1539,7 @@ Object.assign(window.app, {
                             }
                         }
                     } else {
-                        document.getElementById('denial-reason-box').classList.add('hidden');
+                        // removed
                         const suggestBox = document.getElementById('denial-improvement-box');
                         if (suggestBox) {
                             suggestBox.removeAttribute('open');
