@@ -3086,12 +3086,12 @@ app.feed.renderProgressTracker = function(photo, queueCount) {
         }
         
         let subtextHtml = s.subtext ? `<div class="text-xs text-gray-500 dark:text-zinc-400 mt-1">${s.subtext}</div>` : '';
-        let textColor = (s.status === 'gray') ? 'text-gray-500 dark:text-zinc-500' : 'text-black dark:text-white font-bold';
+        let textColor = (s.status === 'green') ? 'text-green-600 dark:text-green-400 font-bold' : (s.status === 'yellow') ? 'text-yellow-600 dark:text-yellow-400 font-bold' : (s.status === 'red') ? 'text-red-600 dark:text-red-400 font-bold' : 'text-gray-500 dark:text-zinc-500';
         
         html += `
         <div class="relative flex gap-4 mb-4 last:mb-0 min-h-[40px]">
             ${lineHtml}
-            <div class="relative z-10 w-8 h-8 bg-white dark:bg-zinc-950 border border-black dark:border-white flex items-center justify-center shrink-0">
+            <div class="relative z-10 w-8 h-8 rounded-full bg-white dark:bg-zinc-950 border border-black dark:border-white flex items-center justify-center shrink-0">
                 <i class="fa-solid ${s.icon} ${iconColor} text-sm"></i>
             </div>
             <div class="pt-1 pb-4 flex-1">
