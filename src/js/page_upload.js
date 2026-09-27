@@ -2292,15 +2292,14 @@ Object.assign(window.app, {
                         }
                         
                         let baseLimit = 15;
-                        if (score >= 200) baseLimit = 20;
-                        if (score >= 300) baseLimit = 25;
-                        if (score >= 400) baseLimit = 30;
-                        if (score >= 500) baseLimit = 40;
-                        if (score >= 1000) baseLimit = 50;
-                        if (app.role === 'admin' || app.role === 'manager') baseLimit = 999;
-                        if (score < 100) baseLimit = 10;
-                        if (score < 50) baseLimit = 5;
-                        if (score < 0) baseLimit = 0;
+                        if (score <= 0) baseLimit = 5;
+                        else if (score <= 49) baseLimit = 8;
+                        else if (score <= 99) baseLimit = 12;
+                        else if (score === 100) baseLimit = 15;
+                        else if (score <= 130) baseLimit = 20;
+                        else if (score <= 160) baseLimit = 30;
+                        else if (score <= 199) baseLimit = 40;
+                        else baseLimit = 50;
                         
                         const limitSetting = app.maintenance.settings['upload_quota']?.reason;
                         const hasLimit = limitSetting && limitSetting.trim() !== '';

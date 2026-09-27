@@ -355,24 +355,8 @@ Object.assign(window.app, {
                     const isNewModel = modelKey && modelKey !== '---' && modelKey !== 'đang cập nhật' && !approvedModelSet.has(modelKey);
                     const isOwnPhoto = Boolean(app.user && (p.uploader_id === app.user.id || p.user_id === app.user.id));
                     const hideClass = (app.admin.isHideMineEnabled && isOwnPhoto) ? 'hidden' : '';
-                    let reviewTabHtml = '';
-                    if (p.photo_reviews && p.photo_reviews.length > 0) {
-                        const approves = p.photo_reviews.filter(r => r.action === 'approve').length;
-                        const denies = p.photo_reviews.filter(r => r.action === 'deny').length;
-                        const denyReasons = p.photo_reviews.filter(r => r.action === 'deny' && r.reason).map(r => r.reason).join(' | ');
-                        let colorClass = 'bg-blue-600 border-blue-700 text-white';
-                        if (approves > 0 && denies === 0) colorClass = 'bg-green-600 border-green-700 text-white';
-                        else if (denies > 0 && approves === 0) colorClass = 'bg-red-600 border-red-700 text-white';
-                        else if (approves > 0 && denies > 0) colorClass = 'bg-yellow-500 border-yellow-600 text-yellow-900';
-                        let textParts = [];
-                        if (approves > 0) textParts.push(`${approves} đồng ý`);
-                        if (denies > 0) textParts.push(`${denies} từ chối`);
-                        let mainText = textParts.join(' + ');
-                        if (denyReasons) mainText += `: (${denyReasons})`;
-                        reviewTabHtml = `<div class="w-full max-w-full ${colorClass} text-[11px] font-bold px-4 pt-2.5 pb-[18px] rounded-t-md border border-b-0 shadow-sm leading-relaxed -mb-3"><i class="fa-solid fa-users mr-1"></i>${mainText}</div>`;
-                    } else if (p.reviewer_count > 0) {
-                        reviewTabHtml = `<div class="w-full max-w-full bg-blue-600 border-blue-700 text-white text-[11px] font-bold px-4 pt-2.5 pb-[18px] rounded-t-md border border-b-0 shadow-sm leading-relaxed -mb-3"><i class="fa-solid fa-users mr-1"></i>Đã có ${p.reviewer_count} người lựa chọn</div>`;
-                    }
+                    const uploaderScore = p.profiles?.reputation_score !== undefined ? p.profiles.reputation_score : 100;
+                    const reviewTabHtml = `<div class="w-full max-w-full bg-black text-white text-[11px] font-bold px-4 pt-2.5 pb-[18px] rounded-t-md border border-b-0 border-black shadow-sm leading-relaxed -mb-3"><i class="fa-solid fa-shield-halved mr-1.5"></i>Điểm uy tín: ${uploaderScore} điểm</div>`;
                     return `
                                 <div id="adm-photo-card-${p.id}" class="admin-card relative overflow-visible mt-8 ${hideClass}" data-photo-id="${p.id}" data-privileged="${(p.profiles?.role === 'admin' || p.profiles?.role === 'manager') ? 'true' : 'false'}" data-is-own="${isOwnPhoto ? 'true' : 'false'}">
                                     ${reviewTabHtml}
@@ -382,7 +366,7 @@ Object.assign(window.app, {
                                             ${plateKey && plateKey !== '---' && !approvedPlateSet.has(plateKey) ? '<span class="badge-xe-moi"><i class="fa-solid fa-sparkles"></i> XE MỚI</span>' : ''}
                                             ${p.suspected_exif_fraud ? '<span class="bg-red-600 text-white px-1.5 py-0.5 rounded text-[10px] font-bold ml-1 tracking-wider whitespace-nowrap"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Nghi ngờ gian lận</span>' : ''}
                                         </div>
-                                        ${ `<span class="text-xs text-gray-500">${safeUsername}</span><span class="text-xs font-bold bg-gray-100 px-2 py-0.5 rounded ml-2 shadow-sm text-gray-700"><i class="fa-solid fa-star text-yellow-500 mr-1"></i> ${p.profiles?.reputation_score !== undefined ? p.profiles.reputation_score : 100}</span><span class="text-xs font-bold bg-gray-100 px-2 py-0.5 rounded ml-2 shadow-sm text-gray-700"><i class="fa-solid fa-star text-yellow-500 mr-1"></i> ${p.profiles?.reputation_score !== undefined ? p.profiles.reputation_score : 100}</span>` }
+                                        <span class="text-xs text-gray-500">${safeUsername}</span>
                                     </div>
                                     <div class="relative w-full bg-gray-200 border-y border-gray-200 overflow-hidden">
                                         <img loading="lazy" src="${app.utils.getProxiedUrl(p.url)}" class="w-full h-auto object-contain">
