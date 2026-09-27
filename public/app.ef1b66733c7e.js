@@ -16990,7 +16990,7 @@ Object.assign(window.app, {
                     const prov = app.utils.cleanText(p.province || '');
                     const note = app.utils.cleanText(p.note);
                     const safeUsername = app.utils.cleanText(p.profiles?.username || 'Ẩn danh');
-                    const docBadge = p.is_documentary ? '<span class="bg-blue-600 text-white px-2 py-0.5 rounded text-[10px] font-bold ml-2 shadow-sm"><i class="fa-solid fa-book mr-1"></i>ẢNH TƯ LIỆU</span>' : '';
+                    const docBadge = p.is_documentary ? '<span class="bg-black text-white px-2 py-0.5 rounded text-[10px] font-bold tracking-wider shadow-sm"><i class="fa-solid fa-book-bookmark mr-1"></i>ẢNH TƯ LIỆU</span>' : '';
                     const safePlate = app.utils.cleanText(p.license_plate);
                     if (!app.admin.originalData) app.admin.originalData = {};
                     app.admin.originalData['photo_' + p.id] = { plate: safePlate, operator: op, type: type, route: route, model: model };
@@ -17018,8 +17018,9 @@ Object.assign(window.app, {
                                 <div id="adm-photo-card-${p.id}" class="admin-card relative overflow-visible mt-8 ${hideClass}" data-photo-id="${p.id}" data-privileged="${(p.profiles?.role === 'admin' || p.profiles?.role === 'manager') ? 'true' : 'false'}" data-is-own="${isOwnPhoto ? 'true' : 'false'}">
                                     ${reviewTabHtml}
                                     <div class="admin-card-header relative z-10 bg-white rounded-t-lg">
-                                        <div class="flex items-center gap-2">
+                                        <div class="flex items-center gap-2 flex-wrap">
                                             <span class="font-bold text-sm">${safePlate}</span>
+                                            ${docBadge}
                                             ${plateKey && plateKey !== '---' && !approvedPlateSet.has(plateKey) ? '<span class="badge-xe-moi"><i class="fa-solid fa-sparkles"></i> XE MỚI</span>' : ''}
                                             ${p.suspected_exif_fraud ? '<span class="bg-red-600 text-white px-1.5 py-0.5 rounded text-[10px] font-bold ml-1 tracking-wider whitespace-nowrap"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Nghi ngờ gian lận</span>' : ''}
                                         </div>
@@ -17067,8 +17068,8 @@ Object.assign(window.app, {
                                             <div><span class="admin-label">Vị trí</span><input type="text" id="adm-p-location-${p.id}" value="${location}" class="admin-input" onchange="app.admin.checkDuplicateDateAdmin('${p.id}', '${p.uploader_id}', '${p.taken_at ? p.taken_at.split('T')[0] : ''}')"></div>
                                         </div>
 
-                                        <div><span class="admin-label">Ghi chA</span><textarea id="adm-p-note-${p.id}" rows="2" class="admin-input">${note}</textarea></div>
-                                        <div><span class="admin-label text-red-600">Note kiểm duyệt (Ẩn)</span><textarea id="adm-p-mod-note-${p.id}" rows="2" class="admin-input bg-red-50 text-red-900 border-red-200" disabled>${app.utils.cleanText(p.mod_note || 'Không có')}</textarea></div>
+                                        <div><span class="admin-label">Ghi chú ảnh (Công khai)</span><textarea id="adm-p-note-${p.id}" rows="2" class="admin-input">${note}</textarea></div>
+                                        ${p.mod_note ? `<div class="mt-2 p-2.5 bg-gray-100 border border-black rounded-md"><span class="block text-xs font-bold text-black mb-1"><i class="fa-solid fa-shield-halved mr-1"></i>Note dành cho kiểm duyệt (Không công khai):</span><div class="text-xs text-black font-mono leading-relaxed whitespace-pre-wrap">${app.utils.escapeHtml(p.mod_note)}</div></div>` : ''}
                                         
                                         <div class="grid grid-cols-2 gap-2 mt-2">
                                             <div><span class="admin-label">Ngày chụp (Gốc)</span><input type="text" class="admin-input bg-gray-50 !text-gray-500" value="${p.taken_at ? p.taken_at.split('T')[0] : 'Không rõ'}" disabled></div>
@@ -17385,17 +17386,18 @@ Object.assign(window.app, {
                 },
                 refreshCounts: async () => {
                     try {
-                        const { data: pendingPhotos, error: pErr } = await window.sb.from('photos').select('id, uploader_id').eq('status', 'pending');
+                        const { data: pendingPhotos, error: pErr } = await window.sb.from('photos').select('id, uploader_id, status').in('status', ['pending_quality', 'pending_info', 'pending']);
                         if (pErr) console.error("Lỗi đếm photos:", pErr);
                         const { data: reqs, error: rErr } = await window.sb.from('edit_requests').select('requester_id, new_data').eq('status', 'pending');
                         if (rErr) console.error("Lỗi đếm edit_requests:", rErr);
-                        let pCount = 0;
+                        let qCount = 0;
+                        let infoCount = 0;
                         if (pendingPhotos) {
-                            if (app.admin.isHideMineEnabled && app.user && app.user.id) {
-                                pCount = pendingPhotos.filter(p => p.uploader_id !== app.user.id).length;
-                            } else {
-                                pCount = pendingPhotos.length;
-                            }
+                            pendingPhotos.forEach(p => {
+                                if (app.admin.isHideMineEnabled && app.user && app.user.id && p.uploader_id === app.user.id) return;
+                                if (p.status === 'pending_quality') qCount++;
+                                else if (p.status === 'pending_info' || p.status === 'pending') infoCount++;
+                            });
                         }
                         let editCount = 0;
                         let delCount = 0;
@@ -17408,8 +17410,12 @@ Object.assign(window.app, {
                                 else editCount++;
                             });
                         }
+                        const countQualityEl = document.getElementById('count-quality');
+                        if (countQualityEl) countQualityEl.innerText = qCount;
+                        const countInfoEl = document.getElementById('count-info');
+                        if (countInfoEl) countInfoEl.innerText = infoCount;
                         const countPhotosEl = document.getElementById('count-photos');
-                        if (countPhotosEl) countPhotosEl.innerText = pCount || 0;
+                        if (countPhotosEl) countPhotosEl.innerText = qCount + infoCount;
                         const countReqsEl = document.getElementById('count-requests');
                         if (countReqsEl) countReqsEl.innerText = editCount;
                         const countDelEl = document.getElementById('count-delete');
@@ -17417,7 +17423,7 @@ Object.assign(window.app, {
                         if (window.app && window.app.views && window.app.views.updateMilestoneBanner && document.getElementById('milestone-banner')) {
                             window.app.views.updateMilestoneBanner();
                         }
-                        return (pCount || 0) + editCount + delCount;
+                        return qCount + infoCount + editCount + delCount;
                     } catch (err) { console.error("Lỗi đếm:", err); return 0; }
                 },
                 openZoom: (url, showToolbar = false, isFromAdminReview = false) => {
@@ -17534,26 +17540,32 @@ Object.assign(window.app, {
                     }
                 },
                 loadTab: async (tab = 'photos', forceReload = true, preserveScroll = false) => {
-    if (tab === 'photos') {
-        const isManagerRole = app.role === 'manager';
-        const isQualAud = app.user && app.user.subroles && app.user.subroles.includes('quality_aud');
-        tab = (isManagerRole || isQualAud) ? 'quality' : 'info';
-    }
+                    const isManager = app.role === 'manager';
+                    const isAdmin = app.role === 'admin';
+                    const hasQualityAud = app.user && app.user.subroles && app.user.subroles.includes('quality_aud');
+                    const canSeeQuality = isManager || (isAdmin && hasQualityAud);
+                    const canSeeInfo = isManager || (isAdmin && !hasQualityAud);
+
+                    if (tab === 'photos') {
+                        if (isManager || (isAdmin && hasQualityAud)) tab = 'quality';
+                        else tab = 'info';
+                    }
+                    if (tab === 'quality' && !canSeeQuality) tab = 'info';
+                    if (tab === 'info' && !canSeeInfo) tab = 'quality';
+
                     if (!app.admin._noteFetched) {
                         app.admin._noteFetched = true;
                         app.admin.fetchAdminNote();
                     }
                     app.adminTab = tab;
-        const btnQuality = document.getElementById('adm-tab-quality');
-        const btnInfo = document.getElementById('adm-tab-info');
-        const isManager = app.role === 'manager';
-        const hasQualityAud = app.user && app.user.subroles && app.user.subroles.includes('quality_aud');
-        if (btnQuality) {
-            btnQuality.classList.toggle('hidden', !(isManager || hasQualityAud));
-        }
-        if (btnInfo) {
-            btnInfo.classList.remove('hidden');
-        }
+                    const btnQuality = document.getElementById('adm-tab-quality');
+                    const btnInfo = document.getElementById('adm-tab-info');
+                    if (btnQuality) {
+                        btnQuality.classList.toggle('hidden', !canSeeQuality);
+                    }
+                    if (btnInfo) {
+                        btnInfo.classList.toggle('hidden', !canSeeInfo);
+                    }
                     app.admin.refreshCounts().then(total => app.admin.checkNotification());
                     if (app.admin._activeLoadingTab === tab && app.admin._isTabLoading && !preserveScroll && !forceReload) return;
                     app.admin._activeLoadingTab = tab;
@@ -17627,21 +17639,38 @@ Object.assign(window.app, {
         try {
             const targetStatus = tab === 'quality' ? 'pending_quality' : 'pending_info';
             const [sbRes, apiRes] = await Promise.all([
-                window.sb.from('photos').select('*, profiles(username, role, reputation_score), vehicles(model), photo_reviews(action, reason, admin_id)', { count: 'exact' }).eq('status', targetStatus).order('id', { ascending: true }).range(fromRow, toRow).then(r => r).catch(() => ({ data: [], count: 0 })),
+                (tab === 'info'
+                    ? window.sb.from('photos').select('*, profiles(username, role, reputation_score), vehicles(model), photo_reviews(action, reason, admin_id)', { count: 'exact' }).in('status', ['pending_info', 'pending'])
+                    : window.sb.from('photos').select('*, profiles(username, role, reputation_score), vehicles(model), photo_reviews(action, reason, admin_id)', { count: 'exact' }).eq('status', 'pending_quality')
+                ).order('id', { ascending: true }).range(fromRow, toRow).then(r => r).catch(() => ({ data: [], count: 0 })),
                 (async () => {
                     try {
                         const sessionRes = await window.sb.auth.getSession();
                         const token = sessionRes.data.session?.access_token;
                         if (!token) return { pendingPhotos: [] };
-                        const rs = await fetch('/api/admin/pending?page=' + app.adminPendingPage + '&status=' + targetStatus, {
-                            headers: { 'Authorization': 'Bearer ' + token }
+                        const rs = await fetch(`/api/photo?status=${targetStatus}&_t=${new Date().getTime()}`, {
+                            headers: { 'Authorization': 'Bearer ' + token },
+                            cache: 'no-store'
                         });
-                        return await rs.json();
+                        const json = await rs.json();
+                        return { pendingPhotos: json.data || [] };
                     } catch(e) { return { pendingPhotos: [] }; }
                 })()
             ]);
-            rawPhotos = (apiRes && apiRes.pendingPhotos) ? apiRes.pendingPhotos : (sbRes.data || []);
-            totalPending = sbRes.count || rawPhotos.length;
+            const idMap = new Map();
+            (sbRes.data || []).forEach(p => idMap.set(p.id, p));
+            if (apiRes && Array.isArray(apiRes.pendingPhotos)) {
+                apiRes.pendingPhotos.forEach(p => {
+                    const existing = idMap.get(p.id);
+                    if (existing) {
+                        idMap.set(p.id, { ...existing, ...p });
+                    } else {
+                        idMap.set(p.id, p);
+                    }
+                });
+            }
+            rawPhotos = Array.from(idMap.values());
+            totalPending = Math.max(sbRes.count || 0, rawPhotos.length);
         } catch(e) {}
 if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
                             if (!rawPhotos || rawPhotos.length === 0) { content.innerHTML = '<p class="p-4 text-gray-600">Không có ảnh nào chờ duyệt.</p>'; return; }
@@ -19524,6 +19553,37 @@ if (cbQuality) newSubroles.push('quality_aud');
                         btnCancelText: "Hủy bỏ"
                     });
                 },
+                managerSaveSubroles: async () => {
+                    const userId = document.getElementById('subrole-target-id')?.value;
+                    if (!userId) return;
+                    const cbDev = document.getElementById('subrole-cb-dev')?.checked;
+                    const cbQuality = document.getElementById('subrole-cb-quality')?.checked;
+                    const cbVvbs = document.getElementById('subrole-cb-vvbs')?.checked;
+                    const cbVvcc = document.getElementById('subrole-cb-vvcc')?.checked;
+                    const linkInput = document.getElementById('subrole-vvcc-link')?.value.trim();
+                    let newSubroles = [];
+                    if (cbQuality) newSubroles.push('quality_aud');
+                    if (cbDev) newSubroles.push('dev');
+                    if (cbVvbs) newSubroles.push('vvbs');
+                    if (cbVvcc) {
+                        if (linkInput) newSubroles.push(`vvcc|${linkInput}`);
+                        else newSubroles.push('vvcc');
+                    }
+                    try {
+                        const { data: { session } } = await window.sb.auth.getSession();
+                        const response = await fetch('/api/manager', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+                            body: JSON.stringify({ action: 'update_subroles', targetUserId: userId, newSubroles })
+                        });
+                        const data = await response.json();
+                        if (data.success) {
+                            document.getElementById('subrole-prompt-modal')?.classList.add('hidden');
+                            app.toast.show('success', 'Thành công', 'Đã cập nhật subroles');
+                            if (app.admin.fetchManagerData) app.admin.fetchManagerData('bans');
+                        } else throw new Error(data.error);
+                    } catch(e) { app.ui.showAlert("Lỗi: " + e.message); }
+                },
                 _emailUsersRaw: [],
                 fetchUsersForEmail: async () => {
                     try {
@@ -19965,7 +20025,7 @@ if (cbQuality) newSubroles.push('quality_aud');
                     if (app.isRealtimeConnected === false) {
                         return app.ui.showAlert("Mất kết nối Realtime với máy chủ! Đã tạm khóa chức năng duyệt và can thiệp ảnh để tránh lệch dữ liệu.");
                     }
-                    if (app.user.id === uploaderId) {
+                    if (app.user.id === uploaderId && app.role !== 'manager') {
                         return app.ui.showAlert("Bạn không thể tự duyệt ảnh của mình!");
                     }
                     if (btn && btn.disabled) return;
@@ -20088,22 +20148,23 @@ if (cbQuality) newSubroles.push('quality_aud');
                     if (app.role !== 'manager' && app.role !== 'admin') {
                         return app.ui.showAlert("Chỉ Kiểm duyệt/Quản lý mới có quyền từ chối ảnh!");
                     }
-                    if (app.user.id === uploaderId) {
+                    if (app.user.id === uploaderId && app.role !== 'manager') {
                         return app.ui.showAlert("Bạn không thể tự từ chối ảnh của chính mình!");
                     }
                     const isQuality = app.adminTab === 'quality';
-const isInfo = app.adminTab === 'info';
-document.querySelectorAll('.deny-quick-cb').forEach(cb => {
-    const txt = cb.value;
-    const isQualError = txt.includes('B1.3') || txt.includes('B1.4') || txt.includes('B2.1') || txt.includes('B2.2') || txt.includes('B2.3') || txt.includes('B2.4') || txt.includes('B2.5') || txt.includes('B3.1') || txt.includes('B3.2') || txt.includes('B3.4') || txt.includes('B3.5') || txt.includes('B4.2') || txt.includes('B4.3') || txt.includes('B4.4');
-    const isInfoError = txt.includes('B1.1') || txt.includes('B1.2') || txt.includes('B4.1') || txt.includes('B5.1') || txt.includes('B5.2') || txt.includes('B5.3') || txt.includes('B5.4') || txt.includes('liệu') || txt.includes('li?u');
-    
-    let show = true;
-    if (isQuality && !isQualError) show = false;
-    if (isInfo && !isInfoError) show = false;
-    
-    cb.parentElement.style.display = show ? 'flex' : 'none';
-});
+                    const isInfo = app.adminTab === 'info';
+                    document.querySelectorAll('.deny-quick-cb').forEach(cb => {
+                        const txt = cb.value;
+                        const isQualError = txt.includes('B1.3') || txt.includes('B1.4') || txt.includes('B2.1') || txt.includes('B2.2') || txt.includes('B2.3') || txt.includes('B2.4') || txt.includes('B2.5') || txt.includes('B3.1') || txt.includes('B3.2') || txt.includes('B3.4') || txt.includes('B3.5') || txt.includes('B4.2') || txt.includes('B4.3') || txt.includes('B4.4');
+                        const isInfoError = txt.includes('B1.1') || txt.includes('B1.2') || txt.includes('B4.1') || txt.includes('B5.1') || txt.includes('B5.2') || txt.includes('B5.3') || txt.includes('B5.4') || txt.includes('tư liệu') || txt.includes('tu lieu') || txt.includes('liệu') || txt.includes('li?u');
+                        
+                        let show = true;
+                        if (isQuality && !isQualError) show = false;
+                        if (isInfo && !isInfoError) show = false;
+                        
+                        const label = cb.closest('label');
+                        if (label) label.style.display = show ? 'flex' : 'none';
+                    });
 
 app.ui.showDenyPrompt("Từ chối ảnh", (reason) => {
                         if (!reason.trim()) {

@@ -68,7 +68,7 @@ export async function onRequest(context) {
 
             const { data: photos, error: dbErr } = await supabaseAdmin
                 .from('photos')
-                .select('*, profiles(username, role), vehicles(model), photo_reviews(action, reason, admin_id)')
+                .select('*, profiles(username, role, reputation_score), vehicles(model), photo_reviews(action, reason, admin_id)')
                 .eq('status', status)
                 .order('created_at', { ascending: false })
                 .limit(500);

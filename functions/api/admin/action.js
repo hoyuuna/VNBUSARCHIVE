@@ -86,6 +86,10 @@ export async function onRequestPost(context) {
         const isManager = userRole === 'manager';
         const hasQualityAud = isManager || subroles.includes('quality_aud');
 
+        if (photo.uploader_id === user.id && !isManager) {
+            return new Response(JSON.stringify({ error: 'Quyền bị từ chối: Bạn không được tự duyệt hoặc từ chối ảnh của chính mình.' }), { status: 403 });
+        }
+
         if (photo.status === 'pending_quality' && !hasQualityAud) {
             return new Response(JSON.stringify({ error: 'Quyền bị từ chối: Cần role quality_aud để duyệt chất lượng.' }), { status: 403 });
         }
@@ -184,7 +188,8 @@ export async function onRequestPost(context) {
                 license_plate: plate,
                 note: note,
                 location: location,
-
+                mod_note: null,
+                is_documentary: false,
                 status: 'approved',
                 operator: op,
                 type: type,
@@ -434,8 +439,21 @@ export async function onRequestPost(context) {
                 let change = 0;
                 
                 if (isFinalApprove) {
-                    change = photo.is_documentary ? 6 : 3;
-                    if (body.exif_perfect) change += 1;
+                    if (photo.status === 'denied') {
+                        let originalBonus = photo.is_documentary ? 6 : 3;
+                        if (body.exif_perfect) originalBonus += 1;
+                        let refundedPenalty = 5;
+                        try {
+                            const { data: prevLog } = await sbAdmin.from('reputation_logs').select('change_amount').eq('photo_id', photoId).lt('change_amount', 0).order('created_at', { ascending: false }).limit(1).maybeSingle();
+                            if (prevLog && prevLog.change_amount < 0) {
+                                refundedPenalty = Math.abs(prevLog.change_amount);
+                            }
+                        } catch(e) {}
+                        change = refundedPenalty + (originalBonus * 2);
+                    } else {
+                        change = photo.is_documentary ? 6 : 3;
+                        if (body.exif_perfect) change += 1;
+                    }
                 } else if (isFinalDeny) {
                     let penalty = 0;
                     if (finalDenialReason && finalDenialReason.includes('tư liệu')) {

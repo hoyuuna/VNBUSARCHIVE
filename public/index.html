@@ -1942,7 +1942,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1790515926685" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1790516677452" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -2413,6 +2413,14 @@ html.theme-dark .ct-icon {
                 <div class="p-5 overflow-y-auto space-y-4 max-h-[60vh]">
                     <input type="hidden" id="subrole-target-id">
                     
+                    <label class="flex items-start gap-2 cursor-pointer group">
+                        <input type="checkbox" id="subrole-cb-quality" class="mt-0.5 cursor-pointer accent-black w-4 h-4">
+                        <div>
+                            <span class="text-sm font-bold text-gray-900 group-hover:text-black transition">Kiểm duyệt chất lượng (quality_aud)</span>
+                            <p class="text-[10px] text-gray-500">Quyền tham gia Đội 1: Kiểm duyệt chất lượng ảnh.</p>
+                        </div>
+                    </label>
+
                     <label class="flex items-start gap-2 cursor-pointer group">
                         <input type="checkbox" id="subrole-cb-dev" class="mt-0.5 cursor-pointer accent-black w-4 h-4">
                         <div>
@@ -6922,7 +6930,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.49aa42833b51.js"></script>
+<script src="/app.ef1b66733c7e.js"></script>
 </body>
 </html>
 
