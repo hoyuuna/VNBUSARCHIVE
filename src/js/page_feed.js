@@ -1548,7 +1548,7 @@ Object.assign(window.app, {
                     }
                     if (isPending || isDenied) {
                         if (isPending) {
-                            window.sb.from('photos').select('id, created_at, profiles(role)').in('status', ['pending', 'pending_quality', 'pending_info'])
+                            window.sb.from('photos').select('id, created_at, status, profiles(role)').in('status', ['pending', 'pending_quality', 'pending_info'])
                                 .then(({ data, error }) => {
                                     let ahead = '?';
                                     if (!error && data) {
@@ -1558,6 +1558,9 @@ Object.assign(window.app, {
                                         const myTime = new Date(photo.created_at).getTime();
                                         data.forEach(p => {
                                             if (p.id === photo.id) return;
+                                            const myQueue = (photo.status === 'pending' || photo.status === 'pending_quality') ? 'quality' : 'info';
+                                            const pQueue = (p.status === 'pending' || p.status === 'pending_quality') ? 'quality' : 'info';
+                                            if (myQueue !== pQueue) return;
                                             const pRole = p.profiles?.role || 'user';
                                             const pPrivileged = (pRole === 'admin' || pRole === 'manager');
                                             const pTime = new Date(p.created_at).getTime();
