@@ -360,6 +360,8 @@ export async function onRequestPost(context) {
             const { error: updateErr } = await sbAdmin.from('photos').update({
                 status: 'denied',
                 denial_reason: finalDenialReason,
+                mod_note: null,
+                is_documentary: false,
                 review_progress: newProgress,
                 reviewer_count: newReviewerCount,
                 needs_third: needsThird,
@@ -456,8 +458,10 @@ export async function onRequestPost(context) {
                     }
                 } else if (isFinalDeny) {
                     let penalty = 0;
+                    let isDocAbuse = false;
                     if (finalDenialReason && finalDenialReason.includes('tư liệu')) {
-                        penalty += 15;
+                        penalty += 50;
+                        isDocAbuse = true;
                     }
                     const codes = finalDenialReason ? (finalDenialReason.match(/B\d\.\d|C\d/g) || []) : [];
                     for (const code of codes) {
@@ -467,7 +471,8 @@ export async function onRequestPost(context) {
                         else if (['B5.1', 'B5.2', 'B5.4'].includes(code)) penalty += 15;
                     }
                     if (penalty === 0 && codes.length === 0) penalty = 5;
-                    if (penalty > 15) penalty = 15;
+                    if (!isDocAbuse && penalty > 15) penalty = 15;
+                    if (isDocAbuse && penalty > 50) penalty = 50;
                     change = -penalty;
                 }
                 
