@@ -6047,7 +6047,7 @@ changePassword: async () => {
 });
 
 /* --- MODULE: page_feed.js --- */
-// Extracted to page_feed.js
+﻿// Extracted to page_feed.js
 Object.assign(window.app, {
     views: {
                 currentProfileSort: 'newest',
@@ -7479,7 +7479,7 @@ Object.assign(window.app, {
                             if (snapshot.route_no && snapshot.route_no !== '---') prefs.routes[snapshot.route_no] = (prefs.routes[snapshot.route_no] || 0) + 1;
                             if (snapshot.operator && snapshot.operator !== '---') prefs.ops[snapshot.operator] = (prefs.ops[snapshot.operator] || 0) + 1;
                             if (snapshot.model && snapshot.model !== '---') prefs.models[snapshot.model] = (prefs.models[snapshot.model] || 0) + 1;
-                            document.getElementById('pending-status-box').classList.add('hidden');
+                            const tracker = document.getElementById('photo-progress-tracker'); if (tracker) tracker.classList.add('hidden');
                             document.getElementById('denial-reason-box').classList.add('hidden');
                             document.getElementById('denial-delete-warning-box').classList.add('hidden');
                             document.getElementById('denial-improvement-box').classList.add('hidden');
@@ -7595,20 +7595,13 @@ Object.assign(window.app, {
                             suggestBox.classList.add('hidden');
                         }
                     }
-                    if (isPending) {
-                        document.getElementById('pending-status-box').classList.remove('hidden');
-                        const queueBox = document.getElementById('pending-queue-box');
-                        if (queueBox) {
-                            queueBox.classList.remove('hidden');
-                            document.getElementById('pending-queue-count').innerText = '...';
-                            const progEl = document.getElementById('pending-review-progress');
-                            if (progEl) {
-                                progEl.innerText = `Ảnh của bạn đã được ${photo.review_progress || '0/2'} người duyệt.`;
-                            }
+                    if (isPending || isDenied) {
+                        if (isPending) {
                             window.sb.from('photos').select('id, created_at, profiles(role)').in('status', ['pending', 'pending_quality', 'pending_info'])
                                 .then(({ data, error }) => {
+                                    let ahead = '?';
                                     if (!error && data) {
-                                        let ahead = 0;
+                                        ahead = 0;
                                         const myRole = photo.profiles?.role || 'user';
                                         const isMePrivileged = (myRole === 'admin' || myRole === 'manager');
                                         const myTime = new Date(photo.created_at).getTime();
@@ -7624,16 +7617,19 @@ Object.assign(window.app, {
                                                 else if (pTime < myTime) ahead++;
                                             }
                                         });
-                                        document.getElementById('pending-queue-count').innerText = ahead;
-                                    } else {
-                                        document.getElementById('pending-queue-count').innerText = '?';
+                                    }
+                                    if (typeof app.feed.renderProgressTracker === 'function') {
+                                        app.feed.renderProgressTracker(photo, ahead);
                                     }
                                 });
+                        } else {
+                            if (typeof app.feed.renderProgressTracker === 'function') {
+                                app.feed.renderProgressTracker(photo, 0);
+                            }
                         }
                     } else {
-                        document.getElementById('pending-status-box').classList.add('hidden');
-                        const queueBox = document.getElementById('pending-queue-box');
-                        if (queueBox) queueBox.classList.add('hidden');
+                        const tracker = document.getElementById('photo-progress-tracker');
+                        if (tracker) tracker.classList.add('hidden');
                     }
                     const isMyOwnPhoto = app.user && app.user.id === photo.uploader_id;
                     const isValidViewer = !isMyOwnPhoto && !isDenied;
@@ -9066,6 +9062,97 @@ let currentRouteProvName = null;
                 }
             }
 });
+
+app.feed = app.feed || {};
+app.feed.renderProgressTracker = function(photo, queueCount) {
+    const tracker = document.getElementById('photo-progress-tracker');
+    if (!tracker) return;
+    
+    if (photo.status === 'approved') {
+        tracker.classList.add('hidden');
+        return;
+    }
+    
+    tracker.classList.remove('hidden');
+    const isDenied = photo.status === 'denied';
+    
+    document.getElementById('tracker-header').innerText = `Trạng thái ảnh: ${isDenied ? 'Bị từ chối' : 'Đang chờ duyệt'}`;
+    
+    const isDoc = photo.is_documentary;
+    const warningEl = document.getElementById('tracker-warning');
+    if (isDoc && !isDenied) {
+        warningEl.classList.remove('hidden');
+    } else {
+        warningEl.classList.add('hidden');
+    }
+    
+    const footerEl = document.getElementById('tracker-footer');
+    if (isDenied) {
+        footerEl.innerHTML = 'Không sao cả, bạn thử lại với một bức ảnh khác chất lượng hơn nhé! Cảm ơn đóng góp của bạn.<br>Bạn có thể tham khảo <a href="/ar" class="underline font-bold">Quy định kiểm duyệt</a> tại đây. Nếu cần giải thích thêm hoặc khiếu nại, hãy Gửi yêu cầu hỗ trợ cho tụi mình nhé! Bạn vui lòng không xóa ảnh nếu có nhu cầu kháng cáo!';
+    } else {
+        footerEl.innerText = 'Thời gian phê duyệt sẽ linh hoạt tùy theo lượng ảnh, độ khó và tâm trạng admin (*^▽^*) thường sẽ kéo dài từ 1-12 tiếng mỗi ảnh. Cảm ơn bạn đã kiên nhẫn chờ đợi.';
+    }
+    
+    let qStatus = 'gray', iStatus = 'gray', pStatus = 'gray';
+    let qText = 'Đang chờ kiểm duyệt ảnh...', iText = 'Đang chờ kiểm duyệt thông tin...', pText = 'Ảnh được công khai!';
+    
+    if (photo.status.startsWith('pending') || photo.status === 'pending_quality') {
+        qStatus = 'yellow';
+    } else if (photo.status === 'pending_info') {
+        qStatus = 'green';
+        qText = 'Kiểm duyệt ảnh hoàn tất';
+        iStatus = 'yellow';
+    } else if (isDenied) {
+        qStatus = 'red';
+        qText = 'Ảnh bị từ chối';
+        iStatus = 'red';
+        iText = 'Ảnh bị từ chối';
+        pStatus = 'red';
+        pText = 'Ảnh bị từ chối';
+    }
+    
+    const steps = [
+        { status: 'green', text: 'Ảnh được gửi đi thành công!', subtext: null, icon: 'fa-paper-plane' },
+        { status: qStatus, text: qText, subtext: (qStatus === 'yellow' ? `Ảnh chờ trước bạn: ${queueCount}` : null), icon: 'fa-image' },
+        { status: iStatus, text: iText, subtext: (iStatus === 'yellow' ? `Ảnh chờ trước bạn: ${queueCount}` : null), icon: 'fa-list-check' },
+        { status: pStatus, text: pText, subtext: null, icon: isDenied ? 'fa-circle-xmark' : 'fa-circle-check' }
+    ];
+    
+    let html = '';
+    for (let i = 0; i < steps.length; i++) {
+        const s = steps[i];
+        let colorClass = '';
+        let iconColor = '';
+        if (s.status === 'green') { colorClass = 'border-green-500 bg-green-500'; iconColor = 'text-green-500'; }
+        if (s.status === 'yellow') { colorClass = 'border-yellow-500 bg-yellow-500'; iconColor = 'text-yellow-500'; }
+        if (s.status === 'red') { colorClass = 'border-red-500 bg-red-500'; iconColor = 'text-red-500'; }
+        if (s.status === 'gray') { colorClass = 'border-gray-300 dark:border-zinc-700 bg-gray-300 dark:bg-zinc-700'; iconColor = 'text-gray-400'; }
+        
+        let lineHtml = '';
+        if (i < steps.length - 1) {
+            let lineColor = (s.status === 'green') ? 'bg-green-500' : 'bg-gray-300 dark:bg-zinc-700';
+            lineHtml = `<div class="absolute left-[15px] top-[30px] bottom-[-15px] w-[2px] ${lineColor} z-0"></div>`;
+        }
+        
+        let subtextHtml = s.subtext ? `<div class="text-xs text-gray-500 dark:text-zinc-400 mt-1">${s.subtext}</div>` : '';
+        let textColor = (s.status === 'gray') ? 'text-gray-500 dark:text-zinc-500' : 'text-black dark:text-white font-bold';
+        
+        html += `
+        <div class="relative flex gap-4 mb-4 last:mb-0 min-h-[40px]">
+            ${lineHtml}
+            <div class="relative z-10 w-8 h-8 bg-white dark:bg-zinc-950 border border-black dark:border-white flex items-center justify-center shrink-0">
+                <i class="fa-solid ${s.icon} ${iconColor} text-sm"></i>
+            </div>
+            <div class="pt-1 pb-4 flex-1">
+                <div class="${textColor} text-sm">${s.text}</div>
+                ${subtextHtml}
+            </div>
+        </div>
+        `;
+    }
+    
+    document.getElementById('tracker-steps').innerHTML = html;
+};
 
 /* --- MODULE: page_search.js --- */
 // Extracted to page_search.js
@@ -16382,15 +16469,19 @@ Object.assign(window.app, {
                         if (app.role !== 'admin' && app.role !== 'manager') {
                             try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
                         }
-                        const payload = app.vehicle.tempHistory.map((h, i) => ({
-                            license_plate: app.currentPlate,
-                            plate: (h.plate && h.plate.trim()) ? h.plate.trim() : (app.currentPlate || null),
-                            operator: h.operator,
-                            route: h.route,
-                            note: h.note,
-                            effective_date: h.effective_date || null,
-                            display_order: i
-                        }));
+                        const payload = app.vehicle.tempHistory.map((h, i) => {
+                            let ed = h.effective_date || null;
+                            if (ed && ed.length > 10) ed = ed.substring(0, 10);
+                            return {
+                                license_plate: app.currentPlate,
+                                plate: (h.plate && h.plate.trim()) ? h.plate.trim() : (app.currentPlate || null),
+                                operator: h.operator,
+                                route: h.route,
+                                note: h.note,
+                                effective_date: ed,
+                                display_order: i
+                            };
+                        });
                         if(app.role === 'admin' || app.role === 'manager') {
                             try {
                                 const currentPlate = app.currentPlate;
@@ -16419,7 +16510,10 @@ Object.assign(window.app, {
                                     }
                                 }
                                 await window.sb.from('vehicle_history').delete().eq('license_plate', app.currentPlate);
-                                if (payload.length > 0) await window.sb.from('vehicle_history').insert(payload);
+                                if (payload.length > 0) {
+                                    const { error: insErr } = await window.sb.from('vehicle_history').insert(payload);
+                                    if (insErr) throw insErr;
+                                }
                                 app.toast.show('success', 'Đã cập nhật', 'Lịch sử hoạt động của xe đã được lưu thành công.');
                                 app.vehicle.toggleEditHistory(app.vehicle.currentHistoryPrefix);
                                 if (window.location.pathname.startsWith('/vehicle/')) {
@@ -17595,10 +17689,11 @@ Object.assign(window.app, {
                         ['quality', 'info', 'requests', 'delete', 'manager', 'comments'].forEach(t => {
                             const btn = document.getElementById(`adm-tab-${t}`);
                             if(!btn) return;
+                            const isHidden = btn.classList.contains('hidden');
                             if(t === tab) {
-                                btn.className = "px-5 py-2 bg-black text-white font-bold rounded-md text-sm shadow-sm transition whitespace-nowrap";
+                                btn.className = "px-5 py-2 bg-black text-white font-bold rounded-md text-sm shadow-sm transition whitespace-nowrap" + (isHidden ? " hidden" : "");
                             } else {
-                                btn.className = "px-5 py-2 bg-white border border-gray-300 text-gray-600 font-bold rounded-md text-sm hover:bg-gray-50 transition whitespace-nowrap";
+                                btn.className = "px-5 py-2 bg-white border border-gray-300 text-gray-600 font-bold rounded-md text-sm hover:bg-gray-50 transition whitespace-nowrap" + (isHidden ? " hidden" : "");
                             }
                         });
                         let activeSub = app.admin.manager?.activeTab || 'denied';
@@ -17617,10 +17712,11 @@ Object.assign(window.app, {
                     ['quality', 'info', 'requests', 'delete', 'manager', 'comments'].forEach(t => {
                         const btn = document.getElementById(`adm-tab-${t}`);
                         if(!btn) return;
+                        const isHidden = btn.classList.contains('hidden');
                         if(t === tab) {
-                            btn.className = "px-5 py-2 bg-black text-white font-bold rounded-md text-sm shadow-sm transition whitespace-nowrap";
+                            btn.className = "px-5 py-2 bg-black text-white font-bold rounded-md text-sm shadow-sm transition whitespace-nowrap" + (isHidden ? " hidden" : "");
                         } else {
-                            btn.className = "px-5 py-2 bg-white border border-gray-300 text-gray-600 font-bold rounded-md text-sm hover:bg-gray-50 transition whitespace-nowrap";
+                            btn.className = "px-5 py-2 bg-white border border-gray-300 text-gray-600 font-bold rounded-md text-sm hover:bg-gray-50 transition whitespace-nowrap" + (isHidden ? " hidden" : "");
                         }
                     });
                     const toggleBar = document.getElementById('adm-photo-grid-toggle-bar');
@@ -20533,27 +20629,33 @@ app.ui.showDenyPrompt("Từ chối ảnh", (reason) => {
                                     if (rDate && !parsedDate) {
                                         hasError = true;
                                     }
+                                    let ed = parsedDate || null;
+                                    if (ed && ed.length > 10) ed = ed.substring(0, 10);
                                     newItems.push({
                                         license_plate: req.license_plate,
                                         plate: document.getElementById(`req-h-plate-${id}-${i}`).value || null,
                                         operator: document.getElementById(`req-h-op-${id}-${i}`).value,
                                         route: document.getElementById(`req-h-route-${id}-${i}`).value,
                                         note: document.getElementById(`req-h-note-${id}-${i}`).value,
-                                        effective_date: parsedDate || null,
+                                        effective_date: ed,
                                         display_order: i
                                     });
                                 }
                             } else {
                                 if (req.new_data.history_items) {
-                                    newItems = req.new_data.history_items.map((item, index) => ({
-                                        license_plate: req.license_plate,
-                                        plate: item.plate || null,
-                                        operator: item.operator,
-                                        route: item.route,
-                                        note: item.note,
-                                        effective_date: item.effective_date || null,
-                                        display_order: index
-                                    }));
+                                    newItems = req.new_data.history_items.map((item, index) => {
+                                        let ed = item.effective_date || null;
+                                        if (ed && ed.length > 10) ed = ed.substring(0, 10);
+                                        return {
+                                            license_plate: req.license_plate,
+                                            plate: item.plate || null,
+                                            operator: item.operator,
+                                            route: item.route,
+                                            note: item.note,
+                                            effective_date: ed,
+                                            display_order: index
+                                        };
+                                    });
                                 }
                             }
                             const currentPlate = req.license_plate;
@@ -20584,9 +20686,11 @@ app.ui.showDenyPrompt("Từ chối ảnh", (reason) => {
                                     }
                                 }
                             }
-                            await window.sb.from('vehicle_history').delete().eq('license_plate', currentPlate);
+                            const { error: delErr } = await window.sb.from('vehicle_history').delete().eq('license_plate', currentPlate);
+                            if (delErr) throw delErr;
                             if (newItems.length > 0) {
-                                await window.sb.from('vehicle_history').insert(newItems);
+                                const { error: insErr } = await window.sb.from('vehicle_history').insert(newItems);
+                                if (insErr) throw insErr;
                             }
                         }
                         await window.sb.from('edit_requests').update({ status: 'approved' }).eq('id', id);

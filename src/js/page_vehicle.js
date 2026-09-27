@@ -272,15 +272,19 @@ Object.assign(window.app, {
                         if (app.role !== 'admin' && app.role !== 'manager') {
                             try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
                         }
-                        const payload = app.vehicle.tempHistory.map((h, i) => ({
-                            license_plate: app.currentPlate,
-                            plate: (h.plate && h.plate.trim()) ? h.plate.trim() : (app.currentPlate || null),
-                            operator: h.operator,
-                            route: h.route,
-                            note: h.note,
-                            effective_date: h.effective_date || null,
-                            display_order: i
-                        }));
+                        const payload = app.vehicle.tempHistory.map((h, i) => {
+                            let ed = h.effective_date || null;
+                            if (ed && ed.length > 10) ed = ed.substring(0, 10);
+                            return {
+                                license_plate: app.currentPlate,
+                                plate: (h.plate && h.plate.trim()) ? h.plate.trim() : (app.currentPlate || null),
+                                operator: h.operator,
+                                route: h.route,
+                                note: h.note,
+                                effective_date: ed,
+                                display_order: i
+                            };
+                        });
                         if(app.role === 'admin' || app.role === 'manager') {
                             try {
                                 const currentPlate = app.currentPlate;
@@ -309,7 +313,10 @@ Object.assign(window.app, {
                                     }
                                 }
                                 await window.sb.from('vehicle_history').delete().eq('license_plate', app.currentPlate);
-                                if (payload.length > 0) await window.sb.from('vehicle_history').insert(payload);
+                                if (payload.length > 0) {
+                                    const { error: insErr } = await window.sb.from('vehicle_history').insert(payload);
+                                    if (insErr) throw insErr;
+                                }
                                 app.toast.show('success', 'Đã cập nhật', 'Lịch sử hoạt động của xe đã được lưu thành công.');
                                 app.vehicle.toggleEditHistory(app.vehicle.currentHistoryPrefix);
                                 if (window.location.pathname.startsWith('/vehicle/')) {

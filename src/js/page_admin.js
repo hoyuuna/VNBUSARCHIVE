@@ -924,10 +924,11 @@ Object.assign(window.app, {
                         ['quality', 'info', 'requests', 'delete', 'manager', 'comments'].forEach(t => {
                             const btn = document.getElementById(`adm-tab-${t}`);
                             if(!btn) return;
+                            const isHidden = btn.classList.contains('hidden');
                             if(t === tab) {
-                                btn.className = "px-5 py-2 bg-black text-white font-bold rounded-md text-sm shadow-sm transition whitespace-nowrap";
+                                btn.className = "px-5 py-2 bg-black text-white font-bold rounded-md text-sm shadow-sm transition whitespace-nowrap" + (isHidden ? " hidden" : "");
                             } else {
-                                btn.className = "px-5 py-2 bg-white border border-gray-300 text-gray-600 font-bold rounded-md text-sm hover:bg-gray-50 transition whitespace-nowrap";
+                                btn.className = "px-5 py-2 bg-white border border-gray-300 text-gray-600 font-bold rounded-md text-sm hover:bg-gray-50 transition whitespace-nowrap" + (isHidden ? " hidden" : "");
                             }
                         });
                         let activeSub = app.admin.manager?.activeTab || 'denied';
@@ -946,10 +947,11 @@ Object.assign(window.app, {
                     ['quality', 'info', 'requests', 'delete', 'manager', 'comments'].forEach(t => {
                         const btn = document.getElementById(`adm-tab-${t}`);
                         if(!btn) return;
+                        const isHidden = btn.classList.contains('hidden');
                         if(t === tab) {
-                            btn.className = "px-5 py-2 bg-black text-white font-bold rounded-md text-sm shadow-sm transition whitespace-nowrap";
+                            btn.className = "px-5 py-2 bg-black text-white font-bold rounded-md text-sm shadow-sm transition whitespace-nowrap" + (isHidden ? " hidden" : "");
                         } else {
-                            btn.className = "px-5 py-2 bg-white border border-gray-300 text-gray-600 font-bold rounded-md text-sm hover:bg-gray-50 transition whitespace-nowrap";
+                            btn.className = "px-5 py-2 bg-white border border-gray-300 text-gray-600 font-bold rounded-md text-sm hover:bg-gray-50 transition whitespace-nowrap" + (isHidden ? " hidden" : "");
                         }
                     });
                     const toggleBar = document.getElementById('adm-photo-grid-toggle-bar');
@@ -3862,27 +3864,33 @@ app.ui.showDenyPrompt("Từ chối ảnh", (reason) => {
                                     if (rDate && !parsedDate) {
                                         hasError = true;
                                     }
+                                    let ed = parsedDate || null;
+                                    if (ed && ed.length > 10) ed = ed.substring(0, 10);
                                     newItems.push({
                                         license_plate: req.license_plate,
                                         plate: document.getElementById(`req-h-plate-${id}-${i}`).value || null,
                                         operator: document.getElementById(`req-h-op-${id}-${i}`).value,
                                         route: document.getElementById(`req-h-route-${id}-${i}`).value,
                                         note: document.getElementById(`req-h-note-${id}-${i}`).value,
-                                        effective_date: parsedDate || null,
+                                        effective_date: ed,
                                         display_order: i
                                     });
                                 }
                             } else {
                                 if (req.new_data.history_items) {
-                                    newItems = req.new_data.history_items.map((item, index) => ({
-                                        license_plate: req.license_plate,
-                                        plate: item.plate || null,
-                                        operator: item.operator,
-                                        route: item.route,
-                                        note: item.note,
-                                        effective_date: item.effective_date || null,
-                                        display_order: index
-                                    }));
+                                    newItems = req.new_data.history_items.map((item, index) => {
+                                        let ed = item.effective_date || null;
+                                        if (ed && ed.length > 10) ed = ed.substring(0, 10);
+                                        return {
+                                            license_plate: req.license_plate,
+                                            plate: item.plate || null,
+                                            operator: item.operator,
+                                            route: item.route,
+                                            note: item.note,
+                                            effective_date: ed,
+                                            display_order: index
+                                        };
+                                    });
                                 }
                             }
                             const currentPlate = req.license_plate;
@@ -3913,9 +3921,11 @@ app.ui.showDenyPrompt("Từ chối ảnh", (reason) => {
                                     }
                                 }
                             }
-                            await window.sb.from('vehicle_history').delete().eq('license_plate', currentPlate);
+                            const { error: delErr } = await window.sb.from('vehicle_history').delete().eq('license_plate', currentPlate);
+                            if (delErr) throw delErr;
                             if (newItems.length > 0) {
-                                await window.sb.from('vehicle_history').insert(newItems);
+                                const { error: insErr } = await window.sb.from('vehicle_history').insert(newItems);
+                                if (insErr) throw insErr;
                             }
                         }
                         await window.sb.from('edit_requests').update({ status: 'approved' }).eq('id', id);
