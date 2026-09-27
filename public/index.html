@@ -1942,7 +1942,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1790521205350" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1790521567918" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -2691,10 +2691,12 @@ html.theme-dark .ct-icon {
                                 <input type="checkbox" value="[B5.4] Vi phạm an toàn giao thông: Vị trí tác nghiệp của người chụp gây nguy hiểm hoặc cản trở giao thông." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
                                 <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B5.4] Vi phạm an toàn giao thông: Vị trí tác nghiệp của người chụp gây nguy hiểm hoặc cản trở giao thông.</span>
                             </label>
-                                <label class="flex items-start gap-2 cursor-pointer group">
-    <input type="checkbox" value="Lạm dụng Đánh dấu ảnh này là ảnh tư liệu" class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
-    <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">Lạm dụng Đánh dấu ảnh này là ảnh tư liệu (Cố tình bỏ qua kiểm duyệt chất lượng)</span>
-</label>
+                                <div id="deny-abuse-doc-wrapper" class="hidden">
+                                    <label class="flex items-start gap-2 cursor-pointer group">
+                                        <input type="checkbox" value="Lạm dụng Đánh dấu ảnh này là ảnh tư liệu" class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
+                                        <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">Lạm dụng Đánh dấu ảnh này là ảnh tư liệu</span>
+                                    </label>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -6937,7 +6939,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.ab3dc037ea99.js"></script>
+<script src="/app.df22b8a99053.js"></script>
 </body>
 </html>
 

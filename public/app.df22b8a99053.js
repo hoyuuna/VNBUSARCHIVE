@@ -20269,7 +20269,11 @@ if (cbQuality) newSubroles.push('quality_aud');
                         return app.ui.showAlert("Bạn không thể tự từ chối ảnh của chính mình!");
                     }
                     const isQuality = app.adminTab === 'quality';
+                    const p = (app.admin.pendingQuality || []).find(x => x.id === id) || (app.admin.pendingInfo || []).find(x => x.id === id);
+                    const isDoc = p ? p.is_documentary : false;
                     const isInfo = app.adminTab === 'info';
+                    const docWrapper = document.getElementById('deny-abuse-doc-wrapper');
+                    if (docWrapper) docWrapper.classList.toggle('hidden', !isDoc);
                     document.querySelectorAll('.deny-quick-cb').forEach(cb => {
                         const txt = cb.value;
                         const isQualError = txt.includes('B1.3') || txt.includes('B1.4') || txt.includes('B2.1') || txt.includes('B2.2') || txt.includes('B2.3') || txt.includes('B2.4') || txt.includes('B2.5') || txt.includes('B3.1') || txt.includes('B3.2') || txt.includes('B3.4') || txt.includes('B3.5') || txt.includes('B4.2') || txt.includes('B4.3') || txt.includes('B4.4');
