@@ -333,6 +333,7 @@ Object.assign(window.app, {
                     const prov = app.utils.cleanText(p.province || '');
                     const note = app.utils.cleanText(p.note);
                     const safeUsername = app.utils.cleanText(p.profiles?.username || 'Ẩn danh');
+                    const docBadge = p.is_documentary ? '<span class="bg-blue-600 text-white px-2 py-0.5 rounded text-[10px] font-bold ml-2 shadow-sm"><i class="fa-solid fa-book mr-1"></i>ẢNH TƯ LIỆU</span>' : '';
                     const safePlate = app.utils.cleanText(p.license_plate);
                     if (!app.admin.originalData) app.admin.originalData = {};
                     app.admin.originalData['photo_' + p.id] = { plate: safePlate, operator: op, type: type, route: route, model: model };
@@ -381,7 +382,7 @@ Object.assign(window.app, {
                                             ${plateKey && plateKey !== '---' && !approvedPlateSet.has(plateKey) ? '<span class="badge-xe-moi"><i class="fa-solid fa-sparkles"></i> XE MỚI</span>' : ''}
                                             ${p.suspected_exif_fraud ? '<span class="bg-red-600 text-white px-1.5 py-0.5 rounded text-[10px] font-bold ml-1 tracking-wider whitespace-nowrap"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Nghi ngờ gian lận</span>' : ''}
                                         </div>
-                                        ${ `<span class="text-xs text-gray-500">${safeUsername}</span><span class="text-xs font-bold bg-gray-100 px-2 py-0.5 rounded ml-2 shadow-sm text-gray-700"><i class="fa-solid fa-star text-yellow-500 mr-1"></i> ${p.profiles?.reputation_score !== undefined ? p.profiles.reputation_score : 100}</span>` }
+                                        ${ `<span class="text-xs text-gray-500">${safeUsername}</span><span class="text-xs font-bold bg-gray-100 px-2 py-0.5 rounded ml-2 shadow-sm text-gray-700"><i class="fa-solid fa-star text-yellow-500 mr-1"></i> ${p.profiles?.reputation_score !== undefined ? p.profiles.reputation_score : 100}</span><span class="text-xs font-bold bg-gray-100 px-2 py-0.5 rounded ml-2 shadow-sm text-gray-700"><i class="fa-solid fa-star text-yellow-500 mr-1"></i> ${p.profiles?.reputation_score !== undefined ? p.profiles.reputation_score : 100}</span>` }
                                     </div>
                                     <div class="relative w-full bg-gray-200 border-y border-gray-200 overflow-hidden">
                                         <img loading="lazy" src="${app.utils.getProxiedUrl(p.url)}" class="w-full h-auto object-contain">
@@ -892,6 +893,11 @@ Object.assign(window.app, {
                     }
                 },
                 loadTab: async (tab = 'photos', forceReload = true, preserveScroll = false) => {
+    if (tab === 'photos') {
+        const isManagerRole = app.role === 'manager';
+        const isQualAud = app.user && app.user.subroles && app.user.subroles.includes('quality_aud');
+        tab = (isManagerRole || isQualAud) ? 'quality' : 'info';
+    }
                     if (!app.admin._noteFetched) {
                         app.admin._noteFetched = true;
                         app.admin.fetchAdminNote();
@@ -2558,6 +2564,7 @@ app.admin.fetchManagerData('denied');
                     const subroles = user.subroles || [];
                     const isDev = subroles.includes('dev');
 const isQualityAud = subroles.includes('quality_aud');
+const isQualityAud = subroles.includes('quality_aud');
                     const vvccRole = subroles.find(s => s === 'vvcc' || s.startsWith('vvcc|'));
                     const isVvcc = !!vvccRole;
                     const vvccLink = (vvccRole && vvccRole.includes('|')) ? vvccRole.split('|')[1] : '';
@@ -2565,6 +2572,13 @@ const isQualityAud = subroles.includes('quality_aud');
                     const htmlForm = `
                         <div class="text-left space-y-4 mt-2 max-h-[60vh] overflow-y-auto">
                             <label class="flex items-start cursor-pointer group select-none">
+                                <input type="checkbox" id="subrole-cb-quality" class="custom-cb-input sr-only" ${isQualityAud ? 'checked' : ''}>
+                                <div class="custom-cb-box shrink-0 shadow-sm">
+                                    <i class="fa-solid fa-check"></i>
+                                </div>
+                                <span class="ml-2 mt-0.5 text-sm text-gray-800 font-bold tracking-tight">Quality Auditor</span>
+                            </label>
+                            <label class="flex items-start cursor-pointer group select-none mt-4">
                                 <input type="checkbox" id="subrole-cb-quality" class="custom-cb-input sr-only" ${isQualityAud ? 'checked' : ''}>
                                 <div class="custom-cb-box shrink-0 shadow-sm">
                                     <i class="fa-solid fa-check"></i>
@@ -2609,11 +2623,13 @@ const isQualityAud = subroles.includes('quality_aud');
                     app.ui.showAlert(htmlForm, async () => {
                         const cbDev = document.getElementById('subrole-cb-dev').checked;
 const cbQuality = document.getElementById('subrole-cb-quality').checked;
+const cbQuality = document.getElementById('subrole-cb-quality').checked;
                         const cbVvbs = document.getElementById('subrole-cb-vvbs').checked;
                         const cbVvcc = document.getElementById('subrole-cb-vvcc').checked;
                         const linkInput = document.getElementById('subrole-vvcc-link').value.trim();
                         let newSubroles = [];
                         if (cbDev) newSubroles.push('dev');
+if (cbQuality) newSubroles.push('quality_aud');
 if (cbQuality) newSubroles.push('quality_aud');
                         if (cbVvbs) newSubroles.push('vvbs');
                         if (cbVvcc) {
@@ -3225,7 +3241,21 @@ document.querySelectorAll('.deny-quick-cb').forEach(cb => {
     cb.parentElement.style.display = show ? 'flex' : 'none';
 });
 
-app.ui.showDenyPrompt("T? ch?i ?nh", (reason) => {
+const isQuality = app.adminTab === 'quality';
+const isInfo = app.adminTab === 'info';
+document.querySelectorAll('.deny-quick-cb').forEach(cb => {
+    const txt = cb.value;
+    const isQualError = txt.includes('B1.3') || txt.includes('B1.4') || txt.includes('B2.1') || txt.includes('B2.2') || txt.includes('B2.3') || txt.includes('B2.4') || txt.includes('B2.5') || txt.includes('B3.1') || txt.includes('B3.2') || txt.includes('B3.4') || txt.includes('B3.5') || txt.includes('B4.2') || txt.includes('B4.3') || txt.includes('B4.4');
+    const isInfoError = txt.includes('B1.1') || txt.includes('B1.2') || txt.includes('B4.1') || txt.includes('B5.1') || txt.includes('B5.2') || txt.includes('B5.3') || txt.includes('B5.4') || txt.includes('liệu') || txt.includes('li?u');
+    
+    let show = true;
+    if (isQuality && !isQualError) show = false;
+    if (isInfo && !isInfoError) show = false;
+    
+    cb.parentElement.style.display = show ? 'flex' : 'none';
+});
+
+app.ui.showDenyPrompt("Từ chối ảnh", (reason) => {
                         if (!reason.trim()) {
                             app.ui.showAlert("Bắt buộc phải nhập lý do!");
                             return;
