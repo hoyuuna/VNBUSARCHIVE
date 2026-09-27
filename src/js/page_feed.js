@@ -1,4 +1,4 @@
-﻿// Extracted to page_feed.js
+// Extracted to page_feed.js
 Object.assign(window.app, {
     views: {
                 currentProfileSort: 'newest',
@@ -3041,8 +3041,28 @@ app.feed.renderProgressTracker = function(photo, queueCount) {
     }
     
     const footerEl = document.getElementById('tracker-footer');
+    let rawReason = photo.denial_reason || 'Không có lý do.';
+    let reasonStr = rawReason;
+    let failedStep = 'unknown';
+
     if (isDenied) {
-        footerEl.innerHTML = 'Không sao cả, bạn thử lại với một bức ảnh khác chất lượng hơn nhé! Cảm ơn đóng góp của bạn.<br>Bạn có thể tham khảo <a href="/ar" class="underline font-bold">Quy định kiểm duyệt</a> tại đây. Nếu cần giải thích thêm hoặc khiếu nại, hãy Gửi yêu cầu hỗ trợ cho tụi mình nhé! Bạn vui lòng không xóa ảnh nếu có nhu cầu kháng cáo!';
+        if (rawReason.startsWith('{quality}')) {
+            failedStep = 'quality';
+            reasonStr = rawReason.substring(9).trim();
+        } else if (rawReason.startsWith('{info}')) {
+            failedStep = 'info';
+            reasonStr = rawReason.substring(6).trim();
+        }
+        
+        let htmlReason = reasonStr.replace(/\n/g, '<br>');
+        
+        footerEl.innerHTML = `
+            <div class="mb-3 p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-md">
+                <span class="font-bold text-red-700 dark:text-red-400 block mb-1">Lý do từ chối:</span>
+                <span class="text-red-600 dark:text-red-300">${htmlReason}</span>
+            </div>
+            Không sao cả, bạn thử lại với một bức ảnh khác chất lượng hơn nhé! Cảm ơn đóng góp của bạn.<br>Bạn có thể tham khảo <a href="/ar" class="underline font-bold">Quy định kiểm duyệt</a> tại đây. Nếu cần giải thích thêm hoặc khiếu nại, hãy <a href="https://www.facebook.com/vnbusarchive" target="_blank" class="underline font-bold">Gửi yêu cầu hỗ trợ</a> cho tụi mình nhé! Bạn vui lòng không xóa ảnh nếu có nhu cầu kháng cáo!
+        `;
     } else {
         footerEl.innerText = 'Thời gian phê duyệt sẽ linh hoạt tùy theo lượng ảnh, độ khó và tâm trạng admin (*^▽^*) thường sẽ kéo dài từ 1-12 tiếng mỗi ảnh. Cảm ơn bạn đã kiên nhẫn chờ đợi.';
     }
@@ -3057,12 +3077,15 @@ app.feed.renderProgressTracker = function(photo, queueCount) {
     } else if (photo.status === 'pending' || photo.status === 'pending_quality') {
         qStatus = 'yellow';
     } else if (isDenied) {
-        qStatus = 'red';
-        qText = 'Ảnh bị từ chối';
-        iStatus = 'red';
-        iText = 'Ảnh bị từ chối';
-        pStatus = 'red';
-        pText = 'Ảnh bị từ chối';
+        if (failedStep === 'info') {
+            qStatus = 'green';
+            qText = isDoc ? 'Miễn kiểm duyệt ảnh (Ảnh tư liệu)' : 'Kiểm duyệt ảnh hoàn tất';
+            iStatus = 'red';
+            iText = 'Từ chối thông tin ảnh';
+        } else {
+            qStatus = 'red';
+            qText = 'Từ chối chất lượng ảnh';
+        }
     }
     
     const steps = [

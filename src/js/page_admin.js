@@ -3519,6 +3519,8 @@ if (cbQuality) newSubroles.push('quality_aud');
                     });
 
 app.ui.showDenyPrompt("Từ chối ảnh", (reason) => {
+                        const prefix = app.adminTab === 'quality' ? '{quality} ' : (app.adminTab === 'info' ? '{info} ' : '');
+                        reason = prefix + reason;
                         if (!reason.trim()) {
                             app.ui.showAlert("Bắt buộc phải nhập lý do!");
                             return;
