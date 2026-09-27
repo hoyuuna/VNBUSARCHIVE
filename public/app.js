@@ -15420,7 +15420,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /* --- MODULE: page_photo.js --- */
-﻿// Extracted to page_photo.js
+// Extracted to page_photo.js
 Object.assign(window.app, {
     photo: {
                 downloadImage: async (e) => {
@@ -15532,7 +15532,7 @@ Object.assign(window.app, {
                         }
                     }
 
-                    const isPendingOrDenied = (p.status === 'pending' || p.status === 'denied');
+                    const isPendingOrDenied = (p.status.startsWith('pending') || p.status === 'denied');
                     if (isPendingOrDenied) {
                         app.ui.showAlert(
                             "Bạn có chắc chắn muốn xóa ảnh này? Ảnh sẽ bị xóa vĩnh viễn khỏi hệ thống.",
@@ -15855,7 +15855,7 @@ Object.assign(window.app, {
                     const input = document.getElementById('comment-input');
                     const content = input?.value.trim();
                     if (!content || !app.currentPhoto) return;
-                    if (app.currentPhoto.status === 'pending' || app.currentPhoto.status === 'denied') {
+                    if (app.currentPhoto.status.startsWith('pending') || app.currentPhoto.status === 'denied') {
                         return app.ui.showAlert("Hành vi bị từ chối. Không thể bình luận trên ảnh chưa được duyệt!");
                     }
                     if (/https?:\/\/|www\.|\.com|\.vn|\.io|\.net|\.org/i.test(content)) {
