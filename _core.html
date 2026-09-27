@@ -5858,34 +5858,18 @@ html.theme-dark .ct-icon {
                 const headers = { 'Content-Type': 'application/json' };
                 if (token) headers['Authorization'] = `Bearer ${token}`;
 
-                const [configRes, banRes] = await Promise.all([
-                    fetch('/api/system'),
-                    fetch('/api/system', { method: 'POST', headers: headers, body: JSON.stringify({ action: 'core', token: token || null }) })
-                ]);
-
-                if (banRes.status === 403) {
-                    const data = await banRes.json().catch(() => ({}));
-                    if (data.banned || data.ip_banned) {
-                        for (let i = 0; i < localStorage.length; i++) {
-                            const key = localStorage.key(i);
-                            if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) localStorage.removeItem(key);
-                        }
-                        sessionStorage.removeItem('VNBA_SESS_AUTH');
-                        if (window.location.hash.includes('access_token')) history.replaceState(null, '', window.location.pathname + window.location.search);
-                        let banReason = data.reason || 'Tài khoản hoặc địa chỉ IP của bạn nằm trong danh sách hạn chế truy cập.';
-                        if (data.banned && data.name) banReason = `Tài khoản <b>${data.name}</b>${data.uuid ? ` (<code>${data.uuid}</code>)` : ''} đã bị cấm với lí do: <b>${data.reason || 'Vi phạm quy định của VNBUSARCHIVE'}</b>`;
-                        window.renderModernStatusScreen({
-                            title: 'TRUY CẬP ĐÃ BỊ HẠN CHẾ',
-                            label: 'LÝ DO HẠN CHẾ TRUY CẬP / BAN LOG',
-                            reason: banReason,
-                            contactSuffix: 'nếu bạn nghĩ đây là một sai lầm! Xin cảm ơn.',
-                            iconSvg: '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#18181b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>'
-                        });
-                        return; // Ngăn khởi tạo ứng dụng
-                    }
-                }
-                if (!configRes.ok) throw new Error('Không thể tải cấu hình máy chủ');
-                const config = await configRes.json();
+                let config = null;
+                  try {
+                      const cached = sessionStorage.getItem('VNBA_SYS_CONF');
+                      if (cached) config = JSON.parse(cached);
+                  } catch(e) {}
+                  
+                  if (!config) {
+                      const configRes = await fetch('/api/system');
+                      if (!configRes.ok) throw new Error('Kh�ng th? t?i c?u h�nh m�y ch?');
+                      config = await configRes.json();
+                      try { sessionStorage.setItem('VNBA_SYS_CONF', JSON.stringify(config)); } catch(e) {}
+                  }
                 
                 // --- DEBUG INTERCEPTOR ---
                 const originalFetch = window.fetch;
