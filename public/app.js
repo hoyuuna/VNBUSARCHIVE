@@ -19222,7 +19222,6 @@ app.admin.fetchManagerData('denied');
                     const subroles = user.subroles || [];
                     const isDev = subroles.includes('dev');
 const isQualityAud = subroles.includes('quality_aud');
-const isQualityAud = subroles.includes('quality_aud');
                     const vvccRole = subroles.find(s => s === 'vvcc' || s.startsWith('vvcc|'));
                     const isVvcc = !!vvccRole;
                     const vvccLink = (vvccRole && vvccRole.includes('|')) ? vvccRole.split('|')[1] : '';
@@ -19230,13 +19229,6 @@ const isQualityAud = subroles.includes('quality_aud');
                     const htmlForm = `
                         <div class="text-left space-y-4 mt-2 max-h-[60vh] overflow-y-auto">
                             <label class="flex items-start cursor-pointer group select-none">
-                                <input type="checkbox" id="subrole-cb-quality" class="custom-cb-input sr-only" ${isQualityAud ? 'checked' : ''}>
-                                <div class="custom-cb-box shrink-0 shadow-sm">
-                                    <i class="fa-solid fa-check"></i>
-                                </div>
-                                <span class="ml-2 mt-0.5 text-sm text-gray-800 font-bold tracking-tight">Quality Auditor</span>
-                            </label>
-                            <label class="flex items-start cursor-pointer group select-none mt-4">
                                 <input type="checkbox" id="subrole-cb-quality" class="custom-cb-input sr-only" ${isQualityAud ? 'checked' : ''}>
                                 <div class="custom-cb-box shrink-0 shadow-sm">
                                     <i class="fa-solid fa-check"></i>
@@ -19281,13 +19273,11 @@ const isQualityAud = subroles.includes('quality_aud');
                     app.ui.showAlert(htmlForm, async () => {
                         const cbDev = document.getElementById('subrole-cb-dev').checked;
 const cbQuality = document.getElementById('subrole-cb-quality').checked;
-const cbQuality = document.getElementById('subrole-cb-quality').checked;
                         const cbVvbs = document.getElementById('subrole-cb-vvbs').checked;
                         const cbVvcc = document.getElementById('subrole-cb-vvcc').checked;
                         const linkInput = document.getElementById('subrole-vvcc-link').value.trim();
                         let newSubroles = [];
                         if (cbDev) newSubroles.push('dev');
-if (cbQuality) newSubroles.push('quality_aud');
 if (cbQuality) newSubroles.push('quality_aud');
                         if (cbVvbs) newSubroles.push('vvbs');
                         if (cbVvcc) {
